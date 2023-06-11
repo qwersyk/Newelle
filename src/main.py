@@ -2,8 +2,9 @@ import sys,random,time,types
 import gi,os,re,subprocess,io
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Gtk, Adw,Pango,Gio
 from .baiapi import BAIChat
+from gi.repository import Gtk, Adw,Pango,Gio
+
 import threading
 
 start_m="""System:You're an assistant who is supposed to help the user by answering questions and doing what he asks. You have the ability to run Linux commands for the terminal on the user's computer in order to perform the task he asks for. There are two types of messages "Assistant: text", this is where you answer his questions and talk to the user. And the second type is "Assistant: $name``command``$". The 'name' is what the command does, the 'command' is what you execute on the user's computer you can't write questions, answers, or explanations here, you can only write what you want. At the end of each message must be '\end'. You don't have to tell the user how to do something, you have to do it yourself. Write the minimum and only what is important. If you're done, write "\end" in a new message.You know all the languages and understand and can communicate in them. If you were written in a language, continue in the language in which he wrote. \end
@@ -41,6 +42,10 @@ User: Create file 1.py \end
 Assistant: $Create file 1.py```touch 1.py```$ \end
 Console: \end
 Assistant: \end
+
+System: New chat \end
+User: Write the multiplication table 4 by 4 \end
+Assistant: | - | 1 | 2 | 3 | 4 |\n| - | - | - | - | - |\n| 1 | 1 | 2 | 3 | 4 |\n| 2 | 2 | 4 | 6 | 8 |\n| 3 | 3 | 6 | 9 | 12 |\n| 4 | 4 | 8 | 12 | 16 |\end
 
 System: New chat \end"""
 
@@ -135,6 +140,22 @@ class MainWindow(Gtk.ApplicationWindow):
         self.update_folder()
         threading.Thread(target=self.updage_button).start()
         self.add_message("Warning")
+    def create_table(self,table):
+        data = []
+        for row in table:
+            cells = row.strip('|').split('|')
+            data.append([cell.strip() for cell in cells])
+        self.model = Gtk.ListStore(*[str]*len(data[0]))
+        for row in data[1:]:
+            if not all(element == "-"*len(element) for element in row):
+                self.model.append(row)
+        self.treeview = Gtk.TreeView(model=self.model,css_classes=["toolbar","view"])
+
+        for i, title in enumerate(data[0]):
+            renderer = Gtk.CellRendererText()
+            column = Gtk.TreeViewColumn(title, renderer, text=i)
+            self.treeview.append_column(column)
+        return self.treeview
     def clear(self,button):
         self.add_message("/Clear")
         self.chat=[]
@@ -148,7 +169,13 @@ class MainWindow(Gtk.ApplicationWindow):
         button.set_visible(False)
         self.entry.set_sensitive(True)
         threading.Thread(target=self.updage_button).start()
-        self.chat.pop(-1)
+        for i in range(len(self.chat)-1,-1,-1):
+
+            if self.chat[i]["User"]!="User":
+                self.chat.pop(i)
+            else:
+                self.chat.pop(i)
+                break
         self.add_message("Message_stop")
     def chatansw(self,message,assistant=False):
         n=1
@@ -304,8 +331,33 @@ Assistant: Yes, of course, what do you need help with?\end"""+"\n"+self.return_c
                 self.status=True
                 self.button_stop.set_visible(False)
             else:
+                table_string=message_label.split("\n")
+                box=Gtk.Box(margin_top=10,margin_start=10,margin_bottom=10,margin_end=10,orientation=Gtk.Orientation.VERTICAL)
+                s=-1
+                l=0
+                for i in range(len(table_string)):
+
+                    if len(table_string[i])>0 and table_string[i][0]=="|" and table_string[i][-1]=="|":
+                        if s==-1:
+
+                            l=len(table_string[i].split("|"))
+                            s=i
+                        elif l!=len(table_string[i].split("|")):
+
+                            box.append(self.create_table(table_string[s:i]))
+                            s=i
+                        else:
+                            pass
+
+                    elif s!=-1:
+                        box.append(self.create_table(table_string[s:i]))
+                        s=-1
+                    else:
+                        box.append(Gtk.Label(label=table_string, wrap=True, css_classes=["heading"],wrap_mode=Pango.WrapMode.WORD_CHAR,width_chars=1))
+                if s!=-1:
+                    box.append(self.create_table(table_string[s:i+1]))
                 self.chat.append({"User":"Assistant","Message":f" {message_label}\end"})
-                self.add_message("Assistant",Gtk.Label(label=message_label,margin_top=10,margin_start=10,margin_bottom=10,margin_end=10, wrap=True, css_classes=["heading"],wrap_mode=Pango.WrapMode.WORD_CHAR,width_chars=1))
+                self.add_message("Assistant",box)
                 self.entry.set_sensitive(True)
                 threading.Thread(target=self.updage_button).start()
                 self.status=True
@@ -365,7 +417,7 @@ class MyApp(Adw.Application):
                                 application_name='Assistant',
                                 application_icon='org.gnome.Assistant',
                                 developer_name='qwersyk',
-                                version='0.1.0',
+                                version='0.1.1',
                                 developers=['qwersyk'],
                                 copyright='© 2023 qwersyk')
         about.present()
@@ -378,4 +430,7 @@ def main(version):
     app = MyApp(application_id="org.gnome.Assistant")
     app.run(sys.argv)
 
-
+if __name__=="__main__":
+    from baiapi import BAIChat
+    app = MyApp(application_id="org.gnome.Assistant")
+    app.run(sys.argv)
