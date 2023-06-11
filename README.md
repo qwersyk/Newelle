@@ -2,11 +2,10 @@
 
 This repository contains a chat bot program written in GTK4 and Adwaita (adw) that allows you to interact with your system and perform various commands. The bot utilizes Baichat and the API from Bavarder (https://bavarder.codeberg.page/) for unlimited and free communication.
 
-![screenshot](https://github.com/qwersyk/Assistant/firefox-adwaita-gnome-theme/raw/main/Screenshot/screenshot1.png#gh-light-mode-only)
-![screenshot](https://github.com/qwersyk/Assistant/firefox-adwaita-gnome-theme/raw/main/Screenshot/screenshot2.png#gh-dark-mode-only)
-![screenshot](https://github.com/qwersyk/Assistant/firefox-adwaita-gnome-theme/raw/main/Screenshot/screenshot3.png#gh-light-mode-only)
-![screenshot](https://github.com/qwersyk/Assistant/firefox-adwaita-gnome-theme/raw/main/Screenshot/screenshot4.png#gh-dark-mode-only)
-
+![screenshot](https://raw.githubusercontent.com/qwersyk/Assistant/master/Screenshot/screenshot1.png#gh-light-mode-only)
+![screenshot](https://raw.githubusercontent.com/qwersyk/Assistant/master/Screenshot/screenshot2.png#gh-dark-mode-only)
+![screenshot](https://raw.githubusercontent.com/qwersyk/Assistant/master/Screenshot/screenshot3.png#gh-light-mode-only)
+![screenshot](https://raw.githubusercontent.com/qwersyk/Assistant/master/Screenshot/screenshot4.png#gh-dark-mode-only)
 
 ## Features
 
@@ -17,8 +16,8 @@ This repository contains a chat bot program written in GTK4 and Adwaita (adw) th
 
 
 
-![screenshot](https://github.com/qwersyk/Assistant/firefox-adwaita-gnome-theme/raw/main/Screenshot/screenshot5.png#gh-light-mode-only)
-![screenshot](https://github.com/qwersyk/Assistant/firefox-adwaita-gnome-theme/raw/main/Screenshot/screenshot6.png#gh-dark-mode-only)
+![screenshot](https://raw.githubusercontent.com/qwersyk/Assistant/master/Screenshot/screenshot5.png#gh-light-mode-only)
+![screenshot](https://raw.githubusercontent.com/qwersyk/Assistant/master/Screenshot/screenshot6.png#gh-dark-mode-only)
 
 ## Functionality
 
