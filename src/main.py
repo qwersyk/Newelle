@@ -9,37 +9,43 @@ import threading
 
 start_m="""System:You're an assistant who is supposed to help the user by answering questions and doing what he asks. You have the ability to run Linux commands for the terminal on the user's computer in order to perform the task he asks for. There are two types of messages "Assistant: text", this is where you answer his questions and talk to the user. And the second type is "Assistant: $name``command``$". The 'name' is what the command does, the 'command' is what you execute on the user's computer you can't write questions, answers, or explanations here, you can only write what you want. At the end of each message must be '\end'. You don't have to tell the user how to do something, you have to do it yourself. Write the minimum and only what is important. If you're done, write "\end" in a new message.You know all the languages and understand and can communicate in them. If you were written in a language, continue in the language in which he wrote. \end
 User: Create an image 100x100 pixels \end
-Assistant: $Create image```convert -size 100x100 xc:white image.png```$ \end
+Assistant: $Create image ```convert -size 100x100 xc:white image.png```$ \end
 Console: \end
 Assistant: \end
 
 System: New chat \end
 User: Open YouTube \end
-Assistant: $Open yotube.com```xdg-open https://www.youtube.com```$ \end
+Assistant: $Open yotube.com ```xdg-open https://www.youtube.com```$ \end
 Console: \end
 Assistant: \end
 
 System: New chat \end
 User: Create folder \end
-Assistant: $Create folder named folder```mkdir folder```$ \end
+Assistant: $Create folder named folder ```mkdir folder```$ \end
 Console: \end
 Assistant: \end
 
 System: New chat \end
 User: What day of the week it is \end
-Assistant:  $Let's know the day of the week```date +%A```$\end
+Assistant:  $Let's know the day of the week ```date +%A```$\end
 Console: Tuesday\end
 Assistant: Today is Tuesday. \end
 
 System: New chat \end
 User: What's the error in file 1.py \end
-Assistant: $lookup code in file 1.py```cat 1.py```$ \end
+Assistant: $lookup code in file 1.py ```cat 1.py```$ \end
 Console: print(math.pi)\end
 Assistant: The error is that you forgot to import the math module \end
 
 System: New chat \end
 User: Create file 1.py \end
-Assistant: $Create file 1.py```touch 1.py```$ \end
+Assistant: $Create file 1.py ```touch 1.py```$ \end
+Console: Desktop/    Downloads/ \end
+Assistant: Desktop, Downloads\end
+
+System: New chat \end
+User: Display the names of all my folders \end
+Assistant: $Viewing folder names ```ls -d */```$ \end
 Console: \end
 Assistant: \end
 
@@ -246,7 +252,7 @@ class MainWindow(Gtk.ApplicationWindow):
             self.rh.set_show_start_title_buttons(False)
             self.b.set_visible(True)
     def console(self,command):
-        process = subprocess.Popen(['flatpak-spawn', '--host', *command.split(' ')], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        process = subprocess.Popen('flatpak-spawn --host '+command, stdout=subprocess.PIPE, stderr=subprocess.PIPE,shell=True)
         stdout, stderr = process.communicate()
         if process.returncode != 0:
             return (False,stderr.decode())
@@ -353,7 +359,7 @@ Assistant: Yes, of course, what do you need help with?\end"""+"\n"+self.return_c
                         box.append(self.create_table(table_string[s:i]))
                         s=-1
                     else:
-                        box.append(Gtk.Label(label=table_string, wrap=True, css_classes=["heading"],wrap_mode=Pango.WrapMode.WORD_CHAR,width_chars=1))
+                        box.append(Gtk.Label(label=table_string[i], wrap=True,halign=Gtk.Align.START,wrap_mode=Pango.WrapMode.WORD_CHAR,width_chars=1))
                 if s!=-1:
                     box.append(self.create_table(table_string[s:i+1]))
                 self.chat.append({"User":"Assistant","Message":f" {message_label}\end"})

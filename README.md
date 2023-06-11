@@ -11,7 +11,7 @@ This repository contains a chat bot program written in GTK4 and Adwaita (adw) th
 
 - Seamless system integration: The chat bot has access to your system and can execute commands on your behalf.
 - Context preservation: The chat bot saves the conversation context, allowing for meaningful and continuous interactions.
-- Chat history management: You can easily clear the chat history to maintain privacy and a clean interface(/clear).
+- Chat history management: You can easily clear the chat history to maintain privacy and a clean interface.
 - Navigator panel: A convenient sidebar provides visualizations of ongoing activities.
 
 
