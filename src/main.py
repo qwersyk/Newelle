@@ -1,4 +1,4 @@
-import sys,random,time
+import sys,random,time,types
 import gi,os,re,subprocess,io
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
@@ -62,12 +62,16 @@ class MainWindow(Gtk.ApplicationWindow):
         self.b=Gtk.Separator()
         self.lp=Gtk.Box(orientation=Gtk.Orientation.VERTICAL,hexpand=True)
         self.lh=Adw.HeaderBar()
+        self.lh.set_title_widget(Gtk.Label(label="Chat",css_classes=["title"]))
+
         self.lh.pack_end(menu_button)
+
         self.lp.append(self.lh)
         self.l.append(self.lp)
         self.l.append(self.b)
         self.r=Gtk.Box(orientation=Gtk.Orientation.VERTICAL,hexpand=True)
         self.rh=Adw.HeaderBar()
+        self.rh.set_title_widget(Gtk.Label(label="Explorer",css_classes=["title"]))
         self.r.append(self.rh)
         self.folder_panel=Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.r.append(self.folder_panel)
@@ -78,12 +82,26 @@ class MainWindow(Gtk.ApplicationWindow):
         self.lp.append(self.mainbox)
         self.list_box = Gtk.ListBox(show_separators=True)
         self.list_box.set_selection_mode(Gtk.SelectionMode.NONE)
-        scrolled_window = Gtk.ScrolledWindow(vexpand=True)
-        scrolled_window.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
-        scrolled_window.set_child(self.list_box)
-        self.mainbox.append(scrolled_window)
+        self.scrolled_window = Gtk.ScrolledWindow(vexpand=True)
+        self.scrolled_window.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+        self.scrolled_window.set_child(self.list_box)
+        self.mainbox.append(self.scrolled_window)
         self.box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
         self.buttons = []
+        self.button_stop = Gtk.Button()
+        icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="media-playback-stop"))
+        icon.set_icon_size(Gtk.IconSize.INHERIT)
+        b=Gtk.Box(halign=Gtk.Align.CENTER)
+        b.append(icon)
+
+        label = Gtk.Label(label="Stop")
+        b.append(label)
+        self.button_stop.set_child(b)
+        self.button_stop.connect("clicked", self.stop)
+        self.button_stop.set_visible(False)
+
+        self.status=False
+        self.box.append(self.button_stop)
         for text in range(2):
             button = Gtk.Button()
             label = Gtk.Label(label=text,wrap=True,wrap_mode=Pango.WrapMode.WORD_CHAR,max_width_chars=0)
@@ -92,6 +110,21 @@ class MainWindow(Gtk.ApplicationWindow):
             button.set_visible(False)
             self.box.append(button)
             self.buttons.append(button)
+        self.button_clear = Gtk.Button()
+        icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="edit-clear-all-symbolic"))
+        icon.set_icon_size(Gtk.IconSize.INHERIT)
+        b=Gtk.Box(halign=Gtk.Align.CENTER)
+        b.append(icon)
+
+        label = Gtk.Label(label="Clear")
+        b.append(label)
+        self.button_clear.set_child(b)
+        self.button_clear.connect("clicked", self.clear)
+        self.button_clear.set_visible(False)
+
+        self.box.append(self.button_clear)
+
+
         self.mainbox.append(self.box)
         self.entry = Gtk.Entry()
         self.mainbox.append(self.entry)
@@ -102,10 +135,24 @@ class MainWindow(Gtk.ApplicationWindow):
         self.update_folder()
         threading.Thread(target=self.updage_button).start()
         self.add_message("Warning")
-
-    def chatansw(self,message):
+    def clear(self,button):
+        self.add_message("/Clear")
+        self.chat=[]
+        self.p+=1
+        for btn in self.buttons:
+            btn.set_visible(False)
+        self.button_clear.set_visible(False)
+        threading.Thread(target=self.updage_button).start()
+    def stop(self,button):
+        self.status=True
+        button.set_visible(False)
+        self.entry.set_sensitive(True)
+        threading.Thread(target=self.updage_button).start()
+        self.chat.pop(-1)
+        self.add_message("Message_stop")
+    def chatansw(self,message,assistant=False):
         n=1
-        while True:
+        while (not self.status) or not assistant:
             n*=2
             try:
                 t=BAIChat(sync=True).sync_ask(message)
@@ -113,6 +160,7 @@ class MainWindow(Gtk.ApplicationWindow):
             except Exception:
                 self.add_message("Error_send")
             time.sleep(n)
+        return types.SimpleNamespace(text="Chat has been stopped")
 
 
 
@@ -120,6 +168,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.entry.set_sensitive(False)
         for btn in self.buttons:
             btn.set_visible(False)
+        self.button_clear.set_visible(False)
         text = button.get_child().get_label()
         self.chat.append({"User":"User","Message":" "+text+"\end"})
         message_label = Gtk.Label(label=text,margin_top=10,margin_start=10,margin_bottom=10,margin_end=10, wrap=True, css_classes=["heading"],wrap_mode=Pango.WrapMode.WORD_CHAR)
@@ -187,10 +236,15 @@ class MainWindow(Gtk.ApplicationWindow):
         return chats
     def updage_button(self):
         p=self.p
+        if self.chat!=[]:
+            self.button_clear.set_visible(True)
         for btn in self.buttons:
             if p!=self.p:
                 break
-            t=self.chatansw("""System: As a user, you can communicate with the Assistant, a bot powered by a neural network, to accomplish tasks on your computer and seek answers to your questions. Engage in a conversation with the Assistant to request assistance and get the help you need. \end"""+"\n"+self.return_chat(self.chat[len(self.chat)-10:len(self.chat)])+"\nUser:").text.split("\end")[0]
+            t=self.chatansw("""System: You are a user who needs help with various tasks, you are communicating with a neural network which can control your computer by executing various commands which should help you, keep a conversation with it, ask it questions, ask for help with things it can do through the terminal. Also, every message should end with "\end".More often than not, the assistant can help you with files and folders. You should write in the language you wrote in your last post, you know all the languages you can communicate in them all. \end
+Assistant: Hello, how can I assist you today? \end
+User: Can you help me? \end
+Assistant: Yes, of course, what do you need help with?\end"""+"\n"+self.return_chat(self.chat[len(self.chat)-10:len(self.chat)])+"\nUser:").text.split("\end")[0]
             if p!=self.p:
                 break
             btn.get_child().set_label(t)
@@ -204,6 +258,7 @@ class MainWindow(Gtk.ApplicationWindow):
             self.p+=1
             for btn in self.buttons:
                 btn.set_visible(False)
+            self.button_clear.set_visible(False)
             threading.Thread(target=self.updage_button).start()
             return None
         elif text[0]=="/":
@@ -212,6 +267,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.entry.set_sensitive(False)
         for btn in self.buttons:
             btn.set_visible(False)
+        self.button_clear.set_visible(False)
         self.chat.append({"User":"User","Message":" "+text+" \end"})
         message_label = Gtk.Label(label=text,margin_top=10,margin_start=10,margin_bottom=10,margin_end=10, wrap=True, css_classes=["heading"],wrap_mode=Pango.WrapMode.WORD_CHAR)
         self.add_message("User",message_label)
@@ -219,34 +275,41 @@ class MainWindow(Gtk.ApplicationWindow):
 
     def send_message(self):
         self.p+=1
+        self.status=False
+        self.button_stop.set_visible(True)
 
-        message_label = self.chatansw(start_m+"\n"+self.return_chat(self.chat[len(self.chat)-10:len(self.chat)])+"\nAssistant: ").text.split("\end")[0]
-        if message_label.rfind("$")!=-1:
-            command=message_label[message_label.find("$") + 1:message_label.rfind("$")]
-            value=command[command.find("```") + 3:command.rfind("```")]
-            self.chat.append({"User":"Command","Message":f" ```{value}```\end"})
-            text_expander = Gtk.Expander(
-                label=command[0:command.find("```")],css_classes=["toolbar","osd"],margin_top=10,margin_start=10,margin_bottom=10,margin_end=10
-            )
-            text_expander.set_expanded(False)
-            c=self.console(value)
-            text_expander.set_child(Gtk.Label(wrap=True,wrap_mode=Pango.WrapMode.WORD_CHAR,label=c[1]))
-            if not c[0]:
-                self.add_message("Error",text_expander)
+        message_label = self.chatansw(start_m+"\n"+self.return_chat(self.chat[len(self.chat)-10:len(self.chat)])+"\nAssistant: ",True).text.split("\end")[0]
+        if not self.status:
+            if message_label.rfind("$")!=-1:
+                command=message_label[message_label.find("$") + 1:message_label.rfind("$")]
+                value=command[command.find("```") + 3:command.rfind("```")]
+                self.chat.append({"User":"Command","Message":f" ```{value}```\end"})
+                text_expander = Gtk.Expander(
+                    label=command[0:command.find("```")],css_classes=["toolbar","osd"],margin_top=10,margin_start=10,margin_bottom=10,margin_end=10
+                )
+                text_expander.set_expanded(False)
+                c=self.console(value)
+                text_expander.set_child(Gtk.Label(wrap=True,wrap_mode=Pango.WrapMode.WORD_CHAR,label=c[1]))
+                if not c[0]:
+                    self.add_message("Error",text_expander)
+                else:
+                    self.add_message("Console",text_expander)
+                self.chat.append({"User":"Console","Message":" "+c[1]+"\end"})
+                self.update_folder()
+                return self.send_message()
+            elif message_label==" "*len(message_label):
+                self.chat.append({"User":"Assistant","Message":f" {message_label}\end"})
+                self.entry.set_sensitive(True)
+                threading.Thread(target=self.updage_button).start()
+                self.status=True
+                self.button_stop.set_visible(False)
             else:
-                self.add_message("Console",text_expander)
-            self.chat.append({"User":"Console","Message":" "+c[1]+"\end"})
-            self.update_folder()
-            return self.send_message()
-        elif message_label==" "*len(message_label):
-            self.chat.append({"User":"Assistant","Message":f" {message_label}\end"})
-            self.entry.set_sensitive(True)
-            threading.Thread(target=self.updage_button).start()
-        else:
-            self.chat.append({"User":"Assistant","Message":f" {message_label}\end"})
-            self.add_message("Assistant",Gtk.Label(label=message_label,margin_top=10,margin_start=10,margin_bottom=10,margin_end=10, wrap=True, css_classes=["heading"],wrap_mode=Pango.WrapMode.WORD_CHAR))
-            self.entry.set_sensitive(True)
-            threading.Thread(target=self.updage_button).start()
+                self.chat.append({"User":"Assistant","Message":f" {message_label}\end"})
+                self.add_message("Assistant",Gtk.Label(label=message_label,margin_top=10,margin_start=10,margin_bottom=10,margin_end=10, wrap=True, css_classes=["heading"],wrap_mode=Pango.WrapMode.WORD_CHAR,width_chars=1))
+                self.entry.set_sensitive(True)
+                threading.Thread(target=self.updage_button).start()
+                self.status=True
+                self.button_stop.set_visible(False)
 
     def add_message(self,user,message=None):
         b=Gtk.Box(css_classes=["card"],margin_top=10,margin_start=10,margin_bottom=10,margin_end=10,halign=Gtk.Align.START)
@@ -270,12 +333,24 @@ class MainWindow(Gtk.ApplicationWindow):
         elif user=="Error_send":
             b.append(Gtk.Label(wrap=True,wrap_mode=Pango.WrapMode.WORD_CHAR,label="Failed to send bot a message",margin_top=10,margin_start=10,margin_bottom=10,margin_end=10,css_classes=["error","heading"]))
             b.set_halign(Gtk.Align.CENTER)
+        elif user=="Message_stop":
+            b.append(Gtk.Label(wrap=True,wrap_mode=Pango.WrapMode.WORD_CHAR,label="The message was canceled and deleted from history",margin_top=10,margin_start=10,margin_bottom=10,margin_end=10,css_classes=["accent","heading"]))
+            b.set_halign(Gtk.Align.CENTER)
         elif user=="Warning":
-            b.append(Gtk.Label(label="Attention the neural network has access to your computer, be careful, we are not responsible for the neural network.",margin_top=10,margin_start=10,margin_bottom=10,margin_end=10,css_classes=["warning","heading"],wrap=True,wrap_mode=Pango.WrapMode.WORD_CHAR))
+            icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="dialog-warning"))
+            icon.set_icon_size(Gtk.IconSize.LARGE)
+            box=Gtk.Box(halign=Gtk.Align.CENTER,orientation=Gtk.Orientation.VERTICAL,css_classes=["warning","heading"],margin_top=10)
+            box.append(icon)
+
+            label = Gtk.Label(label="Attention the neural network has access to your computer, be careful, we are not responsible for the neural network.",margin_top=10,margin_start=10,margin_bottom=10,margin_end=10,wrap=True,wrap_mode=Pango.WrapMode.WORD_CHAR)
+            box.append(label)
+            b.append(box)
             b.set_halign(Gtk.Align.CENTER)
         else:
             b.append(message)
         self.list_box.append(b)
+        adj = self.scrolled_window.get_vadjustment()
+        adj.set_value(adj.get_upper() - adj.get_page_size())
 
 
 class MyApp(Adw.Application):
