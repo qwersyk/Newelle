@@ -4,9 +4,6 @@ This repository contains a chat bot program written in GTK4 and Adwaita (adw) th
 
 ![screenshot](https://raw.githubusercontent.com/qwersyk/Assistant/master/Screenshot/screenshot1.png#gh-light-mode-only)
 ![screenshot](https://raw.githubusercontent.com/qwersyk/Assistant/master/Screenshot/screenshot2.png#gh-dark-mode-only)
-![screenshot](https://raw.githubusercontent.com/qwersyk/Assistant/master/Screenshot/screenshot3.png#gh-light-mode-only)
-![screenshot](https://raw.githubusercontent.com/qwersyk/Assistant/master/Screenshot/screenshot4.png#gh-dark-mode-only)
-
 ## Features
 
 - Seamless system integration: The chat bot has access to your system and can execute commands on your behalf.
