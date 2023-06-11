@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=assistant
+Exec=assistant
+Icon=org.gnome.Assistant
+Terminal=false
+Type=Application
+Categories=GTK;
+StartupNotify=true

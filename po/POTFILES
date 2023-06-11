@@ -1,0 +1,6 @@
+data/org.gnome.Assistant.desktop.in
+data/org.gnome.Assistant.appdata.xml.in
+data/org.gnome.Assistant.gschema.xml
+src/main.py
+src/window.py
+src/window.ui
