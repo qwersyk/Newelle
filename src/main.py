@@ -78,10 +78,10 @@ class MainWindow(Gtk.ApplicationWindow):
         self.lp.append(self.mainbox)
         self.list_box = Gtk.ListBox(show_separators=True)
         self.list_box.set_selection_mode(Gtk.SelectionMode.NONE)
-        self.scrolled_window = Gtk.ScrolledWindow(vexpand=True)
-        self.scrolled_window.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
-        self.scrolled_window.set_child(self.list_box)
-        self.mainbox.append(self.scrolled_window)
+        scrolled_window = Gtk.ScrolledWindow(vexpand=True)
+        scrolled_window.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+        scrolled_window.set_child(self.list_box)
+        self.mainbox.append(scrolled_window)
         self.box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
         self.buttons = []
         for text in range(2):
@@ -130,6 +130,7 @@ class MainWindow(Gtk.ApplicationWindow):
     def update_folder(self):
         try:
             self.r.remove(self.folder_panel)
+            time.sleep(0.01)
             self.folder_panel=Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
             self.r.append(self.folder_panel)
             flowbox = Gtk.FlowBox(vexpand=True)
@@ -150,10 +151,10 @@ class MainWindow(Gtk.ApplicationWindow):
                 file_box.set_size_request(500, -1)
                 file_box.append(file_label)
                 flowbox.append(file_box)
-            self.scrolled_window = Gtk.ScrolledWindow()
-            self.scrolled_window.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
-            self.scrolled_window.set_child(flowbox)
-            self.folder_panel.append(self.scrolled_window)
+            scrolled_window = Gtk.ScrolledWindow()
+            scrolled_window.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+            scrolled_window.set_child(flowbox)
+            self.folder_panel.append(scrolled_window)
         except Exception as e:
             print(e)
 
@@ -270,7 +271,7 @@ class MainWindow(Gtk.ApplicationWindow):
             b.append(Gtk.Label(wrap=True,wrap_mode=Pango.WrapMode.WORD_CHAR,label="Failed to send bot a message",margin_top=10,margin_start=10,margin_bottom=10,margin_end=10,css_classes=["error","heading"]))
             b.set_halign(Gtk.Align.CENTER)
         elif user=="Warning":
-            b.append(Gtk.Label(label="Attention the neural network has access to your computer, be-be careful, we are not responsible for the neural network.",margin_top=10,margin_start=10,margin_bottom=10,margin_end=10,css_classes=["warning","heading"],wrap=True,wrap_mode=Pango.WrapMode.WORD_CHAR))
+            b.append(Gtk.Label(label="Attention the neural network has access to your computer, be careful, we are not responsible for the neural network.",margin_top=10,margin_start=10,margin_bottom=10,margin_end=10,css_classes=["warning","heading"],wrap=True,wrap_mode=Pango.WrapMode.WORD_CHAR))
             b.set_halign(Gtk.Align.CENTER)
         else:
             b.append(message)
