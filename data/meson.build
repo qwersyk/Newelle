@@ -1,6 +1,6 @@
 desktop_file = i18n.merge_file(
-        input: 'org.gnome.Assistant.desktop.in',
-       output: 'org.gnome.Assistant.desktop',
+        input: 'org.gnome.newelle.desktop.in',
+       output: 'org.gnome.newelle.desktop',
          type: 'desktop',
        po_dir: '../po',
       install: true,
@@ -13,8 +13,8 @@ if desktop_utils.found()
 endif
 
 appstream_file = i18n.merge_file(
-        input: 'org.gnome.Assistant.appdata.xml.in',
-       output: 'org.gnome.Assistant.appdata.xml',
+        input: 'org.gnome.newelle.appdata.xml.in',
+       output: 'org.gnome.newelle.appdata.xml',
        po_dir: '../po',
       install: true,
   install_dir: join_paths(get_option('datadir'), 'appdata')
@@ -25,7 +25,7 @@ if appstream_util.found()
   test('Validate appstream file', appstream_util, args: ['validate', appstream_file])
 endif
 
-install_data('org.gnome.Assistant.gschema.xml',
+install_data('org.gnome.newelle.gschema.xml',
   install_dir: join_paths(get_option('datadir'), 'glib-2.0/schemas')
 )
 

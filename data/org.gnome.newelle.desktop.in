@@ -1,7 +1,7 @@
 [Desktop Entry]
-Name=assistant
-Exec=assistant
-Icon=org.gnome.Assistant
+Name=newelle
+Exec=newelle
+Icon=org.gnome.newelle
 Terminal=false
 Type=Application
 Categories=GTK;

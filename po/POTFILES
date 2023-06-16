@@ -1,6 +1,6 @@
-data/org.gnome.Assistant.desktop.in
-data/org.gnome.Assistant.appdata.xml.in
-data/org.gnome.Assistant.gschema.xml
+data/org.gnome.newelle.desktop.in
+data/org.gnome.newelle.appdata.xml.in
+data/org.gnome.newelle.gschema.xml
 src/main.py
 src/window.py
 src/window.ui

@@ -1,4 +1,4 @@
-# Assistant
+# Newelle
 
 This repository contains a chat bot program written in GTK4 and Adwaita (adw) that allows you to interact with your system and perform various commands. The bot utilizes Baichat and the API from Bavarder (https://bavarder.codeberg.page/) for unlimited and free communication.
 

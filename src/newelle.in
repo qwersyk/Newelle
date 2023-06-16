@@ -1,4 +1,6 @@
-# window.py
+#!@PYTHON@
+
+# newelle.in
 #
 # Copyright 2023 Yehor Qwersyk
 #
@@ -17,14 +19,28 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from gi.repository import Adw
-from gi.repository import Gtk
+import os
+import sys
+import signal
+import locale
+import gettext
 
-@Gtk.Template(resource_path='/org/gnome/Assistant/window.ui')
-class AssistantWindow(Adw.ApplicationWindow):
-    __gtype_name__ = 'AssistantWindow'
+VERSION = '@VERSION@'
+pkgdatadir = '@pkgdatadir@'
+localedir = '@localedir@'
 
-    label = Gtk.Template.Child()
+sys.path.insert(1, pkgdatadir)
+signal.signal(signal.SIGINT, signal.SIG_DFL)
+locale.bindtextdomain('newelle', localedir)
+locale.textdomain('newelle')
+gettext.install('newelle', localedir)
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+if __name__ == '__main__':
+    import gi
+
+    from gi.repository import Gio
+    resource = Gio.Resource.load(os.path.join(pkgdatadir, 'newelle.gresource'))
+    resource._register()
+
+    from newelle import main
+    sys.exit(main.main(VERSION))

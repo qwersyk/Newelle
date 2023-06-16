@@ -1,1 +1,1 @@
-i18n.gettext('assistant', preset: 'glib')
+i18n.gettext('newelle', preset: 'glib')

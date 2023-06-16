@@ -1,9 +1,9 @@
 {
-    "app-id" : "org.gnome.Assistant",
+    "app-id" : "org.gnome.newelle",
     "runtime" : "org.gnome.Platform",
     "runtime-version" : "44",
     "sdk" : "org.gnome.Sdk",
-    "command" : "assistant",
+    "command" : "newelle",
     "finish-args" : [
         "--share=network",
         "--share=ipc",
@@ -11,7 +11,7 @@
         "--device=dri",
         "--socket=wayland",
         "--talk-name=org.freedesktop.Flatpak",
-        "--filesystem=host"
+	"--filesystem=host"
     ],
     "cleanup" : [
         "/include",
@@ -26,7 +26,7 @@
     ],
     "modules" : [
         {
-            "name" : "assistant",
+            "name" : "newelle",
             "builddir" : true,
             "buildsystem" : "meson",
             "sources" : [

@@ -1,4 +1,4 @@
 [Application]
-name=org.gnome.Assistant
+name=org.gnome.newelle
 runtime=org.gnome.Platform/x86_64/44
 sdk=org.gnome.Sdk/x86_64/44

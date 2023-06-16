@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist gettext-domain="newelle">
+	<schema id="org.gnome.newelle" path="/org/gnome/newelle/">
+	</schema>
+</schemalist>
