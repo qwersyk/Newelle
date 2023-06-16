@@ -10,7 +10,7 @@ from .bai import BAIChat
 from gi.repository import Gtk, Adw,Pango,Gio,Gdk, GtkSource
 
 import threading
-path=".var/app/org.gnome.Newelle/data"
+path=".var/app/org.gnome.newelle/data"
 if not os.path.exists(path):
     os.makedirs(path)
 filename="chats.pkl"
