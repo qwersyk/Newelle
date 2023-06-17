@@ -1,20 +1,28 @@
-# Newelle
+<h1 align="center">
+  <img src="https://raw.githubusercontent.com/qwersyk/Newelle/master/data/icons/hicolor/scalable/apps/org.gnome.newelle.svg" alt="Newelle" width="192" height="192"/>
+  <br>
+  Newelle
+</h1>
+<p align="center">
+<a href="https://stopthemingmy.app">
+    <img width="200" alt="Please Don't Theme" src="https://stopthemingmy.app/badge.svg"/>
+  </a>
+  <br>
+</p>
 
-This repository contains a chat bot program written in GTK4 and Adwaita (adw) that allows you to interact with your system and perform various commands. The bot utilizes Baichat and the API from Bavarder (https://bavarder.codeberg.page/) for unlimited and free communication.
+This repository contains a chat bot program written in GTK4 and Adwaita (adw) that allows you to interact with your system and perform various commands. The bot utilizes [Baichat](https://chatbot.theb.ai/) and the API from [Bavarder](https://bavarder.codeberg.page/) for unlimited and free communication.
 
-![screenshot](https://raw.githubusercontent.com/qwersyk/Assistant/master/Screenshot/screenshot1.png#gh-light-mode-only)
-![screenshot](https://raw.githubusercontent.com/qwersyk/Assistant/master/Screenshot/screenshot2.png#gh-dark-mode-only)
+![screenshot](https://raw.githubusercontent.com/qwersyk/Newelle/master/Screenshot/screenshot1.png#gh-light-mode-only)
+![screenshot](https://raw.githubusercontent.com/qwersyk/Newelle/master/Screenshot/screenshot2.png#gh-dark-mode-only)
+
 ## Features
-
 - Seamless system integration: The chat bot has access to your system and can execute commands on your behalf.
 - Context preservation: The chat bot saves the conversation context, allowing for meaningful and continuous interactions.
 - Chat history management: You can easily clear the chat history to maintain privacy and a clean interface.
 - Navigator panel: A convenient sidebar provides visualizations of ongoing activities.
 
-
-
-![screenshot](https://raw.githubusercontent.com/qwersyk/Assistant/master/Screenshot/screenshot5.png#gh-light-mode-only)
-![screenshot](https://raw.githubusercontent.com/qwersyk/Assistant/master/Screenshot/screenshot6.png#gh-dark-mode-only)
+![screenshot](https://raw.githubusercontent.com/qwersyk/Newelle/master/Screenshot/screenshot3.png#gh-light-mode-only)
+![screenshot](https://raw.githubusercontent.com/qwersyk/Newelle/master/Screenshot/screenshot4.png#gh-dark-mode-only)
 
 ## Functionality
 
@@ -45,4 +53,5 @@ Please note that the chat bot primarily relies on simple commands due to its use
 - Beta testing: This chat bot is currently in beta testing and should be used with care.
 
 Disclaimer: The developers of this project do not take responsibility for any damages caused by the chat bot. Use it at your own risk.
+
 
