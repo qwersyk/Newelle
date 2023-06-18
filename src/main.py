@@ -31,8 +31,21 @@ else:
 chat_id=info["chat"]
 
 
+settings = Gio.Settings.new('org.gnome.newelle')
+file_panel = settings.get_boolean("file-panel")
+offers = settings.get_int("offers")
+virtualization = settings.get_boolean("virtualization")
+memory = settings.get_int("memory")
+console = settings.get_boolean("console")
+hidden_files = settings.get_boolean("hidden-files")
 
-start_m="""System:You're an assistant who is supposed to help the user by answering questions and doing what he asks. You have the ability to run Linux commands for the terminal on the user's computer in order to perform the task he asks for. There are two types of messages "Assistant: text", this is where you answer his questions and talk to the user. And the second type is "Assistant: ```console\ncommand\n```".Note that in the command you can not write comments or anything else that is not a command. The 'name' is what the command does, the 'command' is what you execute on the user's computer you can't write questions, answers, or explanations here, you can only write what you want. At the end of each message must be '\end'. You don't have to tell the user how to do something, you have to do it yourself. Write the minimum and only what is important. If you're done, write "\end" in a new message.You know all the languages and understand and can communicate in them. If you were written in a language, continue in the language in which he wrote. \end
+
+
+main_path="~"
+
+start_m=""""""
+if console:
+    start_m+="""System:You're an assistant who is supposed to help the user by answering questions and doing what he asks. You have the ability to run Linux commands for the terminal on the user's computer in order to perform the task he asks for. There are two types of messages "Assistant: text", this is where you answer his questions and talk to the user. And the second type is "Assistant: ```console\ncommand\n```".Note that in the command you can not write comments or anything else that is not a command. The 'name' is what the command does, the 'command' is what you execute on the user's computer you can't write questions, answers, or explanations here, you can only write what you want. At the end of each message must be '\end'. You don't have to tell the user how to do something, you have to do it yourself. Write the minimum and only what is important. If you're done, write "\end" in a new message.You know all the languages and understand and can communicate in them. If you were written in a language, continue in the language in which he wrote. \end
 User: Create an image 100x100 pixels \end
 Assistant: ```console
 convert -size 100x100 xc:white image.png
@@ -89,6 +102,9 @@ Console: \end
 Assistant: \end
 
 System: New chat \end
+"""
+
+start_m+="""
 User: Write the multiplication table 4 by 4 \end
 Assistant: | - | 1 | 2 | 3 | 4 |\n| - | - | - | - | - |\n| 1 | 1 | 2 | 3 | 4 |\n| 2 | 2 | 4 | 6 | 8 |\n| 3 | 3 | 6 | 9 | 12 |\n| 4 | 4 | 8 | 12 | 16 |\end
 
@@ -207,7 +223,7 @@ class CopyBox(Gtk.Box):
         else:
             if stdout.decode()!="":
                 text=stdout.decode()
-        self.text_expander.set_child(Gtk.Label(wrap=True,wrap_mode=Pango.WrapMode.WORD_CHAR,label=text))
+        self.text_expander.set_child(Gtk.Label(wrap=True,wrap_mode=Pango.WrapMode.WORD_CHAR,label=text,selectable=True))
 
 
 
@@ -217,6 +233,8 @@ class MainWindow(Gtk.ApplicationWindow):
     chat=chats[chat_id]["chat"]
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+
         self.set_default_size(500, 900)
         self.a=Adw.Leaflet(fold_threshold_policy=True,can_navigate_back=True,can_navigate_forward=True,transition_type=Adw.LeafletTransitionType.UNDER)
         self.set_titlebar(Gtk.Box())
@@ -227,6 +245,7 @@ class MainWindow(Gtk.ApplicationWindow):
         menu = Gio.Menu()
         menu.append("About", "app.about")
         menu.append("Keyboard shorcuts", "app.shortcuts")
+        menu.append("Settings", "app.settings")
         menu_button.set_menu_model(menu)
         self.b=Gtk.Separator()
         self.lp=Gtk.Box(orientation=Gtk.Orientation.VERTICAL,hexpand=True)
@@ -242,7 +261,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.button_back.connect("clicked", self.back_page)
 
         self.lh.pack_start(self.button_back)
-        self.lh.pack_end(menu_button)
+
 
         self.lp.append(self.lh)
         self.l.append(self.lp)
@@ -252,12 +271,13 @@ class MainWindow(Gtk.ApplicationWindow):
 
 
         self.m=Gtk.Box(hexpand_set=True)
-        self.m.set_size_request(250, -1)
+        self.m.set_size_request(300, -1)
         self.mb=Gtk.Separator()
         self.mp=Gtk.Box(orientation=Gtk.Orientation.VERTICAL,hexpand=True)
         self.mh=Adw.HeaderBar()
         self.mh.set_title_widget(Gtk.Label(label="History",css_classes=["title"]))
         self.mp.append(self.mh)
+        self.mh.pack_end(menu_button)
         self.mlist_box = Gtk.ListBox(show_separators=True)
         self.mlist_box.set_selection_mode(Gtk.SelectionMode.NONE)
         self.mscrolled_window = Gtk.ScrolledWindow(vexpand=True)
@@ -269,7 +289,6 @@ class MainWindow(Gtk.ApplicationWindow):
         self.la.append(self.m)
         self.la.append(self.l)
         self.la.set_visible_child(self.l)
-
         self.r=Gtk.Box(orientation=Gtk.Orientation.VERTICAL,hexpand=True)
         self.rh=Adw.HeaderBar()
         self.rh.set_title_widget(Gtk.Label(label="Explorer",css_classes=["title"]))
@@ -280,31 +299,90 @@ class MainWindow(Gtk.ApplicationWindow):
         self.a.append(self.la)
         self.a.append(self.r)
         self.mainbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
+
+
         self.lp.append(self.mainbox)
         self.list_box = Gtk.ListBox(show_separators=True)
         self.list_box.set_selection_mode(Gtk.SelectionMode.NONE)
         self.scrolled_window = Gtk.ScrolledWindow(vexpand=True)
         self.scrolled_window.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
         self.scrolled_window.set_child(self.list_box)
-        self.mainbox.append(self.scrolled_window)
+        self.lm=Adw.ToastOverlay()
+        self.lm.set_child(self.scrolled_window)
+
+        self.mainbox.append(self.lm)
         self.box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
         self.buttons = []
-        self.button_stop = Gtk.Button()
+
+        if not file_panel:
+            self.r.set_visible(False)
+            self.b.set_visible(False)
+            self.lh.set_show_end_title_buttons(True)
+
+
+        self.button_stop = Gtk.Button(css_classes=["flat"])
         icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="media-playback-stop"))
         icon.set_icon_size(Gtk.IconSize.INHERIT)
         b=Gtk.Box(halign=Gtk.Align.CENTER)
         b.append(icon)
-
         label = Gtk.Label(label=" Stop")
         b.append(label)
         self.button_stop.set_child(b)
         self.button_stop.connect("clicked", self.stop)
         self.button_stop.set_visible(False)
 
+
+        button_folder_back = Gtk.Button(css_classes=["flat"])
+        icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="go-previous-symbolic"))
+        icon.set_icon_size(Gtk.IconSize.INHERIT)
+        b=Gtk.Box(halign=Gtk.Align.CENTER)
+        b.append(icon)
+        button_folder_back.set_child(b)
+        button_folder_back.connect("clicked", self.back_folder)
+
+
+
+        button_folder_forward = Gtk.Button(css_classes=["flat"])
+        icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="go-next-symbolic"))
+        icon.set_icon_size(Gtk.IconSize.INHERIT)
+        b=Gtk.Box(halign=Gtk.Align.CENTER)
+        b.append(icon)
+        button_folder_forward.set_child(b)
+        button_folder_forward.connect("clicked", self.forward_folder)
+
+
+
+        button_home = Gtk.Button(css_classes=["flat"])
+        icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="go-home-symbolic"))
+        icon.set_icon_size(Gtk.IconSize.INHERIT)
+        b=Gtk.Box(halign=Gtk.Align.CENTER)
+        b.append(icon)
+        button_home.set_child(b)
+        button_home.connect("clicked", self.home_folder)
+
+
+        button_reload = Gtk.Button(css_classes=["flat"])
+        icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="view-refresh-symbolic"))
+        icon.set_icon_size(Gtk.IconSize.INHERIT)
+        b=Gtk.Box(halign=Gtk.Align.CENTER)
+        b.append(icon)
+        button_reload.set_child(b)
+        button_reload.connect("clicked", self.update_folder)
+
+
+
+        b=Gtk.Box()
+        b.append(button_folder_back)
+        b.append(button_folder_forward)
+        b.append(button_home)
+        self.rh.pack_start(b)
+        self.rh.pack_end(button_reload)
+
+
         self.status=True
         self.box.append(self.button_stop)
-        for text in range(2):
-            button = Gtk.Button()
+        for text in range(offers):
+            button = Gtk.Button(css_classes=["flat"])
             label = Gtk.Label(label=text,wrap=True,wrap_mode=Pango.WrapMode.WORD_CHAR,max_width_chars=0)
             button.set_child(label)
             button.connect("clicked", self.on_button_clicked)
@@ -313,7 +391,7 @@ class MainWindow(Gtk.ApplicationWindow):
             self.buttons.append(button)
 
 
-        self.button_clear = Gtk.Button()
+        self.button_clear = Gtk.Button(css_classes=["flat"])
         icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="edit-clear-all-symbolic"))
         icon.set_icon_size(Gtk.IconSize.INHERIT)
         b=Gtk.Box(halign=Gtk.Align.CENTER)
@@ -325,7 +403,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.button_clear.set_visible(False)
         self.box.append(self.button_clear)
 
-        self.button_continue = Gtk.Button()
+        self.button_continue = Gtk.Button(css_classes=["flat"])
         icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="media-seek-forward-symbolic"))
         icon.set_icon_size(Gtk.IconSize.INHERIT)
         b=Gtk.Box(halign=Gtk.Align.CENTER)
@@ -337,7 +415,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.button_continue.set_visible(False)
         self.box.append(self.button_continue)
 
-        self.button_regenerate = Gtk.Button()
+        self.button_regenerate = Gtk.Button(css_classes=["flat"])
         icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="view-refresh-symbolic"))
         icon.set_icon_size(Gtk.IconSize.INHERIT)
         b=Gtk.Box(halign=Gtk.Align.CENTER)
@@ -352,16 +430,30 @@ class MainWindow(Gtk.ApplicationWindow):
 
         self.mainbox.append(self.box)
         self.entry = Gtk.Entry()
+
         self.mainbox.append(self.entry)
         self.entry.connect('activate', self.on_entry_activate)
-        self.a.connect("notify::folded",self.e)
+        if file_panel:
+            self.a.connect("notify::folded",self.e)
         self.la.connect("notify::folded",self.le)
-        self.e()
         self.p=0
         self.update_folder()
         threading.Thread(target=self.updage_button).start()
         self.update_history()
         self.show_chat()
+    def back_folder(self,_):
+        global main_path
+        main_path+="/.."
+        self.update_folder()
+    def home_folder(self,_):
+        global main_path
+        main_path="~"
+        self.update_folder()
+    def forward_folder(self,_):
+        global main_path
+        if main_path[len(main_path)-3:len(main_path)]=="/..":
+            main_path=main_path[0:len(main_path)-3]
+            self.update_folder()
     def back_page(self,button):
         self.la.set_visible_child(self.m)
     def back_chat(self,button):
@@ -370,46 +462,40 @@ class MainWindow(Gtk.ApplicationWindow):
         if multithreading:
             self.p+=1
             p=self.p
-            self.entry.set_sensitive(False)
             for btn in self.buttons:
                 btn.set_visible(False)
             self.button_clear.set_visible(False)
             self.button_continue.set_visible(False)
             self.button_regenerate.set_visible(False)
             self.status=False
-            m=self.chatansw(start_m+"\n"+self.return_chat(self.chat[len(self.chat)-10:len(self.chat)])).text.split("\end")[0]
+            m=self.chatansw(start_m+"\n"+self.return_chat(self.chat[len(self.chat)-memory:len(self.chat)])).text.split("\end")[0]
             if len(self.chat)!=0 and p==self.p and m!=" "*len(m) and not "User:" in m and not "Assistant:" in m and not "Console:" in m and not "System:" in m:
                 self.chat[-1]["Message"]+=m+"\end"
                 self.show_chat()
             else:
                 self.chat[-1]["Message"]+="\end"
-            self.entry.set_sensitive(True)
             threading.Thread(target=self.updage_button).start()
             self.status=True
             self.button_stop.set_visible(False)
-            self.entry.grab_focus()
         else:
             threading.Thread(target=self.continue_message,args=[button,True]).start()
     def regenerate_message(self,button,multithreading=False):
         if multithreading:
             self.p+=1
             p=self.p
-            self.entry.set_sensitive(False)
             for btn in self.buttons:
                 btn.set_visible(False)
             self.button_clear.set_visible(False)
             self.button_continue.set_visible(False)
             self.button_regenerate.set_visible(False)
             self.status=False
-            m=self.chatansw(start_m+"\n"+self.return_chat(self.chat[len(self.chat)-10:len(self.chat)-1])+"\nAssistant:\n").text.split("\end")[0]
+            m=self.chatansw(start_m+"\n"+self.return_chat(self.chat[len(self.chat)-memory:len(self.chat)-1])+"\nAssistant:\n").text.split("\end")[0]
             if len(self.chat)!=0 and p==self.p:
                 self.chat[-1]["Message"]=m+"\end"
                 self.show_chat()
-            self.entry.set_sensitive(True)
             threading.Thread(target=self.updage_button).start()
             self.status=True
             self.button_stop.set_visible(False)
-            self.entry.grab_focus()
         else:
             threading.Thread(target=self.regenerate_message,args=[button,True]).start()
 
@@ -419,21 +505,31 @@ class MainWindow(Gtk.ApplicationWindow):
         self.mscrolled_window.set_child(list_box)
         for i in range(len(chats)):
             box=Gtk.Box()
-            autobutton_name=Gtk.Button(css_classes=["suggested-action"])
+            autobutton_name=Gtk.Button(css_classes=["suggested-action"],margin_start=5,margin_end=5,valign=Gtk.Align.CENTER)
             autobutton_name.connect("clicked", self.auto_rename)
             icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="starred-symbolic"))
             icon.set_icon_size(Gtk.IconSize.INHERIT)
             autobutton_name.set_child(icon)
             autobutton_name.set_name(str(i))
 
-            del_name=Gtk.Button(css_classes=["destructive-action"])
+            button_copy=Gtk.Button(css_classes=["copy-action","suggested-action"],margin_start=5,margin_end=5,valign=Gtk.Align.CENTER)
+            button_copy.connect("clicked", self.copy_chat)
+            icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="view-paged-symbolic"))
+            icon.set_icon_size(Gtk.IconSize.INHERIT)
+            button_copy.set_child(icon)
+            button_copy.set_name(str(i))
+
+            del_name=Gtk.Button(css_classes=["destructive-action"],margin_start=5,margin_end=5,valign=Gtk.Align.CENTER)
             del_name.connect("clicked", self.remove_chat)
             icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="user-trash-symbolic"))
             icon.set_icon_size(Gtk.IconSize.INHERIT)
             del_name.set_child(icon)
             del_name.set_name(str(i))
             b=Gtk.Button(css_classes=["flat"],hexpand=True)
-            b.set_child(Gtk.Label(label=chats[i]["name"],wrap=True,wrap_mode=Pango.WrapMode.WORD_CHAR))
+            n=chats[i]["name"]
+            if len(n)>30:
+                n=n[0:27]+"..."
+            b.set_child(Gtk.Label(label=n,wrap=True,wrap_mode=Pango.WrapMode.WORD_CHAR))
             b.set_name(str(i))
             if i==chat_id:
                 b.connect("clicked", self.back_chat)
@@ -445,6 +541,7 @@ class MainWindow(Gtk.ApplicationWindow):
                 b.connect("clicked", self.chose_chat)
             list_box.append(box)
             box.append(b)
+            box.append(button_copy)
             box.append(autobutton_name)
             box.append(del_name)
         b=Gtk.Button(css_classes=["suggested-action"])
@@ -470,7 +567,7 @@ class MainWindow(Gtk.ApplicationWindow):
     Assistant: | - | 1 | 2 | 3 | 4 |\n| - | - | - | - | - |\n| 1 | 1 | 2 | 3 | 4 |\n| 2 | 2 | 4 | 6 | 8 |\n| 3 | 3 | 6 | 9 | 12 |\n| 4 | 4 | 8 | 12 | 16 |\end
     Name_chat: The multiplication table for 4.
     System: New chat \end
-    """+"\n"+self.return_chat(chats[int(button.get_name())]["chat"][len(chats[int(button.get_name())]["chat"])-10:len(chats[int(button.get_name())]["chat"])])+"\nName_chat:").text
+    """+"\n"+self.return_chat(chats[int(button.get_name())]["chat"][len(chats[int(button.get_name())]["chat"])-memory:len(chats[int(button.get_name())]["chat"])])+"\nName_chat:").text
             if name!="Chat has been stopped":
                 chats[int(button.get_name())]["name"]=name
             self.update_history()
@@ -478,6 +575,9 @@ class MainWindow(Gtk.ApplicationWindow):
             threading.Thread(target=self.auto_rename,args=[button,True]).start()
     def new_chat(self,button,*a):
         chats.append({"name":f"Chat {len(chats)+1}","chat":[]})
+        self.update_history()
+    def copy_chat(self,button,*a):
+        chats.append(chats[int(button.get_name())])
         self.update_history()
     def chose_chat(self,button,*a):
         self.la.set_visible_child(self.l)
@@ -512,7 +612,7 @@ class MainWindow(Gtk.ApplicationWindow):
         for row in data[1:]:
             if not all(element == "-"*len(element) for element in row):
                 self.model.append(row)
-        self.treeview = Gtk.TreeView(model=self.model,css_classes=["toolbar","view"])
+        self.treeview = Gtk.TreeView(model=self.model,css_classes=["toolbar","view","transparent"])
 
         for i, title in enumerate(data[0]):
             renderer = Gtk.CellRendererText()
@@ -520,8 +620,10 @@ class MainWindow(Gtk.ApplicationWindow):
             self.treeview.append_column(column)
         return self.treeview
     def clear(self,button):
-        self.add_message("/Clear")
+        self.lm.add_toast(Adw.Toast(title='Chat is cleared'))
         self.chat=[]
+        chats[chat_id]["chat"]=self.chat
+        self.show_chat()
         self.p+=1
         for btn in self.buttons:
             btn.set_visible(False)
@@ -531,9 +633,8 @@ class MainWindow(Gtk.ApplicationWindow):
         threading.Thread(target=self.updage_button).start()
     def stop(self,button=None):
         self.status=True
+        self.p+=1
         self.button_stop.set_visible(False)
-        self.entry.set_sensitive(True)
-        self.entry.grab_focus()
         threading.Thread(target=self.updage_button).start()
         if self.chat[-1]["User"]!="Assistant":
             for i in range(len(self.chat)-1,-1,-1):
@@ -543,7 +644,8 @@ class MainWindow(Gtk.ApplicationWindow):
                 else:
                     self.chat.pop(i)
                     break
-        self.add_message("Message_stop")
+        self.lm.add_toast(Adw.Toast(title='The message was canceled and deleted from history'))
+        self.show_chat()
     def chatansw(self,message):
         p=self.p
         n=1
@@ -553,14 +655,13 @@ class MainWindow(Gtk.ApplicationWindow):
                 t=BAIChat(sync=True).sync_ask(message)
                 return t
             except Exception:
-                self.add_message("Error_send")
+                self.lm.add_toast(Adw.Toast(title='Failed to send bot a message'))
             time.sleep(n)
         return types.SimpleNamespace(text="Chat has been stopped")
 
 
 
     def on_button_clicked(self, button):
-        self.entry.set_sensitive(False)
         for btn in self.buttons:
             btn.set_visible(False)
         self.button_clear.set_visible(False)
@@ -568,42 +669,93 @@ class MainWindow(Gtk.ApplicationWindow):
         self.button_regenerate.set_visible(False)
         text = button.get_child().get_label()
         self.chat.append({"User":"User","Message":" "+text+"\end"})
-        message_label = Gtk.Label(label=text,margin_top=10,margin_start=10,margin_bottom=10,margin_end=10, css_classes=["heading"],wrap=True,wrap_mode=Pango.WrapMode.WORD_CHAR)
-        self.add_message("User",message_label)
+        message_label = Gtk.Label(label=text,margin_top=10,margin_start=10,margin_bottom=10,margin_end=10, css_classes=["heading"],wrap=True,wrap_mode=Pango.WrapMode.WORD_CHAR,selectable=True)
+        self.add_message("User",message_label,len(self.chat)-1)
         threading.Thread(target=self.send_message).start()
         self.entry.set_text('')
-    def update_folder(self):
-        try:
-            self.r.remove(self.folder_panel)
-            time.sleep(0.01)
-            self.folder_panel=Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-            self.r.append(self.folder_panel)
-            flowbox = Gtk.FlowBox(vexpand=True)
-            flowbox.set_valign(Gtk.Align.START)
-            flowbox.set_max_children_per_line(10)
+    def update_folder(self,_=None):
+        global main_path
+        if file_panel:
+            if os.path.exists(os.path.expanduser(main_path)):
+                if len(os.listdir(os.path.expanduser(main_path)))==0 or (sum(1 for filename in os.listdir(os.path.expanduser(main_path)) if not filename.startswith('.'))==0 and not hidden_files):
+                    self.r.remove(self.folder_panel)
+                    self.folder_panel=Gtk.Box(orientation=Gtk.Orientation.VERTICAL,spacing=20,opacity=0.25)
+                    self.r.append(self.folder_panel)
+                    icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="folder-symbolic"))
 
-            flowbox.set_selection_mode(Gtk.SelectionMode.NONE)
-
-            for file_info in os.listdir(os.path.expanduser("~")):
-                if os.path.isdir(os.path.join(os.path.expanduser("~"),file_info)):
-                    icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="folder"))
+                    icon.set_css_classes(["empty-folder"])
+                    icon.set_valign(Gtk.Align.END)
+                    icon.set_vexpand(True)
+                    self.folder_panel.append(icon)
+                    self.folder_panel.append(Gtk.Label(label="Folder is Empty",wrap=True,wrap_mode=Pango.WrapMode.WORD_CHAR,vexpand=True,ellipsize=Pango.EllipsizeMode.END,max_width_chars=11,valign=Gtk.Align.START,css_classes=["empty-folder","heading"]))
                 else:
-                    icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="text-x-generic"))
-                icon.set_icon_size(Gtk.IconSize.LARGE)
-                file_label = Gtk.Label(label=file_info,wrap=True,wrap_mode=Pango.WrapMode.WORD_CHAR,vexpand=True,ellipsize=Pango.EllipsizeMode.END)
-                file_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
-                file_box.append(icon)
-                file_box.set_size_request(500, -1)
-                file_box.append(file_label)
-                flowbox.append(file_box)
-            scrolled_window = Gtk.ScrolledWindow()
-            scrolled_window.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
-            scrolled_window.set_child(flowbox)
-            self.folder_panel.append(scrolled_window)
-        except Exception as e:
-            print(e)
+                    try:
+                        self.r.remove(self.folder_panel)
+                        self.folder_panel=Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+                        self.r.append(self.folder_panel)
 
+                        flowbox = Gtk.FlowBox(vexpand=True)
+                        flowbox.set_valign(Gtk.Align.START)
 
+                        for file_info in os.listdir(os.path.expanduser(main_path)):
+                            if file_info[0]=="." and not hidden_files:
+                                continue
+                            if os.path.isdir(os.path.join(os.path.expanduser(main_path),file_info)):
+                                if file_info=="Desktop":
+                                    icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="user-desktop"))
+                                elif file_info=="Documents":
+                                    icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="folder-documents"))
+                                elif file_info=="Downloads":
+                                    icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="folder-download"))
+                                elif file_info=="Music":
+                                    icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="folder-music"))
+                                elif file_info=="Pictures":
+                                    icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="folder-pictures"))
+                                elif file_info=="Public":
+                                    icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="folder-publicshare"))
+                                elif file_info=="Templates":
+                                    icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="folder-templates"))
+                                elif file_info=="Videos":
+                                    icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="folder-videos"))
+                                else:
+                                    icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="folder"))
+                            else:
+                                if file_info[len(file_info)-4:len(file_info)] in [".png",".jpg"]:
+                                    icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="image-x-generic"))
+                                else:
+                                    icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="text-x-generic"))
+                            b=Gtk.Button(css_classes=["flat"])
+                            b.set_name(file_info)
+                            b.connect("clicked",self.open_folder)
+
+                            icon.set_css_classes(["large"])
+                            icon.set_valign(Gtk.Align.END)
+                            icon.set_vexpand(True)
+                            file_label = Gtk.Label(label=file_info,wrap=True,wrap_mode=Pango.WrapMode.WORD_CHAR,vexpand=True,max_width_chars=11,valign=Gtk.Align.START)
+                            file_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+                            file_box.append(icon)
+                            file_box.set_size_request(110, 110)
+                            file_box.append(file_label)
+                            b.set_child(file_box)
+
+                            flowbox.append(b)
+                        scrolled_window = Gtk.ScrolledWindow()
+                        scrolled_window.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+                        scrolled_window.set_child(flowbox)
+                        self.folder_panel.append(scrolled_window)
+                    except Exception as e:
+                        print(e)
+            else:
+                main_path="~"
+                self.update_folder()
+
+    def open_folder(self,button,*_):
+        global main_path
+        if os.path.isdir(os.path.join(os.path.expanduser(main_path),button.get_name())):
+            main_path+="/"+button.get_name()
+            self.update_folder()
+        else:
+            subprocess.run(['xdg-open', os.path.expanduser(main_path+"/"+button.get_name())])
     def le(self,*data):
         if(self.la.get_folded()):
             self.mh.set_show_end_title_buttons(True)
@@ -621,7 +773,11 @@ class MainWindow(Gtk.ApplicationWindow):
             self.lh.set_show_end_title_buttons(False)
             self.b.set_visible(True)
     def console(self,command):
-        process = subprocess.Popen('flatpak-spawn --host '+'\n'.join(command), stdout=subprocess.PIPE, stderr=subprocess.PIPE,shell=True)
+        os.chdir(os.path.expanduser(main_path))
+        t=""
+        if not virtualization:
+            t="flatpak-spawn --host "
+        process = subprocess.Popen(t+'\n'.join(command), stdout=subprocess.PIPE, stderr=subprocess.PIPE,shell=True)
         stdout, stderr = process.communicate()
         if process.returncode != 0:
             return (False,stderr.decode())
@@ -650,38 +806,35 @@ class MainWindow(Gtk.ApplicationWindow):
             t=self.chatansw("""System: You are a user who needs help with various tasks, you are communicating with a neural network which can control your computer by executing various commands which should help you, keep a conversation with it, ask it questions, ask for help with things it can do through the terminal. Also, every message should end with "\end".More often than not, the assistant can help you with files and folders. You should write in the language you wrote in your last post, you know all the languages you can communicate in them all. \end
 Assistant: Hello, how can I assist you today? \end
 User: Can you help me? \end
-Assistant: Yes, of course, what do you need help with?\end"""+"\n"+self.return_chat(self.chat[len(self.chat)-10:len(self.chat)])+"\nUser:").text.split("\end")[0]
+Assistant: Yes, of course, what do you need help with?\end"""+"\n"+self.return_chat(self.chat[len(self.chat)-memory:len(self.chat)])+"\nUser:").text.split("\end")[0]
             if p!=self.p:
                 break
             btn.get_child().set_label(t)
             btn.set_visible(True)
     def on_entry_activate(self, entry):
+        if not self.status:
+            self.lm.add_toast(Adw.Toast(title='The message cannot be sent until the program is finished'))
+            return False
         text = entry.get_text()
         entry.set_text('')
-        if text=="/update":
-            self.show_chat()
-            return None
-        elif text[0]=="/":
-            self.add_message("/Error")
-            return None
-        self.entry.set_sensitive(False)
         for btn in self.buttons:
             btn.set_visible(False)
         self.button_clear.set_visible(False)
         self.button_continue.set_visible(False)
         self.button_regenerate.set_visible(False)
         self.chat.append({"User":"User","Message":" "+text+" \end"})
-        message_label = Gtk.Label(label=text,margin_top=10,margin_start=10,margin_bottom=10,margin_end=10, wrap=True,wrap_mode=Pango.WrapMode.WORD_CHAR)
-        self.add_message("User",message_label)
+        message_label = Gtk.Label(label=text,margin_top=10,margin_start=10,margin_bottom=10,margin_end=10, wrap=True,wrap_mode=Pango.WrapMode.WORD_CHAR,selectable=True)
+        self.add_message("User",message_label,len(self.chat)-1)
         threading.Thread(target=self.send_message).start()
     def show_chat(self):
         self.list_box = Gtk.ListBox(show_separators=True)
         self.list_box.set_selection_mode(Gtk.SelectionMode.NONE)
         self.scrolled_window.set_child(self.list_box)
-        self.add_message("Warning")
+        if not virtualization:
+            self.add_message("Warning")
         for i in range(len(self.chat)):
             if self.chat[i]["User"]=="User":
-                self.add_message("User",Gtk.Label(label=self.chat[i]["Message"][0:-4],margin_top=10,margin_start=10,margin_bottom=10,margin_end=10, wrap=True,wrap_mode=Pango.WrapMode.WORD_CHAR))
+                self.add_message("User",Gtk.Label(label=self.chat[i]["Message"][0:-4],margin_top=10,margin_start=10,margin_bottom=10,margin_end=10, wrap=True,wrap_mode=Pango.WrapMode.WORD_CHAR,selectable=True),i)
             elif self.chat[i]["User"]=="Assistant":
                 c=None
                 if self.chat[min(i+1,len(self.chat)-1)]["User"]=="Console":
@@ -691,11 +844,9 @@ Assistant: Yes, of course, what do you need help with?\end"""+"\n"+self.return_c
         if message_label==" "*len(message_label):
             if not restore:
                 self.chat.append({"User":"Assistant","Message":f"{message_label}{ending}"})
-                self.entry.set_sensitive(True)
                 threading.Thread(target=self.updage_button).start()
                 self.status=True
                 self.button_stop.set_visible(False)
-                self.entry.grab_focus()
         else:
             if not restore:self.chat.append({"User":"Assistant","Message":f"{message_label}{ending}"})
             table_string=message_label.split("\n")
@@ -723,13 +874,13 @@ Assistant: Yes, of course, what do you need help with?\end"""+"\n"+self.return_c
                                 c=self.console(value)
                             else:
                                 c=(True,reply_from_the_console)
-                            text_expander.set_child(Gtk.Label(wrap=True,wrap_mode=Pango.WrapMode.WORD_CHAR,label=c[1]))
+                            text_expander.set_child(Gtk.Label(wrap=True,wrap_mode=Pango.WrapMode.WORD_CHAR,label=c[1],selectable=True))
                             if not c[0]:
-                                self.add_message("Error",text_expander)
+                                self.add_message("Console-error",text_expander)
                             elif restore:
-                                self.add_message("Console_restore",text_expander)
+                                self.add_message("Console-restore",text_expander)
                             else:
-                                self.add_message("Console",text_expander)
+                                self.add_message("Console-done",text_expander)
                             if not restore:
                                 self.chat.append({"User":"Console","Message":" "+c[1]+"\end"})
                                 self.update_folder()
@@ -748,17 +899,15 @@ Assistant: Yes, of course, what do you need help with?\end"""+"\n"+self.return_c
                     box.append(self.create_table(table_string[s:i]))
                     s=-1
                 elif c==-1:
-                    box.append(Gtk.Label(label=table_string[i], wrap=True,halign=Gtk.Align.START,wrap_mode=Pango.WrapMode.WORD_CHAR,width_chars=1))
+                    box.append(Gtk.Label(label=table_string[i], wrap=True,halign=Gtk.Align.START,wrap_mode=Pango.WrapMode.WORD_CHAR,width_chars=1,selectable=True))
             if s!=-1:
                 box.append(self.create_table(table_string[s:i+2]))
             if not sc:
                 self.add_message("Assistant",box)
                 if not restore:
-                    self.entry.set_sensitive(True)
                     threading.Thread(target=self.updage_button).start()
                     self.status=True
                     self.button_stop.set_visible(False)
-                    self.entry.grab_focus()
             else:
                 if not restore:
                     threading.Thread(target=self.send_message).start()
@@ -768,7 +917,7 @@ Assistant: Yes, of course, what do you need help with?\end"""+"\n"+self.return_c
         p=self.p
         self.status=False
         self.button_stop.set_visible(True)
-        message_label=self.chatansw(start_m+"\n"+self.return_chat(self.chat[len(self.chat)-10:len(self.chat)])+"\nAssistant: ").text
+        message_label=self.chatansw(start_m+"\n"+self.return_chat(self.chat[len(self.chat)-memory:len(self.chat)])+"\nAssistant: ").text
         c="\end"
 
         if not "\end" in message_label:
@@ -778,34 +927,47 @@ Assistant: Yes, of course, what do you need help with?\end"""+"\n"+self.return_c
         if self.p==p:
             self.show_message(message_label,ending=c)
 
-
-    def add_message(self,user,message=None):
+    def edit_message(self, gesture, data, x, y):
+        global chat_id
+        if not self.status:
+            self.lm.add_toast(Adw.Toast(title='Error'))
+            return False
+        self.entry.set_text(self.chat[int(gesture.get_name())]["Message"][0:-4])
+        self.entry.grab_focus()
+        chats.append({"name":chats[chat_id]["name"],"chat":self.chat[0:int(gesture.get_name())]})
+        self.p+=1
+        chats[chat_id]["chat"]=self.chat
+        self.button_clear.set_visible(False)
+        self.button_continue.set_visible(False)
+        self.button_regenerate.set_visible(False)
+        chat_id=len(chats)-1
+        self.chat=chats[chat_id]["chat"]
+        self.update_history()
+        self.show_chat()
+        threading.Thread(target=self.updage_button).start()
+    def add_message(self,user,message=None,id_message=0):
         b=Gtk.Box(css_classes=["card"],margin_top=10,margin_start=10,margin_bottom=10,margin_end=10,halign=Gtk.Align.START)
         if user=="User":
+            evk = Gtk.GestureClick.new()
+            evk.connect("pressed", self.edit_message)
+            evk.set_name(str(id_message))
+            evk.set_button(3)
+            b.add_controller(evk)
             b.append(Gtk.Label(label=user+": ",margin_top=10,margin_start=10,margin_bottom=10,margin_end=0,css_classes=["accent","heading"]))
+            b.set_css_classes(["card","user"])
         if user=="Assistant":
             b.append(Gtk.Label(label=user+": ",margin_top=10,margin_start=10,margin_bottom=10,margin_end=0,css_classes=["warning","heading"]))
-        if user=="Console":
-            b.append(Gtk.Label(label=user+": ",margin_top=10,margin_start=10,margin_bottom=10,margin_end=0,css_classes=["success","heading"]))
-        if user=="Console_restore":
-            b.append(Gtk.Label(label="Console"+": ",margin_top=10,margin_start=10,margin_bottom=10,margin_end=0,css_classes=["warning","heading"]))
-        if user=="Python":
-            b.append(Gtk.Label(label=user+": ",margin_top=10,margin_start=10,margin_bottom=10,margin_end=0,css_classes=["success","heading"]))
-        if user=="Error":
-            b.append(Gtk.Label(label=user+": ",margin_top=10,margin_start=10,margin_bottom=10,margin_end=0,css_classes=["error","heading"]))
-        if user=="/Clear":
-            b.append(Gtk.Label(label="Chat is cleared",margin_top=10,margin_start=10,margin_bottom=10,margin_end=10,css_classes=["accent","heading"]))
-            b.set_halign(Gtk.Align.CENTER)
-        elif user=="/Error":
-            b.append(Gtk.Label(label="Incorrect command",margin_top=10,margin_start=10,margin_bottom=10,margin_end=10,css_classes=["error","heading"]))
-            b.set_halign(Gtk.Align.CENTER)
-        elif user=="Error_send":
-            b.append(Gtk.Label(wrap=True,wrap_mode=Pango.WrapMode.WORD_CHAR,label="Failed to send bot a message",margin_top=10,margin_start=10,margin_bottom=10,margin_end=10,css_classes=["error","heading"]))
-            b.set_halign(Gtk.Align.CENTER)
-        elif user=="Message_stop":
-            b.append(Gtk.Label(wrap=True,wrap_mode=Pango.WrapMode.WORD_CHAR,label="The message was canceled and deleted from history",margin_top=10,margin_start=10,margin_bottom=10,margin_end=10,css_classes=["accent","heading"]))
-            b.set_halign(Gtk.Align.CENTER)
-        elif user=="Warning":
+            b.set_css_classes(["card","assistant"])
+        if user=="Console-done":
+            b.append(Gtk.Label(label="Console: ",margin_top=10,margin_start=10,margin_bottom=10,margin_end=0,css_classes=["success","heading"]))
+            b.set_css_classes(["card","console-done"])
+        if user=="Console-restore":
+            b.append(Gtk.Label(label="Console: ",margin_top=10,margin_start=10,margin_bottom=10,margin_end=0,css_classes=["warning","heading"]))
+            b.set_css_classes(["card","console-restore"])
+        if user=="Console-error":
+            b.append(Gtk.Label(label="Console: ",margin_top=10,margin_start=10,margin_bottom=10,margin_end=0,css_classes=["error","heading"]))
+            b.set_css_classes(["card","console-error"])
+        if user=="Warning":
             icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="dialog-warning"))
             icon.set_icon_size(Gtk.IconSize.LARGE)
             box=Gtk.Box(halign=Gtk.Align.CENTER,orientation=Gtk.Orientation.VERTICAL,css_classes=["warning","heading"],margin_top=10)
@@ -815,6 +977,7 @@ Assistant: Yes, of course, what do you need help with?\end"""+"\n"+self.return_c
             box.append(label)
             b.append(box)
             b.set_halign(Gtk.Align.CENTER)
+            b.set_css_classes(["card","message-warning"])
         else:
             b.append(message)
         self.list_box.append(b)
@@ -824,7 +987,6 @@ Assistant: Yes, of course, what do you need help with?\end"""+"\n"+self.return_c
 class MyApp(Adw.Application):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-
         css = '''
 .code{
 background-color: rgb(38,38,38);
@@ -838,7 +1000,42 @@ background-color: rgb(38,38,38);
 }
 .sourceview{
     color: rgb(192,191,188);
-}'''
+}
+.copy-action{
+    color:rgb(255,255,255);
+    background-color: rgb(38,162,105);
+}
+.large{
+    -gtk-icon-size:100px;
+}
+.empty-folder{
+    font-size:25px;
+    font-weight:800;
+    -gtk-icon-size:120px;
+}
+.user{
+    background-color: rgba(61, 152, 255,0.05);
+}
+.assistant{
+    background-color: rgba(184, 134, 17,0.05);
+}
+.console-done{
+    background-color: rgba(33, 155, 98,0.05);
+}
+.console-error{
+    background-color: rgba(254, 31, 41,0.05);
+}
+.console-restore{
+    background-color: rgba(184, 134, 17,0.05);
+}
+.message-warning{
+    background-color: rgba(184, 134, 17,0.05);
+}
+.transparent{
+    background-color: rgba(0,0,0,0);
+}
+
+'''
         css_provider = Gtk.CssProvider()
         css_provider.load_from_data(css,-1)
         Gtk.StyleContext.add_provider_for_display(
@@ -854,6 +1051,10 @@ background-color: rgb(38,38,38);
         action = Gio.SimpleAction.new("shortcuts", None)
         action.connect('activate', self.on_shortcuts_action)
         self.add_action(action)
+        action = Gio.SimpleAction.new("settings", None)
+        action.connect('activate', self.settings_action)
+        self.add_action(action)
+
     def create_action(self, name, callback, shortcuts=None):
         action = Gio.SimpleAction.new(name, None)
         action.connect("activate", callback)
@@ -875,20 +1076,100 @@ background-color: rgb(38,38,38);
                                 developers=['qwersyk'],
                                 copyright='© 2023 qwersyk')
         about.present()
+    def settings_action(self, widget, _):
+        Settings().present()
 
     def on_activate(self, app):
         self.win = MainWindow(application=app)
         self.win.present()
+
+
+class Settings(Adw.PreferencesWindow):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.settings = Gio.Settings.new('org.gnome.newelle')
+
+        self.general_page = Adw.PreferencesPage()
+        self.interface = Adw.PreferencesGroup(title='Interface')
+        self.general_page.add(self.interface)
+
+
+        row = Adw.ActionRow(title="Sidebar", subtitle="Show the explorer panel")
+        switch = Gtk.Switch(valign=Gtk.Align.CENTER)
+        row.add_suffix(switch)
+        self.settings.bind("file-panel", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
+        self.interface.add(row)
+
+        row = Adw.ActionRow(title="Hidden files", subtitle="Show hidden files")
+        switch = Gtk.Switch(valign=Gtk.Align.CENTER)
+        row.add_suffix(switch)
+        self.settings.bind("hidden-files", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
+        self.interface.add(row)
+
+        row = Adw.ActionRow(title="Number of offers", subtitle="Number of message suggestions to send to chat ")
+        int_spin = Gtk.SpinButton(valign=Gtk.Align.CENTER)
+        int_spin.set_adjustment(Gtk.Adjustment(lower=0, upper=5, step_increment=1, page_increment=10, page_size=0))
+        row.add_suffix(int_spin)
+        self.settings.bind("offers", int_spin, 'value', Gio.SettingsBindFlags.DEFAULT)
+        self.interface.add(row)
+
+
+
+        self.prompt = Adw.PreferencesGroup(title='Prompt control')
+        self.general_page.add(self.prompt)
+
+        row = Adw.ActionRow(title="Console access", subtitle="Can the program run terminal commands on the computer")
+        switch = Gtk.Switch(valign=Gtk.Align.CENTER)
+        row.add_suffix(switch)
+        self.settings.bind("console", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
+        self.prompt.add(row)
+
+        row = Adw.ActionRow(title="Internet access", subtitle="Can the program search the Internet",sensitive=False)
+        switch = Gtk.Switch(valign=Gtk.Align.CENTER)
+        row.add_suffix(switch)
+        self.settings.bind("search", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
+        self.prompt.add(row)
+
+        row = Adw.ActionRow(title="Graphs access", subtitle="Can the program display graphs",sensitive=False)
+        switch = Gtk.Switch(valign=Gtk.Align.CENTER)
+        row.add_suffix(switch)
+        self.settings.bind("graphic", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
+        self.prompt.add(row)
+
+
+        self.neural_network = Adw.PreferencesGroup(title='Neural Network Control')
+        self.general_page.add(self.neural_network)
+
+        row = Adw.ActionRow(title="Command virtualization", subtitle="Run commands in a virtual machine")
+        switch = Gtk.Switch(valign=Gtk.Align.CENTER)
+        row.add_suffix(switch)
+        self.settings.bind("virtualization", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
+        self.neural_network.add(row)
+
+        row = Adw.ActionRow(title="Program memory", subtitle="How long the program remembers the chat ")
+        int_spin = Gtk.SpinButton(valign=Gtk.Align.CENTER)
+        int_spin.set_adjustment(Gtk.Adjustment(lower=0, upper=30, step_increment=1, page_increment=10, page_size=0))
+        row.add_suffix(int_spin)
+        self.settings.bind("memory", int_spin, 'value', Gio.SettingsBindFlags.DEFAULT)
+        self.neural_network.add(row)
+
+        self.message = Adw.PreferencesGroup(title='The change will take effect after you restart the program.')
+        self.general_page.add(self.message)
+
+
+
+        self.add(self.general_page)
+
 
 def main(version):
     app = MyApp(application_id="org.gnome.newelle")
     app.create_action('quit', app.on_about_action, ['<primary>m'])
 
     app.run(sys.argv)
+    os.chdir(os.path.expanduser("~"))
     chats[chat_id]["chats"]=app.win.chat
     with open(path+filename, 'wb') as f:
         pickle.dump(chats, f)
     info["chat"]=chat_id
     with open(path+infoname, 'wb') as f:
         pickle.dump(info, f)
-

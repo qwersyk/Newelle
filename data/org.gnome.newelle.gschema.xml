@@ -1,5 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schemalist gettext-domain="newelle">
 	<schema id="org.gnome.newelle" path="/org/gnome/newelle/">
+	  <key name="file-panel" type="b">
+      <default>false</default>
+    </key>
+	  <key name="offers" type="i">
+      <default>1</default>
+    </key>
+	  <key name="console" type="b">
+      <default>true</default>
+    </key>
+	  <key name="search" type="b">
+      <default>false</default>
+    </key>
+	  <key name="graphic" type="b">
+      <default>false</default>
+    </key>
+	  <key name="virtualization" type="b">
+      <default>false</default>
+    </key>
+	  <key name="memory" type="i">
+      <default>10</default>
+    </key>
+	  <key name="hidden-files" type="b">
+      <default>false</default>
+    </key>
+
 	</schema>
 </schemalist>
