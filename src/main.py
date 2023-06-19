@@ -7,7 +7,7 @@ import pickle
 
 
 from .bai import BAIChat
-from gi.repository import Gtk, Adw,Pango,Gio,Gdk, GtkSource
+from gi.repository import Gtk, Adw,Pango,Gio,Gdk, GtkSource,GObject
 
 import threading
 path=".var/app/org.gnome.newelle/data"
@@ -138,6 +138,52 @@ python3 -c "print('Hello world!')"
 
 
 System: New chat \end"""
+
+
+
+
+class File(Gtk.Image):
+    def __init__(self, path, file_name):
+        if os.path.isdir(os.path.join(os.path.expanduser(path),file_name)):
+            if file_name=="Desktop":
+                name="user-desktop"
+            elif file_name=="Documents":
+                name="folder-documents"
+            elif file_name=="Downloads":
+                name="folder-download"
+            elif file_name=="Music":
+                name="folder-music"
+            elif file_name=="Pictures":
+                name="folder-pictures"
+            elif file_name=="Public":
+                name="folder-publicshare"
+            elif file_name=="Templates":
+                name="folder-templates"
+            elif file_name=="Videos":
+                name="folder-videos"
+            else:
+                name="folder"
+        else:
+            if file_name[len(file_name)-4:len(file_name)] in [".png",".jpg"]:
+                name="image-x-generic"
+            else:
+                name="text-x-generic"
+        super().__init__(icon_name=name)
+
+        self.path=path
+        self.file_name=file_name
+        self.drag_source = Gtk.DragSource.new()
+        self.drag_source.set_actions(Gdk.DragAction.COPY)
+        self.drag_source.connect("prepare", self.move)
+        self.add_controller(self.drag_source)
+    def move(self, drag_source, x, y):
+        snapshot = Gtk.Snapshot.new()
+        self.do_snapshot(self, snapshot)
+        paintable = snapshot.to_paintable()
+        drag_source.set_icon(paintable, int(x), int(y))
+
+        data = os.path.normpath(os.path.expanduser(f"{self.path}/{self.file_name}"))
+        return Gdk.ContentProvider.new_for_value(data)
 
 
 class CopyBox(Gtk.Box):
@@ -305,6 +351,9 @@ class MainWindow(Gtk.ApplicationWindow):
         self.list_box = Gtk.ListBox(show_separators=True)
         self.list_box.set_selection_mode(Gtk.SelectionMode.NONE)
         self.scrolled_window = Gtk.ScrolledWindow(vexpand=True)
+        drop_target = Gtk.DropTarget.new(GObject.TYPE_STRING, Gdk.DragAction.COPY)
+        drop_target.connect('drop', self.send_file)
+        self.scrolled_window.add_controller(drop_target)
         self.scrolled_window.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
         self.scrolled_window.set_child(self.list_box)
         self.lm=Adw.ToastOverlay()
@@ -441,6 +490,57 @@ class MainWindow(Gtk.ApplicationWindow):
         threading.Thread(target=self.updage_button).start()
         self.update_history()
         self.show_chat()
+    def create_message_file(self,path):
+        b=Gtk.Button(css_classes=["flat"],margin_top=5,margin_start=5,margin_bottom=5,margin_end=5)
+        b.connect("clicked", self.run_file)
+        b.set_name(path)
+        box=Gtk.Box()
+        vbox=Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        file_name=path.split("/")[-1]
+        if os.path.exists(path):
+            if os.path.isdir(path):
+                name="folder"
+            else:
+                if file_name[len(file_name)-4:len(file_name)] in [".png",".jpg"]:
+                    name="image-x-generic"
+                else:
+                    name="text-x-generic"
+        else:
+            name="image-missing"
+        icon=Gtk.Image(icon_name=name)
+        icon.set_css_classes(["large"])
+        box.append(icon)
+        box.append(vbox)
+        vbox.set_size_request(250, -1)
+        vbox.append(Gtk.Label(label=path.split("/")[-1],css_classes=["title-3"],halign=Gtk.Align.START,wrap=True,wrap_mode=Pango.WrapMode.WORD_CHAR))
+        vbox.append(Gtk.Label(label='/'.join(path.split("/")[0:-1]),halign=Gtk.Align.START,wrap=True,wrap_mode=Pango.WrapMode.WORD_CHAR))
+        b.set_child(box)
+        return b
+    def run_file(self,button,*_):
+        global main_path
+        if os.path.exists(button.get_name()):
+            if os.path.isdir(os.path.join(os.path.expanduser(main_path),button.get_name())):
+                main_path=button.get_name()
+                self.update_folder()
+            else:
+                subprocess.run(['xdg-open', os.path.expanduser(button.get_name())])
+        else:
+            self.lm.add_toast(Adw.Toast(title='File not found'))
+    def send_file(self,DropTarget, data, x, y):
+        if not self.status:
+            self.lm.add_toast(Adw.Toast(title='The file cannot be sent until the program is finished'))
+            return False
+        for path in data.split("\n"):
+            if os.path.exists(path):
+                message_label=self.create_message_file(path)
+                if os.path.isdir(path):
+                    self.chat.append({"User":"Folder","Message":" "+path+" \end"})
+                    self.add_message("Folder",message_label)
+                else:
+                    self.chat.append({"User":"File","Message":" "+path+" \end"})
+                    self.add_message("File",message_label)
+            else:
+                self.lm.add_toast(Adw.Toast(title='The file is not recognized'))
     def back_folder(self,_):
         global main_path
         main_path+="/.."
@@ -700,38 +800,16 @@ class MainWindow(Gtk.ApplicationWindow):
                         for file_info in os.listdir(os.path.expanduser(main_path)):
                             if file_info[0]=="." and not hidden_files:
                                 continue
-                            if os.path.isdir(os.path.join(os.path.expanduser(main_path),file_info)):
-                                if file_info=="Desktop":
-                                    icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="user-desktop"))
-                                elif file_info=="Documents":
-                                    icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="folder-documents"))
-                                elif file_info=="Downloads":
-                                    icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="folder-download"))
-                                elif file_info=="Music":
-                                    icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="folder-music"))
-                                elif file_info=="Pictures":
-                                    icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="folder-pictures"))
-                                elif file_info=="Public":
-                                    icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="folder-publicshare"))
-                                elif file_info=="Templates":
-                                    icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="folder-templates"))
-                                elif file_info=="Videos":
-                                    icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="folder-videos"))
-                                else:
-                                    icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="folder"))
-                            else:
-                                if file_info[len(file_info)-4:len(file_info)] in [".png",".jpg"]:
-                                    icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="image-x-generic"))
-                                else:
-                                    icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="text-x-generic"))
                             b=Gtk.Button(css_classes=["flat"])
                             b.set_name(file_info)
                             b.connect("clicked",self.open_folder)
 
+
+                            icon=File(main_path,file_info)
                             icon.set_css_classes(["large"])
                             icon.set_valign(Gtk.Align.END)
                             icon.set_vexpand(True)
-                            file_label = Gtk.Label(label=file_info,wrap=True,wrap_mode=Pango.WrapMode.WORD_CHAR,vexpand=True,max_width_chars=11,valign=Gtk.Align.START)
+                            file_label = Gtk.Label(label=file_info,wrap=True,wrap_mode=Pango.WrapMode.WORD_CHAR,vexpand=True,max_width_chars=11,valign=Gtk.Align.START,ellipsize=Pango.EllipsizeMode.MIDDLE)
                             file_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
                             file_box.append(icon)
                             file_box.set_size_request(110, 110)
@@ -751,11 +829,14 @@ class MainWindow(Gtk.ApplicationWindow):
 
     def open_folder(self,button,*_):
         global main_path
-        if os.path.isdir(os.path.join(os.path.expanduser(main_path),button.get_name())):
-            main_path+="/"+button.get_name()
-            self.update_folder()
+        if os.path.exists(button.get_name()):
+            if os.path.isdir(os.path.join(os.path.expanduser(main_path),button.get_name())):
+                main_path+="/"+button.get_name()
+                self.update_folder()
+            else:
+                subprocess.run(['xdg-open', os.path.expanduser(main_path+"/"+button.get_name())])
         else:
-            subprocess.run(['xdg-open', os.path.expanduser(main_path+"/"+button.get_name())])
+            self.lm.add_toast(Adw.Toast(title='File not found'))
     def le(self,*data):
         if(self.la.get_folded()):
             self.mh.set_show_end_title_buttons(True)
@@ -822,9 +903,10 @@ Assistant: Yes, of course, what do you need help with?\end"""+"\n"+self.return_c
         self.button_clear.set_visible(False)
         self.button_continue.set_visible(False)
         self.button_regenerate.set_visible(False)
-        self.chat.append({"User":"User","Message":" "+text+" \end"})
-        message_label = Gtk.Label(label=text,margin_top=10,margin_start=10,margin_bottom=10,margin_end=10, wrap=True,wrap_mode=Pango.WrapMode.WORD_CHAR,selectable=True)
-        self.add_message("User",message_label,len(self.chat)-1)
+        if not text==" "*len(text):
+            self.chat.append({"User":"User","Message":" "+text+" \end"})
+            message_label = Gtk.Label(label=text,margin_top=10,margin_start=10,margin_bottom=10,margin_end=10, wrap=True,wrap_mode=Pango.WrapMode.WORD_CHAR,selectable=True)
+            self.add_message("User",message_label,len(self.chat)-1)
         threading.Thread(target=self.send_message).start()
     def show_chat(self):
         self.list_box = Gtk.ListBox(show_separators=True)
@@ -840,6 +922,8 @@ Assistant: Yes, of course, what do you need help with?\end"""+"\n"+self.return_c
                 if self.chat[min(i+1,len(self.chat)-1)]["User"]=="Console":
                     c=self.chat[min(i+1,len(self.chat)-1)]["Message"][0:-4]
                 self.show_message(self.chat[i]["Message"][0:-4],True,c)
+            elif self.chat[i]["User"] in ["File","Folder"]:
+                self.add_message(self.chat[i]["User"],self.create_message_file(self.chat[i]["Message"][1:-5]))
     def show_message(self,message_label,restore=False,reply_from_the_console=None,ending="\end"):
         if message_label==" "*len(message_label):
             if not restore:
@@ -967,6 +1051,12 @@ Assistant: Yes, of course, what do you need help with?\end"""+"\n"+self.return_c
         if user=="Console-error":
             b.append(Gtk.Label(label="Console: ",margin_top=10,margin_start=10,margin_bottom=10,margin_end=0,css_classes=["error","heading"]))
             b.set_css_classes(["card","console-error"])
+        if user=="File":
+            b.append(Gtk.Label(label="User: ",margin_top=10,margin_start=10,margin_bottom=10,margin_end=0,css_classes=["accent","heading"]))
+            b.set_css_classes(["card","file"])
+        if user=="Folder":
+            b.append(Gtk.Label(label="User: ",margin_top=10,margin_start=10,margin_bottom=10,margin_end=0,css_classes=["accent","heading"]))
+            b.set_css_classes(["card","folder"])
         if user=="Warning":
             icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="dialog-warning"))
             icon.set_icon_size(Gtk.IconSize.LARGE)
@@ -1027,6 +1117,12 @@ background-color: rgb(38,38,38);
 }
 .console-restore{
     background-color: rgba(184, 134, 17,0.05);
+}
+.file{
+    background-color: rgba(189, 233, 255,0.05);
+}
+.folder{
+    background-color: rgba(189, 233, 255,0.05);
 }
 .message-warning{
     background-color: rgba(184, 134, 17,0.05);
@@ -1173,3 +1269,4 @@ def main(version):
     info["chat"]=chat_id
     with open(path+infoname, 'wb') as f:
         pickle.dump(info, f)
+
