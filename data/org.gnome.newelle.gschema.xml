@@ -25,6 +25,11 @@
 	  <key name="hidden-files" type="b">
       <default>false</default>
     </key>
-
+    <key name="path" type="s">
+      <default>"~"</default>
+    </key>
+	  <key name="chat" type="i">
+      <default>0</default>
+    </key>
 	</schema>
 </schemalist>

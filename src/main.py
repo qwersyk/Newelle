@@ -21,15 +21,6 @@ if os.path.exists(path+filename):
 else:
     chats=[{"name":"Chat 1","chat":[]}]
 
-if os.path.exists(path+infoname):
-    with open(path+infoname, 'rb') as f:
-        info = pickle.load(f)
-else:
-    info={"chat":0}
-
-
-chat_id=info["chat"]
-
 
 settings = Gio.Settings.new('org.gnome.newelle')
 file_panel = settings.get_boolean("file-panel")
@@ -38,27 +29,29 @@ virtualization = settings.get_boolean("virtualization")
 memory = settings.get_int("memory")
 console = settings.get_boolean("console")
 hidden_files = settings.get_boolean("hidden-files")
-
-
-
-main_path="~"
+chat_id = settings.get_int("chat")
+main_path = settings.get_string("path")
+os.chdir(os.path.expanduser(main_path))
 
 start_m=""""""
 if console:
-    start_m+="""System:You're an assistant who is supposed to help the user by answering questions and doing what he asks. You have the ability to run Linux commands for the terminal on the user's computer in order to perform the task he asks for. There are two types of messages "Assistant: text", this is where you answer his questions and talk to the user. And the second type is "Assistant: ```console\ncommand\n```".Note that in the command you can not write comments or anything else that is not a command. The 'name' is what the command does, the 'command' is what you execute on the user's computer you can't write questions, answers, or explanations here, you can only write what you want. At the end of each message must be '\end'. You don't have to tell the user how to do something, you have to do it yourself. Write the minimum and only what is important. If you're done, write "\end" in a new message.You know all the languages and understand and can communicate in them. If you were written in a language, continue in the language in which he wrote. \end
+    start_m+="""System:You're an assistant who is supposed to help the user by answering questions and doing what he asks. You have the ability to run Linux commands for the terminal on the user's computer in order to perform the task he asks for. There are two types of messages "Assistant: text", this is where you answer his questions and talk to the user. And the second type is "Assistant: ```console\ncommand\n```".Note that in the command you can not write comments or anything else that is not a command. The 'name' is what the command does, the 'command' is what you execute on the user's computer you can't write questions, answers, or explanations here, you can only write what you want. At the end of each message must be '\end'. You don't have to tell the user how to do something, you have to do it yourself. Write the minimum and only what is important. If you're done, write "\end" in a new message.You know all the languages and understand and can communicate in them. If you were written in a language, continue in the language in which he wrote. Also, if you created or edited some object, or the user asks to show some object, then in the message also write the object, or objects that you want to display, through this structure:```file or folder\npath\n```. \end
 User: Create an image 100x100 pixels \end
 Assistant: ```console
 convert -size 100x100 xc:white image.png
 ``` \end
-Console: \end
-Assistant: \end
+Console: Done\end
+Assistant: The image has been created:
+```file
+./image.png
+```\end
 
 System: New chat \end
 User: Open YouTube \end
 Assistant: ```console
 xdg-open https://www.youtube.com
 ``` \end
-Console: \end
+Console: Done\end
 Assistant: \end
 
 System: New chat \end
@@ -66,8 +59,11 @@ User: Create folder \end
 Assistant: ```console
 mkdir folder
 ```\end
-Console: \end
-Assistant: \end
+Console: Done\end
+Assistant: The folder has been created:
+```folder
+./folder
+```\end
 
 System: New chat \end
 User: What day of the week it is \end
@@ -90,16 +86,23 @@ User: Create file 1.py \end
 Assistant: ```console
 touch 1.py
 ``` \end
-Console: Desktop/    Downloads/ \end
-Assistant: Desktop, Downloads\end
+Console: Done\end
+Assistant: The file has been created:
+```file
+./1.py
+```\end
 
 System: New chat \end
 User: Display the names of all my folders \end
 Assistant: ```console
 ls -d */
 ``` \end
-Console: \end
-Assistant: \end
+Console: Desktop/    Downloads/ \end
+Assistant: Here are all the folders:
+```folder
+./Desktop
+./Downloads
+```\end
 
 System: New chat \end
 """
@@ -521,6 +524,7 @@ class MainWindow(Gtk.ApplicationWindow):
         if os.path.exists(button.get_name()):
             if os.path.isdir(os.path.join(os.path.expanduser(main_path),button.get_name())):
                 main_path=button.get_name()
+                os.chdir(os.path.expanduser(main_path))
                 self.update_folder()
             else:
                 subprocess.run(['xdg-open', os.path.expanduser(button.get_name())])
@@ -559,7 +563,9 @@ class MainWindow(Gtk.ApplicationWindow):
     def back_chat(self,button):
         self.la.set_visible_child(self.l)
     def continue_message(self,button,multithreading=False):
-        if multithreading:
+        if self.chat[-1]["User"]!="Assistant":
+            self.lm.add_toast(Adw.Toast(title='You can no longer continue the message.'))
+        elif multithreading:
             self.p+=1
             p=self.p
             for btn in self.buttons:
@@ -580,7 +586,9 @@ class MainWindow(Gtk.ApplicationWindow):
         else:
             threading.Thread(target=self.continue_message,args=[button,True]).start()
     def regenerate_message(self,button,multithreading=False):
-        if multithreading:
+        if self.chat[-1]["User"]!="Assistant":
+            self.lm.add_toast(Adw.Toast(title='You can no longer regenerate the message.'))
+        elif multithreading:
             self.p+=1
             p=self.p
             for btn in self.buttons:
@@ -777,6 +785,7 @@ class MainWindow(Gtk.ApplicationWindow):
         global main_path
         if file_panel:
             if os.path.exists(os.path.expanduser(main_path)):
+                self.rh.set_title_widget(Gtk.Label(label=os.path.normpath(main_path),css_classes=["title"]))
                 if len(os.listdir(os.path.expanduser(main_path)))==0 or (sum(1 for filename in os.listdir(os.path.expanduser(main_path)) if not filename.startswith('.'))==0 and not hidden_files):
                     self.r.remove(self.folder_panel)
                     self.folder_panel=Gtk.Box(orientation=Gtk.Orientation.VERTICAL,spacing=20,opacity=0.25)
@@ -829,9 +838,10 @@ class MainWindow(Gtk.ApplicationWindow):
 
     def open_folder(self,button,*_):
         global main_path
-        if os.path.exists(button.get_name()):
+        if os.path.exists(os.path.join(os.path.expanduser(main_path),button.get_name())):
             if os.path.isdir(os.path.join(os.path.expanduser(main_path),button.get_name())):
                 main_path+="/"+button.get_name()
+                os.chdir(os.path.expanduser(main_path))
                 self.update_folder()
             else:
                 subprocess.run(['xdg-open', os.path.expanduser(main_path+"/"+button.get_name())])
@@ -947,7 +957,7 @@ Assistant: Yes, of course, what do you need help with?\end"""+"\n"+self.return_c
                         c=i+1
                         lang=table_string[i][3:len(table_string[i])]
                     else:
-                        if lang=="console" or lang==" console":
+                        if lang=="console":
                             sc=True
                             value=table_string[c:i]
                             text_expander = Gtk.Expander(
@@ -968,6 +978,9 @@ Assistant: Yes, of course, what do you need help with?\end"""+"\n"+self.return_c
                             if not restore:
                                 self.chat.append({"User":"Console","Message":" "+c[1]+"\end"})
                                 self.update_folder()
+                        elif lang in ["file","folder"]:
+                            for obj in table_string[c:i]:
+                                box.append(self.create_message_file(obj))
                         else:
                             box.append(CopyBox("\n".join(table_string[c:i]),lang))
                         c=-1
@@ -1014,7 +1027,7 @@ Assistant: Yes, of course, what do you need help with?\end"""+"\n"+self.return_c
     def edit_message(self, gesture, data, x, y):
         global chat_id
         if not self.status:
-            self.lm.add_toast(Adw.Toast(title='Error'))
+            self.lm.add_toast(Adw.Toast(title="You can't edit a message while the program is running."))
             return False
         self.entry.set_text(self.chat[int(gesture.get_name())]["Message"][0:-4])
         self.entry.grab_focus()
@@ -1178,7 +1191,15 @@ background-color: rgb(38,38,38);
     def on_activate(self, app):
         self.win = MainWindow(application=app)
         self.win.present()
-
+    def do_shutdown(self):
+        os.chdir(os.path.expanduser("~"))
+        chats[chat_id]["chats"]=self.win.chat
+        with open(path+filename, 'wb') as f:
+            pickle.dump(chats, f)
+        settings = Gio.Settings.new('org.gnome.newelle')
+        settings.set_int("chat",chat_id)
+        settings.set_string("path",os.path.normpath(main_path))
+        Gtk.Application.do_shutdown(self)
 
 class Settings(Adw.PreferencesWindow):
     def __init__(self, *args, **kwargs):
@@ -1262,11 +1283,4 @@ def main(version):
     app.create_action('quit', app.on_about_action, ['<primary>m'])
 
     app.run(sys.argv)
-    os.chdir(os.path.expanduser("~"))
-    chats[chat_id]["chats"]=app.win.chat
-    with open(path+filename, 'wb') as f:
-        pickle.dump(chats, f)
-    info["chat"]=chat_id
-    with open(path+infoname, 'wb') as f:
-        pickle.dump(info, f)
 
