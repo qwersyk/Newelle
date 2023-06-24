@@ -29,7 +29,10 @@ configure_file(
 newelle_sources = [
   '__init__.py',
   'main.py',
-  'bai.py'
+  'bai.py',
+  'gtkobj.py',
+  'settings.py',
+  'window.py',
 ]
 
 install_data(newelle_sources, install_dir: moduledir)
