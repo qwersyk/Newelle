@@ -48,7 +48,7 @@ class Settings(Adw.PreferencesWindow):
         self.settings.bind("search", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
         self.prompt.add(row)
 
-        row = Adw.ActionRow(title="Graphs access", subtitle="Can the program display graphs", sensitive=False)
+        row = Adw.ActionRow(title="Graphs access", subtitle="Can the program display graphs")
         switch = Gtk.Switch(valign=Gtk.Align.CENTER)
         row.add_suffix(switch)
         self.settings.bind("graphic", switch, 'active', Gio.SettingsBindFlags.DEFAULT)

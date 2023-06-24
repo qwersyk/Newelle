@@ -55,7 +55,7 @@ background-color: rgb(38,38,38);
     background-color: rgba(184, 134, 17,0.05);
 }
 .file{
-    background-color: rgb(222, 221, 218,0.05);
+    background-color: rgba(222, 221, 218,0.05);
 }
 .folder{
     background-color: rgba(189, 233, 255,0.05);
@@ -65,6 +65,9 @@ background-color: rgb(38,38,38);
 }
 .transparent{
     background-color: rgba(0,0,0,0);
+}
+.chart{
+    background-color: rgba(61, 152, 255,0.25);
 }
 
 '''

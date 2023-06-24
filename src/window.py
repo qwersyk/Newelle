@@ -5,7 +5,7 @@ gi.require_version('Gtk', '4.0')
 gi.require_version('GtkSource', '5')
 gi.require_version('Adw', '1')
 import pickle
-from .gtkobj import File, CopyBox
+from .gtkobj import File, CopyBox, BarChartBox
 from .bai import BAIChat
 from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GtkSource, GObject
 import threading
@@ -39,6 +39,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.main_path = settings.get_string("path")
         os.chdir(os.path.expanduser(self.main_path))
         self.chat = self.chats[self.chat_id]["chat"]
+        self.graphic = settings.get_boolean("graphic")
 
         self.bot_prompt = """"""
         if self.console:
@@ -145,8 +146,50 @@ Assistant: ```console
 python3 -c "print('Hello world!')"
 ```\end
 
+System: New chat \end
+"""
+        if self.graphic:
+            self.bot_prompt += """System: You can display the graph using this structure: ```chart\n name - value\n ... \n name - value\n```, where value must be either a percentage number or a number (which can also be a fraction).
+System: New chat \end
+User: Write which product Apple sold the most in 2019, which less, etc. \end
+Assistant: ```chart
+iPhone (смартфоны) - 60%
+MacBook (ноутбуки) - 15%
+iPad (планшеты) - 10%
+Apple Watch (умные часы) - 10%
+iMac (настольные компьютеры) - 5%
+```
+In 2019, Apple sold the most iPhones.\end
 
-System: New chat \end"""
+System: New chat \end
+"""
+        if self.graphic and self.console:
+            self.bot_prompt+="""
+File: /home/qwersyk/Downloads/money.txt \end
+User: Create a graph for the report in the money.txt file \end
+Assistant: ```console
+cat /home/qwersyk/Downloads/money.txt
+``` \end
+Console: It was spent 5000 in January, 8000 in February, 6500 in March, 9000 in April, 10000 in May, 7500 in June, 8500 in July, 7000 in August, 9500 in September, 11000 in October, 12000 in November and 9000 in December. \end
+Assistant: ```chart
+January - 5000
+February - 8000
+March - 6500
+April - 9000
+May - 10000
+June - 7500
+July - 8500
+August - 7000
+September - 9500
+October - 11000
+November - 12000
+December - 9000
+```
+Here is the graph for the data in the file:
+```file
+/home/qwersyk/Downloads/money.txt
+```\end
+"""
 
         self.set_titlebar(Gtk.Box())
         self.chat_panel = Gtk.Box(hexpand_set=True, hexpand=True)
@@ -454,7 +497,7 @@ System: New chat \end"""
             self.regenerate_message_button.set_visible(False)
             self.status = False
             message = self.send_message_to_bot(self.bot_prompt + "\n" + self.get_chat(
-                self.chat[len(self.chat) - self.memory:len(self.chat) - 1]) + "\nAssistant:\n").text.split("\end")[0]
+                self.chat[len(self.chat) - self.memory:len(self.chat) - 1]) + "\nAssistant: ").text.split("\end")[0]
             if len(self.chat) != 0 and stream_number_variable == self.stream_number_variable:
                 self.chat[-1]["Message"] = message + "\end"
                 self.show_chat()
@@ -871,6 +914,17 @@ Assistant: Yes, of course, what do you need help with?\end""" + "\n" + self.get_
                         elif code_language in ["file", "folder"]:
                             for obj in table_string[start_code_index:i]:
                                 box.append(self.get_file_button(obj))
+                        elif code_language == "chart":
+                            result = {}
+                            lines = table_string[start_code_index:i]
+                            for line in lines:
+                                parts = line.split('-')
+                                if len(parts) == 2:
+                                    key = parts[0].strip()
+                                    percentages = "%" in parts[1]
+                                    value = ''.join(filter(lambda x: x.isdigit() or x==".", parts[1]))
+                                    result[key] = float(value)
+                            box.append(BarChartBox(result,percentages))
                         else:
                             box.append(CopyBox("\n".join(table_string[start_code_index:i]), code_language))
                         start_code_index = -1
