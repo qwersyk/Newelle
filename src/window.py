@@ -48,37 +48,37 @@ User: Create an image 100x100 pixels \end
 Assistant: ```console
 convert -size 100x100 xc:white image.png
 ``` \end
-Console: Done\end
+Console: Done \end
 Assistant: The image has been created:
 ```file
 ./image.png
-```\end
+``` \end
 
 System: New chat \end
 User: Open YouTube \end
 Assistant: ```console
 xdg-open https://www.youtube.com
 ``` \end
-Console: Done\end
+Console: Done \end
 Assistant: \end
 
 System: New chat \end
 User: Create folder \end
 Assistant: ```console
 mkdir folder
-```\end
-Console: Done\end
+``` \end
+Console: Done \end
 Assistant: The folder has been created:
 ```folder
 ./folder
-```\end
+``` \end
 
 System: New chat \end
 User: What day of the week it is \end
 Assistant: ```console
 date +%A
-```\end
-Console: Tuesday\end
+``` \end
+Console: Tuesday \end
 Assistant: Today is Tuesday. \end
 
 System: New chat \end
@@ -86,7 +86,7 @@ User: What's the error in file 1.py \end
 Assistant: ```console
 cat 1.py
 ``` \end
-Console: print(math.pi)\end
+Console: print(math.pi) \end
 Assistant: The error is that you forgot to import the math module \end
 
 System: New chat \end
@@ -94,72 +94,43 @@ User: Create file 1.py \end
 Assistant: ```console
 touch 1.py
 ``` \end
-Console: Done\end
+Console: Done \end
 Assistant: The file has been created:
 ```file
 ./1.py
-```\end
+``` \end
 
 System: New chat \end
 User: Display the names of all my folders \end
-Assistant: ```console
-ls -d */
-``` \end
+Assistant: ```console\nls -d */\n``` \end
 Console: Desktop/    Downloads/ \end
-Assistant: Here are all the folders:
-```folder
-./Desktop
-./Downloads
-```\end
+Assistant: Here are all the folders:\n```folder\n./Desktop\n./Downloads\n``` \end
 
 System: New chat \end
 """
-        self.bot_prompt += """
-User: Write the multiplication table 4 by 4 \end
-Assistant: | - | 1 | 2 | 3 | 4 |\n| - | - | - | - | - |\n| 1 | 1 | 2 | 3 | 4 |\n| 2 | 2 | 4 | 6 | 8 |\n| 3 | 3 | 6 | 9 | 12 |\n| 4 | 4 | 8 | 12 | 16 |\end
+        self.bot_prompt += """User: Write the multiplication table 4 by 4 \end
+Assistant: | - | 1 | 2 | 3 | 4 |\n| - | - | - | - | - |\n| 1 | 1 | 2 | 3 | 4 |\n| 2 | 2 | 4 | 6 | 8 |\n| 3 | 3 | 6 | 9 | 12 |\n| 4 | 4 | 8 | 12 | 16 | \end
 
 System: New chat \end
 User: Write example c++ code \end
-Assistant: ```cpp
-#include<iostream>
-using namespace std;
-int main(){
-    cout<<"Hello world!";
-    return 0;
-}
-```\end
+Assistant: ```cpp\n#include<iostream>\nusing namespace std;\nint main(){\n    cout<<"Hello world!";\n    return 0;\n}\n``` \end
 
 System: New chat \end
 User: Write example javascript code \end
-Assistant: ```js
-console.log("Hello world!");
-```\end
-
+Assistant: ```js\nconsole.log("Hello world!");\n``` \end
 
 System: New chat \end
 User: Write example python code \end
-Assistant: ```python
-python("Hello world!")
-```\end
+Assistant: ```python\npython("Hello world!")\n``` \end
 User: Run this code \end
-Assistant: ```console
-python3 -c "print('Hello world!')"
-```\end
+Assistant: ```console\npython3 -c "print('Hello world!')"\n``` \end
 
 System: New chat \end
 """
         if self.graphic:
-            self.bot_prompt += """System: You can display the graph using this structure: ```chart\n name - value\n ... \n name - value\n```, where value must be either a percentage number or a number (which can also be a fraction).
-System: New chat \end
+            self.bot_prompt += """System: You can display the graph using this structure: ```chart\n name - value\n ... \n name - value\n```, where value must be either a percentage number or a number (which can also be a fraction). \end
 User: Write which product Apple sold the most in 2019, which less, etc. \end
-Assistant: ```chart
-iPhone (смартфоны) - 60%
-MacBook (ноутбуки) - 15%
-iPad (планшеты) - 10%
-Apple Watch (умные часы) - 10%
-iMac (настольные компьютеры) - 5%
-```
-In 2019, Apple sold the most iPhones.\end
+Assistant: ```chart\niPhone (смартфоны) - 60%\nMacBook (ноутбуки) - 15%\niPad (планшеты) - 10%\nApple Watch (умные часы) - 10%\niMac (настольные компьютеры) - 5%\n```\nIn 2019, Apple sold the most iPhones. \end
 
 System: New chat \end
 """
@@ -167,28 +138,10 @@ System: New chat \end
             self.bot_prompt+="""
 File: /home/qwersyk/Downloads/money.txt \end
 User: Create a graph for the report in the money.txt file \end
-Assistant: ```console
-cat /home/qwersyk/Downloads/money.txt
-``` \end
+Assistant: ```console\ncat /home/qwersyk/Downloads/money.txt\n``` \end
 Console: It was spent 5000 in January, 8000 in February, 6500 in March, 9000 in April, 10000 in May, 7500 in June, 8500 in July, 7000 in August, 9500 in September, 11000 in October, 12000 in November and 9000 in December. \end
-Assistant: ```chart
-January - 5000
-February - 8000
-March - 6500
-April - 9000
-May - 10000
-June - 7500
-July - 8500
-August - 7000
-September - 9500
-October - 11000
-November - 12000
-December - 9000
-```
-Here is the graph for the data in the file:
-```file
-/home/qwersyk/Downloads/money.txt
-```\end
+Assistant: ```chart\nJanuary - 5000\nFebruary - 8000\nMarch - 6500\nApril - 9000\nMay - 10000\nJune - 7500\nJuly - 8500\nAugust - 7000\nSeptember - 9500\nOctober - 11000\nNovember - 12000\nDecember - 9000\n```\nHere is the graph for the data in the file:\n```file\n/home/qwersyk/Downloads/money.txt\n``` \end
+System: New chat \end
 """
 
         self.set_titlebar(Gtk.Box())
@@ -575,10 +528,10 @@ Here is the graph for the data in the file:
             button.set_can_target(False)
             button.set_has_frame(True)
             name = self.send_message_to_bot("""System: You have to write a title for the dialog between the user and the assistant. You have to come up with a short description of the chat them in 5 words. Just write a name for the dialog. Write directly and clearly, just a title without anything in the new message. The title must be on topic. You don't have to make up anything of your own, just a name for the chat room.
-    User: Write the multiplication table 4 by 4 \end
-    Assistant: | - | 1 | 2 | 3 | 4 |\n| - | - | - | - | - |\n| 1 | 1 | 2 | 3 | 4 |\n| 2 | 2 | 4 | 6 | 8 |\n| 3 | 3 | 6 | 9 | 12 |\n| 4 | 4 | 8 | 12 | 16 |\end
-    Name_chat: The multiplication table for 4.
-    System: New chat \end
+User: Write the multiplication table 4 by 4 \end
+Assistant: | - | 1 | 2 | 3 | 4 |\n| - | - | - | - | - |\n| 1 | 1 | 2 | 3 | 4 |\n| 2 | 2 | 4 | 6 | 8 |\n| 3 | 3 | 6 | 9 | 12 |\n| 4 | 4 | 8 | 12 | 16 |\end
+Name_chat: The multiplication table for 4.
+System: New chat \end
     """ + "\n" + self.get_chat(self.chats[int(button.get_name())]["chat"][
                                len(self.chats[int(button.get_name())]["chat"]) - self.memory:len(
                                    self.chats[int(button.get_name())]["chat"])]) + "\nName_chat:").text
@@ -852,14 +805,14 @@ Assistant: Yes, of course, what do you need help with?\end""" + "\n" + self.get_
             self.add_message("Warning")
         for i in range(len(self.chat)):
             if self.chat[i]["User"] == "User":
-                self.add_message("User", Gtk.Label(label=self.chat[i]["Message"][0:-4], margin_top=10, margin_start=10,
+                self.add_message("User", Gtk.Label(label=self.chat[i]["Message"].strip("\end"), margin_top=10, margin_start=10,
                                                    margin_bottom=10, margin_end=10, wrap=True,
                                                    wrap_mode=Pango.WrapMode.WORD_CHAR, selectable=True), i)
             elif self.chat[i]["User"] == "Assistant":
                 c = None
                 if self.chat[min(i + 1, len(self.chat) - 1)]["User"] == "Console":
-                    c = self.chat[min(i + 1, len(self.chat) - 1)]["Message"][0:-4]
-                self.show_message(self.chat[i]["Message"][0:-4], True, c)
+                    c = self.chat[min(i + 1, len(self.chat) - 1)]["Message"].strip("\end")
+                self.show_message(self.chat[i]["Message"].strip("\end"), True, c)
             elif self.chat[i]["User"] in ["File", "Folder"]:
                 self.add_message(self.chat[i]["User"], self.get_file_button(self.chat[i]["Message"][1:-5]))
 
@@ -928,7 +881,7 @@ Assistant: Yes, of course, what do you need help with?\end""" + "\n" + self.get_
                         else:
                             box.append(CopyBox("\n".join(table_string[start_code_index:i]), code_language))
                         start_code_index = -1
-                elif len(table_string[i]) > 0 and table_string[i][0] == "|" and table_string[i][-1] == "|":
+                elif len(table_string[i]) > 0 and table_string[i][0] == "|":
                     if start_table_index == -1:
                         table_length = len(table_string[i].split("|"))
                         start_table_index = i

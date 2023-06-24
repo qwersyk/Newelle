@@ -106,7 +106,7 @@ background-color: rgb(38,38,38);
                         application_name='Newelle',
                         application_icon='org.gnome.newelle',
                         developer_name='qwersyk',
-                        version='0.1.2',
+                        version='0.1.3',
                         developers=['qwersyk'],
                         copyright='© 2023 qwersyk').present()
 
