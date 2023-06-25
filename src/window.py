@@ -343,6 +343,9 @@ System: New chat \end
         self.show_chat()
 
     def get_file_button(self, path):
+        if path[0:2]=="./":
+            path=self.main_path+path[1:len(path)]
+        path=os.path.expanduser(os.path.normpath(path))
         button = Gtk.Button(css_classes=["flat"], margin_top=5, margin_start=5, margin_bottom=5, margin_end=5)
         button.connect("clicked", self.run_file_on_button_click)
         button.set_name(path)
@@ -444,29 +447,22 @@ System: New chat \end
         else:
             threading.Thread(target=self.continue_message, args=[button, True]).start()
 
-    def regenerate_message(self, button, multithreading=False):
-        if self.chat[-1]["User"] != "Assistant":
-            self.notification_block.add_toast(Adw.Toast(title='You can no longer regenerate the message.'))
-        elif multithreading:
-            self.stream_number_variable += 1
-            stream_number_variable = self.stream_number_variable
+    def regenerate_message(self, button):
+        if self.chat[-1]["User"] in ["Assistant","Console"]:
+            for i in range(len(self.chat) - 1, -1, -1):
+                if self.chat[i]["User"] in ["Assistant","Console"]:
+                    self.chat.pop(i)
+                else:
+                    break
+            self.show_chat()
             for btn in self.message_suggestion_buttons_array:
                 btn.set_visible(False)
             self.continue_message_button.set_visible(False)
             self.button_continue.set_visible(False)
             self.regenerate_message_button.set_visible(False)
-            self.status = False
-            message = self.send_message_to_bot(self.bot_prompt + "\n" + self.get_chat(
-                self.chat[len(self.chat) - self.memory:len(self.chat) - 1]) + "\nAssistant: ").text.split("\end")[0]
-            if len(self.chat) != 0 and stream_number_variable == self.stream_number_variable:
-                self.chat[-1]["Message"] = message + "\end"
-                self.show_chat()
-            threading.Thread(target=self.update_button_text).start()
-            self.status = True
-            self.chat_stop_button.set_visible(False)
+            threading.Thread(target=self.send_message).start()
         else:
-            threading.Thread(target=self.regenerate_message, args=[button, True]).start()
-
+            self.notification_block.add_toast(Adw.Toast(title='You can no longer regenerate the message.'))
     def update_history(self):
         list_box = Gtk.ListBox(css_classes=["separators","background"])
         list_box.set_selection_mode(Gtk.SelectionMode.NONE)
@@ -610,7 +606,7 @@ System: New chat \end
         threading.Thread(target=self.update_button_text).start()
         if self.chat[-1]["User"] != "Assistant" or "```console" in self.chat[-1]["Message"]:
             for i in range(len(self.chat) - 1, -1, -1):
-                if self.chat[i]["User"] != "User":
+                if self.chat[i]["User"] in ["Assistant","Console"]:
                     self.chat.pop(i)
                 else:
                     break
@@ -643,12 +639,11 @@ System: New chat \end
                                   selectable=True)
         self.add_message("User", message_label, len(self.chat) - 1)
         threading.Thread(target=self.send_message).start()
-        self.input_panel.set_text('')
 
     def update_folder(self, _=None):
         if self.file_panel:
             if os.path.exists(os.path.expanduser(self.main_path)):
-                self.explorer_panel_header.set_title_widget(Gtk.Label(label=os.path.normpath(self.main_path)+(5-len(os.path.normpath(self.main_path)))*" ", css_classes=["title"],ellipsize=Pango.EllipsizeMode.MIDDLE,max_width_chars=20,halign=Gtk.Align.CENTER,hexpand=True))
+                self.explorer_panel_header.set_title_widget(Gtk.Label(label=os.path.normpath(self.main_path)+(3-len(os.path.normpath(self.main_path)))*" ", css_classes=["title"],ellipsize=Pango.EllipsizeMode.MIDDLE,max_width_chars=20,halign=Gtk.Align.CENTER,hexpand=True))
                 if len(os.listdir(os.path.expanduser(self.main_path))) == 0 or (sum(
                         1 for filename in os.listdir(os.path.expanduser(self.main_path)) if
                         not filename.startswith('.')) == 0 and not self.hidden_files):
@@ -656,14 +651,13 @@ System: New chat \end
                     self.folder_blocks_panel = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=20, opacity=0.25)
                     self.explorer_panel.append(self.folder_blocks_panel)
                     icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="folder-symbolic"))
-
                     icon.set_css_classes(["empty-folder"])
                     icon.set_valign(Gtk.Align.END)
                     icon.set_vexpand(True)
                     self.folder_blocks_panel.append(icon)
                     self.folder_blocks_panel.append(
                         Gtk.Label(label="Folder is Empty", wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR, vexpand=True,
-                                  ellipsize=Pango.EllipsizeMode.END, max_width_chars=11, valign=Gtk.Align.START,
+                                  valign=Gtk.Align.START,
                                   css_classes=["empty-folder", "heading"]))
                 else:
                     try:
@@ -685,7 +679,7 @@ System: New chat \end
                             icon.set_css_classes(["large"])
                             icon.set_valign(Gtk.Align.END)
                             icon.set_vexpand(True)
-                            file_label = Gtk.Label(label=file_info, wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR,
+                            file_label = Gtk.Label(label=file_info+" "*(3-len(file_info)), wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR,
                                                    vexpand=True, max_width_chars=11, valign=Gtk.Align.START,
                                                    ellipsize=Pango.EllipsizeMode.MIDDLE)
                             file_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
@@ -761,7 +755,8 @@ System: New chat \end
         time.sleep(1)
         if self.chat != []:
             self.continue_message_button.set_visible(True)
-            self.regenerate_message_button.set_visible(True)
+            if self.chat[-1]["User"] in ["Assistant","Console"]:
+                self.regenerate_message_button.set_visible(True)
             if not "\end" in self.chat[-1]["Message"]:
                 self.button_continue.set_visible(True)
         for btn in self.message_suggestion_buttons_array:
@@ -837,7 +832,6 @@ Assistant: Yes, of course, what do you need help with?\end""" + "\n" + self.get_
             code_language = ""
             start_code_index = -1
             has_terminal_command = False
-
             for i in range(len(table_string)):
                 if len(table_string[i]) > 0 and table_string[i][0:3] == "```":
                     if start_code_index == -1:
@@ -852,21 +846,25 @@ Assistant: Yes, of course, what do you need help with?\end""" + "\n" + self.get_
                                 margin_bottom=10, margin_end=10
                             )
                             text_expander.set_expanded(False)
+                            path=""
                             if not restore:
-                                start_code_index = self.execute_terminal_command(value)
+                                path=os.path.normpath(self.main_path)
+                                code = self.execute_terminal_command(value)
                             else:
-                                start_code_index = (True, reply_from_the_console)
+                                code = (True, reply_from_the_console)
+                            val='\n'.join(value)
+                            text = f"[User {path}]:$ {val}\n{code[1]}"
                             text_expander.set_child(
-                                Gtk.Label(wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR, label=start_code_index[1],
+                                Gtk.Label(wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR, label=text,
                                           selectable=True))
-                            if not start_code_index[0]:
+                            if not code[0]:
                                 self.add_message("Console-error", text_expander)
                             elif restore:
                                 self.add_message("Console-restore", text_expander)
                             else:
                                 self.add_message("Console-done", text_expander)
                             if not restore:
-                                self.chat.append({"User": "Console", "Message": " " + start_code_index[1] + "\end"})
+                                self.chat.append({"User": "Console", "Message": " " + code[1] + "\end"})
                                 self.update_folder()
                         elif code_language in ["file", "folder"]:
                             for obj in table_string[start_code_index:i]:
