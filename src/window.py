@@ -212,7 +212,7 @@ System: New chat \end
         self.chat_list_block = Gtk.ListBox(css_classes=["separators","background"])
         self.chat_list_block.set_selection_mode(Gtk.SelectionMode.NONE)
         self.chat_scroll = Gtk.ScrolledWindow(vexpand=True)
-        self.chat_scroll_window = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        self.chat_scroll_window = Gtk.Box(orientation=Gtk.Orientation.VERTICAL,css_classes=["background"])
         self.chat_scroll.set_child(self.chat_scroll_window)
         drop_target = Gtk.DropTarget.new(GObject.TYPE_STRING, Gdk.DragAction.COPY)
         drop_target.connect('drop', self.handle_file_drag)
