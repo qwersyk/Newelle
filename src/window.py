@@ -36,7 +36,10 @@ class MainWindow(Gtk.ApplicationWindow):
         self.hidden_files = settings.get_boolean("hidden-files")
         self.chat_id = settings.get_int("chat")
         self.main_path = settings.get_string("path")
-        os.chdir(os.path.expanduser(self.main_path))
+        if os.path.exists(os.path.expanduser(self.main_path)):
+            os.chdir(os.path.expanduser(self.main_path))
+        else:
+            self.main_path="~"
         self.chat = self.chats[min(self.chat_id,len(self.chats)-1)]["chat"]
         self.graphic = settings.get_boolean("graphic")
 
