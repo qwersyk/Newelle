@@ -2,12 +2,11 @@ import time, types
 import gi, os, subprocess
 
 gi.require_version('Gtk', '4.0')
-gi.require_version('GtkSource', '5')
 gi.require_version('Adw', '1')
 import pickle
 from .gtkobj import File, CopyBox, BarChartBox
 from .bai import BAIChat
-from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GtkSource, GObject
+from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject
 import threading
 
 
@@ -38,7 +37,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.chat_id = settings.get_int("chat")
         self.main_path = settings.get_string("path")
         os.chdir(os.path.expanduser(self.main_path))
-        self.chat = self.chats[self.chat_id]["chat"]
+        self.chat = self.chats[min(self.chat_id,len(self.chats)-1)]["chat"]
         self.graphic = settings.get_boolean("graphic")
 
         self.bot_prompt = """"""
@@ -130,7 +129,7 @@ System: New chat \end
         if self.graphic:
             self.bot_prompt += """System: You can display the graph using this structure: ```chart\n name - value\n ... \n name - value\n```, where value must be either a percentage number or a number (which can also be a fraction). \end
 User: Write which product Apple sold the most in 2019, which less, etc. \end
-Assistant: ```chart\niPhone (смартфоны) - 60%\nMacBook (ноутбуки) - 15%\niPad (планшеты) - 10%\nApple Watch (умные часы) - 10%\niMac (настольные компьютеры) - 5%\n```\nIn 2019, Apple sold the most iPhones. \end
+Assistant: ```chart\niPhone - 60%\nMacBook - 15%\niPad - 10%\nApple Watch - 10%\niMac - 5%\n```\nIn 2019, Apple sold the most iPhones. \end
 
 System: New chat \end
 """
@@ -156,7 +155,7 @@ System: New chat \end
         menu_button.set_menu_model(menu)
         self.separator_1 = Gtk.Separator()
         self.chat_block = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, hexpand=True)
-        self.chat_header = Adw.HeaderBar()
+        self.chat_header = Adw.HeaderBar(css_classes=["flat"])
         self.chat_header.set_title_widget(Gtk.Label(label="Chat", css_classes=["title"]))
 
         self.left_panel_back_button = Gtk.Button(css_classes=["flat"])
@@ -168,6 +167,7 @@ System: New chat \end
         self.left_panel_back_button.connect("clicked", self.go_back_to_chats_panel)
         self.chat_header.pack_start(self.left_panel_back_button)
         self.chat_block.append(self.chat_header)
+        self.chat_block.append(Gtk.Separator())
         self.chat_panel.append(self.chat_block)
         self.chat_panel.append(self.separator_1)
 
@@ -177,23 +177,28 @@ System: New chat \end
         self.chats_main_box.set_size_request(300, -1)
         self.separator2 = Gtk.Separator()
         self.chats_secondary_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, hexpand=True)
-        self.chat_panel_header = Adw.HeaderBar()
+        self.chat_panel_header = Adw.HeaderBar(css_classes=["flat"])
         self.chat_panel_header.set_title_widget(Gtk.Label(label="History", css_classes=["title"]))
         self.chats_secondary_box.append(self.chat_panel_header)
+        self.chats_secondary_box.append(Gtk.Separator())
         self.chat_panel_header.pack_end(menu_button)
-        self.chats_buttons_block = Gtk.ListBox(show_separators=True)
+        self.chats_buttons_block = Gtk.ListBox(css_classes=["separators","background"])
         self.chats_buttons_block.set_selection_mode(Gtk.SelectionMode.NONE)
         self.chats_buttons_scroll_block = Gtk.ScrolledWindow(vexpand=True)
         self.chats_buttons_scroll_block.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
         self.chats_buttons_scroll_block.set_child(self.chats_buttons_block)
         self.chats_secondary_box.append(self.chats_buttons_scroll_block)
+        button = Gtk.Button(valign=Gtk.Align.END,css_classes=["suggested-action","right-angles"])
+        button.set_child(Gtk.Label(label="Create a chat"))
+        button.connect("clicked", self.new_chat)
+        self.chats_secondary_box.append(button)
         self.chats_main_box.append(self.chats_secondary_box)
         self.chats_main_box.append(self.separator2)
         self.main.append(self.chats_main_box)
         self.main.append(self.chat_panel)
         self.main.set_visible_child(self.chat_panel)
         self.explorer_panel = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, hexpand=True)
-        self.explorer_panel_header = Adw.HeaderBar()
+        self.explorer_panel_header = Adw.HeaderBar(css_classes=["flat"])
         self.explorer_panel_header.set_title_widget(Gtk.Label(label="Explorer", css_classes=["title"]))
         self.explorer_panel.append(self.explorer_panel_header)
         self.folder_blocks_panel = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -204,19 +209,22 @@ System: New chat \end
         self.secondary_message_chat_block = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
 
         self.chat_block.append(self.secondary_message_chat_block)
-        self.chat_list_block = Gtk.ListBox(show_separators=True)
+        self.chat_list_block = Gtk.ListBox(css_classes=["separators","background"])
         self.chat_list_block.set_selection_mode(Gtk.SelectionMode.NONE)
-        self.chat_scroll_window = Gtk.ScrolledWindow(vexpand=True)
+        self.chat_scroll = Gtk.ScrolledWindow(vexpand=True)
+        self.chat_scroll_window = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        self.chat_scroll.set_child(self.chat_scroll_window)
         drop_target = Gtk.DropTarget.new(GObject.TYPE_STRING, Gdk.DragAction.COPY)
         drop_target.connect('drop', self.handle_file_drag)
-        self.chat_scroll_window.add_controller(drop_target)
-        self.chat_scroll_window.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
-        self.chat_scroll_window.set_child(self.chat_list_block)
+        self.chat_scroll.add_controller(drop_target)
+        self.chat_scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+        self.chat_scroll_window.append(self.chat_list_block)
         self.notification_block = Adw.ToastOverlay()
-        self.notification_block.set_child(self.chat_scroll_window)
+        self.notification_block.set_child(self.chat_scroll)
 
         self.secondary_message_chat_block.append(self.notification_block)
-        self.chat_controls_entry_block = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        self.chat_controls_entry_block = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6,vexpand=True,valign=Gtk.Align.END)
+        self.chat_scroll_window.append(self.chat_controls_entry_block)
         self.message_suggestion_buttons_array = []
 
         if not self.file_panel:
@@ -251,7 +259,7 @@ System: New chat \end
         button_folder_forward.set_child(box)
         button_folder_forward.connect("clicked", self.go_forward_in_explorer_panel)
 
-        button_home = Gtk.Button(css_classes=["flat"])
+        button_home = Gtk.Button(css_classes=["flat","right-angles"])
         icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="go-home-symbolic"))
         icon.set_icon_size(Gtk.IconSize.INHERIT)
         box = Gtk.Box(halign=Gtk.Align.CENTER)
@@ -277,7 +285,7 @@ System: New chat \end
         self.status = True
         self.chat_controls_entry_block.append(self.chat_stop_button)
         for text in range(self.offers):
-            button = Gtk.Button(css_classes=["flat"])
+            button = Gtk.Button(css_classes=["flat","right-angles"])
             label = Gtk.Label(label=text, wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR, max_width_chars=0)
             button.set_child(label)
             button.connect("clicked", self.send_bot_response)
@@ -285,7 +293,7 @@ System: New chat \end
             self.chat_controls_entry_block.append(button)
             self.message_suggestion_buttons_array.append(button)
 
-        self.continue_message_button = Gtk.Button(css_classes=["flat"])
+        self.continue_message_button = Gtk.Button(css_classes=["flat","right-angles"])
         icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="edit-clear-all-symbolic"))
         icon.set_icon_size(Gtk.IconSize.INHERIT)
         box = Gtk.Box(halign=Gtk.Align.CENTER)
@@ -297,7 +305,7 @@ System: New chat \end
         self.continue_message_button.set_visible(False)
         self.chat_controls_entry_block.append(self.continue_message_button)
 
-        self.button_continue = Gtk.Button(css_classes=["flat"])
+        self.button_continue = Gtk.Button(css_classes=["flat","right-angles"])
         icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="media-seek-forward-symbolic"))
         icon.set_icon_size(Gtk.IconSize.INHERIT)
         box = Gtk.Box(halign=Gtk.Align.CENTER)
@@ -309,7 +317,7 @@ System: New chat \end
         self.button_continue.set_visible(False)
         self.chat_controls_entry_block.append(self.button_continue)
 
-        self.regenerate_message_button = Gtk.Button(css_classes=["flat"])
+        self.regenerate_message_button = Gtk.Button(css_classes=["flat","right-angles"])
         icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="view-refresh-symbolic"))
         icon.set_icon_size(Gtk.IconSize.INHERIT)
         box = Gtk.Box(halign=Gtk.Align.CENTER)
@@ -321,8 +329,7 @@ System: New chat \end
         self.regenerate_message_button.set_visible(False)
         self.chat_controls_entry_block.append(self.regenerate_message_button)
 
-        self.secondary_message_chat_block.append(self.chat_controls_entry_block)
-        self.input_panel = Gtk.Entry()
+        self.input_panel = Gtk.Entry(css_classes=["right-angles"])
 
         self.secondary_message_chat_block.append(self.input_panel)
         self.input_panel.connect('activate', self.on_entry_activate)
@@ -461,7 +468,7 @@ System: New chat \end
             threading.Thread(target=self.regenerate_message, args=[button, True]).start()
 
     def update_history(self):
-        list_box = Gtk.ListBox(show_separators=True)
+        list_box = Gtk.ListBox(css_classes=["separators","background"])
         list_box.set_selection_mode(Gtk.SelectionMode.NONE)
         self.chats_buttons_scroll_block.set_child(list_box)
         for i in range(len(self.chats)):
@@ -508,10 +515,6 @@ System: New chat \end
             box.append(create_chat_clone_button)
             box.append(generate_chat_name_button)
             box.append(delete_chat_button)
-        button = Gtk.Button(css_classes=["suggested-action"])
-        button.set_child(Gtk.Label(label="Create a chat"))
-        button.connect("clicked", self.new_chat)
-        list_box.append(button)
 
     def remove_chat(self, button):
         if int(button.get_name()) < self.chat_id:
@@ -524,6 +527,7 @@ System: New chat \end
     def generate_chat_name(self, button, multithreading=False):
         if multithreading:
             if len(self.chats[int(button.get_name())]["chat"]) < 2:
+                self.notification_block.add_toast(Adw.Toast(title='Chat is empty'))
                 return False
             button.set_can_target(False)
             button.set_has_frame(True)
@@ -564,12 +568,10 @@ System: New chat \end
         threading.Thread(target=self.update_button_text).start()
 
     def scrolled_chat(self):
-        adjustment = self.chat_scroll_window.get_vadjustment()
+        adjustment = self.chat_scroll.get_vadjustment()
         value = adjustment.get_upper()
-        for i in range(1, 5):
-            time.sleep(0.1)
-            adjustment.set_upper(1000 * 100 ** i)
-            adjustment.set_value(1000 * 100 ** i)
+        time.sleep(0.1)
+        adjustment.set_value(100000)
 
     def create_table(self, table):
         data = []
@@ -606,13 +608,11 @@ System: New chat \end
         self.stream_number_variable += 1
         self.chat_stop_button.set_visible(False)
         threading.Thread(target=self.update_button_text).start()
-        if self.chat[-1]["User"] != "Assistant":
+        if self.chat[-1]["User"] != "Assistant" or "```console" in self.chat[-1]["Message"]:
             for i in range(len(self.chat) - 1, -1, -1):
-
                 if self.chat[i]["User"] != "User":
                     self.chat.pop(i)
                 else:
-                    self.chat.pop(i)
                     break
         self.notification_block.add_toast(Adw.Toast(title='The message was canceled and deleted from history'))
         self.show_chat()
@@ -795,12 +795,17 @@ Assistant: Yes, of course, what do you need help with?\end""" + "\n" + self.get_
             message_label = Gtk.Label(label=text, margin_top=10, margin_start=10, margin_bottom=10, margin_end=10,
                                       wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR, selectable=True)
             self.add_message("User", message_label, len(self.chat) - 1)
+        self.scrolled_chat()
         threading.Thread(target=self.send_message).start()
 
     def show_chat(self):
-        self.chat_list_block = Gtk.ListBox(show_separators=True)
+        self.chat_scroll_window.remove(self.chat_list_block)
+        self.chat_list_block = Gtk.ListBox(css_classes=["separators","background"])
         self.chat_list_block.set_selection_mode(Gtk.SelectionMode.NONE)
-        self.chat_scroll_window.set_child(self.chat_list_block)
+
+        self.chat_scroll_window.append(self.chat_list_block)
+        self.chat_scroll_window.remove(self.chat_controls_entry_block)
+        self.chat_scroll_window.append(self.chat_controls_entry_block)
         if not self.virtualization:
             self.add_message("Warning")
         for i in range(len(self.chat)):
@@ -877,7 +882,12 @@ Assistant: Yes, of course, what do you need help with?\end""" + "\n" + self.get_
                                     percentages = "%" in parts[1]
                                     value = ''.join(filter(lambda x: x.isdigit() or x==".", parts[1]))
                                     result[key] = float(value)
-                            box.append(BarChartBox(result,percentages))
+                                else:
+                                    box.append(CopyBox("\n".join(table_string[start_code_index:i]), code_language))
+                                    result = {}
+                                    break
+                            if result !={}:
+                                box.append(BarChartBox(result,percentages))
                         else:
                             box.append(CopyBox("\n".join(table_string[start_code_index:i]), code_language))
                         start_code_index = -1

@@ -33,6 +33,7 @@ newelle_sources = [
   'gtkobj.py',
   'settings.py',
   'window.py',
+  'shortcuts.py'
 ]
 
 install_data(newelle_sources, install_dir: moduledir)

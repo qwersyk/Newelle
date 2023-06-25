@@ -2,8 +2,7 @@ import gi, os, subprocess
 
 gi.require_version('Gtk', '4.0')
 gi.require_version('GtkSource', '5')
-gi.require_version('Adw', '1')
-from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GtkSource
+from gi.repository import Gtk, Pango, Gio, Gdk, GtkSource
 
 
 class File(Gtk.Image):
@@ -156,7 +155,7 @@ class BarChartBox(Gtk.Box):
             bar = Gtk.ProgressBar()
             bar.set_fraction(value / max_value)
 
-            label = Gtk.Label(label=label)
+            label = Gtk.Label(label=label,wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR)
             label.set_halign(Gtk.Align.CENTER)
             bar_box.append(label)
             bar_box.append(bar)

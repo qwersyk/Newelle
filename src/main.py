@@ -8,69 +8,75 @@ import pickle
 from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GtkSource, GObject
 from .settings import Settings
 from .window import MainWindow
+from .shortcuts import Shortcuts
+
+
 
 
 class MyApp(Adw.Application):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         css = '''
-.code{
-background-color: rgb(38,38,38);
-}
+        .code{
+        background-color: rgb(38,38,38);
+        }
 
-.code .sourceview text{
-    background-color: rgb(38,38,38);
-}
-.code .sourceview border gutter{
-    background-color: rgb(38,38,38);
-}
-.sourceview{
-    color: rgb(192,191,188);
-}
-.copy-action{
-    color:rgb(255,255,255);
-    background-color: rgb(38,162,105);
-}
-.large{
-    -gtk-icon-size:100px;
-}
-.empty-folder{
-    font-size:25px;
-    font-weight:800;
-    -gtk-icon-size:120px;
-}
-.user{
-    background-color: rgba(61, 152, 255,0.05);
-}
-.assistant{
-    background-color: rgba(184, 134, 17,0.05);
-}
-.console-done{
-    background-color: rgba(33, 155, 98,0.05);
-}
-.console-error{
-    background-color: rgba(254, 31, 41,0.05);
-}
-.console-restore{
-    background-color: rgba(184, 134, 17,0.05);
-}
-.file{
-    background-color: rgba(222, 221, 218,0.05);
-}
-.folder{
-    background-color: rgba(189, 233, 255,0.05);
-}
-.message-warning{
-    background-color: rgba(184, 134, 17,0.05);
-}
-.transparent{
-    background-color: rgba(0,0,0,0);
-}
-.chart{
-    background-color: rgba(61, 152, 255,0.25);
-}
+        .code .sourceview text{
+            background-color: rgb(38,38,38);
+        }
+        .code .sourceview border gutter{
+            background-color: rgb(38,38,38);
+        }
+        .sourceview{
+            color: rgb(192,191,188);
+        }
+        .copy-action{
+            color:rgb(255,255,255);
+            background-color: rgb(38,162,105);
+        }
+        .large{
+            -gtk-icon-size:100px;
+        }
+        .empty-folder{
+            font-size:25px;
+            font-weight:800;
+            -gtk-icon-size:120px;
+        }
+        .user{
+            background-color: rgba(61, 152, 255,0.05);
+        }
+        .assistant{
+            background-color: rgba(184, 134, 17,0.05);
+        }
+        .console-done{
+            background-color: rgba(33, 155, 98,0.05);
+        }
+        .console-error{
+            background-color: rgba(254, 31, 41,0.05);
+        }
+        .console-restore{
+            background-color: rgba(184, 134, 17,0.05);
+        }
+        .file{
+            background-color: rgba(222, 221, 218,0.05);
+        }
+        .folder{
+            background-color: rgba(189, 233, 255,0.05);
+        }
+        .message-warning{
+            background-color: rgba(184, 134, 17,0.05);
+        }
+        .transparent{
+            background-color: rgba(0,0,0,0);
+        }
+        .chart{
+            background-color: rgba(61, 152, 255,0.25);
+        }
+        .right-angles{
+            border-radius: 0;
+        }
 
-'''
+        '''
         css_provider = Gtk.CssProvider()
         css_provider.load_from_data(css, -1)
         Gtk.StyleContext.add_provider_for_display(
@@ -97,9 +103,8 @@ background-color: rgb(38,38,38);
             self.set_accels_for_action(f"app.{name}", shortcuts)
 
     def on_shortcuts_action(self, widget, _):
-        about = Gtk.ShortcutsWindow(title='Help',
-                                    modal=True)
-        about.present()
+        shortcuts = Shortcuts(self)
+        shortcuts.present()
 
     def on_about_action(self, widget, _):
         Adw.AboutWindow(transient_for=self.props.active_window,
@@ -111,11 +116,27 @@ background-color: rgb(38,38,38);
                         copyright='© 2023 qwersyk').present()
 
     def settings_action(self, widget, _):
-        Settings().present()
+        settings = Settings(self)
+        settings.present()
 
     def on_activate(self, app):
         self.win = MainWindow(application=app)
         self.win.present()
+
+    def reload_chat(self,*_):
+        self.win.show_chat()
+        self.win.notification_block.add_toast(
+                Adw.Toast(title='Chat is rebooted'))
+
+    def reload_folder(self,*_):
+        self.win.update_folder()
+        self.win.notification_block.add_toast(
+                Adw.Toast(title='Folder is rebooted'))
+
+    def new_chat(self,*_):
+        self.win.new_chat(None)
+        self.win.notification_block.add_toast(
+                Adw.Toast(title='Chat is created'))
 
     def do_shutdown(self):
         os.chdir(os.path.expanduser("~"))
@@ -129,4 +150,7 @@ background-color: rgb(38,38,38);
 
 def main(version):
     app = MyApp(application_id="org.gnome.newelle")
+    app.create_action('reload_chat', app.reload_chat, ['<primary>r'])
+    app.create_action('reload_folder', app.reload_folder, ['<primary>e'])
+    app.create_action('new_chat', app.new_chat, ['<primary>t'])
     app.run(sys.argv)
