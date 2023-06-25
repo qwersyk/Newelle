@@ -198,8 +198,8 @@ System: New chat \end
         self.main.append(self.chat_panel)
         self.main.set_visible_child(self.chat_panel)
         self.explorer_panel = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, hexpand=True)
+        self.explorer_panel.set_size_request(450, -1)
         self.explorer_panel_header = Adw.HeaderBar(css_classes=["flat"])
-        self.explorer_panel_header.set_title_widget(Gtk.Label(label="Explorer", css_classes=["title"]))
         self.explorer_panel.append(self.explorer_panel_header)
         self.folder_blocks_panel = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.explorer_panel.append(self.folder_blocks_panel)
@@ -648,8 +648,7 @@ System: New chat \end
     def update_folder(self, _=None):
         if self.file_panel:
             if os.path.exists(os.path.expanduser(self.main_path)):
-                self.explorer_panel_header.set_title_widget(
-                    Gtk.Label(label=os.path.normpath(self.main_path), css_classes=["title"]))
+                self.explorer_panel_header.set_title_widget(Gtk.Label(label=os.path.normpath(self.main_path)+(5-len(os.path.normpath(self.main_path)))*" ", css_classes=["title"],ellipsize=Pango.EllipsizeMode.MIDDLE,max_width_chars=20,halign=Gtk.Align.CENTER,hexpand=True))
                 if len(os.listdir(os.path.expanduser(self.main_path))) == 0 or (sum(
                         1 for filename in os.listdir(os.path.expanduser(self.main_path)) if
                         not filename.startswith('.')) == 0 and not self.hidden_files):
