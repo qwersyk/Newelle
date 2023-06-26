@@ -1,4 +1,4 @@
-application_id = 'org.gnome.newelle'
+application_id = 'io.github.qwersyk.Newelle'
 
 scalable_dir = join_paths('hicolor', 'scalable', 'apps')
 install_data(

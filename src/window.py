@@ -17,7 +17,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.main_program_block = Adw.Leaflet(fold_threshold_policy=True, can_navigate_back=True,
                                               can_navigate_forward=True,
                                               transition_type=Adw.LeafletTransitionType.UNDER)
-        self.path = ".var/app/org.gnome.newelle/data"
+        self.path = ".var/app/io.github.qwersyk.Newelle/data"
         if not os.path.exists(self.path):
             os.makedirs(self.path)
         self.filename = "chats.pkl"
@@ -27,7 +27,7 @@ class MainWindow(Gtk.ApplicationWindow):
         else:
             self.chats = [{"name": "Chat 1", "chat": []}]
 
-        settings = Gio.Settings.new('org.gnome.newelle')
+        settings = Gio.Settings.new('io.github.qwersyk.Newelle')
         self.file_panel = settings.get_boolean("file-panel")
         self.offers = settings.get_int("offers")
         self.virtualization = settings.get_boolean("virtualization")
@@ -549,7 +549,7 @@ System: New chat \end
         self.update_history()
 
     def copy_chat(self, button, *a):
-        self.chats.append(self.chats[int(button.get_name())])
+        self.chats.append({"name":self.chats[int(button.get_name())]["name"],"chat":self.chats[int(button.get_name())]["chat"][:]})
         self.update_history()
 
     def chose_chat(self, button, *a):
@@ -796,11 +796,15 @@ Assistant: Yes, of course, what do you need help with?\end""" + "\n" + self.get_
         threading.Thread(target=self.send_message).start()
 
     def show_chat(self):
-        self.chat_scroll_window.remove(self.chat_list_block)
-        self.chat_list_block = Gtk.ListBox(css_classes=["separators","background"])
-        self.chat_list_block.set_selection_mode(Gtk.SelectionMode.NONE)
+        try:
+            self.chat_scroll_window.remove(self.chat_list_block)
+            self.chat_list_block = Gtk.ListBox(css_classes=["separators","background"])
+            self.chat_list_block.set_selection_mode(Gtk.SelectionMode.NONE)
 
-        self.chat_scroll_window.append(self.chat_list_block)
+            self.chat_scroll_window.append(self.chat_list_block)
+        except Exception as e:
+            print(e)
+
         self.chat_scroll_window.remove(self.chat_controls_entry_block)
         self.chat_scroll_window.append(self.chat_controls_entry_block)
         if not self.virtualization:

@@ -43,28 +43,28 @@ class MyApp(Adw.Application):
             -gtk-icon-size:120px;
         }
         .user{
-            background-color: rgba(61, 152, 255,0.05);
+            background-color: rgba(61, 152, 255,0.03);
         }
         .assistant{
-            background-color: rgba(184, 134, 17,0.05);
+            background-color: rgba(184, 134, 17,0.02);
         }
         .console-done{
-            background-color: rgba(33, 155, 98,0.05);
+            background-color: rgba(33, 155, 98,0.02);
         }
         .console-error{
-            background-color: rgba(254, 31, 41,0.05);
+            background-color: rgba(254, 31, 41,0.02);
         }
         .console-restore{
-            background-color: rgba(184, 134, 17,0.05);
+            background-color: rgba(184, 134, 17,0.02);
         }
         .file{
-            background-color: rgba(222, 221, 218,0.05);
+            background-color: rgba(222, 221, 218,0.03);
         }
         .folder{
-            background-color: rgba(189, 233, 255,0.05);
+            background-color: rgba(189, 233, 255,0.03);
         }
         .message-warning{
-            background-color: rgba(184, 134, 17,0.05);
+            background-color: rgba(184, 134, 17,0.02);
         }
         .transparent{
             background-color: rgba(0,0,0,0);
@@ -109,7 +109,7 @@ class MyApp(Adw.Application):
     def on_about_action(self, widget, _):
         Adw.AboutWindow(transient_for=self.props.active_window,
                         application_name='Newelle',
-                        application_icon='org.gnome.newelle',
+                        application_icon='io.github.qwersyk.Newelle',
                         developer_name='qwersyk',
                         version='0.1.3',
                         developers=['qwersyk'],
@@ -142,14 +142,14 @@ class MyApp(Adw.Application):
         os.chdir(os.path.expanduser("~"))
         with open(self.win.path + self.win.filename, 'wb') as f:
             pickle.dump(self.win.chats, f)
-        settings = Gio.Settings.new('org.gnome.newelle')
+        settings = Gio.Settings.new('io.github.qwersyk.Newelle')
         settings.set_int("chat", self.win.chat_id)
         settings.set_string("path", os.path.normpath(self.win.main_path))
         Gtk.Application.do_shutdown(self)
 
 
 def main(version):
-    app = MyApp(application_id="org.gnome.newelle")
+    app = MyApp(application_id="io.github.qwersyk.Newelle")
     app.create_action('reload_chat', app.reload_chat, ['<primary>r'])
     app.create_action('reload_folder', app.reload_folder, ['<primary>e'])
     app.create_action('new_chat', app.new_chat, ['<primary>t'])

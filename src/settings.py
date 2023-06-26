@@ -8,7 +8,7 @@ from gi.repository import Gtk, Adw, Gio
 class Settings(Adw.PreferencesWindow):
     def __init__(self,app, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.settings = Gio.Settings.new('org.gnome.newelle')
+        self.settings = Gio.Settings.new('io.github.qwersyk.Newelle')
         self.set_transient_for(app.win)
         self.set_modal(True)
 

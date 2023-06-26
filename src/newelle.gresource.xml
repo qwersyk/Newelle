@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <gresources>
-  <gresource prefix="/org/gnome/newelle">
-    <file preprocess="xml-stripblanks">gtk/help-overlay.ui</file>
+  <gresource prefix="/io/github/qwersyk/Newelle">
   </gresource>
 </gresources>

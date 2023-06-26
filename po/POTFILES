@@ -1,6 +1,6 @@
-data/org.gnome.newelle.desktop.in
-data/org.gnome.newelle.appdata.xml.in
-data/org.gnome.newelle.gschema.xml
+data/io.github.qwersyk.Newelle.desktop.in
+data/io.github.qwersyk.Newelle.appdata.xml.in
+data/io.github.qwersyk.Newelle.gschema.xml
 src/main.py
 src/window.py
 src/window.ui

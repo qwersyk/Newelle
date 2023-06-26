@@ -1,6 +1,6 @@
 desktop_file = i18n.merge_file(
-        input: 'org.gnome.newelle.desktop.in',
-       output: 'org.gnome.newelle.desktop',
+        input: 'io.github.qwersyk.Newelle.desktop.in',
+       output: 'io.github.qwersyk.Newelle.desktop',
          type: 'desktop',
        po_dir: '../po',
       install: true,
@@ -13,8 +13,8 @@ if desktop_utils.found()
 endif
 
 appstream_file = i18n.merge_file(
-        input: 'org.gnome.newelle.appdata.xml.in',
-       output: 'org.gnome.newelle.appdata.xml',
+        input: 'io.github.qwersyk.Newelle.appdata.xml.in',
+       output: 'io.github.qwersyk.Newelle.appdata.xml',
        po_dir: '../po',
       install: true,
   install_dir: join_paths(get_option('datadir'), 'appdata')
@@ -25,7 +25,7 @@ if appstream_util.found()
   test('Validate appstream file', appstream_util, args: ['validate', appstream_file])
 endif
 
-install_data('org.gnome.newelle.gschema.xml',
+install_data('io.github.qwersyk.Newelle.gschema.xml',
   install_dir: join_paths(get_option('datadir'), 'glib-2.0/schemas')
 )
 
