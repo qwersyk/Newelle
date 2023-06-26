@@ -3,7 +3,33 @@
 	<id>io.github.qwersyk.Newelle.desktop</id>
 	<metadata_license>CC0-1.0</metadata_license>
 	<project_license>GPL-3.0-or-later</project_license>
+  <name>Newelle</name>
 	<description>
-	  <p>No description</p>
+	  <p>This is a chatbot program written in GTK4 and Adwaita that allows you to interact with the system and execute various commands</p>
 	</description>
+  <summary>Chat bot that controls your computer</summary>
+  <screenshots>
+    <screenshot type="default">
+      <image>https://raw.githubusercontent.com/qwersyk/Newelle/master/data/screenshots/screenshot1.png</image>
+      <caption>chat page 1</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/qwersyk/Newelle/master/data/screenshots/screenshot1.png</image>
+      <caption>chat page 2</caption>
+    </screenshot>
+  </screenshots>
+  <url type="homepage">https://github.com/qwersyk/Newelle</url>
+  <url type="bugtracker">https://github.com/qwersyk/Newelle/issues</url>
+  <content_rating type="oars-1.0" />
+  <releases>
+    <release version="0.1.3" date="2023-06-25">
+        <description>
+          <ul>
+            <li>Redesign</li>
+          </ul>
+        </description>
+      </release>
+  </releases>
+  <developer_name>Qwersyk</developer_name>
+  <update_contact>qsk@gmx.at</update_contact>
 </component>
