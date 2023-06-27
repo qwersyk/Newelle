@@ -235,7 +235,7 @@ System: New chat \end
             self.separator_1.set_visible(False)
             self.chat_header.set_show_end_title_buttons(True)
 
-        self.chat_stop_button = Gtk.Button(css_classes=["flat"])
+        self.chat_stop_button = Gtk.Button(css_classes=["flat","right-angles"])
         icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="media-playback-stop"))
         icon.set_icon_size(Gtk.IconSize.INHERIT)
         box = Gtk.Box(halign=Gtk.Align.CENTER)
@@ -262,7 +262,7 @@ System: New chat \end
         button_folder_forward.set_child(box)
         button_folder_forward.connect("clicked", self.go_forward_in_explorer_panel)
 
-        button_home = Gtk.Button(css_classes=["flat","right-angles"])
+        button_home = Gtk.Button(css_classes=["flat"])
         icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="go-home-symbolic"))
         icon.set_icon_size(Gtk.IconSize.INHERIT)
         box = Gtk.Box(halign=Gtk.Align.CENTER)
