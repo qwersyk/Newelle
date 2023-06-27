@@ -12,8 +12,8 @@
 
 This repository contains a chat bot program written in GTK4 and Adwaita (adw) that allows you to interact with your system and perform various commands. The bot utilizes [Baichat](https://chatbot.theb.ai/) and the API from [Bavarder](https://bavarder.codeberg.page/) for unlimited and free communication.
 
-![screenshot](https://raw.githubusercontent.com/qwersyk/Newelle/master/Screenshot/screenshot1.png#gh-light-mode-only)
-![screenshot](https://raw.githubusercontent.com/qwersyk/Newelle/master/Screenshot/screenshot2.png#gh-dark-mode-only)
+![screenshot](https://raw.githubusercontent.com/qwersyk/Newelle/master/data/screenshots/screenshot1.png#gh-light-mode-only)
+![screenshot](https://raw.githubusercontent.com/qwersyk/Newelle/master/data/screenshots/screenshot1.png#gh-dark-mode-only)
 
 ## Features
 - Seamless system integration: The chat bot has access to your system and can execute commands on your behalf.
@@ -21,8 +21,8 @@ This repository contains a chat bot program written in GTK4 and Adwaita (adw) th
 - Chat history management: You can easily clear the chat history to maintain privacy and a clean interface.
 - Navigator panel: A convenient sidebar provides visualizations of ongoing activities.
 
-![screenshot](https://raw.githubusercontent.com/qwersyk/Newelle/master/Screenshot/screenshot3.png#gh-light-mode-only)
-![screenshot](https://raw.githubusercontent.com/qwersyk/Newelle/master/Screenshot/screenshot4.png#gh-dark-mode-only)
+![screenshot](https://raw.githubusercontent.com/qwersyk/Newelle/master/data/screenshots/screenshot2.png#gh-light-mode-only)
+![screenshot](https://raw.githubusercontent.com/qwersyk/Newelle/master/data/screenshots/screenshot2.png#gh-dark-mode-only)
 
 ## Functionality
 
