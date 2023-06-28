@@ -4,6 +4,12 @@
   Newelle
 </h1>
 <p align="center">
+  <a href="https://flathub.org/apps/details/io.github.Bavarder.Bavarder">
+    <img width="200" alt="Download on Flathub" src="https://dl.flathub.org/assets/badges/flathub-badge-i-en.svg"/>
+  </a>
+  <br>
+</p>
+<p align="center">
 <a href="https://stopthemingmy.app">
     <img width="200" alt="Please Don't Theme" src="https://stopthemingmy.app/badge.svg"/>
   </a>
