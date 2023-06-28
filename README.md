@@ -4,7 +4,7 @@
   Newelle
 </h1>
 <p align="center">
-  <a href="https://flathub.org/apps/details/io.github.Bavarder.Bavarder">
+  <a href="https://flathub.org/apps/details/io.github.qwersyk.Newelle">
     <img width="200" alt="Download on Flathub" src="https://dl.flathub.org/assets/badges/flathub-badge-i-en.svg"/>
   </a>
   <br>
