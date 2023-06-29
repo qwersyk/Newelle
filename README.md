@@ -1,7 +1,7 @@
 <h1 align="center">
   <img src="https://raw.githubusercontent.com/qwersyk/Newelle/master/data/icons/hicolor/scalable/apps/io.github.qwersyk.Newelle.svg" alt="Newelle" width="192" height="192"/>
   <br>
-  Newelle
+  Newelle - Your Ultimate Virtual Assistant
 </h1>
 <p align="center">
   <a href="https://flathub.org/apps/details/io.github.qwersyk.Newelle">
@@ -11,53 +11,65 @@
 </p>
 <p align="center">
 <a href="https://stopthemingmy.app">
-    <img width="200" alt="Please Don't Theme" src="https://stopthemingmy.app/badge.svg"/>
+    <img width="180" alt="Please Don't Theme" src="https://stopthemingmy.app/badge.svg"/>
   </a>
   <br>
 </p>
 
-This repository contains a chat bot program written in GTK4 and Adwaita (adw) that allows you to interact with your system and perform various commands. The bot utilizes [Baichat](https://chatbot.theb.ai/) and the API from [Bavarder](https://bavarder.codeberg.page/) for unlimited and free communication.
+![screenshot](https://raw.githubusercontent.com/qwersyk/Newelle/master/data/screenshots/screenshot1.png)
 
-![screenshot](https://raw.githubusercontent.com/qwersyk/Newelle/master/data/screenshots/screenshot1.png#gh-light-mode-only)
-![screenshot](https://raw.githubusercontent.com/qwersyk/Newelle/master/data/screenshots/screenshot1.png#gh-dark-mode-only)
+**Newelle** is an advanced chat bot that aims to revolutionize your virtual assistant experience. Here's a concise overview of its key features:
 
 ## Features
-- Seamless system integration: The chat bot has access to your system and can execute commands on your behalf.
-- Context preservation: The chat bot saves the conversation context, allowing for meaningful and continuous interactions.
-- Chat history management: You can easily clear the chat history to maintain privacy and a clean interface.
-- Navigator panel: A convenient sidebar provides visualizations of ongoing activities.
 
-![screenshot](https://raw.githubusercontent.com/qwersyk/Newelle/master/data/screenshots/screenshot2.png#gh-light-mode-only)
-![screenshot](https://raw.githubusercontent.com/qwersyk/Newelle/master/data/screenshots/screenshot2.png#gh-dark-mode-only)
+- **File and System Management:** Take control of your computer effortlessly. Newelle enables you to create folders, rename files, edit content, and access detailed file information, enhancing your overall productivity.
 
-## Functionality
+- **Code Execution and Collaboration:** Execute Python code seamlessly within the chat interface. Collaborate on coding projects, seek assistance, and share code snippets effortlessly with Newelle.
 
-The chat bot offers a range of functionalities, including:
+- **Intuitive Graphical Interface:** Enjoy a visually appealing interface with a sidebar for chat history and a file explorer panel. Drag and drop files and folders directly into the chat, streamlining your workflow.
 
-1. Image manipulation:
-   - Creating clean images
-   - Basic image editing operations
+- **Flexible Message Manipulation:** Edit, continue, or regenerate messages easily. Right-click on a user's message to make quick modifications. Newelle grants you full control over your conversations.
 
-2. File and folder management:
-   - Creating folders and files
-   - Viewing and deleting files and folders
-   - Moving and sorting files
+- **Effortless Chat Management:** Copy and save chat conversations effortlessly for future reference. Newelle automatically generates names for chat sessions, making organization a breeze.
 
-3. Programming capabilities:
-   - Writing programs
-   - Basic code execution
+# Installation and Getting Started
 
-4. Communication:
-   - Engaging in conversations with the chat bot
+To start using our program, you have two options: compiling it through GNOME Builder or downloading the release from GitHub. Additionally, we have provided a limited version of the program on Flathub.
 
-Please note that the chat bot primarily relies on simple commands due to its use of an older engine. While it can handle most terminal-based tasks, it may have limitations in more complex operations.
+## Compiling with GNOME Builder
 
-## Security Considerations
+1. Install GNOME Builder on your system.
+2. Clone the Newelle repository from GitHub.
+3. Open the project in GNOME Builder and compile it.
+4. Once compiled, you can run the program from the compiled executable.
 
-- Cautionary warning: The chat bot has system-level access and can potentially cause irreversible damage. Exercise caution while using it.
-- Open-source code: The code for the chat bot itself is open-source, but the chat bot being used may have proprietary aspects, which could pose unknown risks.
-- Beta testing: This chat bot is currently in beta testing and should be used with care.
+## Downloading from GitHub
 
-Disclaimer: The developers of this project do not take responsibility for any damages caused by the chat bot. Use it at your own risk.
+1. Visit the Newelle GitHub repository.
+2. Navigate to the "Releases" section.
+3. Download the latest release package compatible with your operating system.
+4. Extract the downloaded package.
+5. Run the program from the extracted files.
+
+## Installing from Flathub
+
+1. Ensure you have Flatpak installed on your system.
+2. Install Newelle by executing: `flatpak install flathub io.github.qwersyk.Newelle`
+3. Once installed, you can launch Newelle.
+
+Please note that the Flatpak version of Newelle has some limitations for security purposes. It can only access the `.var/app/ioюgithub.qwersyk.Newelle` folder, and it can only run within the Flatpak sandboxed environment. 
+
+To extend the program's capabilities, follow these steps:
+
+1. Install Flatseal on your system.
+2. Launch Flatseal and locate "Newelle" in the application list.
+3. Enable the "All user files" permission for Newelle to access user files.
+4. To allow Newelle to run outside the Flatpak sandbox, enable the "Session Bus" permission and add a new talk with the name "org.freedesktop.Flatpak".
+5. Disable virtualization in the program settings to run Newelle outside the Flatpak sandbox.
+
+Please note that by performing these steps, the program's security may be compromised as it gains access to your data and terminal. Although our program is open-source and can be verified for malicious actions, the underlying "baichat" model is proprietary. We cannot guarantee where your chat data is sent or rule out the possibility of incorrect or malicious commands from the neural network. Please be careful when enabling these options.
 
 
+> By running the following command when launching the program, you can grant temporary access to memory and the console:```flatpak run --talk-name=org.freedesktop.Flatpak --filesystem=home io.github.qwersyk.Newelle```
+
+> Our bot operates thanks to the [BAI chat](https://chatbot.theb.ai/) and [baichat-py](https://github.com/Bavarder/baichat-py)( developed by [Bavarder](https://bavarder.codeberg.page/)). We would like to express our gratitude to them for their invaluable contributions.
