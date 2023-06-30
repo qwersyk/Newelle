@@ -14,7 +14,7 @@
             <default>false</default>
         </key>
         <key name="graphic" type="b">
-            <default>true</default>
+            <default>false</default>
         </key>
         <key name="virtualization" type="b">
             <default>true</default>

@@ -126,17 +126,17 @@ class MyApp(Adw.Application):
     def reload_chat(self,*_):
         self.win.show_chat()
         self.win.notification_block.add_toast(
-                Adw.Toast(title='Chat is rebooted'))
+                Adw.Toast(title=_('Chat is rebooted')))
 
     def reload_folder(self,*_):
         self.win.update_folder()
         self.win.notification_block.add_toast(
-                Adw.Toast(title='Folder is rebooted'))
+                Adw.Toast(title=_('Folder is rebooted')))
 
     def new_chat(self,*_):
         self.win.new_chat(None)
         self.win.notification_block.add_toast(
-                Adw.Toast(title='Chat is created'))
+                Adw.Toast(title=_('Chat is created')))
 
     def do_shutdown(self):
         os.chdir(os.path.expanduser("~"))

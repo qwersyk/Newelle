@@ -1,0 +1,111 @@
+# Russian translations for PACKAGE package.
+# Copyright (C) 2023 THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# Yehor Qwersyk <qsk@gmx.at>, 2023.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-06-29 21:36+0200\n"
+"PO-Revision-Date: 2023-06-29 21:38+0200\n"
+"Last-Translator: Yehor Qwersyk <qsk@gmx.at>\n"
+"Language-Team: Russian\n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+
+#: src/window.py:155
+msgid "About"
+msgstr "О программе"
+
+#: src/window.py:156
+msgid "Keyboard shorcuts"
+msgstr "Горячие клавиши"
+
+#: src/window.py:157
+msgid "Settings"
+msgstr "Настройки"
+
+#: src/window.py:184
+msgid "History"
+msgstr "История"
+
+#: src/window.py:195
+msgid "Create a chat"
+msgstr "Создать чат"
+
+#: src/window.py:243
+msgid "Stop"
+msgstr "Остановить"
+
+#: src/window.py:304
+msgid "Clear"
+msgstr "Очистить"
+
+#: src/window.py:316
+msgid "Continue"
+msgstr "Продолжить"
+
+#: src/window.py:328
+msgid "Regenerate"
+msgstr "Перегенерировать"
+
+#: src/window.py:389 src/window.py:714
+msgid "File not found"
+msgstr "Файл не найден"
+
+#: src/window.py:393
+msgid "The file cannot be sent until the program is finished"
+msgstr "Файл не может быть отправлен, пока программа не завершена"
+
+#: src/window.py:406
+msgid "The file is not recognized"
+msgstr "Файл не распознан"
+
+#: src/window.py:429
+msgid "You can no longer continue the message."
+msgstr "Вы больше не можете продолжить сообщение."
+
+#: src/window.py:468
+msgid "You can no longer regenerate the message."
+msgstr "Вы больше не можете перегенерировать сообщение."
+
+#: src/window.py:593
+msgid "Chat is cleared"
+msgstr "Чат очищен"
+
+#: src/window.py:616
+msgid "The message was canceled and deleted from history"
+msgstr "Сообщение отменено и удалено из истории"
+
+#: src/window.py:628
+msgid "Failed to send bot a message"
+msgstr "Не удалось отправить сообщение боту"
+
+#: src/window.py:630
+msgid "Chat has been stopped"
+msgstr "Чат остановлен"
+
+#: src/window.py:662
+msgid "Folder is Empty"
+msgstr "Папка пуста"
+
+#: src/window.py:781
+msgid "The message cannot be sent until the program is finished"
+msgstr "Сообщение не может быть отправлено, пока программа не завершена"
+
+#: src/window.py:944
+msgid "You can't edit a message while the program is running."
+msgstr "Вы не можете редактировать сообщение во время работы программы."
+
+#: src/window.py:1004
+msgid ""
+"Attention the neural network has access to your computer, be careful, we are "
+"not responsible for the neural network."
+msgstr ""
+"Внимание! Нейронная сеть имеет доступ к вашему компьютеру, будьте осторожны, мы "
+"не несем ответственности за нейронную сеть."

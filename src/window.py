@@ -138,9 +138,9 @@ System: New chat \end
 """
         if self.graphic and self.console:
             self.bot_prompt+="""
-File: /home/qwersyk/Downloads/money.txt \end
+File: /home/user/Downloads/money.txt \end
 User: Create a graph for the report in the money.txt file \end
-Assistant: ```console\ncat /home/qwersyk/Downloads/money.txt\n``` \end
+Assistant: ```console\ncat /home/user/Downloads/money.txt\n``` \end
 Console: It was spent 5000 in January, 8000 in February, 6500 in March, 9000 in April, 10000 in May, 7500 in June, 8500 in July, 7000 in August, 9500 in September, 11000 in October, 12000 in November and 9000 in December. \end
 Assistant: ```chart\nJanuary - 5000\nFebruary - 8000\nMarch - 6500\nApril - 9000\nMay - 10000\nJune - 7500\nJuly - 8500\nAugust - 7000\nSeptember - 9500\nOctober - 11000\nNovember - 12000\nDecember - 9000\n```\nHere is the graph for the data in the file:\n```file\n/home/qwersyk/Downloads/money.txt\n``` \end
 System: New chat \end
@@ -152,14 +152,14 @@ System: New chat \end
         menu_button = Gtk.MenuButton()
         menu_button.set_icon_name("open-menu-symbolic")
         menu = Gio.Menu()
-        menu.append("About", "app.about")
-        menu.append("Keyboard shorcuts", "app.shortcuts")
-        menu.append("Settings", "app.settings")
+        menu.append(_("About"), "app.about")
+        menu.append(_("Keyboard shorcuts"), "app.shortcuts")
+        menu.append(_("Settings"), "app.settings")
         menu_button.set_menu_model(menu)
         self.separator_1 = Gtk.Separator()
         self.chat_block = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, hexpand=True)
         self.chat_header = Adw.HeaderBar(css_classes=["flat"])
-        self.chat_header.set_title_widget(Gtk.Label(label="Chat", css_classes=["title"]))
+        self.chat_header.set_title_widget(Gtk.Label(label=_("Chat"), css_classes=["title"]))
 
         self.left_panel_back_button = Gtk.Button(css_classes=["flat"])
         icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="go-previous-symbolic"))
@@ -181,7 +181,7 @@ System: New chat \end
         self.separator2 = Gtk.Separator()
         self.chats_secondary_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, hexpand=True)
         self.chat_panel_header = Adw.HeaderBar(css_classes=["flat"])
-        self.chat_panel_header.set_title_widget(Gtk.Label(label="History", css_classes=["title"]))
+        self.chat_panel_header.set_title_widget(Gtk.Label(label=_("History"), css_classes=["title"]))
         self.chats_secondary_box.append(self.chat_panel_header)
         self.chats_secondary_box.append(Gtk.Separator())
         self.chat_panel_header.pack_end(menu_button)
@@ -192,7 +192,7 @@ System: New chat \end
         self.chats_buttons_scroll_block.set_child(self.chats_buttons_block)
         self.chats_secondary_box.append(self.chats_buttons_scroll_block)
         button = Gtk.Button(valign=Gtk.Align.END,css_classes=["suggested-action","right-angles"])
-        button.set_child(Gtk.Label(label="Create a chat"))
+        button.set_child(Gtk.Label(label=_("Create a chat")))
         button.connect("clicked", self.new_chat)
         self.chats_secondary_box.append(button)
         self.chats_main_box.append(self.chats_secondary_box)
@@ -240,7 +240,7 @@ System: New chat \end
         icon.set_icon_size(Gtk.IconSize.INHERIT)
         box = Gtk.Box(halign=Gtk.Align.CENTER)
         box.append(icon)
-        label = Gtk.Label(label=" Stop")
+        label = Gtk.Label(label=_(" Stop"))
         box.append(label)
         self.chat_stop_button.set_child(box)
         self.chat_stop_button.connect("clicked", self.stop_chat)
@@ -301,7 +301,7 @@ System: New chat \end
         icon.set_icon_size(Gtk.IconSize.INHERIT)
         box = Gtk.Box(halign=Gtk.Align.CENTER)
         box.append(icon)
-        label = Gtk.Label(label=" Clear")
+        label = Gtk.Label(label=_(" Clear"))
         box.append(label)
         self.continue_message_button.set_child(box)
         self.continue_message_button.connect("clicked", self.clear_chat)
@@ -313,7 +313,7 @@ System: New chat \end
         icon.set_icon_size(Gtk.IconSize.INHERIT)
         box = Gtk.Box(halign=Gtk.Align.CENTER)
         box.append(icon)
-        label = Gtk.Label(label=" Continue")
+        label = Gtk.Label(label=_(" Continue"))
         box.append(label)
         self.button_continue.set_child(box)
         self.button_continue.connect("clicked", self.continue_message)
@@ -325,7 +325,7 @@ System: New chat \end
         icon.set_icon_size(Gtk.IconSize.INHERIT)
         box = Gtk.Box(halign=Gtk.Align.CENTER)
         box.append(icon)
-        label = Gtk.Label(label=" Regenerate")
+        label = Gtk.Label(label=_(" Regenerate"))
         box.append(label)
         self.regenerate_message_button.set_child(box)
         self.regenerate_message_button.connect("clicked", self.regenerate_message)
@@ -377,7 +377,7 @@ System: New chat \end
         button.set_child(box)
         return button
 
-    def run_file_on_button_click(self, button, *_):
+    def run_file_on_button_click(self, button, *a):
         if os.path.exists(button.get_name()):
             if os.path.isdir(os.path.join(os.path.expanduser(self.main_path), button.get_name())):
                 self.main_path = button.get_name()
@@ -386,11 +386,11 @@ System: New chat \end
             else:
                 subprocess.run(['xdg-open', os.path.expanduser(button.get_name())])
         else:
-            self.notification_block.add_toast(Adw.Toast(title='File not found'))
+            self.notification_block.add_toast(Adw.Toast(title=_('File not found')))
 
     def handle_file_drag(self, DropTarget, data, x, y):
         if not self.status:
-            self.notification_block.add_toast(Adw.Toast(title='The file cannot be sent until the program is finished'))
+            self.notification_block.add_toast(Adw.Toast(title=_('The file cannot be sent until the program is finished')))
             return False
         for path in data.split("\n"):
             if os.path.exists(path):
@@ -403,17 +403,17 @@ System: New chat \end
                     self.add_message("File", message_label)
                 self.chats[self.chat_id]["chat"] = self.chat
             else:
-                self.notification_block.add_toast(Adw.Toast(title='The file is not recognized'))
+                self.notification_block.add_toast(Adw.Toast(title=_('The file is not recognized')))
 
-    def go_back_in_explorer_panel(self, _):
+    def go_back_in_explorer_panel(self, *a):
         self.main_path += "/.."
         self.update_folder()
 
-    def go_home_in_explorer_panel(self, _):
+    def go_home_in_explorer_panel(self, *a):
         self.main_path = "~"
         self.update_folder()
 
-    def go_forward_in_explorer_panel(self, _):
+    def go_forward_in_explorer_panel(self, *a):
         if self.main_path[len(self.main_path) - 3:len(self.main_path)] == "/..":
             self.main_path = self.main_path[0:len(self.main_path) - 3]
             self.update_folder()
@@ -426,7 +426,7 @@ System: New chat \end
 
     def continue_message(self, button, multithreading=False):
         if self.chat[-1]["User"] != "Assistant":
-            self.notification_block.add_toast(Adw.Toast(title='You can no longer continue the message.'))
+            self.notification_block.add_toast(Adw.Toast(title=_('You can no longer continue the message.')))
         elif multithreading:
             self.stream_number_variable += 1
             stream_number_variable = self.stream_number_variable
@@ -465,7 +465,7 @@ System: New chat \end
             self.regenerate_message_button.set_visible(False)
             threading.Thread(target=self.send_message).start()
         else:
-            self.notification_block.add_toast(Adw.Toast(title='You can no longer regenerate the message.'))
+            self.notification_block.add_toast(Adw.Toast(title=_('You can no longer regenerate the message.')))
     def update_history(self):
         list_box = Gtk.ListBox(css_classes=["separators","background"])
         list_box.set_selection_mode(Gtk.SelectionMode.NONE)
@@ -526,7 +526,7 @@ System: New chat \end
     def generate_chat_name(self, button, multithreading=False):
         if multithreading:
             if len(self.chats[int(button.get_name())]["chat"]) < 2:
-                self.notification_block.add_toast(Adw.Toast(title='Chat is empty'))
+                self.notification_block.add_toast(Adw.Toast(title=_('Chat is empty')))
                 return False
             button.set_can_target(False)
             button.set_has_frame(True)
@@ -590,7 +590,7 @@ System: New chat \end
         return self.treeview
 
     def clear_chat(self, button):
-        self.notification_block.add_toast(Adw.Toast(title='Chat is cleared'))
+        self.notification_block.add_toast(Adw.Toast(title=_('Chat is cleared')))
         self.chat = []
         self.chats[self.chat_id]["chat"] = self.chat
         self.show_chat()
@@ -613,7 +613,7 @@ System: New chat \end
                     self.chat.pop(i)
                 else:
                     break
-        self.notification_block.add_toast(Adw.Toast(title='The message was canceled and deleted from history'))
+        self.notification_block.add_toast(Adw.Toast(title=_('The message was canceled and deleted from history')))
         self.show_chat()
 
     def send_message_to_bot(self, message):
@@ -625,9 +625,9 @@ System: New chat \end
                 t = BAIChat(sync=True).sync_ask(message)
                 return t
             except Exception:
-                self.notification_block.add_toast(Adw.Toast(title='Failed to send bot a message'))
+                self.notification_block.add_toast(Adw.Toast(title=_('Failed to send bot a message')))
             time.sleep(loop_interval_variable)
-        return types.SimpleNamespace(text="Chat has been stopped")
+        return types.SimpleNamespace(text=_("Chat has been stopped"))
 
     def send_bot_response(self, button):
         for btn in self.message_suggestion_buttons_array:
@@ -643,13 +643,13 @@ System: New chat \end
         self.add_message("User", message_label, len(self.chat) - 1)
         threading.Thread(target=self.send_message).start()
 
-    def update_folder(self, _=None):
+    def update_folder(self, *a):
         if self.file_panel:
             if os.path.exists(os.path.expanduser(self.main_path)):
                 self.explorer_panel_header.set_title_widget(Gtk.Label(label=os.path.normpath(self.main_path)+(3-len(os.path.normpath(self.main_path)))*" ", css_classes=["title"],ellipsize=Pango.EllipsizeMode.MIDDLE,max_width_chars=20,halign=Gtk.Align.CENTER,hexpand=True))
                 if len(os.listdir(os.path.expanduser(self.main_path))) == 0 or (sum(
                         1 for filename in os.listdir(os.path.expanduser(self.main_path)) if
-                        not filename.startswith('.')) == 0 and not self.hidden_files):
+                        not filename.startswith('.')) == 0 and not self.hidden_files) and os.path.normpath(self.main_path) != "~":
                     self.explorer_panel.remove(self.folder_blocks_panel)
                     self.folder_blocks_panel = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=20, opacity=0.25)
                     self.explorer_panel.append(self.folder_blocks_panel)
@@ -658,10 +658,7 @@ System: New chat \end
                     icon.set_valign(Gtk.Align.END)
                     icon.set_vexpand(True)
                     self.folder_blocks_panel.append(icon)
-                    self.folder_blocks_panel.append(
-                        Gtk.Label(label="Folder is Empty", wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR, vexpand=True,
-                                  valign=Gtk.Align.START,
-                                  css_classes=["empty-folder", "heading"]))
+                    self.folder_blocks_panel.append(Gtk.Label(label=_("Folder is Empty"), wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR, vexpand=True,valign=Gtk.Align.START,css_classes=["empty-folder", "heading"]))
                 else:
                     try:
                         self.explorer_panel.remove(self.folder_blocks_panel)
@@ -671,6 +668,28 @@ System: New chat \end
                         flow_box = Gtk.FlowBox(vexpand=True)
                         flow_box.set_valign(Gtk.Align.START)
 
+                        if os.path.normpath(self.main_path) == "~":
+                            path = "./.var/app/io.github.qwersyk.Newelle/Newelle"
+                            if not os.path.exists(path):
+                                os.makedirs(path)
+                            button = Gtk.Button(css_classes=["flat"])
+                            button.set_name(".var/app/io.github.qwersyk.Newelle/Newelle")
+                            button.connect("clicked", self.open_folder)
+
+                            icon = File(self.main_path, ".var/app/io.github.qwersyk.Newelle/Newelle")
+                            icon.set_css_classes(["large"])
+                            icon.set_valign(Gtk.Align.END)
+                            icon.set_vexpand(True)
+                            file_label = Gtk.Label(label="Newelle", wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR,
+                                                   vexpand=True, max_width_chars=11, valign=Gtk.Align.START,
+                                                   ellipsize=Pango.EllipsizeMode.MIDDLE)
+                            file_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+                            file_box.append(icon)
+                            file_box.set_size_request(110, 110)
+                            file_box.append(file_label)
+                            button.set_child(file_box)
+
+                            flow_box.append(button)
                         for file_info in os.listdir(os.path.expanduser(self.main_path)):
                             if file_info[0] == "." and not self.hidden_files:
                                 continue
@@ -702,7 +721,7 @@ System: New chat \end
                 self.main_path = "~"
                 self.update_folder()
 
-    def open_folder(self, button, *_):
+    def open_folder(self, button, *a):
         if os.path.exists(os.path.join(os.path.expanduser(self.main_path), button.get_name())):
             if os.path.isdir(os.path.join(os.path.expanduser(self.main_path), button.get_name())):
                 self.main_path += "/" + button.get_name()
@@ -711,7 +730,7 @@ System: New chat \end
             else:
                 subprocess.run(['xdg-open', os.path.expanduser(self.main_path + "/" + button.get_name())])
         else:
-            self.notification_block.add_toast(Adw.Toast(title='File not found'))
+            self.notification_block.add_toast(Adw.Toast(title=_('File not found')))
 
     def handle_main_block_change(self, *data):
         if (self.main.get_folded()):
@@ -778,7 +797,7 @@ Assistant: Yes, of course, what do you need help with?\end""" + "\n" + self.get_
     def on_entry_activate(self, entry):
         if not self.status:
             self.notification_block.add_toast(
-                Adw.Toast(title='The message cannot be sent until the program is finished'))
+                Adw.Toast(title=_('The message cannot be sent until the program is finished')))
             return False
         text = entry.get_text()
         entry.set_text('')
@@ -941,7 +960,7 @@ Assistant: Yes, of course, what do you need help with?\end""" + "\n" + self.get_
 
     def edit_message(self, gesture, data, x, y):
         if not self.status:
-            self.notification_block.add_toast(Adw.Toast(title="You can't edit a message while the program is running."))
+            self.notification_block.add_toast(Adw.Toast(title=_("You can't edit a message while the program is running.")))
             return False
         self.input_panel.set_text(self.chat[int(gesture.get_name())]["Message"][0:-4])
         self.input_panel.grab_focus()
@@ -1001,7 +1020,7 @@ Assistant: Yes, of course, what do you need help with?\end""" + "\n" + self.get_
             box_warning.append(icon)
 
             label = Gtk.Label(
-                label="Attention the neural network has access to your computer, be careful, we are not responsible for the neural network.",
+                label=_("Attention the neural network has access to your computer, be careful, we are not responsible for the neural network."),
                 margin_top=10, margin_start=10, margin_bottom=10, margin_end=10, wrap=True,
                 wrap_mode=Pango.WrapMode.WORD_CHAR)
             box_warning.append(label)
