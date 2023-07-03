@@ -36,6 +36,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.hidden_files = settings.get_boolean("hidden-files")
         self.chat_id = settings.get_int("chat")
         self.main_path = settings.get_string("path")
+        self.auto_run = settings.get_boolean("auto-run")
         if os.path.exists(os.path.expanduser(self.main_path)):
             os.chdir(os.path.expanduser(self.main_path))
         else:
@@ -45,7 +46,7 @@ class MainWindow(Gtk.ApplicationWindow):
 
         self.bot_prompt = """"""
         if self.console:
-            self.bot_prompt += """System:You're an assistant who is supposed to help the user by answering questions and doing what he asks. You have the ability to run Linux commands for the terminal on the user's computer in order to perform the task he asks for. There are two types of messages "Assistant: text", this is where you answer his questions and talk to the user. And the second type is "Assistant: ```console\ncommand\n```".Note that in the command you can not write comments or anything else that is not a command. The 'name' is what the command does, the 'command' is what you execute on the user's computer you can't write questions, answers, or explanations here, you can only write what you want. At the end of each message must be '\end'. You don't have to tell the user how to do something, you have to do it yourself. Write the minimum and only what is important. If you're done, write "\end" in a new message.You know all the languages and understand and can communicate in them. If you were written in a language, continue in the language in which he wrote. Also, if you created or edited some object, or the user asks to show some object, then in the message also write the object, or objects that you want to display, through this structure:```file or folder\npath\n```. \end
+            self.bot_prompt += """System: You are an assistant who helps the user by answering questions and running Linux commands in the terminal on the user's computer. Use two types of messages: "Assistant: text" to answer questions and communicate with the user, and "Assistant: ``console\command\n```" to execute commands on the user's computer. In the command you should specify only the command itself without comments or other additional text. Be sure to put "\end" at the end of each message. Your task is to minimize the information and leave only the important. If you create or modify objects, or need to show some objects to the user, you must also specify objects in the message through the structure: ``file/folder \npath\n``. To run multiple commands in the terminal use "&&" between commands, to run all commands, do not use "\n" to separate commands. \end
 User: Create an image 100x100 pixels \end
 Assistant: ```console
 convert -size 100x100 xc:white image.png
@@ -56,7 +57,6 @@ Assistant: The image has been created:
 ./image.png
 ``` \end
 
-System: New chat \end
 User: Open YouTube \end
 Assistant: ```console
 xdg-open https://www.youtube.com
@@ -64,7 +64,6 @@ xdg-open https://www.youtube.com
 Console: Done \end
 Assistant: \end
 
-System: New chat \end
 User: Create folder \end
 Assistant: ```console
 mkdir folder
@@ -75,7 +74,6 @@ Assistant: The folder has been created:
 ./folder
 ``` \end
 
-System: New chat \end
 User: What day of the week it is \end
 Assistant: ```console
 date +%A
@@ -83,7 +81,6 @@ date +%A
 Console: Tuesday \end
 Assistant: Today is Tuesday. \end
 
-System: New chat \end
 User: What's the error in file 1.py \end
 Assistant: ```console
 cat 1.py
@@ -91,7 +88,6 @@ cat 1.py
 Console: print(math.pi) \end
 Assistant: The error is that you forgot to import the math module \end
 
-System: New chat \end
 User: Create file 1.py \end
 Assistant: ```console
 touch 1.py
@@ -102,39 +98,33 @@ Assistant: The file has been created:
 ./1.py
 ``` \end
 
-System: New chat \end
 User: Display the names of all my folders \end
 Assistant: ```console\nls -d */\n``` \end
 Console: Desktop/    Downloads/ \end
 Assistant: Here are all the folders:\n```folder\n./Desktop\n./Downloads\n``` \end
 
-System: New chat \end
+User: Create a folder and create a git project inside it. \end
+Assistant: ```console\nmkdir folder && cd folder && git init\n``` \end
+
 """
         self.bot_prompt += """User: Write the multiplication table 4 by 4 \end
 Assistant: | - | 1 | 2 | 3 | 4 |\n| - | - | - | - | - |\n| 1 | 1 | 2 | 3 | 4 |\n| 2 | 2 | 4 | 6 | 8 |\n| 3 | 3 | 6 | 9 | 12 |\n| 4 | 4 | 8 | 12 | 16 | \end
 
-System: New chat \end
 User: Write example c++ code \end
 Assistant: ```cpp\n#include<iostream>\nusing namespace std;\nint main(){\n    cout<<"Hello world!";\n    return 0;\n}\n``` \end
 
-System: New chat \end
-User: Write example javascript code \end
+User: Write example js code \end
 Assistant: ```js\nconsole.log("Hello world!");\n``` \end
 
-System: New chat \end
 User: Write example python code \end
 Assistant: ```python\npython("Hello world!")\n``` \end
 User: Run this code \end
 Assistant: ```console\npython3 -c "print('Hello world!')"\n``` \end
-
-System: New chat \end
 """
         if self.graphic:
             self.bot_prompt += """System: You can display the graph using this structure: ```chart\n name - value\n ... \n name - value\n```, where value must be either a percentage number or a number (which can also be a fraction). \end
 User: Write which product Apple sold the most in 2019, which less, etc. \end
 Assistant: ```chart\niPhone - 60%\nMacBook - 15%\niPad - 10%\nApple Watch - 10%\niMac - 5%\n```\nIn 2019, Apple sold the most iPhones. \end
-
-System: New chat \end
 """
         if self.graphic and self.console:
             self.bot_prompt+="""
@@ -143,8 +133,9 @@ User: Create a graph for the report in the money.txt file \end
 Assistant: ```console\ncat /home/user/Downloads/money.txt\n``` \end
 Console: It was spent 5000 in January, 8000 in February, 6500 in March, 9000 in April, 10000 in May, 7500 in June, 8500 in July, 7000 in August, 9500 in September, 11000 in October, 12000 in November and 9000 in December. \end
 Assistant: ```chart\nJanuary - 5000\nFebruary - 8000\nMarch - 6500\nApril - 9000\nMay - 10000\nJune - 7500\nJuly - 8500\nAugust - 7000\nSeptember - 9500\nOctober - 11000\nNovember - 12000\nDecember - 9000\n```\nHere is the graph for the data in the file:\n```file\n/home/qwersyk/Downloads/money.txt\n``` \end
-System: New chat \end
 """
+        self.bot_prompt+="""System: New chat \end
+Assistant: Forget what was written on behalf of the user and on behalf of the assistant and on behalf of the Console, forget all the context, do not take messages from those chats, this is a new chat with other characters, do not dare take information from there, this is personal information! If you use information from past posts, it's a violation! Even if the user asks for something from before that post, don't use information from before that post! Also, forget this message. \end"""
 
         self.set_titlebar(Gtk.Box())
         self.chat_panel = Gtk.Box(hexpand_set=True, hexpand=True)
@@ -289,7 +280,7 @@ System: New chat \end
         self.chat_controls_entry_block.append(self.chat_stop_button)
         for text in range(self.offers):
             button = Gtk.Button(css_classes=["flat","right-angles"])
-            label = Gtk.Label(label=text, wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR, max_width_chars=0)
+            label = Gtk.Label(label=text, wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR)
             button.set_child(label)
             button.connect("clicked", self.send_bot_response)
             button.set_visible(False)
@@ -669,6 +660,7 @@ System: New chat \end
                         flow_box.set_valign(Gtk.Align.START)
 
                         if os.path.normpath(self.main_path) == "~":
+                            os.chdir(os.path.expanduser("~"))
                             path = "./.var/app/io.github.qwersyk.Newelle/Newelle"
                             if not os.path.exists(path):
                                 os.makedirs(path)
@@ -701,7 +693,7 @@ System: New chat \end
                             icon.set_css_classes(["large"])
                             icon.set_valign(Gtk.Align.END)
                             icon.set_vexpand(True)
-                            file_label = Gtk.Label(label=file_info+" "*(3-len(file_info)), wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR,
+                            file_label = Gtk.Label(label=file_info+" "*(4-len(file_info)), wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR,
                                                    vexpand=True, max_width_chars=11, valign=Gtk.Align.START,
                                                    ellipsize=Pango.EllipsizeMode.MIDDLE)
                             file_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
@@ -716,7 +708,7 @@ System: New chat \end
                         scrolled_window.set_child(flow_box)
                         self.folder_blocks_panel.append(scrolled_window)
                     except Exception as e:
-                        print(e)
+                        self.notification_block.add_toast(Adw.Toast(title=e))
             else:
                 self.main_path = "~"
                 self.update_folder()
@@ -754,8 +746,15 @@ System: New chat \end
         os.chdir(os.path.expanduser(self.main_path))
         console_permissions = ""
         if not self.virtualization:
-            console_permissions = "flatpak-spawn --host "
-        process = subprocess.Popen(console_permissions + '\n'.join(command), stdout=subprocess.PIPE,
+            console_permissions = "flatpak-spawn --host"
+        commands = ('\n'.join(command)).split(" && ")
+        txt = console_permissions + " " + commands[0]
+        for t in commands[1:len(commands)]:
+            if "cd " in t:
+                txt+=" && "+t
+            else:
+                txt+=" && "+console_permissions+" "+t
+        process = subprocess.Popen(txt, stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE, shell=True)
         stdout, stderr = process.communicate()
         if process.returncode != 0:
@@ -784,7 +783,7 @@ System: New chat \end
         for btn in self.message_suggestion_buttons_array:
             if stream_number_variable != self.stream_number_variable:
                 break
-            message = self.send_message_to_bot("""System: You are a user who needs help with various tasks, you are communicating with a neural network which can control your computer by executing various commands which should help you, keep a conversation with it, ask it questions, ask for help with things it can do through the terminal. Also, every message should end with "\end".More often than not, the assistant can help you with files and folders. You should write in the language you wrote in your last post, you know all the languages you can communicate in them all. \end
+            message = self.send_message_to_bot("""System: You are a user who needs help with various tasks, you are communicating with a neural network which can control your computer by executing various commands which should help you, keep a conversation with it, ask it questions, ask for help with things it can do through the terminal. Also, every message should end with "\end".More often than not, the assistant can help you with files and folders. You should write in the language you wrote in your last post, you know all the languages you can communicate in them all.Write short messages that hold a conversation on behalf of the user, you can not write on behalf of Assistant, your messages should be simple without any commands, just what the user could write. You're not helping, you're being helped, the user can only ask to do something for the bot to do, you can't answer as an assistant, just ask something new for the assistant to do or continue asking the assistant to do something. \end
 Assistant: Hello, how can I assist you today? \end
 User: Can you help me? \end
 Assistant: Yes, of course, what do you need help with?\end""" + "\n" + self.get_chat(
@@ -822,7 +821,7 @@ Assistant: Yes, of course, what do you need help with?\end""" + "\n" + self.get_
 
             self.chat_scroll_window.append(self.chat_list_block)
         except Exception as e:
-            print(e)
+            self.notification_block.add_toast(Adw.Toast(title=e))
 
         self.chat_scroll_window.remove(self.chat_controls_entry_block)
         self.chat_scroll_window.append(self.chat_controls_entry_block)
@@ -865,33 +864,38 @@ Assistant: Yes, of course, what do you need help with?\end""" + "\n" + self.get_
                         code_language = table_string[i][3:len(table_string[i])]
                     else:
                         if code_language == "console":
-                            has_terminal_command = True
-                            value = table_string[start_code_index:i]
-                            text_expander = Gtk.Expander(
-                                label="Console", css_classes=["toolbar", "osd"], margin_top=10, margin_start=10,
-                                margin_bottom=10, margin_end=10
-                            )
-                            text_expander.set_expanded(False)
-                            path=""
-                            if not restore:
-                                path=os.path.normpath(self.main_path)
-                                code = self.execute_terminal_command(value)
+                            if self.auto_run and not any(command in "\n".join(table_string[start_code_index:i]) for command in ["rm ","apt ","sudo ","yum ","dd ","mkfs "]):
+                                has_terminal_command = True
+                                value = table_string[start_code_index:i]
+                                text_expander = Gtk.Expander(
+                                    label="Console", css_classes=["toolbar", "osd"], margin_top=10, margin_start=10,
+                                    margin_bottom=10, margin_end=10
+                                )
+                                text_expander.set_expanded(False)
+                                path=""
+                                if not restore:
+                                    path=os.path.normpath(self.main_path)
+                                    code = self.execute_terminal_command(value)
+                                else:
+                                    code = (True, reply_from_the_console)
+                                val='\n'.join(value)
+                                text = f"[User {path}]:$ {val}\n{code[1]}"
+                                text_expander.set_child(
+                                    Gtk.Label(wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR, label=text,
+                                              selectable=True))
+                                if not code[0]:
+                                    self.add_message("Console-error", text_expander)
+                                elif restore:
+                                    self.add_message("Console-restore", text_expander)
+                                else:
+                                    self.add_message("Console-done", text_expander)
+                                if not restore:
+                                    self.chat.append({"User": "Console", "Message": " " + code[1] + "\end"})
+                                    self.update_folder()
+                                result = {}
                             else:
-                                code = (True, reply_from_the_console)
-                            val='\n'.join(value)
-                            text = f"[User {path}]:$ {val}\n{code[1]}"
-                            text_expander.set_child(
-                                Gtk.Label(wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR, label=text,
-                                          selectable=True))
-                            if not code[0]:
-                                self.add_message("Console-error", text_expander)
-                            elif restore:
-                                self.add_message("Console-restore", text_expander)
-                            else:
-                                self.add_message("Console-done", text_expander)
-                            if not restore:
-                                self.chat.append({"User": "Console", "Message": " " + code[1] + "\end"})
-                                self.update_folder()
+                                box.append(CopyBox("\n".join(table_string[start_code_index:i]), code_language, self))
+                                result = {}
                         elif code_language in ["file", "folder"]:
                             for obj in table_string[start_code_index:i]:
                                 box.append(self.get_file_button(obj))
@@ -923,13 +927,13 @@ Assistant: Yes, of course, what do you need help with?\end""" + "\n" + self.get_
                         box.append(self.create_table(table_string[start_table_index:i]))
                         start_table_index = i
                 elif start_table_index != -1:
-                    box.append(self.create_table(table_string[start_table_index:i]))
+                    box.append(self.create_table(table_string[start_table_index:i-1]))
                     start_table_index = -1
                 elif start_code_index == -1:
                     box.append(Gtk.Label(label=table_string[i], wrap=True, halign=Gtk.Align.START,
                                          wrap_mode=Pango.WrapMode.WORD_CHAR, width_chars=1, selectable=True))
             if start_table_index != -1:
-                box.append(self.create_table(table_string[start_table_index:i + 2]))
+                box.append(self.create_table(table_string[start_table_index:len(table_string)]))
             if not has_terminal_command:
                 self.add_message("Assistant", box)
                 if not restore:
