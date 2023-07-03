@@ -123,17 +123,17 @@ class MyApp(Adw.Application):
         self.win = MainWindow(application=app)
         self.win.present()
 
-    def reload_chat(self,*_):
+    def reload_chat(self,*a):
         self.win.show_chat()
         self.win.notification_block.add_toast(
                 Adw.Toast(title=_('Chat is rebooted')))
 
-    def reload_folder(self,*_):
+    def reload_folder(self,*a):
         self.win.update_folder()
         self.win.notification_block.add_toast(
                 Adw.Toast(title=_('Folder is rebooted')))
 
-    def new_chat(self,*_):
+    def new_chat(self,*a):
         self.win.new_chat(None)
         self.win.notification_block.add_toast(
                 Adw.Toast(title=_('Chat is created')))

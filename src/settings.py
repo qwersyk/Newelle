@@ -38,6 +38,12 @@ class Settings(Adw.PreferencesWindow):
         self.prompt = Adw.PreferencesGroup(title='Prompt control')
         self.general_page.add(self.prompt)
 
+        row = Adw.ActionRow(title="Auto-run commands", subtitle="Commands that the bot will write will automatically run")
+        switch = Gtk.Switch(valign=Gtk.Align.CENTER)
+        row.add_suffix(switch)
+        self.settings.bind("auto-run", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
+        self.prompt.add(row)
+
         row = Adw.ActionRow(title="Console access", subtitle="Can the program run terminal commands on the computer")
         switch = Gtk.Switch(valign=Gtk.Align.CENTER)
         row.add_suffix(switch)

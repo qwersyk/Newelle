@@ -53,7 +53,7 @@ class File(Gtk.Image):
 
 
 class CopyBox(Gtk.Box):
-    def __init__(self, txt, lang):
+    def __init__(self, txt, lang, parent = None):
         Gtk.Box.__init__(self, orientation=Gtk.Orientation.VERTICAL, spacing=10, margin_top=10, margin_start=10,
                          margin_bottom=10, margin_end=10, css_classes=["osd", "toolbar", "code"])
         self.txt = txt
@@ -94,7 +94,9 @@ class CopyBox(Gtk.Box):
 
         main = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, css_classes=["card"])
         main.set_homogeneous(True)
-        main.append(Gtk.Label(label=lang, halign=Gtk.Align.START, margin_start=10, css_classes=[style, "heading"]))
+        label = Gtk.Label(label=lang, halign=Gtk.Align.START, margin_start=10, css_classes=[style, "heading"],wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR)
+        label.set_size_request(200, -1)
+        main.append(label)
         self.append(main)
         self.append(self.sourceview)
         main.append(box)
@@ -103,7 +105,24 @@ class CopyBox(Gtk.Box):
             icon.set_icon_size(Gtk.IconSize.INHERIT)
             self.run_button = Gtk.Button(halign=Gtk.Align.END, css_classes=["flat"], margin_end=10)
             self.run_button.set_child(icon)
-            self.run_button.connect("clicked", self.run_button_clicked)
+            self.run_button.connect("clicked", self.run_python)
+
+            self.text_expander = Gtk.Expander(
+                label="Console", css_classes=["toolbar", "osd"], margin_top=10, margin_start=10, margin_bottom=10,
+                margin_end=10
+            )
+            self.text_expander.set_expanded(False)
+            self.text_expander.set_visible(False)
+            box.append(self.run_button)
+            self.append(self.text_expander)
+
+        elif lang == "console":
+            icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="media-playback-start-symbolic"))
+            icon.set_icon_size(Gtk.IconSize.INHERIT)
+            self.run_button = Gtk.Button(halign=Gtk.Align.END, css_classes=["flat"], margin_end=10)
+            self.run_button.set_child(icon)
+            self.run_button.connect("clicked", self.run_console)
+            self.parent = parent
 
             self.text_expander = Gtk.Expander(
                 label="Console", css_classes=["toolbar", "osd"], margin_top=10, margin_start=10, margin_bottom=10,
@@ -123,8 +142,13 @@ class CopyBox(Gtk.Box):
         icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="object-select-symbolic"))
         icon.set_icon_size(Gtk.IconSize.INHERIT)
         self.copy_button.set_child(icon)
-
-    def run_button_clicked(self, widget):
+    def run_console(self, widget):
+        self.text_expander.set_visible(True)
+        code = self.parent.execute_terminal_command(self.txt.split("\n"))
+        self.text_expander.set_child(
+            Gtk.Label(wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR, label=code[1], selectable=True))
+        self.parent.chat.append({"User": "Console", "Message": " " + code[1] + "\end"})
+    def run_python(self, widget):
         self.text_expander.set_visible(True)
         t = self.txt.replace("'", '"""')
         process = subprocess.Popen(f"""flatpak-spawn --host python3 -c '{t}'""", stdout=subprocess.PIPE,
