@@ -9,6 +9,8 @@ from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GtkSource, GObject
 from .settings import Settings
 from .window import MainWindow
 from .shortcuts import Shortcuts
+from .thread_editing import ThreadEditing
+
 
 
 
@@ -94,6 +96,9 @@ class MyApp(Adw.Application):
         action = Gio.SimpleAction.new("settings", None)
         action.connect('activate', self.settings_action)
         self.add_action(action)
+        action = Gio.SimpleAction.new("thread_editing", None)
+        action.connect('activate', self.thread_editing_action)
+        self.add_action(action)
 
     def create_action(self, name, callback, shortcuts=None):
         action = Gio.SimpleAction.new(name, None)
@@ -111,9 +116,13 @@ class MyApp(Adw.Application):
                         application_name='Newelle',
                         application_icon='io.github.qwersyk.Newelle',
                         developer_name='qwersyk',
-                        version='0.1.3',
+                        version='0.1.5',
                         developers=['qwersyk'],
                         copyright='© 2023 qwersyk').present()
+
+    def thread_editing_action(self, widget, _):
+        threadediting = ThreadEditing(self)
+        threadediting.present()
 
     def settings_action(self, widget, _):
         settings = Settings(self)

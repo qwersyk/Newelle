@@ -8,7 +8,8 @@ from .gtkobj import File, CopyBox, BarChartBox
 from .bai import BAIChat
 from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject
 import threading
-
+import posixpath
+import shlex
 
 class MainWindow(Gtk.ApplicationWindow):
     def __init__(self, *args, **kwargs):
@@ -46,7 +47,7 @@ class MainWindow(Gtk.ApplicationWindow):
 
         self.bot_prompt = """"""
         if self.console:
-            self.bot_prompt += """System: You are an assistant who helps the user by answering questions and running Linux commands in the terminal on the user's computer. Use two types of messages: "Assistant: text" to answer questions and communicate with the user, and "Assistant: ``console\command\n```" to execute commands on the user's computer. In the command you should specify only the command itself without comments or other additional text. Be sure to put "\end" at the end of each message. Your task is to minimize the information and leave only the important. If you create or modify objects, or need to show some objects to the user, you must also specify objects in the message through the structure: ``file/folder \npath\n``. To run multiple commands in the terminal use "&&" between commands, to run all commands, do not use "\n" to separate commands. \end
+            self.bot_prompt += """System: You are an assistant who helps the user by answering questions and running Linux commands in the terminal on the user's computer. Use two types of messages: "Assistant: text" to answer questions and communicate with the user, and "Assistant: ``console\command\n```" to execute commands on the user's computer. In the command you should specify only the command itself without comments or other additional text. Be sure to put "\end" at the end of each message. Your task is to minimize the information and leave only the important. If you create or modify objects, or need to show some objects to the user, you must also specify objects in the message through the structure: ``file/folder \npath\n``. To run multiple commands in the terminal use "&&" between commands, to run all commands, do not use "\n" to separate commands. Answer strictly according to the data, do not make up data or files, if you asked for something from the terminal and got some data and you need to use them, use them, do not take random files that may not exist, or random data, take data only from chat. \end
 User: Create an image 100x100 pixels \end
 Assistant: ```console
 convert -size 100x100 xc:white image.png
@@ -146,6 +147,7 @@ Assistant: Forget what was written on behalf of the user and on behalf of the as
         menu.append(_("About"), "app.about")
         menu.append(_("Keyboard shorcuts"), "app.shortcuts")
         menu.append(_("Settings"), "app.settings")
+        menu.append(_("Thread editing"), "app.thread_editing")
         menu_button.set_menu_model(menu)
         self.separator_1 = Gtk.Separator()
         self.chat_block = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, hexpand=True)
@@ -166,7 +168,7 @@ Assistant: Forget what was written on behalf of the user and on behalf of the as
         self.chat_panel.append(self.separator_1)
 
         self.main = Adw.Leaflet(fold_threshold_policy=True, can_navigate_back=True, can_navigate_forward=True)
-
+        self.streams=[]
         self.chats_main_box = Gtk.Box(hexpand_set=True)
         self.chats_main_box.set_size_request(300, -1)
         self.separator2 = Gtk.Separator()
@@ -393,6 +395,7 @@ Assistant: Forget what was written on behalf of the user and on behalf of the as
                     self.chat.append({"User": "File", "Message": " " + path + " \end"})
                     self.add_message("File", message_label)
                 self.chats[self.chat_id]["chat"] = self.chat
+                threading.Thread(target=self.update_button_text).start()
             else:
                 self.notification_block.add_toast(Adw.Toast(title=_('The file is not recognized')))
 
@@ -693,7 +696,7 @@ System: New chat \end
                             icon.set_css_classes(["large"])
                             icon.set_valign(Gtk.Align.END)
                             icon.set_vexpand(True)
-                            file_label = Gtk.Label(label=file_info+" "*(4-len(file_info)), wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR,
+                            file_label = Gtk.Label(label=file_info+" "*(5-len(file_info)), wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR,
                                                    vexpand=True, max_width_chars=11, valign=Gtk.Align.START,
                                                    ellipsize=Pango.EllipsizeMode.MIDDLE)
                             file_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
@@ -712,7 +715,21 @@ System: New chat \end
             else:
                 self.main_path = "~"
                 self.update_folder()
+    def get_target_directory(self,working_directory, directory):
+        try:
+            directory = directory.strip()
+            if directory.startswith("'") and directory.endswith("'"):
+                directory = directory[1:-1]
+            elif directory.startswith('"') and directory.endswith('"'):
+                directory = directory[1:-1]
 
+            if directory.startswith("~"):
+                directory = os.path.expanduser("~") + directory[1:]
+
+            target_directory = posixpath.join(working_directory, directory)
+            return (True, os.path.normpath(target_directory))
+        except (IndexError, OSError) as e:
+            return (False,working_directory)
     def open_folder(self, button, *a):
         if os.path.exists(os.path.join(os.path.expanduser(self.main_path), button.get_name())):
             if os.path.isdir(os.path.join(os.path.expanduser(self.main_path), button.get_name())):
@@ -748,22 +765,53 @@ System: New chat \end
         if not self.virtualization:
             console_permissions = "flatpak-spawn --host"
         commands = ('\n'.join(command)).split(" && ")
-        txt = console_permissions + " " + commands[0]
-        for t in commands[1:len(commands)]:
+        txt = ""
+        path=self.main_path
+        for t in commands:
+            if txt!="":
+                txt+=" && "
             if "cd " in t:
-                txt+=" && "+t
+                txt+=t
+                p = (t.split("cd "))[min(len(t.split("cd ")),1)]
+                v = self.get_target_directory(path, p)
+                if not v[0]:
+                    Adw.Toast(title=_('Wrong folder path'))
+                else:
+                    path = v[1]
             else:
-                txt+=" && "+console_permissions+" "+t
+                txt+=console_permissions+" "+t
         process = subprocess.Popen(txt, stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE, shell=True)
-        stdout, stderr = process.communicate()
-        if process.returncode != 0:
-            return (False, stderr.decode())
+        outputs = []
+        def read_output(process, outputs):
+            try:
+                stdout, stderr = process.communicate()
+                if process.returncode != 0:
+                    outputs.append((False, stderr.decode()))
+                else:
+                    if stdout.decode() == "":
+                        outputs.append((True, "Done"))
+                    outputs.append((True, stdout.decode()))
+            except Exception as e:
+                pass
 
+        output_thread = threading.Thread(target=read_output, args=(process, outputs))
+        output_thread.start()
+        for i in range(5):
+            time.sleep(i)
+            if outputs!=[]:
+                break
         else:
-            if stdout.decode() == "":
-                return (True, "Done")
-            return (True, stdout.decode())
+            self.streams.append(process)
+            outputs = [(True, f"Thread has not been completed, thread number: {len(self.streams)}")]
+        if os.path.exists(os.path.expanduser(path)):
+            os.chdir(os.path.expanduser(path))
+            self.main_path = path
+            self.update_folder()
+        else:
+            Adw.Toast(title=_('Failed to open the folder'))
+        return outputs[0]
+
 
     def get_chat(self, chat):
         chats = ""
@@ -836,11 +884,11 @@ Assistant: Yes, of course, what do you need help with?\end""" + "\n" + self.get_
                 c = None
                 if self.chat[min(i + 1, len(self.chat) - 1)]["User"] == "Console":
                     c = self.chat[min(i + 1, len(self.chat) - 1)]["Message"].strip("\end")
-                self.show_message(self.chat[i]["Message"].strip("\end"), True, c)
+                self.show_message(self.chat[i]["Message"].strip("\end"), True, c, id_message=i)
             elif self.chat[i]["User"] in ["File", "Folder"]:
                 self.add_message(self.chat[i]["User"], self.get_file_button(self.chat[i]["Message"][1:-5]))
 
-    def show_message(self, message_label, restore=False, reply_from_the_console=None, ending="\end"):
+    def show_message(self, message_label, restore=False, reply_from_the_console=None, ending="\end",id_message=-1):
         if message_label == " " * len(message_label):
             if not restore:
                 self.chat.append({"User": "Assistant", "Message": f"{message_label}{ending}"})
@@ -864,7 +912,7 @@ Assistant: Yes, of course, what do you need help with?\end""" + "\n" + self.get_
                         code_language = table_string[i][3:len(table_string[i])]
                     else:
                         if code_language == "console":
-                            if self.auto_run and not any(command in "\n".join(table_string[start_code_index:i]) for command in ["rm ","apt ","sudo ","yum ","dd ","mkfs "]):
+                            if self.auto_run and not any(command in "\n".join(table_string[start_code_index:i]) for command in ["rm ","apt ","sudo ","yum ","mkfs "]):
                                 has_terminal_command = True
                                 value = table_string[start_code_index:i]
                                 text_expander = Gtk.Expander(
@@ -891,10 +939,14 @@ Assistant: Yes, of course, what do you need help with?\end""" + "\n" + self.get_
                                     self.add_message("Console-done", text_expander)
                                 if not restore:
                                     self.chat.append({"User": "Console", "Message": " " + code[1] + "\end"})
-                                    self.update_folder()
                                 result = {}
                             else:
-                                box.append(CopyBox("\n".join(table_string[start_code_index:i]), code_language, self))
+                                if not restore:
+                                    self.chat.append({"User": "Console", "Message": f"None\end"})
+                                if id_message==-1:
+                                    id_message = len(self.chat)-2
+                                id_message+=1
+                                box.append(CopyBox("\n".join(table_string[start_code_index:i]), code_language, self,id_message))
                                 result = {}
                         elif code_language in ["file", "folder"]:
                             for obj in table_string[start_code_index:i]:

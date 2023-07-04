@@ -33,7 +33,7 @@
                 {
                     "type" : "git",
                     "url" : "https://github.com/qwersyk/Newelle.git",
-                    "tag": "0.1.3.1",
+                    "tag": "0.1.5",
                     "commit": "da27e40d485904210c80a89961e7125d8d88222b"
                 }
             ]

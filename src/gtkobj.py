@@ -3,6 +3,7 @@ import gi, os, subprocess
 gi.require_version('Gtk', '4.0')
 gi.require_version('GtkSource', '5')
 from gi.repository import Gtk, Pango, Gio, Gdk, GtkSource
+import threading
 
 
 class File(Gtk.Image):
@@ -53,10 +54,11 @@ class File(Gtk.Image):
 
 
 class CopyBox(Gtk.Box):
-    def __init__(self, txt, lang, parent = None):
+    def __init__(self, txt, lang, parent = None,id_message=-1):
         Gtk.Box.__init__(self, orientation=Gtk.Orientation.VERTICAL, spacing=10, margin_top=10, margin_start=10,
                          margin_bottom=10, margin_end=10, css_classes=["osd", "toolbar", "code"])
         self.txt = txt
+        self.id_message = id_message
         box = Gtk.Box(halign=Gtk.Align.END)
 
         icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="edit-copy-symbolic"))
@@ -83,7 +85,7 @@ class CopyBox(Gtk.Box):
         self.sourceview.set_show_line_numbers(True)
         self.sourceview.set_background_pattern(GtkSource.BackgroundPatternType.GRID)
         self.sourceview.set_editable(False)
-        self.sourceview.set_size_request(340, -1)
+        self.sourceview.set_size_request(250, -1)
         style = "success"
         if lang in ["python", "cpp", "php", "objc", "go", "typescript", "lua", "perl", "r", "dart", "sql"]:
             style = "accent"
@@ -91,7 +93,8 @@ class CopyBox(Gtk.Box):
             style = "warning"
         if lang in ["ruby", "swift", "scala"]:
             style = "error"
-
+        if lang in ["console"]:
+            style = ""
         main = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, css_classes=["card"])
         main.set_homogeneous(True)
         label = Gtk.Label(label=lang, halign=Gtk.Align.START, margin_start=10, css_classes=[style, "heading"],wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR)
@@ -128,8 +131,12 @@ class CopyBox(Gtk.Box):
                 label="Console", css_classes=["toolbar", "osd"], margin_top=10, margin_start=10, margin_bottom=10,
                 margin_end=10
             )
+            console = None
+            if id_message<len(self.parent.chat) and self.parent.chat[id_message]["User"]=="Console":
+                console = self.parent.chat[id_message]["Message"]
+            self.text_expander.set_child(
+                Gtk.Label(wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR, label=console[:-4], selectable=True))
             self.text_expander.set_expanded(False)
-            self.text_expander.set_visible(False)
             box.append(self.run_button)
             self.append(self.text_expander)
 
@@ -142,12 +149,34 @@ class CopyBox(Gtk.Box):
         icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="object-select-symbolic"))
         icon.set_icon_size(Gtk.IconSize.INHERIT)
         self.copy_button.set_child(icon)
-    def run_console(self, widget):
-        self.text_expander.set_visible(True)
-        code = self.parent.execute_terminal_command(self.txt.split("\n"))
-        self.text_expander.set_child(
-            Gtk.Label(wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR, label=code[1], selectable=True))
-        self.parent.chat.append({"User": "Console", "Message": " " + code[1] + "\end"})
+    def run_console(self, widget,multithreading=False):
+        if multithreading:
+            icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="emblem-ok-symbolic"))
+            icon.set_icon_size(Gtk.IconSize.INHERIT)
+            widget.set_child(icon)
+            widget.set_sensitive(False)
+            code = self.parent.execute_terminal_command(self.txt.split("\n"))
+            if self.id_message<len(self.parent.chat) and self.parent.chat[self.id_message]["User"]=="Console":
+                self.parent.chat[self.id_message]["Message"] = code[1] + "\end"
+            else:
+                self.parent.chat.append({"User": "Console", "Message": " " + code[1] + "\end"})
+            self.text_expander.set_child(
+                Gtk.Label(wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR, label=code[1], selectable=True))
+            if self.parent.status and len(self.parent.chat)-1==self.id_message and self.id_message<len(self.parent.chat) and self.parent.chat[self.id_message]["User"]=="Console":
+                for btn in self.parent.message_suggestion_buttons_array:
+                    btn.set_visible(False)
+                self.parent.continue_message_button.set_visible(False)
+                self.parent.button_continue.set_visible(False)
+                self.parent.regenerate_message_button.set_visible(False)
+                self.parent.scrolled_chat()
+                self.parent.send_message()
+            icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="media-playback-start-symbolic"))
+            icon.set_icon_size(Gtk.IconSize.INHERIT)
+            widget.set_child(icon)
+            widget.set_sensitive(True)
+        else:
+            threading.Thread(target=self.run_console, args=[widget, True]).start()
+
     def run_python(self, widget):
         self.text_expander.set_visible(True)
         t = self.txt.replace("'", '"""')
