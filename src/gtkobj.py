@@ -109,6 +109,7 @@ class CopyBox(Gtk.Box):
             self.run_button = Gtk.Button(halign=Gtk.Align.END, css_classes=["flat"], margin_end=10)
             self.run_button.set_child(icon)
             self.run_button.connect("clicked", self.run_python)
+            self.parent = parent
 
             self.text_expander = Gtk.Expander(
                 label="Console", css_classes=["toolbar", "osd"], margin_top=10, margin_start=10, margin_bottom=10,
@@ -180,7 +181,10 @@ class CopyBox(Gtk.Box):
     def run_python(self, widget):
         self.text_expander.set_visible(True)
         t = self.txt.replace("'", '"""')
-        process = subprocess.Popen(f"""flatpak-spawn --host python3 -c '{t}'""", stdout=subprocess.PIPE,
+        console_permissions = ""
+        if not self.parent.virtualization:
+            console_permissions = "flatpak-spawn --host "
+        process = subprocess.Popen(f"""{console_permissions}python3 -c '{t}'""", stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE, shell=True)
         stdout, stderr = process.communicate()
         text = "Done"

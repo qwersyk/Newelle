@@ -962,13 +962,13 @@ Assistant: Yes, of course, what do you need help with?\end""" + "\n" + self.get_
                                     value = ''.join(filter(lambda x: x.isdigit() or x==".", parts[1]))
                                     result[key] = float(value)
                                 else:
-                                    box.append(CopyBox("\n".join(table_string[start_code_index:i]), code_language))
+                                    box.append(CopyBox("\n".join(table_string[start_code_index:i]), code_language, parent = self))
                                     result = {}
                                     break
                             if result !={}:
                                 box.append(BarChartBox(result,percentages))
                         else:
-                            box.append(CopyBox("\n".join(table_string[start_code_index:i]), code_language))
+                            box.append(CopyBox("\n".join(table_string[start_code_index:i]), code_language, parent = self))
                         start_code_index = -1
                 elif len(table_string[i]) > 0 and table_string[i][0] == "|":
                     if start_table_index == -1:
