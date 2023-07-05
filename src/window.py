@@ -904,7 +904,7 @@ Assistant: Yes, of course, what do you need help with?\end""" + "\n" + self.get_
                     else:
                         if code_language == "console":
                             if id_message==-1:
-                                id_message = len(self.chat)-2
+                                id_message = len(self.chat)-1
                             id_message+=1
                             if self.auto_run and not any(command in "\n".join(table_string[start_code_index:i]) for command in ["rm ","apt ","sudo ","yum ","mkfs "]):
                                 has_terminal_command = True
