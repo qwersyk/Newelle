@@ -117,7 +117,7 @@ class MyApp(Adw.Application):
                         application_icon='io.github.qwersyk.Newelle',
                         developer_name='qwersyk',
                         version='0.1.5',
-                        developers=['qwersyk'],
+                        developers=['qwersyk','soumyaDghosh'],
                         copyright='© 2023 qwersyk').present()
 
     def thread_editing_action(self, widget, _):
