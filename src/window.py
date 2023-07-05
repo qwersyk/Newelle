@@ -1,4 +1,4 @@
-import time, types
+import time, re
 import gi, os, subprocess
 
 gi.require_version('Gtk', '4.0')
@@ -431,7 +431,7 @@ Assistant: Forget what was written on behalf of the user and on behalf of the as
             self.regenerate_message_button.set_visible(False)
             self.status = False
             message = self.send_message_to_bot(self.bot_prompt + "\n" + self.get_chat(
-                self.chat[len(self.chat) - self.memory:len(self.chat)])).text.split("\end")[0]
+                self.chat[len(self.chat) - self.memory:len(self.chat)])).split("\end")[0]
             if len(self.chat) != 0 and stream_number_variable == self.stream_number_variable and message != " " * len(
                     message) and not "User:" in message and not "Assistant:" in message and not "Console:" in message and not "System:" in message:
                 self.chat[-1]["Message"] += message + "\end"
@@ -531,7 +531,7 @@ Name_chat: The multiplication table for 4.
 System: New chat \end
     """ + "\n" + self.get_chat(self.chats[int(button.get_name())]["chat"][
                                len(self.chats[int(button.get_name())]["chat"]) - self.memory:len(
-                                   self.chats[int(button.get_name())]["chat"])]) + "\nName_chat:").text
+                                   self.chats[int(button.get_name())]["chat"])]) + "\nName_chat:")
             if name != "Chat has been stopped":
                 self.chats[int(button.get_name())]["name"] = name
             self.update_history()
@@ -617,12 +617,12 @@ System: New chat \end
             loop_interval_variable *= 2
             loop_interval_variable = min(60,loop_interval_variable)
             try:
-                t = BAIChat(sync=True).sync_ask(message)
+                t = re.split(r'Assistant:|Console:|User:|File:|Folder:', BAIChat(sync=True).sync_ask(message).text,1)[0]
                 return t
             except Exception:
                 self.notification_block.add_toast(Adw.Toast(title=_('Failed to send bot a message')))
             time.sleep(loop_interval_variable)
-        return types.SimpleNamespace(text=_("Chat has been stopped"))
+        return _("Chat has been stopped")
 
     def send_bot_response(self, button):
         for btn in self.message_suggestion_buttons_array:
@@ -836,7 +836,7 @@ System: New chat \end
 Assistant: Hello, how can I assist you today? \end
 User: Can you help me? \end
 Assistant: Yes, of course, what do you need help with?\end""" + "\n" + self.get_chat(
-                self.chat[len(self.chat) - self.memory:len(self.chat)]) + "\nUser:").text.split("\end")[0]
+                self.chat[len(self.chat) - self.memory:len(self.chat)]) + "\nUser:").split("\end")[0]
             if stream_number_variable != self.stream_number_variable:
                 break
             btn.get_child().set_label(message)
@@ -911,7 +911,7 @@ Assistant: Yes, of course, what do you need help with?\end""" + "\n" + self.get_
                     else:
                         if code_language == "console":
                             if id_message==-1:
-                                id_message = len(self.chat)-2
+                                id_message = len(self.chat)-1
                             id_message+=1
                             if self.auto_run and not any(command in "\n".join(table_string[start_code_index:i]) for command in ["rm ","apt ","sudo ","yum ","mkfs "]):
                                 has_terminal_command = True
@@ -1004,9 +1004,8 @@ Assistant: Yes, of course, what do you need help with?\end""" + "\n" + self.get_
         self.status = False
         self.chat_stop_button.set_visible(True)
         message_label = self.send_message_to_bot(self.bot_prompt + "\n" + self.get_chat(
-            self.chat[len(self.chat) - self.memory:len(self.chat)]) + "\nAssistant: ").text
+            self.chat[len(self.chat) - self.memory:len(self.chat)]) + "\nAssistant: ")
         message_completion = "\end"
-
         if not "\end" in message_label:
             message_completion = ""
         message_label = message_label.split("\end")[0]
@@ -1018,7 +1017,7 @@ Assistant: Yes, of course, what do you need help with?\end""" + "\n" + self.get_
         if not self.status:
             self.notification_block.add_toast(Adw.Toast(title=_("You can't edit a message while the program is running.")))
             return False
-        self.input_panel.set_text(self.chat[int(gesture.get_name())]["Message"][0:-4])
+        self.input_panel.set_text(self.chat[int(gesture.get_name())]["Message"].strip("\end"))
         self.input_panel.grab_focus()
         self.chats.append({"name": self.chats[self.chat_id]["name"], "chat": self.chat[0:int(gesture.get_name())]})
         self.stream_number_variable += 1

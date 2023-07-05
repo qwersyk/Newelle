@@ -132,11 +132,11 @@ class CopyBox(Gtk.Box):
                 label="Console", css_classes=["toolbar", "osd"], margin_top=10, margin_start=10, margin_bottom=10,
                 margin_end=10
             )
-            console = None
+            console = "None\end"
             if id_message<len(self.parent.chat) and self.parent.chat[id_message]["User"]=="Console":
                 console = self.parent.chat[id_message]["Message"]
             self.text_expander.set_child(
-                Gtk.Label(wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR, label=console[:-4], selectable=True))
+                Gtk.Label(wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR, label=console.strip("\end"), selectable=True))
             self.text_expander.set_expanded(False)
             box.append(self.run_button)
             self.append(self.text_expander)

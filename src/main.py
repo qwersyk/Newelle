@@ -107,11 +107,11 @@ class MyApp(Adw.Application):
         if shortcuts:
             self.set_accels_for_action(f"app.{name}", shortcuts)
 
-    def on_shortcuts_action(self, widget, _):
+    def on_shortcuts_action(self, *a):
         shortcuts = Shortcuts(self)
         shortcuts.present()
 
-    def on_about_action(self, widget, _):
+    def on_about_action(self, *a):
         Adw.AboutWindow(transient_for=self.props.active_window,
                         application_name='Newelle',
                         application_icon='io.github.qwersyk.Newelle',
@@ -120,16 +120,39 @@ class MyApp(Adw.Application):
                         developers=['qwersyk'],
                         copyright='© 2023 qwersyk').present()
 
-    def thread_editing_action(self, widget, _):
+    def thread_editing_action(self, *a):
         threadediting = ThreadEditing(self)
         threadediting.present()
 
-    def settings_action(self, widget, _):
+    def settings_action(self, *a):
         settings = Settings(self)
         settings.present()
-
+    def close_window(self, *a):
+        if all(element.poll() is not None for element in self.win.streams):
+            return False
+        else:
+            dialog = Adw.MessageDialog(
+                transient_for=self.win,
+                heading=_("Terminal threads are still running in the background"),
+                body=_("When you close the window, they will be automatically terminated"),
+                body_use_markup=True
+            )
+            dialog.add_response("cancel", _("Cancel"))
+            dialog.add_response("close", _("Close"))
+            dialog.set_response_appearance("close", Adw.ResponseAppearance.DESTRUCTIVE)
+            dialog.set_default_response("cancel")
+            dialog.set_close_response("cancel")
+            dialog.connect("response", self.close_message)
+            dialog.present()
+            return True
+    def close_message(self,a,status):
+        if status=="close":
+            for i in self.win.streams:
+                i.terminate()
+            self.win.destroy()
     def on_activate(self, app):
         self.win = MainWindow(application=app)
+        self.win.connect("close-request", self.close_window)
         self.win.present()
 
     def reload_chat(self,*a):
@@ -154,6 +177,7 @@ class MyApp(Adw.Application):
         settings = Gio.Settings.new('io.github.qwersyk.Newelle')
         settings.set_int("chat", self.win.chat_id)
         settings.set_string("path", os.path.normpath(self.win.main_path))
+        self.win.stream_number_variable += 1
         Gtk.Application.do_shutdown(self)
 
 
