@@ -615,6 +615,7 @@ System: New chat \end
         loop_interval_variable = 1
         while stream_number_variable == self.stream_number_variable:
             loop_interval_variable *= 2
+            loop_interval_variable = min(60,loop_interval_variable)
             try:
                 t = BAIChat(sync=True).sync_ask(message)
                 return t
@@ -881,14 +882,11 @@ Assistant: Yes, of course, what do you need help with?\end""" + "\n" + self.get_
                                                    margin_bottom=10, margin_end=10, wrap=True,
                                                    wrap_mode=Pango.WrapMode.WORD_CHAR, selectable=True), i)
             elif self.chat[i]["User"] == "Assistant":
-                c = None
-                if self.chat[min(i + 1, len(self.chat) - 1)]["User"] == "Console":
-                    c = self.chat[min(i + 1, len(self.chat) - 1)]["Message"].strip("\end")
-                self.show_message(self.chat[i]["Message"].strip("\end"), True, c, id_message=i)
+                self.show_message(self.chat[i]["Message"].strip("\end"), True, id_message=i)
             elif self.chat[i]["User"] in ["File", "Folder"]:
                 self.add_message(self.chat[i]["User"], self.get_file_button(self.chat[i]["Message"][1:-5]))
 
-    def show_message(self, message_label, restore=False, reply_from_the_console=None, ending="\end",id_message=-1):
+    def show_message(self, message_label, restore=False, ending="\end",id_message=-1):
         if message_label == " " * len(message_label):
             if not restore:
                 self.chat.append({"User": "Assistant", "Message": f"{message_label}{ending}"})
@@ -912,6 +910,9 @@ Assistant: Yes, of course, what do you need help with?\end""" + "\n" + self.get_
                         code_language = table_string[i][3:len(table_string[i])]
                     else:
                         if code_language == "console":
+                            if id_message==-1:
+                                id_message = len(self.chat)-2
+                            id_message+=1
                             if self.auto_run and not any(command in "\n".join(table_string[start_code_index:i]) for command in ["rm ","apt ","sudo ","yum ","mkfs "]):
                                 has_terminal_command = True
                                 value = table_string[start_code_index:i]
@@ -921,6 +922,9 @@ Assistant: Yes, of course, what do you need help with?\end""" + "\n" + self.get_
                                 )
                                 text_expander.set_expanded(False)
                                 path=""
+                                reply_from_the_console = None
+                                if self.chat[min(id_message, len(self.chat) - 1)]["User"] == "Console":
+                                    reply_from_the_console = self.chat[min(id_message, len(self.chat) - 1)]["Message"].strip("\end")
                                 if not restore:
                                     path=os.path.normpath(self.main_path)
                                     code = self.execute_terminal_command(value)
@@ -939,15 +943,11 @@ Assistant: Yes, of course, what do you need help with?\end""" + "\n" + self.get_
                                     self.add_message("Console-done", text_expander)
                                 if not restore:
                                     self.chat.append({"User": "Console", "Message": " " + code[1] + "\end"})
-                                result = {}
                             else:
                                 if not restore:
                                     self.chat.append({"User": "Console", "Message": f"None\end"})
-                                if id_message==-1:
-                                    id_message = len(self.chat)-2
-                                id_message+=1
                                 box.append(CopyBox("\n".join(table_string[start_code_index:i]), code_language, self,id_message))
-                                result = {}
+                            result = {}
                         elif code_language in ["file", "folder"]:
                             for obj in table_string[start_code_index:i]:
                                 box.append(self.get_file_button(obj))
