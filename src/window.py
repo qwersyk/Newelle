@@ -31,7 +31,6 @@ class MainWindow(Gtk.ApplicationWindow):
         settings = Gio.Settings.new('io.github.qwersyk.Newelle')
         self.file_panel = settings.get_boolean("file-panel")
         self.offers = settings.get_int("offers")
-        self.virtualization = settings.get_boolean("virtualization")
         self.memory = settings.get_int("memory")
         self.console = settings.get_boolean("console")
         self.hidden_files = settings.get_boolean("hidden-files")
@@ -762,9 +761,6 @@ System: New chat \end
 
     def execute_terminal_command(self, command):
         os.chdir(os.path.expanduser(self.main_path))
-        console_permissions = ""
-        if not self.virtualization:
-            console_permissions = "flatpak-spawn --host"
         commands = ('\n'.join(command)).split(" && ")
         txt = ""
         path=self.main_path
@@ -772,15 +768,13 @@ System: New chat \end
             if txt!="":
                 txt+=" && "
             if "cd " in t:
-                txt+=t
                 p = (t.split("cd "))[min(len(t.split("cd ")),1)]
                 v = self.get_target_directory(path, p)
                 if not v[0]:
                     Adw.Toast(title=_('Wrong folder path'))
                 else:
                     path = v[1]
-            else:
-                txt+=console_permissions+" "+t
+            txt+=t
         process = subprocess.Popen(txt, stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE, shell=True)
         outputs = []
@@ -874,8 +868,7 @@ Assistant: Yes, of course, what do you need help with?\end""" + "\n" + self.get_
 
         self.chat_scroll_window.remove(self.chat_controls_entry_block)
         self.chat_scroll_window.append(self.chat_controls_entry_block)
-        if not self.virtualization:
-            self.add_message("Warning")
+        self.add_message("Warning")
         for i in range(len(self.chat)):
             if self.chat[i]["User"] == "User":
                 self.add_message("User", Gtk.Label(label=self.chat[i]["Message"].strip("\end"), margin_top=10, margin_start=10,
