@@ -1,7 +1,7 @@
 [Desktop Entry]
 Name=newelle
 Exec=newelle
-Icon=io.github.qwersyk.Newelle
+Icon=snap.newelle.io.github.qwersyk.Newelle
 Terminal=false
 Type=Application
 Categories=GTK;
