@@ -16,9 +16,6 @@
         <key name="graphic" type="b">
             <default>false</default>
         </key>
-        <key name="virtualization" type="b">
-            <default>true</default>
-        </key>
         <key name="memory" type="i">
             <default>10</default>
         </key>
