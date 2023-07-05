@@ -65,12 +65,6 @@ class Settings(Adw.PreferencesWindow):
         self.neural_network = Adw.PreferencesGroup(title='Neural Network Control')
         self.general_page.add(self.neural_network)
 
-        row = Adw.ActionRow(title="Command virtualization", subtitle="Run commands in a virtual machine")
-        switch = Gtk.Switch(valign=Gtk.Align.CENTER)
-        row.add_suffix(switch)
-        self.settings.bind("virtualization", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
-        self.neural_network.add(row)
-
         row = Adw.ActionRow(title="Program memory", subtitle="How long the program remembers the chat ")
         int_spin = Gtk.SpinButton(valign=Gtk.Align.CENTER)
         int_spin.set_adjustment(Gtk.Adjustment(lower=0, upper=30, step_increment=1, page_increment=10, page_size=0))
