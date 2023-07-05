@@ -18,7 +18,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.main_program_block = Adw.Leaflet(fold_threshold_policy=True, can_navigate_back=True,
                                               can_navigate_forward=True,
                                               transition_type=Adw.LeafletTransitionType.UNDER)
-        self.path = ".var/app/io.github.qwersyk.Newelle/data"
+        self.path = "snap/newelle/common/data"
         if not os.path.exists(self.path):
             os.makedirs(self.path)
         self.filename = "chats.pkl"
