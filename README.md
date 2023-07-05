@@ -4,12 +4,6 @@
   Newelle - Your Ultimate Virtual Assistant
 </h1>
 <p align="center">
-  <a href="https://flathub.org/apps/details/io.github.qwersyk.Newelle">
-    <img width="200" alt="Download on Flathub" src="https://dl.flathub.org/assets/badges/flathub-badge-i-en.svg"/>
-  </a>
-  <br>
-</p>
-<p align="center">
 <a href="https://stopthemingmy.app">
     <img width="180" alt="Please Don't Theme" src="https://stopthemingmy.app/badge.svg"/>
   </a>
@@ -34,42 +28,8 @@
 
 # Installation and Getting Started
 
-To start using our program, you have two options: compiling it through GNOME Builder or downloading the release from GitHub. Additionally, we have provided a limited version of the program on Flathub.
+You can install from the [Snapcraft](https://snapcraft.io/newelle) page
 
-## Compiling with GNOME Builder
-
-1. Install GNOME Builder on your system.
-2. Clone the Newelle repository from GitHub.
-3. Open the project in GNOME Builder and compile it.
-4. Once compiled, you can run the program from the compiled executable.
-
-## Downloading from GitHub
-
-1. Visit the Newelle GitHub repository.
-2. Navigate to the "Releases" section.
-3. Download the latest release package compatible with your operating system.
-4. Extract the downloaded package.
-5. Run the program from the extracted files.
-
-## Installing from Flathub
-
-1. Ensure you have Flatpak installed on your system.
-2. Install Newelle by executing: `flatpak install flathub io.github.qwersyk.Newelle`
-3. Once installed, you can launch Newelle.
-
-Please note that the Flatpak version of Newelle has some limitations for security purposes. It can only access the `.var/app/ioюgithub.qwersyk.Newelle` folder, and it can only run within the Flatpak sandboxed environment. 
-
-To extend the program's capabilities, follow these steps:
-
-1. Install Flatseal on your system.
-2. Launch Flatseal and locate "Newelle" in the application list.
-3. Enable the "All user files" permission for Newelle to access user files.
-4. To allow Newelle to run outside the Flatpak sandbox, enable the "Session Bus" permission and add a new talk with the name "org.freedesktop.Flatpak".
-5. Disable virtualization in the program settings to run Newelle outside the Flatpak sandbox.
-
-Please note that by performing these steps, the program's security may be compromised as it gains access to your data and terminal. Although our program is open-source and can be verified for malicious actions, the underlying "baichat" model is proprietary. We cannot guarantee where your chat data is sent or rule out the possibility of incorrect or malicious commands from the neural network. Please be careful when enabling these options.
-
-
-> By running the following command when launching the program, you can grant temporary access to memory and the console:```flatpak run --talk-name=org.freedesktop.Flatpak --filesystem=home io.github.qwersyk.Newelle```
+> The founder of this branch and the supporter of the snap version of our application is [soumyaDghosh](https://github.com/soumyaDghosh)
 
 > Our bot operates thanks to the [BAI chat](https://chatbot.theb.ai/) and [baichat-py](https://github.com/Bavarder/baichat-py)( developed by [Bavarder](https://bavarder.codeberg.page/)). We would like to express our gratitude to them for their invaluable contributions.
