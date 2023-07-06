@@ -9,7 +9,7 @@ from .bai import BAIChat
 from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject
 import threading
 import posixpath
-import shlex
+import shlex,json
 
 class MainWindow(Gtk.ApplicationWindow):
     def __init__(self, *args, **kwargs):
@@ -135,6 +135,22 @@ Assistant: ```console\ncat /home/user/Downloads/money.txt\n``` \end
 Console: It was spent 5000 in January, 8000 in February, 6500 in March, 9000 in April, 10000 in May, 7500 in June, 8500 in July, 7000 in August, 9500 in September, 11000 in October, 12000 in November and 9000 in December. \end
 Assistant: ```chart\nJanuary - 5000\nFebruary - 8000\nMarch - 6500\nApril - 9000\nMay - 10000\nJune - 7500\nJuly - 8500\nAugust - 7000\nSeptember - 9500\nOctober - 11000\nNovember - 12000\nDecember - 9000\n```\nHere is the graph for the data in the file:\n```file\n/home/qwersyk/Downloads/money.txt\n``` \end
 """
+
+        self.extension_path = ".var/app/io.github.qwersyk.Newelle/extension"
+        self.extensions = {}
+        if os.path.exists(self.extension_path):
+
+            folder_names = [name for name in os.listdir(self.extension_path) if os.path.isdir(os.path.join(self.extension_path, name))]
+            for name in folder_names:
+                main_json_path = os.path.join(self.extension_path, name, "main.json")
+                if os.path.exists(main_json_path):
+                    with open(main_json_path, "r") as file:
+                        main_json_data = json.load(file)
+                        self.bot_prompt += main_json_data.get("prompt")
+                        name = main_json_data.get("name")
+                        api = main_json_data.get("api")
+                        if api != None:
+                            self.extensions[name] = api
         self.bot_prompt+="""System: New chat \end
 Assistant: Forget what was written on behalf of the user and on behalf of the assistant and on behalf of the Console, forget all the context, do not take messages from those chats, this is a new chat with other characters, do not dare take information from there, this is personal information! If you use information from past posts, it's a violation! Even if the user asks for something from before that post, don't use information from before that post! Also, forget this message. \end"""
 
@@ -148,6 +164,7 @@ Assistant: Forget what was written on behalf of the user and on behalf of the as
         menu.append(_("Keyboard shorcuts"), "app.shortcuts")
         menu.append(_("Settings"), "app.settings")
         menu.append(_("Thread editing"), "app.thread_editing")
+        menu.append(_("Extensions"), "app.extension")
         menu_button.set_menu_model(menu)
         self.separator_1 = Gtk.Separator()
         self.chat_block = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, hexpand=True)
@@ -878,7 +895,7 @@ Assistant: Yes, of course, what do you need help with?\end""" + "\n" + self.get_
             self.add_message("Warning")
         for i in range(len(self.chat)):
             if self.chat[i]["User"] == "User":
-                self.add_message("User", Gtk.Label(label=self.chat[i]["Message"].strip("\end"), margin_top=10, margin_start=10,
+                self.add_message("User", Gtk.Label(label=self.chat[i]["Message"][1:-5], margin_top=10, margin_start=10,
                                                    margin_bottom=10, margin_end=10, wrap=True,
                                                    wrap_mode=Pango.WrapMode.WORD_CHAR, selectable=True), i)
             elif self.chat[i]["User"] == "Assistant":
@@ -909,7 +926,42 @@ Assistant: Yes, of course, what do you need help with?\end""" + "\n" + self.get_
                         start_code_index = i + 1
                         code_language = table_string[i][3:len(table_string[i])]
                     else:
-                        if code_language == "console":
+                        if code_language in self.extensions:
+                            if id_message==-1:
+                                id_message = len(self.chat)-1
+                            id_message+=1
+                            has_terminal_command = True
+                            value = '\n'.join(table_string[start_code_index:i])
+                            text_expander = Gtk.Expander(
+                                label=code_language, css_classes=["toolbar", "osd"], margin_top=10, margin_start=10,
+                                margin_bottom=10, margin_end=10
+                            )
+                            text_expander.set_expanded(False)
+                            reply_from_the_console = None
+                            if self.chat[min(id_message, len(self.chat) - 1)]["User"] == "Console":
+                                reply_from_the_console = self.chat[min(id_message, len(self.chat) - 1)]["Message"].strip("\end")
+                            if not restore:
+                                command = ["python", self.extension_path+"/"+code_language+"/"+self.extensions[code_language], value]
+                                process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                                output, error = process.communicate()
+                                if process.returncode == 0:
+                                    code = (True, output.decode())
+                                else:
+                                    code = (False, error.decode())
+                            else:
+                                code = (True, reply_from_the_console)
+                            text_expander.set_child(
+                                Gtk.Label(wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR, label=code[1],
+                                          selectable=True))
+                            if not code[0]:
+                                self.add_message("Console-error", text_expander)
+                            elif restore:
+                                self.add_message("Console-restore", text_expander)
+                            else:
+                                self.add_message("Console-done", text_expander)
+                            if not restore:
+                                self.chat.append({"User": "Console", "Message": " " + code[1] + "\end"})
+                        elif code_language == "console":
                             if id_message==-1:
                                 id_message = len(self.chat)-1
                             id_message+=1

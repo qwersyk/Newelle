@@ -10,7 +10,7 @@ from .settings import Settings
 from .window import MainWindow
 from .shortcuts import Shortcuts
 from .thread_editing import ThreadEditing
-
+from .extension import Extension
 
 
 
@@ -99,6 +99,9 @@ class MyApp(Adw.Application):
         action = Gio.SimpleAction.new("thread_editing", None)
         action.connect('activate', self.thread_editing_action)
         self.add_action(action)
+        action = Gio.SimpleAction.new("extension", None)
+        action.connect('activate', self.extension_action)
+        self.add_action(action)
 
     def create_action(self, name, callback, shortcuts=None):
         action = Gio.SimpleAction.new(name, None)
@@ -127,6 +130,9 @@ class MyApp(Adw.Application):
     def settings_action(self, *a):
         settings = Settings(self)
         settings.present()
+    def extension_action(self, *a):
+        extension = Extension(self.win)
+        extension.present()
     def close_window(self, *a):
         if all(element.poll() is not None for element in self.win.streams):
             return False
