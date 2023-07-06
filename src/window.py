@@ -941,7 +941,10 @@ Assistant: Yes, of course, what do you need help with?\end""" + "\n" + self.get_
                             if self.chat[min(id_message, len(self.chat) - 1)]["User"] == "Console":
                                 reply_from_the_console = self.chat[min(id_message, len(self.chat) - 1)]["Message"].strip("\end")
                             if not restore:
-                                command = ["python", self.extension_path+"/"+code_language+"/"+self.extensions[code_language], value]
+                                console_permissions = ""
+                                if not self.virtualization:
+                                    console_permissions = "flatpak-spawn --host"
+                                command = [console_permissions+"python", self.extension_path+"/"+code_language+"/"+self.extensions[code_language], value]
                                 process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                                 output, error = process.communicate()
                                 if process.returncode == 0:
