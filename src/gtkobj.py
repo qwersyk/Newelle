@@ -132,11 +132,11 @@ class CopyBox(Gtk.Box):
                 label="Console", css_classes=["toolbar", "osd"], margin_top=10, margin_start=10, margin_bottom=10,
                 margin_end=10
             )
-            console = "None\end"
+            console = "None"
             if id_message<len(self.parent.chat) and self.parent.chat[id_message]["User"]=="Console":
                 console = self.parent.chat[id_message]["Message"]
             self.text_expander.set_child(
-                Gtk.Label(wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR, label=console.strip("\end"), selectable=True))
+                Gtk.Label(wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR, label=console, selectable=True))
             self.text_expander.set_expanded(False)
             box.append(self.run_button)
             self.append(self.text_expander)
@@ -158,9 +158,9 @@ class CopyBox(Gtk.Box):
             widget.set_sensitive(False)
             code = self.parent.execute_terminal_command(self.txt.split("\n"))
             if self.id_message<len(self.parent.chat) and self.parent.chat[self.id_message]["User"]=="Console":
-                self.parent.chat[self.id_message]["Message"] = code[1] + "\end"
+                self.parent.chat[self.id_message]["Message"] = code[1]
             else:
-                self.parent.chat.append({"User": "Console", "Message": " " + code[1] + "\end"})
+                self.parent.chat.append({"User": "Console", "Message": " " + code[1]})
             self.text_expander.set_child(
                 Gtk.Label(wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR, label=code[1], selectable=True))
             if self.parent.status and len(self.parent.chat)-1==self.id_message and self.id_message<len(self.parent.chat) and self.parent.chat[self.id_message]["User"]=="Console":

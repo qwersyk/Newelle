@@ -9,7 +9,7 @@ from gi.repository import Gtk, Adw, Gio
 class Extension(Gtk.Window):
     def __init__(self,app):
         Gtk.Window.__init__(self, title="Extensions")
-        self.path = ".var/app/io.github.qwersyk.Newelle/extension"
+        self.path = os.path.expanduser("~")+"/.var/app/io.github.qwersyk.Newelle/extension"
 
         self.app = app
         self.set_default_size(500, 500)
@@ -34,12 +34,12 @@ class Extension(Gtk.Window):
             for name in folder_names:
                 box = Gtk.Box(margin_top=10,margin_start=10,margin_end=10,margin_bottom=10,css_classes=["card"])
                 box.append(Gtk.Label(label=f"{name}",margin_top=10,margin_start=10,margin_end=10,margin_bottom=10))
-                button = Gtk.Button(css_classes=["media-playback-stop-symbolic"], margin_top=10,margin_start=10,margin_end=10,margin_bottom=10,
+                button = Gtk.Button(css_classes=["flat"], margin_top=10,margin_start=10,margin_end=10,margin_bottom=10,
                                                        valign=Gtk.Align.CENTER,halign=Gtk.Align.END, hexpand= True)
                 button.connect("clicked", self.delete_extension)
                 button.set_name(name)
                 box.append(button)
-                icon_name="media-playback-stop-symbolic"
+                icon_name="user-trash-symbolic"
                 icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name=icon_name))
                 icon.set_icon_size(Gtk.IconSize.INHERIT)
                 button.set_child(icon)

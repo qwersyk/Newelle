@@ -16,7 +16,8 @@ from .extension import Extension
 
 
 class MyApp(Adw.Application):
-    def __init__(self, **kwargs):
+    def __init__(self, version, **kwargs):
+        self.version = version
         super().__init__(**kwargs)
         css = '''
         .code{
@@ -77,7 +78,9 @@ class MyApp(Adw.Application):
         .right-angles{
             border-radius: 0;
         }
-
+        .image{
+            -gtk-icon-size:400px;
+        }
         '''
         css_provider = Gtk.CssProvider()
         css_provider.load_from_data(css, -1)
@@ -119,7 +122,7 @@ class MyApp(Adw.Application):
                         application_name='Newelle',
                         application_icon='io.github.qwersyk.Newelle',
                         developer_name='qwersyk',
-                        version='0.1.5',
+                        version=self.version,
                         developers=['qwersyk'],
                         copyright='© 2023 qwersyk').present()
 
@@ -188,7 +191,7 @@ class MyApp(Adw.Application):
 
 
 def main(version):
-    app = MyApp(application_id="io.github.qwersyk.Newelle")
+    app = MyApp(application_id="io.github.qwersyk.Newelle", version = version)
     app.create_action('reload_chat', app.reload_chat, ['<primary>r'])
     app.create_action('reload_folder', app.reload_folder, ['<primary>e'])
     app.create_action('new_chat', app.new_chat, ['<primary>t'])
