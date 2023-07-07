@@ -45,7 +45,7 @@ class ThreadEditing(Gtk.Window):
                 stream_menu.set_size_request(300, -1)
                 box = Gtk.Box(margin_top=10,margin_start=10,margin_end=10,margin_bottom=10)
                 box.append(Gtk.Label(label=f"Thread number: {i+1}"))
-                button = Gtk.Button(css_classes=["media-playback-stop-symbolic"], margin_start=5, margin_end=5,
+                button = Gtk.Button(margin_start=5, margin_end=5,
                                                        valign=Gtk.Align.CENTER,halign=Gtk.Align.END, hexpand= True)
                 button.connect("clicked", self.stop_flow)
                 button.set_name(str(i))

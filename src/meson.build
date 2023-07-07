@@ -34,7 +34,8 @@ newelle_sources = [
   'settings.py',
   'window.py',
   'shortcuts.py',
-  'thread_editing.py'
+  'thread_editing.py',
+  'extension.py'
 ]
 
 install_data(newelle_sources, install_dir: moduledir)
