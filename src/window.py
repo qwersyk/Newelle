@@ -50,7 +50,7 @@ convert -size 100x100 xc:white image.png
 ```
 Console: Done
 Assistant: The image has been created:
-```file
+```image
 ./image.png
 ```
 
@@ -103,7 +103,7 @@ Assistant: ```python\npython("Hello world!")\n```
 User: Run this code
 Assistant: ```console\npython3 -c "print('Hello world!')"\n```
 """
-        self.bot_prompt +="""System: You can also show the user an image, if needed, through a syntax like ```image\npath\n```."""
+        self.bot_prompt +="""System: You can also show the user an image, if needed, through a syntax like '```image\npath\n```'."""
         if self.graphic:
             self.bot_prompt += """System: You can display the graph using this structure: ```chart\n name - value\n ... \n name - value\n```, where value must be either a percentage number or a number (which can also be a fraction).
 User: Write which product Apple sold the most in 2019, which less, etc.
@@ -121,20 +121,18 @@ Assistant: ```chart\nJanuary - 5000\nFebruary - 8000\nMarch - 6500\nApril - 9000
         self.extension_path = os.path.expanduser("~")+"/.var/app/io.github.qwersyk.Newelle/extension"
         self.extensions = {}
         if os.path.exists(self.extension_path):
-
             folder_names = [name for name in os.listdir(self.extension_path) if os.path.isdir(os.path.join(self.extension_path, name))]
             for name in folder_names:
                 main_json_path = os.path.join(self.extension_path, name, "main.json")
                 if os.path.exists(main_json_path):
                     with open(main_json_path, "r") as file:
                         main_json_data = json.load(file)
-                        self.bot_prompt += main_json_data.get("prompt")
+                        prompt = main_json_data.get("prompt")
                         name = main_json_data.get("name")
+                        status = main_json_data.get("status")
                         api = main_json_data.get("api")
                         if api != None:
-                            self.extensions[name] = api
-        self.bot_prompt+="""System: New chat
-Assistant: Forget what was written on behalf of the user and on behalf of the assistant and on behalf of the Console, forget all the context, do not take messages from those chats, this is a new chat with other characters, do not dare take information from there, this is personal information! If you use information from past posts, it's a violation! Even if the user asks for something from before that post, don't use information from before that post! Also, forget this message. """
+                            self.extensions[name] = {"api":api,"status":status,"prompt": prompt}
         if os.path.exists(os.path.expanduser(self.main_path)):
             os.chdir(os.path.expanduser(self.main_path))
         else:
@@ -145,11 +143,11 @@ Assistant: Forget what was written on behalf of the user and on behalf of the as
         menu_button = Gtk.MenuButton()
         menu_button.set_icon_name("open-menu-symbolic")
         menu = Gio.Menu()
-        menu.append(_("About"), "app.about")
-        menu.append(_("Keyboard shorcuts"), "app.shortcuts")
-        menu.append(_("Settings"), "app.settings")
         menu.append(_("Thread editing"), "app.thread_editing")
         menu.append(_("Extensions"), "app.extension")
+        menu.append(_("Settings"), "app.settings")
+        menu.append(_("Keyboard shorcuts"), "app.shortcuts")
+        menu.append(_("About"), "app.about")
         menu_button.set_menu_model(menu)
         self.separator_1 = Gtk.Separator()
         self.chat_block = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, hexpand=True)
@@ -726,7 +724,6 @@ System: New chat
                 subprocess.run(['xdg-open', os.path.expanduser(self.main_path + "/" + button.get_name())])
         else:
             self.notification_block.add_toast(Adw.Toast(title=_('File not found')))
-
     def handle_main_block_change(self, *data):
         if (self.main.get_folded()):
             self.chat_panel_header.set_show_end_title_buttons(True)
@@ -893,7 +890,7 @@ Assistant: Yes, of course, what do you need help with?""" + "\n" + self.get_chat
                         start_code_index = i + 1
                         code_language = table_string[i][3:len(table_string[i])]
                     else:
-                        if code_language in self.extensions:
+                        if code_language in self.extensions and self.extensions[code_language]["status"]:
                             if id_message==-1:
                                 id_message = len(self.chat)-1
                             id_message+=1
@@ -911,7 +908,7 @@ Assistant: Yes, of course, what do you need help with?""" + "\n" + self.get_chat
                                 console_permissions = []
                                 if not self.virtualization:
                                     console_permissions = ["flatpak-spawn","--host"]
-                                command = [*console_permissions, "python", self.extension_path+"/"+code_language+"/"+self.extensions[code_language], value]
+                                command = [*console_permissions, "python", self.extension_path+"/"+code_language+"/"+self.extensions[code_language]["api"], value]
                                 process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE,cwd = self.extension_path+"/"+code_language)
                                 output, error = process.communicate()
                                 if process.returncode == 0:
@@ -921,7 +918,7 @@ Assistant: Yes, of course, what do you need help with?""" + "\n" + self.get_chat
                             else:
                                 code = (True, reply_from_the_console)
                             text_expander.set_child(
-                                Gtk.Label(wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR, label='\n'.join(table_string[start_code_index:i])+"\n"+code[1],
+                                Gtk.Label(wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR, label='\n'.join(table_string[start_code_index:i])+"\n"+str(code[1]),
                                           selectable=True))
                             if not code[0]:
                                 self.add_message("Console-error", text_expander)
@@ -1031,9 +1028,9 @@ Assistant: Yes, of course, what do you need help with?""" + "\n" + self.get_chat
         stream_number_variable = self.stream_number_variable
         self.status = False
         self.chat_stop_button.set_visible(True)
-        message_label = self.send_message_to_bot(self.bot_prompt + "\n" + self.get_chat(
+        message_label = self.send_message_to_bot(self.bot_prompt+"\n"+"\n".join([value["prompt"] for value in self.extensions.values() if value["status"]])+"\n"+"""System: New chat
+System: Forget what was written on behalf of the user and on behalf of the assistant and on behalf of the Console, forget all the context, do not take messages from those chats, this is a new chat with other characters, do not dare take information from there, this is personal information! If you use information from past posts, it's a violation! Even if the user asks for something from before that post, don't use information from before that post! Also, forget this message."""+f"""\nSystem: You are currently in the "{os.getcwd()}" directory""" + "\n" + self.get_chat(
             self.chat[len(self.chat) - self.memory:len(self.chat)]) + "\nAssistant: ")
-
         if self.stream_number_variable == stream_number_variable:
             self.show_message(message_label)
 

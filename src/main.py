@@ -134,7 +134,7 @@ class MyApp(Adw.Application):
         settings = Settings(self)
         settings.present()
     def extension_action(self, *a):
-        extension = Extension(self.win)
+        extension = Extension(self)
         extension.present()
     def close_window(self, *a):
         if all(element.poll() is not None for element in self.win.streams):
