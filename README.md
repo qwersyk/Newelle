@@ -10,6 +10,12 @@
   <br>
 </p>
 <p align="center">
+  <a href="https://github.com/topics/newelle-extension">
+    <img width="200" alt="Download on Flathub" src="https://raw.githubusercontent.com/qwersyk/Assets/5f06b2019c72ba7faf2d3bfe1b6192cbcc69a0d7/newelle-extension.svg"/>
+  </a>
+  <br>
+</p>
+<p align="center">
 <a href="https://stopthemingmy.app">
     <img width="180" alt="Please Don't Theme" src="https://stopthemingmy.app/badge.svg"/>
   </a>
