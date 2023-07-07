@@ -50,16 +50,22 @@ class Settings(Adw.PreferencesWindow):
         self.settings.bind("console", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
         self.prompt.add(row)
 
-        row = Adw.ActionRow(title="Internet access", subtitle="Can the program search the Internet", sensitive=False)
-        switch = Gtk.Switch(valign=Gtk.Align.CENTER)
-        row.add_suffix(switch)
-        self.settings.bind("search", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
-        self.prompt.add(row)
-
         row = Adw.ActionRow(title="Graphs access", subtitle="Can the program display graphs")
         switch = Gtk.Switch(valign=Gtk.Align.CENTER)
         row.add_suffix(switch)
         self.settings.bind("graphic", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
+        self.prompt.add(row)
+
+        row = Adw.ActionRow(title="Basic functionality", subtitle="Showing tables and code (*can work without it)")
+        switch = Gtk.Switch(valign=Gtk.Align.CENTER)
+        row.add_suffix(switch)
+        self.settings.bind("basic-functionality", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
+        self.prompt.add(row)
+
+        row = Adw.ActionRow(title="Show image", subtitle="Show image in chat")
+        switch = Gtk.Switch(valign=Gtk.Align.CENTER)
+        row.add_suffix(switch)
+        self.settings.bind("show-image", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
         self.prompt.add(row)
 
         self.neural_network = Adw.PreferencesGroup(title='Neural Network Control')

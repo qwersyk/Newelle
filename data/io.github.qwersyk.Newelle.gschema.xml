@@ -10,9 +10,6 @@
         <key name="console" type="b">
             <default>true</default>
         </key>
-        <key name="search" type="b">
-            <default>false</default>
-        </key>
         <key name="graphic" type="b">
             <default>false</default>
         </key>
@@ -33,6 +30,12 @@
         </key>
 	      <key name="auto-run" type="b">
             <default>false</default>
+        </key>
+	      <key name="basic-functionality" type="b">
+            <default>true</default>
+        </key>
+	      <key name="show-image" type="b">
+            <default>true</default>
         </key>
 	</schema>
 </schemalist>

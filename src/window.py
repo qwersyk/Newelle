@@ -40,6 +40,8 @@ class MainWindow(Gtk.ApplicationWindow):
         self.auto_run = settings.get_boolean("auto-run")
         self.chat = self.chats[min(self.chat_id,len(self.chats)-1)]["chat"]
         self.graphic = settings.get_boolean("graphic")
+        self.basic_functionality = settings.get_boolean("basic-functionality")
+        self.show_image = settings.get_boolean("show-image")
 
         self.bot_prompt = """"""
         if self.console:
@@ -89,7 +91,8 @@ User: Create a folder and create a git project inside it.
 Assistant: ```console\nmkdir folder && cd folder && git init\n```
 
 """
-        self.bot_prompt += """User: Write the multiplication table 4 by 4
+        if self.basic_functionality:
+            self.bot_prompt += """User: Write the multiplication table 4 by 4
 Assistant: | - | 1 | 2 | 3 | 4 |\n| - | - | - | - | - |\n| 1 | 1 | 2 | 3 | 4 |\n| 2 | 2 | 4 | 6 | 8 |\n| 3 | 3 | 6 | 9 | 12 |\n| 4 | 4 | 8 | 12 | 16 |
 
 User: Write example c++ code
@@ -103,21 +106,21 @@ Assistant: ```python\npython("Hello world!")\n```
 User: Run this code
 Assistant: ```console\npython3 -c "print('Hello world!')"\n```
 """
-        self.bot_prompt +="""System: You can also show the user an image, if needed, through a syntax like '```image\npath\n```'."""
+        if self.show_image:
+            self.bot_prompt +="""System: You can also show the user an image, if needed, through a syntax like '```image\npath\n```'
+"""
         if self.graphic:
             self.bot_prompt += """System: You can display the graph using this structure: ```chart\n name - value\n ... \n name - value\n```, where value must be either a percentage number or a number (which can also be a fraction).
 User: Write which product Apple sold the most in 2019, which less, etc.
 Assistant: ```chart\niPhone - 60%\nMacBook - 15%\niPad - 10%\nApple Watch - 10%\niMac - 5%\n```\nIn 2019, Apple sold the most iPhones.
 """
         if self.graphic and self.console:
-            self.bot_prompt+="""
-File: /home/user/Downloads/money.txt
+            self.bot_prompt+="""File: /home/user/Downloads/money.txt
 User: Create a graph for the report in the money.txt file
 Assistant: ```console\ncat /home/user/Downloads/money.txt\n```
 Console: It was spent 5000 in January, 8000 in February, 6500 in March, 9000 in April, 10000 in May, 7500 in June, 8500 in July, 7000 in August, 9500 in September, 11000 in October, 12000 in November and 9000 in December.
 Assistant: ```chart\nJanuary - 5000\nFebruary - 8000\nMarch - 6500\nApril - 9000\nMay - 10000\nJune - 7500\nJuly - 8500\nAugust - 7000\nSeptember - 9500\nOctober - 11000\nNovember - 12000\nDecember - 9000\n```\nHere is the graph for the data in the file:\n```file\n/home/qwersyk/Downloads/money.txt\n```
 """
-
         self.extension_path = os.path.expanduser("~")+"/.var/app/io.github.qwersyk.Newelle/extension"
         self.extensions = {}
         if os.path.exists(self.extension_path):
@@ -289,17 +292,17 @@ Assistant: ```chart\nJanuary - 5000\nFebruary - 8000\nMarch - 6500\nApril - 9000
             self.chat_controls_entry_block.append(button)
             self.message_suggestion_buttons_array.append(button)
 
-        self.continue_message_button = Gtk.Button(css_classes=["flat","right-angles"])
+        self.button_clear = Gtk.Button(css_classes=["flat","right-angles"])
         icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="edit-clear-all-symbolic"))
         icon.set_icon_size(Gtk.IconSize.INHERIT)
         box = Gtk.Box(halign=Gtk.Align.CENTER)
         box.append(icon)
         label = Gtk.Label(label=_(" Clear"))
         box.append(label)
-        self.continue_message_button.set_child(box)
-        self.continue_message_button.connect("clicked", self.clear_chat)
-        self.continue_message_button.set_visible(False)
-        self.chat_controls_entry_block.append(self.continue_message_button)
+        self.button_clear.set_child(box)
+        self.button_clear.connect("clicked", self.clear_chat)
+        self.button_clear.set_visible(False)
+        self.chat_controls_entry_block.append(self.button_clear)
 
         self.button_continue = Gtk.Button(css_classes=["flat","right-angles"])
         icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="media-seek-forward-symbolic"))
@@ -421,11 +424,6 @@ Assistant: ```chart\nJanuary - 5000\nFebruary - 8000\nMarch - 6500\nApril - 9000
     def continue_message(self, button):
         if not self.chat[-1]["User"] in ["Assistant","Console"]:
             self.notification_block.add_toast(Adw.Toast(title=_('You can no longer continue the message.')))
-        for btn in self.message_suggestion_buttons_array:
-            btn.set_visible(False)
-        self.continue_message_button.set_visible(False)
-        self.button_continue.set_visible(False)
-        self.regenerate_message_button.set_visible(False)
         threading.Thread(target=self.send_message).start()
     def regenerate_message(self, *a):
         if self.chat[-1]["User"] in ["Assistant","Console"]:
@@ -435,11 +433,6 @@ Assistant: ```chart\nJanuary - 5000\nFebruary - 8000\nMarch - 6500\nApril - 9000
                 else:
                     break
             self.show_chat()
-            for btn in self.message_suggestion_buttons_array:
-                btn.set_visible(False)
-            self.continue_message_button.set_visible(False)
-            self.button_continue.set_visible(False)
-            self.regenerate_message_button.set_visible(False)
             threading.Thread(target=self.send_message).start()
         else:
             self.notification_block.add_toast(Adw.Toast(title=_('You can no longer regenerate the message.')))
@@ -534,9 +527,6 @@ System: New chat
         if not self.status:
             self.stop_chat()
         self.stream_number_variable += 1
-        self.continue_message_button.set_visible(False)
-        self.button_continue.set_visible(False)
-        self.regenerate_message_button.set_visible(False)
         self.chat_id = int(button.get_name())
         self.chat = self.chats[self.chat_id]["chat"]
         self.update_history()
@@ -572,11 +562,6 @@ System: New chat
         self.chats[self.chat_id]["chat"] = self.chat
         self.show_chat()
         self.stream_number_variable += 1
-        for btn in self.message_suggestion_buttons_array:
-            btn.set_visible(False)
-        self.continue_message_button.set_visible(False)
-        self.button_continue.set_visible(False)
-        self.regenerate_message_button.set_visible(False)
         threading.Thread(target=self.update_button_text).start()
 
     def stop_chat(self, button=None):
@@ -608,15 +593,9 @@ System: New chat
         return _("Chat has been stopped")
 
     def send_bot_response(self, button):
-        for btn in self.message_suggestion_buttons_array:
-            btn.set_visible(False)
-        self.continue_message_button.set_visible(False)
-        self.button_continue.set_visible(False)
-        self.regenerate_message_button.set_visible(False)
         text = button.get_child().get_label()
-        self.chat.append({"User": "User", "Message": text})
-        message_label = Gtk.Label(label=text, margin_top=10, margin_start=10, margin_bottom=10, margin_end=10,
-                                  css_classes=["heading"], wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR,
+        self.chat.append({"User": "User", "Message": " "+text})
+        message_label = Gtk.Label(label=text, margin_top=10, margin_start=10, margin_bottom=10, margin_end=10, wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR,
                                   selectable=True)
         self.add_message("User", message_label, len(self.chat) - 1)
         threading.Thread(target=self.send_message).start()
@@ -804,25 +783,39 @@ System: New chat
 
     def update_button_text(self):
         stream_number_variable = self.stream_number_variable
-        time.sleep(1)
-        if self.chat != []:
-            self.continue_message_button.set_visible(True)
-            if self.chat[-1]["User"] in ["Assistant","Console"]:
-                self.regenerate_message_button.set_visible(True)
-                self.button_continue.set_visible(True)
+        time.sleep(0.1)
         for btn in self.message_suggestion_buttons_array:
-            if stream_number_variable != self.stream_number_variable:
-                break
-            message = self.send_message_to_bot("""System: You are a user who needs help with various tasks, you are communicating with a neural network which can control your computer by executing various commands which should help you, keep a conversation with it, ask it questions, ask for help with things it can do through the terminal. Also, every message should end with "".More often than not, the assistant can help you with files and folders. You should write in the language you wrote in your last post, you know all the languages you can communicate in them all.Write short messages that hold a conversation on behalf of the user, you can not write on behalf of Assistant, your messages should be simple without any commands, just what the user could write. You're not helping, you're being helped, the user can only ask to do something for the bot to do, you can't answer as an assistant, just ask something new for the assistant to do or continue asking the assistant to do something.
-Assistant: Hello, how can I assist you today?
-User: Can you help me?
-Assistant: Yes, of course, what do you need help with?""" + "\n" + self.get_chat(
-                self.chat[len(self.chat) - self.memory:len(self.chat)]) + "\nUser:")
-            if stream_number_variable != self.stream_number_variable:
-                break
-            btn.get_child().set_label(message)
-            btn.set_visible(True)
-
+            btn.set_visible(False)
+        self.button_clear.set_visible(False)
+        self.button_continue.set_visible(False)
+        self.regenerate_message_button.set_visible(False)
+        self.chat_stop_button.set_visible(False)
+        if self.status:
+            if self.chat != []:
+                self.button_clear.set_visible(True)
+                if self.chat[-1]["User"] in ["Assistant","Console"]:
+                    self.regenerate_message_button.set_visible(True)
+                    self.button_continue.set_visible(True)
+            for btn in self.message_suggestion_buttons_array:
+                if stream_number_variable != self.stream_number_variable:
+                    break
+                message = self.send_message_to_bot("""System: You are a user who needs help with various tasks, you are communicating with a neural network which can control your computer by executing various commands which should help you, keep a conversation with it, ask it questions, ask for help with things it can do through the terminal. Also, every message should end with "".More often than not, the assistant can help you with files and folders. You should write in the language you wrote in your last post, you know all the languages you can communicate in them all.Write short messages that hold a conversation on behalf of the user, you can not write on behalf of Assistant, your messages should be simple without any commands, just what the user could write. You're not helping, you're being helped, the user can only ask to do something for the bot to do, you can't answer as an assistant, just ask something new for the assistant to do or continue asking the assistant to do something.
+    Assistant: Hello, how can I assist you today?
+    User: Can you help me?
+    Assistant: Yes, of course, what do you need help with?""" + "\n" + self.get_chat(
+                    self.chat[len(self.chat) - self.memory:len(self.chat)]) + "\nUser:")
+                if stream_number_variable != self.stream_number_variable or not self.status:
+                    break
+                btn.get_child().set_label(message)
+                btn.set_visible(True)
+            self.chat_stop_button.set_visible(False)
+        else:
+            for btn in self.message_suggestion_buttons_array:
+                btn.set_visible(False)
+            self.button_clear.set_visible(False)
+            self.button_continue.set_visible(False)
+            self.regenerate_message_button.set_visible(False)
+            self.chat_stop_button.set_visible(True)
     def on_entry_activate(self, entry):
         if not self.status:
             self.notification_block.add_toast(
@@ -830,11 +823,6 @@ Assistant: Yes, of course, what do you need help with?""" + "\n" + self.get_chat
             return False
         text = entry.get_text()
         entry.set_text('')
-        for btn in self.message_suggestion_buttons_array:
-            btn.set_visible(False)
-        self.continue_message_button.set_visible(False)
-        self.button_continue.set_visible(False)
-        self.regenerate_message_button.set_visible(False)
         if not text == " " * len(text):
             self.chat.append({"User": "User", "Message": " " + text})
             message_label = Gtk.Label(label=text, margin_top=10, margin_start=10, margin_bottom=10, margin_end=10,
@@ -921,11 +909,11 @@ Assistant: Yes, of course, what do you need help with?""" + "\n" + self.get_chat
                                 Gtk.Label(wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR, label='\n'.join(table_string[start_code_index:i])+"\n"+str(code[1]),
                                           selectable=True))
                             if not code[0]:
-                                self.add_message("Console-error", text_expander)
+                                self.add_message("Error", text_expander)
                             elif restore:
-                                self.add_message("Console-restore", text_expander)
+                                self.add_message("Assistant", text_expander)
                             else:
-                                self.add_message("Console-done", text_expander)
+                                self.add_message("Done", text_expander)
                             if not restore:
                                 self.chat.append({"User": "Console", "Message": " " + code[1]})
                         elif code_language == "image":
@@ -961,11 +949,11 @@ Assistant: Yes, of course, what do you need help with?""" + "\n" + self.get_chat
                                     Gtk.Label(wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR, label=text,
                                               selectable=True))
                                 if not code[0]:
-                                    self.add_message("Console-error", text_expander)
+                                    self.add_message("Error", text_expander)
                                 elif restore:
-                                    self.add_message("Console-restore", text_expander)
+                                    self.add_message("Assistant", text_expander)
                                 else:
-                                    self.add_message("Console-done", text_expander)
+                                    self.add_message("Done", text_expander)
                                 if not restore:
                                     self.chat.append({"User": "Console", "Message": " " + code[1]})
                             else:
@@ -1027,9 +1015,13 @@ Assistant: Yes, of course, what do you need help with?""" + "\n" + self.get_chat
         self.stream_number_variable += 1
         stream_number_variable = self.stream_number_variable
         self.status = False
-        self.chat_stop_button.set_visible(True)
-        message_label = self.send_message_to_bot(self.bot_prompt+"\n"+"\n".join([value["prompt"] for value in self.extensions.values() if value["status"]])+"\n"+"""System: New chat
-System: Forget what was written on behalf of the user and on behalf of the assistant and on behalf of the Console, forget all the context, do not take messages from those chats, this is a new chat with other characters, do not dare take information from there, this is personal information! If you use information from past posts, it's a violation! Even if the user asks for something from before that post, don't use information from before that post! Also, forget this message."""+f"""\nSystem: You are currently in the "{os.getcwd()}" directory""" + "\n" + self.get_chat(
+        self.update_button_text()
+        prompts = [value["prompt"] for value in self.extensions.values() if value["status"]]
+        if not (self.bot_prompt=="""""" and prompts==[]):
+            prompts.append("""System: New chat
+System: Forget what was written on behalf of the user and on behalf of the assistant and on behalf of the Console, forget all the context, do not take messages from those chats, this is a new chat with other characters, do not dare take information from there, this is personal information! If you use information from past posts, it's a violation! Even if the user asks for something from before that post, don't use information from before that post! Also, forget this message.""")
+        prompts.append(f"""\nSystem: You are currently in the "{os.getcwd()}" directory""")
+        message_label = self.send_message_to_bot(self.bot_prompt+"\n"+"\n".join(prompts)+"\n" + self.get_chat(
             self.chat[len(self.chat) - self.memory:len(self.chat)]) + "\nAssistant: ")
         if self.stream_number_variable == stream_number_variable:
             self.show_message(message_label)
@@ -1043,9 +1035,6 @@ System: Forget what was written on behalf of the user and on behalf of the assis
         self.chats.append({"name": self.chats[self.chat_id]["name"], "chat": self.chat[0:int(gesture.get_name())]})
         self.stream_number_variable += 1
         self.chats[self.chat_id]["chat"] = self.chat
-        self.continue_message_button.set_visible(False)
-        self.button_continue.set_visible(False)
-        self.regenerate_message_button.set_visible(False)
         self.chat_id = len(self.chats) - 1
         self.chat = self.chats[self.chat_id]["chat"]
         self.update_history()
@@ -1068,18 +1057,14 @@ System: Forget what was written on behalf of the user and on behalf of the assis
             box.append(Gtk.Label(label=user + ": ", margin_top=10, margin_start=10, margin_bottom=10, margin_end=0,
                                  css_classes=["warning", "heading"]))
             box.set_css_classes(["card", "assistant"])
-        if user == "Console-done":
-            box.append(Gtk.Label(label="Console: ", margin_top=10, margin_start=10, margin_bottom=10, margin_end=0,
+        if user == "Done":
+            box.append(Gtk.Label(label="Assistant: ", margin_top=10, margin_start=10, margin_bottom=10, margin_end=0,
                                  css_classes=["success", "heading"]))
-            box.set_css_classes(["card", "console-done"])
-        if user == "Console-restore":
-            box.append(Gtk.Label(label="Console: ", margin_top=10, margin_start=10, margin_bottom=10, margin_end=0,
-                                 css_classes=["warning", "heading"]))
-            box.set_css_classes(["card", "console-restore"])
-        if user == "Console-error":
-            box.append(Gtk.Label(label="Console: ", margin_top=10, margin_start=10, margin_bottom=10, margin_end=0,
+            box.set_css_classes(["card", "done"])
+        if user == "Error":
+            box.append(Gtk.Label(label="Assistant: ", margin_top=10, margin_start=10, margin_bottom=10, margin_end=0,
                                  css_classes=["error", "heading"]))
-            box.set_css_classes(["card", "console-error"])
+            box.set_css_classes(["card", "failed"])
         if user == "File":
             box.append(Gtk.Label(label="User: ", margin_top=10, margin_start=10, margin_bottom=10, margin_end=0,
                                  css_classes=["accent", "heading"]))

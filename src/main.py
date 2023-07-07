@@ -51,14 +51,11 @@ class MyApp(Adw.Application):
         .assistant{
             background-color: rgba(184, 134, 17,0.02);
         }
-        .console-done{
+        .done{
             background-color: rgba(33, 155, 98,0.02);
         }
-        .console-error{
+        .failed{
             background-color: rgba(254, 31, 41,0.02);
-        }
-        .console-restore{
-            background-color: rgba(184, 134, 17,0.02);
         }
         .file{
             background-color: rgba(222, 221, 218,0.03);
