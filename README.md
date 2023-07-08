@@ -7,9 +7,6 @@
   <a href="https://flathub.org/apps/details/io.github.qwersyk.Newelle">
     <img width="200" alt="Download on Flathub" src="https://dl.flathub.org/assets/badges/flathub-badge-i-en.svg"/>
   </a>
-  <br>
-</p>
-<p align="center">
   <a href="https://github.com/topics/newelle-extension">
     <img width="200" alt="Download on Flathub" src="https://raw.githubusercontent.com/qwersyk/Assets/5f06b2019c72ba7faf2d3bfe1b6192cbcc69a0d7/newelle-extension.svg"/>
   </a>

@@ -22,6 +22,13 @@
   <url type="bugtracker">https://github.com/qwersyk/Newelle/issues</url>
   <content_rating type="oars-1.0" />
   <releases>
+    <release version="0.1.6" date="2023-07-04">
+        <description>
+          <ul>
+            <li>Added extension</li>
+          </ul>
+        </description>
+      </release>
     <release version="0.1.5" date="2023-07-04">
         <description>
           <ul>
