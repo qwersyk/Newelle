@@ -15,9 +15,10 @@ class MainWindow(Gtk.ApplicationWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.set_default_size(500, 900)
-        self.main_program_block = Adw.Leaflet(fold_threshold_policy=True, can_navigate_back=True,
-                                              can_navigate_forward=True,
-                                              transition_type=Adw.LeafletTransitionType.UNDER)
+        self.main_program_block = Adw.Flap(flap_position=Gtk.PackType.END,modal=False,swipe_to_close=False,swipe_to_open=False)
+        self.main_program_block.set_name("hide")
+
+
         self.path = ".var/app/io.github.qwersyk.Newelle/data"
         if not os.path.exists(self.path):
             os.makedirs(self.path)
@@ -29,7 +30,6 @@ class MainWindow(Gtk.ApplicationWindow):
             self.chats = [{"name": "Chat 1", "chat": []}]
 
         settings = Gio.Settings.new('io.github.qwersyk.Newelle')
-        self.file_panel = settings.get_boolean("file-panel")
         self.offers = settings.get_int("offers")
         self.virtualization = settings.get_boolean("virtualization")
         self.memory = settings.get_int("memory")
@@ -152,10 +152,15 @@ Assistant: ```chart\nJanuary - 5000\nFebruary - 8000\nMarch - 6500\nApril - 9000
         menu.append(_("Keyboard shorcuts"), "app.shortcuts")
         menu.append(_("About"), "app.about")
         menu_button.set_menu_model(menu)
-        self.separator_1 = Gtk.Separator()
         self.chat_block = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, hexpand=True)
         self.chat_header = Adw.HeaderBar(css_classes=["flat"])
         self.chat_header.set_title_widget(Gtk.Label(label=_("Chat"), css_classes=["title"]))
+        self.flap_button_left = Gtk.ToggleButton.new()
+        self.flap_button_left.set_icon_name(icon_name='sidebar-show-right-symbolic')
+        self.flap_button_left.connect('clicked', self.on_flap_button_toggled)
+        self.chat_header.pack_end(child=self.flap_button_left)
+
+
 
         self.left_panel_back_button = Gtk.Button(css_classes=["flat"])
         icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="go-previous-symbolic"))
@@ -168,13 +173,12 @@ Assistant: ```chart\nJanuary - 5000\nFebruary - 8000\nMarch - 6500\nApril - 9000
         self.chat_block.append(self.chat_header)
         self.chat_block.append(Gtk.Separator())
         self.chat_panel.append(self.chat_block)
-        self.chat_panel.append(self.separator_1)
+        self.chat_panel.append(Gtk.Separator())
 
         self.main = Adw.Leaflet(fold_threshold_policy=True, can_navigate_back=True, can_navigate_forward=True)
         self.streams=[]
         self.chats_main_box = Gtk.Box(hexpand_set=True)
         self.chats_main_box.set_size_request(300, -1)
-        self.separator2 = Gtk.Separator()
         self.chats_secondary_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, hexpand=True)
         self.chat_panel_header = Adw.HeaderBar(css_classes=["flat"])
         self.chat_panel_header.set_title_widget(Gtk.Label(label=_("History"), css_classes=["title"]))
@@ -192,19 +196,19 @@ Assistant: ```chart\nJanuary - 5000\nFebruary - 8000\nMarch - 6500\nApril - 9000
         button.connect("clicked", self.new_chat)
         self.chats_secondary_box.append(button)
         self.chats_main_box.append(self.chats_secondary_box)
-        self.chats_main_box.append(self.separator2)
+        self.chats_main_box.append(Gtk.Separator())
         self.main.append(self.chats_main_box)
         self.main.append(self.chat_panel)
         self.main.set_visible_child(self.chat_panel)
-        self.explorer_panel = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, hexpand=True)
-        self.explorer_panel.set_size_request(450, -1)
+        self.explorer_panel = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, css_classes=["background"])
+        self.explorer_panel.set_size_request(420, -1)
         self.explorer_panel_header = Adw.HeaderBar(css_classes=["flat"])
         self.explorer_panel.append(self.explorer_panel_header)
         self.folder_blocks_panel = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.explorer_panel.append(self.folder_blocks_panel)
         self.set_child(self.main_program_block)
-        self.main_program_block.append(self.main)
-        self.main_program_block.append(self.explorer_panel)
+        self.main_program_block.set_content(self.main)
+        self.main_program_block.set_flap(self.explorer_panel)
         self.secondary_message_chat_block = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
 
         self.chat_block.append(self.secondary_message_chat_block)
@@ -225,11 +229,6 @@ Assistant: ```chart\nJanuary - 5000\nFebruary - 8000\nMarch - 6500\nApril - 9000
         self.chat_controls_entry_block = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6,vexpand=True,valign=Gtk.Align.END)
         self.chat_scroll_window.append(self.chat_controls_entry_block)
         self.message_suggestion_buttons_array = []
-
-        if not self.file_panel:
-            self.explorer_panel.set_visible(False)
-            self.separator_1.set_visible(False)
-            self.chat_header.set_show_end_title_buttons(True)
 
         self.chat_stop_button = Gtk.Button(css_classes=["flat","right-angles"])
         icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="media-playback-stop"))
@@ -279,7 +278,15 @@ Assistant: ```chart\nJanuary - 5000\nFebruary - 8000\nMarch - 6500\nApril - 9000
         box.append(button_folder_forward)
         box.append(button_home)
         self.explorer_panel_header.pack_start(box)
-        self.explorer_panel_header.pack_end(button_reload)
+        box = Gtk.Box()
+        box.append(button_reload)
+
+        self.flap_button_right = Gtk.ToggleButton.new()
+        self.flap_button_right.set_icon_name(icon_name='sidebar-show-right-symbolic')
+        self.flap_button_right.connect('clicked', self.on_flap_button_toggled)
+
+        box.append(self.flap_button_right)
+        self.explorer_panel_header.pack_end(box)
 
         self.status = True
         self.chat_controls_entry_block.append(self.chat_stop_button)
@@ -332,14 +339,40 @@ Assistant: ```chart\nJanuary - 5000\nFebruary - 8000\nMarch - 6500\nApril - 9000
 
         self.secondary_message_chat_block.append(self.input_panel)
         self.input_panel.connect('activate', self.on_entry_activate)
-        if self.file_panel:
-            self.main_program_block.connect("notify::folded", self.handle_secondary_block_change)
         self.main.connect("notify::folded", self.handle_main_block_change)
+        self.main_program_block.connect("notify::reveal-flap", self.handle_second_block_change)
+
         self.stream_number_variable = 0
         self.update_folder()
         threading.Thread(target=self.update_button_text).start()
         self.update_history()
         self.show_chat()
+    def handle_second_block_change(self,*a):
+        status = self.main_program_block.get_reveal_flap()
+        if self.main_program_block.get_name()=="hide" and status:
+            self.main_program_block.set_reveal_flap(False)
+            return True
+        elif (self.main_program_block.get_name()=="visible") and (not status):
+            self.main_program_block.set_reveal_flap(True)
+            return True
+        status = self.main_program_block.get_reveal_flap()
+        if status:
+            self.chat_panel_header.set_show_end_title_buttons(False)
+            self.chat_header.set_show_end_title_buttons(False)
+            self.flap_button_left.set_visible(False)
+        else:
+            self.chat_panel_header.set_show_end_title_buttons(self.main.get_folded())
+            self.chat_header.set_show_end_title_buttons(True)
+            self.flap_button_left.set_visible(True)
+    def on_flap_button_toggled(self, toggle_button):
+        self.flap_button_left.set_active(False)
+        self.flap_button_right.set_active(True)
+        if self.main_program_block.get_name() == "visible":
+            self.main_program_block.set_name("hide")
+            self.main_program_block.set_reveal_flap(False)
+        else:
+            self.main_program_block.set_name("visible")
+            self.main_program_block.set_reveal_flap(True)
 
     def get_file_button(self, path):
         if path[0:2]=="./":
@@ -601,83 +634,82 @@ System: New chat
         threading.Thread(target=self.send_message).start()
 
     def update_folder(self, *a):
-        if self.file_panel:
-            if os.path.exists(os.path.expanduser(self.main_path)):
-                self.explorer_panel_header.set_title_widget(Gtk.Label(label=os.path.normpath(self.main_path)+(3-len(os.path.normpath(self.main_path)))*" ", css_classes=["title"],ellipsize=Pango.EllipsizeMode.MIDDLE,max_width_chars=20,halign=Gtk.Align.CENTER,hexpand=True))
-                if len(os.listdir(os.path.expanduser(self.main_path))) == 0 or (sum(
-                        1 for filename in os.listdir(os.path.expanduser(self.main_path)) if
-                        not filename.startswith('.')) == 0 and not self.hidden_files) and os.path.normpath(self.main_path) != "~":
-                    self.explorer_panel.remove(self.folder_blocks_panel)
-                    self.folder_blocks_panel = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=20, opacity=0.25)
-                    self.explorer_panel.append(self.folder_blocks_panel)
-                    icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="folder-symbolic"))
-                    icon.set_css_classes(["empty-folder"])
-                    icon.set_valign(Gtk.Align.END)
-                    icon.set_vexpand(True)
-                    self.folder_blocks_panel.append(icon)
-                    self.folder_blocks_panel.append(Gtk.Label(label=_("Folder is Empty"), wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR, vexpand=True,valign=Gtk.Align.START,css_classes=["empty-folder", "heading"]))
-                else:
-                    try:
-                        self.explorer_panel.remove(self.folder_blocks_panel)
-                        self.folder_blocks_panel = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-                        self.explorer_panel.append(self.folder_blocks_panel)
-
-                        flow_box = Gtk.FlowBox(vexpand=True)
-                        flow_box.set_valign(Gtk.Align.START)
-
-                        if os.path.normpath(self.main_path) == "~":
-                            os.chdir(os.path.expanduser("~"))
-                            path = "./.var/app/io.github.qwersyk.Newelle/Newelle"
-                            if not os.path.exists(path):
-                                os.makedirs(path)
-                            button = Gtk.Button(css_classes=["flat"])
-                            button.set_name(".var/app/io.github.qwersyk.Newelle/Newelle")
-                            button.connect("clicked", self.open_folder)
-
-                            icon = File(self.main_path, ".var/app/io.github.qwersyk.Newelle/Newelle")
-                            icon.set_css_classes(["large"])
-                            icon.set_valign(Gtk.Align.END)
-                            icon.set_vexpand(True)
-                            file_label = Gtk.Label(label="Newelle", wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR,
-                                                   vexpand=True, max_width_chars=11, valign=Gtk.Align.START,
-                                                   ellipsize=Pango.EllipsizeMode.MIDDLE)
-                            file_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
-                            file_box.append(icon)
-                            file_box.set_size_request(110, 110)
-                            file_box.append(file_label)
-                            button.set_child(file_box)
-
-                            flow_box.append(button)
-                        for file_info in os.listdir(os.path.expanduser(self.main_path)):
-                            if file_info[0] == "." and not self.hidden_files:
-                                continue
-                            button = Gtk.Button(css_classes=["flat"])
-                            button.set_name(file_info)
-                            button.connect("clicked", self.open_folder)
-
-                            icon = File(self.main_path, file_info)
-                            icon.set_css_classes(["large"])
-                            icon.set_valign(Gtk.Align.END)
-                            icon.set_vexpand(True)
-                            file_label = Gtk.Label(label=file_info+" "*(5-len(file_info)), wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR,
-                                                   vexpand=True, max_width_chars=11, valign=Gtk.Align.START,
-                                                   ellipsize=Pango.EllipsizeMode.MIDDLE)
-                            file_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
-                            file_box.append(icon)
-                            file_box.set_size_request(110, 110)
-                            file_box.append(file_label)
-                            button.set_child(file_box)
-
-                            flow_box.append(button)
-                        scrolled_window = Gtk.ScrolledWindow()
-                        scrolled_window.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
-                        scrolled_window.set_child(flow_box)
-                        self.folder_blocks_panel.append(scrolled_window)
-                    except Exception as e:
-                        self.notification_block.add_toast(Adw.Toast(title=e))
+        if os.path.exists(os.path.expanduser(self.main_path)):
+            self.explorer_panel_header.set_title_widget(Gtk.Label(label=os.path.normpath(self.main_path)+(3-len(os.path.normpath(self.main_path)))*" ", css_classes=["title"],ellipsize=Pango.EllipsizeMode.MIDDLE,max_width_chars=15,halign=Gtk.Align.CENTER,hexpand=True))
+            if len(os.listdir(os.path.expanduser(self.main_path))) == 0 or (sum(
+                    1 for filename in os.listdir(os.path.expanduser(self.main_path)) if
+                    not filename.startswith('.')) == 0 and not self.hidden_files) and os.path.normpath(self.main_path) != "~":
+                self.explorer_panel.remove(self.folder_blocks_panel)
+                self.folder_blocks_panel = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=20, opacity=0.25)
+                self.explorer_panel.append(self.folder_blocks_panel)
+                icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="folder-symbolic"))
+                icon.set_css_classes(["empty-folder"])
+                icon.set_valign(Gtk.Align.END)
+                icon.set_vexpand(True)
+                self.folder_blocks_panel.append(icon)
+                self.folder_blocks_panel.append(Gtk.Label(label=_("Folder is Empty"), wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR, vexpand=True,valign=Gtk.Align.START,css_classes=["empty-folder", "heading"]))
             else:
-                self.main_path = "~"
-                self.update_folder()
+                try:
+                    self.explorer_panel.remove(self.folder_blocks_panel)
+                    self.folder_blocks_panel = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+                    self.explorer_panel.append(self.folder_blocks_panel)
+
+                    flow_box = Gtk.FlowBox(vexpand=True)
+                    flow_box.set_valign(Gtk.Align.START)
+
+                    if os.path.normpath(self.main_path) == "~":
+                        os.chdir(os.path.expanduser("~"))
+                        path = "./.var/app/io.github.qwersyk.Newelle/Newelle"
+                        if not os.path.exists(path):
+                            os.makedirs(path)
+                        button = Gtk.Button(css_classes=["flat"])
+                        button.set_name(".var/app/io.github.qwersyk.Newelle/Newelle")
+                        button.connect("clicked", self.open_folder)
+
+                        icon = File(self.main_path, ".var/app/io.github.qwersyk.Newelle/Newelle")
+                        icon.set_css_classes(["large"])
+                        icon.set_valign(Gtk.Align.END)
+                        icon.set_vexpand(True)
+                        file_label = Gtk.Label(label="Newelle", wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR,
+                                               vexpand=True, max_width_chars=11, valign=Gtk.Align.START,
+                                               ellipsize=Pango.EllipsizeMode.MIDDLE)
+                        file_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+                        file_box.append(icon)
+                        file_box.set_size_request(110, 110)
+                        file_box.append(file_label)
+                        button.set_child(file_box)
+
+                        flow_box.append(button)
+                    for file_info in os.listdir(os.path.expanduser(self.main_path)):
+                        if file_info[0] == "." and not self.hidden_files:
+                            continue
+                        button = Gtk.Button(css_classes=["flat"])
+                        button.set_name(file_info)
+                        button.connect("clicked", self.open_folder)
+
+                        icon = File(self.main_path, file_info)
+                        icon.set_css_classes(["large"])
+                        icon.set_valign(Gtk.Align.END)
+                        icon.set_vexpand(True)
+                        file_label = Gtk.Label(label=file_info+" "*(5-len(file_info)), wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR,
+                                               vexpand=True, max_width_chars=11, valign=Gtk.Align.START,
+                                               ellipsize=Pango.EllipsizeMode.MIDDLE)
+                        file_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+                        file_box.append(icon)
+                        file_box.set_size_request(110, 110)
+                        file_box.append(file_label)
+                        button.set_child(file_box)
+
+                        flow_box.append(button)
+                    scrolled_window = Gtk.ScrolledWindow()
+                    scrolled_window.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+                    scrolled_window.set_child(flow_box)
+                    self.folder_blocks_panel.append(scrolled_window)
+                except Exception as e:
+                    self.notification_block.add_toast(Adw.Toast(title=e))
+        else:
+            self.main_path = "~"
+            self.update_folder()
     def get_target_directory(self,working_directory, directory):
         try:
             directory = directory.strip()
@@ -705,21 +737,11 @@ System: New chat
             self.notification_block.add_toast(Adw.Toast(title=_('File not found')))
     def handle_main_block_change(self, *data):
         if (self.main.get_folded()):
-            self.chat_panel_header.set_show_end_title_buttons(True)
-            self.separator2.set_visible(False)
+            self.chat_panel_header.set_show_end_title_buttons(not self.main_program_block.get_reveal_flap())
             self.left_panel_back_button.set_visible(True)
         else:
             self.chat_panel_header.set_show_end_title_buttons(False)
-            self.separator2.set_visible(True)
             self.left_panel_back_button.set_visible(False)
-
-    def handle_secondary_block_change(self, *data):
-        if (self.main_program_block.get_folded()):
-            self.chat_header.set_show_end_title_buttons(True)
-            self.separator_1.set_visible(False)
-        else:
-            self.chat_header.set_show_end_title_buttons(False)
-            self.separator_1.set_visible(True)
 
     def execute_terminal_command(self, command):
         os.chdir(os.path.expanduser(self.main_path))

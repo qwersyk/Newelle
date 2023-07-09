@@ -16,12 +16,6 @@ class Settings(Adw.PreferencesWindow):
         self.interface = Adw.PreferencesGroup(title='Interface')
         self.general_page.add(self.interface)
 
-        row = Adw.ActionRow(title="Sidebar", subtitle="Show the explorer panel")
-        switch = Gtk.Switch(valign=Gtk.Align.CENTER)
-        row.add_suffix(switch)
-        self.settings.bind("file-panel", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
-        self.interface.add(row)
-
         row = Adw.ActionRow(title="Hidden files", subtitle="Show hidden files")
         switch = Gtk.Switch(valign=Gtk.Align.CENTER)
         row.add_suffix(switch)

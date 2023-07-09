@@ -3,54 +3,46 @@
 	<id>io.github.qwersyk.Newelle.desktop</id>
 	<metadata_license>CC0-1.0</metadata_license>
 	<project_license>GPL-3.0-or-later</project_license>
-  <name>Newelle</name>
+	<name>Newelle</name>
 	<description>
-	  <p>This is a chatbot program written in GTK4 and Adwaita that allows you to interact with the system and execute various commands</p>
+	  <p>This is a chatbot program written in GTK4 and Adwaita that allows you to interact with the system and execute various commands.</p>
 	</description>
-  <summary>Chat bot that controls your computer</summary>
-  <screenshots>
-    <screenshot type="default">
-      <image>https://raw.githubusercontent.com/qwersyk/Newelle/master/data/screenshots/screenshot1.png</image>
-      <caption>chat page 1</caption>
-    </screenshot>
-    <screenshot>
-      <image>https://raw.githubusercontent.com/qwersyk/Newelle/master/data/screenshots/screenshot2.png</image>
-      <caption>chat page 2</caption>
-    </screenshot>
-  </screenshots>
-  <url type="homepage">https://github.com/qwersyk/Newelle</url>
-  <url type="bugtracker">https://github.com/qwersyk/Newelle/issues</url>
-  <content_rating type="oars-1.0" />
-  <releases>
-    <release version="0.1.6" date="2023-07-04">
-        <description>
-          <ul>
-            <li>Added extension</li>
-          </ul>
-        </description>
-      </release>
-    <release version="0.1.5" date="2023-07-04">
-        <description>
-          <ul>
-            <li>Black list of commands</li>
-          </ul>
-        </description>
-      </release>
-    <release version="0.1.4" date="2023-06-30">
-        <description>
-          <ul>
-            <li>Localization</li>
-          </ul>
-        </description>
-      </release>
-    <release version="0.1.3.2" date="2023-06-25">
-        <description>
-          <ul>
-            <li>Redesign</li>
-          </ul>
-        </description>
-      </release>
-  </releases>
-  <developer_name>Qwersyk</developer_name>
-  <update_contact>qsk@gmx.at</update_contact>
+	<summary>Chat bot that controls your computer</summary>
+	<screenshots>
+		<screenshot type="default">
+			<image>https://raw.githubusercontent.com/qwersyk/Newelle/master/data/screenshots/screenshot1.png</image>
+			<caption>Chat page 1</caption>
+		</screenshot>
+		<screenshot>
+			<image>https://raw.githubusercontent.com/qwersyk/Newelle/master/data/screenshots/screenshot2.png</image>
+			<caption>Chat page 2</caption>
+		</screenshot>
+	</screenshots>
+	<url type="homepage">https://github.com/qwersyk/Newelle</url>
+	<url type="bugtracker">https://github.com/qwersyk/Newelle/issues</url>
+	<content_rating type="oars-1.0" />
+	<releases>
+		<release version="0.1.6" date="2023-07-08">
+			<description>
+				<p>Added extension</p>
+			</description>
+		</release>
+		<release version="0.1.5" date="2023-07-04">
+			<description>
+				<p>Blacklist of commands</p>
+			</description>
+		</release>
+		<release version="0.1.4" date="2023-06-30">
+			<description>
+				<p>Localization</p>
+			</description>
+		</release>
+		<release version="0.1.3" date="2023-06-25">
+			<description>
+				<p>Redesign</p>
+			</description>
+		</release>
+	</releases>
+	<developer_name>Qwersyk</developer_name>
+	<update_contact>qsk@gmx.at</update_contact>
 </component>
