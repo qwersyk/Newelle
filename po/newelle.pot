@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-29 21:36+0200\n"
+"POT-Creation-Date: 2023-07-10 09:30+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,92 +17,293 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/window.py:155
-msgid "About"
+#: extension.py:9 window.py:148
+msgid "Extensions"
 msgstr ""
 
-#: src/window.py:156
-msgid "Keyboard shorcuts"
+#: extension.py:56
+msgid "Choose an extension"
 msgstr ""
 
-#: src/window.py:157
+#: extension.py:75
+msgid " has been removed"
+msgstr ""
+
+#: extension.py:78
+msgid "Add extension"
+msgstr ""
+
+#: extension.py:105
+msgid "Extension added. New extensions will run from the next launch"
+msgstr ""
+
+#: extension.py:112
+msgid "The extension is wrong"
+msgstr ""
+
+#: extension.py:114
+msgid "This is not an extension"
+msgstr ""
+
+#: main.py:142
+msgid "Terminal threads are still running in the background"
+msgstr ""
+
+#: main.py:143
+msgid "When you close the window, they will be automatically terminated"
+msgstr ""
+
+#: main.py:146
+msgid "Cancel"
+msgstr ""
+
+#: main.py:147
+msgid "Close"
+msgstr ""
+
+#: main.py:167
+msgid "Chat is rebooted"
+msgstr ""
+
+#: main.py:172
+msgid "Folder is rebooted"
+msgstr ""
+
+#: main.py:177
+msgid "Chat is created"
+msgstr ""
+
+
+#: window.py:28 window.py:551
+msgid "Chat "
+msgstr ""
+
+#: window.py:147 thread_editing.py:8
+msgid "Thread editing"
+msgstr ""
+
+#: window.py:149
 msgid "Settings"
 msgstr ""
 
-#: src/window.py:184
+#: window.py:150
+msgid "Keyboard shorcuts"
+msgstr ""
+
+#: window.py:151
+msgid "About"
+msgstr ""
+
+#: window.py:155
+msgid "Chat"
+msgstr ""
+
+#: window.py:182
 msgid "History"
 msgstr ""
 
-#: src/window.py:195
+#: window.py:193
 msgid "Create a chat"
 msgstr ""
 
-#: src/window.py:243
+#: window.py:236
 msgid " Stop"
 msgstr ""
 
-#: src/window.py:304
+#: window.py:305
 msgid " Clear"
 msgstr ""
 
-#: src/window.py:316
+#: window.py:317
 msgid " Continue"
 msgstr ""
 
-#: src/window.py:328
+#: window.py:329
 msgid " Regenerate"
 msgstr ""
 
-#: src/window.py:389 src/window.py:714
+#: window.py:417 window.py:737
 msgid "File not found"
 msgstr ""
 
-#: src/window.py:393
+#: window.py:421
 msgid "The file cannot be sent until the program is finished"
 msgstr ""
 
-#: src/window.py:406
+#: window.py:435
 msgid "The file is not recognized"
 msgstr ""
 
-#: src/window.py:429
+#: window.py:458
 msgid "You can no longer continue the message."
 msgstr ""
 
-#: src/window.py:468
+#: window.py:471
 msgid "You can no longer regenerate the message."
 msgstr ""
 
-#: src/window.py:593
+#: window.py:532
+msgid "Chat is empty"
+msgstr ""
+
+#: window.py:593
 msgid "Chat is cleared"
 msgstr ""
 
-#: src/window.py:616
+#: window.py:611
 msgid "The message was canceled and deleted from history"
 msgstr ""
 
-#: src/window.py:628
+#: window.py:624
 msgid "Failed to send bot a message"
 msgstr ""
 
-#: src/window.py:630
+#: window.py:626
 msgid "Chat has been stopped"
 msgstr ""
 
-#: src/window.py:662
+#: window.py:652
 msgid "Folder is Empty"
 msgstr ""
 
-#: src/window.py:781
+#: window.py:762
+msgid "Wrong folder path"
+msgstr ""
+
+#: window.py:790
+msgid "Thread has not been completed, thread number: "
+msgstr ""
+
+#: window.py:796
+msgid "Failed to open the folder"
+msgstr ""
+
+#: window.py:845
 msgid "The message cannot be sent until the program is finished"
 msgstr ""
 
-#: src/window.py:944
+#: window.py:1057
 msgid "You can't edit a message while the program is running."
 msgstr ""
 
-#: src/window.py:1004
+#: window.py:1110
 msgid ""
 "Attention the neural network has access to your computer, be careful, we are "
 "not responsible for the neural network."
+msgstr ""
+
+#: thread_editing.py:38
+msgid "No threads are running"
+msgstr ""
+
+#: thread_editing.py:44
+msgid "Thread number: "
+msgstr ""
+
+#: shortcuts.py:8
+msgid "Help"
+msgstr ""
+
+#: shortcuts.py:14
+msgid "Shortcuts"
+msgstr ""
+
+#: shortcuts.py:15
+msgid "Reload chat"
+msgstr ""
+
+#: shortcuts.py:16
+msgid "Reload folder"
+msgstr ""
+
+#: shortcuts.py:17
+msgid "New tab"
+msgstr ""
+
+#: settings.py:13
+msgid "Interface"
+msgstr ""
+
+#: settings.py:16
+msgid "Hidden files"
+msgstr ""
+
+#: settings.py:16
+msgid "Show hidden files"
+msgstr ""
+
+#: settings.py:22
+msgid "Number of offers"
+msgstr ""
+
+#: settings.py:22
+msgid "Number of message suggestions to send to chat "
+msgstr ""
+
+#: settings.py:29
+msgid "Prompt control"
+msgstr ""
+
+#: settings.py:32
+msgid "Auto-run commands"
+msgstr ""
+
+#: settings.py:32
+msgid "Commands that the bot will write will automatically run"
+msgstr ""
+
+#: settings.py:38
+msgid "Console access"
+msgstr ""
+
+#: settings.py:38
+msgid "Can the program run terminal commands on the computer"
+msgstr ""
+
+#: settings.py:44
+msgid "Graphs access"
+msgstr ""
+
+#: settings.py:44
+msgid "Can the program display graphs"
+msgstr ""
+
+#: settings.py:50
+msgid "Basic functionality"
+msgstr ""
+
+#: settings.py:50
+msgid "Showing tables and code (*can work without it)"
+msgstr ""
+
+#: settings.py:56
+msgid "Show image"
+msgstr ""
+
+#: settings.py:56
+msgid "Show image in chat"
+msgstr ""
+
+#: settings.py:62
+msgid "Neural Network Control"
+msgstr ""
+
+#: settings.py:65
+msgid "Command virtualization"
+msgstr ""
+
+#: settings.py:65
+msgid "Run commands in a virtual machine"
+msgstr ""
+
+#: settings.py:71
+msgid "Program memory"
+msgstr ""
+
+#: settings.py:71
+msgid "How long the program remembers the chat "
+msgstr ""
+
+#: settings.py:78
+msgid "The change will take effect after you restart the program."
 msgstr ""

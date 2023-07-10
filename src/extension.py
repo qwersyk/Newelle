@@ -6,7 +6,7 @@ from gi.repository import Gtk, Adw, Gio
 
 class Extension(Gtk.Window):
     def __init__(self,app):
-        Gtk.Window.__init__(self, title="Extensions")
+        Gtk.Window.__init__(self, title=_("Extensions"))
         self.path = os.path.expanduser("~")+"/.var/app/io.github.qwersyk.Newelle/extension"
 
         self.app = app
@@ -53,7 +53,7 @@ class Extension(Gtk.Window):
                         box_elements.append(button)
                         box.append(box_elements)
                         self.main.append(box)
-        folder_button = Gtk.Button(label="Choose an extension",margin_top=10,margin_start=10,margin_bottom=10,margin_end=10,css_classes=["flat"])
+        folder_button = Gtk.Button(label=_("Choose an extension"),margin_top=10,margin_start=10,margin_bottom=10,margin_end=10,css_classes=["flat"])
         folder_button.connect("clicked", self.on_folder_button_clicked)
         self.main.append(folder_button)
     def change_status(self,widget,*a):
@@ -72,7 +72,7 @@ class Extension(Gtk.Window):
         folder_path = os.path.join(self.path, widget.get_name())
         if os.path.exists(folder_path):
             shutil.rmtree(folder_path)
-            self.notification_block.add_toast(Adw.Toast(title=(f'The "{widget.get_name()}" extension has been removed')))
+            self.notification_block.add_toast(Adw.Toast(title=(widget.get_name()+_(' has been removed'))))
         self.update()
     def on_folder_button_clicked(self, widget):
         dialog = Gtk.FileChooserNative(transient_for=self.app.win, title=_("Add extension"), modal=True, action=Gtk.FileChooserAction.SELECT_FOLDER)
@@ -102,16 +102,16 @@ class Extension(Gtk.Window):
                     shutil.rmtree(new_folder_path)
 
                 shutil.copytree(folder_path, new_folder_path)
-                self.notification_block.add_toast(Adw.Toast(title=(f"Extension added. New extensions will run from the next launch")))
+                self.notification_block.add_toast(Adw.Toast(title=(_("Extension added. New extensions will run from the next launch"))))
                 main_json_data["status"] = False
 
                 with open(os.path.join(new_folder_path, "main.json"), "w") as file:
                     json.dump(main_json_data, file)
                 self.update()
             else:
-                self.notification_block.add_toast(Adw.Toast(title='The extension is wrong'))
+                self.notification_block.add_toast(Adw.Toast(title=_('The extension is wrong')))
         else:
-            self.notification_block.add_toast(Adw.Toast(title="This is not an extension"))
+            self.notification_block.add_toast(Adw.Toast(title=_("This is not an extension")))
 
         dialog.destroy()
         return False

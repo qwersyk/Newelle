@@ -25,7 +25,7 @@ class MainWindow(Gtk.ApplicationWindow):
             with open(self.path + self.filename, 'rb') as f:
                 self.chats = pickle.load(f)
         else:
-            self.chats = [{"name": "Chat 1", "chat": []}]
+            self.chats = [{"name": _("Chat ")+"1", "chat": []}]
 
         settings = Gio.Settings.new('io.github.qwersyk.Newelle')
         self.offers = settings.get_int("offers")
@@ -548,7 +548,7 @@ System: New chat
             threading.Thread(target=self.generate_chat_name, args=[button, True]).start()
 
     def new_chat(self, button, *a):
-        self.chats.append({"name": f"Chat {len(self.chats) + 1}", "chat": []})
+        self.chats.append({"name": _("Chat ")+str(len(self.chats) + 1), "chat": []})
         self.update_history()
 
     def copy_chat(self, button, *a):
@@ -787,7 +787,7 @@ System: New chat
                 break
         else:
             self.streams.append(process)
-            outputs = [(True, f"Thread has not been completed, thread number: {len(self.streams)}")]
+            outputs = [(True, _("Thread has not been completed, thread number: ")+str(len(self.streams)))]
         if os.path.exists(os.path.expanduser(path)):
             os.chdir(os.path.expanduser(path))
             self.main_path = path
