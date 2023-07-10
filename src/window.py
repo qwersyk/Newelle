@@ -474,8 +474,8 @@ Assistant: ```chart\nJanuary - 5000\nFebruary - 8000\nMarch - 6500\nApril - 9000
         list_box.set_selection_mode(Gtk.SelectionMode.NONE)
         self.chats_buttons_scroll_block.set_child(list_box)
         for i in range(len(self.chats)):
-            box = Gtk.Box()
-            generate_chat_name_button = Gtk.Button(css_classes=["suggested-action"], margin_start=5, margin_end=5,
+            box = Gtk.Box(spacing=6, margin_top=3, margin_bottom=3,  margin_start=3, margin_end=3)
+            generate_chat_name_button = Gtk.Button(css_classes=["suggested-action"],
                                                    valign=Gtk.Align.CENTER)
             generate_chat_name_button.connect("clicked", self.generate_chat_name)
             icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="starred-symbolic"))
@@ -483,15 +483,15 @@ Assistant: ```chart\nJanuary - 5000\nFebruary - 8000\nMarch - 6500\nApril - 9000
             generate_chat_name_button.set_child(icon)
             generate_chat_name_button.set_name(str(i))
 
-            create_chat_clone_button = Gtk.Button(css_classes=["copy-action", "suggested-action"], margin_start=5,
-                                                  margin_end=5, valign=Gtk.Align.CENTER)
+            create_chat_clone_button = Gtk.Button(css_classes=["copy-action", "suggested-action"],
+                                                  valign=Gtk.Align.CENTER)
             create_chat_clone_button.connect("clicked", self.copy_chat)
             icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="view-paged-symbolic"))
             icon.set_icon_size(Gtk.IconSize.INHERIT)
             create_chat_clone_button.set_child(icon)
             create_chat_clone_button.set_name(str(i))
 
-            delete_chat_button = Gtk.Button(css_classes=["destructive-action"], margin_start=5, margin_end=5,
+            delete_chat_button = Gtk.Button(css_classes=["destructive-action"],
                                             valign=Gtk.Align.CENTER)
             delete_chat_button.connect("clicked", self.remove_chat)
             icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="user-trash-symbolic"))
