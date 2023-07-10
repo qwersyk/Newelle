@@ -1,8 +1,5 @@
 import time, re
 import gi, os, subprocess
-
-gi.require_version('Gtk', '4.0')
-gi.require_version('Adw', '1')
 import pickle
 from .gtkobj import File, CopyBox, BarChartBox
 from .bai import BAIChat
@@ -17,6 +14,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.set_default_size(500, 900)
         self.main_program_block = Adw.Flap(flap_position=Gtk.PackType.END,modal=False,swipe_to_close=False,swipe_to_open=False)
         self.main_program_block.set_name("hide")
+        self.check_streams={"folder":False,"chat":False}
 
 
         self.path = ".var/app/io.github.qwersyk.Newelle/data"
@@ -343,10 +341,11 @@ Assistant: ```chart\nJanuary - 5000\nFebruary - 8000\nMarch - 6500\nApril - 9000
         self.main_program_block.connect("notify::reveal-flap", self.handle_second_block_change)
 
         self.stream_number_variable = 0
-        self.update_folder()
         threading.Thread(target=self.update_button_text).start()
-        self.update_history()
-        self.show_chat()
+        threading.Thread(target=self.update_folder).start()
+        threading.Thread(target=self.update_history).start()
+        threading.Thread(target=self.show_chat).start()
+
     def handle_second_block_change(self,*a):
         status = self.main_program_block.get_reveal_flap()
         if self.main_program_block.get_name()=="hide" and status:
@@ -455,9 +454,10 @@ Assistant: ```chart\nJanuary - 5000\nFebruary - 8000\nMarch - 6500\nApril - 9000
         self.main.set_visible_child(self.chat_panel)
 
     def continue_message(self, button):
-        if not self.chat[-1]["User"] in ["Assistant","Console"]:
+        if not self.chat[-1]["User"] in ["Assistant","Console","User"]:
             self.notification_block.add_toast(Adw.Toast(title=_('You can no longer continue the message.')))
-        threading.Thread(target=self.send_message).start()
+        else:
+            threading.Thread(target=self.send_message).start()
     def regenerate_message(self, *a):
         if self.chat[-1]["User"] in ["Assistant","Console"]:
             for i in range(len(self.chat) - 1, -1, -1):
@@ -634,22 +634,23 @@ System: New chat
         threading.Thread(target=self.send_message).start()
 
     def update_folder(self, *a):
-        if os.path.exists(os.path.expanduser(self.main_path)):
-            self.explorer_panel_header.set_title_widget(Gtk.Label(label=os.path.normpath(self.main_path)+(3-len(os.path.normpath(self.main_path)))*" ", css_classes=["title"],ellipsize=Pango.EllipsizeMode.MIDDLE,max_width_chars=15,halign=Gtk.Align.CENTER,hexpand=True))
-            if len(os.listdir(os.path.expanduser(self.main_path))) == 0 or (sum(
-                    1 for filename in os.listdir(os.path.expanduser(self.main_path)) if
-                    not filename.startswith('.')) == 0 and not self.hidden_files) and os.path.normpath(self.main_path) != "~":
-                self.explorer_panel.remove(self.folder_blocks_panel)
-                self.folder_blocks_panel = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=20, opacity=0.25)
-                self.explorer_panel.append(self.folder_blocks_panel)
-                icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="folder-symbolic"))
-                icon.set_css_classes(["empty-folder"])
-                icon.set_valign(Gtk.Align.END)
-                icon.set_vexpand(True)
-                self.folder_blocks_panel.append(icon)
-                self.folder_blocks_panel.append(Gtk.Label(label=_("Folder is Empty"), wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR, vexpand=True,valign=Gtk.Align.START,css_classes=["empty-folder", "heading"]))
-            else:
-                try:
+        if not self.check_streams["folder"]:
+            self.check_streams["folder"] = True
+            if os.path.exists(os.path.expanduser(self.main_path)):
+                self.explorer_panel_header.set_title_widget(Gtk.Label(label=os.path.normpath(self.main_path)+(3-len(os.path.normpath(self.main_path)))*" ", css_classes=["title"],ellipsize=Pango.EllipsizeMode.MIDDLE,max_width_chars=15,halign=Gtk.Align.CENTER,hexpand=True))
+                if len(os.listdir(os.path.expanduser(self.main_path))) == 0 or (sum(
+                        1 for filename in os.listdir(os.path.expanduser(self.main_path)) if
+                        not filename.startswith('.')) == 0 and not self.hidden_files) and os.path.normpath(self.main_path) != "~":
+                    self.explorer_panel.remove(self.folder_blocks_panel)
+                    self.folder_blocks_panel = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=20, opacity=0.25)
+                    self.explorer_panel.append(self.folder_blocks_panel)
+                    icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="folder-symbolic"))
+                    icon.set_css_classes(["empty-folder"])
+                    icon.set_valign(Gtk.Align.END)
+                    icon.set_vexpand(True)
+                    self.folder_blocks_panel.append(icon)
+                    self.folder_blocks_panel.append(Gtk.Label(label=_("Folder is Empty"), wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR, vexpand=True,valign=Gtk.Align.START,css_classes=["empty-folder", "heading"]))
+                else:
                     self.explorer_panel.remove(self.folder_blocks_panel)
                     self.folder_blocks_panel = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
                     self.explorer_panel.append(self.folder_blocks_panel)
@@ -705,11 +706,10 @@ System: New chat
                     scrolled_window.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
                     scrolled_window.set_child(flow_box)
                     self.folder_blocks_panel.append(scrolled_window)
-                except Exception as e:
-                    self.notification_block.add_toast(Adw.Toast(title=e))
-        else:
-            self.main_path = "~"
-            self.update_folder()
+            else:
+                self.main_path = "~"
+                self.update_folder()
+            self.check_streams["folder"]=False
     def get_target_directory(self,working_directory, directory):
         try:
             directory = directory.strip()
@@ -817,6 +817,7 @@ System: New chat
                 self.button_clear.set_visible(True)
                 if self.chat[-1]["User"] in ["Assistant","Console"]:
                     self.regenerate_message_button.set_visible(True)
+                elif self.chat[-1]["User"] in ["Assistant","Console","User"]:
                     self.button_continue.set_visible(True)
             for btn in self.message_suggestion_buttons_array:
                 if stream_number_variable != self.stream_number_variable:
@@ -854,28 +855,31 @@ System: New chat
         threading.Thread(target=self.send_message).start()
 
     def show_chat(self):
-        try:
-            self.chat_scroll_window.remove(self.chat_list_block)
-            self.chat_list_block = Gtk.ListBox(css_classes=["separators","background"])
-            self.chat_list_block.set_selection_mode(Gtk.SelectionMode.NONE)
+        if not self.check_streams["chat"]:
+            self.check_streams["chat"] = True
+            try:
+                self.chat_scroll_window.remove(self.chat_list_block)
+                self.chat_list_block = Gtk.ListBox(css_classes=["separators","background"])
+                self.chat_list_block.set_selection_mode(Gtk.SelectionMode.NONE)
 
-            self.chat_scroll_window.append(self.chat_list_block)
-        except Exception as e:
-            self.notification_block.add_toast(Adw.Toast(title=e))
+                self.chat_scroll_window.append(self.chat_list_block)
+            except Exception as e:
+                self.notification_block.add_toast(Adw.Toast(title=e))
 
-        self.chat_scroll_window.remove(self.chat_controls_entry_block)
-        self.chat_scroll_window.append(self.chat_controls_entry_block)
-        if not self.virtualization:
-            self.add_message("Warning")
-        for i in range(len(self.chat)):
-            if self.chat[i]["User"] == "User":
-                self.add_message("User", Gtk.Label(label=self.chat[i]["Message"][1:len(self.chat[i]["Message"])], margin_top=10, margin_start=10,
-                                                   margin_bottom=10, margin_end=10, wrap=True,
-                                                   wrap_mode=Pango.WrapMode.WORD_CHAR, selectable=True), i)
-            elif self.chat[i]["User"] == "Assistant":
-                self.show_message(self.chat[i]["Message"], True, id_message=i)
-            elif self.chat[i]["User"] in ["File", "Folder"]:
-                self.add_message(self.chat[i]["User"], self.get_file_button(self.chat[i]["Message"][1:len(self.chat[i]["Message"])]))
+            self.chat_scroll_window.remove(self.chat_controls_entry_block)
+            self.chat_scroll_window.append(self.chat_controls_entry_block)
+            if not self.virtualization:
+                self.add_message("Warning")
+            for i in range(len(self.chat)):
+                if self.chat[i]["User"] == "User":
+                    self.add_message("User", Gtk.Label(label=self.chat[i]["Message"][1:len(self.chat[i]["Message"])], margin_top=10, margin_start=10,
+                                                       margin_bottom=10, margin_end=10, wrap=True,
+                                                       wrap_mode=Pango.WrapMode.WORD_CHAR, selectable=True), i)
+                elif self.chat[i]["User"] == "Assistant":
+                    self.show_message(self.chat[i]["Message"], True, id_message=i)
+                elif self.chat[i]["User"] in ["File", "Folder"]:
+                    self.add_message(self.chat[i]["User"], self.get_file_button(self.chat[i]["Message"][1:len(self.chat[i]["Message"])]))
+            self.check_streams["chat"] = False
 
     def show_message(self, message_label, restore=False,id_message=-1):
         if message_label == " " * len(message_label):

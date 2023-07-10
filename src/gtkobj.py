@@ -1,7 +1,5 @@
 import gi, os, subprocess
 
-gi.require_version('Gtk', '4.0')
-gi.require_version('GtkSource', '5')
 from gi.repository import Gtk, Pango, Gio, Gdk, GtkSource
 import threading
 

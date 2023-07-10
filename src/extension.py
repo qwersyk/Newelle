@@ -1,7 +1,5 @@
 import gi, os
 
-gi.require_version('Gtk', '4.0')
-gi.require_version('Adw', '1')
 import pickle, json, shutil
 from gi.repository import Gtk, Adw, Gio
 
@@ -77,10 +75,9 @@ class Extension(Gtk.Window):
             self.notification_block.add_toast(Adw.Toast(title=(f'The "{widget.get_name()}" extension has been removed')))
         self.update()
     def on_folder_button_clicked(self, widget):
-        dialog = Gtk.FileChooserDialog(transient_for=self.app.win, title=_("Open Model"), modal=True, action=Gtk.FileChooserAction.SELECT_FOLDER)
-        dialog.add_buttons(_("Cancel"), Gtk.ResponseType.CANCEL, _("Open"), Gtk.ResponseType.ACCEPT)
+        dialog = Gtk.FileChooserNative(transient_for=self.app.win, title=_("Add extension"), modal=True, action=Gtk.FileChooserAction.SELECT_FOLDER)
         dialog.connect("response", self.process_folder)
-        dialog.present()
+        dialog.show()
     def process_folder(self, dialog, response):
         if response != Gtk.ResponseType.ACCEPT:
             dialog.destroy()
