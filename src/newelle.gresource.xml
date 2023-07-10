@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <gresources>
   <gresource prefix="/io/github/qwersyk/Newelle">
+    <file preprocess="xml-stripblanks">icons/tag-outline-symbolic.svg</file>
   </gresource>
 </gresources>

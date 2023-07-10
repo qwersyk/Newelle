@@ -14,7 +14,7 @@ import shlex,json
 class MainWindow(Gtk.ApplicationWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.set_default_size(500, 900)
+        self.set_default_size(1500, 800)
         self.main_program_block = Adw.Flap(flap_position=Gtk.PackType.END,modal=False,swipe_to_close=False,swipe_to_open=False)
         self.main_program_block.set_name("hide")
 
@@ -191,7 +191,7 @@ Assistant: ```chart\nJanuary - 5000\nFebruary - 8000\nMarch - 6500\nApril - 9000
         self.chats_buttons_scroll_block.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
         self.chats_buttons_scroll_block.set_child(self.chats_buttons_block)
         self.chats_secondary_box.append(self.chats_buttons_scroll_block)
-        button = Gtk.Button(valign=Gtk.Align.END,css_classes=["suggested-action","right-angles"])
+        button = Gtk.Button(valign=Gtk.Align.END,css_classes=["suggested-action"], margin_start=6, margin_end=6,  margin_top=6, margin_bottom=6)
         button.set_child(Gtk.Label(label=_("Create a chat")))
         button.connect("clicked", self.new_chat)
         self.chats_secondary_box.append(button)
@@ -335,7 +335,7 @@ Assistant: ```chart\nJanuary - 5000\nFebruary - 8000\nMarch - 6500\nApril - 9000
         self.regenerate_message_button.set_visible(False)
         self.chat_controls_entry_block.append(self.regenerate_message_button)
 
-        self.input_panel = Gtk.Entry(css_classes=["right-angles"])
+        self.input_panel = Gtk.Entry(margin_start=6, margin_end=6,  margin_top=6, margin_bottom=6)
 
         self.secondary_message_chat_block.append(self.input_panel)
         self.input_panel.connect('activate', self.on_entry_activate)
@@ -475,15 +475,15 @@ Assistant: ```chart\nJanuary - 5000\nFebruary - 8000\nMarch - 6500\nApril - 9000
         self.chats_buttons_scroll_block.set_child(list_box)
         for i in range(len(self.chats)):
             box = Gtk.Box(spacing=6, margin_top=3, margin_bottom=3,  margin_start=3, margin_end=3)
-            generate_chat_name_button = Gtk.Button(css_classes=["suggested-action"],
+            generate_chat_name_button = Gtk.Button(css_classes=["accent", "flat"],
                                                    valign=Gtk.Align.CENTER)
             generate_chat_name_button.connect("clicked", self.generate_chat_name)
-            icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="starred-symbolic"))
+            icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="tag-outline-symbolic"))
             icon.set_icon_size(Gtk.IconSize.INHERIT)
             generate_chat_name_button.set_child(icon)
             generate_chat_name_button.set_name(str(i))
 
-            create_chat_clone_button = Gtk.Button(css_classes=["copy-action", "suggested-action"],
+            create_chat_clone_button = Gtk.Button(css_classes=["success", "flat"],
                                                   valign=Gtk.Align.CENTER)
             create_chat_clone_button.connect("clicked", self.copy_chat)
             icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="view-paged-symbolic"))
@@ -491,7 +491,7 @@ Assistant: ```chart\nJanuary - 5000\nFebruary - 8000\nMarch - 6500\nApril - 9000
             create_chat_clone_button.set_child(icon)
             create_chat_clone_button.set_name(str(i))
 
-            delete_chat_button = Gtk.Button(css_classes=["destructive-action"],
+            delete_chat_button = Gtk.Button(css_classes=["error","flat"],
                                             valign=Gtk.Align.CENTER)
             delete_chat_button.connect("clicked", self.remove_chat)
             icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="user-trash-symbolic"))
@@ -502,13 +502,14 @@ Assistant: ```chart\nJanuary - 5000\nFebruary - 8000\nMarch - 6500\nApril - 9000
             name = self.chats[i]["name"]
             if len(name) > 30:
                 name = name[0:27] + "..."
-            button.set_child(Gtk.Label(label=name, wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR))
+            button.set_child(Gtk.Label(label=name, wrap=False, wrap_mode=Pango.WrapMode.WORD_CHAR, xalign=0, ellipsize=0))
             button.set_name(str(i))
             if i == self.chat_id:
                 button.connect("clicked", self.return_to_chat_panel)
                 delete_chat_button.set_css_classes([""])
+                delete_chat_button.set_sensitive(False)
                 delete_chat_button.set_can_target(False)
-                delete_chat_button.set_has_frame(True)
+                delete_chat_button.set_has_frame(False)
                 button.set_has_frame(True)
             else:
                 button.connect("clicked", self.chose_chat)
