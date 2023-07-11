@@ -162,7 +162,7 @@ Assistant: ```chart\nJanuary - 5000\nFebruary - 8000\nMarch - 6500\nApril - 9000
 
 
 
-        self.left_panel_back_button = Gtk.Button(css_classes=["flat"])
+        self.left_panel_back_button = Gtk.Button(css_classes=["flat"], visible=False)
         icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="go-previous-symbolic"))
         icon.set_icon_size(Gtk.IconSize.INHERIT)
         box = Gtk.Box(halign=Gtk.Align.CENTER)
@@ -180,7 +180,7 @@ Assistant: ```chart\nJanuary - 5000\nFebruary - 8000\nMarch - 6500\nApril - 9000
         self.chats_main_box = Gtk.Box(hexpand_set=True)
         self.chats_main_box.set_size_request(300, -1)
         self.chats_secondary_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, hexpand=True)
-        self.chat_panel_header = Adw.HeaderBar(css_classes=["flat"])
+        self.chat_panel_header = Adw.HeaderBar(css_classes=["flat"],  show_end_title_buttons = False)
         self.chat_panel_header.set_title_widget(Gtk.Label(label=_("History"), css_classes=["title"]))
         self.chats_secondary_box.append(self.chat_panel_header)
         self.chats_secondary_box.append(Gtk.Separator())
