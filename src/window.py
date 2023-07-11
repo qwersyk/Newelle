@@ -14,7 +14,7 @@ import shlex,json
 class MainWindow(Gtk.ApplicationWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.set_default_size(1500, 800)
+        self.set_default_size(1400, 800) #(1500, 800) to show everything
         self.main_program_block = Adw.Flap(flap_position=Gtk.PackType.END,modal=False,swipe_to_close=False,swipe_to_open=False)
         self.main_program_block.set_name("hide")
 
@@ -273,17 +273,18 @@ Assistant: ```chart\nJanuary - 5000\nFebruary - 8000\nMarch - 6500\nApril - 9000
         button_reload.set_child(box)
         button_reload.connect("clicked", self.update_folder)
 
-        box = Gtk.Box()
+        box = Gtk.Box(spacing=6)
         box.append(button_folder_back)
         box.append(button_folder_forward)
         box.append(button_home)
         self.explorer_panel_header.pack_start(box)
-        box = Gtk.Box()
+        box = Gtk.Box(spacing=6)
         box.append(button_reload)
 
         self.flap_button_right = Gtk.ToggleButton.new()
         self.flap_button_right.set_icon_name(icon_name='sidebar-show-right-symbolic')
         self.flap_button_right.connect('clicked', self.on_flap_button_toggled)
+        self.main_program_block.set_reveal_flap(False)
 
         box.append(self.flap_button_right)
         self.explorer_panel_header.pack_end(box)
@@ -415,11 +416,11 @@ Assistant: ```chart\nJanuary - 5000\nFebruary - 8000\nMarch - 6500\nApril - 9000
             else:
                 subprocess.run(['xdg-open', os.path.expanduser(button.get_name())])
         else:
-            self.notification_block.add_toast(Adw.Toast(title=_('File not found')))
+            self.notification_block.add_toast(Adw.Toast(title=_('File not found'), timeout=2))
 
     def handle_file_drag(self, DropTarget, data, x, y):
         if not self.status:
-            self.notification_block.add_toast(Adw.Toast(title=_('The file cannot be sent until the program is finished')))
+            self.notification_block.add_toast(Adw.Toast(title=_('The file cannot be sent until the program is finished'), timeout=2))
             return False
         for path in data.split("\n"):
             if os.path.exists(path):
@@ -433,7 +434,7 @@ Assistant: ```chart\nJanuary - 5000\nFebruary - 8000\nMarch - 6500\nApril - 9000
                 self.chats[self.chat_id]["chat"] = self.chat
                 threading.Thread(target=self.update_button_text).start()
             else:
-                self.notification_block.add_toast(Adw.Toast(title=_('The file is not recognized')))
+                self.notification_block.add_toast(Adw.Toast(title=_('The file is not recognized'), timeout=2))
 
     def go_back_in_explorer_panel(self, *a):
         self.main_path += "/.."
@@ -456,7 +457,7 @@ Assistant: ```chart\nJanuary - 5000\nFebruary - 8000\nMarch - 6500\nApril - 9000
 
     def continue_message(self, button):
         if not self.chat[-1]["User"] in ["Assistant","Console"]:
-            self.notification_block.add_toast(Adw.Toast(title=_('You can no longer continue the message.')))
+            self.notification_block.add_toast(Adw.Toast(title=_('You can no longer continue the message.'), timeout=2))
         threading.Thread(target=self.send_message).start()
     def regenerate_message(self, *a):
         if self.chat[-1]["User"] in ["Assistant","Console"]:
@@ -468,14 +469,14 @@ Assistant: ```chart\nJanuary - 5000\nFebruary - 8000\nMarch - 6500\nApril - 9000
             self.show_chat()
             threading.Thread(target=self.send_message).start()
         else:
-            self.notification_block.add_toast(Adw.Toast(title=_('You can no longer regenerate the message.')))
+            self.notification_block.add_toast(Adw.Toast(title=_('You can no longer regenerate the message.'), timeout=2))
     def update_history(self):
         list_box = Gtk.ListBox(css_classes=["separators","background"])
         list_box.set_selection_mode(Gtk.SelectionMode.NONE)
         self.chats_buttons_scroll_block.set_child(list_box)
         for i in range(len(self.chats)):
             box = Gtk.Box(spacing=6, margin_top=3, margin_bottom=3,  margin_start=3, margin_end=3)
-            generate_chat_name_button = Gtk.Button(css_classes=["accent", "flat"],
+            generate_chat_name_button = Gtk.Button(css_classes=["flat"],
                                                    valign=Gtk.Align.CENTER)
             generate_chat_name_button.connect("clicked", self.generate_chat_name)
             icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="tag-outline-symbolic"))
@@ -483,7 +484,7 @@ Assistant: ```chart\nJanuary - 5000\nFebruary - 8000\nMarch - 6500\nApril - 9000
             generate_chat_name_button.set_child(icon)
             generate_chat_name_button.set_name(str(i))
 
-            create_chat_clone_button = Gtk.Button(css_classes=["success", "flat"],
+            create_chat_clone_button = Gtk.Button(css_classes=["flat"],
                                                   valign=Gtk.Align.CENTER)
             create_chat_clone_button.connect("clicked", self.copy_chat)
             icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="view-paged-symbolic"))
@@ -501,9 +502,11 @@ Assistant: ```chart\nJanuary - 5000\nFebruary - 8000\nMarch - 6500\nApril - 9000
             button = Gtk.Button(css_classes=["flat"], hexpand=True)
             name = self.chats[i]["name"]
             if len(name) > 30:
-                name = name[0:27] + "..."
-            button.set_child(Gtk.Label(label=name, wrap=False, wrap_mode=Pango.WrapMode.WORD_CHAR, xalign=0, ellipsize=0))
+                #name = name[0:27] + "..."
+                button.set_tooltip_text(name)
+            button.set_child(Gtk.Label(label=name, wrap=False, wrap_mode=Pango.WrapMode.WORD_CHAR, xalign=0, ellipsize=3, width_chars=22))
             button.set_name(str(i))
+
             if i == self.chat_id:
                 button.connect("clicked", self.return_to_chat_panel)
                 delete_chat_button.set_css_classes([""])
@@ -530,8 +533,10 @@ Assistant: ```chart\nJanuary - 5000\nFebruary - 8000\nMarch - 6500\nApril - 9000
     def generate_chat_name(self, button, multithreading=False):
         if multithreading:
             if len(self.chats[int(button.get_name())]["chat"]) < 2:
-                self.notification_block.add_toast(Adw.Toast(title=_('Chat is empty')))
+                self.notification_block.add_toast(Adw.Toast(title=_('Chat is empty'), timeout=2))
                 return False
+            spinner = Gtk.Spinner(spinning=True)
+            button.set_child(spinner)
             button.set_can_target(False)
             button.set_has_frame(True)
             name = self.send_message_to_bot("""System: You have to write a title for the dialog between the user and the assistant. You have to come up with a short description of the chat them in 5 words. Just write a name for the dialog. Write directly and clearly, just a title without anything in the new message. The title must be on topic. You don't have to make up anything of your own, just a name for the chat room.
@@ -591,7 +596,7 @@ System: New chat
         return self.treeview
 
     def clear_chat(self, button):
-        self.notification_block.add_toast(Adw.Toast(title=_('Chat is cleared')))
+        self.notification_block.add_toast(Adw.Toast(title=_('Chat is cleared'), timeout=2))
         self.chat = []
         self.chats[self.chat_id]["chat"] = self.chat
         self.show_chat()
@@ -609,7 +614,7 @@ System: New chat
                     self.chat.pop(i)
                 else:
                     break
-        self.notification_block.add_toast(Adw.Toast(title=_('The message was canceled and deleted from history')))
+        self.notification_block.add_toast(Adw.Toast(title=_('The message was canceled and deleted from history'), timeout=2))
         self.show_chat()
 
     def send_message_to_bot(self, message):
@@ -622,7 +627,7 @@ System: New chat
                 t = re.split(r'Assistant:|Console:|User:|File:|Folder:', BAIChat(sync=True).sync_ask(message).text,1)[0]
                 return t
             except Exception:
-                self.notification_block.add_toast(Adw.Toast(title=_('Failed to send bot a message')))
+                self.notification_block.add_toast(Adw.Toast(title=_('Failed to send bot a message'), timeout=2))
             time.sleep(loop_interval_variable)
         return _("Chat has been stopped")
 
@@ -707,7 +712,7 @@ System: New chat
                     scrolled_window.set_child(flow_box)
                     self.folder_blocks_panel.append(scrolled_window)
                 except Exception as e:
-                    self.notification_block.add_toast(Adw.Toast(title=e))
+                    self.notification_block.add_toast(Adw.Toast(title=e), timeout=2)
         else:
             self.main_path = "~"
             self.update_folder()
@@ -735,7 +740,7 @@ System: New chat
             else:
                 subprocess.run(['xdg-open', os.path.expanduser(self.main_path + "/" + button.get_name())])
         else:
-            self.notification_block.add_toast(Adw.Toast(title=_('File not found')))
+            self.notification_block.add_toast(Adw.Toast(title=_('File not found'), timeout=2))
     def handle_main_block_change(self, *data):
         if (self.main.get_folded()):
             self.chat_panel_header.set_show_end_title_buttons(not self.main_program_block.get_reveal_flap())
@@ -760,7 +765,7 @@ System: New chat
                 p = (t.split("cd "))[min(len(t.split("cd ")),1)]
                 v = self.get_target_directory(path, p)
                 if not v[0]:
-                    Adw.Toast(title=_('Wrong folder path'))
+                    Adw.Toast(title=_('Wrong folder path'), timeout=2)
                 else:
                     path = v[1]
             else:
@@ -794,7 +799,7 @@ System: New chat
             self.main_path = path
             self.update_folder()
         else:
-            Adw.Toast(title=_('Failed to open the folder'))
+            Adw.Toast(title=_('Failed to open the folder'), timeout=2)
         return outputs[0]
 
 
@@ -842,7 +847,7 @@ System: New chat
     def on_entry_activate(self, entry):
         if not self.status:
             self.notification_block.add_toast(
-                Adw.Toast(title=_('The message cannot be sent until the program is finished')))
+                Adw.Toast(title=_('The message cannot be sent until the program is finished'), timeout=2))
             return False
         text = entry.get_text()
         entry.set_text('')
@@ -862,7 +867,7 @@ System: New chat
 
             self.chat_scroll_window.append(self.chat_list_block)
         except Exception as e:
-            self.notification_block.add_toast(Adw.Toast(title=e))
+            self.notification_block.add_toast(Adw.Toast(title=e), timeout=2)
 
         self.chat_scroll_window.remove(self.chat_controls_entry_block)
         self.chat_scroll_window.append(self.chat_controls_entry_block)
@@ -1051,7 +1056,7 @@ System: Forget what was written on behalf of the user and on behalf of the assis
 
     def edit_message(self, gesture, data, x, y):
         if not self.status:
-            self.notification_block.add_toast(Adw.Toast(title=_("You can't edit a message while the program is running.")))
+            self.notification_block.add_toast(Adw.Toast(title=_("You can't edit a message while the program is running."), timeout=2))
             return False
         self.input_panel.set_text(self.chat[int(gesture.get_name())]["Message"])
         self.input_panel.grab_focus()
