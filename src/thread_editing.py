@@ -1,14 +1,11 @@
 import gi
-
-gi.require_version('Gtk', '4.0')
-gi.require_version('Adw', '1')
 from gi.repository import Gtk, Adw, Gio, Pango
 import time
 
 
 class ThreadEditing(Gtk.Window):
     def __init__(self, app, *args, **kwargs):
-        super().__init__(*args, **kwargs,title='Thread editing')
+        super().__init__(*args, **kwargs,title=_('Thread editing'))
         self.set_default_size(400, 400)
         self.set_transient_for(app.win)
         self.set_modal(True)
@@ -44,7 +41,7 @@ class ThreadEditing(Gtk.Window):
                 stream_menu = Gtk.Box(orientation=Gtk.Orientation.VERTICAL,css_classes=["card"],margin_top=10,margin_start=10,margin_end=10,margin_bottom=10)
                 stream_menu.set_size_request(300, -1)
                 box = Gtk.Box(margin_top=10,margin_start=10,margin_end=10,margin_bottom=10)
-                box.append(Gtk.Label(label=f"Thread number: {i+1}"))
+                box.append(Gtk.Label(label=_("Thread number: ")+str(i+1)))
                 button = Gtk.Button(margin_start=5, margin_end=5,
                                                        valign=Gtk.Align.CENTER,halign=Gtk.Align.END, hexpand= True)
                 button.connect("clicked", self.stop_flow)

@@ -5,10 +5,11 @@
 #
 msgid ""
 msgstr ""
+
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-29 21:36+0200\n"
-"PO-Revision-Date: 2023-06-29 21:38+0200\n"
+"POT-Creation-Date: 2023-07-10 09:30+0200\n"
+"PO-Revision-Date: 2023-07-10 09:47+0200\n"
 "Last-Translator: Yehor Qwersyk <qsk@gmx.at>\n"
 "Language-Team: Russian\n"
 "Language: ru\n"
@@ -18,94 +19,294 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
 "n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
-#: src/window.py:155
-msgid "About"
-msgstr "О программе"
+#: extension.py:9 window.py:148
+msgid "Extensions"
+msgstr "Расширения"
 
-#: src/window.py:156
-msgid "Keyboard shorcuts"
-msgstr "Горячие клавиши"
+#: extension.py:56
+msgid "Choose an extension"
+msgstr "Выберите расширение"
 
-#: src/window.py:157
+#: extension.py:75
+msgid " has been removed"
+msgstr " удалено"
+
+#: extension.py:78
+msgid "Add extension"
+msgstr "Добавить расширение"
+
+#: extension.py:105
+msgid "Extension added. New extensions will run from the next launch"
+msgstr "Расширение добавлено. Новые расширения будут запущены с следующего запуска"
+
+#: extension.py:112
+msgid "The extension is wrong"
+msgstr "Неверное расширение"
+
+#: extension.py:114
+msgid "This is not an extension"
+msgstr "Это не расширение"
+
+#: main.py:142
+msgid "Terminal threads are still running in the background"
+msgstr "Потоки терминала все еще работают в фоновом режиме"
+
+#: main.py:143
+msgid "When you close the window, they will be automatically terminated"
+msgstr "При закрытии окна они будут автоматически завершены"
+
+#: main.py:146
+msgid "Cancel"
+msgstr "Отмена"
+
+#: main.py:147
+msgid "Close"
+msgstr "Закрыть"
+
+#: main.py:167
+msgid "Chat is rebooted"
+msgstr "Чат перезапущен"
+
+#: main.py:172
+msgid "Folder is rebooted"
+msgstr "Папка перезагружена"
+
+#: main.py:177
+msgid "Chat is created"
+msgstr "Чат создан"
+
+#: window.py:28 window.py:551
+msgid "Chat "
+msgstr "Чат "
+
+#: window.py:147 thread_editing.py:8
+msgid "Thread editing"
+msgstr "Редактирование потока"
+
+#: window.py:149
 msgid "Settings"
 msgstr "Настройки"
 
-#: src/window.py:184
+#: window.py:150
+msgid "Keyboard shortcuts"
+msgstr "Горячие клавиши"
+
+#: window.py:151
+msgid "About"
+msgstr "О программе"
+
+#: window.py:155
+msgid "Chat"
+msgstr "Чат"
+
+#: window.py:182
 msgid "History"
 msgstr "История"
 
-#: src/window.py:195
+#: window.py:193
 msgid "Create a chat"
 msgstr "Создать чат"
 
-#: src/window.py:243
-msgid "Stop"
-msgstr "Остановить"
+#: window.py:236
+msgid " Stop"
+msgstr " Остановить"
 
-#: src/window.py:304
-msgid "Clear"
-msgstr "Очистить"
+#: window.py:305
+msgid " Clear"
+msgstr " Очистить"
 
-#: src/window.py:316
-msgid "Continue"
-msgstr "Продолжить"
+#: window.py:317
+msgid " Continue"
+msgstr " Продолжить"
 
-#: src/window.py:328
-msgid "Regenerate"
-msgstr "Перегенерировать"
+#: window.py:329
+msgid " Regenerate"
+msgstr " Перегенерировать"
 
-#: src/window.py:389 src/window.py:714
+#: window.py:417 window.py:737
 msgid "File not found"
 msgstr "Файл не найден"
 
-#: src/window.py:393
+#: window.py:421
 msgid "The file cannot be sent until the program is finished"
-msgstr "Файл не может быть отправлен, пока программа не завершена"
+msgstr "Файл не может быть отправлен, пока программа не завершится"
 
-#: src/window.py:406
+#: window.py:435
 msgid "The file is not recognized"
 msgstr "Файл не распознан"
 
-#: src/window.py:429
+#: window.py:458
 msgid "You can no longer continue the message."
 msgstr "Вы больше не можете продолжить сообщение."
 
-#: src/window.py:468
+#: window.py:471
 msgid "You can no longer regenerate the message."
 msgstr "Вы больше не можете перегенерировать сообщение."
 
-#: src/window.py:593
+#: window.py:532
+msgid "Chat is empty"
+msgstr "Чат пуст"
+
+#: window.py:593
 msgid "Chat is cleared"
 msgstr "Чат очищен"
 
-#: src/window.py:616
+#: window.py:611
 msgid "The message was canceled and deleted from history"
-msgstr "Сообщение отменено и удалено из истории"
+msgstr "Сообщение было отменено и удалено из истории"
 
-#: src/window.py:628
+#: window.py:624
 msgid "Failed to send bot a message"
 msgstr "Не удалось отправить сообщение боту"
 
-#: src/window.py:630
+#: window.py:626
 msgid "Chat has been stopped"
-msgstr "Чат остановлен"
+msgstr "Чат был остановлен"
 
-#: src/window.py:662
+#: window.py:652
 msgid "Folder is Empty"
 msgstr "Папка пуста"
 
-#: src/window.py:781
+#: window.py:762
+msgid "Wrong folder path"
+msgstr "Неверный путь к папке"
+
+#: window.py:790
+msgid "Thread has not been completed, thread number: "
+msgstr "Поток не завершен, номер потока: "
+
+#: window.py:796
+msgid "Failed to open the folder"
+msgstr "Не удалось открыть папку"
+
+#: window.py:845
 msgid "The message cannot be sent until the program is finished"
-msgstr "Сообщение не может быть отправлено, пока программа не завершена"
+msgstr "Сообщение не может быть отправлено, пока программа не завершится"
 
-#: src/window.py:944
+#: window.py:1057
 msgid "You can't edit a message while the program is running."
-msgstr "Вы не можете редактировать сообщение во время работы программы."
+msgstr "Нельзя редактировать сообщение во время работы программы."
 
-#: src/window.py:1004
+#: window.py:1110
 msgid ""
 "Attention the neural network has access to your computer, be careful, we are "
 "not responsible for the neural network."
 msgstr ""
-"Внимание! Нейронная сеть имеет доступ к вашему компьютеру, будьте осторожны, мы "
-"не несем ответственности за нейронную сеть."
+"Внимание! Нейронная сеть имеет доступ к вашему компьютеру."
+"Будьте осторожны, мы не несем ответственности за нейронную сеть."
+
+#: thread_editing.py:38
+msgid "No threads are running"
+msgstr "Нет работающих потоков"
+
+#: thread_editing.py:44
+msgid "Thread number: "
+msgstr "Номер потока: "
+
+#: shortcuts.py:8
+msgid "Help"
+msgstr "Помощь"
+
+#: shortcuts.py:14
+msgid "Shortcuts"
+msgstr "Горячие клавиши"
+
+#: shortcuts.py:15
+msgid "Reload chat"
+msgstr "Перезагрузить чат"
+
+#: shortcuts.py:16
+msgid "Reload folder"
+msgstr "Перезагрузить папку"
+
+#: shortcuts.py:17
+msgid "New tab"
+msgstr "Новая вкладка"
+
+#: settings.py:13
+msgid "Interface"
+msgstr "Интерфейс"
+
+#: settings.py:16
+msgid "Hidden files"
+msgstr "Скрытые файлы"
+
+#: settings.py:16
+msgid "Show hidden files"
+msgstr "Показать скрытые файлы"
+
+#: settings.py:22
+msgid "Number of offers"
+msgstr "Количество предложений"
+
+#: settings.py:22
+msgid "Number of message suggestions to send to chat "
+msgstr "Количество предложений сообщений для отправки в чат "
+
+#: settings.py:29
+msgid "Prompt control"
+msgstr "Управление подсказками"
+
+#: settings.py:32
+msgid "Auto-run commands"
+msgstr "Автоматическое выполнение команд"
+
+#: settings.py:32
+msgid "Commands that the bot will write will automatically run"
+msgstr "Команды, которые будет написывать бот, будут выполняться автоматически"
+
+#: settings.py:38
+msgid "Console access"
+msgstr "Доступ к консоли"
+
+#: settings.py:38
+msgid "Can the program run terminal commands on the computer"
+msgstr "Может ли программа выполнять команды терминала на компьютере"
+
+#: settings.py:44
+msgid "Graphs access"
+msgstr "Доступ к графикам"
+
+#: settings.py:44
+msgid "Can the program display graphs"
+msgstr "Может ли программа отображать графики"
+
+#: settings.py:50
+msgid "Basic functionality"
+msgstr "Основные функции"
+
+#: settings.py:50
+msgid "Showing tables and code (*can work without it)"
+msgstr "Показывать таблицы и код (*может работать без этого)"
+
+#: settings.py:56
+msgid "Show image"
+msgstr "Показать изображение"
+
+#: settings.py:56
+msgid "Show image in chat"
+msgstr "Показывать изображение в чате"
+
+#: settings.py:62
+msgid "Neural Network Control"
+msgstr "Управление нейронной сетью"
+
+#: settings.py:65
+msgid "Command virtualization"
+msgstr "Виртуализация команд"
+
+#: settings.py:65
+msgid "Run commands in a virtual machine"
+msgstr "Выполнять команды в виртуальной машине"
+
+#: settings.py:71
+msgid "Program memory"
+msgstr "Память программы"
+
+#: settings.py:71
+msgid "How long the program remembers the chat "
+msgstr "Сколько времени программа запоминает чат "
+
+#: settings.py:78
+msgid "The change will take effect after you restart the program."
+msgstr "Изменения вступят в силу после перезапуска программы."
