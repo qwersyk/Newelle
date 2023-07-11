@@ -6,3 +6,4 @@ Terminal=false
 Type=Application
 Categories=GTK;
 StartupNotify=true
+Keywords=chat;ai;gpt;chatgpt;assistant;
