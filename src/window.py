@@ -226,11 +226,12 @@ Assistant: ```chart\nJanuary - 5000\nFebruary - 8000\nMarch - 6500\nApril - 9000
         self.notification_block.set_child(self.chat_scroll)
 
         self.secondary_message_chat_block.append(self.notification_block)
-        self.chat_controls_entry_block = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6,vexpand=True,valign=Gtk.Align.END)
+        self.chat_controls_entry_block = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL,
+                        spacing=6,vexpand=True,valign=Gtk.Align.END,halign=Gtk.Align.CENTER, margin_top=6, margin_bottom=6)
         self.chat_scroll_window.append(self.chat_controls_entry_block)
         self.message_suggestion_buttons_array = []
 
-        self.chat_stop_button = Gtk.Button(css_classes=["flat","right-angles"])
+        self.chat_stop_button = Gtk.Button(css_classes=["flat"])
         icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="media-playback-stop"))
         icon.set_icon_size(Gtk.IconSize.INHERIT)
         box = Gtk.Box(halign=Gtk.Align.CENTER)
@@ -292,7 +293,7 @@ Assistant: ```chart\nJanuary - 5000\nFebruary - 8000\nMarch - 6500\nApril - 9000
         self.status = True
         self.chat_controls_entry_block.append(self.chat_stop_button)
         for text in range(self.offers):
-            button = Gtk.Button(css_classes=["flat","right-angles"])
+            button = Gtk.Button(css_classes=["flat"])
             label = Gtk.Label(label=text, wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR)
             button.set_child(label)
             button.connect("clicked", self.send_bot_response)
@@ -300,7 +301,7 @@ Assistant: ```chart\nJanuary - 5000\nFebruary - 8000\nMarch - 6500\nApril - 9000
             self.chat_controls_entry_block.append(button)
             self.message_suggestion_buttons_array.append(button)
 
-        self.button_clear = Gtk.Button(css_classes=["flat","right-angles"])
+        self.button_clear = Gtk.Button(css_classes=["flat"])
         icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="edit-clear-all-symbolic"))
         icon.set_icon_size(Gtk.IconSize.INHERIT)
         box = Gtk.Box(halign=Gtk.Align.CENTER)
@@ -312,7 +313,7 @@ Assistant: ```chart\nJanuary - 5000\nFebruary - 8000\nMarch - 6500\nApril - 9000
         self.button_clear.set_visible(False)
         self.chat_controls_entry_block.append(self.button_clear)
 
-        self.button_continue = Gtk.Button(css_classes=["flat","right-angles"])
+        self.button_continue = Gtk.Button(css_classes=["flat"])
         icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="media-seek-forward-symbolic"))
         icon.set_icon_size(Gtk.IconSize.INHERIT)
         box = Gtk.Box(halign=Gtk.Align.CENTER)
@@ -324,7 +325,7 @@ Assistant: ```chart\nJanuary - 5000\nFebruary - 8000\nMarch - 6500\nApril - 9000
         self.button_continue.set_visible(False)
         self.chat_controls_entry_block.append(self.button_continue)
 
-        self.regenerate_message_button = Gtk.Button(css_classes=["flat","right-angles"])
+        self.regenerate_message_button = Gtk.Button(css_classes=["flat"])
         icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="view-refresh-symbolic"))
         icon.set_icon_size(Gtk.IconSize.INHERIT)
         box = Gtk.Box(halign=Gtk.Align.CENTER)
@@ -338,6 +339,7 @@ Assistant: ```chart\nJanuary - 5000\nFebruary - 8000\nMarch - 6500\nApril - 9000
 
         self.input_panel = Gtk.Entry(margin_start=6, margin_end=6,  margin_top=6, margin_bottom=6)
 
+        self.secondary_message_chat_block.append(Gtk.Separator())
         self.secondary_message_chat_block.append(self.input_panel)
         self.input_panel.connect('activate', self.on_entry_activate)
         self.main.connect("notify::folded", self.handle_main_block_change)
@@ -476,15 +478,12 @@ Assistant: ```chart\nJanuary - 5000\nFebruary - 8000\nMarch - 6500\nApril - 9000
         self.chats_buttons_scroll_block.set_child(list_box)
         for i in range(len(self.chats)):
             box = Gtk.Box(spacing=6, margin_top=3, margin_bottom=3,  margin_start=3, margin_end=3)
-            generate_chat_name_button = Gtk.Button(css_classes=["flat"],
-                                                   valign=Gtk.Align.CENTER)
+            generate_chat_name_button = Gtk.Button(css_classes=["flat", "accent"],
+                                                   valign=Gtk.Align.CENTER, icon_name="document-edit-symbolic") # wanted to use: tag-outline-symbolic
             generate_chat_name_button.connect("clicked", self.generate_chat_name)
-            icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="tag-outline-symbolic"))
-            icon.set_icon_size(Gtk.IconSize.INHERIT)
-            generate_chat_name_button.set_child(icon)
             generate_chat_name_button.set_name(str(i))
 
-            create_chat_clone_button = Gtk.Button(css_classes=["flat"],
+            create_chat_clone_button = Gtk.Button(css_classes=["flat", "success"],
                                                   valign=Gtk.Align.CENTER)
             create_chat_clone_button.connect("clicked", self.copy_chat)
             icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="view-paged-symbolic"))
