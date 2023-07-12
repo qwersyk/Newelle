@@ -23,7 +23,7 @@ class Extension(Gtk.Window):
         self.set_child(self.notification_block)
         self.update()
     def update(self):
-        self.main = Gtk.Box(margin_top=10,margin_start=10,margin_bottom=10,margin_end=10,valign=Gtk.Align.START,halign=Gtk.Align.CENTER,orientation=Gtk.Orientation.VERTICAL)
+        self.main = Gtk.Box(margin_top=10,margin_start=10,margin_bottom=10,margin_end=10,valign=Gtk.Align.FILL,halign=Gtk.Align.CENTER,orientation=Gtk.Orientation.VERTICAL)
         self.main.set_size_request(300, -1)
         self.scrolled_window.set_child(self.main)
         if os.path.exists(self.path):
@@ -33,7 +33,7 @@ class Extension(Gtk.Window):
                 if os.path.exists(main_json_path):
                     with open(main_json_path, "r") as file:
                         main_json_data = json.load(file)
-                        box = Gtk.Box(margin_top=10,margin_start=10,margin_end=10,margin_bottom=10,css_classes=["card"])
+                        box = Gtk.Box(margin_top=10,margin_bottom=10,css_classes=["card"], hexpand=True)
                         box.append(Gtk.Label(label=f"{name}",margin_top=10,margin_start=10,margin_end=10,margin_bottom=10))
                         box_elements = Gtk.Box(valign=Gtk.Align.CENTER,halign=Gtk.Align.END, hexpand= True)
                         button = Gtk.Button(css_classes=["flat"], margin_top=10,margin_start=10,margin_end=10,margin_bottom=10)
@@ -53,7 +53,7 @@ class Extension(Gtk.Window):
                         box_elements.append(button)
                         box.append(box_elements)
                         self.main.append(box)
-        folder_button = Gtk.Button(label=_("Choose an extension"),margin_top=10,margin_start=10,margin_bottom=10,margin_end=10,css_classes=["flat"])
+        folder_button = Gtk.Button(label=_("Choose an extension"), css_classes=["suggested-action"], margin_top=10)
         folder_button.connect("clicked", self.on_folder_button_clicked)
         self.main.append(folder_button)
     def change_status(self,widget,*a):

@@ -224,9 +224,14 @@ Assistant: ```chart\nJanuary - 5000\nFebruary - 8000\nMarch - 6500\nApril - 9000
         self.notification_block.set_child(self.chat_scroll)
 
         self.secondary_message_chat_block.append(self.notification_block)
+
+        self.offers_entry_block = Gtk.Box(orientation=Gtk.Orientation.VERTICAL,
+                        spacing=6,valign=Gtk.Align.END,halign=Gtk.Align.FILL, margin_bottom=6)
+        self.chat_scroll_window.append(self.offers_entry_block)
         self.chat_controls_entry_block = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL,
                         spacing=6,vexpand=True,valign=Gtk.Align.END,halign=Gtk.Align.CENTER, margin_top=6, margin_bottom=6)
         self.chat_scroll_window.append(self.chat_controls_entry_block)
+
         self.message_suggestion_buttons_array = []
 
         self.chat_stop_button = Gtk.Button(css_classes=["flat"])
@@ -291,12 +296,12 @@ Assistant: ```chart\nJanuary - 5000\nFebruary - 8000\nMarch - 6500\nApril - 9000
         self.status = True
         self.chat_controls_entry_block.append(self.chat_stop_button)
         for text in range(self.offers):
-            button = Gtk.Button(css_classes=["flat"])
-            label = Gtk.Label(label=text, wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR)
+            button = Gtk.Button(css_classes=["flat"], margin_start=6, margin_end=6)
+            label = Gtk.Label(label=text, wrap=True, wrap_mode=Pango.WrapMode.CHAR)
             button.set_child(label)
             button.connect("clicked", self.send_bot_response)
             button.set_visible(False)
-            self.chat_controls_entry_block.append(button)
+            self.offers_entry_block.append(button)
             self.message_suggestion_buttons_array.append(button)
 
         self.button_clear = Gtk.Button(css_classes=["flat"])
@@ -335,11 +340,16 @@ Assistant: ```chart\nJanuary - 5000\nFebruary - 8000\nMarch - 6500\nApril - 9000
         self.regenerate_message_button.set_visible(False)
         self.chat_controls_entry_block.append(self.regenerate_message_button)
 
-        self.input_panel = Gtk.Entry(margin_start=6, margin_end=6,  margin_top=6, margin_bottom=6)
+        self.input_panel = Gtk.Entry(hexpand=True, placeholder_text=_("Send a message")) #…
 
         self.secondary_message_chat_block.append(Gtk.Separator())
-        self.secondary_message_chat_block.append(self.input_panel)
+        input_box=Gtk.Box(halign=Gtk.Align.FILL, margin_start=6, margin_end=6,  margin_top=6, margin_bottom=6, spacing=6)
+        self.secondary_message_chat_block.append(input_box)
+        input_box.append(self.input_panel)
+        self.send_button = Gtk.Button(css_classes=["suggested-action"], icon_name="go-next-symbolic", width_request=36)
+        input_box.append(self.send_button)
         self.input_panel.connect('activate', self.on_entry_activate)
+        self.send_button.connect('clicked', self.on_entry_button_clicked)
         self.main.connect("notify::folded", self.handle_main_block_change)
         self.main_program_block.connect("notify::reveal-flap", self.handle_second_block_change)
 
@@ -348,6 +358,17 @@ Assistant: ```chart\nJanuary - 5000\nFebruary - 8000\nMarch - 6500\nApril - 9000
         threading.Thread(target=self.update_folder).start()
         threading.Thread(target=self.update_history).start()
         threading.Thread(target=self.show_chat).start()
+
+    def send_button_start_spinner(self):
+        spinner = Gtk.Spinner(spinning=True)
+        self.send_button.set_child(spinner)
+
+    def remove_send_button_spinner(self):
+        self.send_button.set_child(None)
+        self.send_button.set_icon_name("go-next-symbolic")
+
+    def on_entry_button_clicked(self,*a):
+        self.on_entry_activate(self.input_panel)
 
     def handle_second_block_change(self,*a):
         status = self.main_program_block.get_reveal_flap()
@@ -461,6 +482,7 @@ Assistant: ```chart\nJanuary - 5000\nFebruary - 8000\nMarch - 6500\nApril - 9000
             self.notification_block.add_toast(Adw.Toast(title=_('You can no longer continue the message.'), timeout=2))
         else:
             threading.Thread(target=self.send_message).start()
+            self.send_button_start_spinner()
 
     def regenerate_message(self, *a):
         if self.chat[-1]["User"] in ["Assistant","Console"]:
@@ -471,6 +493,7 @@ Assistant: ```chart\nJanuary - 5000\nFebruary - 8000\nMarch - 6500\nApril - 9000
                     break
             self.show_chat()
             threading.Thread(target=self.send_message).start()
+            self.send_button_start_spinner()
         else:
             self.notification_block.add_toast(Adw.Toast(title=_('You can no longer regenerate the message.'), timeout=2))
     def update_history(self):
@@ -480,7 +503,7 @@ Assistant: ```chart\nJanuary - 5000\nFebruary - 8000\nMarch - 6500\nApril - 9000
         for i in range(len(self.chats)):
             box = Gtk.Box(spacing=6, margin_top=3, margin_bottom=3,  margin_start=3, margin_end=3)
             generate_chat_name_button = Gtk.Button(css_classes=["flat", "accent"],
-                                                   valign=Gtk.Align.CENTER, icon_name="document-edit-symbolic") # wanted to use: tag-outline-symbolic
+                                                   valign=Gtk.Align.CENTER, icon_name="document-edit-symbolic", width_request=36) # wanted to use: tag-outline-symbolic
             generate_chat_name_button.connect("clicked", self.generate_chat_name)
             generate_chat_name_button.set_name(str(i))
 
@@ -502,7 +525,7 @@ Assistant: ```chart\nJanuary - 5000\nFebruary - 8000\nMarch - 6500\nApril - 9000
             button = Gtk.Button(css_classes=["flat"], hexpand=True)
             name = self.chats[i]["name"]
             if len(name) > 30:
-                #name = name[0:27] + "..."
+                #name = name[0:27] + "…"
                 button.set_tooltip_text(name)
             button.set_child(Gtk.Label(label=name, wrap=False, wrap_mode=Pango.WrapMode.WORD_CHAR, xalign=0, ellipsize=3, width_chars=22))
             button.set_name(str(i))
@@ -616,6 +639,7 @@ System: New chat
                     break
         self.notification_block.add_toast(Adw.Toast(title=_('The message was canceled and deleted from history'), timeout=2))
         self.show_chat()
+        self.remove_send_button_spinner()
 
     def send_message_to_bot(self, message):
         stream_number_variable = self.stream_number_variable
@@ -632,6 +656,7 @@ System: New chat
         return _("Chat has been stopped")
 
     def send_bot_response(self, button):
+        self.send_button_start_spinner()
         text = button.get_child().get_label()
         self.chat.append({"User": "User", "Message": " "+text})
         message_label = Gtk.Label(label=text, margin_top=10, margin_start=10, margin_bottom=10, margin_end=10, wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR,
@@ -859,6 +884,7 @@ System: New chat
             self.add_message("User", message_label, len(self.chat) - 1)
         self.scrolled_chat()
         threading.Thread(target=self.send_message).start()
+        self.send_button_start_spinner()
 
     def show_chat(self):
         if not self.check_streams["chat"]:
@@ -873,7 +899,9 @@ System: New chat
                 self.notification_block.add_toast(Adw.Toast(title=e))
 
             self.chat_scroll_window.remove(self.chat_controls_entry_block)
+            self.chat_scroll_window.remove(self.offers_entry_block)
             self.chat_scroll_window.append(self.chat_controls_entry_block)
+            self.chat_scroll_window.append(self.offers_entry_block)
             if not self.virtualization:
                 self.add_message("Warning")
             for i in range(len(self.chat)):
@@ -1057,6 +1085,7 @@ System: Forget what was written on behalf of the user and on behalf of the assis
             self.chat[len(self.chat) - self.memory:len(self.chat)]) + "\nAssistant: ")
         if self.stream_number_variable == stream_number_variable:
             self.show_message(message_label)
+        self.remove_send_button_spinner()
 
     def edit_message(self, gesture, data, x, y):
         if not self.status:
