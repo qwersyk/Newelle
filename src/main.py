@@ -120,6 +120,8 @@ class MyApp(Adw.Application):
                         application_icon='io.github.qwersyk.Newelle',
                         developer_name='qwersyk',
                         version=self.version,
+                        issue_url='https://github.com/qwersyk/Newelle/issues',
+                        website='https://github.com/qwersyk/Newelle',
                         developers=['qwersyk',"Nokse22"],
                         copyright='© 2023 qwersyk').present()
 
