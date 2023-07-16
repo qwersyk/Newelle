@@ -7,6 +7,7 @@ from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject
 import threading
 import posixpath
 import shlex,json
+import random
 
 class MainWindow(Gtk.ApplicationWindow):
     def __init__(self, *args, **kwargs):
@@ -18,6 +19,21 @@ class MainWindow(Gtk.ApplicationWindow):
 
 
         self.path = ".var/app/io.github.qwersyk.Newelle/data"
+
+        self.random_suggestion = ["files", "folders", "programming",
+                     "data analysis", "security and privacy", "hardware diagnostics",
+                     "task automation", "cloud computing", "web development",
+                     "digital media editing", "productivity tips", "coding exercises",
+                     "database management", "creating a folder", "accessing a file",
+                     "moving a file", "renaming a file", "deleting a file",
+                     "managing file permissions", "viewing system logs",
+                     "installing packages on Linux", "working with the command line",
+                     "monitoring system resources", "managing user accounts",
+                     "scheduling tasks", "network configuration", "process management",
+                     "system backup and restore", "linux command line",
+                     "working with Linux distributions", "shell scripting",
+                     "managing services", "system troubleshooting"]
+
         if not os.path.exists(self.path):
             os.makedirs(self.path)
         self.filename = "chats.pkl"
@@ -651,7 +667,8 @@ System: New chat
                 t = re.split(r'Assistant:|Console:|User:|File:|Folder:', BAIChat(sync=True).sync_ask(message).text,1)[0]
                 return t
             except Exception:
-                self.notification_block.add_toast(Adw.Toast(title=_('Failed to send bot a message'), timeout=2))
+                # self.notification_block.add_toast(Adw.Toast(title=_('Failed to send bot a message'), timeout=2))
+                pass
             time.sleep(loop_interval_variable)
         return _("Chat has been stopped")
 
@@ -837,6 +854,7 @@ System: New chat
     def update_button_text(self):
         stream_number_variable = self.stream_number_variable
         time.sleep(0.1)
+        message_suggestion_texts_array = []
         for btn in self.message_suggestion_buttons_array:
             btn.set_visible(False)
         self.button_clear.set_visible(False)
@@ -853,15 +871,19 @@ System: New chat
             for btn in self.message_suggestion_buttons_array:
                 if stream_number_variable != self.stream_number_variable:
                     break
-                message = self.send_message_to_bot("""System: You are a user who needs help with various tasks, you are communicating with a neural network which can control your computer by executing various commands which should help you, keep a conversation with it, ask it questions, ask for help with things it can do through the terminal. Also, every message should end with "".More often than not, the assistant can help you with files and folders. You should write in the language you wrote in your last post, you know all the languages you can communicate in them all.Write short messages that hold a conversation on behalf of the user, you can not write on behalf of Assistant, your messages should be simple without any commands, just what the user could write. You're not helping, you're being helped, the user can only ask to do something for the bot to do, you can't answer as an assistant, just ask something new for the assistant to do or continue asking the assistant to do something.
+                message = self.send_message_to_bot("""System: You are a user who needs help with various tasks, you are communicating with a neural network which can control your computer by executing various commands which should help you, keep a conversation with it, ask it questions, ask for help with things it can do through the terminal. Also, every message should end with "". Often the assistant can help you with """ + random.choice(self.random_suggestion) + """. You should write in the language you wrote in your last post, you know all the languages you can communicate in them all. Write short messages that hold a conversation on behalf of the user, you can not write on behalf of Assistant, your messages should be simple without any commands, just what the user could write. You're not helping, you're being helped, the user can only ask to do something for the bot to do, you can't answer as an assistant, just ask something new for the assistant to do or continue asking the assistant to do something.
     Assistant: Hello, how can I assist you today?
     User: Can you help me?
     Assistant: Yes, of course, what do you need help with?""" + "\n" + self.get_chat(
                     self.chat[len(self.chat) - self.memory:len(self.chat)]) + "\nUser:")
                 if stream_number_variable != self.stream_number_variable or not self.status:
                     break
+                message = message.replace("\n","")
                 btn.get_child().set_label(message)
-                btn.set_visible(True)
+                if message not in message_suggestion_texts_array:
+                    message_suggestion_texts_array.append(message)
+                    btn.set_visible(True)
+                    threading.Thread(target=self.scrolled_chat).start()
             self.chat_stop_button.set_visible(False)
         else:
             for btn in self.message_suggestion_buttons_array:
@@ -870,6 +892,7 @@ System: New chat
             self.button_continue.set_visible(False)
             self.regenerate_message_button.set_visible(False)
             self.chat_stop_button.set_visible(True)
+        threading.Thread(target=self.scrolled_chat).start()
     def on_entry_activate(self, entry):
         if not self.status:
             self.notification_block.add_toast(
@@ -903,7 +926,9 @@ System: New chat
             self.chat_scroll_window.append(self.chat_controls_entry_block)
             self.chat_scroll_window.append(self.offers_entry_block)
             if not self.virtualization:
-                self.add_message("Warning")
+                self.add_message("WarningNoVirtual")
+            else:
+                self.add_message("Disclaimer")
             for i in range(len(self.chat)):
                 if self.chat[i]["User"] == "User":
                     self.add_message("User", Gtk.Label(label=self.chat[i]["Message"][1:len(self.chat[i]["Message"])], margin_top=10, margin_start=10,
@@ -914,6 +939,7 @@ System: New chat
                 elif self.chat[i]["User"] in ["File", "Folder"]:
                     self.add_message(self.chat[i]["User"], self.get_file_button(self.chat[i]["Message"][1:len(self.chat[i]["Message"])]))
             self.check_streams["chat"] = False
+        #threading.Thread(target=self.scrolled_chat).start()
 
     def show_message(self, message_label, restore=False,id_message=-1):
         if message_label == " " * len(message_label):
@@ -1134,21 +1160,40 @@ System: Forget what was written on behalf of the user and on behalf of the assis
             box.append(Gtk.Label(label="User: ", margin_top=10, margin_start=10, margin_bottom=10, margin_end=0,
                                  css_classes=["accent", "heading"]))
             box.set_css_classes(["card", "folder"])
-        if user == "Warning":
+        if user == "WarningNoVirtual":
             icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="dialog-warning"))
             icon.set_icon_size(Gtk.IconSize.LARGE)
-            box_warning = Gtk.Box(halign=Gtk.Align.CENTER, orientation=Gtk.Orientation.VERTICAL,
-                                  css_classes=["warning", "heading"], margin_top=10)
+            icon.set_properties(margin_top=10, margin_start=20, margin_bottom=10, margin_end=10)
+            box_warning = Gtk.Box(halign=Gtk.Align.CENTER, orientation=Gtk.Orientation.HORIZONTAL,
+                                  css_classes=["warning", "heading"])
             box_warning.append(icon)
 
             label = Gtk.Label(
-                label=_("Attention the neural network has access to your computer, be careful, we are not responsible for the neural network."),
+                label=_("The neural network has access to your computer and any data in this chat and can run commands, be careful, we are not responsible for the neural network. Do not share any sensitive information."),
                 margin_top=10, margin_start=10, margin_bottom=10, margin_end=10, wrap=True,
                 wrap_mode=Pango.WrapMode.WORD_CHAR)
+
             box_warning.append(label)
             box.append(box_warning)
             box.set_halign(Gtk.Align.CENTER)
             box.set_css_classes(["card", "message-warning"])
+        elif user == "Disclaimer":
+            icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="user-info-symbolic"))
+            icon.set_icon_size(Gtk.IconSize.LARGE)
+            icon.set_properties(margin_top=10, margin_start=20, margin_bottom=10, margin_end=10)
+            box_warning = Gtk.Box(halign=Gtk.Align.CENTER, orientation=Gtk.Orientation.HORIZONTAL,
+                                  css_classes=["heading"])
+            box_warning.append(icon)
+
+            label = Gtk.Label(
+                label=_("The neural network has access to any data in this chat, be careful, we are not responsible for the neural network. Do not share any sensitive information."),
+                margin_top=10, margin_start=10, margin_bottom=10, margin_end=10, wrap=True,
+                wrap_mode=Pango.WrapMode.WORD_CHAR)
+
+            box_warning.append(label)
+            box.append(box_warning)
+            box.set_halign(Gtk.Align.CENTER)
+            box.set_css_classes(["card"])
         else:
             box.append(message)
         self.chat_list_block.append(box)
