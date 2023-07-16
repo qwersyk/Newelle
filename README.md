@@ -60,7 +60,7 @@ To start using our program, you have two options: compiling it through GNOME Bui
 2. Install Newelle by executing: `flatpak install flathub io.github.qwersyk.Newelle`
 3. Once installed, you can launch Newelle.
 
-Please note that the Flatpak version of Newelle has some limitations for security purposes. It can only access the `.var/app/ioюgithub.qwersyk.Newelle` folder, and it can only run within the Flatpak sandboxed environment. 
+Please note that the Flatpak version of Newelle has some limitations for security purposes. It can only access the `.var/app/io.github.qwersyk.Newelle` folder, and it can only run within the Flatpak sandboxed environment. 
 
 To extend the program's capabilities, follow these steps:
 
