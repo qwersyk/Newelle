@@ -34,5 +34,14 @@
 	      <key name="show-image" type="b">
             <default>true</default>
         </key>
+	      <key name="language-model" type="s">
+            <default>"bai"</default>
+        </key>
+	      <key name="local-model" type="s">
+            <default>""</default>
+        </key>
+	      <key name="available-models" type="s">
+            <default>"[]"</default>
+        </key>
 	</schema>
 </schemalist>
