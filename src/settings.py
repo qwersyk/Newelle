@@ -128,6 +128,7 @@ class Settings(Adw.PreferencesWindow):
             self.local_models = models
         radio = Gtk.CheckButton()
         self.rows = {}
+        self.model_threads = {}
         for model in self.local_models:
             available = self.gpt.model_available(model["filename"])
             active = False
@@ -165,6 +166,7 @@ class Settings(Adw.PreferencesWindow):
             r.add_prefix(button)
             r.add_suffix(actionbutton)
             self.llmrow.add_row(r)
+
     def download_local_model(self, button):
         model = button.get_name()
         box = Gtk.Box(homogeneous=True, spacing=4)
@@ -176,8 +178,10 @@ class Settings(Adw.PreferencesWindow):
         box.append(icon)
         box.append(progress)
         button.set_child(box)
+        button.disconnect_by_func(self.download_local_model)
         button.connect("clicked", self.remove_local_model)
         th = threading.Thread(target=self.download_model_thread, args=(model, button, progress))
+        self.model_threads[model] = th
         th.start()
 
     def update_download_status(self, model, filesize, progressbar):
@@ -195,24 +199,33 @@ class Settings(Adw.PreferencesWindow):
         for x in self.local_models:
             if x["filename"] == model:
                 filesize = x["filesize"]
+                break
         self.downloading[model] = True
         th = threading.Thread(target=self.update_download_status, args=(model, filesize, progressbar))
         th.start()
         self.gpt.download_model(model)
-        self.downloading[model] = False
         icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="user-trash-symbolic"))
         icon.set_icon_size(Gtk.IconSize.INHERIT)
         button.add_css_class("error")
         button.set_child(icon)
+        self.downloading[model] = False
 
     def remove_local_model(self, button):
         model = button.get_name()
+        # Kill threads if stopping download
+        if model in self.downloading and self.downloading[model]:
+            self.downloading[model] = False
+            if model in self.model_threads:
+                # TODO: find some way to stop the thread
+                #self.model_threads[model].terminate()
+                pass
         try:
             os.remove(os.path.join(self.gpt.modelspath, model))
             button.add_css_class("accent")
             if model in self.downloading:
                 self.downloading[model] = False
             icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="folder-download-symbolic"))
+            button.disconnect_by_func(self.remove_local_model)
             button.connect("clicked", self.download_local_model)
             button.add_css_class("accent")
             button.remove_css_class("error")
