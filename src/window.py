@@ -2,8 +2,9 @@ import time, re
 import gi, os, subprocess
 import pickle
 from .gtkobj import File, CopyBox, BarChartBox
-from .bai import BAIChat
-from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject
+from .bai import BAIChat, BaiHandler
+from .localmodels import GPT4AllHandler
+from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject, GLib
 import threading
 import posixpath
 import shlex,json
@@ -43,7 +44,9 @@ class MainWindow(Gtk.ApplicationWindow):
         else:
             self.chats = [{"name": _("Chat ")+"1", "chat": []}]
 
+        self.directory = GLib.get_user_config_dir()
         settings = Gio.Settings.new('io.github.qwersyk.Newelle')
+        self.settings = settings
         self.offers = settings.get_int("offers")
         self.virtualization = settings.get_boolean("virtualization")
         self.memory = settings.get_int("memory")
@@ -56,6 +59,15 @@ class MainWindow(Gtk.ApplicationWindow):
         self.graphic = settings.get_boolean("graphic")
         self.basic_functionality = settings.get_boolean("basic-functionality")
         self.show_image = settings.get_boolean("show-image")
+        self.language_model = settings.get_string("language-model")
+        self.local_model = settings.get_string("local-model")
+
+        if self.language_model == "bai":
+            self.model = BaiHandler()
+        elif self.language_model == "local":
+            self.model = GPT4AllHandler(self.settings, os.path.join(self.path, "models"))
+
+        self.model.load_model(self.local_model)
 
         self.bot_prompt = """"""
         if self.console:
@@ -658,19 +670,8 @@ System: New chat
         self.remove_send_button_spinner()
 
     def send_message_to_bot(self, message):
-        stream_number_variable = self.stream_number_variable
-        loop_interval_variable = 1
-        while stream_number_variable == self.stream_number_variable:
-            loop_interval_variable *= 2
-            loop_interval_variable = min(60,loop_interval_variable)
-            try:
-                t = re.split(r'Assistant:|Console:|User:|File:|Folder:', BAIChat(sync=True).sync_ask(message).text,1)[0]
-                return t
-            except Exception:
-                # self.notification_block.add_toast(Adw.Toast(title=_('Failed to send bot a message'), timeout=2))
-                pass
-            time.sleep(loop_interval_variable)
-        return _("Chat has been stopped")
+        return self.model.send_message(self, message)
+
 
     def send_bot_response(self, button):
         self.send_button_start_spinner()

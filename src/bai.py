@@ -5,7 +5,8 @@ import random
 import string
 import asyncio
 import http.client
-
+import time
+import re
 
 class BAIChatDelta:
     def __init__(self, data: dict):
@@ -201,3 +202,23 @@ class BAIChat:
     def __exit__(self, exc_type, exc_value, traceback) -> None:
         self.save_config()
 
+class BaiHandler():
+    def __init__(self):
+        pass
+
+    def load_model(self, model):
+        return True
+    def send_message(self, window, message):
+            stream_number_variable = window.stream_number_variable
+            loop_interval_variable = 1
+            while stream_number_variable == window.stream_number_variable:
+                loop_interval_variable *= 2
+                loop_interval_variable = min(60,loop_interval_variable)
+                try:
+                    t = re.split(r'Assistant:|Console:|User:|File:|Folder:', BAIChat(sync=True).sync_ask(message).text,1)[0]
+                    return t
+                except Exception as e:
+                    # self.notification_block.add_toast(Adw.Toast(title=_('Failed to send bot a message'), timeout=2))
+                    pass
+                time.sleep(loop_interval_variable)
+            return _("Chat has been stopped")

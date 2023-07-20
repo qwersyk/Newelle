@@ -47,6 +47,8 @@ class Settings(Adw.PreferencesWindow):
             button = Gtk.CheckButton()
             button.set_group(group)
             button.set_active(active)
+            button.set_name(model["key"])
+            button.connect("toggled", self.choose_llm)
             row.add_prefix(button)
             self.LLM.add(row)
 
@@ -144,6 +146,8 @@ class Settings(Adw.PreferencesWindow):
             button = Gtk.CheckButton()
             button.set_group(radio)
             button.set_active(active)
+            button.set_name(model["filename"])
+            button.connect("toggled", self.choose_local_model)
             # TOFIX: Causes some errors sometimes
             #button.set_sensitive(available)
             actionbutton = Gtk.Button(css_classes=["flat"],
@@ -166,6 +170,13 @@ class Settings(Adw.PreferencesWindow):
             r.add_prefix(button)
             r.add_suffix(actionbutton)
             self.llmrow.add_row(r)
+
+    def choose_llm(self, button):
+        if button.get_active():
+            self.settings.set_string("language-model", button.get_name())
+    def choose_local_model(self, button):
+        if button.get_active():
+            self.settings.set_string("local-model", button.get_name())
 
     def download_local_model(self, button):
         model = button.get_name()
