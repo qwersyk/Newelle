@@ -1,0 +1,309 @@
+# ITALIAN TRANSLATION.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# ALBANO BATTISTELLA <ALBANOBATTISTELLA@GMAIL.COM>, 2023.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-07-10 09:30+0200\n"
+"PO-Revision-Date: 2023-07-21 15:13+0100\n"
+"Last-Translator: Albano Battistella <albanobattistella@gmail.com>\n"
+"Language-Team: Italian <LL@li.org>\n"
+"Language: it\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: extension.py:9 window.py:148
+msgid "Extensions"
+msgstr "Estensioni"
+
+#: extension.py:56
+msgid "Choose an extension"
+msgstr "Scegli un'estensione"
+
+#: extension.py:75
+msgid " has been removed"
+msgstr "è stato rimossa"
+
+#: extension.py:78
+msgid "Add extension"
+msgstr "Aggiugi estensione"
+
+#: extension.py:105
+msgid "Extension added. New extensions will run from the next launch"
+msgstr "Estensione aggiunta. Le nuove estensioni verranno eseguite dal prossimo lancio"
+
+#: extension.py:112
+msgid "The extension is wrong"
+msgstr "L'estensione è sbagliata"
+
+#: extension.py:114
+msgid "This is not an extension"
+msgstr "Questa non è un'estensione"
+
+#: main.py:142
+msgid "Terminal threads are still running in the background"
+msgstr "I thread del terminale sono ancora in esecuzione in background"
+
+#: main.py:143
+msgid "When you close the window, they will be automatically terminated"
+msgstr "Quando chiudi la finestra, verranno automaticamente terminate"
+
+#: main.py:146
+msgid "Cancel"
+msgstr "Cancella"
+
+#: main.py:147
+msgid "Close"
+msgstr "Chiudi"
+
+#: main.py:167
+msgid "Chat is rebooted"
+msgstr "La chat viene riavviata"
+
+#: main.py:172
+msgid "Folder is rebooted"
+msgstr "La cartella viene riavviata"
+
+#: main.py:177
+msgid "Chat is created"
+msgstr "La chat è stata creata"
+
+#: window.py:28 window.py:551
+msgid "Chat "
+msgstr "Chat"
+
+#: window.py:147 thread_editing.py:8
+msgid "Thread editing"
+msgstr "Modifica del thread"
+
+#: window.py:149
+msgid "Settings"
+msgstr "Impostazioni"
+
+#: window.py:150
+msgid "Keyboard shorcuts"
+msgstr "Scorciatoie da tastiera"
+
+#: window.py:151
+msgid "About"
+msgstr "Informazioni"
+
+#: window.py:155
+msgid "Chat"
+msgstr "Chat"
+
+#: window.py:182
+msgid "History"
+msgstr "Cronologia"
+
+#: window.py:193
+msgid "Create a chat"
+msgstr "Crea una chat"
+
+#: window.py:236
+msgid "Stop"
+msgstr "Ferma"
+
+#: window.py:305
+msgid "Clear"
+msgstr "Pulisci"
+
+#: window.py:317
+msgid "Continue"
+msgstr "Continua"
+
+#: window.py:329
+msgid "Regenerate"
+msgstr "Rigenera"
+
+#: window.py:417 window.py:737
+msgid "File not found"
+msgstr "File non trovato"
+
+#: window.py:421
+msgid "The file cannot be sent until the program is finished"
+msgstr "Il file non può essere inviato fino a quando il programma non è terminato"
+
+#: window.py:435
+msgid "The file is not recognized"
+msgstr "Il file non è riconosciuto"
+
+#: window.py:458
+msgid "You can no longer continue the message."
+msgstr "Non puoi più continuare il messaggio."
+
+#: window.py:471
+msgid "You can no longer regenerate the message."
+msgstr "Non è più possibile rigenerare il messaggio."
+
+#: window.py:532
+msgid "Chat is empty"
+msgstr "La chat è vuota"
+
+#: window.py:593
+msgid "Chat is cleared"
+msgstr "La chat è stata cancellata"
+
+#: window.py:611
+msgid "The message was canceled and deleted from history"
+msgstr "Il messaggio è stato annullato ed eliminato dalla cronologia"
+
+#: window.py:624
+msgid "Failed to send bot a message"
+msgstr "Impossibile inviare un messaggio al bot"
+
+#: window.py:626
+msgid "Chat has been stopped"
+msgstr "La chat è stata interrotta"
+
+#: window.py:652
+msgid "Folder is Empty"
+msgstr "La cartella è vuota"
+
+#: window.py:762
+msgid "Wrong folder path"
+msgstr "Percorso della cartella errato"
+
+#: window.py:790
+msgid "Thread has not been completed, thread number: "
+msgstr "Thread non è stato completato, numero thread:"
+
+#: window.py:796
+msgid "Failed to open the folder"
+msgstr "Impossibile aprire la cartella"
+
+#: window.py:845
+msgid "The message cannot be sent until the program is finished"
+msgstr "Il messaggio non può essere inviato fino a quando il programma non è terminato"
+
+#: window.py:1057
+msgid "You can't edit a message while the program is running."
+msgstr "Non puoi modificare un messaggio mentre il programma è in esecuzione."
+
+#: window.py:1110
+msgid ""
+"Attention the neural network has access to your computer, be careful, we are "
+"not responsible for the neural network."
+msgstr ""
+"Attenzione la rete neurale ha accesso al tuo computer, stai attento, noi non siamo "
+"responsabile per la rete neurale."
+
+#: thread_editing.py:38
+msgid "No threads are running"
+msgstr "Nessun thread è in esecuzione"
+
+#: thread_editing.py:44
+msgid "Thread number: "
+msgstr "Numero di Thread:"
+
+#: shortcuts.py:8
+msgid "Help"
+msgstr "Aiuto"
+
+#: shortcuts.py:14
+msgid "Shortcuts"
+msgstr "Scorciatoie"
+
+#: shortcuts.py:15
+msgid "Reload chat"
+msgstr "Ricarica chat"
+
+#: shortcuts.py:16
+msgid "Reload folder"
+msgstr "Ricarica cartella"
+
+#: shortcuts.py:17
+msgid "New tab"
+msgstr "Nuova scheda"
+
+#: settings.py:13
+msgid "Interface"
+msgstr "Interfaccia"
+
+#: settings.py:16
+msgid "Hidden files"
+msgstr "File nascosti"
+
+#: settings.py:16
+msgid "Show hidden files"
+msgstr "Mostra file nascosti"
+
+#: settings.py:22
+msgid "Number of offers"
+msgstr "Numero di offerte"
+
+#: settings.py:22
+msgid "Number of message suggestions to send to chat "
+msgstr "Numero di suggerimenti di messaggi da inviare alla chat"
+
+#: settings.py:29
+msgid "Prompt control"
+msgstr "Controllo prompt"
+
+#: settings.py:32
+msgid "Auto-run commands"
+msgstr "Comandi di esecuzione automatica"
+
+#: settings.py:32
+msgid "Commands that the bot will write will automatically run"
+msgstr "I comandi che il bot scriverà verranno eseguiti automaticamente"
+
+#: settings.py:38
+msgid "Console access"
+msgstr "Accesso consolle"
+
+#: settings.py:38
+msgid "Can the program run terminal commands on the computer"
+msgstr "Il programma può eseguire i comandi del terminale sul computer"
+
+#: settings.py:44
+msgid "Graphs access"
+msgstr "Accesso ai grafici"
+
+#: settings.py:44
+msgid "Can the program display graphs"
+msgstr "Il programma può visualizzare grafici"
+
+#: settings.py:50
+msgid "Basic functionality"
+msgstr "Funzionalità di base"
+
+#: settings.py:50
+msgid "Showing tables and code (*can work without it)"
+msgstr "Visualizzazione di tabelle e codice (*può funzionare senza di esso)"
+
+#: settings.py:56
+msgid "Show image"
+msgstr "Mostra immagine"
+
+#: settings.py:56
+msgid "Show image in chat"
+msgstr "Mostra immagine in chat"
+
+#: settings.py:62
+msgid "Neural Network Control"
+msgstr "Controllo della rete neurale"
+
+#: settings.py:65
+msgid "Command virtualization"
+msgstr "Virtualizzazione dei comandi"
+
+#: settings.py:65
+msgid "Run commands in a virtual machine"
+msgstr "Eseguire i comandi in una macchina virtuale"
+
+#: settings.py:71
+msgid "Program memory"
+msgstr "Memoria del programma"
+
+#: settings.py:71
+msgid "How long the program remembers the chat "
+msgstr "Per quanto tempo il programma ricorda la chat"
+
+#: settings.py:78
+msgid "The change will take effect after you restart the program."
+msgstr "La modifica avrà effetto dopo il riavvio del programma."
