@@ -1,6 +1,18 @@
 import gi
-from gi.repository import Gtk, Adw, Gio
+import re, threading, os, json, time, ctypes
+from gi.repository import Gtk, Adw, Gio, GLib
+from .constants import AVAILABLE_LLMS
+from gpt4all import GPT4All
+from .localmodels import GPT4AllHandler
 
+
+def human_readable_size(size, decimal_places=2):
+    size = int(size)
+    for unit in ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB']:
+        if size < 1024.0 or unit == 'PiB':
+            break
+        size /= 1024.0
+    return f"{size:.{decimal_places}f} {unit}"
 
 class Settings(Adw.PreferencesWindow):
     def __init__(self,app, *args, **kwargs):
@@ -8,8 +20,38 @@ class Settings(Adw.PreferencesWindow):
         self.settings = Gio.Settings.new('io.github.qwersyk.Newelle')
         self.set_transient_for(app.win)
         self.set_modal(True)
+        self.downloading = {}
+
+        self.local_models = json.loads(self.settings.get_string("available-models"))
+        self.directory = GLib.get_user_config_dir()
+        self.gpt = GPT4AllHandler(self.settings, os.path.join(self.directory, "models"))
 
         self.general_page = Adw.PreferencesPage()
+
+        self.LLM = Adw.PreferencesGroup(title=_('Language Model'))
+        self.general_page.add(self.LLM)
+        self.llmbuttons = [];
+        group = Gtk.CheckButton()
+        for model in AVAILABLE_LLMS:
+            active = False
+            if model["key"] == self.settings.get_string("language-model"):
+                active = True
+            if model["rowtype"] == "action":
+                row = Adw.ActionRow(title=model["title"], subtitle=model["description"])
+            elif model["rowtype"] == "expander":
+                row = Adw.ExpanderRow(title=model["title"], subtitle=model["description"])
+                if model["key"] == "local":
+                    self.llmrow = row
+                    thread = threading.Thread(target=self.build_local)
+                    thread.start()
+            button = Gtk.CheckButton()
+            button.set_group(group)
+            button.set_active(active)
+            button.set_name(model["key"])
+            button.connect("toggled", self.choose_llm)
+            row.add_prefix(button)
+            self.LLM.add(row)
+
         self.interface = Adw.PreferencesGroup(title=_('Interface'))
         self.general_page.add(self.interface)
 
@@ -79,3 +121,129 @@ class Settings(Adw.PreferencesWindow):
         self.general_page.add(self.message)
 
         self.add(self.general_page)
+
+    def build_local(self):
+        # Reload available models
+        if len(self.local_models) == 0:
+            models = GPT4All.list_models()
+            self.settings.set_string("available-models", json.dumps(models))
+            self.local_models = models
+        radio = Gtk.CheckButton()
+        self.rows = {}
+        self.model_threads = {}
+        for model in self.local_models:
+            available = self.gpt.model_available(model["filename"])
+            active = False
+            if model["filename"] == self.settings.get_string("local-model"):
+                active = True
+            # Write model description
+            subtitle = _("RAM Required: ") + str(model["ramrequired"]) + "GB"
+            subtitle += "\n" + _("Parameters: ") + model["parameters"]
+            subtitle += "\n" + _("Size: ") + human_readable_size(model["filesize"], 1)
+            subtitle += "\n" + re.sub('<[^<]+?>', '', model["description"]).replace("</ul", "")
+            # Configure buttons and model's row
+            r = Adw.ActionRow(title=model["name"], subtitle=subtitle)
+            button = Gtk.CheckButton()
+            button.set_group(radio)
+            button.set_active(active)
+            button.set_name(model["filename"])
+            button.connect("toggled", self.choose_local_model)
+            # TOFIX: Causes some errors sometimes
+            #button.set_sensitive(available)
+            actionbutton = Gtk.Button(css_classes=["flat"],
+                                                valign=Gtk.Align.CENTER)
+            if available:
+                icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="user-trash-symbolic"))
+                actionbutton.connect("clicked", self.remove_local_model)
+                actionbutton.add_css_class("error")
+            else:
+                icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="folder-download-symbolic"))
+                actionbutton.connect("clicked", self.download_local_model)
+                actionbutton.add_css_class("accent")
+            actionbutton.set_child(icon)
+            icon.set_icon_size(Gtk.IconSize.INHERIT)
+
+            actionbutton.set_name(model["filename"])
+
+            self.rows[model["filename"]] = {"radio": button}
+
+            r.add_prefix(button)
+            r.add_suffix(actionbutton)
+            self.llmrow.add_row(r)
+
+    def choose_llm(self, button):
+        if button.get_active():
+            self.settings.set_string("language-model", button.get_name())
+    def choose_local_model(self, button):
+        if button.get_active():
+            self.settings.set_string("local-model", button.get_name())
+
+    def download_local_model(self, button):
+        model = button.get_name()
+        box = Gtk.Box(homogeneous=True, spacing=4)
+        box.set_orientation(Gtk.Orientation.VERTICAL)
+        icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="folder-download-symbolic"))
+        icon.set_icon_size(Gtk.IconSize.INHERIT)
+        progress = Gtk.ProgressBar(hexpand=False)
+        progress.set_size_request(4, 4)
+        box.append(icon)
+        box.append(progress)
+        button.set_child(box)
+        button.disconnect_by_func(self.download_local_model)
+        button.connect("clicked", self.remove_local_model)
+        th = threading.Thread(target=self.download_model_thread, args=(model, button, progress))
+        self.model_threads[model] = [th, 0]
+        th.start()
+
+    def update_download_status(self, model, filesize, progressbar):
+        file = os.path.join(self.gpt.modelspath, model)
+        while model in self.downloading and self.downloading[model]:
+            try:
+                currentsize = os.path.getsize(file)
+                perc = currentsize/int(filesize)
+                progressbar.set_fraction(perc)
+            except Exception as e:
+                print(e)
+            time.sleep(1)
+
+    def download_model_thread(self, model, button, progressbar):
+        for x in self.local_models:
+            if x["filename"] == model:
+                filesize = x["filesize"]
+                break
+        self.model_threads[model][1] = threading.current_thread().ident
+        self.downloading[model] = True
+        th = threading.Thread(target=self.update_download_status, args=(model, filesize, progressbar))
+        th.start()
+        self.gpt.download_model(model)
+        icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="user-trash-symbolic"))
+        icon.set_icon_size(Gtk.IconSize.INHERIT)
+        button.add_css_class("error")
+        button.set_child(icon)
+        self.downloading[model] = False
+
+    def remove_local_model(self, button):
+        model = button.get_name()
+        # Kill threads if stopping download
+        if model in self.downloading and self.downloading[model]:
+            self.downloading[model] = False
+            if model in self.model_threads:
+                thid = self.model_threads[model][1]
+                # NOTE: This does only work on Linux
+                res = ctypes.pythonapi.PyThreadState_SetAsyncExc(ctypes.c_long(thid), ctypes.py_object(SystemExit))
+                if res > 1:
+                    ctypes.pythonapi.PyThreadState_SetAsyncExc(ctypes.c_long(thid), 0)
+        try:
+            os.remove(os.path.join(self.gpt.modelspath, model))
+            button.add_css_class("accent")
+            if model in self.downloading:
+                self.downloading[model] = False
+            icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="folder-download-symbolic"))
+            button.disconnect_by_func(self.remove_local_model)
+            button.connect("clicked", self.download_local_model)
+            button.add_css_class("accent")
+            button.remove_css_class("error")
+            icon.set_icon_size(Gtk.IconSize.INHERIT)
+            button.set_child(icon)
+        except Exception as e:
+            print(e)

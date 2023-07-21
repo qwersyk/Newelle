@@ -31,11 +31,13 @@ newelle_sources = [
   'main.py',
   'bai.py',
   'gtkobj.py',
+  'constants.py',
   'settings.py',
   'window.py',
   'shortcuts.py',
   'thread_editing.py',
-  'extension.py'
+  'extension.py',
+  'localmodels.py'
 ]
 
 install_data(newelle_sources, install_dir: moduledir)

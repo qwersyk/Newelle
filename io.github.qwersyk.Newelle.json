@@ -25,6 +25,9 @@
         "*.a"
     ],
     "modules" : [
+    	"python3-requests.json",
+    	"python3-gpt4all.json",
+
         {
             "name" : "newelle",
             "builddir" : true,

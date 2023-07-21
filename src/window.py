@@ -2,8 +2,8 @@ import time, re
 import gi, os, subprocess
 import pickle
 from .gtkobj import File, CopyBox, BarChartBox
-from .bai import BAIChat
-from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject
+from .constants import AVAILABLE_LLMS, PROMPTS
+from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject, GLib
 import threading
 import posixpath
 import shlex,json
@@ -43,7 +43,9 @@ class MainWindow(Gtk.ApplicationWindow):
         else:
             self.chats = [{"name": _("Chat ")+"1", "chat": []}]
 
+        self.directory = GLib.get_user_config_dir()
         settings = Gio.Settings.new('io.github.qwersyk.Newelle')
+        self.settings = settings
         self.offers = settings.get_int("offers")
         self.virtualization = settings.get_boolean("virtualization")
         self.memory = settings.get_int("memory")
@@ -56,85 +58,31 @@ class MainWindow(Gtk.ApplicationWindow):
         self.graphic = settings.get_boolean("graphic")
         self.basic_functionality = settings.get_boolean("basic-functionality")
         self.show_image = settings.get_boolean("show-image")
+        self.language_model = settings.get_string("language-model")
+        self.local_model = settings.get_string("local-model")
+
+        found = False
+        for model in AVAILABLE_LLMS:
+            if model["key"] == self.language_model:
+                self.model = model["class"](self.settings, os.path.join(self.directory, "models"))
+                found = True
+                break
+        if not found:
+            self.model = AVAILABLE_LLMS[0]["class"](self.settings, os.path.join(self.directory, "models"))
+
+        self.model.load_model(self.local_model)
 
         self.bot_prompt = """"""
         if self.console:
-            self.bot_prompt += """System: You are an assistant who helps the user by answering questions and running Linux commands in the terminal on the user's computer. Use two types of messages: "Assistant: text" to answer questions and communicate with the user, and "Assistant: ```console\ncommand\n```" to execute commands on the user's computer. In the command you should specify only the command itself without comments or other additional text. Your task is to minimize the information and leave only the important. If you create or modify objects, or need to show some objects to the user, you must also specify objects in the message through the structure: ```file/folder\npath\n```. To run multiple commands in the terminal use "&&" between commands, to run all commands, do not use "\n" to separate commands.
-User: Create an image 100x100 pixels
-Assistant: ```console
-convert -size 100x100 xc:white image.png
-```
-Console: Done
-Assistant: The image has been created:
-```image
-./image.png
-```
-
-User: Open YouTube
-Assistant: ```console
-xdg-open https://www.youtube.com
-```
-Console: Done
-Assistant:
-
-User: Create folder
-Assistant: ```console
-mkdir folder
-```
-Console: Done
-Assistant: The folder has been created:
-```folder
-./folder
-```
-
-User: What day of the week it is
-Assistant: ```console
-date +%A
-```
-Console: Tuesday
-Assistant: Today is Tuesday.
-
-User: What's the error in file 1.py
-Assistant: ```console
-cat 1.py
-```
-Console: print(math.pi)
-Assistant: The error is that you forgot to import the math module
-
-User: Create a folder and create a git project inside it.
-Assistant: ```console\nmkdir folder && cd folder && git init\n```
-
-"""
+            self.bot_prompt += PROMPTS["console_prompt"]
         if self.basic_functionality:
-            self.bot_prompt += """User: Write the multiplication table 4 by 4
-Assistant: | - | 1 | 2 | 3 | 4 |\n| - | - | - | - | - |\n| 1 | 1 | 2 | 3 | 4 |\n| 2 | 2 | 4 | 6 | 8 |\n| 3 | 3 | 6 | 9 | 12 |\n| 4 | 4 | 8 | 12 | 16 |
-
-User: Write example c++ code
-Assistant: ```cpp\n#include<iostream>\nusing namespace std;\nint main(){\n    cout<<"Hello world!";\n    return 0;\n}\n```
-
-User: Write example js code
-Assistant: ```js\nconsole.log("Hello world!");\n```
-
-User: Write example python code
-Assistant: ```python\npython("Hello world!")\n```
-User: Run this code
-Assistant: ```console\npython3 -c "print('Hello world!')"\n```
-"""
+            self.bot_prompt += PROMPTS["basic_functionality"]
         if self.show_image:
-            self.bot_prompt +="""System: You can also show the user an image, if needed, through a syntax like '```image\npath\n```'
-"""
+            self.bot_prompt += PROMPTS["show_image"]
         if self.graphic:
-            self.bot_prompt += """System: You can display the graph using this structure: ```chart\n name - value\n ... \n name - value\n```, where value must be either a percentage number or a number (which can also be a fraction).
-User: Write which product Apple sold the most in 2019, which less, etc.
-Assistant: ```chart\niPhone - 60%\nMacBook - 15%\niPad - 10%\nApple Watch - 10%\niMac - 5%\n```\nIn 2019, Apple sold the most iPhones.
-"""
+            self.bot_prompt += PROMPTS["graphic"]
         if self.graphic and self.console:
-            self.bot_prompt+="""File: /home/user/Downloads/money.txt
-User: Create a graph for the report in the money.txt file
-Assistant: ```console\ncat /home/user/Downloads/money.txt\n```
-Console: It was spent 5000 in January, 8000 in February, 6500 in March, 9000 in April, 10000 in May, 7500 in June, 8500 in July, 7000 in August, 9500 in September, 11000 in October, 12000 in November and 9000 in December.
-Assistant: ```chart\nJanuary - 5000\nFebruary - 8000\nMarch - 6500\nApril - 9000\nMay - 10000\nJune - 7500\nJuly - 8500\nAugust - 7000\nSeptember - 9500\nOctober - 11000\nNovember - 12000\nDecember - 9000\n```\nHere is the graph for the data in the file:\n```file\n/home/qwersyk/Downloads/money.txt\n```
-"""
+            self.bot_prompt += PROMPTS["graphic_console"]
         self.extension_path = os.path.expanduser("~")+"/.var/app/io.github.qwersyk.Newelle/extension"
         self.extensions = {}
         if os.path.exists(self.extension_path):
@@ -658,19 +606,8 @@ System: New chat
         self.remove_send_button_spinner()
 
     def send_message_to_bot(self, message):
-        stream_number_variable = self.stream_number_variable
-        loop_interval_variable = 1
-        while stream_number_variable == self.stream_number_variable:
-            loop_interval_variable *= 2
-            loop_interval_variable = min(60,loop_interval_variable)
-            try:
-                t = re.split(r'Assistant:|Console:|User:|File:|Folder:', BAIChat(sync=True).sync_ask(message).text,1)[0]
-                return t
-            except Exception:
-                # self.notification_block.add_toast(Adw.Toast(title=_('Failed to send bot a message'), timeout=2))
-                pass
-            time.sleep(loop_interval_variable)
-        return _("Chat has been stopped")
+        return self.model.send_message(self, message)
+
 
     def send_bot_response(self, button):
         self.send_button_start_spinner()
