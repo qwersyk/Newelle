@@ -1,5 +1,5 @@
 import gi
-import re, threading, os, json, time
+import re, threading, os, json, time, ctypes
 from gi.repository import Gtk, Adw, Gio, GLib
 from .constants import AVAILABLE_LLMS
 from gpt4all import GPT4All
@@ -192,7 +192,7 @@ class Settings(Adw.PreferencesWindow):
         button.disconnect_by_func(self.download_local_model)
         button.connect("clicked", self.remove_local_model)
         th = threading.Thread(target=self.download_model_thread, args=(model, button, progress))
-        self.model_threads[model] = th
+        self.model_threads[model] = [th, 0]
         th.start()
 
     def update_download_status(self, model, filesize, progressbar):
@@ -211,6 +211,7 @@ class Settings(Adw.PreferencesWindow):
             if x["filename"] == model:
                 filesize = x["filesize"]
                 break
+        self.model_threads[model][1] = threading.current_thread().ident
         self.downloading[model] = True
         th = threading.Thread(target=self.update_download_status, args=(model, filesize, progressbar))
         th.start()
@@ -227,9 +228,11 @@ class Settings(Adw.PreferencesWindow):
         if model in self.downloading and self.downloading[model]:
             self.downloading[model] = False
             if model in self.model_threads:
-                # TODO: find some way to stop the thread
-                #self.model_threads[model].terminate()
-                pass
+                thid = self.model_threads[model][1]
+                # NOTE: This does only work on Linux
+                res = ctypes.pythonapi.PyThreadState_SetAsyncExc(ctypes.c_long(thid), ctypes.py_object(SystemExit))
+                if res > 1:
+                    ctypes.pythonapi.PyThreadState_SetAsyncExc(ctypes.c_long(thid), 0)
         try:
             os.remove(os.path.join(self.gpt.modelspath, model))
             button.add_css_class("accent")
