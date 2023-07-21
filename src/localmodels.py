@@ -24,7 +24,7 @@ class GPT4AllHandler:
     def load_model(self, model:str):
         if self.model is None:
             try:
-                self.model = GPT4All(model)
+                self.model = GPT4All(model, model_path=self.modelspath)
             except Exception as e:
                 print(e)
                 return False
