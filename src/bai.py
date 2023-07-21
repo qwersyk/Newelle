@@ -203,7 +203,7 @@ class BAIChat:
         self.save_config()
 
 class BaiHandler():
-    def __init__(self):
+    def __init__(self, settings, path):
         pass
 
     def load_model(self, model):

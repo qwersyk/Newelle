@@ -2,8 +2,7 @@ import time, re
 import gi, os, subprocess
 import pickle
 from .gtkobj import File, CopyBox, BarChartBox
-from .bai import BAIChat, BaiHandler
-from .localmodels import GPT4AllHandler
+from .constants import AVAILABLE_LLMS
 from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject, GLib
 import threading
 import posixpath
@@ -62,10 +61,14 @@ class MainWindow(Gtk.ApplicationWindow):
         self.language_model = settings.get_string("language-model")
         self.local_model = settings.get_string("local-model")
 
-        if self.language_model == "bai":
-            self.model = BaiHandler()
-        elif self.language_model == "local":
-            self.model = GPT4AllHandler(self.settings, os.path.join(self.path, "models"))
+        found = False
+        for model in AVAILABLE_LLMS:
+            if model["key"] == self.language_model:
+                self.model = model["class"](self.settings, os.path.join(self.directory, "models"))
+                found = True
+                break
+        if not found:
+            self.model = AVAILABLE_LLMS[0]["class"](self.settings, os.path.join(self.directory, "models"))
 
         self.model.load_model(self.local_model)
 
