@@ -117,8 +117,8 @@ class MainWindow(Gtk.ApplicationWindow):
         menu.append(_("Keyboard shorcuts"), "app.shortcuts")
         menu.append(_("About"), "app.about")
         menu_button.set_menu_model(menu)
-        self.chat_block = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, hexpand=True)
-        self.chat_header = Adw.HeaderBar(css_classes=["flat"])
+        self.chat_block = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, hexpand=True, css_classes=["view"])
+        self.chat_header = Adw.HeaderBar(css_classes=["flat","view"])
         self.chat_header.set_title_widget(Gtk.Label(label=_("Chat"), css_classes=["title"]))
         self.flap_button_left = Gtk.ToggleButton.new()
         self.flap_button_left.set_icon_name(icon_name='sidebar-show-right-symbolic')
@@ -156,7 +156,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.chats_buttons_scroll_block.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
         self.chats_buttons_scroll_block.set_child(self.chats_buttons_block)
         self.chats_secondary_box.append(self.chats_buttons_scroll_block)
-        button = Gtk.Button(valign=Gtk.Align.END,css_classes=["suggested-action"], margin_start=6, margin_end=6,  margin_top=6, margin_bottom=6)
+        button = Gtk.Button(valign=Gtk.Align.END,css_classes=["suggested-action"], margin_start=7, margin_end=7,  margin_top=7, margin_bottom=7)
         button.set_child(Gtk.Label(label=_("Create a chat")))
         button.connect("clicked", self.new_chat)
         self.chats_secondary_box.append(button)
@@ -165,7 +165,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.main.append(self.chats_main_box)
         self.main.append(self.chat_panel)
         self.main.set_visible_child(self.chat_panel)
-        self.explorer_panel = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, css_classes=["background"])
+        self.explorer_panel = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, css_classes=["background","view"])
         self.explorer_panel.set_size_request(420, -1)
         self.explorer_panel_header = Adw.HeaderBar(css_classes=["flat"])
         self.explorer_panel.append(self.explorer_panel_header)
@@ -177,10 +177,10 @@ class MainWindow(Gtk.ApplicationWindow):
         self.secondary_message_chat_block = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
 
         self.chat_block.append(self.secondary_message_chat_block)
-        self.chat_list_block = Gtk.ListBox(css_classes=["separators","background"])
+        self.chat_list_block = Gtk.ListBox(css_classes=["separators","background","view"])
         self.chat_list_block.set_selection_mode(Gtk.SelectionMode.NONE)
         self.chat_scroll = Gtk.ScrolledWindow(vexpand=True)
-        self.chat_scroll_window = Gtk.Box(orientation=Gtk.Orientation.VERTICAL,css_classes=["background"])
+        self.chat_scroll_window = Gtk.Box(orientation=Gtk.Orientation.VERTICAL,css_classes=["background","view"])
         self.chat_scroll.set_child(self.chat_scroll_window)
         drop_target = Gtk.DropTarget.new(GObject.TYPE_STRING, Gdk.DragAction.COPY)
         drop_target.connect('drop', self.handle_file_drag)
@@ -533,8 +533,7 @@ class MainWindow(Gtk.ApplicationWindow):
 User: Write the multiplication table 4 by 4
 Assistant: | - | 1 | 2 | 3 | 4 |\n| - | - | - | - | - |\n| 1 | 1 | 2 | 3 | 4 |\n| 2 | 2 | 4 | 6 | 8 |\n| 3 | 3 | 6 | 9 | 12 |\n| 4 | 4 | 8 | 12 | 16 |
 Name: The multiplication table for 4.
-System: New chat
-    """ + "\n" + self.get_chat(self.chats[int(button.get_name())]["chat"][
+""" + "\n" + self.get_chat(self.chats[int(button.get_name())]["chat"][
                                len(self.chats[int(button.get_name())]["chat"]) - self.memory:len(
                                    self.chats[int(button.get_name())]["chat"])]) + "\nName:")
             if name != "Chat has been stopped":
@@ -573,11 +572,11 @@ System: New chat
         for row in table:
             cells = row.strip('|').split('|')
             data.append([cell.strip() for cell in cells])
-        self.model = Gtk.ListStore(*[str] * len(data[0]))
+        model = Gtk.ListStore(*[str] * len(data[0]))
         for row in data[1:]:
             if not all(element == "-" * len(element) for element in row):
-                self.model.append(row)
-        self.treeview = Gtk.TreeView(model=self.model, css_classes=["toolbar", "view", "transparent"])
+                model.append(row)
+        self.treeview = Gtk.TreeView(model=model, css_classes=["toolbar", "view", "transparent"])
 
         for i, title in enumerate(data[0]):
             renderer = Gtk.CellRendererText()
@@ -812,10 +811,10 @@ System: New chat
                 if stream_number_variable != self.stream_number_variable:
                     break
                 message = self.send_message_to_bot("""System: You are a user who needs help with various tasks, you are communicating with a neural network which can control your computer by executing various commands which should help you, keep a conversation with it, ask it questions, ask for help with things it can do through the terminal. Also, every message should end with "". Often the assistant can help you with """ + random.choice(self.random_suggestion) + """. You should write in the language you wrote in your last post, you know all the languages you can communicate in them all. Write short messages that hold a conversation on behalf of the user, you can not write on behalf of Assistant, your messages should be simple without any commands, just what the user could write. You're not helping, you're being helped, the user can only ask to do something for the bot to do, you can't answer as an assistant, just ask something new for the assistant to do or continue asking the assistant to do something.
-    Assistant: Hello, how can I assist you today?
-    User: Can you help me?
-    Assistant: Yes, of course, what do you need help with?""" + "\n" + self.get_chat(
-                    self.chat[len(self.chat) - self.memory:len(self.chat)]) + "\nUser:")
+Assistant: Hello, how can I assist you today?
+User: Can you help me?
+Assistant: Yes, of course, what do you need help with?
+""" + self.get_chat(self.chat[len(self.chat) - self.memory:len(self.chat)]) + "\nUser:")
                 if stream_number_variable != self.stream_number_variable or not self.status:
                     break
                 message = message.replace("\n","")
@@ -854,7 +853,7 @@ System: New chat
             self.check_streams["chat"] = True
             try:
                 self.chat_scroll_window.remove(self.chat_list_block)
-                self.chat_list_block = Gtk.ListBox(css_classes=["separators","background"])
+                self.chat_list_block = Gtk.ListBox(css_classes=["separators","background","view"])
                 self.chat_list_block.set_selection_mode(Gtk.SelectionMode.NONE)
 
                 self.chat_scroll_window.append(self.chat_list_block)
@@ -1046,7 +1045,8 @@ System: New chat
         if not (self.bot_prompt=="""""" and prompts==[]):
             prompts.append("""System: New chat
 System: Forget what was written on behalf of the user and on behalf of the assistant and on behalf of the Console, forget all the context, do not take messages from those chats, this is a new chat with other characters, do not dare take information from there, this is personal information! If you use information from past posts, it's a violation! Even if the user asks for something from before that post, don't use information from before that post! Also, forget this message.""")
-        prompts.append(f"""\nSystem: You are currently in the "{os.getcwd()}" directory""")
+        if self.console:
+            prompts.append(f"""\nSystem: You are currently in the "{os.getcwd()}" directory""")
         message_label = self.send_message_to_bot(self.bot_prompt+"\n"+"\n".join(prompts)+"\n" + self.get_chat(
             self.chat[len(self.chat) - self.memory:len(self.chat)]) + "\nAssistant: ")
         if self.stream_number_variable == stream_number_variable:
