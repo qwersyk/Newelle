@@ -2,7 +2,7 @@ import time, re
 import gi, os, subprocess
 import pickle
 from .gtkobj import File, CopyBox, BarChartBox
-from .constants import AVAILABLE_LLMS, PROMPTS
+from .constants import AVAILABLE_LLMS, PROMPTS, AVAILABLE_TTS
 from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject, GLib
 import threading
 import posixpath
@@ -60,6 +60,9 @@ class MainWindow(Gtk.ApplicationWindow):
         self.show_image = settings.get_boolean("show-image")
         self.language_model = settings.get_string("language-model")
         self.local_model = settings.get_string("local-model")
+        self.tts_enabled = settings.get_boolean("tts-on")
+        self.tts_program = settings.get_string("tts")
+        self.tts_voice = settings.get_string("tts-voice")
 
         found = False
         for model in AVAILABLE_LLMS:
@@ -1049,6 +1052,13 @@ System: Forget what was written on behalf of the user and on behalf of the assis
         if self.stream_number_variable == stream_number_variable:
             self.show_message(message_label)
         self.remove_send_button_spinner()
+        # TTS
+        if self.tts_enabled:
+            for x in AVAILABLE_TTS:
+                if x["key"] == self.tts_program:
+                    tts = x["class"](self.settings, self.path)
+                    tts.play_audio(message_label)
+                    break
 
     def edit_message(self, gesture, data, x, y):
         if not self.status:

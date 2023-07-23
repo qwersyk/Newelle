@@ -72,7 +72,7 @@ class Settings(Adw.PreferencesWindow):
                 row = Adw.ExpanderRow(title=tts["title"], subtitle=tts["description"])
             elif tts["rowtype"] == "combo":
                 row = Adw.ComboRow(title=tts["title"], subtitle=tts["description"])
-                helper = ComboRowHelper(row, tts["class"](self.settings).get_languages(), self.settings.get_string("tts-voice"))
+                helper = ComboRowHelper(row, tts["class"](self.settings, self.directory).get_languages(), self.settings.get_string("tts-voice"))
                 helper.connect("changed", self.choose_tts_voice)
             button = Gtk.CheckButton()
             button.set_group(group)
