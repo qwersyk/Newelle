@@ -122,7 +122,7 @@ class MyApp(Adw.Application):
                         version=self.version,
                         issue_url='https://github.com/qwersyk/Newelle/issues',
                         website='https://github.com/qwersyk/Newelle',
-                        developers=['qwersyk',"Nokse22"],
+                        developers=['qwersyk  https://github.com/qwersyk',"Nokse22 https://github.com/Nokse22","Francesco Caracciolo https://github.com/FrancescoCaracciolo"],
                         copyright='© 2023 qwersyk').present()
 
     def thread_editing_action(self, *a):

@@ -162,11 +162,8 @@ class CopyBox(Gtk.Box):
             self.text_expander.set_child(
                 Gtk.Label(wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR, label=code[1], selectable=True))
             if self.parent.status and len(self.parent.chat)-1==self.id_message and self.id_message<len(self.parent.chat) and self.parent.chat[self.id_message]["User"]=="Console":
-                for btn in self.parent.message_suggestion_buttons_array:
-                    btn.set_visible(False)
-                self.parent.continue_message_button.set_visible(False)
-                self.parent.button_continue.set_visible(False)
-                self.parent.regenerate_message_button.set_visible(False)
+                self.parent.status = False
+                self.parent.update_button_text()
                 self.parent.scrolled_chat()
                 self.parent.send_message()
             icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="media-playback-start-symbolic"))
