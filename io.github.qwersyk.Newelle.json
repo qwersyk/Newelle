@@ -27,6 +27,7 @@
     "modules" : [
     	"python3-requests.json",
     	"python3-gpt4all.json",
+    	"python3-gtts.json",
 
         {
             "name" : "newelle",
