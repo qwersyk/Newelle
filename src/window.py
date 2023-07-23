@@ -1056,7 +1056,8 @@ System: Forget what was written on behalf of the user and on behalf of the assis
         if self.tts_enabled:
             if self.tts_program in AVAILABLE_TTS:
                 tts = AVAILABLE_TTS[self.tts_program]["class"](self.settings, self.path)
-                tts.play_audio(message_label)
+                message=re.sub(r"```.*?```", "", message_label, flags=re.DOTALL)
+                if not(not message.strip() or message.isspace() or all(char == '\n' for char in message)):tts.play_audio(message)
 
     def edit_message(self, gesture, data, x, y):
         if not self.status:
