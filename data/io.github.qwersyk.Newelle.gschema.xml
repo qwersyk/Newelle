@@ -50,7 +50,7 @@
             <default>"gtts"</default>
         </key>
 	      <key name="tts-voice" type="s">
-            <default>"en"</default>
+            <default>"{}"</default>
         </key>
 	</schema>
 </schemalist>

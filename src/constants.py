@@ -1,6 +1,6 @@
 from .bai import BaiHandler
 from .localmodels import GPT4AllHandler
-from .tts import gTTSHandler
+from .tts import gTTSHandler, EspeakHandler
 
 AVAILABLE_LLMS = [
     {
@@ -26,6 +26,13 @@ AVAILABLE_TTS = [
         "title": _("Google TTS"),
         "description": _("Google's text to speech"),
         "class": gTTSHandler
+    },
+    {
+        "key": "espeak",
+        "rowtype": "combo",
+        "title": _("Espeak TTS"),
+        "description": _("Offline TTS"),
+        "class": EspeakHandler
     }
 
 ]

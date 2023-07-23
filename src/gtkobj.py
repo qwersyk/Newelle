@@ -230,6 +230,7 @@ class ComboRowHelper(GObject.Object):
         selected_value: str,
     ):
         super().__init__()
+        self.combo = combo
         self.__combo = combo
         self.__factory = Gtk.SignalListItemFactory()
         self.__factory.connect("setup", self.__on_setup_listitem)

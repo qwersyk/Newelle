@@ -72,7 +72,9 @@ class Settings(Adw.PreferencesWindow):
                 row = Adw.ExpanderRow(title=tts["title"], subtitle=tts["description"])
             elif tts["rowtype"] == "combo":
                 row = Adw.ComboRow(title=tts["title"], subtitle=tts["description"])
-                helper = ComboRowHelper(row, tts["class"](self.settings, self.directory).get_languages(), self.settings.get_string("tts-voice"))
+                row.set_name(tts["key"])
+                tts_class = tts["class"](self.settings, self.directory)
+                helper = ComboRowHelper(row, tts_class.get_voices(), tts_class.get_current_voice())
                 helper.connect("changed", self.choose_tts_voice)
             button = Gtk.CheckButton()
             button.set_group(group)
@@ -211,8 +213,11 @@ class Settings(Adw.PreferencesWindow):
     def choose_tts(self, button):
         if button.get_active():
             self.settings.set_string("tts", button.get_name())
+
     def choose_tts_voice(self, helper, value):
-        self.settings.set_string("tts-voice", value)
+        j = json.loads(self.settings.get_string("tts-voice"))
+        j[helper.combo.get_name()] = value
+        self.settings.set_string("tts-voice", json.dumps(j))
 
     def download_local_model(self, button):
         model = button.get_name()
