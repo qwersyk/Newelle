@@ -29,6 +29,7 @@ class Settings(Adw.PreferencesWindow):
 
         self.general_page = Adw.PreferencesPage()
 
+        # LLM
         self.LLM = Adw.PreferencesGroup(title=_('Language Model'))
         self.general_page.add(self.LLM)
         self.llmbuttons = [];
@@ -53,6 +54,7 @@ class Settings(Adw.PreferencesWindow):
             row.add_prefix(button)
             self.LLM.add(row)
 
+        # TTS
         self.TTSgroup = Adw.PreferencesGroup(title=_('Text To Speech'))
         self.general_page.add(self.TTSgroup)
         tts_enabled = Gtk.Switch(valign=Gtk.Align.CENTER)
@@ -62,8 +64,10 @@ class Settings(Adw.PreferencesWindow):
         tts_program.add_action(tts_enabled)
         self.TTSgroup.add(tts_program)
         group = Gtk.CheckButton()
-        for tts in AVAILABLE_TTS:
+        for tts_key in AVAILABLE_TTS:
             active = False
+            tts = AVAILABLE_TTS[tts_key]
+            tts["key"] = tts_key
             if tts["key"] == self.settings.get_string("tts"):
                 active = True
             if tts["rowtype"] == "action":
@@ -215,9 +219,8 @@ class Settings(Adw.PreferencesWindow):
             self.settings.set_string("tts", button.get_name())
 
     def choose_tts_voice(self, helper, value):
-        j = json.loads(self.settings.get_string("tts-voice"))
-        j[helper.combo.get_name()] = value
-        self.settings.set_string("tts-voice", json.dumps(j))
+        tts = AVAILABLE_TTS[helper.combo.get_name()]["class"](self.settings, self.directory)
+        tts.set_voice(value)
 
     def download_local_model(self, button):
         model = button.get_name()

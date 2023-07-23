@@ -1054,11 +1054,9 @@ System: Forget what was written on behalf of the user and on behalf of the assis
         self.remove_send_button_spinner()
         # TTS
         if self.tts_enabled:
-            for x in AVAILABLE_TTS:
-                if x["key"] == self.tts_program:
-                    tts = x["class"](self.settings, self.path)
-                    tts.play_audio(message_label)
-                    break
+            if self.tts_program in AVAILABLE_TTS:
+                tts = AVAILABLE_TTS[self.tts_program]["class"](self.settings, self.path)
+                tts.play_audio(message_label)
 
     def edit_message(self, gesture, data, x, y):
         if not self.status:

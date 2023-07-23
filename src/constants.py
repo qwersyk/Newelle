@@ -19,23 +19,21 @@ AVAILABLE_LLMS = [
     }
 ]
 
-AVAILABLE_TTS = [
-    {
-        "key": "gtts",
+AVAILABLE_TTS = {
+
+    "gtts": {
         "rowtype": "combo",
         "title": _("Google TTS"),
         "description": _("Google's text to speech"),
         "class": gTTSHandler
     },
-    {
-        "key": "espeak",
+    "espeak": {
         "rowtype": "combo",
         "title": _("Espeak TTS"),
         "description": _("Offline TTS"),
         "class": EspeakHandler
     }
-
-]
+}
 PROMPTS = {
     "console_prompt": """System: You are an assistant who helps the user by answering questions and running Linux commands in the terminal on the user's computer. Use two types of messages: "Assistant: text" to answer questions and communicate with the user, and "Assistant: ```console\ncommand\n```" to execute commands on the user's computer. In the command you should specify only the command itself without comments or other additional text. Your task is to minimize the information and leave only the important. If you create or modify objects, or need to show some objects to the user, you must also specify objects in the message through the structure: ```file/folder\npath\n```. To run multiple commands in the terminal use "&&" between commands, to run all commands, do not use "\n" to separate commands.
 User: Create an image 100x100 pixels

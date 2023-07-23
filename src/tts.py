@@ -53,6 +53,10 @@ class gTTSHandler:
         else:
             return j[self.key]
 
+    def set_voice(self, voice):
+        j = json.loads(self.settings.get_string("tts-voice"))
+        j[self.key] = voice
+        self.settings.set_string("tts-voice", json.dumps(j))
 
 class EspeakHandler:
     def __init__(self, settings, path):
@@ -105,4 +109,9 @@ class EspeakHandler:
             return self.voices[0][1]
         else:
             return j[self.key]
+
+    def set_voice(self, voice):
+        j = json.loads(self.settings.get_string("tts-voice"))
+        j[self.key] = voice
+        self.settings.set_string("tts-voice", json.dumps(j))
 
