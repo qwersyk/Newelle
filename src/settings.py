@@ -1,9 +1,10 @@
 import gi
 import re, threading, os, json, time, ctypes
 from gi.repository import Gtk, Adw, Gio, GLib
-from .constants import AVAILABLE_LLMS
+from .constants import AVAILABLE_LLMS, AVAILABLE_TTS
 from gpt4all import GPT4All
 from .localmodels import GPT4AllHandler
+from .gtkobj import ComboRowHelper
 
 
 def human_readable_size(size, decimal_places=2):
@@ -28,6 +29,7 @@ class Settings(Adw.PreferencesWindow):
 
         self.general_page = Adw.PreferencesPage()
 
+        # LLM
         self.LLM = Adw.PreferencesGroup(title=_('Language Model'))
         self.general_page.add(self.LLM)
         self.llmbuttons = [];
@@ -51,6 +53,40 @@ class Settings(Adw.PreferencesWindow):
             button.connect("toggled", self.choose_llm)
             row.add_prefix(button)
             self.LLM.add(row)
+
+        # TTS
+        self.TTSgroup = Adw.PreferencesGroup(title=_('Text To Speech'))
+        self.general_page.add(self.TTSgroup)
+        tts_enabled = Gtk.Switch(valign=Gtk.Align.CENTER)
+        self.settings.bind("tts-on", tts_enabled, 'active', Gio.SettingsBindFlags.DEFAULT)
+
+        tts_program = Adw.ExpanderRow(title=_('Text To Speech Program'), subtitle=_("Choose which text to speech to use"))
+        tts_program.add_action(tts_enabled)
+        self.TTSgroup.add(tts_program)
+        group = Gtk.CheckButton()
+        for tts_key in AVAILABLE_TTS:
+            active = False
+            tts = AVAILABLE_TTS[tts_key]
+            tts["key"] = tts_key
+            if tts["key"] == self.settings.get_string("tts"):
+                active = True
+            if tts["rowtype"] == "action":
+                row = Adw.ActionRow(title=tts["title"], subtitle=tts["description"])
+            elif tts["rowtype"] == "expander":
+                row = Adw.ExpanderRow(title=tts["title"], subtitle=tts["description"])
+            elif tts["rowtype"] == "combo":
+                row = Adw.ComboRow(title=tts["title"], subtitle=tts["description"])
+                row.set_name(tts["key"])
+                tts_class = tts["class"](self.settings, self.directory)
+                helper = ComboRowHelper(row, tts_class.get_voices(), tts_class.get_current_voice())
+                helper.connect("changed", self.choose_tts_voice)
+            button = Gtk.CheckButton()
+            button.set_group(group)
+            button.set_active(active)
+            button.set_name(tts["key"])
+            button.connect("toggled", self.choose_tts)
+            row.add_prefix(button)
+            tts_program.add_row(row)
 
         self.interface = Adw.PreferencesGroup(title=_('Interface'))
         self.general_page.add(self.interface)
@@ -178,6 +214,14 @@ class Settings(Adw.PreferencesWindow):
         if button.get_active():
             self.settings.set_string("local-model", button.get_name())
 
+    def choose_tts(self, button):
+        if button.get_active():
+            self.settings.set_string("tts", button.get_name())
+
+    def choose_tts_voice(self, helper, value):
+        tts = AVAILABLE_TTS[helper.combo.get_name()]["class"](self.settings, self.directory)
+        tts.set_voice(value)
+
     def download_local_model(self, button):
         model = button.get_name()
         box = Gtk.Box(homogeneous=True, spacing=4)
@@ -247,3 +291,13 @@ class Settings(Adw.PreferencesWindow):
             button.set_child(icon)
         except Exception as e:
             print(e)
+
+
+
+class TextItemFactory(Gtk.ListItemFactory):
+    def create_widget(self, item):
+        label = Gtk.Label()
+        return label
+
+    def bind_widget(self, widget, item):
+        widget.set_text(item)

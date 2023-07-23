@@ -43,5 +43,14 @@
 	      <key name="available-models" type="s">
             <default>"[]"</default>
         </key>
+	      <key name="tts-on" type="b">
+            <default>false</default>
+        </key>
+	      <key name="tts" type="s">
+            <default>"gtts"</default>
+        </key>
+	      <key name="tts-voice" type="s">
+            <default>"{}"</default>
+        </key>
 	</schema>
 </schemalist>

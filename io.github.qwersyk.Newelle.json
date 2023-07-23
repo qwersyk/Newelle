@@ -11,7 +11,8 @@
         "--device=dri",
         "--socket=wayland",
         "--talk-name=org.freedesktop.Flatpak",
-        "--filesystem=home"
+        "--filesystem=home",
+        "--socket=pulseaudio"
     ],
     "cleanup" : [
         "/include",
@@ -27,7 +28,8 @@
     "modules" : [
     	"python3-requests.json",
     	"python3-gpt4all.json",
-
+    	"python3-gtts.json",
+    	"python3-playsound.json",
         {
             "name" : "newelle",
             "builddir" : true,
