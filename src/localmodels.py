@@ -84,5 +84,5 @@ class GPT4AllHandler:
         session = self.model.chat_session()
         with session:
             self.model.current_chat_session = history
-            response = self.model.generate(prompt=prompt, top_k=1)
+            response = self.model.generate(prompt=message, top_k=1)
         return response
