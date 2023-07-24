@@ -236,7 +236,7 @@ class BaiHandler():
     def get_suggestions(self, window, message):
         """Gets chat suggestions"""
         message = message + "\nUser:"
-        return self.generate_response(window, message)
+        return self.__generate_response(window, message)
 
     def set_history(self, prompts, window):
         """Manages messages history"""
