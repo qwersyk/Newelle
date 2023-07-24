@@ -132,6 +132,14 @@ class MyApp(Adw.Application):
     def settings_action(self, *a):
         settings = Settings(self)
         settings.present()
+        settings.connect("close-request", self.close_settings)
+        self.settingswindow = settings
+
+    def close_settings(self, *a):
+        self.win.update_settings()
+        self.settingswindow.destroy()
+        return True
+
     def extension_action(self, *a):
         extension = Extension(self)
         extension.present()

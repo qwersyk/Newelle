@@ -44,67 +44,12 @@ class MainWindow(Gtk.ApplicationWindow):
             self.chats = [{"name": _("Chat ")+"1", "chat": []}]
 
         self.directory = GLib.get_user_config_dir()
+        # Init Settings
         settings = Gio.Settings.new('io.github.qwersyk.Newelle')
         self.settings = settings
-        self.offers = settings.get_int("offers")
-        self.virtualization = settings.get_boolean("virtualization")
-        self.memory = settings.get_int("memory")
-        self.console = settings.get_boolean("console")
-        self.hidden_files = settings.get_boolean("hidden-files")
-        self.chat_id = settings.get_int("chat")
-        self.main_path = settings.get_string("path")
-        self.auto_run = settings.get_boolean("auto-run")
-        self.chat = self.chats[min(self.chat_id,len(self.chats)-1)]["chat"]
-        self.graphic = settings.get_boolean("graphic")
-        self.basic_functionality = settings.get_boolean("basic-functionality")
-        self.show_image = settings.get_boolean("show-image")
-        self.language_model = settings.get_string("language-model")
-        self.local_model = settings.get_string("local-model")
-        self.tts_enabled = settings.get_boolean("tts-on")
-        self.tts_program = settings.get_string("tts")
-        self.tts_voice = settings.get_string("tts-voice")
+        self.update_settings()
 
-        found = False
-        for model in AVAILABLE_LLMS:
-            if model["key"] == self.language_model:
-                self.model = model["class"](self.settings, os.path.join(self.directory, "models"))
-                found = True
-                break
-        if not found:
-            self.model = AVAILABLE_LLMS[0]["class"](self.settings, os.path.join(self.directory, "models"))
-
-        self.model.load_model(self.local_model)
-
-        self.bot_prompt = """"""
-        if self.console:
-            self.bot_prompt += PROMPTS["console_prompt"]
-        if self.basic_functionality:
-            self.bot_prompt += PROMPTS["basic_functionality"]
-        if self.show_image:
-            self.bot_prompt += PROMPTS["show_image"]
-        if self.graphic:
-            self.bot_prompt += PROMPTS["graphic"]
-        if self.graphic and self.console:
-            self.bot_prompt += PROMPTS["graphic_console"]
-        self.extension_path = os.path.expanduser("~")+"/.var/app/io.github.qwersyk.Newelle/extension"
-        self.extensions = {}
-        if os.path.exists(self.extension_path):
-            folder_names = [name for name in os.listdir(self.extension_path) if os.path.isdir(os.path.join(self.extension_path, name))]
-            for name in folder_names:
-                main_json_path = os.path.join(self.extension_path, name, "main.json")
-                if os.path.exists(main_json_path):
-                    with open(main_json_path, "r") as file:
-                        main_json_data = json.load(file)
-                        prompt = main_json_data.get("prompt")
-                        name = main_json_data.get("name")
-                        status = main_json_data.get("status")
-                        api = main_json_data.get("api")
-                        if api != None:
-                            self.extensions[name] = {"api":api,"status":status,"prompt": prompt}
-        if os.path.exists(os.path.expanduser(self.main_path)):
-            os.chdir(os.path.expanduser(self.main_path))
-        else:
-            self.main_path="~"
+        # Build Window
         self.set_titlebar(Gtk.Box())
         self.chat_panel = Gtk.Box(hexpand_set=True, hexpand=True)
         self.chat_panel.set_size_request(450, -1)
@@ -325,6 +270,69 @@ class MainWindow(Gtk.ApplicationWindow):
         threading.Thread(target=self.update_folder).start()
         threading.Thread(target=self.update_history).start()
         threading.Thread(target=self.show_chat).start()
+
+    def update_settings(self):
+        settings = self.settings
+        self.offers = settings.get_int("offers")
+        self.virtualization = settings.get_boolean("virtualization")
+        self.memory = settings.get_int("memory")
+        self.console = settings.get_boolean("console")
+        self.hidden_files = settings.get_boolean("hidden-files")
+        self.chat_id = settings.get_int("chat")
+        self.main_path = settings.get_string("path")
+        self.auto_run = settings.get_boolean("auto-run")
+        self.chat = self.chats[min(self.chat_id,len(self.chats)-1)]["chat"]
+        self.graphic = settings.get_boolean("graphic")
+        self.basic_functionality = settings.get_boolean("basic-functionality")
+        self.show_image = settings.get_boolean("show-image")
+        self.language_model = settings.get_string("language-model")
+        self.local_model = settings.get_string("local-model")
+        self.tts_enabled = settings.get_boolean("tts-on")
+        self.tts_program = settings.get_string("tts")
+        self.tts_voice = settings.get_string("tts-voice")
+
+        found = False
+        for model in AVAILABLE_LLMS:
+            if model["key"] == self.language_model:
+                self.model = model["class"](self.settings, os.path.join(self.directory, "models"))
+                found = True
+                break
+        if not found:
+            self.model = AVAILABLE_LLMS[0]["class"](self.settings, os.path.join(self.directory, "models"))
+
+        self.model.load_model(self.local_model)
+
+        self.bot_prompt = """"""
+        if self.console:
+            self.bot_prompt += PROMPTS["console_prompt"]
+        if self.basic_functionality:
+            self.bot_prompt += PROMPTS["basic_functionality"]
+        if self.show_image:
+            self.bot_prompt += PROMPTS["show_image"]
+        if self.graphic:
+            self.bot_prompt += PROMPTS["graphic"]
+        if self.graphic and self.console:
+            self.bot_prompt += PROMPTS["graphic_console"]
+        self.extension_path = os.path.expanduser("~")+"/.var/app/io.github.qwersyk.Newelle/extension"
+        self.extensions = {}
+        if os.path.exists(self.extension_path):
+            folder_names = [name for name in os.listdir(self.extension_path) if os.path.isdir(os.path.join(self.extension_path, name))]
+            for name in folder_names:
+                main_json_path = os.path.join(self.extension_path, name, "main.json")
+                if os.path.exists(main_json_path):
+                    with open(main_json_path, "r") as file:
+                        main_json_data = json.load(file)
+                        prompt = main_json_data.get("prompt")
+                        name = main_json_data.get("name")
+                        status = main_json_data.get("status")
+                        api = main_json_data.get("api")
+                        if api != None:
+                            self.extensions[name] = {"api":api,"status":status,"prompt": prompt}
+        if os.path.exists(os.path.expanduser(self.main_path)):
+            os.chdir(os.path.expanduser(self.main_path))
+        else:
+            self.main_path="~"
+
 
     def send_button_start_spinner(self):
         spinner = Gtk.Spinner(spinning=True)
@@ -1055,7 +1063,7 @@ System: Forget what was written on behalf of the user and on behalf of the assis
         # TTS
         if self.tts_enabled:
             if self.tts_program in AVAILABLE_TTS:
-                tts = AVAILABLE_TTS[self.tts_program]["class"](self.settings, os.path.expanduser("~")+"/.var/app/io.github.qwersyk.Newelle/data")
+                tts = AVAILABLE_TTS[self.tts_program]["class"](self.settings, self.directory)
                 message=re.sub(r"```.*?```", "", message_label, flags=re.DOTALL)
                 if not(not message.strip() or message.isspace() or all(char == '\n' for char in message)):tts.play_audio(message)
 
