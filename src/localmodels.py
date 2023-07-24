@@ -1,6 +1,6 @@
 from gi.repository import Gtk, Adw, Gio, GLib
 from gpt4all import GPT4All
-import os
+import os, threading
 
 class GPT4AllHandler:
 
@@ -22,13 +22,18 @@ class GPT4AllHandler:
         return True
 
     def load_model(self, model:str):
-        if self.model is None:
+        t = threading.Thread(target=self.load_model_async, args=(model, ))
+        t.start()
+
+    def load_model_async(self, model: str):
+         if self.model is None:
             try:
                 self.model = GPT4All(model, model_path=self.modelspath)
             except Exception as e:
                 print(e)
                 return False
             return True
+
     def download_model(self, model:str) -> bool:
         try:
             GPT4All.retrieve_model(model, model_path=self.modelspath, allow_download=True, verbose=False)
