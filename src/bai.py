@@ -204,11 +204,21 @@ class BAIChat:
 
 class BaiHandler():
     def __init__(self, settings, path):
+        """This class Handles BAI Chat generating"""
+        self.history = ""
         pass
 
     def load_model(self, model):
+        """Does nothing since it is not required to load the model"""
         return True
+
     def send_message(self, window, message):
+        """Get a response to a message"""
+        message = self.history + "\nUser:" + str(message) + "\nAssistant:"
+        return self.__generate_response(window, message)
+
+    def __generate_response(self, window, message):
+            """Generates a response given text and history"""
             stream_number_variable = window.stream_number_variable
             loop_interval_variable = 1
             while stream_number_variable == window.stream_number_variable:
@@ -222,3 +232,14 @@ class BaiHandler():
                     pass
                 time.sleep(loop_interval_variable)
             return _("Chat has been stopped")
+
+    def get_suggestions(self, window, message):
+        """Gets chat suggestions"""
+        message = message + "\nUser:"
+        return self.generate_response(window, message)
+
+    def set_history(self, prompts, window):
+        """Manages messages history"""
+        self.history = window.bot_prompt+"\n"+"\n".join(prompts)+"\n" + window.get_chat(
+            window.chat[len(window.chat) - window.memory:len(window.chat)-1])
+        
