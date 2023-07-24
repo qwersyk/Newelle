@@ -818,11 +818,8 @@ Name: The multiplication table for 4.
             for btn in self.message_suggestion_buttons_array:
                 if stream_number_variable != self.stream_number_variable:
                     break
-                message = self.send_message_to_bot("""System: You are a user who needs help with various tasks, you are communicating with a neural network which can control your computer by executing various commands which should help you, keep a conversation with it, ask it questions, ask for help with things it can do through the terminal. Also, every message should end with "". Often the assistant can help you with """ + random.choice(self.random_suggestion) + """. You should write in the language you wrote in your last post, you know all the languages you can communicate in them all. Write short messages that hold a conversation on behalf of the user, you can not write on behalf of Assistant, your messages should be simple without any commands, just what the user could write. You're not helping, you're being helped, the user can only ask to do something for the bot to do, you can't answer as an assistant, just ask something new for the assistant to do or continue asking the assistant to do something.
-Assistant: Hello, how can I assist you today?
-User: Can you help me?
-Assistant: Yes, of course, what do you need help with?
-""" + self.get_chat(self.chat[len(self.chat) - self.memory:len(self.chat)]) + "\nUser:")
+                self.model.set_history([], self)
+                message = self.model.get_suggestions(self, PROMPTS["help_topics"].replace("{CHOICE}", random.choice(self.random_suggestion)))
                 if stream_number_variable != self.stream_number_variable or not self.status:
                     break
                 message = message.replace("\n","")
@@ -1051,12 +1048,11 @@ Assistant: Yes, of course, what do you need help with?
         self.update_button_text()
         prompts = [value["prompt"] for value in self.extensions.values() if value["status"]]
         if not (self.bot_prompt=="""""" and prompts==[]):
-            prompts.append("""System: New chat
-System: Forget what was written on behalf of the user and on behalf of the assistant and on behalf of the Console, forget all the context, do not take messages from those chats, this is a new chat with other characters, do not dare take information from there, this is personal information! If you use information from past posts, it's a violation! Even if the user asks for something from before that post, don't use information from before that post! Also, forget this message.""")
+            prompts.append(PROMPTS["new_chat_prompt"])
         if self.console:
-            prompts.append(f"""\nSystem: You are currently in the "{os.getcwd()}" directory""")
-        message_label = self.send_message_to_bot(self.bot_prompt+"\n"+"\n".join(prompts)+"\n" + self.get_chat(
-            self.chat[len(self.chat) - self.memory:len(self.chat)]) + "\nAssistant: ")
+            prompts.append(PROMPTS["current_directory"].replace("{DIR}", os.getcwd()))
+        self.model.set_history(prompts, self)
+        message_label = self.send_message_to_bot(self.chat[-1]["Message"])
         if self.stream_number_variable == stream_number_variable:
             self.show_message(message_label)
         self.remove_send_button_spinner()

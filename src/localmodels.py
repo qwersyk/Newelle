@@ -5,9 +5,13 @@ import os, threading
 class GPT4AllHandler:
 
     def __init__(self, settings, modelspath):
+        """This class handles downloading, generating and history managing for Local Models using GPT4All library
+        """
         self.settings = settings
         self.modelspath = modelspath
         self.model = None
+        self.history = {}
+        self.prompts = []
         if not os.path.isdir(self.modelspath):
             os.makedirs(self.modelspath)
         print(self.modelspath)
@@ -22,11 +26,14 @@ class GPT4AllHandler:
         return True
 
     def load_model(self, model:str):
+        """Loads the local model on another thread"""
         t = threading.Thread(target=self.load_model_async, args=(model, ))
         t.start()
+        return True
 
     def load_model_async(self, model: str):
-         if self.model is None:
+        """Loads the local model"""
+        if self.model is None:
             try:
                 self.model = GPT4All(model, model_path=self.modelspath)
             except Exception as e:
@@ -35,6 +42,7 @@ class GPT4AllHandler:
             return True
 
     def download_model(self, model:str) -> bool:
+        """Downloads GPT4All model"""
         try:
             GPT4All.retrieve_model(model, model_path=self.modelspath, allow_download=True, verbose=False)
         except Exception as e:
@@ -42,7 +50,8 @@ class GPT4AllHandler:
             return False
         return True
 
-    def convert_history(self, history: dict) -> dict:
+    def __convert_history(self, history: dict) -> dict:
+        """Converts the given history into the correct format for current_chat_history"""
         result = []
         for message in history:
             result.append({
@@ -51,13 +60,28 @@ class GPT4AllHandler:
             })
         return result
 
+    def set_history(self, prompts, window):
+        """Manages messages history"""
+        self.history = window.chat[len(window.chat) - window.memory:len(window.chat)-1]
+        self.prompts = prompts
+
+    def get_suggestions(self, window, message):
+        """Gets chat suggestions"""
+        message = message + "\n User:"
+        return self.send_message(window, message)
 
     def send_message(self, window, message):
-        if not self.load_model(window.local_model) and False:
+        """Get a response to a message"""
+        additional_prompts = "\n".join(self.prompts)
+        prompt = additional_prompts + "\nUser: " + message
+        return self.__generate_response(window, prompt)
+
+    def __generate_response(self, window, message):
+        """Generates a response given text and history"""
+        if not self.load_model(window.local_model):
             return _('There was an error retriving the model')
-        history = self.convert_history(window.chat)
+        history = self.__convert_history(self.history)
         session = self.model.chat_session()
-        print(history, message)
         with session:
             self.model.current_chat_session = history
             response = self.model.generate(prompt=message, top_k=1)
