@@ -1,0 +1,14 @@
+{
+    "name": "python3-pyaudio",
+    "buildsystem": "simple",
+    "build-commands": [
+        "pip3 install --verbose --exists-action=i --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} \"pyaudio\" --no-build-isolation"
+    ],
+    "sources": [
+        {
+            "type": "file",
+            "url": "https://files.pythonhosted.org/packages/91/a0/f439da954d78a987298cb8d1ca1b141c53b1d1d1c7a50e17198ed061b9ac/PyAudio-0.2.13.tar.gz",
+            "sha256": "26bccc81e4243d1c0ff5487e6b481de6329fcd65c79365c267cef38f363a2b56"
+        }
+    ]
+}

@@ -31,6 +31,8 @@
     	"python3-gtts.json",
     	"python3-playsound.json",
     	"python3-pip.json",
+    	"portaudio.json",
+    	"python3-pyaudio.json",
         {
             "name" : "newelle",
             "builddir" : true,

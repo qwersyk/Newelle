@@ -4,6 +4,7 @@ import pickle
 from .gtkobj import File, CopyBox, BarChartBox
 from .constants import AVAILABLE_LLMS, PROMPTS, AVAILABLE_TTS
 from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject, GLib
+from .stt import AudioRecorder
 import threading
 import posixpath
 import shlex,json
@@ -263,6 +264,9 @@ class MainWindow(Gtk.ApplicationWindow):
         input_box.append(self.input_panel)
         self.send_button = Gtk.Button(css_classes=["suggested-action"], icon_name="go-next-symbolic", width_request=36)
         input_box.append(self.send_button)
+        self.mic_button = Gtk.Button(css_classes=["suggested-action"], icon_name="microphone2-symbolic", width_request=36)
+        self.mic_button.connect("clicked", self.start_recording)
+        input_box.append(self.mic_button)
         self.input_panel.connect('activate', self.on_entry_activate)
         self.send_button.connect('clicked', self.on_entry_button_clicked)
         self.main.connect("notify::folded", self.handle_main_block_change)
@@ -273,6 +277,23 @@ class MainWindow(Gtk.ApplicationWindow):
         threading.Thread(target=self.update_folder).start()
         threading.Thread(target=self.update_history).start()
         threading.Thread(target=self.show_chat).start()
+
+    def start_recording(self, button):
+        button.set_child(Gtk.Spinner(spinning=True))
+        button.disconnect_by_func(self.start_recording)
+        button.connect("clicked", self.stop_recording)
+        self.recorder = AudioRecorder()
+        t = threading.Thread(target=self.recorder.start_recording)
+        t.start()
+
+    def stop_recording(self, button):
+        self.recorder.stop_recording(os.path.join(self.directory, "recording.wav"))
+        button.set_child(None)
+        button.set_icon_name("microphone2-symbolic")
+        button.disconnect_by_func(self.stop_recording)
+        button.connect("clicked", self.start_recording)
+
+
 
     def update_settings(self):
         settings = self.settings

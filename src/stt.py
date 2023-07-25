@@ -1,6 +1,43 @@
 import os, sys, subprocess
 import importlib
+import pyaudio
+import wave
 
+class AudioRecorder:
+    def __init__(self):
+        self.recording = False
+        self.frames = []
+        self.sample_format = pyaudio.paInt16
+        self.channels = 1
+        self.sample_rate = 44100
+        self.chunk_size = 1024
+
+    def start_recording(self):
+        self.recording = True
+        self.frames = []
+        p = pyaudio.PyAudio()
+        stream = p.open(format=self.sample_format,
+                        channels=self.channels,
+                        rate=self.sample_rate,
+                        frames_per_buffer=self.chunk_size,
+                        input=True)
+        while self.recording:
+            data = stream.read(self.chunk_size)
+            self.frames.append(data)
+        stream.stop_stream()
+        stream.close()
+        p.terminate()
+
+    def stop_recording(self, output_file):
+        self.recording = False
+        p = pyaudio.PyAudio()
+        wf = wave.open(output_file, 'wb')
+        wf.setnchannels(self.channels)
+        wf.setsampwidth(p.get_sample_size(self.sample_format))
+        wf.setframerate(self.sample_rate)
+        wf.writeframes(b''.join(self.frames))
+        wf.close()
+        p.terminate()
 def find_module(full_module_name):
     """
     Returns module object if module `full_module_name` can be imported.
