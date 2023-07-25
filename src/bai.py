@@ -243,3 +243,4 @@ class BaiHandler():
         self.history = window.bot_prompt+"\n"+"\n".join(prompts)+"\n" + window.get_chat(
             window.chat[len(window.chat) - window.memory:len(window.chat)-1])
         
+

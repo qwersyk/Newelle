@@ -1,4 +1,4 @@
-import time, re
+import time, re, sys
 import gi, os, subprocess
 import pickle
 from .gtkobj import File, CopyBox, BarChartBox
@@ -19,6 +19,10 @@ class MainWindow(Gtk.ApplicationWindow):
 
 
         self.path = ".var/app/io.github.qwersyk.Newelle/data"
+        self.directory = GLib.get_user_config_dir()
+        # Pip directory for optional modules
+        self.pip_directory = os.path.join(self.directory, "pip")
+        sys.path.append(self.pip_directory)
 
         self.random_suggestion = ["files", "folders", "programming",
                      "data analysis", "security and privacy", "hardware diagnostics",
@@ -43,7 +47,6 @@ class MainWindow(Gtk.ApplicationWindow):
         else:
             self.chats = [{"name": _("Chat ")+"1", "chat": []}]
 
-        self.directory = GLib.get_user_config_dir()
         # Init Settings
         settings = Gio.Settings.new('io.github.qwersyk.Newelle')
         self.settings = settings

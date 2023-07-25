@@ -52,5 +52,11 @@
 	      <key name="tts-voice" type="s">
             <default>"{}"</default>
         </key>
+	      <key name="stt-engine" type="s">
+            <default>"sphinx"</default>
+        </key>
+	      <key name="stt-settings" type="s">
+	        <default>"{}"</default>
+	      </key>
 	</schema>
 </schemalist>

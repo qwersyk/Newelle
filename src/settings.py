@@ -1,7 +1,7 @@
 import gi
 import re, threading, os, json, time, ctypes
 from gi.repository import Gtk, Adw, Gio, GLib
-from .constants import AVAILABLE_LLMS, AVAILABLE_TTS
+from .constants import AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT
 from gpt4all import GPT4All
 from .localmodels import GPT4AllHandler
 from .gtkobj import ComboRowHelper
@@ -88,6 +88,42 @@ class Settings(Adw.PreferencesWindow):
             row.add_prefix(button)
             tts_program.add_row(row)
 
+        # Speech To Text
+        self.STTgroup = Adw.PreferencesGroup(title=_('Speech to Text'))
+        self.general_page.add(self.STTgroup)
+
+        stt_engine = Adw.ExpanderRow(title=_('Speech To Text Engine'), subtitle=_("Choose which speech recognition engine you want"))
+        self.STTgroup.add(stt_engine)
+        group = Gtk.CheckButton()
+        for stt_key in AVAILABLE_STT:
+            active = False
+            stt = AVAILABLE_STT[stt_key]
+            stt["key"] = stt_key
+            if stt_key == self.settings.get_string("stt-engine"):
+                active = True
+            if stt["rowtype"] == "action":
+                row = Adw.ActionRow(title=stt["title"], subtitle=stt["description"])
+            elif stt["rowtype"] == "expander":
+                row = Adw.ExpanderRow(title=stt["title"], subtitle=stt["description"])
+            elif stt["rowtype"] == "combo":
+                row = Adw.ComboRow(title=stt["title"], subtitle=stt["description"])
+                """
+                row.set_name(tts["key"])
+                tts_class = tts["class"](self.settings, self.directory)
+                helper = ComboRowHelper(row, tts_class.get_voices(), tts_class.get_current_voice())
+                helper.connect("changed", self.choose_tts_voice)
+                """
+            button = Gtk.CheckButton()
+            button.set_group(group)
+            button.set_active(active)
+            button.set_name(stt_key)
+            button.connect("toggled", self.choose_stt)
+            row.add_prefix(button)
+            row.set_name(stt_key)
+            stt_engine.add_row(row)
+            if len(stt["extra_requirements"]) > 0:
+                self.stt_download_button(stt, row)
+
         self.interface = Adw.PreferencesGroup(title=_('Interface'))
         self.general_page.add(self.interface)
 
@@ -158,6 +194,34 @@ class Settings(Adw.PreferencesWindow):
 
         self.add(self.general_page)
 
+    def stt_download_button(self, stt, row):
+        model = stt["class"](self.settings, os.path.join(self.directory, "pip"), AVAILABLE_STT[row.get_name()])
+        actionbutton = Gtk.Button(css_classes=["flat"], valign=Gtk.Align.CENTER)
+        if not model.is_installed():
+            icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="folder-download-symbolic"))
+            actionbutton.connect("clicked", self.install_stt)
+            actionbutton.add_css_class("accent")
+            actionbutton.set_child(icon)
+            actionbutton.set_name(stt["key"])
+            if stt["rowtype"] == "action":
+                row.add_suffix(actionbutton)
+            elif stt["rowtype"] == "expander":
+                row.add_action(actionbutton)
+
+    def install_stt(self, button):
+        stt_key = button.get_name()
+        stt = AVAILABLE_STT[stt_key]
+        model = stt["class"](self.settings, os.path.join(self.directory, "pip"), stt)
+        spinner = Gtk.Spinner(spinning=True)
+        button.set_child(spinner)
+        t = threading.Thread(target=self.install_stt_async, args= (button, model))
+        t.start()
+
+    def install_stt_async(self, button, model):
+        model.install()
+        button.set_child(None)
+        button.set_sensitive(False)
+
     def build_local(self):
         # Reload available models
         if len(self.local_models) == 0:
@@ -217,6 +281,10 @@ class Settings(Adw.PreferencesWindow):
     def choose_tts(self, button):
         if button.get_active():
             self.settings.set_string("tts", button.get_name())
+
+    def choose_stt(self, button):
+        if button.get_active():
+            self.settings.set_string("stt-engine", button.get_name())
 
     def choose_tts_voice(self, helper, value):
         tts = AVAILABLE_TTS[helper.combo.get_name()]["class"](self.settings, self.directory)
