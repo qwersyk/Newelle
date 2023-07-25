@@ -1,6 +1,7 @@
 from .bai import BaiHandler
 from .localmodels import GPT4AllHandler
 from .tts import gTTSHandler, EspeakHandler
+from .stt import STTHandler, SphinxHandler, GoogleSRHandler
 
 AVAILABLE_LLMS = [
     {
@@ -18,6 +19,53 @@ AVAILABLE_LLMS = [
         "class": GPT4AllHandler
     }
 ]
+
+AVAILABLE_STT = {
+    "sphinx": {
+        "rowtype": "action",
+        "title": _("CMU Sphinx"),
+        "description": _("Works offline."),
+        "website": "https://cmusphinx.github.io/wiki/",
+        "extra_requirements": ["pocketsphinx"],
+        "class": SphinxHandler
+    },
+    "google_sr": {
+        "rowtype": "action",
+        "title": _("Google Speech Recognition"),
+        "description": _("Google Speech Recognition online"),
+        "extra_requirements": [],
+        "class": GoogleSRHandler
+    },
+}
+
+"""
+    Will work on this later
+    "whisper": {
+        "rowtype": "expander",
+        "title": _("OpenAI Whisper"),
+        "description": _("Offline OpenAI Whisper recognition"),
+        "website": "https://github.com/openai/whisper",
+        "extra_requirements": ["git+https://github.com/openai/whisper.git", "soundfile"],
+        "class": STTHandler
+    },
+    "vosk": {
+        "rowtype": "expander",
+        "title": _("Vosk API"),
+        "description": _("Works Offline"),
+        "website": "https://github.com/alphacep/vosk-api/",
+        "extra_requirements": ["vosk"],
+        "class": STTHandler
+    },
+    "whisperapi": {
+        "rowtype": "expander",
+        "title": _("Whisper API"),
+        "description": _("Uses openai whisper api"),
+        "website": "https://platform.openai.com/docs/guides/speech-to-text",
+        "extra_requirements": ["openai"],
+        "class": STTHandler
+    }
+"""
+
 
 AVAILABLE_TTS = {
 
