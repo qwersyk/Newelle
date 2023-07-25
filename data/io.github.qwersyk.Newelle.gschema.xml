@@ -53,7 +53,7 @@
             <default>"{}"</default>
         </key>
 	      <key name="stt-engine" type="s">
-            <default>"sphinx"</default>
+            <default>"google_sr"</default>
         </key>
 	      <key name="stt-settings" type="s">
 	        <default>"{}"</default>

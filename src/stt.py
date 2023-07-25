@@ -2,6 +2,7 @@ import os, sys, subprocess
 import importlib
 import pyaudio
 import wave
+import speech_recognition as sr
 
 class AudioRecorder:
     def __init__(self):
@@ -73,6 +74,9 @@ class STTHandler:
                 return False
         return True
 
+    def recognize_file(self, path):
+        return None
+
 class SphinxHandler(STTHandler):
     def __init__(self, settings, pip_path, stt):
         self.key = "Sphinx"
@@ -80,7 +84,39 @@ class SphinxHandler(STTHandler):
         self.pip_path = pip_path
         self.stt = stt
 
+    def recognize_file(self, path):
+        r = sr.Recognizer()
+        with sr.AudioFile(path) as source:
+            audio = r.record(source)
+
+        try:
+            res = r.recognize_sphinx(audio)
+        except sr.UnknownValueError:
+            res = _("Could not understand the audio")
+        except Exception as e:
+            print(e)
+            return None
+        return res
 
 
+class GoogleSRHandler(STTHandler):
+    def __init__(self, settings, pip_path, stt):
+        self.key = "google_sr"
+        self.settings = settings
+        self.pip_path = pip_path
+        self.stt = stt
 
+    def recognize_file(self, path):
+        r = sr.Recognizer()
+        with sr.AudioFile(path) as source:
+            audio = r.record(source)
+
+        try:
+            res = r.recognize_google(audio)
+        except sr.UnknownValueError:
+            return None
+        except Exception as e:
+            print(e)
+            return None
+        return res
                     

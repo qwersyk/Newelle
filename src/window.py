@@ -2,7 +2,7 @@ import time, re, sys
 import gi, os, subprocess
 import pickle
 from .gtkobj import File, CopyBox, BarChartBox
-from .constants import AVAILABLE_LLMS, PROMPTS, AVAILABLE_TTS
+from .constants import AVAILABLE_LLMS, PROMPTS, AVAILABLE_TTS, AVAILABLE_STT
 from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject, GLib
 from .stt import AudioRecorder
 import threading
@@ -262,11 +262,11 @@ class MainWindow(Gtk.ApplicationWindow):
         input_box=Gtk.Box(halign=Gtk.Align.FILL, margin_start=6, margin_end=6,  margin_top=6, margin_bottom=6, spacing=6)
         self.secondary_message_chat_block.append(input_box)
         input_box.append(self.input_panel)
-        self.send_button = Gtk.Button(css_classes=["suggested-action"], icon_name="go-next-symbolic", width_request=36)
-        input_box.append(self.send_button)
-        self.mic_button = Gtk.Button(css_classes=["suggested-action"], icon_name="microphone2-symbolic", width_request=36)
+        self.mic_button = Gtk.Button(css_classes=["suggested-action"], icon_name="audio-input-microphone-symbolic", width_request=36)
         self.mic_button.connect("clicked", self.start_recording)
         input_box.append(self.mic_button)
+        self.send_button = Gtk.Button(css_classes=["suggested-action"], icon_name="go-next-symbolic", width_request=36)
+        input_box.append(self.send_button)
         self.input_panel.connect('activate', self.on_entry_activate)
         self.send_button.connect('clicked', self.on_entry_button_clicked)
         self.main.connect("notify::folded", self.handle_main_block_change)
@@ -279,8 +279,11 @@ class MainWindow(Gtk.ApplicationWindow):
         threading.Thread(target=self.show_chat).start()
 
     def start_recording(self, button):
-        button.set_child(Gtk.Spinner(spinning=True))
+        #button.set_child(Gtk.Spinner(spinning=True))
+        button.set_icon_name("media-playback-stop-symbolic")
         button.disconnect_by_func(self.start_recording)
+        button.remove_css_class("suggested-action")
+        button.add_css_class("error")
         button.connect("clicked", self.stop_recording)
         self.recorder = AudioRecorder()
         t = threading.Thread(target=self.recorder.start_recording)
@@ -288,12 +291,24 @@ class MainWindow(Gtk.ApplicationWindow):
 
     def stop_recording(self, button):
         self.recorder.stop_recording(os.path.join(self.directory, "recording.wav"))
+        t = threading.Thread(target=self.stop_recording_async, args=(button,))
+        t.start()
+
+    def stop_recording_async(self, button):
         button.set_child(None)
-        button.set_icon_name("microphone2-symbolic")
+        button.set_icon_name("audio-input-microphone-symbolic")
+        button.add_css_class("suggested-action")
+        button.remove_css_class("error")
         button.disconnect_by_func(self.stop_recording)
         button.connect("clicked", self.start_recording)
-
-
+        engine = AVAILABLE_STT[self.stt_engine]
+        recognizer = engine["class"](self.settings, self.pip_directory, engine)
+        result = recognizer.recognize_file(os.path.join(self.directory, "recording.wav"))
+        if result is not None:
+            self.input_panel.set_text(result)
+            self.on_entry_activate(self.input_panel)
+        else:
+            self.notification_block.add_toast(Adw.Toast(title=_('Could not recognize your voice'), timeout=2))
 
     def update_settings(self):
         settings = self.settings
@@ -314,6 +329,8 @@ class MainWindow(Gtk.ApplicationWindow):
         self.tts_enabled = settings.get_boolean("tts-on")
         self.tts_program = settings.get_string("tts")
         self.tts_voice = settings.get_string("tts-voice")
+        self.stt_engine = settings.get_string("stt-engine")
+        self.stt_settings = settings.get_string("stt-settings")
 
         found = False
         for model in AVAILABLE_LLMS:

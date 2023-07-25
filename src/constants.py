@@ -1,7 +1,7 @@
 from .bai import BaiHandler
 from .localmodels import GPT4AllHandler
 from .tts import gTTSHandler, EspeakHandler
-from .stt import STTHandler, SphinxHandler
+from .stt import STTHandler, SphinxHandler, GoogleSRHandler
 
 AVAILABLE_LLMS = [
     {
@@ -30,12 +30,16 @@ AVAILABLE_STT = {
         "class": SphinxHandler
     },
     "google_sr": {
-        "rowtype": "expander",
+        "rowtype": "action",
         "title": _("Google Speech Recognition"),
         "description": _("Google Speech Recognition online"),
         "extra_requirements": [],
-        "class": STTHandler
+        "class": GoogleSRHandler
     },
+}
+
+"""
+    Will work on this later
     "whisper": {
         "rowtype": "expander",
         "title": _("OpenAI Whisper"),
@@ -57,10 +61,11 @@ AVAILABLE_STT = {
         "title": _("Whisper API"),
         "description": _("Uses openai whisper api"),
         "website": "https://platform.openai.com/docs/guides/speech-to-text",
-        "extra_requirements": ["pyrogram"],
+        "extra_requirements": ["openai"],
         "class": STTHandler
     }
-}
+"""
+
 
 AVAILABLE_TTS = {
 
