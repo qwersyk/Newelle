@@ -1,4 +1,4 @@
-import os, sys, subprocess
+import os, sys, subprocess, json
 import importlib
 import pyaudio
 import wave
@@ -47,6 +47,8 @@ def find_module(full_module_name):
 
     Exception is raised if (existing) module raises exception during its import.
     """
+    if full_module_name == "git+https://github.com/openai/whisper.git":
+        full_module_name = "whisper"
     try:
         return importlib.import_module(full_module_name)
     except ImportError as exc:
@@ -63,6 +65,7 @@ class STTHandler:
         self.settings = settings
         self.pip_path = pip_path
         self.stt = stt
+        self.key = ""
 
     def install(self):
         for module in self.stt["extra_requirements"]:
@@ -75,6 +78,25 @@ class STTHandler:
         return True
 
     def recognize_file(self, path):
+        return None
+
+    def set_setting(self, name, value):
+        j = json.loads(self.settings.get_string("stt-settings"))
+        if self.key not in j:
+            j[self.key] = {}
+        j[self.key][name] = value
+        self.settings.set_string("stt-settings", json.dumps(j))
+
+    def get_setting(self, name):
+        j = json.loads(self.settings.get_string("stt-settings"))
+        if self.key not in j or name not in j[self.key]:
+            return self.get_default_setting(name)
+        return j[self.key][name]
+
+    def get_default_setting(self, name):
+        for x in self.stt["extra_settings"]:
+            if x["key"] == name:
+                return x["default"]
         return None
 
 class SphinxHandler(STTHandler):
@@ -110,13 +132,94 @@ class GoogleSRHandler(STTHandler):
         r = sr.Recognizer()
         with sr.AudioFile(path) as source:
             audio = r.record(source)
-
+        key = self.get_setting("api")
+        language = self.get_setting("language")
         try:
-            res = r.recognize_google(audio)
+            if key == "default":
+                res = r.recognize_google(audio, language=language)
+            else:
+                res = r.recognize_google(audio, key=key, language=language)
         except sr.UnknownValueError:
             return None
         except Exception as e:
             print(e)
             return None
         return res
-                    
+
+class WitAIHandler(STTHandler):
+    def __init__(self, settings, pip_path, stt):
+        self.key = "witai"
+        self.settings = settings
+        self.pip_path = pip_path
+        self.stt = stt
+
+    def recognize_file(self, path):
+        r = sr.Recognizer()
+        with sr.AudioFile(path) as source:
+            audio = r.record(source)
+        key = self.get_setting("api")
+        try:
+            res = r.recognize_wit(audio, key=key)
+        except sr.UnknownValueError:
+            return None
+        except Exception as e:
+            print(e)
+            return None
+        return res
+
+class VoskHandler(STTHandler):
+    def __init__(self, settings, pip_path, stt):
+        self.key = "vosk"
+        self.settings = settings
+        self.pip_path = pip_path
+        self.stt = stt
+
+    def recognize_file(self, path):
+        from vosk import Model
+        r = sr.Recognizer()
+        with sr.AudioFile(path) as source:
+            audio = r.record(source)
+        path = self.get_setting("path")
+        r.vosk_model = Model(path)
+        try:
+            res = json.loads(r.recognize_vosk(audio))["text"]
+        except sr.UnknownValueError:
+            return None
+        except Exception as e:
+            print(e)
+            return None
+        return res
+
+class WhisperAPIHandler(STTHandler):
+    def __init__(self, settings, pip_path, stt):
+        self.key = "whisperapi"
+        self.settings = settings
+        self.pip_path = pip_path
+        self.stt = stt
+
+    def recognize_file(self, path):
+        r = sr.Recognizer()
+        with sr.AudioFile(path) as source:
+            audio = r.record(source)
+        model = self.get_setting("model")
+        api = self.get_setting("api")
+        try:
+            res = r.recognize_whisper_api(audio, model=model, api_key=api)
+        except sr.UnknownValueError:
+            return None
+        except Exception as e:
+            print(e)
+            return None
+        return res
+
+class CustomSRHandler(STTHandler):
+    def __init__(self, settings, pip_path, stt):
+        self.key = "custom_command"
+        self.settings = settings
+        self.pip_path = pip_path
+        self.stt = stt
+
+    def recognize_file(self, path):
+        command = self.get_setting("command")
+        res = subprocess.check_output(["flatpak-spawn", "--host", "bash", "-c", command.replace("{0}", path)]).decode("utf-8")
+        return res
