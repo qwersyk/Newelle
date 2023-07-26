@@ -74,10 +74,12 @@ class Settings(Adw.PreferencesWindow):
                 row = Adw.ActionRow(title=tts["title"], subtitle=tts["description"])
             elif tts["rowtype"] == "expander":
                 row = Adw.ExpanderRow(title=tts["title"], subtitle=tts["description"])
+                if len(tts["extra_settings"]) > 0:
+                    self.add_tts_settings(tts, row)
             elif tts["rowtype"] == "combo":
                 row = Adw.ComboRow(title=tts["title"], subtitle=tts["description"])
                 row.set_name(tts["key"])
-                tts_class = tts["class"](self.settings, self.directory)
+                tts_class = tts["class"](self.settings, self.directory, tts)
                 helper = ComboRowHelper(row, tts_class.get_voices(), tts_class.get_current_voice())
                 helper.connect("changed", self.choose_tts_voice)
             button = Gtk.CheckButton()
@@ -231,6 +233,36 @@ class Settings(Adw.PreferencesWindow):
                 r.add_suffix(entry)
             row.add_row(r)
 
+    def add_tts_settings(self, tts, row):
+        model = tts["class"](self.settings, self.directory, tts)
+        for setting in tts["extra_settings"]:
+            r = Adw.ActionRow(title=setting["title"], subtitle=setting["description"])
+            if "website" in setting:
+                wbbutton = Gtk.Button(icon_name="org.gnome.Epiphany-symbolic")
+                wbbutton.add_css_class("flat")
+                wbbutton.set_valign(Gtk.Align.CENTER)
+                wbbutton.set_name(setting["website"])
+                wbbutton.connect("clicked", self.open_website)
+                r.add_prefix(wbbutton)
+            if setting["type"] == "entry":
+                entry = Gtk.Entry()
+                entry.set_valign(Gtk.Align.CENTER)
+                value = model.get_setting(setting["key"])
+                if value is None:
+                    value = setting["default"]
+                entry.set_text(value)
+                entry.set_name(tts["key"] + "//" + setting["key"])
+                entry.connect("changed", self.tts_setting_change)
+                r.add_suffix(entry)
+            row.add_row(r)
+
+    def tts_setting_change(self, entry):
+        name = entry.get_name().split("//")
+        key = name[0]
+        setting = name[1]
+        model = AVAILABLE_TTS[key]["class"](self.settings, self.directory, AVAILABLE_TTS[key])
+        model.set_setting(setting, entry.get_text())
+
     def stt_setting_change(self, entry):
         name = entry.get_name().split("//")
         key = name[0]
@@ -331,7 +363,7 @@ class Settings(Adw.PreferencesWindow):
             self.settings.set_string("stt-engine", button.get_name())
 
     def choose_tts_voice(self, helper, value):
-        tts = AVAILABLE_TTS[helper.combo.get_name()]["class"](self.settings, self.directory)
+        tts = AVAILABLE_TTS[helper.combo.get_name()]["class"](self.settings, self.directory, AVAILABLE_TTS[helper.combo.get_name()])
         tts.set_voice(value)
 
     def download_local_model(self, button):

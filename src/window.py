@@ -1100,7 +1100,7 @@ Name: The multiplication table for 4.
         # TTS
         if self.tts_enabled:
             if self.tts_program in AVAILABLE_TTS:
-                tts = AVAILABLE_TTS[self.tts_program]["class"](self.settings, self.directory)
+                tts = AVAILABLE_TTS[self.tts_program]["class"](self.settings, self.directory, AVAILABLE_TTS[self.tts_program])
                 message=re.sub(r"```.*?```", "", message_label, flags=re.DOTALL)
                 if not(not message.strip() or message.isspace() or all(char == '\n' for char in message)):tts.play_audio(message)
 

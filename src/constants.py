@@ -1,6 +1,6 @@
 from .bai import BaiHandler
 from .localmodels import GPT4AllHandler
-from .tts import gTTSHandler, EspeakHandler
+from .tts import gTTSHandler, EspeakHandler, CustomTTSHandler
 from .stt import STTHandler, SphinxHandler, GoogleSRHandler, WitAIHandler, VoskHandler, WhisperAPIHandler, CustomSRHandler
 
 AVAILABLE_LLMS = [
@@ -147,15 +147,34 @@ AVAILABLE_TTS = {
         "rowtype": "combo",
         "title": _("Google TTS"),
         "description": _("Google's text to speech"),
-        "class": gTTSHandler
+        "class": gTTSHandler,
+        "extra_settings": []
     },
     "espeak": {
         "rowtype": "combo",
         "title": _("Espeak TTS"),
         "description": _("Offline TTS"),
-        "class": EspeakHandler
+        "class": EspeakHandler,
+        "extra_settings": []
+    },
+    "custom_command": {
+        "rowtype": "expander",
+        "title": _("Custom Command"),
+        "description": _("Use a custom command as TTS, {0} will be replaced with the text"),
+        "class": CustomTTSHandler,
+        "extra_settings": [
+            {
+                "key": "command",
+                "title": _("Command to execute"),
+                "description": _("{0} will be replaced with the model fullpath"),
+                "type": "entry",
+                "default": ""
+            },
+        ]
     }
 }
+
+
 PROMPTS = {
     "console_prompt": """System: You are an assistant who helps the user by answering questions and running Linux commands in the terminal on the user's computer. Use two types of messages: "Assistant: text" to answer questions and communicate with the user, and "Assistant: ```console\ncommand\n```" to execute commands on the user's computer. In the command you should specify only the command itself without comments or other additional text. Your task is to minimize the information and leave only the important. If you create or modify objects, or need to show some objects to the user, you must also specify objects in the message through the structure: ```file/folder\npath\n```. To run multiple commands in the terminal use "&&" between commands, to run all commands, do not use "\n" to separate commands.
 User: Create an image 100x100 pixels
