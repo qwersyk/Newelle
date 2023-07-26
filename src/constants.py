@@ -1,7 +1,7 @@
 from .bai import BaiHandler
 from .localmodels import GPT4AllHandler
 from .tts import gTTSHandler, EspeakHandler
-from .stt import STTHandler, SphinxHandler, GoogleSRHandler
+from .stt import STTHandler, SphinxHandler, GoogleSRHandler, WitAIHandler, VoskHandler, WhisperAPIHandler, CustomSRHandler
 
 AVAILABLE_LLMS = [
     {
@@ -24,29 +24,52 @@ AVAILABLE_STT = {
     "sphinx": {
         "rowtype": "action",
         "title": _("CMU Sphinx"),
-        "description": _("Works offline."),
+        "description": _("Works offline. Only English supported"),
         "website": "https://cmusphinx.github.io/wiki/",
         "extra_requirements": ["pocketsphinx"],
-        "class": SphinxHandler
+        "class": SphinxHandler,
+        "extra_settings": []
     },
     "google_sr": {
-        "rowtype": "action",
+        "rowtype": "expander",
         "title": _("Google Speech Recognition"),
         "description": _("Google Speech Recognition online"),
         "extra_requirements": [],
-        "class": GoogleSRHandler
+        "class": GoogleSRHandler,
+        "extra_settings": [
+            {
+                "key": "api",
+                "title": _("API Key"),
+                "description": _("API Key for Google SR, write 'default' to use the default one"),
+                "type": "entry",
+                "default": "default"
+            },
+            {
+                "key": "language",
+                "title": _("Language"),
+                "description": _("The language of the text to recgnize in IETF"),
+                "type": "entry",
+                "default": "en-US",
+                "website": "https://stackoverflow.com/questions/14257598/what-are-language-codes-in-chromes-implementation-of-the-html5-speech-recogniti"
+            }
+        ]
     },
-}
-
-"""
-    Will work on this later
-    "whisper": {
+    "witai": {
         "rowtype": "expander",
-        "title": _("OpenAI Whisper"),
-        "description": _("Offline OpenAI Whisper recognition"),
-        "website": "https://github.com/openai/whisper",
-        "extra_requirements": ["git+https://github.com/openai/whisper.git", "soundfile"],
-        "class": STTHandler
+        "title": _("Wit AI"),
+        "description": _("wit.ai speech recognition free API (language chosen on the website)"),
+        "extra_requirements": [],
+        "website": "https://wit.ai",
+        "class": WitAIHandler,
+        "extra_settings": [
+            {
+                "key": "api",
+                "title": _("API Key"),
+                "description": _("Server Access Token for wit.ai"),
+                "type": "entry",
+                "default": ""
+            },
+        ]
     },
     "vosk": {
         "rowtype": "expander",
@@ -54,7 +77,17 @@ AVAILABLE_STT = {
         "description": _("Works Offline"),
         "website": "https://github.com/alphacep/vosk-api/",
         "extra_requirements": ["vosk"],
-        "class": STTHandler
+        "class": VoskHandler,
+        "extra_settings": [
+            {
+                "key": "path",
+                "title": _("Model Path"),
+                "description": _("Absolute path to the VOSK model (unzipped)"),
+                "type": "entry",
+                "website": "https://alphacephei.com/vosk/models",
+                "default": ""
+            },
+        ]
     },
     "whisperapi": {
         "rowtype": "expander",
@@ -62,9 +95,50 @@ AVAILABLE_STT = {
         "description": _("Uses openai whisper api"),
         "website": "https://platform.openai.com/docs/guides/speech-to-text",
         "extra_requirements": ["openai"],
-        "class": STTHandler
+        "class": WhisperAPIHandler,
+        "extra_settings": [
+            {
+                "key": "api",
+                "title": _("API Key"),
+                "description": _("API Key for OpenAI"),
+                "type": "entry",
+                "default": ""
+            },
+            {
+                "key": "model",
+                "title": _("Whisper API Model"),
+                "description": _("Name of the Whisper API Model"),
+                "type": "entry",
+                "default": "whisper-1"
+            },
+        ]
+    },
+#    "whisper": {
+#        "rowtype": "expander",
+#        "title": _("OpenAI Whisper"),
+#        "description": _("Offline OpenAI Whisper recognition"),
+#        "website": "https://github.com/openai/whisper",
+#        "extra_requirements": ["git+https://github.com/openai/whisper.git", "soundfile"],
+#        "class": STTHandler,
+#        "extra_settings": []
+#    },
+    "custom_command": {
+        "rowtype": "expander",
+        "title": _("Custom command"),
+        "description": _("Runs a custom command"),
+        "extra_requirements": [],
+        "class": CustomSRHandler,
+        "extra_settings": [
+            {
+                "key": "command",
+                "title": _("Command to execute"),
+                "description": _("{0} will be replaced with the model fullpath"),
+                "type": "entry",
+                "default": ""
+            },
+        ]
     }
-"""
+}
 
 
 AVAILABLE_TTS = {
