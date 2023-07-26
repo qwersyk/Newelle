@@ -136,6 +136,9 @@ class MyApp(Adw.Application):
         self.settingswindow = settings
 
     def close_settings(self, *a):
+        settings = Gio.Settings.new('io.github.qwersyk.Newelle')
+        settings.set_int("chat", self.win.chat_id)
+        settings.set_string("path", os.path.normpath(self.win.main_path))
         self.win.update_settings()
         self.settingswindow.destroy()
         return True
