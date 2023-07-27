@@ -130,7 +130,7 @@ class Settings(Adw.PreferencesWindow):
             row.set_name(stt_key)
             stt_engine.add_row(row)
             if "website" in stt:
-                wbbutton = Gtk.Button(icon_name="org.gnome.Epiphany-symbolic")
+                wbbutton = Gtk.Button(icon_name="internet-symbolic")
                 wbbutton.add_css_class("flat")
                 wbbutton.set_valign(Gtk.Align.CENTER)
                 wbbutton.set_name(stt["website"])
@@ -223,7 +223,7 @@ class Settings(Adw.PreferencesWindow):
         for setting in m["extra_settings"]:
             r = Adw.ActionRow(title=setting["title"], subtitle=setting["description"])
             if "website" in setting:
-                wbbutton = Gtk.Button(icon_name="org.gnome.Epiphany-symbolic")
+                wbbutton = Gtk.Button(icon_name="internet-symbolic")
                 wbbutton.add_css_class("flat")
                 wbbutton.set_valign(Gtk.Align.CENTER)
                 wbbutton.set_name(setting["website"])
@@ -246,7 +246,7 @@ class Settings(Adw.PreferencesWindow):
         for setting in tts["extra_settings"]:
             r = Adw.ActionRow(title=setting["title"], subtitle=setting["description"])
             if "website" in setting:
-                wbbutton = Gtk.Button(icon_name="org.gnome.Epiphany-symbolic")
+                wbbutton = Gtk.Button(icon_name="internet-symbolic")
                 wbbutton.add_css_class("flat")
                 wbbutton.set_valign(Gtk.Align.CENTER)
                 wbbutton.set_name(setting["website"])
