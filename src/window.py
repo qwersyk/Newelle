@@ -335,7 +335,8 @@ class MainWindow(Gtk.ApplicationWindow):
         if self.language_model in AVAILABLE_LLMS:
             self.model = AVAILABLE_LLMS[self.language_model]["class"](self.settings, os.path.join(self.directory, "models"), AVAILABLE_LLMS[self.language_model])
         else:
-            self.model = AVAILABLE_LLMS.values()[0]["class"](self.settings, os.path.join(self.directory, "models"), AVAILABLE_LLMS.values()[0])
+            mod = list(AVAILABLE_LLMS.values())[0]
+            self.model = mod["class"](self.settings, os.path.join(self.directory, "models"), mod)
 
         self.model.load_model(self.local_model)
 
