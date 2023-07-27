@@ -130,11 +130,7 @@ class Settings(Adw.PreferencesWindow):
             row.set_name(stt_key)
             stt_engine.add_row(row)
             if "website" in stt:
-                wbbutton = Gtk.Button(icon_name="internet-symbolic")
-                wbbutton.add_css_class("flat")
-                wbbutton.set_valign(Gtk.Align.CENTER)
-                wbbutton.set_name(stt["website"])
-                wbbutton.connect("clicked", self.open_website)
+                wbbutton = self.create_web_button(stt["website"])
                 if stt["rowtype"] == "action":
                     row.add_suffix(wbbutton)
                 elif stt["rowtype"] == "expander":
@@ -223,11 +219,7 @@ class Settings(Adw.PreferencesWindow):
         for setting in m["extra_settings"]:
             r = Adw.ActionRow(title=setting["title"], subtitle=setting["description"])
             if "website" in setting:
-                wbbutton = Gtk.Button(icon_name="internet-symbolic")
-                wbbutton.add_css_class("flat")
-                wbbutton.set_valign(Gtk.Align.CENTER)
-                wbbutton.set_name(setting["website"])
-                wbbutton.connect("clicked", self.open_website)
+                wbbutton = self.create_web_button(setting["website"])
                 r.add_prefix(wbbutton)
             if setting["type"] == "entry":
                 entry = Gtk.Entry()
@@ -246,12 +238,7 @@ class Settings(Adw.PreferencesWindow):
         for setting in tts["extra_settings"]:
             r = Adw.ActionRow(title=setting["title"], subtitle=setting["description"])
             if "website" in setting:
-                wbbutton = Gtk.Button(icon_name="internet-symbolic")
-                wbbutton.add_css_class("flat")
-                wbbutton.set_valign(Gtk.Align.CENTER)
-                wbbutton.set_name(setting["website"])
-                wbbutton.connect("clicked", self.open_website)
-                r.add_prefix(wbbutton)
+                self.create_web_button(setting["website"])
             if setting["type"] == "entry":
                 entry = Gtk.Entry()
                 entry.set_valign(Gtk.Align.CENTER)
@@ -464,6 +451,13 @@ class Settings(Adw.PreferencesWindow):
         except Exception as e:
             print(e)
 
+    def create_web_button(self, website):
+        wbbutton = Gtk.Button(icon_name="internet-symbolic")
+        wbbutton.add_css_class("flat")
+        wbbutton.set_valign(Gtk.Align.CENTER)
+        wbbutton.set_name(website)
+        wbbutton.connect("clicked", self.open_website)
+        return wbbutton
 
 
 class TextItemFactory(Gtk.ListItemFactory):
