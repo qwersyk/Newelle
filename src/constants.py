@@ -1,24 +1,77 @@
-from .bai import BaiHandler
-from .localmodels import GPT4AllHandler
-from .tts import gTTSHandler, EspeakHandler
+from .llm import GPT4AllHandler, BaiHandler, OpenAIHandler, CustomLLMHandler
+from .tts import gTTSHandler, EspeakHandler, CustomTTSHandler
 from .stt import STTHandler, SphinxHandler, GoogleSRHandler, WitAIHandler, VoskHandler, WhisperAPIHandler, CustomSRHandler
 
-AVAILABLE_LLMS = [
-    {
+AVAILABLE_LLMS = {
+    "bai": {
         "key": "bai",
         "rowtype": "action",
         "title": _("BAI Chat"),
         "description": _("BAI Chat is a GPT-3.5 / ChatGPT API based chatbot that is free, convenient and responsive."),
-        "class": BaiHandler
+        "class": BaiHandler,
+        "extra_settings": [],
+        "extra_requirements": []
     },
-    {
+    "local": {
         "key": "local",
         "rowtype": "expander",
         "title": _("Local Model"),
         "description": _("Run a LLM model locally, more privacy but slower"),
-        "class": GPT4AllHandler
+        "class": GPT4AllHandler,
+        "extra_settings": [],
+        "extra_requirements": []
+    },
+    "openai": {
+        "key": "openai",
+        "rowtype": "expander",
+        "title": _("OpenAI API"),
+        "description": _("OpenAI API"),
+        "class": OpenAIHandler,
+        "extra_requirements": ["openai"],
+        "extra_settings": [
+            {
+                "key": "api",
+                "title": _("API Key"),
+                "description": _("API Key for OpenAI"),
+                "type": "entry",
+                "default": ""
+            },
+            {
+                "key": "engine",
+                "title": _("OpenAI Engine"),
+                "description": _("Name of the OpenAI Engine"),
+                "type": "entry",
+                "default": "text-davinci-003"
+            },
+
+        ]
+    },
+    "custom_command": {
+        "key": "custom_command",
+        "rowtype": "expander",
+        "title": _("Custom Command"),
+        "description": _("Use the output of a custom command"),
+        "class": CustomLLMHandler,
+        "extra_requirements": [],
+        "extra_settings": [
+            {
+                "key": "command",
+                "title": _("Command to execute to get bot output"),
+                "description": _("Command to execute to get bot response, {0} will be replaced with a JSON file containing the chat, {1} with the extra prompts"),
+                "type": "entry",
+                "default": ""
+            },
+            {
+                "key": "suggestion",
+                "title": _("Command to execute to get bot's suggestions"),
+                "description": _("Command to execute to get chat suggestions, {0} will be replaced with a JSON file containing the chat, {1} with the extra prompts"),
+                "type": "entry",
+                "default": ""
+            },
+
+        ]
     }
-]
+}
 
 AVAILABLE_STT = {
     "sphinx": {
@@ -147,15 +200,34 @@ AVAILABLE_TTS = {
         "rowtype": "combo",
         "title": _("Google TTS"),
         "description": _("Google's text to speech"),
-        "class": gTTSHandler
+        "class": gTTSHandler,
+        "extra_settings": []
     },
     "espeak": {
         "rowtype": "combo",
         "title": _("Espeak TTS"),
         "description": _("Offline TTS"),
-        "class": EspeakHandler
+        "class": EspeakHandler,
+        "extra_settings": []
+    },
+    "custom_command": {
+        "rowtype": "expander",
+        "title": _("Custom Command"),
+        "description": _("Use a custom command as TTS, {0} will be replaced with the text"),
+        "class": CustomTTSHandler,
+        "extra_settings": [
+            {
+                "key": "command",
+                "title": _("Command to execute"),
+                "description": _("{0} will be replaced with the model fullpath"),
+                "type": "entry",
+                "default": ""
+            },
+        ]
     }
 }
+
+
 PROMPTS = {
     "console_prompt": """System: You are an assistant who helps the user by answering questions and running Linux commands in the terminal on the user's computer. Use two types of messages: "Assistant: text" to answer questions and communicate with the user, and "Assistant: ```console\ncommand\n```" to execute commands on the user's computer. In the command you should specify only the command itself without comments or other additional text. Your task is to minimize the information and leave only the important. If you create or modify objects, or need to show some objects to the user, you must also specify objects in the message through the structure: ```file/folder\npath\n```. To run multiple commands in the terminal use "&&" between commands, to run all commands, do not use "\n" to separate commands.
 User: Create an image 100x100 pixels
