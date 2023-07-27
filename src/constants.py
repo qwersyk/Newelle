@@ -1,5 +1,5 @@
 
-from .llm import GPT4AllHandler, BaiHandler, OpenAIHandler, CustomLLMHandler
+from .llm import GPT4AllHandler, BaiHandler, OpenAIHandler, CustomLLMHandler, PoeHandler
 from .tts import gTTSHandler, EspeakHandler, CustomTTSHandler
 from .stt import STTHandler, SphinxHandler, GoogleSRHandler, WitAIHandler, VoskHandler, WhisperAPIHandler, CustomSRHandler
 
@@ -43,6 +43,33 @@ AVAILABLE_LLMS = {
                 "description": _("Name of the OpenAI Engine"),
                 "type": "entry",
                 "default": "text-davinci-003"
+            },
+
+        ]
+    },
+    "poe": {
+        "key": "poe",
+        "rowtype": "expander",
+        "title": _("Poe.com"),
+        "description": _("Poe lets you ask questions, get instant answers, and have back-and-forth conversations with AI. At the moment, prompts are not supported"),
+        "class": PoeHandler,
+        "extra_requirements": ["poe-api"],
+        "extra_settings": [
+            {
+                "key": "token",
+                "title": _("Poe.com Token"),
+                "description": _("p-b cookie (website for info)"),
+                "type": "entry",
+                "website": "https://gist.github.com/FrancescoCaracciolo/206b25d1e8859f50f7569a503070b867#token",
+                "default": ""
+            },
+            {
+                "key": "codename",
+                "title": _("Bot Codename"),
+                "description": _("Codename of the bot you want to chat with (website for info)"),
+                "type": "entry",
+                "website": "https://gist.github.com/FrancescoCaracciolo/206b25d1e8859f50f7569a503070b867#token",
+                "default": "chinchilla"
             },
 
         ]

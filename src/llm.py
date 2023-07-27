@@ -57,6 +57,61 @@ class LLMHandler():
                 return s["default"]
         return None
 
+class PoeHandler(LLMHandler):
+    def __init__(self, settings, path, llm):
+        self.history = ""
+        self.propmts = []
+        self.key = "poe"
+        self.settings = settings
+        self.path = path
+        self.llm = llm
+        self.client = None
+
+    def load_model(self, model:str = None):
+        """Loads the local model on another thread"""
+        t = threading.Thread(target=self.load_model_async)
+        t.start()
+        return True
+
+    def load_model_async(self):
+        import poe
+        token = self.get_setting("token")
+        self.client = poe.Client(token)
+
+    def is_installed(self):
+        if find_module("poe") is None:
+            return False
+        return True
+
+    def send_message(self, window, message):
+        """Get a response to a message"""
+        return self.__generate_response(window, message)
+
+    def __generate_response(self, window, message):
+        if self.client is None:
+            self.load_model_async()
+        codename = self.get_setting("codename")
+        #chunks = []
+        for chunk in self.client.send_message(codename, message):
+            #chunks.append(chunk["text_new"])
+            pass
+        response = chunk["text"].lstrip("\n")
+        return response
+
+    def clear_conversation(self):
+        codename = self.get_setting("codename")
+        self.client.send_chat_break(codename)
+
+    def set_history(self, prompts, window):
+        """Manages messages history"""
+        if len(window.chat) == 1:
+            t = threading.Thread(target=self.clear_conversation)
+            t.start()
+
+    def get_suggestions(self, window, message):
+        return ""
+
+
 class CustomLLMHandler(LLMHandler):
     def __init__(self, settings, path, llm):
         self.history = []
