@@ -37,9 +37,10 @@ newelle_sources = [
   'shortcuts.py',
   'thread_editing.py',
   'extension.py',
-  'localmodels.py',
+  'llm.py',
   'tts.py',
-  'stt.py'
+  'stt.py',
+  'extra.py',
 ]
 
 install_data(newelle_sources, install_dir: moduledir)

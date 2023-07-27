@@ -3,7 +3,7 @@ import re, threading, os, json, time, ctypes, subprocess
 from gi.repository import Gtk, Adw, Gio, GLib
 from .constants import AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT
 from gpt4all import GPT4All
-from .localmodels import GPT4AllHandler
+from .llm import GPT4AllHandler
 from .gtkobj import ComboRowHelper
 
 
@@ -25,7 +25,7 @@ class Settings(Adw.PreferencesWindow):
 
         self.local_models = json.loads(self.settings.get_string("available-models"))
         self.directory = GLib.get_user_config_dir()
-        self.gpt = GPT4AllHandler(self.settings, os.path.join(self.directory, "models"))
+        self.gpt = GPT4AllHandler(self.settings, os.path.join(self.directory, "models"), AVAILABLE_LLMS["local"])
 
         self.general_page = Adw.PreferencesPage()
 
@@ -34,7 +34,8 @@ class Settings(Adw.PreferencesWindow):
         self.general_page.add(self.LLM)
         self.llmbuttons = [];
         group = Gtk.CheckButton()
-        for model in AVAILABLE_LLMS:
+        for model_key in AVAILABLE_LLMS:
+            model = AVAILABLE_LLMS[model_key]
             active = False
             if model["key"] == self.settings.get_string("language-model"):
                 active = True
@@ -46,6 +47,10 @@ class Settings(Adw.PreferencesWindow):
                     self.llmrow = row
                     thread = threading.Thread(target=self.build_local)
                     thread.start()
+                else:
+                    self.add_extra_settings(model, row, "llm")
+            if len(model["extra_requirements"]) > 0:
+                self.add_download_button(model, row, "llm")
             button = Gtk.CheckButton()
             button.set_group(group)
             button.set_active(active)
@@ -107,7 +112,7 @@ class Settings(Adw.PreferencesWindow):
                 row = Adw.ActionRow(title=stt["title"], subtitle=stt["description"])
             elif stt["rowtype"] == "expander":
                 row = Adw.ExpanderRow(title=stt["title"], subtitle=stt["description"])
-                self.add_stt_settings(stt, row)
+                self.add_extra_settings(stt, row, "stt")
             elif stt["rowtype"] == "combo":
                 row = Adw.ComboRow(title=stt["title"], subtitle=stt["description"])
                 """
@@ -125,17 +130,13 @@ class Settings(Adw.PreferencesWindow):
             row.set_name(stt_key)
             stt_engine.add_row(row)
             if "website" in stt:
-                wbbutton = Gtk.Button(icon_name="org.gnome.Epiphany-symbolic")
-                wbbutton.add_css_class("flat")
-                wbbutton.set_valign(Gtk.Align.CENTER)
-                wbbutton.set_name(stt["website"])
-                wbbutton.connect("clicked", self.open_website)
+                wbbutton = self.create_web_button(stt["website"])
                 if stt["rowtype"] == "action":
                     row.add_suffix(wbbutton)
                 elif stt["rowtype"] == "expander":
                     row.add_action(wbbutton)
             if len(stt["extra_requirements"]) > 0:
-                self.stt_download_button(stt, row)
+                self.add_download_button(stt, row, "stt")
 
         self.interface = Adw.PreferencesGroup(title=_('Interface'))
         self.general_page.add(self.interface)
@@ -210,16 +211,15 @@ class Settings(Adw.PreferencesWindow):
     def open_website(self, button):
         subprocess.Popen(["flatpak-spawn", "--host", "xdg-open", button.get_name()])
 
-    def add_stt_settings(self, stt, row):
-        model = stt["class"](self.settings, os.path.join(self.directory, "pip"), stt)
-        for setting in stt["extra_settings"]:
+    def add_extra_settings(self, m, row, mtype):
+        if mtype == "stt":
+            model = m["class"](self.settings, os.path.join(self.directory, "pip"), m)
+        elif mtype == "llm":
+            model = m["class"](self.settings,os.path.join(self.directory, "models"), m)
+        for setting in m["extra_settings"]:
             r = Adw.ActionRow(title=setting["title"], subtitle=setting["description"])
             if "website" in setting:
-                wbbutton = Gtk.Button(icon_name="org.gnome.Epiphany-symbolic")
-                wbbutton.add_css_class("flat")
-                wbbutton.set_valign(Gtk.Align.CENTER)
-                wbbutton.set_name(setting["website"])
-                wbbutton.connect("clicked", self.open_website)
+                wbbutton = self.create_web_button(setting["website"])
                 r.add_prefix(wbbutton)
             if setting["type"] == "entry":
                 entry = Gtk.Entry()
@@ -228,8 +228,8 @@ class Settings(Adw.PreferencesWindow):
                 if value is None:
                     value = setting["default"]
                 entry.set_text(value)
-                entry.set_name(stt["key"] + "//" + setting["key"])
-                entry.connect("changed", self.stt_setting_change)
+                entry.set_name(mtype + "//" + m["key"] + "//" + setting["key"])
+                entry.connect("changed", self.setting_change)
                 r.add_suffix(entry)
             row.add_row(r)
 
@@ -238,12 +238,7 @@ class Settings(Adw.PreferencesWindow):
         for setting in tts["extra_settings"]:
             r = Adw.ActionRow(title=setting["title"], subtitle=setting["description"])
             if "website" in setting:
-                wbbutton = Gtk.Button(icon_name="org.gnome.Epiphany-symbolic")
-                wbbutton.add_css_class("flat")
-                wbbutton.set_valign(Gtk.Align.CENTER)
-                wbbutton.set_name(setting["website"])
-                wbbutton.connect("clicked", self.open_website)
-                r.add_prefix(wbbutton)
+                self.create_web_button(setting["website"])
             if setting["type"] == "entry":
                 entry = Gtk.Entry()
                 entry.set_valign(Gtk.Align.CENTER)
@@ -270,30 +265,50 @@ class Settings(Adw.PreferencesWindow):
         model = AVAILABLE_STT[key]["class"](self.settings, os.path.join(self.directory, "pip"), AVAILABLE_STT[key])
         model.set_setting(setting, entry.get_text())
 
-    def stt_download_button(self, stt, row):
-        model = stt["class"](self.settings, os.path.join(self.directory, "pip"), AVAILABLE_STT[row.get_name()])
+    def setting_change(self, entry):
+        name = entry.get_name().split("//")
+        mtype = name[0]
+        key = name[1]
+        setting = name[2]
+        if mtype == "stt":
+            model = AVAILABLE_STT[key]["class"](self.settings, os.path.join(self.directory, "pip"), AVAILABLE_STT[key])
+            model.set_setting(setting, entry.get_text())
+        else:
+            model = AVAILABLE_LLMS[key]["class"](self.settings, os.path.join(self.directory, "model"), AVAILABLE_LLMS[key])
+            model.set_setting(setting, entry.get_text())
+
+    def add_download_button(self, model, row, mtype):
+        if mtype == "stt":
+            m = model["class"](self.settings, os.path.join(self.directory, "pip"), model)
+        elif mtype == "llm":
+            m = model["class"](self.settings, os.path.join(self.directory, "models"), model)
         actionbutton = Gtk.Button(css_classes=["flat"], valign=Gtk.Align.CENTER)
-        if not model.is_installed():
+        if not m.is_installed():
             icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="folder-download-symbolic"))
-            actionbutton.connect("clicked", self.install_stt)
+            actionbutton.connect("clicked", self.install_model)
             actionbutton.add_css_class("accent")
             actionbutton.set_child(icon)
-            actionbutton.set_name(stt["key"])
-            if stt["rowtype"] == "action":
+            actionbutton.set_name(mtype + "//" + model["key"])
+            if model["rowtype"] == "action":
                 row.add_suffix(actionbutton)
-            elif stt["rowtype"] == "expander":
+            elif model["rowtype"] == "expander":
                 row.add_action(actionbutton)
 
-    def install_stt(self, button):
-        stt_key = button.get_name()
-        stt = AVAILABLE_STT[stt_key]
-        model = stt["class"](self.settings, os.path.join(self.directory, "pip"), stt)
+    def install_model(self, button):
+        name = button.get_name()
+        mtype = name.split("//")[0]
+        key = name.split("//")[1]
+        if mtype == "stt":
+            stt = AVAILABLE_STT[key]
+            model = stt["class"](self.settings, os.path.join(self.directory, "pip"), stt)
+        elif mtype == "llm":
+            llm = AVAILABLE_LLMS[key]
+            model = llm["class"](self.settings, os.path.join(self.directory, "models"), llm)
         spinner = Gtk.Spinner(spinning=True)
         button.set_child(spinner)
-        t = threading.Thread(target=self.install_stt_async, args= (button, model))
+        t = threading.Thread(target=self.install_model_async, args= (button, model))
         t.start()
-
-    def install_stt_async(self, button, model):
+    def install_model_async(self, button, model):
         model.install()
         button.set_child(None)
         button.set_sensitive(False)
@@ -436,6 +451,13 @@ class Settings(Adw.PreferencesWindow):
         except Exception as e:
             print(e)
 
+    def create_web_button(self, website):
+        wbbutton = Gtk.Button(icon_name="internet-symbolic")
+        wbbutton.add_css_class("flat")
+        wbbutton.set_valign(Gtk.Align.CENTER)
+        wbbutton.set_name(website)
+        wbbutton.connect("clicked", self.open_website)
+        return wbbutton
 
 
 class TextItemFactory(Gtk.ListItemFactory):

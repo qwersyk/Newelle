@@ -1,24 +1,78 @@
-from .bai import BaiHandler
-from .localmodels import GPT4AllHandler
+
+from .llm import GPT4AllHandler, BaiHandler, OpenAIHandler, CustomLLMHandler
 from .tts import gTTSHandler, EspeakHandler, CustomTTSHandler
 from .stt import STTHandler, SphinxHandler, GoogleSRHandler, WitAIHandler, VoskHandler, WhisperAPIHandler, CustomSRHandler
 
-AVAILABLE_LLMS = [
-    {
+AVAILABLE_LLMS = {
+    "bai": {
         "key": "bai",
         "rowtype": "action",
         "title": _("BAI Chat"),
         "description": _("BAI Chat is a GPT-3.5 / ChatGPT API based chatbot that is free, convenient and responsive."),
-        "class": BaiHandler
+        "class": BaiHandler,
+        "extra_settings": [],
+        "extra_requirements": []
     },
-    {
+    "local": {
         "key": "local",
         "rowtype": "expander",
         "title": _("Local Model"),
         "description": _("Run a LLM model locally, more privacy but slower"),
-        "class": GPT4AllHandler
+        "class": GPT4AllHandler,
+        "extra_settings": [],
+        "extra_requirements": []
+    },
+    "openai": {
+        "key": "openai",
+        "rowtype": "expander",
+        "title": _("OpenAI API"),
+        "description": _("OpenAI API"),
+        "class": OpenAIHandler,
+        "extra_requirements": ["openai"],
+        "extra_settings": [
+            {
+                "key": "api",
+                "title": _("API Key"),
+                "description": _("API Key for OpenAI"),
+                "type": "entry",
+                "default": ""
+            },
+            {
+                "key": "engine",
+                "title": _("OpenAI Engine"),
+                "description": _("Name of the OpenAI Engine"),
+                "type": "entry",
+                "default": "text-davinci-003"
+            },
+
+        ]
+    },
+    "custom_command": {
+        "key": "custom_command",
+        "rowtype": "expander",
+        "title": _("Custom Command"),
+        "description": _("Use the output of a custom command"),
+        "class": CustomLLMHandler,
+        "extra_requirements": [],
+        "extra_settings": [
+            {
+                "key": "command",
+                "title": _("Command to execute to get bot output"),
+                "description": _("Command to execute to get bot response, {0} will be replaced with a JSON file containing the chat, {1} with the extra prompts"),
+                "type": "entry",
+                "default": ""
+            },
+            {
+                "key": "suggestion",
+                "title": _("Command to execute to get bot's suggestions"),
+                "description": _("Command to execute to get chat suggestions, {0} will be replaced with a JSON file containing the chat, {1} with the extra prompts"),
+                "type": "entry",
+                "default": ""
+            },
+
+        ]
     }
-]
+}
 
 AVAILABLE_STT = {
     "sphinx": {

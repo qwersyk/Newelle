@@ -40,6 +40,9 @@
 	      <key name="local-model" type="s">
             <default>""</default>
         </key>
+	      <key name="llm-settings" type="s">
+            <default>"{}"</default>
+        </key>
 	      <key name="available-models" type="s">
             <default>"[]"</default>
         </key>

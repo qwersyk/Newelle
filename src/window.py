@@ -332,14 +332,11 @@ class MainWindow(Gtk.ApplicationWindow):
         self.stt_engine = settings.get_string("stt-engine")
         self.stt_settings = settings.get_string("stt-settings")
 
-        found = False
-        for model in AVAILABLE_LLMS:
-            if model["key"] == self.language_model:
-                self.model = model["class"](self.settings, os.path.join(self.directory, "models"))
-                found = True
-                break
-        if not found:
-            self.model = AVAILABLE_LLMS[0]["class"](self.settings, os.path.join(self.directory, "models"))
+        if self.language_model in AVAILABLE_LLMS:
+            self.model = AVAILABLE_LLMS[self.language_model]["class"](self.settings, os.path.join(self.directory, "models"), AVAILABLE_LLMS[self.language_model])
+        else:
+            mod = list(AVAILABLE_LLMS.values())[0]
+            self.model = mod["class"](self.settings, os.path.join(self.directory, "models"), mod)
 
         self.model.load_model(self.local_model)
 
