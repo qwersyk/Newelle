@@ -71,7 +71,6 @@ AVAILABLE_LLMS = {
                 "website": "https://gist.github.com/FrancescoCaracciolo/206b25d1e8859f50f7569a503070b867#token",
                 "default": "chinchilla"
             },
-
         ]
     },
     "custom_command": {
