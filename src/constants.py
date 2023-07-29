@@ -44,7 +44,61 @@ AVAILABLE_LLMS = {
                 "type": "entry",
                 "default": "text-davinci-003"
             },
-
+            {
+                "key": "max-tokens",
+                "title": _("Max Tokens"),
+                "description": _("Max tokens of the generated text"),
+                "website": "https://help.openai.com/en/articles/4936856-what-are-tokens-and-how-to-count-them",
+                "type": "range",
+                "min": 3,
+                "max": 400,
+                "default": 150,
+                "round-digits": 0
+            },
+            {
+                "key": "top-p",
+                "title": _("Top-P"),
+                "description": _("An alternative to sampling with temperature, called nucleus sampling"),
+                "website": "https://platform.openai.com/docs/api-reference/completions/create#completions/create-top_p",
+                "type": "range",
+                "min": 0,
+                "max": 1,
+                "default": 1,
+                "round-digits": 2,
+            },
+            {
+                "key": "temperature",
+                "title": _("Temperature"),
+                "description": _("What sampling temperature to use. Higher values will make the output more random"),
+                "website": "https://platform.openai.com/docs/api-reference/completions/create#completions/create-temperature",
+                "type": "range",
+                "min": 0,
+                "max": 2,
+                "default": 1,
+                "round-digits": 2,
+            },
+            {
+                "key": "frequency-penalty",
+                "title": _("Frequency Penalty"),
+                "description": _("Positive values penalize new tokens based on their existing frequency in the text so far, decreasing the model's likelihood to repeat the same line"),
+                "website": "https://platform.openai.com/docs/api-reference/completions/create#completions/create-frequency_penalty",
+                "type": "range",
+                "min": -2,
+                "max": 2,
+                "default": 0,
+                "round-digits": 1,
+            },
+            {
+                "key": "presence-penalty",
+                "title": _("Presence Penalty"),
+                "description": _("PPositive values penalize new tokens based on whether they appear in the text so far, increasing the model's likelihood to talk about new topics."),
+                "website": "https://platform.openai.com/docs/api-reference/completions/create#completions/create-frequency_penalty",
+                "type": "range",
+                "min": -2,
+                "max": 2,
+                "default": 0,
+                "round-digits": 1,
+            },
         ]
     },
     "poe": {
@@ -71,7 +125,6 @@ AVAILABLE_LLMS = {
                 "website": "https://gist.github.com/FrancescoCaracciolo/206b25d1e8859f50f7569a503070b867#token",
                 "default": "chinchilla"
             },
-
         ]
     },
     "custom_command": {

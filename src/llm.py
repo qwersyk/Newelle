@@ -155,16 +155,21 @@ class OpenAIHandler(LLMHandler):
 
     def __generate_response(self, window, message):
         engine = self.get_setting("engine")
+        max_tokens = int(self.get_setting("max-tokens"))
+        top_p = self.get_setting("top-p")
+        frequency_penalty = self.get_setting("frequency-penalty")
+        presence_penalty = self.get_setting("presence-penalty")
+        temperature = self.get_setting("temperature")
         import openai
         openai.api_key = self.get_setting("api")
         response = openai.Completion.create(
             engine=engine,
             prompt=message,
-            max_tokens=150,
-            top_p=1,
-            frequency_penalty=0,
-            presence_penalty=0.6,
-            temperature=0.9,
+            max_tokens=max_tokens,
+            top_p=top_p,
+            frequency_penalty=frequency_penalty,
+            presence_penalty=presence_penalty,
+            temperature=temperature,
         ).choices[0].text.strip()
         return response
 

@@ -22,6 +22,7 @@ class Settings(Adw.PreferencesWindow):
         self.set_transient_for(app.win)
         self.set_modal(True)
         self.downloading = {}
+        self.slider_labels = {}
 
         self.local_models = json.loads(self.settings.get_string("available-models"))
         self.directory = GLib.get_user_config_dir()
@@ -80,7 +81,7 @@ class Settings(Adw.PreferencesWindow):
             elif tts["rowtype"] == "expander":
                 row = Adw.ExpanderRow(title=tts["title"], subtitle=tts["description"])
                 if len(tts["extra_settings"]) > 0:
-                    self.add_tts_settings(tts, row)
+                    self.add_extra_settings(tts, row, "tts")
             elif tts["rowtype"] == "combo":
                 row = Adw.ComboRow(title=tts["title"], subtitle=tts["description"])
                 row.set_name(tts["key"])
@@ -216,12 +217,11 @@ class Settings(Adw.PreferencesWindow):
             model = m["class"](self.settings, os.path.join(self.directory, "pip"), m)
         elif mtype == "llm":
             model = m["class"](self.settings,os.path.join(self.directory, "models"), m)
+        elif mtype == "tts":
+            model = m["class"](self.settings, self.directory, m)
         for setting in m["extra_settings"]:
-            r = Adw.ActionRow(title=setting["title"], subtitle=setting["description"])
-            if "website" in setting:
-                wbbutton = self.create_web_button(setting["website"])
-                r.add_prefix(wbbutton)
             if setting["type"] == "entry":
+                r = Adw.ActionRow(title=setting["title"], subtitle=setting["description"])
                 entry = Gtk.Entry()
                 entry.set_valign(Gtk.Align.CENTER)
                 value = model.get_setting(setting["key"])
@@ -229,43 +229,45 @@ class Settings(Adw.PreferencesWindow):
                     value = setting["default"]
                 entry.set_text(value)
                 entry.set_name(mtype + "//" + m["key"] + "//" + setting["key"])
-                entry.connect("changed", self.setting_change)
+                entry.connect("changed", self.setting_change_entry)
                 r.add_suffix(entry)
-            row.add_row(r)
-
-    def add_tts_settings(self, tts, row):
-        model = tts["class"](self.settings, self.directory, tts)
-        for setting in tts["extra_settings"]:
-            r = Adw.ActionRow(title=setting["title"], subtitle=setting["description"])
-            if "website" in setting:
-                self.create_web_button(setting["website"])
-            if setting["type"] == "entry":
-                entry = Gtk.Entry()
-                entry.set_valign(Gtk.Align.CENTER)
+            elif setting["type"] == "toggle":
+                r = Adw.ActionRow(title=setting["title"], subtitle=setting["description"])
+                toggle = Gtk.Switch()
+                toggle.set_valign(Gtk.Align.CENTER)
                 value = model.get_setting(setting["key"])
-                if value is None:
-                    value = setting["default"]
-                entry.set_text(value)
-                entry.set_name(tts["key"] + "//" + setting["key"])
-                entry.connect("changed", self.tts_setting_change)
-                r.add_suffix(entry)
+                toggle.set_active(value)
+                toggle.set_name(mtype + "//" + m["key"] + "//" + setting["key"])
+                toggle.connect("state-set", self.setting_change_toggle)
+                r.add_suffix(toggle)
+            elif setting["type"] == "combo":
+                r = Adw.ComboRow(title=setting["title"], subtitle=setting["description"])
+                r.set_name(mtype + "//" + m["key"] + "//" + setting["key"])
+                helper = ComboRowHelper(r, setting["values"], model.get_setting(setting["key"]))
+                helper.connect("changed", self.setting_change_combo)
+            elif setting["type"] == "range":
+                r = Adw.ActionRow(title=setting["title"], subtitle=setting["description"])
+                r.set_valign(Gtk.Align.CENTER)
+                box = Gtk.Box()
+                scale = Gtk.Scale()
+                scale.set_name(mtype + "//" + m["key"] + "//" + setting["key"])
+                scale.set_range(setting["min"], setting["max"])
+                scale.set_round_digits(setting["round-digits"])
+                scale.set_size_request(120, -1)
+                scale.set_value(float(model.get_setting(setting["key"])))
+                scale.connect("change-value", self.setting_change_scale)
+                label = Gtk.Label(label=model.get_setting(setting["key"]))
+                box.append(label)
+                box.append(scale)
+                self.slider_labels[scale] = label
+                r.add_suffix(box)
+
+            if "website" in setting:
+                wbbutton = self.create_web_button(setting["website"])
+                r.add_prefix(wbbutton)
             row.add_row(r)
 
-    def tts_setting_change(self, entry):
-        name = entry.get_name().split("//")
-        key = name[0]
-        setting = name[1]
-        model = AVAILABLE_TTS[key]["class"](self.settings, self.directory, AVAILABLE_TTS[key])
-        model.set_setting(setting, entry.get_text())
-
-    def stt_setting_change(self, entry):
-        name = entry.get_name().split("//")
-        key = name[0]
-        setting = name[1]
-        model = AVAILABLE_STT[key]["class"](self.settings, os.path.join(self.directory, "pip"), AVAILABLE_STT[key])
-        model.set_setting(setting, entry.get_text())
-
-    def setting_change(self, entry):
+    def setting_change_entry(self, entry):
         name = entry.get_name().split("//")
         mtype = name[0]
         key = name[1]
@@ -273,9 +275,61 @@ class Settings(Adw.PreferencesWindow):
         if mtype == "stt":
             model = AVAILABLE_STT[key]["class"](self.settings, os.path.join(self.directory, "pip"), AVAILABLE_STT[key])
             model.set_setting(setting, entry.get_text())
-        else:
+        elif mtype == "llm":
             model = AVAILABLE_LLMS[key]["class"](self.settings, os.path.join(self.directory, "model"), AVAILABLE_LLMS[key])
             model.set_setting(setting, entry.get_text())
+        elif mtype == "tts":
+            model = AVAILABLE_TTS[key]["class"](self.settings, self.directory, AVAILABLE_TTS[key])
+            model.set_setting(setting, entry.get_text())
+
+    def setting_change_toggle(self, toggle, toggled):
+        name = toggle.get_name().split("//")
+        mtype = name[0]
+        key = name[1]
+        setting = name[2]
+        enabled = toggle.get_active()
+        if mtype == "stt":
+            model = AVAILABLE_STT[key]["class"](self.settings, os.path.join(self.directory, "pip"), AVAILABLE_STT[key])
+            model.set_setting(setting, enabled)
+        elif mtype == "llm":
+            model = AVAILABLE_LLMS[key]["class"](self.settings, os.path.join(self.directory, "model"), AVAILABLE_LLMS[key])
+            model.set_setting(setting, enabled)
+        elif mtype == "tts":
+            model = AVAILABLE_TTS[key]["class"](self.settings, self.directory, AVAILABLE_TTS[key])
+            model.set_setting(setting, enabled)
+
+    def setting_change_scale(self, scale, scroll, value):
+        name = scale.get_name().split("//")
+        mtype = name[0]
+        key = name[1]
+        setting = name[2]
+        digits = scale.get_round_digits()
+        value = round(value, digits)
+        self.slider_labels[scale].set_label(str(value))
+        if mtype == "stt":
+            model = AVAILABLE_STT[key]["class"](self.settings, os.path.join(self.directory, "pip"), AVAILABLE_STT[key])
+            model.set_setting(setting, value)
+        elif mtype == "llm":
+            model = AVAILABLE_LLMS[key]["class"](self.settings, os.path.join(self.directory, "model"), AVAILABLE_LLMS[key])
+            model.set_setting(setting, value)
+        elif mtype == "tts":
+            model = AVAILABLE_TTS[key]["class"](self.settings, self.directory, AVAILABLE_TTS[key])
+            model.set_setting(setting, value)
+
+    def setting_change_combo(self, helper, value):
+        name = helper.combo.get_name().split("//")
+        mtype = name[0]
+        key = name[1]
+        setting = name[2]
+        if mtype == "stt":
+            model = AVAILABLE_STT[key]["class"](self.settings, os.path.join(self.directory, "pip"), AVAILABLE_STT[key])
+            model.set_setting(setting, value)
+        elif mtype == "llm":
+            model = AVAILABLE_LLMS[key]["class"](self.settings, os.path.join(self.directory, "model"), AVAILABLE_LLMS[key])
+            model.set_setting(setting, value)
+        elif mtype == "tts":
+            model = AVAILABLE_TTS[key]["class"](self.settings, self.directory, AVAILABLE_TTS[key])
+            model.set_setting(setting, value)
 
     def add_download_button(self, model, row, mtype):
         if mtype == "stt":
@@ -308,6 +362,7 @@ class Settings(Adw.PreferencesWindow):
         button.set_child(spinner)
         t = threading.Thread(target=self.install_model_async, args= (button, model))
         t.start()
+
     def install_model_async(self, button, model):
         model.install()
         button.set_child(None)
