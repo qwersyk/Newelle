@@ -91,12 +91,7 @@ class PoeHandler(LLMHandler):
         if self.client is None:
             self.load_model_async()
         codename = self.get_setting("codename")
-        #chunks = []
-        for chunk in self.client.send_message(codename, message):
-            #chunks.append(chunk["text_new"])
-            pass
-        response = chunk["text"].lstrip("\n")
-        return response
+        return self.client.send_message(codename, message)
 
     def clear_conversation(self):
         codename = self.get_setting("codename")

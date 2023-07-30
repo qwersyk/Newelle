@@ -38,6 +38,8 @@ class TTSHandler:
     def get_current_voice(self):
         voice = self.get_setting("voice")
         if voice is None:
+            if self.voices == ():
+                return None
             return self.voices[0][1]
         else:
             return voice
