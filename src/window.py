@@ -9,7 +9,6 @@ import threading
 import posixpath
 import shlex,json
 import random
-from .llm import PoeHandler
 
 class MainWindow(Gtk.ApplicationWindow):
     def __init__(self, *args, **kwargs):
@@ -583,7 +582,7 @@ Name: The multiplication table for 4.
 """ + "\n" + self.get_chat(self.chats[int(button.get_name())]["chat"][
                                len(self.chats[int(button.get_name())]["chat"]) - self.memory:len(
                                    self.chats[int(button.get_name())]["chat"])]) + "\nName:")
-            if type(self.model) == PoeHandler:
+            if self.model.stream_enabled():
                 for n in name:
                     self.chats[int(button.get_name())]["name"] = n["text"]
                     self.update_history()
