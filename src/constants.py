@@ -45,6 +45,13 @@ AVAILABLE_LLMS = {
                 "default": "text-davinci-003"
             },
             {
+                "key": "streaming",
+                "title": _("Message Streaming"),
+                "description": _("Gradually stream message output"),
+                "type": "toggle",
+                "default": True
+            },
+            {
                 "key": "max-tokens",
                 "title": _("Max Tokens"),
                 "description": _("Max tokens of the generated text"),
