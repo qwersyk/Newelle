@@ -1096,26 +1096,19 @@ Name: The multiplication table for 4.
         if self.console:
             prompts.append(PROMPTS["current_directory"].replace("{DIR}", os.getcwd()))
         self.model.set_history(prompts, self)
-        message_label = self.send_message_to_bot(self.chat[-1]["Message"])
-        if type(self.model) == PoeHandler:
+
+        if self.model.stream_enabled():
             label = Gtk.Label(label="", margin_top=10, margin_start=10, margin_bottom=10, margin_end=10, wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR,
                                   selectable=True)
             box=self.add_message("Assistant",label)
-            counter = 0
-            counter_size = 1
-
-            for message in message_label:
-                counter+=1
-                if counter==counter_size:
-                    label.set_text(message["text"])
-                    counter=0
-                    counter_size=int((counter_size + 3)*1.3)
-                    print(counter_size)
+            message_label = self.model.send_message_stream(self, self.chat[-1]["Message"], self.update_message, (label, ))
             try:
                 box.get_parent().set_visible(False)
             except:
                 pass
-            message_label = message["text"]
+        else:
+            message_label = self.send_message_to_bot(self.chat[-1]["Message"])
+
         if self.stream_number_variable == stream_number_variable:
             self.show_message(message_label)
         self.remove_send_button_spinner()
@@ -1125,6 +1118,9 @@ Name: The multiplication table for 4.
                 tts = AVAILABLE_TTS[self.tts_program]["class"](self.settings, self.directory, AVAILABLE_TTS[self.tts_program])
                 message=re.sub(r"```.*?```", "", message_label, flags=re.DOTALL)
                 if not(not message.strip() or message.isspace() or all(char == '\n' for char in message)):tts.play_audio(message)
+
+    def update_message(self, message, label):
+        label.set_label(message)
 
     def edit_message(self, gesture, data, x, y):
         if not self.status:

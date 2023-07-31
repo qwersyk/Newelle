@@ -18,6 +18,9 @@ class LLMHandler():
         for module in self.llm["extra_requirements"]:
             install_module(module, pip_path)
 
+    def stream_enabled(self):
+        return False
+
     def is_installed(self):
         for module in self.llm["extra_requirements"]:
             if find_module(module) is None:
@@ -67,6 +70,9 @@ class PoeHandler(LLMHandler):
         self.llm = llm
         self.client = None
 
+    def stream_enabled(self):
+        return self.get_setting("streaming")
+
     def load_model(self, model:str = None):
         """Loads the local model on another thread"""
         t = threading.Thread(target=self.load_model_async)
@@ -83,15 +89,39 @@ class PoeHandler(LLMHandler):
             return False
         return True
 
+    def send_message_stream(self, window, message, on_update, extra_args):
+        return self.__generate_response_stream(window, message, on_update, extra_args)
+
+
     def send_message(self, window, message):
         """Get a response to a message"""
         return self.__generate_response(window, message)
+
+    def __generate_response_stream(self, window, message, on_update, extra_args):
+        if self.client is None:
+            self.load_model_async()
+        codename = self.get_setting("codename")
+        message_label = self.client.send_message(codename, message)
+        counter = 0
+        counter_size = 1
+        for message in message_label:
+            counter+=1
+            if counter==counter_size:
+                message["text"] = message["text"].lstrip("\n")
+                args = (message["text"],) + extra_args
+                on_update(*args)
+                counter=0
+                counter_size=int((counter_size + 3)*1.3)
+        return message["text"].lstrip("\n")
 
     def __generate_response(self, window, message):
         if self.client is None:
             self.load_model_async()
         codename = self.get_setting("codename")
-        return self.client.send_message(codename, message)
+        for chunk in self.client.send_message(codename, message):
+            pass
+        response = chunk["text"].lstrip("\n")
+        return response
 
     def clear_conversation(self):
         codename = self.get_setting("codename")
