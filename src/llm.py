@@ -1,6 +1,6 @@
 from gi.repository import Gtk, Adw, Gio, GLib
 from gpt4all import GPT4All
-import os, threading, subprocess
+import os, threading, subprocess, re
 from .bai import BAIChat
 import time, json
 from .extra import find_module, install_module
@@ -12,6 +12,12 @@ class LLMHandler():
         self.settings = settings
         self.path = path
         self.llm = llm
+
+    def stream_enabled(self):
+        enabled = self.get_setting("streaming")
+        if enabled is None:
+            return False
+        return enabled
 
     def install(self):
         pip_path = os.path.join(os.path.abspath(os.path.join(self.path, os.pardir)), "pip")
@@ -83,15 +89,39 @@ class PoeHandler(LLMHandler):
             return False
         return True
 
+    def send_message_stream(self, window, message, on_update, extra_args):
+        return self.__generate_response_stream(window, message, on_update, extra_args)
+
+
     def send_message(self, window, message):
         """Get a response to a message"""
         return self.__generate_response(window, message)
+
+    def __generate_response_stream(self, window, message, on_update, extra_args):
+        if self.client is None:
+            self.load_model_async()
+        codename = self.get_setting("codename")
+        message_label = self.client.send_message(codename, message)
+        counter = 0
+        counter_size = 1
+        for message in message_label:
+            counter+=1
+            if counter==counter_size:
+                message["text"] = message["text"].lstrip("\n")
+                args = (message["text"],) + extra_args
+                on_update(*args)
+                counter=0
+                counter_size=int((counter_size + 3)*1.3)
+        return message["text"].lstrip("\n")
 
     def __generate_response(self, window, message):
         if self.client is None:
             self.load_model_async()
         codename = self.get_setting("codename")
-        return self.client.send_message(codename, message)
+        for chunk in self.client.send_message(codename, message):
+            pass
+        response = chunk["text"].lstrip("\n")
+        return response
 
     def clear_conversation(self):
         codename = self.get_setting("codename")
@@ -168,6 +198,42 @@ class OpenAIHandler(LLMHandler):
         ).choices[0].text.strip()
         return response
 
+    def send_message_stream(self, window, message, on_update, extra_args):
+        message = self.history + "\nUser:" + str(message) + "\nAssistant:"
+        return self.__generate_response_stream(window, message, on_update, extra_args)
+
+    def __generate_response_stream(self, window, message, on_update, extra_args):
+        engine = self.get_setting("engine")
+        max_tokens = int(self.get_setting("max-tokens"))
+        top_p = self.get_setting("top-p")
+        frequency_penalty = self.get_setting("frequency-penalty")
+        presence_penalty = self.get_setting("presence-penalty")
+        temperature = self.get_setting("temperature")
+        import openai
+        openai.api_key = self.get_setting("api")
+        response = openai.Completion.create(
+            engine=engine,
+            prompt=message,
+            max_tokens=max_tokens,
+            top_p=top_p,
+            frequency_penalty=frequency_penalty,
+            presence_penalty=presence_penalty,
+            temperature=temperature,
+            stream=True
+        )
+        full_message = ""
+        counter = 0
+        counter_size = 1
+        for chunk in response:
+            counter += 1
+            full_message += chunk.choices[0]["text"]
+            if counter == counter_size:
+                counter = 0
+                counter_size=int((counter_size + 3)*1.3)
+                args = (full_message.strip(), ) + extra_args
+                on_update(*args)
+        return full_message.strip()
+
     def get_suggestions(self, window, message):
         """Gets chat suggestions"""
         #message = message + "\nUser:"
@@ -186,6 +252,7 @@ class BaiHandler(LLMHandler):
         self.history = ""
         self.key = "bai"
         self.llm = llm
+        self.settings = settings
 
     def load_model(self, model):
         """Does nothing since it is not required to load the model"""
