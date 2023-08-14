@@ -1,0 +1,313 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-07-10 09:30+0200\n"
+"PO-Revision-Date: 2023-08-14 13:03+0200\n"
+"Last-Translator: Heimen Stoffels <vistausss@fastmail.com>\n"
+"Language-Team: \n"
+"Language: nl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.3.2\n"
+
+#: extension.py:9 window.py:148
+msgid "Extensions"
+msgstr "Uitbreidingen"
+
+#: extension.py:56
+msgid "Choose an extension"
+msgstr "Kies een uitbreiding"
+
+#: extension.py:75
+msgid " has been removed"
+msgstr " is verwĳderd"
+
+#: extension.py:78
+msgid "Add extension"
+msgstr "Uitbreiding toevoegen"
+
+#: extension.py:105
+msgid "Extension added. New extensions will run from the next launch"
+msgstr ""
+"De uitbreiding is toegevoegd. Nieuwe uitbreidingen worden na de volgende "
+"opstart ingeschakeld."
+
+#: extension.py:112
+msgid "The extension is wrong"
+msgstr "Deze uitbreiding is ongeldig"
+
+#: extension.py:114
+msgid "This is not an extension"
+msgstr "Dit is geen uitbreiding"
+
+#: main.py:142
+msgid "Terminal threads are still running in the background"
+msgstr "Terminalprocessen blĳven op de achtergrond draaien"
+
+#: main.py:143
+msgid "When you close the window, they will be automatically terminated"
+msgstr "Als u het venster sluit, dan worden ze automatisch afgebroken"
+
+#: main.py:146
+msgid "Cancel"
+msgstr "Annuleren"
+
+#: main.py:147
+msgid "Close"
+msgstr "Sluiten"
+
+#: main.py:167
+msgid "Chat is rebooted"
+msgstr "Het gesprek is herstart"
+
+#: main.py:172
+msgid "Folder is rebooted"
+msgstr "De map is herstart"
+
+#: main.py:177
+msgid "Chat is created"
+msgstr "Het gesprek is aangemaakt"
+
+#: window.py:28 window.py:551
+msgid "Chat "
+msgstr "Gesprek "
+
+#: window.py:147 thread_editing.py:8
+msgid "Thread editing"
+msgstr "Procesbewerking"
+
+#: window.py:149
+msgid "Settings"
+msgstr "Voorkeuren"
+
+#: window.py:150
+msgid "Keyboard shorcuts"
+msgstr "Sneltoetsen"
+
+#: window.py:151
+msgid "About"
+msgstr "Over"
+
+#: window.py:155
+msgid "Chat"
+msgstr "Gesprek"
+
+#: window.py:182
+msgid "History"
+msgstr "Geschiedenis"
+
+#: window.py:193
+msgid "Create a chat"
+msgstr "Gesprek aanmaken"
+
+#: window.py:236
+msgid " Stop"
+msgstr " Beëindigen"
+
+#: window.py:305
+msgid " Clear"
+msgstr " Wissen"
+
+#: window.py:317
+msgid " Continue"
+msgstr " Hervatten"
+
+#: window.py:329
+msgid " Regenerate"
+msgstr " Opnieuw aanmaken"
+
+#: window.py:417 window.py:737
+msgid "File not found"
+msgstr "Het bestand is niet aangetroffen"
+
+#: window.py:421
+msgid "The file cannot be sent until the program is finished"
+msgstr "Dit bestand kan pas worden verstuurd als de toepassing klaar is"
+
+#: window.py:435
+msgid "The file is not recognized"
+msgstr "Dit bestand wordt niet herkend"
+
+#: window.py:458
+msgid "You can no longer continue the message."
+msgstr "U kunt dit bericht niet hervatten."
+
+#: window.py:471
+msgid "You can no longer regenerate the message."
+msgstr "U kunt dit bericht niet opnieuw aanmaken."
+
+#: window.py:532
+msgid "Chat is empty"
+msgstr "Het gesprek is blanco"
+
+#: window.py:593
+msgid "Chat is cleared"
+msgstr "Het gesprek is gewist"
+
+#: window.py:611
+msgid "The message was canceled and deleted from history"
+msgstr "Het bericht is afgebroken en uit de geschiedenis gewist"
+
+#: window.py:624
+msgid "Failed to send bot a message"
+msgstr "Het bericht kan niet worden verstuurd aan de bot"
+
+#: window.py:626
+msgid "Chat has been stopped"
+msgstr "Het gesprek is beëindigd"
+
+#: window.py:652
+msgid "Folder is Empty"
+msgstr "De map is leeg"
+
+#: window.py:762
+msgid "Wrong folder path"
+msgstr "De maplocatie is onjuist"
+
+#: window.py:790
+msgid "Thread has not been completed, thread number: "
+msgstr "Het proces is niet afgerond. Procesnummer: "
+
+#: window.py:796
+msgid "Failed to open the folder"
+msgstr "De map kan niet worden geopend"
+
+#: window.py:845
+msgid "The message cannot be sent until the program is finished"
+msgstr "Dit bericht kan pas worden verstuurd als de toepassing klaar is"
+
+#: window.py:1057
+msgid "You can't edit a message while the program is running."
+msgstr "U kunt geen berichten bewerken terwĳl de toepassing nog draait."
+
+#: window.py:1110
+msgid ""
+"Attention the neural network has access to your computer, be careful, we are "
+"not responsible for the neural network."
+msgstr ""
+"Let op: het neurale netwerk heeft toegang tot uw computer. Wees terughoudend "
+"hiermee - wĳ zĳn niet verantwoordelĳk voor dit netwerk."
+
+#: thread_editing.py:38
+msgid "No threads are running"
+msgstr "Er zĳn geen processen actief"
+
+#: thread_editing.py:44
+msgid "Thread number: "
+msgstr "Procesnummer: "
+
+#: shortcuts.py:8
+msgid "Help"
+msgstr "Hulp"
+
+#: shortcuts.py:14
+msgid "Shortcuts"
+msgstr "Sneltoetsen"
+
+#: shortcuts.py:15
+msgid "Reload chat"
+msgstr "Gesprek herladen"
+
+#: shortcuts.py:16
+msgid "Reload folder"
+msgstr "Map herladen"
+
+#: shortcuts.py:17
+msgid "New tab"
+msgstr "Nieuw tabblad"
+
+#: settings.py:13
+msgid "Interface"
+msgstr "Vormgeving"
+
+#: settings.py:16
+msgid "Hidden files"
+msgstr "Verborgen bestanden"
+
+#: settings.py:16
+msgid "Show hidden files"
+msgstr "Verborgen bestanden tonen"
+
+#: settings.py:22
+msgid "Number of offers"
+msgstr "Aantal keuzes"
+
+#: settings.py:22
+msgid "Number of message suggestions to send to chat "
+msgstr "Het aantal berichtsuggesties dat dient te worden verstuurd naar "
+
+#: settings.py:29
+msgid "Prompt control"
+msgstr "Opdrachtbeheer"
+
+#: settings.py:32
+msgid "Auto-run commands"
+msgstr "Automatische opdrachten"
+
+#: settings.py:32
+msgid "Commands that the bot will write will automatically run"
+msgstr "Opdrachten die de bot automatisch zal uitvoeren"
+
+#: settings.py:38
+msgid "Console access"
+msgstr "Terminaltoegang"
+
+#: settings.py:38
+msgid "Can the program run terminal commands on the computer"
+msgstr "Of de toepassing terminalopdrachten op uw computer mag uitvoeren"
+
+#: settings.py:44
+msgid "Graphs access"
+msgstr "Grafieken tonen"
+
+#: settings.py:44
+msgid "Can the program display graphs"
+msgstr "Of de toepassing grafieken mag tonen"
+
+#: settings.py:50
+msgid "Basic functionality"
+msgstr "Basisfunctionaliteit"
+
+#: settings.py:50
+msgid "Showing tables and code (*can work without it)"
+msgstr "Tabellen en code tonen (*kan zonder)"
+
+#: settings.py:56
+msgid "Show image"
+msgstr "Afbeelding tonen"
+
+#: settings.py:56
+msgid "Show image in chat"
+msgstr "Afbeelding in gesprek tonen"
+
+#: settings.py:62
+msgid "Neural Network Control"
+msgstr "Neuraalnetwerkbeheer"
+
+#: settings.py:65
+msgid "Command virtualization"
+msgstr "Opdrachtvisualisatie"
+
+#: settings.py:65
+msgid "Run commands in a virtual machine"
+msgstr "Voer opdrachten uit in een virtuele machine"
+
+#: settings.py:71
+msgid "Program memory"
+msgstr "Toepassingsgeheugen"
+
+#: settings.py:71
+msgid "How long the program remembers the chat "
+msgstr "Hoelang de toepassing een gesprek dient te bewaren "
+
+#: settings.py:78
+msgid "The change will take effect after you restart the program."
+msgstr ""
+"Let op: de wĳziging wordt na het herstarten van de toepassing toegepast."
