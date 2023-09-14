@@ -1,5 +1,5 @@
 
-from .llm import GPT4AllHandler, BaiHandler, OpenAIHandler, CustomLLMHandler, DeepAIHandler, GoogleBardHandler
+from .llm import GPT4AllHandler, BaiHandler, OpenAIHandler, CustomLLMHandler, DeepAIHandler, GoogleBardHandler, BingHandler
 from .tts import gTTSHandler, EspeakHandler, CustomTTSHandler
 from .stt import STTHandler, SphinxHandler, GoogleSRHandler, WitAIHandler, VoskHandler, WhisperAPIHandler, CustomSRHandler
 
@@ -41,12 +41,29 @@ AVAILABLE_LLMS = {
     },
     "bard": {
         "key": "bard",
-        "rowtype": "expander",
+        "rowtype": "action",
         "title": _("Google Bard"),
-        "description": "Google bard AI, requires login on browser",
+        "description": "Google bard AI, requires to be already logged in your browser",
         "class": GoogleBardHandler,
         "extra_requirements": ["g4f"],
         "extra_settings": []
+    },
+    "bing": {
+        "key": "bing",
+        "rowtype": "expander",
+        "title": _("Bing GPT4"),
+        "description": "Bing GPT4 AI",
+        "class": BingHandler,
+        "extra_requirements": ["g4f"],
+        "extra_settings": [
+            {
+                "key": "streaming",
+                "title": _("Message Streaming"),
+                "description": _("Gradually stream message output"),
+                "type": "toggle",
+                "default": True
+            },
+        ]
     },
     "openai": {
         "key": "openai",
