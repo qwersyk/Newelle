@@ -34,6 +34,7 @@
     	"portaudio.json",
     	"python3-pyaudio.json",
     	"python3-speechrecognition.json",
+    	"python3-g4f.json",
         {
             "name" : "newelle",
             "builddir" : true,
