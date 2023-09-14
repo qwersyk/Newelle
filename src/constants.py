@@ -45,7 +45,8 @@ AVAILABLE_LLMS = {
         "title": _("Google Bard"),
         "description": "Google bard AI, requires login on browser",
         "class": GoogleBardHandler,
-        "extra_requirements": ["g4f"]
+        "extra_requirements": ["g4f"],
+        "extra_settings": []
     },
     "openai": {
         "key": "openai",
