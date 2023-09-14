@@ -1,5 +1,5 @@
 
-from .llm import GPT4AllHandler, BaiHandler, OpenAIHandler, CustomLLMHandler, DeepAIHandler
+from .llm import GPT4AllHandler, BaiHandler, OpenAIHandler, CustomLLMHandler, DeepAIHandler, GoogleBardHandler
 from .tts import gTTSHandler, EspeakHandler, CustomTTSHandler
 from .stt import STTHandler, SphinxHandler, GoogleSRHandler, WitAIHandler, VoskHandler, WhisperAPIHandler, CustomSRHandler
 
@@ -26,7 +26,7 @@ AVAILABLE_LLMS = {
         "key": "deepai",
         "rowtype": "expander",
         "title": _("Deep AI"),
-        "description": "AI",
+        "description": "deepai.org AI based on GPT3.5",
         "class": DeepAIHandler,
         "extra_settings": [
             {
@@ -37,7 +37,15 @@ AVAILABLE_LLMS = {
                 "default": True
             },
         ],
-        "extra_requirements": []
+        "extra_requirements": ["g4f"]
+    },
+    "bard": {
+        "key": "bard",
+        "rowtype": "expander",
+        "title": _("Google Bard"),
+        "description": "Google bard AI, requires login on browser",
+        "class": GoogleBardHandler,
+        "extra_requirements": ["g4f"]
     },
     "openai": {
         "key": "openai",
