@@ -1,5 +1,5 @@
 
-from .llm import GPT4AllHandler, BaiHandler, OpenAIHandler, CustomLLMHandler, PoeHandler
+from .llm import GPT4AllHandler, BaiHandler, OpenAIHandler, CustomLLMHandler, DeepAIHandler
 from .tts import gTTSHandler, EspeakHandler, CustomTTSHandler
 from .stt import STTHandler, SphinxHandler, GoogleSRHandler, WitAIHandler, VoskHandler, WhisperAPIHandler, CustomSRHandler
 
@@ -20,6 +20,23 @@ AVAILABLE_LLMS = {
         "description": _("Run a LLM model locally, more privacy but slower"),
         "class": GPT4AllHandler,
         "extra_settings": [],
+        "extra_requirements": []
+    },
+    "deepai": {
+        "key": "deepai",
+        "rowtype": "expander",
+        "title": _("Deep AI"),
+        "description": "AI",
+        "class": DeepAIHandler,
+        "extra_settings": [
+            {
+                "key": "streaming",
+                "title": _("Message Streaming"),
+                "description": _("Gradually stream message output"),
+                "type": "toggle",
+                "default": True
+            },
+        ],
         "extra_requirements": []
     },
     "openai": {
