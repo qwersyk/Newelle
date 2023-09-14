@@ -108,39 +108,6 @@ AVAILABLE_LLMS = {
             },
         ]
     },
-    "poe": {
-        "key": "poe",
-        "rowtype": "expander",
-        "title": _("Poe.com"),
-        "description": _("Poe lets you ask questions, get instant answers, and have back-and-forth conversations with AI. At the moment, prompts are not supported"),
-        "class": PoeHandler,
-        "extra_requirements": ["poe-api"],
-        "extra_settings": [
-            {
-                "key": "token",
-                "title": _("Poe.com Token"),
-                "description": _("p-b cookie (website for info)"),
-                "type": "entry",
-                "website": "https://gist.github.com/FrancescoCaracciolo/206b25d1e8859f50f7569a503070b867#token",
-                "default": ""
-            },
-            {
-                "key": "codename",
-                "title": _("Bot Codename"),
-                "description": _("Codename of the bot you want to chat with (website for info)"),
-                "type": "entry",
-                "website": "https://gist.github.com/FrancescoCaracciolo/206b25d1e8859f50f7569a503070b867#token",
-                "default": "chinchilla"
-            },
-            {
-                "key": "streaming",
-                "title": _("Message Streaming"),
-                "description": _("Generate the response gradually"),
-                "type": "toggle",
-                "default": True
-            },
-        ]
-    },
     "custom_command": {
         "key": "custom_command",
         "rowtype": "expander",
