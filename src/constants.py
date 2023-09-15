@@ -1,5 +1,5 @@
 
-from .llm import GPT4AllHandler, BaiHandler, OpenAIHandler, CustomLLMHandler, PoeHandler
+from .llm import GPT4AllHandler, BaiHandler, OpenAIHandler, CustomLLMHandler, DeepAIHandler, GoogleBardHandler, BingHandler
 from .tts import gTTSHandler, EspeakHandler, CustomTTSHandler
 from .stt import STTHandler, SphinxHandler, GoogleSRHandler, WitAIHandler, VoskHandler, WhisperAPIHandler, CustomSRHandler
 
@@ -21,6 +21,49 @@ AVAILABLE_LLMS = {
         "class": GPT4AllHandler,
         "extra_settings": [],
         "extra_requirements": []
+    },
+    "deepai": {
+        "key": "deepai",
+        "rowtype": "expander",
+        "title": _("Deep AI"),
+        "description": "deepai.org AI based on GPT3.5",
+        "class": DeepAIHandler,
+        "extra_settings": [
+            {
+                "key": "streaming",
+                "title": _("Message Streaming"),
+                "description": _("Gradually stream message output"),
+                "type": "toggle",
+                "default": True
+            },
+        ],
+        "extra_requirements": ["g4f"]
+    },
+    "bard": {
+        "key": "bard",
+        "rowtype": "action",
+        "title": _("Google Bard"),
+        "description": "Google bard AI, requires to be already logged in your browser",
+        "class": GoogleBardHandler,
+        "extra_requirements": ["g4f"],
+        "extra_settings": []
+    },
+    "bing": {
+        "key": "bing",
+        "rowtype": "expander",
+        "title": _("Bing GPT4"),
+        "description": "Bing GPT4 AI",
+        "class": BingHandler,
+        "extra_requirements": ["g4f"],
+        "extra_settings": [
+            {
+                "key": "streaming",
+                "title": _("Message Streaming"),
+                "description": _("Gradually stream message output"),
+                "type": "toggle",
+                "default": True
+            },
+        ]
     },
     "openai": {
         "key": "openai",
@@ -105,39 +148,6 @@ AVAILABLE_LLMS = {
                 "max": 2,
                 "default": 0,
                 "round-digits": 1,
-            },
-        ]
-    },
-    "poe": {
-        "key": "poe",
-        "rowtype": "expander",
-        "title": _("Poe.com"),
-        "description": _("Poe lets you ask questions, get instant answers, and have back-and-forth conversations with AI. At the moment, prompts are not supported"),
-        "class": PoeHandler,
-        "extra_requirements": ["poe-api"],
-        "extra_settings": [
-            {
-                "key": "token",
-                "title": _("Poe.com Token"),
-                "description": _("p-b cookie (website for info)"),
-                "type": "entry",
-                "website": "https://gist.github.com/FrancescoCaracciolo/206b25d1e8859f50f7569a503070b867#token",
-                "default": ""
-            },
-            {
-                "key": "codename",
-                "title": _("Bot Codename"),
-                "description": _("Codename of the bot you want to chat with (website for info)"),
-                "type": "entry",
-                "website": "https://gist.github.com/FrancescoCaracciolo/206b25d1e8859f50f7569a503070b867#token",
-                "default": "chinchilla"
-            },
-            {
-                "key": "streaming",
-                "title": _("Message Streaming"),
-                "description": _("Generate the response gradually"),
-                "type": "toggle",
-                "default": True
             },
         ]
     },

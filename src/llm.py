@@ -63,79 +63,178 @@ class LLMHandler():
                 return s["default"]
         return None
 
-class PoeHandler(LLMHandler):
+class G4FHandler(LLMHandler):
+    """Common methods for g4f models"""
     def __init__(self, settings, path, llm):
-        self.history = ""
-        self.propmts = []
-        self.key = "poe"
+        self.history = []
+        self.prompts = []
+        self.key = "g4f"
         self.settings = settings
-        self.path = path
         self.llm = llm
-        self.client = None
-
-    def load_model(self, model:str = None):
-        """Loads the local model on another thread"""
-        t = threading.Thread(target=self.load_model_async)
-        t.start()
-        return True
-
-    def load_model_async(self):
-        import poe
-        token = self.get_setting("token")
-        self.client = poe.Client(token)
-
-    def is_installed(self):
-        if find_module("poe") is None:
-            return False
-        return True
-
-    def send_message_stream(self, window, message, on_update, extra_args):
-        return self.__generate_response_stream(window, message, on_update, extra_args)
-
+        self.path = path
 
     def send_message(self, window, message):
         """Get a response to a message"""
-        return self.__generate_response(window, message)
+        self.history.append({"User": "User", "Message": window.bot_prompt+"\n"+"\n".join(self.prompts)})
+        return self.generate_response(window, message)
 
-    def __generate_response_stream(self, window, message, on_update, extra_args):
-        if self.client is None:
-            self.load_model_async()
-        codename = self.get_setting("codename")
-        message_label = self.client.send_message(codename, message)
-        counter = 0
-        counter_size = 1
-        for message in message_label:
-            counter+=1
-            if counter==counter_size:
-                message["text"] = message["text"].lstrip("\n")
-                args = (message["text"],) + extra_args
-                on_update(*args)
-                counter=0
-                counter_size=int((counter_size + 3)*1.3)
-        return message["text"].lstrip("\n")
+    def send_message_stream(self, window, message, on_update, extra_args):
+        """Get a response to a message"""
+        self.history.append({"User": "User", "Message": window.bot_prompt+"\n"+"\n".join(self.prompts)})
+        return self.generate_response_stream(window, message, on_update, extra_args)
 
-    def __generate_response(self, window, message):
-        if self.client is None:
-            self.load_model_async()
-        codename = self.get_setting("codename")
-        for chunk in self.client.send_message(codename, message):
-            pass
-        response = chunk["text"].lstrip("\n")
-        return response
-
-    def clear_conversation(self):
-        codename = self.get_setting("codename")
-        self.client.send_chat_break(codename)
+    def get_suggestions(self, window, message):
+        """Gets chat suggestions"""
+        # Disabled to avoid flood
+        return ""
+        message = message + "\nUser:"
+        return self.generate_response(window, message)
 
     def set_history(self, prompts, window):
         """Manages messages history"""
-        if len(window.chat) == 1:
-            t = threading.Thread(target=self.clear_conversation)
-            t.start()
+        self.history = window.bot_prompt+"\n"+"\n".join(prompts)+"\n" + window.get_chat(
+            window.chat[len(window.chat) - window.memory:len(window.chat)-1])
 
-    def get_suggestions(self, window, message):
-        return ""
+    def convert_history(self, history: dict) -> dict:
+        """Converts the given history into the correct format for current_chat_history"""
+        result = []
+        for message in history:
+            result.append({
+                "role": message["User"].lower(),
+                "content": message["Message"]
+            })
+        return result
 
+    def set_history(self, prompts, window):
+        """Manages messages history"""
+        self.history = window.chat[len(window.chat) - window.memory:len(window.chat)-1]
+        self.prompts = prompts
+
+class DeepAIHandler(G4FHandler):
+    def __init__(self, settings, path, llm):
+        self.history = []
+        self.prompts = []
+        self.key = "deepai"
+        self.settings = settings
+        self.llm = llm
+        self.path = path
+
+    def generate_response(self, window, message):
+        return self.__generate_response(window, message)
+
+    def generate_response_stream(self, window, message, on_update, extra_args):
+        return self.__generate_response_stream(window, message, on_update, extra_args)
+
+    def __generate_response(self, window, message):
+            import g4f
+            """Generates a response given text and history"""
+            provider = g4f.Provider.DeepAi
+            history = self.convert_history(self.history)
+            user_prompt = {"role": "user", "content": message}
+            history.append(user_prompt)
+            response = g4f.ChatCompletion.create(
+                model=g4f.models.default,
+                messages=history,
+                provider=provider
+            )
+            return respons
+
+    def __generate_response_stream(self, window, message, on_update, extra_args):
+            import g4f
+            """Generates a response given text and history"""
+            provider = g4f.Provider.DeepAi
+            history = self.convert_history(self.history)
+            user_prompt = {"role": "user", "content": message}
+            history.append(user_prompt)
+            response = g4f.ChatCompletion.create(
+                model=g4f.models.default,
+                messages=history,
+                provider=provider,
+                stream=True
+            )
+            full_message = ""
+            for chunk in response:
+                full_message += chunk
+                print(chunk)
+                args = (full_message.strip(), ) + extra_args
+                on_update(*args)
+            return full_message.strip()
+
+class GoogleBardHandler(G4FHandler):
+    def __init__(self, settings, path, llm):
+        self.history = []
+        self.prompts = []
+        self.key = "bard"
+        self.settings = settings
+        self.llm = llm
+        self.path = path
+
+    def generate_response(self, window, message):
+        return self.__generate_response(window, message)
+
+    def __generate_response(self, window, message):
+            import g4f
+            """Generates a response given text and history"""
+            provider = g4f.Provider.Bard
+            history = self.convert_history(self.history)
+            user_prompt = {"role": "user", "content": message}
+            history.append(user_prompt)
+            response = g4f.ChatCompletion.create(
+                model=g4f.models.default,
+                messages=history,
+                provider=provider,
+                auth=True
+            )
+            return response
+
+class BingHandler(G4FHandler):
+    def __init__(self, settings, path, llm):
+        self.history = []
+        self.prompts = []
+        self.key = "bing"
+        self.settings = settings
+        self.llm = llm
+        self.path = path
+
+    def generate_response(self, window, message):
+        return self.__generate_response(window, message)
+
+    def generate_response_stream(self, window, message, on_update, extra_args):
+        return self.__generate_response_stream(window, message, on_update, extra_args)
+
+    def __generate_response(self, window, message):
+            import g4f
+            """Generates a response given text and history"""
+            provider = g4f.Provider.Bing
+            history = self.convert_history(self.history)
+            user_prompt = {"role": "user", "content": message}
+            history.append(user_prompt)
+            response = g4f.ChatCompletion.create(
+                model=g4f.models.default,
+                messages=history,
+                provider=provider,
+            )
+            return response
+
+    def __generate_response_stream(self, window, message, on_update, extra_args):
+            import g4f
+            """Generates a response given text and history"""
+            provider = g4f.Provider.Bing
+            history = self.convert_history(self.history)
+            user_prompt = {"role": "user", "content": message}
+            history.append(user_prompt)
+            response = g4f.ChatCompletion.create(
+                model=g4f.models.default,
+                messages=history,
+                provider=provider,
+                stream=True
+            )
+            full_message = ""
+            for chunk in response:
+                full_message += chunk
+                args = (full_message.strip(), ) + extra_args
+                on_update(*args)
+            return full_message.strip()
 
 class CustomLLMHandler(LLMHandler):
     def __init__(self, settings, path, llm):
