@@ -19,7 +19,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.check_streams={"folder":False,"chat":False}
 
 
-        self.path = ".var/app/io.github.qwersyk.Newelle/data"
+        self.path = GLib.get_user_data_dir()
         self.directory = GLib.get_user_config_dir()
         # Pip directory for optional modules
         self.pip_directory = os.path.join(self.directory, "pip")
