@@ -302,7 +302,7 @@ class MainWindow(Gtk.ApplicationWindow):
         button.disconnect_by_func(self.stop_recording)
         button.connect("clicked", self.start_recording)
         engine = AVAILABLE_STT[self.stt_engine]
-        recognizer = engine["class"](self.settings, self.pip_directory, engine)
+        recognizer = engine["class"](self.settings, self.pip_directory)
         result = recognizer.recognize_file(os.path.join(self.directory, "recording.wav"))
         if result is not None:
             self.input_panel.set_text(result)
@@ -333,10 +333,10 @@ class MainWindow(Gtk.ApplicationWindow):
         self.stt_settings = settings.get_string("stt-settings")
 
         if self.language_model in AVAILABLE_LLMS:
-            self.model = AVAILABLE_LLMS[self.language_model]["class"](self.settings, os.path.join(self.directory, "models"), AVAILABLE_LLMS[self.language_model])
+            self.model = AVAILABLE_LLMS[self.language_model]["class"](self.settings, os.path.join(self.directory, "models"))
         else:
             mod = list(AVAILABLE_LLMS.values())[0]
-            self.model = mod["class"](self.settings, os.path.join(self.directory, "models"), mod)
+            self.model = mod["class"](self.settings, os.path.join(self.directory, "models"))
 
         self.model.load_model(self.local_model)
 
@@ -1114,7 +1114,7 @@ Name: The multiplication table for 4.
         # TTS
         if self.tts_enabled:
             if self.tts_program in AVAILABLE_TTS:
-                tts = AVAILABLE_TTS[self.tts_program]["class"](self.settings, self.directory, AVAILABLE_TTS[self.tts_program])
+                tts = AVAILABLE_TTS[self.tts_program]["class"](self.settings, self.directory)
                 message=re.sub(r"```.*?```", "", message_label, flags=re.DOTALL)
                 if not(not message.strip() or message.isspace() or all(char == '\n' for char in message)):tts.play_audio(message)
 

@@ -37,9 +37,13 @@ class Settings(Adw.PreferencesWindow):
         group = Gtk.CheckButton()
         for model_key in AVAILABLE_LLMS:
             model = AVAILABLE_LLMS[model_key]
+            handler = model["class"]
             active = False
+            # If the model is selected
             if model["key"] == self.settings.get_string("language-model"):
                 active = True
+
+            # Define the type of row of the model
             if model["rowtype"] == "action":
                 row = Adw.ActionRow(title=model["title"], subtitle=model["description"])
             elif model["rowtype"] == "expander":
@@ -50,7 +54,8 @@ class Settings(Adw.PreferencesWindow):
                     thread.start()
                 else:
                     self.add_extra_settings(model, row, "llm")
-            if len(model["extra_requirements"]) > 0:
+            # Add download button if the model has extra requirements 
+            if len(handler.get_extra_requirements()) > 0:
                 self.add_download_button(model, row, "llm")
             button = Gtk.CheckButton()
             button.set_group(group)
@@ -70,12 +75,18 @@ class Settings(Adw.PreferencesWindow):
         tts_program.add_action(tts_enabled)
         self.TTSgroup.add(tts_program)
         group = Gtk.CheckButton()
+
         for tts_key in AVAILABLE_TTS:
             active = False
             tts = AVAILABLE_TTS[tts_key]
             tts["key"] = tts_key
+            handler = tts["class"]
+
+            # If the tts is selected
             if tts["key"] == self.settings.get_string("tts"):
                 active = True
+
+            # Define the type of row of the tts
             if tts["rowtype"] == "action":
                 row = Adw.ActionRow(title=tts["title"], subtitle=tts["description"])
             elif tts["rowtype"] == "expander":
@@ -85,9 +96,10 @@ class Settings(Adw.PreferencesWindow):
             elif tts["rowtype"] == "combo":
                 row = Adw.ComboRow(title=tts["title"], subtitle=tts["description"])
                 row.set_name(tts["key"])
-                tts_class = tts["class"](self.settings, self.directory, tts)
+                tts_class = tts["class"](self.settings, self.directory)
                 helper = ComboRowHelper(row, tts_class.get_voices(), tts_class.get_current_voice())
                 helper.connect("changed", self.choose_tts_voice)
+            
             button = Gtk.CheckButton()
             button.set_group(group)
             button.set_active(active)
@@ -106,22 +118,23 @@ class Settings(Adw.PreferencesWindow):
         for stt_key in AVAILABLE_STT:
             active = False
             stt = AVAILABLE_STT[stt_key]
+            handler = stt["class"]
             stt["key"] = stt_key
+            
+            # If the stt is selected
             if stt_key == self.settings.get_string("stt-engine"):
                 active = True
-            if stt["rowtype"] == "action":
-                row = Adw.ActionRow(title=stt["title"], subtitle=stt["description"])
-            elif stt["rowtype"] == "expander":
-                row = Adw.ExpanderRow(title=stt["title"], subtitle=stt["description"])
-                self.add_extra_settings(stt, row, "stt")
-            elif stt["rowtype"] == "combo":
-                row = Adw.ComboRow(title=stt["title"], subtitle=stt["description"])
-                """
-                row.set_name(tts["key"])
-                tts_class = tts["class"](self.settings, self.directory)
-                helper = ComboRowHelper(row, tts_class.get_voices(), tts_class.get_current_voice())
-                helper.connect("changed", self.choose_tts_voice)
-                """
+
+            # Define the type of row of the stt
+            match stt["rowtype"]:
+               case "expander":
+                    row = Adw.ExpanderRow(title=stt["title"], subtitle=stt["description"])
+                    self.add_extra_settings(stt, row, "stt")
+               case "combo":
+                    row = Adw.ComboRow(title=stt["title"], subtitle=stt["description"])
+               case _:
+                    row = Adw.ActionRow(title=stt["title"], subtitle=stt["description"])
+    
             button = Gtk.CheckButton()
             button.set_group(group)
             button.set_active(active)
@@ -136,9 +149,10 @@ class Settings(Adw.PreferencesWindow):
                     row.add_suffix(wbbutton)
                 elif stt["rowtype"] == "expander":
                     row.add_action(wbbutton)
-            if len(stt["extra_requirements"]) > 0:
+            if len(handler.get_extra_requirements()) > 0:
                 self.add_download_button(stt, row, "stt")
 
+        # Other settings
         self.interface = Adw.PreferencesGroup(title=_('Interface'))
         self.general_page.add(self.interface)
 
@@ -214,12 +228,14 @@ class Settings(Adw.PreferencesWindow):
 
     def add_extra_settings(self, m, row, mtype):
         if mtype == "stt":
-            model = m["class"](self.settings, os.path.join(self.directory, "pip"), m)
+            model = m["class"](self.settings, os.path.join(self.directory, "pip"))
         elif mtype == "llm":
-            model = m["class"](self.settings,os.path.join(self.directory, "models"), m)
+            model = m["class"](self.settings,os.path.join(self.directory, "models"))
         elif mtype == "tts":
-            model = m["class"](self.settings, self.directory, m)
-        for setting in m["extra_settings"]:
+            model = m["class"](self.settings, self.directory)
+        else:
+            return
+        for setting in model.get_extra_settings():
             if setting["type"] == "entry":
                 r = Adw.ActionRow(title=setting["title"], subtitle=setting["description"])
                 entry = Gtk.Entry()
@@ -261,7 +277,8 @@ class Settings(Adw.PreferencesWindow):
                 box.append(scale)
                 self.slider_labels[scale] = label
                 r.add_suffix(box)
-
+            else:
+                continue
             if "website" in setting:
                 wbbutton = self.create_web_button(setting["website"])
                 r.add_prefix(wbbutton)
@@ -273,13 +290,13 @@ class Settings(Adw.PreferencesWindow):
         key = name[1]
         setting = name[2]
         if mtype == "stt":
-            model = AVAILABLE_STT[key]["class"](self.settings, os.path.join(self.directory, "pip"), AVAILABLE_STT[key])
+            model = AVAILABLE_STT[key]["class"](self.settings, os.path.join(self.directory, "pip"))
             model.set_setting(setting, entry.get_text())
         elif mtype == "llm":
-            model = AVAILABLE_LLMS[key]["class"](self.settings, os.path.join(self.directory, "model"), AVAILABLE_LLMS[key])
+            model = AVAILABLE_LLMS[key]["class"](self.settings, os.path.join(self.directory, "model"))
             model.set_setting(setting, entry.get_text())
         elif mtype == "tts":
-            model = AVAILABLE_TTS[key]["class"](self.settings, self.directory, AVAILABLE_TTS[key])
+            model = AVAILABLE_TTS[key]["class"](self.settings, self.directory)
             model.set_setting(setting, entry.get_text())
 
     def setting_change_toggle(self, toggle, toggled):
@@ -333,9 +350,9 @@ class Settings(Adw.PreferencesWindow):
 
     def add_download_button(self, model, row, mtype):
         if mtype == "stt":
-            m = model["class"](self.settings, os.path.join(self.directory, "pip"), model)
+            m = model["class"](self.settings, os.path.join(self.directory, "pip"))
         elif mtype == "llm":
-            m = model["class"](self.settings, os.path.join(self.directory, "models"), model)
+            m = model["class"](self.settings, os.path.join(self.directory, "models"))
         actionbutton = Gtk.Button(css_classes=["flat"], valign=Gtk.Align.CENTER)
         if not m.is_installed():
             icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="folder-download-symbolic"))

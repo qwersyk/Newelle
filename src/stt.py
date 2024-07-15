@@ -1,3 +1,4 @@
+from abc import abstractmethod
 import os, sys, subprocess, json
 import importlib
 import pyaudio
@@ -43,24 +44,32 @@ class AudioRecorder:
 
 
 class STTHandler:
-    def __init__(self, settings, pip_path, stt):
+    key = ""
+    def __init__(self, settings, pip_path):
         self.settings = settings
         self.pip_path = pip_path
-        self.stt = stt
-        self.key = ""
+
+    @staticmethod
+    def get_extra_requirements() -> list:
+        return []
+
+    @staticmethod
+    def get_extra_settings() -> list:
+        return []
 
     def install(self):
-        for module in self.stt["extra_requirements"]:
+        for module in self.get_extra_requirements():
             install_module(module, self.pip_path)
 
     def is_installed(self):
-        for module in self.stt["extra_requirements"]:
+        for module in self.get_extra_requirements():
             if find_module(module) is None:
                 return False
         return True
 
-    def recognize_file(self, path):
-        return None
+    @abstractmethod
+    def recognize_file(self, path) -> str | None:
+        pass
 
     def set_setting(self, name, value):
         j = json.loads(self.settings.get_string("stt-settings"))
@@ -76,17 +85,17 @@ class STTHandler:
         return j[self.key][name]
 
     def get_default_setting(self, name):
-        for x in self.stt["extra_settings"]:
+        for x in self.get_extra_settings():
             if x["key"] == name:
                 return x["default"]
         return None
 
 class SphinxHandler(STTHandler):
-    def __init__(self, settings, pip_path, stt):
-        self.key = "Sphinx"
-        self.settings = settings
-        self.pip_path = pip_path
-        self.stt = stt
+    key = "Sphinx"
+    
+    @staticmethod
+    def get_extra_requirements() -> list:
+        return ["pocketsphinx"]
 
     def recognize_file(self, path):
         r = sr.Recognizer()
@@ -104,11 +113,28 @@ class SphinxHandler(STTHandler):
 
 
 class GoogleSRHandler(STTHandler):
-    def __init__(self, settings, pip_path, stt):
-        self.key = "google_sr"
-        self.settings = settings
-        self.pip_path = pip_path
-        self.stt = stt
+    
+    key = "google_sr"
+
+    @staticmethod
+    def get_extra_settings() -> list:
+        return [
+            {
+                "key": "api",
+                "title": _("API Key"),
+                "description": _("API Key for Google SR, write 'default' to use the default one"),
+                "type": "entry",
+                "default": "default"
+            },
+            {
+                "key": "language",
+                "title": _("Language"),
+                "description": _("The language of the text to recgnize in IETF"),
+                "type": "entry",
+                "default": "en-US",
+                "website": "https://stackoverflow.com/questions/14257598/what-are-language-codes-in-chromes-implementation-of-the-html5-speech-recogniti"
+            }
+        ]
 
     def recognize_file(self, path):
         r = sr.Recognizer()
@@ -129,12 +155,21 @@ class GoogleSRHandler(STTHandler):
         return res
 
 class WitAIHandler(STTHandler):
-    def __init__(self, settings, pip_path, stt):
-        self.key = "witai"
-        self.settings = settings
-        self.pip_path = pip_path
-        self.stt = stt
-
+    
+    key = "witai"
+    
+    @staticmethod
+    def get_extra_settings() -> list:
+        return [
+            {
+                "key": "api",
+                "title": _("API Key"),
+                "description": _("Server Access Token for wit.ai"),
+                "type": "entry",
+                "default": ""
+            },
+        ]
+ 
     def recognize_file(self, path):
         r = sr.Recognizer()
         with sr.AudioFile(path) as source:
@@ -149,12 +184,25 @@ class WitAIHandler(STTHandler):
             return None
         return res
 
-class VoskHandler(STTHandler):
-    def __init__(self, settings, pip_path, stt):
-        self.key = "vosk"
-        self.settings = settings
-        self.pip_path = pip_path
-        self.stt = stt
+class VoskHandler(STTHandler): 
+    key = "vosk"
+
+    @staticmethod
+    def get_extra_requirements() -> list:
+        return ["vosk"]
+
+    @staticmethod
+    def get_extra_settings() -> list:
+        return [
+            {
+                "key": "path",
+                "title": _("Model Path"),
+                "description": _("Absolute path to the VOSK model (unzipped)"),
+                "type": "entry",
+                "website": "https://alphacephei.com/vosk/models",
+                "default": ""
+            },
+        ]
 
     def recognize_file(self, path):
         from vosk import Model
@@ -172,12 +220,31 @@ class VoskHandler(STTHandler):
             return None
         return res
 
-class WhisperAPIHandler(STTHandler):
-    def __init__(self, settings, pip_path, stt):
-        self.key = "whisperapi"
-        self.settings = settings
-        self.pip_path = pip_path
-        self.stt = stt
+class WhisperAPIHandler(STTHandler):    
+    key = "whisperapi"
+
+    @staticmethod
+    def get_extra_requirements() -> list:
+        return ["openai"]
+
+    @staticmethod
+    def get_extra_settings() -> list:
+        return [
+            {
+                "key": "api",
+                "title": _("API Key"),
+                "description": _("API Key for OpenAI"),
+                "type": "entry",
+                "default": ""
+            },
+            {
+                "key": "model",
+                "title": _("Whisper API Model"),
+                "description": _("Name of the Whisper API Model"),
+                "type": "entry",
+                "default": "whisper-1"
+            },
+        ]
 
     def recognize_file(self, path):
         r = sr.Recognizer()
@@ -195,13 +262,27 @@ class WhisperAPIHandler(STTHandler):
         return res
 
 class CustomSRHandler(STTHandler):
-    def __init__(self, settings, pip_path, stt):
-        self.key = "custom_command"
-        self.settings = settings
-        self.pip_path = pip_path
-        self.stt = stt
+    
+    key = "custom_command"
+
+    @staticmethod
+    def get_extra_settings() -> list:
+        return [
+            {
+                "key": "command",
+                "title": _("Command to execute"),
+                "description": _("{0} will be replaced with the model fullpath"),
+                "type": "entry",
+                "default": ""
+            },
+        ]
 
     def recognize_file(self, path):
         command = self.get_setting("command")
-        res = subprocess.check_output(["flatpak-spawn", "--host", "bash", "-c", command.replace("{0}", path)]).decode("utf-8")
-        return res
+        if command is not None:
+            res = subprocess.check_output(["flatpak-spawn", "--host", "bash", "-c", command.replace("{0}", path)]).decode("utf-8")
+            return str(res)
+        return None
+
+
+

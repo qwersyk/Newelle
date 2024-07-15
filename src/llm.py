@@ -1,3 +1,5 @@
+from abc import abstractmethod
+from contextlib import AbstractAsyncContextManager
 from gi.repository import Gtk, Adw, Gio, GLib
 from gpt4all import GPT4All
 import os, threading, subprocess, re
@@ -6,49 +8,69 @@ import time, json
 from .extra import find_module, install_module
 
 class LLMHandler():
-    def __init__(self, settings, path, llm):
-        self.history = []
-        self.propmts = []
+    history = []
+    prompts = []
+    key = "llm"
+
+    def __init__(self, settings, path):
         self.settings = settings
         self.path = path
-        self.llm = llm
 
-    def stream_enabled(self):
+    @staticmethod 
+    def get_extra_settings() -> list:
+        return []
+
+    @staticmethod
+    def get_extra_requirements() -> list:
+        return []
+
+    """ Return if the LLM supports token streaming"""
+    def stream_enabled(self) -> bool:
         enabled = self.get_setting("streaming")
         if enabled is None:
             return False
         return enabled
 
+    """ Install the LLM requirements"""
     def install(self):
         pip_path = os.path.join(os.path.abspath(os.path.join(self.path, os.pardir)), "pip")
-        for module in self.llm["extra_requirements"]:
+        for module in self.get_extra_requirements():
             install_module(module, pip_path)
 
+    """ Return if the LLM is installed"""
     def is_installed(self):
-        for module in self.llm["extra_requirements"]:
+        for module in self.get_extra_requirements():
             if find_module(module) is None:
                 return False
         return True
 
+    """ Load the LLM model"""
     def load_model(self, model):
         return True
 
-    def send_message(self, window, message):
-        return "Not yet implemented"
+    """ Get a response to a message"""
+    @abstractmethod
+    def send_message(self, window, message) -> str:
+        pass
 
-    def get_suggestions(self, window, message):
-        return "Not yet implemented"
+    """ Generates a prompt suggestion given text and history"""
+    @abstractmethod
+    def get_suggestions(self, window, message) -> str:
+        pass
 
+    """ Sets chat history"""
     def set_history(self, prompts, window):
         self.prompts = prompts
         self.history = window.chat[len(window.chat) - window.memory:len(window.chat)-1]
 
-    def get_setting(self, key):
+    """ Get LLM setting"""
+    def get_setting(self, key) -> object:
         j = json.loads(self.settings.get_string("llm-settings"))
         if self.key not in j or key not in j[self.key]:
             return self.get_default_setting(key)
         return j[self.key][key]
 
+    """ Set LLM setting"""
     def set_setting(self, key, value):
         j = json.loads(self.settings.get_string("llm-settings"))
         if self.key not in j:
@@ -56,24 +78,32 @@ class LLMHandler():
         j[self.key][key] = value
         self.settings.set_string("llm-settings", json.dumps(j))
 
+    """ Get LLM default setting"""
     def get_default_setting(self, key):
-        extra_settings = self.llm["extra_settings"]
+        extra_settings = self.get_extra_settings()
         for s in extra_settings:
             if s["key"] == key:
                 return s["default"]
         return None
 
+
 class G4FHandler(LLMHandler):
     """Common methods for g4f models"""
-    def __init__(self, settings, path, llm):
-        self.history = []
-        self.prompts = []
-        self.key = "g4f"
-        self.settings = settings
-        self.llm = llm
-        self.path = path
+    key = "g4f"
+    
+    @staticmethod
+    def get_extra_requirements() -> list:
+        return ["g4f"]
 
-    def send_message(self, window, message):
+    @abstractmethod
+    def generate_response(self, window, message) -> str:
+        pass
+
+    @abstractmethod
+    def generate_response_stream(self, window, message, on_update, extra_args) -> str:
+        pass
+
+    def send_message(self, window, message) -> str:
         """Get a response to a message"""
         self.history.append({"User": "User", "Message": window.bot_prompt+"\n"+"\n".join(self.prompts)})
         return self.generate_response(window, message)
@@ -90,12 +120,7 @@ class G4FHandler(LLMHandler):
         message = message + "\nUser:"
         return self.generate_response(window, message)
 
-    def set_history(self, prompts, window):
-        """Manages messages history"""
-        self.history = window.bot_prompt+"\n"+"\n".join(prompts)+"\n" + window.get_chat(
-            window.chat[len(window.chat) - window.memory:len(window.chat)-1])
-
-    def convert_history(self, history: dict) -> dict:
+    def convert_history(self, history: dict) -> list:
         """Converts the given history into the correct format for current_chat_history"""
         result = []
         for message in history:
@@ -110,14 +135,22 @@ class G4FHandler(LLMHandler):
         self.history = window.chat[len(window.chat) - window.memory:len(window.chat)-1]
         self.prompts = prompts
 
+
 class DeepAIHandler(G4FHandler):
-    def __init__(self, settings, path, llm):
-        self.history = []
-        self.prompts = []
-        self.key = "deepai"
-        self.settings = settings
-        self.llm = llm
-        self.path = path
+    
+    key = "deepai"
+
+    @staticmethod
+    def get_extra_settings() -> list:
+        return [
+            {
+                "key": "streaming",
+                "title": _("Message Streaming"),
+                "description": _("Gradually stream message output"),
+                "type": "toggle",
+                "default": True
+            },
+        ]
 
     def generate_response(self, window, message):
         return self.__generate_response(window, message)
@@ -137,7 +170,7 @@ class DeepAIHandler(G4FHandler):
                 messages=history,
                 provider=provider
             )
-            return respons
+            return response
 
     def __generate_response_stream(self, window, message, on_update, extra_args):
             import g4f
@@ -161,13 +194,7 @@ class DeepAIHandler(G4FHandler):
             return full_message.strip()
 
 class GoogleBardHandler(G4FHandler):
-    def __init__(self, settings, path, llm):
-        self.history = []
-        self.prompts = []
-        self.key = "bard"
-        self.settings = settings
-        self.llm = llm
-        self.path = path
+    key = "bard"
 
     def generate_response(self, window, message):
         return self.__generate_response(window, message)
@@ -188,14 +215,19 @@ class GoogleBardHandler(G4FHandler):
             return response
 
 class BingHandler(G4FHandler):
-    def __init__(self, settings, path, llm):
-        self.history = []
-        self.prompts = []
-        self.key = "bing"
-        self.settings = settings
-        self.llm = llm
-        self.path = path
+    key = "bing"
 
+    @staticmethod
+    def get_extra_settings() -> list:
+        return [
+            {
+                "key": "streaming",
+                "title": _("Message Streaming"),
+                "description": _("Gradually stream message output"),
+                "type": "toggle",
+                "default": True
+            },
+        ]
     def generate_response(self, window, message):
         return self.__generate_response(window, message)
 
@@ -237,13 +269,27 @@ class BingHandler(G4FHandler):
             return full_message.strip()
 
 class CustomLLMHandler(LLMHandler):
-    def __init__(self, settings, path, llm):
-        self.history = []
-        self.propmts = []
-        self.key = "custom_command"
-        self.settings = settings
-        self.path = path
-        self.llm = llm
+    key = "custom_command"
+    
+    @staticmethod
+    def get_extra_settings():
+        return [
+            {
+                "key": "command",
+                "title": _("Command to execute to get bot output"),
+                "description": _("Command to execute to get bot response, {0} will be replaced with a JSON file containing the chat, {1} with the extra prompts"),
+                "type": "entry",
+                "default": ""
+            },
+            {
+                "key": "suggestion",
+                "title": _("Command to execute to get bot's suggestions"),
+                "description": _("Command to execute to get chat suggestions, {0} will be replaced with a JSON file containing the chat, {1} with the extra prompts"),
+                "type": "entry",
+                "default": ""
+            },
+
+        ]
 
     def set_history(self, prompts, window):
         self.prompts = prompts
@@ -264,14 +310,93 @@ class CustomLLMHandler(LLMHandler):
         return out.decode("utf-8")
 
 class OpenAIHandler(LLMHandler):
-    def __init__(self, settings, path, llm):
-        self.history = ""
-        self.propmts = []
-        self.key = "openai"
-        self.settings = settings
-        self.path = path
-        self.llm = llm
+    key = "openai"
 
+    @staticmethod
+    def get_extra_requirements() -> list:
+        return ["openai"]
+
+    @staticmethod
+    def get_extra_settings() -> list:
+        return [
+            {
+                "key": "api",
+                "title": _("API Key"),
+                "description": _("API Key for OpenAI"),
+                "type": "entry",
+                "default": ""
+            },
+            {
+                "key": "engine",
+                "title": _("OpenAI Engine"),
+                "description": _("Name of the OpenAI Engine"),
+                "type": "entry",
+                "default": "text-davinci-003"
+            },
+            {
+                "key": "streaming",
+                "title": _("Message Streaming"),
+                "description": _("Gradually stream message output"),
+                "type": "toggle",
+                "default": True
+            },
+            {
+                "key": "max-tokens",
+                "title": _("Max Tokens"),
+                "description": _("Max tokens of the generated text"),
+                "website": "https://help.openai.com/en/articles/4936856-what-are-tokens-and-how-to-count-them",
+                "type": "range",
+                "min": 3,
+                "max": 400,
+                "default": 150,
+                "round-digits": 0
+            },
+            {
+                "key": "top-p",
+                "title": _("Top-P"),
+                "description": _("An alternative to sampling with temperature, called nucleus sampling"),
+                "website": "https://platform.openai.com/docs/api-reference/completions/create#completions/create-top_p",
+                "type": "range",
+                "min": 0,
+                "max": 1,
+                "default": 1,
+                "round-digits": 2,
+            },
+            {
+                "key": "temperature",
+                "title": _("Temperature"),
+                "description": _("What sampling temperature to use. Higher values will make the output more random"),
+                "website": "https://platform.openai.com/docs/api-reference/completions/create#completions/create-temperature",
+                "type": "range",
+                "min": 0,
+                "max": 2,
+                "default": 1,
+                "round-digits": 2,
+            },
+            {
+                "key": "frequency-penalty",
+                "title": _("Frequency Penalty"),
+                "description": _("Positive values penalize new tokens based on their existing frequency in the text so far, decreasing the model's likelihood to repeat the same line"),
+                "website": "https://platform.openai.com/docs/api-reference/completions/create#completions/create-frequency_penalty",
+                "type": "range",
+                "min": -2,
+                "max": 2,
+                "default": 0,
+                "round-digits": 1,
+            },
+            {
+                "key": "presence-penalty",
+                "title": _("Presence Penalty"),
+                "description": _("PPositive values penalize new tokens based on whether they appear in the text so far, increasing the model's likelihood to talk about new topics."),
+                "website": "https://platform.openai.com/docs/api-reference/completions/create#completions/create-frequency_penalty",
+                "type": "range",
+                "min": -2,
+                "max": 2,
+                "default": 0,
+                "round-digits": 1,
+            },
+        ]
+ 
     def send_message(self, window, message):
         """Get a response to a message"""
         message = self.history + "\nUser:" + str(message) + "\nAssistant:"
@@ -346,13 +471,7 @@ class OpenAIHandler(LLMHandler):
             window.chat[len(window.chat) - window.memory:len(window.chat)-1])
 
 class BaiHandler(LLMHandler):
-    def __init__(self, settings, path, llm):
-        """This class Handles BAI Chat generating"""
-        self.history = ""
-        self.key = "bai"
-        self.llm = llm
-        self.settings = settings
-
+    key = "bai"
     def load_model(self, model):
         """Does nothing since it is not required to load the model"""
         return True
@@ -474,3 +593,5 @@ class GPT4AllHandler(LLMHandler):
             self.model.current_chat_session = history
             response = self.model.generate(prompt=message, top_k=1)
         return response
+
+
