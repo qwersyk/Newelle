@@ -26,7 +26,7 @@ class Settings(Adw.PreferencesWindow):
 
         self.local_models = json.loads(self.settings.get_string("available-models"))
         self.directory = GLib.get_user_config_dir()
-        self.gpt = GPT4AllHandler(self.settings, os.path.join(self.directory, "models"), AVAILABLE_LLMS["local"])
+        self.gpt = GPT4AllHandler(self.settings, os.path.join(self.directory, "models"))
 
         self.general_page = Adw.PreferencesPage()
 
@@ -385,12 +385,24 @@ class Settings(Adw.PreferencesWindow):
         button.set_child(None)
         button.set_sensitive(False)
 
+    def refresh_models(self, action):
+        models = GPT4All.list_models()
+        self.settings.set_string("available-models", json.dumps(models))
+        self.local_models = models
+
     def build_local(self):
         # Reload available models
         if len(self.local_models) == 0:
-            models = GPT4All.list_models()
-            self.settings.set_string("available-models", json.dumps(models))
-            self.local_models = models
+            self.refresh_models(None)
+
+        # Create refresh button
+        actionbutton = Gtk.Button(css_classes=["flat"], valign=Gtk.Align.CENTER)
+        icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="update-symbolic"))
+        actionbutton.connect("clicked", self.refresh_models)
+        actionbutton.add_css_class("accent")
+        actionbutton.set_child(icon)
+        self.llmrow.add_action(actionbutton)
+        # Create entries
         radio = Gtk.CheckButton()
         self.rows = {}
         self.model_threads = {}
@@ -471,7 +483,7 @@ class Settings(Adw.PreferencesWindow):
         th.start()
 
     def update_download_status(self, model, filesize, progressbar):
-        file = os.path.join(self.gpt.modelspath, model)
+        file = os.path.join(self.gpt.modelspath, model) + ".part"
         while model in self.downloading and self.downloading[model]:
             try:
                 currentsize = os.path.getsize(file)

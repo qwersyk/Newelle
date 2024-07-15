@@ -7,13 +7,13 @@
     "sources": [
         {
             "type": "file",
-            "url": "https://files.pythonhosted.org/packages/09/95/374a229b2b9157ff6cd5ec3ed3ce81fa415b2964a7068958a0a38846b634/gpt4all-1.0.5-py3-none-manylinux1_x86_64.whl",
-            "sha256": "53520c7384566462c3b2207409631423b5767da0bc2c1ef2366595dbab20679e"
+            "url": "https://files.pythonhosted.org/packages/08/9a/6e5a8fc647d9462be27fa480f6c53d08e89dfca9ab83bb071ae8f37e4aa7/gpt4all-2.7.0-py3-none-manylinux1_x86_64.whl",
+            "sha256": "35891bb52f9179e82b07f61602b37e7b4cb695d1a9fa458e1fe3c01b4ad6abce"
         },
-        {
-            "type": "file",
-            "url": "https://files.pythonhosted.org/packages/e6/02/a2cff6306177ae6bc73bc0665065de51dfb3b9db7373e122e2735faf0d97/tqdm-4.65.0-py3-none-any.whl",
-            "sha256": "c4f53a17fe37e132815abceec022631be8ffe1b9381c2e6e30aa70edc99e9671"
-        }
+	{
+              "type": "file",
+              "url": "https://files.pythonhosted.org/packages/18/eb/fdb7eb9e48b7b02554e1664afd3bd3f117f6b6d6c5881438a0b055554f9b/tqdm-4.66.4-py3-none-any.whl",
+              "sha256": "b75ca56b413b030bc3f00af51fd2c1a1a5eac6a0c1cca83cbb37a5c52abce644"
+         }
     ]
 }

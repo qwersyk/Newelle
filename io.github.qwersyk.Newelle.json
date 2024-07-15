@@ -1,8 +1,12 @@
 {
     "app-id" : "io.github.qwersyk.Newelle",
     "runtime" : "org.gnome.Platform",
-    "runtime-version" : "44",
+    "runtime-version" : "46",
     "sdk" : "org.gnome.Sdk",
+    "sdk-extensions" : [
+        "org.freedesktop.Platform.GL"
+    ],
+
     "command" : "newelle",
     "finish-args" : [
         "--share=network",
@@ -26,6 +30,7 @@
         "*.a"
     ],
     "modules" : [
+    	"python3-requirements.json",
     	"python3-requests.json",
     	"python3-gpt4all.json",
     	"python3-gtts.json",

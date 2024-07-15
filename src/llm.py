@@ -508,20 +508,18 @@ class BaiHandler(LLMHandler):
             window.chat[len(window.chat) - window.memory:len(window.chat)-1])
 
 class GPT4AllHandler(LLMHandler):
+    key = "local"
 
-    def __init__(self, settings, modelspath, llm):
+    def __init__(self, settings, modelspath):
         """This class handles downloading, generating and history managing for Local Models using GPT4All library
         """
-        self.key = "local"
         self.settings = settings
         self.modelspath = modelspath
-        self.model = None
-        self.llm = llm
         self.history = {}
         self.prompts = []
+        self.model = None
         if not os.path.isdir(self.modelspath):
             os.makedirs(self.modelspath)
-        print(self.modelspath)
 
     def model_available(self, model:str) -> bool:
         """ Returns if a model has already been downloaded
@@ -583,6 +581,12 @@ class GPT4AllHandler(LLMHandler):
         prompt = additional_prompts + "\nUser: " + message
         return self.__generate_response(window, prompt)
 
+    def __create_history(self, history):
+        for message in history:
+            if message not in self.model.current_chat_session:
+                self.model.current_chat_session.append(message)
+                print(message)
+
     def __generate_response(self, window, message):
         """Generates a response given text and history"""
         if not self.load_model(window.local_model):
@@ -590,7 +594,9 @@ class GPT4AllHandler(LLMHandler):
         history = self.__convert_history(self.history)
         session = self.model.chat_session()
         with session:
-            self.model.current_chat_session = history
+            self.__create_history(history)
+            self.model.current_chat_session.append({"role": "system", "content": "cacca"})
+            print(self.model.current_chat_session)
             response = self.model.generate(prompt=message, top_k=1)
         return response
 
