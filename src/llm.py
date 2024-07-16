@@ -3,6 +3,8 @@ from contextlib import AbstractAsyncContextManager
 from gi.repository import Gtk, Adw, Gio, GLib
 from gpt4all import GPT4All
 import os, threading, subprocess, re
+
+from gpt4all.gpt4all import MessageType
 from .bai import BAIChat
 import time, json
 from .extra import find_module, install_module
@@ -516,8 +518,11 @@ class GPT4AllHandler(LLMHandler):
         self.settings = settings
         self.modelspath = modelspath
         self.history = {}
+        # Temporary
+        self.oldhistory = {}
         self.prompts = []
         self.model = None
+        self.session = None
         if not os.path.isdir(self.modelspath):
             os.makedirs(self.modelspath)
 
@@ -541,6 +546,8 @@ class GPT4AllHandler(LLMHandler):
         if self.model is None:
             try:
                 self.model = GPT4All(model, model_path=self.modelspath)
+                self.session = self.model.chat_session()
+                self.session.__enter__()
             except Exception as e:
                 print(e)
                 return False
@@ -567,7 +574,23 @@ class GPT4AllHandler(LLMHandler):
 
     def set_history(self, prompts, window):
         """Manages messages history"""
+        # History not working at the moment because of GPT4All
         self.history = window.chat[len(window.chat) - window.memory:len(window.chat)-1]
+        print(self.oldhistory)
+        print(self.history)
+        newchat = False
+        for message in self.oldhistory:
+            if not any(message == item["Message"] for item in self.history):
+               newchat = True
+               break
+        if len(self.oldhistory) > 1 and newchat:
+            print("New session")
+            self.session.__exit__(None, None, None)
+            self.session = self.model.chat_session()
+            self.session.__enter__()
+        self.oldhistory = list()
+        for message in self.history:
+            self.oldhistory.append(message["Message"])
         self.prompts = prompts
 
     def get_suggestions(self, window, message):
@@ -585,19 +608,17 @@ class GPT4AllHandler(LLMHandler):
         for message in history:
             if message not in self.model.current_chat_session:
                 self.model.current_chat_session.append(message)
-                print(message)
 
     def __generate_response(self, window, message):
         """Generates a response given text and history"""
         if not self.load_model(window.local_model):
             return _('There was an error retriving the model')
         history = self.__convert_history(self.history)
-        session = self.model.chat_session()
-        with session:
-            self.__create_history(history)
-            self.model.current_chat_session.append({"role": "system", "content": "cacca"})
-            print(self.model.current_chat_session)
-            response = self.model.generate(prompt=message, top_k=1)
+        if self.model is None or self.session is None:
+            return "Model not loaded"
+        #print(self.model.current_chat_session)
+        response = self.model.generate(prompt=message, top_k=1)
+        #print(self.model.current_chat_session)
         return response
 
 
