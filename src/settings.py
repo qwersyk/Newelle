@@ -306,13 +306,13 @@ class Settings(Adw.PreferencesWindow):
         setting = name[2]
         enabled = toggle.get_active()
         if mtype == "stt":
-            model = AVAILABLE_STT[key]["class"](self.settings, os.path.join(self.directory, "pip"), AVAILABLE_STT[key])
+            model = AVAILABLE_STT[key]["class"](self.settings, os.path.join(self.directory, "pip"))
             model.set_setting(setting, enabled)
         elif mtype == "llm":
-            model = AVAILABLE_LLMS[key]["class"](self.settings, os.path.join(self.directory, "model"), AVAILABLE_LLMS[key])
+            model = AVAILABLE_LLMS[key]["class"](self.settings, os.path.join(self.directory, "model"))
             model.set_setting(setting, enabled)
         elif mtype == "tts":
-            model = AVAILABLE_TTS[key]["class"](self.settings, self.directory, AVAILABLE_TTS[key])
+            model = AVAILABLE_TTS[key]["class"](self.settings, self.directory)
             model.set_setting(setting, enabled)
 
     def setting_change_scale(self, scale, scroll, value):
@@ -371,10 +371,10 @@ class Settings(Adw.PreferencesWindow):
         key = name.split("//")[1]
         if mtype == "stt":
             stt = AVAILABLE_STT[key]
-            model = stt["class"](self.settings, os.path.join(self.directory, "pip"), stt)
+            model = stt["class"](self.settings, os.path.join(self.directory, "pip"))
         elif mtype == "llm":
             llm = AVAILABLE_LLMS[key]
-            model = llm["class"](self.settings, os.path.join(self.directory, "models"), llm)
+            model = llm["class"](self.settings, os.path.join(self.directory, "models"))
         spinner = Gtk.Spinner(spinning=True)
         button.set_child(spinner)
         t = threading.Thread(target=self.install_model_async, args= (button, model))

@@ -3,10 +3,6 @@
     "runtime" : "org.gnome.Platform",
     "runtime-version" : "46",
     "sdk" : "org.gnome.Sdk",
-    "sdk-extensions" : [
-        "org.freedesktop.Platform.GL"
-    ],
-
     "command" : "newelle",
     "finish-args" : [
         "--share=network",
@@ -31,7 +27,9 @@
     ],
     "modules" : [
     	"python3-requests.json",
+    	"python3-expandvars.json",
     	"python3-gpt4all.json",
+	"python3-g4f.json",
     	"python3-gtts.json",
     	"python3-playsound.json",
     	"python3-pip.json",

@@ -1119,7 +1119,7 @@ Name: The multiplication table for 4.
                 if not(not message.strip() or message.isspace() or all(char == '\n' for char in message)):tts.play_audio(message)
 
     def update_message(self, message, label):
-        label.set_label(message)
+        GLib.idle_add(label.set_label, message)
 
     def edit_message(self, gesture, data, x, y):
         if not self.status:

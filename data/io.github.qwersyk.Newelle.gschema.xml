@@ -35,7 +35,7 @@
             <default>true</default>
         </key>
 	      <key name="language-model" type="s">
-            <default>"bai"</default>
+            <default>"GPT3Any"</default>
         </key>
 	      <key name="local-model" type="s">
             <default>""</default>

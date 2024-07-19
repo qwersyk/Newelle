@@ -138,9 +138,13 @@ class G4FHandler(LLMHandler):
         self.prompts = prompts
 
 
-class DeepAIHandler(G4FHandler):
-    
-    key = "deepai"
+class GPT3AnyHandler(G4FHandler):
+    key = "GPT3Any"
+
+    def __init__(self, settings, path):
+        import g4f
+        super().__init__(settings, path)
+        self.client = g4f.client.Client()
 
     @staticmethod
     def get_extra_settings() -> list:
@@ -153,7 +157,6 @@ class DeepAIHandler(G4FHandler):
                 "default": True
             },
         ]
-
     def generate_response(self, window, message):
         return self.__generate_response(window, message)
 
@@ -163,62 +166,46 @@ class DeepAIHandler(G4FHandler):
     def __generate_response(self, window, message):
             import g4f
             """Generates a response given text and history"""
-            provider = g4f.Provider.DeepAi
             history = self.convert_history(self.history)
             user_prompt = {"role": "user", "content": message}
             history.append(user_prompt)
-            response = g4f.ChatCompletion.create(
-                model=g4f.models.default,
+            response = self.client.chat.completions.create(
+                model="gpt-3.5-turbo",
                 messages=history,
-                provider=provider
             )
-            return response
+            print(response)
+            return response.choices[0].message.content
 
     def __generate_response_stream(self, window, message, on_update, extra_args):
             import g4f
             """Generates a response given text and history"""
-            provider = g4f.Provider.DeepAi
             history = self.convert_history(self.history)
             user_prompt = {"role": "user", "content": message}
             history.append(user_prompt)
-            response = g4f.ChatCompletion.create(
-                model=g4f.models.default,
+            response = self.client.chat.completions.create(
+                model="gpt-3.5-turbo",
                 messages=history,
-                provider=provider,
                 stream=True
             )
             full_message = ""
+            prev_message = ""
             for chunk in response:
-                full_message += chunk
-                print(chunk)
-                args = (full_message.strip(), ) + extra_args
-                on_update(*args)
+                if chunk.choices[0].delta.content:
+                    full_message += chunk.choices[0].delta.content
+                    args = (full_message.strip(), ) + extra_args
+                    if len(full_message) - len(prev_message) > 10:
+                        on_update(*args)
+                        prev_message = full_message
             return full_message.strip()
-
-class GoogleBardHandler(G4FHandler):
-    key = "bard"
-
-    def generate_response(self, window, message):
-        return self.__generate_response(window, message)
-
-    def __generate_response(self, window, message):
-            import g4f
-            """Generates a response given text and history"""
-            provider = g4f.Provider.Bard
-            history = self.convert_history(self.history)
-            user_prompt = {"role": "user", "content": message}
-            history.append(user_prompt)
-            response = g4f.ChatCompletion.create(
-                model=g4f.models.default,
-                messages=history,
-                provider=provider,
-                auth=True
-            )
-            return response
 
 class BingHandler(G4FHandler):
     key = "bing"
 
+    def __init__(self, settings, path):
+        import g4f
+        super().__init__(settings, path)
+        self.client = g4f.client.Client()
+
     @staticmethod
     def get_extra_settings() -> list:
         return [
@@ -243,12 +230,13 @@ class BingHandler(G4FHandler):
             history = self.convert_history(self.history)
             user_prompt = {"role": "user", "content": message}
             history.append(user_prompt)
-            response = g4f.ChatCompletion.create(
-                model=g4f.models.default,
+            response = self.client.chat.completions.create(
+                model="gpt-4-turbo",
                 messages=history,
-                provider=provider,
+                provider=provider
             )
-            return response
+            print(response)
+            return response.choices[0].message.content
 
     def __generate_response_stream(self, window, message, on_update, extra_args):
             import g4f
@@ -257,7 +245,7 @@ class BingHandler(G4FHandler):
             history = self.convert_history(self.history)
             user_prompt = {"role": "user", "content": message}
             history.append(user_prompt)
-            response = g4f.ChatCompletion.create(
+            response = self.client.ChatCompletion.create(
                 model=g4f.models.default,
                 messages=history,
                 provider=provider,
@@ -466,43 +454,6 @@ class OpenAIHandler(LLMHandler):
         #return self.__generate_response(window, message)
         # It will get API limited if I leave this
         return ""
-
-    def set_history(self, prompts, window):
-        """Manages messages history"""
-        self.history = window.bot_prompt+"\n"+"\n".join(prompts)+"\n" + window.get_chat(
-            window.chat[len(window.chat) - window.memory:len(window.chat)-1])
-
-class BaiHandler(LLMHandler):
-    key = "bai"
-    def load_model(self, model):
-        """Does nothing since it is not required to load the model"""
-        return True
-
-    def send_message(self, window, message):
-        """Get a response to a message"""
-        message = self.history + "\nUser:" + str(message) + "\nAssistant:"
-        return self.__generate_response(window, message)
-
-    def __generate_response(self, window, message):
-            """Generates a response given text and history"""
-            stream_number_variable = window.stream_number_variable
-            loop_interval_variable = 1
-            while stream_number_variable == window.stream_number_variable:
-                loop_interval_variable *= 2
-                loop_interval_variable = min(60,loop_interval_variable)
-                try:
-                    t = re.split(r'Assistant:|Console:|User:|File:|Folder:', BAIChat(sync=True).sync_ask(message).text,1)[0]
-                    return t
-                except Exception as e:
-                    # self.notification_block.add_toast(Adw.Toast(title=_('Failed to send bot a message'), timeout=2))
-                    pass
-                time.sleep(loop_interval_variable)
-            return _("Chat has been stopped")
-
-    def get_suggestions(self, window, message):
-        """Gets chat suggestions"""
-        message = message + "\nUser:"
-        return self.__generate_response(window, message)
 
     def set_history(self, prompts, window):
         """Manages messages history"""

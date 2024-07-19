@@ -1,38 +1,24 @@
 
-from .llm import GPT4AllHandler, BaiHandler, OpenAIHandler, CustomLLMHandler, DeepAIHandler, GoogleBardHandler, BingHandler
+from .llm import GPT4AllHandler, OpenAIHandler, CustomLLMHandler, BingHandler, GPT3AnyHandler
 from .tts import gTTSHandler, EspeakHandler, CustomTTSHandler
-from .stt import STTHandler, SphinxHandler, GoogleSRHandler, WitAIHandler, VoskHandler, WhisperAPIHandler, CustomSRHandler
+from .stt import SphinxHandler, GoogleSRHandler, WitAIHandler, VoskHandler, WhisperAPIHandler, CustomSRHandler
 
 AVAILABLE_LLMS = {
-    "bai": {
-        "key": "bai",
-        "rowtype": "action",
-        "title": _("BAI Chat"),
-        "description": _("BAI Chat is a GPT-3.5 / ChatGPT API based chatbot that is free, convenient and responsive."),
-        "class": BaiHandler,
-    },
-    "local": {
+   "local": {
         "key": "local",
         "rowtype": "expander",
         "title": _("Local Model"),
         "description": _("Run a LLM model locally, more privacy but slower"),
         "class": GPT4AllHandler,
     },
-    "deepai": {
-        "key": "deepai",
+   "GPT3Any": {
+        "key": "GPT3Any",
         "rowtype": "expander",
-        "title": _("Deep AI"),
-        "description": "deepai.org AI based on GPT3.5",
-        "class": DeepAIHandler,
+        "title": _("Any GPT 3.5 Turbo provider"),
+        "description": "Automatically select any GPT 3.5 turbo provider",
+        "class": GPT3AnyHandler,
     },
-    "bard": {
-        "key": "bard",
-        "rowtype": "action",
-        "title": _("Google Bard"),
-        "description": "Google bard AI, requires to be already logged in your browser",
-        "class": GoogleBardHandler,
-    },
-    "bing": {
+   "bing": {
         "key": "bing",
         "rowtype": "expander",
         "title": _("Bing GPT4"),
