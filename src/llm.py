@@ -193,7 +193,7 @@ class GPT3AnyHandler(G4FHandler):
                 if chunk.choices[0].delta.content:
                     full_message += chunk.choices[0].delta.content
                     args = (full_message.strip(), ) + extra_args
-                    if len(full_message) - len(prev_message) > 10:
+                    if len(full_message) - len(prev_message) > 1:
                         on_update(*args)
                         prev_message = full_message
             return full_message.strip()

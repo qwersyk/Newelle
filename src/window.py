@@ -273,10 +273,10 @@ class MainWindow(Gtk.ApplicationWindow):
         self.main_program_block.connect("notify::reveal-flap", self.handle_second_block_change)
 
         self.stream_number_variable = 0
-        threading.Thread(target=self.update_button_text).start()
-        threading.Thread(target=self.update_folder).start()
-        threading.Thread(target=self.update_history).start()
-        threading.Thread(target=self.show_chat).start()
+        GLib.idle_add(self.update_button_text)
+        GLib.idle_add(self.update_folder)
+        GLib.idle_add(self.update_history)
+        GLib.idle_add(self.show_chat)
 
     def start_recording(self, button):
         #button.set_child(Gtk.Spinner(spinning=True))
@@ -467,7 +467,7 @@ class MainWindow(Gtk.ApplicationWindow):
                     self.chat.append({"User": "File", "Message": " " + path})
                     self.add_message("File", message_label)
                 self.chats[self.chat_id]["chat"] = self.chat
-                threading.Thread(target=self.update_button_text).start()
+                GLib.idle_add(self.update_button_text)
             else:
                 self.notification_block.add_toast(Adw.Toast(title=_('The file is not recognized'), timeout=2))
 
@@ -610,7 +610,7 @@ Name: The multiplication table for 4.
         self.chat = self.chats[self.chat_id]["chat"]
         self.update_history()
         self.show_chat()
-        threading.Thread(target=self.update_button_text).start()
+        GLib.idle_add(self.update_button_text)
 
     def scrolled_chat(self):
         adjustment = self.chat_scroll.get_vadjustment()
@@ -647,7 +647,7 @@ Name: The multiplication table for 4.
         self.status = True
         self.stream_number_variable += 1
         self.chat_stop_button.set_visible(False)
-        threading.Thread(target=self.update_button_text).start()
+        GLib.idle_add(self.update_button_text)
         if self.chat[-1]["User"] != "Assistant" or "```console" in self.chat[-1]["Message"]:
             for i in range(len(self.chat) - 1, -1, -1):
                 if self.chat[i]["User"] in ["Assistant","Console"]:
@@ -870,7 +870,7 @@ Name: The multiplication table for 4.
                 if message not in message_suggestion_texts_array:
                     message_suggestion_texts_array.append(message)
                     btn.set_visible(True)
-                    threading.Thread(target=self.scrolled_chat).start()
+                    GLib.idle_add(self.scrolled_chat)
             self.chat_stop_button.set_visible(False)
         else:
             for btn in self.message_suggestion_buttons_array:
@@ -879,7 +879,7 @@ Name: The multiplication table for 4.
             self.button_continue.set_visible(False)
             self.regenerate_message_button.set_visible(False)
             self.chat_stop_button.set_visible(True)
-        threading.Thread(target=self.scrolled_chat).start()
+        GLib.idle_add(self.scrolled_chat)
     def on_entry_activate(self, entry):
         if not self.status:
             self.notification_block.add_toast(
@@ -926,13 +926,13 @@ Name: The multiplication table for 4.
                 elif self.chat[i]["User"] in ["File", "Folder"]:
                     self.add_message(self.chat[i]["User"], self.get_file_button(self.chat[i]["Message"][1:len(self.chat[i]["Message"])]))
             self.check_streams["chat"] = False
-        #threading.Thread(target=self.scrolled_chat).start()
+        GLib.idle_add(self.scrolled_chat)
 
     def show_message(self, message_label, restore=False,id_message=-1):
         if message_label == " " * len(message_label):
             if not restore:
                 self.chat.append({"User": "Assistant", "Message": message_label})
-                threading.Thread(target=self.update_button_text).start()
+                GLib.idle_add(self.update_button_text)
                 self.status = True
                 self.chat_stop_button.set_visible(False)
         else:
@@ -1075,14 +1075,14 @@ Name: The multiplication table for 4.
             if not has_terminal_command:
                 self.add_message("Assistant", box)
                 if not restore:
-                    threading.Thread(target=self.update_button_text).start()
+                    GLib.idle_add(self.update_button_text)
                     self.status = True
                     self.chat_stop_button.set_visible(False)
                     self.chats[self.chat_id]["chat"] = self.chat
             else:
                 if not restore:
-                    threading.Thread(target=self.send_message).start()
-        threading.Thread(target=self.scrolled_chat).start()
+                    GLib.idle_add(self.send_message)
+        GLib.idle_add(self.scrolled_chat)
 
     def send_message(self):
         self.stream_number_variable += 1
@@ -1109,8 +1109,8 @@ Name: The multiplication table for 4.
             message_label = self.send_message_to_bot(self.chat[-1]["Message"])
 
         if self.stream_number_variable == stream_number_variable:
-            self.show_message(message_label)
-        self.remove_send_button_spinner()
+            GLib.idle_add(self.show_message, message_label)
+        GLib.idle_add(self.remove_send_button_spinner)
         # TTS
         if self.tts_enabled:
             if self.tts_program in AVAILABLE_TTS:
@@ -1134,7 +1134,7 @@ Name: The multiplication table for 4.
         self.chat = self.chats[self.chat_id]["chat"]
         self.update_history()
         self.show_chat()
-        threading.Thread(target=self.update_button_text).start()
+        GLib.idle_add(self.update_button_text)
 
     def add_message(self, user, message=None, id_message=0):
         box = Gtk.Box(css_classes=["card"], margin_top=10, margin_start=10, margin_bottom=10, margin_end=10,
