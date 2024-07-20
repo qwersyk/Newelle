@@ -9,6 +9,7 @@ import time, json
 from .extra import find_module, install_module
 
 class LLMHandler():
+    """Every LLM model handler should extend this class."""
     history = []
     prompts = []
     key = "llm"
@@ -19,10 +20,24 @@ class LLMHandler():
 
     @staticmethod 
     def get_extra_settings() -> list:
+        """The list of extra settings for the current model.
+            A Setting is a dict with the following properties:
+            - key: the setting key to get it
+            - title: the title of the setting
+            - description: description of the setting
+            - type: can be `entry` for input text, `toggle` for boolean, `combo` for multiple values, `range` for ranges of values
+            - default: default value to assign
+            **Optional**
+            - values: list of values for the `combo` row
+            - min: min value for `range`
+            - max: max value for `range`
+            - round-digits: how many digits to round
+        """
         return []
 
     @staticmethod
     def get_extra_requirements() -> list:
+        """The list of extra pip requirements needed by the handler"""
         return []
 
     """ Return if the LLM supports token streaming"""
@@ -224,8 +239,9 @@ class GeminiHandler(LLMHandler):
                 "key": "model",
                 "title": _("Model"),
                 "description": _("AI Model to use, available: gemini-1.5-pro, gemini-1.0-pro, gemini-1.5-flash"),
-                "type": "entry",
-                "default": "gemini-1.5-flash"
+                "type": "combo",
+                "default": "gemini-1.5-flash",
+                "values": [("gemini-1.5-flash","gemini-1.5-flash") , ("gemini-1.0-pro", "gemini-1.0-pro"), ("gemini-1.5-pro","gemini-1.5-pro") ]
             },
             {
                 "key": "streaming",

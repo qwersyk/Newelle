@@ -134,12 +134,11 @@ class EspeakHandler(TTSHandler):
         return False
 
 class CustomTTSHandler(TTSHandler):
-    def __init__(self, settings, path, tts):
+    def __init__(self, settings, path):
         self.settings = settings
         self.path = path
         self.key = "custom_command"
         self.voices = tuple()
-        self.tts = tts
 
     @staticmethod
     def get_extra_settings() -> list:

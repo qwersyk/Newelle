@@ -67,7 +67,6 @@ AVAILABLE_STT = {
         "rowtype": "expander",
         "title": _("Wit AI"),
         "description": _("wit.ai speech recognition free API (language chosen on the website)"),
-        "extra_requirements": [],
         "website": "https://wit.ai",
         "class": WitAIHandler,
     },
@@ -98,7 +97,6 @@ AVAILABLE_STT = {
         "rowtype": "expander",
         "title": _("Custom command"),
         "description": _("Runs a custom command"),
-        "extra_requirements": [],
         "class": CustomSRHandler,     
     }
 }
@@ -123,8 +121,6 @@ AVAILABLE_TTS = {
         "title": _("Custom Command"),
         "description": _("Use a custom command as TTS, {0} will be replaced with the text"),
         "class": CustomTTSHandler,
-        "extra_settings": [
-                    ]
     }
 }
 

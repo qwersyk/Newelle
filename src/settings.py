@@ -91,7 +91,7 @@ class Settings(Adw.PreferencesWindow):
                 row = Adw.ActionRow(title=tts["title"], subtitle=tts["description"])
             elif tts["rowtype"] == "expander":
                 row = Adw.ExpanderRow(title=tts["title"], subtitle=tts["description"])
-                if len(tts["extra_settings"]) > 0:
+                if len(handler.get_extra_settings()) > 0:
                     self.add_extra_settings(tts, row, "tts")
             elif tts["rowtype"] == "combo":
                 row = Adw.ComboRow(title=tts["title"], subtitle=tts["description"])
@@ -324,13 +324,13 @@ class Settings(Adw.PreferencesWindow):
         value = round(value, digits)
         self.slider_labels[scale].set_label(str(value))
         if mtype == "stt":
-            model = AVAILABLE_STT[key]["class"](self.settings, os.path.join(self.directory, "pip"), AVAILABLE_STT[key])
+            model = AVAILABLE_STT[key]["class"](self.settings, os.path.join(self.directory, "pip"))
             model.set_setting(setting, value)
         elif mtype == "llm":
-            model = AVAILABLE_LLMS[key]["class"](self.settings, os.path.join(self.directory, "model"), AVAILABLE_LLMS[key])
+            model = AVAILABLE_LLMS[key]["class"](self.settings, os.path.join(self.directory, "model"))
             model.set_setting(setting, value)
         elif mtype == "tts":
-            model = AVAILABLE_TTS[key]["class"](self.settings, self.directory, AVAILABLE_TTS[key])
+            model = AVAILABLE_TTS[key]["class"](self.settings, self.directory)
             model.set_setting(setting, value)
 
     def setting_change_combo(self, helper, value):
@@ -339,13 +339,13 @@ class Settings(Adw.PreferencesWindow):
         key = name[1]
         setting = name[2]
         if mtype == "stt":
-            model = AVAILABLE_STT[key]["class"](self.settings, os.path.join(self.directory, "pip"), AVAILABLE_STT[key])
+            model = AVAILABLE_STT[key]["class"](self.settings, os.path.join(self.directory, "pip"))
             model.set_setting(setting, value)
         elif mtype == "llm":
-            model = AVAILABLE_LLMS[key]["class"](self.settings, os.path.join(self.directory, "model"), AVAILABLE_LLMS[key])
+            model = AVAILABLE_LLMS[key]["class"](self.settings, os.path.join(self.directory, "model"))
             model.set_setting(setting, value)
         elif mtype == "tts":
-            model = AVAILABLE_TTS[key]["class"](self.settings, self.directory, AVAILABLE_TTS[key])
+            model = AVAILABLE_TTS[key]["class"](self.settings, self.directory)
             model.set_setting(setting, value)
 
     def add_download_button(self, model, row, mtype):
