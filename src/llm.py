@@ -5,7 +5,6 @@ from gpt4all import GPT4All
 import os, threading, subprocess, re
 
 from gpt4all.gpt4all import MessageType
-from .bai import BAIChat
 import time, json
 from .extra import find_module, install_module
 
