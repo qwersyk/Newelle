@@ -575,11 +575,7 @@ class MainWindow(Gtk.ApplicationWindow):
             button.set_child(spinner)
             button.set_can_target(False)
             button.set_has_frame(True)
-            name = self.send_message_to_bot("""System: You have to write a title for the dialog between the user and the assistant. You have to come up with a short description of the chat them in 5 words. Just write a name for the dialog. Write directly and clearly, just a title without anything in the new message. The title must be on topic. You don't have to make up anything of your own, just a name for the chat room.
-User: Write the multiplication table 4 by 4
-Assistant: | - | 1 | 2 | 3 | 4 |\n| - | - | - | - | - |\n| 1 | 1 | 2 | 3 | 4 |\n| 2 | 2 | 4 | 6 | 8 |\n| 3 | 3 | 6 | 9 | 12 |\n| 4 | 4 | 8 | 12 | 16 |
-Name: The multiplication table for 4.
-""" + "\n" + self.get_chat(self.chats[int(button.get_name())]["chat"][
+            name = self.send_message_to_bot(PROMPTS["generate_chat_prompt"] + "\n" + self.get_chat(self.chats[int(button.get_name())]["chat"][
                                len(self.chats[int(button.get_name())]["chat"]) - self.memory:len(
                                    self.chats[int(button.get_name())]["chat"])]) + "\nName:")
             if self.model.stream_enabled():
