@@ -462,7 +462,7 @@ class Settings(Adw.PreferencesWindow):
             self.settings.set_string("stt-engine", button.get_name())
 
     def choose_tts_voice(self, helper, value):
-        tts = AVAILABLE_TTS[helper.combo.get_name()]["class"](self.settings, self.directory, AVAILABLE_TTS[helper.combo.get_name()])
+        tts = AVAILABLE_TTS[helper.combo.get_name()]["class"](self.settings, self.directory)
         tts.set_voice(value)
 
     def download_local_model(self, button):

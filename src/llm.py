@@ -197,13 +197,95 @@ class GPT3AnyHandler(G4FHandler):
                         prev_message = full_message
             return full_message.strip()
 
+
+class GeminiHandler(LLMHandler):
+    key = "gemini"
+
+    @staticmethod
+    def get_extra_requirements() -> list:
+        return ["google-generativeai"]
+
+    def is_installed(self) -> bool:
+        if find_module("google.generativeai") is None:
+            return False
+        return True
+
+    @staticmethod
+    def get_extra_settings() -> list:
+        return [
+            {
+                "key": "apikey",
+                "title": _("API Key (required)"),
+                "description": _("API Key got from ai.google.dev"),
+                "type": "entry",
+                "default": ""
+            },
+            {
+                "key": "model",
+                "title": _("Model"),
+                "description": _("AI Model to use, available: gemini-1.5-pro, gemini-1.0-pro, gemini-1.5-flash"),
+                "type": "entry",
+                "default": "gemini-1.5-flash"
+            },
+            {
+                "key": "streaming",
+                "title": _("Message Streaming"),
+                "description": _("Gradually stream message output"),
+                "type": "toggle",
+                "default": True
+            },
+        ]
+
+    def __convert_history(self, history: list):
+        result = []
+        for message in history:
+            result.append({
+                "role": message["User"].lower() if message["User"] == "User" else "model",
+                "parts": message["Message"]
+            })
+        return result
+
+
+    def send_message(self, window, message):
+        import google.generativeai as genai
+        genai.configure(api_key=self.get_setting("apikey"))
+        instructions = window.bot_prompt+"\n"+"\n".join(self.prompts)
+        model = genai.GenerativeModel(self.get_setting("model"), system_instruction=instructions)
+        converted_history = self.__convert_history(self.history)
+
+        chat = model.start_chat(
+            history=converted_history,
+        )
+        response = chat.send_message(message)
+        return response.text
+
+    def send_message_stream(self, window, message, on_update, extra_args):
+        import google.generativeai as genai
+        genai.configure(api_key=self.get_setting("apikey"))
+        instructions = window.bot_prompt+"\n"+"\n".join(self.prompts)
+        model = genai.GenerativeModel(self.get_setting("model"), system_instruction=instructions)
+        converted_history = self.__convert_history(self.history)
+        chat = model.start_chat(
+            history=converted_history,
+        )
+
+        response = chat.send_message(message, stream=True)
+        full_message = ""
+        for chunk in response:
+            full_message += chunk.text
+            args = (full_message.strip(), ) + extra_args
+            on_update(*args)
+        return full_message.strip()
+
+
 class BingHandler(G4FHandler):
     key = "bing"
 
     def __init__(self, settings, path):
         import g4f
         super().__init__(settings, path)
-        self.client = g4f.client.Client()
+        provider = g4f.Provider.Bing
+        self.client = g4f.client.Client(provider=provider)
 
     @staticmethod
     def get_extra_settings() -> list:
@@ -225,7 +307,6 @@ class BingHandler(G4FHandler):
     def __generate_response(self, window, message):
             import g4f
             """Generates a response given text and history"""
-            provider = g4f.Provider.Bing
             history = self.convert_history(self.history)
             user_prompt = {"role": "user", "content": message}
             history.append(user_prompt)
@@ -240,11 +321,10 @@ class BingHandler(G4FHandler):
     def __generate_response_stream(self, window, message, on_update, extra_args):
             import g4f
             """Generates a response given text and history"""
-            provider = g4f.Provider.Bing
             history = self.convert_history(self.history)
             user_prompt = {"role": "user", "content": message}
             history.append(user_prompt)
-            response = self.client.ChatCompletion.create(
+            response = self.client.chat.completions.create(
                 model=g4f.models.default,
                 messages=history,
                 provider=provider,
@@ -256,6 +336,7 @@ class BingHandler(G4FHandler):
                 args = (full_message.strip(), ) + extra_args
                 on_update(*args)
             return full_message.strip()
+
 
 class CustomLLMHandler(LLMHandler):
     key = "custom_command"
@@ -297,6 +378,7 @@ class CustomLLMHandler(LLMHandler):
         command = command.replace("{1}", json.dumps(self.prompts))
         out = subprocess.check_output(["flatpak-spawn", "--host", "bash", "-c", command])
         return out.decode("utf-8")
+
 
 class OpenAIHandler(LLMHandler):
     key = "openai"
@@ -459,6 +541,7 @@ class OpenAIHandler(LLMHandler):
         self.history = window.bot_prompt+"\n"+"\n".join(prompts)+"\n" + window.get_chat(
             window.chat[len(window.chat) - window.memory:len(window.chat)-1])
 
+
 class GPT4AllHandler(LLMHandler):
     key = "local"
 
@@ -566,9 +649,7 @@ class GPT4AllHandler(LLMHandler):
         history = self.__convert_history(self.history)
         if self.model is None or self.session is None:
             return "Model not loaded"
-        #print(self.model.current_chat_session)
         response = self.model.generate(prompt=message, top_k=1)
-        #print(self.model.current_chat_session)
         return response
 
 

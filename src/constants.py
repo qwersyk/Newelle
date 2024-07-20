@@ -1,5 +1,5 @@
 
-from .llm import GPT4AllHandler, OpenAIHandler, CustomLLMHandler, BingHandler, GPT3AnyHandler
+from .llm import GPT4AllHandler, OpenAIHandler, CustomLLMHandler, BingHandler, GPT3AnyHandler, GeminiHandler
 from .tts import gTTSHandler, EspeakHandler, CustomTTSHandler
 from .stt import SphinxHandler, GoogleSRHandler, WitAIHandler, VoskHandler, WhisperAPIHandler, CustomSRHandler
 
@@ -24,6 +24,13 @@ AVAILABLE_LLMS = {
         "title": _("Bing GPT4"),
         "description": "Bing GPT4 AI",
         "class": BingHandler,
+    },
+    "gemini": {
+        "key": "gemini",
+        "rowtype": "expander",
+        "title": _("Google Gemini API"),
+        "description": "Official APIs for google gemini, requires an API Key",
+        "class": GeminiHandler,
     },
     "openai": {
         "key": "openai",
@@ -207,3 +214,4 @@ Assistant: Yes, of course, what do you need help with?"""
 
 
 }
+
