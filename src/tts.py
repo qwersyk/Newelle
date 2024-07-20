@@ -6,6 +6,7 @@ import subprocess
 import os, json
 
 class TTSHandler:
+    """Every TTS handler should extend this class."""
     key = ""
     voices = tuple()
  
@@ -16,17 +17,20 @@ class TTSHandler:
 
     @staticmethod 
     def get_extra_settings() -> list:
+        """Get extra settings for the TTS"""
         return []
 
     @staticmethod
     def get_extra_requirements() -> list:
+        """Get the extra requirements for the tts"""
         return []
 
-
     def get_voices(self):
+        """Return a tuple containing the available voices"""
         return tuple()
 
     def voice_available(self, voice):
+        """Check fi a voice is available"""
         for l in self.get_voices():
             if l[1] == voice:
                 return True
@@ -34,18 +38,22 @@ class TTSHandler:
 
     @abstractmethod
     def save_audio(self, message, file):
+        """Save an audio in a certain file path"""
         pass
 
     def play_audio(self, message):
+        """Play an audio from the given message"""
         path = os.path.join(self.path, "temptts.mp3")
         self.save_audio(message, path)
         playsound(path)
         os.remove(path)
 
     def is_installed(self) -> bool:
+        """If all the requirements are installed"""
         return True
 
     def get_current_voice(self):
+        """Get the current selected voice"""
         voice = self.get_setting("voice")
         if voice is None:
             if self.voices == ():
@@ -55,9 +63,11 @@ class TTSHandler:
             return voice
 
     def set_voice(self, voice):
+        """Set the given voice"""
         self.set_setting("voice", voice)
 
     def set_setting(self, setting, value):
+        """Set the given setting"""
         j = json.loads(self.settings.get_string("tts-voice"))
         if self.key not in j or not isinstance(j[self.key], dict):
             j[self.key] = {}
@@ -65,12 +75,14 @@ class TTSHandler:
         self.settings.set_string("tts-voice", json.dumps(j))
 
     def get_setting(self, name):
+        """Get setting from key"""
         j = json.loads(self.settings.get_string("tts-voice"))
         if self.key not in j or not isinstance(j[self.key], dict) or name not in j[self.key]:
             return self.get_default_setting(name)
         return j[self.key][name]
 
     def get_default_setting(self, name):
+        """Get the default setting from a key"""
         for x in self.get_extra_settings():
             if x["key"] == name:
                 return x["default"]

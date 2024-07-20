@@ -7,6 +7,7 @@ import speech_recognition as sr
 from .extra import find_module, install_module
 
 class AudioRecorder:
+    """Record audio"""
     def __init__(self):
         self.recording = False
         self.frames = []
@@ -44,6 +45,7 @@ class AudioRecorder:
 
 
 class STTHandler:
+    """Every STT Handler should extend this class"""
     key = ""
     def __init__(self, settings, pip_path):
         self.settings = settings
@@ -51,17 +53,21 @@ class STTHandler:
 
     @staticmethod
     def get_extra_requirements() -> list:
+        """Return the list of extra requirements"""
         return []
 
     @staticmethod
     def get_extra_settings() -> list:
+        """Return the list of extra settings"""
         return []
 
     def install(self):
+        """Install the required extra dependencies"""
         for module in self.get_extra_requirements():
             install_module(module, self.pip_path)
 
-    def is_installed(self):
+    def is_installed(self) -> bool:
+        """If the handler is installed"""
         for module in self.get_extra_requirements():
             if find_module(module) is None:
                 return False
@@ -69,9 +75,11 @@ class STTHandler:
 
     @abstractmethod
     def recognize_file(self, path) -> str | None:
+        """Recognize a given audio file"""
         pass
 
     def set_setting(self, name, value):
+        """Set the given setting"""
         j = json.loads(self.settings.get_string("stt-settings"))
         if self.key not in j:
             j[self.key] = {}
@@ -79,12 +87,14 @@ class STTHandler:
         self.settings.set_string("stt-settings", json.dumps(j))
 
     def get_setting(self, name):
+        """Get setting from key""" 
         j = json.loads(self.settings.get_string("stt-settings"))
         if self.key not in j or name not in j[self.key]:
             return self.get_default_setting(name)
         return j[self.key][name]
 
     def get_default_setting(self, name):
+        """Get the default setting from a key"""
         for x in self.get_extra_settings():
             if x["key"] == name:
                 return x["default"]
