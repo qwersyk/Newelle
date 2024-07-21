@@ -29,7 +29,6 @@ configure_file(
 newelle_sources = [
   '__init__.py',
   'main.py',
-  'bai.py',
   'gtkobj.py',
   'constants.py',
   'settings.py',

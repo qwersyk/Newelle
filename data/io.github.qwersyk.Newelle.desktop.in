@@ -1,9 +1,10 @@
 [Desktop Entry]
-Name=newelle
+Name=Newelle
+Comment=Newelle is an advanced chat bot that aims to revolutionize your virtual assistant experience.
 Exec=newelle
 Icon=io.github.qwersyk.Newelle
 Terminal=false
 Type=Application
-Categories=GTK;
+Categories=Utility;
 StartupNotify=true
 Keywords=chat;ai;gpt;chatgpt;assistant;

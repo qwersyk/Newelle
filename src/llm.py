@@ -1,54 +1,92 @@
+from abc import abstractmethod
+from contextlib import AbstractAsyncContextManager
 from gi.repository import Gtk, Adw, Gio, GLib
 from gpt4all import GPT4All
 import os, threading, subprocess, re
-from .bai import BAIChat
+
+from gpt4all.gpt4all import MessageType
 import time, json
 from .extra import find_module, install_module
 
 class LLMHandler():
-    def __init__(self, settings, path, llm):
-        self.history = []
-        self.propmts = []
+    """Every LLM model handler should extend this class."""
+    history = []
+    prompts = []
+    key = "llm"
+
+    def __init__(self, settings, path):
         self.settings = settings
         self.path = path
-        self.llm = llm
 
-    def stream_enabled(self):
+    @staticmethod 
+    def get_extra_settings() -> list:
+        """The list of extra settings for the current model.
+            A Setting is a dict with the following properties:
+            - key: the setting key to get it
+            - title: the title of the setting
+            - description: description of the setting
+            - type: can be `entry` for input text, `toggle` for boolean, `combo` for multiple values, `range` for ranges of values
+            - default: default value to assign
+            **Optional**
+            - values: list of values for the `combo` row
+            - min: min value for `range`
+            - max: max value for `range`
+            - round-digits: how many digits to round
+        """
+        return []
+
+    @staticmethod
+    def get_extra_requirements() -> list:
+        """The list of extra pip requirements needed by the handler"""
+        return []
+
+    """ Return if the LLM supports token streaming"""
+    def stream_enabled(self) -> bool:
         enabled = self.get_setting("streaming")
         if enabled is None:
             return False
         return enabled
 
+    """ Install the LLM requirements"""
     def install(self):
         pip_path = os.path.join(os.path.abspath(os.path.join(self.path, os.pardir)), "pip")
-        for module in self.llm["extra_requirements"]:
+        for module in self.get_extra_requirements():
             install_module(module, pip_path)
 
+    """ Return if the LLM is installed"""
     def is_installed(self):
-        for module in self.llm["extra_requirements"]:
+        for module in self.get_extra_requirements():
             if find_module(module) is None:
                 return False
         return True
 
+    """ Load the LLM model"""
     def load_model(self, model):
         return True
 
-    def send_message(self, window, message):
-        return "Not yet implemented"
+    """ Get a response to a message"""
+    @abstractmethod
+    def send_message(self, window, message) -> str:
+        pass
 
-    def get_suggestions(self, window, message):
-        return "Not yet implemented"
+    """ Generates a prompt suggestion given text and history"""
+    @abstractmethod
+    def get_suggestions(self, window, message) -> str:
+        pass
 
+    """ Sets chat history"""
     def set_history(self, prompts, window):
         self.prompts = prompts
         self.history = window.chat[len(window.chat) - window.memory:len(window.chat)-1]
 
-    def get_setting(self, key):
+    """ Get LLM setting"""
+    def get_setting(self, key) -> object:
         j = json.loads(self.settings.get_string("llm-settings"))
         if self.key not in j or key not in j[self.key]:
             return self.get_default_setting(key)
         return j[self.key][key]
 
+    """ Set LLM setting"""
     def set_setting(self, key, value):
         j = json.loads(self.settings.get_string("llm-settings"))
         if self.key not in j:
@@ -56,24 +94,32 @@ class LLMHandler():
         j[self.key][key] = value
         self.settings.set_string("llm-settings", json.dumps(j))
 
+    """ Get LLM default setting"""
     def get_default_setting(self, key):
-        extra_settings = self.llm["extra_settings"]
+        extra_settings = self.get_extra_settings()
         for s in extra_settings:
             if s["key"] == key:
                 return s["default"]
         return None
 
+
 class G4FHandler(LLMHandler):
     """Common methods for g4f models"""
-    def __init__(self, settings, path, llm):
-        self.history = []
-        self.prompts = []
-        self.key = "g4f"
-        self.settings = settings
-        self.llm = llm
-        self.path = path
+    key = "g4f"
+    
+    @staticmethod
+    def get_extra_requirements() -> list:
+        return ["g4f"]
 
-    def send_message(self, window, message):
+    @abstractmethod
+    def generate_response(self, window, message) -> str:
+        pass
+
+    @abstractmethod
+    def generate_response_stream(self, window, message, on_update, extra_args) -> str:
+        pass
+
+    def send_message(self, window, message) -> str:
         """Get a response to a message"""
         self.history.append({"User": "User", "Message": window.bot_prompt+"\n"+"\n".join(self.prompts)})
         return self.generate_response(window, message)
@@ -90,12 +136,7 @@ class G4FHandler(LLMHandler):
         message = message + "\nUser:"
         return self.generate_response(window, message)
 
-    def set_history(self, prompts, window):
-        """Manages messages history"""
-        self.history = window.bot_prompt+"\n"+"\n".join(prompts)+"\n" + window.get_chat(
-            window.chat[len(window.chat) - window.memory:len(window.chat)-1])
-
-    def convert_history(self, history: dict) -> dict:
+    def convert_history(self, history: dict) -> list:
         """Converts the given history into the correct format for current_chat_history"""
         result = []
         for message in history:
@@ -110,15 +151,26 @@ class G4FHandler(LLMHandler):
         self.history = window.chat[len(window.chat) - window.memory:len(window.chat)-1]
         self.prompts = prompts
 
-class DeepAIHandler(G4FHandler):
-    def __init__(self, settings, path, llm):
-        self.history = []
-        self.prompts = []
-        self.key = "deepai"
-        self.settings = settings
-        self.llm = llm
-        self.path = path
 
+class GPT3AnyHandler(G4FHandler):
+    key = "GPT3Any"
+
+    def __init__(self, settings, path):
+        import g4f
+        super().__init__(settings, path)
+        self.client = g4f.client.Client()
+
+    @staticmethod
+    def get_extra_settings() -> list:
+        return [
+            {
+                "key": "streaming",
+                "title": _("Message Streaming"),
+                "description": _("Gradually stream message output"),
+                "type": "toggle",
+                "default": True
+            },
+        ]
     def generate_response(self, window, message):
         return self.__generate_response(window, message)
 
@@ -128,102 +180,167 @@ class DeepAIHandler(G4FHandler):
     def __generate_response(self, window, message):
             import g4f
             """Generates a response given text and history"""
-            provider = g4f.Provider.DeepAi
             history = self.convert_history(self.history)
             user_prompt = {"role": "user", "content": message}
             history.append(user_prompt)
-            response = g4f.ChatCompletion.create(
-                model=g4f.models.default,
+            response = self.client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=history,
+            )
+            print(response)
+            return response.choices[0].message.content
+
+    def __generate_response_stream(self, window, message, on_update, extra_args):
+            import g4f
+            """Generates a response given text and history"""
+            history = self.convert_history(self.history)
+            user_prompt = {"role": "user", "content": message}
+            history.append(user_prompt)
+            response = self.client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=history,
+                stream=True
+            )
+            full_message = ""
+            prev_message = ""
+            for chunk in response:
+                if chunk.choices[0].delta.content:
+                    full_message += chunk.choices[0].delta.content
+                    args = (full_message.strip(), ) + extra_args
+                    if len(full_message) - len(prev_message) > 1:
+                        on_update(*args)
+                        prev_message = full_message
+            return full_message.strip()
+
+
+class GeminiHandler(LLMHandler):
+    key = "gemini"
+
+    @staticmethod
+    def get_extra_requirements() -> list:
+        return ["google-generativeai"]
+
+    def is_installed(self) -> bool:
+        if find_module("google.generativeai") is None:
+            return False
+        return True
+
+    @staticmethod
+    def get_extra_settings() -> list:
+        return [
+            {
+                "key": "apikey",
+                "title": _("API Key (required)"),
+                "description": _("API Key got from ai.google.dev"),
+                "type": "entry",
+                "default": ""
+            },
+            {
+                "key": "model",
+                "title": _("Model"),
+                "description": _("AI Model to use, available: gemini-1.5-pro, gemini-1.0-pro, gemini-1.5-flash"),
+                "type": "combo",
+                "default": "gemini-1.5-flash",
+                "values": [("gemini-1.5-flash","gemini-1.5-flash") , ("gemini-1.0-pro", "gemini-1.0-pro"), ("gemini-1.5-pro","gemini-1.5-pro") ]
+            },
+            {
+                "key": "streaming",
+                "title": _("Message Streaming"),
+                "description": _("Gradually stream message output"),
+                "type": "toggle",
+                "default": True
+            },
+        ]
+
+    def __convert_history(self, history: list):
+        result = []
+        for message in history:
+            result.append({
+                "role": message["User"].lower() if message["User"] == "User" else "model",
+                "parts": message["Message"]
+            })
+        return result
+
+
+    def send_message(self, window, message):
+        import google.generativeai as genai
+        genai.configure(api_key=self.get_setting("apikey"))
+        instructions = window.bot_prompt+"\n"+"\n".join(self.prompts)
+        model = genai.GenerativeModel(self.get_setting("model"), system_instruction=instructions)
+        converted_history = self.__convert_history(self.history)
+
+        chat = model.start_chat(
+            history=converted_history,
+        )
+        response = chat.send_message(message)
+        return response.text
+
+    def send_message_stream(self, window, message, on_update, extra_args):
+        import google.generativeai as genai
+        genai.configure(api_key=self.get_setting("apikey"))
+        instructions = window.bot_prompt+"\n"+"\n".join(self.prompts)
+        model = genai.GenerativeModel(self.get_setting("model"), system_instruction=instructions)
+        converted_history = self.__convert_history(self.history)
+        chat = model.start_chat(
+            history=converted_history,
+        )
+
+        response = chat.send_message(message, stream=True)
+        full_message = ""
+        for chunk in response:
+            full_message += chunk.text
+            args = (full_message.strip(), ) + extra_args
+            on_update(*args)
+        return full_message.strip()
+
+
+class BingHandler(G4FHandler):
+    key = "bing"
+
+    def __init__(self, settings, path):
+        import g4f
+        super().__init__(settings, path)
+        provider = g4f.Provider.Bing
+        self.client = g4f.client.Client(provider=provider)
+
+    @staticmethod
+    def get_extra_settings() -> list:
+        return [
+            {
+                "key": "streaming",
+                "title": _("Message Streaming"),
+                "description": _("Gradually stream message output"),
+                "type": "toggle",
+                "default": True
+            },
+        ]
+    def generate_response(self, window, message):
+        return self.__generate_response(window, message)
+
+    def generate_response_stream(self, window, message, on_update, extra_args):
+        return self.__generate_response_stream(window, message, on_update, extra_args)
+
+    def __generate_response(self, window, message):
+            import g4f
+            """Generates a response given text and history"""
+            history = self.convert_history(self.history)
+            user_prompt = {"role": "user", "content": message}
+            history.append(user_prompt)
+            response = self.client.chat.completions.create(
+                model="gpt-4-turbo",
                 messages=history,
                 provider=provider
             )
-            return respons
+            print(response)
+            return response.choices[0].message.content
 
     def __generate_response_stream(self, window, message, on_update, extra_args):
             import g4f
             """Generates a response given text and history"""
-            provider = g4f.Provider.DeepAi
             history = self.convert_history(self.history)
             user_prompt = {"role": "user", "content": message}
             history.append(user_prompt)
-            response = g4f.ChatCompletion.create(
-                model=g4f.models.default,
-                messages=history,
-                provider=provider,
-                stream=True
-            )
-            full_message = ""
-            for chunk in response:
-                full_message += chunk
-                print(chunk)
-                args = (full_message.strip(), ) + extra_args
-                on_update(*args)
-            return full_message.strip()
-
-class GoogleBardHandler(G4FHandler):
-    def __init__(self, settings, path, llm):
-        self.history = []
-        self.prompts = []
-        self.key = "bard"
-        self.settings = settings
-        self.llm = llm
-        self.path = path
-
-    def generate_response(self, window, message):
-        return self.__generate_response(window, message)
-
-    def __generate_response(self, window, message):
-            import g4f
-            """Generates a response given text and history"""
-            provider = g4f.Provider.Bard
-            history = self.convert_history(self.history)
-            user_prompt = {"role": "user", "content": message}
-            history.append(user_prompt)
-            response = g4f.ChatCompletion.create(
-                model=g4f.models.default,
-                messages=history,
-                provider=provider,
-                auth=True
-            )
-            return response
-
-class BingHandler(G4FHandler):
-    def __init__(self, settings, path, llm):
-        self.history = []
-        self.prompts = []
-        self.key = "bing"
-        self.settings = settings
-        self.llm = llm
-        self.path = path
-
-    def generate_response(self, window, message):
-        return self.__generate_response(window, message)
-
-    def generate_response_stream(self, window, message, on_update, extra_args):
-        return self.__generate_response_stream(window, message, on_update, extra_args)
-
-    def __generate_response(self, window, message):
-            import g4f
-            """Generates a response given text and history"""
-            provider = g4f.Provider.Bing
-            history = self.convert_history(self.history)
-            user_prompt = {"role": "user", "content": message}
-            history.append(user_prompt)
-            response = g4f.ChatCompletion.create(
-                model=g4f.models.default,
-                messages=history,
-                provider=provider,
-            )
-            return response
-
-    def __generate_response_stream(self, window, message, on_update, extra_args):
-            import g4f
-            """Generates a response given text and history"""
-            provider = g4f.Provider.Bing
-            history = self.convert_history(self.history)
-            user_prompt = {"role": "user", "content": message}
-            history.append(user_prompt)
-            response = g4f.ChatCompletion.create(
+            response = self.client.chat.completions.create(
                 model=g4f.models.default,
                 messages=history,
                 provider=provider,
@@ -235,15 +352,30 @@ class BingHandler(G4FHandler):
                 args = (full_message.strip(), ) + extra_args
                 on_update(*args)
             return full_message.strip()
+
 
 class CustomLLMHandler(LLMHandler):
-    def __init__(self, settings, path, llm):
-        self.history = []
-        self.propmts = []
-        self.key = "custom_command"
-        self.settings = settings
-        self.path = path
-        self.llm = llm
+    key = "custom_command"
+    
+    @staticmethod
+    def get_extra_settings():
+        return [
+            {
+                "key": "command",
+                "title": _("Command to execute to get bot output"),
+                "description": _("Command to execute to get bot response, {0} will be replaced with a JSON file containing the chat, {1} with the extra prompts"),
+                "type": "entry",
+                "default": ""
+            },
+            {
+                "key": "suggestion",
+                "title": _("Command to execute to get bot's suggestions"),
+                "description": _("Command to execute to get chat suggestions, {0} will be replaced with a JSON file containing the chat, {1} with the extra prompts"),
+                "type": "entry",
+                "default": ""
+            },
+
+        ]
 
     def set_history(self, prompts, window):
         self.prompts = prompts
@@ -263,15 +395,95 @@ class CustomLLMHandler(LLMHandler):
         out = subprocess.check_output(["flatpak-spawn", "--host", "bash", "-c", command])
         return out.decode("utf-8")
 
-class OpenAIHandler(LLMHandler):
-    def __init__(self, settings, path, llm):
-        self.history = ""
-        self.propmts = []
-        self.key = "openai"
-        self.settings = settings
-        self.path = path
-        self.llm = llm
 
+class OpenAIHandler(LLMHandler):
+    key = "openai"
+
+    @staticmethod
+    def get_extra_requirements() -> list:
+        return ["openai"]
+
+    @staticmethod
+    def get_extra_settings() -> list:
+        return [
+            {
+                "key": "api",
+                "title": _("API Key"),
+                "description": _("API Key for OpenAI"),
+                "type": "entry",
+                "default": ""
+            },
+            {
+                "key": "engine",
+                "title": _("OpenAI Engine"),
+                "description": _("Name of the OpenAI Engine"),
+                "type": "entry",
+                "default": "text-davinci-003"
+            },
+            {
+                "key": "streaming",
+                "title": _("Message Streaming"),
+                "description": _("Gradually stream message output"),
+                "type": "toggle",
+                "default": True
+            },
+            {
+                "key": "max-tokens",
+                "title": _("Max Tokens"),
+                "description": _("Max tokens of the generated text"),
+                "website": "https://help.openai.com/en/articles/4936856-what-are-tokens-and-how-to-count-them",
+                "type": "range",
+                "min": 3,
+                "max": 400,
+                "default": 150,
+                "round-digits": 0
+            },
+            {
+                "key": "top-p",
+                "title": _("Top-P"),
+                "description": _("An alternative to sampling with temperature, called nucleus sampling"),
+                "website": "https://platform.openai.com/docs/api-reference/completions/create#completions/create-top_p",
+                "type": "range",
+                "min": 0,
+                "max": 1,
+                "default": 1,
+                "round-digits": 2,
+            },
+            {
+                "key": "temperature",
+                "title": _("Temperature"),
+                "description": _("What sampling temperature to use. Higher values will make the output more random"),
+                "website": "https://platform.openai.com/docs/api-reference/completions/create#completions/create-temperature",
+                "type": "range",
+                "min": 0,
+                "max": 2,
+                "default": 1,
+                "round-digits": 2,
+            },
+            {
+                "key": "frequency-penalty",
+                "title": _("Frequency Penalty"),
+                "description": _("Positive values penalize new tokens based on their existing frequency in the text so far, decreasing the model's likelihood to repeat the same line"),
+                "website": "https://platform.openai.com/docs/api-reference/completions/create#completions/create-frequency_penalty",
+                "type": "range",
+                "min": -2,
+                "max": 2,
+                "default": 0,
+                "round-digits": 1,
+            },
+            {
+                "key": "presence-penalty",
+                "title": _("Presence Penalty"),
+                "description": _("PPositive values penalize new tokens based on whether they appear in the text so far, increasing the model's likelihood to talk about new topics."),
+                "website": "https://platform.openai.com/docs/api-reference/completions/create#completions/create-frequency_penalty",
+                "type": "range",
+                "min": -2,
+                "max": 2,
+                "default": 0,
+                "round-digits": 1,
+            },
+        ]
+ 
     def send_message(self, window, message):
         """Get a response to a message"""
         message = self.history + "\nUser:" + str(message) + "\nAssistant:"
@@ -345,64 +557,23 @@ class OpenAIHandler(LLMHandler):
         self.history = window.bot_prompt+"\n"+"\n".join(prompts)+"\n" + window.get_chat(
             window.chat[len(window.chat) - window.memory:len(window.chat)-1])
 
-class BaiHandler(LLMHandler):
-    def __init__(self, settings, path, llm):
-        """This class Handles BAI Chat generating"""
-        self.history = ""
-        self.key = "bai"
-        self.llm = llm
-        self.settings = settings
-
-    def load_model(self, model):
-        """Does nothing since it is not required to load the model"""
-        return True
-
-    def send_message(self, window, message):
-        """Get a response to a message"""
-        message = self.history + "\nUser:" + str(message) + "\nAssistant:"
-        return self.__generate_response(window, message)
-
-    def __generate_response(self, window, message):
-            """Generates a response given text and history"""
-            stream_number_variable = window.stream_number_variable
-            loop_interval_variable = 1
-            while stream_number_variable == window.stream_number_variable:
-                loop_interval_variable *= 2
-                loop_interval_variable = min(60,loop_interval_variable)
-                try:
-                    t = re.split(r'Assistant:|Console:|User:|File:|Folder:', BAIChat(sync=True).sync_ask(message).text,1)[0]
-                    return t
-                except Exception as e:
-                    # self.notification_block.add_toast(Adw.Toast(title=_('Failed to send bot a message'), timeout=2))
-                    pass
-                time.sleep(loop_interval_variable)
-            return _("Chat has been stopped")
-
-    def get_suggestions(self, window, message):
-        """Gets chat suggestions"""
-        message = message + "\nUser:"
-        return self.__generate_response(window, message)
-
-    def set_history(self, prompts, window):
-        """Manages messages history"""
-        self.history = window.bot_prompt+"\n"+"\n".join(prompts)+"\n" + window.get_chat(
-            window.chat[len(window.chat) - window.memory:len(window.chat)-1])
 
 class GPT4AllHandler(LLMHandler):
+    key = "local"
 
-    def __init__(self, settings, modelspath, llm):
+    def __init__(self, settings, modelspath):
         """This class handles downloading, generating and history managing for Local Models using GPT4All library
         """
-        self.key = "local"
         self.settings = settings
         self.modelspath = modelspath
-        self.model = None
-        self.llm = llm
         self.history = {}
+        # Temporary
+        self.oldhistory = {}
         self.prompts = []
+        self.model = None
+        self.session = None
         if not os.path.isdir(self.modelspath):
             os.makedirs(self.modelspath)
-        print(self.modelspath)
 
     def model_available(self, model:str) -> bool:
         """ Returns if a model has already been downloaded
@@ -424,6 +595,8 @@ class GPT4AllHandler(LLMHandler):
         if self.model is None:
             try:
                 self.model = GPT4All(model, model_path=self.modelspath)
+                self.session = self.model.chat_session()
+                self.session.__enter__()
             except Exception as e:
                 print(e)
                 return False
@@ -450,7 +623,23 @@ class GPT4AllHandler(LLMHandler):
 
     def set_history(self, prompts, window):
         """Manages messages history"""
+        # History not working at the moment because of GPT4All
         self.history = window.chat[len(window.chat) - window.memory:len(window.chat)-1]
+        print(self.oldhistory)
+        print(self.history)
+        newchat = False
+        for message in self.oldhistory:
+            if not any(message == item["Message"] for item in self.history):
+               newchat = True
+               break
+        if len(self.oldhistory) > 1 and newchat:
+            print("New session")
+            self.session.__exit__(None, None, None)
+            self.session = self.model.chat_session()
+            self.session.__enter__()
+        self.oldhistory = list()
+        for message in self.history:
+            self.oldhistory.append(message["Message"])
         self.prompts = prompts
 
     def get_suggestions(self, window, message):
@@ -464,13 +653,19 @@ class GPT4AllHandler(LLMHandler):
         prompt = additional_prompts + "\nUser: " + message
         return self.__generate_response(window, prompt)
 
+    def __create_history(self, history):
+        for message in history:
+            if message not in self.model.current_chat_session:
+                self.model.current_chat_session.append(message)
+
     def __generate_response(self, window, message):
         """Generates a response given text and history"""
         if not self.load_model(window.local_model):
             return _('There was an error retriving the model')
         history = self.__convert_history(self.history)
-        session = self.model.chat_session()
-        with session:
-            self.model.current_chat_session = history
-            response = self.model.generate(prompt=message, top_k=1)
+        if self.model is None or self.session is None:
+            return "Model not loaded"
+        response = self.model.generate(prompt=message, top_k=1)
         return response
+
+
