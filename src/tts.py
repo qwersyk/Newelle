@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from gtts import gTTS, lang
 from io import BytesIO
 from playsound import playsound
@@ -5,37 +6,54 @@ import subprocess
 import os, json
 
 class TTSHandler:
-    global AVAILABLE_TTS
-    def __init__(self, settings, path, tts):
+    """Every TTS handler should extend this class."""
+    key = ""
+    voices = tuple()
+ 
+    def __init__(self, settings, path):
         self.settings = settings
         self.path = path
-        self.key = ""
-        self.tts = tts
-        self.voices = tuple()
         pass
 
+    @staticmethod 
+    def get_extra_settings() -> list:
+        """Get extra settings for the TTS"""
+        return []
+
+    @staticmethod
+    def get_extra_requirements() -> list:
+        """Get the extra requirements for the tts"""
+        return []
+
     def get_voices(self):
+        """Return a tuple containing the available voices"""
         return tuple()
 
     def voice_available(self, voice):
+        """Check fi a voice is available"""
         for l in self.get_voices():
             if l[1] == voice:
                 return True
         return False
 
+    @abstractmethod
     def save_audio(self, message, file):
-        return False
+        """Save an audio in a certain file path"""
+        pass
 
     def play_audio(self, message):
+        """Play an audio from the given message"""
         path = os.path.join(self.path, "temptts.mp3")
         self.save_audio(message, path)
         playsound(path)
         os.remove(path)
 
-    def is_installed(self):
+    def is_installed(self) -> bool:
+        """If all the requirements are installed"""
         return True
 
     def get_current_voice(self):
+        """Get the current selected voice"""
         voice = self.get_setting("voice")
         if voice is None:
             if self.voices == ():
@@ -45,9 +63,11 @@ class TTSHandler:
             return voice
 
     def set_voice(self, voice):
+        """Set the given voice"""
         self.set_setting("voice", voice)
 
     def set_setting(self, setting, value):
+        """Set the given setting"""
         j = json.loads(self.settings.get_string("tts-voice"))
         if self.key not in j or not isinstance(j[self.key], dict):
             j[self.key] = {}
@@ -55,25 +75,22 @@ class TTSHandler:
         self.settings.set_string("tts-voice", json.dumps(j))
 
     def get_setting(self, name):
+        """Get setting from key"""
         j = json.loads(self.settings.get_string("tts-voice"))
         if self.key not in j or not isinstance(j[self.key], dict) or name not in j[self.key]:
             return self.get_default_setting(name)
         return j[self.key][name]
 
     def get_default_setting(self, name):
-        for x in self.tts["extra_settings"]:
+        """Get the default setting from a key"""
+        for x in self.get_extra_settings():
             if x["key"] == name:
                 return x["default"]
         return None
 
 class gTTSHandler(TTSHandler):
-    def __init__(self, settings, path, tts):
-        self.settings = settings
-        self.path = path
-        self.key = "gtts"
-        self.voices = tuple()
-        self.tts = tts
-
+    key = "gtts"
+   
     def get_voices(self):
         if len(self.voices) > 0:
             return self.voices
@@ -94,13 +111,8 @@ class gTTSHandler(TTSHandler):
 
 
 class EspeakHandler(TTSHandler):
-    def __init__(self, settings, path, tts):
-        self.settings = settings
-        self.path = path
-        self.key = "espeak"
-        self.voices = tuple()
-        self.tts = tts
-
+    
+    key = "espeak"
     def get_voices(self):
         if len(self.voices) > 0:
             return self.voices
@@ -117,11 +129,11 @@ class EspeakHandler(TTSHandler):
         return voices
 
     def play_audio(self, message):
-        subprocess.Popen(["flatpak-spawn", "--host", "espeak", "-v" + self.get_current_voice(), message])
+        subprocess.Popen(["flatpak-spawn", "--host", "espeak", "-v" + str(self.get_current_voice()), message])
 
-    def save_audio(self, message, path):
-        r = subprocess.check_output(["flatpak-spawn", "--host", "espeak", "-f", "-v" + self.get_current_voice(), message, "--stdout"])
-        f = open(path, "wb")
+    def save_audio(self, message, file):
+        r = subprocess.check_output(["flatpak-spawn", "--host", "espeak", "-f", "-v" + str(self.get_current_voice()), message, "--stdout"])
+        f = open(file, "wb")
         f.write(r)
 
     def is_installed(self):
@@ -134,19 +146,30 @@ class EspeakHandler(TTSHandler):
         return False
 
 class CustomTTSHandler(TTSHandler):
-    def __init__(self, settings, path, tts):
+    def __init__(self, settings, path):
         self.settings = settings
         self.path = path
         self.key = "custom_command"
         self.voices = tuple()
-        self.tts = tts
+
+    @staticmethod
+    def get_extra_settings() -> list:
+        return [{
+            "key": "command",
+            "title": _("Command to execute"),
+            "description": _("{0} will be replaced with the model fullpath"),
+            "type": "entry",
+            "default": ""
+        }]
+
 
     def is_installed(self):
         return True
 
     def play_audio(self, message):
         command = self.get_setting("command")
-        subprocess.Popen(["flatpak-spawn", "--host", "bash", "-c", command.replace("{0}", message)])
+        if command is not None:
+            subprocess.Popen(["flatpak-spawn", "--host", "bash", "-c", command.replace("{0}", message)])
 
 
     

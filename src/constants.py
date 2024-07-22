@@ -1,26 +1,36 @@
 
-from .llm import GPT4AllHandler, BaiHandler, OpenAIHandler, CustomLLMHandler, PoeHandler
+from .llm import GPT4AllHandler, OpenAIHandler, CustomLLMHandler, BingHandler, GPT3AnyHandler, GeminiHandler
 from .tts import gTTSHandler, EspeakHandler, CustomTTSHandler
-from .stt import STTHandler, SphinxHandler, GoogleSRHandler, WitAIHandler, VoskHandler, WhisperAPIHandler, CustomSRHandler
+from .stt import SphinxHandler, GoogleSRHandler, WitAIHandler, VoskHandler, WhisperAPIHandler, CustomSRHandler
 
 AVAILABLE_LLMS = {
-    "bai": {
-        "key": "bai",
-        "rowtype": "action",
-        "title": _("BAI Chat"),
-        "description": _("BAI Chat is a GPT-3.5 / ChatGPT API based chatbot that is free, convenient and responsive."),
-        "class": BaiHandler,
-        "extra_settings": [],
-        "extra_requirements": []
-    },
-    "local": {
+   "local": {
         "key": "local",
         "rowtype": "expander",
         "title": _("Local Model"),
         "description": _("Run a LLM model locally, more privacy but slower"),
         "class": GPT4AllHandler,
-        "extra_settings": [],
-        "extra_requirements": []
+    },
+   "GPT3Any": {
+        "key": "GPT3Any",
+        "rowtype": "expander",
+        "title": _("Any GPT 3.5 Turbo provider"),
+        "description": "Automatically select any GPT 3.5 turbo provider",
+        "class": GPT3AnyHandler,
+    },
+   "bing": {
+        "key": "bing",
+        "rowtype": "expander",
+        "title": _("Bing GPT4"),
+        "description": "Bing GPT4 AI",
+        "class": BingHandler,
+    },
+    "gemini": {
+        "key": "gemini",
+        "rowtype": "expander",
+        "title": _("Google Gemini API"),
+        "description": "Official APIs for google gemini, requires an API Key",
+        "class": GeminiHandler,
     },
     "openai": {
         "key": "openai",
@@ -28,118 +38,6 @@ AVAILABLE_LLMS = {
         "title": _("OpenAI API"),
         "description": _("OpenAI API"),
         "class": OpenAIHandler,
-        "extra_requirements": ["openai"],
-        "extra_settings": [
-            {
-                "key": "api",
-                "title": _("API Key"),
-                "description": _("API Key for OpenAI"),
-                "type": "entry",
-                "default": ""
-            },
-            {
-                "key": "engine",
-                "title": _("OpenAI Engine"),
-                "description": _("Name of the OpenAI Engine"),
-                "type": "entry",
-                "default": "text-davinci-003"
-            },
-            {
-                "key": "streaming",
-                "title": _("Message Streaming"),
-                "description": _("Gradually stream message output"),
-                "type": "toggle",
-                "default": True
-            },
-            {
-                "key": "max-tokens",
-                "title": _("Max Tokens"),
-                "description": _("Max tokens of the generated text"),
-                "website": "https://help.openai.com/en/articles/4936856-what-are-tokens-and-how-to-count-them",
-                "type": "range",
-                "min": 3,
-                "max": 400,
-                "default": 150,
-                "round-digits": 0
-            },
-            {
-                "key": "top-p",
-                "title": _("Top-P"),
-                "description": _("An alternative to sampling with temperature, called nucleus sampling"),
-                "website": "https://platform.openai.com/docs/api-reference/completions/create#completions/create-top_p",
-                "type": "range",
-                "min": 0,
-                "max": 1,
-                "default": 1,
-                "round-digits": 2,
-            },
-            {
-                "key": "temperature",
-                "title": _("Temperature"),
-                "description": _("What sampling temperature to use. Higher values will make the output more random"),
-                "website": "https://platform.openai.com/docs/api-reference/completions/create#completions/create-temperature",
-                "type": "range",
-                "min": 0,
-                "max": 2,
-                "default": 1,
-                "round-digits": 2,
-            },
-            {
-                "key": "frequency-penalty",
-                "title": _("Frequency Penalty"),
-                "description": _("Positive values penalize new tokens based on their existing frequency in the text so far, decreasing the model's likelihood to repeat the same line"),
-                "website": "https://platform.openai.com/docs/api-reference/completions/create#completions/create-frequency_penalty",
-                "type": "range",
-                "min": -2,
-                "max": 2,
-                "default": 0,
-                "round-digits": 1,
-            },
-            {
-                "key": "presence-penalty",
-                "title": _("Presence Penalty"),
-                "description": _("PPositive values penalize new tokens based on whether they appear in the text so far, increasing the model's likelihood to talk about new topics."),
-                "website": "https://platform.openai.com/docs/api-reference/completions/create#completions/create-frequency_penalty",
-                "type": "range",
-                "min": -2,
-                "max": 2,
-                "default": 0,
-                "round-digits": 1,
-            },
-        ]
-    },
-    "poe": {
-        "key": "poe",
-        "rowtype": "expander",
-        "title": _("Poe.com"),
-        "description": _("Poe lets you ask questions, get instant answers, and have back-and-forth conversations with AI. At the moment, prompts are not supported"),
-        "class": PoeHandler,
-        "extra_requirements": ["poe-api"],
-        "extra_settings": [
-            {
-                "key": "token",
-                "title": _("Poe.com Token"),
-                "description": _("p-b cookie (website for info)"),
-                "type": "entry",
-                "website": "https://gist.github.com/FrancescoCaracciolo/206b25d1e8859f50f7569a503070b867#token",
-                "default": ""
-            },
-            {
-                "key": "codename",
-                "title": _("Bot Codename"),
-                "description": _("Codename of the bot you want to chat with (website for info)"),
-                "type": "entry",
-                "website": "https://gist.github.com/FrancescoCaracciolo/206b25d1e8859f50f7569a503070b867#token",
-                "default": "chinchilla"
-            },
-            {
-                "key": "streaming",
-                "title": _("Message Streaming"),
-                "description": _("Generate the response gradually"),
-                "type": "toggle",
-                "default": True
-            },
-        ]
     },
     "custom_command": {
         "key": "custom_command",
@@ -147,24 +45,6 @@ AVAILABLE_LLMS = {
         "title": _("Custom Command"),
         "description": _("Use the output of a custom command"),
         "class": CustomLLMHandler,
-        "extra_requirements": [],
-        "extra_settings": [
-            {
-                "key": "command",
-                "title": _("Command to execute to get bot output"),
-                "description": _("Command to execute to get bot response, {0} will be replaced with a JSON file containing the chat, {1} with the extra prompts"),
-                "type": "entry",
-                "default": ""
-            },
-            {
-                "key": "suggestion",
-                "title": _("Command to execute to get bot's suggestions"),
-                "description": _("Command to execute to get chat suggestions, {0} will be replaced with a JSON file containing the chat, {1} with the extra prompts"),
-                "type": "entry",
-                "default": ""
-            },
-
-        ]
     }
 }
 
@@ -174,9 +54,7 @@ AVAILABLE_STT = {
         "title": _("CMU Sphinx"),
         "description": _("Works offline. Only English supported"),
         "website": "https://cmusphinx.github.io/wiki/",
-        "extra_requirements": ["pocketsphinx"],
         "class": SphinxHandler,
-        "extra_settings": []
     },
     "google_sr": {
         "rowtype": "expander",
@@ -184,82 +62,27 @@ AVAILABLE_STT = {
         "description": _("Google Speech Recognition online"),
         "extra_requirements": [],
         "class": GoogleSRHandler,
-        "extra_settings": [
-            {
-                "key": "api",
-                "title": _("API Key"),
-                "description": _("API Key for Google SR, write 'default' to use the default one"),
-                "type": "entry",
-                "default": "default"
-            },
-            {
-                "key": "language",
-                "title": _("Language"),
-                "description": _("The language of the text to recgnize in IETF"),
-                "type": "entry",
-                "default": "en-US",
-                "website": "https://stackoverflow.com/questions/14257598/what-are-language-codes-in-chromes-implementation-of-the-html5-speech-recogniti"
-            }
-        ]
     },
     "witai": {
         "rowtype": "expander",
         "title": _("Wit AI"),
         "description": _("wit.ai speech recognition free API (language chosen on the website)"),
-        "extra_requirements": [],
         "website": "https://wit.ai",
         "class": WitAIHandler,
-        "extra_settings": [
-            {
-                "key": "api",
-                "title": _("API Key"),
-                "description": _("Server Access Token for wit.ai"),
-                "type": "entry",
-                "default": ""
-            },
-        ]
     },
     "vosk": {
         "rowtype": "expander",
         "title": _("Vosk API"),
         "description": _("Works Offline"),
         "website": "https://github.com/alphacep/vosk-api/",
-        "extra_requirements": ["vosk"],
         "class": VoskHandler,
-        "extra_settings": [
-            {
-                "key": "path",
-                "title": _("Model Path"),
-                "description": _("Absolute path to the VOSK model (unzipped)"),
-                "type": "entry",
-                "website": "https://alphacephei.com/vosk/models",
-                "default": ""
-            },
-        ]
     },
     "whisperapi": {
         "rowtype": "expander",
         "title": _("Whisper API"),
         "description": _("Uses openai whisper api"),
         "website": "https://platform.openai.com/docs/guides/speech-to-text",
-        "extra_requirements": ["openai"],
         "class": WhisperAPIHandler,
-        "extra_settings": [
-            {
-                "key": "api",
-                "title": _("API Key"),
-                "description": _("API Key for OpenAI"),
-                "type": "entry",
-                "default": ""
-            },
-            {
-                "key": "model",
-                "title": _("Whisper API Model"),
-                "description": _("Name of the Whisper API Model"),
-                "type": "entry",
-                "default": "whisper-1"
-            },
-        ]
     },
 #    "whisper": {
 #        "rowtype": "expander",
@@ -274,17 +97,7 @@ AVAILABLE_STT = {
         "rowtype": "expander",
         "title": _("Custom command"),
         "description": _("Runs a custom command"),
-        "extra_requirements": [],
-        "class": CustomSRHandler,
-        "extra_settings": [
-            {
-                "key": "command",
-                "title": _("Command to execute"),
-                "description": _("{0} will be replaced with the model fullpath"),
-                "type": "entry",
-                "default": ""
-            },
-        ]
+        "class": CustomSRHandler,     
     }
 }
 
@@ -296,34 +109,28 @@ AVAILABLE_TTS = {
         "title": _("Google TTS"),
         "description": _("Google's text to speech"),
         "class": gTTSHandler,
-        "extra_settings": []
     },
     "espeak": {
         "rowtype": "combo",
         "title": _("Espeak TTS"),
         "description": _("Offline TTS"),
         "class": EspeakHandler,
-        "extra_settings": []
     },
     "custom_command": {
         "rowtype": "expander",
         "title": _("Custom Command"),
         "description": _("Use a custom command as TTS, {0} will be replaced with the text"),
         "class": CustomTTSHandler,
-        "extra_settings": [
-            {
-                "key": "command",
-                "title": _("Command to execute"),
-                "description": _("{0} will be replaced with the model fullpath"),
-                "type": "entry",
-                "default": ""
-            },
-        ]
     }
 }
 
 
 PROMPTS = {
+    "generate_name_prompt": """System: You have to write a title for the dialog between the user and the assistant. You have to come up with a short description of the chat them in 5 words. Just write a name for the dialog. Write directly and clearly, just a title without anything in the new message. The title must be on topic. You don't have to make up anything of your own, just a name for the chat room.
+User: Write the multiplication table 4 by 4
+Assistant: | - | 1 | 2 | 3 | 4 |\n| - | - | - | - | - |\n| 1 | 1 | 2 | 3 | 4 |\n| 2 | 2 | 4 | 6 | 8 |\n| 3 | 3 | 6 | 9 | 12 |\n| 4 | 4 | 8 | 12 | 16 |
+Name: The multiplication table for 4.
+""",
     "console_prompt": """System: You are an assistant who helps the user by answering questions and running Linux commands in the terminal on the user's computer. Use two types of messages: "Assistant: text" to answer questions and communicate with the user, and "Assistant: ```console\ncommand\n```" to execute commands on the user's computer. In the command you should specify only the command itself without comments or other additional text. Your task is to minimize the information and leave only the important. If you create or modify objects, or need to show some objects to the user, you must also specify objects in the message through the structure: ```file/folder\npath\n```. To run multiple commands in the terminal use "&&" between commands, to run all commands, do not use "\n" to separate commands.
 User: Create an image 100x100 pixels
 Assistant: ```console
@@ -408,3 +215,4 @@ Assistant: Yes, of course, what do you need help with?"""
 
 
 }
+

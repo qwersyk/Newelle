@@ -7,8 +7,8 @@
     "sources": [
         {
             "type": "file",
-            "url": "https://files.pythonhosted.org/packages/91/a0/f439da954d78a987298cb8d1ca1b141c53b1d1d1c7a50e17198ed061b9ac/PyAudio-0.2.13.tar.gz",
-            "sha256": "26bccc81e4243d1c0ff5487e6b481de6329fcd65c79365c267cef38f363a2b56"
+            "url": "https://files.pythonhosted.org/packages/26/1d/8878c7752febb0f6716a7e1a52cb92ac98871c5aa522cba181878091607c/PyAudio-0.2.14.tar.gz",
+            "sha256": "78dfff3879b4994d1f4fc6485646a57755c6ee3c19647a491f790a0895bd2f87"
         }
     ]
 }
