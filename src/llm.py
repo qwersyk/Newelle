@@ -121,12 +121,10 @@ class G4FHandler(LLMHandler):
 
     def send_message(self, window, message) -> str:
         """Get a response to a message"""
-        self.history.append({"User": "User", "Message": window.bot_prompt+"\n"+"\n".join(self.prompts)})
         return self.generate_response(window, message)
 
     def send_message_stream(self, window, message, on_update, extra_args):
         """Get a response to a message"""
-        self.history.append({"User": "User", "Message": window.bot_prompt+"\n"+"\n".join(self.prompts)})
         return self.generate_response_stream(window, message, on_update, extra_args)
 
     def get_suggestions(self, window, message):
@@ -139,6 +137,7 @@ class G4FHandler(LLMHandler):
     def convert_history(self, history: dict) -> list:
         """Converts the given history into the correct format for current_chat_history"""
         result = []
+        result.append({"role": "system", "content": "\n".join(self.prompts)})
         for message in history:
             result.append({
                 "role": message["User"].lower(),
@@ -171,6 +170,7 @@ class GPT3AnyHandler(G4FHandler):
                 "default": True
             },
         ]
+
     def generate_response(self, window, message):
         return self.__generate_response(window, message)
 
