@@ -1086,8 +1086,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.status = False
         self.update_button_text()
         prompts = [value["prompt"] for value in self.extensions.values() if value["status"]]
-        if not (self.bot_prompt=="""""" and prompts==[]):
-            prompts.append(PROMPTS["new_chat_prompt"])
+        prompts.append(self.bot_prompt)
         if self.console:
             prompts.append(PROMPTS["current_directory"].replace("{DIR}", os.getcwd()))
         self.model.set_history(prompts, self)
