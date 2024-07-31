@@ -575,7 +575,7 @@ class MainWindow(Gtk.ApplicationWindow):
             button.set_child(spinner)
             button.set_can_target(False)
             button.set_has_frame(True)
-            name = self.send_message_to_bot(PROMPTS["generate_chat_prompt"] + "\n" + self.get_chat(self.chats[int(button.get_name())]["chat"][
+            name = self.send_message_to_bot(PROMPTS["generate_name_prompt"] + "\n" + self.get_chat(self.chats[int(button.get_name())]["chat"][
                                len(self.chats[int(button.get_name())]["chat"]) - self.memory:len(
                                    self.chats[int(button.get_name())]["chat"])]) + "\nName:")
             if self.model.stream_enabled():
@@ -801,6 +801,7 @@ class MainWindow(Gtk.ApplicationWindow):
         process = subprocess.Popen(txt, stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE, shell=True)
         outputs = []
+
         def read_output(process, outputs):
             try:
                 stdout, stderr = process.communicate()
@@ -1087,6 +1088,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.update_button_text()
         prompts = [value["prompt"] for value in self.extensions.values() if value["status"]]
         prompts.append(self.bot_prompt)
+
         if self.console:
             prompts.append(PROMPTS["current_directory"].replace("{DIR}", os.getcwd()))
         self.model.set_history(prompts, self)

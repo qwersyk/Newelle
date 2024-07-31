@@ -152,6 +152,11 @@ class G4FHandler(LLMHandler):
 
 
 class GPT3AnyHandler(G4FHandler):
+    """
+    Use any GPT3.5-Turbo providers
+    - History is supported by almost all of them
+    - System prompts are not well supported, so the prompt is put on top of the message
+    """
     key = "GPT3Any"
 
     def __init__(self, settings, path):
@@ -171,6 +176,17 @@ class GPT3AnyHandler(G4FHandler):
             },
         ]
 
+    def convert_history(self, history: dict) -> list:
+        """Converts the given history into the correct format for current_chat_history"""
+        result = []
+        #result.append({"role": "system", "content": "\n".join(self.prompts)})
+        for message in history:
+            result.append({
+                "role": message["User"].lower(),
+                "content": message["Message"]
+            })
+        return result
+
     def generate_response(self, window, message):
         return self.__generate_response(window, message)
 
@@ -180,6 +196,9 @@ class GPT3AnyHandler(G4FHandler):
     def __generate_response(self, window, message):
             import g4f
             """Generates a response given text and history"""
+            # Put system prompt on top of the message
+            if len (self.prompts) > 0:
+                message = "SYSTEM PROMPT:" + "\n".join(self.prompts) + "\n\nUser: " + message
             history = self.convert_history(self.history)
             user_prompt = {"role": "user", "content": message}
             history.append(user_prompt)
@@ -187,19 +206,21 @@ class GPT3AnyHandler(G4FHandler):
                 model="gpt-3.5-turbo",
                 messages=history,
             )
-            print(response)
             return response.choices[0].message.content
 
     def __generate_response_stream(self, window, message, on_update, extra_args):
             import g4f
             """Generates a response given text and history"""
+            # Put system prompt on top of the message
+            if len (self.prompts) > 0:
+                message = "\nSYSTEM PROMPT: ".join(self.prompts) + "\n\n{}: ".format(window.chat[-1]["User"]) + message
             history = self.convert_history(self.history)
             user_prompt = {"role": "user", "content": message}
             history.append(user_prompt)
             response = self.client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=history,
-                stream=True
+                stream=True,
             )
             full_message = ""
             prev_message = ""
@@ -215,6 +236,9 @@ class GPT3AnyHandler(G4FHandler):
 
 class GeminiHandler(LLMHandler):
     key = "gemini"
+    """
+    Official GOogle Gemini APIs, they support history and system prompts
+    """
 
     @staticmethod
     def get_extra_requirements() -> list:
@@ -331,7 +355,6 @@ class BingHandler(G4FHandler):
                 messages=history,
                 provider=provider
             )
-            print(response)
             return response.choices[0].message.content
 
     def __generate_response_stream(self, window, message, on_update, extra_args):
@@ -625,15 +648,12 @@ class GPT4AllHandler(LLMHandler):
         """Manages messages history"""
         # History not working at the moment because of GPT4All
         self.history = window.chat[len(window.chat) - window.memory:len(window.chat)-1]
-        print(self.oldhistory)
-        print(self.history)
         newchat = False
         for message in self.oldhistory:
             if not any(message == item["Message"] for item in self.history):
                newchat = True
                break
         if len(self.oldhistory) > 1 and newchat:
-            print("New session")
             self.session.__exit__(None, None, None)
             self.session = self.model.chat_session()
             self.session.__enter__()
