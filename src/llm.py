@@ -172,13 +172,36 @@ class LLMHandler():
         """        
         return self.generate_text_stream(message, self.history, self.prompts, on_update, extra_args)
 
-    def get_suggestions(self, request_prompt:str = None) -> list[str]:
-        """Get suggestions for the current chat
+    def get_suggestions(self, request_prompt:str = None, amount:int=1) -> list[str]:
+        """Get suggestions for the current chat. The default implementation expects the result as a JSON Array containing the suggestions
+
+        Args:
+            request_prompt: The prompt to get the suggestions
+            amount: Amount of suggstions to generate
 
         Returns:
             list[str]: prompt suggestions
         """
-        return self.generate_text(request_prompt, self.history)
+        result = []
+        history = ""
+        # Only get the last four elements and reconstruct partial history
+        for message in self.history[-4:] if len(self.history) >= 4 else self.history:
+            history += message["User"] + ": " + message["Message"] + "\n"
+        for i in range(0, amount):
+            generated = self.generate_text(history + "\n\n" + request_prompt)
+            generated = generated.replace("```json", "").replace("```", "")
+            try:
+                j = json.loads(generated)
+            except Exception as e:
+                continue
+            if type(j) is list:
+                for suggestion in j:
+                    if type(suggestion) is str:
+                        result.append(suggestion)
+                        i+=1
+                        if i >= amount:
+                            break
+        return result
 
     def generate_chat_name(self, request_prompt:str = None) -> str:
         """Generate name of the current chat
@@ -261,6 +284,7 @@ class GPT3AnyHandler(G4FHandler):
     def generate_text(self, prompt: str, history: dict[str, str] = {}, system_prompt: list[str] = []) -> str:
         # Add prompts in the message since some providers
         # don't support system prompts well
+        message = prompt
         if len (self.prompts) > 0:
             message = "SYSTEM:" + "\n".join(system_prompt) + "\n\n" + prompt
         history = self.convert_history(history)
@@ -275,6 +299,8 @@ class GPT3AnyHandler(G4FHandler):
     def generate_text_stream(self, prompt: str, history: dict[str, str] = {}, system_prompt: list[str] = [], on_update: Callable[[str], Any] = (), extra_args: list = []) -> str:
         # Add prompts in the message since some providers
         # don't support system prompts well
+        import g4f
+        message = prompt
         if len (self.prompts) > 0:
             message = "SYSTEM:" + "\n".join(system_prompt) + "\n\n" + prompt
         history = self.convert_history(history)
@@ -302,6 +328,14 @@ class GPT3AnyHandler(G4FHandler):
     def send_message_stream(self, window, message: str, on_update: Callable[[str], Any] = (), extra_args: list = []) -> str:
         return self.generate_text_stream(window.chat[-1]["User"] + ": " + message, self.history, self.prompts, on_update, extra_args)
 
+    def generate_chat_name(self, request_prompt: str = None) -> str:
+        history = ""
+        for message in self.history[-4:] if len(self.history) >= 4 else self.history:
+            history += message["User"] + ": " + message["Message"] + "\n"
+        name = self.generate_text(history + "\n\n" + request_prompt)
+        print(history + "\n\n" + request_prompt)
+        print(name)
+        return name
 
 class GeminiHandler(LLMHandler):
     key = "gemini"
@@ -420,7 +454,7 @@ class CustomLLMHandler(LLMHandler):
         out = subprocess.check_output(["flatpak-spawn", "--host", "bash", "-c", command])
         return out.decode("utf-8")
 
-    def get_suggestions(self, window, message):
+    def get_suggestions(self, prompt, amount):
         command = self.get_setting("suggestion")
         command = command.replace("{0}", json.dumps(self.history))
         command = command.replace("{1}", json.dumps(self.prompts))
@@ -577,12 +611,6 @@ class OpenAIHandler(LLMHandler):
                 on_update(*args)
         return full_message.strip()
 
-    def get_suggestions(self, window, message):
-        """Gets chat suggestions"""
-        #message = message + "\nUser:"
-        #return self.__generate_response(window, message)
-        # It will get API limited if I leave this
-        return ""
 
     def set_history(self, prompts, window):
         """Manages messages history"""
@@ -673,10 +701,7 @@ class GPT4AllHandler(LLMHandler):
             self.oldhistory.append(message["Message"])
         self.prompts = prompts
 
-    def get_suggestions(self, window, message):
-        """Gets chat suggestions"""
-        message = message + "\n User:"
-        return self.send_message(window, message)
+
 
     def send_message(self, window, message):
         """Get a response to a message"""
