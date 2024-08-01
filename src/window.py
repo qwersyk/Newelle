@@ -510,6 +510,7 @@ class MainWindow(Gtk.ApplicationWindow):
         else:
             self.notification_block.add_toast(Adw.Toast(title=_('You can no longer regenerate the message.'), timeout=2))
     def update_history(self):
+        # Update UI
         list_box = Gtk.ListBox(css_classes=["separators","background"])
         list_box.set_selection_mode(Gtk.SelectionMode.NONE)
         self.chats_buttons_scroll_block.set_child(list_box)
@@ -1080,6 +1081,7 @@ class MainWindow(Gtk.ApplicationWindow):
                 if not restore:
                     GLib.idle_add(self.send_message)
         GLib.idle_add(self.scrolled_chat)
+        self.save_chat()
 
     def send_message(self):
         self.stream_number_variable += 1
@@ -1203,3 +1205,10 @@ class MainWindow(Gtk.ApplicationWindow):
             box.append(message)
         self.chat_list_block.append(box)
         return box
+
+    def save_chat(self):
+        prevdir = os.getcwd()
+        os.chdir(os.path.expanduser("~"))
+        with open(self.path + self.filename, 'wb') as f:
+            pickle.dump(self.chats, f)
+        os.chdir(prevdir)
