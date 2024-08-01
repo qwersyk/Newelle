@@ -1,29 +1,22 @@
 
-from .llm import GPT4AllHandler, OpenAIHandler, CustomLLMHandler, BingHandler, GPT3AnyHandler, GeminiHandler
+from .llm import GPT4AllHandler, OpenAIHandler, CustomLLMHandler, GPT3AnyHandler, GeminiHandler
 from .tts import gTTSHandler, EspeakHandler, CustomTTSHandler
 from .stt import SphinxHandler, GoogleSRHandler, WitAIHandler, VoskHandler, WhisperAPIHandler, CustomSRHandler
 
 AVAILABLE_LLMS = {
-   "local": {
-        "key": "local",
-        "rowtype": "expander",
-        "title": _("Local Model"),
-        "description": _("Run a LLM model locally, more privacy but slower"),
-        "class": GPT4AllHandler,
-    },
-   "GPT3Any": {
+    "GPT3Any": {
         "key": "GPT3Any",
         "rowtype": "expander",
         "title": _("Any GPT 3.5 Turbo provider"),
         "description": "Automatically select any GPT 3.5 turbo provider",
         "class": GPT3AnyHandler,
     },
-   "bing": {
-        "key": "bing",
+   "local": {
+        "key": "local",
         "rowtype": "expander",
-        "title": _("Bing GPT4"),
-        "description": "Bing GPT4 AI",
-        "class": BingHandler,
+        "title": _("Local Model"),
+        "description": _("Run a LLM model locally, more privacy but slower"),
+        "class": GPT4AllHandler,
     },
     "gemini": {
         "key": "gemini",
@@ -143,8 +136,6 @@ Assistant: ```cpp\n#include<iostream>\nusing namespace std;\nint main(){\n    co
 User: Write example js code
 Assistant: ```js\nconsole.log("Hello world!");\n```
 
-User: Write example python code
-Assistant: ```python\npython("Hello world!")\n```
 User: Run this code
 Assistant: ```console\npython3 -c "print('Hello world!')"\n```
 """,
