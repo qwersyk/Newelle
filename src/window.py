@@ -447,7 +447,7 @@ class MainWindow(Gtk.ApplicationWindow):
             if os.path.isdir(os.path.join(os.path.expanduser(self.main_path), button.get_name())):
                 self.main_path = button.get_name()
                 os.chdir(os.path.expanduser(self.main_path))
-                self.update_folder()
+                GLib.idle_add(self.update_folder)
             else:
                 subprocess.run(['xdg-open', os.path.expanduser(button.get_name())])
         else:
@@ -473,16 +473,16 @@ class MainWindow(Gtk.ApplicationWindow):
 
     def go_back_in_explorer_panel(self, *a):
         self.main_path += "/.."
-        self.update_folder()
+        GLib.idle_add(self.update_folder)
 
     def go_home_in_explorer_panel(self, *a):
         self.main_path = "~"
-        self.update_folder()
+        GLib.idle_add(self.update_folder)
 
     def go_forward_in_explorer_panel(self, *a):
         if self.main_path[len(self.main_path) - 3:len(self.main_path)] == "/..":
             self.main_path = self.main_path[0:len(self.main_path) - 3]
-            self.update_folder()
+            GLib.idle_add(self.update_folder)
 
     def go_back_to_chats_panel(self, button):
         self.main.set_visible_child(self.chats_main_box)
@@ -764,7 +764,7 @@ class MainWindow(Gtk.ApplicationWindow):
             if os.path.isdir(os.path.join(os.path.expanduser(self.main_path), button.get_name())):
                 self.main_path += "/" + button.get_name()
                 os.chdir(os.path.expanduser(self.main_path))
-                self.update_folder()
+                GLib.idle_add(self.update_folder)
             else:
                 subprocess.run(['xdg-open', os.path.expanduser(self.main_path + "/" + button.get_name())])
         else:
@@ -826,7 +826,7 @@ class MainWindow(Gtk.ApplicationWindow):
         if os.path.exists(os.path.expanduser(path)):
             os.chdir(os.path.expanduser(path))
             self.main_path = path
-            self.update_folder()
+            GLib.idle_add(self.update_folder)
         else:
             Adw.Toast(title=_('Failed to open the folder'), timeout=2)
         return outputs[0]
