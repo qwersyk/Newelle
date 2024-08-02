@@ -12,8 +12,13 @@
         },
         {
             "type": "file",
-            "url": "https://files.pythonhosted.org/packages/04/a4/e3679773ea7eb5b37a2c998e25b017cc5349edf6ba2739d1f32855cfb11b/aiohttp-3.9.5.tar.gz",
-            "sha256": "edea7d15772ceeb29db4aff55e482d4bcfb6ae160ce144f2682de02f6d693551"
+            "url": "https://files.pythonhosted.org/packages/07/b1/d9455cf313df7b2fe6c60a871eb96801b6e8fbdc7d736f6576492b4c97b3/aiohappyeyeballs-2.3.2-py3-none-any.whl",
+            "sha256": "903282fb08c8cfb3de356fd546b263248a477c99cb147e20a115e14ab942a4ae"
+        },
+        {
+            "type": "file",
+            "url": "https://files.pythonhosted.org/packages/bc/97/328a9e18e2bc229e5bf1391c9d5f6712104b2b5759c56f51fe03a1b702f1/aiohttp-3.10.0.tar.gz",
+            "sha256": "e8dd7da2609303e3574c95b0ec9f1fd49647ef29b94701a2862cceae76382e1d"
         },
         {
             "type": "file",

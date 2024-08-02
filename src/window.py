@@ -273,7 +273,6 @@ class MainWindow(Gtk.ApplicationWindow):
         self.main_program_block.connect("notify::reveal-flap", self.handle_second_block_change)
 
         self.stream_number_variable = 0
-        GLib.idle_add(self.update_button_text)
         GLib.idle_add(self.update_folder)
         GLib.idle_add(self.update_history)
         GLib.idle_add(self.show_chat)
@@ -447,7 +446,7 @@ class MainWindow(Gtk.ApplicationWindow):
             if os.path.isdir(os.path.join(os.path.expanduser(self.main_path), button.get_name())):
                 self.main_path = button.get_name()
                 os.chdir(os.path.expanduser(self.main_path))
-                self.update_folder()
+                GLib.idle_add(self.update_folder)
             else:
                 subprocess.run(['xdg-open', os.path.expanduser(button.get_name())])
         else:
@@ -467,22 +466,21 @@ class MainWindow(Gtk.ApplicationWindow):
                     self.chat.append({"User": "File", "Message": " " + path})
                     self.add_message("File", message_label)
                 self.chats[self.chat_id]["chat"] = self.chat
-                GLib.idle_add(self.update_button_text)
             else:
                 self.notification_block.add_toast(Adw.Toast(title=_('The file is not recognized'), timeout=2))
 
     def go_back_in_explorer_panel(self, *a):
         self.main_path += "/.."
-        self.update_folder()
+        GLib.idle_add(self.update_folder)
 
     def go_home_in_explorer_panel(self, *a):
         self.main_path = "~"
-        self.update_folder()
+        GLib.idle_add(self.update_folder)
 
     def go_forward_in_explorer_panel(self, *a):
         if self.main_path[len(self.main_path) - 3:len(self.main_path)] == "/..":
             self.main_path = self.main_path[0:len(self.main_path) - 3]
-            self.update_folder()
+            GLib.idle_add(self.update_folder)
 
     def go_back_to_chats_panel(self, button):
         self.main.set_visible_child(self.chats_main_box)
@@ -510,6 +508,7 @@ class MainWindow(Gtk.ApplicationWindow):
         else:
             self.notification_block.add_toast(Adw.Toast(title=_('You can no longer regenerate the message.'), timeout=2))
     def update_history(self):
+        # Update UI
         list_box = Gtk.ListBox(css_classes=["separators","background"])
         list_box.set_selection_mode(Gtk.SelectionMode.NONE)
         self.chats_buttons_scroll_block.set_child(list_box)
@@ -575,14 +574,9 @@ class MainWindow(Gtk.ApplicationWindow):
             button.set_child(spinner)
             button.set_can_target(False)
             button.set_has_frame(True)
-            name = self.send_message_to_bot(PROMPTS["generate_chat_prompt"] + "\n" + self.get_chat(self.chats[int(button.get_name())]["chat"][
-                               len(self.chats[int(button.get_name())]["chat"]) - self.memory:len(
-                                   self.chats[int(button.get_name())]["chat"])]) + "\nName:")
-            if self.model.stream_enabled():
-                for n in name:
-                    self.chats[int(button.get_name())]["name"] = n["text"]
-                    self.update_history()
-                name = n["text"]
+            # TODO: take the history for the correct chat
+            self.model.set_history([], self)
+            name = self.model.generate_chat_name(PROMPTS["generate_name_prompt"])
             if name != "Chat has been stopped":
                 self.chats[int(button.get_name())]["name"] = name
             self.update_history()
@@ -764,7 +758,7 @@ class MainWindow(Gtk.ApplicationWindow):
             if os.path.isdir(os.path.join(os.path.expanduser(self.main_path), button.get_name())):
                 self.main_path += "/" + button.get_name()
                 os.chdir(os.path.expanduser(self.main_path))
-                self.update_folder()
+                GLib.idle_add(self.update_folder)
             else:
                 subprocess.run(['xdg-open', os.path.expanduser(self.main_path + "/" + button.get_name())])
         else:
@@ -801,6 +795,7 @@ class MainWindow(Gtk.ApplicationWindow):
         process = subprocess.Popen(txt, stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE, shell=True)
         outputs = []
+
         def read_output(process, outputs):
             try:
                 stdout, stderr = process.communicate()
@@ -825,7 +820,7 @@ class MainWindow(Gtk.ApplicationWindow):
         if os.path.exists(os.path.expanduser(path)):
             os.chdir(os.path.expanduser(path))
             self.main_path = path
-            self.update_folder()
+            GLib.idle_add(self.update_folder)
         else:
             Adw.Toast(title=_('Failed to open the folder'), timeout=2)
         return outputs[0]
@@ -839,7 +834,6 @@ class MainWindow(Gtk.ApplicationWindow):
 
     def update_button_text(self):
         stream_number_variable = self.stream_number_variable
-        time.sleep(0.1)
         message_suggestion_texts_array = []
         for btn in self.message_suggestion_buttons_array:
             btn.set_visible(False)
@@ -854,20 +848,8 @@ class MainWindow(Gtk.ApplicationWindow):
                     self.regenerate_message_button.set_visible(True)
                 elif self.chat[-1]["User"] in ["Assistant","Console","User"]:
                     self.button_continue.set_visible(True)
-            for btn in self.message_suggestion_buttons_array:
-                if stream_number_variable != self.stream_number_variable:
-                    break
-                self.model.set_history([], self)
-                message = self.model.get_suggestions(self, PROMPTS["help_topics"].replace("{CHOICE}", random.choice(self.random_suggestion)))
-                if stream_number_variable != self.stream_number_variable or not self.status:
-                    break
-                message = message.replace("\n","")
-                btn.get_child().set_label(message)
-                if message not in message_suggestion_texts_array:
-                    message_suggestion_texts_array.append(message)
-                    btn.set_visible(True)
-                    GLib.idle_add(self.scrolled_chat)
-            self.chat_stop_button.set_visible(False)
+            # Generate suggestions in another thread and then add them to the UI
+            threading.Thread(target=self.generate_suggestions).start()
         else:
             for btn in self.message_suggestion_buttons_array:
                 btn.set_visible(False)
@@ -876,6 +858,29 @@ class MainWindow(Gtk.ApplicationWindow):
             self.regenerate_message_button.set_visible(False)
             self.chat_stop_button.set_visible(True)
         GLib.idle_add(self.scrolled_chat)
+
+    def generate_suggestions(self):
+        """Create the suggestions and update the UI when it's finished"""
+        suggestions = self.model.get_suggestions(PROMPTS["get_suggestions_prompt"], self.offers)
+        GLib.idle_add(self.populate_suggestions, suggestions)
+
+    def populate_suggestions(self, suggestions):
+        """Update the UI with the generated suggestions"""
+        i = 0
+        # Convert to tuple to remove duplicates
+        for suggestion in tuple(suggestions):
+            if i+1 > self.offers:
+                break
+            else:
+                message = suggestion.replace("\n","")
+                btn = self.message_suggestion_buttons_array[i]
+                btn.get_child().set_label(message)
+                btn.set_visible(True)
+                GLib.idle_add(self.scrolled_chat)
+            i+=1
+        self.chat_stop_button.set_visible(False)
+        GLib.idle_add(self.scrolled_chat)
+
     def on_entry_activate(self, entry):
         if not self.status:
             self.notification_block.add_toast(
@@ -1079,6 +1084,7 @@ class MainWindow(Gtk.ApplicationWindow):
                 if not restore:
                     GLib.idle_add(self.send_message)
         GLib.idle_add(self.scrolled_chat)
+        self.save_chat()
 
     def send_message(self):
         self.stream_number_variable += 1
@@ -1086,8 +1092,8 @@ class MainWindow(Gtk.ApplicationWindow):
         self.status = False
         self.update_button_text()
         prompts = [value["prompt"] for value in self.extensions.values() if value["status"]]
-        if not (self.bot_prompt=="""""" and prompts==[]):
-            prompts.append(PROMPTS["new_chat_prompt"])
+        prompts.append(self.bot_prompt)
+
         if self.console:
             prompts.append(PROMPTS["current_directory"].replace("{DIR}", os.getcwd()))
         self.model.set_history(prompts, self)
@@ -1202,3 +1208,10 @@ class MainWindow(Gtk.ApplicationWindow):
             box.append(message)
         self.chat_list_block.append(box)
         return box
+
+    def save_chat(self):
+        prevdir = os.getcwd()
+        os.chdir(os.path.expanduser("~"))
+        with open(self.path + self.filename, 'wb') as f:
+            pickle.dump(self.chats, f)
+        os.chdir(prevdir)

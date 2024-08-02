@@ -190,9 +190,7 @@ class MyApp(Adw.Application):
                 Adw.Toast(title=_('Chat is created')))
 
     def do_shutdown(self):
-        os.chdir(os.path.expanduser("~"))
-        with open(self.win.path + self.win.filename, 'wb') as f:
-            pickle.dump(self.win.chats, f)
+        self.win.save_chat()
         settings = Gio.Settings.new('io.github.qwersyk.Newelle')
         settings.set_int("chat", self.win.chat_id)
         settings.set_string("path", os.path.normpath(self.win.main_path))
