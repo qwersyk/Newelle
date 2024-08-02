@@ -1,6 +1,6 @@
 [Desktop Entry]
 Name=Newelle
-Comment=Newelle is an advanced chat bot that aims to revolutionize your virtual assistant experience.
+Comment=Newelle: Your advanced chat bot
 Exec=newelle
 Icon=io.github.qwersyk.Newelle
 Terminal=false

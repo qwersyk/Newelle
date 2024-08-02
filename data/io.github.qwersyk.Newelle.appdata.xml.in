@@ -3,7 +3,8 @@
 	<id>io.github.qwersyk.Newelle.desktop</id>
 	<metadata_license>CC0-1.0</metadata_license>
 	<project_license>GPL-3.0-or-later</project_license>
-	<name>Newelle</name>
+        <launchable type="desktop-id">io.github.qwersyk.Newelle.desktop</launchable>
+        <name>Newelle</name>
 	<description>
 	  <p>This is a chatbot program written in GTK4 and Adwaita that allows you to interact with the system and execute various commands.</p>
 	</description>
