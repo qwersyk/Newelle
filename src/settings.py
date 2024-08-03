@@ -19,7 +19,7 @@ def human_readable_size(size, decimal_places=2):
 class Settings(Adw.PreferencesWindow):
     def __init__(self,app, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        can_escape_sandbox()
+        sandbox = can_escape_sandbox()
         self.settings = Gio.Settings.new('io.github.qwersyk.Newelle')
         self.set_transient_for(app.win)
         self.set_modal(True)
@@ -58,11 +58,14 @@ class Settings(Adw.PreferencesWindow):
             # Add download button if the model has extra requirements 
             if len(handler.get_extra_requirements()) > 0:
                 self.add_download_button(model, row, "llm")
+            self.add_flatpak_waning_button(model, row, "llm")
             button = Gtk.CheckButton()
             button.set_group(group)
             button.set_active(active)
             button.set_name(model["key"])
             button.connect("toggled", self.choose_llm)
+            if not sandbox and handler.requires_sandbox_escape():
+                button.set_sensitive(False)
             row.add_prefix(button)
             self.LLM.add(row)
 
@@ -105,7 +108,10 @@ class Settings(Adw.PreferencesWindow):
             button.set_group(group)
             button.set_active(active)
             button.set_name(tts["key"])
+            self.add_flatpak_waning_button(tts, row, "tts")
             button.connect("toggled", self.choose_tts)
+            if not sandbox and handler.requires_sandbox_escape():
+                button.set_sensitive(False)
             row.add_prefix(button)
             tts_program.add_row(row)
 
@@ -152,6 +158,9 @@ class Settings(Adw.PreferencesWindow):
                     row.add_action(wbbutton)
             if len(handler.get_extra_requirements()) > 0:
                 self.add_download_button(stt, row, "stt")
+            self.add_flatpak_waning_button(stt, row, "stt")
+            if not sandbox and handler.requires_sandbox_escape():
+                button.set_sensitive(False)
 
         # Other settings
         self.interface = Adw.PreferencesGroup(title=_('Interface'))
@@ -381,6 +390,27 @@ class Settings(Adw.PreferencesWindow):
             elif model["rowtype"] == "expander":
                 row.add_action(actionbutton)
 
+    def add_flatpak_waning_button(self, model, row, mtype):
+        if mtype == "stt":
+            m = model["class"](self.settings, os.path.join(self.directory, "pip"))
+        elif mtype == "llm":
+            m = model["class"](self.settings, os.path.join(self.directory, "models"))
+        elif mtype == "tts":
+            m = model["class"](self.settings, self.directory)
+        actionbutton = Gtk.Button(css_classes=["flat"], valign=Gtk.Align.CENTER)
+        if m.requires_sandbox_escape() and not can_escape_sandbox():
+            icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="warning-outline-symbolic"))
+            actionbutton.connect("clicked", self.show_flatpak_sendbox_notice)
+            actionbutton.add_css_class("error")
+            actionbutton.set_child(icon)
+            actionbutton.set_name(mtype + "//" + model["key"])
+            if model["rowtype"] == "action":
+                row.add_suffix(actionbutton)
+            elif model["rowtype"] == "expander":
+                row.add_action(actionbutton)
+            elif model["rowtype"] == "combo":
+                row.add_suffix(actionbutton)
+
     def install_model(self, button):
         name = button.get_name()
         mtype = name.split("//")[0]
@@ -559,7 +589,7 @@ class Settings(Adw.PreferencesWindow):
         wbbutton.connect("clicked", self.open_website)
         return wbbutton
 
-    def show_flatpak_sendbox_notice(self):
+    def show_flatpak_sendbox_notice(self, el=None):
         # Create a modal window with the warning
         dialog = Adw.MessageDialog(
             title="Permission Error",
