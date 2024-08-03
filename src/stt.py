@@ -52,6 +52,11 @@ class STTHandler:
         self.pip_path = pip_path
 
     @staticmethod
+    def requires_sandbox_escape() -> bool:
+        """If the handler requires to run commands on the user host system"""
+        return False
+
+    @staticmethod
     def get_extra_requirements() -> list:
         """Return the list of extra requirements"""
         return []
@@ -286,6 +291,11 @@ class CustomSRHandler(STTHandler):
                 "default": ""
             },
         ]
+
+    @staticmethod
+    def requires_sandbox_escape() -> bool:
+        """If the handler requires to run commands on the user host system"""
+        return True
 
     def recognize_file(self, path):
         command = self.get_setting("command")
