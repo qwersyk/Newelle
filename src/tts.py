@@ -4,6 +4,7 @@ from io import BytesIO
 from playsound import playsound
 import subprocess
 import os, json
+from .extra import can_escape_sandbox
 
 class TTSHandler:
     """Every TTS handler should extend this class."""
@@ -15,7 +16,12 @@ class TTSHandler:
         self.path = path
         pass
 
-    @staticmethod 
+    @staticmethod
+    def requires_sandbox_escape() -> bool:
+        """If the handler requires to run commands on the user host system"""
+        return False
+
+    @staticmethod
     def get_extra_settings() -> list:
         """Get extra settings for the TTS"""
         return []
@@ -113,10 +119,17 @@ class gTTSHandler(TTSHandler):
 class EspeakHandler(TTSHandler):
     
     key = "espeak"
+
+    @staticmethod
+    def requires_sandbox_escape() -> bool:
+        """If the handler requires to run commands on the user host system"""
+        return True
+
     def get_voices(self):
+        return [("English", "English")]
         if len(self.voices) > 0:
             return self.voices
-        if not self.is_installed():
+        if not self.is_installed() or not can_escape_sandbox():
             return self.voices
         output = subprocess.check_output(["flatpak-spawn", "--host", "espeak", "--voices"]).decode("utf-8")
         # Extract the voice names from the output
@@ -137,6 +150,8 @@ class EspeakHandler(TTSHandler):
         f.write(r)
 
     def is_installed(self):
+        if not can_escape_sandbox():
+            return False
         output = subprocess.check_output(["flatpak-spawn", "--host", "whereis", "espeak"]).decode("utf-8")
         paths = []
         if ":" in output:
@@ -151,6 +166,11 @@ class CustomTTSHandler(TTSHandler):
         self.path = path
         self.key = "custom_command"
         self.voices = tuple()
+
+    @staticmethod
+    def requires_sandbox_escape() -> bool:
+        """If the handler requires to run commands on the user host system"""
+        return True
 
     @staticmethod
     def get_extra_settings() -> list:

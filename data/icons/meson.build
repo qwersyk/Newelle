@@ -17,3 +17,7 @@ install_data (
     'internet-symbolic.svg',
     install_dir: symbolic_dir
 )
+install_data (
+    'warning-outline-symbolic.svg',
+    install_dir: symbolic_dir
+)

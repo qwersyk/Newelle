@@ -18,7 +18,12 @@ class LLMHandler():
         self.settings = settings
         self.path = path
 
-    @staticmethod 
+    @staticmethod
+    def requires_sandbox_escape() -> bool:
+        """If the handler requires to run commands on the user host system"""
+        return False
+
+    @staticmethod
     def get_extra_settings() -> list:
         """The list of extra settings for the current model.
             A Setting is a dict with the following properties:
@@ -423,6 +428,11 @@ class GeminiHandler(LLMHandler):
 class CustomLLMHandler(LLMHandler):
     key = "custom_command"
     
+    @staticmethod
+    def requires_sandbox_escape() -> bool:
+        """If the handler requires to run commands on the user host system"""
+        return True
+
     @staticmethod
     def get_extra_settings():
         return [

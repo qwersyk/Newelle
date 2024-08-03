@@ -4,7 +4,8 @@ from gi.repository import Gtk, Adw, Gio, GLib
 from .constants import AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT
 from gpt4all import GPT4All
 from .llm import GPT4AllHandler
-from .gtkobj import ComboRowHelper
+from .gtkobj import ComboRowHelper, CopyBox
+from .extra import can_escape_sandbox
 
 
 def human_readable_size(size, decimal_places=2):
@@ -18,12 +19,12 @@ def human_readable_size(size, decimal_places=2):
 class Settings(Adw.PreferencesWindow):
     def __init__(self,app, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        sandbox = can_escape_sandbox()
         self.settings = Gio.Settings.new('io.github.qwersyk.Newelle')
         self.set_transient_for(app.win)
         self.set_modal(True)
         self.downloading = {}
         self.slider_labels = {}
-
         self.local_models = json.loads(self.settings.get_string("available-models"))
         self.directory = GLib.get_user_config_dir()
         self.gpt = GPT4AllHandler(self.settings, os.path.join(self.directory, "models"))
@@ -57,11 +58,14 @@ class Settings(Adw.PreferencesWindow):
             # Add download button if the model has extra requirements 
             if len(handler.get_extra_requirements()) > 0:
                 self.add_download_button(model, row, "llm")
+            self.add_flatpak_waning_button(model, row, "llm")
             button = Gtk.CheckButton()
             button.set_group(group)
             button.set_active(active)
             button.set_name(model["key"])
             button.connect("toggled", self.choose_llm)
+            if not sandbox and handler.requires_sandbox_escape():
+                button.set_sensitive(False)
             row.add_prefix(button)
             self.LLM.add(row)
 
@@ -104,7 +108,10 @@ class Settings(Adw.PreferencesWindow):
             button.set_group(group)
             button.set_active(active)
             button.set_name(tts["key"])
+            self.add_flatpak_waning_button(tts, row, "tts")
             button.connect("toggled", self.choose_tts)
+            if not sandbox and handler.requires_sandbox_escape():
+                button.set_sensitive(False)
             row.add_prefix(button)
             tts_program.add_row(row)
 
@@ -151,6 +158,9 @@ class Settings(Adw.PreferencesWindow):
                     row.add_action(wbbutton)
             if len(handler.get_extra_requirements()) > 0:
                 self.add_download_button(stt, row, "stt")
+            self.add_flatpak_waning_button(stt, row, "stt")
+            if not sandbox and handler.requires_sandbox_escape():
+                button.set_sensitive(False)
 
         # Other settings
         self.interface = Adw.PreferencesGroup(title=_('Interface'))
@@ -208,7 +218,14 @@ class Settings(Adw.PreferencesWindow):
         row = Adw.ActionRow(title=_("Command virtualization"), subtitle=_("Run commands in a virtual machine"))
         switch = Gtk.Switch(valign=Gtk.Align.CENTER)
         row.add_suffix(switch)
-        self.settings.bind("virtualization", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
+        # Set default value for the switch
+        if not can_escape_sandbox():
+            switch.set_active(True)
+            self.settings.set_boolean("virtualization", True)
+        else:
+            switch.set_active(self.settings.get_boolean("virtualization"))
+        # Connect the function
+        switch.connect("state-set", self.toggle_virtualization)
         self.neural_network.add(row)
 
         row = Adw.ActionRow(title=_("Program memory"), subtitle=_("How long the program remembers the chat "))
@@ -222,6 +239,14 @@ class Settings(Adw.PreferencesWindow):
         self.general_page.add(self.message)
 
         self.add(self.general_page)
+
+    def toggle_virtualization(self, toggle, status):
+        if not can_escape_sandbox() and not status:
+            self.show_flatpak_sendbox_notice()
+            toggle.set_active(True)
+            self.settings.set_boolean("virtualization", True)
+        else:
+            self.settings.set_boolean("virtualization", status)
 
     def open_website(self, button):
         subprocess.Popen(["flatpak-spawn", "--host", "xdg-open", button.get_name()])
@@ -364,6 +389,27 @@ class Settings(Adw.PreferencesWindow):
                 row.add_suffix(actionbutton)
             elif model["rowtype"] == "expander":
                 row.add_action(actionbutton)
+
+    def add_flatpak_waning_button(self, model, row, mtype):
+        if mtype == "stt":
+            m = model["class"](self.settings, os.path.join(self.directory, "pip"))
+        elif mtype == "llm":
+            m = model["class"](self.settings, os.path.join(self.directory, "models"))
+        elif mtype == "tts":
+            m = model["class"](self.settings, self.directory)
+        actionbutton = Gtk.Button(css_classes=["flat"], valign=Gtk.Align.CENTER)
+        if m.requires_sandbox_escape() and not can_escape_sandbox():
+            icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="warning-outline-symbolic"))
+            actionbutton.connect("clicked", self.show_flatpak_sendbox_notice)
+            actionbutton.add_css_class("error")
+            actionbutton.set_child(icon)
+            actionbutton.set_name(mtype + "//" + model["key"])
+            if model["rowtype"] == "action":
+                row.add_suffix(actionbutton)
+            elif model["rowtype"] == "expander":
+                row.add_action(actionbutton)
+            elif model["rowtype"] == "combo":
+                row.add_suffix(actionbutton)
 
     def install_model(self, button):
         name = button.get_name()
@@ -542,6 +588,31 @@ class Settings(Adw.PreferencesWindow):
         wbbutton.set_name(website)
         wbbutton.connect("clicked", self.open_website)
         return wbbutton
+
+    def show_flatpak_sendbox_notice(self, el=None):
+        # Create a modal window with the warning
+        dialog = Adw.MessageDialog(
+            title="Permission Error",
+            modal=True,
+            transient_for=self,
+            destroy_with_parent=True
+        )
+
+        # Imposta il contenuto della finestra
+        dialog.set_heading(_("Not enough permissions"))
+
+        # Aggiungi il testo dell'errore
+        dialog.set_body_use_markup(True)
+        dialog.set_body(_("Newelle does not have enough permissions to run commands on your system, please run the following command"))
+        dialog.add_response("close", _("Understood"))
+        dialog.set_default_response("close")
+        dialog.set_extra_child(CopyBox("flatpak --user override --talk-name=org.freedesktop.Flatpak --filesystem=home io.github.qwersyk.Newelle", "bash", parent = self))
+        dialog.set_close_response("close")
+        dialog.set_response_appearance("close", Adw.ResponseAppearance.DESTRUCTIVE)
+        dialog.connect('response', lambda dialog, response_id: dialog.destroy())
+        # Show the window
+        dialog.present()
+
 
 
 class TextItemFactory(Gtk.ListItemFactory):
