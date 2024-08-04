@@ -1,5 +1,6 @@
 from abc import abstractmethod
-import os, sys, subprocess, json
+from subprocess import check_output
+import os, sys, json
 import importlib
 import pyaudio
 import wave
@@ -300,7 +301,7 @@ class CustomSRHandler(STTHandler):
     def recognize_file(self, path):
         command = self.get_setting("command")
         if command is not None:
-            res = subprocess.check_output(["flatpak-spawn", "--host", "bash", "-c", command.replace("{0}", path)]).decode("utf-8")
+            res = check_output(["flatpak-spawn", "--host", "bash", "-c", command.replace("{0}", path)]).decode("utf-8")
             return str(res)
         return None
 
