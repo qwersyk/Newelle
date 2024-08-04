@@ -587,7 +587,7 @@ class OpenAIHandler(LLMHandler):
                 model=self.get_setting("model"),
                 messages=messages,
                 top_p=self.get_setting("top-p"),
-                max_tokens=self.get_estting("max_tokens"),
+                max_tokens=self.get_setting("max_tokens"),
                 temperature=self.get_setting("temperature"),
                 presence_penalty=self.get_setting("presence_penalty"),
                 frequency_penalty=self.get_setting("frequency_penalty")
@@ -609,7 +609,7 @@ class OpenAIHandler(LLMHandler):
                 model=self.get_setting("model"),
                 messages=messages,
                 top_p=self.get_setting("top-p"),
-                max_tokens=self.get_estting("max_tokens"),
+                max_tokens=self.get_setting("max_tokens"),
                 temperature=self.get_setting("temperature"),
                 presence_penalty=self.get_setting("presence_penalty"),
                 frequency_penalty=self.get_setting("frequency_penalty"),
