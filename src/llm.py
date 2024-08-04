@@ -1,11 +1,8 @@
 from abc import abstractmethod
-from contextlib import AbstractAsyncContextManager
-from gi.repository import Gtk, Adw, Gio, GLib
-from gpt4all import GPT4All
-import os, threading, subprocess, re
+import os, threading, subprocess
 from typing import Callable, Any
-from gpt4all.gpt4all import MessageType
 import time, json
+
 from .extra import find_module, install_module
 
 class LLMHandler():
@@ -338,8 +335,6 @@ class GPT3AnyHandler(G4FHandler):
         for message in self.history[-4:] if len(self.history) >= 4 else self.history:
             history += message["User"] + ": " + message["Message"] + "\n"
         name = self.generate_text(history + "\n\n" + request_prompt)
-        print(history + "\n\n" + request_prompt)
-        print(name)
         return name
 
 class GeminiHandler(LLMHandler):
@@ -481,7 +476,7 @@ class OpenAIHandler(LLMHandler):
 
     @staticmethod
     def get_extra_settings() -> list:
-        return [
+        return [ 
             {
                 "key": "api",
                 "title": _("API Key"),
@@ -490,11 +485,18 @@ class OpenAIHandler(LLMHandler):
                 "default": ""
             },
             {
-                "key": "engine",
-                "title": _("OpenAI Engine"),
-                "description": _("Name of the OpenAI Engine"),
+                "key": "endpoint",
+                "title": _("API Endpoint"),
+                "description": _("API base url, change this to use interference APIs"),
                 "type": "entry",
-                "default": "text-davinci-003"
+                "default": "https://api.openai.com/v1/"
+            },
+            {
+                "key": "model",
+                "title": _("OpenAI Model"),
+                "description": _("Name of the OpenAI Model"),
+                "type": "entry",
+                "default": "gpt3.5-turbo"
             },
             {
                 "key": "streaming",
@@ -559,73 +561,74 @@ class OpenAIHandler(LLMHandler):
                 "round-digits": 1,
             },
         ]
- 
-    def send_message(self, window, message):
-        """Get a response to a message"""
-        message = self.history + "\nUser:" + str(message) + "\nAssistant:"
-        return self.__generate_response(window, message)
 
-    def __generate_response(self, window, message):
-        engine = self.get_setting("engine")
-        max_tokens = int(self.get_setting("max-tokens"))
-        top_p = self.get_setting("top-p")
-        frequency_penalty = self.get_setting("frequency-penalty")
-        presence_penalty = self.get_setting("presence-penalty")
-        temperature = self.get_setting("temperature")
-        import openai
-        openai.api_key = self.get_setting("api")
-        response = openai.Completion.create(
-            engine=engine,
-            prompt=message,
-            max_tokens=max_tokens,
-            top_p=top_p,
-            frequency_penalty=frequency_penalty,
-            presence_penalty=presence_penalty,
-            temperature=temperature,
-        ).choices[0].text.strip()
-        return response
+    def convert_history(self, history: dict, prompts: list | None = None) -> list:
+        if prompts is None:
+            prompts = self.prompts
+        result = []
+        result.append({"role": "system", "content": "\n".join(prompts)})
+        for message in history:
+            result.append({
+                "role": message["User"].lower(),
+                "content": message["Message"]
+            })
+        return result
 
-    def send_message_stream(self, window, message, on_update, extra_args):
-        message = self.history + "\nUser:" + str(message) + "\nAssistant:"
-        return self.__generate_response_stream(window, message, on_update, extra_args)
-
-    def __generate_response_stream(self, window, message, on_update, extra_args):
-        engine = self.get_setting("engine")
-        max_tokens = int(self.get_setting("max-tokens"))
-        top_p = self.get_setting("top-p")
-        frequency_penalty = self.get_setting("frequency-penalty")
-        presence_penalty = self.get_setting("presence-penalty")
-        temperature = self.get_setting("temperature")
-        import openai
-        openai.api_key = self.get_setting("api")
-        response = openai.Completion.create(
-            engine=engine,
-            prompt=message,
-            max_tokens=max_tokens,
-            top_p=top_p,
-            frequency_penalty=frequency_penalty,
-            presence_penalty=presence_penalty,
-            temperature=temperature,
-            stream=True
+    def generate_text(self, prompt: str, history: dict[str, str] = {}, system_prompt: list[str] = []) -> str:
+        from openai import OpenAI
+        messages = self.convert_history(history, system_prompt)
+        messages.append({"role": "user", "content": prompt})
+        client = OpenAI(
+            api_key=self.get_setting("api"),
+            base_url=self.get_setting("endpoint")
         )
-        full_message = ""
-        counter = 0
-        counter_size = 1
-        for chunk in response:
-            counter += 1
-            full_message += chunk.choices[0]["text"]
-            if counter == counter_size:
-                counter = 0
-                counter_size=int((counter_size + 3)*1.3)
-                args = (full_message.strip(), ) + extra_args
-                on_update(*args)
-        return full_message.strip()
+        try:
+            response = client.chat.completions.create(
+                model=self.get_setting("model"),
+                messages=messages,
+                top_p=self.get_setting("top-p"),
+                max_tokens=self.get_estting("max_tokens"),
+                temperature=self.get_setting("temperature"),
+                presence_penalty=self.get_setting("presence_penalty"),
+                frequency_penalty=self.get_setting("frequency_penalty")
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            return str(e)
+    
+    def generate_text_stream(self, prompt: str, history: dict[str, str] = {}, system_prompt: list[str] = [], on_update: Callable[[str], Any] = (), extra_args: list = []) -> str:
+        from openai import OpenAI
+        messages = self.convert_history(history, system_prompt)
+        messages.append({"role": "user", "content": prompt})
+        client = OpenAI(
+            api_key=self.get_setting("api"),
+            base_url=self.get_setting("endpoint")
+        )
+        try:
+            response = client.chat.completions.create(
+                model=self.get_setting("model"),
+                messages=messages,
+                top_p=self.get_setting("top-p"),
+                max_tokens=self.get_estting("max_tokens"),
+                temperature=self.get_setting("temperature"),
+                presence_penalty=self.get_setting("presence_penalty"),
+                frequency_penalty=self.get_setting("frequency_penalty"),
+                stream=True
+            )
+            full_message = ""
+            prev_message = ""
+            for chunk in response:
+                if chunk.choices[0].delta.content:
+                    full_message += chunk.choices[0].delta.content
+                    args = (full_message.strip(), ) + extra_args
+                    if len(full_message) - len(prev_message) > 1:
+                        on_update(*args)
+                        prev_message = full_message
+            return full_message.strip()
+        except Exception as e:
+            return str(e)
+    
 
-
-    def set_history(self, prompts, window):
-        """Manages messages history"""
-        self.history = window.bot_prompt+"\n"+"\n".join(prompts)+"\n" + window.get_chat(
-            window.chat[len(window.chat) - window.memory:len(window.chat)-1])
 
 
 class GPT4AllHandler(LLMHandler):
