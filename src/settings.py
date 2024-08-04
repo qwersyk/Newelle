@@ -1,5 +1,6 @@
 import gi
-import re, threading, os, json, time, ctypes, subprocess
+import re, threading, os, json, time, ctypes
+from subprocess import Popen 
 from gi.repository import Gtk, Adw, Gio, GLib
 from .constants import AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT
 from gpt4all import GPT4All
@@ -249,7 +250,7 @@ class Settings(Adw.PreferencesWindow):
             self.settings.set_boolean("virtualization", status)
 
     def open_website(self, button):
-        subprocess.Popen(["flatpak-spawn", "--host", "xdg-open", button.get_name()])
+        Popen(["flatpak-spawn", "--host", "xdg-open", button.get_name()])
 
     def add_extra_settings(self, m, row, mtype):
         if mtype == "stt":
