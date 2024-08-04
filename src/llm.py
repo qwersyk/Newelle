@@ -1,5 +1,6 @@
 from abc import abstractmethod
-import os, threading, subprocess
+from subprocess import check_output
+import os, threading
 from typing import Callable, Any
 import time, json
 
@@ -456,14 +457,14 @@ class CustomLLMHandler(LLMHandler):
         command = self.get_setting("command")
         command = command.replace("{0}", json.dumps(self.history))
         command = command.replace("{1}", json.dumps(self.prompts))
-        out = subprocess.check_output(["flatpak-spawn", "--host", "bash", "-c", command])
+        out = check_output(["flatpak-spawn", "--host", "bash", "-c", command])
         return out.decode("utf-8")
 
     def get_suggestions(self, prompt, amount):
         command = self.get_setting("suggestion")
         command = command.replace("{0}", json.dumps(self.history))
         command = command.replace("{1}", json.dumps(self.prompts))
-        out = subprocess.check_output(["flatpak-spawn", "--host", "bash", "-c", command])
+        out = check_output(["flatpak-spawn", "--host", "bash", "-c", command])
         return out.decode("utf-8")
 
 
