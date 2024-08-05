@@ -605,7 +605,6 @@ class MainWindow(Gtk.ApplicationWindow):
     def scrolled_chat(self):
         adjustment = self.chat_scroll.get_vadjustment()
         value = adjustment.get_upper()
-        time.sleep(0.1)
         adjustment.set_value(100000)
 
     def create_table(self, table):
