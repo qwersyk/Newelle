@@ -1,7 +1,17 @@
 import gi, os, subprocess
 
-from gi.repository import Gtk, Pango, Gio, Gdk, GtkSource, GObject, Adw
+from gi.repository import Gtk, Pango, Gio, Gdk, GtkSource, GObject, Adw, GLib
 import threading
+
+def apply_css_to_widget(widget, css_string):
+    provider = Gtk.CssProvider()
+    context = widget.get_style_context()
+
+    # Load the CSS from the string
+    provider.load_from_data(css_string.encode())
+
+    # Add the provider to the widget's style context
+    context.add_provider(provider, Gtk.STYLE_PROVIDER_PRIORITY_USER)
 
 
 class File(Gtk.Image):
@@ -50,6 +60,87 @@ class File(Gtk.Image):
         data = os.path.normpath(os.path.expanduser(f"{self.path}/{self.file_name}"))
         return Gdk.ContentProvider.new_for_value(data)
 
+
+class MultilineEntry(Gtk.Box):
+
+    def __init__(self):
+        Gtk.Box.__init__(self)
+        self.placeholding = True
+        self.placeholder = ""
+        self.enter_func = None
+        # Handle enter key
+        # Call handle_enter_key only when shift is not pressed
+        # shift + enter = new line
+        key_controller = Gtk.EventControllerKey.new()
+        key_controller.connect("key-pressed", lambda controller, keyval, keycode, state:
+            self.handle_enter_key() if keyval == Gdk.KEY_Return and not (state & Gdk.ModifierType.SHIFT_MASK) else None
+        )
+
+        # Scroll
+        scroll = Gtk.ScrolledWindow()
+        scroll.set_hexpand(True)
+        scroll.set_max_content_height(150)
+        scroll.set_propagate_natural_height(True)
+        scroll.set_margin_start(10)
+        scroll.set_margin_end(10)
+        self.append(scroll)
+
+        # TextView
+        self.input_panel = Gtk.TextView()
+        self.input_panel.set_wrap_mode(Gtk.WrapMode.WORD)
+        self.input_panel.set_hexpand(True)
+        self.input_panel.set_vexpand(False)
+        self.input_panel.set_top_margin(5)
+        self.input_panel.add_controller(key_controller)
+        # Event management
+        focus_controller = Gtk.EventControllerFocus.new()
+        self.input_panel.add_controller(focus_controller)
+
+        # Connect the enter and leave signals
+        focus_controller.connect("enter", self.on_focus_in, None)
+        focus_controller.connect("leave", self.on_focus_out, None)
+
+        # Add style to look like a GTK Entry
+        self.add_css_class("card")
+        self.add_css_class("frame")
+        self.input_panel.add_css_class("multilineentry")
+        apply_css_to_widget(self.input_panel, ".multilineentry { background-color: rgba(0,0,0,0); font-size: 15px;}")
+
+        # Add TextView to the ScrolledWindow
+        scroll.set_child(self.input_panel)
+
+    def set_placeholder(self, text):
+        self.placeholder = text
+        if self.placeholding:
+            self.set_text(self.placeholder)
+
+    def set_on_enter(self, function):
+        """Add a function that is called when ENTER (without SHIFT) is pressed"""
+        self.enter_func = function
+
+    def handle_enter_key(self):
+        if self.enter_func is not None:
+            GLib.idle_add(self.set_text, self.get_text().rstrip("\n"))
+            GLib.idle_add(self.enter_func, self)
+
+    def get_input_panel(self):
+        return self.input_panel
+
+    def set_text(self, text):
+        self.input_panel.get_buffer().set_text(text, len(text))
+
+    def get_text(self):
+        return self.input_panel.get_buffer().get_text(self.input_panel.get_buffer().get_start_iter(), self.input_panel.get_buffer().get_end_iter(), False)
+
+    def on_focus_in(self, widget, data):
+        if self.placeholding:
+            self.set_text("")
+            self.placeholding = False
+
+    def on_focus_out(self, widget, data):
+        if self.get_text() == "":
+            self.placeholding = True
+            self.set_text(self.placeholder)
 
 class CopyBox(Gtk.Box):
     def __init__(self, txt, lang, parent = None,id_message=-1):

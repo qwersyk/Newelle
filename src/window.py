@@ -1,7 +1,7 @@
 import time, re, sys
 import gi, os, subprocess
 import pickle
-from .gtkobj import File, CopyBox, BarChartBox
+from .gtkobj import File, CopyBox, BarChartBox, MultilineEntry
 from .constants import AVAILABLE_LLMS, PROMPTS, AVAILABLE_TTS, AVAILABLE_STT
 from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject, GLib
 from .stt import AudioRecorder
@@ -256,18 +256,32 @@ class MainWindow(Gtk.ApplicationWindow):
         self.regenerate_message_button.set_visible(False)
         self.chat_controls_entry_block.append(self.regenerate_message_button)
 
-        self.input_panel = Gtk.Entry(hexpand=True, placeholder_text=_("Send a message")) #…
-
-        self.secondary_message_chat_block.append(Gtk.Separator())
+        # Input message box
         input_box=Gtk.Box(halign=Gtk.Align.FILL, margin_start=6, margin_end=6,  margin_top=6, margin_bottom=6, spacing=6)
-        self.secondary_message_chat_block.append(input_box)
+        input_box.set_valign(Gtk.Align.CENTER)
+        # Text Entry
+        self.input_panel = MultilineEntry()
         input_box.append(self.input_panel)
-        self.mic_button = Gtk.Button(css_classes=["suggested-action"], icon_name="audio-input-microphone-symbolic", width_request=36)
+        self.input_panel.set_placeholder(_("Send a message..."))
+
+        # Buttons on the right
+        self.secondary_message_chat_block.append(Gtk.Separator())
+        self.secondary_message_chat_block.append(input_box)
+        # Mic button
+        self.mic_button = Gtk.Button(css_classes=["suggested-action"], icon_name="audio-input-microphone-symbolic", width_request=36, height_request=36)
+        self.mic_button.set_vexpand(False)
+        self.mic_button.set_valign(Gtk.Align.CENTER)
         self.mic_button.connect("clicked", self.start_recording)
         input_box.append(self.mic_button)
-        self.send_button = Gtk.Button(css_classes=["suggested-action"], icon_name="go-next-symbolic", width_request=36)
-        input_box.append(self.send_button)
-        self.input_panel.connect('activate', self.on_entry_activate)
+        # Send button
+        box = Gtk.Box()
+        box.set_vexpand(False)
+        self.send_button = Gtk.Button(css_classes=["suggested-action"], icon_name="go-next-symbolic", width_request=36, height_request=36)
+        self.send_button.set_vexpand(False)
+        self.send_button.set_valign(Gtk.Align.CENTER)
+        box.append(self.send_button)
+        input_box.append(box)
+        self.input_panel.set_on_enter(self.on_entry_activate)
         self.send_button.connect('clicked', self.on_entry_button_clicked)
         self.main.connect("notify::folded", self.handle_main_block_change)
         self.main_program_block.connect("notify::reveal-flap", self.handle_second_block_change)
@@ -605,7 +619,6 @@ class MainWindow(Gtk.ApplicationWindow):
     def scrolled_chat(self):
         adjustment = self.chat_scroll.get_vadjustment()
         value = adjustment.get_upper()
-        time.sleep(0.1)
         adjustment.set_value(100000)
 
     def create_table(self, table):
