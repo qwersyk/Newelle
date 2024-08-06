@@ -264,7 +264,7 @@ class Settings(Adw.PreferencesWindow):
         entry.set_name(prompt_name)
         entry.set_on_change(self.edit_prompt)
 
-        wbbutton = Gtk.Button(icon_name="star-large-symbolic")
+        wbbutton = Gtk.Button(icon_name="star-filled-rounded-symbolic")
         wbbutton.add_css_class("flat")
         wbbutton.set_valign(Gtk.Align.CENTER)
         wbbutton.set_name(prompt_name)

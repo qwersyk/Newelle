@@ -21,3 +21,7 @@ install_data (
     'warning-outline-symbolic.svg',
     install_dir: symbolic_dir
 )
+install_data (
+    'star-filled-rounded-symbolic.svg',
+    install_dir: symbolic_dir
+)
