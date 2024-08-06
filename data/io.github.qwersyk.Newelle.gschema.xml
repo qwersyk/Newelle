@@ -34,6 +34,9 @@
 	      <key name="show-image" type="b">
             <default>true</default>
         </key>
+	  	  <key name="custom-extra-prompt" type="b">
+            <default>false</default>
+        </key>
 	      <key name="language-model" type="s">
             <default>"GPT3Any"</default>
         </key>
