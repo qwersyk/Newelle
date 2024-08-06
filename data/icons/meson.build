@@ -25,3 +25,7 @@ install_data (
     'star-filled-rounded-symbolic.svg',
     install_dir: symbolic_dir
 )
+install_data (
+    'update-symbolic.svg',
+    install_dir: symbolic_dir
+)
