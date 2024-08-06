@@ -68,6 +68,7 @@ class MultilineEntry(Gtk.Box):
         self.placeholding = True
         self.placeholder = ""
         self.enter_func = None
+        self.on_change_func = None
         # Handle enter key
         # Call handle_enter_key only when shift is not pressed
         # shift + enter = new line
@@ -112,7 +113,7 @@ class MultilineEntry(Gtk.Box):
     def set_placeholder(self, text):
         self.placeholder = text
         if self.placeholding:
-            self.set_text(self.placeholder)
+            self.set_text(self.placeholder, False)
 
     def set_on_enter(self, function):
         """Add a function that is called when ENTER (without SHIFT) is pressed"""
@@ -126,7 +127,9 @@ class MultilineEntry(Gtk.Box):
     def get_input_panel(self):
         return self.input_panel
 
-    def set_text(self, text):
+    def set_text(self, text, remove_placeholder=True):
+        if remove_placeholder:
+            self.placeholding = False
         self.input_panel.get_buffer().set_text(text, len(text))
 
     def get_text(self):
@@ -134,13 +137,21 @@ class MultilineEntry(Gtk.Box):
 
     def on_focus_in(self, widget, data):
         if self.placeholding:
-            self.set_text("")
+            self.set_text("", False)
             self.placeholding = False
 
     def on_focus_out(self, widget, data):
         if self.get_text() == "":
             self.placeholding = True
-            self.set_text(self.placeholder)
+            self.set_text(self.placeholder, False)
+
+    def set_on_change(self, function):
+        self.on_change_func = function
+        self.input_panel.get_buffer().connect("changed", self.on_change)
+
+    def on_change(self, buffer):
+        if self.on_change_func is not None:
+            self.on_change_func(self)
 
 class CopyBox(Gtk.Box):
     def __init__(self, txt, lang, parent = None,id_message=-1):
