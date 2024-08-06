@@ -20,3 +20,19 @@ def find_module(full_module_name):
 def install_module(module, path):
     r = subprocess.check_output(["pip3", "install", "--target", path, module]).decode("utf-8")
     return r
+
+def can_escape_sandbox():
+    try:
+        r = subprocess.check_output(["flatpak-spawn", "--host", "echo", "test"])
+    except subprocess.CalledProcessError as e:
+        return False
+    return True
+
+def override_prompts(override_setting, PROMPTS):
+    prompt_list = {}
+    for prompt in PROMPTS:
+        if prompt in override_setting:
+            prompt_list[prompt] = override_setting[prompt]
+        else:
+            prompt_list[prompt] = PROMPTS[prompt]
+    return prompt_list

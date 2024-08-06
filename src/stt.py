@@ -1,5 +1,6 @@
 from abc import abstractmethod
-import os, sys, subprocess, json
+from subprocess import check_output
+import os, sys, json
 import importlib
 import pyaudio
 import wave
@@ -50,6 +51,11 @@ class STTHandler:
     def __init__(self, settings, pip_path):
         self.settings = settings
         self.pip_path = pip_path
+
+    @staticmethod
+    def requires_sandbox_escape() -> bool:
+        """If the handler requires to run commands on the user host system"""
+        return False
 
     @staticmethod
     def get_extra_requirements() -> list:
@@ -287,10 +293,15 @@ class CustomSRHandler(STTHandler):
             },
         ]
 
+    @staticmethod
+    def requires_sandbox_escape() -> bool:
+        """If the handler requires to run commands on the user host system"""
+        return True
+
     def recognize_file(self, path):
         command = self.get_setting("command")
         if command is not None:
-            res = subprocess.check_output(["flatpak-spawn", "--host", "bash", "-c", command.replace("{0}", path)]).decode("utf-8")
+            res = check_output(["flatpak-spawn", "--host", "bash", "-c", command.replace("{0}", path)]).decode("utf-8")
             return str(res)
         return None
 

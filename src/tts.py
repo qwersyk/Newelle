@@ -1,21 +1,31 @@
 from abc import abstractmethod
 from gtts import gTTS, lang
-from io import BytesIO
-from playsound import playsound
-import subprocess
-import os, json
+from subprocess import check_output
+import threading, time
+import os, json, pyaudio
+from .extra import can_escape_sandbox
+from pydub import AudioSegment
 
 class TTSHandler:
     """Every TTS handler should extend this class."""
     key = ""
-    voices = tuple()
+    voices : tuple
  
+    _playing : bool = False
+    _play_lock : threading.Semaphore = threading.Semaphore(1)
+
     def __init__(self, settings, path):
         self.settings = settings
         self.path = path
+        self.voices = tuple()
         pass
 
-    @staticmethod 
+    @staticmethod
+    def requires_sandbox_escape() -> bool:
+        """If the handler requires to run commands on the user host system"""
+        return False
+
+    @staticmethod
     def get_extra_settings() -> list:
         """Get extra settings for the TTS"""
         return []
@@ -43,10 +53,29 @@ class TTSHandler:
 
     def play_audio(self, message):
         """Play an audio from the given message"""
-        path = os.path.join(self.path, "temptts.mp3")
+        # Generate random name
+        timestamp = str(int(time.time()))
+        random_part = str(os.urandom(8).hex())
+        file_name = f"{timestamp}_{random_part}.mp3"
+        path = os.path.join(self.path, file_name)
         self.save_audio(message, path)
-        playsound(path)
+        self.playsound(path)
         os.remove(path)
+
+    def playsound(self, path):
+        self._play_lock.acquire()
+        audio = AudioSegment.from_file(path)
+        self.p = pyaudio.PyAudio()
+        self.stream = self.p.open(format=self.p.get_format_from_width(audio.sample_width),
+                        channels=audio.channels,
+                        rate=audio.frame_rate,
+                        output=True
+                    )
+        # Play audio
+        self._playing = True
+        self.stream.write(audio.raw_data)
+        self._playing = False
+        self._play_lock.release()
 
     def is_installed(self) -> bool:
         """If all the requirements are installed"""
@@ -113,12 +142,18 @@ class gTTSHandler(TTSHandler):
 class EspeakHandler(TTSHandler):
     
     key = "espeak"
+
+    @staticmethod
+    def requires_sandbox_escape() -> bool:
+        """If the handler requires to run commands on the user host system"""
+        return True
+
     def get_voices(self):
         if len(self.voices) > 0:
             return self.voices
-        if not self.is_installed():
+        if not self.is_installed() or not can_escape_sandbox():
             return self.voices
-        output = subprocess.check_output(["flatpak-spawn", "--host", "espeak", "--voices"]).decode("utf-8")
+        output = check_output(["flatpak-spawn", "--host", "espeak", "--voices"]).decode("utf-8")
         # Extract the voice names from the output
         lines = output.strip().split("\n")[1:]
         voices = tuple()
@@ -129,15 +164,19 @@ class EspeakHandler(TTSHandler):
         return voices
 
     def play_audio(self, message):
-        subprocess.Popen(["flatpak-spawn", "--host", "espeak", "-v" + str(self.get_current_voice()), message])
+        self._play_lock.acquire()
+        check_output(["flatpak-spawn", "--host", "espeak", "-v" + str(self.get_current_voice()), message])
+        self._play_lock.release()
 
     def save_audio(self, message, file):
-        r = subprocess.check_output(["flatpak-spawn", "--host", "espeak", "-f", "-v" + str(self.get_current_voice()), message, "--stdout"])
+        r = check_output(["flatpak-spawn", "--host", "espeak", "-f", "-v" + str(self.get_current_voice()), message, "--stdout"])
         f = open(file, "wb")
         f.write(r)
 
     def is_installed(self):
-        output = subprocess.check_output(["flatpak-spawn", "--host", "whereis", "espeak"]).decode("utf-8")
+        if not can_escape_sandbox():
+            return False
+        output = check_output(["flatpak-spawn", "--host", "whereis", "espeak"]).decode("utf-8")
         paths = []
         if ":" in output:
             paths = output.split(":")[1].split()
@@ -151,6 +190,11 @@ class CustomTTSHandler(TTSHandler):
         self.path = path
         self.key = "custom_command"
         self.voices = tuple()
+
+    @staticmethod
+    def requires_sandbox_escape() -> bool:
+        """If the handler requires to run commands on the user host system"""
+        return True
 
     @staticmethod
     def get_extra_settings() -> list:
@@ -169,7 +213,9 @@ class CustomTTSHandler(TTSHandler):
     def play_audio(self, message):
         command = self.get_setting("command")
         if command is not None:
-            subprocess.Popen(["flatpak-spawn", "--host", "bash", "-c", command.replace("{0}", message)])
+            self._play_lock.acquire()
+            check_output(["flatpak-spawn", "--host", "bash", "-c", command.replace("{0}", message)])
+            self._play_lock.release()
 
 
     

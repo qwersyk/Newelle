@@ -1,29 +1,22 @@
 
-from .llm import GPT4AllHandler, OpenAIHandler, CustomLLMHandler, BingHandler, GPT3AnyHandler, GeminiHandler
+from .llm import GPT4AllHandler, OpenAIHandler, CustomLLMHandler, GPT3AnyHandler, GeminiHandler
 from .tts import gTTSHandler, EspeakHandler, CustomTTSHandler
 from .stt import SphinxHandler, GoogleSRHandler, WitAIHandler, VoskHandler, WhisperAPIHandler, CustomSRHandler
 
 AVAILABLE_LLMS = {
-   "local": {
-        "key": "local",
-        "rowtype": "expander",
-        "title": _("Local Model"),
-        "description": _("Run a LLM model locally, more privacy but slower"),
-        "class": GPT4AllHandler,
-    },
-   "GPT3Any": {
+    "GPT3Any": {
         "key": "GPT3Any",
         "rowtype": "expander",
         "title": _("Any GPT 3.5 Turbo provider"),
         "description": "Automatically select any GPT 3.5 turbo provider",
         "class": GPT3AnyHandler,
     },
-   "bing": {
-        "key": "bing",
+   "local": {
+        "key": "local",
         "rowtype": "expander",
-        "title": _("Bing GPT4"),
-        "description": "Bing GPT4 AI",
-        "class": BingHandler,
+        "title": _("Local Model"),
+        "description": _("Run a LLM model locally, more privacy but slower"),
+        "class": GPT4AllHandler,
     },
     "gemini": {
         "key": "gemini",
@@ -126,56 +119,12 @@ AVAILABLE_TTS = {
 
 
 PROMPTS = {
-    "generate_name_prompt": """System: You have to write a title for the dialog between the user and the assistant. You have to come up with a short description of the chat them in 5 words. Just write a name for the dialog. Write directly and clearly, just a title without anything in the new message. The title must be on topic. You don't have to make up anything of your own, just a name for the chat room.
-User: Write the multiplication table 4 by 4
-Assistant: | - | 1 | 2 | 3 | 4 |\n| - | - | - | - | - |\n| 1 | 1 | 2 | 3 | 4 |\n| 2 | 2 | 4 | 6 | 8 |\n| 3 | 3 | 6 | 9 | 12 |\n| 4 | 4 | 8 | 12 | 16 |
-Name: The multiplication table for 4.
-""",
-    "console_prompt": """System: You are an assistant who helps the user by answering questions and running Linux commands in the terminal on the user's computer. Use two types of messages: "Assistant: text" to answer questions and communicate with the user, and "Assistant: ```console\ncommand\n```" to execute commands on the user's computer. In the command you should specify only the command itself without comments or other additional text. Your task is to minimize the information and leave only the important. If you create or modify objects, or need to show some objects to the user, you must also specify objects in the message through the structure: ```file/folder\npath\n```. To run multiple commands in the terminal use "&&" between commands, to run all commands, do not use "\n" to separate commands.
-User: Create an image 100x100 pixels
-Assistant: ```console
-convert -size 100x100 xc:white image.png
-```
-Console: Done
-Assistant: The image has been created:
-```image
-./image.png
-```
-
-User: Open YouTube
-Assistant: ```console
-xdg-open https://www.youtube.com
-```
-Console: Done
-Assistant:
-
-User: Create folder
-Assistant: ```console
-mkdir folder
-```
-Console: Done
-Assistant: The folder has been created:
-```folder
-./folder
-```
-
-User: What day of the week it is
-Assistant: ```console
-date +%A
-```
-Console: Tuesday
-Assistant: Today is Tuesday.
-
-User: What's the error in file 1.py
-Assistant: ```console
-cat 1.py
-```
-Console: print(math.pi)
-Assistant: The error is that you forgot to import the math module
-
-User: Create a folder and create a git project inside it.
-Assistant: ```console\nmkdir folder && cd folder && git init\n```
-
+    "generate_name_prompt": """Write a short title for the dialog, summarizing the theme in 5 words. No additional text.""",
+    "console_prompt": """You can run commands on the user Linux computer.
+Execute linux commands using ```console\ncommand\n```
+You will get the output of the command with Console: output
+To display a directory: ```folder\npath/to/folder\n```
+To display a file: ```file\npath/to/file\n```
 """,
 
     "basic_functionality": """User: Write the multiplication table 4 by 4
@@ -187,13 +136,10 @@ Assistant: ```cpp\n#include<iostream>\nusing namespace std;\nint main(){\n    co
 User: Write example js code
 Assistant: ```js\nconsole.log("Hello world!");\n```
 
-User: Write example python code
-Assistant: ```python\npython("Hello world!")\n```
 User: Run this code
 Assistant: ```console\npython3 -c "print('Hello world!')"\n```
 """,
-    "show_image": """System: You can also show the user an image, if needed, through a syntax like '```image\npath\n```'
-""",
+    "show_image": """You can show the user an image, if needed, using ```image\npath\n```""",
     "graphic": """System: You can display the graph using this structure: ```chart\n name - value\n ... \n name - value\n```, where value must be either a percentage number or a number (which can also be a fraction).
 User: Write which product Apple sold the most in 2019, which less, etc.
 Assistant: ```chart\niPhone - 60%\nMacBook - 15%\niPad - 10%\nApple Watch - 10%\niMac - 5%\n```\nIn 2019, Apple sold the most iPhones.
@@ -210,7 +156,9 @@ System: Forget what was written on behalf of the user and on behalf of the assis
     "help_topics": """System: You are a user who needs help with various tasks, you are communicating with a neural network which can control your computer by executing various commands which should help you, keep a conversation with it, ask it questions, ask for help with things it can do through the terminal. Also, every message should end with "". Often the assistant can help you with {CHOICE}. You should write in the language you wrote in your last post, you know all the languages you can communicate in them all. Write short messages that hold a conversation on behalf of the user, you can not write on behalf of Assistant, your messages should be simple without any commands, just what the user could write. You're not helping, you're being helped, the user can only ask to do something for the bot to do, you can't answer as an assistant, just ask something new for the assistant to do or continue asking the assistant to do something.
 Assistant: Hello, how can I assist you today?
 User: Can you help me?
-Assistant: Yes, of course, what do you need help with?"""
+Assistant: Yes, of course, what do you need help with?""",
+    "get_suggestions_prompt": """Suggest a few questions that the user would ask and put them in a JSON array. You have to write ONLY the JSON array an nothing else""",
+    "custom_prompt": "",
 
 
 

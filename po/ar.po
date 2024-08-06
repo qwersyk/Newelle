@@ -1,0 +1,311 @@
+# Arabic translation for PACKAGE package.
+# Copyright (C) 2024 
+# This file is distributed under the same license as the PACKAGE package.
+# amine saoud <amiensa@proton.me>, 2024.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-07-10 09:30+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: Amine Saoud <amiensa@proton.me\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: Arabic\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: extension.py:9 window.py:148
+msgid "Extensions"
+msgstr "إضافات"
+
+#: extension.py:56
+msgid "Choose an extension"
+msgstr "إختر إضافة"
+
+#: extension.py:75
+msgid " has been removed"
+msgstr "تم إزالته"
+
+#: extension.py:78
+msgid "Add extension"
+msgstr "أضف إضافة"
+
+#: extension.py:105
+msgid "Extension added. New extensions will run from the next launch"
+msgstr "تمت إضافة الإضافة. سيتم تفعيل الإضافات الجديدة عند إعادة تشغيل البرنامج"
+
+#: extension.py:112
+msgid "The extension is wrong"
+msgstr "الإضافة خاطئة"
+
+#: extension.py:114
+msgid "This is not an extension"
+msgstr "هذا ليس إضافة"
+
+#: main.py:142
+msgid "Terminal threads are still running in the background"
+msgstr "لا تزال العمليات جارية في الخلفية"
+
+#: main.py:143
+msgid "When you close the window, they will be automatically terminated"
+msgstr "عندما تغلق النافذة, سيتم إقفالهم تلقائيا"
+
+#: main.py:146
+msgid "Cancel"
+msgstr "إلغاء"
+
+#: main.py:147
+msgid "Close"
+msgstr "قفل"
+
+#: main.py:167
+msgid "Chat is rebooted"
+msgstr "تم إعادة تشغيل الدردشة"
+
+#: main.py:172
+msgid "Folder is rebooted"
+msgstr "تم إعادة تشغيل المجلد"
+
+#: main.py:177
+msgid "Chat is created"
+msgstr "تم إنشاء دردشة"
+
+
+#: window.py:28 window.py:551
+msgid "Chat "
+msgstr "دردشة"
+
+#: window.py:147 thread_editing.py:8
+msgid "Thread editing"
+msgstr "تعديل الخيوط"
+
+#: window.py:149
+msgid "Settings"
+msgstr "الإعدادات"
+
+#: window.py:150
+msgid "Keyboard shorcuts"
+msgstr "إختصارات لوحة المفاتيح"
+
+#: window.py:151
+msgid "About"
+msgstr "عن"
+
+#: window.py:155
+msgid "Chat"
+msgstr "دردشة"
+
+#: window.py:182
+msgid "History"
+msgstr "سجل"
+
+#: window.py:193
+msgid "Create a chat"
+msgstr "إبدأ محادثة"
+
+#: window.py:236
+msgid " Stop"
+msgstr " توقف"
+
+#: window.py:305
+msgid " Clear"
+msgstr "حذف "
+
+#: window.py:317
+msgid " Continue"
+msgstr "تابع "
+
+#: window.py:329
+msgid " Regenerate"
+msgstr "إعادة الصياغة"
+
+#: window.py:417 window.py:737
+msgid "File not found"
+msgstr "الملف غير موجود"
+
+#: window.py:421
+msgid "The file cannot be sent until the program is finished"
+msgstr "لا يمكن إرسال الملف الى أن ينتهي البرنامج"
+
+#: window.py:435
+msgid "The file is not recognized"
+msgstr "الملف غير معرف"
+
+#: window.py:458
+msgid "You can no longer continue the message."
+msgstr "لا يمكنك إكمال الرسالة"
+
+#: window.py:471
+msgid "You can no longer regenerate the message."
+msgstr "لا يمكنك إعادة صياغة الرسالة"
+
+#: window.py:532
+msgid "Chat is empty"
+msgstr "المحادثة فارغة"
+
+#: window.py:593
+msgid "Chat is cleared"
+msgstr "تم حذف المحادثة"
+
+#: window.py:611
+msgid "The message was canceled and deleted from history"
+msgstr "تم إلغاء الرسالة وحذفها من السجل"
+
+#: window.py:624
+msgid "Failed to send bot a message"
+msgstr "فشل إرسال الرسالة الى الآلة"
+
+#: window.py:626
+msgid "Chat has been stopped"
+msgstr "تم توقيف المحادثة"
+
+#: window.py:652
+msgid "Folder is Empty"
+msgstr "المجلد فارغ"
+
+#: window.py:762
+msgid "Wrong folder path"
+msgstr "مسار الملف خاطئ"
+
+#: window.py:790
+msgid "Thread has not been completed, thread number: "
+msgstr "لم يتم إكمال الخيط, الخيط رقم: "
+
+#: window.py:796
+msgid "Failed to open the folder"
+msgstr "تعذر فتح المجلد"
+
+#: window.py:845
+msgid "The message cannot be sent until the program is finished"
+msgstr "لا يمكن إرسال الرسالة الى أن ينتهي البرنامج"
+
+#: window.py:1057
+msgid "You can't edit a message while the program is running."
+msgstr "لا يمكنك تعديل الرسالة أثناء تشغيل البرنامج"
+
+#: window.py:1110
+msgid ""
+"Attention the neural network has access to your computer, be careful, we are "
+"not responsible for the neural network."
+msgstr ""
+"تحذير! للشبكة العصبونية الإصطناعية قابلية للوصول إلى جهازك, كن حذرا, نحن لسنا"
+"مسؤولين عن الشبكة العصبونية الإصطناعية"
+
+#: thread_editing.py:38
+msgid "No threads are running"
+msgstr "لا توجد خيوط جارية"
+
+#: thread_editing.py:44
+msgid "Thread number: "
+msgstr "الخيط رقم: "
+
+#: shortcuts.py:8
+msgid "Help"
+msgstr "مساعدة"
+
+#: shortcuts.py:14
+msgid "Shortcuts"
+msgstr "إختصارات"
+
+#: shortcuts.py:15
+msgid "Reload chat"
+msgstr "إعادة تحميل الدردشة"
+
+#: shortcuts.py:16
+msgid "Reload folder"
+msgstr "إعادة تحميل المجلد"
+
+#: shortcuts.py:17
+msgid "New tab"
+msgstr "علامة تبويب جديدة"
+
+#: settings.py:13
+msgid "Interface"
+msgstr "واجهة"
+
+#: settings.py:16
+msgid "Hidden files"
+msgstr "الملفات المخفية"
+
+#: settings.py:16
+msgid "Show hidden files"
+msgstr "أظهر الملفات المخفية"
+
+#: settings.py:22
+msgid "Number of offers"
+msgstr "عدد العروض"
+
+#: settings.py:22
+msgid "Number of message suggestions to send to chat "
+msgstr "عدد اقتراحات الرسائل التي سيتم إرسالها إلى الدردشة"
+
+#: settings.py:29
+msgid "Prompt control"
+msgstr "التحكم بالردود"
+
+#: settings.py:32
+msgid "Auto-run commands"
+msgstr "تشغيل الأوامر تلقائيا"
+
+#: settings.py:32
+msgid "Commands that the bot will write will automatically run"
+msgstr "سيتم تشغيل الأوامر التي سيكتبها الروبوت تلقائيًا"
+
+#: settings.py:38
+msgid "Console access"
+msgstr  "الوصول إلى وحدة التحكم"
+
+#: settings.py:38
+msgid "Can the program run terminal commands on the computer"
+msgstr "هل يمكن للبرنامج تشغيل الأوامر على الجهاز"
+
+#: settings.py:44
+msgid "Graphs access"
+msgstr "الوصول إلى الرسوم البيانية"
+
+#: settings.py:44
+msgid "Can the program display graphs"
+msgstr "هل يمكن للبرنامج عرض الرسوم البيانية"
+
+#: settings.py:50
+msgid "Basic functionality"
+msgstr "وظائف أساسية"
+
+#: settings.py:50
+msgid "Showing tables and code (*can work without it)"
+msgstr "عرض الجداول والأكواد البرمجية (*يمكن العمل بدونها)"
+
+#: settings.py:56
+msgid "Show image"
+msgstr "إظهار الصور"
+
+#: settings.py:56
+msgid "Show image in chat"
+msgstr "إظهار الصور في الدردشة"
+
+#: settings.py:62
+msgid "Neural Network Control"
+msgstr "التحكم في الشبكة العصبونية الإصطناعية"
+
+#: settings.py:65
+msgid "Command virtualization"
+msgstr "أوامر افتراضية"
+
+#: settings.py:65
+msgid "Run commands in a virtual machine"
+msgstr "تشغيل الأوامر في بيئة افتراضية"
+
+#: settings.py:71
+msgid "Program memory"
+msgstr "ذاكرة البرنامج"
+
+#: settings.py:71
+msgid "How long the program remembers the chat "
+msgstr "كم من الوقت يتذكر البرنامج المحادثة"
+
+#: settings.py:78
+msgid "The change will take effect after you restart the program."
+msgstr "سيتم إحداث التغييرات بعد إعادة تشغيل البرنامج"

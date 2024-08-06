@@ -2,7 +2,7 @@
     "name": "python3-g4f",
     "buildsystem": "simple",
     "build-commands": [
-        "pip3 install --verbose --exists-action=i --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} \"g4f\" --no-build-isolation"
+        "pip install --verbose --exists-action=i --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} \"g4f\" --no-build-isolation"
     ],
     "sources": [
         {
@@ -12,8 +12,13 @@
         },
         {
             "type": "file",
-            "url": "https://files.pythonhosted.org/packages/04/a4/e3679773ea7eb5b37a2c998e25b017cc5349edf6ba2739d1f32855cfb11b/aiohttp-3.9.5.tar.gz",
-            "sha256": "edea7d15772ceeb29db4aff55e482d4bcfb6ae160ce144f2682de02f6d693551"
+            "url": "https://files.pythonhosted.org/packages/93/fd/a19345071360a94345ebecaa268d6c6f56900687d91ef775fe2496a76100/aiohappyeyeballs-2.3.4-py3-none-any.whl",
+            "sha256": "40a16ceffcf1fc9e142fd488123b2e218abc4188cf12ac20c67200e1579baa42"
+        },
+        {
+            "type": "file",
+            "url": "https://files.pythonhosted.org/packages/bc/97/328a9e18e2bc229e5bf1391c9d5f6712104b2b5759c56f51fe03a1b702f1/aiohttp-3.10.0.tar.gz",
+            "sha256": "e8dd7da2609303e3574c95b0ec9f1fd49647ef29b94701a2862cceae76382e1d"
         },
         {
             "type": "file",
@@ -42,8 +47,8 @@
         },
         {
             "type": "file",
-            "url": "https://files.pythonhosted.org/packages/78/93/c2a8f27e1372fcb340936f0fe5bc4988cb1ed11bcdcd3e34ca06a48ea9bb/g4f-0.3.2.2-py3-none-any.whl",
-            "sha256": "35fbfcc6d220520c1dea48f1a3f18d29c3839ff73cb55170446905249fe07944"
+            "url": "https://files.pythonhosted.org/packages/b9/f0/10a6f55f08833aac26c879ef5e0d2d3f4a26da47eea5d3f26de0ed4c37b1/g4f-0.3.2.3-py3-none-any.whl",
+            "sha256": "3cfb012290e455ba4eea240e9fe49162e4851b2155661be5e9065c76cbc6bd7b"
         },
         {
             "type": "file",

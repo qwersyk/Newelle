@@ -18,6 +18,14 @@ install_data (
     install_dir: symbolic_dir
 )
 install_data (
-    'avatar-symbolic.svg',
+    'warning-outline-symbolic.svg',
+    install_dir: symbolic_dir
+)
+install_data (
+    'star-filled-rounded-symbolic.svg',
+    install_dir: symbolic_dir
+)
+install_data (
+    'update-symbolic.svg',
     install_dir: symbolic_dir
 )

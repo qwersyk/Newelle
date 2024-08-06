@@ -123,8 +123,11 @@ class MyApp(Adw.Application):
                         version=self.version,
                         issue_url='https://github.com/qwersyk/Newelle/issues',
                         website='https://github.com/qwersyk/Newelle',
-                        developers=['qwersyk  https://github.com/qwersyk',"Nokse22 https://github.com/Nokse22","Francesco Caracciolo https://github.com/FrancescoCaracciolo"],
-                        copyright='© 2023 qwersyk').present()
+                        developers=['Yehor Hliebov  https://github.com/qwersyk',"Francesco Caracciolo https://github.com/FrancescoCaracciolo"],
+                        documenters=["Francesco Caracciolo https://github.com/FrancescoCaracciolo"],
+                        designers=["Nokse22 https://github.com/Nokse22"],
+                        translator_credits="\n".join(["Amine Saoud (Arabic) https://github.com/amiensa","Heimen Stoffels (Dutch) https://github.com/Vistaus","Albano Battistella (Italian) https://github.com/albanobattistella"]),
+                        copyright='© 2024 qwersyk').present()
 
     def thread_editing_action(self, *a):
         threadediting = ThreadEditing(self)
@@ -191,9 +194,7 @@ class MyApp(Adw.Application):
                 Adw.Toast(title=_('Chat is created')))
 
     def do_shutdown(self):
-        os.chdir(os.path.expanduser("~"))
-        with open(self.win.path + self.win.filename, 'wb') as f:
-            pickle.dump(self.win.chats, f)
+        self.win.save_chat()
         settings = Gio.Settings.new('io.github.qwersyk.Newelle')
         settings.set_int("chat", self.win.chat_id)
         settings.set_string("path", os.path.normpath(self.win.main_path))

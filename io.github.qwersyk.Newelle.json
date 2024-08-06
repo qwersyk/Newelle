@@ -28,13 +28,14 @@
     "modules" : [
     	"python3-requests.json",
     	"python3-expandvars.json",
-    	"python3-gpt4all.json",
+    	"python3-curl_cffi.json",
 	"python3-g4f.json",
+    	"python3-gpt4all.json",
     	"python3-gtts.json",
-    	"python3-playsound.json",
     	"python3-pip.json",
     	"portaudio.json",
     	"python3-pyaudio.json",
+        "python3-pydub.json",
     	"python3-speechrecognition.json",
         {
             "name" : "newelle",

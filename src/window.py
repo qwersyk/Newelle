@@ -1,10 +1,11 @@
 import time, re, sys
 import gi, os, subprocess
 import pickle
-from .gtkobj import File, CopyBox, BarChartBox
+from .gtkobj import File, CopyBox, BarChartBox, MultilineEntry
 from .constants import AVAILABLE_LLMS, PROMPTS, AVAILABLE_TTS, AVAILABLE_STT
 from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject, GLib, WebKit
 from .stt import AudioRecorder
+from .extra import override_prompts
 import threading
 import posixpath
 import shlex,json
@@ -299,24 +300,37 @@ class MainWindow(Gtk.ApplicationWindow):
         self.regenerate_message_button.set_visible(False)
         self.chat_controls_entry_block.append(self.regenerate_message_button)
 
-        self.input_panel = Gtk.Entry(hexpand=True, placeholder_text=_("Send a message")) #…
-
-        self.secondary_message_chat_block.append(Gtk.Separator())
+        # Input message box
         input_box=Gtk.Box(halign=Gtk.Align.FILL, margin_start=6, margin_end=6,  margin_top=6, margin_bottom=6, spacing=6)
-        self.secondary_message_chat_block.append(input_box)
+        input_box.set_valign(Gtk.Align.CENTER)
+        # Text Entry
+        self.input_panel = MultilineEntry()
         input_box.append(self.input_panel)
-        self.mic_button = Gtk.Button(css_classes=["suggested-action"], icon_name="audio-input-microphone-symbolic", width_request=36)
+        self.input_panel.set_placeholder(_("Send a message..."))
+
+        # Buttons on the right
+        self.secondary_message_chat_block.append(Gtk.Separator())
+        self.secondary_message_chat_block.append(input_box)
+        # Mic button
+        self.mic_button = Gtk.Button(css_classes=["suggested-action"], icon_name="audio-input-microphone-symbolic", width_request=36, height_request=36)
+        self.mic_button.set_vexpand(False)
+        self.mic_button.set_valign(Gtk.Align.CENTER)
         self.mic_button.connect("clicked", self.start_recording)
         input_box.append(self.mic_button)
-        self.send_button = Gtk.Button(css_classes=["suggested-action"], icon_name="go-next-symbolic", width_request=36)
-        input_box.append(self.send_button)
-        self.input_panel.connect('activate', self.on_entry_activate)
+        # Send button
+        box = Gtk.Box()
+        box.set_vexpand(False)
+        self.send_button = Gtk.Button(css_classes=["suggested-action"], icon_name="go-next-symbolic", width_request=36, height_request=36)
+        self.send_button.set_vexpand(False)
+        self.send_button.set_valign(Gtk.Align.CENTER)
+        box.append(self.send_button)
+        input_box.append(box)
+        self.input_panel.set_on_enter(self.on_entry_activate)
         self.send_button.connect('clicked', self.on_entry_button_clicked)
         self.main.connect("notify::folded", self.handle_main_block_change)
         self.main_program_block.connect("notify::reveal-flap", self.handle_second_block_change)
 
         self.stream_number_variable = 0
-        GLib.idle_add(self.update_button_text)
         GLib.idle_add(self.update_folder)
         GLib.idle_add(self.update_history)
         GLib.idle_add(self.show_chat)
@@ -365,6 +379,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.auto_run = settings.get_boolean("auto-run")
         self.chat = self.chats[min(self.chat_id,len(self.chats)-1)]["chat"]
         self.graphic = settings.get_boolean("graphic")
+        self.cutom_extra_prompt = settings.get_boolean("custom-extra-prompt")
         self.basic_functionality = settings.get_boolean("basic-functionality")
         self.show_image = settings.get_boolean("show-image")
         self.language_model = settings.get_string("language-model")
@@ -374,6 +389,10 @@ class MainWindow(Gtk.ApplicationWindow):
         self.tts_voice = settings.get_string("tts-voice")
         self.stt_engine = settings.get_string("stt-engine")
         self.stt_settings = settings.get_string("stt-settings")
+
+        # Load custom prompts
+        self.custom_prompts = json.loads(self.settings.get_string("custom-prompts"))
+        self.prompts = override_prompts(self.custom_prompts, PROMPTS)
 
         if self.language_model in AVAILABLE_LLMS:
             self.model = AVAILABLE_LLMS[self.language_model]["class"](self.settings, os.path.join(self.directory, "models"))
@@ -385,15 +404,17 @@ class MainWindow(Gtk.ApplicationWindow):
 
         self.bot_prompt = """"""
         if self.console:
-            self.bot_prompt += PROMPTS["console_prompt"]
+            self.bot_prompt += self.prompts["console_prompt"]
         if self.basic_functionality:
-            self.bot_prompt += PROMPTS["basic_functionality"]
+            self.bot_prompt += self.prompts["basic_functionality"]
         if self.show_image:
-            self.bot_prompt += PROMPTS["show_image"]
+            self.bot_prompt += self.prompts["show_image"]
         if self.graphic:
-            self.bot_prompt += PROMPTS["graphic"]
+            self.bot_prompt += self.prompts["graphic"]
         if self.graphic and self.console:
-            self.bot_prompt += PROMPTS["graphic_console"]
+            self.bot_prompt += self.prompts["graphic_console"]
+        if self.cutom_extra_prompt:
+            self.bot_prompt += self.prompts["custom_prompt"]
         self.extension_path = os.path.expanduser("~")+"/.var/app/io.github.qwersyk.Newelle/extension"
         self.extensions = {}
         if os.path.exists(self.extension_path):
@@ -502,7 +523,7 @@ class MainWindow(Gtk.ApplicationWindow):
             if os.path.isdir(os.path.join(os.path.expanduser(self.main_path), button.get_name())):
                 self.main_path = button.get_name()
                 os.chdir(os.path.expanduser(self.main_path))
-                self.update_folder()
+                GLib.idle_add(self.update_folder)
             else:
                 subprocess.run(['xdg-open', os.path.expanduser(button.get_name())])
         else:
@@ -522,22 +543,21 @@ class MainWindow(Gtk.ApplicationWindow):
                     self.chat.append({"User": "File", "Message": " " + path})
                     self.add_message("File", message_label)
                 self.chats[self.chat_id]["chat"] = self.chat
-                GLib.idle_add(self.update_button_text)
             else:
                 self.notification_block.add_toast(Adw.Toast(title=_('The file is not recognized'), timeout=2))
 
     def go_back_in_explorer_panel(self, *a):
         self.main_path += "/.."
-        self.update_folder()
+        GLib.idle_add(self.update_folder)
 
     def go_home_in_explorer_panel(self, *a):
         self.main_path = "~"
-        self.update_folder()
+        GLib.idle_add(self.update_folder)
 
     def go_forward_in_explorer_panel(self, *a):
         if self.main_path[len(self.main_path) - 3:len(self.main_path)] == "/..":
             self.main_path = self.main_path[0:len(self.main_path) - 3]
-            self.update_folder()
+            GLib.idle_add(self.update_folder)
 
     def go_back_to_chats_panel(self, button):
         self.main.set_visible_child(self.chats_main_box)
@@ -565,6 +585,7 @@ class MainWindow(Gtk.ApplicationWindow):
         else:
             self.notification_block.add_toast(Adw.Toast(title=_('You can no longer regenerate the message.'), timeout=2))
     def update_history(self):
+        # Update UI
         list_box = Gtk.ListBox(css_classes=["separators","background"])
         list_box.set_selection_mode(Gtk.SelectionMode.NONE)
         self.chats_buttons_scroll_block.set_child(list_box)
@@ -630,14 +651,9 @@ class MainWindow(Gtk.ApplicationWindow):
             button.set_child(spinner)
             button.set_can_target(False)
             button.set_has_frame(True)
-            name = self.send_message_to_bot(PROMPTS["generate_chat_prompt"] + "\n" + self.get_chat(self.chats[int(button.get_name())]["chat"][
-                               len(self.chats[int(button.get_name())]["chat"]) - self.memory:len(
-                                   self.chats[int(button.get_name())]["chat"])]) + "\nName:")
-            if self.model.stream_enabled():
-                for n in name:
-                    self.chats[int(button.get_name())]["name"] = n["text"]
-                    self.update_history()
-                name = n["text"]
+            # TODO: take the history for the correct chat
+            self.model.set_history([], self)
+            name = self.model.generate_chat_name(self.prompts["generate_name_prompt"])
             if name != "Chat has been stopped":
                 self.chats[int(button.get_name())]["name"] = name
             self.update_history()
@@ -666,7 +682,6 @@ class MainWindow(Gtk.ApplicationWindow):
     def scrolled_chat(self):
         adjustment = self.chat_scroll.get_vadjustment()
         value = adjustment.get_upper()
-        time.sleep(0.1)
         adjustment.set_value(100000)
 
     def create_table(self, table):
@@ -819,7 +834,7 @@ class MainWindow(Gtk.ApplicationWindow):
             if os.path.isdir(os.path.join(os.path.expanduser(self.main_path), button.get_name())):
                 self.main_path += "/" + button.get_name()
                 os.chdir(os.path.expanduser(self.main_path))
-                self.update_folder()
+                GLib.idle_add(self.update_folder)
             else:
                 subprocess.run(['xdg-open', os.path.expanduser(self.main_path + "/" + button.get_name())])
         else:
@@ -856,6 +871,7 @@ class MainWindow(Gtk.ApplicationWindow):
         process = subprocess.Popen(txt, stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE, shell=True)
         outputs = []
+
         def read_output(process, outputs):
             try:
                 stdout, stderr = process.communicate()
@@ -880,7 +896,7 @@ class MainWindow(Gtk.ApplicationWindow):
         if os.path.exists(os.path.expanduser(path)):
             os.chdir(os.path.expanduser(path))
             self.main_path = path
-            self.update_folder()
+            GLib.idle_add(self.update_folder)
         else:
             Adw.Toast(title=_('Failed to open the folder'), timeout=2)
         return outputs[0]
@@ -894,7 +910,6 @@ class MainWindow(Gtk.ApplicationWindow):
 
     def update_button_text(self):
         stream_number_variable = self.stream_number_variable
-        time.sleep(0.1)
         message_suggestion_texts_array = []
         for btn in self.message_suggestion_buttons_array:
             btn.set_visible(False)
@@ -909,20 +924,8 @@ class MainWindow(Gtk.ApplicationWindow):
                     self.regenerate_message_button.set_visible(True)
                 elif self.chat[-1]["User"] in ["Assistant","Console","User"]:
                     self.button_continue.set_visible(True)
-            for btn in self.message_suggestion_buttons_array:
-                if stream_number_variable != self.stream_number_variable:
-                    break
-                self.model.set_history([], self)
-                message = self.model.get_suggestions(self, PROMPTS["help_topics"].replace("{CHOICE}", random.choice(self.random_suggestion)))
-                if stream_number_variable != self.stream_number_variable or not self.status:
-                    break
-                message = message.replace("\n","")
-                btn.get_child().set_label(message)
-                if message not in message_suggestion_texts_array:
-                    message_suggestion_texts_array.append(message)
-                    btn.set_visible(True)
-                    GLib.idle_add(self.scrolled_chat)
-            self.chat_stop_button.set_visible(False)
+            # Generate suggestions in another thread and then add them to the UI
+            threading.Thread(target=self.generate_suggestions).start()
         else:
             for btn in self.message_suggestion_buttons_array:
                 btn.set_visible(False)
@@ -931,6 +934,29 @@ class MainWindow(Gtk.ApplicationWindow):
             self.regenerate_message_button.set_visible(False)
             self.chat_stop_button.set_visible(True)
         GLib.idle_add(self.scrolled_chat)
+
+    def generate_suggestions(self):
+        """Create the suggestions and update the UI when it's finished"""
+        suggestions = self.model.get_suggestions(self.prompts["get_suggestions_prompt"], self.offers)
+        GLib.idle_add(self.populate_suggestions, suggestions)
+
+    def populate_suggestions(self, suggestions):
+        """Update the UI with the generated suggestions"""
+        i = 0
+        # Convert to tuple to remove duplicates
+        for suggestion in tuple(suggestions):
+            if i+1 > self.offers:
+                break
+            else:
+                message = suggestion.replace("\n","")
+                btn = self.message_suggestion_buttons_array[i]
+                btn.get_child().set_label(message)
+                btn.set_visible(True)
+                GLib.idle_add(self.scrolled_chat)
+            i+=1
+        self.chat_stop_button.set_visible(False)
+        GLib.idle_add(self.scrolled_chat)
+
     def on_entry_activate(self, entry):
         if not self.status:
             self.notification_block.add_toast(
@@ -1134,6 +1160,7 @@ class MainWindow(Gtk.ApplicationWindow):
                 if not restore:
                     GLib.idle_add(self.send_message)
         GLib.idle_add(self.scrolled_chat)
+        self.save_chat()
 
     def send_message(self):
         self.stream_number_variable += 1
@@ -1141,10 +1168,10 @@ class MainWindow(Gtk.ApplicationWindow):
         self.status = False
         self.update_button_text()
         prompts = [value["prompt"] for value in self.extensions.values() if value["status"]]
-        if not (self.bot_prompt=="""""" and prompts==[]):
-            prompts.append(PROMPTS["new_chat_prompt"])
+        prompts.append(self.bot_prompt)
+
         if self.console:
-            prompts.append(PROMPTS["current_directory"].replace("{DIR}", os.getcwd()))
+            prompts.append(self.prompts["current_directory"].replace("{DIR}", os.getcwd()))
         self.model.set_history(prompts, self)
 
         if self.model.stream_enabled():
@@ -1257,3 +1284,10 @@ class MainWindow(Gtk.ApplicationWindow):
             box.append(message)
         self.chat_list_block.append(box)
         return box
+
+    def save_chat(self):
+        prevdir = os.getcwd()
+        os.chdir(os.path.expanduser("~"))
+        with open(self.path + self.filename, 'wb') as f:
+            pickle.dump(self.chats, f)
+        os.chdir(prevdir)

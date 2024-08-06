@@ -1,11 +1,9 @@
 from abc import abstractmethod
-from contextlib import AbstractAsyncContextManager
-from gi.repository import Gtk, Adw, Gio, GLib
-from gpt4all import GPT4All
-import os, threading, subprocess, re
-
-from gpt4all.gpt4all import MessageType
+from subprocess import check_output
+import os, threading
+from typing import Callable, Any
 import time, json
+
 from .extra import find_module, install_module
 
 class LLMHandler():
@@ -18,7 +16,12 @@ class LLMHandler():
         self.settings = settings
         self.path = path
 
-    @staticmethod 
+    @staticmethod
+    def requires_sandbox_escape() -> bool:
+        """If the handler requires to run commands on the user host system"""
+        return False
+
+    @staticmethod
     def get_extra_settings() -> list:
         """The list of extra settings for the current model.
             A Setting is a dict with the following properties:
@@ -40,67 +43,179 @@ class LLMHandler():
         """The list of extra pip requirements needed by the handler"""
         return []
 
-    """ Return if the LLM supports token streaming"""
     def stream_enabled(self) -> bool:
+        """ Return if the LLM supports token streaming"""
         enabled = self.get_setting("streaming")
         if enabled is None:
             return False
         return enabled
 
-    """ Install the LLM requirements"""
     def install(self):
+        """Install the LLM requirements"""
         pip_path = os.path.join(os.path.abspath(os.path.join(self.path, os.pardir)), "pip")
         for module in self.get_extra_requirements():
             install_module(module, pip_path)
 
-    """ Return if the LLM is installed"""
-    def is_installed(self):
+    def is_installed(self) -> bool:
+        """Return if the LLM is installed"""
         for module in self.get_extra_requirements():
             if find_module(module) is None:
                 return False
         return True
 
-    """ Load the LLM model"""
     def load_model(self, model):
+        """ Load the specified model """
         return True
 
-    """ Get a response to a message"""
-    @abstractmethod
-    def send_message(self, window, message) -> str:
-        pass
+    def set_history(self, prompts : list[str], window):
+        """Set the current history and prompts
 
-    """ Generates a prompt suggestion given text and history"""
-    @abstractmethod
-    def get_suggestions(self, window, message) -> str:
-        pass
-
-    """ Sets chat history"""
-    def set_history(self, prompts, window):
+        Args:
+            prompts (list[str]): list of sytem prompts
+            window : Application window
+        """        
         self.prompts = prompts
         self.history = window.chat[len(window.chat) - window.memory:len(window.chat)-1]
 
-    """ Get LLM setting"""
-    def get_setting(self, key) -> object:
+    def get_setting(self, key: str) -> object:
+        """Get a setting from the given key
+
+        Args:
+            key (str): key of the setting
+
+        Returns:
+            object: value of the setting
+        """        
         j = json.loads(self.settings.get_string("llm-settings"))
         if self.key not in j or key not in j[self.key]:
             return self.get_default_setting(key)
         return j[self.key][key]
 
-    """ Set LLM setting"""
-    def set_setting(self, key, value):
+    def set_setting(self, key : str, value):
+        """Set a setting from key and value for this handler
+
+        Args:
+            key (str): key of the setting
+            value (object): value of the setting
+        """        
         j = json.loads(self.settings.get_string("llm-settings"))
         if self.key not in j:
             j[self.key] = {}
         j[self.key][key] = value
         self.settings.set_string("llm-settings", json.dumps(j))
 
-    """ Get LLM default setting"""
-    def get_default_setting(self, key):
+    def get_default_setting(self, key) -> object:
+        """Get the default setting from a certain key
+
+        Args:
+            key (str): key of the setting
+
+        Returns:
+            object: setting value
+        """
         extra_settings = self.get_extra_settings()
         for s in extra_settings:
             if s["key"] == key:
                 return s["default"]
         return None
+
+    @abstractmethod
+    def generate_text(self, prompt: str, history: dict[str, str] = {}, system_prompt: list[str] = []) -> str:
+        """Generate test from the given prompt, history and system prompt
+
+        Args:
+            prompt (str): text of the prompt
+            history (dict[str, str], optional): history of the chat. Defaults to {}.
+            system_prompt (list[str], optional): content of the system prompt. Defaults to [].
+
+        Returns:
+            str: generated text
+        """        
+        pass
+
+    @abstractmethod
+    def generate_text_stream(self, prompt: str, history: dict[str, str] = {}, system_prompt: list[str] = [], on_update: Callable[[str], Any] = (), extra_args : list = []) -> str:
+        """_summary_
+
+        Args:
+            prompt (str): text of the prompt
+            history (dict[str, str], optional): history of the chat. Defaults to {}.
+            system_prompt (list[str], optional): content of the system prompt. Defaults to [].
+            on_update (Callable[[str], Any], optional): Function to call when text is generated. The partial message is the first agrument Defaults to ().
+            extra_args (list, optional): extra arguments to pass to the on_update function. Defaults to [].
+        
+        Returns:
+            str: generated text
+        """  
+        pass
+
+    def send_message(self, window, message:str) -> str:
+        """Send a message to the bot
+
+        Args:
+            window: The window
+            message: Text of the message
+
+        Returns:
+            str: Response of the bot
+        """        
+        return self.generate_text(message, self.history, self.prompts)
+
+    def send_message_stream(self, window, message:str, on_update: Callable[[str], Any] = (), extra_args : list = []) -> str:
+        """Send a message to the bot
+
+        Args:
+            window: The window
+            message: Text of the message
+            on_update (Callable[[str], Any], optional): Function to call when text is generated. The partial message is the first agrument Defaults to ().
+            extra_args (list, optional): extra arguments to pass to the on_update function. Defaults to [].
+
+        Returns:
+            str: Response of the bot
+        """        
+        return self.generate_text_stream(message, self.history, self.prompts, on_update, extra_args)
+
+    def get_suggestions(self, request_prompt:str = None, amount:int=1) -> list[str]:
+        """Get suggestions for the current chat. The default implementation expects the result as a JSON Array containing the suggestions
+
+        Args:
+            request_prompt: The prompt to get the suggestions
+            amount: Amount of suggstions to generate
+
+        Returns:
+            list[str]: prompt suggestions
+        """
+        result = []
+        history = ""
+        # Only get the last four elements and reconstruct partial history
+        for message in self.history[-4:] if len(self.history) >= 4 else self.history:
+            history += message["User"] + ": " + message["Message"] + "\n"
+        for i in range(0, amount):
+            generated = self.generate_text(history + "\n\n" + request_prompt)
+            generated = generated.replace("```json", "").replace("```", "")
+            try:
+                j = json.loads(generated)
+            except Exception as e:
+                continue
+            if type(j) is list:
+                for suggestion in j:
+                    if type(suggestion) is str:
+                        result.append(suggestion)
+                        i+=1
+                        if i >= amount:
+                            break
+        return result
+
+    def generate_chat_name(self, request_prompt:str = None) -> str:
+        """Generate name of the current chat
+
+        Args:
+            request_prompt (str, optional): Extra prompt to generate the name. Defaults to None.
+
+        Returns:
+            str: name of the chat
+        """
+        return self.generate_text(request_prompt, self.history)
 
 
 class G4FHandler(LLMHandler):
@@ -111,34 +226,9 @@ class G4FHandler(LLMHandler):
     def get_extra_requirements() -> list:
         return ["g4f"]
 
-    @abstractmethod
-    def generate_response(self, window, message) -> str:
-        pass
-
-    @abstractmethod
-    def generate_response_stream(self, window, message, on_update, extra_args) -> str:
-        pass
-
-    def send_message(self, window, message) -> str:
-        """Get a response to a message"""
-        self.history.append({"User": "User", "Message": window.bot_prompt+"\n"+"\n".join(self.prompts)})
-        return self.generate_response(window, message)
-
-    def send_message_stream(self, window, message, on_update, extra_args):
-        """Get a response to a message"""
-        self.history.append({"User": "User", "Message": window.bot_prompt+"\n"+"\n".join(self.prompts)})
-        return self.generate_response_stream(window, message, on_update, extra_args)
-
-    def get_suggestions(self, window, message):
-        """Gets chat suggestions"""
-        # Disabled to avoid flood
-        return ""
-        message = message + "\nUser:"
-        return self.generate_response(window, message)
-
     def convert_history(self, history: dict) -> list:
-        """Converts the given history into the correct format for current_chat_history"""
         result = []
+        result.append({"role": "system", "content": "\n".join(self.prompts)})
         for message in history:
             result.append({
                 "role": message["User"].lower(),
@@ -147,12 +237,16 @@ class G4FHandler(LLMHandler):
         return result
 
     def set_history(self, prompts, window):
-        """Manages messages history"""
         self.history = window.chat[len(window.chat) - window.memory:len(window.chat)-1]
         self.prompts = prompts
 
 
 class GPT3AnyHandler(G4FHandler):
+    """
+    Use any GPT3.5-Turbo providers
+    - History is supported by almost all of them
+    - System prompts are not well supported, so the prompt is put on top of the message
+    """
     key = "GPT3Any"
 
     def __init__(self, settings, path):
@@ -171,50 +265,84 @@ class GPT3AnyHandler(G4FHandler):
                 "default": True
             },
         ]
+
+    def convert_history(self, history: dict) -> list:
+        """Converts the given history into the correct format for current_chat_history"""
+        result = []
+        #result.append({"role": "system", "content": "\n".join(self.prompts)})
+        for message in history:
+            result.append({
+                "role": message["User"].lower(),
+                "content": message["Message"]
+            })
+        return result
+
     def generate_response(self, window, message):
         return self.__generate_response(window, message)
 
     def generate_response_stream(self, window, message, on_update, extra_args):
         return self.__generate_response_stream(window, message, on_update, extra_args)
 
-    def __generate_response(self, window, message):
-            import g4f
-            """Generates a response given text and history"""
-            history = self.convert_history(self.history)
-            user_prompt = {"role": "user", "content": message}
-            history.append(user_prompt)
-            response = self.client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=history,
-            )
-            print(response)
-            return response.choices[0].message.content
 
-    def __generate_response_stream(self, window, message, on_update, extra_args):
-            import g4f
-            """Generates a response given text and history"""
-            history = self.convert_history(self.history)
-            user_prompt = {"role": "user", "content": message}
-            history.append(user_prompt)
-            response = self.client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=history,
-                stream=True
-            )
-            full_message = ""
-            prev_message = ""
-            for chunk in response:
-                if chunk.choices[0].delta.content:
-                    full_message += chunk.choices[0].delta.content
-                    args = (full_message.strip(), ) + extra_args
-                    if len(full_message) - len(prev_message) > 1:
-                        on_update(*args)
-                        prev_message = full_message
-            return full_message.strip()
+    def generate_text(self, prompt: str, history: dict[str, str] = {}, system_prompt: list[str] = []) -> str:
+        # Add prompts in the message since some providers
+        # don't support system prompts well
+        message = prompt
+        if len (self.prompts) > 0:
+            message = "SYSTEM:" + "\n".join(system_prompt) + "\n\n" + prompt
+        history = self.convert_history(history)
+        user_prompt = {"role": "user", "content": message}
+        history.append(user_prompt)
+        response = self.client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=history,
+        )
+        return response.choices[0].message.content
 
+    def generate_text_stream(self, prompt: str, history: dict[str, str] = {}, system_prompt: list[str] = [], on_update: Callable[[str], Any] = (), extra_args: list = []) -> str:
+        # Add prompts in the message since some providers
+        # don't support system prompts well
+        import g4f
+        message = prompt
+        if len (self.prompts) > 0:
+            message = "SYSTEM:" + "\n".join(system_prompt) + "\n\n" + prompt
+        history = self.convert_history(history)
+        user_prompt = {"role": "user", "content": message}
+        history.append(user_prompt)
+        response = self.client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=history,
+            stream=True,
+        )
+        full_message = ""
+        prev_message = ""
+        for chunk in response:
+            if chunk.choices[0].delta.content:
+                full_message += chunk.choices[0].delta.content
+                args = (full_message.strip(), ) + extra_args
+                if len(full_message) - len(prev_message) > 1:
+                    on_update(*args)
+                    prev_message = full_message
+        return full_message.strip()
+
+    def send_message(self, window, message: str) -> str:
+        return self.generate_text(window.chat[-1]["User"] + ": " + message, self.history, self.prompts)
+     
+    def send_message_stream(self, window, message: str, on_update: Callable[[str], Any] = (), extra_args: list = []) -> str:
+        return self.generate_text_stream(window.chat[-1]["User"] + ": " + message, self.history, self.prompts, on_update, extra_args)
+
+    def generate_chat_name(self, request_prompt: str = None) -> str:
+        history = ""
+        for message in self.history[-4:] if len(self.history) >= 4 else self.history:
+            history += message["User"] + ": " + message["Message"] + "\n"
+        name = self.generate_text(history + "\n\n" + request_prompt)
+        return name
 
 class GeminiHandler(LLMHandler):
     key = "gemini"
+    """
+    Official GOogle Gemini APIs, they support history and system prompts
+    """
 
     @staticmethod
     def get_extra_requirements() -> list:
@@ -261,31 +389,30 @@ class GeminiHandler(LLMHandler):
             })
         return result
 
-
-    def send_message(self, window, message):
+    def generate_text(self, prompt: str, history: dict[str, str] = {}, system_prompt: list[str] = []) -> str:
         import google.generativeai as genai
         genai.configure(api_key=self.get_setting("apikey"))
-        instructions = window.bot_prompt+"\n"+"\n".join(self.prompts)
+        instructions = "\n"+"\n".join(system_prompt)
         model = genai.GenerativeModel(self.get_setting("model"), system_instruction=instructions)
-        converted_history = self.__convert_history(self.history)
+        converted_history = self.__convert_history(history)
 
         chat = model.start_chat(
             history=converted_history,
         )
-        response = chat.send_message(message)
+        response = chat.send_message(prompt)
         return response.text
 
-    def send_message_stream(self, window, message, on_update, extra_args):
+    def generate_text_stream(self, prompt: str, history: dict[str, str] = {}, system_prompt: list[str] = [], on_update: Callable[[str], Any] = (), extra_args: list = []) -> str:
         import google.generativeai as genai
         genai.configure(api_key=self.get_setting("apikey"))
-        instructions = window.bot_prompt+"\n"+"\n".join(self.prompts)
+        instructions = "\n".join(system_prompt)
         model = genai.GenerativeModel(self.get_setting("model"), system_instruction=instructions)
-        converted_history = self.__convert_history(self.history)
+        converted_history = self.__convert_history(history)
         chat = model.start_chat(
             history=converted_history,
         )
 
-        response = chat.send_message(message, stream=True)
+        response = chat.send_message(prompt, stream=True)
         full_message = ""
         for chunk in response:
             full_message += chunk.text
@@ -294,69 +421,14 @@ class GeminiHandler(LLMHandler):
         return full_message.strip()
 
 
-class BingHandler(G4FHandler):
-    key = "bing"
-
-    def __init__(self, settings, path):
-        import g4f
-        super().__init__(settings, path)
-        provider = g4f.Provider.Bing
-        self.client = g4f.client.Client(provider=provider)
-
-    @staticmethod
-    def get_extra_settings() -> list:
-        return [
-            {
-                "key": "streaming",
-                "title": _("Message Streaming"),
-                "description": _("Gradually stream message output"),
-                "type": "toggle",
-                "default": True
-            },
-        ]
-    def generate_response(self, window, message):
-        return self.__generate_response(window, message)
-
-    def generate_response_stream(self, window, message, on_update, extra_args):
-        return self.__generate_response_stream(window, message, on_update, extra_args)
-
-    def __generate_response(self, window, message):
-            import g4f
-            """Generates a response given text and history"""
-            history = self.convert_history(self.history)
-            user_prompt = {"role": "user", "content": message}
-            history.append(user_prompt)
-            response = self.client.chat.completions.create(
-                model="gpt-4-turbo",
-                messages=history,
-                provider=provider
-            )
-            print(response)
-            return response.choices[0].message.content
-
-    def __generate_response_stream(self, window, message, on_update, extra_args):
-            import g4f
-            """Generates a response given text and history"""
-            history = self.convert_history(self.history)
-            user_prompt = {"role": "user", "content": message}
-            history.append(user_prompt)
-            response = self.client.chat.completions.create(
-                model=g4f.models.default,
-                messages=history,
-                provider=provider,
-                stream=True
-            )
-            full_message = ""
-            for chunk in response:
-                full_message += chunk
-                args = (full_message.strip(), ) + extra_args
-                on_update(*args)
-            return full_message.strip()
-
-
 class CustomLLMHandler(LLMHandler):
     key = "custom_command"
     
+    @staticmethod
+    def requires_sandbox_escape() -> bool:
+        """If the handler requires to run commands on the user host system"""
+        return True
+
     @staticmethod
     def get_extra_settings():
         return [
@@ -381,18 +453,18 @@ class CustomLLMHandler(LLMHandler):
         self.prompts = prompts
         self.history = window.chat[len(window.chat) - window.memory:len(window.chat)]
 
-    def send_message(self, window, message):
+    def generate_text(self, prompt: str, history: dict[str, str] = {}, system_prompt: list[str] = []) -> str:
         command = self.get_setting("command")
         command = command.replace("{0}", json.dumps(self.history))
         command = command.replace("{1}", json.dumps(self.prompts))
-        out = subprocess.check_output(["flatpak-spawn", "--host", "bash", "-c", command])
+        out = check_output(["flatpak-spawn", "--host", "bash", "-c", command])
         return out.decode("utf-8")
 
-    def get_suggestions(self, window, message):
+    def get_suggestions(self, prompt, amount):
         command = self.get_setting("suggestion")
         command = command.replace("{0}", json.dumps(self.history))
         command = command.replace("{1}", json.dumps(self.prompts))
-        out = subprocess.check_output(["flatpak-spawn", "--host", "bash", "-c", command])
+        out = check_output(["flatpak-spawn", "--host", "bash", "-c", command])
         return out.decode("utf-8")
 
 
@@ -405,7 +477,7 @@ class OpenAIHandler(LLMHandler):
 
     @staticmethod
     def get_extra_settings() -> list:
-        return [
+        return [ 
             {
                 "key": "api",
                 "title": _("API Key"),
@@ -414,11 +486,18 @@ class OpenAIHandler(LLMHandler):
                 "default": ""
             },
             {
-                "key": "engine",
-                "title": _("OpenAI Engine"),
-                "description": _("Name of the OpenAI Engine"),
+                "key": "endpoint",
+                "title": _("API Endpoint"),
+                "description": _("API base url, change this to use interference APIs"),
                 "type": "entry",
-                "default": "text-davinci-003"
+                "default": "https://api.openai.com/v1/"
+            },
+            {
+                "key": "model",
+                "title": _("OpenAI Model"),
+                "description": _("Name of the OpenAI Model"),
+                "type": "entry",
+                "default": "gpt3.5-turbo"
             },
             {
                 "key": "streaming",
@@ -483,79 +562,74 @@ class OpenAIHandler(LLMHandler):
                 "round-digits": 1,
             },
         ]
- 
-    def send_message(self, window, message):
-        """Get a response to a message"""
-        message = self.history + "\nUser:" + str(message) + "\nAssistant:"
-        return self.__generate_response(window, message)
 
-    def __generate_response(self, window, message):
-        engine = self.get_setting("engine")
-        max_tokens = int(self.get_setting("max-tokens"))
-        top_p = self.get_setting("top-p")
-        frequency_penalty = self.get_setting("frequency-penalty")
-        presence_penalty = self.get_setting("presence-penalty")
-        temperature = self.get_setting("temperature")
-        import openai
-        openai.api_key = self.get_setting("api")
-        response = openai.Completion.create(
-            engine=engine,
-            prompt=message,
-            max_tokens=max_tokens,
-            top_p=top_p,
-            frequency_penalty=frequency_penalty,
-            presence_penalty=presence_penalty,
-            temperature=temperature,
-        ).choices[0].text.strip()
-        return response
+    def convert_history(self, history: dict, prompts: list | None = None) -> list:
+        if prompts is None:
+            prompts = self.prompts
+        result = []
+        result.append({"role": "system", "content": "\n".join(prompts)})
+        for message in history:
+            result.append({
+                "role": message["User"].lower(),
+                "content": message["Message"]
+            })
+        return result
 
-    def send_message_stream(self, window, message, on_update, extra_args):
-        message = self.history + "\nUser:" + str(message) + "\nAssistant:"
-        return self.__generate_response_stream(window, message, on_update, extra_args)
-
-    def __generate_response_stream(self, window, message, on_update, extra_args):
-        engine = self.get_setting("engine")
-        max_tokens = int(self.get_setting("max-tokens"))
-        top_p = self.get_setting("top-p")
-        frequency_penalty = self.get_setting("frequency-penalty")
-        presence_penalty = self.get_setting("presence-penalty")
-        temperature = self.get_setting("temperature")
-        import openai
-        openai.api_key = self.get_setting("api")
-        response = openai.Completion.create(
-            engine=engine,
-            prompt=message,
-            max_tokens=max_tokens,
-            top_p=top_p,
-            frequency_penalty=frequency_penalty,
-            presence_penalty=presence_penalty,
-            temperature=temperature,
-            stream=True
+    def generate_text(self, prompt: str, history: dict[str, str] = {}, system_prompt: list[str] = []) -> str:
+        from openai import OpenAI
+        messages = self.convert_history(history, system_prompt)
+        messages.append({"role": "user", "content": prompt})
+        client = OpenAI(
+            api_key=self.get_setting("api"),
+            base_url=self.get_setting("endpoint")
         )
-        full_message = ""
-        counter = 0
-        counter_size = 1
-        for chunk in response:
-            counter += 1
-            full_message += chunk.choices[0]["text"]
-            if counter == counter_size:
-                counter = 0
-                counter_size=int((counter_size + 3)*1.3)
-                args = (full_message.strip(), ) + extra_args
-                on_update(*args)
-        return full_message.strip()
+        try:
+            response = client.chat.completions.create(
+                model=self.get_setting("model"),
+                messages=messages,
+                top_p=self.get_setting("top-p"),
+                max_tokens=self.get_setting("max_tokens"),
+                temperature=self.get_setting("temperature"),
+                presence_penalty=self.get_setting("presence_penalty"),
+                frequency_penalty=self.get_setting("frequency_penalty")
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            return str(e)
+    
+    def generate_text_stream(self, prompt: str, history: dict[str, str] = {}, system_prompt: list[str] = [], on_update: Callable[[str], Any] = (), extra_args: list = []) -> str:
+        from openai import OpenAI
+        messages = self.convert_history(history, system_prompt)
+        messages.append({"role": "user", "content": prompt})
+        client = OpenAI(
+            api_key=self.get_setting("api"),
+            base_url=self.get_setting("endpoint")
+        )
+        try:
+            response = client.chat.completions.create(
+                model=self.get_setting("model"),
+                messages=messages,
+                top_p=self.get_setting("top-p"),
+                max_tokens=self.get_setting("max_tokens"),
+                temperature=self.get_setting("temperature"),
+                presence_penalty=self.get_setting("presence_penalty"),
+                frequency_penalty=self.get_setting("frequency_penalty"),
+                stream=True
+            )
+            full_message = ""
+            prev_message = ""
+            for chunk in response:
+                if chunk.choices[0].delta.content:
+                    full_message += chunk.choices[0].delta.content
+                    args = (full_message.strip(), ) + extra_args
+                    if len(full_message) - len(prev_message) > 1:
+                        on_update(*args)
+                        prev_message = full_message
+            return full_message.strip()
+        except Exception as e:
+            return str(e)
+    
 
-    def get_suggestions(self, window, message):
-        """Gets chat suggestions"""
-        #message = message + "\nUser:"
-        #return self.__generate_response(window, message)
-        # It will get API limited if I leave this
-        return ""
-
-    def set_history(self, prompts, window):
-        """Manages messages history"""
-        self.history = window.bot_prompt+"\n"+"\n".join(prompts)+"\n" + window.get_chat(
-            window.chat[len(window.chat) - window.memory:len(window.chat)-1])
 
 
 class GPT4AllHandler(LLMHandler):
@@ -623,40 +697,31 @@ class GPT4AllHandler(LLMHandler):
 
     def set_history(self, prompts, window):
         """Manages messages history"""
-        # History not working at the moment because of GPT4All
         self.history = window.chat[len(window.chat) - window.memory:len(window.chat)-1]
-        print(self.oldhistory)
-        print(self.history)
         newchat = False
         for message in self.oldhistory:
             if not any(message == item["Message"] for item in self.history):
                newchat = True
                break
+        
+        # Create a new chat
+        system_prompt = "\n".join(prompts)
         if len(self.oldhistory) > 1 and newchat:
-            print("New session")
             self.session.__exit__(None, None, None)
-            self.session = self.model.chat_session()
+            self.session = self.model.chat_session(system_prompt)
             self.session.__enter__()
         self.oldhistory = list()
         for message in self.history:
             self.oldhistory.append(message["Message"])
         self.prompts = prompts
 
-    def get_suggestions(self, window, message):
-        """Gets chat suggestions"""
-        message = message + "\n User:"
-        return self.send_message(window, message)
+
 
     def send_message(self, window, message):
         """Get a response to a message"""
         additional_prompts = "\n".join(self.prompts)
         prompt = additional_prompts + "\nUser: " + message
         return self.__generate_response(window, prompt)
-
-    def __create_history(self, history):
-        for message in history:
-            if message not in self.model.current_chat_session:
-                self.model.current_chat_session.append(message)
 
     def __generate_response(self, window, message):
         """Generates a response given text and history"""
@@ -668,4 +733,23 @@ class GPT4AllHandler(LLMHandler):
         response = self.model.generate(prompt=message, top_k=1)
         return response
 
+    def generate_text(self, prompt: str, history: dict[str, str] = {}, system_prompt: list[str] = []) -> str:
+        # History not working for text generation
+        oldsession = self.session
+        self.session.__exit__(None, None, None)
+        system_prompt = "\n".join(prompt)
+        self.session = self.model.chat_session(system_prompt)
+        self.session.__enter__()
+        response = self.model.generate(prompt=prompt, top_k=1)
+        self.session.__exit__(None, None, None)
+        self.session = oldsession
+        self.session.__enter__()
+        return response
 
+    def get_suggestions(self, request_prompt:str = None) -> list[str]:
+        # Avoid to generate suggestions
+        return []
+
+    def generate_chat_name(self, request_prompt:str = None) -> str:
+        # Avoid to generate chat name
+        return ""

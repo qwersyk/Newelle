@@ -19,11 +19,15 @@
   <br>
 </p>
 
-![screenshot](https://raw.githubusercontent.com/qwersyk/Newelle/master/data/screenshots/screenshot1.png)
+![screenshot](https://raw.githubusercontent.com/qwersyk/Newelle/master/screenshots/1w.png#gh-light-mode-only)
+![screenshot](https://raw.githubusercontent.com/qwersyk/Newelle/master/screenshots/1b.png#gh-dark-mode-only)
 
 **Newelle** is an advanced chat bot that aims to revolutionize your virtual assistant experience. Here's a concise overview of its key features:
 
 ## Features
+
+![screenshot](https://raw.githubusercontent.com/qwersyk/Newelle/master/screenshots/2w.png#gh-light-mode-only)
+![screenshot](https://raw.githubusercontent.com/qwersyk/Newelle/master/screenshots/2b.png#gh-dark-mode-only)
 
 - **File and System Management:** Take control of your computer effortlessly. Newelle enables you to create folders, rename files, edit content, and access detailed file information, enhancing your overall productivity.
 
@@ -34,6 +38,10 @@
 - **Flexible Message Manipulation:** Edit, continue, or regenerate messages easily. Right-click on a user's message to make quick modifications. Newelle grants you full control over your conversations.
 
 - **Effortless Chat Management:** Copy and save chat conversations effortlessly for future reference. Newelle automatically generates names for chat sessions, making organization a breeze.
+
+![screenshot](https://raw.githubusercontent.com/qwersyk/Newelle/master/screenshots/3w.png#gh-light-mode-only)
+![screenshot](https://raw.githubusercontent.com/qwersyk/Newelle/master/screenshots/3b.png#gh-dark-mode-only)
+
 
 # Installation and Getting Started
 
@@ -70,9 +78,7 @@ To extend the program's capabilities, follow these steps:
 4. To allow Newelle to run outside the Flatpak sandbox, enable the "Session Bus" permission and add a new talk with the name "org.freedesktop.Flatpak".
 5. Disable virtualization in the program settings to run Newelle outside the Flatpak sandbox.
 
-Please note that by performing these steps, the program's security may be compromised as it gains access to your data and terminal. Although our program is open-source and can be verified for malicious actions, the underlying "baichat" model is proprietary. We cannot guarantee where your chat data is sent or rule out the possibility of incorrect or malicious commands from the neural network. Please be careful when enabling these options.
+Please note that by performing these steps, the program's security may be compromised as it gains access to your data and terminal. Although our program is open-source and can be verified for malicious actions, the models that can be used may be proprietary. We cannot guarantee where your chat data is sent or rule out the possibility of incorrect or malicious commands from the neural network. Please be careful when enabling these options.
 
 
 > By running the following command when launching the program, you can grant temporary access to memory and the console:```flatpak run --talk-name=org.freedesktop.Flatpak --filesystem=home io.github.qwersyk.Newelle```
-
-> Our bot operates thanks to the [BAI chat](https://chatbot.theb.ai/) and [baichat-py](https://github.com/Bavarder/baichat-py)( developed by [Bavarder](https://bavarder.codeberg.page/)). We would like to express our gratitude to them for their invaluable contributions.
