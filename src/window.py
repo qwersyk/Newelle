@@ -3,7 +3,7 @@ import gi, os, subprocess
 import pickle
 from .gtkobj import File, CopyBox, BarChartBox, MultilineEntry
 from .constants import AVAILABLE_LLMS, PROMPTS, AVAILABLE_TTS, AVAILABLE_STT
-from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject, GLib
+from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject, GLib, WebKit
 from .stt import AudioRecorder
 from .extra import override_prompts
 import threading
@@ -121,7 +121,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.explorer_panel.append(self.explorer_panel_header)
         self.folder_blocks_panel = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.explorer_panel.append(self.folder_blocks_panel)
-        self.set_child(self.main_program_block)
+        #self.set_child(self.main_program_block)
         self.main_program_block.set_content(self.main)
         self.main_program_block.set_flap(self.explorer_panel)
         self.secondary_message_chat_block = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
@@ -210,6 +210,49 @@ class MainWindow(Gtk.ApplicationWindow):
         box.append(self.flap_button_right)
         self.explorer_panel_header.pack_end(box)
 
+        # Live2d
+        self.avatar_flap = Adw.Flap(flap_position=Gtk.PackType.END, modal=False, swipe_to_close=False, swipe_to_open=False)
+        self.avatar_flap.set_name("hide")
+        self.webview = WebKit.WebView()
+        self.boxw = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, css_classes=["background"])
+        self.web_panel_header = Adw.HeaderBar(css_classes=["flat", "view"])
+        box = Gtk.Box()
+        # Titlebar buttons
+        flap_button_right = Gtk.ToggleButton.new()
+        flap_button_right.set_icon_name(icon_name='sidebar-show-right-symbolic')
+        flap_button_right.connect('clicked', self.on_flap_button_toggled)
+
+        flap_button_avatar = Gtk.ToggleButton.new()
+        flap_button_avatar.set_icon_name(icon_name='avatar-symbolic')
+        flap_button_avatar.connect('clicked', self.on_avatar_button_toggled)
+        box.append(flap_button_right)
+        box.append(flap_button_avatar)
+
+        self.web_panel_header.pack_end(box)
+        self.web_panel_header.set_title_widget(Gtk.Box())
+        self.boxw.append(self.web_panel_header)
+        self.boxw.append(self.webview)
+        self.boxw.set_size_request(400, 0)
+        self.boxw.set_hexpand(False)
+        self.webview.load_uri("http://127.0.0.1:8000/")
+
+        self.webview.set_hexpand(True)
+        self.webview.set_vexpand(True)
+        settings = self.webview.get_settings()
+        settings.set_enable_webaudio(True)
+        settings.set_media_playback_requires_user_gesture(False)
+        self.webview.set_is_muted(False)
+        self.webview.set_settings(settings)
+        self.avatar_flap.set_flap(self.boxw)
+        self.avatar_flap.set_content(self.main_program_block)
+        self.flap_button_avatar = Gtk.ToggleButton.new()
+        self.flap_button_avatar.set_icon_name(icon_name='avatar-symbolic')
+        self.flap_button_avatar.connect('clicked', self.on_avatar_button_toggled)
+        self.avatar_flap.connect("notify::reveal-flap", self.handle_second_block_change)
+        self.chat_header.pack_end(child=self.flap_button_avatar)
+        self.set_child(self.avatar_flap)
+        self.avatar_flap.set_reveal_flap(False)
+        # End Live2d
         self.status = True
         self.chat_controls_entry_block.append(self.chat_stop_button)
         for text in range(self.offers):
@@ -412,15 +455,17 @@ class MainWindow(Gtk.ApplicationWindow):
         elif (self.main_program_block.get_name()=="visible") and (not status):
             self.main_program_block.set_reveal_flap(True)
             return True
-        status = self.main_program_block.get_reveal_flap()
+        status = self.main_program_block.get_reveal_flap() or self.avatar_flap.get_reveal_flap()
         if status:
             self.chat_panel_header.set_show_end_title_buttons(False)
             self.chat_header.set_show_end_title_buttons(False)
             self.flap_button_left.set_visible(False)
+            self.flap_button_avatar.set_visible(False)
         else:
             self.chat_panel_header.set_show_end_title_buttons(self.main.get_folded())
             self.chat_header.set_show_end_title_buttons(True)
             self.flap_button_left.set_visible(True)
+            self.flap_button_avatar.set_visible(True)
     def on_flap_button_toggled(self, toggle_button):
         self.flap_button_left.set_active(False)
         self.flap_button_right.set_active(True)
@@ -430,6 +475,16 @@ class MainWindow(Gtk.ApplicationWindow):
         else:
             self.main_program_block.set_name("visible")
             self.main_program_block.set_reveal_flap(True)
+
+    def on_avatar_button_toggled(self, toggle_button):
+        self.flap_button_avatar.set_active(False)
+        if self.avatar_flap.get_name() == "visible":
+            self.avatar_flap.set_name("hide")
+            self.main_program_block.set_name("hide")
+            self.avatar_flap.set_reveal_flap(False)
+        else:
+            self.avatar_flap.set_name("visible")
+            self.avatar_flap.set_reveal_flap(True)
 
     def get_file_button(self, path):
         if path[0:2]=="./":
