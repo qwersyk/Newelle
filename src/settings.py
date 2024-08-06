@@ -2,11 +2,11 @@ import gi
 import re, threading, os, json, time, ctypes
 from subprocess import Popen 
 from gi.repository import Gtk, Adw, Gio, GLib
-from .constants import AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT
+from .constants import AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT, PROMPTS
 from gpt4all import GPT4All
 from .llm import GPT4AllHandler
-from .gtkobj import ComboRowHelper, CopyBox
-from .extra import can_escape_sandbox
+from .gtkobj import ComboRowHelper, CopyBox, MultilineEntry
+from .extra import can_escape_sandbox, override_prompts
 
 
 def human_readable_size(size, decimal_places=2):
@@ -29,6 +29,9 @@ class Settings(Adw.PreferencesWindow):
         self.local_models = json.loads(self.settings.get_string("available-models"))
         self.directory = GLib.get_user_config_dir()
         self.gpt = GPT4AllHandler(self.settings, os.path.join(self.directory, "models"))
+        # Load custom prompts
+        self.custom_prompts = json.loads(self.settings.get_string("custom-prompts"))
+        self.prompts = override_prompts(self.custom_prompts, PROMPTS)
 
         self.general_page = Adw.PreferencesPage()
 
@@ -189,28 +192,40 @@ class Settings(Adw.PreferencesWindow):
         self.settings.bind("auto-run", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
         self.prompt.add(row)
 
-        row = Adw.ActionRow(title=_("Console access"), subtitle=_("Can the program run terminal commands on the computer"))
+        self.__prompts_entries = {}
+        row = Adw.ExpanderRow(title=_("Console access"), subtitle=_("Can the program run terminal commands on the computer"))
+        self.add_customize_prompt_content(row, "console_prompt")
         switch = Gtk.Switch(valign=Gtk.Align.CENTER)
         row.add_suffix(switch)
         self.settings.bind("console", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
         self.prompt.add(row)
 
-        row = Adw.ActionRow(title=_("Graphs access"), subtitle=_("Can the program display graphs"))
+        row = Adw.ExpanderRow(title=_("Graphs access"), subtitle=_("Can the program display graphs"))
+        self.add_customize_prompt_content(row, "graphic")
         switch = Gtk.Switch(valign=Gtk.Align.CENTER)
         row.add_suffix(switch)
         self.settings.bind("graphic", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
         self.prompt.add(row)
 
-        row = Adw.ActionRow(title=_("Basic functionality"), subtitle=_("Showing tables and code (*can work without it)"))
+        row = Adw.ExpanderRow(title=_("Basic functionality"), subtitle=_("Showing tables and code (*can work without it)"))
+        self.add_customize_prompt_content(row, "basic_functionality")
         switch = Gtk.Switch(valign=Gtk.Align.CENTER)
         row.add_suffix(switch)
         self.settings.bind("basic-functionality", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
         self.prompt.add(row)
 
-        row = Adw.ActionRow(title=_("Show image"), subtitle=_("Show image in chat"))
+        row = Adw.ExpanderRow(title=_("Show image"), subtitle=_("Show image in chat"))
+        self.add_customize_prompt_content(row, "show_image")
         switch = Gtk.Switch(valign=Gtk.Align.CENTER)
         row.add_suffix(switch)
         self.settings.bind("show-image", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
+        self.prompt.add(row)
+
+        row = Adw.ExpanderRow(title=_("Custom Prompt"), subtitle=_("Add your own custom prompt"))
+        self.add_customize_prompt_content(row, "custom_prompt")
+        switch = Gtk.Switch(valign=Gtk.Align.CENTER)
+        row.add_suffix(switch)
+        self.settings.bind("custom-extra-prompt", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
         self.prompt.add(row)
 
         self.neural_network = Adw.PreferencesGroup(title=_('Neural Network Control'))
@@ -240,6 +255,42 @@ class Settings(Adw.PreferencesWindow):
         self.general_page.add(self.message)
 
         self.add(self.general_page)
+
+    def add_customize_prompt_content(self, row, prompt_name):
+        box = Gtk.Box()
+        entry = MultilineEntry()
+        entry.set_text(self.prompts[prompt_name])
+        self.__prompts_entries[prompt_name] = entry
+        entry.set_name(prompt_name)
+        entry.set_on_change(self.edit_prompt)
+
+        wbbutton = Gtk.Button(icon_name="star-large-symbolic")
+        wbbutton.add_css_class("flat")
+        wbbutton.set_valign(Gtk.Align.CENTER)
+        wbbutton.set_name(prompt_name)
+        wbbutton.connect("clicked", self.restore_prompt)
+
+        box.append(entry)
+        box.append(wbbutton)
+        row.add_row(box)
+
+    def edit_prompt(self, entry):
+        prompt_name = entry.get_name()
+        prompt_text = entry.get_text()
+
+        if prompt_text == PROMPTS[prompt_name]:
+            del self.custom_prompts[entry.get_name()]
+        else:
+            self.custom_prompts[prompt_name] = prompt_text
+            self.prompts[prompt_name] = prompt_text
+        self.settings.set_string("custom-prompts", json.dumps(self.custom_prompts))
+
+    def restore_prompt(self, button):
+        prompt_name = button.get_name()
+        self.prompts[prompt_name] = PROMPTS[prompt_name]
+        self.__prompts_entries[prompt_name].set_text(self.prompts[prompt_name])
+
+
 
     def toggle_virtualization(self, toggle, status):
         if not can_escape_sandbox() and not status:
