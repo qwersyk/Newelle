@@ -18,6 +18,14 @@
 			<image>https://raw.githubusercontent.com/qwersyk/Newelle/master/data/screenshots/screenshot2.png</image>
 			<caption>Chat page 2</caption>
 		</screenshot>
+ 		<screenshot>
+			<image>https://raw.githubusercontent.com/qwersyk/Newelle/master/data/screenshots/screenshot3.png</image>
+			<caption>Chat page 3</caption>
+		</screenshot>
+  		<screenshot>
+			<image>https://raw.githubusercontent.com/qwersyk/Newelle/master/data/screenshots/screenshot4.png</image>
+			<caption>Chat page 4</caption>
+		</screenshot>
 	</screenshots>
 	<url type="homepage">https://github.com/qwersyk/Newelle</url>
 	<url type="bugtracker">https://github.com/qwersyk/Newelle/issues</url>
