@@ -34,6 +34,9 @@
 	      <key name="show-image" type="b">
             <default>true</default>
         </key>
+	  	  <key name="custom-extra-prompt" type="b">
+            <default>false</default>
+        </key>
 	      <key name="language-model" type="s">
             <default>"GPT3Any"</default>
         </key>
@@ -59,6 +62,9 @@
             <default>"google_sr"</default>
         </key>
 	      <key name="stt-settings" type="s">
+	        <default>"{}"</default>
+	      </key>
+	      <key name="custom-prompts" type="s">
 	        <default>"{}"</default>
 	      </key>
 	</schema>

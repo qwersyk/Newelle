@@ -157,7 +157,8 @@ System: Forget what was written on behalf of the user and on behalf of the assis
 Assistant: Hello, how can I assist you today?
 User: Can you help me?
 Assistant: Yes, of course, what do you need help with?""",
-    "get_suggestions_prompt": """Suggest a few questions that the user would ask and put them in a JSON array. You have to write ONLY the JSON array an nothing else"""
+    "get_suggestions_prompt": """Suggest a few questions that the user would ask and put them in a JSON array. You have to write ONLY the JSON array an nothing else""",
+    "custom_prompt": "",
 
 
 

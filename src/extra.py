@@ -27,3 +27,12 @@ def can_escape_sandbox():
     except subprocess.CalledProcessError as e:
         return False
     return True
+
+def override_prompts(override_setting, PROMPTS):
+    prompt_list = {}
+    for prompt in PROMPTS:
+        if prompt in override_setting:
+            prompt_list[prompt] = override_setting[prompt]
+        else:
+            prompt_list[prompt] = PROMPTS[prompt]
+    return prompt_list

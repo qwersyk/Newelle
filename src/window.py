@@ -5,6 +5,7 @@ from .gtkobj import File, CopyBox, BarChartBox, MultilineEntry
 from .constants import AVAILABLE_LLMS, PROMPTS, AVAILABLE_TTS, AVAILABLE_STT
 from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject, GLib
 from .stt import AudioRecorder
+from .extra import override_prompts
 import threading
 import posixpath
 import shlex,json
@@ -335,6 +336,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.auto_run = settings.get_boolean("auto-run")
         self.chat = self.chats[min(self.chat_id,len(self.chats)-1)]["chat"]
         self.graphic = settings.get_boolean("graphic")
+        self.cutom_extra_prompt = settings.get_boolean("custom-extra-prompt")
         self.basic_functionality = settings.get_boolean("basic-functionality")
         self.show_image = settings.get_boolean("show-image")
         self.language_model = settings.get_string("language-model")
@@ -344,6 +346,10 @@ class MainWindow(Gtk.ApplicationWindow):
         self.tts_voice = settings.get_string("tts-voice")
         self.stt_engine = settings.get_string("stt-engine")
         self.stt_settings = settings.get_string("stt-settings")
+
+        # Load custom prompts
+        self.custom_prompts = json.loads(self.settings.get_string("custom-prompts"))
+        self.prompts = override_prompts(self.custom_prompts, PROMPTS)
 
         if self.language_model in AVAILABLE_LLMS:
             self.model = AVAILABLE_LLMS[self.language_model]["class"](self.settings, os.path.join(self.directory, "models"))
@@ -355,15 +361,17 @@ class MainWindow(Gtk.ApplicationWindow):
 
         self.bot_prompt = """"""
         if self.console:
-            self.bot_prompt += PROMPTS["console_prompt"]
+            self.bot_prompt += self.prompts["console_prompt"]
         if self.basic_functionality:
-            self.bot_prompt += PROMPTS["basic_functionality"]
+            self.bot_prompt += self.prompts["basic_functionality"]
         if self.show_image:
-            self.bot_prompt += PROMPTS["show_image"]
+            self.bot_prompt += self.prompts["show_image"]
         if self.graphic:
-            self.bot_prompt += PROMPTS["graphic"]
+            self.bot_prompt += self.prompts["graphic"]
         if self.graphic and self.console:
-            self.bot_prompt += PROMPTS["graphic_console"]
+            self.bot_prompt += self.prompts["graphic_console"]
+        if self.cutom_extra_prompt:
+            self.bot_prompt += self.prompts["custom_prompt"]
         self.extension_path = os.path.expanduser("~")+"/.var/app/io.github.qwersyk.Newelle/extension"
         self.extensions = {}
         if os.path.exists(self.extension_path):
@@ -590,7 +598,7 @@ class MainWindow(Gtk.ApplicationWindow):
             button.set_has_frame(True)
             # TODO: take the history for the correct chat
             self.model.set_history([], self)
-            name = self.model.generate_chat_name(PROMPTS["generate_name_prompt"])
+            name = self.model.generate_chat_name(self.prompts["generate_name_prompt"])
             if name != "Chat has been stopped":
                 self.chats[int(button.get_name())]["name"] = name
             self.update_history()
@@ -874,7 +882,7 @@ class MainWindow(Gtk.ApplicationWindow):
 
     def generate_suggestions(self):
         """Create the suggestions and update the UI when it's finished"""
-        suggestions = self.model.get_suggestions(PROMPTS["get_suggestions_prompt"], self.offers)
+        suggestions = self.model.get_suggestions(self.prompts["get_suggestions_prompt"], self.offers)
         GLib.idle_add(self.populate_suggestions, suggestions)
 
     def populate_suggestions(self, suggestions):
@@ -1108,7 +1116,7 @@ class MainWindow(Gtk.ApplicationWindow):
         prompts.append(self.bot_prompt)
 
         if self.console:
-            prompts.append(PROMPTS["current_directory"].replace("{DIR}", os.getcwd()))
+            prompts.append(self.prompts["current_directory"].replace("{DIR}", os.getcwd()))
         self.model.set_history(prompts, self)
 
         if self.model.stream_enabled():
