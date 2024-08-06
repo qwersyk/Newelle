@@ -61,5 +61,8 @@
 	      <key name="stt-settings" type="s">
 	        <default>"{}"</default>
 	      </key>
+	      <key name="custom-prompts" type="s">
+	        <default>"{}"</default>
+	      </key>
 	</schema>
 </schemalist>
