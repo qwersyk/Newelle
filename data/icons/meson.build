@@ -29,3 +29,7 @@ install_data (
     'update-symbolic.svg',
     install_dir: symbolic_dir
 )
+install_data (
+    'avatar-symbolic.svg',
+    install_dir: symbolic_dir
+)

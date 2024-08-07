@@ -1,0 +1,24 @@
+{
+    "name": "python3-livepng",
+    "buildsystem": "simple",
+    "build-commands": [
+        "pip3 install --verbose --exists-action=i --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} \"livepng\" --no-build-isolation"
+    ],
+    "sources": [
+        {
+            "type": "file",
+            "url": "https://files.pythonhosted.org/packages/26/1d/8878c7752febb0f6716a7e1a52cb92ac98871c5aa522cba181878091607c/PyAudio-0.2.14.tar.gz",
+            "sha256": "78dfff3879b4994d1f4fc6485646a57755c6ee3c19647a491f790a0895bd2f87"
+        },
+        {
+            "type": "file",
+            "url": "https://files.pythonhosted.org/packages/e5/06/927c4c928c8f6da46fe410da0d355e3895c4b573ff24c10261b88cb2e658/livepng-0.1.4-py3-none-any.whl",
+            "sha256": "91b801e823eed914137ffbaff5c6dac082e5df4890635cbd19ca84fe0d58621e"
+        },
+        {
+            "type": "file",
+            "url": "https://files.pythonhosted.org/packages/a6/53/d78dc063216e62fc55f6b2eebb447f6a4b0a59f55c8406376f76bf959b08/pydub-0.25.1-py2.py3-none-any.whl",
+            "sha256": "65617e33033874b59d87db603aa1ed450633288aefead953b30bded59cb599a6"
+        }
+    ]
+}

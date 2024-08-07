@@ -9,7 +9,9 @@ from .extra import override_prompts
 import threading
 import posixpath
 import shlex,json
+from playsound import playsound
 import random
+from pydub import AudioSegment
 
 class MainWindow(Gtk.ApplicationWindow):
     def __init__(self, *args, **kwargs):
@@ -1194,7 +1196,49 @@ class MainWindow(Gtk.ApplicationWindow):
             if self.tts_program in AVAILABLE_TTS:
                 tts = AVAILABLE_TTS[self.tts_program]["class"](self.settings, self.directory)
                 message=re.sub(r"```.*?```", "", message_label, flags=re.DOTALL)
-                if not(not message.strip() or message.isspace() or all(char == '\n' for char in message)):tts.play_audio(message)
+                if not(not message.strip() or message.isspace() or all(char == '\n' for char in message)):
+                    path = os.path.join(self.directory, "temptts.mp3")
+                    tts.save_audio(message, path)
+                    audio = AudioSegment.from_file(path)
+                    # Calculate frames
+                    sample_rate = audio.frame_rate
+                    audio_data = audio.get_array_of_samples()
+                    frames = self.calculate_frames( sample_rate, audio_data)
+                    threading.Thread(target=self.update_mouth, args=(frames, )).start()
+                    playsound(path)
+
+
+    def update_mouth(self, frames):
+        for frame in frames:
+            self.set_mouth(frame)
+            time.sleep(0.1)
+        self.set_mouth(0)
+
+    def set_mouth(self, value):
+        script = "set_mouth_y({})".format(value)
+        self.webview.evaluate_javascript(script, len(script))
+
+    def calculate_frames(self, sample_rate, audio_data, frame_rate=10) -> list[float]:
+            """Precalculate every frame for the model
+
+            Args:
+                sample_rate (_type_): Sample rate for the audio file
+                audio_data (_type_): Audio data
+                frame_rate (int, optional): Frame rate. Defaults to 10.
+
+            Returns:
+                list[str]: List of the frames
+            """
+            indexes = []
+            for i in range(0, len(audio_data), sample_rate // frame_rate):
+                segment = audio_data[i:i + sample_rate // frame_rate]
+                absolute_segment = [abs(sample) for sample in segment]
+                mean = (sum(absolute_segment)/len(absolute_segment))
+                # Normalize the amplitude
+                amplitude = mean / 32768
+                mouth_value = amplitude * 10
+                indexes.append(mouth_value)
+            return indexes
 
     def update_message(self, message, label):
         GLib.idle_add(label.set_label, message)
