@@ -68,3 +68,13 @@ class AvatarHandler:
     @staticmethod
     def speak_with_tts(self, text: str, tts : TTSHandler):
         pass
+
+class Live2DHandler(AvatarHandler):
+    def get_emotions(self):
+        return []
+
+    def speak(self, text, reproduce_audio):
+        return
+
+    def speak_with_tts(self, text, tts):
+        return []

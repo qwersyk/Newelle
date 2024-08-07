@@ -9,7 +9,6 @@ from .extra import override_prompts
 import threading
 import posixpath
 import shlex,json
-from playsound import playsound
 import random
 from pydub import AudioSegment
 
@@ -1205,7 +1204,6 @@ class MainWindow(Gtk.ApplicationWindow):
                     audio_data = audio.get_array_of_samples()
                     frames = self.calculate_frames( sample_rate, audio_data)
                     threading.Thread(target=self.update_mouth, args=(frames, )).start()
-                    playsound(path)
 
 
     def update_mouth(self, frames):

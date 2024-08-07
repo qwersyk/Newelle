@@ -58,6 +58,15 @@
 	      <key name="tts-voice" type="s">
             <default>"{}"</default>
         </key>
+	      <key name="avatar-on" type="b">
+            <default>true</default>
+        </key>
+	      <key name="avatar-model" type="s">
+            <default>"Live2D"</default>
+        </key>
+	      <key name="avatars" type="s">
+            <default>"{}"</default>
+        </key>
 	      <key name="stt-engine" type="s">
             <default>"google_sr"</default>
         </key>

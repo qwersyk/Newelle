@@ -2,6 +2,7 @@
 from .llm import GPT4AllHandler, OpenAIHandler, CustomLLMHandler, GPT3AnyHandler, GeminiHandler
 from .tts import gTTSHandler, EspeakHandler, CustomTTSHandler
 from .stt import SphinxHandler, GoogleSRHandler, WitAIHandler, VoskHandler, WhisperAPIHandler, CustomSRHandler
+from .avatar import Live2DHandler
 
 AVAILABLE_LLMS = {
     "GPT3Any": {
@@ -117,6 +118,14 @@ AVAILABLE_TTS = {
     }
 }
 
+AVAILABLE_AVATARS = {
+    "Live2D": {
+        "rowtype": "expander",
+        "title": _("Live2D"),
+        "description": _("Cubism Live2D, usually used by vtubers"),
+        "class": Live2DHandler,
+    }
+}
 
 PROMPTS = {
     "generate_name_prompt": """Write a short title for the dialog, summarizing the theme in 5 words. No additional text.""",

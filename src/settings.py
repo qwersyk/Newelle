@@ -2,7 +2,7 @@ import gi
 import re, threading, os, json, time, ctypes
 from subprocess import Popen 
 from gi.repository import Gtk, Adw, Gio, GLib
-from .constants import AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT, PROMPTS
+from .constants import AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_AVATARS, PROMPTS
 from gpt4all import GPT4All
 from .llm import GPT4AllHandler
 from .gtkobj import ComboRowHelper, CopyBox, MultilineEntry
@@ -166,6 +166,52 @@ class Settings(Adw.PreferencesWindow):
             if not sandbox and handler.requires_sandbox_escape():
                 button.set_sensitive(False)
 
+        # Avatar
+        self.avatar_group = Adw.PreferencesGroup(title=_('Avatar'))
+        self.general_page.add(self.avatar_group)
+
+        avatar_model = Adw.ExpanderRow(title=_('Avatar Model'), subtitle=_("Choose which type of avatar you want"))
+        self.avatar_group.add(avatar_model)
+        group = Gtk.CheckButton()
+        for avatar_key in AVAILABLE_AVATARS:
+            active = False
+            avatar = AVAILABLE_AVATARS[avatar_key]
+            handler = avatar["class"]
+
+            # If the stt is selected
+            if avatar_key == self.settings.get_string("avatar-model"):
+                active = True
+
+            # Define the type of row of the stt
+            match avatar["rowtype"]:
+               case "expander":
+                    row = Adw.ExpanderRow(title=avatar["title"], subtitle=avatar["description"])
+                    self.add_extra_settings(avatar, row, "avatar")
+               case "combo":
+                    row = Adw.ComboRow(title=avatar["title"], subtitle=avatar["description"])
+               case _:
+                    row = Adw.ActionRow(title=avatar["title"], subtitle=avatar["description"])
+
+            button = Gtk.CheckButton()
+            button.set_group(group)
+            button.set_active(active)
+            button.set_name(avatar_key)
+            button.connect("toggled", self.choose_avatar)
+            row.add_prefix(button)
+            row.set_name(avatar_key)
+            avatar_model.add_row(row)
+            if "website" in stt:
+                wbbutton = self.create_web_button(stt["website"])
+                if stt["rowtype"] == "action":
+                    row.add_suffix(wbbutton)
+                elif stt["rowtype"] == "expander":
+                    row.add_action(wbbutton)
+            if len(handler.get_extra_requirements()) > 0:
+                self.add_download_button(stt, row, "avatar")
+            self.add_flatpak_waning_button(stt, row, "avatar")
+            if not sandbox and handler.requires_sandbox_escape():
+                button.set_sensitive(False)
+
         # Other settings
         self.interface = Adw.PreferencesGroup(title=_('Interface'))
         self.general_page.add(self.interface)
@@ -310,6 +356,8 @@ class Settings(Adw.PreferencesWindow):
             model = m["class"](self.settings,os.path.join(self.directory, "models"))
         elif mtype == "tts":
             model = m["class"](self.settings, self.directory)
+        elif mtype == "avatar":
+            model = m["class"](self.settings, self.directory)
         else:
             return
         for setting in model.get_extra_settings():
@@ -417,19 +465,24 @@ class Settings(Adw.PreferencesWindow):
         setting = name[2]
         if mtype == "stt":
             model = AVAILABLE_STT[key]["class"](self.settings, os.path.join(self.directory, "pip"))
-            model.set_setting(setting, value)
         elif mtype == "llm":
             model = AVAILABLE_LLMS[key]["class"](self.settings, os.path.join(self.directory, "model"))
-            model.set_setting(setting, value)
         elif mtype == "tts":
             model = AVAILABLE_TTS[key]["class"](self.settings, self.directory)
-            model.set_setting(setting, value)
+        elif mtype == "avatar":
+            model = AVAILABLE_AVATARS[key]["class"](self.settings, self.directory)
+        else:
+            return
+        model.set_setting(setting, value)
+
 
     def add_download_button(self, model, row, mtype):
         if mtype == "stt":
             m = model["class"](self.settings, os.path.join(self.directory, "pip"))
         elif mtype == "llm":
             m = model["class"](self.settings, os.path.join(self.directory, "models"))
+        elif mtype == "avatar":
+            m = model["class"](self.settings, self.directory)
         actionbutton = Gtk.Button(css_classes=["flat"], valign=Gtk.Align.CENTER)
         if not m.is_installed():
             icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="folder-download-symbolic"))
@@ -448,6 +501,8 @@ class Settings(Adw.PreferencesWindow):
         elif mtype == "llm":
             m = model["class"](self.settings, os.path.join(self.directory, "models"))
         elif mtype == "tts":
+            m = model["class"](self.settings, self.directory)
+        elif mtype == "avatar":
             m = model["class"](self.settings, self.directory)
         actionbutton = Gtk.Button(css_classes=["flat"], valign=Gtk.Align.CENTER)
         if m.requires_sandbox_escape() and not can_escape_sandbox():
@@ -473,6 +528,9 @@ class Settings(Adw.PreferencesWindow):
         elif mtype == "llm":
             llm = AVAILABLE_LLMS[key]
             model = llm["class"](self.settings, os.path.join(self.directory, "models"))
+        elif mtype == "avatar":
+            avatar = AVAILABLE_AVATARS[key]
+            model = avatar["class"](self.settings, self.directory)
         spinner = Gtk.Spinner(spinning=True)
         button.set_child(spinner)
         t = threading.Thread(target=self.install_model_async, args= (button, model))
@@ -558,6 +616,10 @@ class Settings(Adw.PreferencesWindow):
     def choose_stt(self, button):
         if button.get_active():
             self.settings.set_string("stt-engine", button.get_name())
+
+    def choose_avatar(self, button):
+        if button.get_active():
+            self.settings.set_string("avatar-model", button.get_name())
 
     def choose_tts_voice(self, helper, value):
         tts = AVAILABLE_TTS[helper.combo.get_name()]["class"](self.settings, self.directory)
