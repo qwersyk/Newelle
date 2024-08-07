@@ -120,6 +120,7 @@ AVAILABLE_TTS = {
 
 AVAILABLE_AVATARS = {
     "Live2D": {
+        "key": "Live2D",
         "rowtype": "expander",
         "title": _("Live2D"),
         "description": _("Cubism Live2D, usually used by vtubers"),

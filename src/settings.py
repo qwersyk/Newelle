@@ -200,15 +200,14 @@ class Settings(Adw.PreferencesWindow):
             row.add_prefix(button)
             row.set_name(avatar_key)
             avatar_model.add_row(row)
-            if "website" in stt:
-                wbbutton = self.create_web_button(stt["website"])
-                if stt["rowtype"] == "action":
+            if "website" in avatar:
+                wbbutton = self.create_web_button(avatar["website"])
+                if avatar["rowtype"] == "action":
                     row.add_suffix(wbbutton)
-                elif stt["rowtype"] == "expander":
+                elif avatar["rowtype"] == "expander":
                     row.add_action(wbbutton)
-            if len(handler.get_extra_requirements()) > 0:
-                self.add_download_button(stt, row, "avatar")
-            self.add_flatpak_waning_button(stt, row, "avatar")
+            self.add_download_button(avatar, row, "avatar")
+            self.add_flatpak_waning_button(avatar, row, "avatar")
             if not sandbox and handler.requires_sandbox_escape():
                 button.set_sensitive(False)
 

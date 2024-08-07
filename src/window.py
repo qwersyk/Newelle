@@ -234,7 +234,7 @@ class MainWindow(Gtk.ApplicationWindow):
         selected_key = self.settings.get_string("avatar-model")
         for avatar in AVAILABLE_AVATARS:
             if selected_key == avatar:
-                self.avatar_handler = AVAILABLE_AVATARS[avatar]["class"](self.settings, self.path)
+                self.avatar_handler = AVAILABLE_AVATARS[avatar]["class"](self.settings, self.directory)
                 break
 
         self.web_panel_header.pack_end(box)

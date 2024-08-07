@@ -1,6 +1,8 @@
 from abc import abstractmethod
-from gi.repository import Gtk, WebKit
+from gi.repository import Gtk, WebKit, GLib
 from .tts import TTSHandler
+import os, subprocess, threading
+from http.server import HTTPServer, SimpleHTTPRequestHandler
 
 class AvatarHandler:
 
@@ -28,6 +30,12 @@ class AvatarHandler:
     def get_extra_requirements() -> list:
         """Get the extra requirements for the tts"""
         return []
+
+    def is_installed() -> bool:
+        return True
+
+    def install(self) -> bool:
+        return True
 
     def set_setting(self, setting, value):
         """Set the given setting"""
@@ -71,10 +79,34 @@ class AvatarHandler:
 
 class Live2DHandler(AvatarHandler):
 
+    key = "Live2D"
+
+    def __init__(self, settings, path: str):
+        super().__init__(settings, path)
+        self.webview_path = os.path.join(path, "avatars", "live2d", "web")
+
+    def is_installed(self):
+        return os.path.isdir(self.webview_path)
+
+    def install(self):
+        out = subprocess.check_output(["git", "clone", "https://github.com/NyarchLinux/live2d-lipsync-viewer.git", self.webview_path])
+
+    def __start_webserver(self):
+        folder_path = self.webview_path
+        class CustomHTTPRequestHandler(SimpleHTTPRequestHandler):
+            def translate_path(self, path):
+                # Get the default translate path
+                path = super().translate_path(path)
+                # Replace the default directory with the specified folder path
+                return os.path.join(folder_path, os.path.relpath(path, os.getcwd()))
+        httpd = HTTPServer(('localhost', 0), CustomHTTPRequestHandler)
+        GLib.idle_add(self.webview.load_uri, "http://localhost:" + str(httpd.server_address[1]))
+        print("http://localhost:" + str(httpd.server_address[1]))
+        httpd.serve_forever()
+
     def create_gtk_widget(self) -> Gtk.Widget:
         self.webview = WebKit.WebView()
-        self.webview.load_uri("http://127.0.0.1:8000/")
-
+        threading.Thread(target=self.__start_webserver).start()
         self.webview.set_hexpand(True)
         self.webview.set_vexpand(True)
         settings = self.webview.get_settings()
