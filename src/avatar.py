@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from gi.repository import Gtk
+from gi.repository import Gtk, WebKit
 from .tts import TTSHandler
 
 class AvatarHandler:
@@ -70,6 +70,20 @@ class AvatarHandler:
         pass
 
 class Live2DHandler(AvatarHandler):
+
+    def create_gtk_widget(self) -> Gtk.Widget:
+        self.webview = WebKit.WebView()
+        self.webview.load_uri("http://127.0.0.1:8000/")
+
+        self.webview.set_hexpand(True)
+        self.webview.set_vexpand(True)
+        settings = self.webview.get_settings()
+        settings.set_enable_webaudio(True)
+        settings.set_media_playback_requires_user_gesture(False)
+        self.webview.set_is_muted(False)
+        self.webview.set_settings(settings)
+        return self.webview
+
     def get_emotions(self):
         return []
 

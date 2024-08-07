@@ -2,7 +2,7 @@ import time, re, sys
 import gi, os, subprocess
 import pickle
 from .gtkobj import File, CopyBox, BarChartBox, MultilineEntry
-from .constants import AVAILABLE_LLMS, PROMPTS, AVAILABLE_TTS, AVAILABLE_STT
+from .constants import AVAILABLE_LLMS, PROMPTS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_AVATARS
 from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject, GLib, WebKit
 from .stt import AudioRecorder
 from .extra import override_prompts
@@ -211,10 +211,10 @@ class MainWindow(Gtk.ApplicationWindow):
         box.append(self.flap_button_right)
         self.explorer_panel_header.pack_end(box)
 
-        # Live2d
+        # Avatar
         self.avatar_flap = Adw.Flap(flap_position=Gtk.PackType.END, modal=False, swipe_to_close=False, swipe_to_open=False)
         self.avatar_flap.set_name("hide")
-        self.webview = WebKit.WebView()
+
         self.boxw = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, css_classes=["background"])
         self.web_panel_header = Adw.HeaderBar(css_classes=["flat", "view"])
         box = Gtk.Box()
@@ -226,25 +226,25 @@ class MainWindow(Gtk.ApplicationWindow):
         flap_button_avatar = Gtk.ToggleButton.new()
         flap_button_avatar.set_icon_name(icon_name='avatar-symbolic')
         flap_button_avatar.connect('clicked', self.on_avatar_button_toggled)
-        box.append(flap_button_right)
         box.append(flap_button_avatar)
+        box.append(flap_button_right)
+
+
+        # Find the current selected avatar
+        selected_key = self.settings.get_string("avatar-model")
+        for avatar in AVAILABLE_AVATARS:
+            if selected_key == avatar:
+                self.avatar_handler = AVAILABLE_AVATARS[avatar]["class"](self.settings, self.path)
+                break
 
         self.web_panel_header.pack_end(box)
         self.web_panel_header.set_title_widget(Gtk.Box())
         self.boxw.append(self.web_panel_header)
-        self.boxw.append(self.webview)
+        self.boxw.append(self.avatar_handler.create_gtk_widget())
         self.boxw.set_size_request(400, 0)
         self.boxw.set_hexpand(False)
-        self.webview.load_uri("http://127.0.0.1:8000/")
-
-        self.webview.set_hexpand(True)
-        self.webview.set_vexpand(True)
-        settings = self.webview.get_settings()
-        settings.set_enable_webaudio(True)
-        settings.set_media_playback_requires_user_gesture(False)
-        self.webview.set_is_muted(False)
-        self.webview.set_settings(settings)
         self.avatar_flap.set_flap(self.boxw)
+
         self.avatar_flap.set_content(self.main_program_block)
         self.flap_button_avatar = Gtk.ToggleButton.new()
         self.flap_button_avatar.set_icon_name(icon_name='avatar-symbolic')
