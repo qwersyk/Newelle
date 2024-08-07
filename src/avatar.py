@@ -77,6 +77,9 @@ class AvatarHandler:
     def speak_with_tts(self, text: str, tts : TTSHandler):
         pass
 
+    def destroy(self):
+        pass
+
 class Live2DHandler(AvatarHandler):
 
     key = "Live2D"
@@ -99,13 +102,14 @@ class Live2DHandler(AvatarHandler):
                 path = super().translate_path(path)
                 # Replace the default directory with the specified folder path
                 return os.path.join(folder_path, os.path.relpath(path, os.getcwd()))
-        httpd = HTTPServer(('localhost', 0), CustomHTTPRequestHandler)
+        self.httpd = HTTPServer(('localhost', 0), CustomHTTPRequestHandler)
+        httpd = self.httpd
         GLib.idle_add(self.webview.load_uri, "http://localhost:" + str(httpd.server_address[1]))
-        print("http://localhost:" + str(httpd.server_address[1]))
         httpd.serve_forever()
 
     def create_gtk_widget(self) -> Gtk.Widget:
         self.webview = WebKit.WebView()
+        self.webview.connect("destroy", self.destroy)
         threading.Thread(target=self.__start_webserver).start()
         self.webview.set_hexpand(True)
         self.webview.set_vexpand(True)
@@ -115,6 +119,9 @@ class Live2DHandler(AvatarHandler):
         self.webview.set_is_muted(False)
         self.webview.set_settings(settings)
         return self.webview
+
+    def destroy(self):
+        self.httpd.shutdown()
 
     def get_emotions(self):
         return []

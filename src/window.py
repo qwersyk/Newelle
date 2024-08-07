@@ -212,6 +212,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.explorer_panel_header.pack_end(box)
 
         # Avatar
+        self.avatar_handler = None
         self.avatar_flap = Adw.Flap(flap_position=Gtk.PackType.END, modal=False, swipe_to_close=False, swipe_to_open=False)
         self.avatar_flap.set_name("hide")
 
