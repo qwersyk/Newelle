@@ -1,5 +1,6 @@
 from abc import abstractmethod
 from gi.repository import Gtk, WebKit, GLib
+from livepng.model import Semaphore
 from .tts import TTSHandler
 import os, subprocess, threading, json
 from http.server import HTTPServer, SimpleHTTPRequestHandler
@@ -68,8 +69,8 @@ class AvatarHandler:
         pass
 
     @abstractmethod
-    def get_emotions(self) -> list[str]:
-        """Get the list of possible emotions"""
+    def get_expressions(self) -> list[str]:
+        """Get the list of possible expressions"""
         pass
 
     @abstractmethod
@@ -82,9 +83,11 @@ class AvatarHandler:
 class Live2DHandler(AvatarHandler):
 
     key = "Live2D"
-
+    _wait_js : threading.Event
+    _expressions_raw : list[str]
     def __init__(self, settings, path: str):
         super().__init__(settings, path)
+        self._wait_js = threading.Event()
         self.webview_path = os.path.join(path, "avatars", "live2d", "web")
 
     @staticmethod
@@ -136,8 +139,17 @@ class Live2DHandler(AvatarHandler):
     def destroy(self):
         self.httpd.shutdown()
 
-    def get_emotions(self):
-        return [] 
+    def wait_emotions(self, object, result):
+        value = self.webview.evaluate_javascript_finish(result)
+        self._expressions_raw = json.loads(value.to_string())
+        self._wait_js.set()
+
+    def get_expressions(self):
+        self._expressions_raw = []
+        script = "get_expressions_json()"
+        self.webview.evaluate_javascript(script, len(script), callback=self.wait_emotions)
+        self._wait_js.wait(3)   
+        return self._expressions_raw 
 
     def speak_with_tts(self, text: str, tts: TTSHandler):
         frame_rate = self.get_setting("fps")
