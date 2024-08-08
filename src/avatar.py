@@ -1,8 +1,11 @@
 from abc import abstractmethod
 from gi.repository import Gtk, WebKit, GLib
 from .tts import TTSHandler
-import os, subprocess, threading
+import os, subprocess, threading, json
 from http.server import HTTPServer, SimpleHTTPRequestHandler
+from livepng import LivePNG
+from pydub import AudioSegment
+from time import sleep
 
 class AvatarHandler:
 
@@ -31,11 +34,11 @@ class AvatarHandler:
         """Get the extra requirements for the tts"""
         return []
 
-    def is_installed() -> bool:
+    def is_installed(self) -> bool:
         return True
 
-    def install(self) -> bool:
-        return True
+    def install(self):
+        pass
 
     def set_setting(self, setting, value):
         """Set the given setting"""
@@ -69,11 +72,7 @@ class AvatarHandler:
         """Get the list of possible emotions"""
         pass
 
-    @staticmethod
-    def speak(self, text: str, reproduce_audio: bool = False):
-        pass
-
-    @staticmethod
+    @abstractmethod
     def speak_with_tts(self, text: str, tts : TTSHandler):
         pass
 
@@ -88,11 +87,25 @@ class Live2DHandler(AvatarHandler):
         super().__init__(settings, path)
         self.webview_path = os.path.join(path, "avatars", "live2d", "web")
 
-    def is_installed(self):
+    @staticmethod
+    def get_extra_settings() -> list:
+        return [
+            {
+             "key": "fps",
+                "title": _("Lipsync Framerate"),
+                "description": _("Maximum amount of frames to generate for lipsynv"),
+                "type": "range",
+                "min": 5,
+                "max": 30,
+                "default": 10,
+                "round-digits": 0
+            }
+        ]
+    def is_installed(self) -> bool:
         return os.path.isdir(self.webview_path)
 
     def install(self):
-        out = subprocess.check_output(["git", "clone", "https://github.com/NyarchLinux/live2d-lipsync-viewer.git", self.webview_path])
+        subprocess.check_output(["git", "clone", "https://github.com/NyarchLinux/live2d-lipsync-viewer.git", self.webview_path])
 
     def __start_webserver(self):
         folder_path = self.webview_path
@@ -124,10 +137,30 @@ class Live2DHandler(AvatarHandler):
         self.httpd.shutdown()
 
     def get_emotions(self):
-        return []
+        return [] 
 
-    def speak(self, text, reproduce_audio):
-        return
+    def speak_with_tts(self, text: str, tts: TTSHandler):
+        frame_rate = self.get_setting("fps")
+        filename = tts.get_tempname("wav")
+        tts.save_audio(text, filename)
 
-    def speak_with_tts(self, text, tts):
-        return []
+        audio = AudioSegment.from_file(filename)
+        # Calculate frames
+        sample_rate = audio.frame_rate
+        audio_data = audio.get_array_of_samples()
+        amplitudes = LivePNG.calculate_amplitudes(sample_rate, audio_data, frame_rate)
+        t1 = threading.Thread(target=self._start_animation, args=(amplitudes, frame_rate))
+        t2 = threading.Thread(target=tts.playsound, args=(filename, ))
+        t2.start()
+        t1.start()
+        
+    def _start_animation(self, amplitudes: list[float], frame_rate=10):
+        for amplitude in amplitudes:
+            self.set_mouth(amplitude*8.8)
+            sleep(1/frame_rate)
+
+    def set_mouth(self, value):
+        script = "set_mouth_y({})".format(value)
+        self.webview.evaluate_javascript(script, len(script))
+
+

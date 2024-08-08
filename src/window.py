@@ -391,6 +391,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.tts_voice = settings.get_string("tts-voice")
         self.stt_engine = settings.get_string("stt-engine")
         self.stt_settings = settings.get_string("stt-settings")
+        self.avatar_enabled = settings.get_boolean("avatar-on")
 
         # Load custom prompts
         self.custom_prompts = json.loads(self.settings.get_string("custom-prompts"))
@@ -412,8 +413,8 @@ class MainWindow(Gtk.ApplicationWindow):
         if self.show_image:
             self.bot_prompt += self.prompts["show_image"]
         if self.graphic:
-            self.bot_prompt += self.prompts["graphic"]
-        if self.graphic and self.console:
+            self.bot_prompt += self.prompts["graphic"] 
+        if self.graphic and self.console: 
             self.bot_prompt += self.prompts["graphic_console"]
         if self.cutom_extra_prompt:
             self.bot_prompt += self.prompts["custom_prompt"]
@@ -1197,49 +1198,13 @@ class MainWindow(Gtk.ApplicationWindow):
                 tts = AVAILABLE_TTS[self.tts_program]["class"](self.settings, self.directory)
                 message=re.sub(r"```.*?```", "", message_label, flags=re.DOTALL)
                 if not(not message.strip() or message.isspace() or all(char == '\n' for char in message)):
-                    path = os.path.join(self.directory, "temptts.mp3")
-                    tts.save_audio(message, path)
-                    audio = AudioSegment.from_file(path)
-                    # Calculate frames
-                    sample_rate = audio.frame_rate
-                    audio_data = audio.get_array_of_samples()
-                    frames = self.calculate_frames( sample_rate, audio_data)
-                    threading.Thread(target=self.update_mouth, args=(frames, )).start()
+                    if self.avatar_enabled and self.avatar_handler is not None:
+                        self.avatar_handler.speak_with_tts(message, tts)
+                    else:
+                        tts.playsound(message) 
+                    
 
-
-    def update_mouth(self, frames):
-        for frame in frames:
-            self.set_mouth(frame)
-            time.sleep(0.1)
-        self.set_mouth(0)
-
-    def set_mouth(self, value):
-        script = "set_mouth_y({})".format(value)
-        self.webview.evaluate_javascript(script, len(script))
-
-    def calculate_frames(self, sample_rate, audio_data, frame_rate=10) -> list[float]:
-            """Precalculate every frame for the model
-
-            Args:
-                sample_rate (_type_): Sample rate for the audio file
-                audio_data (_type_): Audio data
-                frame_rate (int, optional): Frame rate. Defaults to 10.
-
-            Returns:
-                list[str]: List of the frames
-            """
-            indexes = []
-            for i in range(0, len(audio_data), sample_rate // frame_rate):
-                segment = audio_data[i:i + sample_rate // frame_rate]
-                absolute_segment = [abs(sample) for sample in segment]
-                mean = (sum(absolute_segment)/len(absolute_segment))
-                # Normalize the amplitude
-                amplitude = mean / 32768
-                mouth_value = amplitude * 10
-                indexes.append(mouth_value)
-            return indexes
-
-    def update_message(self, message, label):
+    def update_message(self, message, label):    
         GLib.idle_add(label.set_label, message)
 
     def edit_message(self, gesture, data, x, y):
