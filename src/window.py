@@ -14,6 +14,7 @@ from pydub import AudioSegment
 
 class MainWindow(Gtk.ApplicationWindow):
     def __init__(self, *args, **kwargs):
+        self.first_load = True
         super().__init__(*args, **kwargs)
         self.set_default_size(1400, 800) #(1500, 800) to show everything
         self.main_program_block = Adw.Flap(flap_position=Gtk.PackType.END,modal=False,swipe_to_close=False,swipe_to_open=False)
@@ -213,6 +214,7 @@ class MainWindow(Gtk.ApplicationWindow):
 
         # Avatar
         self.avatar_handler = None
+        self.avatar_widget = None
         self.avatar_flap = Adw.Flap(flap_position=Gtk.PackType.END, modal=False, swipe_to_close=False, swipe_to_open=False)
         self.avatar_flap.set_name("hide")
 
@@ -230,18 +232,9 @@ class MainWindow(Gtk.ApplicationWindow):
         box.append(flap_button_avatar)
         box.append(flap_button_right)
 
-
-        # Find the current selected avatar
-        selected_key = self.settings.get_string("avatar-model")
-        for avatar in AVAILABLE_AVATARS:
-            if selected_key == avatar:
-                self.avatar_handler = AVAILABLE_AVATARS[avatar]["class"](self.settings, self.directory)
-                break
-
         self.web_panel_header.pack_end(box)
         self.web_panel_header.set_title_widget(Gtk.Box())
         self.boxw.append(self.web_panel_header)
-        self.boxw.append(self.avatar_handler.create_gtk_widget())
         self.boxw.set_size_request(400, 0)
         self.boxw.set_hexpand(False)
         self.avatar_flap.set_flap(self.boxw)
@@ -336,6 +329,8 @@ class MainWindow(Gtk.ApplicationWindow):
         GLib.idle_add(self.update_folder)
         GLib.idle_add(self.update_history)
         GLib.idle_add(self.show_chat)
+        GLib.idle_add(self.load_avatar)
+        self.first_load = False
 
     def start_recording(self, button):
         #button.set_child(Gtk.Spinner(spinning=True))
@@ -437,6 +432,22 @@ class MainWindow(Gtk.ApplicationWindow):
             os.chdir(os.path.expanduser(self.main_path))
         else:
             self.main_path="~"
+
+        if not self.first_load:
+            self.load_avatar()
+ 
+    def load_avatar(self):
+        if self.avatar_widget is not None and self.avatar_handler is not None:
+            self.boxw.remove(self.avatar_widget)
+            self.avatar_handler.destroy()
+        selected_key = self.settings.get_string("avatar-model")
+        for avatar in AVAILABLE_AVATARS:
+            if selected_key == avatar:
+                self.avatar_handler = AVAILABLE_AVATARS[avatar]["class"](self.settings, self.directory)
+                break
+        if self.avatar_handler is not None:   
+            self.avatar_widget = self.avatar_handler.create_gtk_widget()
+            self.boxw.append(self.avatar_widget)
 
 
     def send_button_start_spinner(self):

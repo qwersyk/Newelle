@@ -406,6 +406,9 @@ class Settings(Adw.PreferencesWindow):
             if "website" in setting:
                 wbbutton = self.create_web_button(setting["website"])
                 r.add_prefix(wbbutton)
+            if "folder" in setting:
+                wbbutton = self.create_folder_button(setting["folder"])
+                r.add_prefix(wbbutton)
             row.add_row(r)
 
     def setting_change_entry(self, entry):
@@ -422,7 +425,9 @@ class Settings(Adw.PreferencesWindow):
         elif mtype == "tts":
             model = AVAILABLE_TTS[key]["class"](self.settings, self.directory)
             model.set_setting(setting, entry.get_text())
-
+        elif mtype == "avatar":
+            model = AVAILABLE_AVATARS[key]["class"](self.settings, self.directory)
+            model.set_setting(setting, entry.get_text())
     def setting_change_toggle(self, toggle, toggled):
         name = toggle.get_name().split("//")
         mtype = name[0]
@@ -438,6 +443,9 @@ class Settings(Adw.PreferencesWindow):
         elif mtype == "tts":
             model = AVAILABLE_TTS[key]["class"](self.settings, self.directory)
             model.set_setting(setting, enabled)
+        elif mtype == "avatar":
+            model = AVAILABLE_AVATARS[key]["class"](self.settings, self.directory)
+            model.set_setting(setting, enabled)
 
     def setting_change_scale(self, scale, scroll, value):
         name = scale.get_name().split("//")
@@ -447,6 +455,7 @@ class Settings(Adw.PreferencesWindow):
         digits = scale.get_round_digits()
         value = round(value, digits)
         self.slider_labels[scale].set_label(str(value))
+        print(mtype)
         if mtype == "stt":
             model = AVAILABLE_STT[key]["class"](self.settings, os.path.join(self.directory, "pip"))
             model.set_setting(setting, value)
@@ -455,6 +464,9 @@ class Settings(Adw.PreferencesWindow):
             model.set_setting(setting, value)
         elif mtype == "tts":
             model = AVAILABLE_TTS[key]["class"](self.settings, self.directory)
+            model.set_setting(setting, value)
+        elif mtype == "avatar":
+            model = AVAILABLE_AVATARS[key]["class"](self.settings, self.directory)
             model.set_setting(setting, value)
 
     def setting_change_combo(self, helper, value):
@@ -696,6 +708,14 @@ class Settings(Adw.PreferencesWindow):
 
     def create_web_button(self, website):
         wbbutton = Gtk.Button(icon_name="internet-symbolic")
+        wbbutton.add_css_class("flat")
+        wbbutton.set_valign(Gtk.Align.CENTER)
+        wbbutton.set_name(website)
+        wbbutton.connect("clicked", self.open_website)
+        return wbbutton
+
+    def create_folder_button(self, website):
+        wbbutton = Gtk.Button(icon_name="search-folder-symbolic")
         wbbutton.add_css_class("flat")
         wbbutton.set_valign(Gtk.Align.CENTER)
         wbbutton.set_name(website)

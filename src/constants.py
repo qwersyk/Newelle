@@ -2,7 +2,7 @@
 from .llm import GPT4AllHandler, OpenAIHandler, CustomLLMHandler, GPT3AnyHandler, GeminiHandler
 from .tts import gTTSHandler, EspeakHandler, CustomTTSHandler
 from .stt import SphinxHandler, GoogleSRHandler, WitAIHandler, VoskHandler, WhisperAPIHandler, CustomSRHandler
-from .avatar import Live2DHandler
+from .avatar import Live2DHandler, LivePNGHandler
 
 AVAILABLE_LLMS = {
     "GPT3Any": {
@@ -125,6 +125,13 @@ AVAILABLE_AVATARS = {
         "title": _("Live2D"),
         "description": _("Cubism Live2D, usually used by vtubers"),
         "class": Live2DHandler,
+    },
+    "LivePNG": {
+        "key": "LivePNG",
+        "rowtype": "expander",
+        "title": _("LivePNG"),
+        "description": _("LivePNG model"),
+        "class": LivePNGHandler,
     }
 }
 
