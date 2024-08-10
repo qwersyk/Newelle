@@ -2,6 +2,7 @@ from abc import abstractmethod
 from subprocess import check_output
 import os, sys, json
 import importlib
+from typing import Any
 import pyaudio
 import wave
 import speech_recognition as sr
@@ -92,7 +93,7 @@ class STTHandler:
         j[self.key][name] = value
         self.settings.set_string("stt-settings", json.dumps(j))
 
-    def get_setting(self, name):
+    def get_setting(self, name) -> Any:
         """Get setting from key""" 
         j = json.loads(self.settings.get_string("stt-settings"))
         if self.key not in j or name not in j[self.key]:

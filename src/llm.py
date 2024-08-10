@@ -23,18 +23,24 @@ class LLMHandler():
 
     @staticmethod
     def get_extra_settings() -> list:
-        """The list of extra settings for the current model.
-            A Setting is a dict with the following properties:
-            - key: the setting key to get it
-            - title: the title of the setting
-            - description: description of the setting
-            - type: can be `entry` for input text, `toggle` for boolean, `combo` for multiple values, `range` for ranges of values
-            - default: default value to assign
-            **Optional**
-            - values: list of values for the `combo` row
-            - min: min value for `range`
-            - max: max value for `range`
-            - round-digits: how many digits to round
+        """
+        Extra settings format:
+            Required parameters:
+            - title: small title for the setting 
+            - description: description for the setting
+            - default: default value for the setting
+            - type: What type of row to create, possible rows:
+                - entry: input text 
+                - toggle: bool
+                - combo: for multiple choice
+                    - values: list of touples of possible values (display_value, actual_value)
+                - range: for number input with a slider 
+                    - min: minimum value
+                    - max: maximum value 
+                    - round: how many digits to round 
+            Optional parameters:
+                - folder: add a button that opens a folder with the specified path
+                - website: add a button that opens a website with the specified path 
         """
         return []
 
@@ -77,7 +83,7 @@ class LLMHandler():
         self.prompts = prompts
         self.history = window.chat[len(window.chat) - window.memory:len(window.chat)-1]
 
-    def get_setting(self, key: str) -> object:
+    def get_setting(self, key: str) -> Any:
         """Get a setting from the given key
 
         Args:

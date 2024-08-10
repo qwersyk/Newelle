@@ -1,26 +1,21 @@
+from typing import Any
 import gi
 import re, threading, os, json, time, ctypes
 from subprocess import Popen 
 from gi.repository import Gtk, Adw, Gio, GLib
+
+from .stt import STTHandler
+from .tts import TTSHandler
 from .constants import AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT, PROMPTS
 from gpt4all import GPT4All
-from .llm import GPT4AllHandler
+from .llm import GPT4AllHandler, LLMHandler
 from .gtkobj import ComboRowHelper, CopyBox, MultilineEntry
-from .extra import can_escape_sandbox, override_prompts
-
-
-def human_readable_size(size, decimal_places=2):
-    size = int(size)
-    for unit in ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB']:
-        if size < 1024.0 or unit == 'PiB':
-            break
-        size /= 1024.0
-    return f"{size:.{decimal_places}f} {unit}"
+from .extra import can_escape_sandbox, override_prompts, human_readable_size
 
 class Settings(Adw.PreferencesWindow):
     def __init__(self,app, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        sandbox = can_escape_sandbox()
+        self.sandbox = can_escape_sandbox()
         self.settings = Gio.Settings.new('io.github.qwersyk.Newelle')
         self.set_transient_for(app.win)
         self.set_modal(True)
@@ -33,140 +28,45 @@ class Settings(Adw.PreferencesWindow):
         self.custom_prompts = json.loads(self.settings.get_string("custom-prompts"))
         self.prompts = override_prompts(self.custom_prompts, PROMPTS)
 
+        # Page building
         self.general_page = Adw.PreferencesPage()
 
-        # LLM
+        # Build the LLMs settings
         self.LLM = Adw.PreferencesGroup(title=_('Language Model'))
         self.general_page.add(self.LLM)
         self.llmbuttons = [];
         group = Gtk.CheckButton()
+        selected = self.settings.get_string("language-model")
         for model_key in AVAILABLE_LLMS:
-            model = AVAILABLE_LLMS[model_key]
-            handler = model["class"]
-            active = False
-            # If the model is selected
-            if model["key"] == self.settings.get_string("language-model"):
-                active = True
-
-            # Define the type of row of the model
-            if model["rowtype"] == "action":
-                row = Adw.ActionRow(title=model["title"], subtitle=model["description"])
-            elif model["rowtype"] == "expander":
-                row = Adw.ExpanderRow(title=model["title"], subtitle=model["description"])
-                if model["key"] == "local":
-                    self.llmrow = row
-                    thread = threading.Thread(target=self.build_local)
-                    thread.start()
-                else:
-                    self.add_extra_settings(model, row, "llm")
-            # Add download button if the model has extra requirements 
-            if len(handler.get_extra_requirements()) > 0:
-                self.add_download_button(model, row, "llm")
-            self.add_flatpak_waning_button(model, row, "llm")
-            button = Gtk.CheckButton()
-            button.set_group(group)
-            button.set_active(active)
-            button.set_name(model["key"])
-            button.connect("toggled", self.choose_llm)
-            if not sandbox and handler.requires_sandbox_escape():
-                button.set_sensitive(False)
-            row.add_prefix(button)
-            self.LLM.add(row)
-
-        # TTS
+           row = self.build_row(AVAILABLE_LLMS, model_key, selected, group)
+           self.LLM.add(row)
+        
+        # Build the TTS settings
         self.TTSgroup = Adw.PreferencesGroup(title=_('Text To Speech'))
         self.general_page.add(self.TTSgroup)
         tts_enabled = Gtk.Switch(valign=Gtk.Align.CENTER)
         self.settings.bind("tts-on", tts_enabled, 'active', Gio.SettingsBindFlags.DEFAULT)
-
         tts_program = Adw.ExpanderRow(title=_('Text To Speech Program'), subtitle=_("Choose which text to speech to use"))
         tts_program.add_action(tts_enabled)
         self.TTSgroup.add(tts_program)
         group = Gtk.CheckButton()
-
+        selected = self.settings.get_string("tts")
         for tts_key in AVAILABLE_TTS:
-            active = False
-            tts = AVAILABLE_TTS[tts_key]
-            tts["key"] = tts_key
-            handler = tts["class"]
+           row = self.build_row(AVAILABLE_TTS, tts_key, selected, group) 
+           self.TTSgroup.add(row)
 
-            # If the tts is selected
-            if tts["key"] == self.settings.get_string("tts"):
-                active = True
-
-            # Define the type of row of the tts
-            if tts["rowtype"] == "action":
-                row = Adw.ActionRow(title=tts["title"], subtitle=tts["description"])
-            elif tts["rowtype"] == "expander":
-                row = Adw.ExpanderRow(title=tts["title"], subtitle=tts["description"])
-                if len(handler.get_extra_settings()) > 0:
-                    self.add_extra_settings(tts, row, "tts")
-            elif tts["rowtype"] == "combo":
-                row = Adw.ComboRow(title=tts["title"], subtitle=tts["description"])
-                row.set_name(tts["key"])
-                tts_class = tts["class"](self.settings, self.directory)
-                helper = ComboRowHelper(row, tts_class.get_voices(), tts_class.get_current_voice())
-                helper.connect("changed", self.choose_tts_voice)
-            
-            button = Gtk.CheckButton()
-            button.set_group(group)
-            button.set_active(active)
-            button.set_name(tts["key"])
-            self.add_flatpak_waning_button(tts, row, "tts")
-            button.connect("toggled", self.choose_tts)
-            if not sandbox and handler.requires_sandbox_escape():
-                button.set_sensitive(False)
-            row.add_prefix(button)
-            tts_program.add_row(row)
-
-        # Speech To Text
+        # Build the Speech to Text settings
         self.STTgroup = Adw.PreferencesGroup(title=_('Speech to Text'))
         self.general_page.add(self.STTgroup)
-
         stt_engine = Adw.ExpanderRow(title=_('Speech To Text Engine'), subtitle=_("Choose which speech recognition engine you want"))
         self.STTgroup.add(stt_engine)
         group = Gtk.CheckButton()
+        selected = self.settings.get_string("stt-engine")
         for stt_key in AVAILABLE_STT:
-            active = False
-            stt = AVAILABLE_STT[stt_key]
-            handler = stt["class"]
-            stt["key"] = stt_key
-            
-            # If the stt is selected
-            if stt_key == self.settings.get_string("stt-engine"):
-                active = True
+            row = self.build_row(AVAILABLE_STT, stt_key, selected, group)
+            self.STTgroup.add(row)
 
-            # Define the type of row of the stt
-            match stt["rowtype"]:
-               case "expander":
-                    row = Adw.ExpanderRow(title=stt["title"], subtitle=stt["description"])
-                    self.add_extra_settings(stt, row, "stt")
-               case "combo":
-                    row = Adw.ComboRow(title=stt["title"], subtitle=stt["description"])
-               case _:
-                    row = Adw.ActionRow(title=stt["title"], subtitle=stt["description"])
-    
-            button = Gtk.CheckButton()
-            button.set_group(group)
-            button.set_active(active)
-            button.set_name(stt_key)
-            button.connect("toggled", self.choose_stt)
-            row.add_prefix(button)
-            row.set_name(stt_key)
-            stt_engine.add_row(row)
-            if "website" in stt:
-                wbbutton = self.create_web_button(stt["website"])
-                if stt["rowtype"] == "action":
-                    row.add_suffix(wbbutton)
-                elif stt["rowtype"] == "expander":
-                    row.add_action(wbbutton)
-            if len(handler.get_extra_requirements()) > 0:
-                self.add_download_button(stt, row, "stt")
-            self.add_flatpak_waning_button(stt, row, "stt")
-            if not sandbox and handler.requires_sandbox_escape():
-                button.set_sensitive(False)
-
-        # Other settings
+        # Interface settings
         self.interface = Adw.PreferencesGroup(title=_('Interface'))
         self.general_page.add(self.interface)
 
@@ -183,6 +83,7 @@ class Settings(Adw.PreferencesWindow):
         self.settings.bind("offers", int_spin, 'value', Gio.SettingsBindFlags.DEFAULT)
         self.interface.add(row)
 
+        # Prompts settings
         self.prompt = Adw.PreferencesGroup(title=_('Prompt control'))
         self.general_page.add(self.prompt)
 
@@ -256,7 +157,164 @@ class Settings(Adw.PreferencesWindow):
 
         self.add(self.general_page)
 
+
+    def build_row(self, constants: dict[str, Any], key: str, selected: str, group: Gtk.CheckButton) -> Adw.ActionRow | Adw.ExpanderRow:
+        """Build the row for every handler
+
+        Args:
+            constants: The constants for the specified handler, can be AVAILABLE_TTS, AVAILABLE_STT...
+            key: key of the specified handler
+            selected: the key of the selected handler
+            group: the check group for che checkbox in the row
+
+        Returns:
+            The created row
+        """
+        model = constants[key]
+        handler = self.get_object(constants, key)
+        # Check if the model is the currently selected
+        active = False
+        if model["key"] == selected:
+            active = True
+        # Define the type of row 
+        if len(handler.get_extra_settings()) > 0 or key == "local":
+             row = Adw.ExpanderRow(title=model["title"], subtitle=model["description"])
+             if key != "local":
+                 self.add_extra_settings(constants, handler, row)
+             else:
+                self.llmrow = row
+                threading.Thread(target=self.build_local).start()
+        else:
+            row = Adw.ActionRow(title=model["title"], subtitle=model["description"])
+        
+        # Add extra buttons 
+        self.add_download_button(handler, row)
+        self.add_flatpak_waning_button(handler, row)
+        
+        # Add check button
+        button = Gtk.CheckButton(name=key, group=group, active=active)
+        button.connect("toggled", self.choose_row, constants)
+        if not self.sandbox and handler.requires_sandbox_escape():
+            button.set_sensitive(False)
+        row.add_prefix(button)
+        return row
+
+    def get_object(self, constants: dict[str, Any], key:str) -> (LLMHandler | TTSHandler | STTHandler):
+        """Get an handler instance for the specified handler key
+
+        Args:
+            constants: The constants for the specified handler, can be AVAILABLE_TTS, AVAILABLE_STT...
+            key: key of the specified handler
+
+        Raises:
+            Exception: if the constant is not valid 
+
+        Returns:
+            The created handler           
+        """
+        if constants == AVAILABLE_LLMS:
+            model = constants[key]["class"](self.settings, os.path.join(self.directory, "pip"))
+        elif constants == AVAILABLE_STT:
+            model = constants[key]["class"](self.settings,os.path.join(self.directory, "models"))
+        elif constants == AVAILABLE_TTS:
+            model = constants[key]["class"](self.settings, self.directory)
+        else:
+            raise Exception("Unknown constants")
+        return model
+
+    def choose_row(self, button, constants : dict):
+        """Called by GTK the selected handler is changed
+
+        Args:
+            button (): the button that triggered the change
+            constants: The constants for the specified handler, can be AVAILABLE_TTS, AVAILABLE_STT...
+        """
+        setting_name = ""
+        if constants == AVAILABLE_LLMS:
+            setting_name = "language-model"
+        elif constants == AVAILABLE_TTS:
+            setting_name = "tts"
+        elif constants == AVAILABLE_STT:
+            setting_name = "stt-engine"
+        else:
+            return
+        self.settings.set_string(setting_name, button.get_name())
+
+    def add_extra_settings(self, constants : dict[str, Any], handler : LLMHandler | TTSHandler | STTHandler, row : Adw.ExpanderRow):
+        """Buld the extra settings for the specified handler. The extra settings are specified by the method get_extra_settings 
+            Extra settings format:
+            Required parameters:
+            - title: small title for the setting 
+            - description: description for the setting
+            - default: default value for the setting
+            - type: What type of row to create, possible rows:
+                - entry: input text 
+                - toggle: bool
+                - combo: for multiple choice
+                    - values: list of touples of possible values (display_value, actual_value)
+                - range: for number input with a slider 
+                    - min: minimum value
+                    - max: maximum value 
+                    - round: how many digits to round 
+            Optional parameters:
+                - folder: add a button that opens a folder with the specified path
+                - website: add a button that opens a website with the specified path
+        Args:
+            constants: The constants for the specified handler, can be AVAILABLE_TTS, AVAILABLE_STT...
+            handler: An instance of the handler
+            row: row where to add the settings
+        """
+        for setting in handler.get_extra_settings():
+            if setting["type"] == "entry":
+                r = Adw.ActionRow(title=setting["title"], subtitle=setting["description"])
+                value = handler.get_setting(setting["key"])
+                value = str(value)
+                entry = Gtk.Entry(valign=Gtk.Align.CENTER, text=value, name=setting["key"])
+                entry.connect("changed", self.setting_change_entry, constants, handler)
+                r.add_suffix(entry)
+            elif setting["type"] == "toggle":
+                r = Adw.ActionRow(title=setting["title"], subtitle=setting["description"])
+                value = handler.get_setting(setting["key"])
+                value = bool(value)
+
+                toggle = Gtk.Switch(valign=Gtk.Align.CENTER, active=value, name=setting["key"])
+                toggle.connect("state-set", self.setting_change_toggle, constants, handler)
+                r.add_suffix(toggle)
+            elif setting["type"] == "combo":
+                r = Adw.ComboRow(title=setting["title"], subtitle=setting["description"], name=setting["key"])
+                helper = ComboRowHelper(r, setting["values"], handler.get_setting(setting["key"]))
+                helper.connect("changed", self.setting_change_combo, constants, handler)
+            elif setting["type"] == "range":
+                r = Adw.ActionRow(title=setting["title"], subtitle=setting["description"], valign=Gtk.Align.CENTER)
+                box = Gtk.Box()
+                scale = Gtk.Scale(name=setting["key"], round_digits=setting["round-digits"])
+                scale.set_value(float(handler.get_setting(setting["key"])))
+                scale.set_range(setting["min"], setting["max"])
+                scale.set_size_request(120, -1)
+                scale.connect("change-value", self.setting_change_scale, constants, handler)
+                label = Gtk.Label(label=handler.get_setting(setting["key"]))
+                box.append(label)
+                box.append(scale)
+                self.slider_labels[scale] = label
+                r.add_suffix(box)
+            else:
+                continue
+            if "website" in setting:
+                wbbutton = self.create_web_button(setting["website"])
+                r.add_prefix(wbbutton)
+            if "folder" in setting:
+                wbbutton = self.create_web_button(setting["folder"])
+                r.add_suffix(wbbutton)
+            row.add_row(r)
+
+
     def add_customize_prompt_content(self, row, prompt_name):
+        """Add a MultilineEntry to edit a prompt from the given prompt name
+
+        Args:
+            row (): row of the prompt 
+            prompt_name (): name of the prompt 
+        """
         box = Gtk.Box()
         entry = MultilineEntry()
         entry.set_text(self.prompts[prompt_name])
@@ -275,6 +333,11 @@ class Settings(Adw.PreferencesWindow):
         row.add_row(box)
 
     def edit_prompt(self, entry):
+        """Called when the MultilineEntry is changed
+
+        Args:
+            entry : the MultilineEntry 
+        """
         prompt_name = entry.get_name()
         prompt_text = entry.get_text()
 
@@ -286,6 +349,11 @@ class Settings(Adw.PreferencesWindow):
         self.settings.set_string("custom-prompts", json.dumps(self.custom_prompts))
 
     def restore_prompt(self, button):
+        """Called when the prompt restore is called
+
+        Args:
+            button (): the clicked button 
+        """
         prompt_name = button.get_name()
         self.prompts[prompt_name] = PROMPTS[prompt_name]
         self.__prompts_entries[prompt_name].set_text(self.prompts[prompt_name])
@@ -293,6 +361,12 @@ class Settings(Adw.PreferencesWindow):
 
 
     def toggle_virtualization(self, toggle, status):
+        """Called when virtualization is toggled, also checks if there are enough permissions. If there aren't show a warning
+
+        Args:
+            toggle (): 
+            status (): 
+        """
         if not can_escape_sandbox() and not status:
             self.show_flatpak_sendbox_notice()
             toggle.set_active(True)
@@ -303,192 +377,131 @@ class Settings(Adw.PreferencesWindow):
     def open_website(self, button):
         Popen(["flatpak-spawn", "--host", "xdg-open", button.get_name()])
 
-    def add_extra_settings(self, m, row, mtype):
-        if mtype == "stt":
-            model = m["class"](self.settings, os.path.join(self.directory, "pip"))
-        elif mtype == "llm":
-            model = m["class"](self.settings,os.path.join(self.directory, "models"))
-        elif mtype == "tts":
-            model = m["class"](self.settings, self.directory)
-        else:
-            return
-        for setting in model.get_extra_settings():
-            if setting["type"] == "entry":
-                r = Adw.ActionRow(title=setting["title"], subtitle=setting["description"])
-                entry = Gtk.Entry()
-                entry.set_valign(Gtk.Align.CENTER)
-                value = model.get_setting(setting["key"])
-                if value is None:
-                    value = setting["default"]
-                entry.set_text(value)
-                entry.set_name(mtype + "//" + m["key"] + "//" + setting["key"])
-                entry.connect("changed", self.setting_change_entry)
-                r.add_suffix(entry)
-            elif setting["type"] == "toggle":
-                r = Adw.ActionRow(title=setting["title"], subtitle=setting["description"])
-                toggle = Gtk.Switch()
-                toggle.set_valign(Gtk.Align.CENTER)
-                value = model.get_setting(setting["key"])
-                toggle.set_active(value)
-                toggle.set_name(mtype + "//" + m["key"] + "//" + setting["key"])
-                toggle.connect("state-set", self.setting_change_toggle)
-                r.add_suffix(toggle)
-            elif setting["type"] == "combo":
-                r = Adw.ComboRow(title=setting["title"], subtitle=setting["description"])
-                r.set_name(mtype + "//" + m["key"] + "//" + setting["key"])
-                helper = ComboRowHelper(r, setting["values"], model.get_setting(setting["key"]))
-                helper.connect("changed", self.setting_change_combo)
-            elif setting["type"] == "range":
-                r = Adw.ActionRow(title=setting["title"], subtitle=setting["description"])
-                r.set_valign(Gtk.Align.CENTER)
-                box = Gtk.Box()
-                scale = Gtk.Scale()
-                scale.set_name(mtype + "//" + m["key"] + "//" + setting["key"])
-                scale.set_range(setting["min"], setting["max"])
-                scale.set_round_digits(setting["round-digits"])
-                scale.set_size_request(120, -1)
-                scale.set_value(float(model.get_setting(setting["key"])))
-                scale.connect("change-value", self.setting_change_scale)
-                label = Gtk.Label(label=model.get_setting(setting["key"]))
-                box.append(label)
-                box.append(scale)
-                self.slider_labels[scale] = label
-                r.add_suffix(box)
-            else:
-                continue
-            if "website" in setting:
-                wbbutton = self.create_web_button(setting["website"])
-                r.add_prefix(wbbutton)
-            row.add_row(r)
+    def setting_change_entry(self, entry, constants, handler : LLMHandler | TTSHandler | STTHandler):
+        """ Called when an entry handler setting is changed 
 
-    def setting_change_entry(self, entry):
-        name = entry.get_name().split("//")
-        mtype = name[0]
-        key = name[1]
-        setting = name[2]
-        if mtype == "stt":
-            model = AVAILABLE_STT[key]["class"](self.settings, os.path.join(self.directory, "pip"))
-            model.set_setting(setting, entry.get_text())
-        elif mtype == "llm":
-            model = AVAILABLE_LLMS[key]["class"](self.settings, os.path.join(self.directory, "model"))
-            model.set_setting(setting, entry.get_text())
-        elif mtype == "tts":
-            model = AVAILABLE_TTS[key]["class"](self.settings, self.directory)
-            model.set_setting(setting, entry.get_text())
+        Args:
+            entry (): the entry whose contents are changed
+            constants : The constants for the specified handler, can be AVAILABLE_TTS, AVAILABLE_STT...
+            handler: An instance of the specified handler
+        """
+        name = entry.get_name()
+        handler.set_setting(name, entry.get_text())
 
-    def setting_change_toggle(self, toggle, toggled):
-        name = toggle.get_name().split("//")
-        mtype = name[0]
-        key = name[1]
-        setting = name[2]
+    def setting_change_toggle(self, toggle, state, constants, handler):
+        """Called when a toggle for the handler setting is triggered
+
+        Args:
+            toggle (): the specified toggle 
+            state (): state of the toggle
+            constants (): The constants for the specified handler, can be AVAILABLE_TTS, AVAILABLE_STT...
+            handler (): an instance of the handler
+        """
         enabled = toggle.get_active()
-        if mtype == "stt":
-            model = AVAILABLE_STT[key]["class"](self.settings, os.path.join(self.directory, "pip"))
-            model.set_setting(setting, enabled)
-        elif mtype == "llm":
-            model = AVAILABLE_LLMS[key]["class"](self.settings, os.path.join(self.directory, "model"))
-            model.set_setting(setting, enabled)
-        elif mtype == "tts":
-            model = AVAILABLE_TTS[key]["class"](self.settings, self.directory)
-            model.set_setting(setting, enabled)
+        handler.set_setting(toggle.get_name(), enabled)
 
-    def setting_change_scale(self, scale, scroll, value):
-        name = scale.get_name().split("//")
-        mtype = name[0]
-        key = name[1]
-        setting = name[2]
+    def setting_change_scale(self, scale, scroll, value, constants, handler):
+        """Called when a scale for the handler setting is changed
+
+        Args:
+            scale (): the changed scale
+            scroll (): scroll value
+            value (): the value 
+            constants (): The constants for the specified handler, can be AVAILABLE_TTS, AVAILABLE_STT...
+            handler (): an instance of the handler
+        """
+        setting = scale.get_name()
         digits = scale.get_round_digits()
         value = round(value, digits)
         self.slider_labels[scale].set_label(str(value))
-        if mtype == "stt":
-            model = AVAILABLE_STT[key]["class"](self.settings, os.path.join(self.directory, "pip"))
-            model.set_setting(setting, value)
-        elif mtype == "llm":
-            model = AVAILABLE_LLMS[key]["class"](self.settings, os.path.join(self.directory, "model"))
-            model.set_setting(setting, value)
-        elif mtype == "tts":
-            model = AVAILABLE_TTS[key]["class"](self.settings, self.directory)
-            model.set_setting(setting, value)
+        handler.set_setting(setting, value)
 
-    def setting_change_combo(self, helper, value):
-        name = helper.combo.get_name().split("//")
-        mtype = name[0]
-        key = name[1]
-        setting = name[2]
-        if mtype == "stt":
-            model = AVAILABLE_STT[key]["class"](self.settings, os.path.join(self.directory, "pip"))
-            model.set_setting(setting, value)
-        elif mtype == "llm":
-            model = AVAILABLE_LLMS[key]["class"](self.settings, os.path.join(self.directory, "model"))
-            model.set_setting(setting, value)
-        elif mtype == "tts":
-            model = AVAILABLE_TTS[key]["class"](self.settings, self.directory)
-            model.set_setting(setting, value)
+    def setting_change_combo(self, helper, value, constants, handler):
+        """Called when a combo for the handler setting is changed
 
-    def add_download_button(self, model, row, mtype):
-        if mtype == "stt":
-            m = model["class"](self.settings, os.path.join(self.directory, "pip"))
-        elif mtype == "llm":
-            m = model["class"](self.settings, os.path.join(self.directory, "models"))
+        Args:
+            helper (): combo row helper 
+            value (): chosen value
+            constants (): The constants for the specified handler, can be AVAILABLE_TTS, AVAILABLE_STT...
+            handler (): an instance of the handler
+        """
+        setting = helper.combo.get_name()
+        handler.set_setting(setting, value)
+
+    def add_download_button(self, handler : TTSHandler | STTHandler | LLMHandler, row : Adw.ActionRow | Adw.ExpanderRow): 
+        """Add download button for an handler dependencies. If clicked it will call handler.install()
+
+        Args:
+            handler: an instance of the handler
+            row: row where to add teh button
+        """
         actionbutton = Gtk.Button(css_classes=["flat"], valign=Gtk.Align.CENTER)
-        if not m.is_installed():
+        if not handler.is_installed():
             icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="folder-download-symbolic"))
-            actionbutton.connect("clicked", self.install_model)
+            actionbutton.connect("clicked", self.install_model, handler)
             actionbutton.add_css_class("accent")
             actionbutton.set_child(icon)
-            actionbutton.set_name(mtype + "//" + model["key"])
-            if model["rowtype"] == "action":
+            if type(row) is Adw.ActionRow:
                 row.add_suffix(actionbutton)
-            elif model["rowtype"] == "expander":
+            elif type(row) is Adw.ExpanderRow:
                 row.add_action(actionbutton)
 
-    def add_flatpak_waning_button(self, model, row, mtype):
-        if mtype == "stt":
-            m = model["class"](self.settings, os.path.join(self.directory, "pip"))
-        elif mtype == "llm":
-            m = model["class"](self.settings, os.path.join(self.directory, "models"))
-        elif mtype == "tts":
-            m = model["class"](self.settings, self.directory)
+    def add_flatpak_waning_button(self, handler : LLMHandler | TTSHandler | STTHandler, row : Adw.ExpanderRow | Adw.ActionRow | Adw.ComboRow):
+        """Add flatpak warning button in case the application does not have enough permissions
+        On click it will show a warning about this issue and how to solve it
+
+        Args:
+            handler: an instance of the handler
+            row: the row where to add the button
+        """
         actionbutton = Gtk.Button(css_classes=["flat"], valign=Gtk.Align.CENTER)
-        if m.requires_sandbox_escape() and not can_escape_sandbox():
+        if handler.requires_sandbox_escape() and not can_escape_sandbox():
             icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="warning-outline-symbolic"))
             actionbutton.connect("clicked", self.show_flatpak_sendbox_notice)
             actionbutton.add_css_class("error")
             actionbutton.set_child(icon)
-            actionbutton.set_name(mtype + "//" + model["key"])
-            if model["rowtype"] == "action":
+            if type(row) is Adw.ActionRow:
                 row.add_suffix(actionbutton)
-            elif model["rowtype"] == "expander":
+            elif type(row) is Adw.ExpanderRow:
                 row.add_action(actionbutton)
-            elif model["rowtype"] == "combo":
+            elif type(row) is Adw.ComboRow:
                 row.add_suffix(actionbutton)
 
-    def install_model(self, button):
-        name = button.get_name()
-        mtype = name.split("//")[0]
-        key = name.split("//")[1]
-        if mtype == "stt":
-            stt = AVAILABLE_STT[key]
-            model = stt["class"](self.settings, os.path.join(self.directory, "pip"))
-        elif mtype == "llm":
-            llm = AVAILABLE_LLMS[key]
-            model = llm["class"](self.settings, os.path.join(self.directory, "models"))
+    def install_model(self, button, handler):
+        """Display a spinner and trigger the dependency download on another thread
+
+        Args:
+            button (): the specified button
+            handler (): handler of the model
+        """
         spinner = Gtk.Spinner(spinning=True)
         button.set_child(spinner)
-        t = threading.Thread(target=self.install_model_async, args= (button, model))
+        t = threading.Thread(target=self.install_model_async, args= (button, handler))
         t.start()
 
     def install_model_async(self, button, model):
+        """Install the model dependencies, called on another thread
+
+        Args:
+            button (): button  
+            model (): a handler instance
+        """
         model.install()
         button.set_child(None)
         button.set_sensitive(False)
 
     def refresh_models(self, action):
+        """Refresh local models for LLM
+
+        Args:
+            action (): 
+        """
         models = GPT4All.list_models()
         self.settings.set_string("available-models", json.dumps(models))
         self.local_models = models
 
     def build_local(self):
+        """Build the settings for local models"""
         # Reload available models
         if len(self.local_models) == 0:
             self.refresh_models(None)
@@ -510,9 +523,9 @@ class Settings(Adw.PreferencesWindow):
             if model["filename"] == self.settings.get_string("local-model"):
                 active = True
             # Write model description
-            subtitle = _("RAM Required: ") + str(model["ramrequired"]) + "GB"
-            subtitle += "\n" + _("Parameters: ") + model["parameters"]
-            subtitle += "\n" + _("Size: ") + human_readable_size(model["filesize"], 1)
+            subtitle = _(" RAM Required: ") + str(model["ramrequired"]) + "GB"
+            subtitle += "\n" + _(" Parameters: ") + model["parameters"]
+            subtitle += "\n" + _(" Size: ") + human_readable_size(model["filesize"], 1)
             subtitle += "\n" + re.sub('<[^<]+?>', '', model["description"]).replace("</ul", "")
             # Configure buttons and model's row
             r = Adw.ActionRow(title=model["name"], subtitle=subtitle)
@@ -544,26 +557,21 @@ class Settings(Adw.PreferencesWindow):
             r.add_suffix(actionbutton)
             self.llmrow.add_row(r)
 
-    def choose_llm(self, button):
-        if button.get_active():
-            self.settings.set_string("language-model", button.get_name())
     def choose_local_model(self, button):
+        """Called when a local model is chosen
+
+        Args:
+            button (): 
+        """
         if button.get_active():
             self.settings.set_string("local-model", button.get_name())
 
-    def choose_tts(self, button):
-        if button.get_active():
-            self.settings.set_string("tts", button.get_name())
-
-    def choose_stt(self, button):
-        if button.get_active():
-            self.settings.set_string("stt-engine", button.get_name())
-
-    def choose_tts_voice(self, helper, value):
-        tts = AVAILABLE_TTS[helper.combo.get_name()]["class"](self.settings, self.directory)
-        tts.set_voice(value)
-
     def download_local_model(self, button):
+        """Download the local model. Shows the progress while downloading
+
+        Args:
+            button (): button pressed
+        """
         model = button.get_name()
         box = Gtk.Box(homogeneous=True, spacing=4)
         box.set_orientation(Gtk.Orientation.VERTICAL)
@@ -581,6 +589,13 @@ class Settings(Adw.PreferencesWindow):
         th.start()
 
     def update_download_status(self, model, filesize, progressbar):
+        """Periodically update the progressbar for the download
+
+        Args:
+            model (): model that is being downloaded
+            filesize (): filesize of the download
+            progressbar (): the bar to update
+        """
         file = os.path.join(self.gpt.modelspath, model) + ".part"
         while model in self.downloading and self.downloading[model]:
             try:
@@ -592,6 +607,13 @@ class Settings(Adw.PreferencesWindow):
             time.sleep(1)
 
     def download_model_thread(self, model, button, progressbar):
+        """Create the thread that downloads the local model
+
+        Args:
+            model (): model to download 
+            button (): button to udpate
+            progressbar (): progressbar to udpate
+        """
         for x in self.local_models:
             if x["filename"] == model:
                 filesize = x["filesize"]
@@ -608,6 +630,11 @@ class Settings(Adw.PreferencesWindow):
         self.downloading[model] = False
 
     def remove_local_model(self, button):
+        """Remove a local model
+
+        Args:
+            button (): button for the local model
+        """
         model = button.get_name()
         # Kill threads if stopping download
         if model in self.downloading and self.downloading[model]:
@@ -633,8 +660,17 @@ class Settings(Adw.PreferencesWindow):
         except Exception as e:
             print(e)
 
-    def create_web_button(self, website):
-        wbbutton = Gtk.Button(icon_name="internet-symbolic")
+    def create_web_button(self, website, folder=False) -> Gtk.Button:
+        """Create an icon to open a specified website or folder
+
+        Args:
+            website (): The website/folder path to open
+            folder (): if it is a folder, defaults to False
+
+        Returns:
+            The created button
+        """
+        wbbutton = Gtk.Button(icon_name="internet-symbolic" if not folder else "search-folder-symbolic")
         wbbutton.add_css_class("flat")
         wbbutton.set_valign(Gtk.Align.CENTER)
         wbbutton.set_name(website)
@@ -642,6 +678,11 @@ class Settings(Adw.PreferencesWindow):
         return wbbutton
 
     def show_flatpak_sendbox_notice(self, el=None):
+        """Create a MessageDialog that explains the issue with missing permissions on flatpak
+
+        Args:
+            el (): 
+        """
         # Create a modal window with the warning
         dialog = Adw.MessageDialog(
             title="Permission Error",
