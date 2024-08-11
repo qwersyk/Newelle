@@ -1,5 +1,6 @@
 from abc import abstractmethod
 from os.path import abspath, isdir, isfile
+from typing import Any
 from gi.repository import Gtk, WebKit, GLib, GdkPixbuf
 from livepng.model import Semaphore
 from .tts import TTSHandler
@@ -52,7 +53,7 @@ class AvatarHandler:
         j[self.key][setting] = value
         self.settings.set_string("avatars", json.dumps(j))
 
-    def get_setting(self, name):
+    def get_setting(self, name) -> Any:
         """Get setting from key"""
         j = json.loads(self.settings.get_string("avatars"))
         if self.key not in j or not isinstance(j[self.key], dict) or name not in j[self.key]:
@@ -200,7 +201,7 @@ class Live2DHandler(AvatarHandler):
 
 
 class LivePNGHandler(AvatarHandler):
-
+    key = "LivePNG"
     def __init__(self, settings, path: str):
         super().__init__(settings, path)
         self.models_path = os.path.join(path, "avatars", "livepng", "models")
@@ -208,6 +209,7 @@ class LivePNGHandler(AvatarHandler):
             os.makedirs(self.models_path)
     
     def get_extra_settings(self) -> list:
+        styles, default = self.get_styles_list() 
         return [ 
             {
                 "key": "model",
@@ -216,7 +218,8 @@ class LivePNGHandler(AvatarHandler):
                 "type": "combo",
                 "values": self.get_available_models(),
                 "default": "arch-chan",
-                "folder": os.path.abspath(self.models_path)
+                "folder": os.path.abspath(self.models_path),
+                "update_settings": True
             },
             {
              "key": "fps",
@@ -227,9 +230,23 @@ class LivePNGHandler(AvatarHandler):
                 "max": 30,
                 "default": 10,
                 "round-digits": 0
-            }, 
+            },
+            {
+                "key": "style",
+                "title": _("LivePNG model style"),
+                "description": _("Choose the style of the model for the specified one"),
+                "type": "combo",
+                "values": styles,
+                "default": default
+            }
         ]       
-    
+    def get_styles_list(self) -> tuple[list, str]:
+        path = self.get_setting("model")
+        if not type(path) is str:
+            return ([], "")
+        self.model = LivePNG(path, output_type=FilepathOutput.LOCAL_PATH)
+
+        return ([(style, style) for style in self.model.get_styles()], self.model.get_default_style().name)
     def get_available_models(self) -> list[tuple[str, str]]:
         dirs = os.listdir(self.models_path)
         result = []
@@ -237,7 +254,6 @@ class LivePNGHandler(AvatarHandler):
             if not os.path.isdir(os.path.join(self.models_path, dir)):
                 continue
             jsonpath = os.path.join(self.models_path, dir, "model.json")
-            print(dir)
             if not os.path.isfile(jsonpath):
                 continue
             try:
@@ -267,14 +283,13 @@ class LivePNGHandler(AvatarHandler):
 
     def __load_model(self):
         path = self.get_setting("model")
-        print(path)
         if not type(path) is str:
             return
         self.model = LivePNG(path, output_type=FilepathOutput.LOCAL_PATH)
+        self.model.set_current_style(self.get_setting("style"))
         t = threading.Thread(target=self.preacache_images)
         t.start()
         self.model.subscribe_callback(self.__on_update)
-        print(self.model.name, self.model.get_current_image()) 
         self.__on_update(self.model.get_current_image())
 
     def __on_update(self, frame:str):
@@ -287,9 +302,19 @@ class LivePNGHandler(AvatarHandler):
         self.cachedpixbuf = {}
         for image in self.model.get_images_list():
             self.cachedpixbuf[image] = self.__load_image(image)
+
+    def get_expressions(self) -> list[str]:
+        return [expression for expression in self.model.get_expressions()]
         
     def __load_image(self, image):
         return GdkPixbuf.Pixbuf.new_from_file_at_scale(filename=image, width=2000,height=-1, preserve_aspect_ratio=True )
 
     def is_installed(self) -> bool:
         return len(self.get_available_models()) > 0
+
+    def set_setting(self, setting, value):
+        """Overridden version of set_setting that also updates the default style setting when the model is changed"""
+        super().set_setting(setting, value)
+        if setting == "model":
+            self.set_setting("style", self.get_styles_list()[1])
+
