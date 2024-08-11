@@ -21,8 +21,7 @@ class LLMHandler():
         """If the handler requires to run commands on the user host system"""
         return False
 
-    @staticmethod
-    def get_extra_settings() -> list:
+    def get_extra_settings(self) -> list:
         """
         Extra settings format:
             Required parameters:
@@ -260,8 +259,7 @@ class GPT3AnyHandler(G4FHandler):
         super().__init__(settings, path)
         self.client = g4f.client.Client()
 
-    @staticmethod
-    def get_extra_settings() -> list:
+    def get_extra_settings(self) -> list:
         return [
             {
                 "key": "streaming",
@@ -359,8 +357,7 @@ class GeminiHandler(LLMHandler):
             return False
         return True
 
-    @staticmethod
-    def get_extra_settings() -> list:
+    def get_extra_settings(self) -> list:
         return [
             {
                 "key": "apikey",
@@ -435,8 +432,7 @@ class CustomLLMHandler(LLMHandler):
         """If the handler requires to run commands on the user host system"""
         return True
 
-    @staticmethod
-    def get_extra_settings():
+    def get_extra_settings(self):
         return [
             {
                 "key": "command",
@@ -481,8 +477,7 @@ class OpenAIHandler(LLMHandler):
     def get_extra_requirements() -> list:
         return ["openai"]
 
-    @staticmethod
-    def get_extra_settings() -> list:
+    def get_extra_settings(self) -> list:
         return [ 
             {
                 "key": "api",

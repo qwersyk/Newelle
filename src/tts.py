@@ -206,8 +206,7 @@ class CustomTTSHandler(TTSHandler):
         """If the handler requires to run commands on the user host system"""
         return True
 
-    @staticmethod
-    def get_extra_settings() -> list:
+    def get_extra_settings(self) -> list:
         return [{
             "key": "command",
             "title": _("Command to execute"),

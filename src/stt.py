@@ -63,8 +63,7 @@ class STTHandler:
         """Return the list of extra requirements"""
         return []
 
-    @staticmethod
-    def get_extra_settings() -> list:
+    def get_extra_settings(self) -> list:
         """Return the list of extra settings"""
         return []
 
@@ -133,8 +132,7 @@ class GoogleSRHandler(STTHandler):
     
     key = "google_sr"
 
-    @staticmethod
-    def get_extra_settings() -> list:
+    def get_extra_settings(self) -> list:
         return [
             {
                 "key": "api",
@@ -175,8 +173,7 @@ class WitAIHandler(STTHandler):
     
     key = "witai"
     
-    @staticmethod
-    def get_extra_settings() -> list:
+    def get_extra_settings(self) -> list:
         return [
             {
                 "key": "api",
@@ -208,8 +205,7 @@ class VoskHandler(STTHandler):
     def get_extra_requirements() -> list:
         return ["vosk"]
 
-    @staticmethod
-    def get_extra_settings() -> list:
+    def get_extra_settings(self) -> list:
         return [
             {
                 "key": "path",
@@ -244,8 +240,7 @@ class WhisperAPIHandler(STTHandler):
     def get_extra_requirements() -> list:
         return ["openai"]
 
-    @staticmethod
-    def get_extra_settings() -> list:
+    def get_extra_settings(self) -> list:
         return [
             {
                 "key": "api",
@@ -282,8 +277,7 @@ class CustomSRHandler(STTHandler):
     
     key = "custom_command"
 
-    @staticmethod
-    def get_extra_settings() -> list:
+    def get_extra_settings(self) -> list:
         return [
             {
                 "key": "command",
