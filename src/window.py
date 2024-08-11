@@ -2,17 +2,19 @@ import time, re, sys
 import gi, os, subprocess
 import pickle
 from .gtkobj import File, CopyBox, BarChartBox, MultilineEntry
-from .constants import AVAILABLE_LLMS, PROMPTS, AVAILABLE_TTS, AVAILABLE_STT
-from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject, GLib
+from .constants import AVAILABLE_LLMS, PROMPTS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_AVATARS
+from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject, GLib, WebKit
 from .stt import AudioRecorder
 from .extra import override_prompts
 import threading
 import posixpath
 import shlex,json
 import random
+from pydub import AudioSegment
 
 class MainWindow(Gtk.ApplicationWindow):
     def __init__(self, *args, **kwargs):
+        self.first_load = True
         super().__init__(*args, **kwargs)
         self.set_default_size(1400, 800) #(1500, 800) to show everything
         self.main_program_block = Adw.Flap(flap_position=Gtk.PackType.END,modal=False,swipe_to_close=False,swipe_to_open=False)
@@ -121,7 +123,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.explorer_panel.append(self.explorer_panel_header)
         self.folder_blocks_panel = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.explorer_panel.append(self.folder_blocks_panel)
-        self.set_child(self.main_program_block)
+        #self.set_child(self.main_program_block)
         self.main_program_block.set_content(self.main)
         self.main_program_block.set_flap(self.explorer_panel)
         self.secondary_message_chat_block = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
@@ -210,6 +212,42 @@ class MainWindow(Gtk.ApplicationWindow):
         box.append(self.flap_button_right)
         self.explorer_panel_header.pack_end(box)
 
+        # Avatar
+        self.avatar_handler = None
+        self.avatar_widget = None
+        self.avatar_flap = Adw.Flap(flap_position=Gtk.PackType.END, modal=False, swipe_to_close=False, swipe_to_open=False)
+        self.avatar_flap.set_name("hide")
+
+        self.boxw = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, css_classes=["background"])
+        self.web_panel_header = Adw.HeaderBar(css_classes=["flat", "view"])
+        box = Gtk.Box()
+        # Titlebar buttons
+        flap_button_right = Gtk.ToggleButton.new()
+        flap_button_right.set_icon_name(icon_name='sidebar-show-right-symbolic')
+        flap_button_right.connect('clicked', self.on_flap_button_toggled)
+
+        flap_button_avatar = Gtk.ToggleButton.new()
+        flap_button_avatar.set_icon_name(icon_name='avatar-symbolic')
+        flap_button_avatar.connect('clicked', self.on_avatar_button_toggled)
+        box.append(flap_button_avatar)
+        box.append(flap_button_right)
+
+        self.web_panel_header.pack_end(box)
+        self.web_panel_header.set_title_widget(Gtk.Box())
+        self.boxw.append(self.web_panel_header)
+        self.boxw.set_size_request(400, 0)
+        self.boxw.set_hexpand(False)
+        self.avatar_flap.set_flap(self.boxw)
+
+        self.avatar_flap.set_content(self.main_program_block)
+        self.flap_button_avatar = Gtk.ToggleButton.new()
+        self.flap_button_avatar.set_icon_name(icon_name='avatar-symbolic')
+        self.flap_button_avatar.connect('clicked', self.on_avatar_button_toggled)
+        self.avatar_flap.connect("notify::reveal-flap", self.handle_second_block_change)
+        self.chat_header.pack_end(child=self.flap_button_avatar)
+        self.set_child(self.avatar_flap)
+        self.avatar_flap.set_reveal_flap(False)
+        # End Live2d
         self.status = True
         self.chat_controls_entry_block.append(self.chat_stop_button)
         for text in range(self.offers):
@@ -291,6 +329,8 @@ class MainWindow(Gtk.ApplicationWindow):
         GLib.idle_add(self.update_folder)
         GLib.idle_add(self.update_history)
         GLib.idle_add(self.show_chat)
+        GLib.idle_add(self.load_avatar)
+        self.first_load = False
 
     def start_recording(self, button):
         #button.set_child(Gtk.Spinner(spinning=True))
@@ -346,6 +386,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.tts_voice = settings.get_string("tts-voice")
         self.stt_engine = settings.get_string("stt-engine")
         self.stt_settings = settings.get_string("stt-settings")
+        self.avatar_enabled = settings.get_boolean("avatar-on")
 
         # Load custom prompts
         self.custom_prompts = json.loads(self.settings.get_string("custom-prompts"))
@@ -367,8 +408,8 @@ class MainWindow(Gtk.ApplicationWindow):
         if self.show_image:
             self.bot_prompt += self.prompts["show_image"]
         if self.graphic:
-            self.bot_prompt += self.prompts["graphic"]
-        if self.graphic and self.console:
+            self.bot_prompt += self.prompts["graphic"] 
+        if self.graphic and self.console: 
             self.bot_prompt += self.prompts["graphic_console"]
         if self.cutom_extra_prompt:
             self.bot_prompt += self.prompts["custom_prompt"]
@@ -392,6 +433,22 @@ class MainWindow(Gtk.ApplicationWindow):
         else:
             self.main_path="~"
 
+        if not self.first_load:
+            self.load_avatar()
+ 
+    def load_avatar(self):
+        if self.avatar_widget is not None and self.avatar_handler is not None:
+            self.boxw.remove(self.avatar_widget)
+            self.avatar_handler.destroy()
+        selected_key = self.settings.get_string("avatar-model")
+        for avatar in AVAILABLE_AVATARS:
+            if selected_key == avatar:
+                self.avatar_handler = AVAILABLE_AVATARS[avatar]["class"](self.settings, self.directory)
+                break
+        if self.avatar_handler is not None:   
+            self.avatar_widget = self.avatar_handler.create_gtk_widget()
+            self.boxw.append(self.avatar_widget)
+
 
     def send_button_start_spinner(self):
         spinner = Gtk.Spinner(spinning=True)
@@ -412,15 +469,17 @@ class MainWindow(Gtk.ApplicationWindow):
         elif (self.main_program_block.get_name()=="visible") and (not status):
             self.main_program_block.set_reveal_flap(True)
             return True
-        status = self.main_program_block.get_reveal_flap()
+        status = self.main_program_block.get_reveal_flap() or self.avatar_flap.get_reveal_flap()
         if status:
             self.chat_panel_header.set_show_end_title_buttons(False)
             self.chat_header.set_show_end_title_buttons(False)
             self.flap_button_left.set_visible(False)
+            self.flap_button_avatar.set_visible(False)
         else:
             self.chat_panel_header.set_show_end_title_buttons(self.main.get_folded())
             self.chat_header.set_show_end_title_buttons(True)
             self.flap_button_left.set_visible(True)
+            self.flap_button_avatar.set_visible(True)
     def on_flap_button_toggled(self, toggle_button):
         self.flap_button_left.set_active(False)
         self.flap_button_right.set_active(True)
@@ -430,6 +489,16 @@ class MainWindow(Gtk.ApplicationWindow):
         else:
             self.main_program_block.set_name("visible")
             self.main_program_block.set_reveal_flap(True)
+
+    def on_avatar_button_toggled(self, toggle_button):
+        self.flap_button_avatar.set_active(False)
+        if self.avatar_flap.get_name() == "visible":
+            self.avatar_flap.set_name("hide")
+            self.main_program_block.set_name("hide")
+            self.avatar_flap.set_reveal_flap(False)
+        else:
+            self.avatar_flap.set_name("visible")
+            self.avatar_flap.set_reveal_flap(True)
 
     def get_file_button(self, path):
         if path[0:2]=="./":
@@ -1139,9 +1208,14 @@ class MainWindow(Gtk.ApplicationWindow):
             if self.tts_program in AVAILABLE_TTS:
                 tts = AVAILABLE_TTS[self.tts_program]["class"](self.settings, self.directory)
                 message=re.sub(r"```.*?```", "", message_label, flags=re.DOTALL)
-                if not(not message.strip() or message.isspace() or all(char == '\n' for char in message)):tts.play_audio(message)
+                if not(not message.strip() or message.isspace() or all(char == '\n' for char in message)):
+                    if self.avatar_enabled and self.avatar_handler is not None:
+                        self.avatar_handler.speak_with_tts(message, tts)
+                    else:
+                        tts.playsound(message) 
+                    
 
-    def update_message(self, message, label):
+    def update_message(self, message, label):    
         GLib.idle_add(label.set_label, message)
 
     def edit_message(self, gesture, data, x, y):

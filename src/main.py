@@ -2,9 +2,9 @@ import sys
 import gi, os
 
 gi.require_version('Gtk', '4.0')
+gi.require_version('WebKit', '6.0')
 gi.require_version('GtkSource', '5')
 gi.require_version('Adw', '1')
-import pickle
 from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GtkSource, GObject
 from .settings import Settings
 from .window import MainWindow
@@ -122,8 +122,11 @@ class MyApp(Adw.Application):
                         version=self.version,
                         issue_url='https://github.com/qwersyk/Newelle/issues',
                         website='https://github.com/qwersyk/Newelle',
-                        developers=['qwersyk  https://github.com/qwersyk',"Nokse22 https://github.com/Nokse22","Francesco Caracciolo https://github.com/FrancescoCaracciolo"],
-                        copyright='© 2023 qwersyk').present()
+                        developers=['Yehor Hliebov  https://github.com/qwersyk',"Francesco Caracciolo https://github.com/FrancescoCaracciolo"],
+                        documenters=["Francesco Caracciolo https://github.com/FrancescoCaracciolo"],
+                        designers=["Nokse22 https://github.com/Nokse22"],
+                        translator_credits="\n".join(["Amine Saoud (Arabic) https://github.com/amiensa","Heimen Stoffels (Dutch) https://github.com/Vistaus","Albano Battistella (Italian) https://github.com/albanobattistella"]),
+                        copyright='© 2024 qwersyk').present()
 
     def thread_editing_action(self, *a):
         threadediting = ThreadEditing(self)
@@ -148,6 +151,8 @@ class MyApp(Adw.Application):
         extension.present()
     def close_window(self, *a):
         if all(element.poll() is not None for element in self.win.streams):
+            if self.win.avatar_handler is not None:
+                self.win.avatar_handler.destroy()
             return False
         else:
             dialog = Adw.MessageDialog(
@@ -168,6 +173,8 @@ class MyApp(Adw.Application):
         if status=="close":
             for i in self.win.streams:
                 i.terminate()
+            if self.win.avatar is not None:
+                self.win.avatar_handler.destroy()
             self.win.destroy()
     def on_activate(self, app):
         self.win = MainWindow(application=app)
