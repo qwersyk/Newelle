@@ -6,35 +6,30 @@ from .stt import SphinxHandler, GoogleSRHandler, WitAIHandler, VoskHandler, Whis
 AVAILABLE_LLMS = {
     "GPT3Any": {
         "key": "GPT3Any",
-        "rowtype": "expander",
         "title": _("Any GPT 3.5 Turbo provider"),
         "description": "Automatically select any GPT 3.5 turbo provider",
         "class": GPT3AnyHandler,
     },
    "local": {
         "key": "local",
-        "rowtype": "expander",
         "title": _("Local Model"),
         "description": _("Run a LLM model locally, more privacy but slower"),
         "class": GPT4AllHandler,
     },
     "gemini": {
         "key": "gemini",
-        "rowtype": "expander",
         "title": _("Google Gemini API"),
         "description": "Official APIs for google gemini, requires an API Key",
         "class": GeminiHandler,
     },
     "openai": {
         "key": "openai",
-        "rowtype": "expander",
         "title": _("OpenAI API"),
         "description": _("OpenAI API"),
         "class": OpenAIHandler,
     },
     "custom_command": {
         "key": "custom_command",
-        "rowtype": "expander",
         "title": _("Custom Command"),
         "description": _("Use the output of a custom command"),
         "class": CustomLLMHandler,
@@ -43,51 +38,42 @@ AVAILABLE_LLMS = {
 
 AVAILABLE_STT = {
     "sphinx": {
-        "rowtype": "action",
+        "key": "sphinx",
         "title": _("CMU Sphinx"),
         "description": _("Works offline. Only English supported"),
         "website": "https://cmusphinx.github.io/wiki/",
         "class": SphinxHandler,
     },
     "google_sr": {
-        "rowtype": "expander",
+        "key": "google_sr",
         "title": _("Google Speech Recognition"),
         "description": _("Google Speech Recognition online"),
         "extra_requirements": [],
         "class": GoogleSRHandler,
     },
     "witai": {
-        "rowtype": "expander",
+        "key": "witai",
         "title": _("Wit AI"),
         "description": _("wit.ai speech recognition free API (language chosen on the website)"),
         "website": "https://wit.ai",
         "class": WitAIHandler,
     },
     "vosk": {
-        "rowtype": "expander",
+        "key": "vosk",
         "title": _("Vosk API"),
         "description": _("Works Offline"),
         "website": "https://github.com/alphacep/vosk-api/",
         "class": VoskHandler,
     },
     "whisperapi": {
-        "rowtype": "expander",
+        "key": "whisperapi",
         "title": _("Whisper API"),
         "description": _("Uses openai whisper api"),
         "website": "https://platform.openai.com/docs/guides/speech-to-text",
         "class": WhisperAPIHandler,
     },
-#    "whisper": {
-#        "rowtype": "expander",
-#        "title": _("OpenAI Whisper"),
-#        "description": _("Offline OpenAI Whisper recognition"),
-#        "website": "https://github.com/openai/whisper",
-#        "extra_requirements": ["git+https://github.com/openai/whisper.git", "soundfile"],
-#        "class": STTHandler,
-#        "extra_settings": []
-#    },
-    "custom_command": {
-        "rowtype": "expander",
+   "custom_command": {
+        "key": "custom_command",
         "title": _("Custom command"),
         "description": _("Runs a custom command"),
         "class": CustomSRHandler,     
@@ -98,19 +84,19 @@ AVAILABLE_STT = {
 AVAILABLE_TTS = {
 
     "gtts": {
-        "rowtype": "combo",
+        "key": "gtts",
         "title": _("Google TTS"),
         "description": _("Google's text to speech"),
         "class": gTTSHandler,
     },
     "espeak": {
-        "rowtype": "combo",
+        "key": "espeak",
         "title": _("Espeak TTS"),
         "description": _("Offline TTS"),
         "class": EspeakHandler,
     },
     "custom_command": {
-        "rowtype": "expander",
+        "key": "custom_command",
         "title": _("Custom Command"),
         "description": _("Use a custom command as TTS, {0} will be replaced with the text"),
         "class": CustomTTSHandler,
