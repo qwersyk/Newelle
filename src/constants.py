@@ -1,6 +1,6 @@
 
 from .llm import GPT4AllHandler, OpenAIHandler, CustomLLMHandler, GPT3AnyHandler, GeminiHandler
-from .tts import gTTSHandler, EspeakHandler, CustomTTSHandler
+from .tts import VoiceVoxHanlder, gTTSHandler, EspeakHandler, CustomTTSHandler
 from .stt import SphinxHandler, GoogleSRHandler, WitAIHandler, VoskHandler, WhisperAPIHandler, CustomSRHandler
 from .avatar import Live2DHandler, LivePNGHandler
 
@@ -83,7 +83,6 @@ AVAILABLE_STT = {
 
 
 AVAILABLE_TTS = {
-
     "gtts": {
         "key": "gtts",
         "title": _("Google TTS"),
@@ -95,6 +94,12 @@ AVAILABLE_TTS = {
         "title": _("Espeak TTS"),
         "description": _("Offline TTS"),
         "class": EspeakHandler,
+    },
+    "voicevox": {
+        "key": "voicevox",
+        "title": _("Voicevox API"),
+        "description": _("JP ONLY. API for voicevox anime-like natural sounding tts"),
+        "class": VoiceVoxHanlder
     },
     "custom_command": {
         "key": "custom_command",

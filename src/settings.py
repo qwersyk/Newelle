@@ -319,7 +319,7 @@ class Settings(Adw.PreferencesWindow):
         elif constants == AVAILABLE_STT:
             setting_name = "stt-engine"
         elif constants == AVAILABLE_AVATARS:
-            setting_name = "avatar-on"
+            setting_name = "avatar-model"
         else:
             return
         self.settings.set_string(setting_name, button.get_name())
