@@ -281,13 +281,6 @@ class GPT3AnyHandler(G4FHandler):
             })
         return result
 
-    def generate_response(self, window, message):
-        return self.__generate_response(window, message)
-
-    def generate_response_stream(self, window, message, on_update, extra_args):
-        return self.__generate_response_stream(window, message, on_update, extra_args)
-
-
     def generate_text(self, prompt: str, history: dict[str, str] = {}, system_prompt: list[str] = []) -> str:
         # Add prompts in the message since some providers
         # don't support system prompts well
