@@ -21,20 +21,26 @@ class LLMHandler():
         """If the handler requires to run commands on the user host system"""
         return False
 
-    @staticmethod
-    def get_extra_settings() -> list:
-        """The list of extra settings for the current model.
-            A Setting is a dict with the following properties:
-            - key: the setting key to get it
-            - title: the title of the setting
-            - description: description of the setting
-            - type: can be `entry` for input text, `toggle` for boolean, `combo` for multiple values, `range` for ranges of values
-            - default: default value to assign
-            **Optional**
-            - values: list of values for the `combo` row
-            - min: min value for `range`
-            - max: max value for `range`
-            - round-digits: how many digits to round
+    def get_extra_settings(self) -> list:
+        """
+        Extra settings format:
+            Required parameters:
+            - title: small title for the setting 
+            - description: description for the setting
+            - default: default value for the setting
+            - type: What type of row to create, possible rows:
+                - entry: input text 
+                - toggle: bool
+                - combo: for multiple choice
+                    - values: list of touples of possible values (display_value, actual_value)
+                - range: for number input with a slider 
+                    - min: minimum value
+                    - max: maximum value 
+                    - round: how many digits to round 
+            Optional parameters:
+                - folder: add a button that opens a folder with the specified path
+                - website: add a button that opens a website with the specified path
+                - update_settings (bool) if reload the settings in the settings page for the specified handler after that setting change
         """
         return []
 
@@ -77,7 +83,7 @@ class LLMHandler():
         self.prompts = prompts
         self.history = window.chat[len(window.chat) - window.memory:len(window.chat)-1]
 
-    def get_setting(self, key: str) -> object:
+    def get_setting(self, key: str) -> Any:
         """Get a setting from the given key
 
         Args:
@@ -253,16 +259,16 @@ class GPT3AnyHandler(G4FHandler):
         import g4f
         super().__init__(settings, path)
         self.client = g4f.client.Client()
-
-    @staticmethod
-    def get_extra_settings() -> list:
+        self.n = 0
+    def get_extra_settings(self) -> list:
+        self.n += 1 
         return [
             {
                 "key": "streaming",
                 "title": _("Message Streaming"),
                 "description": _("Gradually stream message output"),
                 "type": "toggle",
-                "default": True
+                "default": True,
             },
         ]
 
@@ -276,13 +282,6 @@ class GPT3AnyHandler(G4FHandler):
                 "content": message["Message"]
             })
         return result
-
-    def generate_response(self, window, message):
-        return self.__generate_response(window, message)
-
-    def generate_response_stream(self, window, message, on_update, extra_args):
-        return self.__generate_response_stream(window, message, on_update, extra_args)
-
 
     def generate_text(self, prompt: str, history: dict[str, str] = {}, system_prompt: list[str] = []) -> str:
         # Add prompts in the message since some providers
@@ -353,8 +352,7 @@ class GeminiHandler(LLMHandler):
             return False
         return True
 
-    @staticmethod
-    def get_extra_settings() -> list:
+    def get_extra_settings(self) -> list:
         return [
             {
                 "key": "apikey",
@@ -429,8 +427,7 @@ class CustomLLMHandler(LLMHandler):
         """If the handler requires to run commands on the user host system"""
         return True
 
-    @staticmethod
-    def get_extra_settings():
+    def get_extra_settings(self):
         return [
             {
                 "key": "command",
@@ -475,8 +472,7 @@ class OpenAIHandler(LLMHandler):
     def get_extra_requirements() -> list:
         return ["openai"]
 
-    @staticmethod
-    def get_extra_settings() -> list:
+    def get_extra_settings(self) -> list:
         return [ 
             {
                 "key": "api",

@@ -2,6 +2,7 @@ from abc import abstractmethod
 from subprocess import check_output
 import os, sys, json
 import importlib
+from typing import Any
 import pyaudio
 import wave
 import speech_recognition as sr
@@ -62,8 +63,7 @@ class STTHandler:
         """Return the list of extra requirements"""
         return []
 
-    @staticmethod
-    def get_extra_settings() -> list:
+    def get_extra_settings(self) -> list:
         """Return the list of extra settings"""
         return []
 
@@ -92,7 +92,7 @@ class STTHandler:
         j[self.key][name] = value
         self.settings.set_string("stt-settings", json.dumps(j))
 
-    def get_setting(self, name):
+    def get_setting(self, name) -> Any:
         """Get setting from key""" 
         j = json.loads(self.settings.get_string("stt-settings"))
         if self.key not in j or name not in j[self.key]:
@@ -132,8 +132,7 @@ class GoogleSRHandler(STTHandler):
     
     key = "google_sr"
 
-    @staticmethod
-    def get_extra_settings() -> list:
+    def get_extra_settings(self) -> list:
         return [
             {
                 "key": "api",
@@ -174,8 +173,7 @@ class WitAIHandler(STTHandler):
     
     key = "witai"
     
-    @staticmethod
-    def get_extra_settings() -> list:
+    def get_extra_settings(self) -> list:
         return [
             {
                 "key": "api",
@@ -207,8 +205,7 @@ class VoskHandler(STTHandler):
     def get_extra_requirements() -> list:
         return ["vosk"]
 
-    @staticmethod
-    def get_extra_settings() -> list:
+    def get_extra_settings(self) -> list:
         return [
             {
                 "key": "path",
@@ -243,8 +240,7 @@ class WhisperAPIHandler(STTHandler):
     def get_extra_requirements() -> list:
         return ["openai"]
 
-    @staticmethod
-    def get_extra_settings() -> list:
+    def get_extra_settings(self) -> list:
         return [
             {
                 "key": "api",
@@ -281,8 +277,7 @@ class CustomSRHandler(STTHandler):
     
     key = "custom_command"
 
-    @staticmethod
-    def get_extra_settings() -> list:
+    def get_extra_settings(self) -> list:
         return [
             {
                 "key": "command",

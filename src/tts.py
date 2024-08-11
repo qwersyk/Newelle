@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from typing import Any
 from gtts import gTTS, lang
 from subprocess import check_output
 import threading, time
@@ -25,10 +26,19 @@ class TTSHandler:
         """If the handler requires to run commands on the user host system"""
         return False
 
-    @staticmethod
-    def get_extra_settings() -> list:
+    def get_extra_settings(self) -> list:
         """Get extra settings for the TTS"""
-        return []
+        voices = self.get_voices()
+        return [
+            {
+                "key": "voice",
+                "type": "combo",
+                "title": _("Voice"),
+                "description": _("Choose the preferred voice"),
+                "default": voices[0][1],
+                "values": voices
+            }
+        ]
 
     @staticmethod
     def get_extra_requirements() -> list:
@@ -107,7 +117,7 @@ class TTSHandler:
         j[self.key][setting] = value
         self.settings.set_string("tts-voice", json.dumps(j))
 
-    def get_setting(self, name):
+    def get_setting(self, name) -> Any:
         """Get setting from key"""
         j = json.loads(self.settings.get_string("tts-voice"))
         if self.key not in j or not isinstance(j[self.key], dict) or name not in j[self.key]:
@@ -200,8 +210,7 @@ class CustomTTSHandler(TTSHandler):
         """If the handler requires to run commands on the user host system"""
         return True
 
-    @staticmethod
-    def get_extra_settings() -> list:
+    def get_extra_settings(self) -> list:
         return [{
             "key": "command",
             "title": _("Command to execute"),
