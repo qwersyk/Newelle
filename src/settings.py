@@ -30,7 +30,9 @@ class Settings(Adw.PreferencesWindow):
 
         # Page building
         self.general_page = Adw.PreferencesPage()
-
+        
+        # Dictionary containing all the rows for settings update
+        self.settingsrows = {}
         # Build the LLMs settings
         self.LLM = Adw.PreferencesGroup(title=_('Language Model'))
         self.general_page.add(self.LLM)
@@ -176,7 +178,8 @@ class Settings(Adw.PreferencesWindow):
         active = False
         if model["key"] == selected:
             active = True
-        # Define the type of row 
+        # Define the type of row
+        self.settingsrows[(key, self.convert_constants(constants))] = {}
         if len(handler.get_extra_settings()) > 0 or key == "local":
              row = Adw.ExpanderRow(title=model["title"], subtitle=model["description"])
              if key != "local":
@@ -186,6 +189,7 @@ class Settings(Adw.PreferencesWindow):
                 threading.Thread(target=self.build_local).start()
         else:
             row = Adw.ActionRow(title=model["title"], subtitle=model["description"])
+        self.settingsrows[(key, self.convert_constants(constants))]["row"] = row
         
         # Add extra buttons 
         self.add_download_button(handler, row)
@@ -221,6 +225,59 @@ class Settings(Adw.PreferencesWindow):
         else:
             raise Exception("Unknown constants")
         return model
+    
+    def convert_constants(self, constants: str | dict[str, Any]) -> (str | dict):
+        """Get an handler instance for the specified handler key
+
+        Args:
+            constants: The constants for the specified handler, can be AVAILABLE_TTS, AVAILABLE_STT...
+            key: key of the specified handler
+
+        Raises:
+            Exception: if the constant is not valid 
+
+        Returns:
+            The created handler           
+        """
+        if type(constants) is str:
+            match constants:
+                case "tts":
+                    return AVAILABLE_TTS
+                case "stt":
+                    return AVAILABLE_STT
+                case "llm":
+                    return AVAILABLE_LLMS
+                case _:
+                    raise Exception("Unknown constants")
+        else:
+            if constants == AVAILABLE_LLMS:
+                return "llm"
+            elif constants == AVAILABLE_STT:
+                return "stt"
+            elif constants == AVAILABLE_TTS:
+                return "tts"
+            else:
+                raise Exception("Unknown constants")
+
+    def get_constants_from_object(self, handler: TTSHandler | STTHandler | LLMHandler) -> dict[str, Any]:
+        """Get the constants from an hander
+
+        Args:
+            handler: the handler 
+
+        Raises:
+            Exception: if the handler is not known
+
+        Returns: AVAILABLE_LLMS, AVAILABLE_STT, AVAILABLE_TTS based on the type of the handler 
+        """
+        if type(handler) is TTSHandler:
+            return AVAILABLE_TTS
+        elif type(handler) is STTHandler:
+            return AVAILABLE_STT
+        elif type(handler) is LLMHandler:
+            return AVAILABLE_LLMS
+        else:
+            raise Exception("Unknown handler")
 
     def choose_row(self, button, constants : dict):
         """Called by GTK the selected handler is changed
@@ -259,11 +316,13 @@ class Settings(Adw.PreferencesWindow):
             Optional parameters:
                 - folder: add a button that opens a folder with the specified path
                 - website: add a button that opens a website with the specified path
+                - update_settings (bool) if reload the settings in the settings page for the specified handler after that setting change
         Args:
             constants: The constants for the specified handler, can be AVAILABLE_TTS, AVAILABLE_STT...
             handler: An instance of the handler
             row: row where to add the settings
         """
+        self.settingsrows[(handler.key, self.convert_constants(constants))]["extra_settings"] = []
         for setting in handler.get_extra_settings():
             if setting["type"] == "entry":
                 r = Adw.ActionRow(title=setting["title"], subtitle=setting["description"])
@@ -306,6 +365,7 @@ class Settings(Adw.PreferencesWindow):
                 wbbutton = self.create_web_button(setting["folder"])
                 r.add_suffix(wbbutton)
             row.add_row(r)
+            self.settingsrows[handler.key, self.convert_constants(constants)]["extra_settings"].append(r)
 
 
     def add_customize_prompt_content(self, row, prompt_name):
@@ -368,7 +428,7 @@ class Settings(Adw.PreferencesWindow):
             status (): 
         """
         if not can_escape_sandbox() and not status:
-            self.show_flatpak_sendbox_notice()
+            self.show_flatpak_sandbox_notice()            
             toggle.set_active(True)
             self.settings.set_boolean("virtualization", True)
         else:
@@ -376,6 +436,16 @@ class Settings(Adw.PreferencesWindow):
 
     def open_website(self, button):
         Popen(["flatpak-spawn", "--host", "xdg-open", button.get_name()])
+
+    def on_setting_change(self, constants: dict[str, Any], handler: LLMHandler | TTSHandler | STTHandler, key: str):
+        setting_info = [info for info in handler.get_extra_settings() if info["key"] == key][0]
+        if "update_settings" in setting_info and setting_info["update_settings"]:
+            # remove all the elements in the specified expander row 
+            row = self.settingsrows[(handler.key, self.convert_constants(constants))]["row"]
+            setting_list = self.settingsrows[(handler.key, self.convert_constants(constants))]["extra_settings"]
+            for setting_row in setting_list:
+                row.remove(setting_row)
+            self.add_extra_settings(constants, handler, row)
 
     def setting_change_entry(self, entry, constants, handler : LLMHandler | TTSHandler | STTHandler):
         """ Called when an entry handler setting is changed 
@@ -387,6 +457,7 @@ class Settings(Adw.PreferencesWindow):
         """
         name = entry.get_name()
         handler.set_setting(name, entry.get_text())
+        self.on_setting_change(constants, handler, name)
 
     def setting_change_toggle(self, toggle, state, constants, handler):
         """Called when a toggle for the handler setting is triggered
@@ -399,6 +470,7 @@ class Settings(Adw.PreferencesWindow):
         """
         enabled = toggle.get_active()
         handler.set_setting(toggle.get_name(), enabled)
+        self.on_setting_change(constants, handler, toggle.get_name())
 
     def setting_change_scale(self, scale, scroll, value, constants, handler):
         """Called when a scale for the handler setting is changed
@@ -415,6 +487,7 @@ class Settings(Adw.PreferencesWindow):
         value = round(value, digits)
         self.slider_labels[scale].set_label(str(value))
         handler.set_setting(setting, value)
+        self.on_setting_change(constants, handler, setting)
 
     def setting_change_combo(self, helper, value, constants, handler):
         """Called when a combo for the handler setting is changed
@@ -427,6 +500,7 @@ class Settings(Adw.PreferencesWindow):
         """
         setting = helper.combo.get_name()
         handler.set_setting(setting, value)
+        self.on_setting_change(constants, handler, setting)
 
     def add_download_button(self, handler : TTSHandler | STTHandler | LLMHandler, row : Adw.ActionRow | Adw.ExpanderRow): 
         """Add download button for an handler dependencies. If clicked it will call handler.install()
@@ -457,7 +531,7 @@ class Settings(Adw.PreferencesWindow):
         actionbutton = Gtk.Button(css_classes=["flat"], valign=Gtk.Align.CENTER)
         if handler.requires_sandbox_escape() and not can_escape_sandbox():
             icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="warning-outline-symbolic"))
-            actionbutton.connect("clicked", self.show_flatpak_sendbox_notice)
+            actionbutton.connect("clicked", self.show_flatpak_sandbox_notice)
             actionbutton.add_css_class("error")
             actionbutton.set_child(icon)
             if type(row) is Adw.ActionRow:
@@ -677,7 +751,7 @@ class Settings(Adw.PreferencesWindow):
         wbbutton.connect("clicked", self.open_website)
         return wbbutton
 
-    def show_flatpak_sendbox_notice(self, el=None):
+    def show_flatpak_sandbox_notice(self, el=None):
         """Create a MessageDialog that explains the issue with missing permissions on flatpak
 
         Args:

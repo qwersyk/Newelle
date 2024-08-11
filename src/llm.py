@@ -39,7 +39,8 @@ class LLMHandler():
                     - round: how many digits to round 
             Optional parameters:
                 - folder: add a button that opens a folder with the specified path
-                - website: add a button that opens a website with the specified path 
+                - website: add a button that opens a website with the specified path
+                - update_settings (bool) if reload the settings in the settings page for the specified handler after that setting change
         """
         return []
 
@@ -258,15 +259,16 @@ class GPT3AnyHandler(G4FHandler):
         import g4f
         super().__init__(settings, path)
         self.client = g4f.client.Client()
-
+        self.n = 0
     def get_extra_settings(self) -> list:
+        self.n += 1 
         return [
             {
                 "key": "streaming",
                 "title": _("Message Streaming"),
                 "description": _("Gradually stream message output"),
                 "type": "toggle",
-                "default": True
+                "default": True,
             },
         ]
 
