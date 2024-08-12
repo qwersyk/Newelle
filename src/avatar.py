@@ -162,6 +162,7 @@ class Live2DHandler(AvatarHandler):
 
     def destroy(self):
         self.httpd.shutdown()
+        self.webview = None
 
     def wait_emotions(self, object, result):
         value = self.webview.evaluate_javascript_finish(result)
