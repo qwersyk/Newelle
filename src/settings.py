@@ -81,7 +81,7 @@ class Settings(Adw.PreferencesWindow):
         selected = self.settings.get_string("stt-engine")
         for stt_key in AVAILABLE_STT:
             row = self.build_row(AVAILABLE_STT, stt_key, selected, group)
-            self.STTgroup.add(row)
+            stt_engine.add_row(row)
         
         # Build the AVATAR settings
         self.avatargroup = Adw.PreferencesGroup(title=_('Avatar'))
@@ -95,7 +95,7 @@ class Settings(Adw.PreferencesWindow):
         selected = self.settings.get_string("avatar-model")
         for avatar_key in AVAILABLE_AVATARS:
            row = self.build_row(AVAILABLE_AVATARS, avatar_key, selected, group) 
-           self.avatargroup.add(row)
+           avatar.add_row(row)
 
 
         # Interface settings
