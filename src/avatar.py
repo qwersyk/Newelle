@@ -81,7 +81,7 @@ class AvatarHandler:
     def speak_with_tts(self, text: str, tts : TTSHandler):
         pass
 
-    def destroy(self):
+    def destroy(self, add=None):
         pass
 
 class Live2DHandler(AvatarHandler):
@@ -160,7 +160,7 @@ class Live2DHandler(AvatarHandler):
         self.webview.set_settings(settings)
         return self.webview
 
-    def destroy(self):
+    def destroy(self, add=None):
         self.httpd.shutdown()
         self.webview = None
 
