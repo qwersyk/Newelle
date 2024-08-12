@@ -2,7 +2,7 @@ import time, re, sys
 import gi, os, subprocess
 import pickle
 from .gtkobj import File, CopyBox, BarChartBox, MultilineEntry
-from .constants import AVAILABLE_LLMS, PROMPTS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_AVATARS
+from .constants import AVAILABLE_LLMS, AVAILABLE_TRANSLATORS, PROMPTS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_AVATARS
 from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject, GLib, WebKit
 from .stt import AudioRecorder
 from .extra import override_prompts
@@ -387,7 +387,8 @@ class MainWindow(Gtk.ApplicationWindow):
         self.stt_engine = settings.get_string("stt-engine")
         self.stt_settings = settings.get_string("stt-settings")
         self.avatar_enabled = settings.get_boolean("avatar-on")
-
+        self.translation_enabled = settings.get_boolean("translator-on")
+        self.translation_handler = settings.get_string("translator")
         # Load custom prompts
         self.custom_prompts = json.loads(self.settings.get_string("custom-prompts"))
         self.prompts = override_prompts(self.custom_prompts, PROMPTS)
@@ -1209,6 +1210,9 @@ class MainWindow(Gtk.ApplicationWindow):
                 tts = AVAILABLE_TTS[self.tts_program]["class"](self.settings, self.directory)
                 message=re.sub(r"```.*?```", "", message_label, flags=re.DOTALL)
                 if not(not message.strip() or message.isspace() or all(char == '\n' for char in message)):
+                    # Translate the message
+                    if self.translation_enabled and self.translation_handler in AVAILABLE_TRANSLATORS:
+                        message = AVAILABLE_TRANSLATORS[self.translation_handler]["class"](self.settings, self.directory).translate(message)          
                     if self.avatar_enabled and self.avatar_handler is not None:
                         self.avatar_handler.speak_with_tts(message, tts)
                     else:

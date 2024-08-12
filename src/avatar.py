@@ -248,6 +248,7 @@ class LivePNGHandler(AvatarHandler):
         self.model = LivePNG(path, output_type=FilepathOutput.LOCAL_PATH)
 
         return ([(style, style) for style in self.model.get_styles()], self.model.get_default_style().name)
+    
     def get_available_models(self) -> list[tuple[str, str]]:
         dirs = os.listdir(self.models_path)
         result = []

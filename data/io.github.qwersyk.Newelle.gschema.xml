@@ -75,6 +75,15 @@
 	      </key>
 	      <key name="custom-prompts" type="s">
 	        <default>"{}"</default>
-	      </key>
+        </key>
+        <key name="translator" type="s">
+          <default>"GoogleTranslate"</default>
+        </key>
+        <key name="translator-settings" type="s">
+          <default>"{}"</default>
+        </key>
+        <key name="translator-on" type="b">
+          <default>false</default>
+        </key>
 	</schema>
 </schemalist>

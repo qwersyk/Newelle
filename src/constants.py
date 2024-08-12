@@ -1,4 +1,5 @@
 
+from .translator import CustomTranslatorHandler, GoogleTranslatorHandler
 from .llm import GPT4AllHandler, OpenAIHandler, CustomLLMHandler, GPT3AnyHandler, GeminiHandler
 from .tts import VoiceVoxHanlder, gTTSHandler, EspeakHandler, CustomTTSHandler
 from .stt import SphinxHandler, GoogleSRHandler, WitAIHandler, VoskHandler, WhisperAPIHandler, CustomSRHandler
@@ -126,6 +127,22 @@ AVAILABLE_AVATARS = {
     }
 }
 
+AVAILABLE_TRANSLATORS = {
+    "GoogleTranslator": {
+        "key": "GoogleTranslator",
+        "rowtype": "expander",
+        "title": _("Google Translator"),
+        "description": _("Use google transate"),
+        "class": GoogleTranslatorHandler,
+    },
+    "CustomTranslator": {
+        "key": "CustomTranslator",
+        "rowtype": "expander",
+        "title": _("Custom Translator"),
+        "description": _("Use a custom translator"),
+        "class": CustomTranslatorHandler,
+    }
+}
 PROMPTS = {
     "generate_name_prompt": """Write a short title for the dialog, summarizing the theme in 5 words. No additional text.""",
     "console_prompt": """You can run commands on the user Linux computer.
