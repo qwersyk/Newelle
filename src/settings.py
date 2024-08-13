@@ -15,7 +15,6 @@ from .extra import can_escape_sandbox, override_prompts, human_readable_size
 class Settings(Adw.PreferencesWindow):
     def __init__(self,app, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.sandbox = can_escape_sandbox()
         self.settings = Gio.Settings.new('io.github.qwersyk.Newelle')
         self.set_transient_for(app.win)
         self.set_modal(True)
@@ -27,7 +26,7 @@ class Settings(Adw.PreferencesWindow):
         # Load custom prompts
         self.custom_prompts = json.loads(self.settings.get_string("custom-prompts"))
         self.prompts = override_prompts(self.custom_prompts, PROMPTS)
-
+        self.sandbox = can_escape_sandbox()
         # Page building
         self.general_page = Adw.PreferencesPage()
         
@@ -67,7 +66,6 @@ class Settings(Adw.PreferencesWindow):
         for stt_key in AVAILABLE_STT:
             row = self.build_row(AVAILABLE_STT, stt_key, selected, group)
             stt_engine.add_row(row)
-
         # Interface settings
         self.interface = Adw.PreferencesGroup(title=_('Interface'))
         self.general_page.add(self.interface)
@@ -96,7 +94,6 @@ class Settings(Adw.PreferencesWindow):
         self.prompt.add(row)
 
         self.__prompts_entries = {}
-        
         for prompt in AVAILABLE_PROMPTS:
             row = Adw.ExpanderRow(title=prompt["title"], subtitle=prompt["description"])
             if prompt["editable"]:
@@ -105,7 +102,6 @@ class Settings(Adw.PreferencesWindow):
             row.add_suffix(switch)
             self.settings.bind(prompt["setting_name"], switch, 'active', Gio.SettingsBindFlags.DEFAULT)
             self.prompt.add(row)
-
         self.neural_network = Adw.PreferencesGroup(title=_('Neural Network Control'))
         self.general_page.add(self.neural_network)
 
@@ -113,7 +109,7 @@ class Settings(Adw.PreferencesWindow):
         switch = Gtk.Switch(valign=Gtk.Align.CENTER)
         row.add_suffix(switch)
         # Set default value for the switch
-        if not can_escape_sandbox():
+        if not self.sandbox:
             switch.set_active(True)
             self.settings.set_boolean("virtualization", True)
         else:
@@ -159,6 +155,7 @@ class Settings(Adw.PreferencesWindow):
              row = Adw.ExpanderRow(title=model["title"], subtitle=model["description"])
              if key != "local":
                  self.add_extra_settings(constants, handler, row)
+                 end = time.time()
              else:
                 self.llmrow = row
                 threading.Thread(target=self.build_local).start()
@@ -167,7 +164,7 @@ class Settings(Adw.PreferencesWindow):
         self.settingsrows[(key, self.convert_constants(constants))]["row"] = row
         
         # Add extra buttons 
-        self.add_download_button(handler, row)
+        threading.Thread(target=self.add_download_button, args=(handler, row)).start()
         self.add_flatpak_waning_button(handler, row)
         
         # Add check button
@@ -402,7 +399,7 @@ class Settings(Adw.PreferencesWindow):
             toggle (): 
             status (): 
         """
-        if not can_escape_sandbox() and not status:
+        if not self.sandbox and not status:
             self.show_flatpak_sandbox_notice()            
             toggle.set_active(True)
             self.settings.set_boolean("virtualization", True)
@@ -504,7 +501,7 @@ class Settings(Adw.PreferencesWindow):
             row: the row where to add the button
         """
         actionbutton = Gtk.Button(css_classes=["flat"], valign=Gtk.Align.CENTER)
-        if handler.requires_sandbox_escape() and not can_escape_sandbox():
+        if handler.requires_sandbox_escape() and not self.sandbox:
             icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="warning-outline-symbolic"))
             actionbutton.connect("clicked", self.show_flatpak_sandbox_notice)
             actionbutton.add_css_class("error")
