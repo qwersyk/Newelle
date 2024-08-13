@@ -55,7 +55,7 @@ class Settings(Adw.PreferencesWindow):
         selected = self.settings.get_string("tts")
         for tts_key in AVAILABLE_TTS:
            row = self.build_row(AVAILABLE_TTS, tts_key, selected, group) 
-           self.TTSgroup.add(row)
+           tts_program.add_row(row)
 
         # Build the Speech to Text settings
         self.STTgroup = Adw.PreferencesGroup(title=_('Speech to Text'))
@@ -66,7 +66,7 @@ class Settings(Adw.PreferencesWindow):
         selected = self.settings.get_string("stt-engine")
         for stt_key in AVAILABLE_STT:
             row = self.build_row(AVAILABLE_STT, stt_key, selected, group)
-            self.STTgroup.add(row)
+            stt_engine.add_row(row)
 
         # Interface settings
         self.interface = Adw.PreferencesGroup(title=_('Interface'))
