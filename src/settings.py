@@ -6,7 +6,7 @@ from gi.repository import Gtk, Adw, Gio, GLib
 
 from .stt import STTHandler
 from .tts import TTSHandler
-from .constants import AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT, PROMPTS
+from .constants import AVAILABLE_LLMS, AVAILABLE_PROMPTS, AVAILABLE_TTS, AVAILABLE_STT, PROMPTS
 from gpt4all import GPT4All
 from .llm import GPT4AllHandler, LLMHandler
 from .gtkobj import ComboRowHelper, CopyBox, MultilineEntry
@@ -96,40 +96,15 @@ class Settings(Adw.PreferencesWindow):
         self.prompt.add(row)
 
         self.__prompts_entries = {}
-        row = Adw.ExpanderRow(title=_("Console access"), subtitle=_("Can the program run terminal commands on the computer"))
-        self.add_customize_prompt_content(row, "console_prompt")
-        switch = Gtk.Switch(valign=Gtk.Align.CENTER)
-        row.add_suffix(switch)
-        self.settings.bind("console", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
-        self.prompt.add(row)
-
-        row = Adw.ExpanderRow(title=_("Graphs access"), subtitle=_("Can the program display graphs"))
-        self.add_customize_prompt_content(row, "graphic")
-        switch = Gtk.Switch(valign=Gtk.Align.CENTER)
-        row.add_suffix(switch)
-        self.settings.bind("graphic", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
-        self.prompt.add(row)
-
-        row = Adw.ExpanderRow(title=_("Basic functionality"), subtitle=_("Showing tables and code (*can work without it)"))
-        self.add_customize_prompt_content(row, "basic_functionality")
-        switch = Gtk.Switch(valign=Gtk.Align.CENTER)
-        row.add_suffix(switch)
-        self.settings.bind("basic-functionality", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
-        self.prompt.add(row)
-
-        row = Adw.ExpanderRow(title=_("Show image"), subtitle=_("Show image in chat"))
-        self.add_customize_prompt_content(row, "show_image")
-        switch = Gtk.Switch(valign=Gtk.Align.CENTER)
-        row.add_suffix(switch)
-        self.settings.bind("show-image", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
-        self.prompt.add(row)
-
-        row = Adw.ExpanderRow(title=_("Custom Prompt"), subtitle=_("Add your own custom prompt"))
-        self.add_customize_prompt_content(row, "custom_prompt")
-        switch = Gtk.Switch(valign=Gtk.Align.CENTER)
-        row.add_suffix(switch)
-        self.settings.bind("custom-extra-prompt", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
-        self.prompt.add(row)
+        
+        for prompt in AVAILABLE_PROMPTS:
+            row = Adw.ExpanderRow(title=prompt["title"], subtitle=prompt["description"])
+            if prompt["editable"]:
+                self.add_customize_prompt_content(row, prompt["key"])
+            switch = Gtk.Switch(valign=Gtk.Align.CENTER)
+            row.add_suffix(switch)
+            self.settings.bind(prompt["setting_name"], switch, 'active', Gio.SettingsBindFlags.DEFAULT)
+            self.prompt.add(row)
 
         self.neural_network = Adw.PreferencesGroup(title=_('Neural Network Control'))
         self.general_page.add(self.neural_network)
