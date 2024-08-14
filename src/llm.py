@@ -566,7 +566,7 @@ class OpenAIHandler(LLMHandler):
         result.append({"role": "system", "content": "\n".join(prompts)})
         for message in history:
             result.append({
-                "role": message["User"].lower(),
+                "role": message["User"].lower() if message["User"] in {"Assistant", "User"} else "system",
                 "content": message["Message"]
             })
         return result
