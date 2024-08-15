@@ -10,7 +10,7 @@ from .avatar import AvatarHandler
 
 from .stt import STTHandler
 from .tts import TTSHandler
-from .constants import AVAILABLE_AVATARS, AVAILABLE_LLMS, AVAILABLE_TRANSLATORS, AVAILABLE_TTS, AVAILABLE_STT, PROMPTS
+from .constants import AVAILABLE_AVATARS, AVAILABLE_LLMS, AVAILABLE_TRANSLATORS, AVAILABLE_TTS, AVAILABLE_STT, PROMPTS, AVAILABLE_PROMPTS
 from gpt4all import GPT4All
 from .llm import GPT4AllHandler, LLMHandler
 from .gtkobj import ComboRowHelper, CopyBox, MultilineEntry
