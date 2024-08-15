@@ -185,7 +185,43 @@ Assistant: Yes, of course, what do you need help with?""",
     "get_suggestions_prompt": """Suggest a few questions that the user would ask and put them in a JSON array. You have to write ONLY the JSON array an nothing else""",
     "custom_prompt": "",
 
-
-
 }
 
+
+AVAILABLE_PROMPTS = [
+    {
+        "key": "console_prompt",
+        "title": _("Console access"),
+        "description": _("Can the program run terminal commands on the computer"),
+        "setting_name": "console",
+        "editable": True,
+    },
+    {
+        "key": "basic_functionality",
+        "title": _("Basic functionality"),
+        "description": _("Showing tables and code (*can work without it)"),
+        "setting_name": "basic-functionality",
+        "editable": True,
+    },
+    {
+        "key": "graphic",
+        "title": _("Graphs access"),
+        "description": _("Can the program display graphs"),
+        "setting_name": "graphic",
+        "editable": True,
+    },
+    {
+        "key": "show_image",
+        "title": _("Show image"),
+        "description": _("Show image in chat"),
+        "setting_name": "show-image",
+        "editable": True,
+    },
+    {
+        "key": "custom_prompt",
+        "title": _("Custom Prompt"),
+        "description": _("Add your own custom prompt"),
+        "setting_name": "custom-extra-prompt",
+        "editable": True,
+    }, 
+]

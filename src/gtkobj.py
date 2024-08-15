@@ -130,7 +130,7 @@ class MultilineEntry(Gtk.Box):
     def set_text(self, text, remove_placeholder=True):
         if remove_placeholder:
             self.placeholding = False
-        self.input_panel.get_buffer().set_text(text, len(text))
+        self.input_panel.get_buffer().set_text(text)
 
     def get_text(self):
         return self.input_panel.get_buffer().get_text(self.input_panel.get_buffer().get_start_iter(), self.input_panel.get_buffer().get_end_iter(), False)

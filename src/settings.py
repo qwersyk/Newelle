@@ -31,7 +31,7 @@ class Settings(Adw.PreferencesWindow):
         # Load custom prompts
         self.custom_prompts = json.loads(self.settings.get_string("custom-prompts"))
         self.prompts = override_prompts(self.custom_prompts, PROMPTS)
-
+        self.sandbox = can_escape_sandbox()
         # Page building
         self.general_page = Adw.PreferencesPage()
         
@@ -60,6 +60,7 @@ class Settings(Adw.PreferencesWindow):
         for tts_key in AVAILABLE_TTS:
            row = self.build_row(AVAILABLE_TTS, tts_key, selected, group) 
            tts_program.add_row(row)
+        
         # Build the Translators settings
         group = Gtk.CheckButton()
         selected = self.settings.get_string("translator")
@@ -97,7 +98,6 @@ class Settings(Adw.PreferencesWindow):
            row = self.build_row(AVAILABLE_AVATARS, avatar_key, selected, group) 
            avatar.add_row(row)
 
-
         # Interface settings
         self.interface = Adw.PreferencesGroup(title=_('Interface'))
         self.general_page.add(self.interface)
@@ -126,41 +126,14 @@ class Settings(Adw.PreferencesWindow):
         self.prompt.add(row)
 
         self.__prompts_entries = {}
-        row = Adw.ExpanderRow(title=_("Console access"), subtitle=_("Can the program run terminal commands on the computer"))
-        self.add_customize_prompt_content(row, "console_prompt")
-        switch = Gtk.Switch(valign=Gtk.Align.CENTER)
-        row.add_suffix(switch)
-        self.settings.bind("console", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
-        self.prompt.add(row)
-
-        row = Adw.ExpanderRow(title=_("Graphs access"), subtitle=_("Can the program display graphs"))
-        self.add_customize_prompt_content(row, "graphic")
-        switch = Gtk.Switch(valign=Gtk.Align.CENTER)
-        row.add_suffix(switch)
-        self.settings.bind("graphic", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
-        self.prompt.add(row)
-
-        row = Adw.ExpanderRow(title=_("Basic functionality"), subtitle=_("Showing tables and code (*can work without it)"))
-        self.add_customize_prompt_content(row, "basic_functionality")
-        switch = Gtk.Switch(valign=Gtk.Align.CENTER)
-        row.add_suffix(switch)
-        self.settings.bind("basic-functionality", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
-        self.prompt.add(row)
-
-        row = Adw.ExpanderRow(title=_("Show image"), subtitle=_("Show image in chat"))
-        self.add_customize_prompt_content(row, "show_image")
-        switch = Gtk.Switch(valign=Gtk.Align.CENTER)
-        row.add_suffix(switch)
-        self.settings.bind("show-image", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
-        self.prompt.add(row)
-
-        row = Adw.ExpanderRow(title=_("Custom Prompt"), subtitle=_("Add your own custom prompt"))
-        self.add_customize_prompt_content(row, "custom_prompt")
-        switch = Gtk.Switch(valign=Gtk.Align.CENTER)
-        row.add_suffix(switch)
-        self.settings.bind("custom-extra-prompt", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
-        self.prompt.add(row)
-
+        for prompt in AVAILABLE_PROMPTS:
+            row = Adw.ExpanderRow(title=prompt["title"], subtitle=prompt["description"])
+            if prompt["editable"]:
+                self.add_customize_prompt_content(row, prompt["key"])
+            switch = Gtk.Switch(valign=Gtk.Align.CENTER)
+            row.add_suffix(switch)
+            self.settings.bind(prompt["setting_name"], switch, 'active', Gio.SettingsBindFlags.DEFAULT)
+            self.prompt.add(row)
         self.neural_network = Adw.PreferencesGroup(title=_('Neural Network Control'))
         self.general_page.add(self.neural_network)
 
@@ -168,7 +141,7 @@ class Settings(Adw.PreferencesWindow):
         switch = Gtk.Switch(valign=Gtk.Align.CENTER)
         row.add_suffix(switch)
         # Set default value for the switch
-        if not can_escape_sandbox():
+        if not self.sandbox:
             switch.set_active(True)
             self.settings.set_boolean("virtualization", True)
         else:
@@ -222,7 +195,7 @@ class Settings(Adw.PreferencesWindow):
         self.settingsrows[(key, self.convert_constants(constants))]["row"] = row
         
         # Add extra buttons 
-        self.add_download_button(handler, row)
+        threading.Thread(target=self.add_download_button, args=(handler, row)).start()
         self.add_flatpak_waning_button(handler, row)
         
         # Add check button
@@ -346,6 +319,7 @@ class Settings(Adw.PreferencesWindow):
         else:
             return
         self.settings.set_string(setting_name, button.get_name())
+
 
     def add_extra_settings(self, constants : dict[str, Any], handler : LLMHandler | TTSHandler | STTHandler | AvatarHandler | TranslatorHandler, row : Adw.ExpanderRow):
         """Buld the extra settings for the specified handler. The extra settings are specified by the method get_extra_settings 
@@ -477,7 +451,7 @@ class Settings(Adw.PreferencesWindow):
             toggle (): 
             status (): 
         """
-        if not can_escape_sandbox() and not status:
+        if not self.sandbox and not status:
             self.show_flatpak_sandbox_notice()            
             toggle.set_active(True)
             self.settings.set_boolean("virtualization", True)
@@ -579,7 +553,7 @@ class Settings(Adw.PreferencesWindow):
             row: the row where to add the button
         """
         actionbutton = Gtk.Button(css_classes=["flat"], valign=Gtk.Align.CENTER)
-        if handler.requires_sandbox_escape() and not can_escape_sandbox():
+        if handler.requires_sandbox_escape() and not self.sandbox:
             icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="warning-outline-symbolic"))
             actionbutton.connect("clicked", self.show_flatpak_sandbox_notice)
             actionbutton.add_css_class("error")

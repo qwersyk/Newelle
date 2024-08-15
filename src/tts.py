@@ -30,13 +30,14 @@ class TTSHandler:
     def get_extra_settings(self) -> list:
         """Get extra settings for the TTS"""
         voices = self.get_voices()
+        default = "" if len(voices) == 0 else voices[0][1]
         return [
             {
                 "key": "voice",
                 "type": "combo",
                 "title": _("Voice"),
                 "description": _("Choose the preferred voice"),
-                "default": voices[0][1],
+                "default": default,
                 "values": voices
             }
         ]
@@ -166,7 +167,7 @@ class EspeakHandler(TTSHandler):
     def get_voices(self):
         if len(self.voices) > 0:
             return self.voices
-        if not self.is_installed() or not can_escape_sandbox():
+        if not self.is_installed():
             return self.voices
         output = check_output(["flatpak-spawn", "--host", "espeak", "--voices"]).decode("utf-8")
         # Extract the voice names from the output

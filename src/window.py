@@ -123,7 +123,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.explorer_panel.append(self.explorer_panel_header)
         self.folder_blocks_panel = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.explorer_panel.append(self.folder_blocks_panel)
-        #self.set_child(self.main_program_block)
+        self.set_child(self.main_program_block)
         self.main_program_block.set_content(self.main)
         self.main_program_block.set_flap(self.explorer_panel)
         self.secondary_message_chat_block = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
@@ -248,6 +248,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.set_child(self.avatar_flap)
         self.avatar_flap.set_reveal_flap(False)
         # End Live2d
+
         self.status = True
         self.chat_controls_entry_block.append(self.chat_stop_button)
         for text in range(self.offers):
@@ -470,17 +471,16 @@ class MainWindow(Gtk.ApplicationWindow):
         elif (self.main_program_block.get_name()=="visible") and (not status):
             self.main_program_block.set_reveal_flap(True)
             return True
-        status = self.main_program_block.get_reveal_flap() or self.avatar_flap.get_reveal_flap()
+        status = self.main_program_block.get_reveal_flap()
         if status:
             self.chat_panel_header.set_show_end_title_buttons(False)
             self.chat_header.set_show_end_title_buttons(False)
             self.flap_button_left.set_visible(False)
-            self.flap_button_avatar.set_visible(False)
         else:
             self.chat_panel_header.set_show_end_title_buttons(self.main.get_folded())
             self.chat_header.set_show_end_title_buttons(True)
             self.flap_button_left.set_visible(True)
-            self.flap_button_avatar.set_visible(True)
+    
     def on_flap_button_toggled(self, toggle_button):
         self.flap_button_left.set_active(False)
         self.flap_button_right.set_active(True)
@@ -490,16 +490,6 @@ class MainWindow(Gtk.ApplicationWindow):
         else:
             self.main_program_block.set_name("visible")
             self.main_program_block.set_reveal_flap(True)
-
-    def on_avatar_button_toggled(self, toggle_button):
-        self.flap_button_avatar.set_active(False)
-        if self.avatar_flap.get_name() == "visible":
-            self.avatar_flap.set_name("hide")
-            self.main_program_block.set_name("hide")
-            self.avatar_flap.set_reveal_flap(False)
-        else:
-            self.avatar_flap.set_name("visible")
-            self.avatar_flap.set_reveal_flap(True)
 
     def get_file_button(self, path):
         if path[0:2]=="./":
