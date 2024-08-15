@@ -40,6 +40,8 @@ newelle_sources = [
   'tts.py',
   'stt.py',
   'extra.py',
+  'avatar.py',
+  'translator.py',
 ]
 
 install_data(newelle_sources, install_dir: moduledir)

@@ -58,6 +58,15 @@
 	      <key name="tts-voice" type="s">
             <default>"{}"</default>
         </key>
+	      <key name="avatar-on" type="b">
+            <default>true</default>
+        </key>
+	      <key name="avatar-model" type="s">
+            <default>"Live2D"</default>
+        </key>
+	      <key name="avatars" type="s">
+            <default>"{}"</default>
+        </key>
 	      <key name="stt-engine" type="s">
             <default>"google_sr"</default>
         </key>
@@ -66,6 +75,15 @@
 	      </key>
 	      <key name="custom-prompts" type="s">
 	        <default>"{}"</default>
-	      </key>
+        </key>
+        <key name="translator" type="s">
+          <default>"GoogleTranslate"</default>
+        </key>
+        <key name="translator-settings" type="s">
+          <default>"{}"</default>
+        </key>
+        <key name="translator-on" type="b">
+          <default>false</default>
+        </key>
 	</schema>
 </schemalist>

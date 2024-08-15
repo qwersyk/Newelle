@@ -37,6 +37,8 @@
     	"python3-pyaudio.json",
         "python3-pydub.json",
     	"python3-speechrecognition.json",
+    	"python3-voicevox-client.json",
+        "python3-livepng.json",
         {
             "name" : "newelle",
             "builddir" : true,
