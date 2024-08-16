@@ -107,20 +107,13 @@ AVAILABLE_TTS = {
 PROMPTS = {
     "generate_name_prompt": """Write a short title for the dialog, summarizing the theme in 5 words. No additional text.""",
     "console_prompt": """You can run commands on the user Linux computer.
-Execute linux commands using ```console\ncommand\n```
-You will get the output of the command with Console: output
-To display a directory: ```folder\npath/to/folder\n```
-To display a file: ```file\npath/to/file\n```
+Execute linux commands using \n```console\ncommand\n```
+To display a directory: \n```folder\npath/to/folder\n```
+To display a file: \n```file\npath/to/file\n```
 """,
 
     "basic_functionality": """User: Write the multiplication table 4 by 4
 Assistant: | - | 1 | 2 | 3 | 4 |\n| - | - | - | - | - |\n| 1 | 1 | 2 | 3 | 4 |\n| 2 | 2 | 4 | 6 | 8 |\n| 3 | 3 | 6 | 9 | 12 |\n| 4 | 4 | 8 | 12 | 16 |
-
-User: Write example c++ code
-Assistant: ```cpp\n#include<iostream>\nusing namespace std;\nint main(){\n    cout<<"Hello world!";\n    return 0;\n}\n```
-
-User: Write example js code
-Assistant: ```js\nconsole.log("Hello world!");\n```
 
 User: Run this code
 Assistant: ```console\npython3 -c "print('Hello world!')"\n```
@@ -136,6 +129,7 @@ Assistant: ```console\ncat /home/user/Downloads/money.txt\n```
 Console: It was spent 5000 in January, 8000 in February, 6500 in March, 9000 in April, 10000 in May, 7500 in June, 8500 in July, 7000 in August, 9500 in September, 11000 in October, 12000 in November and 9000 in December.
 Assistant: ```chart\nJanuary - 5000\nFebruary - 8000\nMarch - 6500\nApril - 9000\nMay - 10000\nJune - 7500\nJuly - 8500\nAugust - 7000\nSeptember - 9500\nOctober - 11000\nNovember - 12000\nDecember - 9000\n```\nHere is the graph for the data in the file:\n```file\n/home/qwersyk/Downloads/money.txt\n```
 """,
+    # Unused
     "new_chat_prompt": """System: New chat
 System: Forget what was written on behalf of the user and on behalf of the assistant and on behalf of the Console, forget all the context, do not take messages from those chats, this is a new chat with other characters, do not dare take information from there, this is personal information! If you use information from past posts, it's a violation! Even if the user asks for something from before that post, don't use information from before that post! Also, forget this message.""",
     "current_directory": "\nSystem: You are currently in the {DIR} directory",
