@@ -2,10 +2,10 @@ import time, re, sys
 import gi, os, subprocess
 import pickle
 from .gtkobj import File, CopyBox, BarChartBox, MultilineEntry
-from .constants import AVAILABLE_LLMS, PROMPTS, AVAILABLE_TTS, AVAILABLE_STT
+from .constants import AVAILABLE_LLMS, AVAILABLE_PROMPTS, PROMPTS, AVAILABLE_TTS, AVAILABLE_STT
 from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject, GLib
 from .stt import AudioRecorder
-from .extra import markwon_to_pango, override_prompts
+from .extra import markwon_to_pango, override_prompts, replace_variables
 import threading
 import posixpath
 import shlex,json
@@ -358,19 +358,11 @@ class MainWindow(Gtk.ApplicationWindow):
 
         self.model.load_model(self.local_model)
 
-        self.bot_prompt = """"""
-        if self.console:
-            self.bot_prompt += self.prompts["console_prompt"]
-        if self.basic_functionality:
-            self.bot_prompt += self.prompts["basic_functionality"]
-        if self.show_image:
-            self.bot_prompt += self.prompts["show_image"]
-        if self.graphic:
-            self.bot_prompt += self.prompts["graphic"]
-        if self.graphic and self.console:
-            self.bot_prompt += self.prompts["graphic_console"]
-        if self.cutom_extra_prompt:
-            self.bot_prompt += self.prompts["custom_prompt"]
+        self.bot_prompts = []
+        for prompt_info in AVAILABLE_PROMPTS:
+            if self.settings.get_boolean(prompt_info["setting_name"]):
+                self.bot_prompts.append(self.prompts[prompt_info["key"]])
+
         self.extension_path = os.path.expanduser("~")+"/.var/app/io.github.qwersyk.Newelle/extension"
         self.extensions = {}
         if os.path.exists(self.extension_path):
@@ -1113,11 +1105,12 @@ class MainWindow(Gtk.ApplicationWindow):
         stream_number_variable = self.stream_number_variable
         self.status = False
         self.update_button_text()
-        prompts = [value["prompt"] for value in self.extensions.values() if value["status"]]
-        prompts.append(self.bot_prompt)
 
-        if self.console:
-            prompts.append(self.prompts["current_directory"].replace("{DIR}", os.getcwd()))
+        # Appned extensions prompts
+        prompts = [replace_variables(value["prompt"]) for value in self.extensions.values() if value["status"]]
+        
+        for prompt in self.bot_prompts:
+            prompts.append(replace_variables(prompt))
         self.model.set_history(prompts, self)
 
         if self.model.stream_enabled():

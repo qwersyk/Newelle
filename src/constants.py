@@ -107,6 +107,7 @@ AVAILABLE_TTS = {
 PROMPTS = {
     "generate_name_prompt": """Write a short title for the dialog, summarizing the theme in 5 words. No additional text.""",
     "console_prompt": """You can run commands on the user Linux computer.
+Linux distribution: {DISTRO}
 Execute linux commands using \n```console\ncommand\n```
 To display a directory: \n```folder\npath/to/folder\n```
 To display a file: \n```file\npath/to/file\n```
@@ -147,7 +148,14 @@ Assistant: Yes, of course, what do you need help with?""",
 
 }
 
-
+""" Prompts parameters
+    - key: key of the prompt in the PROMPTS array
+    - title: title of the prompt, shown in settings
+    - description: description of the prompt, show in settings
+    - setting_name: name of the setting in gschema
+    - editable: if the prompt can be edited in the settings
+    - show_in_settings: if the prompt should be shown in the settings
+"""
 AVAILABLE_PROMPTS = [
     {
         "key": "console_prompt",
@@ -155,6 +163,15 @@ AVAILABLE_PROMPTS = [
         "description": _("Can the program run terminal commands on the computer"),
         "setting_name": "console",
         "editable": True,
+        "show_in_settings": True,
+    },
+    {
+        "key": "current_directory",
+        "title": _("Current directory"),
+        "description": _("What is the current directory"),
+        "setting_name": "console",
+        "editable": False,
+        "show_in_settings": False,   
     },
     {
         "key": "basic_functionality",
@@ -162,6 +179,7 @@ AVAILABLE_PROMPTS = [
         "description": _("Showing tables and code (*can work without it)"),
         "setting_name": "basic-functionality",
         "editable": True,
+        "show_in_settings": True,
     },
     {
         "key": "graphic",
@@ -169,6 +187,7 @@ AVAILABLE_PROMPTS = [
         "description": _("Can the program display graphs"),
         "setting_name": "graphic",
         "editable": True,
+        "show_in_settings": True,
     },
     {
         "key": "show_image",
@@ -176,6 +195,7 @@ AVAILABLE_PROMPTS = [
         "description": _("Show image in chat"),
         "setting_name": "show-image",
         "editable": True,
+        "show_in_settings": True,
     },
     {
         "key": "custom_prompt",
@@ -183,5 +203,6 @@ AVAILABLE_PROMPTS = [
         "description": _("Add your own custom prompt"),
         "setting_name": "custom-extra-prompt",
         "editable": True,
+        "show_in_settings": True,
     }, 
 ]
