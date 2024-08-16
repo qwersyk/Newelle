@@ -1,5 +1,23 @@
 import importlib, subprocess
+import re
 
+def markwon_to_pango(markwon_text):
+    # Convert headers
+    markwon_text = re.sub(r'^(#+) (.*)$', lambda match: f'<span font_weight="bold" font_size="{14 - len(match.group(1)) * 2}">{match.group(2)}</span>', markwon_text, flags=re.MULTILINE)
+    
+    # Convert bold text
+    markwon_text = re.sub(r'\*\*(.*?)\*\*', r'<b>\1</b>', markwon_text)
+    
+    # Convert italic text
+    markwon_text = re.sub(r'\*(.*?)\*', r'<i>\1</i>', markwon_text)
+    
+    # Convert strikethrough text
+    markwon_text = re.sub(r'~(.*?)~', r'<span strikethrough="true">\1</span>', markwon_text)
+    
+    # Convert links
+    markwon_text = re.sub(r'\[(.*?)\]\((.*?)\)', r'<a href="\2">\1</a>', markwon_text)
+    
+    return markwon_text
 
 def human_readable_size(size: float, decimal_places:int =2) -> str:
     size = int(size)

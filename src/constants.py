@@ -115,8 +115,13 @@ To display a file: \n```file\npath/to/file\n```
     "basic_functionality": """User: Write the multiplication table 4 by 4
 Assistant: | - | 1 | 2 | 3 | 4 |\n| - | - | - | - | - |\n| 1 | 1 | 2 | 3 | 4 |\n| 2 | 2 | 4 | 6 | 8 |\n| 3 | 3 | 6 | 9 | 12 |\n| 4 | 4 | 8 | 12 | 16 |
 
+User: Write example c++ code
+Assistant: ```cpp\n#include<iostream>\nusing namespace std;\nint main(){\n    cout<<"Hello world!";\n    return 0;\n}\n```
+
 User: Run this code
 Assistant: ```console\npython3 -c "print('Hello world!')"\n```
+
+You can also use **bold**, *italic*, ~strikethrough~ and ## headers in markdown
 """,
     "show_image": """You can show the user an image, if needed, using ```image\npath\n```""",
     "graphic": """System: You can display the graph using this structure: ```chart\n name - value\n ... \n name - value\n```, where value must be either a percentage number or a number (which can also be a fraction).

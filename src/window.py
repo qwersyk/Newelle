@@ -5,7 +5,7 @@ from .gtkobj import File, CopyBox, BarChartBox, MultilineEntry
 from .constants import AVAILABLE_LLMS, PROMPTS, AVAILABLE_TTS, AVAILABLE_STT
 from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject, GLib
 from .stt import AudioRecorder
-from .extra import override_prompts
+from .extra import markwon_to_pango, override_prompts
 import threading
 import posixpath
 import shlex,json
@@ -1090,8 +1090,9 @@ class MainWindow(Gtk.ApplicationWindow):
                     box.append(self.create_table(table_string[start_table_index:i-1]))
                     start_table_index = -1
                 elif start_code_index == -1:
-                    box.append(Gtk.Label(label=table_string[i], wrap=True, halign=Gtk.Align.START,
-                                         wrap_mode=Pango.WrapMode.WORD_CHAR, width_chars=1, selectable=True))
+                    label = markwon_to_pango(table_string[i])
+                    box.append(Gtk.Label(label=label, wrap=True, halign=Gtk.Align.START,
+                                         wrap_mode=Pango.WrapMode.WORD_CHAR, width_chars=1, selectable=True, use_markup=True))
             if start_table_index != -1:
                 box.append(self.create_table(table_string[start_table_index:len(table_string)]))
             if not has_terminal_command:
