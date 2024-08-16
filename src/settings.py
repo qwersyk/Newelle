@@ -95,6 +95,8 @@ class Settings(Adw.PreferencesWindow):
 
         self.__prompts_entries = {}
         for prompt in AVAILABLE_PROMPTS:
+            if not prompt["show_in_settings"]:
+                continue
             row = Adw.ExpanderRow(title=prompt["title"], subtitle=prompt["description"])
             if prompt["editable"]:
                 self.add_customize_prompt_content(row, prompt["key"])
