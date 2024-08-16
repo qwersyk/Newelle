@@ -122,7 +122,7 @@ Assistant: ```cpp\n#include<iostream>\nusing namespace std;\nint main(){\n    co
 User: Run this code
 Assistant: ```console\npython3 -c "print('Hello world!')"\n```
 
-You can also use **bold**, *italic*, ~strikethrough~ and ## headers in markdown
+You can also use **bold**, *italic*, ~strikethrough~, _underline_, `monospace`, [linkname](https://link.com) and ## headers in markdown
 """,
     "show_image": """You can show the user an image, if needed, using ```image\npath\n```""",
     "graphic": """System: You can display the graph using this structure: ```chart\n name - value\n ... \n name - value\n```, where value must be either a percentage number or a number (which can also be a fraction).

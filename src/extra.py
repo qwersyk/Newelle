@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import importlib, subprocess
 import re
 import os
@@ -51,23 +52,30 @@ def replace_variables(text: str) -> str:
     return text
 
 
-def markwon_to_pango(markwon_text):
-    # Convert headers
-    markwon_text = re.sub(r'^(#+) (.*)$', lambda match: f'<span font_weight="bold" font_size="{14 - len(match.group(1)) * 2}">{match.group(2)}</span>', markwon_text, flags=re.MULTILINE)
-    
+def markwon_to_pango(markdown_text):
     # Convert bold text
-    markwon_text = re.sub(r'\*\*(.*?)\*\*', r'<b>\1</b>', markwon_text)
+    markdown_text = re.sub(r'\*\*(.*?)\*\*', r'<b>\1</b>', markdown_text)
     
     # Convert italic text
-    markwon_text = re.sub(r'\*(.*?)\*', r'<i>\1</i>', markwon_text)
+    markdown_text = re.sub(r'\*(.*?)\*', r'<i>\1</i>', markdown_text)
+     
+    # Convert Underline text
+    markdown_text = re.sub(r'_(.*?)_', r'<u>\1</u>', markdown_text)
+    
+    # Convert monospace text
+    markdown_text = re.sub(r'`(.*?)`', r'<tt>\1</tt>', markdown_text)
     
     # Convert strikethrough text
-    markwon_text = re.sub(r'~(.*?)~', r'<span strikethrough="true">\1</span>', markwon_text)
+    markdown_text = re.sub(r'~(.*?)~', r'<span strikethrough="true">\1</span>', markdown_text)
     
     # Convert links
-    markwon_text = re.sub(r'\[(.*?)\]\((.*?)\)', r'<a href="\2">\1</a>', markwon_text)
+    markdown_text = re.sub(r'\[(.*?)\]\((.*?)\)', r'<a href="\2">\1</a>', markdown_text)
     
-    return markwon_text
+    # Convert headers
+    absolute_sizes = ['xx-small', 'x-small', 'small', 'medium', 'large', 'x-large', 'xx-large']
+    markdown_text = re.sub(r'^(#+) (.*)$', lambda match: f'<span font_weight="bold" font_size="{absolute_sizes[6 - len(match.group(1)) - 1]}">{match.group(2)}</span>', markdown_text, flags=re.MULTILINE)
+    print()
+    return markdown_text
 
 def human_readable_size(size: float, decimal_places:int =2) -> str:
     size = int(size)
