@@ -1,6 +1,8 @@
 import time, re, sys
 import gi, os, subprocess
 import pickle
+
+from .presentation import PresentationWindow
 from .gtkobj import File, CopyBox, BarChartBox, MultilineEntry
 from .constants import AVAILABLE_LLMS, AVAILABLE_PROMPTS, PROMPTS, AVAILABLE_TTS, AVAILABLE_STT
 from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject, GLib
@@ -290,6 +292,12 @@ class MainWindow(Gtk.ApplicationWindow):
         GLib.idle_add(self.update_folder)
         GLib.idle_add(self.update_history)
         GLib.idle_add(self.show_chat)
+
+        self.show_presentation_window()
+
+    def show_presentation_window(self):
+        self.presentation_dialog = PresentationWindow("presentation", self.settings, self.directory, self)
+        self.presentation_dialog.show()
 
     def start_recording(self, button):
         #button.set_child(Gtk.Spinner(spinning=True))
