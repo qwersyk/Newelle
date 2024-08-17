@@ -64,6 +64,9 @@
 	      <key name="stt-settings" type="s">
 	        <default>"{}"</default>
 	      </key>
+	      <key name="welcome-screen-shown" type="b">
+	        <default>false</default>
+	      </key>
 	      <key name="custom-prompts" type="s">
 	        <default>"{}"</default>
 	      </key>

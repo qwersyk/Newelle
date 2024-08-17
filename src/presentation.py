@@ -12,6 +12,10 @@ class PresentationWindow(Adw.Window):
         self.app = parent.get_application()
         self.settings = settings
         self.path = path
+
+        self.set_transient_for(parent)
+        self.set_modal(True)
+
         mainbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         
         headerbar = Gtk.HeaderBar(css_classes=["flat"])
@@ -41,9 +45,11 @@ class PresentationWindow(Adw.Window):
         self.build_pages()
         self.set_size_request(800, 600)
         self.set_content(mainbox)
-        self.connect("close-request", lambda x: self.destroy())
+        self.connect("close-request", self.close_window)
 
-    
+    def close_window(self,_):
+        self.settings.set_boolean("welcome-screen-shown", True)
+        self.destroy()
     def page_changes(self, carousel, page):
         """Called when a page of the carousel is changed. Changes the opacity of the next and previous buttons"""
         if page > 0:
