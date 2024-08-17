@@ -8,11 +8,12 @@ from .extra import can_escape_sandbox
 import subprocess
 class PresentationWindow(Adw.Window):
     def __init__(self, title, settings, path, parent : Adw.ApplicationWindow):
-        super().__init__(title=title, resizable=False, deletable=True, modal=True)
+        super().__init__(title=title, deletable=True, modal=True)
         self.app = parent.get_application()
         self.settings = settings
         self.path = path
 
+        self.set_default_size(640, 700)
         self.set_transient_for(parent)
         self.set_modal(True)
 
@@ -28,7 +29,7 @@ class PresentationWindow(Adw.Window):
         self.next = Gtk.Button(opacity=1, icon_name="right-large-symbolic", valign=Gtk.Align.CENTER,margin_start=12, margin_end=12, css_classes=["circular", "suggested-action"])
         # Carousel
         contentbox = Gtk.Box()
-        carousel = Adw.Carousel(hexpand=True, vexpand=True, allow_long_swipes=True, allow_scroll_wheel=True, interactive=True)
+        carousel = Adw.Carousel(hexpand=True, vexpand=True, allow_long_swipes=True, allow_scroll_wheel=True, interactive=True, allow_mouse_drag=False)
         indicator.set_carousel(carousel)
         # Content
         contentbox.append(self.previous)
@@ -43,11 +44,11 @@ class PresentationWindow(Adw.Window):
         self.next.connect("clicked", self.next_page)
 
         self.build_pages()
-        self.set_size_request(800, 600)
+        self.set_size_request(640, 700)
         self.set_content(mainbox)
         self.connect("close-request", self.close_window)
 
-    def close_window(self,_):
+    def close_window(self,_=None):
         self.settings.set_boolean("welcome-screen-shown", True)
         self.destroy()
     def page_changes(self, carousel, page):
@@ -88,9 +89,9 @@ class PresentationWindow(Adw.Window):
         settings = Settings(self.app, headless=True)
         pages = [
             {
-                "title": "Welcome to Newelle, Your ultimate virtual assistant",
-                "description": "Newelle is an advanced chat bot that aims to revolutionize your virtual assistant experience.",
-                "picture": "/io/github/qwersyk/Newelle/images/newelle.svg",
+                "title": "Welcome to Newelle",
+                "description": "Your ultimate virtual assistant.",
+                "picture": "/io/github/qwersyk/Newelle/images/illustration.svg",
                 "actions": [
                     {
                         "label": "Github Page",
@@ -101,34 +102,46 @@ class PresentationWindow(Adw.Window):
             },
             {
                 "title": "Choose your favourite AI Language Model",
-                "description": "Newelle can be used with mutiple models and providers! Choose your favourite in the settings.",
+                "description": "Newelle can be used with mutiple models and providers!",
                 "widget": self.__steal_from_settings(settings.LLM),
                 "actions": [] 
             },
             {
                 "title": "Extensions",
                 "description": "You can extend Newelle's functionalities using extensions!",
-                "picture": "/io/github/qwersyk/Newelle/images/extensions.png",
+                "picture": "/io/github/qwersyk/Newelle/images/extension.svg",
                 "actions": [
                     {
                         "label": "Download extensions",
                         "classes": ["suggested-action"],
-                        "callback": lambda x: subprocess.Popen(["xdg-open", "https://github.com/topics/newelle-extension"]), 
+                        "callback": lambda x: subprocess.Popen(["xdg-open", "https://github.com/topics/newelle-extension"]),
                     }
                 ]
             }
         ]
         # Show the warning only if there are not enough permissions
-        if not can_escape_sandbox():
+        if not can_escape_sandbox() or True:
             pages.append({
                 "title": "Permission Error",
-                "description": "Newelle does not have enough permissions to run commands on your system, please run the command above. This action is only necessary if you want Newelle to run commands in a non virtualized envirnoment",
-                "widget": self.__create_copybox(),
+                "description": "Newelle does not have enough permissions to run commands on your system.",
+                "picture": "/io/github/qwersyk/Newelle/images/error.svg",
                 "actions": [
                     {
-                        "label": "Understood",
-                        "classes": ["primary"],
-                        "callback": lambda x: self.destroy()
+                        "label": "Learn more",
+                        "classes": ["suggested-action"],
+                        "callback": lambda x: subprocess.Popen(["xdg-open", "https://github.com/qwersyk/Newelle?tab=readme-ov-file#installing-from-flathub"]),
+                    }
+                ]
+            })
+        pages.append({
+                "title": "Begin using the app",
+                "description": None,
+                "widget":self.__create_icon("emblem-default-symbolic"),
+                "actions": [
+                    {
+                        "label": "Start chatting",
+                        "classes": ["suggested-action"],
+                        "callback": self.close_window,
                     }
                 ]
             })
@@ -150,13 +163,19 @@ class PresentationWindow(Adw.Window):
 
         Returns: the scrollwindow            
         """
-        scroll = Gtk.ScrolledWindow(vexpand=True) 
         widget.unparent()
-        scroll.set_child(widget)
-        return scroll
+        widget.set_margin_bottom(3)
+        widget.set_margin_end(3)
+        widget.set_margin_start(3)
+        widget.set_margin_top(3)
+        return widget
 
+    def __create_icon(self, icon_name):
+        img = Gtk.Image.new_from_icon_name(icon_name)
+        img.set_pixel_size(200)
+        return img
 
-    def __create_copybox(self):
+    def __create_copybox(self): # I feel like it's a little out of place from the look, but maybe I'm wrong.
         """Create a copybox with the necessary properties
 
         Returns: the copybox 
@@ -185,7 +204,7 @@ class PresentationWindow(Adw.Window):
 
         Returns: the page
         """
-        page = Gtk.Box(hexpand=True, vexpand=True, orientation=Gtk.Orientation.VERTICAL, spacing=20)
+        page = Gtk.Box(hexpand=True, vexpand=True, valign=Gtk.Align.CENTER, orientation=Gtk.Orientation.VERTICAL, spacing=20)
 
         page.append(widget)
 
@@ -196,10 +215,11 @@ class PresentationWindow(Adw.Window):
         page.append(title_label)
 
         # Description
-        description_label = Gtk.Label(single_line_mode=False,max_width_chars=50,wrap=True, css_classes=["body-1"])
-        description_label.set_halign(Gtk.Align.CENTER)
-        description_label.set_text(description)
-        page.append(description_label)
+        if description:
+            description_label = Gtk.Label(single_line_mode=False,max_width_chars=50,wrap=True, css_classes=["body-1"])
+            description_label.set_halign(Gtk.Align.CENTER)
+            description_label.set_text(description)
+            page.append(description_label)
         # Actions
         buttons = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10, halign=Gtk.Align.CENTER, hexpand=False, baseline_position=Gtk.BaselinePosition.CENTER, margin_bottom=20)
         for action in actions:
@@ -215,7 +235,6 @@ class PresentationWindow(Adw.Window):
         # Picture
         pic = Gtk.Image()
         pic.set_from_resource(picture)
-        pic.set_vexpand(True)
-        pic.set_hexpand(True)
+        pic.set_size_request(-1,300)
         return self.create_page(title, description, pic, actions)
 
