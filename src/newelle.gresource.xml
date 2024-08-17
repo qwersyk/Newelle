@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <gresources>
   <gresource prefix="/io/github/qwersyk/Newelle">
+    <file alias="images/newelle.svg">../data/images/io.github.qwersyk.Newelle.svg</file>
+    <file alias="images/extensions.png">../screenshots/2b.png</file>
   </gresource>
 </gresources>

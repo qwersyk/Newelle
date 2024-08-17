@@ -13,10 +13,11 @@ from .gtkobj import ComboRowHelper, CopyBox, MultilineEntry
 from .extra import can_escape_sandbox, override_prompts, human_readable_size
 
 class Settings(Adw.PreferencesWindow):
-    def __init__(self,app, *args, **kwargs):
+    def __init__(self,app,headless=False, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.settings = Gio.Settings.new('io.github.qwersyk.Newelle')
-        self.set_transient_for(app.win)
+        if not headless:
+            self.set_transient_for(app.win)
         self.set_modal(True)
         self.downloading = {}
         self.slider_labels = {}
