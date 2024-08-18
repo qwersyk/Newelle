@@ -292,7 +292,7 @@ class MainWindow(Gtk.ApplicationWindow):
         GLib.idle_add(self.update_folder)
         GLib.idle_add(self.update_history)
         GLib.idle_add(self.show_chat)
-        if not self.settings.get_boolean("welcome-screen-shown") or True: # Change
+        if not self.settings.get_boolean("welcome-screen-shown"):
             GLib.idle_add(self.show_presentation_window)
 
     def show_presentation_window(self):

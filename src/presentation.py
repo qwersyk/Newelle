@@ -120,7 +120,7 @@ class PresentationWindow(Adw.Window):
             }
         ]
         # Show the warning only if there are not enough permissions
-        if not can_escape_sandbox() or True:
+        if not can_escape_sandbox():
             pages.append({
                 "title": "Permission Error",
                 "description": "Newelle does not have enough permissions to run commands on your system.",
