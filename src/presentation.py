@@ -163,12 +163,14 @@ class PresentationWindow(Adw.Window):
 
         Returns: the scrollwindow            
         """
+        scroll = Gtk.ScrolledWindow(propagate_natural_height=True)
         widget.unparent()
         widget.set_margin_bottom(3)
         widget.set_margin_end(3)
         widget.set_margin_start(3)
         widget.set_margin_top(3)
-        return widget
+        scroll.set_child(widget)
+        return scroll
 
     def __create_icon(self, icon_name):
         img = Gtk.Image.new_from_icon_name(icon_name)
