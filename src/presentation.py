@@ -163,7 +163,7 @@ class PresentationWindow(Adw.Window):
 
         Returns: the scrollwindow            
         """
-        scroll = Gtk.ScrolledWindow(propagate_natural_height=True)
+        scroll = Gtk.ScrolledWindow(propagate_natural_height=True, hscrollbar_policy=Gtk.PolicyType.NEVER)
         widget.unparent()
         widget.set_margin_bottom(3)
         widget.set_margin_end(3)
