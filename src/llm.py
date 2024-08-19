@@ -4,6 +4,9 @@ import os, threading
 from typing import Callable, Any
 import time, json
 
+from g4f.Provider import RetryProvider
+from gi.repository.Gtk import ResponseType
+
 from .extra import find_module, install_module
 
 class LLMHandler():
@@ -258,7 +261,9 @@ class GPT3AnyHandler(G4FHandler):
     def __init__(self, settings, path):
         import g4f
         super().__init__(settings, path)
-        self.client = g4f.client.Client()
+        good_providers = [g4f.Provider.You, g4f.Provider.FreeChatgpt]
+        acceptable_providers = [g4f.Provider.Pizzagpt, g4f.Provider.Allyfy]
+        self.client = g4f.client.Client(provider=RetryProvider([RetryProvider(good_providers), RetryProvider(acceptable_providers)], shuffle=False))
         self.n = 0
     def get_extra_settings(self) -> list:
         self.n += 1 
@@ -275,7 +280,7 @@ class GPT3AnyHandler(G4FHandler):
     def convert_history(self, history: dict) -> list:
         """Converts the given history into the correct format for current_chat_history"""
         result = []
-        #result.append({"role": "system", "content": "\n".join(self.prompts)})
+        result.append({"role": "system", "content": "\n".join(self.prompts)})
         for message in history:
             result.append({
                 "role": message["User"].lower(),
@@ -284,11 +289,9 @@ class GPT3AnyHandler(G4FHandler):
         return result
 
     def generate_text(self, prompt: str, history: dict[str, str] = {}, system_prompt: list[str] = []) -> str:
-        # Add prompts in the message since some providers
-        # don't support system prompts well
         message = prompt
-        if len (self.prompts) > 0:
-            message = "SYSTEM:" + "\n".join(system_prompt) + "\n\n" + prompt
+        # if len (self.prompts) > 0:
+            # message = "SYSTEM:" + "\n".join(system_prompt) + "\n\n" + prompt
         history = self.convert_history(history)
         user_prompt = {"role": "user", "content": message}
         history.append(user_prompt)
@@ -299,12 +302,10 @@ class GPT3AnyHandler(G4FHandler):
         return response.choices[0].message.content
 
     def generate_text_stream(self, prompt: str, history: dict[str, str] = {}, system_prompt: list[str] = [], on_update: Callable[[str], Any] = (), extra_args: list = []) -> str:
-        # Add prompts in the message since some providers
-        # don't support system prompts well
         import g4f
         message = prompt
-        if len (self.prompts) > 0:
-            message = "SYSTEM:" + "\n".join(system_prompt) + "\n\n" + prompt
+        # if len (self.prompts) > 0:
+            # message = "SYSTEM:" + "\n".join(system_prompt) + "\n\n" + prompt
         history = self.convert_history(history)
         user_prompt = {"role": "user", "content": message}
         history.append(user_prompt)
@@ -549,7 +550,7 @@ class OpenAIHandler(LLMHandler):
             {
                 "key": "presence-penalty",
                 "title": _("Presence Penalty"),
-                "description": _("PPositive values penalize new tokens based on whether they appear in the text so far, increasing the model's likelihood to talk about new topics."),
+                "description": _("Positive values penalize new tokens based on whether they appear in the text so far, increasing the model's likelihood to talk about new topics."),
                 "website": "https://platform.openai.com/docs/api-reference/completions/create#completions/create-frequency_penalty",
                 "type": "range",
                 "min": -2,
@@ -624,7 +625,94 @@ class OpenAIHandler(LLMHandler):
             return full_message.strip()
         except Exception as e:
             return str(e)
+
+class GroqHandler(OpenAIHandler):
+    key = "groq"
     
+    def __init__(self, settings, path):
+        super().__init__(settings, path)
+        self.set_setting("endpoint", "https://api.groq.com/openai/v1/")
+
+    def get_extra_settings(self) -> list:
+        return  [ 
+            {
+                "key": "api",
+                "title": _("API Key"),
+                "description": _("API Key for Groq"),
+                "type": "entry",
+                "default": ""
+            }, 
+            {
+                "key": "model",
+                "title": _("Groq Model"),
+                "description": _("Name of the Groq Model"),
+                "type": "entry",
+                "default": "llama-3.1-70b-versatile",
+                "website": "https://console.groq.com/docs/models",
+            },
+            {
+                "key": "streaming",
+                "title": _("Message Streaming"),
+                "description": _("Gradually stream message output"),
+                "type": "toggle",
+                "default": True
+            },
+            {
+                "key": "max-tokens",
+                "title": _("Max Tokens"),
+                "description": _("Max tokens of the generated text"),
+                "website": "https://help.openai.com/en/articles/4936856-what-are-tokens-and-how-to-count-them",
+                "type": "range",
+                "min": 3,
+                "max": 400,
+                "default": 150,
+                "round-digits": 0
+            },
+            {
+                "key": "top-p",
+                "title": _("Top-P"),
+                "description": _("An alternative to sampling with temperature, called nucleus sampling"),
+                "website": "https://platform.openai.com/docs/api-reference/completions/create#completions/create-top_p",
+                "type": "range",
+                "min": 0,
+                "max": 1,
+                "default": 1,
+                "round-digits": 2,
+            },
+            {
+                "key": "temperature",
+                "title": _("Temperature"),
+                "description": _("What sampling temperature to use. Higher values will make the output more random"),
+                "website": "https://platform.openai.com/docs/api-reference/completions/create#completions/create-temperature",
+                "type": "range",
+                "min": 0,
+                "max": 2,
+                "default": 1,
+                "round-digits": 2,
+            },
+            {
+                "key": "frequency-penalty",
+                "title": _("Frequency Penalty"),
+                "description": _("Positive values penalize new tokens based on their existing frequency in the text so far, decreasing the model's likelihood to repeat the same line"),
+                "website": "https://platform.openai.com/docs/api-reference/completions/create#completions/create-frequency_penalty",
+                "type": "range",
+                "min": -2,
+                "max": 2,
+                "default": 0,
+                "round-digits": 1,
+            },
+            {
+                "key": "presence-penalty",
+                "title": _("Presence Penalty"),
+                "description": _("Positive values penalize new tokens based on whether they appear in the text so far, increasing the model's likelihood to talk about new topics."),
+                "website": "https://platform.openai.com/docs/api-reference/completions/create#completions/create-frequency_penalty",
+                "type": "range",
+                "min": -2,
+                "max": 2,
+                "default": 0,
+                "round-digits": 1,
+            },
+        ] 
 
 
 

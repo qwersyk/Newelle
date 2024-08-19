@@ -102,9 +102,15 @@ class PresentationWindow(Adw.Window):
             },
             {
                 "title": "Choose your favourite AI Language Model",
-                "description": "Newelle can be used with mutiple models and providers!",
+                "description": "Newelle can be used with mutiple models and providers!\n<b>Note: It is strongly suggested to read the Guide to LLM page</b>",
                 "widget": self.__steal_from_settings(settings.LLM),
-                "actions": [] 
+                "actions": [
+                    {
+                        "label": "Guide to LLM",
+                        "classes": ["suggested-action"],
+                        "callback": lambda x: subprocess.Popen(["xdg-open", "https://github.com/qwersyk/Newelle/wiki/User-guide-to-the-available-LLMs"]),
+                    }
+                ] 
             },
             {
                 "title": "Extensions",
@@ -221,6 +227,7 @@ class PresentationWindow(Adw.Window):
             description_label = Gtk.Label(single_line_mode=False,max_width_chars=50,wrap=True, css_classes=["body-1"])
             description_label.set_halign(Gtk.Align.CENTER)
             description_label.set_text(description)
+            description_label.set_use_markup(True)
             page.append(description_label)
         # Actions
         buttons = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10, halign=Gtk.Align.CENTER, hexpand=False, baseline_position=Gtk.BaselinePosition.CENTER, margin_bottom=20)
