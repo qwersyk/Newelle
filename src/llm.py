@@ -4,6 +4,9 @@ import os, threading
 from typing import Callable, Any
 import time, json
 
+from g4f.Provider import RetryProvider
+from gi.repository.Gtk import ResponseType
+
 from .extra import find_module, install_module
 
 class LLMHandler():
@@ -258,7 +261,9 @@ class GPT3AnyHandler(G4FHandler):
     def __init__(self, settings, path):
         import g4f
         super().__init__(settings, path)
-        self.client = g4f.client.Client()
+        good_providers = [g4f.Provider.You, g4f.Provider.FreeChatgpt]
+        acceptable_providers = [g4f.Provider.Pizzagpt, g4f.Provider.Allyfy]
+        self.client = g4f.client.Client(provider=RetryProvider([RetryProvider(good_providers), RetryProvider(acceptable_providers)], shuffle=False))
         self.n = 0
     def get_extra_settings(self) -> list:
         self.n += 1 
@@ -275,7 +280,7 @@ class GPT3AnyHandler(G4FHandler):
     def convert_history(self, history: dict) -> list:
         """Converts the given history into the correct format for current_chat_history"""
         result = []
-        #result.append({"role": "system", "content": "\n".join(self.prompts)})
+        result.append({"role": "system", "content": "\n".join(self.prompts)})
         for message in history:
             result.append({
                 "role": message["User"].lower(),
@@ -284,11 +289,9 @@ class GPT3AnyHandler(G4FHandler):
         return result
 
     def generate_text(self, prompt: str, history: dict[str, str] = {}, system_prompt: list[str] = []) -> str:
-        # Add prompts in the message since some providers
-        # don't support system prompts well
         message = prompt
-        if len (self.prompts) > 0:
-            message = "SYSTEM:" + "\n".join(system_prompt) + "\n\n" + prompt
+        # if len (self.prompts) > 0:
+            # message = "SYSTEM:" + "\n".join(system_prompt) + "\n\n" + prompt
         history = self.convert_history(history)
         user_prompt = {"role": "user", "content": message}
         history.append(user_prompt)
@@ -299,12 +302,10 @@ class GPT3AnyHandler(G4FHandler):
         return response.choices[0].message.content
 
     def generate_text_stream(self, prompt: str, history: dict[str, str] = {}, system_prompt: list[str] = [], on_update: Callable[[str], Any] = (), extra_args: list = []) -> str:
-        # Add prompts in the message since some providers
-        # don't support system prompts well
         import g4f
         message = prompt
-        if len (self.prompts) > 0:
-            message = "SYSTEM:" + "\n".join(system_prompt) + "\n\n" + prompt
+        # if len (self.prompts) > 0:
+            # message = "SYSTEM:" + "\n".join(system_prompt) + "\n\n" + prompt
         history = self.convert_history(history)
         user_prompt = {"role": "user", "content": message}
         history.append(user_prompt)
