@@ -2,7 +2,7 @@
 from .llm import GPT4AllHandler, OpenAIHandler, CustomLLMHandler, GPT3AnyHandler, GeminiHandler
 from .tts import gTTSHandler, EspeakHandler, CustomTTSHandler
 from .stt import SphinxHandler, GoogleSRHandler, WitAIHandler, VoskHandler, WhisperAPIHandler, CustomSRHandler
-
+from .extra import ReplaceHelper
 AVAILABLE_LLMS = {
     "GPT3Any": {
         "key": "GPT3Any",
@@ -106,8 +106,8 @@ AVAILABLE_TTS = {
 
 PROMPTS = {
     "generate_name_prompt": """Write a short title for the dialog, summarizing the theme in 5 words. No additional text.""",
-    "console_prompt": """You can run commands on the user Linux computer.
-Linux distribution: {DISTRO}
+    "console_prompt": f"""You can run commands on the user Linux computer.
+Linux distribution: {ReplaceHelper.get_distribution()}
 Execute linux commands using \n```console\ncommand\n```
 To display a directory: \n```folder\npath/to/folder\n```
 To display a file: \n```file\npath/to/file\n```
