@@ -31,6 +31,9 @@
 	      <key name="basic-functionality" type="b">
             <default>true</default>
         </key>
+		    <key name="expression-prompt" type="b">
+            <default>true</default>
+        </key>
 	      <key name="show-image" type="b">
             <default>true</default>
         </key>

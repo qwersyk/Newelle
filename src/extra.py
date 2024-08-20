@@ -31,6 +31,7 @@ def human_readable_size(size: float, decimal_places:int =2) -> str:
 
 class ReplaceHelper:
     DISTRO = None
+    AVATAR_HANDLER = None
 
     @staticmethod
     def get_distribution() -> str:
@@ -48,7 +49,20 @@ class ReplaceHelper:
                 ReplaceHelper.DISTRO = "Unknown"
         
         return ReplaceHelper.DISTRO
-    
+
+    @staticmethod
+    def set_handler(handler):
+        ReplaceHelper.AVATAR_HANDLER = handler
+
+    @staticmethod
+    def get_expressions() -> str:
+        if ReplaceHelper.AVATAR_HANDLER is None:
+            return ""
+        result = ""
+        for expression in ReplaceHelper.AVATAR_HANDLER.get_expressions():
+            result += " (" + expression + ")"
+        return result
+
     @staticmethod
     def get_desktop_environment() -> str:
         desktop = os.getenv("XDG_CURRENT_DESKTOP")
@@ -75,6 +89,8 @@ def replace_variables(text: str) -> str:
         text = text.replace("{DISTRO}", ReplaceHelper.get_distribution())
     if "{DE}" in text:
         text = text.replace("{DE}", ReplaceHelper.get_desktop_environment())
+    if "{EXPRESSIONS}" in text:
+        text = text.replace("{EXPRESSIONS}", ReplaceHelper.get_expressions())
     return text
 
 def markwon_to_pango(markdown_text):

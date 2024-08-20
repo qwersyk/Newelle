@@ -188,7 +188,7 @@ class Live2DHandler(AvatarHandler):
         self._expressions_raw = json.loads(value.to_string())
         self._wait_js.set()
 
-    def get_expressions(self):
+    def get_expressions(self): 
         self._expressions_raw = []
         script = "get_expressions_json()"
         self.webview.evaluate_javascript(script, len(script), callback=self.wait_emotions)

@@ -7,7 +7,7 @@ from .gtkobj import File, CopyBox, BarChartBox, MultilineEntry
 from .constants import AVAILABLE_LLMS, AVAILABLE_TRANSLATORS, PROMPTS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_AVATARS, AVAILABLE_PROMPTS
 from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject, GLib, WebKit
 from .stt import AudioRecorder
-from .extra import markwon_to_pango, override_prompts, replace_variables
+from .extra import ReplaceHelper, markwon_to_pango, override_prompts, replace_variables
 import threading
 import posixpath
 import shlex,json
@@ -450,6 +450,7 @@ class MainWindow(Gtk.ApplicationWindow):
         if self.avatar_handler is not None:   
             self.avatar_widget = self.avatar_handler.create_gtk_widget()
             self.boxw.append(self.avatar_widget)
+            ReplaceHelper.set_handler(self.avatar_handler)
 
 
     def send_button_start_spinner(self):

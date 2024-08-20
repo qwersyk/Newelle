@@ -191,6 +191,7 @@ User: Can you help me?
 Assistant: Yes, of course, what do you need help with?""",
     "get_suggestions_prompt": """Suggest a few questions that the user would ask and put them in a JSON array. You have to write ONLY the JSON array an nothing else""",
     "custom_prompt": "",
+    "expression_prompt": "You can only show the following expressions: {EXPRESSIONS}",
 
 }
 
@@ -240,6 +241,14 @@ AVAILABLE_PROMPTS = [
         "title": _("Show image"),
         "description": _("Show image in chat"),
         "setting_name": "show-image",
+        "editable": True,
+        "show_in_settings": True,
+    },
+    {
+        "key": "expression_prompt",
+        "title": _("Show expressions"),
+        "description": _("Let the avatar show expressions"),
+        "setting_name": "expression-prompt",
         "editable": True,
         "show_in_settings": True,
     },
