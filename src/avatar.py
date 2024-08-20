@@ -115,7 +115,7 @@ class Live2DHandler(AvatarHandler):
                 "description": _("Live2D Model to use"),
                 "type": "combo",
                 "values": self.get_available_models(),
-                "default": "arch chan model0",
+                "default": "Arch/arch chan model0.model3.json",
                 "folder": os.path.abspath(self.models_dir)
             },
             {
@@ -148,6 +148,7 @@ class Live2DHandler(AvatarHandler):
         self.httpd = HTTPServer(('localhost', 0), CustomHTTPRequestHandler)
         httpd = self.httpd
         model = self.get_setting("model")
+        print(model)
         q = urlencode({"model": model})
         GLib.idle_add(self.webview.load_uri, urljoin("http://localhost:" + str(httpd.server_address[1]), f"?{q}"))
         httpd.serve_forever()
