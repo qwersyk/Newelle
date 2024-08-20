@@ -105,16 +105,6 @@ def markwon_to_pango(markdown_text):
         return initial_string 
     return markdown_text
 
-def human_readable_size(size: float, decimal_places:int =2) -> str:
-    size = int(size)
-    unit = ''
-    for unit in ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB']:
-        if size < 1024.0 or unit == 'PiB':
-            break
-        size /= 1024.0
-    return f"{size:.{decimal_places}f} {unit}"
-
-
 def find_module(full_module_name):
     """
     Returns module object if module `full_module_name` can be imported.
