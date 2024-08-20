@@ -112,7 +112,7 @@ class Live2DHandler(AvatarHandler):
     def get_extra_settings(self) -> list:
         widget = Gtk.Box()
         color = widget.get_style_context().lookup_color('theme_bg_color')[1]
-        default = rgb_to_hex(color.red, color.blue, color.green)
+        default = rgb_to_hex(color.red, color.green, color.blue)
 
         return [ 
             {
