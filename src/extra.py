@@ -6,6 +6,20 @@ import xml.dom.minidom
 import importlib, subprocess, functools
 
 
+def rgb_to_hex(r, g, b):
+    """
+    Convert RGB values from float to hex.
+
+    Args:
+        r (float): Red value between 0 and 1.
+        g (float): Green value between 0 and 1.
+        b (float): Blue value between 0 and 1.
+
+    Returns:
+        str: Hex representation of the RGB values.
+    """
+    return "#{:02x}{:02x}{:02x}".format(int(r * 255), int(g * 255), int(b * 255))
+
 def human_readable_size(size: float, decimal_places:int =2) -> str:
     size = int(size)
     unit = ''

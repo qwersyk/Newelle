@@ -3,6 +3,8 @@ from os.path import abspath, isdir, isfile
 from typing import Any
 from gi.repository import Gtk, WebKit, GLib, GdkPixbuf
 from livepng.model import Semaphore
+
+from .extra import rgb_to_hex
 from .tts import TTSHandler
 import os, subprocess, threading, json
 from http.server import HTTPServer, SimpleHTTPRequestHandler
@@ -108,6 +110,10 @@ class Live2DHandler(AvatarHandler):
         return file_list
 
     def get_extra_settings(self) -> list:
+        widget = Gtk.Box()
+        color = widget.get_style_context().lookup_color('theme_bg_color')[1]
+        default = rgb_to_hex(color.red, color.blue, color.green)
+
         return [ 
             {
                 "key": "model",
@@ -127,6 +133,13 @@ class Live2DHandler(AvatarHandler):
                 "max": 30,
                 "default": 10,
                 "round-digits": 0
+            },
+            {
+                "key": "background-color",
+                "title": _("Background Color"),
+                "description": _("Background color of the avatar"),
+                "type": "entry",
+                "default": default,
             }
         ]
     def is_installed(self) -> bool:
@@ -148,8 +161,8 @@ class Live2DHandler(AvatarHandler):
         self.httpd = HTTPServer(('localhost', 0), CustomHTTPRequestHandler)
         httpd = self.httpd
         model = self.get_setting("model")
-        print(model)
-        q = urlencode({"model": model})
+        background_color = self.get_setting("background-color")
+        q = urlencode({"model": model, "bg": background_color})
         GLib.idle_add(self.webview.load_uri, urljoin("http://localhost:" + str(httpd.server_address[1]), f"?{q}"))
         httpd.serve_forever()
 
