@@ -4,7 +4,7 @@ import pickle
 
 from .presentation import PresentationWindow
 from .gtkobj import File, CopyBox, BarChartBox, MultilineEntry
-from .constants import AVAILABLE_LLMS, AVAILABLE_TRANSLATORS, PROMPTS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_AVATARS. AVAILABLE_PROMPTS
+from .constants import AVAILABLE_LLMS, AVAILABLE_TRANSLATORS, PROMPTS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_AVATARS, AVAILABLE_PROMPTS
 from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject, GLib, WebKit
 from .stt import AudioRecorder
 from .extra import markwon_to_pango, override_prompts, replace_variables

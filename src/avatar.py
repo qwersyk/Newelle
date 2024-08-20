@@ -53,11 +53,14 @@ class AvatarHandler:
         j[self.key][setting] = value
         self.settings.set_string("avatars", json.dumps(j))
 
-    def get_setting(self, name) -> Any:
+    def get_setting(self, name, search_default: bool = True) -> Any:
         """Get setting from key"""
         j = json.loads(self.settings.get_string("avatars"))
         if self.key not in j or not isinstance(j[self.key], dict) or name not in j[self.key]:
-            return self.get_default_setting(name)
+            if search_default:
+                return self.get_default_setting(name)
+            else:
+                return None
         return j[self.key][name]
 
     def get_default_setting(self, name):
@@ -131,7 +134,9 @@ class Live2DHandler(AvatarHandler):
 
     def install(self):
         subprocess.check_output(["git", "clone", "https://github.com/NyarchLinux/live2d-lipsync-viewer.git", self.webview_path])
-
+        subprocess.check_output(["wget", "-P", os.path.join(self.models_dir), "http://mirror.nyarchlinux.moe/Arch.tar.xz"])
+        subprocess.check_output(["tar", "-Jxf", os.path.join(self.models_dir, "Arch.tar.xz"), "-C", self.models_dir])
+        subprocess.Popen(["rm", os.path.join(self.models_dir, "Arch.tar.xz")])
     def __start_webserver(self):
         folder_path = self.webview_path
         class CustomHTTPRequestHandler(SimpleHTTPRequestHandler):
@@ -242,11 +247,13 @@ class LivePNGHandler(AvatarHandler):
             }
         ]       
     def get_styles_list(self) -> tuple[list, str]:
-        path = self.get_setting("model")
+        path = self.get_setting("model", False)
         if not type(path) is str:
             return ([], "")
-        self.model = LivePNG(path, output_type=FilepathOutput.LOCAL_PATH)
-
+        try:
+            self.model = LivePNG(path, output_type=FilepathOutput.LOCAL_PATH)
+        except Exception as e:
+            return tuple()
         return ([(style, style) for style in self.model.get_styles()], self.model.get_default_style().name)
     
     def get_available_models(self) -> list[tuple[str, str]]:
