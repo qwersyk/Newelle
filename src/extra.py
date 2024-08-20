@@ -3,6 +3,17 @@ import importlib, subprocess
 import re
 import os
 import xml.dom.minidom
+import importlib, subprocess, functools
+
+
+def human_readable_size(size: float, decimal_places:int =2) -> str:
+    size = int(size)
+    unit = ''
+    for unit in ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB']:
+        if size < 1024.0 or unit == 'PiB':
+            break
+        size /= 1024.0
+    return f"{size:.{decimal_places}f} {unit}"
 
 class ReplaceHelper:
     DISTRO = None
@@ -126,3 +137,35 @@ def override_prompts(override_setting, PROMPTS):
         else:
             prompt_list[prompt] = PROMPTS[prompt]
     return prompt_list
+
+
+def force_async(fn):
+    '''
+    turns a sync function to async function using threads
+    '''
+    from concurrent.futures import ThreadPoolExecutor
+    import asyncio
+    pool = ThreadPoolExecutor()
+
+    @functools.wraps(fn)
+    def wrapper(*args, **kwargs):
+        future = pool.submit(fn, *args, **kwargs)
+        return asyncio.wrap_future(future)  # make it awaitable
+
+    return wrapper
+
+
+def force_sync(fn):
+    '''
+    turn an async function to sync function
+    '''
+    import asyncio
+
+    @functools.wraps(fn)
+    def wrapper(*args, **kwargs):
+        res = fn(*args, **kwargs)
+        if asyncio.iscoroutine(res):
+            return asyncio.get_event_loop().run_until_complete(res)
+        return res
+
+    return wrapper

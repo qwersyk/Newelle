@@ -1,7 +1,10 @@
 
-from .llm import GPT4AllHandler, GroqHandler, OpenAIHandler, CustomLLMHandler, GPT3AnyHandler, GeminiHandler
-from .tts import gTTSHandler, EspeakHandler, CustomTTSHandler
+
+from .translator import CustomTranslatorHandler, GoogleTranslatorHandler
+from .llm import GPT4AllHandler, OpenAIHandler,GroqHandler, CustomLLMHandler, GPT3AnyHandler, GeminiHandler
+from .tts import VoiceVoxHanlder, gTTSHandler, EspeakHandler, CustomTTSHandler
 from .stt import SphinxHandler, GoogleSRHandler, WitAIHandler, VoskHandler, WhisperAPIHandler, CustomSRHandler
+from .avatar import Live2DHandler, LivePNGHandler
 
 AVAILABLE_LLMS = {
     "GPT3Any": {
@@ -88,7 +91,6 @@ AVAILABLE_STT = {
 
 
 AVAILABLE_TTS = {
-
     "gtts": {
         "key": "gtts",
         "title": _("Google TTS"),
@@ -101,6 +103,12 @@ AVAILABLE_TTS = {
         "description": _("Offline TTS"),
         "class": EspeakHandler,
     },
+    "voicevox": {
+        "key": "voicevox",
+        "title": _("Voicevox API"),
+        "description": _("JP ONLY. API for voicevox anime-like natural sounding tts"),
+        "class": VoiceVoxHanlder
+    },
     "custom_command": {
         "key": "custom_command",
         "title": _("Custom Command"),
@@ -109,7 +117,39 @@ AVAILABLE_TTS = {
     }
 }
 
+AVAILABLE_AVATARS = {
+    "Live2D": {
+        "key": "Live2D",
+        "rowtype": "expander",
+        "title": _("Live2D"),
+        "description": _("Cubism Live2D, usually used by vtubers"),
+        "class": Live2DHandler,
+    },
+    "LivePNG": {
+        "key": "LivePNG",
+        "rowtype": "expander",
+        "title": _("LivePNG"),
+        "description": _("LivePNG model"),
+        "class": LivePNGHandler,
+    }
+}
 
+AVAILABLE_TRANSLATORS = {
+    "GoogleTranslator": {
+        "key": "GoogleTranslator",
+        "rowtype": "expander",
+        "title": _("Google Translator"),
+        "description": _("Use google transate"),
+        "class": GoogleTranslatorHandler,
+    },
+    "CustomTranslator": {
+        "key": "CustomTranslator",
+        "rowtype": "expander",
+        "title": _("Custom Translator"),
+        "description": _("Use a custom translator"),
+        "class": CustomTranslatorHandler,
+    }
+}
 PROMPTS = {
     "generate_name_prompt": """Write a short title for the dialog, summarizing the theme in 5 words. No additional text.""",
     "console_prompt": """You can run commands on the user Linux computer.
