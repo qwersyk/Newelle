@@ -40,6 +40,7 @@ newelle_sources = [
   'tts.py',
   'stt.py',
   'extra.py',
+  'presentation.py',
   'avatar.py',
   'translator.py',
 ]

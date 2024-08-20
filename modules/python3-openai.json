@@ -1,0 +1,12 @@
+{
+    "name": "python3-openai",
+    "buildsystem": "simple",
+    "build-commands": [
+        "pip3 install --verbose --prefix=${FLATPAK_DEST} openai==1.41.0"
+    ],
+    "build-options": {
+    	"build-args": [
+    		"--share=network"
+    	]
+    }
+}
