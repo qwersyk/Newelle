@@ -1,11 +1,13 @@
 import time, re, sys
 import gi, os, subprocess
 import pickle
+
+from .presentation import PresentationWindow
 from .gtkobj import File, CopyBox, BarChartBox, MultilineEntry
-from .constants import AVAILABLE_LLMS, AVAILABLE_TRANSLATORS, PROMPTS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_AVATARS
+from .constants import AVAILABLE_LLMS, AVAILABLE_TRANSLATORS, PROMPTS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_AVATARS, AVAILABLE_PROMPTS
 from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject, GLib, WebKit
 from .stt import AudioRecorder
-from .extra import override_prompts
+from .extra import markwon_to_pango, override_prompts, replace_variables
 import threading
 import posixpath
 import shlex,json
@@ -329,8 +331,15 @@ class MainWindow(Gtk.ApplicationWindow):
         GLib.idle_add(self.update_folder)
         GLib.idle_add(self.update_history)
         GLib.idle_add(self.show_chat)
-        GLib.idle_add(self.load_avatar)
+        if not self.settings.get_boolean("welcome-screen-shown"):
+            GLib.idle_add(self.show_presentation_window)
         self.first_load = False
+
+
+    def show_presentation_window(self):
+        self.presentation_dialog = PresentationWindow("presentation", self.settings, self.directory, self)
+        self.presentation_dialog.show()
+
 
     def start_recording(self, button):
         #button.set_child(Gtk.Spinner(spinning=True))
@@ -401,19 +410,11 @@ class MainWindow(Gtk.ApplicationWindow):
 
         self.model.load_model(self.local_model)
 
-        self.bot_prompt = """"""
-        if self.console:
-            self.bot_prompt += self.prompts["console_prompt"]
-        if self.basic_functionality:
-            self.bot_prompt += self.prompts["basic_functionality"]
-        if self.show_image:
-            self.bot_prompt += self.prompts["show_image"]
-        if self.graphic:
-            self.bot_prompt += self.prompts["graphic"] 
-        if self.graphic and self.console: 
-            self.bot_prompt += self.prompts["graphic_console"]
-        if self.cutom_extra_prompt:
-            self.bot_prompt += self.prompts["custom_prompt"]
+        self.bot_prompts = []
+        for prompt_info in AVAILABLE_PROMPTS:
+            if self.settings.get_boolean(prompt_info["setting_name"]):
+                self.bot_prompts.append(self.prompts[prompt_info["key"]])
+
         self.extension_path = os.path.expanduser("~")+"/.var/app/io.github.qwersyk.Newelle/extension"
         self.extensions = {}
         if os.path.exists(self.extension_path):
@@ -1160,8 +1161,9 @@ class MainWindow(Gtk.ApplicationWindow):
                     box.append(self.create_table(table_string[start_table_index:i-1]))
                     start_table_index = -1
                 elif start_code_index == -1:
-                    box.append(Gtk.Label(label=table_string[i], wrap=True, halign=Gtk.Align.START,
-                                         wrap_mode=Pango.WrapMode.WORD_CHAR, width_chars=1, selectable=True))
+                    label = markwon_to_pango(table_string[i])
+                    box.append(Gtk.Label(label=label, wrap=True, halign=Gtk.Align.START,
+                                         wrap_mode=Pango.WrapMode.WORD_CHAR, width_chars=1, selectable=True, use_markup=True))
             if start_table_index != -1:
                 box.append(self.create_table(table_string[start_table_index:len(table_string)]))
             if not has_terminal_command:
@@ -1182,11 +1184,12 @@ class MainWindow(Gtk.ApplicationWindow):
         stream_number_variable = self.stream_number_variable
         self.status = False
         self.update_button_text()
-        prompts = [value["prompt"] for value in self.extensions.values() if value["status"]]
-        prompts.append(self.bot_prompt)
 
-        if self.console:
-            prompts.append(self.prompts["current_directory"].replace("{DIR}", os.getcwd()))
+        # Appned extensions prompts
+        prompts = [replace_variables(value["prompt"]) for value in self.extensions.values() if value["status"]]
+        
+        for prompt in self.bot_prompts:
+            prompts.append(replace_variables(prompt))
         self.model.set_history(prompts, self)
 
         if self.model.stream_enabled():

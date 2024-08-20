@@ -33,7 +33,14 @@ install_data (
     'search-folder-symbolic.svg',
     install_dir: symbolic_dir
 )
-
+install_data (
+  'right-large-symbolic.svg',
+  install_dir: symbolic_dir
+)
+install_data (
+  'left-large-symbolic.svg',
+  install_dir: symbolic_dir
+)
 install_data (
     'avatar-symbolic.svg',
     install_dir: symbolic_dir

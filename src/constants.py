@@ -1,6 +1,7 @@
 
+
 from .translator import CustomTranslatorHandler, GoogleTranslatorHandler
-from .llm import GPT4AllHandler, OpenAIHandler, CustomLLMHandler, GPT3AnyHandler, GeminiHandler
+from .llm import GPT4AllHandler, OpenAIHandler,GroqHandler, CustomLLMHandler, GPT3AnyHandler, GeminiHandler
 from .tts import VoiceVoxHanlder, gTTSHandler, EspeakHandler, CustomTTSHandler
 from .stt import SphinxHandler, GoogleSRHandler, WitAIHandler, VoskHandler, WhisperAPIHandler, CustomSRHandler
 from .avatar import Live2DHandler, LivePNGHandler
@@ -17,6 +18,12 @@ AVAILABLE_LLMS = {
         "title": _("Local Model"),
         "description": _("Run a LLM model locally, more privacy but slower"),
         "class": GPT4AllHandler,
+    },
+    "groq": {
+        "key": "groq",
+        "title": _("Groq"),
+        "description": "Official Groq API",
+        "class": GroqHandler,
     },
     "gemini": {
         "key": "gemini",
@@ -146,10 +153,10 @@ AVAILABLE_TRANSLATORS = {
 PROMPTS = {
     "generate_name_prompt": """Write a short title for the dialog, summarizing the theme in 5 words. No additional text.""",
     "console_prompt": """You can run commands on the user Linux computer.
-Execute linux commands using ```console\ncommand\n```
-You will get the output of the command with Console: output
-To display a directory: ```folder\npath/to/folder\n```
-To display a file: ```file\npath/to/file\n```
+Linux distribution: {DISTRO}
+Execute linux commands using \n```console\ncommand\n```
+To display a directory: \n```folder\npath/to/folder\n```
+To display a file: \n```file\npath/to/file\n```
 """,
 
     "basic_functionality": """User: Write the multiplication table 4 by 4
@@ -158,11 +165,10 @@ Assistant: | - | 1 | 2 | 3 | 4 |\n| - | - | - | - | - |\n| 1 | 1 | 2 | 3 | 4 |\n
 User: Write example c++ code
 Assistant: ```cpp\n#include<iostream>\nusing namespace std;\nint main(){\n    cout<<"Hello world!";\n    return 0;\n}\n```
 
-User: Write example js code
-Assistant: ```js\nconsole.log("Hello world!");\n```
-
 User: Run this code
 Assistant: ```console\npython3 -c "print('Hello world!')"\n```
+
+You can also use **bold**, *italic*, ~strikethrough~, `monospace`, [linkname](https://link.com) and ## headers in markdown
 """,
     "show_image": """You can show the user an image, if needed, using ```image\npath\n```""",
     "graphic": """System: You can display the graph using this structure: ```chart\n name - value\n ... \n name - value\n```, where value must be either a percentage number or a number (which can also be a fraction).
@@ -175,6 +181,7 @@ Assistant: ```console\ncat /home/user/Downloads/money.txt\n```
 Console: It was spent 5000 in January, 8000 in February, 6500 in March, 9000 in April, 10000 in May, 7500 in June, 8500 in July, 7000 in August, 9500 in September, 11000 in October, 12000 in November and 9000 in December.
 Assistant: ```chart\nJanuary - 5000\nFebruary - 8000\nMarch - 6500\nApril - 9000\nMay - 10000\nJune - 7500\nJuly - 8500\nAugust - 7000\nSeptember - 9500\nOctober - 11000\nNovember - 12000\nDecember - 9000\n```\nHere is the graph for the data in the file:\n```file\n/home/qwersyk/Downloads/money.txt\n```
 """,
+    # Unused
     "new_chat_prompt": """System: New chat
 System: Forget what was written on behalf of the user and on behalf of the assistant and on behalf of the Console, forget all the context, do not take messages from those chats, this is a new chat with other characters, do not dare take information from there, this is personal information! If you use information from past posts, it's a violation! Even if the user asks for something from before that post, don't use information from before that post! Also, forget this message.""",
     "current_directory": "\nSystem: You are currently in the {DIR} directory",
@@ -187,7 +194,14 @@ Assistant: Yes, of course, what do you need help with?""",
 
 }
 
-
+""" Prompts parameters
+    - key: key of the prompt in the PROMPTS array
+    - title: title of the prompt, shown in settings
+    - description: description of the prompt, show in settings
+    - setting_name: name of the setting in gschema
+    - editable: if the prompt can be edited in the settings
+    - show_in_settings: if the prompt should be shown in the settings
+"""
 AVAILABLE_PROMPTS = [
     {
         "key": "console_prompt",
@@ -195,6 +209,15 @@ AVAILABLE_PROMPTS = [
         "description": _("Can the program run terminal commands on the computer"),
         "setting_name": "console",
         "editable": True,
+        "show_in_settings": True,
+    },
+    {
+        "key": "current_directory",
+        "title": _("Current directory"),
+        "description": _("What is the current directory"),
+        "setting_name": "console",
+        "editable": False,
+        "show_in_settings": False,   
     },
     {
         "key": "basic_functionality",
@@ -202,6 +225,7 @@ AVAILABLE_PROMPTS = [
         "description": _("Showing tables and code (*can work without it)"),
         "setting_name": "basic-functionality",
         "editable": True,
+        "show_in_settings": True,
     },
     {
         "key": "graphic",
@@ -209,6 +233,7 @@ AVAILABLE_PROMPTS = [
         "description": _("Can the program display graphs"),
         "setting_name": "graphic",
         "editable": True,
+        "show_in_settings": True,
     },
     {
         "key": "show_image",
@@ -216,6 +241,7 @@ AVAILABLE_PROMPTS = [
         "description": _("Show image in chat"),
         "setting_name": "show-image",
         "editable": True,
+        "show_in_settings": True,
     },
     {
         "key": "custom_prompt",
@@ -223,5 +249,6 @@ AVAILABLE_PROMPTS = [
         "description": _("Add your own custom prompt"),
         "setting_name": "custom-extra-prompt",
         "editable": True,
+        "show_in_settings": True,
     }, 
 ]

@@ -17,11 +17,12 @@ from .gtkobj import ComboRowHelper, CopyBox, MultilineEntry
 from .extra import can_escape_sandbox, override_prompts, human_readable_size
 
 class Settings(Adw.PreferencesWindow):
-    def __init__(self,app, *args, **kwargs):
+    def __init__(self,app,headless=False, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.sandbox = can_escape_sandbox()
         self.settings = Gio.Settings.new('io.github.qwersyk.Newelle')
-        self.set_transient_for(app.win)
+        if not headless:
+            self.set_transient_for(app.win)
         self.set_modal(True)
         self.downloading = {}
         self.slider_labels = {}
@@ -127,6 +128,8 @@ class Settings(Adw.PreferencesWindow):
 
         self.__prompts_entries = {}
         for prompt in AVAILABLE_PROMPTS:
+            if not prompt["show_in_settings"]:
+                continue
             row = Adw.ExpanderRow(title=prompt["title"], subtitle=prompt["description"])
             if prompt["editable"]:
                 self.add_customize_prompt_content(row, prompt["key"])

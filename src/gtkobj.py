@@ -367,4 +367,3 @@ class ComboRowHelper(GObject.Object):
         label = list_item.get_child()
         label.set_text(list_item.get_item().name)
 
-
