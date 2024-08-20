@@ -1,2 +1,2 @@
-.flatpak-builder
+.flatpak-builder/*
 flatpak-pip-generator
