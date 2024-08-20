@@ -89,36 +89,36 @@ class PresentationWindow(Adw.Window):
         settings = Settings(self.app, headless=True)
         pages = [
             {
-                "title": "Welcome to Newelle",
-                "description": "Your ultimate virtual assistant.",
+                "title": _("Welcome to Newelle"),
+                "description": _("Your ultimate virtual assistant."),
                 "picture": "/io/github/qwersyk/Newelle/images/illustration.svg",
                 "actions": [
                     {
-                        "label": "Github Page",
+                        "label": _("Github Page"),
                         "classes": [],
                         "callback": lambda x: subprocess.Popen(["xdg-open", "https://github.com/qwersyk/Newelle"]), 
                     }
                 ]
             },
             {
-                "title": "Choose your favourite AI Language Model",
-                "description": "Newelle can be used with mutiple models and providers!\n<b>Note: It is strongly suggested to read the Guide to LLM page</b>",
+                "title": _("Choose your favourite AI Language Model"),
+                "description": _("Newelle can be used with mutiple models and providers!\n<b>Note: It is strongly suggested to read the Guide to LLM page</b>"),
                 "widget": self.__steal_from_settings(settings.LLM),
                 "actions": [
                     {
-                        "label": "Guide to LLM",
+                        "label": _("Guide to LLM"),
                         "classes": ["suggested-action"],
                         "callback": lambda x: subprocess.Popen(["xdg-open", "https://github.com/qwersyk/Newelle/wiki/User-guide-to-the-available-LLMs"]),
                     }
                 ] 
             },
             {
-                "title": "Extensions",
-                "description": "You can extend Newelle's functionalities using extensions!",
+                "title": _("Extensions"),
+                "description": _("You can extend Newelle's functionalities using extensions!"),
                 "picture": "/io/github/qwersyk/Newelle/images/extension.svg",
                 "actions": [
                     {
-                        "label": "Download extensions",
+                        "label": _("Download extensions"),
                         "classes": ["suggested-action"],
                         "callback": lambda x: subprocess.Popen(["xdg-open", "https://github.com/topics/newelle-extension"]),
                     }
@@ -128,8 +128,8 @@ class PresentationWindow(Adw.Window):
         # Show the warning only if there are not enough permissions
         if not can_escape_sandbox():
             pages.append({
-                "title": "Permission Error",
-                "description": "Newelle does not have enough permissions to run commands on your system.",
+                "title": _("Permission Error"),
+                "description": _("Newelle does not have enough permissions to run commands on your system."),
                 "picture": "/io/github/qwersyk/Newelle/images/error.svg",
                 "actions": [
                     {
@@ -140,12 +140,12 @@ class PresentationWindow(Adw.Window):
                 ]
             })
         pages.append({
-                "title": "Begin using the app",
+                "title": _("Begin using the app"),
                 "description": None,
                 "widget":self.__create_icon("emblem-default-symbolic"),
                 "actions": [
                     {
-                        "label": "Start chatting",
+                        "label": _("Start chatting"),
                         "classes": ["suggested-action"],
                         "callback": self.close_window,
                     }
