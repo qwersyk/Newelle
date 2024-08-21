@@ -13,8 +13,6 @@ from .thread_editing import ThreadEditing
 from .extension import Extension
 
 
-
-
 class MyApp(Adw.Application):
     def __init__(self, version, **kwargs):
         self.version = version
@@ -203,6 +201,7 @@ class MyApp(Adw.Application):
         settings.set_string("path", os.path.normpath(self.win.main_path))
         self.win.stream_number_variable += 1
         Gtk.Application.do_shutdown(self)
+        os._exit(1)
 
 
 def main(version):
