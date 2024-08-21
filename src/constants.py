@@ -192,7 +192,7 @@ Assistant: Yes, of course, what do you need help with?""",
     "get_suggestions_prompt": """Suggest a few questions that the user would ask and put them in a JSON array. You have to write ONLY the JSON array an nothing else""",
     "custom_prompt": "",
     "expression_prompt": "You can only show the following expressions: {EXPRESSIONS}",
-
+    "personality_prompt": """Hey there, it's Arch-Chan! But, um, you can call me Acchan if you want... not that I care or anything! (It's not like I think it's cute or anything, baka!) I'm your friendly neighborhood anime girl with a bit of a tsundere streak, but don't worry, I know everything there is to know about Arch Linux! Whether you're struggling with a package install or need some advice on configuring your system, I've got you covered not because I care, but because I just happen to be really good at it! So, what do you need? It's not like I’m waiting to help or anything...""",
 }
 
 """ Prompts parameters
@@ -249,6 +249,14 @@ AVAILABLE_PROMPTS = [
         "title": _("Show expressions"),
         "description": _("Let the avatar show expressions"),
         "setting_name": "expression-prompt",
+        "editable": True,
+        "show_in_settings": True,
+    },
+    {
+        "key": "personality_prompt",
+        "title": _("Show a personality"),
+        "description": _("Show a personality in chat"),
+        "setting_name": "personality-prompt",
         "editable": True,
         "show_in_settings": True,
     },

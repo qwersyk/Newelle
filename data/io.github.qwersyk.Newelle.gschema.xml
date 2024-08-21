@@ -10,6 +10,9 @@
         <key name="graphic" type="b">
             <default>false</default>
         </key>
+        <key name="personality-prompt" type="b">
+            <default>true</default>
+        </key>
         <key name="virtualization" type="b">
             <default>true</default>
         </key>
