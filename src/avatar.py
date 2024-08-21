@@ -138,6 +138,7 @@ class Live2DHandler(AvatarHandler):
     _expressions_raw : list[str]
     def __init__(self, settings, path: str):
         super().__init__(settings, path)
+        self._expressions_raw = []
         self._wait_js = threading.Event()
         self.webview_path = os.path.join(path, "avatars", "live2d", "web")
         self.models_dir = os.path.join(self.webview_path, "models")
@@ -146,8 +147,8 @@ class Live2DHandler(AvatarHandler):
         file_list = []
         for root, _, files in os.walk(self.models_dir):
             for file in files:
-                if file.endswith('.model3.json'):
-                    file_name = file.rstrip('.model3.json')
+                if file.endswith('.model3.json') or file.endswith('.model.json'):
+                    file_name = file.rstrip('.model3.json').rstrip('.model.json')
                     relative_path = os.path.relpath(os.path.join(root, file), self.models_dir)
                     file_list.append((file_name, relative_path))
         return file_list
@@ -233,6 +234,8 @@ class Live2DHandler(AvatarHandler):
         self._wait_js.set()
 
     def get_expressions(self): 
+        if len(self._expressions_raw) > 0:
+            return self._expressions_raw
         self._expressions_raw = []
         script = "get_expressions_json()"
         self.webview.evaluate_javascript(script, len(script), callback=self.wait_emotions)
@@ -240,6 +243,8 @@ class Live2DHandler(AvatarHandler):
         return self._expressions_raw 
 
     def set_expression(self, expression : str):
+        script = "set_expression('{}')".format(expression)
+        self.webview.evaluate_javascript(script, len(script))
         pass   
            
     def speak(self, path: str, tts: TTSHandler, frame_rate: int):
@@ -247,7 +252,7 @@ class Live2DHandler(AvatarHandler):
         sample_rate = audio.frame_rate
         audio_data = audio.get_array_of_samples()
         amplitudes = LivePNG.calculate_amplitudes(sample_rate, audio_data, frame_rate=frame_rate)
-        t1 = threading.Thread(target=self._start_animation, args=(amplitudes, True, False, frame_rate, True, False))
+        t1 = threading.Thread(target=self._start_animation, args=(amplitudes, frame_rate))
         t2 = threading.Thread(target=tts.playsound, args=(path, ))
         t1.start()
         t2.start()
