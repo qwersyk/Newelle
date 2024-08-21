@@ -4,7 +4,9 @@ from typing import Any
 from gi.repository import Gtk, WebKit, GLib, GdkPixbuf
 from livepng.model import Semaphore
 
-from .extra import rgb_to_hex
+from .translator import TranslatorHandler
+
+from .extra import ReplaceHelper, extract_expressions, rgb_to_hex
 from .tts import TTSHandler
 import os, subprocess, threading, json
 from http.server import HTTPServer, SimpleHTTPRequestHandler
@@ -82,13 +84,54 @@ class AvatarHandler:
         """Get the list of possible expressions"""
         pass
 
+    @abstractmethod 
+    def set_expression(self, expression: str):
+        """Set the expression"""
+        pass
+
     @abstractmethod
-    def speak_with_tts(self, text: str, tts : TTSHandler):
+    def speak_with_tts(self, text: str, tts : TTSHandler, translator: TranslatorHandler):
+        frame_rate = int(self.get_setting("fps"))
+        chunks = extract_expressions(text, self.get_expressions()) 
+        threads = []
+        results = {}
+        i = 0
+        for chunk in chunks:
+            t = threading.Thread(target=self.async_create_file, args=(chunk, tts, translator, frame_rate, i, results))
+            t.start()
+            threads.append(t)
+            i+=1
+        frame_rate = int(self.get_setting("fps")) 
+        i = 0
+        for t in threads:
+            t.join()
+            result = results[i]
+            if result["expression"] is not None:
+                self.set_expression(result["expression"])
+            path = result["filename"]
+            self.speak(path, tts, frame_rate)
+            i+=1
+
+    @abstractmethod
+    def speak(self, path: str, tts : TTSHandler, frame_rate: int):
         pass
 
     def destroy(self, add=None):
         pass
 
+    def async_create_file(self, chunk: dict[str, str | None], tts : TTSHandler, translator : TranslatorHandler,frame_rate:int, id : int, results : dict[int, dict[ str, Any]]):
+        filename = tts.get_tempname("wav")
+        path = os.path.join(tts.path, filename)
+        if chunk["text"] is None:
+            return
+        if translator is not None:
+            chunk["text"] = translator.translate(chunk["text"])
+        tts.save_audio(chunk["text"], path)
+        results[id] = {
+            "expression": chunk["expression"], 
+            "filename": path,
+        }
+ 
 class Live2DHandler(AvatarHandler):
     key = "Live2D"
     _wait_js : threading.Event
@@ -150,6 +193,7 @@ class Live2DHandler(AvatarHandler):
         subprocess.check_output(["wget", "-P", os.path.join(self.models_dir), "http://mirror.nyarchlinux.moe/Arch.tar.xz"])
         subprocess.check_output(["tar", "-Jxf", os.path.join(self.models_dir, "Arch.tar.xz"), "-C", self.models_dir])
         subprocess.Popen(["rm", os.path.join(self.models_dir, "Arch.tar.xz")])
+    
     def __start_webserver(self):
         folder_path = self.webview_path
         class CustomHTTPRequestHandler(SimpleHTTPRequestHandler):
@@ -195,21 +239,21 @@ class Live2DHandler(AvatarHandler):
         self._wait_js.wait(3)   
         return self._expressions_raw 
 
-    def speak_with_tts(self, text: str, tts: TTSHandler):
-        frame_rate = int(self.get_setting("fps"))
-        filename = tts.get_tempname("wav")
-        tts.save_audio(text, filename)
-
-        audio = AudioSegment.from_file(filename)
-        # Calculate frames
+    def set_expression(self, expression : str):
+        pass   
+           
+    def speak(self, path: str, tts: TTSHandler, frame_rate: int):
+        audio = AudioSegment.from_file(path)
         sample_rate = audio.frame_rate
         audio_data = audio.get_array_of_samples()
-        amplitudes = LivePNG.calculate_amplitudes(sample_rate, audio_data, frame_rate)
-        t1 = threading.Thread(target=self._start_animation, args=(amplitudes, frame_rate))
-        t2 = threading.Thread(target=tts.playsound, args=(filename, ))
-        t2.start()
+        amplitudes = LivePNG.calculate_amplitudes(sample_rate, audio_data, frame_rate=frame_rate)
+        t1 = threading.Thread(target=self._start_animation, args=(amplitudes, True, False, frame_rate, True, False))
+        t2 = threading.Thread(target=tts.playsound, args=(path, ))
         t1.start()
-        
+        t2.start()
+        t1.join()
+        t2.join()
+
     def _start_animation(self, amplitudes: list[float], frame_rate=10):
         for amplitude in amplitudes:
             self.set_mouth(amplitude*8.8)
@@ -259,7 +303,8 @@ class LivePNGHandler(AvatarHandler):
                 "values": styles,
                 "default": default
             }
-        ]       
+        ]
+
     def get_styles_list(self) -> tuple[list, str]:
         path = self.get_setting("model", False)
         if not type(path) is str:
@@ -293,16 +338,19 @@ class LivePNGHandler(AvatarHandler):
         self.__load_model()
         return self.image
 
-    def speak_with_tts(self, text: str, tts: TTSHandler):
-        frame_rate = int(self.get_setting("fps"))
-        filename = tts.get_tempname("wav")
-        tts.save_audio(text, filename)
+    def set_expression(self, expression: str):
+        self.model.set_current_expression(expression)
 
-        # Calculate frames
-        t1 = threading.Thread(target=self.model.speak, args=(filename, True, False, frame_rate, True, False))
-        t2 = threading.Thread(target=tts.playsound, args=(filename, ))
-        t2.start()
+    def speak(self, path, tts, frame_rate):
+        t1 = threading.Thread(target=self.model.speak, args=(path, True, False, frame_rate, True, False))
+        t2 = threading.Thread(target=tts.playsound, args=(path, ))
         t1.start()
+        t2.start()
+        t1.join()
+        t2.join()
+
+    def _start_animation(self, path, frame_rate):
+        self.model.speak(path, True, False, frame_rate, True, False)
 
     def __load_model(self):
         path = self.get_setting("model")

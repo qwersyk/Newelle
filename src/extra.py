@@ -29,6 +29,38 @@ def human_readable_size(size: float, decimal_places:int =2) -> str:
         size /= 1024.0
     return f"{size:.{decimal_places}f} {unit}"
 
+def extract_expressions(text, expressions_list):
+    expressions = []
+    current_expression = None
+    current_text = ""
+
+    tokens = text.split()
+    i = 0
+    while i < len(tokens):
+        if tokens[i].startswith("(") and tokens[i].endswith(")"):
+            expression = tokens[i][1:-1]
+            if expression in expressions_list:
+                if current_text.strip():
+                    expressions.append({"expression": current_expression, "text": current_text.strip()})
+                    current_text = ""
+                current_expression = expression
+            else:
+                current_text += tokens[i] + " "
+        else:
+            if current_expression is None:
+                current_text += tokens[i] + " "
+            else:
+                current_text += tokens[i] + " "
+        i += 1
+
+    if current_text.strip():
+        if current_expression:
+            expressions.append({"expression": current_expression, "text": current_text.strip()})
+        else:
+            expressions.append({"expression": None, "text": current_text.strip()})
+
+    return expressions
+
 class ReplaceHelper:
     DISTRO = None
     AVATAR_HANDLER = None

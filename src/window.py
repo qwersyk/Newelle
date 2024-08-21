@@ -1215,11 +1215,14 @@ class MainWindow(Gtk.ApplicationWindow):
                 message=re.sub(r"```.*?```", "", message_label, flags=re.DOTALL)
                 if not(not message.strip() or message.isspace() or all(char == '\n' for char in message)):
                     # Translate the message
+                    translator = None
                     if self.translation_enabled and self.translation_handler in AVAILABLE_TRANSLATORS:
-                        message = AVAILABLE_TRANSLATORS[self.translation_handler]["class"](self.settings, self.directory).translate(message)          
+                        translator = AVAILABLE_TRANSLATORS[self.translation_handler]["class"](self.settings, self.directory)          
                     if self.avatar_enabled and self.avatar_handler is not None:
-                        self.avatar_handler.speak_with_tts(message, tts)
+                        self.avatar_handler.speak_with_tts(message, tts, translator)
                     else:
+                        if translator is not None:
+                            message = translator.translate(message)
                         tts.playsound(message) 
                     
 
