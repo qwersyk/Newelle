@@ -231,6 +231,7 @@ class MainWindow(Gtk.ApplicationWindow):
         flap_button_avatar = Gtk.ToggleButton.new()
         flap_button_avatar.set_icon_name(icon_name='avatar-symbolic')
         flap_button_avatar.connect('clicked', self.on_avatar_button_toggled)
+        self.flap_button_avatar2 = flap_button_avatar
         box.append(flap_button_avatar)
         box.append(flap_button_right)
 
@@ -442,6 +443,15 @@ class MainWindow(Gtk.ApplicationWindow):
         if self.avatar_widget is not None and self.avatar_handler is not None:
             self.boxw.remove(self.avatar_widget)
             self.avatar_handler.destroy()
+        if not self.avatar_enabled:
+            self.flap_button_avatar.set_visible(False)
+            self.flap_button_avatar2.set_visible(False)
+            self.avatar_flap.set_reveal_flap(False)
+            self.avatar_flap.set_name("hide")
+            return
+        else:
+            self.flap_button_avatar2.set_visible(True)
+            self.flap_button_avatar.set_visible(True)
         selected_key = self.settings.get_string("avatar-model")
         for avatar in AVAILABLE_AVATARS:
             if selected_key == avatar:
@@ -492,6 +502,8 @@ class MainWindow(Gtk.ApplicationWindow):
         else:
             self.main_program_block.set_name("visible")
             self.main_program_block.set_reveal_flap(True)
+        if not self.avatar_enabled:
+            self.load_avatar()
 
     def on_avatar_button_toggled(self, toggle_button):
         self.flap_button_avatar.set_active(False)
@@ -502,7 +514,8 @@ class MainWindow(Gtk.ApplicationWindow):
         else:
             self.avatar_flap.set_name("visible")
             self.avatar_flap.set_reveal_flap(True)
-
+        if not self.avatar_enabled:
+            self.load_avatar()
     def get_file_button(self, path):
         if path[0:2]=="./":
             path=self.main_path+path[1:len(path)]
