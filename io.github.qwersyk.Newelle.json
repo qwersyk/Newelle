@@ -26,7 +26,8 @@
         "*.a"
     ],
     "modules" : [
-    	"modules/python3-requests.json",
+    	"modules/git.json",
+      "modules/python3-requests.json",
       "modules/python3-requests-toolbelt.json",
     	"modules/python3-expandvars.json",
     	"modules/python3-curl_cffi.json",
