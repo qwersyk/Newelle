@@ -1,7 +1,7 @@
 {
     "name": "python3-pip",
     "build-commands": [
-        "pip3 install --verbose --prefix=${FLATPAK_DEST} pip"
+        "wget https://bootstrap.pypa.io/get-pip.py && python get-pip.py"
     ],
     "build-options": {
     	"build-args": [
