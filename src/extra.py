@@ -108,7 +108,10 @@ def find_module(full_module_name):
 
 
 def install_module(module, path):
-    r = subprocess.check_output(["pip3", "install", "--target", path, module]).decode("utf-8")
+    if find_module("pip") is None:
+        print("Downloading pip...")
+        subprocess.check_output(["bash", "-c", "wget https://bootstrap.pypa.io/get-pip.py && python get-pip.py"])
+    r = subprocess.check_output([sys.executable, "-m", "pip", "install", "--target", path, module]).decode("utf-8")
     return r
 
 def can_escape_sandbox():
