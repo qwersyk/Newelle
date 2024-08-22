@@ -1,6 +1,12 @@
 {
     "name": "python3-pip",
-    "buildsystem": "simple",
-    "build-commands": [],
-    "modules": []
+    "build-commands": [
+        "pip3 install --verbose --prefix=${FLATPAK_DEST} pip"
+    ],
+    "build-options": {
+    	"build-args": [
+    		"--share=network"
+    	]
+    },
+   "buildsystem": "simple"
 }
