@@ -2,7 +2,7 @@
 
 from .translator import CustomTranslatorHandler, GoogleTranslatorHandler
 from .llm import GPT4AllHandler, OpenAIHandler,GroqHandler, CustomLLMHandler, GPT3AnyHandler, GeminiHandler
-from .tts import VoiceVoxHanlder, gTTSHandler, EspeakHandler, CustomTTSHandler
+from .tts import VoiceVoxHanlder, gTTSHandler, EspeakHandler, CustomTTSHandler, VitsHandler
 from .stt import SphinxHandler, GoogleSRHandler, WitAIHandler, VoskHandler, WhisperAPIHandler, CustomSRHandler
 from .avatar import Live2DHandler, LivePNGHandler
 
@@ -108,6 +108,12 @@ AVAILABLE_TTS = {
         "title": _("Voicevox API"),
         "description": _("JP ONLY. API for voicevox anime-like natural sounding tts"),
         "class": VoiceVoxHanlder
+    },
+    "vits": {
+        "key": "vits",
+        "title": _("VITS API"),
+        "description": _("VITS simple API. AI based TTS, very good for Japanese"),
+        "class": VitsHandler,
     },
     "custom_command": {
         "key": "custom_command",

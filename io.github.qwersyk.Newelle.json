@@ -27,6 +27,7 @@
     ],
     "modules" : [
     	"modules/python3-requests.json",
+      "modules/python3-requests-toolbelt.json",
     	"modules/python3-expandvars.json",
     	"modules/python3-curl_cffi.json",
     	"modules/python3-g4f.json",
