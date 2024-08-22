@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 import importlib, subprocess
 import re
-import os
+import os, sys
 import xml.dom.minidom
 import importlib, subprocess, functools
 
@@ -171,7 +171,7 @@ def find_module(full_module_name):
 
 
 def install_module(module, path):
-    r = subprocess.check_output(["python3", "-m", "pip", "install", "--target", path, module]).decode("utf-8")
+    r = subprocess.check_output([sys.executable, "-m", "pip", "install", "--target", path, module]).decode("utf-8")
     return r
 
 def can_escape_sandbox():
