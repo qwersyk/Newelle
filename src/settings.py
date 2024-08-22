@@ -245,11 +245,11 @@ class Settings(Adw.PreferencesWindow):
 
         Returns: AVAILABLE_LLMS, AVAILABLE_STT, AVAILABLE_TTS based on the type of the handler 
         """
-        if type(handler) is TTSHandler:
+        if issubclass(type(handler), TTSHandler):
             return AVAILABLE_TTS
-        elif type(handler) is STTHandler:
+        elif issubclass(type(handler), STTHandler):
             return AVAILABLE_STT
-        elif type(handler) is LLMHandler:
+        elif issubclass(type(handler), LLMHandler):
             return AVAILABLE_LLMS
         else:
             raise Exception("Unknown handler")
@@ -413,6 +413,7 @@ class Settings(Adw.PreferencesWindow):
         Popen(["flatpak-spawn", "--host", "xdg-open", button.get_name()])
 
     def on_setting_change(self, constants: dict[str, Any], handler: LLMHandler | TTSHandler | STTHandler, key: str, force_change : bool = False):
+        
         if not force_change:
             setting_info = [info for info in handler.get_extra_settings() if info["key"] == key][0]
         if force_change or "update_settings" in setting_info and setting_info["update_settings"]:
