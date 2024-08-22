@@ -296,7 +296,7 @@ class LivePNGHandler(AvatarHandler):
                 "description": _("LivePNG Model to use"),
                 "type": "combo",
                 "values": self.get_available_models(),
-                "default": "arch-chan",
+                "default": "kurisu/model.json",
                 "folder": os.path.abspath(self.models_path),
                 "update_settings": True
             },
@@ -397,6 +397,11 @@ class LivePNGHandler(AvatarHandler):
 
     def is_installed(self) -> bool:
         return len(self.get_available_models()) > 0
+
+    def install(self):
+        subprocess.check_output(["wget", "-P", os.path.join(self.models_path), "http://mirror.nyarchlinux.moe/models.tar.gz"])
+        subprocess.check_output(["tar", "-xf", os.path.join(self.models_path, "models.tar.gz"), "-C", self.models_path, "--strip-components=1"])
+        subprocess.Popen(["rm", os.path.join(self.models_path, "models.tar.gz")])
 
     def set_setting(self, setting, value):
         """Overridden version of set_setting that also updates the default style setting when the model is changed"""
