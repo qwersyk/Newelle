@@ -171,7 +171,7 @@ def find_module(full_module_name):
 
 
 def install_module(module, path):
-    r = subprocess.check_output(["pip3", "install", "--target", path, module]).decode("utf-8")
+    r = subprocess.check_output(["python", "-m", "pip", "install", "--target", path, module]).decode("utf-8")
     return r
 
 def can_escape_sandbox():
