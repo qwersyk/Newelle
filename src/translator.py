@@ -1,5 +1,6 @@
 from abc import abstractmethod
-import json, os
+from livepng.model import threading
+import json, os, requests
 from subprocess import check_output
 from typing import Any
 from abc import abstractmethod
@@ -112,8 +113,94 @@ class CustomTranslatorHandler(TranslatorHandler):
     def is_installed(self):
         return True
 
-    def play_audio(self, message):
+    def translate(self, text: str) -> str:
         command = self.get_setting("command")
         if command is not None:
-            value = check_output(["flatpak-spawn", "--host", "bash", "-c", command.replace("{0}", message)])
+            value = check_output(["flatpak-spawn", "--host", "bash", "-c", command.replace("{0}", text)])
             return value.decode("utf-8")
+        return text
+
+class LibreTranslateHandler(TranslatorHandler):
+    key = "LibreTranslate" 
+    
+    def __init__(self, settings, path: str):
+        super().__init__(settings, path)
+        self.languages = tuple()
+        languages = self.get_setting("languages")
+        if languages is not None and len(languages) > 0:
+            self.languages = languages
+        else:
+            self.languages = tuple()
+        if len(self.languages) == 0:
+            threading.Thread(target=self.get_languages).start()
+
+    def get_extra_settings(self) -> list:
+        return [
+            {
+                "key": "endpoint",
+                "title": "API Endpoint",
+                "description": "URL of LibreTranslate API endpoint",
+                "type": "entry",
+                "default": "https://libretranslate.com/", 
+            },
+            {
+                "key": "api_key",
+                "title": "API key",
+                "description": "Your API key (REQUIRED)",
+                "type": "entry",
+                "default": "",
+            },
+            {
+                "key": "language",
+                "title": "Destination language",
+                "description": "The language you want to translate to",
+                "type": "combo",
+                "values": self.languages,
+                "default": "ja",
+            }
+        ]
+
+    def get_languages(self):
+        endpoint = self.get_setting("endpoint")
+        endpoint = endpoint.rstrip("/")
+        r = requests.get(endpoint + "/languages", timeout=10)
+        if r.status_code == 200:
+            js = r.json()
+            result = tuple()
+            for language in js[0]["targets"]:
+                result += ((language, language), )
+            self.languages = result
+            self.set_setting("languages", self.languages)
+            return result
+        else:
+            return tuple()
+    
+
+    def translate(self, text: str) -> str:
+        print("test")
+        endpoint = self.get_setting("endpoint")
+        endpoint = endpoint.rstrip("/")
+        language = self.get_setting("language")
+        api = self.get_setting("api_key")
+        response = requests.post(
+            endpoint + "/translate",
+            json={
+                "q": text,
+                "source": "auto",
+                "target": language,
+                "format": "text",
+                "alternatives": 3,
+                "api_key": api
+            },
+            headers={"Content-Type": "application/json"}
+        )
+        if response.status_code != 200:
+            return text
+        print(response.json()["translatedText"])
+        return response.json()["translatedText"]
+
+    def set_setting(self, setting, value):
+        super().set_setting(setting, value)
+        if setting == "endpoint":
+            threading.Thread(target=self.get_languages).start()
+

@@ -1,6 +1,6 @@
 
 
-from .translator import CustomTranslatorHandler, GoogleTranslatorHandler
+from .translator import CustomTranslatorHandler, GoogleTranslatorHandler, LibreTranslateHandler
 from .llm import GPT4AllHandler, OpenAIHandler,GroqHandler, CustomLLMHandler, GPT3AnyHandler, GeminiHandler
 from .tts import VoiceVoxHanlder, gTTSHandler, EspeakHandler, CustomTTSHandler, VitsHandler
 from .stt import SphinxHandler, GoogleSRHandler, WitAIHandler, VoskHandler, WhisperAPIHandler, CustomSRHandler
@@ -126,14 +126,12 @@ AVAILABLE_TTS = {
 AVAILABLE_AVATARS = {
     "Live2D": {
         "key": "Live2D",
-        "rowtype": "expander",
         "title": _("Live2D"),
         "description": _("Cubism Live2D, usually used by vtubers"),
         "class": Live2DHandler,
     },
     "LivePNG": {
         "key": "LivePNG",
-        "rowtype": "expander",
         "title": _("LivePNG"),
         "description": _("LivePNG model"),
         "class": LivePNGHandler,
@@ -143,14 +141,18 @@ AVAILABLE_AVATARS = {
 AVAILABLE_TRANSLATORS = {
     "GoogleTranslator": {
         "key": "GoogleTranslator",
-        "rowtype": "expander",
         "title": _("Google Translator"),
         "description": _("Use google transate"),
         "class": GoogleTranslatorHandler,
     },
+    "LibreTranslate": {
+        "key": "LibreTranslate",
+        "title": _("Libre Translate"),
+        "description": _("Open source self hostable translator"),
+        "class": LibreTranslateHandler,
+    }, 
     "CustomTranslator": {
         "key": "CustomTranslator",
-        "rowtype": "expander",
         "title": _("Custom Translator"),
         "description": _("Use a custom translator"),
         "class": CustomTranslatorHandler,
@@ -197,7 +199,12 @@ User: Can you help me?
 Assistant: Yes, of course, what do you need help with?""",
     "get_suggestions_prompt": """Suggest a few questions that the user would ask and put them in a JSON array. You have to write ONLY the JSON array an nothing else""",
     "custom_prompt": "",
-    "expression_prompt": "You can only show the following expressions: {EXPRESSIONS}",
+    "expression_prompt": """You can show expressions by writing (expression) in parenthesis.
+You can ONLY show the following expressions: 
+{EXPRESSIONS}
+Do not use any other expression
+
+YOU CAN NOT SHOW OTHER EXPRESSIONS.""",
     "personality_prompt": """Hey there, it's Arch-Chan! But, um, you can call me Acchan if you want... not that I care or anything! (It's not like I think it's cute or anything, baka!) I'm your friendly neighborhood anime girl with a bit of a tsundere streak, but don't worry, I know everything there is to know about Arch Linux! Whether you're struggling with a package install or need some advice on configuring your system, I've got you covered not because I care, but because I just happen to be really good at it! So, what do you need? It's not like I’m waiting to help or anything...""",
 }
 
