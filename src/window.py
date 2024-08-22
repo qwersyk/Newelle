@@ -1253,7 +1253,7 @@ class MainWindow(Gtk.ApplicationWindow):
                     else:
                         if translator is not None:
                             message = translator.translate(message)
-                        tts.playsound(message) 
+                        tts.play_audio(message) 
                     
 
     def update_message(self, message, label):    
