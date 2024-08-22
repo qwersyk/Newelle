@@ -20,6 +20,7 @@ from urllib.parse import urlencode, urljoin
 class AvatarHandler:
 
     key : str = ""
+    requires_reload : list = [False]
 
     def __init__(self, settings, path: str):
         self.settings = settings
@@ -55,6 +56,7 @@ class AvatarHandler:
         if self.key not in j or not isinstance(j[self.key], dict):
             j[self.key] = {}
         j[self.key][setting] = value
+        self.requires_reload[0] = True
         self.settings.set_string("avatars", json.dumps(j))
 
     def get_setting(self, name, search_default: bool = True) -> Any:
@@ -131,7 +133,15 @@ class AvatarHandler:
             "expression": chunk["expression"], 
             "filename": path,
         }
- 
+
+    def requires_reloading(self, handler) -> bool:
+        if handler.key != self.key:
+            return True
+        if self.requires_reload[0]:
+            self.requires_reload[0] = False
+            return True
+        return False
+
 class Live2DHandler(AvatarHandler):
     key = "Live2D"
     _wait_js : threading.Event

@@ -2,6 +2,8 @@ import time, re, sys
 import gi, os, subprocess
 import pickle
 
+from .avatar import AvatarHandler
+
 from .presentation import PresentationWindow
 from .gtkobj import File, CopyBox, BarChartBox, MultilineEntry
 from .constants import AVAILABLE_LLMS, AVAILABLE_TRANSLATORS, PROMPTS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_AVATARS, AVAILABLE_PROMPTS
@@ -54,6 +56,7 @@ class MainWindow(Gtk.ApplicationWindow):
             self.chats = [{"name": _("Chat ")+"1", "chat": []}]
 
         # Init Settings
+        self.avatar_enabled = None
         settings = Gio.Settings.new('io.github.qwersyk.Newelle')
         self.settings = settings
         self.update_settings()
@@ -395,7 +398,8 @@ class MainWindow(Gtk.ApplicationWindow):
         self.tts_program = settings.get_string("tts")
         self.tts_voice = settings.get_string("tts-voice")
         self.stt_engine = settings.get_string("stt-engine")
-        self.stt_settings = settings.get_string("stt-settings")
+        self.stt_settings = settings.get_string("stt-settings") 
+        self.last_avatar_enabled = self.avatar_enabled
         self.avatar_enabled = settings.get_boolean("avatar-on")
         self.translation_enabled = settings.get_boolean("translator-on")
         self.translation_handler = settings.get_string("translator")
@@ -438,30 +442,43 @@ class MainWindow(Gtk.ApplicationWindow):
 
         if not self.first_load:
             self.load_avatar()
- 
+
+
     def load_avatar(self):
-        if self.avatar_widget is not None and self.avatar_handler is not None:
-            self.boxw.remove(self.avatar_widget)
-            self.avatar_handler.destroy()
-        if not self.avatar_enabled:
+        if self.avatar_enabled:
+            # If the avatar is enabled, check if it requires reloading
+            old_avatar = self.avatar_handler
+            selected_key = self.settings.get_string("avatar-model")
+            for avatar in AVAILABLE_AVATARS:
+                if selected_key == avatar:
+                    self.avatar_handler = AVAILABLE_AVATARS[avatar]["class"](self.settings, self.directory)
+                    break
+            # If it does not require reloading, then just return
+            if old_avatar is not None and not old_avatar.requires_reloading(self.avatar_handler) and self.avatar_enabled == self.last_avatar_enabled:
+                self.avatar_handler = old_avatar
+                return
+            # If it requires reloading, reload the old avatar
+            self.unload_avatar(old_avatar)
+            self.flap_button_avatar2.set_visible(True)
+            self.flap_button_avatar.set_visible(True)
+            if self.avatar_handler is not None:   
+                self.avatar_widget = self.avatar_handler.create_gtk_widget()
+                self.boxw.append(self.avatar_widget)
+                ReplaceHelper.set_handler(self.avatar_handler) 
+        else:
+            # If the avatar is disabled, unload the old one and 
+            # remove related widgets
+            self.unload_avatar(self.avatar_handler)
             self.flap_button_avatar.set_visible(False)
             self.flap_button_avatar2.set_visible(False)
             self.avatar_flap.set_reveal_flap(False)
             self.avatar_flap.set_name("hide")
             return
-        else:
-            self.flap_button_avatar2.set_visible(True)
-            self.flap_button_avatar.set_visible(True)
-        selected_key = self.settings.get_string("avatar-model")
-        for avatar in AVAILABLE_AVATARS:
-            if selected_key == avatar:
-                self.avatar_handler = AVAILABLE_AVATARS[avatar]["class"](self.settings, self.directory)
-                break
-        if self.avatar_handler is not None:   
-            self.avatar_widget = self.avatar_handler.create_gtk_widget()
-            self.boxw.append(self.avatar_widget)
-            ReplaceHelper.set_handler(self.avatar_handler)
-
+       
+    def unload_avatar(self, handler : AvatarHandler):
+        if self.avatar_widget is not None and handler is not None:
+            self.boxw.remove(self.avatar_widget)
+            handler.destroy()
 
     def send_button_start_spinner(self):
         spinner = Gtk.Spinner(spinning=True)
