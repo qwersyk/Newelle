@@ -394,7 +394,6 @@ class VitsHandler(TTSHandler):
         return path
     
     def set_setting(self, setting, value):
-        print(setting, value)
         super().set_setting(setting, value)
         if setting == "endpoint":
             self.set_setting("voices", tuple())

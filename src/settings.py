@@ -277,7 +277,7 @@ class Settings(Adw.PreferencesWindow):
             else:
                 raise Exception("Unknown constants")
 
-    def get_constants_from_object(self, handler: TTSHandler | STTHandler | LLMHandler | AvatarHandler) -> dict[str, Any]:
+    def get_constants_from_object(self, handler: TTSHandler | STTHandler | LLMHandler | AvatarHandler | TranslatorHandler) -> dict[str, Any]:
         """Get the constants from an hander
 
         Args:
@@ -288,15 +288,15 @@ class Settings(Adw.PreferencesWindow):
 
         Returns: AVAILABLE_LLMS, AVAILABLE_STT, AVAILABLE_TTS based on the type of the handler 
         """
-        if type(handler) is TTSHandler:
+        if issubclass(type(handler), TTSHandler):
             return AVAILABLE_TTS
-        elif type(handler) is STTHandler:
+        elif issubclass(type(handler), STTHandler):
             return AVAILABLE_STT
-        elif type(handler) is LLMHandler:
+        elif issubclass(type(handler), LLMHandler):
             return AVAILABLE_LLMS
-        elif type(handler) is AvatarHandler:
+        elif issubclass(type(handler), AvatarHandler):
             return AVAILABLE_AVATARS
-        elif type(handler) is TranslatorHandler:
+        elif issubclass(type(handler), TranslatorHandler):
             return AVAILABLE_TRANSLATORS
         else:
             raise Exception("Unknown handler")
@@ -465,7 +465,9 @@ class Settings(Adw.PreferencesWindow):
         Popen(["flatpak-spawn", "--host", "xdg-open", button.get_name()])
 
     def on_setting_change(self, constants: dict[str, Any], handler: LLMHandler | TTSHandler | STTHandler | AvatarHandler, key: str, force_change : bool = False):
-        setting_info = [info for info in handler.get_extra_settings() if info["key"] == key][0]
+        
+        if not force_change:
+            setting_info = [info for info in handler.get_extra_settings() if info["key"] == key][0]
         if force_change or "update_settings" in setting_info and setting_info["update_settings"]:
             # remove all the elements in the specified expander row 
             row = self.settingsrows[(handler.key, self.convert_constants(constants))]["row"]
