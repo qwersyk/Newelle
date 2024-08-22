@@ -173,6 +173,7 @@ class Settings(Adw.PreferencesWindow):
         # Add check button
         button = Gtk.CheckButton(name=key, group=group, active=active)
         button.connect("toggled", self.choose_row, constants)
+        self.settingsrows[(key, self.convert_constants(constants))]["button"] = button 
         if not self.sandbox and handler.requires_sandbox_escape() or not handler.is_installed():
             button.set_sensitive(False)
         row.add_prefix(button)
@@ -527,6 +528,7 @@ class Settings(Adw.PreferencesWindow):
         """
         spinner = Gtk.Spinner(spinning=True)
         button.set_child(spinner)
+        button.set_sensitive(False)
         t = threading.Thread(target=self.install_model_async, args= (button, handler))
         t.start()
 
@@ -542,7 +544,9 @@ class Settings(Adw.PreferencesWindow):
             self.on_setting_change(self.get_constants_from_object(model), model, "", True)
         button.set_child(None)
         button.set_sensitive(False)
-
+        checkbutton = self.settingsrows[(model.key, self.convert_constants(self.get_constants_from_object(model)))]["button"]
+        checkbutton.set_sensitive(True)
+    
     def refresh_models(self, action):
         """Refresh local models for LLM
 
