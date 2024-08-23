@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 import importlib, subprocess
 import re
-import os
+import os, sys
 import xml.dom.minidom
 
 class ReplaceHelper:
