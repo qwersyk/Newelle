@@ -226,6 +226,3 @@ class CustomTTSHandler(TTSHandler):
             self._play_lock.acquire()
             check_output(["flatpak-spawn", "--host", "bash", "-c", command.replace("{0}", message)])
             self._play_lock.release()
-
-
-    

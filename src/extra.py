@@ -1,7 +1,8 @@
 from __future__ import absolute_import
 import importlib, subprocess
 import re
-import os
+import os, sys
+import xml.dom.minidom
 
 class ReplaceHelper:
     DISTRO = None
@@ -51,17 +52,14 @@ def replace_variables(text: str) -> str:
         text = text.replace("{DE}", ReplaceHelper.get_desktop_environment())
     return text
 
-
 def markwon_to_pango(markdown_text):
+    initial_string = markdown_text
     # Convert bold text
     markdown_text = re.sub(r'\*\*(.*?)\*\*', r'<b>\1</b>', markdown_text)
     
     # Convert italic text
     markdown_text = re.sub(r'\*(.*?)\*', r'<i>\1</i>', markdown_text)
-     
-    # Convert Underline text
-    markdown_text = re.sub(r'_(.*?)_', r'<u>\1</u>', markdown_text)
-    
+         
     # Convert monospace text
     markdown_text = re.sub(r'`(.*?)`', r'<tt>\1</tt>', markdown_text)
     
@@ -74,7 +72,12 @@ def markwon_to_pango(markdown_text):
     # Convert headers
     absolute_sizes = ['xx-small', 'x-small', 'small', 'medium', 'large', 'x-large', 'xx-large']
     markdown_text = re.sub(r'^(#+) (.*)$', lambda match: f'<span font_weight="bold" font_size="{absolute_sizes[6 - len(match.group(1)) - 1]}">{match.group(2)}</span>', markdown_text, flags=re.MULTILINE)
-    print()
+    
+    # Check if the generated text is valid. If not just print it unformatted
+    try:
+        xml.dom.minidom.parseString(markdown_text)
+    except Exception as _:
+        return initial_string 
     return markdown_text
 
 def human_readable_size(size: float, decimal_places:int =2) -> str:
@@ -105,7 +108,10 @@ def find_module(full_module_name):
 
 
 def install_module(module, path):
-    r = subprocess.check_output(["pip3", "install", "--target", path, module]).decode("utf-8")
+    if find_module("pip") is None:
+        print("Downloading pip...")
+        subprocess.check_output(["bash", "-c", "wget https://bootstrap.pypa.io/get-pip.py && python get-pip.py"])
+    r = subprocess.check_output([sys.executable, "-m", "pip", "install", "--target", path, module]).decode("utf-8")
     return r
 
 def can_escape_sandbox():
