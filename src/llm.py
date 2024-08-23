@@ -576,8 +576,12 @@ class OpenAIHandler(LLMHandler):
         from openai import OpenAI
         messages = self.convert_history(history, system_prompt)
         messages.append({"role": "user", "content": prompt})
+        api = self.get_setting("api")
+        if api == "":
+            api = "nokey"
+        
         client = OpenAI(
-            api_key=self.get_setting("api"),
+            api_key=api,
             base_url=self.get_setting("endpoint")
         )
         try:
@@ -598,8 +602,11 @@ class OpenAIHandler(LLMHandler):
         from openai import OpenAI
         messages = self.convert_history(history, system_prompt)
         messages.append({"role": "user", "content": prompt})
+        api = self.get_setting("api")
+        if api == "":
+            api = "nokey"
         client = OpenAI(
-            api_key=self.get_setting("api"),
+            api_key=api,
             base_url=self.get_setting("endpoint")
         )
         try:
