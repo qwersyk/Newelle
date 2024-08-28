@@ -135,7 +135,7 @@ class PresentationWindow(Adw.Window):
                     {
                         "label": "Learn more",
                         "classes": ["suggested-action"],
-                        "callback": lambda x: subprocess.Popen(["xdg-open", "https://github.com/qwersyk/Newelle?tab=readme-ov-file#installing-from-flathub"]),
+                        "callback": lambda x: subprocess.Popen(["xdg-open", "https://github.com/qwersyk/Newelle?tab=readme-ov-file#permission"]),
                     }
                 ]
             })
