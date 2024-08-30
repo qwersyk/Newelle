@@ -163,7 +163,7 @@ class CopyBox(Gtk.Box):
 
         icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="edit-copy-symbolic"))
         icon.set_icon_size(Gtk.IconSize.INHERIT)
-        self.copy_button = Gtk.Button(halign=Gtk.Align.END, css_classes=["flat"], margin_end=10)
+        self.copy_button = Gtk.Button(halign=Gtk.Align.END, margin_end=10)
         self.copy_button.set_child(icon)
         self.copy_button.connect("clicked", self.copy_button_clicked)
 
@@ -185,7 +185,6 @@ class CopyBox(Gtk.Box):
         self.sourceview.set_show_line_numbers(True)
         self.sourceview.set_background_pattern(GtkSource.BackgroundPatternType.GRID)
         self.sourceview.set_editable(False)
-        self.sourceview.set_size_request(250, -1)
         style = "success"
         if lang in ["python", "cpp", "php", "objc", "go", "typescript", "lua", "perl", "r", "dart", "sql"]:
             style = "accent"
@@ -195,10 +194,9 @@ class CopyBox(Gtk.Box):
             style = "error"
         if lang in ["console"]:
             style = ""
-        main = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, css_classes=["card"])
+        main = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         main.set_homogeneous(True)
         label = Gtk.Label(label=lang, halign=Gtk.Align.START, margin_start=10, css_classes=[style, "heading"],wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR)
-        label.set_size_request(200, -1)
         main.append(label)
         self.append(main)
         self.append(self.sourceview)
@@ -206,7 +204,7 @@ class CopyBox(Gtk.Box):
         if lang == "python":
             icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="media-playback-start-symbolic"))
             icon.set_icon_size(Gtk.IconSize.INHERIT)
-            self.run_button = Gtk.Button(halign=Gtk.Align.END, css_classes=["flat"], margin_end=10)
+            self.run_button = Gtk.Button(halign=Gtk.Align.END, margin_end=10)
             self.run_button.set_child(icon)
             self.run_button.connect("clicked", self.run_python)
             self.parent = parent
@@ -223,7 +221,7 @@ class CopyBox(Gtk.Box):
         elif lang == "console":
             icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="media-playback-start-symbolic"))
             icon.set_icon_size(Gtk.IconSize.INHERIT)
-            self.run_button = Gtk.Button(halign=Gtk.Align.END, css_classes=["flat"], margin_end=10)
+            self.run_button = Gtk.Button(halign=Gtk.Align.END, margin_end=10)
             self.run_button.set_child(icon)
             self.run_button.connect("clicked", self.run_console)
             self.parent = parent
