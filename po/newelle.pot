@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-10 09:30+0200\n"
+"POT-Creation-Date: 2024-08-24 08:21+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,7 +17,156 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: extension.py:9 window.py:148
+#: constants.py:9
+msgid "Any GPT 3.5 Turbo provider"
+msgstr ""
+
+#: constants.py:15
+msgid "Local Model"
+msgstr ""
+
+#: constants.py:16
+msgid "Run a LLM model locally, more privacy but slower"
+msgstr ""
+
+#: constants.py:21
+msgid "Groq"
+msgstr ""
+
+#: constants.py:27
+msgid "Google Gemini API"
+msgstr ""
+
+#: constants.py:33 constants.py:34
+msgid "OpenAI API"
+msgstr ""
+
+#: constants.py:39 constants.py:106
+msgid "Custom Command"
+msgstr ""
+
+#: constants.py:40
+msgid "Use the output of a custom command"
+msgstr ""
+
+#: constants.py:48
+msgid "CMU Sphinx"
+msgstr ""
+
+#: constants.py:49
+msgid "Works offline. Only English supported"
+msgstr ""
+
+#: constants.py:55
+msgid "Google Speech Recognition"
+msgstr ""
+
+#: constants.py:56
+msgid "Google Speech Recognition online"
+msgstr ""
+
+#: constants.py:62
+msgid "Wit AI"
+msgstr ""
+
+#: constants.py:63
+msgid "wit.ai speech recognition free API (language chosen on the website)"
+msgstr ""
+
+#: constants.py:69
+msgid "Vosk API"
+msgstr ""
+
+#: constants.py:70
+msgid "Works Offline"
+msgstr ""
+
+#: constants.py:76
+msgid "Whisper API"
+msgstr ""
+
+#: constants.py:77
+msgid "Uses openai whisper api"
+msgstr ""
+
+#: constants.py:83
+msgid "Custom command"
+msgstr ""
+
+#: constants.py:84
+msgid "Runs a custom command"
+msgstr ""
+
+#: constants.py:94
+msgid "Google TTS"
+msgstr ""
+
+#: constants.py:95
+msgid "Google's text to speech"
+msgstr ""
+
+#: constants.py:100
+msgid "Espeak TTS"
+msgstr ""
+
+#: constants.py:101
+msgid "Offline TTS"
+msgstr ""
+
+#: constants.py:107
+#, python-brace-format
+msgid "Use a custom command as TTS, {0} will be replaced with the text"
+msgstr ""
+
+#: constants.py:168
+msgid "Console access"
+msgstr ""
+
+#: constants.py:169
+msgid "Can the program run terminal commands on the computer"
+msgstr ""
+
+#: constants.py:176
+msgid "Current directory"
+msgstr ""
+
+#: constants.py:177
+msgid "What is the current directory"
+msgstr ""
+
+#: constants.py:184
+msgid "Basic functionality"
+msgstr ""
+
+#: constants.py:185
+msgid "Showing tables and code (*can work without it)"
+msgstr ""
+
+#: constants.py:192
+msgid "Graphs access"
+msgstr ""
+
+#: constants.py:193
+msgid "Can the program display graphs"
+msgstr ""
+
+#: constants.py:200
+msgid "Show image"
+msgstr ""
+
+#: constants.py:201
+msgid "Show image in chat"
+msgstr ""
+
+#: constants.py:208
+msgid "Custom Prompt"
+msgstr ""
+
+#: constants.py:209
+msgid "Add your own custom prompt"
+msgstr ""
+
+#: extension.py:9 presentation.py:116 window.py:67
 msgid "Extensions"
 msgstr ""
 
@@ -45,159 +194,326 @@ msgstr ""
 msgid "This is not an extension"
 msgstr ""
 
-#: main.py:142
+#: llm.py:273 llm.py:375 llm.py:501 llm.py:662
+msgid "Message Streaming"
+msgstr ""
+
+#: llm.py:274 llm.py:376 llm.py:502 llm.py:663
+msgid "Gradually stream message output"
+msgstr ""
+
+#: llm.py:360
+msgid "API Key (required)"
+msgstr ""
+
+#: llm.py:361
+msgid "API Key got from ai.google.dev"
+msgstr ""
+
+#: llm.py:367
+msgid "Model"
+msgstr ""
+
+#: llm.py:368
+msgid ""
+"AI Model to use, available: gemini-1.5-pro, gemini-1.0-pro, gemini-1.5-flash"
+msgstr ""
+
+#: llm.py:435
+msgid "Command to execute to get bot output"
+msgstr ""
+
+#: llm.py:436
+#, python-brace-format
+msgid ""
+"Command to execute to get bot response, {0} will be replaced with a JSON "
+"file containing the chat, {1} with the extra prompts"
+msgstr ""
+
+#: llm.py:442
+msgid "Command to execute to get bot's suggestions"
+msgstr ""
+
+#: llm.py:443
+#, python-brace-format
+msgid ""
+"Command to execute to get chat suggestions, {0} will be replaced with a JSON "
+"file containing the chat, {1} with the extra prompts"
+msgstr ""
+
+#: llm.py:480 llm.py:647 stt.py:139 stt.py:180 stt.py:247
+msgid "API Key"
+msgstr ""
+
+#: llm.py:481 stt.py:248
+msgid "API Key for OpenAI"
+msgstr ""
+
+#: llm.py:487
+msgid "API Endpoint"
+msgstr ""
+
+#: llm.py:488
+msgid "API base url, change this to use interference APIs"
+msgstr ""
+
+#: llm.py:494
+msgid "OpenAI Model"
+msgstr ""
+
+#: llm.py:495
+msgid "Name of the OpenAI Model"
+msgstr ""
+
+#: llm.py:508 llm.py:669
+msgid "Max Tokens"
+msgstr ""
+
+#: llm.py:509 llm.py:670
+msgid "Max tokens of the generated text"
+msgstr ""
+
+#: llm.py:519 llm.py:680
+msgid "Top-P"
+msgstr ""
+
+#: llm.py:520 llm.py:681
+msgid "An alternative to sampling with temperature, called nucleus sampling"
+msgstr ""
+
+#: llm.py:530 llm.py:691
+msgid "Temperature"
+msgstr ""
+
+#: llm.py:531 llm.py:692
+msgid ""
+"What sampling temperature to use. Higher values will make the output more "
+"random"
+msgstr ""
+
+#: llm.py:541 llm.py:702
+msgid "Frequency Penalty"
+msgstr ""
+
+#: llm.py:542 llm.py:703
+msgid ""
+"Positive values penalize new tokens based on their existing frequency in the "
+"text so far, decreasing the model's likelihood to repeat the same line"
+msgstr ""
+
+#: llm.py:552 llm.py:713
+msgid "Presence Penalty"
+msgstr ""
+
+#: llm.py:553 llm.py:714
+msgid ""
+"Positive values penalize new tokens based on whether they appear in the text "
+"so far, increasing the model's likelihood to talk about new topics."
+msgstr ""
+
+#: llm.py:648
+msgid "API Key for Groq"
+msgstr ""
+
+#: llm.py:654
+msgid "Groq Model"
+msgstr ""
+
+#: llm.py:655
+msgid "Name of the Groq Model"
+msgstr ""
+
+#: llm.py:820
+msgid "There was an error retriving the model"
+msgstr ""
+
+#: main.py:158
 msgid "Terminal threads are still running in the background"
 msgstr ""
 
-#: main.py:143
+#: main.py:159
 msgid "When you close the window, they will be automatically terminated"
 msgstr ""
 
-#: main.py:146
+#: main.py:162
 msgid "Cancel"
 msgstr ""
 
-#: main.py:147
+#: main.py:163
 msgid "Close"
 msgstr ""
 
-#: main.py:167
+#: main.py:183
 msgid "Chat is rebooted"
 msgstr ""
 
-#: main.py:172
+#: main.py:188
 msgid "Folder is rebooted"
 msgstr ""
 
-#: main.py:177
+#: main.py:193
 msgid "Chat is created"
 msgstr ""
 
-
-#: window.py:28 window.py:551
-msgid "Chat "
+#: presentation.py:92
+msgid "Welcome to Newelle"
 msgstr ""
 
-#: window.py:147 thread_editing.py:8
-msgid "Thread editing"
+#: presentation.py:93
+msgid "Your ultimate virtual assistant."
 msgstr ""
 
-#: window.py:149
-msgid "Settings"
+#: presentation.py:97
+msgid "Github Page"
 msgstr ""
 
-#: window.py:150
-msgid "Keyboard shorcuts"
+#: presentation.py:104
+msgid "Choose your favourite AI Language Model"
 msgstr ""
 
-#: window.py:151
-msgid "About"
-msgstr ""
-
-#: window.py:155
-msgid "Chat"
-msgstr ""
-
-#: window.py:182
-msgid "History"
-msgstr ""
-
-#: window.py:193
-msgid "Create a chat"
-msgstr ""
-
-#: window.py:236
-msgid " Stop"
-msgstr ""
-
-#: window.py:305
-msgid " Clear"
-msgstr ""
-
-#: window.py:317
-msgid " Continue"
-msgstr ""
-
-#: window.py:329
-msgid " Regenerate"
-msgstr ""
-
-#: window.py:417 window.py:737
-msgid "File not found"
-msgstr ""
-
-#: window.py:421
-msgid "The file cannot be sent until the program is finished"
-msgstr ""
-
-#: window.py:435
-msgid "The file is not recognized"
-msgstr ""
-
-#: window.py:458
-msgid "You can no longer continue the message."
-msgstr ""
-
-#: window.py:471
-msgid "You can no longer regenerate the message."
-msgstr ""
-
-#: window.py:532
-msgid "Chat is empty"
-msgstr ""
-
-#: window.py:593
-msgid "Chat is cleared"
-msgstr ""
-
-#: window.py:611
-msgid "The message was canceled and deleted from history"
-msgstr ""
-
-#: window.py:624
-msgid "Failed to send bot a message"
-msgstr ""
-
-#: window.py:626
-msgid "Chat has been stopped"
-msgstr ""
-
-#: window.py:652
-msgid "Folder is Empty"
-msgstr ""
-
-#: window.py:762
-msgid "Wrong folder path"
-msgstr ""
-
-#: window.py:790
-msgid "Thread has not been completed, thread number: "
-msgstr ""
-
-#: window.py:796
-msgid "Failed to open the folder"
-msgstr ""
-
-#: window.py:845
-msgid "The message cannot be sent until the program is finished"
-msgstr ""
-
-#: window.py:1057
-msgid "You can't edit a message while the program is running."
-msgstr ""
-
-#: window.py:1110
+#: presentation.py:105
 msgid ""
-"Attention the neural network has access to your computer, be careful, we are "
-"not responsible for the neural network."
+"Newelle can be used with mutiple models and providers!\n"
+"<b>Note: It is strongly suggested to read the Guide to LLM page</b>"
 msgstr ""
 
-#: thread_editing.py:38
-msgid "No threads are running"
+#: presentation.py:109
+msgid "Guide to LLM"
 msgstr ""
 
-#: thread_editing.py:44
-msgid "Thread number: "
+#: presentation.py:117
+msgid "You can extend Newelle's functionalities using extensions!"
+msgstr ""
+
+#: presentation.py:121
+msgid "Download extensions"
+msgstr ""
+
+#: presentation.py:131
+msgid "Permission Error"
+msgstr ""
+
+#: presentation.py:132
+msgid ""
+"Newelle does not have enough permissions to run commands on your system."
+msgstr ""
+
+#: presentation.py:143
+msgid "Begin using the app"
+msgstr ""
+
+#: presentation.py:148
+msgid "Start chatting"
+msgstr ""
+
+#: settings.py:37
+msgid "Language Model"
+msgstr ""
+
+#: settings.py:47
+msgid "Text To Speech"
+msgstr ""
+
+#: settings.py:51
+msgid "Text To Speech Program"
+msgstr ""
+
+#: settings.py:51
+msgid "Choose which text to speech to use"
+msgstr ""
+
+#: settings.py:61
+msgid "Speech to Text"
+msgstr ""
+
+#: settings.py:63
+msgid "Speech To Text Engine"
+msgstr ""
+
+#: settings.py:63
+msgid "Choose which speech recognition engine you want"
+msgstr ""
+
+#: settings.py:71
+msgid "Interface"
+msgstr ""
+
+#: settings.py:74
+msgid "Hidden files"
+msgstr ""
+
+#: settings.py:74
+msgid "Show hidden files"
+msgstr ""
+
+#: settings.py:80
+msgid "Number of offers"
+msgstr ""
+
+#: settings.py:80
+msgid "Number of message suggestions to send to chat "
+msgstr ""
+
+#: settings.py:88
+msgid "Prompt control"
+msgstr ""
+
+#: settings.py:91
+msgid "Auto-run commands"
+msgstr ""
+
+#: settings.py:91
+msgid "Commands that the bot will write will automatically run"
+msgstr ""
+
+#: settings.py:108
+msgid "Neural Network Control"
+msgstr ""
+
+#: settings.py:111
+msgid "Command virtualization"
+msgstr ""
+
+#: settings.py:111
+msgid "Run commands in a virtual machine"
+msgstr ""
+
+#: settings.py:124
+msgid "Program memory"
+msgstr ""
+
+#: settings.py:124
+msgid "How long the program remembers the chat "
+msgstr ""
+
+#: settings.py:131
+msgid "The change will take effect after you restart the program."
+msgstr ""
+
+#: settings.py:583
+msgid " RAM Required: "
+msgstr ""
+
+#: settings.py:584
+msgid " Parameters: "
+msgstr ""
+
+#: settings.py:585
+msgid " Size: "
+msgstr ""
+
+#: settings.py:752
+msgid "Not enough permissions"
+msgstr ""
+
+#: settings.py:756
+msgid ""
+"Newelle does not have enough permissions to run commands on your system, "
+"please run the following command"
+msgstr ""
+
+#: settings.py:757
+msgid "Understood"
 msgstr ""
 
 #: shortcuts.py:8
@@ -220,90 +536,189 @@ msgstr ""
 msgid "New tab"
 msgstr ""
 
-#: settings.py:13
-msgid "Interface"
+#: stt.py:124
+msgid "Could not understand the audio"
 msgstr ""
 
-#: settings.py:16
-msgid "Hidden files"
+#: stt.py:140
+msgid "API Key for Google SR, write 'default' to use the default one"
 msgstr ""
 
-#: settings.py:16
-msgid "Show hidden files"
+#: stt.py:146
+msgid "Language"
 msgstr ""
 
-#: settings.py:22
-msgid "Number of offers"
+#: stt.py:147
+msgid "The language of the text to recgnize in IETF"
 msgstr ""
 
-#: settings.py:22
-msgid "Number of message suggestions to send to chat "
+#: stt.py:181
+msgid "Server Access Token for wit.ai"
 msgstr ""
 
-#: settings.py:29
-msgid "Prompt control"
+#: stt.py:212
+msgid "Model Path"
 msgstr ""
 
-#: settings.py:32
-msgid "Auto-run commands"
+#: stt.py:213
+msgid "Absolute path to the VOSK model (unzipped)"
 msgstr ""
 
-#: settings.py:32
-msgid "Commands that the bot will write will automatically run"
+#: stt.py:254
+msgid "Whisper API Model"
 msgstr ""
 
-#: settings.py:38
-msgid "Console access"
+#: stt.py:255
+msgid "Name of the Whisper API Model"
 msgstr ""
 
-#: settings.py:38
-msgid "Can the program run terminal commands on the computer"
+#: stt.py:284 tts.py:213
+msgid "Command to execute"
 msgstr ""
 
-#: settings.py:44
-msgid "Graphs access"
+#: stt.py:285 tts.py:214
+#, python-brace-format
+msgid "{0} will be replaced with the model fullpath"
 msgstr ""
 
-#: settings.py:44
-msgid "Can the program display graphs"
+#: thread_editing.py:8 window.py:66
+msgid "Thread editing"
 msgstr ""
 
-#: settings.py:50
-msgid "Basic functionality"
+#: thread_editing.py:38
+msgid "No threads are running"
 msgstr ""
 
-#: settings.py:50
-msgid "Showing tables and code (*can work without it)"
+#: thread_editing.py:44
+msgid "Thread number: "
 msgstr ""
 
-#: settings.py:56
-msgid "Show image"
+#: tts.py:37
+msgid "Voice"
 msgstr ""
 
-#: settings.py:56
-msgid "Show image in chat"
+#: tts.py:38
+msgid "Choose the preferred voice"
 msgstr ""
 
-#: settings.py:62
-msgid "Neural Network Control"
+#: window.py:52 window.py:609
+msgid "Chat "
 msgstr ""
 
-#: settings.py:65
-msgid "Command virtualization"
+#: window.py:68
+msgid "Settings"
 msgstr ""
 
-#: settings.py:65
-msgid "Run commands in a virtual machine"
+#: window.py:69
+msgid "Keyboard shorcuts"
 msgstr ""
 
-#: settings.py:71
-msgid "Program memory"
+#: window.py:70
+msgid "About"
 msgstr ""
 
-#: settings.py:71
-msgid "How long the program remembers the chat "
+#: window.py:74
+msgid "Chat"
 msgstr ""
 
-#: settings.py:78
-msgid "The change will take effect after you restart the program."
+#: window.py:101
+msgid "History"
+msgstr ""
+
+#: window.py:112
+msgid "Create a chat"
+msgstr ""
+
+#: window.py:161
+msgid " Stop"
+msgstr ""
+
+#: window.py:230
+msgid " Clear"
+msgstr ""
+
+#: window.py:242
+msgid " Continue"
+msgstr ""
+
+#: window.py:254
+msgid " Regenerate"
+msgstr ""
+
+#: window.py:267
+msgid "Send a message..."
+msgstr ""
+
+#: window.py:332
+msgid "Could not recognize your voice"
+msgstr ""
+
+#: window.py:475 window.py:786
+msgid "File not found"
+msgstr ""
+
+#: window.py:479
+msgid "The file cannot be sent until the program is finished"
+msgstr ""
+
+#: window.py:492
+msgid "The file is not recognized"
+msgstr ""
+
+#: window.py:515
+msgid "You can no longer continue the message."
+msgstr ""
+
+#: window.py:531
+msgid "You can no longer regenerate the message."
+msgstr ""
+
+#: window.py:593
+msgid "Chat is empty"
+msgstr ""
+
+#: window.py:650
+msgid "Chat is cleared"
+msgstr ""
+
+#: window.py:668
+msgid "The message was canceled and deleted from history"
+msgstr ""
+
+#: window.py:701
+msgid "Folder is Empty"
+msgstr ""
+
+#: window.py:811
+msgid "Wrong folder path"
+msgstr ""
+
+#: window.py:840
+msgid "Thread has not been completed, thread number: "
+msgstr ""
+
+#: window.py:846
+msgid "Failed to open the folder"
+msgstr ""
+
+#: window.py:908
+msgid "The message cannot be sent until the program is finished"
+msgstr ""
+
+#: window.py:1152
+msgid "You can't edit a message while the program is running."
+msgstr ""
+
+#: window.py:1206
+msgid ""
+"The neural network has access to your computer and any data in this chat and "
+"can run commands, be careful, we are not responsible for the neural network. "
+"Do not share any sensitive information."
+msgstr ""
+
+#: window.py:1223
+msgid ""
+"The neural network has access to any data in this chat, be careful, we are "
+"not responsible for the neural network. Do not share any sensitive "
+"information."
 msgstr ""
