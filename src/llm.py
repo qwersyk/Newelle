@@ -743,6 +743,7 @@ class GPT4AllHandler(LLMHandler):
     def model_available(self, model:str) -> bool:
         """ Returns if a model has already been downloaded
         """
+        from gpt4all import GPT4All
         try:
             GPT4All.retrieve_model(model, model_path=self.modelspath, allow_download=False, verbose=False)
         except Exception as e:
@@ -759,6 +760,7 @@ class GPT4AllHandler(LLMHandler):
         """Loads the local model"""
         if self.model is None:
             try:
+                from gpt4all import GPT4All
                 self.model = GPT4All(model, model_path=self.modelspath)
                 self.session = self.model.chat_session()
                 self.session.__enter__()
@@ -770,6 +772,7 @@ class GPT4AllHandler(LLMHandler):
     def download_model(self, model:str) -> bool:
         """Downloads GPT4All model"""
         try:
+            from gpt4all import GPT4All
             GPT4All.retrieve_model(model, model_path=self.modelspath, allow_download=True, verbose=False)
         except Exception as e:
             print(e)
