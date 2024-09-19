@@ -2,7 +2,7 @@ from __future__ import absolute_import
 import importlib, subprocess
 import re
 import os, sys
-import xml.dom.minidom
+import xml.dom.minidom, html
 
 class ReplaceHelper:
     DISTRO = None
@@ -53,16 +53,17 @@ def replace_variables(text: str) -> str:
     return text
 
 def markwon_to_pango(markdown_text):
+    markdown_text = html.escape(markdown_text)
     initial_string = markdown_text
     # Convert bold text
     markdown_text = re.sub(r'\*\*(.*?)\*\*', r'<b>\1</b>', markdown_text)
     
     # Convert italic text
     markdown_text = re.sub(r'\*(.*?)\*', r'<i>\1</i>', markdown_text)
-         
+
     # Convert monospace text
     markdown_text = re.sub(r'`(.*?)`', r'<tt>\1</tt>', markdown_text)
-    
+
     # Convert strikethrough text
     markdown_text = re.sub(r'~(.*?)~', r'<span strikethrough="true">\1</span>', markdown_text)
     
@@ -75,9 +76,11 @@ def markwon_to_pango(markdown_text):
     
     # Check if the generated text is valid. If not just print it unformatted
     try:
-        xml.dom.minidom.parseString(markdown_text)
-    except Exception as _:
-        return initial_string 
+        xml.dom.minidom.parseString("<html>" + markdown_text + "</html>")
+    except Exception as e:
+        print(markdown_text)
+        print(e)
+        return initial_string
     return markdown_text
 
 def human_readable_size(size: float, decimal_places:int =2) -> str:
