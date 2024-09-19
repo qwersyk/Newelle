@@ -926,9 +926,8 @@ class GPT4AllHandler(LLMHandler):
         self.session = oldsession
         self.session.__enter__()
         return response
-
-    def get_suggestions(self, request_prompt:str = None) -> list[str]:
-        # Avoid to generate suggestions
+    
+    def get_suggestions(self, request_prompt: str = None, amount: int = 1) -> list[str]:
         return []
 
     def generate_chat_name(self, request_prompt:str = None) -> str:
