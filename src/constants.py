@@ -1,5 +1,5 @@
 
-from .llm import GPT4AllHandler, GroqHandler, OpenAIHandler, CustomLLMHandler, GPT3AnyHandler, GeminiHandler
+from .llm import GPT4AllHandler, GroqHandler, OllamaHandler, OpenAIHandler, CustomLLMHandler, GPT3AnyHandler, GeminiHandler
 from .tts import gTTSHandler, EspeakHandler, CustomTTSHandler
 from .stt import SphinxHandler, GoogleSRHandler, WitAIHandler, VoskHandler, WhisperAPIHandler, CustomSRHandler
 
@@ -15,6 +15,12 @@ AVAILABLE_LLMS = {
         "title": _("Local Model"),
         "description": _("Run a LLM model locally, more privacy but slower"),
         "class": GPT4AllHandler,
+    },
+    "ollama": {
+        "key": "ollama",
+        "title": _("Ollama Instance"),
+        "description": _("Easily run multiple LLM models on your own hardware"),
+        "class": OllamaHandler,
     },
     "groq": {
         "key": "groq",

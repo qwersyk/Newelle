@@ -466,6 +466,93 @@ class CustomLLMHandler(LLMHandler):
         return out.decode("utf-8")
 
 
+class OllamaHandler(LLMHandler):
+    key = "ollama"
+
+    @staticmethod
+    def get_extra_requirements() -> list:
+        return ["ollama"]
+
+    def get_extra_settings(self) -> list:
+        return [ 
+            {
+                "key": "endpoint",
+                "title": _("API Endpoint"),
+                "description": _("API base url, change this to use interference APIs"),
+                "type": "entry",
+                "default": "http://localhost:11434"
+            },
+            {
+                "key": "model",
+                "title": _("Ollama Model"),
+                "description": _("Name of the Ollama Model"),
+                "type": "entry",
+                "default": "llama3.1:8b"
+            },
+            {
+                "key": "streaming",
+                "title": _("Message Streaming"),
+                "description": _("Gradually stream message output"),
+                "type": "toggle",
+                "default": True
+            },
+        ]
+
+    def convert_history(self, history: dict, prompts: list | None = None) -> list:
+        if prompts is None:
+            prompts = self.prompts
+        result = []
+        result.append({"role": "system", "content": "\n".join(prompts)})
+        for message in history:
+            result.append({
+                "role": message["User"].lower() if message["User"] in {"Assistant", "User"} else "system",
+                "content": message["Message"]
+            })
+        return result
+
+    def generate_text(self, prompt: str, history: dict[str, str] = {}, system_prompt: list[str] = []) -> str:
+        from ollama import Client
+        messages = self.convert_history(history, system_prompt)
+        messages.append({"role": "user", "content": prompt})
+
+        client = Client(
+            host=self.get_setting("endpoint")
+        )
+        try:
+            response = client.chat(
+                model=self.get_setting("model"),
+                messages=messages,
+            )
+            return response["message"]["content"]
+        except Exception as e:
+            return str(e)
+    
+    def generate_text_stream(self, prompt: str, history: dict[str, str] = {}, system_prompt: list[str] = [], on_update: Callable[[str], Any] = (), extra_args: list = []) -> str:
+        from ollama import Client
+        messages = self.convert_history(history, system_prompt)
+        messages.append({"role": "user", "content": prompt})
+        client = Client(
+            host=self.get_setting("endpoint")
+        )
+        try:
+            response = client.chat(
+                model=self.get_setting("model"),
+                messages=messages,
+                stream=True
+            )
+            full_message = ""
+            prev_message = ""
+            for chunk in response:
+                full_message += chunk["message"]["content"]
+                args = (full_message.strip(), ) + extra_args
+                if len(full_message) - len(prev_message) > 1:
+                    on_update(*args)
+                    prev_message = full_message
+            return full_message.strip()
+        except Exception as e:
+            return str(e)
+
+
 class OpenAIHandler(LLMHandler):
     key = "openai"
 
