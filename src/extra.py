@@ -101,13 +101,10 @@ def find_module(full_module_name):
 
     Exception is raised if (existing) module raises exception during its import.
     """
-    if full_module_name == "git+https://github.com/openai/whisper.git":
-        full_module_name = "whisper"
     try:
         return importlib.import_module(full_module_name)
-    except ImportError as exc:
-        if not (full_module_name + '.').startswith(exc.name + '.'):
-            raise
+    except Exception as _:
+        return None
 
 
 def install_module(module, path):
