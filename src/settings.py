@@ -417,6 +417,9 @@ class Settings(Adw.PreferencesWindow):
         
         if not force_change:
             setting_info = [info for info in handler.get_extra_settings() if info["key"] == key][0]
+        else:
+            setting_info = {}
+
         if force_change or "update_settings" in setting_info and setting_info["update_settings"]:
             # remove all the elements in the specified expander row 
             row = self.settingsrows[(handler.key, self.convert_constants(constants))]["row"]
@@ -584,6 +587,8 @@ class Settings(Adw.PreferencesWindow):
                 button.set_name("custom")
                 button.connect("toggled", self.choose_local_model)
                 row.add_prefix(button)
+                if len(self.gpt.get_custom_model_list()) == 0:
+                    button.set_sensitive(False)
         # Create entries
         self.rows = {}
         self.model_threads = {}
@@ -606,7 +611,7 @@ class Settings(Adw.PreferencesWindow):
             button.set_name(model["filename"])
             button.connect("toggled", self.choose_local_model)
             # TOFIX: Causes some errors sometimes
-            #button.set_sensitive(available)
+            button.set_sensitive(available)
             actionbutton = Gtk.Button(css_classes=["flat"],
                                                 valign=Gtk.Align.CENTER)
             if available:
@@ -699,6 +704,7 @@ class Settings(Adw.PreferencesWindow):
         button.add_css_class("error")
         button.set_child(icon)
         self.downloading[model] = False
+        self.rows[model]["radio"].set_sensitive(True)
 
     def remove_local_model(self, button):
         """Remove a local model

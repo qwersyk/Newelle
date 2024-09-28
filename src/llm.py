@@ -820,7 +820,6 @@ class GPT4AllHandler(LLMHandler):
         self.model_folder = os.path.join(self.modelspath, "custom_models")
         if not os.path.isdir(self.model_folder):
             os.makedirs(self.model_folder)
-        #     Temporary
         self.oldhistory = {}
         self.prompts = []
         self.model = None
@@ -829,7 +828,7 @@ class GPT4AllHandler(LLMHandler):
             os.makedirs(self.modelspath)
     
     def get_extra_settings(self) -> list:
-        models = self._get_custom_model_list()
+        models = self.get_custom_model_list()
         default = models[0] if len(models) > 0 else ""
         return [
             {
@@ -842,14 +841,14 @@ class GPT4AllHandler(LLMHandler):
             {
                 "key": "custom_model",
                 "title": _("Custom gguf model file"),
-                "description": _("Add a gguf file in the specified folder and then close and re open the settings to update"),
+                "description": _("Add a gguf file in the specified folder and then close and reopen the settings to update"),
                 "type": "combo",
                 "default": default,
                 "values": models,
                 "folder": self.model_folder,
             }
         ]
-    def _get_custom_model_list(self): 
+    def get_custom_model_list(self): 
         file_list = []
         for root, _, files in os.walk(self.model_folder):
             for file in files:
@@ -878,10 +877,15 @@ class GPT4AllHandler(LLMHandler):
     def load_model_async(self, model: str):
         """Loads the local model"""
         if self.model is None:
+            print(model)
             try:
                 from gpt4all import GPT4All
                 if model == "custom":
                     model = self.get_setting("custom_model")
+                    models = self.get_custom_model_list()
+                    if model not in models:
+                        if len(models) > 0:
+                            model = models[0][1]
                     self.model = GPT4All(model, model_path=self.model_folder)
                 else:
                     self.model = GPT4All(model, model_path=self.modelspath)
