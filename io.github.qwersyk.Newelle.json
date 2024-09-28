@@ -1,7 +1,7 @@
 {
     "app-id" : "io.github.qwersyk.Newelle",
     "runtime" : "org.gnome.Platform",
-    "runtime-version" : "46",
+    "runtime-version" : "47",
     "sdk" : "org.gnome.Sdk",
     "command" : "newelle",
     "finish-args" : [

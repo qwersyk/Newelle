@@ -1,8 +1,7 @@
-
-
 from .translator import CustomTranslatorHandler, GoogleTranslatorHandler, LibreTranslateHandler
 from .llm import GPT4AllHandler, OpenAIHandler,GroqHandler, CustomLLMHandler, GPT3AnyHandler, GeminiHandler
 from .tts import VoiceVoxHanlder, gTTSHandler, EspeakHandler, CustomTTSHandler, VitsHandler
+
 from .stt import SphinxHandler, GoogleSRHandler, WitAIHandler, VoskHandler, WhisperAPIHandler, CustomSRHandler
 from .avatar import Live2DHandler, LivePNGHandler
 
@@ -18,6 +17,12 @@ AVAILABLE_LLMS = {
         "title": _("Local Model"),
         "description": _("Run a LLM model locally, more privacy but slower"),
         "class": GPT4AllHandler,
+    },
+    "ollama": {
+        "key": "ollama",
+        "title": _("Ollama Instance"),
+        "description": _("Easily run multiple LLM models on your own hardware"),
+        "class": OllamaHandler,
     },
     "groq": {
         "key": "groq",

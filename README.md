@@ -8,7 +8,10 @@
     <img width="200" alt="Download on Flathub" src="https://dl.flathub.org/assets/badges/flathub-badge-i-en.svg"/>
   </a>
   <a href="https://github.com/topics/newelle-extension">
-    <img width="200" alt="Download on Flathub" src="https://raw.githubusercontent.com/qwersyk/Assets/5f06b2019c72ba7faf2d3bfe1b6192cbcc69a0d7/newelle-extension.svg"/>
+    <img width="200" alt="Download on Flathub" src="https://raw.githubusercontent.com/qwersyk/Assets/main/newelle-extension.svg"/>
+  </a>
+  <a href="https://github.com/qwersyk/Newelle/wiki">
+    <img width="200" alt="Wiki for Newelle" src="https://raw.githubusercontent.com/qwersyk/Assets/main/newelle-wiki.svg"/>
   </a>
   <br>
 </p>
@@ -22,63 +25,56 @@
 ![screenshot](https://raw.githubusercontent.com/qwersyk/Newelle/master/screenshots/1w.png#gh-light-mode-only)
 ![screenshot](https://raw.githubusercontent.com/qwersyk/Newelle/master/screenshots/1b.png#gh-dark-mode-only)
 
-**Newelle** is an advanced chat bot that aims to revolutionize your virtual assistant experience. Here's a concise overview of its key features:
+# Features
 
-## Features
+- **Terminal Command Execution**: Execute terminal commands directly through the AI.
 
-![screenshot](https://raw.githubusercontent.com/qwersyk/Newelle/master/screenshots/2w.png#gh-light-mode-only)
-![screenshot](https://raw.githubusercontent.com/qwersyk/Newelle/master/screenshots/2b.png#gh-dark-mode-only)
+- **Advanced Customization**: Tailor the application with a wide range of settings.
 
-- **File and System Management:** Take control of your computer effortlessly. Newelle enables you to create folders, rename files, edit content, and access detailed file information, enhancing your overall productivity.
-
-- **Code Execution and Collaboration:** Execute Python code seamlessly within the chat interface. Collaborate on coding projects, seek assistance, and share code snippets effortlessly with Newelle.
-
-- **Intuitive Graphical Interface:** Enjoy a visually appealing interface with a sidebar for chat history and a file explorer panel. Drag and drop files and folders directly into the chat, streamlining your workflow.
-
-- **Flexible Message Manipulation:** Edit, continue, or regenerate messages easily. Right-click on a user's message to make quick modifications. Newelle grants you full control over your conversations.
-
-- **Effortless Chat Management:** Copy and save chat conversations effortlessly for future reference. Newelle automatically generates names for chat sessions, making organization a breeze.
+- **Flexible Model Support**: Choose from multiple AI models to fit your specific needs.
 
 ![screenshot](https://raw.githubusercontent.com/qwersyk/Newelle/master/screenshots/3w.png#gh-light-mode-only)
 ![screenshot](https://raw.githubusercontent.com/qwersyk/Newelle/master/screenshots/3b.png#gh-dark-mode-only)
 
+# Extensions
 
-# Installation and Getting Started
+Newelle supports extensions to enhance its functionality. You can either use [existing extensions](https://github.com/topics/newelle-extension) or create your own to add new features to the application.
 
-To start using our program, you have two options: compiling it through GNOME Builder or downloading the release from GitHub. Additionally, we have provided a limited version of the program on Flathub.
+![screenshot](https://raw.githubusercontent.com/qwersyk/Newelle/master/screenshots/2w.png#gh-light-mode-only)
+![screenshot](https://raw.githubusercontent.com/qwersyk/Newelle/master/screenshots/2b.png#gh-dark-mode-only)
 
-## Compiling with GNOME Builder
+# Installation
+
+![builder](https://raw.githubusercontent.com/qwersyk/Assets/main/builder.svg#gh-light-mode-only)
+![builder](https://raw.githubusercontent.com/qwersyk/Assets/main/builder-dark.svg#gh-dark-mode-only)
 
 1. Install GNOME Builder on your system.
 2. Clone the Newelle repository from GitHub.
 3. Open the project in GNOME Builder and compile it.
 4. Once compiled, you can run the program from the compiled executable.
 
-## Downloading from GitHub
+![beta](https://raw.githubusercontent.com/qwersyk/Assets/main/beta.svg#gh-light-mode-only)
+![beta](https://raw.githubusercontent.com/qwersyk/Assets/main/beta-dark.svg#gh-dark-mode-only)
 
-1. Visit the Newelle GitHub repository.
-2. Navigate to the "Releases" section.
-3. Download the latest release package compatible with your operating system.
-4. Extract the downloaded package.
-5. Run the program from the extracted files.
+1. Download the latest release from the [Github Actions](https://github.com/qwersyk/Newelle/actions)
+2. Extract the downloaded package.
+3. Install a flatpak package.
 
-## Installing from Flathub
+![flathub](https://raw.githubusercontent.com/qwersyk/Assets/main/flathub.svg#gh-light-mode-only)
+![flathub](https://raw.githubusercontent.com/qwersyk/Assets/main/flathub-dark.svg#gh-dark-mode-only)
 
 1. Ensure you have Flatpak installed on your system.
 2. Install Newelle by executing: `flatpak install flathub io.github.qwersyk.Newelle`
-3. Once installed, you can launch Newelle.
 
-Please note that the Flatpak version of Newelle has some limitations for security purposes. It can only access the `.var/app/io.github.qwersyk.Newelle` folder, and it can only run within the Flatpak sandboxed environment. 
+# Permission
 
-To extend the program's capabilities, follow these steps:
+> [!IMPORTANT]
+> The Flathub version of Newelle is restricted to the `.var/app/io.github.qwersyk.Newelle` folder and operates within a Flatpak virtualized environment, limiting its capabilities.
 
-1. Install Flatseal on your system.
-2. Launch Flatseal and locate "Newelle" in the application list.
-3. Enable the "All user files" permission for Newelle to access user files.
-4. To allow Newelle to run outside the Flatpak sandbox, enable the "Session Bus" permission and add a new talk with the name "org.freedesktop.Flatpak".
-5. Disable virtualization in the program settings to run Newelle outside the Flatpak sandbox.
+To extend functionality, you can either temporarily grant access with:
+```flatpak run --talk-name=org.freedesktop.Flatpak --filesystem=home io.github.qwersyk.Newelle```
+or adjust settings permanently using Flatseal:
+- Open Flatseal, find "Newelle," enable "All user files" and "Session Bus," and add `org.freedesktop.Flatpak` to run outside the sandbox.
 
-Please note that by performing these steps, the program's security may be compromised as it gains access to your data and terminal. Although our program is open-source and can be verified for malicious actions, the models that can be used may be proprietary. We cannot guarantee where your chat data is sent or rule out the possibility of incorrect or malicious commands from the neural network. Please be careful when enabling these options.
-
-
-> By running the following command when launching the program, you can grant temporary access to memory and the console:```flatpak run --talk-name=org.freedesktop.Flatpak --filesystem=home io.github.qwersyk.Newelle```
+> [!WARNING]
+> Be cautious when enabling these options. They reduce security by exposing your data and terminal. Avoid sharing personal information, and understand that we can't guarantee the privacy of your chat data or prevent potential risks from proprietary models.

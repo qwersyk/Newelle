@@ -233,6 +233,7 @@ class CustomTTSHandler(TTSHandler):
             check_output(["flatpak-spawn", "--host", "bash", "-c", command.replace("{0}", message)])
             self._play_lock.release()
 
+
 class VoiceVoxHanlder(TTSHandler):
     key = "voicevox"
 
@@ -398,7 +399,5 @@ class VitsHandler(TTSHandler):
         if setting == "endpoint":
             self.set_setting("voices", tuple())
             threading.Thread(target=self.get_voices).start()
-
-
 
 

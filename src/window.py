@@ -1070,7 +1070,8 @@ class MainWindow(Gtk.ApplicationWindow):
             start_code_index = -1
             has_terminal_command = False
             for i in range(len(table_string)):
-                if len(table_string[i]) > 0 and table_string[i][0:3] == "```":
+                if len(table_string[i]) > 0 and table_string[i].lstrip(" ")[0:3] == "```":
+                    table_string[i] = table_string[i].lstrip(" ")
                     if start_code_index == -1:
                         start_code_index = i + 1
                         code_language = table_string[i][3:len(table_string[i])]
@@ -1254,7 +1255,6 @@ class MainWindow(Gtk.ApplicationWindow):
                         if translator is not None:
                             message = translator.translate(message)
                         tts.play_audio(message) 
-                    
 
     def update_message(self, message, label):    
         GLib.idle_add(label.set_label, message)
