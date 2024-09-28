@@ -1244,6 +1244,8 @@ class MainWindow(Gtk.ApplicationWindow):
             if self.tts_program in AVAILABLE_TTS:
                 tts = AVAILABLE_TTS[self.tts_program]["class"](self.settings, self.directory)
                 message=re.sub(r"```.*?```", "", message_label, flags=re.DOTALL)
+                # Remove text in *text*
+                message = re.sub(r"\*(.*?)\*", "", message)
                 if not(not message.strip() or message.isspace() or all(char == '\n' for char in message)):
                     # Translate the message
                     translator = None
