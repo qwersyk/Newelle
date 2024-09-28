@@ -570,6 +570,7 @@ class Settings(Adw.PreferencesWindow):
         actionbutton.add_css_class("accent")
         actionbutton.set_child(icon)
         self.llmrow.add_action(actionbutton)
+        self.add_extra_settings(AVAILABLE_LLMS,self.gpt,self.llmrow)
         # Create entries
         radio = Gtk.CheckButton()
         self.rows = {}

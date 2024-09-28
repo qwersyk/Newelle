@@ -266,7 +266,6 @@ class GPT3AnyHandler(G4FHandler):
         self.client = g4f.client.Client(provider=RetryProvider([RetryProvider(good_providers), RetryProvider(acceptable_providers)], shuffle=False))
         self.n = 0
     def get_extra_settings(self) -> list:
-        self.n += 1 
         return [
             {
                 "key": "streaming",
@@ -826,6 +825,18 @@ class GPT4AllHandler(LLMHandler):
         self.session = None
         if not os.path.isdir(self.modelspath):
             os.makedirs(self.modelspath)
+    
+    def get_extra_settings(self) -> list:
+        return [
+            {
+                "key": "streaming",
+                "title": _("Message Streaming"),
+                "description": _("Gradually stream message output"),
+                "type": "toggle",
+                "default": True,
+            },
+        ]
+
 
     def model_available(self, model:str) -> bool:
         """ Returns if a model has already been downloaded
@@ -866,7 +877,7 @@ class GPT4AllHandler(LLMHandler):
             return False
         return True
 
-    def __convert_history(self, history: dict) -> dict:
+    def __convert_history(self, history: dict) -> list:
         """Converts the given history into the correct format for current_chat_history"""
         result = []
         for message in history:
@@ -876,6 +887,13 @@ class GPT4AllHandler(LLMHandler):
             })
         return result
 
+    def __convert_history_text(self, history: dict) -> str:
+        """Converts the given history into the correct format for current_chat_history"""
+        result = "### Previous History"
+        for message in history:
+            result += "\n" + message["User"] + ":" + message["Message"]
+        return result
+    
     def set_history(self, prompts, window):
         """Manages messages history"""
         self.history = window.chat[len(window.chat) - window.memory:len(window.chat)-1]
@@ -888,43 +906,53 @@ class GPT4AllHandler(LLMHandler):
         # Create a new chat
         system_prompt = "\n".join(prompts)
         if len(self.oldhistory) > 1 and newchat:
-            self.session.__exit__(None, None, None)
-            self.session = self.model.chat_session(system_prompt)
-            self.session.__enter__()
+            if self.session is not None and self.model is not None:
+                self.session.__exit__(None, None, None)
+                self.session = self.model.chat_session(system_prompt)
+                self.session.__enter__()
         self.oldhistory = list()
         for message in self.history:
             self.oldhistory.append(message["Message"])
         self.prompts = prompts
 
 
+    def send_message(self, window, message: str) -> str:
+        return super().send_message(window, message)
 
-    def send_message(self, window, message):
-        """Get a response to a message"""
-        additional_prompts = "\n".join(self.prompts)
-        prompt = additional_prompts + "\nUser: " + message
-        return self.__generate_response(window, prompt)
-
-    def __generate_response(self, window, message):
-        """Generates a response given text and history"""
-        if not self.load_model(window.local_model):
-            return _('There was an error retriving the model')
-        history = self.__convert_history(self.history)
-        if self.model is None or self.session is None:
-            return "Model not loaded"
-        response = self.model.generate(prompt=message, top_k=1)
-        return response
+    def generate_text_stream(self, prompt: str, history: dict[str, str] = {}, system_prompt: list[str] = [], on_update: Callable[[str], Any] = (), extra_args: list = []) -> str:
+        if self.session is None or self.model is None:
+            return "Model not yet loaded..."
+        # Temporary history management
+        if len(history) > 0:
+            system_prompt.append(self.__convert_history_text(history))
+        prompts = "\n".join(system_prompt)
+        print(prompts)
+        self.session = self.model.chat_session(prompts)
+        self.session.__enter__()
+        response = self.model.generate(prompt=prompt, top_k=1, streaming=True)
+        
+        full_message = ""
+        prev_message = ""
+        for chunk in response:
+            if chunk is not None:
+                    full_message += chunk
+                    args = (full_message.strip(), ) + extra_args
+                    if len(full_message) - len(prev_message) > 1:
+                        on_update(*args)
+                        prev_message = full_message
+        return full_message.strip()
 
     def generate_text(self, prompt: str, history: dict[str, str] = {}, system_prompt: list[str] = []) -> str:
         # History not working for text generation
-        oldsession = self.session
-        self.session.__exit__(None, None, None)
-        system_prompt = "\n".join(prompt)
-        self.session = self.model.chat_session(system_prompt)
+        if self.session is None or self.model is None:
+            return "Model not yet loaded..."
+        if len(history) > 0:
+            system_prompt.append(self.__convert_history_text(history)) 
+        prompts = "\n".join(system_prompt)
+        self.session = self.model.chat_session(prompts)
         self.session.__enter__()
         response = self.model.generate(prompt=prompt, top_k=1)
         self.session.__exit__(None, None, None)
-        self.session = oldsession
-        self.session.__enter__()
         return response
     
     def get_suggestions(self, request_prompt: str = None, amount: int = 1) -> list[str]:
