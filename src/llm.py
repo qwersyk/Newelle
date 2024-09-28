@@ -129,7 +129,7 @@ class LLMHandler():
         return None
 
     @abstractmethod
-    def generate_text(self, prompt: str, history: dict[str, str] = {}, system_prompt: list[str] = []) -> str:
+    def generate_text(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = []) -> str:
         """Generate test from the given prompt, history and system prompt
 
         Args:
@@ -143,7 +143,7 @@ class LLMHandler():
         pass
 
     @abstractmethod
-    def generate_text_stream(self, prompt: str, history: dict[str, str] = {}, system_prompt: list[str] = [], on_update: Callable[[str], Any] = (), extra_args : list = []) -> str:
+    def generate_text_stream(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = [], on_update: Callable[[str], Any] = lambda _: None, extra_args : list = []) -> str:
         """_summary_
 
         Args:
@@ -184,7 +184,7 @@ class LLMHandler():
         """        
         return self.generate_text_stream(message, self.history, self.prompts, on_update, extra_args)
 
-    def get_suggestions(self, request_prompt:str = None, amount:int=1) -> list[str]:
+    def get_suggestions(self, request_prompt:str = "", amount:int=1) -> list[str]:
         """Get suggestions for the current chat. The default implementation expects the result as a JSON Array containing the suggestions
 
         Args:
@@ -204,7 +204,7 @@ class LLMHandler():
             generated = generated.replace("```json", "").replace("```", "")
             try:
                 j = json.loads(generated)
-            except Exception as e:
+            except Exception as _:
                 continue
             if type(j) is list:
                 for suggestion in j:
@@ -215,7 +215,7 @@ class LLMHandler():
                             break
         return result
 
-    def generate_chat_name(self, request_prompt:str = None) -> str:
+    def generate_chat_name(self, request_prompt:str = "") -> str:
         """Generate name of the current chat
 
         Args:
@@ -235,7 +235,7 @@ class G4FHandler(LLMHandler):
     def get_extra_requirements() -> list:
         return ["g4f"]
 
-    def convert_history(self, history: dict) -> list:
+    def convert_history(self, history: list) -> list:
         result = []
         result.append({"role": "system", "content": "\n".join(self.prompts)})
         for message in history:
@@ -266,7 +266,6 @@ class GPT3AnyHandler(G4FHandler):
         self.client = g4f.client.Client(provider=RetryProvider([RetryProvider(good_providers), RetryProvider(acceptable_providers)], shuffle=False))
         self.n = 0
     def get_extra_settings(self) -> list:
-        self.n += 1 
         return [
             {
                 "key": "streaming",
@@ -277,7 +276,7 @@ class GPT3AnyHandler(G4FHandler):
             },
         ]
 
-    def convert_history(self, history: dict) -> list:
+    def convert_history(self, history: list) -> list:
         """Converts the given history into the correct format for current_chat_history"""
         result = []
         result.append({"role": "system", "content": "\n".join(self.prompts)})
@@ -288,7 +287,7 @@ class GPT3AnyHandler(G4FHandler):
             })
         return result
 
-    def generate_text(self, prompt: str, history: dict[str, str] = {}, system_prompt: list[str] = []) -> str:
+    def generate_text(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = []) -> str:
         message = prompt
         # if len (self.prompts) > 0:
             # message = "SYSTEM:" + "\n".join(system_prompt) + "\n\n" + prompt
@@ -301,8 +300,7 @@ class GPT3AnyHandler(G4FHandler):
         )
         return response.choices[0].message.content
 
-    def generate_text_stream(self, prompt: str, history: dict[str, str] = {}, system_prompt: list[str] = [], on_update: Callable[[str], Any] = (), extra_args: list = []) -> str:
-        import g4f
+    def generate_text_stream(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = [], on_update: Callable[[str], Any] = lambda _: None, extra_args: list = []) -> str:
         message = prompt
         # if len (self.prompts) > 0:
             # message = "SYSTEM:" + "\n".join(system_prompt) + "\n\n" + prompt
@@ -319,7 +317,7 @@ class GPT3AnyHandler(G4FHandler):
         for chunk in response:
             if chunk.choices[0].delta.content:
                 full_message += chunk.choices[0].delta.content
-                args = (full_message.strip(), ) + extra_args
+                args = (full_message.strip(), ) + tuple(extra_args)
                 if len(full_message) - len(prev_message) > 1:
                     on_update(*args)
                     prev_message = full_message
@@ -328,10 +326,10 @@ class GPT3AnyHandler(G4FHandler):
     def send_message(self, window, message: str) -> str:
         return self.generate_text(window.chat[-1]["User"] + ": " + message, self.history, self.prompts)
      
-    def send_message_stream(self, window, message: str, on_update: Callable[[str], Any] = (), extra_args: list = []) -> str:
+    def send_message_stream(self, window, message: str, on_update: Callable[[str], Any] = lambda _: None, extra_args: list = []) -> str:
         return self.generate_text_stream(window.chat[-1]["User"] + ": " + message, self.history, self.prompts, on_update, extra_args)
 
-    def generate_chat_name(self, request_prompt: str = None) -> str:
+    def generate_chat_name(self, request_prompt: str = "") -> str:
         history = ""
         for message in self.history[-4:] if len(self.history) >= 4 else self.history:
             history += message["User"] + ": " + message["Message"] + "\n"
@@ -388,7 +386,7 @@ class GeminiHandler(LLMHandler):
             })
         return result
 
-    def generate_text(self, prompt: str, history: dict[str, str] = {}, system_prompt: list[str] = []) -> str:
+    def generate_text(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = []) -> str:
         import google.generativeai as genai
         genai.configure(api_key=self.get_setting("apikey"))
         instructions = "\n"+"\n".join(system_prompt)
@@ -401,7 +399,7 @@ class GeminiHandler(LLMHandler):
         response = chat.send_message(prompt)
         return response.text
 
-    def generate_text_stream(self, prompt: str, history: dict[str, str] = {}, system_prompt: list[str] = [], on_update: Callable[[str], Any] = (), extra_args: list = []) -> str:
+    def generate_text_stream(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = [], on_update: Callable[[str], Any] = lambda _: None , extra_args: list = []) -> str:
         import google.generativeai as genai
         genai.configure(api_key=self.get_setting("apikey"))
         instructions = "\n".join(system_prompt)
@@ -415,7 +413,7 @@ class GeminiHandler(LLMHandler):
         full_message = ""
         for chunk in response:
             full_message += chunk.text
-            args = (full_message.strip(), ) + extra_args
+            args = (full_message.strip(), ) + tuple(extra_args)
             on_update(*args)
         return full_message.strip()
 
@@ -451,19 +449,19 @@ class CustomLLMHandler(LLMHandler):
         self.prompts = prompts
         self.history = window.chat[len(window.chat) - window.memory:len(window.chat)]
 
-    def generate_text(self, prompt: str, history: dict[str, str] = {}, system_prompt: list[str] = []) -> str:
+    def generate_text(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = []) -> str:
         command = self.get_setting("command")
         command = command.replace("{0}", json.dumps(self.history))
         command = command.replace("{1}", json.dumps(self.prompts))
         out = check_output(["flatpak-spawn", "--host", "bash", "-c", command])
         return out.decode("utf-8")
-
-    def get_suggestions(self, prompt, amount):
+    
+    def get_suggestions(self, request_prompt: str = "", amount: int = 1) -> list[str]:
         command = self.get_setting("suggestion")
         command = command.replace("{0}", json.dumps(self.history))
         command = command.replace("{1}", json.dumps(self.prompts))
         out = check_output(["flatpak-spawn", "--host", "bash", "-c", command])
-        return out.decode("utf-8")
+        return out.decode("utf-8").split("\n")  
 
 
 class OllamaHandler(LLMHandler):
@@ -498,7 +496,7 @@ class OllamaHandler(LLMHandler):
             },
         ]
 
-    def convert_history(self, history: dict, prompts: list | None = None) -> list:
+    def convert_history(self, history: list, prompts: list | None = None) -> list:
         if prompts is None:
             prompts = self.prompts
         result = []
@@ -510,7 +508,7 @@ class OllamaHandler(LLMHandler):
             })
         return result
 
-    def generate_text(self, prompt: str, history: dict[str, str] = {}, system_prompt: list[str] = []) -> str:
+    def generate_text(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = []) -> str:
         from ollama import Client
         messages = self.convert_history(history, system_prompt)
         messages.append({"role": "user", "content": prompt})
@@ -527,7 +525,7 @@ class OllamaHandler(LLMHandler):
         except Exception as e:
             return str(e)
     
-    def generate_text_stream(self, prompt: str, history: dict[str, str] = {}, system_prompt: list[str] = [], on_update: Callable[[str], Any] = (), extra_args: list = []) -> str:
+    def generate_text_stream(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = [], on_update: Callable[[str], Any] = lambda _: None, extra_args: list = []) -> str:
         from ollama import Client
         messages = self.convert_history(history, system_prompt)
         messages.append({"role": "user", "content": prompt})
@@ -544,7 +542,7 @@ class OllamaHandler(LLMHandler):
             prev_message = ""
             for chunk in response:
                 full_message += chunk["message"]["content"]
-                args = (full_message.strip(), ) + extra_args
+                args = (full_message.strip(), ) + tuple(extra_args)
                 if len(full_message) - len(prev_message) > 1:
                     on_update(*args)
                     prev_message = full_message
@@ -647,7 +645,7 @@ class OpenAIHandler(LLMHandler):
             },
         ]
 
-    def convert_history(self, history: dict, prompts: list | None = None) -> list:
+    def convert_history(self, history: list, prompts: list | None = None) -> list:
         if prompts is None:
             prompts = self.prompts
         result = []
@@ -659,7 +657,7 @@ class OpenAIHandler(LLMHandler):
             })
         return result
 
-    def generate_text(self, prompt: str, history: dict[str, str] = {}, system_prompt: list[str] = []) -> str:
+    def generate_text(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = []) -> str:
         from openai import OpenAI
         messages = self.convert_history(history, system_prompt)
         messages.append({"role": "user", "content": prompt})
@@ -685,7 +683,7 @@ class OpenAIHandler(LLMHandler):
         except Exception as e:
             return str(e)
     
-    def generate_text_stream(self, prompt: str, history: dict[str, str] = {}, system_prompt: list[str] = [], on_update: Callable[[str], Any] = (), extra_args: list = []) -> str:
+    def generate_text_stream(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = [], on_update: Callable[[str], Any] = lambda _: None, extra_args: list = []) -> str:
         from openai import OpenAI
         messages = self.convert_history(history, system_prompt)
         messages.append({"role": "user", "content": prompt})
@@ -712,7 +710,7 @@ class OpenAIHandler(LLMHandler):
             for chunk in response:
                 if chunk.choices[0].delta.content:
                     full_message += chunk.choices[0].delta.content
-                    args = (full_message.strip(), ) + extra_args
+                    args = (full_message.strip(), ) + tuple(extra_args)
                     if len(full_message) - len(prev_message) > 1:
                         on_update(*args)
                         prev_message = full_message
@@ -819,13 +817,46 @@ class GPT4AllHandler(LLMHandler):
         self.settings = settings
         self.modelspath = modelspath
         self.history = {}
-        # Temporary
+        self.model_folder = os.path.join(self.modelspath, "custom_models")
+        if not os.path.isdir(self.model_folder):
+            os.makedirs(self.model_folder)
         self.oldhistory = {}
         self.prompts = []
         self.model = None
         self.session = None
         if not os.path.isdir(self.modelspath):
             os.makedirs(self.modelspath)
+    
+    def get_extra_settings(self) -> list:
+        models = self.get_custom_model_list()
+        default = models[0] if len(models) > 0 else ""
+        return [
+            {
+                "key": "streaming",
+                "title": _("Message Streaming"),
+                "description": _("Gradually stream message output"),
+                "type": "toggle",
+                "default": True,
+            },
+            {
+                "key": "custom_model",
+                "title": _("Custom gguf model file"),
+                "description": _("Add a gguf file in the specified folder and then close and reopen the settings to update"),
+                "type": "combo",
+                "default": default,
+                "values": models,
+                "folder": self.model_folder,
+            }
+        ]
+    def get_custom_model_list(self): 
+        file_list = []
+        for root, _, files in os.walk(self.model_folder):
+            for file in files:
+                if file.endswith('.gguf'):
+                    file_name = file.rstrip('.gguf')
+                    relative_path = os.path.relpath(os.path.join(root, file), self.model_folder)
+                    file_list.append((file_name, relative_path))
+        return file_list
 
     def model_available(self, model:str) -> bool:
         """ Returns if a model has already been downloaded
@@ -846,9 +877,18 @@ class GPT4AllHandler(LLMHandler):
     def load_model_async(self, model: str):
         """Loads the local model"""
         if self.model is None:
+            print(model)
             try:
                 from gpt4all import GPT4All
-                self.model = GPT4All(model, model_path=self.modelspath)
+                if model == "custom":
+                    model = self.get_setting("custom_model")
+                    models = self.get_custom_model_list()
+                    if model not in models:
+                        if len(models) > 0:
+                            model = models[0][1]
+                    self.model = GPT4All(model, model_path=self.model_folder)
+                else:
+                    self.model = GPT4All(model, model_path=self.modelspath)
                 self.session = self.model.chat_session()
                 self.session.__enter__()
             except Exception as e:
@@ -866,7 +906,7 @@ class GPT4AllHandler(LLMHandler):
             return False
         return True
 
-    def __convert_history(self, history: dict) -> dict:
+    def __convert_history(self, history: dict) -> list:
         """Converts the given history into the correct format for current_chat_history"""
         result = []
         for message in history:
@@ -876,6 +916,13 @@ class GPT4AllHandler(LLMHandler):
             })
         return result
 
+    def __convert_history_text(self, history: list) -> str:
+        """Converts the given history into the correct format for current_chat_history"""
+        result = "### Previous History"
+        for message in history:
+            result += "\n" + message["User"] + ":" + message["Message"]
+        return result
+    
     def set_history(self, prompts, window):
         """Manages messages history"""
         self.history = window.chat[len(window.chat) - window.memory:len(window.chat)-1]
@@ -888,48 +935,57 @@ class GPT4AllHandler(LLMHandler):
         # Create a new chat
         system_prompt = "\n".join(prompts)
         if len(self.oldhistory) > 1 and newchat:
-            self.session.__exit__(None, None, None)
-            self.session = self.model.chat_session(system_prompt)
-            self.session.__enter__()
+            if self.session is not None and self.model is not None:
+                self.session.__exit__(None, None, None)
+                self.session = self.model.chat_session(system_prompt)
+                self.session.__enter__()
         self.oldhistory = list()
         for message in self.history:
             self.oldhistory.append(message["Message"])
         self.prompts = prompts
 
+    def generate_text_stream(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = [], on_update: Callable[[str], Any] = lambda _: None, extra_args: list = []) -> str:
+        if self.session is None or self.model is None:
+            return "Model not yet loaded..."
+        # Temporary history management
+        if len(history) > 0:
+            system_prompt.append(self.__convert_history_text(history))
+        prompts = "\n".join(system_prompt)
+        print(prompts)
+        self.session = self.model.chat_session(prompts)
+        self.session.__enter__()
+        response = self.model.generate(prompt=prompt, top_k=1, streaming=True)
+        
+        full_message = ""
+        prev_message = ""
+        for chunk in response:
+            if chunk is not None:
+                    full_message += chunk
+                    args = (full_message.strip(), ) + tuple(extra_args)
+                    if len(full_message) - len(prev_message) > 1:
+                        on_update(*args)
+                        prev_message = full_message
+        return full_message.strip()
 
-
-    def send_message(self, window, message):
-        """Get a response to a message"""
-        additional_prompts = "\n".join(self.prompts)
-        prompt = additional_prompts + "\nUser: " + message
-        return self.__generate_response(window, prompt)
-
-    def __generate_response(self, window, message):
-        """Generates a response given text and history"""
-        if not self.load_model(window.local_model):
-            return _('There was an error retriving the model')
-        history = self.__convert_history(self.history)
-        if self.model is None or self.session is None:
-            return "Model not loaded"
-        response = self.model.generate(prompt=message, top_k=1)
-        return response
-
-    def generate_text(self, prompt: str, history: dict[str, str] = {}, system_prompt: list[str] = []) -> str:
+    def generate_text(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = []) -> str:
         # History not working for text generation
-        oldsession = self.session
-        self.session.__exit__(None, None, None)
-        system_prompt = "\n".join(prompt)
-        self.session = self.model.chat_session(system_prompt)
+        if self.session is None or self.model is None:
+            return "Model not yet loaded..."
+        if len(history) > 0:
+            system_prompt.append(self.__convert_history_text(history)) 
+        prompts = "\n".join(system_prompt)
+        self.session = self.model.chat_session(prompts)
         self.session.__enter__()
         response = self.model.generate(prompt=prompt, top_k=1)
         self.session.__exit__(None, None, None)
-        self.session = oldsession
-        self.session.__enter__()
         return response
     
-    def get_suggestions(self, request_prompt: str = None, amount: int = 1) -> list[str]:
+    def get_suggestions(self, request_prompt: str = "", amount: int = 1) -> list[str]:
+        # Avoid generating suggestions
         return []
 
-    def generate_chat_name(self, request_prompt:str = None) -> str:
-        # Avoid to generate chat name
-        return ""
+    def generate_chat_name(self, request_prompt: str = "") -> str:
+        # Avoid generating chat name
+        return "Chat"
+
+
