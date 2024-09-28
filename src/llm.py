@@ -817,7 +817,10 @@ class GPT4AllHandler(LLMHandler):
         self.settings = settings
         self.modelspath = modelspath
         self.history = {}
-        # Temporary
+        self.model_folder = os.path.join(self.modelspath, "custom_models")
+        if not os.path.isdir(self.model_folder):
+            os.makedirs(self.model_folder)
+        #     Temporary
         self.oldhistory = {}
         self.prompts = []
         self.model = None
@@ -826,6 +829,8 @@ class GPT4AllHandler(LLMHandler):
             os.makedirs(self.modelspath)
     
     def get_extra_settings(self) -> list:
+        models = self._get_custom_model_list()
+        default = models[0] if len(models) > 0 else ""
         return [
             {
                 "key": "streaming",
@@ -834,8 +839,25 @@ class GPT4AllHandler(LLMHandler):
                 "type": "toggle",
                 "default": True,
             },
+            {
+                "key": "custom_model",
+                "title": _("Custom gguf model file"),
+                "description": _("Add a gguf file in the specified folder and then close and re open the settings to update"),
+                "type": "combo",
+                "default": default,
+                "values": models,
+                "folder": self.model_folder,
+            }
         ]
-
+    def _get_custom_model_list(self): 
+        file_list = []
+        for root, _, files in os.walk(self.model_folder):
+            for file in files:
+                if file.endswith('.gguf'):
+                    file_name = file.rstrip('.gguf')
+                    relative_path = os.path.relpath(os.path.join(root, file), self.model_folder)
+                    file_list.append((file_name, relative_path))
+        return file_list
 
     def model_available(self, model:str) -> bool:
         """ Returns if a model has already been downloaded
@@ -858,7 +880,11 @@ class GPT4AllHandler(LLMHandler):
         if self.model is None:
             try:
                 from gpt4all import GPT4All
-                self.model = GPT4All(model, model_path=self.modelspath)
+                if model == "custom":
+                    model = self.get_setting("custom_model")
+                    self.model = GPT4All(model, model_path=self.model_folder)
+                else:
+                    self.model = GPT4All(model, model_path=self.modelspath)
                 self.session = self.model.chat_session()
                 self.session.__enter__()
             except Exception as e:

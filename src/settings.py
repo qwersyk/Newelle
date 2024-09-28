@@ -338,7 +338,7 @@ class Settings(Adw.PreferencesWindow):
                 wbbutton = self.create_web_button(setting["website"])
                 r.add_prefix(wbbutton)
             if "folder" in setting:
-                wbbutton = self.create_web_button(setting["folder"])
+                wbbutton = self.create_web_button(setting["folder"], folder=True)
                 r.add_suffix(wbbutton)
             row.add_row(r)
             self.settingsrows[handler.key, self.convert_constants(constants)]["extra_settings"].append(r)
@@ -563,6 +563,9 @@ class Settings(Adw.PreferencesWindow):
         if len(self.local_models) == 0:
             self.refresh_models(None)
 
+
+        radio = Gtk.CheckButton()
+        
         # Create refresh button
         actionbutton = Gtk.Button(css_classes=["flat"], valign=Gtk.Align.CENTER)
         icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="update-symbolic"))
@@ -570,11 +573,21 @@ class Settings(Adw.PreferencesWindow):
         actionbutton.add_css_class("accent")
         actionbutton.set_child(icon)
         self.llmrow.add_action(actionbutton)
+        
+        # Add extra settings
         self.add_extra_settings(AVAILABLE_LLMS,self.gpt,self.llmrow)
+        for row in self.settingsrows["local", self.convert_constants(AVAILABLE_LLMS)]["extra_settings"]:
+            if row.get_name() == "custom_model":
+                button = Gtk.CheckButton()
+                button.set_group(radio)
+                button.set_active(self.settings.get_string("local-model") == "custom")
+                button.set_name("custom")
+                button.connect("toggled", self.choose_local_model)
+                row.add_prefix(button)
         # Create entries
-        radio = Gtk.CheckButton()
         self.rows = {}
         self.model_threads = {}
+         
         for model in self.local_models:
             available = self.gpt.model_available(model["filename"])
             active = False
