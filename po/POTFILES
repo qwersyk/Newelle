@@ -3,4 +3,12 @@ data/io.github.qwersyk.Newelle.appdata.xml.in
 data/io.github.qwersyk.Newelle.gschema.xml
 src/main.py
 src/window.py
-src/window.ui
+src/constants.py
+src/stt.py
+src/presentation.py
+src/shortcuts.py
+src/llm.py
+src/tts.py
+src/thread_editing.py
+src/settings.py
+src/extension.py
