@@ -6,7 +6,7 @@ from .avatar import AvatarHandler
 
 from .presentation import PresentationWindow
 from .gtkobj import File, CopyBox, BarChartBox, MultilineEntry
-from .constants import AVAILABLE_LLMS, AVAILABLE_TRANSLATORS, PROMPTS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_AVATARS, AVAILABLE_PROMPTS
+from .constants import AVAILABLE_LLMS, AVAILABLE_SMART_PROMPTS, AVAILABLE_TRANSLATORS, EXTRA_PROMPTS, PROMPTS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_AVATARS, AVAILABLE_PROMPTS
 from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject, GLib, WebKit
 from .stt import AudioRecorder
 from .extra import ReplaceHelper, markwon_to_pango, override_prompts, replace_variables
@@ -403,6 +403,9 @@ class MainWindow(Gtk.ApplicationWindow):
         self.avatar_enabled = settings.get_boolean("avatar-on")
         self.translation_enabled = settings.get_boolean("translator-on")
         self.translation_handler = settings.get_string("translator")
+        self.smart_prompt_enabled = settings.get_boolean("smart-prompt-on")
+        self.smart_prompt_handler = settings.get_string("smart-prompt")
+
         # Load custom prompts
         self.custom_prompts = json.loads(self.settings.get_string("custom-prompts"))
         self.prompts = override_prompts(self.custom_prompts, PROMPTS)
@@ -1217,11 +1220,19 @@ class MainWindow(Gtk.ApplicationWindow):
         self.status = False
         self.update_button_text()
 
-        # Appned extensions prompts
+        # Append extensions prompts
         prompts = [replace_variables(value["prompt"]) for value in self.extensions.values() if value["status"]]
         
         for prompt in self.bot_prompts:
             prompts.append(replace_variables(prompt))
+        
+        # Get smart prompts
+        if self.smart_prompt_enabled:
+            if self.smart_prompt_handler in AVAILABLE_SMART_PROMPTS:
+                smart_prompt = AVAILABLE_SMART_PROMPTS[self.smart_prompt_handler]["class"](self.settings, self.directory)
+                generated = smart_prompt.get_extra_prompts(self.chat[-1]["Message"], self.chat[len(self.chat) - self.memory:len(self.chat)-1], EXTRA_PROMPTS)
+                prompts += generated
+        # Set history and prompts
         self.model.set_history(prompts, self)
 
         if self.model.stream_enabled():
@@ -1245,7 +1256,6 @@ class MainWindow(Gtk.ApplicationWindow):
                 tts = AVAILABLE_TTS[self.tts_program]["class"](self.settings, self.directory)
                 message=re.sub(r"```.*?```", "", message_label, flags=re.DOTALL)
                 # Remove text in *text*
-                message = re.sub(r"\*(.*?)\*", "", message)
                 if not(not message.strip() or message.isspace() or all(char == '\n' for char in message)):
                     # Translate the message
                     translator = None

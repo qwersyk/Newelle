@@ -43,6 +43,8 @@ newelle_sources = [
   'presentation.py',
   'avatar.py',
   'translator.py',
+  'dataset.py',
+  'smart_prompt.py',
 ]
 
 install_data(newelle_sources, install_dir: moduledir)
