@@ -41,3 +41,7 @@ install_data (
   'left-large-symbolic.svg',
   install_dir: symbolic_dir
 )
+install_data (
+  'gnome-terminal-symbolic.svg',
+  install_dir: symbolic_dir
+)
