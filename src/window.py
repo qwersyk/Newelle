@@ -353,6 +353,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.tts_voice = settings.get_string("tts-voice")
         self.stt_engine = settings.get_string("stt-engine")
         self.stt_settings = settings.get_string("stt-settings")
+        self.external_terminal = settings.get_string("external-terminal")
 
         # Load custom prompts
         self.custom_prompts = json.loads(self.settings.get_string("custom-prompts"))

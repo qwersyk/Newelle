@@ -219,11 +219,19 @@ class CopyBox(Gtk.Box):
             self.append(self.text_expander)
 
         elif lang == "console":
+            # Run button
             icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="media-playback-start-symbolic"))
             icon.set_icon_size(Gtk.IconSize.INHERIT)
             self.run_button = Gtk.Button(halign=Gtk.Align.END, margin_end=10, css_classes=["flat"])
             self.run_button.set_child(icon)
             self.run_button.connect("clicked", self.run_console)
+            # Run in external terminal button 
+            icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="gnome-terminal-symbolic"))
+            icon.set_icon_size(Gtk.IconSize.INHERIT)
+            self.terminal_button = Gtk.Button(halign=Gtk.Align.END, margin_end=10, css_classes=["flat"])
+            self.terminal_button.set_child(icon)
+            self.terminal_button.connect("clicked", self.run_console_terminal)
+            
             self.parent = parent
 
             self.text_expander = Gtk.Expander(
@@ -237,6 +245,7 @@ class CopyBox(Gtk.Box):
                 Gtk.Label(wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR, label=console, selectable=True))
             self.text_expander.set_expanded(False)
             box.append(self.run_button)
+            box.append(self.terminal_button)
             self.append(self.text_expander)
 
         box.append(self.copy_button)
@@ -248,6 +257,7 @@ class CopyBox(Gtk.Box):
         icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="object-select-symbolic"))
         icon.set_icon_size(Gtk.IconSize.INHERIT)
         self.copy_button.set_child(icon)
+
     def run_console(self, widget,multithreading=False):
         if multithreading:
             icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="emblem-ok-symbolic"))
@@ -272,6 +282,17 @@ class CopyBox(Gtk.Box):
             widget.set_sensitive(True)
         else:
             threading.Thread(target=self.run_console, args=[widget, True]).start()
+    
+    def run_console_terminal(self, widget,multithreading=False):
+        icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="emblem-ok-symbolic"))
+        icon.set_icon_size(Gtk.IconSize.INHERIT)
+        widget.set_child(icon)
+        widget.set_sensitive(False)
+        command = self.txt + "; exec bash"
+        cmd = self.parent.external_terminal.split()
+        arguments = [s.replace("{0}", command) for s in cmd]
+        subprocess.Popen(["flatpak-spawn", "--host"] + arguments)
+
 
     def run_python(self, widget):
         self.text_expander.set_visible(True)

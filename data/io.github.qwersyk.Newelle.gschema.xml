@@ -69,6 +69,9 @@
 	      </key>
 	      <key name="custom-prompts" type="s">
 	        <default>"{}"</default>
-	      </key>
+        </key>
+        <key name="external-terminal" type="s">
+          <default>"gnome-terminal -- bash -c {0}"</default>
+        </key>
 	</schema>
 </schemalist>
