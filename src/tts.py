@@ -3,9 +3,10 @@ from typing import Any
 from gtts import gTTS, lang
 from subprocess import check_output
 import threading, time
-import os, json, pyaudio
+import os, json
 from .extra import can_escape_sandbox
-from pydub import AudioSegment
+from pygame import mixer
+
 
 class TTSHandler:
     """Every TTS handler should extend this class."""
@@ -74,19 +75,12 @@ class TTSHandler:
         os.remove(path)
 
     def playsound(self, path):
-        self._play_lock.acquire()
-        audio = AudioSegment.from_file(path)
-        self.p = pyaudio.PyAudio()
-        self.stream = self.p.open(format=self.p.get_format_from_width(audio.sample_width),
-                        channels=audio.channels,
-                        rate=audio.frame_rate,
-                        output=True
-                    )
-        # Play audio
-        self._playing = True
-        self.stream.write(audio.raw_data)
-        self._playing = False
-        self._play_lock.release()
+        mixer.init()
+        mixer.music.load(path)
+        mixer.music.play()
+
+    def stop(self):
+        mixer.music.stop()
 
     def is_installed(self) -> bool:
         """If all the requirements are installed"""

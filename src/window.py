@@ -391,7 +391,8 @@ class MainWindow(Gtk.ApplicationWindow):
             os.chdir(os.path.expanduser(self.main_path))
         else:
             self.main_path="~"
-
+        if self.tts_program in AVAILABLE_TTS:
+                self.tts = AVAILABLE_TTS[self.tts_program]["class"](self.settings, self.directory)
 
     def send_button_start_spinner(self):
         spinner = Gtk.Spinner(spinning=True)
@@ -1139,12 +1140,11 @@ class MainWindow(Gtk.ApplicationWindow):
             GLib.idle_add(self.show_message, message_label)
         GLib.idle_add(self.remove_send_button_spinner)
         # TTS
-        if self.tts_enabled:
-            if self.tts_program in AVAILABLE_TTS:
-                tts = AVAILABLE_TTS[self.tts_program]["class"](self.settings, self.directory)
-                message=re.sub(r"```.*?```", "", message_label, flags=re.DOTALL)
-                if not(not message.strip() or message.isspace() or all(char == '\n' for char in message)):
-                    tts.play_audio(message)
+        if self.tts_enabled: 
+            message=re.sub(r"```.*?```", "", message_label, flags=re.DOTALL)
+            if not(not message.strip() or message.isspace() or all(char == '\n' for char in message)):
+                threading.Thread(target=self.tts.play_audio, args=(message, )).start()
+
 
     def update_message(self, message, label):
         GLib.idle_add(label.set_label, message)
