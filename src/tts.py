@@ -5,6 +5,7 @@ from subprocess import check_output
 import threading, time
 import os, json
 from .extra import can_escape_sandbox
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 from pygame import mixer
 
 
