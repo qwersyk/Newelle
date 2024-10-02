@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Any
+from typing import Any, Callable
 from gtts import gTTS, lang
 from subprocess import check_output
 import threading, time
@@ -14,13 +14,12 @@ class TTSHandler:
     key = ""
     voices : tuple
  
-    _playing : bool = False
-    _play_lock : threading.Semaphore = threading.Semaphore(1)
-
     def __init__(self, settings, path):
         self.settings = settings
         self.path = path
         self.voices = tuple()
+        self.on_start = lambda : None
+        self.on_stop  = lambda : None
         pass
 
     @staticmethod
@@ -75,10 +74,21 @@ class TTSHandler:
         self.playsound(path)
         os.remove(path)
 
+
+    def connect(self, signal: str, callback: Callable):
+        if signal == "start":
+            self.on_start = callback
+        elif signal == "stop":
+            self.on_stop = callback
+
     def playsound(self, path):
+        self.on_start()
         mixer.init()
         mixer.music.load(path)
         mixer.music.play()
+        while mixer.music.get_busy():
+            time.sleep(0.1)
+        self.on_stop()
 
     def stop(self):
         mixer.music.stop()

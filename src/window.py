@@ -76,6 +76,12 @@ class MainWindow(Gtk.ApplicationWindow):
         self.flap_button_left.set_icon_name(icon_name='sidebar-show-right-symbolic')
         self.flap_button_left.connect('clicked', self.on_flap_button_toggled)
         self.chat_header.pack_end(child=self.flap_button_left)
+        
+        self.mute_tts_button = Gtk.Button(css_classes=["flat"], icon_name="audio-volume-muted-symbolic")
+        self.mute_tts_button.connect("clicked", self.mute_tts)
+        self.mute_tts_button.set_visible(False)
+        self.chat_header.pack_end(self.mute_tts_button)
+
 
 
 
@@ -210,6 +216,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.main_program_block.set_reveal_flap(False)
 
         box.append(self.flap_button_right)
+
         self.explorer_panel_header.pack_end(box)
         self.status = True
         self.chat_controls_entry_block.append(self.chat_stop_button)
@@ -298,6 +305,11 @@ class MainWindow(Gtk.ApplicationWindow):
     def show_presentation_window(self):
         self.presentation_dialog = PresentationWindow("presentation", self.settings, self.directory, self)
         self.presentation_dialog.show()
+
+    def mute_tts(self, button):
+        if self.tts_enabled:
+            self.tts.stop()
+        button.set_visible(False)
 
     def start_recording(self, button):
         #button.set_child(Gtk.Spinner(spinning=True))
@@ -393,6 +405,8 @@ class MainWindow(Gtk.ApplicationWindow):
             self.main_path="~"
         if self.tts_program in AVAILABLE_TTS:
                 self.tts = AVAILABLE_TTS[self.tts_program]["class"](self.settings, self.directory)
+                self.tts.connect('start', lambda : self.mute_tts_button.set_visible(True))
+                self.tts.connect('stop', lambda : self.mute_tts_button.set_visible(False))
 
     def send_button_start_spinner(self):
         spinner = Gtk.Spinner(spinning=True)
