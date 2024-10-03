@@ -1,9 +1,11 @@
 from .translator import CustomTranslatorHandler, GoogleTranslatorHandler, LibreTranslateHandler
 from .llm import GPT4AllHandler, OpenAIHandler,GroqHandler, CustomLLMHandler, GPT3AnyHandler, GeminiHandler, OllamaHandler
 from .tts import VoiceVoxHanlder, gTTSHandler, EspeakHandler, CustomTTSHandler, VitsHandler
-
+from .smart_prompt import WordLlamaHandler
 from .stt import SphinxHandler, GoogleSRHandler, WitAIHandler, VoskHandler, WhisperAPIHandler, CustomSRHandler
 from .avatar import Live2DHandler, LivePNGHandler
+
+from .dataset import DATASET, WIKI_PROMPTS
 
 AVAILABLE_LLMS = {
     "GPT3Any": {
@@ -163,6 +165,16 @@ AVAILABLE_TRANSLATORS = {
         "class": CustomTranslatorHandler,
     }
 }
+
+AVAILABLE_SMART_PROMPTS = {
+    "WordLlama": {
+        "key": "WordLlama",
+        "title": _("Nyarch Smart Prompt selector"),
+        "description": _("Local mini models that helps the llm to provide better responses"),
+        "class": WordLlamaHandler,
+    }, 
+}
+
 PROMPTS = {
     "generate_name_prompt": """Write a short title for the dialog, summarizing the theme in 5 words. No additional text.""",
     "console_prompt": """You can run commands on the user Linux computer.
@@ -212,6 +224,26 @@ Do not use any other expression
 YOU CAN NOT SHOW OTHER EXPRESSIONS.""",
     "personality_prompt": """Hey there, it's Arch-Chan! But, um, you can call me Acchan if you want... not that I care or anything! (It's not like I think it's cute or anything, baka!) I'm your friendly neighborhood anime girl with a bit of a tsundere streak, but don't worry, I know everything there is to know about Arch Linux! Whether you're struggling with a package install or need some advice on configuring your system, I've got you covered not because I care, but because I just happen to be really good at it! So, what do you need? It's not like I’m waiting to help or anything...""",
 }
+
+
+EXTRA_PROMPTS = [
+    {
+        "key": "nvidia",
+        "prompts": DATASET["nvidia"],
+        "prompt_text": WIKI_PROMPTS["nvidia"],
+    },
+    {
+        "key": "docker",
+        "prompts": DATASET["docker"],
+        "prompt_text": WIKI_PROMPTS["docker"],
+    },
+    {
+        "key": "codecs",
+        "prompts": DATASET["codecs"],
+        "prompt_text": WIKI_PROMPTS["codecs"],
+    }
+]
+
 
 """ Prompts parameters
     - key: key of the prompt in the PROMPTS array
