@@ -13,8 +13,9 @@ class TTSHandler:
     """Every TTS handler should extend this class."""
     key = ""
     voices : tuple
- 
+    _play_lock : threading.Semaphore = threading.Semaphore(1)
     def __init__(self, settings, path):
+        mixer.init()
         self.settings = settings
         self.path = path
         self.voices = tuple()
@@ -74,7 +75,6 @@ class TTSHandler:
         self.playsound(path)
         os.remove(path)
 
-
     def connect(self, signal: str, callback: Callable):
         if signal == "start":
             self.on_start = callback
@@ -82,16 +82,20 @@ class TTSHandler:
             self.on_stop = callback
 
     def playsound(self, path):
+        """Play an audio from the given path"""
+        self.stop()
+        self._play_lock.acquire()
         self.on_start()
-        mixer.init()
         mixer.music.load(path)
         mixer.music.play()
         while mixer.music.get_busy():
             time.sleep(0.1)
         self.on_stop()
+        self._play_lock.release()
 
     def stop(self):
-        mixer.music.stop()
+        if mixer.music.get_busy():
+            mixer.music.stop()
 
     def is_installed(self) -> bool:
         """If all the requirements are installed"""

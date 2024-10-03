@@ -387,9 +387,9 @@ class MainWindow(Gtk.ApplicationWindow):
         else:
             self.main_path="~"
         if self.tts_program in AVAILABLE_TTS:
-                self.tts = AVAILABLE_TTS[self.tts_program]["class"](self.settings, self.directory)
-                self.tts.connect('start', lambda : self.mute_tts_button.set_visible(True))
-                self.tts.connect('stop', lambda : self.mute_tts_button.set_visible(False))
+            self.tts = AVAILABLE_TTS[self.tts_program]["class"](self.settings, self.directory)
+            self.tts.connect('start', lambda : GLib.idle_add(self.mute_tts_button.set_visible, True))
+            self.tts.connect('stop', lambda : GLib.idle_add(self.mute_tts_button.set_visible, False))
 
     def send_button_start_spinner(self):
         spinner = Gtk.Spinner(spinning=True)
