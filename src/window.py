@@ -28,20 +28,6 @@ class MainWindow(Gtk.ApplicationWindow):
         self.pip_directory = os.path.join(self.directory, "pip")
         sys.path.append(self.pip_directory)
 
-        self.random_suggestion = ["files", "folders", "programming",
-                     "data analysis", "security and privacy", "hardware diagnostics",
-                     "task automation", "cloud computing", "web development",
-                     "digital media editing", "productivity tips", "coding exercises",
-                     "database management", "creating a folder", "accessing a file",
-                     "moving a file", "renaming a file", "deleting a file",
-                     "managing file permissions", "viewing system logs",
-                     "installing packages on Linux", "working with the command line",
-                     "monitoring system resources", "managing user accounts",
-                     "scheduling tasks", "network configuration", "process management",
-                     "system backup and restore", "linux command line",
-                     "working with Linux distributions", "shell scripting",
-                     "managing services", "system troubleshooting"]
-
         if not os.path.exists(self.path):
             os.makedirs(self.path)
         self.filename = "chats.pkl"
@@ -72,12 +58,20 @@ class MainWindow(Gtk.ApplicationWindow):
         self.chat_block = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, hexpand=True, css_classes=["view"])
         self.chat_header = Adw.HeaderBar(css_classes=["flat","view"])
         self.chat_header.set_title_widget(Gtk.Label(label=_("Chat"), css_classes=["title"]))
+        
+        # Header box - Contains the buttons that must go in the left side of the header
+        self.headerbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, hexpand=True) 
+        # Mute TTS Button 
+        self.mute_tts_button = Gtk.Button(css_classes=["flat"], icon_name="audio-volume-muted-symbolic", visible=False)
+        self.mute_tts_button.connect("clicked", self.mute_tts)
+        self.headerbox.append(self.mute_tts_button)
+        # Flap button 
         self.flap_button_left = Gtk.ToggleButton.new()
         self.flap_button_left.set_icon_name(icon_name='sidebar-show-right-symbolic')
         self.flap_button_left.connect('clicked', self.on_flap_button_toggled)
-        self.chat_header.pack_end(child=self.flap_button_left)
-
-
+        self.headerbox.append(child=self.flap_button_left)
+        # Add headerbox to default parent
+        self.chat_header.pack_end(self.headerbox)
 
         self.left_panel_back_button = Gtk.Button(css_classes=["flat"], visible=False)
         icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="go-previous-symbolic"))
@@ -203,13 +197,9 @@ class MainWindow(Gtk.ApplicationWindow):
         self.explorer_panel_header.pack_start(box)
         box = Gtk.Box(spacing=6)
         box.append(button_reload)
-
-        self.flap_button_right = Gtk.ToggleButton.new()
-        self.flap_button_right.set_icon_name(icon_name='sidebar-show-right-symbolic')
-        self.flap_button_right.connect('clicked', self.on_flap_button_toggled)
+        # Box containing explorer panel specific buttons
+        self.explorer_panel_headerbox = box
         self.main_program_block.set_reveal_flap(False)
-
-        box.append(self.flap_button_right)
         self.explorer_panel_header.pack_end(box)
         self.status = True
         self.chat_controls_entry_block.append(self.chat_stop_button)
@@ -298,6 +288,11 @@ class MainWindow(Gtk.ApplicationWindow):
     def show_presentation_window(self):
         self.presentation_dialog = PresentationWindow("presentation", self.settings, self.directory, self)
         self.presentation_dialog.show()
+
+    def mute_tts(self, button):
+        if self.tts_enabled:
+            self.tts.stop()
+        button.set_visible(False)
 
     def start_recording(self, button):
         #button.set_child(Gtk.Spinner(spinning=True))
@@ -391,7 +386,10 @@ class MainWindow(Gtk.ApplicationWindow):
             os.chdir(os.path.expanduser(self.main_path))
         else:
             self.main_path="~"
-
+        if self.tts_program in AVAILABLE_TTS:
+            self.tts = AVAILABLE_TTS[self.tts_program]["class"](self.settings, self.directory)
+            self.tts.connect('start', lambda : GLib.idle_add(self.mute_tts_button.set_visible, True))
+            self.tts.connect('stop', lambda : GLib.idle_add(self.mute_tts_button.set_visible, False))
 
     def send_button_start_spinner(self):
         spinner = Gtk.Spinner(spinning=True)
@@ -416,15 +414,21 @@ class MainWindow(Gtk.ApplicationWindow):
         if status:
             self.chat_panel_header.set_show_end_title_buttons(False)
             self.chat_header.set_show_end_title_buttons(False)
-            self.flap_button_left.set_visible(False)
+            header_widget = self.explorer_panel_headerbox
         else:
             self.chat_panel_header.set_show_end_title_buttons(self.main.get_folded())
             self.chat_header.set_show_end_title_buttons(True)
-            self.flap_button_left.set_visible(True)
+            header_widget = self.chat_header
+        # Unparent the headerbox  
+        self.headerbox.unparent()
+        # Move the headerbox to the right widget
+        if type(header_widget) is Adw.HeaderBar or type(header_widget) is Gtk.HeaderBar:
+            header_widget.pack_end(self.headerbox)
+        elif type(header_widget) is Gtk.Box:
+            self.explorer_panel_headerbox.append(self.headerbox)
     
     def on_flap_button_toggled(self, toggle_button):
-        self.flap_button_left.set_active(False)
-        self.flap_button_right.set_active(True)
+        self.flap_button_left.set_active(True)
         if self.main_program_block.get_name() == "visible":
             self.main_program_block.set_name("hide")
             self.main_program_block.set_reveal_flap(False)
@@ -1139,12 +1143,11 @@ class MainWindow(Gtk.ApplicationWindow):
             GLib.idle_add(self.show_message, message_label)
         GLib.idle_add(self.remove_send_button_spinner)
         # TTS
-        if self.tts_enabled:
-            if self.tts_program in AVAILABLE_TTS:
-                tts = AVAILABLE_TTS[self.tts_program]["class"](self.settings, self.directory)
-                message=re.sub(r"```.*?```", "", message_label, flags=re.DOTALL)
-                if not(not message.strip() or message.isspace() or all(char == '\n' for char in message)):
-                    tts.play_audio(message)
+        if self.tts_enabled: 
+            message=re.sub(r"```.*?```", "", message_label, flags=re.DOTALL)
+            if not(not message.strip() or message.isspace() or all(char == '\n' for char in message)):
+                threading.Thread(target=self.tts.play_audio, args=(message, )).start()
+
 
     def update_message(self, message, label):
         GLib.idle_add(label.set_label, message)

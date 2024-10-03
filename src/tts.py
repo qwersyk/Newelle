@@ -1,24 +1,26 @@
 from abc import abstractmethod
-from typing import Any
+from typing import Any, Callable
 from gtts import gTTS, lang
 from subprocess import check_output
 import threading, time
-import os, json, pyaudio
+import os, json
 from .extra import can_escape_sandbox
-from pydub import AudioSegment
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
+from pygame import mixer
+
 
 class TTSHandler:
     """Every TTS handler should extend this class."""
     key = ""
     voices : tuple
- 
-    _playing : bool = False
     _play_lock : threading.Semaphore = threading.Semaphore(1)
-
     def __init__(self, settings, path):
+        mixer.init()
         self.settings = settings
         self.path = path
         self.voices = tuple()
+        self.on_start = lambda : None
+        self.on_stop  = lambda : None
         pass
 
     @staticmethod
@@ -73,20 +75,27 @@ class TTSHandler:
         self.playsound(path)
         os.remove(path)
 
+    def connect(self, signal: str, callback: Callable):
+        if signal == "start":
+            self.on_start = callback
+        elif signal == "stop":
+            self.on_stop = callback
+
     def playsound(self, path):
+        """Play an audio from the given path"""
+        self.stop()
         self._play_lock.acquire()
-        audio = AudioSegment.from_file(path)
-        self.p = pyaudio.PyAudio()
-        self.stream = self.p.open(format=self.p.get_format_from_width(audio.sample_width),
-                        channels=audio.channels,
-                        rate=audio.frame_rate,
-                        output=True
-                    )
-        # Play audio
-        self._playing = True
-        self.stream.write(audio.raw_data)
-        self._playing = False
+        self.on_start()
+        mixer.music.load(path)
+        mixer.music.play()
+        while mixer.music.get_busy():
+            time.sleep(0.1)
+        self.on_stop()
         self._play_lock.release()
+
+    def stop(self):
+        if mixer.music.get_busy():
+            mixer.music.stop()
 
     def is_installed(self) -> bool:
         """If all the requirements are installed"""
