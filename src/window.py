@@ -60,16 +60,16 @@ class MainWindow(Gtk.ApplicationWindow):
         self.chat_header.set_title_widget(Gtk.Label(label=_("Chat"), css_classes=["title"]))
         
         # Header box - Contains the buttons that must go in the left side of the header
-        self.headerbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, hexpand=True)
+        self.headerbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, hexpand=True) 
+        # Mute TTS Button 
+        self.mute_tts_button = Gtk.Button(css_classes=["flat"], icon_name="audio-volume-muted-symbolic", visible=False)
+        self.mute_tts_button.connect("clicked", self.mute_tts)
+        self.headerbox.append(self.mute_tts_button)
         # Flap button 
         self.flap_button_left = Gtk.ToggleButton.new()
         self.flap_button_left.set_icon_name(icon_name='sidebar-show-right-symbolic')
         self.flap_button_left.connect('clicked', self.on_flap_button_toggled)
         self.headerbox.append(child=self.flap_button_left)
-        # Mute TTS Button 
-        self.mute_tts_button = Gtk.Button(css_classes=["flat"], icon_name="audio-volume-muted-symbolic", visible=False)
-        self.mute_tts_button.connect("clicked", self.mute_tts)
-        self.headerbox.append(self.mute_tts_button)
         # Add headerbox to default parent
         self.chat_header.pack_end(self.headerbox)
 
@@ -414,13 +414,18 @@ class MainWindow(Gtk.ApplicationWindow):
         if status:
             self.chat_panel_header.set_show_end_title_buttons(False)
             self.chat_header.set_show_end_title_buttons(False)
-            header_widget = self.explorer_panel_header
+            header_widget = self.explorer_panel_headerbox
         else:
             self.chat_panel_header.set_show_end_title_buttons(self.main.get_folded())
             self.chat_header.set_show_end_title_buttons(True)
             header_widget = self.chat_header
+        # Unparent the headerbox  
         self.headerbox.unparent()
-        header_widget.pack_end(self.headerbox)
+        # Move the headerbox to the right widget
+        if type(header_widget) is Adw.HeaderBar or type(header_widget) is Gtk.HeaderBar:
+            header_widget.pack_end(self.headerbox)
+        elif type(header_widget) is Gtk.Box:
+            self.explorer_panel_headerbox.append(self.headerbox)
     
     def on_flap_button_toggled(self, toggle_button):
         self.flap_button_left.set_active(True)
