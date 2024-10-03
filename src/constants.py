@@ -1,4 +1,4 @@
-from .translator import CustomTranslatorHandler, GoogleTranslatorHandler, LibreTranslateHandler
+from .translator import CustomTranslatorHandler, GoogleTranslatorHandler, LibreTranslateHandler, LigvaTranslateHandler
 from .llm import GPT4AllHandler, OpenAIHandler,GroqHandler, CustomLLMHandler, GPT3AnyHandler, GeminiHandler, OllamaHandler
 from .tts import VoiceVoxHanlder, gTTSHandler, EspeakHandler, CustomTTSHandler, VitsHandler
 from .smart_prompt import WordLlamaHandler
@@ -158,6 +158,12 @@ AVAILABLE_TRANSLATORS = {
         "description": _("Open source self hostable translator"),
         "class": LibreTranslateHandler,
     }, 
+    "LigvaTranslate": {
+        "key": "LigvaTranslate",
+        "title": _("Ligva Translate"),
+        "description": _("Open source self hostable translator"),
+        "class": LigvaTranslateHandler,
+    },
     "CustomTranslator": {
         "key": "CustomTranslator",
         "title": _("Custom Translator"),
