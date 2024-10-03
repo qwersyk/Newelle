@@ -4,9 +4,13 @@ import re, threading, os, json, time, ctypes
 from subprocess import Popen 
 from gi.repository import Gtk, Adw, Gio, GLib
 
+from .translator import TranslatorHandler
+from .smart_prompt import SmartPromptHandler
+from .avatar import AvatarHandler
+
 from .stt import STTHandler
 from .tts import TTSHandler
-from .constants import AVAILABLE_LLMS, AVAILABLE_PROMPTS, AVAILABLE_TTS, AVAILABLE_STT, PROMPTS
+from .constants import AVAILABLE_AVATARS, AVAILABLE_LLMS, AVAILABLE_TRANSLATORS, AVAILABLE_TTS, AVAILABLE_STT, PROMPTS, AVAILABLE_PROMPTS, AVAILABLE_SMART_PROMPTS
 from gpt4all import GPT4All
 from .llm import GPT4AllHandler, LLMHandler
 from .gtkobj import ComboRowHelper, CopyBox, MultilineEntry
@@ -15,6 +19,7 @@ from .extra import can_escape_sandbox, override_prompts, human_readable_size
 class Settings(Adw.PreferencesWindow):
     def __init__(self,app,headless=False, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.sandbox = can_escape_sandbox()
         self.settings = Gio.Settings.new('io.github.qwersyk.Newelle')
         if not headless:
             self.set_transient_for(app.win)
@@ -56,7 +61,19 @@ class Settings(Adw.PreferencesWindow):
         for tts_key in AVAILABLE_TTS:
            row = self.build_row(AVAILABLE_TTS, tts_key, selected, group) 
            tts_program.add_row(row)
-
+        
+        # Build the Translators settings
+        group = Gtk.CheckButton()
+        selected = self.settings.get_string("translator")
+        tts_enabled = Gtk.Switch(valign=Gtk.Align.CENTER)
+        self.settings.bind("translator-on", tts_enabled, 'active', Gio.SettingsBindFlags.DEFAULT)
+        translator_program = Adw.ExpanderRow(title=_('Translator program'), subtitle=_("Translate the output of the LLM before passing it to the TTS Program"))
+        translator_program.add_action(tts_enabled)
+        for translator_key in AVAILABLE_TRANSLATORS:
+            row = self.build_row(AVAILABLE_TRANSLATORS, translator_key, selected, group)
+            translator_program.add_row(row)
+        self.TTSgroup.add(translator_program)
+        
         # Build the Speech to Text settings
         self.STTgroup = Adw.PreferencesGroup(title=_('Speech to Text'))
         self.general_page.add(self.STTgroup)
@@ -67,6 +84,35 @@ class Settings(Adw.PreferencesWindow):
         for stt_key in AVAILABLE_STT:
             row = self.build_row(AVAILABLE_STT, stt_key, selected, group)
             stt_engine.add_row(row)
+        
+        # Build the AVATAR settings
+        self.avatargroup = Adw.PreferencesGroup(title=_('Avatar'))
+        self.general_page.add(self.avatargroup)
+        avatar_enabled = Gtk.Switch(valign=Gtk.Align.CENTER)
+        self.settings.bind("avatar-on", avatar_enabled, 'active', Gio.SettingsBindFlags.DEFAULT)
+        avatar = Adw.ExpanderRow(title=_('Avatar model'), subtitle=_("Choose which avatar model to choose"))
+        avatar.add_action(avatar_enabled)
+        self.avatargroup.add(avatar)
+        group = Gtk.CheckButton()
+        selected = self.settings.get_string("avatar-model")
+        for avatar_key in AVAILABLE_AVATARS:
+           row = self.build_row(AVAILABLE_AVATARS, avatar_key, selected, group) 
+           avatar.add_row(row)
+        
+        # Build the Smart Prompt settings
+        self.smartpromptgroup = Adw.PreferencesGroup(title=_('Smart Prompt'))
+        self.general_page.add(self.smartpromptgroup)
+        smart_prompt_enabled = Gtk.Switch(valign=Gtk.Align.CENTER)
+        self.settings.bind("smart-prompt-on", smart_prompt_enabled, 'active', Gio.SettingsBindFlags.DEFAULT)
+        smartprompt = Adw.ExpanderRow(title=_('Smart Prompt selector'), subtitle=_("Choose which smart prompt model to choose"))
+        smartprompt.add_action(smart_prompt_enabled)
+        self.smartpromptgroup.add(smartprompt)
+        group = Gtk.CheckButton()
+        selected = self.settings.get_string("smart-prompt-settings")
+        for smart_prompt_key in AVAILABLE_SMART_PROMPTS:
+           row = self.build_row(AVAILABLE_SMART_PROMPTS, smart_prompt_key, selected, group) 
+           smartprompt.add_row(row)
+
         # Interface settings
         self.interface = Adw.PreferencesGroup(title=_('Interface'))
         self.general_page.add(self.interface)
@@ -164,7 +210,6 @@ class Settings(Adw.PreferencesWindow):
              row = Adw.ExpanderRow(title=model["title"], subtitle=model["description"])
              if key != "local":
                  self.add_extra_settings(constants, handler, row)
-                 end = time.time()
              else:
                 self.llmrow = row
                 threading.Thread(target=self.build_local).start()
@@ -185,7 +230,7 @@ class Settings(Adw.PreferencesWindow):
         row.add_prefix(button)
         return row
 
-    def get_object(self, constants: dict[str, Any], key:str) -> (LLMHandler | TTSHandler | STTHandler):
+    def get_object(self, constants: dict[str, Any], key:str) -> (LLMHandler | TTSHandler | STTHandler | AvatarHandler | TranslatorHandler | SmartPromptHandler):
         """Get an handler instance for the specified handler key
 
         Args:
@@ -203,6 +248,12 @@ class Settings(Adw.PreferencesWindow):
         elif constants == AVAILABLE_STT:
             model = constants[key]["class"](self.settings,os.path.join(self.directory, "models"))
         elif constants == AVAILABLE_TTS:
+            model = constants[key]["class"](self.settings, self.directory)
+        elif constants == AVAILABLE_AVATARS:
+            model = constants[key]["class"](self.settings, self.directory)
+        elif constants == AVAILABLE_TRANSLATORS:
+            model = constants[key]["class"](self.settings, self.directory)
+        elif constants == AVAILABLE_SMART_PROMPTS:
             model = constants[key]["class"](self.settings, self.directory)
         else:
             raise Exception("Unknown constants")
@@ -229,6 +280,12 @@ class Settings(Adw.PreferencesWindow):
                     return AVAILABLE_STT
                 case "llm":
                     return AVAILABLE_LLMS
+                case "avatar":
+                    return AVAILABLE_AVATARS
+                case "translator":
+                    return AVAILABLE_TRANSLATORS
+                case "smart-prompt":
+                    return AVAILABLE_SMART_PROMPTS
                 case _:
                     raise Exception("Unknown constants")
         else:
@@ -238,10 +295,16 @@ class Settings(Adw.PreferencesWindow):
                 return "stt"
             elif constants == AVAILABLE_TTS:
                 return "tts"
+            elif constants == AVAILABLE_AVATARS:
+                return "avatar"
+            elif constants == AVAILABLE_TRANSLATORS:
+                return "translator"
+            elif constants == AVAILABLE_SMART_PROMPTS:
+                return "smart-prompt"
             else:
                 raise Exception("Unknown constants")
 
-    def get_constants_from_object(self, handler: TTSHandler | STTHandler | LLMHandler) -> dict[str, Any]:
+    def get_constants_from_object(self, handler: TTSHandler | STTHandler | LLMHandler | AvatarHandler | TranslatorHandler | SmartPromptHandler) -> dict[str, Any]:
         """Get the constants from an hander
 
         Args:
@@ -258,6 +321,12 @@ class Settings(Adw.PreferencesWindow):
             return AVAILABLE_STT
         elif issubclass(type(handler), LLMHandler):
             return AVAILABLE_LLMS
+        elif issubclass(type(handler), AvatarHandler):
+            return AVAILABLE_AVATARS
+        elif issubclass(type(handler), TranslatorHandler):
+            return AVAILABLE_TRANSLATORS
+        elif issubclass(type(handler), SmartPromptHandler):
+            return AVAILABLE_SMART_PROMPTS
         else:
             raise Exception("Unknown handler")
 
@@ -275,11 +344,18 @@ class Settings(Adw.PreferencesWindow):
             setting_name = "tts"
         elif constants == AVAILABLE_STT:
             setting_name = "stt-engine"
+        elif constants == AVAILABLE_AVATARS:
+            setting_name = "avatar-model"
+        elif constants == AVAILABLE_TRANSLATORS:
+            setting_name = "translator"
+        elif constants == AVAILABLE_SMART_PROMPTS:
+            setting_name = "smart-prompt"
         else:
             return
         self.settings.set_string(setting_name, button.get_name())
 
-    def add_extra_settings(self, constants : dict[str, Any], handler : LLMHandler | TTSHandler | STTHandler, row : Adw.ExpanderRow):
+
+    def add_extra_settings(self, constants : dict[str, Any], handler : LLMHandler | TTSHandler | STTHandler | AvatarHandler | TranslatorHandler | SmartPromptHandler, row : Adw.ExpanderRow):
         """Buld the extra settings for the specified handler. The extra settings are specified by the method get_extra_settings 
             Extra settings format:
             Required parameters:
@@ -418,14 +494,13 @@ class Settings(Adw.PreferencesWindow):
 
     def open_website(self, button):
         Popen(["flatpak-spawn", "--host", "xdg-open", button.get_name()])
-
+        
     def on_setting_change(self, constants: dict[str, Any], handler: LLMHandler | TTSHandler | STTHandler, key: str, force_change : bool = False):
         
         if not force_change:
             setting_info = [info for info in handler.get_extra_settings() if info["key"] == key][0]
         else:
             setting_info = {}
-
         if force_change or "update_settings" in setting_info and setting_info["update_settings"]:
             # remove all the elements in the specified expander row 
             row = self.settingsrows[(handler.key, self.convert_constants(constants))]["row"]
@@ -434,7 +509,7 @@ class Settings(Adw.PreferencesWindow):
                 row.remove(setting_row)
             self.add_extra_settings(constants, handler, row)
 
-    def setting_change_entry(self, entry, constants, handler : LLMHandler | TTSHandler | STTHandler):
+    def setting_change_entry(self, entry, constants, handler : LLMHandler | TTSHandler | STTHandler | AvatarHandler | TranslatorHandler | SmartPromptHandler):
         """ Called when an entry handler setting is changed 
 
         Args:
@@ -489,7 +564,7 @@ class Settings(Adw.PreferencesWindow):
         handler.set_setting(setting, value)
         self.on_setting_change(constants, handler, setting)
 
-    def add_download_button(self, handler : TTSHandler | STTHandler | LLMHandler, row : Adw.ActionRow | Adw.ExpanderRow): 
+    def add_download_button(self, handler : TTSHandler | STTHandler | LLMHandler | AvatarHandler | TranslatorHandler | SmartPromptHandler, row : Adw.ActionRow | Adw.ExpanderRow): 
         """Add download button for an handler dependencies. If clicked it will call handler.install()
 
         Args:
@@ -507,7 +582,7 @@ class Settings(Adw.PreferencesWindow):
             elif type(row) is Adw.ExpanderRow:
                 row.add_action(actionbutton)
 
-    def add_flatpak_waning_button(self, handler : LLMHandler | TTSHandler | STTHandler, row : Adw.ExpanderRow | Adw.ActionRow | Adw.ComboRow):
+    def add_flatpak_waning_button(self, handler : LLMHandler | TTSHandler | STTHandler | AvatarHandler | TranslatorHandler | SmartPromptHandler, row : Adw.ExpanderRow | Adw.ActionRow | Adw.ComboRow):
         """Add flatpak warning button in case the application does not have enough permissions
         On click it will show a warning about this issue and how to solve it
 

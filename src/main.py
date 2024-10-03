@@ -4,15 +4,13 @@ import gi, os
 gi.require_version('Gtk', '4.0')
 gi.require_version('GtkSource', '5')
 gi.require_version('Adw', '1')
-import pickle
+gi.require_version("WebKit", "6.0")
 from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GtkSource, GObject
 from .settings import Settings
 from .window import MainWindow
 from .shortcuts import Shortcuts
 from .thread_editing import ThreadEditing
 from .extension import Extension
-
-
 
 
 class MyApp(Adw.Application):
@@ -151,6 +149,8 @@ class MyApp(Adw.Application):
         extension.present()
     def close_window(self, *a):
         if all(element.poll() is not None for element in self.win.streams):
+            if self.win.avatar_handler is not None:
+                self.win.avatar_handler.destroy()
             return False
         else:
             dialog = Adw.MessageDialog(
@@ -171,6 +171,8 @@ class MyApp(Adw.Application):
         if status=="close":
             for i in self.win.streams:
                 i.terminate()
+            if self.win.avatar is not None:
+                self.win.avatar_handler.destroy()
             self.win.destroy()
     def on_activate(self, app):
         self.win = MainWindow(application=app)
@@ -199,6 +201,7 @@ class MyApp(Adw.Application):
         settings.set_string("path", os.path.normpath(self.win.main_path))
         self.win.stream_number_variable += 1
         Gtk.Application.do_shutdown(self)
+        os._exit(1)
 
 
 def main(version):

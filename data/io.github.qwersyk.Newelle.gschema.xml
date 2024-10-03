@@ -10,6 +10,9 @@
         <key name="graphic" type="b">
             <default>false</default>
         </key>
+        <key name="personality-prompt" type="b">
+            <default>true</default>
+        </key>
         <key name="virtualization" type="b">
             <default>true</default>
         </key>
@@ -29,6 +32,9 @@
             <default>false</default>
         </key>
 	      <key name="basic-functionality" type="b">
+            <default>true</default>
+        </key>
+		    <key name="expression-prompt" type="b">
             <default>true</default>
         </key>
 	      <key name="show-image" type="b">
@@ -58,6 +64,15 @@
 	      <key name="tts-voice" type="s">
             <default>"{}"</default>
         </key>
+	      <key name="avatar-on" type="b">
+            <default>true</default>
+        </key>
+	      <key name="avatar-model" type="s">
+            <default>"Live2D"</default>
+        </key>
+	      <key name="avatars" type="s">
+            <default>"{}"</default>
+        </key>
 	      <key name="stt-engine" type="s">
             <default>"google_sr"</default>
         </key>
@@ -70,8 +85,27 @@
 	      <key name="custom-prompts" type="s">
 	        <default>"{}"</default>
         </key>
+
         <key name="external-terminal" type="s">
           <default>"gnome-terminal -- bash -c {0}"</default>
+        </key>
+        <key name="translator" type="s">
+          <default>"GoogleTranslate"</default>
+        </key>
+        <key name="translator-settings" type="s">
+          <default>"{}"</default>
+        </key>
+        <key name="translator-on" type="b">
+          <default>false</default>
+        </key>
+        <key name="smart-prompt" type="s">
+          <default>"WordLlama"</default>
+        </key>
+        <key name="smart-prompt-settings" type="s">
+          <default>"{}"</default>
+        </key>
+        <key name="smart-prompt-on" type="b">
+          <default>true</default>
         </key>
 	</schema>
 </schemalist>
