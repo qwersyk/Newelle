@@ -67,11 +67,12 @@ class WordLlamaHandler(SmartPromptHandler):
             categories_db[prompt["key"]] = prompt["prompts"]
               
         scores = self.recognize_category(message, categories_db)
-
+        print(scores)
+        best_score = max(scores.values())
         prompts = []
         chat_tags = []
         for prompt in available_prompts:
-            if prompt["key"] in scores and scores[prompt["key"]] > 0.3 and not prompt["key"] in chat_tags:
+            if prompt["key"] in scores and scores[prompt["key"]] > 0.3 and best_score - scores[prompt["key"]] < 0.1 and not prompt["key"] in chat_tags:
                 chat_tags.append(prompt["key"])
             if prompt["key"] in chat_tags:
                 prompts.append(prompt["prompt_text"]) 
@@ -85,9 +86,10 @@ class WordLlamaHandler(SmartPromptHandler):
         for prompt in available_prompts:
             if prompt["key"] in chat_tags:
                 prompts.append(prompt["prompt_text"])
+        print(chat_tags)
         return prompts
    
-    def recognize_category(self, sentence, categories_db, top_k=10):
+    def recognize_category(self, sentence, categories_db, top_k=3):
         category_scores = {}
 
         for category, examples in categories_db.items():

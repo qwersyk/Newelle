@@ -176,7 +176,7 @@ AVAILABLE_SMART_PROMPTS = {
     "WordLlama": {
         "key": "WordLlama",
         "title": _("Nyarch Smart Prompt selector"),
-        "description": _("Local mini models that helps the llm to provide better responses"),
+        "description": _("EXPERIMENTAL: Local mini models that helps the llm to provide better responses"),
         "class": WordLlamaHandler,
     }, 
 }
@@ -247,6 +247,11 @@ EXTRA_PROMPTS = [
         "key": "codecs",
         "prompts": DATASET["codecs"],
         "prompt_text": WIKI_PROMPTS["codecs"],
+    },
+    {
+        "key": "console",
+        "prompts": DATASET["console"],
+        "prompt_text": WIKI_PROMPTS["console"],
     }
 ]
 
