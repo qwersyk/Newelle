@@ -108,7 +108,7 @@ class Settings(Adw.PreferencesWindow):
         smartprompt.add_action(smart_prompt_enabled)
         self.smartpromptgroup.add(smartprompt)
         group = Gtk.CheckButton()
-        selected = self.settings.get_string("smart-prompt-settings")
+        selected = self.settings.get_string("smart-prompt")
         for smart_prompt_key in AVAILABLE_SMART_PROMPTS:
            row = self.build_row(AVAILABLE_SMART_PROMPTS, smart_prompt_key, selected, group) 
            smartprompt.add_row(row)
