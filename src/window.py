@@ -28,20 +28,6 @@ class MainWindow(Gtk.ApplicationWindow):
         self.pip_directory = os.path.join(self.directory, "pip")
         sys.path.append(self.pip_directory)
 
-        self.random_suggestion = ["files", "folders", "programming",
-                     "data analysis", "security and privacy", "hardware diagnostics",
-                     "task automation", "cloud computing", "web development",
-                     "digital media editing", "productivity tips", "coding exercises",
-                     "database management", "creating a folder", "accessing a file",
-                     "moving a file", "renaming a file", "deleting a file",
-                     "managing file permissions", "viewing system logs",
-                     "installing packages on Linux", "working with the command line",
-                     "monitoring system resources", "managing user accounts",
-                     "scheduling tasks", "network configuration", "process management",
-                     "system backup and restore", "linux command line",
-                     "working with Linux distributions", "shell scripting",
-                     "managing services", "system troubleshooting"]
-
         if not os.path.exists(self.path):
             os.makedirs(self.path)
         self.filename = "chats.pkl"
@@ -72,18 +58,20 @@ class MainWindow(Gtk.ApplicationWindow):
         self.chat_block = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, hexpand=True, css_classes=["view"])
         self.chat_header = Adw.HeaderBar(css_classes=["flat","view"])
         self.chat_header.set_title_widget(Gtk.Label(label=_("Chat"), css_classes=["title"]))
+        
+        # Header box - Contains the buttons that must go in the left side of the header
+        self.headerbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, hexpand=True)
+        # Flap button 
         self.flap_button_left = Gtk.ToggleButton.new()
         self.flap_button_left.set_icon_name(icon_name='sidebar-show-right-symbolic')
         self.flap_button_left.connect('clicked', self.on_flap_button_toggled)
-        self.chat_header.pack_end(child=self.flap_button_left)
-        
-        self.mute_tts_button = Gtk.Button(css_classes=["flat"], icon_name="audio-volume-muted-symbolic")
+        self.headerbox.append(child=self.flap_button_left)
+        # Mute TTS Button 
+        self.mute_tts_button = Gtk.Button(css_classes=["flat"], icon_name="audio-volume-muted-symbolic", visible=False)
         self.mute_tts_button.connect("clicked", self.mute_tts)
-        self.mute_tts_button.set_visible(False)
-        self.chat_header.pack_end(self.mute_tts_button)
-
-
-
+        self.headerbox.append(self.mute_tts_button)
+        # Add headerbox to default parent
+        self.chat_header.pack_end(self.headerbox)
 
         self.left_panel_back_button = Gtk.Button(css_classes=["flat"], visible=False)
         icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="go-previous-symbolic"))
@@ -209,14 +197,9 @@ class MainWindow(Gtk.ApplicationWindow):
         self.explorer_panel_header.pack_start(box)
         box = Gtk.Box(spacing=6)
         box.append(button_reload)
-
-        self.flap_button_right = Gtk.ToggleButton.new()
-        self.flap_button_right.set_icon_name(icon_name='sidebar-show-right-symbolic')
-        self.flap_button_right.connect('clicked', self.on_flap_button_toggled)
+        # Box containing explorer panel specific buttons
+        self.explorer_panel_headerbox = box
         self.main_program_block.set_reveal_flap(False)
-
-        box.append(self.flap_button_right)
-
         self.explorer_panel_header.pack_end(box)
         self.status = True
         self.chat_controls_entry_block.append(self.chat_stop_button)
@@ -431,15 +414,16 @@ class MainWindow(Gtk.ApplicationWindow):
         if status:
             self.chat_panel_header.set_show_end_title_buttons(False)
             self.chat_header.set_show_end_title_buttons(False)
-            self.flap_button_left.set_visible(False)
+            header_widget = self.explorer_panel_header
         else:
             self.chat_panel_header.set_show_end_title_buttons(self.main.get_folded())
             self.chat_header.set_show_end_title_buttons(True)
-            self.flap_button_left.set_visible(True)
+            header_widget = self.chat_header
+        self.headerbox.unparent()
+        header_widget.pack_end(self.headerbox)
     
     def on_flap_button_toggled(self, toggle_button):
-        self.flap_button_left.set_active(False)
-        self.flap_button_right.set_active(True)
+        self.flap_button_left.set_active(True)
         if self.main_program_block.get_name() == "visible":
             self.main_program_block.set_name("hide")
             self.main_program_block.set_reveal_flap(False)
