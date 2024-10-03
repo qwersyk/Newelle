@@ -42,6 +42,10 @@ install_data (
   install_dir: symbolic_dir
 )
 install_data (
+  'gnome-terminal-symbolic.svg',
+  install_dir: symbolic_dir
+)
+install_data (
     'avatar-symbolic.svg',
     install_dir: symbolic_dir
 )

@@ -152,7 +152,7 @@ class Settings(Adw.PreferencesWindow):
             self.settings.bind(prompt["setting_name"], switch, 'active', Gio.SettingsBindFlags.DEFAULT)
             self.prompt.add(row)
         self.neural_network = Adw.PreferencesGroup(title=_('Neural Network Control'))
-        self.general_page.add(self.neural_network)
+        self.general_page.add(self.neural_network) 
 
         row = Adw.ActionRow(title=_("Command virtualization"), subtitle=_("Run commands in a virtual machine"))
         switch = Gtk.Switch(valign=Gtk.Align.CENTER)
@@ -166,7 +166,13 @@ class Settings(Adw.PreferencesWindow):
         # Connect the function
         switch.connect("state-set", self.toggle_virtualization)
         self.neural_network.add(row)
-
+        
+        row = Adw.ExpanderRow(title=_("External Terminal"), subtitle=_("Choose the external terminal where to run the console commands"))
+        entry = Gtk.Entry()
+        self.settings.bind("external-terminal", entry, 'text', Gio.SettingsBindFlags.DEFAULT)
+        row.add_row(entry)
+        self.neural_network.add(row)
+        # Set default value for the switch        
         row = Adw.ActionRow(title=_("Program memory"), subtitle=_("How long the program remembers the chat "))
         int_spin = Gtk.SpinButton(valign=Gtk.Align.CENTER)
         int_spin.set_adjustment(Gtk.Adjustment(lower=0, upper=30, step_increment=1, page_increment=10, page_size=0))

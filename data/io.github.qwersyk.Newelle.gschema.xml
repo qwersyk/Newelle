@@ -85,6 +85,10 @@
 	      <key name="custom-prompts" type="s">
 	        <default>"{}"</default>
         </key>
+
+        <key name="external-terminal" type="s">
+          <default>"gnome-terminal -- bash -c {0}"</default>
+        </key>
         <key name="translator" type="s">
           <default>"GoogleTranslate"</default>
         </key>
@@ -103,6 +107,5 @@
         <key name="smart-prompt-on" type="b">
           <default>true</default>
         </key>
-
 	</schema>
 </schemalist>
