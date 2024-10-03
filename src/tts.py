@@ -2,7 +2,7 @@ from abc import abstractmethod
 from typing import Any, Callable
 from gtts import gTTS, lang
 from subprocess import check_output
-
+import os
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 from pygame import mixer
 import threading, time, requests
@@ -104,6 +104,9 @@ class TTSHandler:
     def stop(self):
         if mixer.music.get_busy():
             mixer.music.stop()
+
+    def is_playing(self) -> bool:
+        return mixer.music.get_busy()
 
     def is_installed(self) -> bool:
         """If all the requirements are installed"""

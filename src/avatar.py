@@ -25,6 +25,7 @@ class AvatarHandler:
     def __init__(self, settings, path: str):
         self.settings = settings
         self.path = path
+        self.stop_request = False
 
     @staticmethod
     def support_emotions() -> bool:
@@ -142,6 +143,9 @@ class AvatarHandler:
             return True
         return False
 
+    def stop(self):
+        self.stop_request = True
+
 class Live2DHandler(AvatarHandler):
     key = "Live2D"
     _wait_js : threading.Event
@@ -258,6 +262,8 @@ class Live2DHandler(AvatarHandler):
         pass   
            
     def speak(self, path: str, tts: TTSHandler, frame_rate: int):
+        tts.stop()
+        self.stop()
         audio = AudioSegment.from_file(path)
         sample_rate = audio.frame_rate
         audio_data = audio.get_array_of_samples()
@@ -270,7 +276,12 @@ class Live2DHandler(AvatarHandler):
         t2.join()
 
     def _start_animation(self, amplitudes: list[float], frame_rate=10):
+        self.stop_request = False 
         for amplitude in amplitudes:
+            if self.stop_request:
+                self.set_mouth(0)
+                self.stop_request = False
+                return
             self.set_mouth(amplitude*8.8)
             sleep(1/frame_rate)
 
@@ -357,12 +368,17 @@ class LivePNGHandler(AvatarHandler):
         self.model.set_current_expression(expression)
 
     def speak(self, path, tts, frame_rate):
+        tts.stop()
+        self.stop()
         t1 = threading.Thread(target=self.model.speak, args=(path, True, False, frame_rate, True, False))
         t2 = threading.Thread(target=tts.playsound, args=(path, ))
         t1.start()
         t2.start()
         t1.join()
         t2.join()
+
+    def stop(self):
+        self.model.stop()
 
     def _start_animation(self, path, frame_rate):
         self.model.speak(path, True, False, frame_rate, True, False)

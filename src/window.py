@@ -215,20 +215,6 @@ class MainWindow(Gtk.ApplicationWindow):
 
         self.boxw = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, css_classes=["background"])
         self.web_panel_header = Adw.HeaderBar(css_classes=["flat", "view"])
-        box = Gtk.Box()
-        # Titlebar buttons
-        flap_button_right = Gtk.ToggleButton.new()
-        flap_button_right.set_icon_name(icon_name='sidebar-show-right-symbolic')
-        flap_button_right.connect('clicked', self.on_flap_button_toggled)
-
-        flap_button_avatar = Gtk.ToggleButton.new()
-        flap_button_avatar.set_icon_name(icon_name='avatar-symbolic')
-        flap_button_avatar.connect('clicked', self.on_avatar_button_toggled)
-        self.flap_button_avatar2 = flap_button_avatar
-        box.append(flap_button_avatar)
-        box.append(flap_button_right)
-
-        self.web_panel_header.pack_end(box)
         self.web_panel_header.set_title_widget(Gtk.Box())
         self.boxw.append(self.web_panel_header)
         self.boxw.set_size_request(400, 0)
@@ -240,7 +226,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.flap_button_avatar.set_icon_name(icon_name='avatar-symbolic')
         self.flap_button_avatar.connect('clicked', self.on_avatar_button_toggled)
         self.avatar_flap.connect("notify::reveal-flap", self.handle_second_block_change)
-        self.chat_header.pack_end(child=self.flap_button_avatar)
+        self.headerbox.append(self.flap_button_avatar)
         self.set_child(self.avatar_flap)
         self.avatar_flap.set_reveal_flap(False)
         # End Live2d
@@ -337,6 +323,8 @@ class MainWindow(Gtk.ApplicationWindow):
     def mute_tts(self, button):
         if self.tts_enabled:
             self.tts.stop()
+        if self.avatar_handler is not None:
+            self.avatar_handler.stop()
         button.set_visible(False)
 
 
@@ -463,7 +451,6 @@ class MainWindow(Gtk.ApplicationWindow):
                 return
             # If it requires reloading, reload the old avatar
             self.unload_avatar(old_avatar)
-            self.flap_button_avatar2.set_visible(True)
             self.flap_button_avatar.set_visible(True)
             if self.avatar_handler is not None:   
                 self.avatar_widget = self.avatar_handler.create_gtk_widget()
@@ -474,7 +461,6 @@ class MainWindow(Gtk.ApplicationWindow):
             # remove related widgets
             self.unload_avatar(self.avatar_handler)
             self.flap_button_avatar.set_visible(False)
-            self.flap_button_avatar2.set_visible(False)
             self.avatar_flap.set_reveal_flap(False)
             self.avatar_flap.set_name("hide")
             return
@@ -504,7 +490,12 @@ class MainWindow(Gtk.ApplicationWindow):
             self.main_program_block.set_reveal_flap(True)
             return True
         status = self.main_program_block.get_reveal_flap() or self.avatar_flap.get_reveal_flap()
-        if status:
+        
+        if self.avatar_flap.get_reveal_flap():
+            self.chat_panel_header.set_show_end_title_buttons(False)
+            self.chat_header.set_show_end_title_buttons(False)
+            header_widget = self.web_panel_header
+        elif self.main_program_block.get_reveal_flap():
             self.chat_panel_header.set_show_end_title_buttons(False)
             self.chat_header.set_show_end_title_buttons(False)
             header_widget = self.explorer_panel_headerbox
