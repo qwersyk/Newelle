@@ -43,7 +43,8 @@
     	"modules/python3-voicevox-client.json",
       	"modules/python3-livepng.json",
       	"modules/python3-wordllama.json",
-        {
+      "modules/python3-edge-tts.json",
+      {
             "name" : "newelle",
             "builddir" : true,
             "buildsystem" : "meson",

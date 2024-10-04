@@ -1,6 +1,7 @@
 from .translator import CustomTranslatorHandler, GoogleTranslatorHandler, LibreTranslateHandler, LigvaTranslateHandler
 from .llm import GPT4AllHandler, OpenAIHandler,GroqHandler, CustomLLMHandler, GPT3AnyHandler, GeminiHandler, OllamaHandler
 from .tts import VoiceVoxHanlder, gTTSHandler, EspeakHandler, CustomTTSHandler, VitsHandler
+from .tts import VoiceVoxHanlder, gTTSHandler, EspeakHandler, CustomTTSHandler, VitsHandler, EdgeTTSHandler
 from .smart_prompt import WordLlamaHandler
 from .stt import SphinxHandler, GoogleSRHandler, WitAIHandler, VoskHandler, WhisperAPIHandler, CustomSRHandler
 from .avatar import Live2DHandler, LivePNGHandler
@@ -103,6 +104,12 @@ AVAILABLE_TTS = {
         "title": _("Google TTS"),
         "description": _("Google's text to speech"),
         "class": gTTSHandler,
+    },
+    "edge_tts": {
+        "key": "edge_tts",
+        "title": _("Edge TTS"),
+        "description": _("Use Microsoft Edge online TTS without any API Key"),
+        "class": EdgeTTSHandler,
     },
     "espeak": {
         "key": "espeak",
