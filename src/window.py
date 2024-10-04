@@ -1252,7 +1252,7 @@ class MainWindow(Gtk.ApplicationWindow):
             if self.tts_program in AVAILABLE_TTS:
                 # Remove text in *text*
                 message = re.sub(r"\*(.*?)\*", "", message_label)
-                message=re.sub(r"```.*?```", "", message_label, flags=re.DOTALL)
+                message = re.sub(r"```.*?```", "", message, flags=re.DOTALL)
                 # Remove text in *text*
                 if not(not message.strip() or message.isspace() or all(char == '\n' for char in message)):
                     # Translate the message
