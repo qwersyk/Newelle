@@ -41,7 +41,7 @@ newelle_sources = [
   'stt.py',
   'extra.py',
   'presentation.py',
-  'handler.py'
+  'handler.py',
   'avatar.py',
   'translator.py',
   'dataset.py',
