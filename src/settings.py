@@ -4,6 +4,8 @@ import re, threading, os, json, time, ctypes
 from subprocess import Popen 
 from gi.repository import Gtk, Adw, Gio, GLib
 
+from .handler import Handler
+
 from .stt import STTHandler
 from .tts import TTSHandler
 from .constants import AVAILABLE_LLMS, AVAILABLE_PROMPTS, AVAILABLE_TTS, AVAILABLE_STT, PROMPTS
@@ -185,7 +187,7 @@ class Settings(Adw.PreferencesWindow):
         row.add_prefix(button)
         return row
 
-    def get_object(self, constants: dict[str, Any], key:str) -> (LLMHandler | TTSHandler | STTHandler):
+    def get_object(self, constants: dict[str, Any], key:str) -> (Handler):
         """Get an handler instance for the specified handler key
 
         Args:
@@ -241,7 +243,7 @@ class Settings(Adw.PreferencesWindow):
             else:
                 raise Exception("Unknown constants")
 
-    def get_constants_from_object(self, handler: TTSHandler | STTHandler | LLMHandler) -> dict[str, Any]:
+    def get_constants_from_object(self, handler: Handler) -> dict[str, Any]:
         """Get the constants from an hander
 
         Args:
@@ -279,7 +281,7 @@ class Settings(Adw.PreferencesWindow):
             return
         self.settings.set_string(setting_name, button.get_name())
 
-    def add_extra_settings(self, constants : dict[str, Any], handler : LLMHandler | TTSHandler | STTHandler, row : Adw.ExpanderRow):
+    def add_extra_settings(self, constants : dict[str, Any], handler : Handler, row : Adw.ExpanderRow):
         """Buld the extra settings for the specified handler. The extra settings are specified by the method get_extra_settings 
             Extra settings format:
             Required parameters:
@@ -419,7 +421,7 @@ class Settings(Adw.PreferencesWindow):
     def open_website(self, button):
         Popen(["flatpak-spawn", "--host", "xdg-open", button.get_name()])
 
-    def on_setting_change(self, constants: dict[str, Any], handler: LLMHandler | TTSHandler | STTHandler, key: str, force_change : bool = False):
+    def on_setting_change(self, constants: dict[str, Any], handler: Handler, key: str, force_change : bool = False):
         
         if not force_change:
             setting_info = [info for info in handler.get_extra_settings() if info["key"] == key][0]
@@ -434,7 +436,7 @@ class Settings(Adw.PreferencesWindow):
                 row.remove(setting_row)
             self.add_extra_settings(constants, handler, row)
 
-    def setting_change_entry(self, entry, constants, handler : LLMHandler | TTSHandler | STTHandler):
+    def setting_change_entry(self, entry, constants, handler : Handler):
         """ Called when an entry handler setting is changed 
 
         Args:
@@ -489,7 +491,7 @@ class Settings(Adw.PreferencesWindow):
         handler.set_setting(setting, value)
         self.on_setting_change(constants, handler, setting)
 
-    def add_download_button(self, handler : TTSHandler | STTHandler | LLMHandler, row : Adw.ActionRow | Adw.ExpanderRow): 
+    def add_download_button(self, handler : Handler, row : Adw.ActionRow | Adw.ExpanderRow): 
         """Add download button for an handler dependencies. If clicked it will call handler.install()
 
         Args:
@@ -507,7 +509,7 @@ class Settings(Adw.PreferencesWindow):
             elif type(row) is Adw.ExpanderRow:
                 row.add_action(actionbutton)
 
-    def add_flatpak_waning_button(self, handler : LLMHandler | TTSHandler | STTHandler, row : Adw.ExpanderRow | Adw.ActionRow | Adw.ComboRow):
+    def add_flatpak_waning_button(self, handler : Handler, row : Adw.ExpanderRow | Adw.ActionRow | Adw.ComboRow):
         """Add flatpak warning button in case the application does not have enough permissions
         On click it will show a warning about this issue and how to solve it
 
