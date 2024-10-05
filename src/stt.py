@@ -7,6 +7,7 @@ import pyaudio
 import wave
 import speech_recognition as sr
 from .extra import find_module, install_module
+from .handler import Handler
 
 class AudioRecorder:
     """Record audio"""
@@ -46,32 +47,11 @@ class AudioRecorder:
         p.terminate()
 
 
-class STTHandler:
+class STTHandler(Handler):
     """Every STT Handler should extend this class"""
     key = ""
-    def __init__(self, settings, pip_path):
-        self.settings = settings
-        self.pip_path = pip_path
-
-    @staticmethod
-    def requires_sandbox_escape() -> bool:
-        """If the handler requires to run commands on the user host system"""
-        return False
-
-    @staticmethod
-    def get_extra_requirements() -> list:
-        """Return the list of extra requirements"""
-        return []
-
-    def get_extra_settings(self) -> list:
-        """Return the list of extra settings"""
-        return []
-
-    def install(self):
-        """Install the required extra dependencies"""
-        for module in self.get_extra_requirements():
-            install_module(module, self.pip_path)
-
+    schema_key = "stt-settings"
+    
     def is_installed(self) -> bool:
         """If the handler is installed"""
         for module in self.get_extra_requirements():
@@ -83,28 +63,6 @@ class STTHandler:
     def recognize_file(self, path) -> str | None:
         """Recognize a given audio file"""
         pass
-
-    def set_setting(self, name, value):
-        """Set the given setting"""
-        j = json.loads(self.settings.get_string("stt-settings"))
-        if self.key not in j:
-            j[self.key] = {}
-        j[self.key][name] = value
-        self.settings.set_string("stt-settings", json.dumps(j))
-
-    def get_setting(self, name) -> Any:
-        """Get setting from key""" 
-        j = json.loads(self.settings.get_string("stt-settings"))
-        if self.key not in j or name not in j[self.key]:
-            return self.get_default_setting(name)
-        return j[self.key][name]
-
-    def get_default_setting(self, name):
-        """Get the default setting from a key"""
-        for x in self.get_extra_settings():
-            if x["key"] == name:
-                return x["default"]
-        return None
 
 class SphinxHandler(STTHandler):
     key = "Sphinx"

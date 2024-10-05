@@ -6,9 +6,9 @@
         <launchable type="desktop-id">io.github.qwersyk.Newelle.desktop</launchable>
         <name>Newelle</name>
 	<description>
-	  <p>This is a chatbot program written in GTK4 and Adwaita that allows you to interact with the system and execute various commands.</p>
+	  <p>Train Newelle to do more with custom extensions and new AI modules, giving your chatbot endless possibilities.</p>
 	</description>
-	<summary>Chat bot that controls your computer</summary>
+	<summary>Your AI-Powered System Assistant</summary>
 	<screenshots>
 		<screenshot type="default">
 			<image>https://raw.githubusercontent.com/qwersyk/Newelle/master/data/screenshots/screenshot1.png</image>
@@ -27,6 +27,10 @@
 			<caption>Chat page 4</caption>
 		</screenshot>
 	</screenshots>
+  <branding>
+    <color type="primary" scheme_preference="light">#99c1f1</color>
+    <color type="primary" scheme_preference="dark">#003d81</color>
+  </branding>
 	<url type="homepage">https://github.com/qwersyk/Newelle</url>
 	<url type="bugtracker">https://github.com/qwersyk/Newelle/issues</url>
 	<content_rating type="oars-1.0" />
