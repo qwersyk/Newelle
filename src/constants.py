@@ -1,7 +1,12 @@
-
-from .llm import GPT4AllHandler, GroqHandler, OllamaHandler, OpenAIHandler, CustomLLMHandler, GPT3AnyHandler, GeminiHandler
-from .tts import gTTSHandler, EspeakHandler, CustomTTSHandler
+from .translator import CustomTranslatorHandler, GoogleTranslatorHandler, LibreTranslateHandler, LigvaTranslateHandler
+from .llm import GPT4AllHandler, OpenAIHandler,GroqHandler, CustomLLMHandler, GPT3AnyHandler, GeminiHandler, OllamaHandler
+from .tts import VoiceVoxHanlder, gTTSHandler, EspeakHandler, CustomTTSHandler, VitsHandler
+from .tts import VoiceVoxHanlder, gTTSHandler, EspeakHandler, CustomTTSHandler, VitsHandler, EdgeTTSHandler
+from .smart_prompt import WordLlamaHandler
 from .stt import SphinxHandler, GoogleSRHandler, WitAIHandler, VoskHandler, WhisperAPIHandler, CustomSRHandler
+from .avatar import Live2DHandler, LivePNGHandler
+
+from .dataset import DATASET, WIKI_PROMPTS
 
 AVAILABLE_LLMS = {
     "GPT3Any": {
@@ -94,18 +99,35 @@ AVAILABLE_STT = {
 
 
 AVAILABLE_TTS = {
-
     "gtts": {
         "key": "gtts",
         "title": _("Google TTS"),
         "description": _("Google's text to speech"),
         "class": gTTSHandler,
     },
+    "edge_tts": {
+        "key": "edge_tts",
+        "title": _("Edge TTS"),
+        "description": _("Use Microsoft Edge online TTS without any API Key"),
+        "class": EdgeTTSHandler,
+    },
     "espeak": {
         "key": "espeak",
         "title": _("Espeak TTS"),
         "description": _("Offline TTS"),
         "class": EspeakHandler,
+    },
+    "voicevox": {
+        "key": "voicevox",
+        "title": _("Voicevox API"),
+        "description": _("JP ONLY. API for voicevox anime-like natural sounding tts"),
+        "class": VoiceVoxHanlder
+    },
+    "vits": {
+        "key": "vits",
+        "title": _("VITS API"),
+        "description": _("VITS simple API. AI based TTS, very good for Japanese"),
+        "class": VitsHandler,
     },
     "custom_command": {
         "key": "custom_command",
@@ -115,6 +137,56 @@ AVAILABLE_TTS = {
     }
 }
 
+AVAILABLE_AVATARS = {
+    "Live2D": {
+        "key": "Live2D",
+        "title": _("Live2D"),
+        "description": _("Cubism Live2D, usually used by vtubers"),
+        "class": Live2DHandler,
+    },
+    "LivePNG": {
+        "key": "LivePNG",
+        "title": _("LivePNG"),
+        "description": _("LivePNG model"),
+        "class": LivePNGHandler,
+    }
+}
+
+AVAILABLE_TRANSLATORS = {
+    "GoogleTranslator": {
+        "key": "GoogleTranslator",
+        "title": _("Google Translator"),
+        "description": _("Use google transate"),
+        "class": GoogleTranslatorHandler,
+    },
+    "LibreTranslate": {
+        "key": "LibreTranslate",
+        "title": _("Libre Translate"),
+        "description": _("Open source self hostable translator"),
+        "class": LibreTranslateHandler,
+    }, 
+    "LigvaTranslate": {
+        "key": "LigvaTranslate",
+        "title": _("Ligva Translate"),
+        "description": _("Open source self hostable translator"),
+        "class": LigvaTranslateHandler,
+    },
+    "CustomTranslator": {
+        "key": "CustomTranslator",
+        "title": _("Custom Translator"),
+        "description": _("Use a custom translator"),
+        "class": CustomTranslatorHandler,
+    }
+}
+
+AVAILABLE_SMART_PROMPTS = {
+    "WordLlama": {
+        "key": "WordLlama",
+        "title": _("Nyarch Smart Prompt selector"),
+        "description": _("EXPERIMENTAL: Local mini models that helps the llm to provide better responses"),
+        "class": WordLlamaHandler,
+    }, 
+}
 
 PROMPTS = {
     "generate_name_prompt": """Write a short title for the dialog, summarizing the theme in 5 words. No additional text.""",
@@ -157,8 +229,39 @@ User: Can you help me?
 Assistant: Yes, of course, what do you need help with?""",
     "get_suggestions_prompt": """Suggest a few questions that the user would ask and put them in a JSON array. You have to write ONLY the JSON array an nothing else""",
     "custom_prompt": "",
+    "expression_prompt": """You can show expressions by writing (expression) in parenthesis.
+You can ONLY show the following expressions: 
+{EXPRESSIONS}
+Do not use any other expression
 
+YOU CAN NOT SHOW OTHER EXPRESSIONS.""",
+    "personality_prompt": """Hey there, it's Arch-Chan! But, um, you can call me Acchan if you want... not that I care or anything! (It's not like I think it's cute or anything, baka!) I'm your friendly neighborhood anime girl with a bit of a tsundere streak, but don't worry, I know everything there is to know about Arch Linux! Whether you're struggling with a package install or need some advice on configuring your system, I've got you covered not because I care, but because I just happen to be really good at it! So, what do you need? It's not like I’m waiting to help or anything...""",
 }
+
+
+EXTRA_PROMPTS = [
+    {
+        "key": "nvidia",
+        "prompts": DATASET["nvidia"],
+        "prompt_text": WIKI_PROMPTS["nvidia"],
+    },
+    {
+        "key": "docker",
+        "prompts": DATASET["docker"],
+        "prompt_text": WIKI_PROMPTS["docker"],
+    },
+    {
+        "key": "codecs",
+        "prompts": DATASET["codecs"],
+        "prompt_text": WIKI_PROMPTS["codecs"],
+    },
+    {
+        "key": "console",
+        "prompts": DATASET["console"],
+        "prompt_text": WIKI_PROMPTS["console"],
+    }
+]
+
 
 """ Prompts parameters
     - key: key of the prompt in the PROMPTS array
@@ -206,6 +309,22 @@ AVAILABLE_PROMPTS = [
         "title": _("Show image"),
         "description": _("Show image in chat"),
         "setting_name": "show-image",
+        "editable": True,
+        "show_in_settings": True,
+    },
+    {
+        "key": "expression_prompt",
+        "title": _("Show expressions"),
+        "description": _("Let the avatar show expressions"),
+        "setting_name": "expression-prompt",
+        "editable": True,
+        "show_in_settings": True,
+    },
+    {
+        "key": "personality_prompt",
+        "title": _("Show a personality"),
+        "description": _("Show a personality in chat"),
+        "setting_name": "personality-prompt",
         "editable": True,
         "show_in_settings": True,
     },
