@@ -205,6 +205,16 @@ class Live2DHandler(AvatarHandler):
                 "description": _("Background color of the avatar"),
                 "type": "entry",
                 "default": default,
+            },
+            {
+                "key": "scale",
+                "title": _("Zoom Model"),
+                "description": _("Zoom the Live2D model"),
+                "type": "range",
+                "min": 5,
+                "max": 300,
+                "default": 100,
+                "round-digits": 0
             }
         ]
     def is_installed(self) -> bool:
@@ -228,7 +238,8 @@ class Live2DHandler(AvatarHandler):
         httpd = self.httpd
         model = self.get_setting("model")
         background_color = self.get_setting("background-color")
-        q = urlencode({"model": model, "bg": background_color})
+        scale = int(self.get_setting("scale"))/100
+        q = urlencode({"model": model, "bg": background_color, "scale": scale})
         GLib.idle_add(self.webview.load_uri, urljoin("http://localhost:" + str(httpd.server_address[1]), f"?{q}"))
         httpd.serve_forever()
 
