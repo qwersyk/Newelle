@@ -99,17 +99,17 @@ AVAILABLE_STT = {
 
 
 AVAILABLE_TTS = {
-    "gtts": {
-        "key": "gtts",
-        "title": _("Google TTS"),
-        "description": _("Google's text to speech"),
-        "class": gTTSHandler,
-    },
     "edge_tts": {
         "key": "edge_tts",
         "title": _("Edge TTS"),
         "description": _("Use Microsoft Edge online TTS without any API Key"),
         "class": EdgeTTSHandler,
+    },
+    "gtts": {
+        "key": "gtts",
+        "title": _("Google TTS"),
+        "description": _("Google's text to speech"),
+        "class": gTTSHandler,
     },
     "espeak": {
         "key": "espeak",

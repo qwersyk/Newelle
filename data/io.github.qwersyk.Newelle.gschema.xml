@@ -59,7 +59,7 @@
             <default>false</default>
         </key>
 	      <key name="tts" type="s">
-            <default>"gtts"</default>
+            <default>"edge_tts"</default>
         </key>
 	      <key name="tts-voice" type="s">
             <default>"{}"</default>

@@ -391,7 +391,7 @@ class EdgeTTSHandler(TTSHandler):
         self.voices = tuple()
         voices = self.get_setting("voices")
         if voices is None or len(voices) < 2:
-            self.voices = (("en-GB-SoniaNeural", "en-GB-SoniaNeural"),)
+            self.voices = (("en-US-AvaNeural","en-US-AvaNeural"), ("en-GB-SoniaNeural", "en-GB-SoniaNeural"),)
             threading.Thread(target=self.get_voices).start() 
         elif len(voices) > 0:
             self.voices = self.get_setting("voices")
@@ -404,7 +404,7 @@ class EdgeTTSHandler(TTSHandler):
                 "description": "Voice to use",
                 "type": "combo",
                 "values": self.voices,
-                "default": "en-GB-SoniaNeural",
+                "default": "en-US-AvaNeural",
             },
             {
                 "key": "pitch",
@@ -414,7 +414,7 @@ class EdgeTTSHandler(TTSHandler):
                 "min": 0.0,
                 "max": 40.0,
                 "round-digits": 0,
-                "default": 0.0
+                "default": 10.0
             }, 
         ]
 
