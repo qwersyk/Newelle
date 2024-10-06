@@ -3,7 +3,6 @@ from subprocess import check_output
 import os, threading
 from typing import Callable, Any
 import time, json
-
 from g4f.Provider import RetryProvider
 from gi.repository.Gtk import ResponseType
 
@@ -266,8 +265,9 @@ class GPT3AnyHandler(G4FHandler):
 
 class GeminiHandler(LLMHandler):
     key = "gemini"
+    
     """
-    Official GOogle Gemini APIs, they support history and system prompts
+    Official Google Gemini APIs, they support history and system prompts
     """
 
     @staticmethod
@@ -303,6 +303,13 @@ class GeminiHandler(LLMHandler):
                 "type": "toggle",
                 "default": True
             },
+            {
+                "key": "safety",
+                "title": _("Enable safety settings"),
+                "description": _("Enable google safety settings to avoid generating harmful content"),
+                "type": "toggle",
+                "default": True
+            }
         ]
 
     def __convert_history(self, history: list):
@@ -316,35 +323,64 @@ class GeminiHandler(LLMHandler):
 
     def generate_text(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = []) -> str:
         import google.generativeai as genai
+        
+        from google.generativeai.protos import HarmCategory
+        from google.generativeai.types import HarmBlockThreshold
+        if self.get_setting("safety"):
+            safety = None
+        else:
+            safety = { 
+                HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
+                HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
+                HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
+            }
+ 
         genai.configure(api_key=self.get_setting("apikey"))
         instructions = "\n"+"\n".join(system_prompt)
-        model = genai.GenerativeModel(self.get_setting("model"), system_instruction=instructions)
+        if instructions == "":
+            instructions=None
+        model = genai.GenerativeModel(self.get_setting("model"), system_instruction=instructions, safety_settings=safety)
         converted_history = self.__convert_history(history)
-
-        chat = model.start_chat(
-            history=converted_history,
-        )
-        response = chat.send_message(prompt)
-        return response.text
+        try:
+            chat = model.start_chat(
+                history=converted_history
+            )
+            response = chat.send_message(prompt)
+            return response.text
+        except Exception as e:
+            return "Message blocked: " + str(e)
 
     def generate_text_stream(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = [], on_update: Callable[[str], Any] = lambda _: None , extra_args: list = []) -> str:
         import google.generativeai as genai
+        from google.generativeai.protos import HarmCategory
+        from google.generativeai.types import HarmBlockThreshold
+        
+        if self.get_setting("safety"):
+            safety = None
+        else:
+            safety = { 
+                HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
+                HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
+                HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
+            }
+ 
         genai.configure(api_key=self.get_setting("apikey"))
         instructions = "\n".join(system_prompt)
-        model = genai.GenerativeModel(self.get_setting("model"), system_instruction=instructions)
-        converted_history = self.__convert_history(history)
-        chat = model.start_chat(
-            history=converted_history,
-        )
-
-        response = chat.send_message(prompt, stream=True)
-        full_message = ""
-        for chunk in response:
-            full_message += chunk.text
-            args = (full_message.strip(), ) + tuple(extra_args)
-            on_update(*args)
-        return full_message.strip()
-
+        if instructions == "":
+            instructions=None
+        model = genai.GenerativeModel(self.get_setting("model"), system_instruction=instructions, safety_settings=safety)
+        converted_history = self.__convert_history(history) 
+        try: 
+            chat = model.start_chat(history=converted_history)
+            response = chat.send_message(prompt, stream=True)
+            full_message = ""
+            for chunk in response:
+                full_message += chunk.text
+                args = (full_message.strip(), ) + tuple(extra_args)
+                on_update(*args)
+            return full_message.strip()
+        except Exception as e:
+            return "Message blocked: " + str(e)
 
 class CustomLLMHandler(LLMHandler):
     key = "custom_command"
