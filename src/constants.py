@@ -1,5 +1,5 @@
 
-from .llm import GPT4AllHandler, GroqHandler, OllamaHandler, OpenAIHandler, CustomLLMHandler, GPT3AnyHandler, GeminiHandler
+from .llm import GPT4AllHandler, GroqHandler, OllamaHandler, OpenAIHandler, CustomLLMHandler, GPT3AnyHandler, GeminiHandler, MistralHandler, OpenRouterHandler
 from .tts import gTTSHandler, EspeakHandler, CustomTTSHandler
 from .stt import SphinxHandler, GoogleSRHandler, WitAIHandler, VoskHandler, WhisperAPIHandler, CustomSRHandler
 
@@ -39,6 +39,18 @@ AVAILABLE_LLMS = {
         "title": _("OpenAI API"),
         "description": _("OpenAI API"),
         "class": OpenAIHandler,
+    },
+    "mistral": {
+        "key": "mistral",
+        "title": _("Mistral"),
+        "description": _("Mistral API"),
+        "class": MistralHandler,
+    },
+    "openrouter": {
+        "key": "openrouter",
+        "title": _("OpenRouter"),
+        "description": _("Openrouter.ai API"),
+        "class": OpenRouterHandler,
     },
     "custom_command": {
         "key": "custom_command",

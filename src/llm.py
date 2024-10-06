@@ -3,6 +3,8 @@ from subprocess import check_output
 import os, threading
 from typing import Callable, Any
 import time, json
+
+from openai import NOT_GIVEN
 from g4f.Provider import RetryProvider
 from gi.repository.Gtk import ResponseType
 
@@ -553,6 +555,13 @@ class OpenAIHandler(LLMHandler):
                 "default": True
             },
             {
+                "key": "advanced_params",
+                "title": _("Advanced Parameters"),
+                "description": _("Include parameters like Max Tokens, Top-P, Temperature, etc."),
+                "type": "toggle",
+                "default": True
+            },
+            {
                 "key": "max-tokens",
                 "title": _("Max Tokens"),
                 "description": _("Max tokens of the generated text"),
@@ -621,6 +630,17 @@ class OpenAIHandler(LLMHandler):
             })
         return result
 
+    def get_advanced_params(self):
+        advanced_params = self.get_setting("advanced_params")
+        if not advanced_params:
+            return NOT_GIVEN, NOT_GIVEN, NOT_GIVEN, NOT_GIVEN, NOT_GIVEN
+        top_p = self.get_setting("top-p")
+        temperature = self.get_setting("temperature")
+        max_tokens = self.get_setting("max-tokens")
+        presence_penalty = self.get_setting("presence-penalty")
+        frequency_penalty = self.get_setting("frequency-penalty")
+        return top_p, temperature, max_tokens, presence_penalty, frequency_penalty 
+
     def generate_text(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = []) -> str:
         from openai import OpenAI
         messages = self.convert_history(history, system_prompt)
@@ -633,15 +653,16 @@ class OpenAIHandler(LLMHandler):
             api_key=api,
             base_url=self.get_setting("endpoint")
         )
+        top_p, temperature, max_tokens, presence_penalty, frequency_penalty = self.get_advanced_params()
         try:
             response = client.chat.completions.create(
                 model=self.get_setting("model"),
                 messages=messages,
-                top_p=self.get_setting("top-p"),
-                max_tokens=self.get_setting("max_tokens"),
-                temperature=self.get_setting("temperature"),
-                presence_penalty=self.get_setting("presence_penalty"),
-                frequency_penalty=self.get_setting("frequency_penalty")
+                top_p=top_p,
+                max_tokens=max_tokens,
+                temperature=temperature,
+                presence_penalty=presence_penalty,
+                frequency_penalty=frequency_penalty
             )
             return response.choices[0].message.content
         except Exception as e:
@@ -658,15 +679,16 @@ class OpenAIHandler(LLMHandler):
             api_key=api,
             base_url=self.get_setting("endpoint")
         )
+        top_p, temperature, max_tokens, presence_penalty, frequency_penalty = self.get_advanced_params()
         try:
             response = client.chat.completions.create(
                 model=self.get_setting("model"),
                 messages=messages,
-                top_p=self.get_setting("top-p"),
-                max_tokens=self.get_setting("max_tokens"),
-                temperature=self.get_setting("temperature"),
-                presence_penalty=self.get_setting("presence_penalty"),
-                frequency_penalty=self.get_setting("frequency_penalty"),
+                top_p=top_p,
+                max_tokens=max_tokens,
+                temperature=temperature,
+                presence_penalty=presence_penalty,
+                frequency_penalty=frequency_penalty, 
                 stream=True
             )
             full_message = ""
@@ -682,6 +704,35 @@ class OpenAIHandler(LLMHandler):
         except Exception as e:
             return str(e)
 
+class MistralHandler(OpenAIHandler):
+    key = "mistral"
+
+    def __init__(self, settings, path):
+        super().__init__(settings, path)
+        self.set_setting("endpoint", "https://api.mistral.ai/v1/")
+        self.set_setting("advanced_params", False)
+
+    def get_extra_settings(self) -> list:
+        plus = [
+            {
+                "key": "api",
+                "title": _("API Key"),
+                "description": _("API Key for Mistral"),
+                "type": "entry",
+                "default": ""
+            },
+            {
+                "key": "model",
+                "title": _("Mistral Model"),
+                "description": _("Name of the Mistral Model"),
+                "type": "entry",
+                "default": "open-mixtral-8x22b",
+                "website": "https://docs.mistral.ai/getting-started/models/models_overview/",
+            }, 
+        ]
+        plus += [super().get_extra_settings()[3]]
+        return plus
+
 class GroqHandler(OpenAIHandler):
     key = "groq"
     
@@ -690,7 +741,7 @@ class GroqHandler(OpenAIHandler):
         self.set_setting("endpoint", "https://api.groq.com/openai/v1/")
 
     def get_extra_settings(self) -> list:
-        return  [ 
+        settings = [ 
             {
                 "key": "api",
                 "title": _("API Key"),
@@ -706,69 +757,37 @@ class GroqHandler(OpenAIHandler):
                 "default": "llama-3.1-70b-versatile",
                 "website": "https://console.groq.com/docs/models",
             },
+        ]
+        settings += super().get_extra_settings()[-7:]
+        return settings
+
+class OpenRouterHandler(OpenAIHandler):
+    key = "openrouter"
+
+    def __init__(self, settings, path):
+        super().__init__(settings, path)
+        self.set_setting("endpoint", "https://openrouter.ai/api/v1/")
+
+    def get_extra_settings(self) -> list:
+        settings = [ 
             {
-                "key": "streaming",
-                "title": _("Message Streaming"),
-                "description": _("Gradually stream message output"),
-                "type": "toggle",
-                "default": True
-            },
+                "key": "api",
+                "title": _("API Key"),
+                "description": _("API Key for OpenRouter"),
+                "type": "entry",
+                "default": ""
+            }, 
             {
-                "key": "max-tokens",
-                "title": _("Max Tokens"),
-                "description": _("Max tokens of the generated text"),
-                "website": "https://help.openai.com/en/articles/4936856-what-are-tokens-and-how-to-count-them",
-                "type": "range",
-                "min": 3,
-                "max": 400,
-                "default": 150,
-                "round-digits": 0
+                "key": "model",
+                "title": _("OpenRouter Model"),
+                "description": _("Name of the Groq Model"),
+                "type": "entry",
+                "default": "meta-llama/llama-3.1-70b-instruct:free",
+                "website": "https://openrouter.ai/docs/models",
             },
-            {
-                "key": "top-p",
-                "title": _("Top-P"),
-                "description": _("An alternative to sampling with temperature, called nucleus sampling"),
-                "website": "https://platform.openai.com/docs/api-reference/completions/create#completions/create-top_p",
-                "type": "range",
-                "min": 0,
-                "max": 1,
-                "default": 1,
-                "round-digits": 2,
-            },
-            {
-                "key": "temperature",
-                "title": _("Temperature"),
-                "description": _("What sampling temperature to use. Higher values will make the output more random"),
-                "website": "https://platform.openai.com/docs/api-reference/completions/create#completions/create-temperature",
-                "type": "range",
-                "min": 0,
-                "max": 2,
-                "default": 1,
-                "round-digits": 2,
-            },
-            {
-                "key": "frequency-penalty",
-                "title": _("Frequency Penalty"),
-                "description": _("Positive values penalize new tokens based on their existing frequency in the text so far, decreasing the model's likelihood to repeat the same line"),
-                "website": "https://platform.openai.com/docs/api-reference/completions/create#completions/create-frequency_penalty",
-                "type": "range",
-                "min": -2,
-                "max": 2,
-                "default": 0,
-                "round-digits": 1,
-            },
-            {
-                "key": "presence-penalty",
-                "title": _("Presence Penalty"),
-                "description": _("Positive values penalize new tokens based on whether they appear in the text so far, increasing the model's likelihood to talk about new topics."),
-                "website": "https://platform.openai.com/docs/api-reference/completions/create#completions/create-frequency_penalty",
-                "type": "range",
-                "min": -2,
-                "max": 2,
-                "default": 0,
-                "round-digits": 1,
-            },
-        ] 
+        ]
+        settings += super().get_extra_settings()[-7:]
+        return settings
 
 
 
