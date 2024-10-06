@@ -21,6 +21,7 @@ class AvatarHandler:
 
     key : str = ""
     requires_reload : list = [False]
+    lock : threading.Semaphore = threading.Semaphore(1)
 
     def __init__(self, settings, path: str):
         self.settings = settings
@@ -106,14 +107,20 @@ class AvatarHandler:
             i+=1
         frame_rate = int(self.get_setting("fps")) 
         i = 0
+        self.lock.acquire()
         for t in threads:
             t.join()
+            if self.stop_request:
+                self.lock.release()
+                self.stop_request = False
+                break
             result = results[i]
             if result["expression"] is not None:
                 self.set_expression(result["expression"])
             path = result["filename"]
             self.speak(path, tts, frame_rate)
             i+=1
+        self.lock.release()
 
     @abstractmethod
     def speak(self, path: str, tts : TTSHandler, frame_rate: int):
@@ -263,7 +270,6 @@ class Live2DHandler(AvatarHandler):
            
     def speak(self, path: str, tts: TTSHandler, frame_rate: int):
         tts.stop()
-        self.stop()
         audio = AudioSegment.from_file(path)
         sample_rate = audio.frame_rate
         audio_data = audio.get_array_of_samples()
@@ -276,11 +282,9 @@ class Live2DHandler(AvatarHandler):
         t2.join()
 
     def _start_animation(self, amplitudes: list[float], frame_rate=10):
-        self.stop_request = False 
         for amplitude in amplitudes:
             if self.stop_request:
                 self.set_mouth(0)
-                self.stop_request = False
                 return
             self.set_mouth(amplitude*8.8)
             sleep(1/frame_rate)
@@ -369,7 +373,7 @@ class LivePNGHandler(AvatarHandler):
 
     def speak(self, path, tts, frame_rate):
         tts.stop()
-        self.stop()
+        self.model.stop()
         t1 = threading.Thread(target=self.model.speak, args=(path, True, False, frame_rate, True, False))
         t2 = threading.Thread(target=tts.playsound, args=(path, ))
         t1.start()
