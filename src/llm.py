@@ -8,49 +8,17 @@ from g4f.Provider import RetryProvider
 from gi.repository.Gtk import ResponseType
 
 from .extra import find_module, install_module
+from .handler import Handler
 
-class LLMHandler():
+class LLMHandler(Handler):
     """Every LLM model handler should extend this class."""
     history = []
     prompts = []
-    key = "llm"
+    schema_key = "llm-settings"
 
     def __init__(self, settings, path):
         self.settings = settings
         self.path = path
-
-    @staticmethod
-    def requires_sandbox_escape() -> bool:
-        """If the handler requires to run commands on the user host system"""
-        return False
-
-    def get_extra_settings(self) -> list:
-        """
-        Extra settings format:
-            Required parameters:
-            - title: small title for the setting 
-            - description: description for the setting
-            - default: default value for the setting
-            - type: What type of row to create, possible rows:
-                - entry: input text 
-                - toggle: bool
-                - combo: for multiple choice
-                    - values: list of touples of possible values (display_value, actual_value)
-                - range: for number input with a slider 
-                    - min: minimum value
-                    - max: maximum value 
-                    - round: how many digits to round 
-            Optional parameters:
-                - folder: add a button that opens a folder with the specified path
-                - website: add a button that opens a website with the specified path
-                - update_settings (bool) if reload the settings in the settings page for the specified handler after that setting change
-        """
-        return []
-
-    @staticmethod
-    def get_extra_requirements() -> list:
-        """The list of extra pip requirements needed by the handler"""
-        return []
 
     def stream_enabled(self) -> bool:
         """ Return if the LLM supports token streaming"""
@@ -58,19 +26,6 @@ class LLMHandler():
         if enabled is None:
             return False
         return enabled
-
-    def install(self):
-        """Install the LLM requirements"""
-        pip_path = os.path.join(os.path.abspath(os.path.join(self.path, os.pardir)), "pip")
-        for module in self.get_extra_requirements():
-            install_module(module, pip_path)
-
-    def is_installed(self) -> bool:
-        """Return if the LLM is installed"""
-        for module in self.get_extra_requirements():
-            if find_module(module) is None:
-                return False
-        return True
 
     def load_model(self, model):
         """ Load the specified model """
@@ -85,33 +40,6 @@ class LLMHandler():
         """        
         self.prompts = prompts
         self.history = window.chat[len(window.chat) - window.memory:len(window.chat)-1]
-
-    def get_setting(self, key: str) -> Any:
-        """Get a setting from the given key
-
-        Args:
-            key (str): key of the setting
-
-        Returns:
-            object: value of the setting
-        """        
-        j = json.loads(self.settings.get_string("llm-settings"))
-        if self.key not in j or key not in j[self.key]:
-            return self.get_default_setting(key)
-        return j[self.key][key]
-
-    def set_setting(self, key : str, value):
-        """Set a setting from key and value for this handler
-
-        Args:
-            key (str): key of the setting
-            value (object): value of the setting
-        """        
-        j = json.loads(self.settings.get_string("llm-settings"))
-        if self.key not in j:
-            j[self.key] = {}
-        j[self.key][key] = value
-        self.settings.set_string("llm-settings", json.dumps(j))
 
     def get_default_setting(self, key) -> object:
         """Get the default setting from a certain key

@@ -4,14 +4,15 @@ from gtts import gTTS, lang
 from subprocess import check_output
 import threading, time
 import os, json
-from .extra import can_escape_sandbox
+from .extra import can_escape_sandbox, human_readable_size
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 from pygame import mixer
+from .handler import Handler
 
-
-class TTSHandler:
+class TTSHandler(Handler):
     """Every TTS handler should extend this class."""
     key = ""
+    schema_key = "tts-voice"
     voices : tuple
     _play_lock : threading.Semaphore = threading.Semaphore(1)
     def __init__(self, settings, path):
@@ -22,11 +23,6 @@ class TTSHandler:
         self.on_start = lambda : None
         self.on_stop  = lambda : None
         pass
-
-    @staticmethod
-    def requires_sandbox_escape() -> bool:
-        """If the handler requires to run commands on the user host system"""
-        return False
 
     def get_extra_settings(self) -> list:
         """Get extra settings for the TTS"""
@@ -42,11 +38,6 @@ class TTSHandler:
                 "values": voices
             }
         ]
-
-    @staticmethod
-    def get_extra_requirements() -> list:
-        """Get the extra requirements for the tts"""
-        return []
 
     def get_voices(self):
         """Return a tuple containing the available voices"""
@@ -115,27 +106,6 @@ class TTSHandler:
         """Set the given voice"""
         self.set_setting("voice", voice)
 
-    def set_setting(self, setting, value):
-        """Set the given setting"""
-        j = json.loads(self.settings.get_string("tts-voice"))
-        if self.key not in j or not isinstance(j[self.key], dict):
-            j[self.key] = {}
-        j[self.key][setting] = value
-        self.settings.set_string("tts-voice", json.dumps(j))
-
-    def get_setting(self, name) -> Any:
-        """Get setting from key"""
-        j = json.loads(self.settings.get_string("tts-voice"))
-        if self.key not in j or not isinstance(j[self.key], dict) or name not in j[self.key]:
-            return self.get_default_setting(name)
-        return j[self.key][name]
-
-    def get_default_setting(self, name):
-        """Get the default setting from a key"""
-        for x in self.get_extra_settings():
-            if x["key"] == name:
-                return x["default"]
-        return None
 
 class gTTSHandler(TTSHandler):
     key = "gtts"
