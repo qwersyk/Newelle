@@ -259,11 +259,12 @@ class Live2DHandler(AvatarHandler):
         t2.join()
 
     def _start_animation(self, amplitudes: list[float], frame_rate=10):
+        max_amplitude = max(amplitudes)
         for amplitude in amplitudes:
             if self.stop_request:
                 self.set_mouth(0)
                 return
-            self.set_mouth(amplitude*8.8)
+            self.set_mouth(amplitude/max_amplitude)
             sleep(1/frame_rate)
 
     def set_mouth(self, value):
