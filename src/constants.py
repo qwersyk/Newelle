@@ -45,18 +45,21 @@ AVAILABLE_LLMS = {
         "title": _("Mistral"),
         "description": _("Mistral API"),
         "class": MistralHandler,
+        "secondary": True
     },
     "openrouter": {
         "key": "openrouter",
         "title": _("OpenRouter"),
         "description": _("Openrouter.ai API, supports lots of models"),
         "class": OpenRouterHandler,
+        "secondary": True
     },
     "custom_command": {
         "key": "custom_command",
         "title": _("Custom Command"),
         "description": _("Use the output of a custom command"),
         "class": CustomLLMHandler,
+        "secondary": True
     }
 }
 

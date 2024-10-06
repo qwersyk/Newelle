@@ -41,9 +41,15 @@ class Settings(Adw.PreferencesWindow):
         self.llmbuttons = [];
         group = Gtk.CheckButton()
         selected = self.settings.get_string("language-model")
+        others_row = Adw.ExpanderRow(title=_('Other LLMs'), subtitle=_("Other available LLM providers"))
         for model_key in AVAILABLE_LLMS:
            row = self.build_row(AVAILABLE_LLMS, model_key, selected, group)
-           self.LLM.add(row)
+           if "secondary" in AVAILABLE_LLMS[model_key] and AVAILABLE_LLMS[model_key]["secondary"]:
+               others_row.add_row(row)
+           else:
+                self.LLM.add(row)
+        self.LLM.add(others_row)
+
         
         # Build the TTS settings
         self.TTSgroup = Adw.PreferencesGroup(title=_('Text To Speech'))
