@@ -45,13 +45,13 @@ class Handler():
         return []
 
     def install(self):
-        """Install the LLM requirements"""
+        """Install the handler requirements"""
         pip_path = os.path.join(os.path.abspath(os.path.join(self.path, os.pardir)), "pip")
         for module in self.get_extra_requirements():
             install_module(module, pip_path)
 
     def is_installed(self) -> bool:
-        """Return if the LLM is installed"""
+        """Return if the handler is installed"""
         for module in self.get_extra_requirements():
             if find_module(module) is None:
                 return False
@@ -78,7 +78,7 @@ class Handler():
             key (str): key of the setting
             value (object): value of the setting
         """        
-        j = json.loads(self.settings.get_string("llm-settings"))
+        j = json.loads(self.settings.get_string(self.schema_key))
         if self.key not in j:
             j[self.key] = {}
         j[self.key][key] = value
