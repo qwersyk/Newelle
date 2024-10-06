@@ -2,55 +2,13 @@ from wordllama import WordLlama
 from typing import Any
 from abc import abstractmethod
 import json, copy
+from .handler import Handler
 
-
-class SmartPromptHandler():
+class SmartPromptHandler(Handler):
     key = ""
-    
-    def __init__(self, settings, path: str):
-        self.settings = settings
-        self.path = path
-
-    def is_installed(self) -> bool:
-        return True
-
-    def install(self):
-        pass
-
-    @staticmethod
-    def requires_sandbox_escape() -> bool:
-        return False
-
-    def get_extra_requirements(self) -> list:
-        return []
-
-    def get_extra_settings(self) -> list:
-        return []
-
-    def set_setting(self, setting, value):
-        """Set the given setting"""
-        j = json.loads(self.settings.get_string("smart-prompt-settings"))
-        if self.key not in j or not isinstance(j[self.key], dict):
-            j[self.key] = {}
-        j[self.key][setting] = value
-        self.settings.set_string("translator-settings", json.dumps(j))
-
-    def get_setting(self, name) -> Any:
-        """Get setting from key"""
-        j = json.loads(self.settings.get_string("smart-prompt-settings"))
-        if self.key not in j or not isinstance(j[self.key], dict) or name not in j[self.key]:
-            return self.get_default_setting(name)
-        return j[self.key][name]
-
-    def get_default_setting(self, name):
-        """Get the default setting from a key"""
-        for x in self.get_extra_settings():
-            if x["key"] == name:
-                return x["default"]
-        return None
+    schema_key = "smart-prompt-settings"   
 
     @abstractmethod
-
     def get_extra_prompts(self, message: str, history : list[dict[str, str]], available_prompts : list[dict]) -> list[str]:
         return []
 

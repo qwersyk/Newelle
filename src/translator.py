@@ -7,53 +7,12 @@ from typing import Any
 from abc import abstractmethod
 from .extra import find_module, install_module
 import threading
+from .handler import Handler
 
-class TranslatorHandler():
+class TranslatorHandler(Handler):
     key = ""
+    schema_key = "translator-settings"    
     
-    def __init__(self, settings, path: str):
-        self.settings = settings
-        self.path = path
-
-    def is_installed(self) -> bool:
-        return True
-
-    def install(self):
-        pass
-
-    
-    @staticmethod
-    def requires_sandbox_escape() -> bool:
-        return False
-
-    def get_extra_requirements(self) -> list:
-        return []
-
-    def get_extra_settings(self) -> list:
-        return []
-
-    def set_setting(self, setting, value):
-        """Set the given setting"""
-        j = json.loads(self.settings.get_string("translator-settings"))
-        if self.key not in j or not isinstance(j[self.key], dict):
-            j[self.key] = {}
-        j[self.key][setting] = value
-        self.settings.set_string("translator-settings", json.dumps(j))
-
-    def get_setting(self, name) -> Any:
-        """Get setting from key"""
-        j = json.loads(self.settings.get_string("translator-settings"))
-        if self.key not in j or not isinstance(j[self.key], dict) or name not in j[self.key]:
-            return self.get_default_setting(name)
-        return j[self.key][name]
-
-    def get_default_setting(self, name):
-        """Get the default setting from a key"""
-        for x in self.get_extra_settings():
-            if x["key"] == name:
-                return x["default"]
-        return None
-
     @abstractmethod
     def translate(self, text: str) -> str:
         return text

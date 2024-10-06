@@ -16,68 +16,34 @@ from livepng.constants import FilepathOutput
 from pydub import AudioSegment
 from time import sleep
 from urllib.parse import urlencode, urljoin
+from .handler import Handler
 
-class AvatarHandler:
+class AvatarHandler(Handler):
 
     key : str = ""
     requires_reload : list = [False]
     lock : threading.Semaphore = threading.Semaphore(1)
+    schema_key : str = "avatars"
 
     def __init__(self, settings, path: str):
         self.settings = settings
         self.path = path
-        self.stop_request = False
+        self.stop_request = False 
+
+    def set_setting(self, key: str, value):
+        """Set the given setting"""
+        j = json.loads(self.settings.get_string(self.schema_key))
+        if self.key not in j or not isinstance(j[self.key], dict):
+            j[self.key] = {}
+        j[self.key][key] = value
+        self.requires_reload[0] = True
+        self.settings.set_string(self.schema_key, json.dumps(j))
+
 
     @staticmethod
     def support_emotions() -> bool:
         return False
-
-    @staticmethod
-    def requires_sandbox_escape() -> bool:
-        """If the handler requires to run commands on the user host system"""
-        return False
-
-    def get_extra_settings(self) -> list:
-        """Get extra settings for the TTS"""
-        return []
-
-    @staticmethod
-    def get_extra_requirements() -> list:
-        """Get the extra requirements for the tts"""
-        return []
-
-    def is_installed(self) -> bool:
-        return True
-
-    def install(self):
-        pass
-
-    def set_setting(self, setting, value):
-        """Set the given setting"""
-        j = json.loads(self.settings.get_string("avatars"))
-        if self.key not in j or not isinstance(j[self.key], dict):
-            j[self.key] = {}
-        j[self.key][setting] = value
-        self.requires_reload[0] = True
-        self.settings.set_string("avatars", json.dumps(j))
-
-    def get_setting(self, name, search_default: bool = True) -> Any:
-        """Get setting from key"""
-        j = json.loads(self.settings.get_string("avatars"))
-        if self.key not in j or not isinstance(j[self.key], dict) or name not in j[self.key]:
-            if search_default:
-                return self.get_default_setting(name)
-            else:
-                return None
-        return j[self.key][name]
-
-    def get_default_setting(self, name):
-        """Get the default setting from a key"""
-        for x in self.get_extra_settings():
-            if x["key"] == name:
-                return x["default"]
-        return None
-
+ 
     @abstractmethod
     def create_gtk_widget(self) -> Gtk.Widget:
         """Create a GTK Widget to display the avatar"""
@@ -433,10 +399,10 @@ class LivePNGHandler(AvatarHandler):
         subprocess.check_output(["wget", "-P", os.path.join(self.models_path), "http://mirror.nyarchlinux.moe/models.tar.gz"])
         subprocess.check_output(["tar", "-xf", os.path.join(self.models_path, "models.tar.gz"), "-C", self.models_path, "--strip-components=1"])
         subprocess.Popen(["rm", os.path.join(self.models_path, "models.tar.gz")])
-
-    def set_setting(self, setting, value):
+    
+    def set_setting(self, key:str, value):
         """Overridden version of set_setting that also updates the default style setting when the model is changed"""
-        super().set_setting(setting, value)
-        if setting == "model":
+        super().set_setting(key, value)
+        if key == "model":
             self.set_setting("style", self.get_styles_list()[1])
 
