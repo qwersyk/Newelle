@@ -5,6 +5,7 @@ from typing import Callable, Any
 import time, json
 
 from openai import NOT_GIVEN
+import g4f
 from g4f.Provider import RetryProvider
 from gi.repository.Gtk import ResponseType
 
@@ -190,10 +191,12 @@ class GPT3AnyHandler(G4FHandler):
     def __init__(self, settings, path):
         import g4f
         super().__init__(settings, path)
-        good_providers = [g4f.Provider.You, g4f.Provider.FreeChatgpt]
-        acceptable_providers = [g4f.Provider.Pizzagpt, g4f.Provider.Allyfy]
-        self.client = g4f.client.Client(provider=RetryProvider([RetryProvider(good_providers), RetryProvider(acceptable_providers)], shuffle=False))
+        good_providers = [g4f.Provider.DDG, g4f.Provider.MagickPen, g4f.Provider.Binjie, g4f.Provider.Pizzagpt, g4f.Provider.Nexra, g4f.Provider.Koala]
+        good_nongpt_providers = [g4f.Provider.ReplicateHome, g4f.Provider.Airforce, g4f.Provider.ChatGot, g4f.Provider.FreeChatgpt]
+        acceptable_providers = [g4f.Provider.Allyfy, g4f.Provider.Blackbox, g4f.Provider.Upstage, g4f.Provider.ChatHub]
+        self.client = g4f.client.Client(provider=RetryProvider([RetryProvider(good_providers), RetryProvider(good_nongpt_providers), RetryProvider(acceptable_providers)], shuffle=False))
         self.n = 0
+
     def get_extra_settings(self) -> list:
         return [
             {
@@ -224,7 +227,7 @@ class GPT3AnyHandler(G4FHandler):
         user_prompt = {"role": "user", "content": message}
         history.append(user_prompt)
         response = self.client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="",
             messages=history,
         )
         return response.choices[0].message.content
@@ -237,7 +240,7 @@ class GPT3AnyHandler(G4FHandler):
         user_prompt = {"role": "user", "content": message}
         history.append(user_prompt)
         response = self.client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="",
             messages=history,
             stream=True,
         )

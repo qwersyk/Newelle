@@ -6,8 +6,8 @@ from .stt import SphinxHandler, GoogleSRHandler, WitAIHandler, VoskHandler, Whis
 AVAILABLE_LLMS = {
     "GPT3Any": {
         "key": "GPT3Any",
-        "title": _("Any GPT 3.5 Turbo provider"),
-        "description": "Automatically select any GPT 3.5 turbo provider",
+        "title": _("Any free Provider"),
+        "description": "Automatically chooses a free provider using a GPT3.5-Turbo or better model",
         "class": GPT3AnyHandler,
     },
    "local": {
@@ -49,7 +49,7 @@ AVAILABLE_LLMS = {
     "openrouter": {
         "key": "openrouter",
         "title": _("OpenRouter"),
-        "description": _("Openrouter.ai API"),
+        "description": _("Openrouter.ai API, supports lots of models"),
         "class": OpenRouterHandler,
     },
     "custom_command": {
