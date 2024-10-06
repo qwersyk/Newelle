@@ -31,6 +31,12 @@ class ReplaceHelper:
             desktop = "Unknown"
         return desktop
 
+def quote_string(s):
+    if "'" in s:
+        return "'" + s.replace("'", "'\\''") + "'"
+    else:
+        return "'" + s + "'"
+
 def replace_variables(text: str) -> str:
     """
     Replace variables in prompts

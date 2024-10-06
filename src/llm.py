@@ -4,12 +4,13 @@ import os, threading
 from typing import Callable, Any
 import time, json
 
+from g4f.Provider.selenium.Phind import quote
 from openai import NOT_GIVEN
 import g4f
 from g4f.Provider import RetryProvider
 from gi.repository.Gtk import ResponseType
 
-from .extra import find_module, install_module
+from .extra import find_module, install_module, quote_string
 from .handler import Handler
 
 class LLMHandler(Handler):
@@ -494,23 +495,25 @@ class CustomLLMHandler(LLMHandler):
 
     def generate_text(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = []) -> str:
         command = self.get_setting("command")
-        command = command.replace("{0}", json.dumps(self.history))
-        command = command.replace("{1}", json.dumps(self.prompts))
+        command = command.replace("{0}", quote_string(json.dumps(self.history)))
+        command = command.replace("{1}", quote_string(json.dumps(self.prompts)))
         out = check_output(["flatpak-spawn", "--host", "bash", "-c", command])
         return out.decode("utf-8")
     
     def get_suggestions(self, request_prompt: str = "", amount: int = 1) -> list[str]:
         command = self.get_setting("suggestion")
-        command = command.replace("{0}", json.dumps(self.history))
-        command = command.replace("{1}", json.dumps(self.prompts))
+        if command == "":
+            return []
+        command = command.replace("{0}", quote_string(json.dumps(self.history)))
+        command = command.replace("{1}", quote_string(json.dumps(self.prompts)))
         command = command.replace("{2}", str(amount))
         out = check_output(["flatpak-spawn", "--host", "bash", "-c", command])
         return json.loads(out.decode("utf-8"))  
  
     def generate_text_stream(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = [], on_update: Callable[[str], Any] = lambda _: None, extra_args: list = []) -> str:
         command = self.get_setting("command")
-        command = command.replace("{0}", json.dumps(self.history))
-        command = command.replace("{1}", json.dumps(self.prompts))
+        command = command.replace("{0}", quote_string(json.dumps(self.history)))
+        command = command.replace("{1}", quote_string(json.dumps(self.prompts)))
         process = Popen(["flatpak-spawn", "--host", "bash", "-c", command], stdout=PIPE)        
         full_message = ""
         prev_message = ""
