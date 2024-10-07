@@ -1,13 +1,13 @@
 
-from .llm import GPT4AllHandler, GroqHandler, OllamaHandler, OpenAIHandler, CustomLLMHandler, GPT3AnyHandler, GeminiHandler
+from .llm import AirforceHandler, GPT4AllHandler, GroqHandler, NexraHandler, OllamaHandler, OpenAIHandler, CustomLLMHandler, GPT3AnyHandler, GeminiHandler, MistralHandler, OpenRouterHandler
 from .tts import gTTSHandler, EspeakHandler, CustomTTSHandler
 from .stt import SphinxHandler, GoogleSRHandler, WitAIHandler, VoskHandler, WhisperAPIHandler, CustomSRHandler
 
 AVAILABLE_LLMS = {
     "GPT3Any": {
         "key": "GPT3Any",
-        "title": _("Any GPT 3.5 Turbo provider"),
-        "description": "Automatically select any GPT 3.5 turbo provider",
+        "title": _("Any free Provider"),
+        "description": "Automatically chooses a free provider using a GPT3.5-Turbo or better model",
         "class": GPT3AnyHandler,
     },
    "local": {
@@ -40,11 +40,40 @@ AVAILABLE_LLMS = {
         "description": _("OpenAI API"),
         "class": OpenAIHandler,
     },
+    "mistral": {
+        "key": "mistral",
+        "title": _("Mistral"),
+        "description": _("Mistral API"),
+        "class": MistralHandler,
+        "secondary": True
+    },
+    "openrouter": {
+        "key": "openrouter",
+        "title": _("OpenRouter"),
+        "description": _("Openrouter.ai API, supports lots of models"),
+        "class": OpenRouterHandler,
+        "secondary": True
+    },
+    "airforce": {
+        "key": "airforce",
+        "title": _("AirForce API"),
+        "description": _("api.airforce, supports many models, does not require an API Key"),
+        "class": AirforceHandler,
+        "secondary": True
+    },
+    "nexra": {
+        "key": "nexra",
+        "title": _("Nexra"),
+        "description": _("aryahcr.cc chat, supports many models, does not require an API Key"),
+        "class": NexraHandler,
+        "secondary": True
+    },
     "custom_command": {
         "key": "custom_command",
         "title": _("Custom Command"),
         "description": _("Use the output of a custom command"),
         "class": CustomLLMHandler,
+        "secondary": True
     }
 }
 
