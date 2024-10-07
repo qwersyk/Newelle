@@ -1,13 +1,16 @@
 from abc import abstractmethod
-from subprocess import check_output
+from subprocess import PIPE, Popen, check_output
 import os, threading
 from typing import Callable, Any
 import time, json
 
+from g4f.Provider.selenium.Phind import quote
+from openai import NOT_GIVEN
+import g4f
 from g4f.Provider import RetryProvider
 from gi.repository.Gtk import ResponseType
 
-from .extra import find_module, install_module
+from .extra import find_module, install_module, quote_string
 from .handler import Handler
 
 class LLMHandler(Handler):
@@ -162,20 +165,118 @@ class G4FHandler(LLMHandler):
     @staticmethod
     def get_extra_requirements() -> list:
         return ["g4f"]
+     
+    def get_extra_settings(self) -> list:
+        return [
+            {
+                "key": "streaming",
+                "title": _("Message Streaming"),
+                "description": _("Gradually stream message output"),
+                "type": "toggle",
+                "default": True,
+            },
+        ]
 
-    def convert_history(self, history: list) -> list:
+    def convert_history(self, history: list, prompts: list | None = None) -> list:
+        if prompts is None:
+            prompts = self.prompts
         result = []
-        result.append({"role": "system", "content": "\n".join(self.prompts)})
+        result.append({"role": "system", "content": "\n".join(prompts)})
         for message in history:
             result.append({
-                "role": message["User"].lower(),
+                "role": message["User"].lower() if message["User"] in {"Assistant", "User"} else "system",
                 "content": message["Message"]
             })
         return result
-
+    
     def set_history(self, prompts, window):
         self.history = window.chat[len(window.chat) - window.memory:len(window.chat)-1]
         self.prompts = prompts
+
+    def generate_text(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = []) -> str:
+        model = self.get_setting("model")
+        message = prompt
+        history = self.convert_history(history, system_prompt)
+        user_prompt = {"role": "user", "content": message}
+        history.append(user_prompt)
+        try:
+            response = self.client.chat.completions.create(
+                model=model,
+                messages=history,
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            return f"Error: {e}"
+    def generate_text_stream(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = [], on_update: Callable[[str], Any] = lambda _: None, extra_args: list = []) -> str:
+        message = prompt
+        model = self.get_setting("model")
+        history = self.convert_history(history, system_prompt)
+        user_prompt = {"role": "user", "content": message}
+        history.append(user_prompt)
+        try:
+            response = self.client.chat.completions.create(
+                model=model,
+                messages=history,
+                stream=True,
+            )
+            full_message = ""
+            prev_message = ""
+            for chunk in response:
+                if chunk.choices[0].delta.content:
+                    full_message += chunk.choices[0].delta.content
+                    args = (full_message.strip(), ) + tuple(extra_args)
+                    if len(full_message) - len(prev_message) > 1:
+                        on_update(*args)
+                        prev_message = full_message
+            return full_message.strip()
+        except Exception as e:
+            return f"Error: {e}"
+
+
+class NexraHandler(G4FHandler):
+    key = "nexra" 
+    
+    def __init__(self, settings, path):
+        import g4f
+        super().__init__(settings, path)
+        self.client = g4f.client.Client(provider=g4f.Provider.Nexra)        
+
+    def get_extra_settings(self) -> list:
+        return [
+            {
+                "key": "model",
+                "title": _("Model"),
+                "description": _("The model to use"),
+                "type": "combo",
+                "values": (("gpt-4", "gpt-4"),("gpt-4o", "gpt-4o"), ("gpt-3.5-turbo", "gpt-3.5-turbo"), ("gpt-3", "gpt-3"), ("llama-3.1", "llama-3.1"), ("gemini-pro", "gemini-pro")),
+                "default": "gpt-4o",
+            }
+        ] + super().get_extra_settings()
+    
+
+class AirforceHandler(G4FHandler):
+    key = "airforce" 
+    
+    def __init__(self, settings, path):
+        import g4f
+        super().__init__(settings, path)
+        self.client = g4f.client.Client(provider=g4f.Provider.Airforce)
+        self.models = tuple()
+        for model in g4f.Provider.Airforce.models:
+            if "flux" not in model and "dall-e" not in model and "any-dark" not in model and "cosmosrp" not in model:
+                self.models += ((model,model),)
+
+    def get_extra_settings(self) -> list:
+        return [
+            {
+                "key": "model",
+                "title": _("Model"),
+                "description": _("The model to use"),
+                "type": "combo",
+                "values": self.models,
+                "default": "llama-3-70b-chat",
+            }
+        ] + super().get_extra_settings()
 
 
 class GPT3AnyHandler(G4FHandler):
@@ -189,54 +290,30 @@ class GPT3AnyHandler(G4FHandler):
     def __init__(self, settings, path):
         import g4f
         super().__init__(settings, path)
-        good_providers = [g4f.Provider.You, g4f.Provider.FreeChatgpt]
-        acceptable_providers = [g4f.Provider.Pizzagpt, g4f.Provider.Allyfy]
-        self.client = g4f.client.Client(provider=RetryProvider([RetryProvider(good_providers), RetryProvider(acceptable_providers)], shuffle=False))
+        good_providers = [g4f.Provider.DDG, g4f.Provider.MagickPen, g4f.Provider.Binjie, g4f.Provider.Pizzagpt, g4f.Provider.Nexra, g4f.Provider.Koala]
+        good_nongpt_providers = [g4f.Provider.ReplicateHome, g4f.Provider.Airforce, g4f.Provider.ChatGot, g4f.Provider.FreeChatgpt]
+        acceptable_providers = [g4f.Provider.Allyfy, g4f.Provider.Blackbox, g4f.Provider.Upstage, g4f.Provider.ChatHub]
+        self.client = g4f.client.Client(provider=RetryProvider([RetryProvider(good_providers), RetryProvider(good_nongpt_providers), RetryProvider(acceptable_providers)], shuffle=False))
         self.n = 0
-    def get_extra_settings(self) -> list:
-        return [
-            {
-                "key": "streaming",
-                "title": _("Message Streaming"),
-                "description": _("Gradually stream message output"),
-                "type": "toggle",
-                "default": True,
-            },
-        ]
-
-    def convert_history(self, history: list) -> list:
-        """Converts the given history into the correct format for current_chat_history"""
-        result = []
-        result.append({"role": "system", "content": "\n".join(self.prompts)})
-        for message in history:
-            result.append({
-                "role": message["User"].lower(),
-                "content": message["Message"]
-            })
-        return result
 
     def generate_text(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = []) -> str:
         message = prompt
-        # if len (self.prompts) > 0:
-            # message = "SYSTEM:" + "\n".join(system_prompt) + "\n\n" + prompt
-        history = self.convert_history(history)
+        history = self.convert_history(history, system_prompt)
         user_prompt = {"role": "user", "content": message}
         history.append(user_prompt)
         response = self.client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="",
             messages=history,
         )
         return response.choices[0].message.content
 
     def generate_text_stream(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = [], on_update: Callable[[str], Any] = lambda _: None, extra_args: list = []) -> str:
         message = prompt
-        # if len (self.prompts) > 0:
-            # message = "SYSTEM:" + "\n".join(system_prompt) + "\n\n" + prompt
-        history = self.convert_history(history)
+        history = self.convert_history(history, system_prompt)
         user_prompt = {"role": "user", "content": message}
         history.append(user_prompt)
         response = self.client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="",
             messages=history,
             stream=True,
         )
@@ -251,12 +328,6 @@ class GPT3AnyHandler(G4FHandler):
                     prev_message = full_message
         return full_message.strip()
 
-    def send_message(self, window, message: str) -> str:
-        return self.generate_text(window.chat[-1]["User"] + ": " + message, self.history, self.prompts)
-     
-    def send_message_stream(self, window, message: str, on_update: Callable[[str], Any] = lambda _: None, extra_args: list = []) -> str:
-        return self.generate_text_stream(window.chat[-1]["User"] + ": " + message, self.history, self.prompts, on_update, extra_args)
-
     def generate_chat_name(self, request_prompt: str = "") -> str:
         history = ""
         for message in self.history[-4:] if len(self.history) >= 4 else self.history:
@@ -266,8 +337,9 @@ class GPT3AnyHandler(G4FHandler):
 
 class GeminiHandler(LLMHandler):
     key = "gemini"
+    
     """
-    Official GOogle Gemini APIs, they support history and system prompts
+    Official Google Gemini APIs, they support history and system prompts
     """
 
     @staticmethod
@@ -303,6 +375,13 @@ class GeminiHandler(LLMHandler):
                 "type": "toggle",
                 "default": True
             },
+            {
+                "key": "safety",
+                "title": _("Enable safety settings"),
+                "description": _("Enable google safety settings to avoid generating harmful content"),
+                "type": "toggle",
+                "default": True
+            }
         ]
 
     def __convert_history(self, history: list):
@@ -316,35 +395,64 @@ class GeminiHandler(LLMHandler):
 
     def generate_text(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = []) -> str:
         import google.generativeai as genai
+        
+        from google.generativeai.protos import HarmCategory
+        from google.generativeai.types import HarmBlockThreshold
+        if self.get_setting("safety"):
+            safety = None
+        else:
+            safety = { 
+                HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
+                HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
+                HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
+            }
+ 
         genai.configure(api_key=self.get_setting("apikey"))
         instructions = "\n"+"\n".join(system_prompt)
-        model = genai.GenerativeModel(self.get_setting("model"), system_instruction=instructions)
+        if instructions == "":
+            instructions=None
+        model = genai.GenerativeModel(self.get_setting("model"), system_instruction=instructions, safety_settings=safety)
         converted_history = self.__convert_history(history)
-
-        chat = model.start_chat(
-            history=converted_history,
-        )
-        response = chat.send_message(prompt)
-        return response.text
+        try:
+            chat = model.start_chat(
+                history=converted_history
+            )
+            response = chat.send_message(prompt)
+            return response.text
+        except Exception as e:
+            return "Message blocked: " + str(e)
 
     def generate_text_stream(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = [], on_update: Callable[[str], Any] = lambda _: None , extra_args: list = []) -> str:
         import google.generativeai as genai
+        from google.generativeai.protos import HarmCategory
+        from google.generativeai.types import HarmBlockThreshold
+        
+        if self.get_setting("safety"):
+            safety = None
+        else:
+            safety = { 
+                HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
+                HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
+                HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
+            }
+ 
         genai.configure(api_key=self.get_setting("apikey"))
         instructions = "\n".join(system_prompt)
-        model = genai.GenerativeModel(self.get_setting("model"), system_instruction=instructions)
-        converted_history = self.__convert_history(history)
-        chat = model.start_chat(
-            history=converted_history,
-        )
-
-        response = chat.send_message(prompt, stream=True)
-        full_message = ""
-        for chunk in response:
-            full_message += chunk.text
-            args = (full_message.strip(), ) + tuple(extra_args)
-            on_update(*args)
-        return full_message.strip()
-
+        if instructions == "":
+            instructions=None
+        model = genai.GenerativeModel(self.get_setting("model"), system_instruction=instructions, safety_settings=safety)
+        converted_history = self.__convert_history(history) 
+        try: 
+            chat = model.start_chat(history=converted_history)
+            response = chat.send_message(prompt, stream=True)
+            full_message = ""
+            for chunk in response:
+                full_message += chunk.text
+                args = (full_message.strip(), ) + tuple(extra_args)
+                on_update(*args)
+            return full_message.strip()
+        except Exception as e:
+            return "Message blocked: " + str(e)
 
 class CustomLLMHandler(LLMHandler):
     key = "custom_command"
@@ -357,16 +465,24 @@ class CustomLLMHandler(LLMHandler):
     def get_extra_settings(self):
         return [
             {
+                "key": "streaming",
+                "title": _("Message Streaming"),
+                "description": _("Gradually stream message output"),
+                "type": "toggle",
+                "default": True
+            },
+           
+            {
                 "key": "command",
                 "title": _("Command to execute to get bot output"),
-                "description": _("Command to execute to get bot response, {0} will be replaced with a JSON file containing the chat, {1} with the extra prompts"),
+                "description": _("Command to execute to get bot response, {0} will be replaced with a JSON file containing the chat, {1} with the system prompt"),
                 "type": "entry",
                 "default": ""
             },
             {
                 "key": "suggestion",
                 "title": _("Command to execute to get bot's suggestions"),
-                "description": _("Command to execute to get chat suggestions, {0} will be replaced with a JSON file containing the chat, {1} with the extra prompts"),
+                "description": _("Command to execute to get chat suggestions, {0} will be replaced with a JSON file containing the chat, {1} with the extra prompts, {2} with the numer of suggestions to generate. Must return a JSON array containing the suggestions as strings"),
                 "type": "entry",
                 "default": ""
             },
@@ -379,18 +495,42 @@ class CustomLLMHandler(LLMHandler):
 
     def generate_text(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = []) -> str:
         command = self.get_setting("command")
-        command = command.replace("{0}", json.dumps(self.history))
-        command = command.replace("{1}", json.dumps(self.prompts))
+        command = command.replace("{0}", quote_string(json.dumps(self.history)))
+        command = command.replace("{1}", quote_string(json.dumps(self.prompts)))
         out = check_output(["flatpak-spawn", "--host", "bash", "-c", command])
         return out.decode("utf-8")
     
     def get_suggestions(self, request_prompt: str = "", amount: int = 1) -> list[str]:
         command = self.get_setting("suggestion")
-        command = command.replace("{0}", json.dumps(self.history))
-        command = command.replace("{1}", json.dumps(self.prompts))
+        if command == "":
+            return []
+        command = command.replace("{0}", quote_string(json.dumps(self.history)))
+        command = command.replace("{1}", quote_string(json.dumps(self.prompts)))
+        command = command.replace("{2}", str(amount))
         out = check_output(["flatpak-spawn", "--host", "bash", "-c", command])
-        return out.decode("utf-8").split("\n")  
+        return json.loads(out.decode("utf-8"))  
+ 
+    def generate_text_stream(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = [], on_update: Callable[[str], Any] = lambda _: None, extra_args: list = []) -> str:
+        command = self.get_setting("command")
+        command = command.replace("{0}", quote_string(json.dumps(self.history)))
+        command = command.replace("{1}", quote_string(json.dumps(self.prompts)))
+        process = Popen(["flatpak-spawn", "--host", "bash", "-c", command], stdout=PIPE)        
+        full_message = ""
+        prev_message = ""
+        while True:
+            if process.stdout is None:
+                break
+            chunk = process.stdout.readline()
+            if not chunk:
+                break
+            full_message += chunk.decode("utf-8")
+            args = (full_message.strip(), ) + tuple(extra_args)
+            if len(full_message) - len(prev_message) > 1:
+                on_update(*args)
+                prev_message = full_message
 
+        process.wait()
+        return full_message.strip()
 
 class OllamaHandler(LLMHandler):
     key = "ollama"
@@ -517,6 +657,13 @@ class OpenAIHandler(LLMHandler):
                 "default": True
             },
             {
+                "key": "advanced_params",
+                "title": _("Advanced Parameters"),
+                "description": _("Include parameters like Max Tokens, Top-P, Temperature, etc."),
+                "type": "toggle",
+                "default": True
+            },
+            {
                 "key": "max-tokens",
                 "title": _("Max Tokens"),
                 "description": _("Max tokens of the generated text"),
@@ -585,6 +732,17 @@ class OpenAIHandler(LLMHandler):
             })
         return result
 
+    def get_advanced_params(self):
+        advanced_params = self.get_setting("advanced_params")
+        if not advanced_params:
+            return NOT_GIVEN, NOT_GIVEN, NOT_GIVEN, NOT_GIVEN, NOT_GIVEN
+        top_p = self.get_setting("top-p")
+        temperature = self.get_setting("temperature")
+        max_tokens = self.get_setting("max-tokens")
+        presence_penalty = self.get_setting("presence-penalty")
+        frequency_penalty = self.get_setting("frequency-penalty")
+        return top_p, temperature, max_tokens, presence_penalty, frequency_penalty 
+
     def generate_text(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = []) -> str:
         from openai import OpenAI
         messages = self.convert_history(history, system_prompt)
@@ -597,15 +755,16 @@ class OpenAIHandler(LLMHandler):
             api_key=api,
             base_url=self.get_setting("endpoint")
         )
+        top_p, temperature, max_tokens, presence_penalty, frequency_penalty = self.get_advanced_params()
         try:
             response = client.chat.completions.create(
                 model=self.get_setting("model"),
                 messages=messages,
-                top_p=self.get_setting("top-p"),
-                max_tokens=self.get_setting("max_tokens"),
-                temperature=self.get_setting("temperature"),
-                presence_penalty=self.get_setting("presence_penalty"),
-                frequency_penalty=self.get_setting("frequency_penalty")
+                top_p=top_p,
+                max_tokens=max_tokens,
+                temperature=temperature,
+                presence_penalty=presence_penalty,
+                frequency_penalty=frequency_penalty
             )
             return response.choices[0].message.content
         except Exception as e:
@@ -622,15 +781,16 @@ class OpenAIHandler(LLMHandler):
             api_key=api,
             base_url=self.get_setting("endpoint")
         )
+        top_p, temperature, max_tokens, presence_penalty, frequency_penalty = self.get_advanced_params()
         try:
             response = client.chat.completions.create(
                 model=self.get_setting("model"),
                 messages=messages,
-                top_p=self.get_setting("top-p"),
-                max_tokens=self.get_setting("max_tokens"),
-                temperature=self.get_setting("temperature"),
-                presence_penalty=self.get_setting("presence_penalty"),
-                frequency_penalty=self.get_setting("frequency_penalty"),
+                top_p=top_p,
+                max_tokens=max_tokens,
+                temperature=temperature,
+                presence_penalty=presence_penalty,
+                frequency_penalty=frequency_penalty, 
                 stream=True
             )
             full_message = ""
@@ -646,6 +806,35 @@ class OpenAIHandler(LLMHandler):
         except Exception as e:
             return str(e)
 
+class MistralHandler(OpenAIHandler):
+    key = "mistral"
+
+    def __init__(self, settings, path):
+        super().__init__(settings, path)
+        self.set_setting("endpoint", "https://api.mistral.ai/v1/")
+        self.set_setting("advanced_params", False)
+
+    def get_extra_settings(self) -> list:
+        plus = [
+            {
+                "key": "api",
+                "title": _("API Key"),
+                "description": _("API Key for Mistral"),
+                "type": "entry",
+                "default": ""
+            },
+            {
+                "key": "model",
+                "title": _("Mistral Model"),
+                "description": _("Name of the Mistral Model"),
+                "type": "entry",
+                "default": "open-mixtral-8x22b",
+                "website": "https://docs.mistral.ai/getting-started/models/models_overview/",
+            }, 
+        ]
+        plus += [super().get_extra_settings()[3]]
+        return plus
+
 class GroqHandler(OpenAIHandler):
     key = "groq"
     
@@ -654,7 +843,7 @@ class GroqHandler(OpenAIHandler):
         self.set_setting("endpoint", "https://api.groq.com/openai/v1/")
 
     def get_extra_settings(self) -> list:
-        return  [ 
+        settings = [ 
             {
                 "key": "api",
                 "title": _("API Key"),
@@ -670,69 +859,37 @@ class GroqHandler(OpenAIHandler):
                 "default": "llama-3.1-70b-versatile",
                 "website": "https://console.groq.com/docs/models",
             },
+        ]
+        settings += super().get_extra_settings()[-7:]
+        return settings
+
+class OpenRouterHandler(OpenAIHandler):
+    key = "openrouter"
+
+    def __init__(self, settings, path):
+        super().__init__(settings, path)
+        self.set_setting("endpoint", "https://openrouter.ai/api/v1/")
+
+    def get_extra_settings(self) -> list:
+        settings = [ 
             {
-                "key": "streaming",
-                "title": _("Message Streaming"),
-                "description": _("Gradually stream message output"),
-                "type": "toggle",
-                "default": True
-            },
+                "key": "api",
+                "title": _("API Key"),
+                "description": _("API Key for OpenRouter"),
+                "type": "entry",
+                "default": ""
+            }, 
             {
-                "key": "max-tokens",
-                "title": _("Max Tokens"),
-                "description": _("Max tokens of the generated text"),
-                "website": "https://help.openai.com/en/articles/4936856-what-are-tokens-and-how-to-count-them",
-                "type": "range",
-                "min": 3,
-                "max": 400,
-                "default": 150,
-                "round-digits": 0
+                "key": "model",
+                "title": _("OpenRouter Model"),
+                "description": _("Name of the Groq Model"),
+                "type": "entry",
+                "default": "meta-llama/llama-3.1-70b-instruct:free",
+                "website": "https://openrouter.ai/docs/models",
             },
-            {
-                "key": "top-p",
-                "title": _("Top-P"),
-                "description": _("An alternative to sampling with temperature, called nucleus sampling"),
-                "website": "https://platform.openai.com/docs/api-reference/completions/create#completions/create-top_p",
-                "type": "range",
-                "min": 0,
-                "max": 1,
-                "default": 1,
-                "round-digits": 2,
-            },
-            {
-                "key": "temperature",
-                "title": _("Temperature"),
-                "description": _("What sampling temperature to use. Higher values will make the output more random"),
-                "website": "https://platform.openai.com/docs/api-reference/completions/create#completions/create-temperature",
-                "type": "range",
-                "min": 0,
-                "max": 2,
-                "default": 1,
-                "round-digits": 2,
-            },
-            {
-                "key": "frequency-penalty",
-                "title": _("Frequency Penalty"),
-                "description": _("Positive values penalize new tokens based on their existing frequency in the text so far, decreasing the model's likelihood to repeat the same line"),
-                "website": "https://platform.openai.com/docs/api-reference/completions/create#completions/create-frequency_penalty",
-                "type": "range",
-                "min": -2,
-                "max": 2,
-                "default": 0,
-                "round-digits": 1,
-            },
-            {
-                "key": "presence-penalty",
-                "title": _("Presence Penalty"),
-                "description": _("Positive values penalize new tokens based on whether they appear in the text so far, increasing the model's likelihood to talk about new topics."),
-                "website": "https://platform.openai.com/docs/api-reference/completions/create#completions/create-frequency_penalty",
-                "type": "range",
-                "min": -2,
-                "max": 2,
-                "default": 0,
-                "round-digits": 1,
-            },
-        ] 
+        ]
+        settings += super().get_extra_settings()[-7:]
+        return settings
 
 
 
