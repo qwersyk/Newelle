@@ -1,7 +1,9 @@
 from wordllama import WordLlama
 from typing import Any
 from abc import abstractmethod
-import json, copy
+import json, copy, os, pickle
+
+from src.extra import find_module, install_module
 from .handler import Handler
 
 class SmartPromptHandler(Handler):
@@ -63,4 +65,33 @@ class WordLlamaHandler(SmartPromptHandler):
             category_scores[category] = avg_score
 
         return category_scores
- 
+
+
+class LogicalRegressionHandler(SmartPromptHandler):
+    key = "LogicalRegression"
+
+    def __init__(self, settings, path):
+        super().__init__(settings, path)
+        self.wl = WordLlama.load()
+        self.models_dir = os.path.join(path, "prompt-models")
+        self.pip_path = os.path.join(path, "pip")
+        if not os.path.isdir(self.models_dir):
+            os.makedirs(self.models_dir)
+    
+    @staticmethod
+    def get_extra_requirements() -> list:
+        return ["scikit_learn"]
+    
+    def install(self):
+        install_module("scikit_learn", self.pip_path)
+        
+    
+    def is_installed(self) -> bool:
+        if not find_module("sklearn"):
+            return False
+        if not os.path.isfile(os.path.join(self.models_dir, "linear_regression.sav")):
+            return False
+        return True
+    
+    def get_extra_prompts(self, message: str, history : list[dict[str, str]], available_prompts : list[dict]) -> list[str]:
+        pass
