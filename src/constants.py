@@ -1,4 +1,4 @@
-from .llm import AirforceHandler, GPT4AllHandler, GroqHandler, NexraHandler, OllamaHandler, OpenAIHandler, CustomLLMHandler, GPT3AnyHandler, GeminiHandler, MistralHandler, OpenRouterHandler
+from .llm import AirforceHandler, GPT4AllHandler, GroqHandler, NexraHandler, NyarchApiHandler, OllamaHandler, OpenAIHandler, CustomLLMHandler, GPT3AnyHandler, GeminiHandler, MistralHandler, OpenRouterHandler
 from .tts import VoiceVoxHanlder, gTTSHandler, EspeakHandler, CustomTTSHandler, VitsHandler, EdgeTTSHandler
 from .stt import SphinxHandler, GoogleSRHandler, WitAIHandler, VoskHandler, WhisperAPIHandler, CustomSRHandler
 
@@ -9,11 +9,18 @@ from .smart_prompt import WordLlamaHandler
 from .dataset import DATASET, WIKI_PROMPTS
 
 AVAILABLE_LLMS = {
+    "nyarch": {
+        "key": "nyarch",
+        "title": _("Nyarch Demo API"),
+        "description": "Nyarch demo API just to try out Nyarch Assistant, limited to 10 requests",
+        "class": NyarchApiHandler,
+    },
     "GPT3Any": {
         "key": "GPT3Any",
         "title": _("Any free Provider"),
         "description": "Automatically chooses a free provider using a GPT3.5-Turbo or better model",
         "class": GPT3AnyHandler,
+        "secondary": True
     },
    "local": {
         "key": "local",
