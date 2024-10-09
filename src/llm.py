@@ -383,14 +383,20 @@ class GeminiHandler(LLMHandler):
                 "default": True
             }
         ]
-
-    def __convert_history(self, history: list):
+   
+    def __convert_history(self, history: list) -> list:
         result = []
         for message in history:
-            result.append({
-                "role": message["User"].lower() if message["User"] == "User" else "model",
-                "parts": message["Message"]
-            })
+            if message["User"] in ["Assistant", "User"]:
+                result.append({
+                    "role": "user" if message["User"] == "User" else "model",
+                    "parts": message["Message"]
+                })
+            elif message["User"] == "Console":
+                result.append({
+                    "role": "user",
+                    "parts": "Console: " + message["Message"]
+                })
         return result
 
     def generate_text(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = []) -> str:

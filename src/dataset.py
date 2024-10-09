@@ -1175,6 +1175,7 @@ paru -S driver
     "console": "",
     "voicevox": """If the user asks how to install VoiceVox TTS engine, provide these instructions.
 Follow the steps outlined below to ensure accurate instructions. Be concise, accurate, and clear when responding.
+Only show one step per message.
 Step 1: Install docker
 ```console
 sudo pacman -S docker
@@ -1192,7 +1193,7 @@ Give this note to the user:
 
 - If the user has chosen the CPU container:
 ```console
-docker pull voicevox/voicevox_engine:cpu-ubuntu20.04-latest
+sudo docker pull voicevox/voicevox_engine:cpu-ubuntu20.04-latest
 ````
 - If the user has chosen the GPU container:
 First of all, be sure to install the Nvidia container toolkit (and have Nvidia driver installed)
@@ -1202,19 +1203,23 @@ sudo systemctl restart docker.service
 ```
 Then, download the container:
 ```console
-docker pull voicevox/voicevox_engine:nvidia-ubuntu20.04-latest
+sudo docker pull voicevox/voicevox_engine:nvidia-ubuntu20.04-latest
 ````
 Step 4: Start the container 
 Tell the user that he will have to start the container every time he wants to use voicevox
 
 - If the user has chosen the gpu image:
 ```console 
-docker run --rm --gpus all -p '127.0.0.1:50021:50021' voicevox/voicevox_engine:nvidia-ubuntu20.04-latest
+sudo docker run --rm --gpus all -p '127.0.0.1:50021:50021' voicevox/voicevox_engine:nvidia-ubuntu20.04-latest
 ````
 - If the user has chosen the CPU image:
 ```console
-docker run --rm -it -p '127.0.0.1:50021:50021' voicevox/voicevox_engine:cpu-ubuntu20.04-latest
+sudo docker run --rm -it -p '127.0.0.1:50021:50021' voicevox/voicevox_engine:cpu-ubuntu20.04-latest
 ```
+Step 5: Using VoiceVox for TTS in Nyarch Assistant
+Now, to use Voicevox as TTS, go in the preferences and under the voice TTS choose "Voicevox". 
+Expand VoiceVox settings, and put `http://localhost:50021`.
+Since VoiceVox only supports Japanese, I also suggest you to enable the translator program!
 """,
     "colloquial": "",
     "table": "",

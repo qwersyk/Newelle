@@ -1,7 +1,6 @@
 import time, re, sys
 import gi, os, subprocess
 import pickle
-
 from .avatar import AvatarHandler
 
 from .presentation import PresentationWindow
@@ -1222,12 +1221,22 @@ class MainWindow(Gtk.ApplicationWindow):
         
         for prompt in self.bot_prompts:
             prompts.append(replace_variables(prompt))
-        
+       
+        history = []
+        count = self.memory
+        for msg in self.chat[:-1]:
+            if count == 0:
+                break
+            if msg["User"] == "Console" and msg["Message"] == "None":
+                continue
+            history.append(msg)
+            count -= 1
+
         # Get smart prompts
         if self.smart_prompt_enabled:
             if self.smart_prompt_handler in AVAILABLE_SMART_PROMPTS:
                 smart_prompt = AVAILABLE_SMART_PROMPTS[self.smart_prompt_handler]["class"](self.settings, self.directory)
-                generated = smart_prompt.get_extra_prompts(self.chat[-1]["Message"], self.chat[len(self.chat) - self.memory:len(self.chat)-1], EXTRA_PROMPTS)
+                generated = smart_prompt.get_extra_prompts(self.chat[-1]["Message"], history, EXTRA_PROMPTS)
                 prompts += generated
         # Set history and prompts
         self.model.set_history(prompts, self)
@@ -1243,7 +1252,7 @@ class MainWindow(Gtk.ApplicationWindow):
                 pass
         else:
             message_label = self.send_message_to_bot(self.chat[-1]["Message"])
-
+        
         if self.stream_number_variable == stream_number_variable:
             GLib.idle_add(self.show_message, message_label)
         GLib.idle_add(self.remove_send_button_spinner)
