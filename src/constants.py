@@ -4,7 +4,7 @@ from .stt import SphinxHandler, GoogleSRHandler, WitAIHandler, VoskHandler, Whis
 
 from .avatar import Live2DHandler, LivePNGHandler
 from .translator import CustomTranslatorHandler, GoogleTranslatorHandler, LibreTranslateHandler, LigvaTranslateHandler
-from .smart_prompt import WordLlamaHandler
+from .smart_prompt import LogicalRegressionHandler, WordLlamaHandler
 
 from .dataset import DATASET, WIKI_PROMPTS
 
@@ -218,10 +218,16 @@ AVAILABLE_TRANSLATORS = {
 AVAILABLE_SMART_PROMPTS = {
     "WordLlama": {
         "key": "WordLlama",
-        "title": _("Nyarch Smart Prompt selector"),
+        "title": _("Nyarch Smart Prompt Lite"),
         "description": _("EXPERIMENTAL: Local mini models that helps the llm to provide better responses"),
         "class": WordLlamaHandler,
-    }, 
+    },
+    "LogicalRegression": {
+        "key": "LogicalRegression",
+        "title": _("Nyarch Smart Prompt Medium"),
+        "description": _("EXPERIMENTAL: Local medium models that helps the llm to provide better responses - Medium ~30MB download"),
+        "class": LogicalRegressionHandler,
+    }
 }
 
 PROMPTS = {
@@ -295,6 +301,26 @@ EXTRA_PROMPTS = [
         "key": "console",
         "prompts": DATASET["console"],
         "prompt_text": WIKI_PROMPTS["console"],
+    },
+    {
+        "key": "voicevox",
+        "prompts": DATASET["voicevox"],
+        "prompt_text": WIKI_PROMPTS["voicevox"],
+    },
+    {
+        "key": "colloquial",
+        "prompts": DATASET["colloquial"],
+        "prompt_text": WIKI_PROMPTS["colloquial"],
+    },
+    {
+        "key": "table",
+        "prompts": DATASET["table"],
+        "prompt_text": WIKI_PROMPTS["table"],
+    },
+    {
+        "key": "ollama",
+        "prompts": DATASET["ollama"],
+        "prompt_text": WIKI_PROMPTS["ollama"],
     }
 ]
 

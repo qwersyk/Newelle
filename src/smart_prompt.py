@@ -1,7 +1,10 @@
+from subprocess import check_output
 from wordllama import WordLlama
 from typing import Any
 from abc import abstractmethod
-import json, copy
+import json, copy, os, pickle
+
+from .extra import find_module, install_module
 from .handler import Handler
 
 class SmartPromptHandler(Handler):
@@ -63,4 +66,61 @@ class WordLlamaHandler(SmartPromptHandler):
             category_scores[category] = avg_score
 
         return category_scores
- 
+
+
+class LogicalRegressionHandler(SmartPromptHandler):
+    key = "LogicalRegression"
+    version = "0.1"
+    def __init__(self, settings, path):
+        super().__init__(settings, path)
+        self.model = None
+        self.wl = WordLlama.load()
+        self.models_dir = os.path.join(path, "prompt-models")
+        self.pip_path = os.path.join(path, "pip")
+        if not os.path.isdir(self.models_dir):
+            os.makedirs(self.models_dir)
+    
+    @staticmethod
+    def get_extra_requirements() -> list:
+        return ["sklearn"]
+    
+    def install(self):
+        install_module("scikit_learn", self.pip_path)
+        check_output(["wget", "-P", self.models_dir, f"http://mirror.nyarchlinux.moe/lrmodelv{self.version}.pkl"]) 
+   
+    def load(self):
+        if self.model is not None:
+            return
+        with open(os.path.join(self.models_dir, f"lrmodelv{self.version}.pkl"), "rb") as f:
+            self.model = pickle.load(f)
+
+    def is_installed(self) -> bool:
+        if not find_module("sklearn"):
+            return False
+        if not os.path.isfile(os.path.join(self.models_dir, f"lrmodelv{self.version}.pkl")):
+            return False
+        return True
+    
+    def get_extra_prompts(self, message: str, history : list[dict[str, str]], available_prompts : list[dict]) -> list[str]:
+        self.load()
+        if self.model is None:
+            return []
+        # Embed the message
+        messages = [msg["Message"] for msg in history if msg["User"] == "User"]
+        messages.append(message)
+        embeddings = self.wl.embed(messages)
+        probabilities = self.model.predict_proba(embeddings)
+
+        # Stampa le probabilità per ogni categoria
+        labels = [prompt["key"] for prompt in available_prompts]
+        labels.sort()
+        chat_tags = []
+        for i, text in enumerate(embeddings):
+            print(text)
+            print(history)
+            for j, category in enumerate(labels):
+                if probabilities[i][j] > 0.3 and category not in chat_tags:
+                    chat_tags.append(category)
+        print(probabilities[-1])
+        print(chat_tags)
+        return [prompt["prompt_text"] for prompt in available_prompts if prompt["key"] in chat_tags]
