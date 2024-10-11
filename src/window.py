@@ -454,7 +454,9 @@ class MainWindow(Gtk.ApplicationWindow):
             if self.avatar_handler is not None:   
                 self.avatar_widget = self.avatar_handler.create_gtk_widget()
                 self.boxw.append(self.avatar_widget)
-                ReplaceHelper.set_handler(self.avatar_handler) 
+                ReplaceHelper.set_handler(self.avatar_handler)
+            else:
+                ReplaceHelper.set_handler(None)
         else:
             # If the avatar is disabled, unload the old one and 
             # remove related widgets
