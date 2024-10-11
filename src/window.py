@@ -6,7 +6,7 @@ from .avatar import AvatarHandler
 from .presentation import PresentationWindow
 from .gtkobj import File, CopyBox, BarChartBox, MultilineEntry
 from .constants import AVAILABLE_LLMS, AVAILABLE_SMART_PROMPTS, AVAILABLE_TRANSLATORS, EXTRA_PROMPTS, PROMPTS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_AVATARS, AVAILABLE_PROMPTS
-from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject, GLib, WebKit
+from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject, GLib
 from .stt import AudioRecorder
 from .extra import ReplaceHelper, markwon_to_pango, override_prompts, replace_variables
 import threading
@@ -532,6 +532,7 @@ class MainWindow(Gtk.ApplicationWindow):
             self.avatar_flap.set_reveal_flap(True)
         if not self.avatar_enabled:
             self.load_avatar()
+    
     def get_file_button(self, path):
         if path[0:2]=="./":
             path=self.main_path+path[1:len(path)]
