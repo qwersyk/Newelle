@@ -460,7 +460,8 @@ class MainWindow(Gtk.ApplicationWindow):
         else:
             # If the avatar is disabled, unload the old one and 
             # remove related widgets
-            self.unload_avatar(self.avatar_handler)
+            if self.avatar_handler is not None:
+                self.unload_avatar(self.avatar_handler)
             self.flap_button_avatar.set_visible(False)
             self.avatar_flap.set_reveal_flap(False)
             self.avatar_flap.set_name("hide")

@@ -28,7 +28,6 @@ class WordLlamaHandler(SmartPromptHandler):
             categories_db[prompt["key"]] = prompt["prompts"]
               
         scores = self.recognize_category(message, categories_db)
-        print(scores)
         best_score = max(scores.values())
         prompts = []
         chat_tags = []
@@ -116,11 +115,9 @@ class LogicalRegressionHandler(SmartPromptHandler):
         labels.sort()
         chat_tags = []
         for i, text in enumerate(embeddings):
-            print(text)
-            print(history)
             for j, category in enumerate(labels):
-                if probabilities[i][j] > 0.3 and category not in chat_tags:
+                m = max(probabilities[i])
+                if (probabilities[i][j] > 0.5 or (probabilities[i][j] > 0.3 and probabilities[i][j] == m) ) and category not in chat_tags:
                     chat_tags.append(category)
-        print(probabilities[-1])
         print(chat_tags)
         return [prompt["prompt_text"] for prompt in available_prompts if prompt["key"] in chat_tags]
