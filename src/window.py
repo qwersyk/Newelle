@@ -316,8 +316,7 @@ class MainWindow(Gtk.ApplicationWindow):
         button.remove_css_class("error")
         button.disconnect_by_func(self.stop_recording)
         button.connect("clicked", self.start_recording)
-        engine = AVAILABLE_STT[self.stt_engine]
-        recognizer = engine["class"](self.settings, self.pip_directory)
+        recognizer = self.stt_handler
         result = recognizer.recognize_file(os.path.join(self.directory, "recording.wav"))
         if result is not None:
             self.input_panel.set_text(result)
@@ -359,8 +358,10 @@ class MainWindow(Gtk.ApplicationWindow):
             mod = list(AVAILABLE_LLMS.values())[0]
             self.model = mod["class"](self.settings, os.path.join(self.directory, "models"))
 
+        # Load handlers and models
         self.model.load_model(self.local_model)
-
+        self.stt_handler = AVAILABLE_STT[self.stt_engine]["class"](self.settings, self.pip_directory)
+        
         self.bot_prompts = []
         for prompt_info in AVAILABLE_PROMPTS:
             if self.settings.get_boolean(prompt_info["setting_name"]):

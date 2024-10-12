@@ -1,7 +1,7 @@
 
 from .llm import GPT4AllHandler, GroqHandler, NexraHandler, OllamaHandler, OpenAIHandler, CustomLLMHandler, GPT3AnyHandler, GeminiHandler, MistralHandler, OpenRouterHandler
 from .tts import gTTSHandler, EspeakHandler, CustomTTSHandler
-from .stt import GroqSRHandler, OpenAISRHandler, SphinxHandler, GoogleSRHandler, WitAIHandler, VoskHandler, WhisperAPIHandler, CustomSRHandler
+from .stt import GroqSRHandler, OpenAISRHandler, SphinxHandler, GoogleSRHandler, WhisperHandler, WitAIHandler, VoskHandler, CustomSRHandler
 
 AVAILABLE_LLMS = {
     "GPT3Any": {
@@ -77,6 +77,12 @@ AVAILABLE_STT = {
         "description": _("Works offline. Only English supported"),
         "website": "https://cmusphinx.github.io/wiki/",
         "class": SphinxHandler,
+    },
+    "whisper": {
+        "key": "whisper",
+        "title": _("Whisper (Local)"),
+        "description": _("OpanAI whisper. Works offline. ~1GB download for dependency install"),
+        "class": WhisperHandler,
     },
     "google_sr": {
         "key": "google_sr",
