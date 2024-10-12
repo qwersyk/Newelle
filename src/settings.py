@@ -558,13 +558,16 @@ class Settings(Adw.PreferencesWindow):
             model (): a handler instance
         """
         model.install()
+        GLib.idle_add(self.update_ui_after_install, button, model)
+
+    def update_ui_after_install(self, button, model):
         if model.is_installed():
             self.on_setting_change(self.get_constants_from_object(model), model, "", True)
         button.set_child(None)
         button.set_sensitive(False)
         checkbutton = self.settingsrows[(model.key, self.convert_constants(self.get_constants_from_object(model)))]["button"]
         checkbutton.set_sensitive(True)
-    
+
     def refresh_models(self, action):
         """Refresh local models for LLM
 
