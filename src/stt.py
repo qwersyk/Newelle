@@ -268,7 +268,7 @@ class WhisperHandler(STTHandler):
                 result = result + ((model, model),)
             return result
         else:
-            return (("tiny", "tiny"))
+            return (("tiny", "tiny"), )
 
     @staticmethod
     def get_extra_requirements() -> list:
