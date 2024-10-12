@@ -143,9 +143,6 @@ class Settings(Adw.PreferencesWindow):
         self.settings.bind("memory", int_spin, 'value', Gio.SettingsBindFlags.DEFAULT)
         self.neural_network.add(row)
 
-        self.message = Adw.PreferencesGroup(title=_('The change will take effect after you restart the program.'))
-        self.general_page.add(self.message)
-
         self.add(self.general_page)
 
 
