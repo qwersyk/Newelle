@@ -10,8 +10,7 @@ from .stt import AudioRecorder
 from .extra import markwon_to_pango, override_prompts, replace_variables
 import threading
 import posixpath
-import shlex,json
-import random
+import json
 
 class MainWindow(Gtk.ApplicationWindow):
     def __init__(self, *args, **kwargs):
@@ -1114,6 +1113,18 @@ class MainWindow(Gtk.ApplicationWindow):
         GLib.idle_add(self.scrolled_chat)
         self.save_chat()
 
+    def get_history(self) -> list[dict[str, str]]: 
+        history = []
+        count = self.memory
+        for msg in self.chat[:-1]:
+            if count == 0:
+                break
+            if msg["User"] == "Console" and msg["Message"] == "None":
+                continue
+            history.append(msg)
+            count -= 1
+        return history
+
     def send_message(self):
         self.stream_number_variable += 1
         stream_number_variable = self.stream_number_variable
@@ -1125,7 +1136,7 @@ class MainWindow(Gtk.ApplicationWindow):
         
         for prompt in self.bot_prompts:
             prompts.append(replace_variables(prompt))
-        self.model.set_history(prompts, self)
+        self.model.set_history(prompts, self.get_history())
 
         if self.model.stream_enabled():
             label = Gtk.Label(label="", margin_top=10, margin_start=10, margin_bottom=10, margin_end=10, wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR,

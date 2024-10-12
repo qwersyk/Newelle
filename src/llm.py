@@ -34,7 +34,7 @@ class LLMHandler(Handler):
         """ Load the specified model """
         return True
 
-    def set_history(self, prompts : list[str], window):
+    def set_history(self, prompts : list[str], history: list[dict[str, str]]):
         """Set the current history and prompts
 
         Args:
@@ -42,7 +42,7 @@ class LLMHandler(Handler):
             window : Application window
         """        
         self.prompts = prompts
-        self.history = window.chat[len(window.chat) - window.memory:len(window.chat)-1]
+        self.history = history
 
     def get_default_setting(self, key) -> object:
         """Get the default setting from a certain key
@@ -189,10 +189,6 @@ class G4FHandler(LLMHandler):
             })
         return result
     
-    def set_history(self, prompts, window):
-        self.history = window.chat[len(window.chat) - window.memory:len(window.chat)-1]
-        self.prompts = prompts
-
     def generate_text(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = []) -> str:
         model = self.get_setting("model")
         message = prompt
@@ -489,14 +485,11 @@ class CustomLLMHandler(LLMHandler):
 
         ]
 
-    def set_history(self, prompts, window):
-        self.prompts = prompts
-        self.history = window.chat[len(window.chat) - window.memory:len(window.chat)]
-
     def generate_text(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = []) -> str:
         command = self.get_setting("command")
-        command = command.replace("{0}", quote_string(json.dumps(self.history)))
-        command = command.replace("{1}", quote_string(json.dumps(self.prompts)))
+        history.append({"User": "User", "Message": prompt})
+        command = command.replace("{0}", quote_string(json.dumps(history)))
+        command = command.replace("{1}", quote_string(json.dumps(system_prompt)))
         out = check_output(["flatpak-spawn", "--host", "bash", "-c", command])
         return out.decode("utf-8")
     
@@ -504,6 +497,7 @@ class CustomLLMHandler(LLMHandler):
         command = self.get_setting("suggestion")
         if command == "":
             return []
+        self.history.append({"User": "User", "Message": request_prompt})
         command = command.replace("{0}", quote_string(json.dumps(self.history)))
         command = command.replace("{1}", quote_string(json.dumps(self.prompts)))
         command = command.replace("{2}", str(amount))
@@ -512,8 +506,9 @@ class CustomLLMHandler(LLMHandler):
  
     def generate_text_stream(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = [], on_update: Callable[[str], Any] = lambda _: None, extra_args: list = []) -> str:
         command = self.get_setting("command")
-        command = command.replace("{0}", quote_string(json.dumps(self.history)))
-        command = command.replace("{1}", quote_string(json.dumps(self.prompts)))
+        history.append({"User": "User", "Message": prompt})
+        command = command.replace("{0}", quote_string(json.dumps(history)))
+        command = command.replace("{1}", quote_string(json.dumps(system_prompt)))
         process = Popen(["flatpak-spawn", "--host", "bash", "-c", command], stdout=PIPE)        
         full_message = ""
         prev_message = ""
@@ -991,16 +986,6 @@ class GPT4AllHandler(LLMHandler):
             return False
         return True
 
-    def __convert_history(self, history: dict) -> list:
-        """Converts the given history into the correct format for current_chat_history"""
-        result = []
-        for message in history:
-            result.append({
-                "role": message["User"].lower(),
-                "content": message["Message"]
-            })
-        return result
-
     def __convert_history_text(self, history: list) -> str:
         """Converts the given history into the correct format for current_chat_history"""
         result = "### Previous History"
@@ -1008,9 +993,9 @@ class GPT4AllHandler(LLMHandler):
             result += "\n" + message["User"] + ":" + message["Message"]
         return result
     
-    def set_history(self, prompts, window):
+    def set_history(self, prompts, history):
         """Manages messages history"""
-        self.history = window.chat[len(window.chat) - window.memory:len(window.chat)-1]
+        self.history = history 
         newchat = False
         for message in self.oldhistory:
             if not any(message == item["Message"] for item in self.history):
