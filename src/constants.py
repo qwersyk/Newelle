@@ -38,6 +38,7 @@ AVAILABLE_LLMS = {
         "key": "groq",
         "title": _("Groq"),
         "description": "Official Groq API",
+        "website": "https://console.groq.com/",
         "class": GroqHandler,
     },
     "gemini": {
@@ -56,6 +57,7 @@ AVAILABLE_LLMS = {
         "key": "mistral",
         "title": _("Mistral"),
         "description": _("Mistral API"),
+        "website": "https://mistral.ai/",
         "class": MistralHandler,
         "secondary": True
     },
@@ -64,6 +66,7 @@ AVAILABLE_LLMS = {
         "title": _("OpenRouter"),
         "description": _("Openrouter.ai API, supports lots of models"),
         "class": OpenRouterHandler,
+        "website": "https://openrouter.ai/",
         "secondary": True
     },
    "nexra": {
@@ -151,23 +154,25 @@ AVAILABLE_TTS = {
         "description": _("Google's text to speech"),
         "class": gTTSHandler,
     },
+    "voicevox": {
+        "key": "voicevox",
+        "title": _("Voicevox API"),
+        "description": _("(Selfhostable) JP ONLY. API for voicevox anime-like natural sounding tts"),
+        "class": VoiceVoxHanlder,
+        "website": "https://github.com/VOICEVOX/voicevox_engine",
+    },
+    "vits": {
+        "key": "vits",
+        "title": _("VITS API"),
+        "description": _("(Selfhostable) VITS simple API. AI based TTS, very good for Japanese"),
+        "class": VitsHandler,
+        "website": "https://github.com/Artrajz/vits-simple-api"
+    },
     "espeak": {
         "key": "espeak",
         "title": _("Espeak TTS"),
         "description": _("Offline TTS"),
         "class": EspeakHandler,
-    },
-    "voicevox": {
-        "key": "voicevox",
-        "title": _("Voicevox API"),
-        "description": _("JP ONLY. API for voicevox anime-like natural sounding tts"),
-        "class": VoiceVoxHanlder
-    },
-    "vits": {
-        "key": "vits",
-        "title": _("VITS API"),
-        "description": _("VITS simple API. AI based TTS, very good for Japanese"),
-        "class": VitsHandler,
     },
     "custom_command": {
         "key": "custom_command",

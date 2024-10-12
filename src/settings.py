@@ -223,7 +223,8 @@ class Settings(Adw.PreferencesWindow):
         # Add extra buttons 
         threading.Thread(target=self.add_download_button, args=(handler, row)).start()
         self.add_flatpak_waning_button(handler, row)
-        
+        if "website" in model:
+            row.add_suffix(self.create_web_button(model["website"]))
         # Add check button
         button = Gtk.CheckButton(name=key, group=group, active=active)
         button.connect("toggled", self.choose_row, constants)
