@@ -183,10 +183,16 @@ class G4FHandler(LLMHandler):
         result = []
         result.append({"role": "system", "content": "\n".join(prompts)})
         for message in history:
-            result.append({
-                "role": message["User"].lower() if message["User"] in {"Assistant", "User"} else "system",
-                "content": message["Message"]
-            })
+            if message["User"] == "Console":
+                result.append({
+                    "role": "user",
+                    "content": "Console: " + message["Message"]
+                })
+            else:
+                result.append({
+                    "role": message["User"].lower() if message["User"] in {"Assistant", "User"} else "system",
+                    "content": message["Message"]
+                })
         return result
     
     def generate_text(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = []) -> str:
@@ -358,10 +364,16 @@ class GeminiHandler(LLMHandler):
     def __convert_history(self, history: list):
         result = []
         for message in history:
-            result.append({
-                "role": message["User"].lower() if message["User"] == "User" else "model",
-                "parts": message["Message"]
-            })
+            if message["User"] == "Console":
+                result.append({
+                    "role": "user",
+                    "parts": "Console: " + message["Message"]
+                })
+            else:
+                result.append({
+                    "role": message["User"].lower() if message["User"] == "User" else "model",
+                    "parts": message["Message"]
+                })
         return result
 
     def generate_text(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = []) -> str:
@@ -540,12 +552,18 @@ class OllamaHandler(LLMHandler):
         result = []
         result.append({"role": "system", "content": "\n".join(prompts)})
         for message in history:
-            result.append({
-                "role": message["User"].lower() if message["User"] in {"Assistant", "User"} else "system",
-                "content": message["Message"]
-            })
+            if message["User"] == "Console":
+                result.append({
+                    "role": "user",
+                    "content": "Console: " + message["Message"]
+                })
+            else:
+                result.append({
+                    "role": message["User"].lower() if message["User"] in {"Assistant", "User"} else "system",
+                    "content": message["Message"]
+                })
         return result
-
+    
     def generate_text(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = []) -> str:
         from ollama import Client
         messages = self.convert_history(history, system_prompt)
