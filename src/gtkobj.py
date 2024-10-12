@@ -171,8 +171,8 @@ class CopyBox(Gtk.Box):
 
         self.buffer = GtkSource.Buffer()
         self.buffer.set_text(txt, -1)
-        
-        lang.replace(" ", "")
+
+        lang = lang.replace(" ", "")
         manager = GtkSource.LanguageManager.new()
         language = manager.get_language(lang)
         self.buffer.set_language(language)
