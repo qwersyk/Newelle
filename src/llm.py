@@ -33,7 +33,7 @@ class LLMHandler(Handler):
         """ Load the specified model """
         return True
 
-    def set_history(self, prompts : list[str], window):
+    def set_history(self, prompts : list[str], history: list[dict[str, str]]):
         """Set the current history and prompts
 
         Args:
@@ -41,7 +41,7 @@ class LLMHandler(Handler):
             window : Application window
         """        
         self.prompts = prompts
-        self.history = window.chat[len(window.chat) - window.memory:len(window.chat)-1]
+        self.history = history
 
     def get_default_setting(self, key) -> object:
         """Get the default setting from a certain key
@@ -182,16 +182,18 @@ class G4FHandler(LLMHandler):
         result = []
         result.append({"role": "system", "content": "\n".join(prompts)})
         for message in history:
-            result.append({
-                "role": message["User"].lower() if message["User"] in {"Assistant", "User"} else "system",
-                "content": message["Message"]
-            })
+            if message["User"] == "Console":
+                result.append({
+                    "role": "user",
+                    "content": "Console: " + message["Message"]
+                })
+            else:
+                result.append({
+                    "role": message["User"].lower() if message["User"] in {"Assistant", "User"} else "system",
+                    "content": message["Message"]
+                })
         return result
     
-    def set_history(self, prompts, window):
-        self.history = window.chat[len(window.chat) - window.memory:len(window.chat)-1]
-        self.prompts = prompts
-
     def generate_text(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = []) -> str:
         model = self.get_setting("model")
         message = prompt
@@ -253,31 +255,6 @@ class NexraHandler(G4FHandler):
         ] + super().get_extra_settings()
     
 
-class AirforceHandler(G4FHandler):
-    key = "airforce" 
-    
-    def __init__(self, settings, path):
-        import g4f
-        super().__init__(settings, path)
-        self.client = g4f.client.Client(provider=g4f.Provider.Airforce)
-        self.models = tuple()
-        for model in g4f.Provider.Airforce.models:
-            if "flux" not in model and "dall-e" not in model and "any-dark" not in model and "cosmosrp" not in model:
-                self.models += ((model,model),)
-
-    def get_extra_settings(self) -> list:
-        return [
-            {
-                "key": "model",
-                "title": _("Model"),
-                "description": _("The model to use"),
-                "type": "combo",
-                "values": self.models,
-                "default": "llama-3-70b-chat",
-            }
-        ] + super().get_extra_settings()
-
-
 class GPT3AnyHandler(G4FHandler):
     """
     Use any GPT3.5-Turbo providers
@@ -289,9 +266,9 @@ class GPT3AnyHandler(G4FHandler):
     def __init__(self, settings, path):
         import g4f
         super().__init__(settings, path)
-        good_providers = [g4f.Provider.DDG, g4f.Provider.MagickPen, g4f.Provider.Binjie, g4f.Provider.Pizzagpt, g4f.Provider.Nexra, g4f.Provider.Koala]
-        good_nongpt_providers = [g4f.Provider.ReplicateHome, g4f.Provider.Airforce, g4f.Provider.ChatGot, g4f.Provider.FreeChatgpt]
-        acceptable_providers = [g4f.Provider.Allyfy, g4f.Provider.Blackbox, g4f.Provider.Upstage, g4f.Provider.ChatHub]
+        good_providers = [g4f.Provider.DDG, g4f.Provider.MagickPen, g4f.Provider.Pizzagpt, g4f.Provider.Nexra, g4f.Provider.Koala]
+        good_nongpt_providers = [g4f.Provider.ReplicateHome, g4f.Provider.ChatGot, g4f.Provider.FreeChatgpt, g4f.Provider.Free2GPT, g4f.Provider.DeepInfraChat, g4f.Provider.PerplexityLabs]
+        acceptable_providers = [g4f.Provider.Allyfy, g4f.Provider.Blackbox, g4f.Provider.Upstage, g4f.Provider.ChatHub, g4f.Provider.Airforce]
         self.client = g4f.client.Client(provider=RetryProvider([RetryProvider(good_providers), RetryProvider(good_nongpt_providers), RetryProvider(acceptable_providers)], shuffle=False))
         self.n = 0
 
@@ -494,14 +471,11 @@ class CustomLLMHandler(LLMHandler):
 
         ]
 
-    def set_history(self, prompts, window):
-        self.prompts = prompts
-        self.history = window.chat[len(window.chat) - window.memory:len(window.chat)]
-
     def generate_text(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = []) -> str:
         command = self.get_setting("command")
-        command = command.replace("{0}", quote_string(json.dumps(self.history)))
-        command = command.replace("{1}", quote_string(json.dumps(self.prompts)))
+        history.append({"User": "User", "Message": prompt})
+        command = command.replace("{0}", quote_string(json.dumps(history)))
+        command = command.replace("{1}", quote_string(json.dumps(system_prompt)))
         out = check_output(["flatpak-spawn", "--host", "bash", "-c", command])
         return out.decode("utf-8")
     
@@ -509,6 +483,7 @@ class CustomLLMHandler(LLMHandler):
         command = self.get_setting("suggestion")
         if command == "":
             return []
+        self.history.append({"User": "User", "Message": request_prompt})
         command = command.replace("{0}", quote_string(json.dumps(self.history)))
         command = command.replace("{1}", quote_string(json.dumps(self.prompts)))
         command = command.replace("{2}", str(amount))
@@ -517,8 +492,9 @@ class CustomLLMHandler(LLMHandler):
  
     def generate_text_stream(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = [], on_update: Callable[[str], Any] = lambda _: None, extra_args: list = []) -> str:
         command = self.get_setting("command")
-        command = command.replace("{0}", quote_string(json.dumps(self.history)))
-        command = command.replace("{1}", quote_string(json.dumps(self.prompts)))
+        history.append({"User": "User", "Message": prompt})
+        command = command.replace("{0}", quote_string(json.dumps(history)))
+        command = command.replace("{1}", quote_string(json.dumps(system_prompt)))
         process = Popen(["flatpak-spawn", "--host", "bash", "-c", command], stdout=PIPE)        
         full_message = ""
         prev_message = ""
@@ -575,12 +551,18 @@ class OllamaHandler(LLMHandler):
         result = []
         result.append({"role": "system", "content": "\n".join(prompts)})
         for message in history:
-            result.append({
-                "role": message["User"].lower() if message["User"] in {"Assistant", "User"} else "system",
-                "content": message["Message"]
-            })
+            if message["User"] == "Console":
+                result.append({
+                    "role": "user",
+                    "content": "Console: " + message["Message"]
+                })
+            else:
+                result.append({
+                    "role": message["User"].lower() if message["User"] in {"Assistant", "User"} else "system",
+                    "content": message["Message"]
+                })
         return result
-
+    
     def generate_text(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = []) -> str:
         from ollama import Client
         messages = self.convert_history(history, system_prompt)
@@ -1014,16 +996,6 @@ class GPT4AllHandler(LLMHandler):
             return False
         return True
 
-    def __convert_history(self, history: dict) -> list:
-        """Converts the given history into the correct format for current_chat_history"""
-        result = []
-        for message in history:
-            result.append({
-                "role": message["User"].lower(),
-                "content": message["Message"]
-            })
-        return result
-
     def __convert_history_text(self, history: list) -> str:
         """Converts the given history into the correct format for current_chat_history"""
         result = "### Previous History"
@@ -1031,9 +1003,9 @@ class GPT4AllHandler(LLMHandler):
             result += "\n" + message["User"] + ":" + message["Message"]
         return result
     
-    def set_history(self, prompts, window):
+    def set_history(self, prompts, history):
         """Manages messages history"""
-        self.history = window.chat[len(window.chat) - window.memory:len(window.chat)-1]
+        self.history = history 
         newchat = False
         for message in self.oldhistory:
             if not any(message == item["Message"] for item in self.history):
