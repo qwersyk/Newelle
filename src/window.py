@@ -848,6 +848,9 @@ class MainWindow(Gtk.ApplicationWindow):
             GLib.idle_add(self.update_folder)
         else:
             Adw.Toast(title=_('Failed to open the folder'), timeout=2)
+        if len(outputs[0][1]) > 1000:
+            new_value = outputs[0][1][0:1000] + "..."
+            outputs = ((outputs[0][0], new_value),)
         return outputs[0]
 
 
