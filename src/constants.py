@@ -1,7 +1,7 @@
 
 from .llm import GPT4AllHandler, GroqHandler, NexraHandler, OllamaHandler, OpenAIHandler, CustomLLMHandler, GPT3AnyHandler, GeminiHandler, MistralHandler, OpenRouterHandler
 from .tts import gTTSHandler, EspeakHandler, CustomTTSHandler
-from .stt import SphinxHandler, GoogleSRHandler, WitAIHandler, VoskHandler, WhisperAPIHandler, CustomSRHandler
+from .stt import GroqSRHandler, SphinxHandler, GoogleSRHandler, WitAIHandler, VoskHandler, WhisperAPIHandler, CustomSRHandler
 
 AVAILABLE_LLMS = {
     "GPT3Any": {
@@ -82,8 +82,13 @@ AVAILABLE_STT = {
         "key": "google_sr",
         "title": _("Google Speech Recognition"),
         "description": _("Google Speech Recognition online"),
-        "extra_requirements": [],
         "class": GoogleSRHandler,
+    },
+    "groq_sr": {
+        "key": "groq_sr",
+        "title": _("Groq Speech Recognition"),
+        "description": _("Google Speech Recognition online"),
+        "class": GroqSRHandler,
     },
     "witai": {
         "key": "witai",

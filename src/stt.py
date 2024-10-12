@@ -85,7 +85,51 @@ class SphinxHandler(STTHandler):
             return None
         return res
 
+class GroqSRHandler(STTHandler):
+    key = "groq_sr"
 
+    def get_extra_settings(self) -> list:
+        return [
+            {
+                "key": "api",
+                "title": _("API Key"),
+                "description": _("API Key for Groq SR, write 'default' to use the default one"),
+                "type": "entry",
+                "default": "default"
+            },
+            {
+                "key": "model",
+                "title": _("Groq Model"),
+                "description": _("Name of the Groq Model"),
+                "type": "entry",
+                "default": "whisper-large-v3-turbo",
+                "website": "https://console.groq.com/docs/models",
+            },
+            {
+                "key": "language",
+                "title": _("Language"),
+                "description": _("Specify the language for transcription. Use ISO 639-1 language codes (e.g. \"en\" for English, \"fr\" for French, etc.). "),
+                "type": "entry",
+                "default": "",
+                "website": "https://stackoverflow.com/questions/14257598/what-are-language-codes-in-chromes-implementation-of-the-html5-speech-recogniti"
+            }
+        ]
+
+    def recognize_file(self, path) -> str | None:
+        import openai
+        key = self.get_setting("api")
+        model = self.get_setting("model")
+        language = str(self.get_setting("language"))
+        if language == "":
+            language = openai.NOT_GIVEN
+        client = openai.Client(api_key=key, base_url="https://api.groq.com/openai/v1/")
+        with open(path, "rb") as audio_file:
+           transcription = client.audio.transcriptions.create(
+                file=(path, audio_file.read()),
+                model=model,
+                language=language
+            )
+        return transcription.text
 class GoogleSRHandler(STTHandler):
     
     key = "google_sr"
