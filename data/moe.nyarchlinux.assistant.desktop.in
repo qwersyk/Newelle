@@ -1,8 +1,8 @@
 [Desktop Entry]
-Name=Newelle
-Comment=Newelle: Your advanced chat bot
+Name=Nyarch Assistant
+Comment=Advanced AI waifu to help you
 Exec=newelle
-Icon=io.github.qwersyk.Newelle
+Icon=moe.nyarchlinux.assistant
 Terminal=false
 Type=Application
 Categories=Utility;

@@ -33,7 +33,7 @@ class File(Gtk.Image):
                 name = "folder-templates"
             elif file_name == "Videos":
                 name = "folder-videos"
-            elif file_name == ".var/app/io.github.qwersyk.Newelle/Newelle":
+            elif file_name == "moe.nyarchlinux.assistant/NyarchAssistant":
                 name = "user-bookmarks"
             else:
                 name = "folder"

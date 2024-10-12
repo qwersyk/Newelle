@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop">
-	<id>io.github.qwersyk.Newelle.desktop</id>
+	<id>moe.nyarchlinux.assistant.desktop</id>
 	<metadata_license>CC0-1.0</metadata_license>
 	<project_license>GPL-3.0-or-later</project_license>
-        <launchable type="desktop-id">io.github.qwersyk.Newelle.desktop</launchable>
-        <name>Newelle</name>
+        <launchable type="desktop-id">moe.nyarchlinux.assistant.desktop</launchable>
+        <name>Nyarch Assistant</name>
 	<description>
-	  <p>Train Newelle to do more with custom extensions and new AI modules, giving your chatbot endless possibilities.</p>
+	  <p>Your personal waifu always at your service to help you with your system!</p>
 	</description>
 	<summary>Your AI-Powered System Assistant</summary>
 	<screenshots>

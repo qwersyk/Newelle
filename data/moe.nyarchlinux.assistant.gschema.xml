@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schemalist gettext-domain="newelle">
-	<schema id="io.github.qwersyk.Newelle" path="/io/github/qwersyk/Newelle/">
+	<schema id="moe.nyarchlinux.assistant" path="/moe/nyarchlinux/assistant/">
         <key name="offers" type="i">
             <default>0</default>
         </key>

@@ -96,7 +96,7 @@ AVAILABLE_STT = {
     "whisper": {
         "key": "whisper",
         "title": _("Whisper (Local)"),
-        "description": _("OpanAI whisper. Works offline. ~3GB download for dependency install - It is suggested to run Newelle in terminal when you install in order to see the progress"),
+        "description": _("OpanAI whisper. Works offline. ~3GB download for dependency install - It is suggested to run NyarchAssistant in terminal when you install in order to see the progress"),
         "class": WhisperHandler,
     },
     "google_sr": {

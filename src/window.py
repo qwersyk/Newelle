@@ -42,7 +42,7 @@ class MainWindow(Gtk.ApplicationWindow):
 
         # Init Settings
         self.avatar_enabled = None
-        settings = Gio.Settings.new('io.github.qwersyk.Newelle')
+        settings = Gio.Settings.new('moe.nyarchlinux.assistant')
         self.settings = settings
         self.update_settings()
 
@@ -408,7 +408,7 @@ class MainWindow(Gtk.ApplicationWindow):
             if self.settings.get_boolean(prompt_info["setting_name"]):
                 self.bot_prompts.append(self.prompts[prompt_info["key"]])
 
-        self.extension_path = os.path.expanduser("~")+"/.var/app/io.github.qwersyk.Newelle/extension"
+        self.extension_path = os.path.expanduser("~")+"/.var/app/moe.nyarchlinux.assistant/extension"
         self.extensions = {}
         if os.path.exists(self.extension_path):
             folder_names = [name for name in os.listdir(self.extension_path) if os.path.isdir(os.path.join(self.extension_path, name))]
@@ -815,18 +815,18 @@ class MainWindow(Gtk.ApplicationWindow):
 
                     if os.path.normpath(self.main_path) == "~":
                         os.chdir(os.path.expanduser("~"))
-                        path = "./.var/app/io.github.qwersyk.Newelle/Newelle"
+                        path = "./.var/app/moe.nyarchlinux.assistant/NyarchAssistant"
                         if not os.path.exists(path):
                             os.makedirs(path)
                         button = Gtk.Button(css_classes=["flat"])
-                        button.set_name(".var/app/io.github.qwersyk.Newelle/Newelle")
+                        button.set_name(".var/app/moe.nyarchlinux.assistant/NyarchAssistant")
                         button.connect("clicked", self.open_folder)
 
-                        icon = File(self.main_path, ".var/app/io.github.qwersyk.Newelle/Newelle")
+                        icon = File(self.main_path, ".var/app/moe.nyarchlinux.assistant/NyarchAssistant")
                         icon.set_css_classes(["large"])
                         icon.set_valign(Gtk.Align.END)
                         icon.set_vexpand(True)
-                        file_label = Gtk.Label(label="Newelle", wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR,
+                        file_label = Gtk.Label(label="NyarchAssistant", wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR,
                                                vexpand=True, max_width_chars=11, valign=Gtk.Align.START,
                                                ellipsize=Pango.EllipsizeMode.MIDDLE)
                         file_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)

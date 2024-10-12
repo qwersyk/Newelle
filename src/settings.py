@@ -22,7 +22,7 @@ class Settings(Adw.PreferencesWindow):
     def __init__(self,app,headless=False, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.sandbox = can_escape_sandbox()
-        self.settings = Gio.Settings.new('io.github.qwersyk.Newelle')
+        self.settings = Gio.Settings.new('moe.nyarchlinux.assistant')
         if not headless:
             self.set_transient_for(app.win)
         self.set_modal(True)
@@ -866,10 +866,10 @@ class Settings(Adw.PreferencesWindow):
 
         # Aggiungi il testo dell'errore
         dialog.set_body_use_markup(True)
-        dialog.set_body(_("Newelle does not have enough permissions to run commands on your system, please run the following command"))
+        dialog.set_body(_("Nyarch Assistant does not have enough permissions to run commands on your system, please run the following command"))
         dialog.add_response("close", _("Understood"))
         dialog.set_default_response("close")
-        dialog.set_extra_child(CopyBox("flatpak --user override --talk-name=org.freedesktop.Flatpak --filesystem=home io.github.qwersyk.Newelle", "bash", parent = self))
+        dialog.set_extra_child(CopyBox("flatpak --user override --talk-name=org.freedesktop.Flatpak --filesystem=home moe.nyarchlinux.assistant", "bash", parent = self))
         dialog.set_close_response("close")
         dialog.set_response_appearance("close", Adw.ResponseAppearance.DESTRUCTIVE)
         dialog.connect('response', lambda dialog, response_id: dialog.destroy())

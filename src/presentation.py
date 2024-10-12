@@ -91,7 +91,7 @@ class PresentationWindow(Adw.Window):
             {
                 "title": _("Welcome to Newelle"),
                 "description": _("Your ultimate virtual assistant."),
-                "picture": "/io/github/qwersyk/Newelle/images/illustration.svg",
+                "picture": "/moe/nyarchlinux/assistant/images/illustration.svg",
                 "actions": [
                     {
                         "label": _("Github Page"),
@@ -115,7 +115,7 @@ class PresentationWindow(Adw.Window):
             {
                 "title": _("Extensions"),
                 "description": _("You can extend Newelle's functionalities using extensions!"),
-                "picture": "/io/github/qwersyk/Newelle/images/extension.svg",
+                "picture": "/moe/nyarchlinux/assistant/images/extension.svg",
                 "actions": [
                     {
                         "label": _("Download extensions"),
@@ -130,7 +130,7 @@ class PresentationWindow(Adw.Window):
             pages.append({
                 "title": _("Permission Error"),
                 "description": _("Newelle does not have enough permissions to run commands on your system."),
-                "picture": "/io/github/qwersyk/Newelle/images/error.svg",
+                "picture": "/moe/nyarchlinux/assistant/images/error.svg",
                 "actions": [
                     {
                         "label": "Learn more",

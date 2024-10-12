@@ -1,4 +1,4 @@
-application_id = 'io.github.qwersyk.Newelle'
+application_id = 'moe.nyarchlinux.assistant'
 
 scalable_dir = join_paths('hicolor', 'scalable', 'apps')
 install_data(
