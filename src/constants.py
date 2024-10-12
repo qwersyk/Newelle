@@ -1,7 +1,7 @@
 
 from .llm import GPT4AllHandler, GroqHandler, NexraHandler, OllamaHandler, OpenAIHandler, CustomLLMHandler, GPT3AnyHandler, GeminiHandler, MistralHandler, OpenRouterHandler
 from .tts import gTTSHandler, EspeakHandler, CustomTTSHandler
-from .stt import GroqSRHandler, SphinxHandler, GoogleSRHandler, WitAIHandler, VoskHandler, WhisperAPIHandler, CustomSRHandler
+from .stt import GroqSRHandler, OpenAISRHandler, SphinxHandler, GoogleSRHandler, WitAIHandler, VoskHandler, WhisperAPIHandler, CustomSRHandler
 
 AVAILABLE_LLMS = {
     "GPT3Any": {
@@ -104,12 +104,12 @@ AVAILABLE_STT = {
         "website": "https://github.com/alphacep/vosk-api/",
         "class": VoskHandler,
     },
-    "whisperapi": {
-        "key": "whisperapi",
+    "openai_sr": {
+        "key": "openai_sr",
         "title": _("Whisper API"),
         "description": _("Uses openai whisper api"),
         "website": "https://platform.openai.com/docs/guides/speech-to-text",
-        "class": WhisperAPIHandler,
+        "class": OpenAISRHandler,
     },
    "custom_command": {
         "key": "custom_command",

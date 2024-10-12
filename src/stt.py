@@ -85,9 +85,64 @@ class SphinxHandler(STTHandler):
             return None
         return res
 
-class GroqSRHandler(STTHandler):
+
+class OpenAISRHandler(STTHandler):
+    key = "openai_sr"
+
+    def get_extra_settings(self) -> list:
+        return [
+            {
+                "key": "endpoint",
+                "title": _("API Endpoint"),
+                "description": _("Endpoint for openai requests"),
+                "type": "entry",
+                "default": "https://api.openai.com/v1/"
+            },
+            {
+                "key": "api",
+                "title": _("API Key"),
+                "description": _("API Key for OpanAI"),
+                "type": "entry",
+                "default": ""
+            },
+            {
+                "key": "model",
+                "title": _("Whisper Model"),
+                "description": _("Name of the OpenAI model"),
+                "type": "entry",
+                "default": "whisper-1",
+            },
+            {
+                "key": "language",
+                "title": _("Language"),
+                "description": _("Optional: Specify the language for transcription. Use ISO 639-1 language codes (e.g. \"en\" for English, \"fr\" for French, etc.). "),
+                "type": "entry",
+                "default": "",
+            }
+        ]
+
+    def recognize_file(self, path) -> str | None:
+        import openai
+        key = self.get_setting("api")
+        model = self.get_setting("model")
+        language = str(self.get_setting("language"))
+        if language == "":
+            language = openai.NOT_GIVEN
+        client = openai.Client(api_key=key, base_url=self.get_setting("endpoint"))
+        with open(path, "rb") as audio_file:
+           transcription = client.audio.transcriptions.create(
+                file=(path, audio_file.read()),
+                model=model,
+                language=language
+            )
+        return transcription.text
+
+class GroqSRHandler(OpenAISRHandler):
     key = "groq_sr"
 
+    def __init__(self, settings, path):
+        super().__init__(settings, path)
+        self.set_setting("endpoint", "https://api.groq.com/openai/v1/")
     def get_extra_settings(self) -> list:
         return [
             {
@@ -111,25 +166,9 @@ class GroqSRHandler(STTHandler):
                 "description": _("Specify the language for transcription. Use ISO 639-1 language codes (e.g. \"en\" for English, \"fr\" for French, etc.). "),
                 "type": "entry",
                 "default": "",
-                "website": "https://stackoverflow.com/questions/14257598/what-are-language-codes-in-chromes-implementation-of-the-html5-speech-recogniti"
             }
         ]
 
-    def recognize_file(self, path) -> str | None:
-        import openai
-        key = self.get_setting("api")
-        model = self.get_setting("model")
-        language = str(self.get_setting("language"))
-        if language == "":
-            language = openai.NOT_GIVEN
-        client = openai.Client(api_key=key, base_url="https://api.groq.com/openai/v1/")
-        with open(path, "rb") as audio_file:
-           transcription = client.audio.transcriptions.create(
-                file=(path, audio_file.read()),
-                model=model,
-                language=language
-            )
-        return transcription.text
 class GoogleSRHandler(STTHandler):
     
     key = "google_sr"
@@ -228,46 +267,6 @@ class VoskHandler(STTHandler):
         r.vosk_model = Model(path)
         try:
             res = json.loads(r.recognize_vosk(audio))["text"]
-        except sr.UnknownValueError:
-            return None
-        except Exception as e:
-            print(e)
-            return None
-        return res
-
-class WhisperAPIHandler(STTHandler):    
-    key = "whisperapi"
-
-    @staticmethod
-    def get_extra_requirements() -> list:
-        return ["openai"]
-
-    def get_extra_settings(self) -> list:
-        return [
-            {
-                "key": "api",
-                "title": _("API Key"),
-                "description": _("API Key for OpenAI"),
-                "type": "entry",
-                "default": ""
-            },
-            {
-                "key": "model",
-                "title": _("Whisper API Model"),
-                "description": _("Name of the Whisper API Model"),
-                "type": "entry",
-                "default": "whisper-1"
-            },
-        ]
-
-    def recognize_file(self, path):
-        r = sr.Recognizer()
-        with sr.AudioFile(path) as source:
-            audio = r.record(source)
-        model = self.get_setting("model")
-        api = self.get_setting("api")
-        try:
-            res = r.recognize_whisper_api(audio, model=model, api_key=api)
         except sr.UnknownValueError:
             return None
         except Exception as e:
