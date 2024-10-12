@@ -250,31 +250,6 @@ class NexraHandler(G4FHandler):
         ] + super().get_extra_settings()
     
 
-class AirforceHandler(G4FHandler):
-    key = "airforce" 
-    
-    def __init__(self, settings, path):
-        import g4f
-        super().__init__(settings, path)
-        self.client = g4f.client.Client(provider=g4f.Provider.Airforce)
-        self.models = tuple()
-        for model in g4f.Provider.Airforce.models:
-            if "flux" not in model and "dall-e" not in model and "any-dark" not in model and "cosmosrp" not in model:
-                self.models += ((model,model),)
-
-    def get_extra_settings(self) -> list:
-        return [
-            {
-                "key": "model",
-                "title": _("Model"),
-                "description": _("The model to use"),
-                "type": "combo",
-                "values": self.models,
-                "default": "llama-3-70b-chat",
-            }
-        ] + super().get_extra_settings()
-
-
 class GPT3AnyHandler(G4FHandler):
     """
     Use any GPT3.5-Turbo providers
@@ -286,9 +261,9 @@ class GPT3AnyHandler(G4FHandler):
     def __init__(self, settings, path):
         import g4f
         super().__init__(settings, path)
-        good_providers = [g4f.Provider.DDG, g4f.Provider.MagickPen, g4f.Provider.Binjie, g4f.Provider.Pizzagpt, g4f.Provider.Nexra, g4f.Provider.Koala]
-        good_nongpt_providers = [g4f.Provider.ReplicateHome, g4f.Provider.Airforce, g4f.Provider.ChatGot, g4f.Provider.FreeChatgpt]
-        acceptable_providers = [g4f.Provider.Allyfy, g4f.Provider.Blackbox, g4f.Provider.Upstage, g4f.Provider.ChatHub]
+        good_providers = [g4f.Provider.DDG, g4f.Provider.MagickPen, g4f.Provider.Pizzagpt, g4f.Provider.Nexra, g4f.Provider.Koala]
+        good_nongpt_providers = [g4f.Provider.ReplicateHome, g4f.Provider.ChatGot, g4f.Provider.FreeChatgpt, g4f.Provider.Free2GPT, g4f.Provider.DeepInfraChat, g4f.Provider.PerplexityLabs]
+        acceptable_providers = [g4f.Provider.Allyfy, g4f.Provider.Blackbox, g4f.Provider.Upstage, g4f.Provider.ChatHub, g4f.Provider.Airforce]
         self.client = g4f.client.Client(provider=RetryProvider([RetryProvider(good_providers), RetryProvider(good_nongpt_providers), RetryProvider(acceptable_providers)], shuffle=False))
         self.n = 0
 

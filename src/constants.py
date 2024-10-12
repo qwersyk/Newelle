@@ -1,5 +1,5 @@
 
-from .llm import AirforceHandler, GPT4AllHandler, GroqHandler, NexraHandler, OllamaHandler, OpenAIHandler, CustomLLMHandler, GPT3AnyHandler, GeminiHandler, MistralHandler, OpenRouterHandler
+from .llm import GPT4AllHandler, GroqHandler, NexraHandler, OllamaHandler, OpenAIHandler, CustomLLMHandler, GPT3AnyHandler, GeminiHandler, MistralHandler, OpenRouterHandler
 from .tts import gTTSHandler, EspeakHandler, CustomTTSHandler
 from .stt import SphinxHandler, GoogleSRHandler, WitAIHandler, VoskHandler, WhisperAPIHandler, CustomSRHandler
 
@@ -54,14 +54,7 @@ AVAILABLE_LLMS = {
         "class": OpenRouterHandler,
         "secondary": True
     },
-    "airforce": {
-        "key": "airforce",
-        "title": _("AirForce API"),
-        "description": _("api.airforce, supports many models, does not require an API Key"),
-        "class": AirforceHandler,
-        "secondary": True
-    },
-    "nexra": {
+   "nexra": {
         "key": "nexra",
         "title": _("Nexra"),
         "description": _("aryahcr.cc chat, supports many models, does not require an API Key"),
