@@ -80,7 +80,7 @@ class Settings(Adw.PreferencesWindow):
         for translator_key in AVAILABLE_TRANSLATORS:
             row = self.build_row(AVAILABLE_TRANSLATORS, translator_key, selected, group)
             translator_program.add_row(row)
-        self.TTSgroup.add(translator_program)
+        self.Voicegroup.add(translator_program)
         
         # Build the Speech to Text settings
         stt_engine = Adw.ExpanderRow(title=_('Speech To Text Engine'), subtitle=_("Choose which speech recognition engine you want"))
