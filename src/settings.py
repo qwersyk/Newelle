@@ -52,13 +52,13 @@ class Settings(Adw.PreferencesWindow):
 
         
         # Build the TTS settings
-        self.TTSgroup = Adw.PreferencesGroup(title=_('Text To Speech'))
-        self.general_page.add(self.TTSgroup)
+        self.Voicegroup = Adw.PreferencesGroup(title=_('Voice'))
+        self.general_page.add(self.Voicegroup)
         tts_enabled = Gtk.Switch(valign=Gtk.Align.CENTER)
         self.settings.bind("tts-on", tts_enabled, 'active', Gio.SettingsBindFlags.DEFAULT)
         tts_program = Adw.ExpanderRow(title=_('Text To Speech Program'), subtitle=_("Choose which text to speech to use"))
         tts_program.add_action(tts_enabled)
-        self.TTSgroup.add(tts_program)
+        self.Voicegroup.add(tts_program)
         group = Gtk.CheckButton()
         selected = self.settings.get_string("tts")
         for tts_key in AVAILABLE_TTS:
@@ -66,32 +66,14 @@ class Settings(Adw.PreferencesWindow):
            tts_program.add_row(row)
 
         # Build the Speech to Text settings
-        self.STTgroup = Adw.PreferencesGroup(title=_('Speech to Text'))
-        self.general_page.add(self.STTgroup)
         stt_engine = Adw.ExpanderRow(title=_('Speech To Text Engine'), subtitle=_("Choose which speech recognition engine you want"))
-        self.STTgroup.add(stt_engine)
+        self.Voicegroup.add(stt_engine)
         group = Gtk.CheckButton()
         selected = self.settings.get_string("stt-engine")
         for stt_key in AVAILABLE_STT:
             row = self.build_row(AVAILABLE_STT, stt_key, selected, group)
             stt_engine.add_row(row)
-        # Interface settings
-        self.interface = Adw.PreferencesGroup(title=_('Interface'))
-        self.general_page.add(self.interface)
-
-        row = Adw.ActionRow(title=_("Hidden files"), subtitle=_("Show hidden files"))
-        switch = Gtk.Switch(valign=Gtk.Align.CENTER)
-        row.add_suffix(switch)
-        self.settings.bind("hidden-files", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
-        self.interface.add(row)
-
-        row = Adw.ActionRow(title=_("Number of offers"), subtitle=_("Number of message suggestions to send to chat "))
-        int_spin = Gtk.SpinButton(valign=Gtk.Align.CENTER)
-        int_spin.set_adjustment(Gtk.Adjustment(lower=0, upper=5, step_increment=1, page_increment=10, page_size=0))
-        row.add_suffix(int_spin)
-        self.settings.bind("offers", int_spin, 'value', Gio.SettingsBindFlags.DEFAULT)
-        self.interface.add(row)
-
+        
         # Prompts settings
         self.prompt = Adw.PreferencesGroup(title=_('Prompt control'))
         self.general_page.add(self.prompt)
@@ -113,6 +95,25 @@ class Settings(Adw.PreferencesWindow):
             row.add_suffix(switch)
             self.settings.bind(prompt["setting_name"], switch, 'active', Gio.SettingsBindFlags.DEFAULT)
             self.prompt.add(row)
+
+        # Interface settings
+        self.interface = Adw.PreferencesGroup(title=_('Interface'))
+        self.general_page.add(self.interface)
+
+        row = Adw.ActionRow(title=_("Hidden files"), subtitle=_("Show hidden files"))
+        switch = Gtk.Switch(valign=Gtk.Align.CENTER)
+        row.add_suffix(switch)
+        self.settings.bind("hidden-files", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
+        self.interface.add(row)
+
+        row = Adw.ActionRow(title=_("Number of offers"), subtitle=_("Number of message suggestions to send to chat "))
+        int_spin = Gtk.SpinButton(valign=Gtk.Align.CENTER)
+        int_spin.set_adjustment(Gtk.Adjustment(lower=0, upper=5, step_increment=1, page_increment=10, page_size=0))
+        row.add_suffix(int_spin)
+        self.settings.bind("offers", int_spin, 'value', Gio.SettingsBindFlags.DEFAULT)
+        self.interface.add(row)
+        
+        # Neural Network Control
         self.neural_network = Adw.PreferencesGroup(title=_('Neural Network Control'))
         self.general_page.add(self.neural_network) 
 
