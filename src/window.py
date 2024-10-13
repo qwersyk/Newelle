@@ -10,8 +10,7 @@ from .stt import AudioRecorder
 from .extra import markwon_to_pango, override_prompts, replace_variables
 import threading
 import posixpath
-import shlex,json
-import random
+import json
 
 class MainWindow(Gtk.ApplicationWindow):
     def __init__(self, *args, **kwargs):
@@ -317,8 +316,7 @@ class MainWindow(Gtk.ApplicationWindow):
         button.remove_css_class("error")
         button.disconnect_by_func(self.stop_recording)
         button.connect("clicked", self.start_recording)
-        engine = AVAILABLE_STT[self.stt_engine]
-        recognizer = engine["class"](self.settings, self.pip_directory)
+        recognizer = self.stt_handler
         result = recognizer.recognize_file(os.path.join(self.directory, "recording.wav"))
         if result is not None:
             self.input_panel.set_text(result)
@@ -360,8 +358,10 @@ class MainWindow(Gtk.ApplicationWindow):
             mod = list(AVAILABLE_LLMS.values())[0]
             self.model = mod["class"](self.settings, os.path.join(self.directory, "models"))
 
+        # Load handlers and models
         self.model.load_model(self.local_model)
-
+        self.stt_handler = AVAILABLE_STT[self.stt_engine]["class"](self.settings, self.pip_directory)
+        
         self.bot_prompts = []
         for prompt_info in AVAILABLE_PROMPTS:
             if self.settings.get_boolean(prompt_info["setting_name"]):
@@ -849,6 +849,9 @@ class MainWindow(Gtk.ApplicationWindow):
             GLib.idle_add(self.update_folder)
         else:
             Adw.Toast(title=_('Failed to open the folder'), timeout=2)
+        if len(outputs[0][1]) > 1000:
+            new_value = outputs[0][1][0:1000] + "..."
+            outputs = ((outputs[0][0], new_value),)
         return outputs[0]
 
 
@@ -1114,6 +1117,18 @@ class MainWindow(Gtk.ApplicationWindow):
         GLib.idle_add(self.scrolled_chat)
         self.save_chat()
 
+    def get_history(self) -> list[dict[str, str]]: 
+        history = []
+        count = self.memory
+        for msg in self.chat[:-1]:
+            if count == 0:
+                break
+            if msg["User"] == "Console" and msg["Message"] == "None":
+                continue
+            history.append(msg)
+            count -= 1
+        return history
+
     def send_message(self):
         self.stream_number_variable += 1
         stream_number_variable = self.stream_number_variable
@@ -1125,7 +1140,7 @@ class MainWindow(Gtk.ApplicationWindow):
         
         for prompt in self.bot_prompts:
             prompts.append(replace_variables(prompt))
-        self.model.set_history(prompts, self)
+        self.model.set_history(prompts, self.get_history())
 
         if self.model.stream_enabled():
             label = Gtk.Label(label="", margin_top=10, margin_start=10, margin_bottom=10, margin_end=10, wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR,

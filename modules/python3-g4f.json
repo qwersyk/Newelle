@@ -1,5 +1,5 @@
 {
-    "name": "python3-openai",
+    "name": "python3-g4f",
     "buildsystem": "simple",
     "build-commands": [
         "pip3 install --verbose --prefix=${FLATPAK_DEST} g4f==0.3.2.9"
