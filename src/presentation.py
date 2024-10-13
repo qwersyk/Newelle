@@ -89,20 +89,20 @@ class PresentationWindow(Adw.Window):
         settings = Settings(self.app, headless=True)
         pages = [
             {
-                "title": _("Welcome to nyarchassistant"),
-                "description": _("Your ultimate virtual assistant."),
-                "picture": "/moe/nyarchlinux/assistant/images/illustration.svg",
+                "title": _("Welcome to Nyarch Assistant!"),
+                "description": _("Your ultimate AI Waifu assistant."),
+                "picture": "/moe/nyarchlinux/assistant/images/logo.svg",
                 "actions": [
                     {
                         "label": _("Github Page"),
                         "classes": [],
-                        "callback": lambda x: subprocess.Popen(["xdg-open", "https://github.com/qwersyk/nyarchassistant"]), 
+                        "callback": lambda x: subprocess.Popen(["xdg-open", "https://github.com/NyarchLinux/NyarchAssistant"]), 
                     }
                 ]
             },
             {
                 "title": _("Choose your favourite AI Language Model"),
-                "description": _("nyarchassistant can be used with mutiple models and providers!\n<b>Note: It is strongly suggested to read the Guide to LLM page</b>"),
+                "description": _("Nyarch Assistant can be used with mutiple models and providers!\n<b>Note: It is strongly suggested to read the Guide to LLM page</b>"),
                 "widget": self.__steal_from_settings(settings.LLM),
                 "actions": [
                     {
@@ -113,6 +113,13 @@ class PresentationWindow(Adw.Window):
                 ] 
             },
             {
+                "title": _("Choose your favourite Voice configuration"),
+                "description": _("You can speak to Nyarch Assistant! Use any TTS/STT provider in any language, with translation support!"),
+                "widget": self.__steal_from_settings(settings.Voicegroup),
+                "actions": [ 
+                ]
+            },
+            {
                 "title": _("Extensions"),
                 "description": _("You can extend nyarchassistant's functionalities using extensions!"),
                 "picture": "/moe/nyarchlinux/assistant/images/extension.svg",
@@ -120,7 +127,7 @@ class PresentationWindow(Adw.Window):
                     {
                         "label": _("Download extensions"),
                         "classes": ["suggested-action"],
-                        "callback": lambda x: subprocess.Popen(["xdg-open", "https://github.com/topics/nyarchassistant-extension"]),
+                        "callback": lambda x: subprocess.Popen(["xdg-open", "https://github.com/topics/newelle-extension"]),
                     }
                 ]
             }
