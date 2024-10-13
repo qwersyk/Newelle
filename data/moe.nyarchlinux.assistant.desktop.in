@@ -1,7 +1,7 @@
 [Desktop Entry]
 Name=Nyarch Assistant
 Comment=Advanced AI waifu to help you
-Exec=newelle
+Exec=nyarchassistant
 Icon=moe.nyarchlinux.assistant
 Terminal=false
 Type=Application

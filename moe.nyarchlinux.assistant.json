@@ -3,7 +3,7 @@
     "runtime" : "org.gnome.Platform",
     "runtime-version" : "47",
     "sdk" : "org.gnome.Sdk",
-    "command" : "newelle",
+    "command" : "nyarchassistant",
     "finish-args" : [
         "--share=network",
         "--share=ipc",
@@ -44,8 +44,9 @@
       "modules/python3-livepng.json",
       "modules/python3-wordllama.json",
       "modules/python3-edge-tts.json",
+
       {
-            "name" : "newelle",
+            "name" : "nyarchassistant",
             "builddir" : true,
             "buildsystem" : "meson",
             "sources" : [

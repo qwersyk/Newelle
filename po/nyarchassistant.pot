@@ -6,7 +6,7 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: Newelle 0.3.0\n"
+"Project-Id-Version: nyarchassistant 0.3.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2024-08-24 08:21+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
@@ -356,7 +356,7 @@ msgid "Chat is created"
 msgstr ""
 
 #: presentation.py:92
-msgid "Welcome to Newelle"
+msgid "Welcome to nyarchassistant"
 msgstr ""
 
 #: presentation.py:93
@@ -373,7 +373,7 @@ msgstr ""
 
 #: presentation.py:105
 msgid ""
-"Newelle can be used with mutiple models and providers!\n"
+"nyarchassistant can be used with mutiple models and providers!\n"
 "<b>Note: It is strongly suggested to read the Guide to LLM page</b>"
 msgstr ""
 
@@ -382,7 +382,7 @@ msgid "Guide to LLM"
 msgstr ""
 
 #: presentation.py:117
-msgid "You can extend Newelle's functionalities using extensions!"
+msgid "You can extend nyarchassistant's functionalities using extensions!"
 msgstr ""
 
 #: presentation.py:121
@@ -395,7 +395,7 @@ msgstr ""
 
 #: presentation.py:132
 msgid ""
-"Newelle does not have enough permissions to run commands on your system."
+"nyarchassistant does not have enough permissions to run commands on your system."
 msgstr ""
 
 #: presentation.py:143
@@ -508,7 +508,7 @@ msgstr ""
 
 #: settings.py:756
 msgid ""
-"Newelle does not have enough permissions to run commands on your system, "
+"nyarchassistant does not have enough permissions to run commands on your system, "
 "please run the following command"
 msgstr ""
 

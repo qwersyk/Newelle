@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<schemalist gettext-domain="newelle">
+<schemalist gettext-domain="nyarchassistant">
 	<schema id="moe.nyarchlinux.assistant" path="/moe/nyarchlinux/assistant/">
         <key name="offers" type="i">
             <default>0</default>

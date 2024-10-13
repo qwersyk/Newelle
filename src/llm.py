@@ -797,7 +797,7 @@ class OpenAIHandler(LLMHandler):
  
 class NyarchApiHandler(OpenAIHandler):
     key = "nyarch"
-    error_message = """Error calling Nyarch API. Please note that Nyarch API is **just for demo purposes.**\n\nTo know how to use a more reliable LLM [read our guide to llms](https://github.com/qwersyk/Newelle/wiki/User-guide-to-the-available-LLMs). \n\nError: """
+    error_message = """Error calling Nyarch API. Please note that Nyarch API is **just for demo purposes.**\n\nTo know how to use a more reliable LLM [read our guide to llms](https://github.com/qwersyk/nyarchassistant/wiki/User-guide-to-the-available-LLMs). \n\nError: """
 
     def __init__(self, settings, path):
         super().__init__(settings, path)
