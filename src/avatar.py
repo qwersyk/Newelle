@@ -61,6 +61,13 @@ class AvatarHandler(Handler):
 
     @abstractmethod
     def speak_with_tts(self, text: str, tts : TTSHandler, translator: TranslatorHandler):
+        """ Speak the given text with the given TTS handler and Translation handler
+
+        Args:
+            text: Text to speak 
+            tts: TTS handler 
+            translator: Translation handler 
+        """
         frame_rate = int(self.get_setting("fps"))
         chunks = extract_expressions(text, self.get_expressions()) 
         threads = []
@@ -93,9 +100,20 @@ class AvatarHandler(Handler):
         pass
 
     def destroy(self, add=None):
+        """Destroy the widget"""
         pass
 
     def async_create_file(self, chunk: dict[str, str | None], tts : TTSHandler, translator : TranslatorHandler,frame_rate:int, id : int, results : dict[int, dict[ str, Any]]):
+        """Function to be run on another thread - creates a file with the tts
+
+        Args:
+            chunk: chunk of the text to be spoken 
+            tts: tts handler 
+            translator: translation handler
+            frame_rate: frame rate of the tts 
+            id: id of the chunk 
+            results: results of the chunks
+        """
         filename = tts.get_tempname("wav")
         path = os.path.join(tts.path, filename)
         if chunk["text"] is None:
@@ -109,6 +127,14 @@ class AvatarHandler(Handler):
         }
 
     def requires_reloading(self, handler) -> bool:
+        """Check if the handler requires to be reloaded due to a settings change
+
+        Args:
+            handler (): new handler
+
+        Returns:
+            
+        """
         if handler.key != self.key:
             return True
         if self.requires_reload[0]:
@@ -117,6 +143,7 @@ class AvatarHandler(Handler):
         return False
 
     def stop(self):
+        """Stop the handler animations"""
         self.stop_request = True
 
 class Live2DHandler(AvatarHandler):
