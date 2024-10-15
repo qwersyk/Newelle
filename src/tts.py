@@ -91,6 +91,7 @@ class TTSHandler(Handler):
             time.sleep(0.1)
         self.on_stop()
         self._play_lock.release()
+        os.remove(path)
 
     def stop(self):
         if mixer.music.get_busy():
