@@ -1,29 +1,23 @@
 <h1 align="center">
-  <img src="https://raw.githubusercontent.com/qwersyk/nyarchassistant/master/data/icons/hicolor/scalable/apps/io.github.qwersyk.nyarchassistant.svg" alt="nyarchassistant" width="192" height="192"/>
+  <img src="https://raw.githubusercontent.com/NyarchLinux/NyarchAssistant/refs/heads/master/data/icons/hicolor/scalable/apps/moe.nyarchlinux.assistant.svg" alt="nyarchassistant" width="192" height="192"/>
   <br>
-  nyarchassistant - Your Ultimate Virtual Assistant
+  Nyarch Assistant - Your ultimate Waifu AI Assistant
 </h1>
 <p align="center">
   <a href="https://flathub.org/apps/details/io.github.qwersyk.nyarchassistant">
     <img width="200" alt="Download on Flathub" src="https://dl.flathub.org/assets/badges/flathub-badge-i-en.svg"/>
   </a>
-  <a href="https://github.com/topics/nyarchassistant-extension">
-    <img width="200" alt="Download on Flathub" src="https://raw.githubusercontent.com/qwersyk/Assets/main/nyarchassistant-extension.svg"/>
+  <a href="https://github.com/topics/newelle-extension">
+    <img width="200" alt="Newelle Extensions" src="https://raw.githubusercontent.com/qwersyk/Assets/main/newelle-extension.svg"/>
   </a>
-  <a href="https://github.com/qwersyk/nyarchassistant/wiki">
-    <img width="200" alt="Wiki for nyarchassistant" src="https://raw.githubusercontent.com/qwersyk/Assets/main/nyarchassistant-wiki.svg"/>
-  </a>
-  <br>
-</p>
-<p align="center">
-<a href="https://stopthemingmy.app">
-    <img width="180" alt="Please Don't Theme" src="https://stopthemingmy.app/badge.svg"/>
+  <a href="https://github.com/qwersyk/Newelle/wiki">
+    <img width="200" alt="Wiki for Nyarch Assistant" src="https://raw.githubusercontent.com/qwersyk/Assets/main/newelle-wiki.svg"/>
   </a>
   <br>
 </p>
 
-![screenshot](https://raw.githubusercontent.com/qwersyk/nyarchassistant/master/screenshots/1w.png#gh-light-mode-only)
-![screenshot](https://raw.githubusercontent.com/qwersyk/nyarchassistant/master/screenshots/1b.png#gh-dark-mode-only)
+![screenshot](https://raw.githubusercontent.com/NyarchLinux/NyarchAssistant/refs/heads/master/screenshots/1w.png#gh-light-mode-only)
+![screenshot](https://raw.githubusercontent.com/NyarchLinux/NyarchAssistant/refs/heads/master/screenshots/1b.png#gh-dark-mode-only)
 
 # Features
 
@@ -33,15 +27,15 @@
 
 - **Flexible Model Support**: Choose from multiple AI models to fit your specific needs.
 
-![screenshot](https://raw.githubusercontent.com/qwersyk/nyarchassistant/master/screenshots/3w.png#gh-light-mode-only)
-![screenshot](https://raw.githubusercontent.com/qwersyk/nyarchassistant/master/screenshots/3b.png#gh-dark-mode-only)
+![screenshot](https://raw.githubusercontent.com/NyarchLinux/NyarchAssistant/refs/heads/master/screenshots/3w.png#gh-light-mode-only)
+![screenshot](https://raw.githubusercontent.com/NyarchLinux/NyarchAssistant/refs/heads/master/screenshots/3b.png#gh-dark-mode-only)
 
 # Extensions
 
 nyarchassistant supports extensions to enhance its functionality. You can either use [existing extensions](https://github.com/topics/nyarchassistant-extension) or create your own to add new features to the application.
 
-![screenshot](https://raw.githubusercontent.com/qwersyk/nyarchassistant/master/screenshots/2w.png#gh-light-mode-only)
-![screenshot](https://raw.githubusercontent.com/qwersyk/nyarchassistant/master/screenshots/2b.png#gh-dark-mode-only)
+![screenshot](https://raw.githubusercontent.com/qwersyk/newelle/master/screenshots/2w.png#gh-light-mode-only)
+![screenshot](https://raw.githubusercontent.com/qwersyk/newelle/master/screenshots/2b.png#gh-dark-mode-only)
 
 # Installation
 
@@ -60,19 +54,10 @@ nyarchassistant supports extensions to enhance its functionality. You can either
 2. Extract the downloaded package.
 3. Install a flatpak package.
 
-![flathub](https://raw.githubusercontent.com/qwersyk/Assets/main/flathub.svg#gh-light-mode-only)
-![flathub](https://raw.githubusercontent.com/qwersyk/Assets/main/flathub-dark.svg#gh-dark-mode-only)
-
-1. Ensure you have Flatpak installed on your system.
-2. Install nyarchassistant by executing: `flatpak install flathub io.github.qwersyk.nyarchassistant`
-
 # Permission
 
-> [!IMPORTANT]
-> The Flathub version of nyarchassistant is restricted to the `.var/app/io.github.qwersyk.nyarchassistant` folder and operates within a Flatpak virtualized environment, limiting its capabilities.
-
 To extend functionality, you can either temporarily grant access with:
-```flatpak run --talk-name=org.freedesktop.Flatpak --filesystem=home io.github.qwersyk.nyarchassistant```
+```flatpak run --talk-name=org.freedesktop.Flatpak --filesystem=home moe.nyarchlinux.nyarchassistant```
 or adjust settings permanently using Flatseal:
 - Open Flatseal, find "nyarchassistant," enable "All user files" and "Session Bus," and add `org.freedesktop.Flatpak` to run outside the sandbox.
 
