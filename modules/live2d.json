@@ -3,7 +3,7 @@
   "buildsystem": "simple",
   "build-commands": [
     "mkdir -p ${FLATPAK_DEST}/extra/config/avatar/live2d/web",
-    "tar -xJf download.tar.xz -C ${FLATPAK_DEST}/extra/config/avatar/live2d/web",
+    "tar -xJf download.tar.xz -C ${FLATPAK_DEST}/extra/config/avatar/live2d/web --no-same-owner",
     "mkdir -p ${FLATPAK_DEST}/data/live2d",
     "mv ${FLATPAK_DEST}/extra/config/avatar/live2d/web ${FLATPAK_DEST}/data/live2d"
   ],
