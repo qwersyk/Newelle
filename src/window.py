@@ -321,12 +321,14 @@ class MainWindow(Gtk.ApplicationWindow):
 
     def install_live2d(self):
         try:
-            os.makedirs(os.path.join(self.directory, "avatars/live2d"))
-            os.makedirs(os.path.join(self.directory, "prompt-models"))
+            os.makedirs(os.path.join(self.directory, "avatars/live2d"), exist_ok=True)
+            os.makedirs(os.path.join(self.directory, "prompt-models"), exist_ok=True)
+            os.makedirs(os.path.expanduser("~/.cache/wordllama/tokenizers"), exist_ok=True)
         except Exception as e:
             print(e)
         subprocess.run(['cp', '-a', '/app/data/live2d/web/build', os.path.join(self.directory, "avatars/live2d/web")])
-        subprocess.run(['cp', '-a', '/app/data/smart-prompts/*', os.path.join(self.directory, "prompt-models/")])
+        subprocess.run(['cp', '/app/data/smart-prompts/*', os.path.join(self.directory, "prompt-models/")])
+        subprocess.run(['cp', '/app/data/smart-prompts/l2_supercat_tokenizer_config.json', os.path.expanduser("~/.cache/wordllama/tokenizers/")])
 
     def show_presentation_window(self):
         self.presentation_dialog = PresentationWindow("presentation", self.settings, self.directory, self)
