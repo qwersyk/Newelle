@@ -99,7 +99,7 @@
           <default>false</default>
         </key>
         <key name="smart-prompt" type="s">
-          <default>"WordLlama"</default>
+          <default>"LogicalRegression"</default>
         </key>
         <key name="smart-prompt-settings" type="s">
           <default>"{}"</default>

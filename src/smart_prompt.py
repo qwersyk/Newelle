@@ -69,13 +69,14 @@ class WordLlamaHandler(SmartPromptHandler):
 
 class LogicalRegressionHandler(SmartPromptHandler):
     key = "LogicalRegression"
-    version = "0.1"
+    version = "0.2"
     def __init__(self, settings, path):
         super().__init__(settings, path)
         self.model = None
-        self.wl = WordLlama.load()
+        self.wl = WordLlama.load(dim=1024)
         self.models_dir = os.path.join(path, "prompt-models")
         self.pip_path = os.path.join(path, "pip")
+        self.model_path = f"/app/data/smart-prompts/NyaMedium_{self.version}.pkl"
         if not os.path.isdir(self.models_dir):
             os.makedirs(self.models_dir)
     
@@ -85,18 +86,18 @@ class LogicalRegressionHandler(SmartPromptHandler):
     
     def install(self):
         install_module("scikit_learn", self.pip_path)
-        check_output(["wget", "-P", self.models_dir, f"http://mirror.nyarchlinux.moe/lrmodelv{self.version}.pkl"]) 
+        check_output(["wget", "-P", self.models_dir, "https://github.com/NyarchLinux/Smart-Prompts/releases/download/0.2/NyaMedium_0.2.pkl"]) 
    
     def load(self):
         if self.model is not None:
             return
-        with open(os.path.join(self.models_dir, f"lrmodelv{self.version}.pkl"), "rb") as f:
+        with open(self.model_path, "rb") as f:
             self.model = pickle.load(f)
 
     def is_installed(self) -> bool:
         if not find_module("sklearn"):
             return False
-        if not os.path.isfile(os.path.join(self.models_dir, f"lrmodelv{self.version}.pkl")):
+        if not os.path.isfile(self.model_path):
             return False
         return True
     
