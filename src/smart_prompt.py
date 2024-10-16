@@ -49,7 +49,7 @@ class WordLlamaHandler(SmartPromptHandler):
         print(chat_tags)
         return prompts
    
-    def recognize_category(self, sentence, categories_db, top_k=3):
+    def recognize_category(self, sentence, categories_db, top_k=10):
         category_scores = {}
 
         for category, examples in categories_db.items():

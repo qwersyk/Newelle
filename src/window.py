@@ -311,9 +311,20 @@ class MainWindow(Gtk.ApplicationWindow):
         GLib.idle_add(self.update_history)
         GLib.idle_add(self.show_chat)
         if not self.settings.get_boolean("welcome-screen-shown"):
-            GLib.idle_add(self.show_presentation_window)
+            self.first_start()
         self.first_load = False
         self.load_avatar()
+
+    def first_start(self):
+        GLib.idle_add(self.show_presentation_window)
+        threading.Thread(target=self.install_live2d).start()
+
+    def install_live2d(self):
+        try:
+            os.makedirs(os.path.join(self.directory, "avatars/live2d"))
+        except Exception as e:
+            return
+        subprocess.run(['cp', '-a', '/app/data/live2d/web/build', os.path.join(self.directory, "avatars/live2d/web")])
 
     def show_presentation_window(self):
         self.presentation_dialog = PresentationWindow("presentation", self.settings, self.directory, self)
