@@ -90,7 +90,7 @@
           <default>"gnome-terminal -- bash -c {0}"</default>
         </key>
         <key name="translator" type="s">
-          <default>"GoogleTranslate"</default>
+          <default>"LibreTranslate"</default>
         </key>
         <key name="translator-settings" type="s">
           <default>"{}"</default>
