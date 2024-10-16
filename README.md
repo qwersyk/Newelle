@@ -4,9 +4,6 @@
   Nyarch Assistant - Your ultimate Waifu AI Assistant
 </h1>
 <p align="center">
-  <a href="https://flathub.org/apps/details/io.github.qwersyk.nyarchassistant">
-    <img width="200" alt="Download on Flathub" src="https://dl.flathub.org/assets/badges/flathub-badge-i-en.svg"/>
-  </a>
   <a href="https://github.com/topics/newelle-extension">
     <img width="200" alt="Newelle Extensions" src="https://raw.githubusercontent.com/qwersyk/Assets/main/newelle-extension.svg"/>
   </a>
@@ -20,6 +17,7 @@
 ![screenshot](https://raw.githubusercontent.com/NyarchLinux/NyarchAssistant/refs/heads/master/screenshots/1b.png#gh-dark-mode-only)
 
 # Features
+- **Your dream waifu, at your command**: Choose from a vast library of TTS voices and Live2D or LivePNG models to create the perfect virtual companion.
 
 - **Terminal Command Execution**: Execute terminal commands directly through the AI.
 
