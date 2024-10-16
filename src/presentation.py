@@ -130,6 +130,12 @@ class PresentationWindow(Adw.Window):
                         "callback": lambda x: subprocess.Popen(["xdg-open", "https://github.com/topics/newelle-extension"]),
                     }
                 ]
+            },
+            {
+                "title": _("Pay attention!"),
+                "description": _("Nyarch Assistant can run commands on your system! By enabling command virtualization, you will only run commands inside the flatpak environment, avoiding to create damages to your system.\n\n <b>Pay attention on what you run! Commands generated might harm your system!</b>"),
+                "widget": self.__steal_from_settings(settings.neural_network),
+                "actions": []
             }
         ]
         # Show the warning only if there are not enough permissions
