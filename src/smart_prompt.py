@@ -121,7 +121,7 @@ class LogicalRegressionHandler(SmartPromptHandler):
             self.wl = WordLlama.load(dim=self.dimension)
         if not os.path.isfile(self.model_path):
             print("Downloading model from " + self.dimensions[self.dimension]["url"])
-            check_output(["wget", "-P", self.models_dir, self.dimensions[self.dimension]["url"]])
+            check_output(["wget", "-P", self.model_path, self.dimensions[self.dimension]["url"]])
         if self.model is None:
             with open(self.model_path, "rb") as f:
                 self.model = pickle.load(f)
