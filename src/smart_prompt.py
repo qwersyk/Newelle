@@ -20,9 +20,16 @@ class WordLlamaHandler(SmartPromptHandler):
 
     def __init__(self, settings, path: str):
         super().__init__(settings, path)
-        self.wl = WordLlama.load()
+        self.wl = None
+    
+    def load(self):
+        if self.wl is None:
+            self.wl = WordLlama.load()
 
     def get_extra_prompts(self, message: str, history : list[dict[str, str]], available_prompts : list[dict]) -> list[str]:
+        self.load()
+        if self.wl is None:
+            return []
         categories_db = {}
         for prompt in available_prompts:
             categories_db[prompt["key"]] = prompt["prompts"]
@@ -52,6 +59,9 @@ class WordLlamaHandler(SmartPromptHandler):
     def recognize_category(self, sentence, categories_db, top_k=10):
         category_scores = {}
 
+        self.load()
+        if self.wl is None:
+            return [] 
         for category, examples in categories_db.items():
             # Rank the example sentences based on their similarity to the input sentence
             ranked_examples = self.wl.rank(sentence, examples)
@@ -69,30 +79,52 @@ class WordLlamaHandler(SmartPromptHandler):
 
 class LogicalRegressionHandler(SmartPromptHandler):
     key = "LogicalRegression"
-    version = "0.2"
+    version = "0.3"
+    dimensions = {256: {"url": "https://github.com/NyarchLinux/Smart-Prompts/releases/download/0.3/NyaMedium_0.3_256.pkl"}, 
+                  512 : {"url": "https://github.com/NyarchLinux/Smart-Prompts/releases/download/0.3/NyaMedium_0.3_512.pkl"}, 
+                  1024: {"url": "https://github.com/NyarchLinux/Smart-Prompts/releases/download/0.3/NyaMedium_0.3_1024.pkl"}}
+
+    def get_extra_settings(self) -> list:
+        return [
+            {
+                "key": "dimension",
+                "title": _("Model Dimension"),
+                "description": _("Use bigger models for bigger accuracy, models bigger than 256 will donwnload on first message sent, < 100MB"),
+                "type": "combo",
+                "default": 256,
+                "values": (("NyaMedium_0.3_256","256"), ("NyaMedium_0.3_512","512"), ("NyaMedium_0.3_1024", "1024"),)
+            }
+        ]
+
     def __init__(self, settings, path):
         super().__init__(settings, path)
         self.model = None
-        self.wl = WordLlama.load(dim=1024)
+        self.wl = None
         self.models_dir = os.path.join(path, "prompt-models")
         self.pip_path = os.path.join(path, "pip")
-        self.model_path = f"/app/data/smart-prompts/NyaMedium_{self.version}.pkl"
+        self.dimension = int(self.get_setting("dimension"))
+        self.model_path = f"/app/data/smart-prompts/NyaMedium_{self.version}_{self.dimension}.pkl"
         if not os.path.isdir(self.models_dir):
             os.makedirs(self.models_dir)
-    
+   
     @staticmethod
     def get_extra_requirements() -> list:
         return ["sklearn"]
     
     def install(self):
-        install_module("scikit_learn", self.pip_path)
-        check_output(["wget", "-P", self.models_dir, "https://github.com/NyarchLinux/Smart-Prompts/releases/download/0.2/NyaMedium_0.2.pkl"]) 
-   
+        if find_module("scikit_learn") is None:
+            install_module("scikit_learn", self.pip_path)
+        self.load() 
+    
     def load(self):
-        if self.model is not None:
-            return
-        with open(self.model_path, "rb") as f:
-            self.model = pickle.load(f)
+        if self.wl is None:
+            self.wl = WordLlama.load(dim=self.dimension)
+        if not os.path.isfile(self.model_path):
+            print("Downloading model from " + self.dimensions[self.dimension]["url"])
+            check_output(["wget", "-P", self.models_dir, self.dimensions[self.dimension]["url"]])
+        if self.model is None:
+            with open(self.model_path, "rb") as f:
+                self.model = pickle.load(f)
 
     def is_installed(self) -> bool:
         if not find_module("sklearn"):
@@ -103,7 +135,7 @@ class LogicalRegressionHandler(SmartPromptHandler):
     
     def get_extra_prompts(self, message: str, history : list[dict[str, str]], available_prompts : list[dict]) -> list[str]:
         self.load()
-        if self.model is None:
+        if self.model is None or self.wl is None:
             return []
         # Embed the message
         messages = [msg["Message"] for msg in history if msg["User"] == "User"]
@@ -122,3 +154,4 @@ class LogicalRegressionHandler(SmartPromptHandler):
                     chat_tags.append(category)
         print(chat_tags)
         return [prompt["prompt_text"] for prompt in available_prompts if prompt["key"] in chat_tags]
+

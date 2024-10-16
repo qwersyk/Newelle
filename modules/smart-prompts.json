@@ -3,21 +3,21 @@
   "buildsystem": "simple",
   "build-commands": [
     "mkdir -p ${FLATPAK_DEST}/data/smart-prompts",
-    "mv dataset.csv ${FLATPAK_DEST}/data/smart-prompts",
-    "mv NyaMedium_0.2.pkl ${FLATPAK_DEST}/data/smart-prompts"
+    "mv dataset.csv ${FLATPAK_DEST}/data/smart-prompts/",
+    "mv NyaMedium_0.3_256.pkl ${FLATPAK_DEST}/data/smart-prompts/"
   ],
   "sources" : [
     {
       "type": "file",
-      "url": "https://github.com/NyarchLinux/Smart-Prompts/releases/download/0.2/dataset.csv",
+      "url": "https://github.com/NyarchLinux/Smart-Prompts/releases/download/0.3/dataset.csv",
       "dest-filename": "dataset.csv",
       "sha256": "7c40ecee34ea02e4dcad2c479e5036cf417366752f85902cb76360f3303341f0"
     },
     {
       "type": "file",
-      "url": "https://github.com/NyarchLinux/Smart-Prompts/releases/download/0.2/NyaMedium_0.2.pkl",
-      "dest-filename": "NyaMedium_0.2.pkl",
-      "sha256": "11018bcf6234f2fd74c74ea9c10066c402c9e4c9563858297a78ec82f0b7b454"
+      "url": "https://github.com/NyarchLinux/Smart-Prompts/releases/download/0.3/NyaMedium_0.3_256.pkl",
+      "dest-filename": "NyaMedium_0.3_256.pkl",
+      "sha256": "79c9d3526f84143ddc9d6f7033a5f3e403c4c92937a3aa4bcaca1db5393b75ee"
     }
   ],
   "modules": []

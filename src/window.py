@@ -322,9 +322,11 @@ class MainWindow(Gtk.ApplicationWindow):
     def install_live2d(self):
         try:
             os.makedirs(os.path.join(self.directory, "avatars/live2d"))
+            os.makedirs(os.path.join(self.directory, "prompt-models"))
         except Exception as e:
-            return
+            print(e)
         subprocess.run(['cp', '-a', '/app/data/live2d/web/build', os.path.join(self.directory, "avatars/live2d/web")])
+        subprocess.run(['cp', '-a', '/app/data/smart-prompts/*', os.path.join(self.directory, "prompt-models/")])
 
     def show_presentation_window(self):
         self.presentation_dialog = PresentationWindow("presentation", self.settings, self.directory, self)
@@ -1256,9 +1258,13 @@ class MainWindow(Gtk.ApplicationWindow):
         # Get smart prompts
         if self.smart_prompt_enabled:
             if self.smart_prompt_handler in AVAILABLE_SMART_PROMPTS:
-                smart_prompt = AVAILABLE_SMART_PROMPTS[self.smart_prompt_handler]["class"](self.settings, self.directory)
-                generated = smart_prompt.get_extra_prompts(self.chat[-1]["Message"], self.get_history(), EXTRA_PROMPTS)
-                prompts += generated
+                try:
+                    smart_prompt = AVAILABLE_SMART_PROMPTS[self.smart_prompt_handler]["class"](self.settings, self.directory)
+                    generated = smart_prompt.get_extra_prompts(self.chat[-1]["Message"], self.get_history(), EXTRA_PROMPTS)
+                    prompts += generated
+                except Exception as e:
+                    print(e)
+
         # Set history and prompts
         self.model.set_history(prompts, self.get_history())
 
