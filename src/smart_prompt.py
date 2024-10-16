@@ -1,8 +1,9 @@
-from subprocess import check_output
+from subprocess import Popen, check_output
+import subprocess
 from wordllama import WordLlama
 from typing import Any
 from abc import abstractmethod
-import json, copy, os, pickle
+import json, copy, os, pickle, shutil
 
 from .extra import find_module, install_module
 from .handler import Handler
@@ -103,16 +104,24 @@ class LogicalRegressionHandler(SmartPromptHandler):
         self.models_dir = os.path.join(path, "prompt-models")
         self.pip_path = os.path.join(path, "pip")
         self.dimension = int(self.get_setting("dimension"))
-        self.model_path = f"/app/data/smart-prompts/NyaMedium_{self.version}_{self.dimension}.pkl"
+        self.model_path = os.path.join(self.models_dir, f"NyaMedium_{self.version}_{self.dimension}.pkl")
         if not os.path.isdir(self.models_dir):
             os.makedirs(self.models_dir)
-   
+        self.check_files()
+
+    def check_files(self):
+        default_model = f"NyaMedium_{self.version}_{256}.pkl"
+        if not os.path.isfile(os.path.join(self.models_dir, default_model)):
+            shutil.copy(os.path.join("/app/data/smart-prompts", default_model), os.path.join(self.models_dir, default_model))
+        if not os.path.isfile(os.path.expanduser("~/.cache/wordllama/tokenizers/l2_supercat_tokenizer_config.json")):
+            shutil.copy(os.path.join("/app/data/smart-prompts", "l2_supercat_tokenizer_config.json"), os.path.expanduser("~/.cache/wordllama/tokenizers/l2_supercat_tokenizer_config.json"))
+
     @staticmethod
     def get_extra_requirements() -> list:
         return ["sklearn"]
     
     def install(self):
-        if find_module("scikit_learn") is None:
+        if find_module("sklearn") is None:
             install_module("scikit_learn", self.pip_path)
         self.load() 
     
@@ -121,7 +130,8 @@ class LogicalRegressionHandler(SmartPromptHandler):
             self.wl = WordLlama.load(dim=self.dimension)
         if not os.path.isfile(self.model_path):
             print("Downloading model from " + self.dimensions[self.dimension]["url"])
-            check_output(["wget", "-P", self.model_path, self.dimensions[self.dimension]["url"]])
+            subprocess.run(["wget", "-P", self.models_dir, self.dimensions[self.dimension]["url"]], capture_output=False)
+            print("Model downloaded")
         if self.model is None:
             with open(self.model_path, "rb") as f:
                 self.model = pickle.load(f)
