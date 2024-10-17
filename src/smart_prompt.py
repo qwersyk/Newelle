@@ -153,7 +153,7 @@ class LogicalRegressionHandler(SmartPromptHandler):
         embeddings = self.wl.embed(messages)
         probabilities = self.model.predict_proba(embeddings)
 
-        # Stampa le probabilità per ogni categoria
+        # Print the probabilities for each category
         labels = [prompt["key"] for prompt in available_prompts]
         labels.sort()
         chat_tags = []
