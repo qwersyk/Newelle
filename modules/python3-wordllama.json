@@ -1,0 +1,12 @@
+{
+    "name": "python3-wordllama",
+    "buildsystem": "simple",
+    "build-commands": [
+        "pip3 install --verbose --prefix=${FLATPAK_DEST} wordllama==0.3.3.post0"
+    ],
+    "build-options": {
+    	"build-args": [
+    		"--share=network"
+    	]
+    }
+}

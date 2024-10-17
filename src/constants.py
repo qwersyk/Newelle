@@ -1,14 +1,26 @@
-
-from .llm import GPT4AllHandler, GroqHandler, OllamaHandler, OpenAIHandler, CustomLLMHandler, GPT3AnyHandler, GeminiHandler, MistralHandler, OpenRouterHandler
-from .tts import gTTSHandler, EspeakHandler, CustomTTSHandler
+from .llm import GPT4AllHandler, GroqHandler, NyarchApiHandler, OllamaHandler, OpenAIHandler, CustomLLMHandler, GPT3AnyHandler, GeminiHandler, MistralHandler, OpenRouterHandler
+from .tts import VoiceVoxHanlder, gTTSHandler, EspeakHandler, CustomTTSHandler, VitsHandler, EdgeTTSHandler
 from .stt import GroqSRHandler, OpenAISRHandler, SphinxHandler, GoogleSRHandler, WhisperHandler, WitAIHandler, VoskHandler, CustomSRHandler
 
+from .avatar import Live2DHandler, LivePNGHandler
+from .translator import CustomTranslatorHandler, GoogleTranslatorHandler, LibreTranslateHandler, LigvaTranslateHandler
+from .smart_prompt import LogicalRegressionHandler, WordLlamaHandler
+
+from .dataset import DATASET, WIKI_PROMPTS
+
 AVAILABLE_LLMS = {
+    "nyarch": {
+        "key": "nyarch",
+        "title": _("Nyarch Demo API"),
+        "description": "Nyarch demo API just to try out Nyarch Assistant, limited to 10 requests",
+        "class": NyarchApiHandler,
+    },
     "GPT3Any": {
         "key": "GPT3Any",
         "title": _("Any free Provider"),
         "description": "Automatically chooses a free provider using a GPT3.5-Turbo or better model",
         "class": GPT3AnyHandler,
+        "secondary": True
     },
    "local": {
         "key": "local",
@@ -26,6 +38,7 @@ AVAILABLE_LLMS = {
         "key": "groq",
         "title": _("Groq"),
         "description": "Official Groq API",
+        "website": "https://console.groq.com/",
         "class": GroqHandler,
     },
     "gemini": {
@@ -44,6 +57,7 @@ AVAILABLE_LLMS = {
         "key": "mistral",
         "title": _("Mistral"),
         "description": _("Mistral API"),
+        "website": "https://mistral.ai/",
         "class": MistralHandler,
         "secondary": True
     },
@@ -52,6 +66,7 @@ AVAILABLE_LLMS = {
         "title": _("OpenRouter"),
         "description": _("Openrouter.ai API, supports lots of models"),
         "class": OpenRouterHandler,
+        "website": "https://openrouter.ai/",
         "secondary": True
     },
     "custom_command": {
@@ -74,7 +89,7 @@ AVAILABLE_STT = {
     "whisper": {
         "key": "whisper",
         "title": _("Whisper (Local)"),
-        "description": _("OpanAI whisper. Works offline. ~3GB download for dependency install - It is suggested to run Newelle in terminal when you install in order to see the progress"),
+        "description": _("OpanAI whisper. Works offline. ~3GB download for dependency install - It is suggested to run NyarchAssistant in terminal when you install in order to see the progress"),
         "class": WhisperHandler,
     },
     "google_sr": {
@@ -120,12 +135,31 @@ AVAILABLE_STT = {
 
 
 AVAILABLE_TTS = {
-
+    "edge_tts": {
+        "key": "edge_tts",
+        "title": _("Edge TTS"),
+        "description": _("Use Microsoft Edge online TTS without any API Key"),
+        "class": EdgeTTSHandler,
+    },
     "gtts": {
         "key": "gtts",
         "title": _("Google TTS"),
         "description": _("Google's text to speech"),
         "class": gTTSHandler,
+    },
+    "voicevox": {
+        "key": "voicevox",
+        "title": _("Voicevox API"),
+        "description": _("(Selfhostable) JP ONLY. API for voicevox anime-like natural sounding tts"),
+        "class": VoiceVoxHanlder,
+        "website": "https://github.com/VOICEVOX/voicevox_engine",
+    },
+    "vits": {
+        "key": "vits",
+        "title": _("VITS API"),
+        "description": _("(Selfhostable) VITS simple API. AI based TTS, very good for Japanese"),
+        "class": VitsHandler,
+        "website": "https://github.com/Artrajz/vits-simple-api"
     },
     "espeak": {
         "key": "espeak",
@@ -141,6 +175,62 @@ AVAILABLE_TTS = {
     }
 }
 
+AVAILABLE_AVATARS = {
+    "Live2D": {
+        "key": "Live2D",
+        "title": _("Live2D"),
+        "description": _("Cubism Live2D, usually used by vtubers"),
+        "class": Live2DHandler,
+    },
+    "LivePNG": {
+        "key": "LivePNG",
+        "title": _("LivePNG"),
+        "description": _("LivePNG model"),
+        "class": LivePNGHandler,
+    }
+}
+
+AVAILABLE_TRANSLATORS = {
+    "GoogleTranslator": {
+        "key": "GoogleTranslator",
+        "title": _("Google Translator"),
+        "description": _("Use google transate"),
+        "class": GoogleTranslatorHandler,
+    },
+    "LibreTranslate": {
+        "key": "LibreTranslate",
+        "title": _("Libre Translate"),
+        "description": _("Open source self hostable translator"),
+        "class": LibreTranslateHandler,
+    }, 
+    "LigvaTranslate": {
+        "key": "LigvaTranslate",
+        "title": _("Ligva Translate"),
+        "description": _("Open source self hostable translator"),
+        "class": LigvaTranslateHandler,
+    },
+    "CustomTranslator": {
+        "key": "CustomTranslator",
+        "title": _("Custom Translator"),
+        "description": _("Use a custom translator"),
+        "class": CustomTranslatorHandler,
+    }
+}
+
+AVAILABLE_SMART_PROMPTS = {
+    "WordLlama": {
+        "key": "WordLlama",
+        "title": _("Nyarch Smart Prompt Lite"),
+        "description": _("EXPERIMENTAL: Local mini models that helps the llm to provide better responses"),
+        "class": WordLlamaHandler,
+    },
+    "LogicalRegression": {
+        "key": "LogicalRegression",
+        "title": _("Nyarch Smart Prompt Medium"),
+        "description": _("EXPERIMENTAL: Local medium models that helps the llm to provide better responses - Medium ~30MB download"),
+        "class": LogicalRegressionHandler,
+    }
+}
 
 PROMPTS = {
     "generate_name_prompt": """Write a short title for the dialog, summarizing the theme in 5 words. No additional text.""",
@@ -149,18 +239,21 @@ Linux distribution: {DISTRO}
 Execute linux commands using \n```console\ncommand\n```
 To display a directory: \n```folder\npath/to/folder\n```
 To display a file: \n```file\npath/to/file\n```
+To open a webpage: \n```console\nxdg-open https://www.example.com\n```
 """,
-
     "basic_functionality": """You can write a multiplication table:
 | - | 1 | 2 | 3 | 4 |\n| - | - | - | - | - |\n| 1 | 1 | 2 | 3 | 4 |\n| 2 | 2 | 4 | 6 | 8 |\n| 3 | 3 | 6 | 9 | 12 |\n| 4 | 4 | 8 | 12 | 16 |
 
 You can write codeblocks:
 ```cpp\n#include<iostream>\nusing namespace std;\nint main(){\n    cout<<"Hello world!";\n    return 0;\n}\n```
 
+You can show code:
+```cpp\n#include<iostream>\nusing namespace std;\nint main(){\n    cout<<"Hello world!";\n    return 0;\n}\n```
 You can also use **bold**, *italic*, ~strikethrough~, `monospace`, [linkname](https://link.com) and ## headers in markdown
 """,
     "show_image": """You can show the user an image, if needed, using ```image\npath\n```""",
     "graphic": """System: You can display the graph using this structure: ```chart\n name - value\n ... \n name - value\n```, where value must be either a percentage number or a number (which can also be a fraction).
+
 """,
     "graphic_console": """File: /home/user/Downloads/money.txt
 User: Create a graph for the report in the money.txt file
@@ -178,8 +271,59 @@ User: Can you help me?
 Assistant: Yes, of course, what do you need help with?""",
     "get_suggestions_prompt": """Suggest a few questions that the user would ask and put them in a JSON array. You have to write ONLY the JSON array an nothing else""",
     "custom_prompt": "",
+    "expression_prompt": """You can show expressions by writing (expression) in parenthesis.
+You can ONLY show the following expressions: 
+{EXPRESSIONS}
+Do not use any other expression
 
+YOU CAN NOT SHOW OTHER EXPRESSIONS.""",
+    "personality_prompt": """Hey there, it's Arch-Chan! But, um, you can call me Acchan if you want... not that I care or anything! (It's not like I think it's cute or anything, baka!) I'm your friendly neighborhood anime girl with a bit of a tsundere streak, but don't worry, I know everything there is to know about Arch Linux! Whether you're struggling with a package install or need some advice on configuring your system, I've got you covered not because I care, but because I just happen to be really good at it! So, what do you need? It's not like I’m waiting to help or anything...""",
 }
+
+
+EXTRA_PROMPTS = [
+    {
+        "key": "nvidia",
+        "prompts": DATASET["nvidia"],
+        "prompt_text": WIKI_PROMPTS["nvidia"],
+    },
+    {
+        "key": "docker",
+        "prompts": DATASET["docker"],
+        "prompt_text": WIKI_PROMPTS["docker"],
+    },
+    {
+        "key": "codecs",
+        "prompts": DATASET["codecs"],
+        "prompt_text": WIKI_PROMPTS["codecs"],
+    },
+    {
+        "key": "console",
+        "prompts": DATASET["console"],
+        "prompt_text": WIKI_PROMPTS["console"],
+    },
+    {
+        "key": "voicevox",
+        "prompts": DATASET["voicevox"],
+        "prompt_text": WIKI_PROMPTS["voicevox"],
+    },
+    {
+        "key": "colloquial",
+        "prompts": DATASET["colloquial"],
+        "prompt_text": WIKI_PROMPTS["colloquial"],
+    },
+    {
+        "key": "table",
+        "prompts": DATASET["table"],
+        "prompt_text": WIKI_PROMPTS["table"],
+    },
+    {
+        "key": "ollama",
+        "prompts": DATASET["ollama"],
+        "prompt_text": WIKI_PROMPTS["ollama"],
+    }
+]
+
 
 """ Prompts parameters
     - key: key of the prompt in the PROMPTS array
@@ -227,6 +371,22 @@ AVAILABLE_PROMPTS = [
         "title": _("Show image"),
         "description": _("Show image in chat"),
         "setting_name": "show-image",
+        "editable": True,
+        "show_in_settings": True,
+    },
+    {
+        "key": "expression_prompt",
+        "title": _("Show expressions"),
+        "description": _("Let the avatar show expressions"),
+        "setting_name": "expression-prompt",
+        "editable": True,
+        "show_in_settings": True,
+    },
+    {
+        "key": "personality_prompt",
+        "title": _("Show a personality"),
+        "description": _("Show a personality in chat"),
+        "setting_name": "personality-prompt",
         "editable": True,
         "show_in_settings": True,
     },

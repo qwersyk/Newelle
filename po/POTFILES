@@ -1,6 +1,6 @@
-data/io.github.qwersyk.Newelle.desktop.in
-data/io.github.qwersyk.Newelle.appdata.xml.in
-data/io.github.qwersyk.Newelle.gschema.xml
+data/io.github.qwersyk.nyarchassistant.desktop.in
+data/io.github.qwersyk.nyarchassistant.appdata.xml.in
+data/io.github.qwersyk.nyarchassistant.gschema.xml
 src/main.py
 src/window.py
 src/constants.py

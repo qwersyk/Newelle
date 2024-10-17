@@ -7,7 +7,7 @@ from gi.repository import Gtk, Adw, Gio
 class Extension(Gtk.Window):
     def __init__(self,app):
         Gtk.Window.__init__(self, title=_("Extensions"))
-        self.path = os.path.expanduser("~")+"/.var/app/io.github.qwersyk.Newelle/extension"
+        self.path = os.path.expanduser("~")+"/.var/app/moe.nyarchlinux.assistant/extension"
 
         self.app = app
         self.set_default_size(500, 500)
