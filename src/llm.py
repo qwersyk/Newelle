@@ -2,15 +2,12 @@ from abc import abstractmethod
 from subprocess import PIPE, Popen, check_output
 import os, threading
 from typing import Callable, Any
-import time, json
+import json
 
-from g4f.Provider.selenium.Phind import quote
 from openai import NOT_GIVEN
-import g4f
 from g4f.Provider import RetryProvider
-from gi.repository.Gtk import ResponseType
 
-from .extra import find_module, install_module, quote_string
+from .extra import find_module, quote_string
 from .handler import Handler
 
 class LLMHandler(Handler):
