@@ -19,6 +19,7 @@ class TTSHandler(Handler):
     schema_key = "tts-voice"
     voices : tuple
     _play_lock : threading.Semaphore = threading.Semaphore(1)
+
     def __init__(self, settings, path):
         mixer.init()
         self.settings = settings
@@ -26,7 +27,6 @@ class TTSHandler(Handler):
         self.voices = tuple()
         self.on_start = lambda : None
         self.on_stop  = lambda : None
-        pass
 
     def get_extra_settings(self) -> list:
         """Get extra settings for the TTS"""
@@ -43,11 +43,11 @@ class TTSHandler(Handler):
             }
         ]
 
-    def get_voices(self):
+    def get_voices(self) -> tuple:
         """Return a tuple containing the available voices"""
         return tuple()
 
-    def voice_available(self, voice):
+    def voice_available(self, voice) -> bool:
         """Check fi a voice is available"""
         for l in self.get_voices():
             if l[1] == voice:
@@ -59,7 +59,7 @@ class TTSHandler(Handler):
         """Save an audio in a certain file path"""
         pass
 
-    def get_tempname(self, extension: str):
+    def get_tempname(self, extension: str) -> str:
         timestamp = str(int(time.time()))
         random_part = str(os.urandom(8).hex())
         file_name = f"{timestamp}_{random_part}." + extension
@@ -122,7 +122,7 @@ class TTSHandler(Handler):
 class gTTSHandler(TTSHandler):
     key = "gtts"
    
-    def get_voices(self):
+    def get_voices(self) -> tuple:
         if len(self.voices) > 0:
             return self.voices
         x = lang.tts_langs()
@@ -142,7 +142,6 @@ class gTTSHandler(TTSHandler):
 
 
 class EspeakHandler(TTSHandler):
-    
     key = "espeak"
 
     @staticmethod
@@ -150,7 +149,7 @@ class EspeakHandler(TTSHandler):
         """If the handler requires to run commands on the user host system"""
         return True
 
-    def get_voices(self):
+    def get_voices(self) -> tuple:
         if len(self.voices) > 0:
             return self.voices
         if not self.is_installed():
@@ -175,7 +174,7 @@ class EspeakHandler(TTSHandler):
         f = open(file, "wb")
         f.write(r)
 
-    def is_installed(self):
+    def is_installed(self) -> bool:
         if not can_escape_sandbox():
             return False
         output = check_output(["flatpak-spawn", "--host", "whereis", "espeak"]).decode("utf-8")
@@ -208,7 +207,7 @@ class CustomTTSHandler(TTSHandler):
         }]
 
 
-    def is_installed(self):
+    def is_installed(self) -> bool:
         return True
 
     def play_audio(self, message):
@@ -332,7 +331,7 @@ class VitsHandler(TTSHandler):
 
         ]
 
-    def get_voices(self):
+    def get_voices(self) -> tuple:
         endpoint = self.get_setting("endpoint")
         endpoint = endpoint.rstrip("/")
         r = requests.get(endpoint + "/voice/speakers", timeout=10)
@@ -426,7 +425,7 @@ class EdgeTTSHandler(TTSHandler):
         communicate.save_sync(mp3)
         AudioSegment.from_mp3(mp3).export(file, format="wav")
 
-    def get_voices(self):
+    def get_voices(self) -> tuple:
         import edge_tts
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
