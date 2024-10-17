@@ -31,7 +31,7 @@ class TTSHandler(Handler):
     def get_extra_settings(self) -> list:
         """Get extra settings for the TTS"""
         voices = self.get_voices()
-        default = "" if len(voices) == 0 else voices[0][1]
+        default = voices[0][1] if len(voices) else ""
         return [
             {
                 "key": "voice",
@@ -107,8 +107,8 @@ class TTSHandler(Handler):
     def get_current_voice(self):
         """Get the current selected voice"""
         voice = self.get_setting("voice")
-        if voice is None:
-            if self.voices == ():
+        if not voice:
+            if not self.voices:
                 return None
             return self.voices[0][1]
         else:
@@ -150,7 +150,7 @@ class EspeakHandler(TTSHandler):
         return True
 
     def get_voices(self) -> tuple:
-        if len(self.voices) > 0:
+        if len(self.voices):
             return self.voices
         if not self.is_installed():
             return self.voices
@@ -181,7 +181,7 @@ class EspeakHandler(TTSHandler):
         paths = []
         if ":" in output:
             paths = output.split(":")[1].split()
-        if len(paths) > 0:
+        if len(paths):
             return True
         return False
 
@@ -227,9 +227,9 @@ class VoiceVoxHanlder(TTSHandler):
         self._thr = threading.Thread(target=self._loop.run_forever, name="Async Runner", daemon=True)
         self.voices = tuple()
         voices = self.get_setting("voices")
-        if voices is None or len(voices) == 0:
+        if not voices:
             threading.Thread(target=self.get_voices).start() 
-        elif len(voices) > 0:
+        else:
             self.voices = self.get_setting("voices")
 
     def update_voices(self):
