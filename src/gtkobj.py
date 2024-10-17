@@ -3,6 +3,8 @@ import gi, os, subprocess
 from gi.repository import Gtk, Pango, Gio, Gdk, GtkSource, GObject, Adw, GLib
 import threading
 
+from .extra import quote_string
+
 def apply_css_to_widget(widget, css_string):
     provider = Gtk.CssProvider()
     context = widget.get_style_context()
@@ -289,7 +291,7 @@ class CopyBox(Gtk.Box):
         icon.set_icon_size(Gtk.IconSize.INHERIT)
         widget.set_child(icon)
         widget.set_sensitive(False)
-        command = self.txt + "; exec bash"
+        command = "cd " + quote_string(os.getcwd()) +"; " + self.txt + "; exec bash"
         cmd = self.parent.external_terminal.split()
         arguments = [s.replace("{0}", command) for s in cmd]
         subprocess.Popen(["flatpak-spawn", "--host"] + arguments)
