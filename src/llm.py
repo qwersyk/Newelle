@@ -2,15 +2,12 @@ from abc import abstractmethod
 from subprocess import PIPE, Popen, check_output
 import os, threading
 from typing import Callable, Any
-import time, json
+import json
 
-from g4f.Provider.selenium.Phind import quote
 from openai import NOT_GIVEN
-import g4f
 from g4f.Provider import RetryProvider
-from gi.repository.Gtk import ResponseType
 
-from .extra import find_module, install_module, quote_string
+from .extra import find_module, quote_string
 from .handler import Handler
 
 class LLMHandler(Handler):
@@ -234,28 +231,6 @@ class G4FHandler(LLMHandler):
         except Exception as e:
             return f"Error: {e}"
 
-
-class NexraHandler(G4FHandler):
-    key = "nexra" 
-    
-    def __init__(self, settings, path):
-        import g4f
-        super().__init__(settings, path)
-        self.client = g4f.client.Client(provider=g4f.Provider.Nexra)        
-
-    def get_extra_settings(self) -> list:
-        return [
-            {
-                "key": "model",
-                "title": _("Model"),
-                "description": _("The model to use"),
-                "type": "combo",
-                "values": (("gpt-4", "gpt-4"),("gpt-4o", "gpt-4o"), ("gpt-3.5-turbo", "gpt-3.5-turbo"), ("gpt-3", "gpt-3"), ("llama-3.1", "llama-3.1"), ("gemini-pro", "gemini-pro")),
-                "default": "gpt-4o",
-            }
-        ] + super().get_extra_settings()
-    
-
 class GPT3AnyHandler(G4FHandler):
     """
     Use any GPT3.5-Turbo providers
@@ -267,9 +242,9 @@ class GPT3AnyHandler(G4FHandler):
     def __init__(self, settings, path):
         import g4f
         super().__init__(settings, path)
-        good_providers = [g4f.Provider.DDG, g4f.Provider.MagickPen, g4f.Provider.Pizzagpt, g4f.Provider.Nexra, g4f.Provider.Koala]
-        good_nongpt_providers = [g4f.Provider.ReplicateHome, g4f.Provider.ChatGot, g4f.Provider.FreeChatgpt, g4f.Provider.Free2GPT, g4f.Provider.DeepInfraChat, g4f.Provider.PerplexityLabs]
-        acceptable_providers = [g4f.Provider.Allyfy, g4f.Provider.Blackbox, g4f.Provider.Upstage, g4f.Provider.ChatHub, g4f.Provider.Airforce]
+        good_providers = [g4f.Provider.DDG, g4f.Provider.Pizzagpt, g4f.Provider.DarkAI, g4f.Provider.Koala, g4f.Provider.NexraChatGPT4o, g4f.Provider.NexraChatGPT, g4f.Provider.AmigoChat]
+        good_nongpt_providers = [g4f.Provider.ReplicateHome,g4f.Provider.RubiksAI, g4f.Provider.NexraLLaMA31, g4f.Provider.TeachAnything, g4f.Provider.ChatGot, g4f.Provider.FreeChatgpt, g4f.Provider.Free2GPT, g4f.Provider.DeepInfraChat, g4f.Provider.PerplexityLabs]
+        acceptable_providers = [g4f.Provider.ChatifyAI, g4f.Provider.Allyfy, g4f.Provider.Blackbox, g4f.Provider.Upstage, g4f.Provider.ChatHub, g4f.Provider.Upstage]
         self.client = g4f.client.Client(provider=RetryProvider([RetryProvider(good_providers), RetryProvider(good_nongpt_providers), RetryProvider(acceptable_providers)], shuffle=False))
         self.n = 0
 
