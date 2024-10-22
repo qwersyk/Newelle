@@ -329,16 +329,11 @@ class MainWindow(Gtk.ApplicationWindow):
         self.offers = settings.get_int("offers")
         self.virtualization = settings.get_boolean("virtualization")
         self.memory = settings.get_int("memory")
-        self.console = settings.get_boolean("console")
         self.hidden_files = settings.get_boolean("hidden-files")
         self.chat_id = settings.get_int("chat")
         self.main_path = settings.get_string("path")
         self.auto_run = settings.get_boolean("auto-run")
         self.chat = self.chats[min(self.chat_id,len(self.chats)-1)]["chat"]
-        self.graphic = settings.get_boolean("graphic")
-        self.cutom_extra_prompt = settings.get_boolean("custom-extra-prompt")
-        self.basic_functionality = settings.get_boolean("basic-functionality")
-        self.show_image = settings.get_boolean("show-image")
         self.language_model = settings.get_string("language-model")
         self.local_model = settings.get_string("local-model")
         self.tts_enabled = settings.get_boolean("tts-on")
@@ -351,6 +346,7 @@ class MainWindow(Gtk.ApplicationWindow):
         # Load custom prompts
         self.custom_prompts = json.loads(self.settings.get_string("custom-prompts"))
         self.prompts = override_prompts(self.custom_prompts, PROMPTS)
+        self.prompts_settings = json.loads(self.settings.get_string("prompts-settings"))
 
         if self.language_model in AVAILABLE_LLMS:
             self.model = AVAILABLE_LLMS[self.language_model]["class"](self.settings, os.path.join(self.directory, "models"))
@@ -363,9 +359,14 @@ class MainWindow(Gtk.ApplicationWindow):
         self.stt_handler = AVAILABLE_STT[self.stt_engine]["class"](self.settings, self.pip_directory)
         
         self.bot_prompts = []
-        for prompt_info in AVAILABLE_PROMPTS:
-            if self.settings.get_boolean(prompt_info["setting_name"]):
-                self.bot_prompts.append(self.prompts[prompt_info["key"]])
+        for prompt in AVAILABLE_PROMPTS:
+            is_active = False
+            if prompt["key"] in self.prompts_settings:
+                is_active = self.prompts_settings[prompt["key"]]
+            else:
+                is_active = prompt["default"]
+            if is_active:
+                self.bot_prompts.append(self.prompts[prompt["key"]])
 
         self.extension_path = os.path.expanduser("~")+"/.var/app/io.github.qwersyk.Newelle/extension"
         self.extensions = {}
