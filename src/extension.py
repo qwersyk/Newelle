@@ -22,6 +22,7 @@ class Extension(Gtk.Window):
 
         self.set_child(self.notification_block)
         self.update()
+    
     def update(self):
         self.main = Gtk.Box(margin_top=10,margin_start=10,margin_bottom=10,margin_end=10,valign=Gtk.Align.FILL,halign=Gtk.Align.CENTER,orientation=Gtk.Orientation.VERTICAL)
         self.main.set_size_request(300, -1)

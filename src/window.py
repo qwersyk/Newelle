@@ -12,6 +12,8 @@ import threading
 import posixpath
 import json
 
+from .extensions import ExtensionLoader
+
 class MainWindow(Gtk.ApplicationWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -325,6 +327,7 @@ class MainWindow(Gtk.ApplicationWindow):
             self.notification_block.add_toast(Adw.Toast(title=_('Could not recognize your voice'), timeout=2))
 
     def update_settings(self):
+        self.extension_path = os.path.expanduser("~")+"/.var/app/io.github.qwersyk.Newelle/extension"
         settings = self.settings
         self.offers = settings.get_int("offers")
         self.virtualization = settings.get_boolean("virtualization")
@@ -343,6 +346,11 @@ class MainWindow(Gtk.ApplicationWindow):
         self.stt_settings = settings.get_string("stt-settings")
         self.external_terminal = settings.get_string("external-terminal")
 
+        # Load extensions
+        self.extensionloader = ExtensionLoader(self.extension_path, os.path.dirname(os.path.abspath(__file__)))
+        self.extensionloader.load_extensions()
+        self.extensionloader.add_handlers(AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT)
+        self.extensionloader.add_prompts(PROMPTS, AVAILABLE_PROMPTS)
         # Load custom prompts
         self.custom_prompts = json.loads(self.settings.get_string("custom-prompts"))
         self.prompts = override_prompts(self.custom_prompts, PROMPTS)
@@ -361,14 +369,13 @@ class MainWindow(Gtk.ApplicationWindow):
         self.bot_prompts = []
         for prompt in AVAILABLE_PROMPTS:
             is_active = False
-            if prompt["key"] in self.prompts_settings:
-                is_active = self.prompts_settings[prompt["key"]]
+            if prompt["setting_name"] in self.prompts_settings:
+                is_active = self.prompts_settings[prompt["setting_name"]]
             else:
                 is_active = prompt["default"]
             if is_active:
                 self.bot_prompts.append(self.prompts[prompt["key"]])
 
-        self.extension_path = os.path.expanduser("~")+"/.var/app/io.github.qwersyk.Newelle/extension"
         self.extensions = {}
         if os.path.exists(self.extension_path):
             folder_names = [name for name in os.listdir(self.extension_path) if os.path.isdir(os.path.join(self.extension_path, name))]
@@ -983,7 +990,10 @@ class MainWindow(Gtk.ApplicationWindow):
                         start_code_index = i + 1
                         code_language = table_string[i][3:len(table_string[i])]
                     else:
-                        if code_language in self.extensions and self.extensions[code_language]["status"]:
+                        if code_language in self.extensionloader.codeblocks:
+                            extension = self.extensionloader.codeblocks[code_language]
+                            box.append(extension.get_gtk_widget(table_string[start_code_index:i]))
+                        elif code_language in self.extensions and self.extensions[code_language]["status"]:
                             if id_message==-1:
                                 id_message = len(self.chat)-1
                             id_message+=1

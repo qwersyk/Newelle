@@ -1,5 +1,7 @@
 import sys, importlib, os
 
+from gi.repository import Gtk
+
 
 class NewelleExtension:
 
@@ -24,15 +26,20 @@ class NewelleExtension:
     def get_replace_codeblocks_langs(self) -> list:
         return []
 
-    def get_gtk_widget(self, codeblock: str):
-        return []
+    def get_gtk_widget(self, codeblock: str) -> Gtk.Widget:
+        
+        return Gtk.Label(label=codeblock[0])
 
 
 class ExtensionLoader:
-    def __init__(self, extension_dir, project_dir):
+    def __init__(self, extension_dir, project_dir=None):
         self.extension_dir = extension_dir
-        self.project_dir = project_dir
+        if self.project_dir is not None:
+            self.project_dir = project_dir
+        else:
+            os.path.dirname(os.path.abspath(__file__))
         self.extensions : list[NewelleExtension] = []
+        self.codeblocks : dict[str, NewelleExtension] = {}
 
     def load_extensions(self):
         sys.path.insert(0, self.project_dir)
@@ -45,6 +52,9 @@ class ExtensionLoader:
                 for class_name, class_obj in module.__dict__.items():
                     if isinstance(class_obj, type) and issubclass(class_obj, NewelleExtension) and class_obj != NewelleExtension:
                         extension = class_obj()
+                        for lang in extension.get_replace_codeblocks_langs():
+                            if lang not in self.codeblocks:
+                                self.codeblocks[lang] = extension
                         self.extensions.append(extension)
         sys.path.remove(self.project_dir)
 
@@ -60,4 +70,11 @@ class ExtensionLoader:
             for handler in handlers:
                 AVAILABLE_STT[handler["key"]] = handler 
 
+    def add_prompts(self, PROMPTS, AVAILABLE_PROMPTS):
+        for extension in self.extensions:
+            prompts = extension.get_additional_prompts()
+            for prompt in prompts:
+                if prompt not in AVAILABLE_PROMPTS:
+                    AVAILABLE_PROMPTS.append(prompt)
+                PROMPTS[prompt["key"]] = prompt["text"]
 

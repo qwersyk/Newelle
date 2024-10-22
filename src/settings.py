@@ -14,6 +14,8 @@ from .llm import GPT4AllHandler, LLMHandler
 from .gtkobj import ComboRowHelper, CopyBox, MultilineEntry
 from .extra import can_escape_sandbox, override_prompts, human_readable_size
 
+from .extensions import ExtensionLoader
+
 class Settings(Adw.PreferencesWindow):
     def __init__(self,app,headless=False, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -26,6 +28,12 @@ class Settings(Adw.PreferencesWindow):
         self.local_models = json.loads(self.settings.get_string("available-models"))
         self.directory = GLib.get_user_config_dir()
         self.gpt = GPT4AllHandler(self.settings, os.path.join(self.directory, "models"))
+        # Load extensions 
+        self.extensionloader = ExtensionLoader(os.path.expanduser("~")+"/.var/app/io.github.qwersyk.Newelle/extension")
+        self.extensionloader.load_extensions()
+        self.extensionloader.add_handlers(AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT)
+        self.extensionloader.add_prompts(PROMPTS, AVAILABLE_PROMPTS)
+
         # Load custom prompts
         self.custom_prompts = json.loads(self.settings.get_string("custom-prompts"))
         self.prompts_settings = json.loads(self.settings.get_string("prompts-settings"))
@@ -33,6 +41,7 @@ class Settings(Adw.PreferencesWindow):
         self.sandbox = can_escape_sandbox()
         # Page building
         self.general_page = Adw.PreferencesPage()
+       
         
         # Dictionary containing all the rows for settings update
         self.settingsrows = {}
@@ -88,8 +97,8 @@ class Settings(Adw.PreferencesWindow):
         self.__prompts_entries = {}
         for prompt in AVAILABLE_PROMPTS:
             is_active = False
-            if prompt["key"] in self.prompts_settings:
-                is_active = self.prompts_settings[prompt["key"]]
+            if prompt["setting_name"] in self.prompts_settings:
+                is_active = self.prompts_settings[prompt["setting_name"]]
             else:
                 is_active = prompt["default"]
             if not prompt["show_in_settings"]:
@@ -99,7 +108,7 @@ class Settings(Adw.PreferencesWindow):
                 self.add_customize_prompt_content(row, prompt["key"])
             switch = Gtk.Switch(valign=Gtk.Align.CENTER)
             switch.set_active(is_active)
-            switch.connect("notify::active", self.update_prompt, prompt["key"])
+            switch.connect("notify::active", self.update_prompt, prompt["setting_name"])
             row.add_suffix(switch)
             self.prompt.add(row)
 
