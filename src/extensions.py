@@ -34,10 +34,10 @@ class NewelleExtension:
 class ExtensionLoader:
     def __init__(self, extension_dir, project_dir=None):
         self.extension_dir = extension_dir
-        if self.project_dir is not None:
+        if project_dir is not None:
             self.project_dir = project_dir
         else:
-            os.path.dirname(os.path.abspath(__file__))
+            self.project_dir = os.path.dirname(os.path.abspath(__file__))
         self.extensions : list[NewelleExtension] = []
         self.codeblocks : dict[str, NewelleExtension] = {}
 
