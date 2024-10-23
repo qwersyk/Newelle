@@ -14,9 +14,7 @@ class Extension(Gtk.Window):
         self.pip_directory = os.path.join(self.directory, "pip")
         self.extension_path = os.path.join(self.directory, "extensions")
         self.extensions_cache = os.path.join(self.directory, "extensions_cache")
-        self.extensionloader = ExtensionLoader(self.extension_path, pip_path=self.pip_directory, extension_cache=self.extensions_cache, settings=self.settings)
-        self.extensionloader.load_extensions()
-        
+                
         self.app = app
         self.set_default_size(500, 500)
         self.set_transient_for(app.win)
@@ -35,6 +33,9 @@ class Extension(Gtk.Window):
         self.main = Gtk.Box(margin_top=10,margin_start=10,margin_bottom=10,margin_end=10,valign=Gtk.Align.FILL,halign=Gtk.Align.CENTER,orientation=Gtk.Orientation.VERTICAL)
         self.main.set_size_request(300, -1)
         self.scrolled_window.set_child(self.main)
+        self.extensionloader = ExtensionLoader(self.extension_path, pip_path=self.pip_directory, extension_cache=self.extensions_cache, settings=self.settings)
+        self.extensionloader.load_extensions()
+
         for extension in self.extensionloader.get_extensions():
             box = Gtk.Box(margin_top=10,margin_bottom=10,css_classes=["card"], hexpand=True)
             box.append(Gtk.Label(label=f"{extension.name}",margin_top=10,margin_start=10,margin_end=10,margin_bottom=10))
@@ -87,7 +88,9 @@ class Extension(Gtk.Window):
             return True
         file_path = file.get_path()
         self.extensionloader.add_extension(file_path)
-        if True: # TODO: validate extensions
+        self.extensionloader.load_extensions()
+
+        if os.path.basename(file_path) in self.extensionloader.filemap.values():
             self.notification_block.add_toast(Adw.Toast(title=(_("Extension added. New extensions will run"))))
             self.extensionloader.load_extensions()
             self.update()

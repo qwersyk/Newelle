@@ -2,6 +2,10 @@ import sys, importlib, os, json, shutil
 
 from gi.repository import Gtk
 
+from .llm import LLMHandler
+from .stt import STTHandler
+from .tts import TTSHandler
+
 
 class NewelleExtension:
     """The base class for all extensions"""
@@ -130,6 +134,19 @@ class NewelleExtension:
 
 
 class ExtensionLoader:
+    """
+    Class that loads the extensions
+
+    Attributes: 
+        extension_dir: directory where the extensions files are located 
+        pip: path to the pip directory 
+        extension_cache: path to the extension cache directory 
+        settings: Gio application settings 
+        extensions: list of extensions 
+        disabled_extensions: list of disabled extensions 
+        codeblocks: list of codeblocks and their corresponding extensions 
+        filemap: map from extension id to file name 
+    """
     def __init__(self, extension_dir, project_dir=None, pip_path="", extension_cache="", settings=None):
         self.extension_dir = extension_dir
         if project_dir is not None:
@@ -154,34 +171,46 @@ class ExtensionLoader:
         return self.extensions
 
     def load_extensions(self):
-
+        """Load extensions from the extension directory"""
         sys.path.insert(0, self.project_dir)
         for file in os.listdir(self.extension_dir):
             if file.endswith(".py"):
-                spec = importlib.util.spec_from_file_location("newelle.name", os.path.join(self.extension_dir, file))
-                module = importlib.util.module_from_spec(spec)
-                spec.loader.exec_module(module)
+                try: 
+                    spec = importlib.util.spec_from_file_location("newelle.name", os.path.join(self.extension_dir, file))
+                    module = importlib.util.module_from_spec(spec)
+                    spec.loader.exec_module(module)
 
-                for class_name, class_obj in module.__dict__.items():
-                    if isinstance(class_obj, type) and issubclass(class_obj, NewelleExtension) and class_obj != NewelleExtension:
-                        extension = class_obj(self.pip, self.extension_cache, self.settings)
-                        # Create entry in settings
-                        if extension not in self.extensions_settings:
-                            self.extensions_settings[extension.id] = {}
-                            self.save_settings()
+                    for class_name, class_obj in module.__dict__.items():
+                        if isinstance(class_obj, type) and issubclass(class_obj, NewelleExtension) and class_obj != NewelleExtension:
+                            extension = class_obj(self.pip, self.extension_cache, self.settings)
+                            # Create entry in settings
+                            if extension not in self.extensions_settings:
+                                self.extensions_settings[extension.id] = {}
+                                self.save_settings()
 
-                        # Save properties about enabled and codeblocks
-                        if extension.id in self.extensions_settings and ("disabled" not in self.extensions_settings[extension.id] or not self.extensions_settings[extension.id]["disabled"]):
-                            for lang in extension.get_replace_codeblocks_langs():
-                                if lang not in self.codeblocks:
-                                    self.codeblocks[lang] = extension
-                        else:
-                            self.disabled_extensions.append(extension)
-                        self.extensions.append(extension)
-                        self.filemap[extension.id] = file
+                            # Save properties about enabled and codeblocks
+                            if extension.id in self.extensions_settings and ("disabled" not in self.extensions_settings[extension.id] or not self.extensions_settings[extension.id]["disabled"]):
+                                for lang in extension.get_replace_codeblocks_langs():
+                                    if lang not in self.codeblocks:
+                                        self.codeblocks[lang] = extension
+                            else:
+                                self.disabled_extensions.append(extension)
+                            self.extensions.append(extension)
+                            self.filemap[extension.id] = file
+                            break
+                except Exception as e:
+                    print("Error loding file: ", file, e)
+            
         sys.path.remove(self.project_dir)
 
     def add_handlers(self, AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT):
+        """Add the handlers of each extension to the available handlers
+
+        Args:
+            AVAILABLE_LLMS (): list of available llms 
+            AVAILABLE_TTS (): list of available tts
+            AVAILABLE_STT (): list of available stt
+        """
         for extension in self.extensions:
             if extension in self.disabled_extensions:
                 continue
@@ -196,6 +225,12 @@ class ExtensionLoader:
                 AVAILABLE_STT[handler["key"]] = handler 
 
     def add_prompts(self, PROMPTS, AVAILABLE_PROMPTS):
+        """Add the prompts of each extension to the available prompts
+
+        Args:
+            PROMPTS (): the prompts texts list 
+            AVAILABLE_PROMPTS (): the available prompts list 
+        """
         for extension in self.extensions:
             if extension in self.disabled_extensions:
                 continue
@@ -206,29 +241,108 @@ class ExtensionLoader:
                 PROMPTS[prompt["key"]] = prompt["text"]
 
     def remove_extension(self, extension : NewelleExtension | str):
+        """
+        Remove an extension - deletes the file
+
+        Args:
+            extension: the extension to remove 
+        """
         if not isinstance(extension, str):
             extension = extension.id
         os.remove(os.path.join(self.extension_dir, self.filemap[extension]))
 
     def add_extension(self, file_path : str):
+        """
+        Add an extension - copies the file
+
+        Args:
+            file_path: the path of the file to copy 
+        """
         shutil.copyfile(file_path, os.path.join(self.extension_dir, os.path.basename(file_path)))
 
     def get_extension_by_id(self, id: str) -> NewelleExtension | None:
+        """
+        Get an extension by its id
+
+        Args:
+            id: the id of the extension 
+
+        Returns:
+            NewelleExtension | None: the extension or None if not found 
+        """
         for extension in self.extensions:
             if extension.id == id:
                 return extension
+        return None
 
     def enable(self, extension : NewelleExtension | str):
+        """
+        Enable an extension
+
+        Args:
+            extension: the extension to enable 
+        """
         if not isinstance(extension, str):
             extension = extension.id
         self.extensions_settings[extension]["disabled"] = False
         self.save_settings()
 
     def disable(self, extension : NewelleExtension | str):
+        
+        """
+        Disable an extension
+
+        Args:
+            extension: the extension to disable 
+        """
         if not isinstance(extension, str):
             extension = extension.id
         self.extensions_settings[extension]["disabled"] = True
         self.save_settings()
 
     def save_settings(self):
+        """Save the extensions settings"""
         self.settings.set_string("extensions-settings", json.dumps(self.extensions_settings))
+
+    def check_validity(self, extension : NewelleExtension):
+        """
+        Check if the extension is valid
+
+        Args:
+            extension: the extension to check 
+
+        Returns:
+            bool: True if valid, False otherwise 
+        """
+        if not hasattr(extension, "id") or not hasattr(extension, "name") or len(extension.id) > 50 or len(extension.name) > 50 or extension.id == NewelleExtension.id or extension.name == NewelleExtension.name:
+            print("Error: invalid extension, missing id or name")
+            return False
+        for h in extension.get_llm_handlers():
+            if not self.check_handler(h, LLMHandler):
+                return False
+        for h in extension.get_tts_handlers():
+            if not self.check_handler(h, TTSHandler):
+                return False
+        for h in extension.get_stt_handlers():
+            if not self.check_handler(h, STTHandler):
+                return False
+        for p in extension.get_additional_prompts():
+            if not self.check_prompt(p):
+                return False
+        return True
+
+    def check_handler(self, handler : dict, compare):
+        if "key" not in handler or "title" not in handler or "description" not in handler or "class" not in handler:
+            print("Error: invalid handler, missing key or title or description or class")
+            return False
+        if not issubclass(handler["class"], compare):
+            print("Error: invalid handler, class does not match")
+            return False
+        return True
+
+    def check_prompt(self, prompt):
+        if "key" not in prompt or "setting_name" not in prompt or "title" not in prompt or "description" not in prompt:
+            print("Error: invalid prompt, missing key or setting_name or title or description")
+            return False
+        return True
+

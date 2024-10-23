@@ -994,80 +994,46 @@ class MainWindow(Gtk.ApplicationWindow):
                         if code_language in self.extensionloader.codeblocks:
                             value = '\n'.join(table_string[start_code_index:i])
                             extension = self.extensionloader.codeblocks[code_language]
-                            widget = extension.get_gtk_widget(value, code_language)
-                            response = extension.get_answer(value, code_language)
-                            if widget is not None:
-                                box.append(widget)
-                            else:
-                                if id_message==-1:
-                                    id_message = len(self.chat)-1
-                                id_message+=1
-                                has_terminal_command = True
-                                text_expander = Gtk.Expander(
-                                    label=code_language, css_classes=["toolbar", "osd"], margin_top=10, margin_start=10,
-                                    margin_bottom=10, margin_end=10
-                                )
-                                text_expander.set_expanded(False)
-                                reply_from_the_console = None
-                                if self.chat[min(id_message, len(self.chat) - 1)]["User"] == "Console":
-                                    reply_from_the_console = self.chat[min(id_message, len(self.chat) - 1)]["Message"]
-                                if not restore:
-                                    console_permissions = []
-                                    if response is not None:
-                                        code = (True, response)
+                            try:
+                                widget = extension.get_gtk_widget(value, code_language)
+                                response = extension.get_answer(value, code_language)  
+                                if widget is not None:
+                                    box.append(widget)
+                                else:
+                                    if id_message==-1:
+                                        id_message = len(self.chat)-1
+                                    id_message+=1
+                                    has_terminal_command = True
+                                    text_expander = Gtk.Expander(
+                                        label=code_language, css_classes=["toolbar", "osd"], margin_top=10, margin_start=10,
+                                        margin_bottom=10, margin_end=10
+                                    )
+                                    text_expander.set_expanded(False)
+                                    reply_from_the_console = None
+                                    if self.chat[min(id_message, len(self.chat) - 1)]["User"] == "Console":
+                                        reply_from_the_console = self.chat[min(id_message, len(self.chat) - 1)]["Message"]
+                                    if not restore:
+                                        console_permissions = []
+                                        if response is not None:
+                                            code = (True, response)
+                                        else:
+                                            code = (False, "Error:") 
                                     else:
-                                        code = (False, "Error:") 
-                                else:
-                                    code = (True, reply_from_the_console)
-                                text_expander.set_child(
-                                    Gtk.Label(wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR, label='\n'.join(table_string[start_code_index:i])+"\n"+str(code[1]),
-                                              selectable=True))
-                                if not code[0]:
-                                    self.add_message("Error", text_expander)
-                                elif restore:
-                                    self.add_message("Assistant", text_expander)
-                                else:
-                                    self.add_message("Done", text_expander)
-                                if not restore:
-                                    self.chat.append({"User": "Console", "Message": " " + code[1]})
-                        elif code_language in self.extensions and self.extensions[code_language]["status"]:
-                            if id_message==-1:
-                                id_message = len(self.chat)-1
-                            id_message+=1
-                            has_terminal_command = True
-                            value = '\n'.join(table_string[start_code_index:i])
-                            text_expander = Gtk.Expander(
-                                label=code_language, css_classes=["toolbar", "osd"], margin_top=10, margin_start=10,
-                                margin_bottom=10, margin_end=10
-                            )
-                            text_expander.set_expanded(False)
-                            reply_from_the_console = None
-                            if self.chat[min(id_message, len(self.chat) - 1)]["User"] == "Console":
-                                reply_from_the_console = self.chat[min(id_message, len(self.chat) - 1)]["Message"]
-                            if not restore:
-                                console_permissions = []
-                                if not self.virtualization:
-                                    console_permissions = ["flatpak-spawn","--host"]
-                                command = [*console_permissions, "python", self.extension_path+"/"+code_language+"/"+self.extensions[code_language]["api"], value]
-                                process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE,cwd = self.extension_path+"/"+code_language)
-                                output, error = process.communicate()
-                                if process.returncode == 0:
-                                    code = (True, output.decode())
-                                else:
-                                    code = (False, error.decode())
-                            else:
-                                code = (True, reply_from_the_console)
-                            text_expander.set_child(
-                                Gtk.Label(wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR, label='\n'.join(table_string[start_code_index:i])+"\n"+str(code[1]),
-                                          selectable=True))
-                            if not code[0]:
-                                self.add_message("Error", text_expander)
-                            elif restore:
-                                self.add_message("Assistant", text_expander)
-                            else:
-                                self.add_message("Done", text_expander)
-                            if not restore:
-                                self.chat.append({"User": "Console", "Message": " " + code[1]})
+                                        code = (True, reply_from_the_console)
+                                    text_expander.set_child(
+                                        Gtk.Label(wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR, label='\n'.join(table_string[start_code_index:i])+"\n"+str(code[1]),
+                                                  selectable=True))
+                                    if not code[0]:
+                                        self.add_message("Error", text_expander)
+                                    elif restore:
+                                        self.add_message("Assistant", text_expander)
+                                    else:
+                                        self.add_message("Done", text_expander)
+                                    if not restore:
+                                        self.chat.append({"User": "Console", "Message": " " + code[1]})
+                            except Exception as e:
+                                print("Extension error " + extension.id + ": " + str(e))
+                                box.append(CopyBox("\n".join(table_string[start_code_index:i]), code_language, parent = self))
                         elif code_language == "image":
                             for i in table_string[start_code_index:i]:
                                 image = Gtk.Image(css_classes=["image"])
