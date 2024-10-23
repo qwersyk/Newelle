@@ -1,9 +1,15 @@
-import sys, importlib, os
+import sys, importlib, os, json, shutil
 
 from gi.repository import Gtk
 
 
 class NewelleExtension:
+    """The base class for all extensions"""
+    
+    # Name and ID of the extension
+    # Name and ID must be less than 50 characters
+    name = "Demo Extension"
+    id = "demoextension"
 
     def __init__(self, pip_path : str, extension_path: str, settings):
         """
@@ -18,15 +24,6 @@ class NewelleExtension:
         self.extension_path = extension_path
         self.settings = settings
         pass
-
-    @staticmethod
-    def get_name() -> str:
-        """Display name of the extension
-
-        Returns:
-            str: name of the extension 
-        """
-        return "Demo Extension"
 
     def install(self):
         """Function called on another thread every time the extension is enabled from the settings"""
@@ -139,12 +136,25 @@ class ExtensionLoader:
             self.project_dir = project_dir
         else:
             self.project_dir = os.path.dirname(os.path.abspath(__file__))
-        self.extensions : list[NewelleExtension] = []
-        self.codeblocks : dict[str, NewelleExtension] = {}
         self.pip = pip_path
         self.extension_cache = extension_cache
         self.settings = settings
+    
+        if self.settings is None:
+            self.extensions_settings = {}
+        else:
+            self.extensions_settings = json.loads(self.settings.get_string("extensions-settings"))
+
+        self.extensions : list[NewelleExtension] = []
+        self.disabled_extensions : list[NewelleExtension] = []
+        self.codeblocks : dict[str, NewelleExtension] = {}
+        self.filemap : dict[str, str] = {}
+
+    def get_extensions(self) -> list[NewelleExtension]:
+        return self.extensions
+
     def load_extensions(self):
+
         sys.path.insert(0, self.project_dir)
         for file in os.listdir(self.extension_dir):
             if file.endswith(".py"):
@@ -155,14 +165,26 @@ class ExtensionLoader:
                 for class_name, class_obj in module.__dict__.items():
                     if isinstance(class_obj, type) and issubclass(class_obj, NewelleExtension) and class_obj != NewelleExtension:
                         extension = class_obj(self.pip, self.extension_cache, self.settings)
-                        for lang in extension.get_replace_codeblocks_langs():
-                            if lang not in self.codeblocks:
-                                self.codeblocks[lang] = extension
+                        # Create entry in settings
+                        if extension not in self.extensions_settings:
+                            self.extensions_settings[extension.id] = {}
+                            self.save_settings()
+
+                        # Save properties about enabled and codeblocks
+                        if extension.id in self.extensions_settings and ("disabled" not in self.extensions_settings[extension.id] or not self.extensions_settings[extension.id]["disabled"]):
+                            for lang in extension.get_replace_codeblocks_langs():
+                                if lang not in self.codeblocks:
+                                    self.codeblocks[lang] = extension
+                        else:
+                            self.disabled_extensions.append(extension)
                         self.extensions.append(extension)
+                        self.filemap[extension.id] = file
         sys.path.remove(self.project_dir)
 
     def add_handlers(self, AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT):
         for extension in self.extensions:
+            if extension in self.disabled_extensions:
+                continue
             handlers = extension.get_llm_handlers()
             for handler in handlers:
                 AVAILABLE_LLMS[handler["key"]] = handler
@@ -175,9 +197,38 @@ class ExtensionLoader:
 
     def add_prompts(self, PROMPTS, AVAILABLE_PROMPTS):
         for extension in self.extensions:
+            if extension in self.disabled_extensions:
+                continue
             prompts = extension.get_additional_prompts()
             for prompt in prompts:
                 if prompt not in AVAILABLE_PROMPTS:
                     AVAILABLE_PROMPTS.append(prompt)
                 PROMPTS[prompt["key"]] = prompt["text"]
 
+    def remove_extension(self, extension : NewelleExtension | str):
+        if not isinstance(extension, str):
+            extension = extension.id
+        os.remove(os.path.join(self.extension_dir, self.filemap[extension]))
+
+    def add_extension(self, file_path : str):
+        shutil.copyfile(file_path, os.path.join(self.extension_dir, os.path.basename(file_path)))
+
+    def get_extension_by_id(self, id: str) -> NewelleExtension | None:
+        for extension in self.extensions:
+            if extension.id == id:
+                return extension
+
+    def enable(self, extension : NewelleExtension | str):
+        if not isinstance(extension, str):
+            extension = extension.id
+        self.extensions_settings[extension]["disabled"] = False
+        self.save_settings()
+
+    def disable(self, extension : NewelleExtension | str):
+        if not isinstance(extension, str):
+            extension = extension.id
+        self.extensions_settings[extension]["disabled"] = True
+        self.save_settings()
+
+    def save_settings(self):
+        self.settings.set_string("extensions-settings", json.dumps(self.extensions_settings))

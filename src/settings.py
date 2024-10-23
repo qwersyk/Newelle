@@ -28,8 +28,11 @@ class Settings(Adw.PreferencesWindow):
         self.local_models = json.loads(self.settings.get_string("available-models"))
         self.directory = GLib.get_user_config_dir()
         self.gpt = GPT4AllHandler(self.settings, os.path.join(self.directory, "models"))
+        self.extension_path = os.path.join(self.directory, "extensions")
+        self.pip_directory = os.path.join(self.directory, "pip")
+        self.extensions_cache = os.path.join(self.directory, "extensions_cache")
         # Load extensions 
-        self.extensionloader = ExtensionLoader(os.path.expanduser("~")+"/.var/app/io.github.qwersyk.Newelle/extension")
+        self.extensionloader = ExtensionLoader(self.extension_path, pip_path=self.pip_directory,extension_cache=self.extensions_cache, settings=self.settings)
         self.extensionloader.load_extensions()
         self.extensionloader.add_handlers(AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT)
         self.extensionloader.add_prompts(PROMPTS, AVAILABLE_PROMPTS)
