@@ -1,3 +1,4 @@
+from threading import Thread
 import gi, os
 
 from .extensions import ExtensionLoader
@@ -90,6 +91,14 @@ class Extension(Gtk.Window):
         self.extensionloader.add_extension(file_path)
         self.extensionloader.load_extensions()
 
+        for extid, filename in self.extensionloader.filemap.values():
+            if filename == os.path.basename(file_path):
+                ext = self.extensionloader.get_extension_by_id(extid)
+                if ext is None:
+                    continue
+                Thread(target=ext.install).start()
+                break
+        
         if os.path.basename(file_path) in self.extensionloader.filemap.values():
             self.notification_block.add_toast(Adw.Toast(title=(_("Extension added. New extensions will run"))))
             self.extensionloader.load_extensions()
