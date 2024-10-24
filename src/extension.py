@@ -1,6 +1,8 @@
 from threading import Thread
 import gi, os
 
+from .constants import AVAILABLE_LLMS, AVAILABLE_PROMPTS, AVAILABLE_STT, AVAILABLE_TTS, PROMPTS
+
 from .extensions import ExtensionLoader
 from gi.repository import Gtk, Adw, Gio, GLib
 
@@ -52,8 +54,7 @@ class Extension(Gtk.Window):
             switch = Gtk.Switch(valign=Gtk.Align.CENTER)
             switch.connect("notify::state", self.change_status)
             switch.set_name(extension.id)
-            if extension not in self.extensionloader.disabled_extensions:
-                switch.set_active(True)
+            switch.set_active(extension not in self.extensionloader.disabled_extensions)
             box_elements.append(switch)
             box_elements.append(button)
             box.append(box_elements)
@@ -62,14 +63,14 @@ class Extension(Gtk.Window):
         folder_button.connect("clicked", self.on_folder_button_clicked)
         self.main.append(folder_button)
     
-    def change_status(self,widget,*a):
-        status = False
+    def change_status(self,widget,*a):        
         name = widget.get_name()
         if widget.get_active():
             self.extensionloader.enable(name)
         else:
             self.extensionloader.disable(name)
-    
+            self.extensionloader.remove_handlers(self.extensionloader.get_extension_by_id(name), AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT)
+            self.extensionloader.remove_prompts(self.extensionloader.get_extension_by_id(name), PROMPTS, AVAILABLE_PROMPTS)
     def delete_extension(self,widget):
         self.extensionloader.remove_extension(widget.get_name())
         self.update()

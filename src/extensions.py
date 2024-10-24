@@ -240,6 +240,37 @@ class ExtensionLoader:
                     AVAILABLE_PROMPTS.append(prompt)
                 PROMPTS[prompt["key"]] = prompt["text"]
 
+    def remove_handlers(self, extension, AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT):
+        """Remove handlers of an extension
+
+        Args:
+            AVAILABLE_LLMS (): list of available llms 
+            AVAILABLE_TTS (): list of available tts
+            AVAILABLE_STT (): list of available stt
+        """
+        handlers = extension.get_llm_handlers()
+        for handler in handlers:
+            AVAILABLE_LLMS.pop(handler["key"])
+        handlers = extension.get_tts_handlers()
+        for handler in handlers:
+            AVAILABLE_TTS.pop(handler["key"])
+        handlers = extension.get_stt_handlers()
+        for handler in handlers:
+            AVAILABLE_STT.pop(handler["key"])
+
+    def remove_prompts(self, extension, PROMPTS, AVAILABLE_PROMPTS):
+        """Remove prompts of an extension
+
+        Args:
+            PROMPTS (): the prompts texts list 
+            AVAILABLE_PROMPTS (): the available prompts list 
+        """
+        prompts = extension.get_additional_prompts()
+        for prompt in prompts:
+            if prompt in AVAILABLE_PROMPTS:
+                AVAILABLE_PROMPTS.remove(prompt)
+            PROMPTS.pop(prompt["key"])
+
     def remove_extension(self, extension : NewelleExtension | str):
         """
         Remove an extension - deletes the file
