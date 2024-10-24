@@ -184,7 +184,7 @@ class ExtensionLoader:
                         if isinstance(class_obj, type) and issubclass(class_obj, NewelleExtension) and class_obj != NewelleExtension:
                             extension = class_obj(self.pip, self.extension_cache, self.settings)
                             # Create entry in settings
-                            if extension not in self.extensions_settings:
+                            if extension.id not in self.extensions_settings:
                                 self.extensions_settings[extension.id] = {}
                                 self.save_settings()
 
@@ -284,11 +284,12 @@ class ExtensionLoader:
         """
         if not isinstance(extension, str):
             extension = extension.id
+        if self.get_extension_by_id(extension) in self.disabled_extensions:
+            self.disabled_extensions.remove(self.get_extension_by_id(extension))
         self.extensions_settings[extension]["disabled"] = False
         self.save_settings()
 
-    def disable(self, extension : NewelleExtension | str):
-        
+    def disable(self, extension : NewelleExtension | str): 
         """
         Disable an extension
 
@@ -298,12 +299,14 @@ class ExtensionLoader:
         if not isinstance(extension, str):
             extension = extension.id
         self.extensions_settings[extension]["disabled"] = True
+        self.disabled_extensions.append(self.get_extension_by_id(extension))
         self.save_settings()
 
     def save_settings(self):
         """Save the extensions settings"""
+        
         self.settings.set_string("extensions-settings", json.dumps(self.extensions_settings))
-
+    
     def check_validity(self, extension : NewelleExtension):
         """
         Check if the extension is valid
