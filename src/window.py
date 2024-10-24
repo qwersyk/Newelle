@@ -29,6 +29,8 @@ class MainWindow(Gtk.ApplicationWindow):
         self.pip_directory = os.path.join(self.directory, "pip")
         self.extension_path = os.path.join(self.directory, "extensions")
         self.extensions_cache = os.path.join(self.directory, "extensions_cache")
+        if not os.path.exists(self.extension_path):
+            os.makedirs(self.extension_path)
         sys.path.append(self.pip_directory)
 
         if not os.path.exists(self.path):
