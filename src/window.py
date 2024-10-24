@@ -992,14 +992,16 @@ class MainWindow(Gtk.ApplicationWindow):
                         code_language = table_string[i][3:len(table_string[i])]
                     else:
                         if code_language in self.extensionloader.codeblocks:
+                            
                             value = '\n'.join(table_string[start_code_index:i])
                             extension = self.extensionloader.codeblocks[code_language]
                             try:
                                 widget = extension.get_gtk_widget(value, code_language)
-                                response = extension.get_answer(value, code_language)  
                                 if widget is not None:
                                     box.append(widget)
                                 else:
+
+                                    response = extension.get_answer(value, code_language)  
                                     if id_message==-1:
                                         id_message = len(self.chat)-1
                                     id_message+=1

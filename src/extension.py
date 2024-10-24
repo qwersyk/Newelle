@@ -91,7 +91,7 @@ class Extension(Gtk.Window):
         self.extensionloader.add_extension(file_path)
         self.extensionloader.load_extensions()
 
-        for extid, filename in self.extensionloader.filemap.values():
+        for extid, filename in self.extensionloader.filemap.items():
             if filename == os.path.basename(file_path):
                 ext = self.extensionloader.get_extension_by_id(extid)
                 if ext is None:
