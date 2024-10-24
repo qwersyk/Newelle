@@ -1139,7 +1139,7 @@ class MainWindow(Gtk.ApplicationWindow):
                     def wait_threads_sm():
                         for t in running_threads:
                             t.join()
-                        GLib.idle_add(self.send_message)
+                        self.send_message()
                     threading.Thread(target=wait_threads_sm).start()
         GLib.idle_add(self.scrolled_chat)
         self.save_chat()
