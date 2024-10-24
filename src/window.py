@@ -984,6 +984,7 @@ class MainWindow(Gtk.ApplicationWindow):
             code_language = ""
             start_code_index = -1
             has_terminal_command = False
+            running_threads = []
             for i in range(len(table_string)):
                 if len(table_string[i]) > 0 and table_string[i].lstrip(" ")[0:3] == "```":
                     table_string[i] = table_string[i].lstrip(" ")
@@ -1001,7 +1002,6 @@ class MainWindow(Gtk.ApplicationWindow):
                                     box.append(widget)
                                 else:
 
-                                    response = extension.get_answer(value, code_language)  
                                     if id_message==-1:
                                         id_message = len(self.chat)-1
                                     id_message+=1
@@ -1014,25 +1014,30 @@ class MainWindow(Gtk.ApplicationWindow):
                                     reply_from_the_console = None
                                     if self.chat[min(id_message, len(self.chat) - 1)]["User"] == "Console":
                                         reply_from_the_console = self.chat[min(id_message, len(self.chat) - 1)]["Message"]
-                                    if not restore:
-                                        console_permissions = []
-                                        if response is not None:
-                                            code = (True, response)
+                                    def getresponse():
+                                        if not restore:
+                                            response = extension.get_answer(value, code_language)  
+                                            if response is not None:
+                                                code = (True, response)
+                                            else:
+                                                code = (False, "Error:") 
                                         else:
-                                            code = (False, "Error:") 
-                                    else:
-                                        code = (True, reply_from_the_console)
-                                    text_expander.set_child(
-                                        Gtk.Label(wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR, label='\n'.join(table_string[start_code_index:i])+"\n"+str(code[1]),
-                                                  selectable=True))
-                                    if not code[0]:
-                                        self.add_message("Error", text_expander)
-                                    elif restore:
-                                        self.add_message("Assistant", text_expander)
-                                    else:
-                                        self.add_message("Done", text_expander)
-                                    if not restore:
-                                        self.chat.append({"User": "Console", "Message": " " + code[1]})
+                                            code = (True, reply_from_the_console)
+                                        text_expander.set_child(
+                                            Gtk.Label(wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR, label='\n'.join(table_string[start_code_index:i])+"\n"+str(code[1]),
+                                                      selectable=True))
+                                        if not code[0]:
+                                            self.add_message("Error", text_expander)
+                                        elif restore:
+                                            self.add_message("Assistant", text_expander)
+                                        else:
+                                            self.add_message("Done", text_expander)
+                                        if not restore:
+                                            self.chat.append({"User": "Console", "Message": " " + code[1]})
+                                          
+                                    t = threading.Thread(target=getresponse)
+                                    t.start()
+                                    running_threads.append(t)
                             except Exception as e:
                                 print("Extension error " + extension.id + ": " + str(e))
                                 box.append(CopyBox("\n".join(table_string[start_code_index:i]), code_language, parent = self))
@@ -1129,7 +1134,11 @@ class MainWindow(Gtk.ApplicationWindow):
                     self.chats[self.chat_id]["chat"] = self.chat
             else:
                 if not restore:
-                    GLib.idle_add(self.send_message)
+                    def wait_threads_sm():
+                        for t in running_threads:
+                            t.join()
+                        GLib.idle_add(self.send_message)
+                    threading.Thread(target=wait_threads_sm).start()
         GLib.idle_add(self.scrolled_chat)
         self.save_chat()
 
@@ -1151,13 +1160,12 @@ class MainWindow(Gtk.ApplicationWindow):
         self.status = False
         self.update_button_text()
 
-        # Appned extensions prompts
+        # Append extensions prompts
         prompts = [replace_variables(value["prompt"]) for value in self.extensions.values() if value["status"]]
         
         for prompt in self.bot_prompts:
             prompts.append(replace_variables(prompt))
         self.model.set_history(prompts, self.get_history())
-
         if self.model.stream_enabled():
             label = Gtk.Label(label="", margin_top=10, margin_start=10, margin_bottom=10, margin_end=10, wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR,
                                   selectable=True)
