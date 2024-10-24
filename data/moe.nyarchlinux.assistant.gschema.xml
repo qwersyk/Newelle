@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<schemalist gettext-domain="newelle">
-	<schema id="io.github.qwersyk.Newelle" path="/io/github/qwersyk/Newelle/">
+<schemalist gettext-domain="nyarchassistant">
+	<schema id="moe.nyarchlinux.assistant" path="/moe/nyarchlinux/assistant/">
         <key name="offers" type="i">
             <default>0</default>
         </key>
         <key name="virtualization" type="b">
-            <default>true</default>
+           <default>true</default>
+        </key>
+        <key name="virtualization" type="b">
+            <default>false</default>
         </key>
         <key name="memory" type="i">
             <default>10</default>
@@ -29,7 +32,7 @@
             <default>false</default>
         </key>
 	      <key name="language-model" type="s">
-            <default>"GPT3Any"</default>
+            <default>"nyarch"</default>
         </key>
 	      <key name="local-model" type="s">
             <default>""</default>
@@ -41,12 +44,21 @@
             <default>"[]"</default>
         </key>
 	      <key name="tts-on" type="b">
-            <default>false</default>
+            <default>true</default>
         </key>
 	      <key name="tts" type="s">
-            <default>"gtts"</default>
+            <default>"edge_tts"</default>
         </key>
 	      <key name="tts-voice" type="s">
+            <default>"{}"</default>
+        </key>
+	      <key name="avatar-on" type="b">
+            <default>true</default>
+        </key>
+	      <key name="avatar-model" type="s">
+            <default>"Live2D"</default>
+        </key>
+	      <key name="avatars" type="s">
             <default>"{}"</default>
         </key>
 	      <key name="stt-engine" type="s">
@@ -61,11 +73,31 @@
 	      <key name="custom-prompts" type="s">
 	        <default>"{}"</default>
         </key>
+
         <key name="external-terminal" type="s">
           <default>"gnome-terminal -- bash -c {0}"</default>
         </key>
         <key name="extensions-settings" type="s">
           <default>"{}"</default>
         </key>
+        <key name="translator" type="s">
+          <default>"LibreTranslate"</default>
+        </key>
+        <key name="translator-settings" type="s">
+          <default>"{}"</default>
+        </key>
+        <key name="translator-on" type="b">
+          <default>false</default>
+        </key>
+        <key name="smart-prompt" type="s">
+          <default>"LogicalRegression"</default>
+        </key>
+        <key name="smart-prompt-settings" type="s">
+          <default>"{}"</default>
+        </key>
+        <key name="smart-prompt-on" type="b">
+          <default>true</default>
+        </key>
+>>>>>>> master:data/moe.nyarchlinux.assistant.gschema.xml
 	</schema>
 </schemalist>

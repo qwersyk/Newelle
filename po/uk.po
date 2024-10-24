@@ -1,12 +1,12 @@
-# Ukrainian translations for Newelle package.
+# Ukrainian translations for nyarchassistant package.
 # Copyright (C) 2024 THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the Newelle package.
+# This file is distributed under the same license as the nyarchassistant package.
 # Yehor Hliebov <qsk@gmx.at>, 2024.
 #
 msgid ""
 msgstr ""
 
-"Project-Id-Version: Newelle 0.3.0\n"
+"Project-Id-Version: nyarchassistant 0.3.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2024-08-24 08:21+0200\n"
 "PO-Revision-Date: 2024-08-24 08:21+0200\n"
@@ -368,8 +368,8 @@ msgid "Chat is created"
 msgstr "Чат створено"
 
 #: presentation.py:92
-msgid "Welcome to Newelle"
-msgstr "Ласкаво просимо до Newelle"
+msgid "Welcome to nyarchassistant"
+msgstr "Ласкаво просимо до nyarchassistant"
 
 #: presentation.py:93
 msgid "Your ultimate virtual assistant."
@@ -385,10 +385,10 @@ msgstr "Виберіть вашу улюблену мовну модель ШІ"
 
 #: presentation.py:105
 msgid ""
-"Newelle can be used with mutiple models and providers!\n"
+"nyarchassistant can be used with mutiple models and providers!\n"
 "<b>Note: It is strongly suggested to read the Guide to LLM page</b>"
 msgstr ""
-"Newelle можна використовувати з кількома моделями та провайдерами!\n"
+"nyarchassistant можна використовувати з кількома моделями та провайдерами!\n"
 "<b>Примітка: Наполегливо рекомендується прочитати сторінку Посібника з LLM</b>"
 
 #: presentation.py:109
@@ -396,8 +396,8 @@ msgid "Guide to LLM"
 msgstr "Посібник з LLM"
 
 #: presentation.py:117
-msgid "You can extend Newelle's functionalities using extensions!"
-msgstr "Ви можете розширити функціональність Newelle за допомогою розширень!"
+msgid "You can extend nyarchassistant's functionalities using extensions!"
+msgstr "Ви можете розширити функціональність nyarchassistant за допомогою розширень!"
 
 #: presentation.py:121
 msgid "Download extensions"
@@ -409,9 +409,9 @@ msgstr "Помилка доступу"
 
 #: presentation.py:132
 msgid ""
-"Newelle does not have enough permissions to run commands on your system."
+"nyarchassistant does not have enough permissions to run commands on your system."
 msgstr ""
-"Newelle не має достатньо прав для виконання команд у вашій системі."
+"nyarchassistant не має достатньо прав для виконання команд у вашій системі."
 
 #: presentation.py:143
 msgid "Begin using the app"
@@ -523,10 +523,10 @@ msgstr "Недостатньо прав"
 
 #: settings.py:756
 msgid ""
-"Newelle does not have enough permissions to run commands on your system, "
+"nyarchassistant does not have enough permissions to run commands on your system, "
 "please run the following command"
 msgstr ""
-"Newelle не має достатньо прав для виконання команд у вашій системі, "
+"nyarchassistant не має достатньо прав для виконання команд у вашій системі, "
 "будь ласка, виконайте наступну команду"
 
 #: settings.py:757

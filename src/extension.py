@@ -10,7 +10,7 @@ from gi.repository import Gtk, Adw, Gio, GLib
 class Extension(Gtk.Window):
     def __init__(self,app):
         Gtk.Window.__init__(self, title=_("Extensions"))
-        self.settings = Gio.Settings.new('io.github.qwersyk.Newelle')
+        self.path = os.path.expanduser("~")+"/.var/app/moe.nyarchlinux.assistant/extension"
 
         self.directory = GLib.get_user_config_dir()
         self.path = os.path.join(self.directory, "extensions")

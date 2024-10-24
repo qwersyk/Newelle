@@ -1,9 +1,9 @@
 pkgdatadir = join_paths(get_option('prefix'), get_option('datadir'), meson.project_name())
-moduledir = join_paths(pkgdatadir, 'newelle')
+moduledir = join_paths(pkgdatadir, 'nyarchassistant')
 gnome = import('gnome')
 
-gnome.compile_resources('newelle',
-  'newelle.gresource.xml',
+gnome.compile_resources('nyarchassistant',
+  'nyarchassistant.gresource.xml',
   gresource_bundle: true,
   install: true,
   install_dir: pkgdatadir,
@@ -18,15 +18,15 @@ conf.set('localedir', join_paths(get_option('prefix'), get_option('localedir')))
 conf.set('pkgdatadir', pkgdatadir)
 
 configure_file(
-  input: 'newelle.in',
-  output: 'newelle',
+  input: 'nyarchassistant.in',
+  output: 'nyarchassistant',
   configuration: conf,
   install: true,
   install_dir: get_option('bindir'),
   install_mode: 'r-xr--r--'
 )
 
-newelle_sources = [
+nyarchassistant_sources = [
   '__init__.py',
   'main.py',
   'gtkobj.py',
@@ -43,6 +43,10 @@ newelle_sources = [
   'presentation.py',
   'handler.py',
   'extensions.py'
+  'avatar.py',
+  'translator.py',
+  'dataset.py',
+  'smart_prompt.py',
 ]
 
-install_data(newelle_sources, install_dir: moduledir)
+install_data(nyarchassistant_sources, install_dir: moduledir)
