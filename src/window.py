@@ -12,6 +12,8 @@ import threading
 import posixpath
 import json
 
+from .extensions import ExtensionLoader
+
 class MainWindow(Gtk.ApplicationWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -25,6 +27,10 @@ class MainWindow(Gtk.ApplicationWindow):
         self.directory = GLib.get_user_config_dir()
         # Pip directory for optional modules
         self.pip_directory = os.path.join(self.directory, "pip")
+        self.extension_path = os.path.join(self.directory, "extensions")
+        self.extensions_cache = os.path.join(self.directory, "extensions_cache")
+        if not os.path.exists(self.extension_path):
+            os.makedirs(self.extension_path)
         sys.path.append(self.pip_directory)
 
         if not os.path.exists(self.path):
@@ -329,16 +335,11 @@ class MainWindow(Gtk.ApplicationWindow):
         self.offers = settings.get_int("offers")
         self.virtualization = settings.get_boolean("virtualization")
         self.memory = settings.get_int("memory")
-        self.console = settings.get_boolean("console")
         self.hidden_files = settings.get_boolean("hidden-files")
         self.chat_id = settings.get_int("chat")
         self.main_path = settings.get_string("path")
         self.auto_run = settings.get_boolean("auto-run")
         self.chat = self.chats[min(self.chat_id,len(self.chats)-1)]["chat"]
-        self.graphic = settings.get_boolean("graphic")
-        self.cutom_extra_prompt = settings.get_boolean("custom-extra-prompt")
-        self.basic_functionality = settings.get_boolean("basic-functionality")
-        self.show_image = settings.get_boolean("show-image")
         self.language_model = settings.get_string("language-model")
         self.local_model = settings.get_string("local-model")
         self.tts_enabled = settings.get_boolean("tts-on")
@@ -348,9 +349,15 @@ class MainWindow(Gtk.ApplicationWindow):
         self.stt_settings = settings.get_string("stt-settings")
         self.external_terminal = settings.get_string("external-terminal")
 
+        # Load extensions
+        self.extensionloader = ExtensionLoader(self.extension_path, pip_path=self.pip_directory, extension_cache=self.extensions_cache, settings=self.settings)
+        self.extensionloader.load_extensions()
+        self.extensionloader.add_handlers(AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT)
+        self.extensionloader.add_prompts(PROMPTS, AVAILABLE_PROMPTS)
         # Load custom prompts
         self.custom_prompts = json.loads(self.settings.get_string("custom-prompts"))
         self.prompts = override_prompts(self.custom_prompts, PROMPTS)
+        self.prompts_settings = json.loads(self.settings.get_string("prompts-settings"))
 
         if self.language_model in AVAILABLE_LLMS:
             self.model = AVAILABLE_LLMS[self.language_model]["class"](self.settings, os.path.join(self.directory, "models"))
@@ -363,11 +370,15 @@ class MainWindow(Gtk.ApplicationWindow):
         self.stt_handler = AVAILABLE_STT[self.stt_engine]["class"](self.settings, self.pip_directory)
         
         self.bot_prompts = []
-        for prompt_info in AVAILABLE_PROMPTS:
-            if self.settings.get_boolean(prompt_info["setting_name"]):
-                self.bot_prompts.append(self.prompts[prompt_info["key"]])
+        for prompt in AVAILABLE_PROMPTS:
+            is_active = False
+            if prompt["setting_name"] in self.prompts_settings:
+                is_active = self.prompts_settings[prompt["setting_name"]]
+            else:
+                is_active = prompt["default"]
+            if is_active:
+                self.bot_prompts.append(self.prompts[prompt["key"]])
 
-        self.extension_path = os.path.expanduser("~")+"/.var/app/io.github.qwersyk.Newelle/extension"
         self.extensions = {}
         if os.path.exists(self.extension_path):
             folder_names = [name for name in os.listdir(self.extension_path) if os.path.isdir(os.path.join(self.extension_path, name))]
@@ -975,6 +986,7 @@ class MainWindow(Gtk.ApplicationWindow):
             code_language = ""
             start_code_index = -1
             has_terminal_command = False
+            running_threads = []
             for i in range(len(table_string)):
                 if len(table_string[i]) > 0 and table_string[i].lstrip(" ")[0:3] == "```":
                     table_string[i] = table_string[i].lstrip(" ")
@@ -982,44 +994,55 @@ class MainWindow(Gtk.ApplicationWindow):
                         start_code_index = i + 1
                         code_language = table_string[i][3:len(table_string[i])]
                     else:
-                        if code_language in self.extensions and self.extensions[code_language]["status"]:
-                            if id_message==-1:
-                                id_message = len(self.chat)-1
-                            id_message+=1
-                            has_terminal_command = True
+                        if code_language in self.extensionloader.codeblocks:
+                            
                             value = '\n'.join(table_string[start_code_index:i])
-                            text_expander = Gtk.Expander(
-                                label=code_language, css_classes=["toolbar", "osd"], margin_top=10, margin_start=10,
-                                margin_bottom=10, margin_end=10
-                            )
-                            text_expander.set_expanded(False)
-                            reply_from_the_console = None
-                            if self.chat[min(id_message, len(self.chat) - 1)]["User"] == "Console":
-                                reply_from_the_console = self.chat[min(id_message, len(self.chat) - 1)]["Message"]
-                            if not restore:
-                                console_permissions = []
-                                if not self.virtualization:
-                                    console_permissions = ["flatpak-spawn","--host"]
-                                command = [*console_permissions, "python", self.extension_path+"/"+code_language+"/"+self.extensions[code_language]["api"], value]
-                                process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE,cwd = self.extension_path+"/"+code_language)
-                                output, error = process.communicate()
-                                if process.returncode == 0:
-                                    code = (True, output.decode())
+                            extension = self.extensionloader.codeblocks[code_language]
+                            try:
+                                widget = extension.get_gtk_widget(value, code_language)
+                                if widget is not None:
+                                    box.append(widget)
                                 else:
-                                    code = (False, error.decode())
-                            else:
-                                code = (True, reply_from_the_console)
-                            text_expander.set_child(
-                                Gtk.Label(wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR, label='\n'.join(table_string[start_code_index:i])+"\n"+str(code[1]),
-                                          selectable=True))
-                            if not code[0]:
-                                self.add_message("Error", text_expander)
-                            elif restore:
-                                self.add_message("Assistant", text_expander)
-                            else:
-                                self.add_message("Done", text_expander)
-                            if not restore:
-                                self.chat.append({"User": "Console", "Message": " " + code[1]})
+
+                                    if id_message==-1:
+                                        id_message = len(self.chat)-1
+                                    id_message+=1
+                                    has_terminal_command = True
+                                    text_expander = Gtk.Expander(
+                                        label=code_language, css_classes=["toolbar", "osd"], margin_top=10, margin_start=10,
+                                        margin_bottom=10, margin_end=10
+                                    )
+                                    text_expander.set_expanded(False)
+                                    reply_from_the_console = None
+                                    if self.chat[min(id_message, len(self.chat) - 1)]["User"] == "Console":
+                                        reply_from_the_console = self.chat[min(id_message, len(self.chat) - 1)]["Message"]
+                                    def getresponse():
+                                        if not restore:
+                                            response = extension.get_answer(value, code_language)  
+                                            if response is not None:
+                                                code = (True, response)
+                                            else:
+                                                code = (False, "Error:") 
+                                        else:
+                                            code = (True, reply_from_the_console)
+                                        text_expander.set_child(
+                                            Gtk.Label(wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR, label='\n'.join(table_string[start_code_index:i])+"\n"+str(code[1]),
+                                                      selectable=True))
+                                        if not code[0]:
+                                            self.add_message("Error", text_expander)
+                                        elif restore:
+                                            self.add_message("Assistant", text_expander)
+                                        else:
+                                            self.add_message("Done", text_expander)
+                                        if not restore:
+                                            self.chat.append({"User": "Console", "Message": " " + code[1]})
+                                          
+                                    t = threading.Thread(target=getresponse)
+                                    t.start()
+                                    running_threads.append(t)
+                            except Exception as e:
+                                print("Extension error " + extension.id + ": " + str(e))
+                                box.append(CopyBox("\n".join(table_string[start_code_index:i]), code_language, parent = self))
                         elif code_language == "image":
                             for i in table_string[start_code_index:i]:
                                 image = Gtk.Image(css_classes=["image"])
@@ -1113,7 +1136,11 @@ class MainWindow(Gtk.ApplicationWindow):
                     self.chats[self.chat_id]["chat"] = self.chat
             else:
                 if not restore:
-                    GLib.idle_add(self.send_message)
+                    def wait_threads_sm():
+                        for t in running_threads:
+                            t.join()
+                        self.send_message()
+                    threading.Thread(target=wait_threads_sm).start()
         GLib.idle_add(self.scrolled_chat)
         self.save_chat()
 
@@ -1135,13 +1162,12 @@ class MainWindow(Gtk.ApplicationWindow):
         self.status = False
         self.update_button_text()
 
-        # Appned extensions prompts
+        # Append extensions prompts
         prompts = [replace_variables(value["prompt"]) for value in self.extensions.values() if value["status"]]
         
         for prompt in self.bot_prompts:
             prompts.append(replace_variables(prompt))
         self.model.set_history(prompts, self.get_history())
-
         if self.model.stream_enabled():
             label = Gtk.Label(label="", margin_top=10, margin_start=10, margin_bottom=10, margin_end=10, wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR,
                                   selectable=True)

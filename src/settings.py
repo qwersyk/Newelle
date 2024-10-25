@@ -14,6 +14,8 @@ from .llm import GPT4AllHandler, LLMHandler
 from .gtkobj import ComboRowHelper, CopyBox, MultilineEntry
 from .extra import can_escape_sandbox, override_prompts, human_readable_size
 
+from .extensions import ExtensionLoader
+
 class Settings(Adw.PreferencesWindow):
     def __init__(self,app,headless=False, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -26,12 +28,23 @@ class Settings(Adw.PreferencesWindow):
         self.local_models = json.loads(self.settings.get_string("available-models"))
         self.directory = GLib.get_user_config_dir()
         self.gpt = GPT4AllHandler(self.settings, os.path.join(self.directory, "models"))
+        self.extension_path = os.path.join(self.directory, "extensions")
+        self.pip_directory = os.path.join(self.directory, "pip")
+        self.extensions_cache = os.path.join(self.directory, "extensions_cache")
+        # Load extensions 
+        self.extensionloader = ExtensionLoader(self.extension_path, pip_path=self.pip_directory,extension_cache=self.extensions_cache, settings=self.settings)
+        self.extensionloader.load_extensions()
+        self.extensionloader.add_handlers(AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT)
+        self.extensionloader.add_prompts(PROMPTS, AVAILABLE_PROMPTS)
+
         # Load custom prompts
         self.custom_prompts = json.loads(self.settings.get_string("custom-prompts"))
+        self.prompts_settings = json.loads(self.settings.get_string("prompts-settings"))
         self.prompts = override_prompts(self.custom_prompts, PROMPTS)
         self.sandbox = can_escape_sandbox()
         # Page building
         self.general_page = Adw.PreferencesPage()
+       
         
         # Dictionary containing all the rows for settings update
         self.settingsrows = {}
@@ -86,14 +99,20 @@ class Settings(Adw.PreferencesWindow):
 
         self.__prompts_entries = {}
         for prompt in AVAILABLE_PROMPTS:
+            is_active = False
+            if prompt["setting_name"] in self.prompts_settings:
+                is_active = self.prompts_settings[prompt["setting_name"]]
+            else:
+                is_active = prompt["default"]
             if not prompt["show_in_settings"]:
                 continue
             row = Adw.ExpanderRow(title=prompt["title"], subtitle=prompt["description"])
             if prompt["editable"]:
                 self.add_customize_prompt_content(row, prompt["key"])
             switch = Gtk.Switch(valign=Gtk.Align.CENTER)
+            switch.set_active(is_active)
+            switch.connect("notify::active", self.update_prompt, prompt["setting_name"])
             row.add_suffix(switch)
-            self.settings.bind(prompt["setting_name"], switch, 'active', Gio.SettingsBindFlags.DEFAULT)
             self.prompt.add(row)
 
         # Interface settings
@@ -145,6 +164,16 @@ class Settings(Adw.PreferencesWindow):
 
         self.add(self.general_page)
 
+
+    def update_prompt(self, switch: Gtk.Switch, state, key: str):
+        """Update the prompt in the settings
+
+        Args:
+            switch: the switch widget
+            key: the key of the prompt
+        """
+        self.prompts_settings[key] = switch.get_active()
+        self.settings.set_string("prompts-settings", json.dumps(self.prompts_settings))
 
     def build_row(self, constants: dict[str, Any], key: str, selected: str, group: Gtk.CheckButton) -> Adw.ActionRow | Adw.ExpanderRow:
         """Build the row for every handler

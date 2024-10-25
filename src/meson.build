@@ -41,7 +41,8 @@ newelle_sources = [
   'stt.py',
   'extra.py',
   'presentation.py',
-  'handler.py'
+  'handler.py',
+  'extensions.py'
 ]
 
 install_data(newelle_sources, install_dir: moduledir)
