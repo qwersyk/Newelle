@@ -1,4 +1,5 @@
 import sys, importlib, os, json, shutil
+from typing import Any
 
 from gi.repository import Gtk
 
@@ -27,14 +28,11 @@ class NewelleExtension(Handler):
             extension_path: path to the extension cache directory 
         """
         self.pip_path = pip_path
+        self.path = self.pip_path
         self.extension_path = extension_path
         self.settings = settings
         self.key = self.id
         self.schema_key = "extensions-settings"
-        pass
-
-    def install(self):
-        """Function called on another thread every time the extension is enabled from the settings"""
         pass
 
     def get_llm_handlers(self) -> list[dict]:
@@ -135,7 +133,6 @@ class NewelleExtension(Handler):
             str: answer to the codeblock (will be given to the llm) or None if not provided
         """
         return None
-
 
 class ExtensionLoader:
     """
