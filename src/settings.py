@@ -14,7 +14,7 @@ from .llm import GPT4AllHandler, LLMHandler
 from .gtkobj import ComboRowHelper, CopyBox, MultilineEntry
 from .extra import can_escape_sandbox, override_prompts, human_readable_size
 
-from .extensions import ExtensionLoader
+from .extensions import ExtensionLoader, NewelleExtension
 
 class Settings(Adw.PreferencesWindow):
     def __init__(self,app,headless=False, *args, **kwargs):
@@ -239,6 +239,10 @@ class Settings(Adw.PreferencesWindow):
             model = constants[key]["class"](self.settings,os.path.join(self.directory, "models"))
         elif constants == AVAILABLE_TTS:
             model = constants[key]["class"](self.settings, self.directory)
+        elif constants == self.extensionloader.extensionsmap:
+            model = self.extensionloader.extensionsmap[key]
+            if model is None:
+                raise Exception("Extension not found")
         else:
             raise Exception("Unknown constants")
         return model
@@ -264,6 +268,8 @@ class Settings(Adw.PreferencesWindow):
                     return AVAILABLE_STT
                 case "llm":
                     return AVAILABLE_LLMS
+                case "extension":
+                    return self.extensionloader.extensionsmap
                 case _:
                     raise Exception("Unknown constants")
         else:
@@ -273,6 +279,8 @@ class Settings(Adw.PreferencesWindow):
                 return "stt"
             elif constants == AVAILABLE_TTS:
                 return "tts"
+            elif constants == self.extensionloader.extensionsmap:
+                return "extension"
             else:
                 raise Exception("Unknown constants")
 
@@ -293,6 +301,8 @@ class Settings(Adw.PreferencesWindow):
             return AVAILABLE_STT
         elif issubclass(type(handler), LLMHandler):
             return AVAILABLE_LLMS
+        elif issubclass(type(handler), NewelleExtension):
+            return self.extensionloader.extensionsmap
         else:
             raise Exception("Unknown handler")
 
