@@ -46,7 +46,7 @@ class Extension(Gtk.Window):
         for extension in self.extensionloader.get_extensions():
             
             settings.settingsrows[(extension.key, "extension")]= {} 
-            button = Gtk.Button(css_classes=["flat"], margin_top=10,margin_start=10,margin_end=10,margin_bottom=10)
+            button = Gtk.Button(css_classes=["flat", "destructive-action"], margin_top=10,margin_start=10,margin_end=10,margin_bottom=10)
             button.connect("clicked", self.delete_extension)
             button.set_name(extension.id)
 
@@ -56,7 +56,7 @@ class Extension(Gtk.Window):
             button.set_child(icon)
             switch = Gtk.Switch(valign=Gtk.Align.CENTER)
             switch.connect("notify::state", self.change_status)
-            switch.set_name(extension.id)
+            switch.set_name(extension.id) 
             if extension not in self.extensionloader.disabled_extensions:
                 switch.set_active(True)
             
@@ -69,6 +69,10 @@ class Extension(Gtk.Window):
                 row = Adw.ActionRow(title=extension.name)
                 row.add_suffix(button)
                 row.add_suffix(switch)
+                # Add invisible icon for alignment purposes
+                invisible_icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="dialog-information-symbolic"))
+                invisible_icon.set_opacity(0)
+                row.add_suffix(invisible_icon)
             
             settings.add_flatpak_waning_button(extension, row)
             self.extensiongroup.add(row)
