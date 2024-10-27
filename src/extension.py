@@ -2,7 +2,7 @@ from threading import Thread
 import gi, os
 
 from .constants import AVAILABLE_LLMS, AVAILABLE_PROMPTS, AVAILABLE_STT, AVAILABLE_TTS, PROMPTS
-
+from .settings import Settings
 from .extensions import ExtensionLoader
 from gi.repository import Gtk, Adw, Gio, GLib
 
@@ -33,17 +33,20 @@ class Extension(Gtk.Window):
         self.update()
     
     def update(self):
+        self.extensionloader = ExtensionLoader(self.extension_path, pip_path=self.pip_directory, extension_cache=self.extensions_cache, settings=self.settings)
+        self.extensionloader.load_extensions()
+    
+        settings = Settings(self.app, headless=True)
+
         self.main = Gtk.Box(margin_top=10,margin_start=10,margin_bottom=10,margin_end=10,valign=Gtk.Align.FILL,halign=Gtk.Align.CENTER,orientation=Gtk.Orientation.VERTICAL)
         self.main.set_size_request(300, -1)
         self.scrolled_window.set_child(self.main)
-        self.extensionloader = ExtensionLoader(self.extension_path, pip_path=self.pip_directory, extension_cache=self.extensions_cache, settings=self.settings)
-        self.extensionloader.load_extensions()
-
+        self.extensiongroup = Adw.PreferencesGroup(title=_("Extensions"))
+        self.main.append(self.extensiongroup)
         for extension in self.extensionloader.get_extensions():
-            box = Gtk.Box(margin_top=10,margin_bottom=10,css_classes=["card"], hexpand=True)
-            box.append(Gtk.Label(label=f"{extension.name}",margin_top=10,margin_start=10,margin_end=10,margin_bottom=10))
-            box_elements = Gtk.Box(valign=Gtk.Align.CENTER,halign=Gtk.Align.END, hexpand= True)
-            button = Gtk.Button(css_classes=["flat"], margin_top=10,margin_start=10,margin_end=10,margin_bottom=10)
+            
+            settings.settingsrows[(extension.key, "extension")]= {} 
+            button = Gtk.Button(css_classes=["flat", "destructive-action"], margin_top=10,margin_start=10,margin_end=10,margin_bottom=10)
             button.connect("clicked", self.delete_extension)
             button.set_name(extension.id)
 
@@ -53,12 +56,26 @@ class Extension(Gtk.Window):
             button.set_child(icon)
             switch = Gtk.Switch(valign=Gtk.Align.CENTER)
             switch.connect("notify::state", self.change_status)
-            switch.set_name(extension.id)
-            switch.set_active(extension not in self.extensionloader.disabled_extensions)
-            box_elements.append(switch)
-            box_elements.append(button)
-            box.append(box_elements)
-            self.main.append(box)
+            switch.set_name(extension.id) 
+            if extension not in self.extensionloader.disabled_extensions:
+                switch.set_active(True)
+            
+            if len(extension.get_extra_settings()) > 0:
+                row = Adw.ExpanderRow(title=extension.name)
+                row.add_suffix(switch)
+                row.add_suffix(button)
+                settings.add_extra_settings(settings.extensionloader.extensionsmap, extension, row) 
+            else:
+                row = Adw.ActionRow(title=extension.name)
+                row.add_suffix(button)
+                row.add_suffix(switch)
+                # Add invisible icon for alignment purposes
+                invisible_icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="dialog-information-symbolic"))
+                invisible_icon.set_opacity(0)
+                row.add_suffix(invisible_icon)
+            
+            settings.add_flatpak_waning_button(extension, row)
+            self.extensiongroup.add(row)
         folder_button = Gtk.Button(label=_("Choose an extension"), css_classes=["suggested-action"], margin_top=10)
         folder_button.connect("clicked", self.on_folder_button_clicked)
         self.main.append(folder_button)

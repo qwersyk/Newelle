@@ -1,13 +1,16 @@
 import sys, importlib, os, json, shutil
+from typing import Any
 
 from gi.repository import Gtk
+
+from .handler import Handler
 
 from .llm import LLMHandler
 from .stt import STTHandler
 from .tts import TTSHandler
 
 
-class NewelleExtension:
+class NewelleExtension(Handler):
     """The base class for all extensions"""
     
     # Name and ID of the extension
@@ -25,12 +28,11 @@ class NewelleExtension:
             extension_path: path to the extension cache directory 
         """
         self.pip_path = pip_path
+        self.path = self.pip_path
         self.extension_path = extension_path
         self.settings = settings
-        pass
-
-    def install(self):
-        """Function called on another thread every time the extension is enabled from the settings"""
+        self.key = self.id
+        self.schema_key = "extensions-settings"
         pass
 
     def get_llm_handlers(self) -> list[dict]:
@@ -132,7 +134,6 @@ class NewelleExtension:
         """
         return None
 
-
 class ExtensionLoader:
     """
     Class that loads the extensions
@@ -163,6 +164,7 @@ class ExtensionLoader:
             self.extensions_settings = json.loads(self.settings.get_string("extensions-settings"))
 
         self.extensions : list[NewelleExtension] = []
+        self.extensionsmap : dict[str, NewelleExtension] = {}
         self.disabled_extensions : list[NewelleExtension] = []
         self.codeblocks : dict[str, NewelleExtension] = {}
         self.filemap : dict[str, str] = {}
@@ -197,6 +199,7 @@ class ExtensionLoader:
                                 self.disabled_extensions.append(extension)
                             self.extensions.append(extension)
                             self.filemap[extension.id] = file
+                            self.extensionsmap[extension.id] = extension
                             break
                 except Exception as e:
                     print("Error loding file: ", file, e)
@@ -301,9 +304,8 @@ class ExtensionLoader:
         Returns:
             NewelleExtension | None: the extension or None if not found 
         """
-        for extension in self.extensions:
-            if extension.id == id:
-                return extension
+        if id in self.extensionsmap:
+            return self.extensionsmap[id]
         return None
 
     def enable(self, extension : NewelleExtension | str):
