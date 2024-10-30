@@ -5,12 +5,13 @@ import pickle
 from .presentation import PresentationWindow
 from .gtkobj import File, CopyBox, BarChartBox, MultilineEntry
 from .constants import AVAILABLE_LLMS, AVAILABLE_PROMPTS, PROMPTS, AVAILABLE_TTS, AVAILABLE_STT
-from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject, GLib
+from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject, GLib, GdkPixbuf
 from .stt import AudioRecorder
 from .extra import markwon_to_pango, override_prompts, replace_variables
 import threading
 import posixpath
 import json
+import base64
 
 from .extensions import ExtensionLoader
 
@@ -996,6 +997,7 @@ class MainWindow(Gtk.ApplicationWindow):
                         start_code_index = i + 1
                         code_language = table_string[i][3:len(table_string[i])]
                     else:
+                        print(code_language)
                         if code_language in self.extensionloader.codeblocks:
                             
                             value = '\n'.join(table_string[start_code_index:i])
@@ -1046,9 +1048,18 @@ class MainWindow(Gtk.ApplicationWindow):
                                 print("Extension error " + extension.id + ": " + str(e))
                                 box.append(CopyBox("\n".join(table_string[start_code_index:i]), code_language, parent = self))
                         elif code_language == "image":
-                            for i in table_string[start_code_index:i]:
+                            print("caca")
+                            for i in table_string[start_code_index:i]: 
                                 image = Gtk.Image(css_classes=["image"])
-                                image.set_from_file(i)
+                                if i.startswith('data:image/jpeg;base64,'):
+                                    data = i[len('data:image/jpeg;base64,'):]
+                                    raw_data = base64.b64decode(data)
+                                    loader = GdkPixbuf.PixbufLoader()
+                                    loader.write(raw_data)
+                                    loader.close()
+                                    image.set_from_pixbuf(loader.get_pixbuf())
+                                else:
+                                    image.set_from_file(i)
                                 box.append(image)
 
                         elif code_language == "console":
