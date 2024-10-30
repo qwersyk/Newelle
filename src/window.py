@@ -1,4 +1,5 @@
 import time, re, sys
+from warnings import filters
 import gi, os, subprocess
 import pickle
 
@@ -258,9 +259,20 @@ class MainWindow(Gtk.ApplicationWindow):
 
         # Input message box
         input_box=Gtk.Box(halign=Gtk.Align.FILL, margin_start=6, margin_end=6,  margin_top=6, margin_bottom=6, spacing=6)
-        input_box.set_valign(Gtk.Align.CENTER)
+        input_box.set_valign(Gtk.Align.CENTER) 
+        # Attach icon 
+        button = Gtk.Button(css_classes=["flat", "circular"], icon_name="attach-symbolic")
+        button.connect("clicked", self.attach_file)
+        # Attached image 
+        self.attached_image = Gtk.Image(visible=False)
+        self.attached_image.set_size_request(36, 36)
+        self.attached_image_data = None
+        self.attach_button = button
+        input_box.append(button)
+        input_box.append(self.attached_image)
         # Text Entry
         self.input_panel = MultilineEntry()
+        self.input_panel.set_on_image_pasted(self.image_pasted)
         input_box.append(self.input_panel)
         self.input_panel.set_placeholder(_("Send a message..."))
 
@@ -332,6 +344,53 @@ class MainWindow(Gtk.ApplicationWindow):
             self.on_entry_activate(self.input_panel)
         else:
             self.notification_block.add_toast(Adw.Toast(title=_('Could not recognize your voice'), timeout=2))
+
+    def attach_file(self, button): 
+        filter = Gtk.FileFilter(name="Images", patterns=["*.png", "*.jpg", "*.jpeg", "*.webp"])
+        dialog = Gtk.FileDialog(title=_("Attach file"), modal=True, default_filter=filter)
+        dialog.open(self, None, self.process_file)
+       
+    def image_pasted(self, image):
+        self.add_file(file_data=image)
+    
+    def process_file(self, dialog, result): 
+        try:
+            file=dialog.open_finish(result)
+        except Exception as _:
+            return
+        if file is None:
+            return
+        file_path = file.get_path()
+        self.add_file(file_path=file_path)
+
+    def delete_attachment(self, button):
+        self.attached_image_data = None 
+        self.attach_button.set_icon_name("attach-symbolic")
+        self.attach_button.set_css_classes(["circular", "flat"])
+        self.attach_button.disconnect_by_func(self.delete_attachment)
+        self.attach_button.connect("clicked", self.attach_file)
+        self.attached_image.set_visible(False)
+    
+    def add_file(self, file_path = None, file_data=None):
+        if file_path is not None:
+            self.attached_image.set_from_file(file_path)
+            self.attached_image.set_visible(True)
+            def get_file_content():
+                with open(file_path, 'rb') as f:
+                    self.attached_image_data = f.read()
+            threading.Thread(target=get_file_content).start()
+        elif file_data is not None:
+            self.attached_image_data = file_data
+            loader = GdkPixbuf.PixbufLoader()
+            loader.write(file_data)
+            loader.close()
+            self.attached_image.set_from_pixbuf(loader.get_pixbuf())
+            self.attached_image.set_visible(True)
+        self.attach_button.set_icon_name("user-trash-symbolic")
+        self.attach_button.set_css_classes(["destructive-action", "circular"])
+        self.attach_button.connect("clicked", self.delete_attachment) 
+        self.attach_button.disconnect_by_func(self.attach_file) 
+        
 
     def update_settings(self):
         settings = self.settings
@@ -997,7 +1056,6 @@ class MainWindow(Gtk.ApplicationWindow):
                         start_code_index = i + 1
                         code_language = table_string[i][3:len(table_string[i])]
                     else:
-                        print(code_language)
                         if code_language in self.extensionloader.codeblocks:
                             
                             value = '\n'.join(table_string[start_code_index:i])
@@ -1048,7 +1106,6 @@ class MainWindow(Gtk.ApplicationWindow):
                                 print("Extension error " + extension.id + ": " + str(e))
                                 box.append(CopyBox("\n".join(table_string[start_code_index:i]), code_language, parent = self))
                         elif code_language == "image":
-                            print("caca")
                             for i in table_string[start_code_index:i]: 
                                 image = Gtk.Image(css_classes=["image"])
                                 if i.startswith('data:image/jpeg;base64,'):

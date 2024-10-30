@@ -71,12 +71,14 @@ class MultilineEntry(Gtk.Box):
         self.placeholder = ""
         self.enter_func = None
         self.on_change_func = None
+        self.on_image_pasted = lambda *a: None
         # Handle enter key
         # Call handle_enter_key only when shift is not pressed
         # shift + enter = new line
         key_controller = Gtk.EventControllerKey.new()
         key_controller.connect("key-pressed", lambda controller, keyval, keycode, state:
-            self.handle_enter_key() if keyval == Gdk.KEY_Return and not (state & Gdk.ModifierType.SHIFT_MASK) else None
+            self.handle_enter_key() if keyval == Gdk.KEY_Return and not (state & Gdk.ModifierType.SHIFT_MASK) 
+            else self.handle_paste() if keyval == Gdk.KEY_v and (state & Gdk.ModifierType.CONTROL_MASK) else None
         )
 
         # Scroll
@@ -98,7 +100,7 @@ class MultilineEntry(Gtk.Box):
         # Event management
         focus_controller = Gtk.EventControllerFocus.new()
         self.input_panel.add_controller(focus_controller)
-
+         
         # Connect the enter and leave signals
         focus_controller.connect("enter", self.on_focus_in, None)
         focus_controller.connect("leave", self.on_focus_out, None)
@@ -112,10 +114,24 @@ class MultilineEntry(Gtk.Box):
         # Add TextView to the ScrolledWindow
         scroll.set_child(self.input_panel)
 
+    def handle_paste(self):
+        clipboard = Gdk.Display.get_default().get_clipboard()
+        clipboard.read_texture_async(None, self.image_pasted)
+    
+    def image_pasted(self, clipboard, texture):
+        try:
+            img : Gdk.MemoryTexture = clipboard.read_texture_finish(texture)
+        except Exception as _:
+            return
+        self.on_image_pasted(img.save_to_png_bytes().get_data())
+
     def set_placeholder(self, text):
         self.placeholder = text
         if self.placeholding:
             self.set_text(self.placeholder, False)
+
+    def set_on_image_pasted(self, function):
+        self.on_image_pasted = function
 
     def set_on_enter(self, function):
         """Add a function that is called when ENTER (without SHIFT) is pressed"""
