@@ -754,7 +754,7 @@ class OpenAIHandler(LLMHandler):
                 })
             else:
                 if self.supports_vision():
-                    image, text = extract_image(message) 
+                    image, text = extract_image(message["Message"]) 
                     if message["User"] == "User" and image is not None:
                         if not image.startswith("data:image/jpeg;base64,"):
                             image = encode_image_base64(image)
