@@ -3,6 +3,8 @@ from warnings import filters
 import gi, os, subprocess
 import pickle
 
+from .llm import LLMHandler
+
 from .presentation import PresentationWindow
 from .gtkobj import File, CopyBox, BarChartBox, MultilineEntry
 from .constants import AVAILABLE_LLMS, AVAILABLE_PROMPTS, PROMPTS, AVAILABLE_TTS, AVAILABLE_STT
@@ -49,7 +51,9 @@ class MainWindow(Gtk.ApplicationWindow):
         # Init Settings
         settings = Gio.Settings.new('io.github.qwersyk.Newelle')
         self.settings = settings
+        self.first_load = True
         self.update_settings()
+        self.first_load = False
 
         # Build Window
         self.set_titlebar(Gtk.Box())
@@ -269,7 +273,11 @@ class MainWindow(Gtk.ApplicationWindow):
         self.attached_image_data = None
         self.attach_button = button
         input_box.append(button)
-        input_box.append(self.attached_image)
+        input_box.append(self.attached_image) 
+        if not self.model.supports_vision():
+            self.attach_button.set_visible(False)
+        else:
+            self.attach_button.set_visible(True)
         # Text Entry
         self.input_panel = MultilineEntry()
         self.input_panel.set_on_image_pasted(self.image_pasted)
@@ -420,15 +428,15 @@ class MainWindow(Gtk.ApplicationWindow):
         self.prompts_settings = json.loads(self.settings.get_string("prompts-settings"))
 
         if self.language_model in AVAILABLE_LLMS:
-            self.model = AVAILABLE_LLMS[self.language_model]["class"](self.settings, os.path.join(self.directory, "models"))
+            self.model : LLMHandler = AVAILABLE_LLMS[self.language_model]["class"](self.settings, os.path.join(self.directory, "models"))
         else:
             mod = list(AVAILABLE_LLMS.values())[0]
-            self.model = mod["class"](self.settings, os.path.join(self.directory, "models"))
+            self.model : LLMHandler = mod["class"](self.settings, os.path.join(self.directory, "models"))
 
         # Load handlers and models
         self.model.load_model(self.local_model)
         self.stt_handler = AVAILABLE_STT[self.stt_engine]["class"](self.settings, self.pip_directory)
-        
+
         self.bot_prompts = []
         for prompt in AVAILABLE_PROMPTS:
             is_active = False
@@ -461,7 +469,14 @@ class MainWindow(Gtk.ApplicationWindow):
             self.tts = AVAILABLE_TTS[self.tts_program]["class"](self.settings, self.directory)
             self.tts.connect('start', lambda : GLib.idle_add(self.mute_tts_button.set_visible, True))
             self.tts.connect('stop', lambda : GLib.idle_add(self.mute_tts_button.set_visible, False))
-
+        if not self.first_load:
+            if not self.model.supports_vision():
+                if self.attached_image_data is not None:
+                    self.delete_attachment(self.attach_button)
+                self.attach_button.set_visible(False)
+            else:
+                self.attach_button.set_visible(True)
+    
     def send_button_start_spinner(self):
         spinner = Gtk.Spinner(spinning=True)
         self.send_button.set_child(spinner)

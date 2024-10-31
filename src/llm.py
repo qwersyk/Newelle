@@ -833,7 +833,10 @@ class MistralHandler(OpenAIHandler):
 
 class GroqHandler(OpenAIHandler):
     key = "groq"
-    
+   
+    def supports_vision(self) -> bool:
+        return "vision" in self.get_setting("model")
+
     def __init__(self, settings, path):
         super().__init__(settings, path)
         self.set_setting("endpoint", "https://api.groq.com/openai/v1/")
@@ -861,6 +864,7 @@ class GroqHandler(OpenAIHandler):
 
     def convert_history(self, history: list, prompts: list | None = None) -> list:
         # Remove system prompt if history contains image prompt
+        # since it is not supported by groq
         h = super().convert_history(history, prompts)
         contains_image = False
         for message in h:
@@ -871,7 +875,6 @@ class GroqHandler(OpenAIHandler):
                     break
         if contains_image:
             h.pop(0)
-        print(h)
         return h
 
 class OpenRouterHandler(OpenAIHandler):
