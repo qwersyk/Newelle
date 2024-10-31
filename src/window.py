@@ -1006,7 +1006,6 @@ class MainWindow(Gtk.ApplicationWindow):
                 text = "```image\n" + self.attached_image_data + "\n```\n" + text
                 self.delete_attachment(self.attach_button)
             self.chat.append({"User": "User", "Message": text}) 
-            print(text)
             self.show_message(text, True,id_message=len(self.chat)-1, is_user=True)
         self.scrolled_chat()
         threading.Thread(target=self.send_message).start()

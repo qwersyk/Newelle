@@ -5,7 +5,7 @@ from typing import Callable, Any
 import json
 from openai import NOT_GIVEN
 from g4f.Provider import RetryProvider
-
+import base64
 from .extra import find_module, quote_string, encode_image_base64
 from .handler import Handler
 
@@ -297,10 +297,16 @@ class GeminiHandler(LLMHandler):
     Official Google Gemini APIs, they support history and system prompts
     """
 
+    def __init__(self, settings, path):
+        super().__init__(settings, path)
+        self.cache = {}
+
     @staticmethod
     def get_extra_requirements() -> list:
         return ["google-generativeai"]
 
+    def supports_vision(self) -> bool:
+        return True
     def is_installed(self) -> bool:
         if find_module("google.generativeai") is None:
             return False
@@ -321,7 +327,7 @@ class GeminiHandler(LLMHandler):
                 "description": _("AI Model to use, available: gemini-1.5-pro, gemini-1.0-pro, gemini-1.5-flash"),
                 "type": "combo",
                 "default": "gemini-1.5-flash",
-                "values": [("gemini-1.5-flash","gemini-1.5-flash") , ("gemini-1.0-pro", "gemini-1.0-pro"), ("gemini-1.5-pro","gemini-1.5-pro") ]
+                "values": [("gemini-1.5-flash-8b", "gemini-1.5-flash-8b"), ("gemini-1.5-flash","gemini-1.5-flash") , ("gemini-1.0-pro", "gemini-1.0-pro"), ("gemini-1.5-pro","gemini-1.5-pro") ]
             },
             {
                 "key": "streaming",
@@ -347,12 +353,44 @@ class GeminiHandler(LLMHandler):
                     "role": "user",
                     "parts": "Console: " + message["Message"]
                 })
-            else:
+            else: 
+                img, text = self.get_gemini_image(message["Message"]) 
                 result.append({
                     "role": message["User"].lower() if message["User"] == "User" else "model",
-                    "parts": message["Message"]
+                    "parts": message["Message"] if img is None else [img, text]
                 })
         return result
+
+    def add_image_to_history(self, history: list, image: object) -> list:
+        history.append({
+            "role": "user",
+            "parts": [image]
+        })
+        return history
+    
+    def get_gemini_image(self, message: str) -> tuple[object, str]:
+        from google.generativeai import upload_file
+        img = None
+        if message.startswith("```image"):
+            image = message.split("\n")[1]
+            text = message.split("\n")[3:]                    
+            text = "\n".join(text)
+            if image.startswith("data:image/jpeg;base64,"):
+                image = image[len("data:image/jpeg;base64,"):]
+                raw_data = base64.b64decode(image)
+                with open("/tmp/image.jpg", "wb") as f:
+                    f.write(raw_data)
+                image_path = "/tmp/image.jpg"
+            else:
+                image_path = image
+            if image in self.cache:
+                img = self.cache[image]
+            else:
+                img = upload_file(image_path)
+                self.cache[image] = img
+        else:
+            text = message
+        return img, text
 
     def generate_text(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = []) -> str:
         import google.generativeai as genai
@@ -375,10 +413,13 @@ class GeminiHandler(LLMHandler):
         model = genai.GenerativeModel(self.get_setting("model"), system_instruction=instructions, safety_settings=safety)
         converted_history = self.__convert_history(history)
         try:
+            img, txt = self.get_gemini_image(prompt)
+            if img is not None:
+                converted_history = self.add_image_to_history(converted_history, img)
             chat = model.start_chat(
                 history=converted_history
             )
-            response = chat.send_message(prompt)
+            response = chat.send_message(txt)
             return response.text
         except Exception as e:
             return "Message blocked: " + str(e)
@@ -404,8 +445,11 @@ class GeminiHandler(LLMHandler):
         model = genai.GenerativeModel(self.get_setting("model"), system_instruction=instructions, safety_settings=safety)
         converted_history = self.__convert_history(history) 
         try: 
+            img, txt = self.get_gemini_image(prompt)
+            if img is not None:
+                converted_history = self.add_image_to_history(converted_history, img)
             chat = model.start_chat(history=converted_history)
-            response = chat.send_message(prompt, stream=True)
+            response = chat.send_message(txt, stream=True)
             full_message = ""
             for chunk in response:
                 full_message += chunk.text
@@ -870,7 +914,6 @@ class GroqHandler(OpenAIHandler):
         for message in h:
             if type(message["content"]) is list:
                 if any(content["type"] == "image_url" for content in message["content"]):
-                    print("contains image")
                     contains_image = True
                     break
         if contains_image:
