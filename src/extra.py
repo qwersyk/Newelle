@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 import importlib, subprocess
-import re
+import re, base64
 import os, sys
 import xml.dom.minidom, html
 
@@ -30,6 +30,11 @@ class ReplaceHelper:
         if desktop is None:
             desktop = "Unknown"
         return desktop
+
+def encode_image_base64(image_path):
+    with open(image_path, "rb") as image_file:
+        encoded_string = base64.b64encode(image_file.read()).decode("utf-8")
+    return "data:image/jpeg;base64," + encoded_string
 
 def quote_string(s):
     if "'" in s:

@@ -375,12 +375,10 @@ class MainWindow(Gtk.ApplicationWindow):
         if file_path is not None:
             self.attached_image.set_from_file(file_path)
             self.attached_image.set_visible(True)
-            def get_file_content():
-                with open(file_path, 'rb') as f:
-                    self.attached_image_data = f.read()
-            threading.Thread(target=get_file_content).start()
+            self.attached_image_data = file_path
         elif file_data is not None:
-            self.attached_image_data = file_data
+            base64_image = base64.b64encode(file_data).decode("utf-8")
+            self.attached_image_data = f"data:image/jpeg;base64,{base64_image}"
             loader = GdkPixbuf.PixbufLoader()
             loader.write(file_data)
             loader.close()
@@ -989,7 +987,11 @@ class MainWindow(Gtk.ApplicationWindow):
         text = entry.get_text()
         entry.set_text('')
         if not text == " " * len(text):
-            self.chat.append({"User": "User", "Message": " " + text}) 
+            if self.attached_image_data is not None:
+                text = "```image\n" + self.attached_image_data + "\n```\n" + text
+                self.delete_attachment(self.attach_button)
+            self.chat.append({"User": "User", "Message": text}) 
+            print(text)
             self.show_message(text, True,id_message=len(self.chat)-1, is_user=True)
         self.scrolled_chat()
         threading.Thread(target=self.send_message).start()
@@ -1236,10 +1238,7 @@ class MainWindow(Gtk.ApplicationWindow):
             label = Gtk.Label(label="", margin_top=10, margin_start=10, margin_bottom=10, margin_end=10, wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR,
                                   selectable=True)
             box=self.add_message("Assistant",label)
-            if self.attached_image_data is None:
-                message_label = self.model.send_message_stream(self, self.chat[-1]["Message"], self.update_message, (label, ))
-            else:
-                message_label = self.model.send_message_vision_stream(self, self.chat[-1]["Message"], self.attached_image_data, self.update_message, (label, ))
+            message_label = self.model.send_message_stream(self, self.chat[-1]["Message"], self.update_message, (label, ))
             try:
                 box.get_parent().set_visible(False)
             except:

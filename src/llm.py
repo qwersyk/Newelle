@@ -3,11 +3,10 @@ from subprocess import PIPE, Popen, check_output
 import os, threading
 from typing import Callable, Any
 import json
-import base64
 from openai import NOT_GIVEN
 from g4f.Provider import RetryProvider
 
-from .extra import find_module, quote_string
+from .extra import find_module, quote_string, encode_image_base64
 from .handler import Handler
 
 class LLMHandler(Handler):
@@ -696,10 +695,37 @@ class OpenAIHandler(LLMHandler):
         result = []
         result.append({"role": "system", "content": "\n".join(prompts)})
         for message in history:
-            result.append({
-                "role": message["User"].lower() if message["User"] in {"Assistant", "User"} else "system",
-                "content": message["Message"]
-            })
+            if message["User"] == "Console":
+                result.append({
+                    "role": "user",
+                    "content": "Console: " + message["Message"]
+                })
+            else:
+                if self.supports_vision():
+                    if message["User"] == "User" and message["Message"].startswith("```image\n"):
+                        image = message["Message"].split("\n")[1]
+                        text = message["Message"].split("\n")[3:]
+                        text = "\n".join(text)
+                        if not image.startswith("data:image/jpeg;base64,"):
+                            image = encode_image_base64(image)
+                        result.append({
+                            "role": "user",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": text 
+                                },
+                                {
+                                    "type": "image_url",
+                                    "image_url": {"url": image}
+                                }
+                            ],
+                        })
+                        continue
+                result.append({
+                    "role": message["User"].lower() if message["User"] in {"Assistant", "User"} else "system",
+                    "content": message["Message"]
+                })
         return result
 
     def get_advanced_params(self):
@@ -715,8 +741,8 @@ class OpenAIHandler(LLMHandler):
 
     def generate_text(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = []) -> str:
         from openai import OpenAI
+        history.append({"User": "User", "Message": prompt})
         messages = self.convert_history(history, system_prompt)
-        messages.append({"role": "user", "content": prompt})
         api = self.get_setting("api")
         if api == "":
             api = "nokey"
@@ -742,8 +768,8 @@ class OpenAIHandler(LLMHandler):
     
     def generate_text_stream(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = [], on_update: Callable[[str], Any] = lambda _: None, extra_args: list = []) -> str:
         from openai import OpenAI
+        history.append({"User": "User", "Message": prompt})
         messages = self.convert_history(history, system_prompt)
-        messages.append({"role": "user", "content": prompt})
         api = self.get_setting("api")
         if api == "":
             api = "nokey"
@@ -832,6 +858,21 @@ class GroqHandler(OpenAIHandler):
         ]
         settings += super().get_extra_settings()[-7:]
         return settings
+
+    def convert_history(self, history: list, prompts: list | None = None) -> list:
+        # Remove system prompt if history contains image prompt
+        h = super().convert_history(history, prompts)
+        contains_image = False
+        for message in h:
+            if type(message["content"]) is list:
+                if any(content["type"] == "image_url" for content in message["content"]):
+                    print("contains image")
+                    contains_image = True
+                    break
+        if contains_image:
+            h.pop(0)
+        print(h)
+        return h
 
 class OpenRouterHandler(OpenAIHandler):
     key = "openrouter"
