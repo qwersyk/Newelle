@@ -6,7 +6,7 @@ import json
 from openai import NOT_GIVEN
 from g4f.Provider import RetryProvider
 import base64
-from .extra import find_module, quote_string, encode_image_base64
+from .extra import extract_image, find_module, quote_string, encode_image_base64
 from .handler import Handler
 
 class LLMHandler(Handler):
@@ -371,10 +371,8 @@ class GeminiHandler(LLMHandler):
     def get_gemini_image(self, message: str) -> tuple[object, str]:
         from google.generativeai import upload_file
         img = None
-        if message.startswith("```image"):
-            image = message.split("\n")[1]
-            text = message.split("\n")[3:]                    
-            text = "\n".join(text)
+        image, text = extract_image(message)
+        if image is not None:
             if image.startswith("data:image/jpeg;base64,"):
                 image = image[len("data:image/jpeg;base64,"):]
                 raw_data = base64.b64decode(image)
@@ -543,6 +541,9 @@ class OllamaHandler(LLMHandler):
     def get_extra_requirements() -> list:
         return ["ollama"]
 
+    def supports_vision(self) -> bool:
+        return True
+
     def get_extra_settings(self) -> list:
         return [ 
             {
@@ -580,16 +581,23 @@ class OllamaHandler(LLMHandler):
                     "content": "Console: " + message["Message"]
                 })
             else:
-                result.append({
+                image, text = extract_image(message["Message"])
+                
+                msg = {
                     "role": message["User"].lower() if message["User"] in {"Assistant", "User"} else "system",
-                    "content": message["Message"]
-                })
+                    "content": text
+                }
+                if message["User"] == "User" and image is not None:
+                    if image.startswith("data:image/png;base64,"):
+                        image = image[len("data:image/png;base64,"):]
+                    msg["images"] = [image]
+                result.append(msg)
         return result
     
     def generate_text(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = []) -> str:
         from ollama import Client
+        history.append({"User": "User", "Message": prompt})
         messages = self.convert_history(history, system_prompt)
-        messages.append({"role": "user", "content": prompt})
 
         client = Client(
             host=self.get_setting("endpoint")
@@ -605,8 +613,8 @@ class OllamaHandler(LLMHandler):
     
     def generate_text_stream(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = [], on_update: Callable[[str], Any] = lambda _: None, extra_args: list = []) -> str:
         from ollama import Client
+        history.append({"User": "User", "Message": prompt})
         messages = self.convert_history(history, system_prompt)
-        messages.append({"role": "user", "content": prompt})
         client = Client(
             host=self.get_setting("endpoint")
         )
@@ -746,10 +754,8 @@ class OpenAIHandler(LLMHandler):
                 })
             else:
                 if self.supports_vision():
-                    if message["User"] == "User" and message["Message"].startswith("```image\n"):
-                        image = message["Message"].split("\n")[1]
-                        text = message["Message"].split("\n")[3:]
-                        text = "\n".join(text)
+                    image, text = extract_image(message) 
+                    if message["User"] == "User" and image is not None:
                         if not image.startswith("data:image/jpeg;base64,"):
                             image = encode_image_base64(image)
                         result.append({
