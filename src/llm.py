@@ -3,11 +3,10 @@ from subprocess import PIPE, Popen, check_output
 import os, threading
 from typing import Callable, Any
 import json
-
 from openai import NOT_GIVEN
 from g4f.Provider import RetryProvider
-
-from .extra import find_module, quote_string
+import base64
+from .extra import extract_image, find_module, quote_string, encode_image_base64
 from .handler import Handler
 
 class LLMHandler(Handler):
@@ -19,6 +18,10 @@ class LLMHandler(Handler):
     def __init__(self, settings, path):
         self.settings = settings
         self.path = path
+
+    def supports_vision(self) -> bool:
+        """ Return if the LLM supports receiving images"""
+        return False
 
     def stream_enabled(self) -> bool:
         """ Return if the LLM supports token streaming"""
@@ -111,7 +114,7 @@ class LLMHandler(Handler):
             str: Response of the bot
         """        
         return self.generate_text_stream(message, self.history, self.prompts, on_update, extra_args)
-
+ 
     def get_suggestions(self, request_prompt:str = "", amount:int=1) -> list[str]:
         """Get suggestions for the current chat. The default implementation expects the result as a JSON Array containing the suggestions
 
@@ -294,10 +297,16 @@ class GeminiHandler(LLMHandler):
     Official Google Gemini APIs, they support history and system prompts
     """
 
+    def __init__(self, settings, path):
+        super().__init__(settings, path)
+        self.cache = {}
+
     @staticmethod
     def get_extra_requirements() -> list:
         return ["google-generativeai"]
 
+    def supports_vision(self) -> bool:
+        return True
     def is_installed(self) -> bool:
         if find_module("google.generativeai") is None:
             return False
@@ -318,7 +327,7 @@ class GeminiHandler(LLMHandler):
                 "description": _("AI Model to use, available: gemini-1.5-pro, gemini-1.0-pro, gemini-1.5-flash"),
                 "type": "combo",
                 "default": "gemini-1.5-flash",
-                "values": [("gemini-1.5-flash","gemini-1.5-flash") , ("gemini-1.0-pro", "gemini-1.0-pro"), ("gemini-1.5-pro","gemini-1.5-pro") ]
+                "values": [("gemini-1.5-flash-8b", "gemini-1.5-flash-8b"), ("gemini-1.5-flash","gemini-1.5-flash") , ("gemini-1.0-pro", "gemini-1.0-pro"), ("gemini-1.5-pro","gemini-1.5-pro") ]
             },
             {
                 "key": "streaming",
@@ -344,12 +353,42 @@ class GeminiHandler(LLMHandler):
                     "role": "user",
                     "parts": "Console: " + message["Message"]
                 })
-            else:
+            else: 
+                img, text = self.get_gemini_image(message["Message"]) 
                 result.append({
                     "role": message["User"].lower() if message["User"] == "User" else "model",
-                    "parts": message["Message"]
+                    "parts": message["Message"] if img is None else [img, text]
                 })
         return result
+
+    def add_image_to_history(self, history: list, image: object) -> list:
+        history.append({
+            "role": "user",
+            "parts": [image]
+        })
+        return history
+    
+    def get_gemini_image(self, message: str) -> tuple[object, str]:
+        from google.generativeai import upload_file
+        img = None
+        image, text = extract_image(message)
+        if image is not None:
+            if image.startswith("data:image/jpeg;base64,"):
+                image = image[len("data:image/jpeg;base64,"):]
+                raw_data = base64.b64decode(image)
+                with open("/tmp/image.jpg", "wb") as f:
+                    f.write(raw_data)
+                image_path = "/tmp/image.jpg"
+            else:
+                image_path = image
+            if image in self.cache:
+                img = self.cache[image]
+            else:
+                img = upload_file(image_path)
+                self.cache[image] = img
+        else:
+            text = message
+        return img, text
 
     def generate_text(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = []) -> str:
         import google.generativeai as genai
@@ -372,10 +411,13 @@ class GeminiHandler(LLMHandler):
         model = genai.GenerativeModel(self.get_setting("model"), system_instruction=instructions, safety_settings=safety)
         converted_history = self.__convert_history(history)
         try:
+            img, txt = self.get_gemini_image(prompt)
+            if img is not None:
+                converted_history = self.add_image_to_history(converted_history, img)
             chat = model.start_chat(
                 history=converted_history
             )
-            response = chat.send_message(prompt)
+            response = chat.send_message(txt)
             return response.text
         except Exception as e:
             return "Message blocked: " + str(e)
@@ -401,8 +443,11 @@ class GeminiHandler(LLMHandler):
         model = genai.GenerativeModel(self.get_setting("model"), system_instruction=instructions, safety_settings=safety)
         converted_history = self.__convert_history(history) 
         try: 
+            img, txt = self.get_gemini_image(prompt)
+            if img is not None:
+                converted_history = self.add_image_to_history(converted_history, img)
             chat = model.start_chat(history=converted_history)
-            response = chat.send_message(prompt, stream=True)
+            response = chat.send_message(txt, stream=True)
             full_message = ""
             for chunk in response:
                 full_message += chunk.text
@@ -496,6 +541,9 @@ class OllamaHandler(LLMHandler):
     def get_extra_requirements() -> list:
         return ["ollama"]
 
+    def supports_vision(self) -> bool:
+        return True
+
     def get_extra_settings(self) -> list:
         return [ 
             {
@@ -533,16 +581,23 @@ class OllamaHandler(LLMHandler):
                     "content": "Console: " + message["Message"]
                 })
             else:
-                result.append({
+                image, text = extract_image(message["Message"])
+                
+                msg = {
                     "role": message["User"].lower() if message["User"] in {"Assistant", "User"} else "system",
-                    "content": message["Message"]
-                })
+                    "content": text
+                }
+                if message["User"] == "User" and image is not None:
+                    if image.startswith("data:image/png;base64,"):
+                        image = image[len("data:image/png;base64,"):]
+                    msg["images"] = [image]
+                result.append(msg)
         return result
     
     def generate_text(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = []) -> str:
         from ollama import Client
+        history.append({"User": "User", "Message": prompt})
         messages = self.convert_history(history, system_prompt)
-        messages.append({"role": "user", "content": prompt})
 
         client = Client(
             host=self.get_setting("endpoint")
@@ -558,8 +613,8 @@ class OllamaHandler(LLMHandler):
     
     def generate_text_stream(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = [], on_update: Callable[[str], Any] = lambda _: None, extra_args: list = []) -> str:
         from ollama import Client
+        history.append({"User": "User", "Message": prompt})
         messages = self.convert_history(history, system_prompt)
-        messages.append({"role": "user", "content": prompt})
         client = Client(
             host=self.get_setting("endpoint")
         )
@@ -584,10 +639,13 @@ class OllamaHandler(LLMHandler):
 
 class OpenAIHandler(LLMHandler):
     key = "openai"
-
+ 
     @staticmethod
     def get_extra_requirements() -> list:
         return ["openai"]
+
+    def supports_vision(self) -> bool:
+        return True
 
     def get_extra_settings(self) -> list:
         return [ 
@@ -689,10 +747,35 @@ class OpenAIHandler(LLMHandler):
         result = []
         result.append({"role": "system", "content": "\n".join(prompts)})
         for message in history:
-            result.append({
-                "role": message["User"].lower() if message["User"] in {"Assistant", "User"} else "system",
-                "content": message["Message"]
-            })
+            if message["User"] == "Console":
+                result.append({
+                    "role": "user",
+                    "content": "Console: " + message["Message"]
+                })
+            else:
+                if self.supports_vision():
+                    image, text = extract_image(message["Message"]) 
+                    if message["User"] == "User" and image is not None:
+                        if not image.startswith("data:image/jpeg;base64,"):
+                            image = encode_image_base64(image)
+                        result.append({
+                            "role": "user",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": text 
+                                },
+                                {
+                                    "type": "image_url",
+                                    "image_url": {"url": image}
+                                }
+                            ],
+                        })
+                        continue
+                result.append({
+                    "role": message["User"].lower() if message["User"] in {"Assistant", "User"} else "system",
+                    "content": message["Message"]
+                })
         return result
 
     def get_advanced_params(self):
@@ -708,8 +791,8 @@ class OpenAIHandler(LLMHandler):
 
     def generate_text(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = []) -> str:
         from openai import OpenAI
+        history.append({"User": "User", "Message": prompt})
         messages = self.convert_history(history, system_prompt)
-        messages.append({"role": "user", "content": prompt})
         api = self.get_setting("api")
         if api == "":
             api = "nokey"
@@ -735,8 +818,8 @@ class OpenAIHandler(LLMHandler):
     
     def generate_text_stream(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = [], on_update: Callable[[str], Any] = lambda _: None, extra_args: list = []) -> str:
         from openai import OpenAI
+        history.append({"User": "User", "Message": prompt})
         messages = self.convert_history(history, system_prompt)
-        messages.append({"role": "user", "content": prompt})
         api = self.get_setting("api")
         if api == "":
             api = "nokey"
@@ -800,7 +883,10 @@ class MistralHandler(OpenAIHandler):
 
 class GroqHandler(OpenAIHandler):
     key = "groq"
-    
+   
+    def supports_vision(self) -> bool:
+        return "vision" in self.get_setting("model")
+
     def __init__(self, settings, path):
         super().__init__(settings, path)
         self.set_setting("endpoint", "https://api.groq.com/openai/v1/")
@@ -825,6 +911,20 @@ class GroqHandler(OpenAIHandler):
         ]
         settings += super().get_extra_settings()[-7:]
         return settings
+
+    def convert_history(self, history: list, prompts: list | None = None) -> list:
+        # Remove system prompt if history contains image prompt
+        # since it is not supported by groq
+        h = super().convert_history(history, prompts)
+        contains_image = False
+        for message in h:
+            if type(message["content"]) is list:
+                if any(content["type"] == "image_url" for content in message["content"]):
+                    contains_image = True
+                    break
+        if contains_image:
+            h.pop(0)
+        return h
 
 class OpenRouterHandler(OpenAIHandler):
     key = "openrouter"
