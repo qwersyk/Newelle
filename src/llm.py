@@ -3,7 +3,7 @@ from subprocess import PIPE, Popen, check_output
 import os, threading
 from typing import Callable, Any
 import json
-
+import base64
 from openai import NOT_GIVEN
 from g4f.Provider import RetryProvider
 
@@ -19,6 +19,10 @@ class LLMHandler(Handler):
     def __init__(self, settings, path):
         self.settings = settings
         self.path = path
+
+    def supports_vision(self) -> bool:
+        """ Return if the LLM supports receiving images"""
+        return False
 
     def stream_enabled(self) -> bool:
         """ Return if the LLM supports token streaming"""
@@ -111,7 +115,7 @@ class LLMHandler(Handler):
             str: Response of the bot
         """        
         return self.generate_text_stream(message, self.history, self.prompts, on_update, extra_args)
-
+ 
     def get_suggestions(self, request_prompt:str = "", amount:int=1) -> list[str]:
         """Get suggestions for the current chat. The default implementation expects the result as a JSON Array containing the suggestions
 
@@ -584,10 +588,13 @@ class OllamaHandler(LLMHandler):
 
 class OpenAIHandler(LLMHandler):
     key = "openai"
-
+ 
     @staticmethod
     def get_extra_requirements() -> list:
         return ["openai"]
+
+    def supports_vision(self) -> bool:
+        return True
 
     def get_extra_settings(self) -> list:
         return [ 

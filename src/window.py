@@ -755,9 +755,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.send_button_start_spinner()
         text = button.get_child().get_label()
         self.chat.append({"User": "User", "Message": " "+text})
-        message_label = Gtk.Label(label=text, margin_top=10, margin_start=10, margin_bottom=10, margin_end=10, wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR,
-                                  selectable=True)
-        self.add_message("User", message_label, len(self.chat) - 1)
+        self.show_message(text, id_message=len(self.chat) - 1, is_user=True)
         threading.Thread(target=self.send_message).start()
 
     def update_folder(self, *a):
@@ -991,10 +989,8 @@ class MainWindow(Gtk.ApplicationWindow):
         text = entry.get_text()
         entry.set_text('')
         if not text == " " * len(text):
-            self.chat.append({"User": "User", "Message": " " + text})
-            message_label = Gtk.Label(label=text, margin_top=10, margin_start=10, margin_bottom=10, margin_end=10,
-                                      wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR, selectable=True)
-            self.add_message("User", message_label, len(self.chat) - 1)
+            self.chat.append({"User": "User", "Message": " " + text}) 
+            self.show_message(text, True,id_message=len(self.chat)-1, is_user=True)
         self.scrolled_chat()
         threading.Thread(target=self.send_message).start()
         self.send_button_start_spinner()
@@ -1021,9 +1017,7 @@ class MainWindow(Gtk.ApplicationWindow):
                 self.add_message("Disclaimer")
             for i in range(len(self.chat)):
                 if self.chat[i]["User"] == "User":
-                    self.add_message("User", Gtk.Label(label=self.chat[i]["Message"][1:len(self.chat[i]["Message"])], margin_top=10, margin_start=10,
-                                                       margin_bottom=10, margin_end=10, wrap=True,
-                                                       wrap_mode=Pango.WrapMode.WORD_CHAR, selectable=True), i)
+                    self.show_message(self.chat[i]["Message"], True, id_message=i, is_user=True)
                 elif self.chat[i]["User"] == "Assistant":
                     self.show_message(self.chat[i]["Message"], True, id_message=i)
                 elif self.chat[i]["User"] in ["File", "Folder"]:
@@ -1031,15 +1025,15 @@ class MainWindow(Gtk.ApplicationWindow):
             self.check_streams["chat"] = False
         GLib.idle_add(self.scrolled_chat)
 
-    def show_message(self, message_label, restore=False,id_message=-1):
-        if message_label == " " * len(message_label):
+    def show_message(self, message_label, restore=False,id_message=-1, is_user=False):
+        if message_label == " " * len(message_label) and not is_user:
             if not restore:
                 self.chat.append({"User": "Assistant", "Message": message_label})
                 GLib.idle_add(self.update_button_text)
                 self.status = True
                 self.chat_stop_button.set_visible(False)
         else:
-            if not restore: self.chat.append({"User": "Assistant", "Message": message_label})
+            if not restore and not is_user: self.chat.append({"User": "Assistant", "Message": message_label})
             table_string = message_label.split("\n")
             box = Gtk.Box(margin_top=10, margin_start=10, margin_bottom=10, margin_end=10,
                           orientation=Gtk.Orientation.VERTICAL)
@@ -1056,7 +1050,7 @@ class MainWindow(Gtk.ApplicationWindow):
                         start_code_index = i + 1
                         code_language = table_string[i][3:len(table_string[i])]
                     else:
-                        if code_language in self.extensionloader.codeblocks:
+                        if code_language in self.extensionloader.codeblocks and not is_user:
                             
                             value = '\n'.join(table_string[start_code_index:i])
                             extension = self.extensionloader.codeblocks[code_language]
@@ -1119,7 +1113,7 @@ class MainWindow(Gtk.ApplicationWindow):
                                     image.set_from_file(i)
                                 box.append(image)
 
-                        elif code_language == "console":
+                        elif code_language == "console" and not is_user:
                             if id_message==-1:
                                 id_message = len(self.chat)-1
                             id_message+=1
@@ -1161,7 +1155,7 @@ class MainWindow(Gtk.ApplicationWindow):
                         elif code_language in ["file", "folder"]:
                             for obj in table_string[start_code_index:i]:
                                 box.append(self.get_file_button(obj))
-                        elif code_language == "chart":
+                        elif code_language == "chart" and not is_user:
                             result = {}
                             lines = table_string[start_code_index:i]
                             for line in lines:
@@ -1198,14 +1192,14 @@ class MainWindow(Gtk.ApplicationWindow):
             if start_table_index != -1:
                 box.append(self.create_table(table_string[start_table_index:len(table_string)]))
             if not has_terminal_command:
-                self.add_message("Assistant", box)
+                self.add_message("Assistant" if not is_user else "User", box)
                 if not restore:
                     GLib.idle_add(self.update_button_text)
                     self.status = True
                     self.chat_stop_button.set_visible(False)
                     self.chats[self.chat_id]["chat"] = self.chat
             else:
-                if not restore:
+                if not restore and not is_user:
                     def wait_threads_sm():
                         for t in running_threads:
                             t.join()
@@ -1242,7 +1236,10 @@ class MainWindow(Gtk.ApplicationWindow):
             label = Gtk.Label(label="", margin_top=10, margin_start=10, margin_bottom=10, margin_end=10, wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR,
                                   selectable=True)
             box=self.add_message("Assistant",label)
-            message_label = self.model.send_message_stream(self, self.chat[-1]["Message"], self.update_message, (label, ))
+            if self.attached_image_data is None:
+                message_label = self.model.send_message_stream(self, self.chat[-1]["Message"], self.update_message, (label, ))
+            else:
+                message_label = self.model.send_message_vision_stream(self, self.chat[-1]["Message"], self.attached_image_data, self.update_message, (label, ))
             try:
                 box.get_parent().set_visible(False)
             except:
