@@ -6,7 +6,7 @@ import json
 from openai import NOT_GIVEN
 from g4f.Provider import RetryProvider
 import base64
-from .extra import extract_image, find_module, quote_string, encode_image_base64
+from .extra import extract_image, find_module, get_image_base64, get_image_path, quote_string, encode_image_base64
 from .handler import Handler
 
 class LLMHandler(Handler):
@@ -197,7 +197,13 @@ class G4FHandler(LLMHandler):
     
     def generate_text(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = []) -> str:
         model = self.get_setting("model")
-        message = prompt
+        img = None
+        if self.supports_vision():
+            img, message = extract_image(prompt)
+        else:
+            message = prompt
+        if img is not None:
+            img = get_image_path(img)
         history = self.convert_history(history, system_prompt)
         user_prompt = {"role": "user", "content": message}
         history.append(user_prompt)
@@ -205,12 +211,20 @@ class G4FHandler(LLMHandler):
             response = self.client.chat.completions.create(
                 model=model,
                 messages=history,
+                image= open(img, "rb") if img is not None else None
             )
             return response.choices[0].message.content
         except Exception as e:
             return f"Error: {e}"
     def generate_text_stream(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = [], on_update: Callable[[str], Any] = lambda _: None, extra_args: list = []) -> str:
-        message = prompt
+        model = self.get_setting("model")
+        img = None
+        if self.supports_vision():
+            img, message = extract_image(prompt)
+        else:
+            message = prompt
+        if img is not None:
+            get_image_path(img)
         model = self.get_setting("model")
         history = self.convert_history(history, system_prompt)
         user_prompt = {"role": "user", "content": message}
@@ -220,6 +234,7 @@ class G4FHandler(LLMHandler):
                 model=model,
                 messages=history,
                 stream=True,
+                image= open(img, "rb") if img is not None else None
             )
             full_message = ""
             prev_message = ""
@@ -245,10 +260,11 @@ class GPT3AnyHandler(G4FHandler):
     def __init__(self, settings, path):
         import g4f
         super().__init__(settings, path)
-        good_providers = [g4f.Provider.DDG, g4f.Provider.Pizzagpt, g4f.Provider.DarkAI, g4f.Provider.Koala, g4f.Provider.NexraChatGPT4o, g4f.Provider.NexraChatGPT, g4f.Provider.AmigoChat]
-        good_nongpt_providers = [g4f.Provider.ReplicateHome,g4f.Provider.RubiksAI, g4f.Provider.NexraLLaMA31, g4f.Provider.TeachAnything, g4f.Provider.ChatGot, g4f.Provider.FreeChatgpt, g4f.Provider.Free2GPT, g4f.Provider.DeepInfraChat, g4f.Provider.PerplexityLabs]
+        good_providers = [g4f.Provider.DDG, g4f.Provider.Pizzagpt, g4f.Provider.DarkAI, g4f.Provider.Koala, g4f.Provider.NexraChatGPT, g4f.Provider.AmigoChat]
+        good_nongpt_providers = [g4f.Provider.ReplicateHome,g4f.Provider.RubiksAI, g4f.Provider.TeachAnything, g4f.Provider.ChatGot, g4f.Provider.FreeChatgpt, g4f.Provider.Free2GPT, g4f.Provider.DeepInfraChat, g4f.Provider.PerplexityLabs]
         acceptable_providers = [g4f.Provider.ChatifyAI, g4f.Provider.Allyfy, g4f.Provider.Blackbox, g4f.Provider.Upstage, g4f.Provider.ChatHub, g4f.Provider.Upstage]
-        self.client = g4f.client.Client(provider=RetryProvider([RetryProvider(good_providers), RetryProvider(good_nongpt_providers), RetryProvider(acceptable_providers)], shuffle=False))
+        good_providers = [g4f.Provider.Bing]
+        self.client = g4f.client.Client(provider=RetryProvider([RetryProvider(good_providers)], shuffle=False))
         self.n = 0
 
     def generate_text(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = []) -> str:
@@ -259,18 +275,20 @@ class GPT3AnyHandler(G4FHandler):
         response = self.client.chat.completions.create(
             model="",
             messages=history,
+            image=open(img, "rb") if img is not None else None, 
         )
         return response.choices[0].message.content
 
     def generate_text_stream(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = [], on_update: Callable[[str], Any] = lambda _: None, extra_args: list = []) -> str:
-        message = prompt
         history = self.convert_history(history, system_prompt)
+        message = prompt
         user_prompt = {"role": "user", "content": message}
         history.append(user_prompt)
         response = self.client.chat.completions.create(
             model="",
             messages=history,
             stream=True,
+            image=open(img, "rb") if img is not None else None,
         )
         full_message = ""
         prev_message = ""
@@ -289,6 +307,56 @@ class GPT3AnyHandler(G4FHandler):
             history += message["User"] + ": " + message["Message"] + "\n"
         name = self.generate_text(history + "\n\n" + request_prompt)
         return name
+
+class BingHandler(G4FHandler):
+    key = "bing"
+
+    def __init__(self, settings, path):
+        import g4f
+        super().__init__(settings, path)
+        self.cookies_path = os.path.join(os.path.dirname(self.path), "models", "har_and_cookies")
+        if not os.path.isdir(self.cookies_path):
+            os.makedirs(self.cookies_path)
+        self.client = g4f.client.Client(provider=g4f.Provider.Bing)        
+ 
+    def get_extra_settings(self) -> list:
+        return [
+            {
+                "key": "model",
+                "title": _("Model"),
+                "description": _("The model to use"),
+                "type": "combo",
+                "values": self.get_model(),
+                "default": "Copilot",
+            },
+            {
+                "key": "cookies",
+                "title": _("Enable Cookies"),
+                "description": _("Enable cookies to use Bing, add them in the dir in json"),
+                "type": "toggle",
+                "default": True,
+                "folder": self.cookies_path
+            }
+        ] + super().get_extra_settings()
+
+    def get_model(self):
+        import g4f
+        res = tuple()
+        for model in g4f.Provider.Bing.models:
+            res += ((model, model), )
+        return res
+
+    def load_model(self, model):
+        if not self.get_setting("cookies"):
+            return True
+        from g4f.cookies import set_cookies_dir, read_cookie_files
+        set_cookies_dir(self.cookies_path)
+        read_cookie_files(self.cookies_path)
+        return True
+
+    def supports_vision(self) -> bool:
+        return True
+
 
 class GeminiHandler(LLMHandler):
     key = "gemini"
@@ -756,8 +824,7 @@ class OpenAIHandler(LLMHandler):
                 if self.supports_vision():
                     image, text = extract_image(message["Message"]) 
                     if message["User"] == "User" and image is not None:
-                        if not image.startswith("data:image/jpeg;base64,"):
-                            image = encode_image_base64(image)
+                        image = get_image_base64(image)
                         result.append({
                             "role": "user",
                             "content": [
