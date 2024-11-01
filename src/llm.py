@@ -6,7 +6,7 @@ import json
 from openai import NOT_GIVEN
 from g4f.Provider import RetryProvider
 import base64
-from .extra import extract_image, find_module, get_image_base64, get_image_path, quote_string, encode_image_base64
+from .extra import convert_history_openai, extract_image, find_module, get_image_base64, get_image_path, quote_string, encode_image_base64
 from .handler import Handler
 
 class LLMHandler(Handler):
@@ -180,20 +180,7 @@ class G4FHandler(LLMHandler):
     def convert_history(self, history: list, prompts: list | None = None) -> list:
         if prompts is None:
             prompts = self.prompts
-        result = []
-        result.append({"role": "system", "content": "\n".join(prompts)})
-        for message in history:
-            if message["User"] == "Console":
-                result.append({
-                    "role": "user",
-                    "content": "Console: " + message["Message"]
-                })
-            else:
-                result.append({
-                    "role": message["User"].lower() if message["User"] in {"Assistant", "User"} else "system",
-                    "content": message["Message"]
-                })
-        return result
+        return convert_history_openai(history, prompts, False)
     
     def generate_text(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = []) -> str:
         model = self.get_setting("model")
@@ -759,8 +746,8 @@ class OpenAIHandler(LLMHandler):
                 "website": "https://help.openai.com/en/articles/4936856-what-are-tokens-and-how-to-count-them",
                 "type": "range",
                 "min": 3,
-                "max": 400,
-                "default": 150,
+                "max": 8000,
+                "default": 4000,
                 "round-digits": 0
             },
             {
@@ -812,38 +799,7 @@ class OpenAIHandler(LLMHandler):
     def convert_history(self, history: list, prompts: list | None = None) -> list:
         if prompts is None:
             prompts = self.prompts
-        result = []
-        result.append({"role": "system", "content": "\n".join(prompts)})
-        for message in history:
-            if message["User"] == "Console":
-                result.append({
-                    "role": "user",
-                    "content": "Console: " + message["Message"]
-                })
-            else:
-                if self.supports_vision():
-                    image, text = extract_image(message["Message"]) 
-                    if message["User"] == "User" and image is not None:
-                        image = get_image_base64(image)
-                        result.append({
-                            "role": "user",
-                            "content": [
-                                {
-                                    "type": "text",
-                                    "text": text 
-                                },
-                                {
-                                    "type": "image_url",
-                                    "image_url": {"url": image}
-                                }
-                            ],
-                        })
-                        continue
-                result.append({
-                    "role": message["User"].lower() if message["User"] in {"Assistant", "User"} else "system",
-                    "content": message["Message"]
-                })
-        return result
+        return convert_history_openai(history, prompts, self.supports_vision())
 
     def get_advanced_params(self):
         advanced_params = self.get_setting("advanced_params")
@@ -851,7 +807,7 @@ class OpenAIHandler(LLMHandler):
             return NOT_GIVEN, NOT_GIVEN, NOT_GIVEN, NOT_GIVEN, NOT_GIVEN
         top_p = self.get_setting("top-p")
         temperature = self.get_setting("temperature")
-        max_tokens = self.get_setting("max-tokens")
+        max_tokens = int(self.get_setting("max-tokens"))
         presence_penalty = self.get_setting("presence-penalty")
         frequency_penalty = self.get_setting("frequency-penalty")
         return top_p, temperature, max_tokens, presence_penalty, frequency_penalty 
@@ -989,7 +945,7 @@ class GroqHandler(OpenAIHandler):
                 if any(content["type"] == "image_url" for content in message["content"]):
                     contains_image = True
                     break
-        if contains_image:
+        if contains_image and (prompts is None or len(prompts) > 0):
             h.pop(0)
         return h
 
@@ -1012,7 +968,7 @@ class OpenRouterHandler(OpenAIHandler):
             {
                 "key": "model",
                 "title": _("OpenRouter Model"),
-                "description": _("Name of the Groq Model"),
+                "description": _("Name of the OpenRouter Model"),
                 "type": "entry",
                 "default": "meta-llama/llama-3.1-70b-instruct:free",
                 "website": "https://openrouter.ai/docs/models",

@@ -43,6 +43,7 @@ def get_image_base64(image_str: str):
     """
     if not image_str.startswith("data:image/jpeg;base64,"):
         image = encode_image_base64(image_str)
+        return image
     else:
         return image_str
 
@@ -63,6 +64,42 @@ def get_image_path(image_str: str):
             f.write(raw_data)
         return saved_image
     return image_str
+
+def convert_history_openai(history, prompts, vision_support = False):
+    result = []
+    if len(prompts) > 0:
+        result.append({"role": "system", "content": "\n".join(prompts)})
+    
+    for message in history:
+        if message["User"] == "Console":
+            result.append({
+                "role": "user",
+                "content": "Console: " + message["Message"]
+            })
+        else:
+            image, text = extract_image(message["Message"])
+            if vision_support and image is not None and message["User"] == "User":
+                image = get_image_base64(image)
+                result.append({
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": text
+                        },
+                        {
+                            "type": "image_url",
+                            "image_url": {"url": image}
+                        }
+                    ],
+                })
+            else:
+                result.append({
+                    "role": "user" if message["User"] == "User" else "assistant",
+                    "content": message["Message"]
+                })
+    print(result)
+    return result
 
 def encode_image_base64(image_path):
     with open(image_path, "rb") as image_file:
