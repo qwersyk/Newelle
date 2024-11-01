@@ -1000,7 +1000,7 @@ class GPT4AllHandler(LLMHandler):
     
     def get_extra_settings(self) -> list:
         models = self.get_custom_model_list()
-        default = models[0] if len(models) > 0 else ""
+        default = models[0][1] if len(models) > 0 else ""
         return [
             {
                 "key": "streaming",
@@ -1020,13 +1020,13 @@ class GPT4AllHandler(LLMHandler):
             }
         ]
     def get_custom_model_list(self): 
-        file_list = []
+        file_list = tuple()
         for root, _, files in os.walk(self.model_folder):
-            for file in files:
+            for file in files: 
                 if file.endswith('.gguf'):
                     file_name = file.rstrip('.gguf')
                     relative_path = os.path.relpath(os.path.join(root, file), self.model_folder)
-                    file_list.append((file_name, relative_path))
+                    file_list += ((file_name, relative_path), )
         return file_list
 
     def model_available(self, model:str) -> bool:
@@ -1063,7 +1063,7 @@ class GPT4AllHandler(LLMHandler):
                 self.session = self.model.chat_session()
                 self.session.__enter__()
             except Exception as e:
-                print(e)
+                print("Error loading the model: ", e)
                 return False
             return True
 
