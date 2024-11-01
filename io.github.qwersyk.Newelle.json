@@ -26,9 +26,9 @@
         "*.a"
     ],
     "modules" : [
+
     	"modules/python3-requests.json",
     	"modules/python3-expandvars.json",
-    	"modules/python3-curl_cffi.json",
 	    "modules/python3-g4f.json",
     	"modules/python3-gpt4all.json",
     	"modules/python3-gtts.json",

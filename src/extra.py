@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 import importlib, subprocess
-import re, base64
+import re, base64, io
 import os, sys
 import xml.dom.minidom, html
 
@@ -30,6 +30,86 @@ class ReplaceHelper:
         if desktop is None:
             desktop = "Unknown"
         return desktop
+
+def get_image_base64(image_str: str):
+    """
+    Get image string as base64 string, starting with data:/image/jpeg;base64,
+
+    Args:
+        image_str: content of the image codeblock 
+
+    Returns:
+       base64 encoded image 
+    """
+    if not image_str.startswith("data:image/jpeg;base64,"):
+        image = encode_image_base64(image_str)
+        return image
+    else:
+        return image_str
+
+def get_image_path(image_str: str):
+    """
+    Get image string as image path
+
+    Args:
+        image_str: content of the image codeblock 
+
+    Returns:
+       image path 
+    """
+    if image_str.startswith("data:image/jpeg;base64,"):
+        raw_data = base64.b64decode(image_str[len("data:image/jpeg;base64,"):])
+        saved_image = "/tmp/" + image_str[len("data:image/jpeg;base64,"):][30:] + ".jpg"
+        with open(saved_image, "wb") as f:
+            f.write(raw_data)
+        return saved_image
+    return image_str
+
+def convert_history_openai(history: list, prompts: list, vision_support : bool = False):
+    """Converts Newelle history into OpenAI format
+
+    Args:
+        history (list): Newelle history 
+        prompts (list): list of prompts 
+        vision_support (bool): True if vision support
+
+    Returns:
+       history in openai format 
+    """
+    result = []
+    if len(prompts) > 0:
+        result.append({"role": "system", "content": "\n".join(prompts)})
+    
+    for message in history:
+        if message["User"] == "Console":
+            result.append({
+                "role": "user",
+                "content": "Console: " + message["Message"]
+            })
+        else:
+            image, text = extract_image(message["Message"])
+            if vision_support and image is not None and message["User"] == "User":
+                image = get_image_base64(image)
+                result.append({
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": text
+                        },
+                        {
+                            "type": "image_url",
+                            "image_url": {"url": image}
+                        }
+                    ],
+                })
+            else:
+                result.append({
+                    "role": "user" if message["User"] == "User" else "assistant",
+                    "content": message["Message"]
+                })
+    print(result)
+    return result
 
 def encode_image_base64(image_path):
     with open(image_path, "rb") as image_file:
