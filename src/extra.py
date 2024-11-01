@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 import importlib, subprocess
-import re, base64
+import re, base64, io
 import os, sys
 import xml.dom.minidom, html
 
@@ -30,6 +30,39 @@ class ReplaceHelper:
         if desktop is None:
             desktop = "Unknown"
         return desktop
+
+def get_image_base64(image_str: str):
+    """
+    Get image string as base64 string, starting with data:/image/jpeg;base64,
+
+    Args:
+        image_str: content of the image codeblock 
+
+    Returns:
+       base64 encoded image 
+    """
+    if not image_str.startswith("data:image/jpeg;base64,"):
+        image = encode_image_base64(image_str)
+    else:
+        return image_str
+
+def get_image_path(image_str: str):
+    """
+    Get image string as image path
+
+    Args:
+        image_str: content of the image codeblock 
+
+    Returns:
+       image path 
+    """
+    if image_str.startswith("data:image/jpeg;base64,"):
+        raw_data = base64.b64decode(image_str[len("data:image/jpeg;base64,"):])
+        saved_image = "/tmp/" + image_str[len("data:image/jpeg;base64,"):][30:] + ".jpg"
+        with open(saved_image, "wb") as f:
+            f.write(raw_data)
+        return saved_image
+    return image_str
 
 def encode_image_base64(image_path):
     with open(image_path, "rb") as image_file:
