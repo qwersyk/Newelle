@@ -65,7 +65,17 @@ def get_image_path(image_str: str):
         return saved_image
     return image_str
 
-def convert_history_openai(history, prompts, vision_support = False):
+def convert_history_openai(history: list, prompts: list, vision_support : bool = False):
+    """Converts Newelle history into OpenAI format
+
+    Args:
+        history (list): Newelle history 
+        prompts (list): list of prompts 
+        vision_support (bool): True if vision support
+
+    Returns:
+       history in openai format 
+    """
     result = []
     if len(prompts) > 0:
         result.append({"role": "system", "content": "\n".join(prompts)})
