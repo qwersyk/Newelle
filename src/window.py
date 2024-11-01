@@ -322,6 +322,8 @@ class MainWindow(Gtk.ApplicationWindow):
             self.tts.stop()
         button.set_visible(False)
 
+    def focus_input(self):
+        self.input_panel.input_panel.grab_focus()
     def start_recording(self, button):
         #button.set_child(Gtk.Spinner(spinning=True))
         button.set_icon_name("media-playback-stop-symbolic")

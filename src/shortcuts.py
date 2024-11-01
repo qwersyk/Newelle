@@ -16,6 +16,7 @@ class Shortcuts(Gtk.Window):
         gr.append(Gtk.ShortcutsShortcut(title=_("Reload folder"), accelerator='<primary>r'))
         gr.append(Gtk.ShortcutsShortcut(title=_("New tab"), accelerator='<primary>t'))
         gr.append(Gtk.ShortcutsShortcut(title=_("Paste Image"), accelerator='<primary>v'))
+        gr.append(Gtk.ShortcutsShortcut(title=_("Focus message box"), accelerator='<primary>l'))
 
         sect_main.append(gr)
         self.set_child(sect_main)

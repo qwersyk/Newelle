@@ -185,6 +185,9 @@ class MyApp(Adw.Application):
         self.win.connect("close-request", self.close_window)
         self.win.present()
 
+    def focus_message(self, *a):
+        self.win.focus_input()
+
     def reload_chat(self,*a):
         self.win.show_chat()
         self.win.notification_block.add_toast(
@@ -214,4 +217,5 @@ def main(version):
     app.create_action('reload_chat', app.reload_chat, ['<primary>r'])
     app.create_action('reload_folder', app.reload_folder, ['<primary>e'])
     app.create_action('new_chat', app.new_chat, ['<primary>t'])
+    app.create_action('focus_message', app.focus_message, ['<primary>l'])
     app.run(sys.argv)
