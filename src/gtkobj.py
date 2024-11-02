@@ -3,7 +3,7 @@ import gi, os, subprocess
 from gi.repository import Gtk, Pango, Gio, Gdk, GtkSource, GObject, Adw, GLib
 import threading
 
-from .extra import quote_string
+from .extra import get_spawn_command, quote_string
 
 def apply_css_to_widget(widget, css_string):
     provider = Gtk.CssProvider()
@@ -310,7 +310,7 @@ class CopyBox(Gtk.Box):
         command = "cd " + quote_string(os.getcwd()) +"; " + self.txt + "; exec bash"
         cmd = self.parent.external_terminal.split()
         arguments = [s.replace("{0}", command) for s in cmd]
-        subprocess.Popen(["flatpak-spawn", "--host"] + arguments)
+        subprocess.Popen(get_spawn_command() + arguments)
 
 
     def run_python(self, widget):
@@ -318,7 +318,7 @@ class CopyBox(Gtk.Box):
         t = self.txt.replace("'", '"""')
         console_permissions = ""
         if not self.parent.virtualization:
-            console_permissions = "flatpak-spawn --host "
+            console_permissions = " ".join(get_spawn_command()) + " "
         process = subprocess.Popen(f"""{console_permissions}python3 -c '{t}'""", stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE, shell=True)
         stdout, stderr = process.communicate()

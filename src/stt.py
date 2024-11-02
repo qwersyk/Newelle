@@ -6,7 +6,7 @@ from typing import Any
 import pyaudio
 import wave
 import speech_recognition as sr
-from .extra import find_module, install_module
+from .extra import find_module, get_spawn_command, install_module
 from .handler import Handler
 
 class AudioRecorder:
@@ -351,7 +351,7 @@ class CustomSRHandler(STTHandler):
     def recognize_file(self, path):
         command = self.get_setting("command")
         if command is not None:
-            res = check_output(["flatpak-spawn", "--host", "bash", "-c", command.replace("{0}", path)]).decode("utf-8")
+            res = check_output(get_spawn_command() + ["bash", "-c", command.replace("{0}", path)]).decode("utf-8")
             return str(res)
         return None
 

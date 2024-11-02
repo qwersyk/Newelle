@@ -6,7 +6,7 @@ import json
 from openai import NOT_GIVEN
 from g4f.Provider import RetryProvider
 import base64
-from .extra import convert_history_openai, extract_image, find_module, get_image_base64, get_image_path, quote_string, encode_image_base64
+from .extra import convert_history_openai, extract_image, find_module, get_image_base64, get_image_path, get_spawn_command, quote_string, encode_image_base64
 from .handler import Handler
 
 class LLMHandler(Handler):
@@ -552,7 +552,7 @@ class CustomLLMHandler(LLMHandler):
         history.append({"User": "User", "Message": prompt})
         command = command.replace("{0}", quote_string(json.dumps(history)))
         command = command.replace("{1}", quote_string(json.dumps(system_prompt)))
-        out = check_output(["flatpak-spawn", "--host", "bash", "-c", command])
+        out = check_output(get_spawn_command() + ["bash", "-c", command])
         return out.decode("utf-8")
     
     def get_suggestions(self, request_prompt: str = "", amount: int = 1) -> list[str]:
@@ -563,7 +563,7 @@ class CustomLLMHandler(LLMHandler):
         command = command.replace("{0}", quote_string(json.dumps(self.history)))
         command = command.replace("{1}", quote_string(json.dumps(self.prompts)))
         command = command.replace("{2}", str(amount))
-        out = check_output(["flatpak-spawn", "--host", "bash", "-c", command])
+        out = check_output(get_spawn_command() + ["bash", "-c", command])
         return json.loads(out.decode("utf-8"))  
  
     def generate_text_stream(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = [], on_update: Callable[[str], Any] = lambda _: None, extra_args: list = []) -> str:
@@ -571,7 +571,7 @@ class CustomLLMHandler(LLMHandler):
         history.append({"User": "User", "Message": prompt})
         command = command.replace("{0}", quote_string(json.dumps(history)))
         command = command.replace("{1}", quote_string(json.dumps(system_prompt)))
-        process = Popen(["flatpak-spawn", "--host", "bash", "-c", command], stdout=PIPE)        
+        process = Popen(get_spawn_command() + ["bash", "-c", command], stdout=PIPE)        
         full_message = ""
         prev_message = ""
         while True:

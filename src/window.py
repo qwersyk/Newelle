@@ -10,7 +10,7 @@ from .gtkobj import File, CopyBox, BarChartBox, MultilineEntry
 from .constants import AVAILABLE_LLMS, AVAILABLE_PROMPTS, PROMPTS, AVAILABLE_TTS, AVAILABLE_STT
 from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject, GLib, GdkPixbuf
 from .stt import AudioRecorder
-from .extra import markwon_to_pango, override_prompts, replace_variables
+from .extra import get_spawn_command, markwon_to_pango, override_prompts, replace_variables
 import threading
 import posixpath
 import json
@@ -887,7 +887,7 @@ class MainWindow(Gtk.ApplicationWindow):
         os.chdir(os.path.expanduser(self.main_path))
         console_permissions = ""
         if not self.virtualization:
-            console_permissions = "flatpak-spawn --host"
+            console_permissions = " ".join(get_spawn_command())
         commands = ('\n'.join(command)).split(" && ")
         txt = ""
         path=self.main_path
