@@ -57,7 +57,7 @@ AVAILABLE_LLMS = {
     "bing": {
         "key": "bing",
         "title": _("Microsoft Copilot"),
-        "description": _("Microsoft Copilot API"),
+        "description": _("Microsoft Copilot model using GPT4 - Requires a cookies json file"),
         "class": BingHandler,
         "secondary": True
     },
