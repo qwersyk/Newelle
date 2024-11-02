@@ -6,7 +6,7 @@ import json
 from openai import NOT_GIVEN
 from g4f.Provider import RetryProvider
 import base64
-from .extra import convert_history_openai, extract_image, find_module, get_image_base64, get_image_path, quote_string, encode_image_base64
+from .extra import convert_history_openai, extract_image, find_module, get_image_base64, get_image_path, get_spawn_command, quote_string, encode_image_base64
 from .handler import Handler
 
 class LLMHandler(Handler):
@@ -250,8 +250,7 @@ class GPT3AnyHandler(G4FHandler):
         good_providers = [g4f.Provider.DDG, g4f.Provider.Pizzagpt, g4f.Provider.DarkAI, g4f.Provider.Koala, g4f.Provider.NexraChatGPT, g4f.Provider.AmigoChat]
         good_nongpt_providers = [g4f.Provider.ReplicateHome,g4f.Provider.RubiksAI, g4f.Provider.TeachAnything, g4f.Provider.ChatGot, g4f.Provider.FreeChatgpt, g4f.Provider.Free2GPT, g4f.Provider.DeepInfraChat, g4f.Provider.PerplexityLabs]
         acceptable_providers = [g4f.Provider.ChatifyAI, g4f.Provider.Allyfy, g4f.Provider.Blackbox, g4f.Provider.Upstage, g4f.Provider.ChatHub, g4f.Provider.Upstage]
-        good_providers = [g4f.Provider.Bing]
-        self.client = g4f.client.Client(provider=RetryProvider([RetryProvider(good_providers)], shuffle=False))
+        self.client = g4f.client.Client(provider=RetryProvider([RetryProvider(good_providers), RetryProvider(good_nongpt_providers), RetryProvider(acceptable_providers)], shuffle=False))
         self.n = 0
 
     def generate_text(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = []) -> str:
@@ -262,7 +261,6 @@ class GPT3AnyHandler(G4FHandler):
         response = self.client.chat.completions.create(
             model="",
             messages=history,
-            image=open(img, "rb") if img is not None else None, 
         )
         return response.choices[0].message.content
 
@@ -275,7 +273,6 @@ class GPT3AnyHandler(G4FHandler):
             model="",
             messages=history,
             stream=True,
-            image=open(img, "rb") if img is not None else None,
         )
         full_message = ""
         prev_message = ""
@@ -552,7 +549,7 @@ class CustomLLMHandler(LLMHandler):
         history.append({"User": "User", "Message": prompt})
         command = command.replace("{0}", quote_string(json.dumps(history)))
         command = command.replace("{1}", quote_string(json.dumps(system_prompt)))
-        out = check_output(["flatpak-spawn", "--host", "bash", "-c", command])
+        out = check_output(get_spawn_command() + ["bash", "-c", command])
         return out.decode("utf-8")
     
     def get_suggestions(self, request_prompt: str = "", amount: int = 1) -> list[str]:
@@ -563,7 +560,7 @@ class CustomLLMHandler(LLMHandler):
         command = command.replace("{0}", quote_string(json.dumps(self.history)))
         command = command.replace("{1}", quote_string(json.dumps(self.prompts)))
         command = command.replace("{2}", str(amount))
-        out = check_output(["flatpak-spawn", "--host", "bash", "-c", command])
+        out = check_output(get_spawn_command() + ["bash", "-c", command])
         return json.loads(out.decode("utf-8"))  
  
     def generate_text_stream(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = [], on_update: Callable[[str], Any] = lambda _: None, extra_args: list = []) -> str:
@@ -571,7 +568,7 @@ class CustomLLMHandler(LLMHandler):
         history.append({"User": "User", "Message": prompt})
         command = command.replace("{0}", quote_string(json.dumps(history)))
         command = command.replace("{1}", quote_string(json.dumps(system_prompt)))
-        process = Popen(["flatpak-spawn", "--host", "bash", "-c", command], stdout=PIPE)        
+        process = Popen(get_spawn_command() + ["bash", "-c", command], stdout=PIPE)        
         full_message = ""
         prev_message = ""
         while True:
@@ -1000,7 +997,7 @@ class GPT4AllHandler(LLMHandler):
     
     def get_extra_settings(self) -> list:
         models = self.get_custom_model_list()
-        default = models[0] if len(models) > 0 else ""
+        default = models[0][1] if len(models) > 0 else ""
         return [
             {
                 "key": "streaming",
@@ -1020,13 +1017,13 @@ class GPT4AllHandler(LLMHandler):
             }
         ]
     def get_custom_model_list(self): 
-        file_list = []
+        file_list = tuple()
         for root, _, files in os.walk(self.model_folder):
-            for file in files:
+            for file in files: 
                 if file.endswith('.gguf'):
                     file_name = file.rstrip('.gguf')
                     relative_path = os.path.relpath(os.path.join(root, file), self.model_folder)
-                    file_list.append((file_name, relative_path))
+                    file_list += ((file_name, relative_path), )
         return file_list
 
     def model_available(self, model:str) -> bool:
@@ -1063,7 +1060,7 @@ class GPT4AllHandler(LLMHandler):
                 self.session = self.model.chat_session()
                 self.session.__enter__()
             except Exception as e:
-                print(e)
+                print("Error loading the model: ", e)
                 return False
             return True
 

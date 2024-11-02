@@ -12,7 +12,7 @@ from .constants import AVAILABLE_LLMS, AVAILABLE_PROMPTS, AVAILABLE_TTS, AVAILAB
 from gpt4all import GPT4All
 from .llm import GPT4AllHandler, LLMHandler
 from .gtkobj import ComboRowHelper, CopyBox, MultilineEntry
-from .extra import can_escape_sandbox, override_prompts, human_readable_size
+from .extra import can_escape_sandbox, get_spawn_command, override_prompts, human_readable_size
 
 from .extensions import ExtensionLoader, NewelleExtension
 
@@ -462,7 +462,7 @@ class Settings(Adw.PreferencesWindow):
             self.settings.set_boolean("virtualization", status)
 
     def open_website(self, button):
-        Popen(["flatpak-spawn", "--host", "xdg-open", button.get_name()])
+        Popen(get_spawn_command() + ["xdg-open", button.get_name()])
 
     def on_setting_change(self, constants: dict[str, Any], handler: Handler, key: str, force_change : bool = False):
         

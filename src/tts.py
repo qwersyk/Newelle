@@ -4,7 +4,7 @@ from gtts import gTTS, lang
 from subprocess import check_output
 import threading, time
 import os, json
-from .extra import can_escape_sandbox, human_readable_size
+from .extra import can_escape_sandbox, get_spawn_command, human_readable_size
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 from pygame import mixer
 from .handler import Handler
@@ -143,7 +143,7 @@ class EspeakHandler(TTSHandler):
             return self.voices
         if not self.is_installed():
             return self.voices
-        output = check_output(["flatpak-spawn", "--host", "espeak", "--voices"]).decode("utf-8")
+        output = check_output(get_spawn_command() + ["espeak", "--voices"]).decode("utf-8")
         # Extract the voice names from the output
         lines = output.strip().split("\n")[1:]
         voices = tuple()
@@ -155,18 +155,18 @@ class EspeakHandler(TTSHandler):
 
     def play_audio(self, message):
         self._play_lock.acquire()
-        check_output(["flatpak-spawn", "--host", "espeak", "-v" + str(self.get_current_voice()), message])
+        check_output(get_spawn_command() + ["espeak", "-v" + str(self.get_current_voice()), message])
         self._play_lock.release()
 
     def save_audio(self, message, file):
-        r = check_output(["flatpak-spawn", "--host", "espeak", "-f", "-v" + str(self.get_current_voice()), message, "--stdout"])
+        r = check_output(get_spawn_command() + ["espeak", "-f", "-v" + str(self.get_current_voice()), message, "--stdout"])
         f = open(file, "wb")
         f.write(r)
 
     def is_installed(self):
         if not can_escape_sandbox():
             return False
-        output = check_output(["flatpak-spawn", "--host", "whereis", "espeak"]).decode("utf-8")
+        output = check_output(get_spawn_command() + ["whereis", "espeak"]).decode("utf-8")
         paths = []
         if ":" in output:
             paths = output.split(":")[1].split()
@@ -203,5 +203,5 @@ class CustomTTSHandler(TTSHandler):
         command = self.get_setting("command")
         if command is not None:
             self._play_lock.acquire()
-            check_output(["flatpak-spawn", "--host", "bash", "-c", command.replace("{0}", message)])
+            check_output(get_spawn_command() + ["bash", "-c", command.replace("{0}", message)])
             self._play_lock.release()

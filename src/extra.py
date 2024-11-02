@@ -18,7 +18,7 @@ class ReplaceHelper:
         """
         if ReplaceHelper.DISTRO is None:
             try:
-                ReplaceHelper.DISTRO = subprocess.check_output(['flatpak-spawn', '--host', 'bash', '-c', 'lsb_release -ds']).decode('utf-8').strip()
+                ReplaceHelper.DISTRO = subprocess.check_output(get_spawn_command() + ['bash', '-c', 'lsb_release -ds']).decode('utf-8').strip()
             except subprocess.CalledProcessError:
                 ReplaceHelper.DISTRO = "Unknown"
         
@@ -31,6 +31,17 @@ class ReplaceHelper:
             desktop = "Unknown"
         return desktop
 
+def get_spawn_command() -> list:
+    """
+    Get the spawn command to run commands on the user system
+
+    Returns:
+        list: space diveded command  
+    """
+    if is_flatpak():
+        return ["flatpak-spawn", "--host"]
+    else:
+        return []
 def get_image_base64(image_str: str):
     """
     Get image string as base64 string, starting with data:/image/jpeg;base64,
@@ -224,7 +235,26 @@ def install_module(module, path):
     r = subprocess.run([sys.executable, "-m", "pip", "install", "--target", path, module], capture_output=False)
     return r
 
-def can_escape_sandbox():
+def is_flatpak() -> bool:
+    """
+    Check if we are in a flatpak
+
+    Returns:
+        bool: True if we are in a flatpak
+    """
+    if os.getenv("container"):
+        return True
+    return False
+
+def can_escape_sandbox() -> bool:
+    """
+    Check if we can escape the sandbox 
+
+    Returns:
+        bool: True if we can escape the sandbox
+    """
+    if not is_flatpak():
+        return True
     try:
         r = subprocess.check_output(["flatpak-spawn", "--host", "echo", "test"])
     except subprocess.CalledProcessError as _:
