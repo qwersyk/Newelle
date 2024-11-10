@@ -371,7 +371,6 @@ class Settings(Adw.PreferencesWindow):
                 r = Adw.ActionRow(title=setting["title"], subtitle=setting["description"])
                 value = handler.get_setting(setting["key"])
                 value = bool(value)
-
                 toggle = Gtk.Switch(valign=Gtk.Align.CENTER, active=value, name=setting["key"])
                 toggle.connect("state-set", self.setting_change_toggle, constants, handler)
                 r.add_suffix(toggle)
@@ -401,6 +400,7 @@ class Settings(Adw.PreferencesWindow):
                 wbbutton = self.create_web_button(setting["folder"], folder=True)
                 r.add_suffix(wbbutton)
             row.add_row(r)
+            handler.set_extra_settings_update(lambda _: GLib.idle_add(self.on_setting_change, constants, handler, handler.key, True))
             self.settingsrows[handler.key, self.convert_constants(constants)]["extra_settings"].append(r)
 
 

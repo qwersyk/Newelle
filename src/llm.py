@@ -161,7 +161,7 @@ class NewelleAPIHandler(LLMHandler):
     url = "https://llm.nyarchlinux.moe"
     api_key = "newelle"
     error_message = """Error calling Newelle API. Please note that Newelle API is **just for demo purposes.**\n\nTo know how to use a more reliable LLM [read our guide to llms](https://github.com/qwersyk/newelle/wiki/User-guide-to-the-available-LLMs). \n\nError: """
-    
+
     def get_extra_settings(self) -> list:
         return [
             {
@@ -803,7 +803,7 @@ class OpenAIHandler(LLMHandler):
                 "title": _("API Endpoint"),
                 "description": _("API base url, change this to use interference APIs"),
                 "type": "entry",
-                "default": "https://api.openai.com/v1/"
+                "default": "https://api.openai.com/v1/" 
             },
             {
                 "key": "model",
