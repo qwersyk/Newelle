@@ -322,7 +322,7 @@ class GPT3AnyHandler(G4FHandler):
        
         if self.is_installed():
             import g4f 
-            from g4f import RetryProvider
+            from g4f.Provider import RetryProvider
             good_providers = [g4f.Provider.DDG, g4f.Provider.Pizzagpt, g4f.Provider.DarkAI, g4f.Provider.Koala, g4f.Provider.NexraChatGPT, g4f.Provider.AmigoChat]
             good_nongpt_providers = [g4f.Provider.ReplicateHome,g4f.Provider.RubiksAI, g4f.Provider.TeachAnything, g4f.Provider.ChatGot, g4f.Provider.FreeChatgpt, g4f.Provider.Free2GPT, g4f.Provider.DeepInfraChat, g4f.Provider.PerplexityLabs]
             acceptable_providers = [g4f.Provider.ChatifyAI, g4f.Provider.Allyfy, g4f.Provider.Blackbox, g4f.Provider.Upstage, g4f.Provider.ChatHub, g4f.Provider.Upstage]

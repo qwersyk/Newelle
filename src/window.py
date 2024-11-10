@@ -1249,6 +1249,10 @@ class MainWindow(Gtk.ApplicationWindow):
         
         for prompt in self.bot_prompts:
             prompts.append(replace_variables(prompt))
+        if not self.model.is_installed():
+            print("Installing the model...")
+            self.model.install()
+            self.update_settings() 
         self.model.set_history(prompts, self.get_history())
         if self.model.stream_enabled():
             label = Gtk.Label(label="", margin_top=10, margin_start=10, margin_bottom=10, margin_end=10, wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR,
