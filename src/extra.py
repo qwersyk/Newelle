@@ -119,7 +119,6 @@ def convert_history_openai(history: list, prompts: list, vision_support : bool =
                     "role": "user" if message["User"] == "User" else "assistant",
                     "content": message["Message"]
                 })
-    print(result)
     return result
 
 def encode_image_base64(image_path):
