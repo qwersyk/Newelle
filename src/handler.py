@@ -24,6 +24,10 @@ class Handler():
             - description: description for the setting
             - default: default value for the setting
             - type: What type of row to create, possible rows:
+                - button: runs a function when the button is pressed
+                    - label: label of the button 
+                    - icon: icon of the button, if label is not provided
+                    - callback: the function to run on press, first argument is the button
                 - entry: input text 
                 - toggle: bool
                 - combo: for multiple choice

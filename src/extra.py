@@ -121,6 +121,9 @@ def convert_history_openai(history: list, prompts: list, vision_support : bool =
                 })
     return result
 
+def open_website(website):
+    subprocess.Popen(get_spawn_command() + ["xdg-open", website])
+
 def encode_image_base64(image_path):
     with open(image_path, "rb") as image_file:
         encoded_string = base64.b64encode(image_file.read()).decode("utf-8")
