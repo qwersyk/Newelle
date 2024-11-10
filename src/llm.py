@@ -4,7 +4,7 @@ import os, threading
 from typing import Callable, Any
 import json
 import base64
-from .extra import convert_history_openai, extract_image, find_module, get_image_base64, get_image_path, get_spawn_command, quote_string, encode_image_base64
+from .extra import convert_history_openai, extract_image, find_module, open_website, get_image_path, get_spawn_command, quote_string
 from .handler import Handler
 
 class LLMHandler(Handler):
@@ -165,6 +165,15 @@ class NewelleAPIHandler(LLMHandler):
     def get_extra_settings(self) -> list:
         return [
             {
+                "key": "privacy",
+                "title": _("Privacy Policy"),
+                "description": _("Open privacy policy website"),
+                "type": "button",
+                "icon": "internet-symbolic",
+                "callback": lambda button: open_website("https://groq.com/privacy-policy/"),
+                "default": True,
+            },
+            {
                 "key": "streaming",
                 "title": _("Message Streaming"),
                 "description": _("Gradually stream message output"),
@@ -181,7 +190,7 @@ class NewelleAPIHandler(LLMHandler):
     def generate_text_stream(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = [], on_update: Callable[[str], Any] = lambda _: None, extra_args : list = []) -> str:
         import requests
         
-        if prompt.startswith("```image") or  any(message.get("Message", "").startswith("```image") for message in history):
+        if prompt.startswith("```image") or any(message.get("Message", "").startswith("```image") and message["User"] == "User" for message in history):
             url = self.url + "/vision"
         else:
             url = self.url
@@ -206,7 +215,6 @@ class NewelleAPIHandler(LLMHandler):
                 if line:
                     decoded_line = line.decode('utf-8')
                     if decoded_line.startswith("data: "): 
-                        print(decoded_line)
                         if decoded_line == "data: [DONE]":
                             break
                         json_data = json.loads(decoded_line[6:])
@@ -467,7 +475,16 @@ class GeminiHandler(LLMHandler):
                 "description": _("Enable google safety settings to avoid generating harmful content"),
                 "type": "toggle",
                 "default": True
-            }
+            },
+            {
+                "key": "privacy",
+                "title": _("Privacy Policy"),
+                "description": _("Open privacy policy website"),
+                "type": "button",
+                "icon": "internet-symbolic",
+                "callback": lambda button: open_website("https://ai.google.dev/gemini-api/terms"),
+                "default": True,
+            },
         ]
 
     def __convert_history(self, history: list):
@@ -864,6 +881,15 @@ class OpenAIHandler(LLMHandler):
                 "default": 0,
                 "round-digits": 1,
             },
+            {
+                "key": "privacy",
+                "title": _("Privacy Policy"),
+                "description": _("Open privacy policy website"),
+                "type": "button",
+                "icon": "internet-symbolic",
+                "callback": lambda button: open_website("https://openai.com/policies/row-privacy-policy/"),
+                "default": True,
+            },
         ]
 
     def convert_history(self, history: list, prompts: list | None = None) -> list:
@@ -1002,6 +1028,15 @@ class GroqHandler(OpenAIHandler):
                 "default": "llama-3.1-70b-versatile",
                 "website": "https://console.groq.com/docs/models",
             },
+            {
+                "key": "privacy",
+                "title": _("Privacy Policy"),
+                "description": _("Open privacy policy website"),
+                "type": "button",
+                "icon": "internet-symbolic",
+                "callback": lambda button: open_website("https://groq.com/privacy-policy/"),
+                "default": True,
+            },
         ]
         settings += super().get_extra_settings()[-7:]
         return settings
@@ -1043,6 +1078,15 @@ class OpenRouterHandler(OpenAIHandler):
                 "type": "entry",
                 "default": "meta-llama/llama-3.1-70b-instruct:free",
                 "website": "https://openrouter.ai/docs/models",
+            },
+            {
+                "key": "privacy",
+                "title": _("Privacy Policy"),
+                "description": _("Open privacy policy website"),
+                "type": "button",
+                "icon": "internet-symbolic",
+                "callback": lambda button: open_website("https://openrouter.ai/privacy"),
+                "default": True,
             },
         ]
         settings += super().get_extra_settings()[-7:]
