@@ -29,14 +29,12 @@
 
     	"modules/python3-requests.json",
     	"modules/python3-expandvars.json",
-	    "modules/python3-g4f.json",
     	"modules/python3-gpt4all.json",
     	"modules/python3-gtts.json",
     	"modules/python3-pip.json",
     	"modules/portaudio.json",
     	"modules/python3-pyaudio.json",
 	   "modules/python3-speechrecognition.json",
-      "modules/python3-openai.json",
       "modules/python3-pygame.json",
         {
             "name" : "newelle",

@@ -6,7 +6,7 @@ class Handler():
     """Handler for a module"""
     key = ""
     schema_key = ""
-
+    on_extra_settings_update = None
     def __init__(self, settings, path):
         self.settings = settings
         self.path = path
@@ -24,6 +24,10 @@ class Handler():
             - description: description for the setting
             - default: default value for the setting
             - type: What type of row to create, possible rows:
+                - button: runs a function when the button is pressed
+                    - label: label of the button 
+                    - icon: icon of the button, if label is not provided
+                    - callback: the function to run on press, first argument is the button
                 - entry: input text 
                 - toggle: bool
                 - combo: for multiple choice
@@ -57,18 +61,21 @@ class Handler():
                 return False
         return True
 
-    def get_setting(self, key: str) -> Any:
+    def get_setting(self, key: str, search_default = True) -> Any:
         """Get a setting from the given key
 
         Args:
             key (str): key of the setting
-
+            search_default (bool, optional): if the default value should be searched. Defaults to True. 
         Returns:
             object: value of the setting
         """        
         j = json.loads(self.settings.get_string(self.schema_key))
         if self.key not in j or key not in j[self.key]:
-            return self.get_default_setting(key)
+            if search_default:
+                return self.get_default_setting(key)
+            else:
+                return None
         return j[self.key][key]
 
     def set_setting(self, key : str, value):
@@ -99,4 +106,12 @@ class Handler():
                 return s["default"]
         return None
 
+    def set_extra_settings_update(self, callback):
+        self.on_extra_settings_update = callback
 
+    def settings_update(self):
+        if self.on_extra_settings_update is not None:
+            try:
+                self.on_extra_settings_update("")
+            except Exception as e:
+                print(e)

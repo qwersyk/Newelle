@@ -119,8 +119,10 @@ def convert_history_openai(history: list, prompts: list, vision_support : bool =
                     "role": "user" if message["User"] == "User" else "assistant",
                     "content": message["Message"]
                 })
-    print(result)
     return result
+
+def open_website(website):
+    subprocess.Popen(get_spawn_command() + ["xdg-open", website])
 
 def encode_image_base64(image_path):
     with open(image_path, "rb") as image_file:

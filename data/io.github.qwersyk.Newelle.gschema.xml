@@ -29,7 +29,7 @@
             <default>false</default>
         </key>
 	      <key name="language-model" type="s">
-            <default>"GPT3Any"</default>
+            <default>"newelle"</default>
         </key>
 	      <key name="local-model" type="s">
             <default>""</default>
