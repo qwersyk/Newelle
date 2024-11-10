@@ -1,14 +1,21 @@
 
-from .llm import BingHandler, GPT4AllHandler, GroqHandler, OllamaHandler, OpenAIHandler, CustomLLMHandler, GPT3AnyHandler, GeminiHandler, MistralHandler, OpenRouterHandler
+from .llm import BingHandler, GPT4AllHandler, GroqHandler, OllamaHandler, OpenAIHandler, CustomLLMHandler, GPT3AnyHandler, GeminiHandler, MistralHandler, OpenRouterHandler, NewelleAPIHandler
 from .tts import gTTSHandler, EspeakHandler, CustomTTSHandler
 from .stt import GroqSRHandler, OpenAISRHandler, SphinxHandler, GoogleSRHandler, WhisperHandler, WitAIHandler, VoskHandler, CustomSRHandler
 
 AVAILABLE_LLMS = {
+    "newelle": {
+        "key": "newelle",
+        "title": _("Newelle Demo API"),
+        "description": "Newelle Demo API, limited to 10 requests per day, demo purposes only",
+        "class": NewelleAPIHandler,
+    },
     "GPT3Any": {
         "key": "GPT3Any",
         "title": _("Any free Provider"),
         "description": "Automatically chooses a free provider using a GPT3.5-Turbo or better model",
         "class": GPT3AnyHandler,
+        "secondary": True,
     },
    "local": {
         "key": "local",

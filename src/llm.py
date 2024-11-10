@@ -3,8 +3,6 @@ from subprocess import PIPE, Popen, check_output
 import os, threading
 from typing import Callable, Any
 import json
-from openai import NOT_GIVEN
-from g4f.Provider import RetryProvider
 import base64
 from .extra import convert_history_openai, extract_image, find_module, get_image_base64, get_image_path, get_spawn_command, quote_string, encode_image_base64
 from .handler import Handler
@@ -158,6 +156,73 @@ class LLMHandler(Handler):
         return self.generate_text(request_prompt, self.history)
 
 
+class NewelleAPIHandler(LLMHandler):
+    key = "newelle"
+    url = "https://llm.nyarchlinux.moe"
+    api_key = "newelle"
+    error_message = """Error calling Newelle API. Please note that Newelle API is **just for demo purposes.**\n\nTo know how to use a more reliable LLM [read our guide to llms](https://github.com/qwersyk/newelle/wiki/User-guide-to-the-available-LLMs). \n\nError: """
+    
+    def get_extra_settings(self) -> list:
+        return [
+            {
+                "key": "streaming",
+                "title": _("Message Streaming"),
+                "description": _("Gradually stream message output"),
+                "type": "toggle",
+                "default": True,
+            },
+        ]
+
+    def supports_vision(self) -> bool:
+        return True
+
+    def generate_text(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = []) -> str:
+        return self.generate_text_stream(prompt, history, system_prompt)
+    def generate_text_stream(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = [], on_update: Callable[[str], Any] = lambda _: None, extra_args : list = []) -> str:
+        import requests
+        
+        if prompt.startswith("```image") or  any(message.get("Message", "").startswith("```image") for message in history):
+            url = self.url + "/vision"
+        else:
+            url = self.url
+        history.append({"User": "User", "Message": prompt})  
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json"
+        } 
+        data = {
+            "model": "llama",
+            "messages": convert_history_openai(history, system_prompt, True),
+            "stream": True
+        }
+
+        try:
+            response = requests.post(url + "/chat/completions", headers=headers, json=data, stream=True)
+            if response.status_code != 200:
+                raise Exception("Rate limit reached or servers down")
+            full_message = ""
+            prev_message = ""
+            for line in response.iter_lines():
+                if line:
+                    decoded_line = line.decode('utf-8')
+                    if decoded_line.startswith("data: "): 
+                        print(decoded_line)
+                        if decoded_line == "data: [DONE]":
+                            break
+                        json_data = json.loads(decoded_line[6:])
+                        if "choices" in json_data and len(json_data["choices"]) > 0:
+                            delta = json_data["choices"][0]["delta"]
+                            if "content" in delta:
+                                full_message += delta["content"]
+                                args = (full_message.strip(), ) + tuple(extra_args)
+                                if len(full_message) - len(prev_message) > 1:
+                                    on_update(*args)
+                                    prev_message = full_message
+            return full_message.strip()
+        except Exception as e:
+            return self.error_message + " " + str(e)
+
+
 class G4FHandler(LLMHandler):
     """Common methods for g4f models"""
     key = "g4f"
@@ -245,13 +310,16 @@ class GPT3AnyHandler(G4FHandler):
     key = "GPT3Any"
 
     def __init__(self, settings, path):
-        import g4f
         super().__init__(settings, path)
-        good_providers = [g4f.Provider.DDG, g4f.Provider.Pizzagpt, g4f.Provider.DarkAI, g4f.Provider.Koala, g4f.Provider.NexraChatGPT, g4f.Provider.AmigoChat]
-        good_nongpt_providers = [g4f.Provider.ReplicateHome,g4f.Provider.RubiksAI, g4f.Provider.TeachAnything, g4f.Provider.ChatGot, g4f.Provider.FreeChatgpt, g4f.Provider.Free2GPT, g4f.Provider.DeepInfraChat, g4f.Provider.PerplexityLabs]
-        acceptable_providers = [g4f.Provider.ChatifyAI, g4f.Provider.Allyfy, g4f.Provider.Blackbox, g4f.Provider.Upstage, g4f.Provider.ChatHub, g4f.Provider.Upstage]
-        self.client = g4f.client.Client(provider=RetryProvider([RetryProvider(good_providers), RetryProvider(good_nongpt_providers), RetryProvider(acceptable_providers)], shuffle=False))
-        self.n = 0
+       
+        if self.is_installed():
+            import g4f 
+            from g4f import RetryProvider
+            good_providers = [g4f.Provider.DDG, g4f.Provider.Pizzagpt, g4f.Provider.DarkAI, g4f.Provider.Koala, g4f.Provider.NexraChatGPT, g4f.Provider.AmigoChat]
+            good_nongpt_providers = [g4f.Provider.ReplicateHome,g4f.Provider.RubiksAI, g4f.Provider.TeachAnything, g4f.Provider.ChatGot, g4f.Provider.FreeChatgpt, g4f.Provider.Free2GPT, g4f.Provider.DeepInfraChat, g4f.Provider.PerplexityLabs]
+            acceptable_providers = [g4f.Provider.ChatifyAI, g4f.Provider.Allyfy, g4f.Provider.Blackbox, g4f.Provider.Upstage, g4f.Provider.ChatHub, g4f.Provider.Upstage]
+            self.client = g4f.client.Client(provider=RetryProvider([RetryProvider(good_providers), RetryProvider(good_nongpt_providers), RetryProvider(acceptable_providers)], shuffle=False))
+            self.n = 0
 
     def generate_text(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = []) -> str:
         message = prompt
@@ -296,12 +364,14 @@ class BingHandler(G4FHandler):
     key = "bing"
 
     def __init__(self, settings, path):
-        import g4f
         super().__init__(settings, path)
+        
         self.cookies_path = os.path.join(os.path.dirname(self.path), "models", "har_and_cookies")
         if not os.path.isdir(self.cookies_path):
             os.makedirs(self.cookies_path)
-        self.client = g4f.client.Client(provider=g4f.Provider.Bing)        
+        if self.is_installed(): 
+            import g4f
+            self.client = g4f.client.Client(provider=g4f.Provider.Bing)        
  
     def get_extra_settings(self) -> list:
         return [
@@ -324,11 +394,14 @@ class BingHandler(G4FHandler):
         ] + super().get_extra_settings()
 
     def get_model(self):
-        import g4f
-        res = tuple()
-        for model in g4f.Provider.Bing.models:
-            res += ((model, model), )
-        return res
+        if self.is_installed():
+            import g4f
+            res = tuple()
+            for model in g4f.Provider.Bing.models:
+                res += ((model, model), )
+            return res
+        else:
+            return (("Copilot", "Copilot"), )
 
     def load_model(self, model):
         if not self.get_setting("cookies"):
@@ -799,6 +872,7 @@ class OpenAIHandler(LLMHandler):
         return convert_history_openai(history, prompts, self.supports_vision())
 
     def get_advanced_params(self):
+        from openai import NOT_GIVEN
         advanced_params = self.get_setting("advanced_params")
         if not advanced_params:
             return NOT_GIVEN, NOT_GIVEN, NOT_GIVEN, NOT_GIVEN, NOT_GIVEN
