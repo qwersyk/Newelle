@@ -262,7 +262,14 @@ def can_escape_sandbox() -> bool:
     except subprocess.CalledProcessError as _:
         return False
     return True
-
+def get_streaming_extra_setting():
+            return {
+                "key": "streaming",
+                "title": _("Message Streaming"),
+                "description": _("Gradually stream message output"),
+                "type": "toggle",
+                "default": True
+            }
 def override_prompts(override_setting, PROMPTS):
     prompt_list = {}
     for prompt in PROMPTS:

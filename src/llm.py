@@ -4,7 +4,7 @@ import os, threading
 from typing import Callable, Any
 import json
 import base64
-from .extra import convert_history_openai, extract_image, find_module, open_website, get_image_path, get_spawn_command, quote_string
+from .extra import convert_history_openai, extract_image, find_module, get_streaming_extra_setting, open_website, get_image_path, get_spawn_command, quote_string
 from .handler import Handler
 
 class LLMHandler(Handler):
@@ -781,7 +781,33 @@ class OllamaHandler(LLMHandler):
 
 class OpenAIHandler(LLMHandler):
     key = "openai"
- 
+    default_models = (("gpt-3.5-turbo", "gpt-3.5-turbo"), )
+    def __init__(self, settings, path):
+        super().__init__(settings, path)
+        if self.get_setting("models", False) is None:
+            self.models = self.default_models 
+            threading.Thread(target=self.get_models).start()
+        else:
+            self.models = json.loads(self.get_setting("models", False))
+
+    def get_models(self):
+        if self.is_installed():
+            try:
+                import openai
+                api = self.get_setting("api", False)
+                if api is None:
+                    return
+                client = openai.Client(api_key=api, base_url=self.get_setting("endpoint"))
+                models = client.models.list()
+                result = tuple()
+                for model in models:
+                    result += ((model.id, model.id,), )
+                self.models = result
+                self.set_setting("models", json.dumps(result))
+                self.settings_update()
+            except Exception as e:
+                print("Error getting " + self.key + " models: " + str(e))
+            
     @staticmethod
     def get_extra_requirements() -> list:
         return ["openai"]
@@ -790,14 +816,34 @@ class OpenAIHandler(LLMHandler):
         return True
 
     def get_extra_settings(self) -> list:
-        return [ 
+        return self.build_extra_settings("OpenAI", True, True, True, True, True, "https://openai.com/policies/row-privacy-policy/", None)
+
+    def build_extra_settings(self, provider_name: str, has_api_key: bool, has_stream_settings: bool, endpoint_change: bool, allow_advanced_params: bool, supports_automatic_models: bool, privacy_notice_url : str | None, model_list_url: str | None, default_advanced_params: bool = False, default_automatic_models: bool = False) -> list:
+        """Helper to build the list of extra settings for OpenAI Handlers
+
+        Args:
+            provider_name: name of the provider, it is stated in model settings 
+            has_api_key: if to show the api key setting
+            has_stream_settings: if to show the message streaming setting
+            endpoint_change: if to allow the endpoint change 
+            allow_advanced_params: if to allow advanced parameters like temperature ... 
+            supports_automatic_models: if it supports automatic model fetching 
+            privacy_notice_url: the url of the privacy policy, None if not stated
+            model_list_url: human accessible page that lists the available models
+
+        Returns:
+            list containing the extra settings
+        """
+        api_settings = [ 
             {
                 "key": "api",
                 "title": _("API Key"),
-                "description": _("API Key for OpenAI"),
+                "description": _("API Key for " + provider_name),
                 "type": "entry",
                 "default": ""
             },
+        ]
+        endpoint_settings = [
             {
                 "key": "endpoint",
                 "title": _("API Endpoint"),
@@ -805,27 +851,63 @@ class OpenAIHandler(LLMHandler):
                 "type": "entry",
                 "default": "https://api.openai.com/v1/" 
             },
+
+        ]
+        custom_model = [
             {
-                "key": "model",
-                "title": _("OpenAI Model"),
-                "description": _("Name of the OpenAI Model"),
-                "type": "entry",
-                "default": "gpt3.5-turbo"
-            },
-            {
-                "key": "streaming",
-                "title": _("Message Streaming"),
-                "description": _("Gradually stream message output"),
+                "key": "custom_model",
+                "title": _("Input a custom model"),
+                "description": _("Input a custom model name instead taking it from the list"),
                 "type": "toggle",
-                "default": True
+                "default": not default_automatic_models,
+                "update_settings": True
             },
+        ]
+        advanced_param_toggle = [
             {
                 "key": "advanced_params",
                 "title": _("Advanced Parameters"),
                 "description": _("Include parameters like Max Tokens, Top-P, Temperature, etc."),
                 "type": "toggle",
-                "default": True
+                "default": default_advanced_params,
+                "update_settings": True
+            }
+        ]
+        models_settings = [ 
+            {
+                "key": "model",
+                "title": _(provider_name + " Model"),
+                "description": _("Name of the LLM Model to use"),
+                "type": "entry",
+                "default": self.models[0][0],
             },
+        ]
+        if model_list_url is not None:
+            models_settings[0]["website"] = model_list_url
+        automatic_models_settings = [
+            {
+                "key": "model",
+                "title": _(provider_name + " Model"),
+                "description": _(f"Name of the {provider_name} Model"),
+                "type": "combo",
+                "values": self.models,
+                "default": self.models[0][0]
+            },
+            {
+                "key": "refresh_models",
+                "title": _("Refresh available models"),
+                "description": _("Update the list of models"),
+                "type": "button",
+                "icon": "update-symbolic",
+                "defualt": None,
+                "callback": lambda button: threading.Thread(target=self.get_models).start()
+            }
+        ]
+
+        if model_list_url is not None:
+            models_settings[0]["website"] = model_list_url
+        
+        advanced_settings = [
             {
                 "key": "max-tokens",
                 "title": _("Max Tokens"),
@@ -881,16 +963,40 @@ class OpenAIHandler(LLMHandler):
                 "default": 0,
                 "round-digits": 1,
             },
-            {
+        ]
+        
+        privacy_notice = [{
                 "key": "privacy",
                 "title": _("Privacy Policy"),
                 "description": _("Open privacy policy website"),
                 "type": "button",
                 "icon": "internet-symbolic",
-                "callback": lambda button: open_website("https://openai.com/policies/row-privacy-policy/"),
+                "callback": lambda button: open_website(privacy_notice_url),
                 "default": True,
-            },
+            }
         ]
+        settings = []
+        if has_api_key:
+            settings += (api_settings)
+        if endpoint_change:
+            settings += (endpoint_settings)
+        if supports_automatic_models:
+            settings += (custom_model)
+            custom = self.get_setting("custom_model", False)
+            if (custom is None and not default_automatic_models) or custom:
+                settings += models_settings
+            else:
+                settings += automatic_models_settings
+        if has_stream_settings:
+            settings.append(get_streaming_extra_setting())
+        if allow_advanced_params:
+            settings += advanced_param_toggle
+            advanced = self.get_setting("advanced_params", False)
+            if advanced or (advanced is None and default_advanced_params):
+                settings += advanced_settings
+        if privacy_notice_url is not None:
+            settings += privacy_notice
+        return settings
 
     def convert_history(self, history: list, prompts: list | None = None) -> list:
         if prompts is None:
@@ -974,36 +1080,18 @@ class OpenAIHandler(LLMHandler):
 
 class MistralHandler(OpenAIHandler):
     key = "mistral"
-
+    default_models = (("open-mixtral-8x7b", "open-mixtral-8x7b"), )
     def __init__(self, settings, path):
         super().__init__(settings, path)
         self.set_setting("endpoint", "https://api.mistral.ai/v1/")
         self.set_setting("advanced_params", False)
 
     def get_extra_settings(self) -> list:
-        plus = [
-            {
-                "key": "api",
-                "title": _("API Key"),
-                "description": _("API Key for Mistral"),
-                "type": "entry",
-                "default": ""
-            },
-            {
-                "key": "model",
-                "title": _("Mistral Model"),
-                "description": _("Name of the Mistral Model"),
-                "type": "entry",
-                "default": "open-mixtral-8x22b",
-                "website": "https://docs.mistral.ai/getting-started/models/models_overview/",
-            }, 
-        ]
-        plus += [super().get_extra_settings()[3]]
-        return plus
+        return self.build_extra_settings("Mistral", True, True, False, False, True, None, "https://docs.mistral.ai/getting-started/models/models_overview/", False, True)
 
 class GroqHandler(OpenAIHandler):
     key = "groq"
-   
+    default_models = (("llama-3.1-70B-versatile", "llama-3.1-70B-versatile" ), ) 
     def supports_vision(self) -> bool:
         return "vision" in self.get_setting("model")
 
@@ -1012,34 +1100,7 @@ class GroqHandler(OpenAIHandler):
         self.set_setting("endpoint", "https://api.groq.com/openai/v1/")
 
     def get_extra_settings(self) -> list:
-        settings = [ 
-            {
-                "key": "api",
-                "title": _("API Key"),
-                "description": _("API Key for Groq"),
-                "type": "entry",
-                "default": ""
-            }, 
-            {
-                "key": "model",
-                "title": _("Groq Model"),
-                "description": _("Name of the Groq Model"),
-                "type": "entry",
-                "default": "llama-3.1-70b-versatile",
-                "website": "https://console.groq.com/docs/models",
-            },
-            {
-                "key": "privacy",
-                "title": _("Privacy Policy"),
-                "description": _("Open privacy policy website"),
-                "type": "button",
-                "icon": "internet-symbolic",
-                "callback": lambda button: open_website("https://groq.com/privacy-policy/"),
-                "default": True,
-            },
-        ]
-        settings += super().get_extra_settings()[-7:]
-        return settings
+        return self.build_extra_settings("Groq", True, True, False, False, True, "https://groq.com/privacy-policy/", "https://console.groq.com/docs/models", False, True)
 
     def convert_history(self, history: list, prompts: list | None = None) -> list:
         # Remove system prompt if history contains image prompt
@@ -1057,41 +1118,13 @@ class GroqHandler(OpenAIHandler):
 
 class OpenRouterHandler(OpenAIHandler):
     key = "openrouter"
-
+    default_models = (("meta-llama/llama-3.1-70b-instruct:free", "meta-llama/llama-3.1-70b-instruct:free"), )
     def __init__(self, settings, path):
         super().__init__(settings, path)
         self.set_setting("endpoint", "https://openrouter.ai/api/v1/")
 
     def get_extra_settings(self) -> list:
-        settings = [ 
-            {
-                "key": "api",
-                "title": _("API Key"),
-                "description": _("API Key for OpenRouter"),
-                "type": "entry",
-                "default": ""
-            }, 
-            {
-                "key": "model",
-                "title": _("OpenRouter Model"),
-                "description": _("Name of the OpenRouter Model"),
-                "type": "entry",
-                "default": "meta-llama/llama-3.1-70b-instruct:free",
-                "website": "https://openrouter.ai/docs/models",
-            },
-            {
-                "key": "privacy",
-                "title": _("Privacy Policy"),
-                "description": _("Open privacy policy website"),
-                "type": "button",
-                "icon": "internet-symbolic",
-                "callback": lambda button: open_website("https://openrouter.ai/privacy"),
-                "default": True,
-            },
-        ]
-        settings += super().get_extra_settings()[-7:]
-        return settings
-
+        return self.build_extra_settings("OpenRouter", True, True, False, False, True, "https://openrouter.ai/privacy", "https://openrouter.ai/docs/models", False, True)
 
 
 class GPT4AllHandler(LLMHandler):
