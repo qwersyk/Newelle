@@ -99,18 +99,17 @@ class Extension(Gtk.Window):
         self.update()
     
     def on_folder_button_clicked(self, widget):
-        dialog = Gtk.FileChooserNative(transient_for=self.app.win, title=_("Add extension"), modal=True, action=Gtk.FileChooserAction.OPEN)
-        dialog.connect("response", self.process_folder)
-        dialog.show()
-    
-    def process_folder(self, dialog, response):
-        if response != Gtk.ResponseType.ACCEPT:
-            dialog.destroy()
-            return False
+        filter = Gtk.FileFilter(name="Newelle Extensions", patterns=["*.py"])
+        dialog = Gtk.FileDialog(title="Import extension", modal=True, default_filter=filter)
+        dialog.open(self, None, self.process_folder)
 
-        file=dialog.get_file()
-        if file == None:
-            return True
+    def process_folder(self, dialog, result):
+        try:
+            file=dialog.open_finish(result)
+        except Exception as _:
+            return
+        if file is None:
+            return
         file_path = file.get_path()
         self.extensionloader.add_extension(file_path)
         self.extensionloader.load_extensions()
@@ -124,12 +123,11 @@ class Extension(Gtk.Window):
                 break
         
         if os.path.basename(file_path) in self.extensionloader.filemap.values():
-            self.notification_block.add_toast(Adw.Toast(title=(_("Extension added. New extensions will run"))))
+            self.notification_block.add_toast(Adw.Toast(title="Extension added. New extensions will run"))
             self.extensionloader.load_extensions()
             self.update()
         else:
-            self.notification_block.add_toast(Adw.Toast(title=_("This is not an extension or it is not correct")))
+            self.notification_block.add_toast(Adw.Toast(title="This is not an extension or it is not correct"))
 
-        dialog.destroy()
-        return False
+        return
 
