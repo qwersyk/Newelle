@@ -1,5 +1,8 @@
+import subprocess
 from threading import Thread
 import gi, os
+
+from .extra import get_spawn_command
 
 from .constants import AVAILABLE_LLMS, AVAILABLE_PROMPTS, AVAILABLE_STT, AVAILABLE_TTS, PROMPTS
 from .settings import Settings
@@ -75,7 +78,10 @@ class Extension(Gtk.Window):
                 row.add_suffix(invisible_icon)
             
             settings.add_flatpak_waning_button(extension, row)
-            self.extensiongroup.add(row)
+            self.extensiongroup.add(row)                            
+        download_button = Gtk.Button(label=_("Download new Extensions"), margin_top=10)
+        download_button.connect("clicked", lambda x : subprocess.Popen(get_spawn_command() + ["xdg-open", "https://github.com/topics/newelle-extension"]))
+        self.main.append(download_button)
         folder_button = Gtk.Button(label=_("Choose an extension"), css_classes=["suggested-action"], margin_top=10)
         folder_button.connect("clicked", self.on_folder_button_clicked)
         self.main.append(folder_button)
