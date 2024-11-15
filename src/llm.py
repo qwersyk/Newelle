@@ -4,7 +4,7 @@ import os, threading
 from typing import Callable, Any
 import json
 import base64
-from .extra import convert_history_openai, extract_image, find_module, get_streaming_extra_setting, open_website, get_image_path, get_spawn_command, quote_string
+from .extra import convert_history_openai, extract_image, find_module, get_streaming_extra_setting, install_module, open_website, get_image_path, get_spawn_command, quote_string
 from .handler import Handler
 
 class LLMHandler(Handler):
@@ -234,11 +234,28 @@ class NewelleAPIHandler(LLMHandler):
 class G4FHandler(LLMHandler):
     """Common methods for g4f models"""
     key = "g4f"
+    version = "0.3.3.4" 
     
     @staticmethod
     def get_extra_requirements() -> list:
         return ["g4f"]
-     
+    
+    def is_installed(self) -> bool:
+        if find_module("g4f") is not None:
+           from g4f.version import utils       
+           if utils.current_version != self.version:
+                print(f"Newelle requires g4f=={self.version}, found {utils.current_version}")
+                return False
+           return True
+        return False
+
+    def install(self):
+        pip_path = os.path.join(os.path.abspath(os.path.join(self.path, os.pardir)), "pip") 
+        # Remove old versions
+        check_output(["bash", "-c", "rm -rf " + os.path.join(pip_path, "*g4f*")])
+        install_module("g4f==" + self.version, pip_path)
+        print("g4f==" + self.version + " installed")
+
     def get_extra_settings(self) -> list:
         return [
             {
@@ -319,17 +336,22 @@ class GPT3AnyHandler(G4FHandler):
 
     def __init__(self, settings, path):
         super().__init__(settings, path)
-       
+        self.client = None 
         if self.is_installed():
-            import g4f 
-            from g4f.Provider import RetryProvider
-            good_providers = [g4f.Provider.DDG, g4f.Provider.Pizzagpt, g4f.Provider.DarkAI, g4f.Provider.Koala, g4f.Provider.NexraChatGPT, g4f.Provider.AmigoChat]
-            good_nongpt_providers = [g4f.Provider.ReplicateHome,g4f.Provider.RubiksAI, g4f.Provider.TeachAnything, g4f.Provider.ChatGot, g4f.Provider.FreeChatgpt, g4f.Provider.Free2GPT, g4f.Provider.DeepInfraChat, g4f.Provider.PerplexityLabs]
-            acceptable_providers = [g4f.Provider.ChatifyAI, g4f.Provider.Allyfy, g4f.Provider.Blackbox, g4f.Provider.Upstage, g4f.Provider.ChatHub, g4f.Provider.Upstage]
-            self.client = g4f.client.Client(provider=RetryProvider([RetryProvider(good_providers), RetryProvider(good_nongpt_providers), RetryProvider(acceptable_providers)], shuffle=False))
-            self.n = 0
-
+            self.init_client()
+    
+    def init_client(self):
+        import g4f 
+        from g4f.Provider import RetryProvider
+        good_providers = [g4f.Provider.DDG, g4f.Provider.Pizzagpt, g4f.Provider.DarkAI, g4f.Provider.Koala, g4f.Provider.AmigoChat]
+        good_nongpt_providers = [g4f.Provider.ReplicateHome,g4f.Provider.RubiksAI, g4f.Provider.TeachAnything, g4f.Provider.Free2GPT, g4f.Provider.DeepInfraChat, g4f.Provider.PerplexityLabs]
+        acceptable_providers = [g4f.Provider.Blackbox, g4f.Provider.Upstage, g4f.Provider.Upstage]
+        self.client = g4f.client.Client(provider=RetryProvider([RetryProvider(good_providers), RetryProvider(good_nongpt_providers), RetryProvider(acceptable_providers)], shuffle=False))
+        self.n = 0
+    
     def generate_text(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = []) -> str:
+        if self.client is None:
+            self.init_client()
         message = prompt
         history = self.convert_history(history, system_prompt)
         user_prompt = {"role": "user", "content": message}
@@ -341,6 +363,8 @@ class GPT3AnyHandler(G4FHandler):
         return response.choices[0].message.content
 
     def generate_text_stream(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = [], on_update: Callable[[str], Any] = lambda _: None, extra_args: list = []) -> str:
+        if self.client is None:
+            self.init_client()
         history = self.convert_history(history, system_prompt)
         message = prompt
         user_prompt = {"role": "user", "content": message}
