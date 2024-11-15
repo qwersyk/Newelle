@@ -16,6 +16,7 @@ symbolic_dir = join_paths(get_option('datadir'), 'icons/hicolor/symbolic/apps')
 install_data (
     'internet-symbolic.svg',
     'attach-symbolic.svg',
+    'info-outline-symbolic.svg',
     install_dir: symbolic_dir
 )
 install_data (

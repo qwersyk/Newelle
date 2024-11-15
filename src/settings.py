@@ -50,6 +50,11 @@ class Settings(Adw.PreferencesWindow):
         self.settingsrows = {}
         # Build the LLMs settings
         self.LLM = Adw.PreferencesGroup(title=_('Language Model'))
+        # Add Help Button 
+        help = Gtk.Button(css_classes=["flat"], icon_name="info-outline-symbolic")
+        help.connect("clicked", lambda button : Popen(get_spawn_command() + ["xdg-open", "https://github.com/qwersyk/Newelle/wiki/User-guide-to-the-available-LLMs"]))
+        self.LLM.set_header_suffix(help)
+        # Add LLMs
         self.general_page.add(self.LLM)
         self.llmbuttons = [];
         group = Gtk.CheckButton()
