@@ -79,6 +79,9 @@ class Extension(Gtk.Window):
             
             settings.add_flatpak_waning_button(extension, row)
             self.extensiongroup.add(row)                            
+        download_button = Gtk.Button(label=_("User guide to Extensions"), margin_top=10)
+        download_button.connect("clicked", lambda x : subprocess.Popen(get_spawn_command() + ["xdg-open", "https://github.com/qwersyk/Newelle/wiki/User-guide-to-Extensions"]))
+        self.main.append(download_button)
         download_button = Gtk.Button(label=_("Download new Extensions"), margin_top=10)
         download_button.connect("clicked", lambda x : subprocess.Popen(get_spawn_command() + ["xdg-open", "https://github.com/topics/newelle-extension"]))
         self.main.append(download_button)
