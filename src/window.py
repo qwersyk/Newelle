@@ -10,7 +10,7 @@ from .gtkobj import File, CopyBox, BarChartBox, MultilineEntry
 from .constants import AVAILABLE_LLMS, AVAILABLE_PROMPTS, PROMPTS, AVAILABLE_TTS, AVAILABLE_STT
 from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject, GLib, GdkPixbuf
 from .stt import AudioRecorder
-from .extra import get_spawn_command, markwon_to_pango, override_prompts, replace_variables
+from .extra import get_spawn_command, install_module, markwon_to_pango, override_prompts, replace_variables
 import threading
 import posixpath
 import json
@@ -37,7 +37,10 @@ class MainWindow(Gtk.ApplicationWindow):
             os.makedirs(self.extension_path)
         if not os.path.exists(self.extensions_cache):
             os.makedirs(self.extensions_cache)
-        sys.path.append(self.pip_directory)
+        if os.path.isdir(self.pip_directory):
+            sys.path.append(self.pip_directory)
+        else:
+            threading.Thread(target=self.init_pip_path, args=(sys.path,)).start()
 
         if not os.path.exists(self.path):
             os.makedirs(self.path)
@@ -313,6 +316,10 @@ class MainWindow(Gtk.ApplicationWindow):
         if not self.settings.get_boolean("welcome-screen-shown"):
             GLib.idle_add(self.show_presentation_window)
 
+    def init_pip_path(self, path):
+        install_module("pip-install-test", self.pip_directory)
+        path.append(self.pip_directory)
+    
     def show_presentation_window(self):
         self.presentation_dialog = PresentationWindow("presentation", self.settings, self.directory, self)
         self.presentation_dialog.show()

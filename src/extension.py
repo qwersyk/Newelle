@@ -1,5 +1,8 @@
+import subprocess
 from threading import Thread
 import gi, os
+
+from .extra import get_spawn_command
 
 from .constants import AVAILABLE_LLMS, AVAILABLE_PROMPTS, AVAILABLE_STT, AVAILABLE_TTS, PROMPTS
 from .settings import Settings
@@ -75,7 +78,13 @@ class Extension(Gtk.Window):
                 row.add_suffix(invisible_icon)
             
             settings.add_flatpak_waning_button(extension, row)
-            self.extensiongroup.add(row)
+            self.extensiongroup.add(row)                            
+        download_button = Gtk.Button(label=_("User guide to Extensions"), margin_top=10)
+        download_button.connect("clicked", lambda x : subprocess.Popen(get_spawn_command() + ["xdg-open", "https://github.com/qwersyk/Newelle/wiki/User-guide-to-Extensions"]))
+        self.main.append(download_button)
+        download_button = Gtk.Button(label=_("Download new Extensions"), margin_top=10)
+        download_button.connect("clicked", lambda x : subprocess.Popen(get_spawn_command() + ["xdg-open", "https://github.com/topics/newelle-extension"]))
+        self.main.append(download_button)
         folder_button = Gtk.Button(label=_("Choose an extension"), css_classes=["suggested-action"], margin_top=10)
         folder_button.connect("clicked", self.on_folder_button_clicked)
         self.main.append(folder_button)
@@ -93,18 +102,17 @@ class Extension(Gtk.Window):
         self.update()
     
     def on_folder_button_clicked(self, widget):
-        dialog = Gtk.FileChooserNative(transient_for=self.app.win, title=_("Add extension"), modal=True, action=Gtk.FileChooserAction.OPEN)
-        dialog.connect("response", self.process_folder)
-        dialog.show()
-    
-    def process_folder(self, dialog, response):
-        if response != Gtk.ResponseType.ACCEPT:
-            dialog.destroy()
-            return False
+        filter = Gtk.FileFilter(name="Newelle Extensions", patterns=["*.py"])
+        dialog = Gtk.FileDialog(title="Import extension", modal=True, default_filter=filter)
+        dialog.open(self, None, self.process_folder)
 
-        file=dialog.get_file()
-        if file == None:
-            return True
+    def process_folder(self, dialog, result):
+        try:
+            file=dialog.open_finish(result)
+        except Exception as _:
+            return
+        if file is None:
+            return
         file_path = file.get_path()
         self.extensionloader.add_extension(file_path)
         self.extensionloader.load_extensions()
@@ -118,12 +126,11 @@ class Extension(Gtk.Window):
                 break
         
         if os.path.basename(file_path) in self.extensionloader.filemap.values():
-            self.notification_block.add_toast(Adw.Toast(title=(_("Extension added. New extensions will run"))))
+            self.notification_block.add_toast(Adw.Toast(title="Extension added. New extensions will run"))
             self.extensionloader.load_extensions()
             self.update()
         else:
-            self.notification_block.add_toast(Adw.Toast(title=_("This is not an extension or it is not correct")))
+            self.notification_block.add_toast(Adw.Toast(title="This is not an extension or it is not correct"))
 
-        dialog.destroy()
-        return False
+        return
 
