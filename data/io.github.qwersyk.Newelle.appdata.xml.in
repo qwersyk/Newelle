@@ -35,6 +35,11 @@
 	<url type="bugtracker">https://github.com/qwersyk/Newelle/issues</url>
 	<content_rating type="oars-1.0" />
 	<releases>
+	    <release version="0.4.1" date="2024-11-16">
+            <description>
+                <p>Updated the g4f library with versioning, added user guides, improved extension browsing, and enhanced model handling.</p>
+            </description>
+        </release>
 	    <release version="0.4.0" date="2024-11-02">
             <description>
                 <p>Bug fixes and new features have been implemented. We've modified the extension architecture, added new models, and introduced vision support, along with more capabilities.</p>
