@@ -234,7 +234,7 @@ class NewelleAPIHandler(LLMHandler):
 class G4FHandler(LLMHandler):
     """Common methods for g4f models"""
     key = "g4f"
-    version = "0.3.3.4" 
+    version = "0.3.5.8" 
     
     @staticmethod
     def get_extra_requirements() -> list:
