@@ -331,6 +331,7 @@ class MainWindow(Gtk.ApplicationWindow):
 
     def focus_input(self):
         self.input_panel.input_panel.grab_focus()
+    
     def start_recording(self, button):
         #button.set_child(Gtk.Spinner(spinning=True))
         button.set_icon_name("media-playback-stop-symbolic")
@@ -338,22 +339,30 @@ class MainWindow(Gtk.ApplicationWindow):
         button.remove_css_class("suggested-action")
         button.add_css_class("error")
         button.connect("clicked", self.stop_recording)
-        self.recorder = AudioRecorder()
-        t = threading.Thread(target=self.recorder.start_recording)
+        self.recording_button = button
+        self.recorder = AudioRecorder(auto_stop=True, stop_function=self.auto_stop_recording)
+        t = threading.Thread(target=self.recorder.start_recording, args=(os.path.join(self.directory, "recording.wav"),))
         t.start()
 
-    def stop_recording(self, button):
+    def auto_stop_recording(self, button=False):
+        GLib.idle_add(self.stop_recording_ui, self.recording_button)
+        threading.Thread(target=self.stop_recording_async, args=(self.recording_button,)).start()
+
+    def stop_recording(self, button=False):
         self.recorder.stop_recording(os.path.join(self.directory, "recording.wav"))
-        t = threading.Thread(target=self.stop_recording_async, args=(button,))
+        self.stop_recording_ui(self.recording_button)
+        t = threading.Thread(target=self.stop_recording_async)
         t.start()
 
-    def stop_recording_async(self, button):
+    def stop_recording_ui(self, button):
         button.set_child(None)
         button.set_icon_name("audio-input-microphone-symbolic")
         button.add_css_class("suggested-action")
         button.remove_css_class("error")
         button.disconnect_by_func(self.stop_recording)
         button.connect("clicked", self.start_recording)
+    
+    def stop_recording_async(self, button=False):
         recognizer = self.stt_handler
         result = recognizer.recognize_file(os.path.join(self.directory, "recording.wav"))
         if result is not None:
