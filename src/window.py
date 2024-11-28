@@ -332,7 +332,9 @@ class MainWindow(Gtk.ApplicationWindow):
     def focus_input(self):
         self.input_panel.input_panel.grab_focus()
     
-    def start_recording(self, button):
+    def start_recording(self, button): 
+        if self.automatic_stt:
+            self.automatic_stt_status = True
         #button.set_child(Gtk.Spinner(spinning=True))
         button.set_icon_name("media-playback-stop-symbolic")
         button.disconnect_by_func(self.start_recording)
@@ -340,7 +342,7 @@ class MainWindow(Gtk.ApplicationWindow):
         button.add_css_class("error")
         button.connect("clicked", self.stop_recording)
         self.recording_button = button
-        self.recorder = AudioRecorder(auto_stop=True, stop_function=self.auto_stop_recording)
+        self.recorder = AudioRecorder(auto_stop=True, stop_function=self.auto_stop_recording, silence_duration=self.stt_silence_detection_duration, silence_threshold=self.stt_silence_detection_threshold)
         t = threading.Thread(target=self.recorder.start_recording, args=(os.path.join(self.directory, "recording.wav"),))
         t.start()
 
@@ -349,6 +351,7 @@ class MainWindow(Gtk.ApplicationWindow):
         threading.Thread(target=self.stop_recording_async, args=(self.recording_button,)).start()
 
     def stop_recording(self, button=False):
+        self.automatic_stt_status = False
         self.recorder.stop_recording(os.path.join(self.directory, "recording.wav"))
         self.stop_recording_ui(self.recording_button)
         t = threading.Thread(target=self.stop_recording_async)
@@ -417,6 +420,7 @@ class MainWindow(Gtk.ApplicationWindow):
         
 
     def update_settings(self):
+        self.automatic_stt_status = False
         settings = self.settings
         self.offers = settings.get_int("offers")
         self.virtualization = settings.get_boolean("virtualization")
@@ -434,7 +438,9 @@ class MainWindow(Gtk.ApplicationWindow):
         self.stt_engine = settings.get_string("stt-engine")
         self.stt_settings = settings.get_string("stt-settings")
         self.external_terminal = settings.get_string("external-terminal")
-
+        self.automatic_stt = settings.get_boolean("automatic-stt")
+        self.stt_silence_detection_threshold = settings.get_double("stt-silence-detection-threshold")
+        self.stt_silence_detection_duration = settings.get_int("stt-silence-detection-duration")
         # Load extensions
         self.extensionloader = ExtensionLoader(self.extension_path, pip_path=self.pip_directory, extension_cache=self.extensions_cache, settings=self.settings)
         self.extensionloader.load_extensions()
@@ -1286,10 +1292,18 @@ class MainWindow(Gtk.ApplicationWindow):
             GLib.idle_add(self.show_message, message_label)
         GLib.idle_add(self.remove_send_button_spinner)
         # TTS
+        tts_thread = None
         if self.tts_enabled: 
             message=re.sub(r"```.*?```", "", message_label, flags=re.DOTALL)
             if not(not message.strip() or message.isspace() or all(char == '\n' for char in message)):
-                threading.Thread(target=self.tts.play_audio, args=(message, )).start()
+                tts_thread = threading.Thread(target=self.tts.play_audio, args=(message, ))
+                tts_thread.start()
+        def restart_recording():
+            if tts_thread is not None:
+                tts_thread.join()
+            GLib.idle_add(self.start_recording, self.recording_button)
+        if self.automatic_stt:
+            threading.Thread(target=restart_recording).start()
 
 
     def update_message(self, message, label):
