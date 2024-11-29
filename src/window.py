@@ -342,7 +342,7 @@ class MainWindow(Gtk.ApplicationWindow):
         button.add_css_class("error")
         button.connect("clicked", self.stop_recording)
         self.recording_button = button
-        self.recorder = AudioRecorder(auto_stop=True, stop_function=self.auto_stop_recording, silence_duration=self.stt_silence_detection_duration, silence_threshold=self.stt_silence_detection_threshold)
+        self.recorder = AudioRecorder(auto_stop=True, stop_function=self.auto_stop_recording, silence_duration=self.stt_silence_detection_duration, silence_threshold_percent=self.stt_silence_detection_threshold)
         t = threading.Thread(target=self.recorder.start_recording, args=(os.path.join(self.directory, "recording.wav"),))
         t.start()
 
