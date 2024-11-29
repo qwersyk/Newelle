@@ -1,6 +1,6 @@
 
 from .llm import BingHandler, GPT4AllHandler, GroqHandler, OllamaHandler, OpenAIHandler, CustomLLMHandler, GPT3AnyHandler, GeminiHandler, MistralHandler, OpenRouterHandler, NewelleAPIHandler
-from .tts import gTTSHandler, EspeakHandler, CustomTTSHandler
+from .tts import ElevenLabs, gTTSHandler, EspeakHandler, CustomTTSHandler
 from .stt import GroqSRHandler, OpenAISRHandler, SphinxHandler, GoogleSRHandler, WhisperHandler, WitAIHandler, VoskHandler, CustomSRHandler
 
 AVAILABLE_LLMS = {
@@ -140,6 +140,12 @@ AVAILABLE_TTS = {
         "title": _("Google TTS"),
         "description": _("Google's text to speech"),
         "class": gTTSHandler,
+    },
+    "elevenlabs": {
+        "key": "elevenlabs",
+        "title": _("ElevenLabs TTS"),
+        "description": _("Natural sounding TTS"),
+        "class": ElevenLabs,
     },
     "espeak": {
         "key": "espeak",

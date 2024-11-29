@@ -288,7 +288,7 @@ class Settings(Adw.PreferencesWindow):
         elif constants == AVAILABLE_STT:
             model = constants[key]["class"](self.settings,os.path.join(self.directory, "models"))
         elif constants == AVAILABLE_TTS:
-            model = constants[key]["class"](self.settings, self.directory)
+            model = constants[key]["class"](self.settings, os.path.join(self.directory, "pip"))
         elif constants == self.extensionloader.extensionsmap:
             model = self.extensionloader.extensionsmap[key]
             if model is None:
