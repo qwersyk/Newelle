@@ -295,6 +295,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.mic_button.set_vexpand(False)
         self.mic_button.set_valign(Gtk.Align.CENTER)
         self.mic_button.connect("clicked", self.start_recording)
+        self.recording_button = self.mic_button
         input_box.append(self.mic_button)
         # Send button
         box = Gtk.Box()
@@ -341,7 +342,6 @@ class MainWindow(Gtk.ApplicationWindow):
         button.remove_css_class("suggested-action")
         button.add_css_class("error")
         button.connect("clicked", self.stop_recording)
-        self.recording_button = button
         self.recorder = AudioRecorder(auto_stop=True, stop_function=self.auto_stop_recording, silence_duration=self.stt_silence_detection_duration, silence_threshold_percent=self.stt_silence_detection_threshold)
         t = threading.Thread(target=self.recorder.start_recording, args=(os.path.join(self.directory, "recording.wav"),))
         t.start()

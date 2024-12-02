@@ -17,6 +17,8 @@ class Shortcuts(Gtk.Window):
         gr.append(Gtk.ShortcutsShortcut(title=_("New tab"), accelerator='<primary>t'))
         gr.append(Gtk.ShortcutsShortcut(title=_("Paste Image"), accelerator='<primary>v'))
         gr.append(Gtk.ShortcutsShortcut(title=_("Focus message box"), accelerator='<primary>l'))
+        gr.append(Gtk.ShortcutsShortcut(title=_("Start recording"), accelerator='<primary>s'))
+        gr.append(Gtk.ShortcutsShortcut(title=_("Stop TTS"), accelerator='<primary>k'))
 
         sect_main.append(gr)
         self.set_child(sect_main)
