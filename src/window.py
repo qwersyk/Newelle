@@ -6,7 +6,7 @@ import pickle
 from .llm import LLMHandler
 
 from .presentation import PresentationWindow
-from .gtkobj import File, CopyBox, BarChartBox, MultilineEntry
+from .gtkobj import File, CopyBox, BarChartBox, MultilineEntry, apply_css_to_widget
 from .constants import AVAILABLE_LLMS, AVAILABLE_PROMPTS, PROMPTS, AVAILABLE_TTS, AVAILABLE_STT
 from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject, GLib, GdkPixbuf
 from .stt import AudioRecorder
@@ -1277,17 +1277,17 @@ class MainWindow(Gtk.ApplicationWindow):
             self.update_settings() 
         self.model.set_history(prompts, self.get_history())
         if self.model.stream_enabled():
-            label = Gtk.Label(label="", margin_top=10, margin_start=10, margin_bottom=10, margin_end=10, wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR,
-                                  selectable=True)
-            box=self.add_message("Assistant",label)
-            message_label = self.model.send_message_stream(self, self.chat[-1]["Message"], self.update_message, (label, ))
+            self.streamed_message = ""
+            self.curr_label = ""
+            GLib.idle_add(self.create_streaming_message_label)
+            self.streaming_lable = None
+            message_label = self.model.send_message_stream(self, self.chat[-1]["Message"], self.update_message)
             try:
-                box.get_parent().set_visible(False)
+                self.streaming_box.get_parent().set_visible(False)
             except:
                 pass
         else:
             message_label = self.send_message_to_bot(self.chat[-1]["Message"])
-
         if self.stream_number_variable == stream_number_variable:
             GLib.idle_add(self.show_message, message_label)
         GLib.idle_add(self.remove_send_button_spinner)
@@ -1306,8 +1306,39 @@ class MainWindow(Gtk.ApplicationWindow):
             threading.Thread(target=restart_recording).start()
 
 
-    def update_message(self, message, label):
-        GLib.idle_add(label.set_label, message)
+    def create_streaming_message_label(self):
+        scrolled_window = Gtk.ScrolledWindow(margin_top=10, margin_start=10, margin_bottom=10, margin_end=10)
+        
+        scrolled_window.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.NEVER)
+        scrolled_window.set_overflow(Gtk.Overflow.HIDDEN)
+        scrolled_window.set_max_content_width(200)
+        self.streaming_label = Gtk.TextView(wrap_mode=Gtk.WrapMode.WORD_CHAR, editable=False, hexpand=True)
+        scrolled_window.add_css_class("scroll")
+        self.streaming_label.add_css_class("scroll")
+        apply_css_to_widget(scrolled_window, ".scroll { background-color: rgba(0,0,0,0)}")
+        apply_css_to_widget(self.streaming_label, ".scroll { background-color: rgba(0,0,0,0)}")
+        scrolled_window.set_child(self.streaming_label)
+        text_buffer = self.streaming_label.get_buffer()
+        tag = text_buffer.create_tag("no-background", background_set=False, paragraph_background_set=False)
+        text_buffer.apply_tag(tag, text_buffer.get_start_iter(), text_buffer.get_end_iter())
+        self.streaming_box=self.add_message("Assistant", scrolled_window)
+        self.streaming_box.set_overflow(Gtk.Overflow.VISIBLE)
+    
+    def update_message(self, message):  
+        self.streamed_message = message
+        if self.streaming_label is not None:
+            added_message = message[len(self.curr_label):]
+            self.curr_label = message
+            def idle_edit():
+                self.streaming_label.get_buffer().insert(self.streaming_label.get_buffer().get_end_iter(), added_message)
+                pl = self.streaming_label.create_pango_layout(self.curr_label)
+                width, height = pl.get_size()
+                width = Gtk.Widget.get_scale_factor(self.streaming_label) * width / Pango.SCALE
+                height = Gtk.Widget.get_scale_factor(self.streaming_label) * height / Pango.SCALE
+                wmax = self.chat_list_block.get_size(Gtk.Orientation.HORIZONTAL)
+                # Dynamically take the width of the label
+                self.streaming_label.set_size_request(min(width, wmax-150), -1)
+            GLib.idle_add(idle_edit)
 
     def edit_message(self, gesture, data, x, y):
         if not self.status:

@@ -293,6 +293,7 @@ class G4FHandler(LLMHandler):
             return response.choices[0].message.content
         except Exception as e:
             return f"Error: {e}"
+    
     def generate_text_stream(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = [], on_update: Callable[[str], Any] = lambda _: None, extra_args: list = []) -> str:
         model = self.get_setting("model")
         img = None
