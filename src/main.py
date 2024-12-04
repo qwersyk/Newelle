@@ -203,6 +203,12 @@ class MyApp(Adw.Application):
         self.win.notification_block.add_toast(
                 Adw.Toast(title=_('Chat is created')))
 
+    def start_recording(self,*a):
+        self.win.start_recording(self.win.recording_button)
+
+    def stop_tts(self,*a):
+        self.win.mute_tts(self.win.mute_tts_button)
+    
     def do_shutdown(self):
         self.win.save_chat()
         settings = Gio.Settings.new('io.github.qwersyk.Newelle')
@@ -218,4 +224,6 @@ def main(version):
     app.create_action('reload_folder', app.reload_folder, ['<primary>e'])
     app.create_action('new_chat', app.new_chat, ['<primary>t'])
     app.create_action('focus_message', app.focus_message, ['<primary>l'])
+    app.create_action('start_recording', app.start_recording, ['<primary>s'])
+    app.create_action('stop_tts', app.stop_tts, ['<primary>k'])
     app.run(sys.argv)

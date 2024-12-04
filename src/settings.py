@@ -42,6 +42,8 @@ class Settings(Adw.PreferencesWindow):
         self.prompts_settings = json.loads(self.settings.get_string("prompts-settings"))
         self.prompts = override_prompts(self.custom_prompts, PROMPTS)
         self.sandbox = can_escape_sandbox()
+        
+        self.cache_handlers()
         # Page building
         self.general_page = Adw.PreferencesPage()
        
@@ -91,7 +93,10 @@ class Settings(Adw.PreferencesWindow):
         for stt_key in AVAILABLE_STT:
             row = self.build_row(AVAILABLE_STT, stt_key, selected, group)
             stt_engine.add_row(row)
-        
+        # Automatic STT settings 
+        self.auto_stt = Adw.ExpanderRow(title=_('Automatic Speech To Text'), subtitle=_("Automatically restart speech to text at the end of a text/TTS"))
+        self.build_auto_stt()
+        self.Voicegroup.add(self.auto_stt)
         # Prompts settings
         self.prompt = Adw.PreferencesGroup(title=_('Prompt control'))
         self.general_page.add(self.prompt)
@@ -169,6 +174,47 @@ class Settings(Adw.PreferencesWindow):
 
         self.add(self.general_page)
 
+    def build_auto_stt(self):
+        auto_stt_enabled = Gtk.Switch(valign=Gtk.Align.CENTER)
+        self.settings.bind("automatic-stt", auto_stt_enabled, 'active', Gio.SettingsBindFlags.DEFAULT)
+        self.auto_stt.add_suffix(auto_stt_enabled) 
+        def update_scale(scale, label, setting_value, type):
+            value = scale.get_value()
+            if type is float:
+                self.settings.set_double(setting_value, value)
+            elif type is int:
+                value = int(value)
+                self.settings.set_int(setting_value, value)
+            label.set_text(str(value))
+
+        # Silence Threshold
+        silence_threshold = Adw.ActionRow(title=_("Silence threshold"), subtitle=_("Silence threshold in seconds, percentage of the volume to be considered silence"))
+        threshold = Gtk.Scale(digits=0, round_digits=2)
+        threshold.set_range(0, 0.5)
+        threshold.set_size_request(120, -1)
+        th = self.settings.get_double("stt-silence-detection-threshold")
+        label = Gtk.Label(label=str(th))
+        threshold.set_value(th)
+        threshold.connect("value-changed", update_scale, label, "stt-silence-detection-threshold", float)
+        box = Gtk.Box()
+        box.append(threshold)
+        box.append(label)
+        silence_threshold.add_suffix(box)
+        # Silence time 
+        silence_time = Adw.ActionRow(title=_("Silence time"), subtitle=_("Silence time in seconds before recording stops automatically"))
+        time_scale = Gtk.Scale(digits=0, round_digits=0)
+        time_scale.set_range(0, 10)
+        time_scale.set_size_request(120, -1)
+        value = self.settings.get_int("stt-silence-detection-duration")
+        time_scale.set_value(value)
+        label = Gtk.Label(label=str(value))
+        time_scale.connect("value-changed", update_scale, label, "stt-silence-detection-duration", int)
+        box = Gtk.Box()
+        box.append(time_scale)
+        box.append(label)
+        silence_time.add_suffix(box)
+        self.auto_stt.add_row(silence_threshold) 
+        self.auto_stt.add_row(silence_time) 
 
     def update_prompt(self, switch: Gtk.Switch, state, key: str):
         """Update the prompt in the settings
@@ -225,6 +271,15 @@ class Settings(Adw.PreferencesWindow):
         row.add_prefix(button)
         return row
 
+    def cache_handlers(self):
+        self.handlers = {}
+        for key in AVAILABLE_TTS:
+            self.handlers[(key, self.convert_constants(AVAILABLE_TTS))] = self.get_object(AVAILABLE_TTS, key)
+        for key in AVAILABLE_STT:
+            self.handlers[(key, self.convert_constants(AVAILABLE_STT))] = self.get_object(AVAILABLE_STT, key)
+        for key in AVAILABLE_LLMS:
+            self.handlers[(key, self.convert_constants(AVAILABLE_LLMS))] = self.get_object(AVAILABLE_LLMS, key)
+
     def get_object(self, constants: dict[str, Any], key:str) -> (Handler):
         """Get an handler instance for the specified handler key
 
@@ -238,12 +293,15 @@ class Settings(Adw.PreferencesWindow):
         Returns:
             The created handler           
         """
+        if (key, self.convert_constants(constants)) in self.handlers:
+            return self.handlers[(key, self.convert_constants(constants))]
+
         if constants == AVAILABLE_LLMS:
             model = constants[key]["class"](self.settings, os.path.join(self.directory, "pip"))
         elif constants == AVAILABLE_STT:
             model = constants[key]["class"](self.settings,os.path.join(self.directory, "models"))
         elif constants == AVAILABLE_TTS:
-            model = constants[key]["class"](self.settings, self.directory)
+            model = constants[key]["class"](self.settings, os.path.join(self.directory, "pip"))
         elif constants == self.extensionloader.extensionsmap:
             model = self.extensionloader.extensionsmap[key]
             if model is None:

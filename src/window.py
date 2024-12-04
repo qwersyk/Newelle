@@ -6,7 +6,7 @@ import pickle
 from .llm import LLMHandler
 
 from .presentation import PresentationWindow
-from .gtkobj import File, CopyBox, BarChartBox, MultilineEntry
+from .gtkobj import File, CopyBox, BarChartBox, MultilineEntry, apply_css_to_widget
 from .constants import AVAILABLE_LLMS, AVAILABLE_PROMPTS, PROMPTS, AVAILABLE_TTS, AVAILABLE_STT
 from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject, GLib, GdkPixbuf
 from .stt import AudioRecorder
@@ -295,6 +295,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.mic_button.set_vexpand(False)
         self.mic_button.set_valign(Gtk.Align.CENTER)
         self.mic_button.connect("clicked", self.start_recording)
+        self.recording_button = self.mic_button
         input_box.append(self.mic_button)
         # Send button
         box = Gtk.Box()
@@ -331,29 +332,40 @@ class MainWindow(Gtk.ApplicationWindow):
 
     def focus_input(self):
         self.input_panel.input_panel.grab_focus()
-    def start_recording(self, button):
+    
+    def start_recording(self, button): 
+        if self.automatic_stt:
+            self.automatic_stt_status = True
         #button.set_child(Gtk.Spinner(spinning=True))
         button.set_icon_name("media-playback-stop-symbolic")
         button.disconnect_by_func(self.start_recording)
         button.remove_css_class("suggested-action")
         button.add_css_class("error")
         button.connect("clicked", self.stop_recording)
-        self.recorder = AudioRecorder()
-        t = threading.Thread(target=self.recorder.start_recording)
+        self.recorder = AudioRecorder(auto_stop=True, stop_function=self.auto_stop_recording, silence_duration=self.stt_silence_detection_duration, silence_threshold_percent=self.stt_silence_detection_threshold)
+        t = threading.Thread(target=self.recorder.start_recording, args=(os.path.join(self.directory, "recording.wav"),))
         t.start()
 
-    def stop_recording(self, button):
+    def auto_stop_recording(self, button=False):
+        GLib.idle_add(self.stop_recording_ui, self.recording_button)
+        threading.Thread(target=self.stop_recording_async, args=(self.recording_button,)).start()
+
+    def stop_recording(self, button=False):
+        self.automatic_stt_status = False
         self.recorder.stop_recording(os.path.join(self.directory, "recording.wav"))
-        t = threading.Thread(target=self.stop_recording_async, args=(button,))
+        self.stop_recording_ui(self.recording_button)
+        t = threading.Thread(target=self.stop_recording_async)
         t.start()
 
-    def stop_recording_async(self, button):
+    def stop_recording_ui(self, button):
         button.set_child(None)
         button.set_icon_name("audio-input-microphone-symbolic")
         button.add_css_class("suggested-action")
         button.remove_css_class("error")
         button.disconnect_by_func(self.stop_recording)
         button.connect("clicked", self.start_recording)
+    
+    def stop_recording_async(self, button=False):
         recognizer = self.stt_handler
         result = recognizer.recognize_file(os.path.join(self.directory, "recording.wav"))
         if result is not None:
@@ -408,6 +420,7 @@ class MainWindow(Gtk.ApplicationWindow):
         
 
     def update_settings(self):
+        self.automatic_stt_status = False
         settings = self.settings
         self.offers = settings.get_int("offers")
         self.virtualization = settings.get_boolean("virtualization")
@@ -425,7 +438,9 @@ class MainWindow(Gtk.ApplicationWindow):
         self.stt_engine = settings.get_string("stt-engine")
         self.stt_settings = settings.get_string("stt-settings")
         self.external_terminal = settings.get_string("external-terminal")
-
+        self.automatic_stt = settings.get_boolean("automatic-stt")
+        self.stt_silence_detection_threshold = settings.get_double("stt-silence-detection-threshold")
+        self.stt_silence_detection_duration = settings.get_int("stt-silence-detection-duration")
         # Load extensions
         self.extensionloader = ExtensionLoader(self.extension_path, pip_path=self.pip_directory, extension_cache=self.extensions_cache, settings=self.settings)
         self.extensionloader.load_extensions()
@@ -1262,29 +1277,68 @@ class MainWindow(Gtk.ApplicationWindow):
             self.update_settings() 
         self.model.set_history(prompts, self.get_history())
         if self.model.stream_enabled():
-            label = Gtk.Label(label="", margin_top=10, margin_start=10, margin_bottom=10, margin_end=10, wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR,
-                                  selectable=True)
-            box=self.add_message("Assistant",label)
-            message_label = self.model.send_message_stream(self, self.chat[-1]["Message"], self.update_message, (label, ))
+            self.streamed_message = ""
+            self.curr_label = ""
+            GLib.idle_add(self.create_streaming_message_label)
+            self.streaming_lable = None
+            message_label = self.model.send_message_stream(self, self.chat[-1]["Message"], self.update_message)
             try:
-                box.get_parent().set_visible(False)
+                self.streaming_box.get_parent().set_visible(False)
             except:
                 pass
         else:
             message_label = self.send_message_to_bot(self.chat[-1]["Message"])
-
         if self.stream_number_variable == stream_number_variable:
             GLib.idle_add(self.show_message, message_label)
         GLib.idle_add(self.remove_send_button_spinner)
         # TTS
+        tts_thread = None
         if self.tts_enabled: 
             message=re.sub(r"```.*?```", "", message_label, flags=re.DOTALL)
             if not(not message.strip() or message.isspace() or all(char == '\n' for char in message)):
-                threading.Thread(target=self.tts.play_audio, args=(message, )).start()
+                tts_thread = threading.Thread(target=self.tts.play_audio, args=(message, ))
+                tts_thread.start()
+        def restart_recording():
+            if tts_thread is not None:
+                tts_thread.join()
+            GLib.idle_add(self.start_recording, self.recording_button)
+        if self.automatic_stt:
+            threading.Thread(target=restart_recording).start()
 
 
-    def update_message(self, message, label):
-        GLib.idle_add(label.set_label, message)
+    def create_streaming_message_label(self):
+        scrolled_window = Gtk.ScrolledWindow(margin_top=10, margin_start=10, margin_bottom=10, margin_end=10)
+        
+        scrolled_window.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.NEVER)
+        scrolled_window.set_overflow(Gtk.Overflow.HIDDEN)
+        scrolled_window.set_max_content_width(200)
+        self.streaming_label = Gtk.TextView(wrap_mode=Gtk.WrapMode.WORD_CHAR, editable=False, hexpand=True)
+        scrolled_window.add_css_class("scroll")
+        self.streaming_label.add_css_class("scroll")
+        apply_css_to_widget(scrolled_window, ".scroll { background-color: rgba(0,0,0,0)}")
+        apply_css_to_widget(self.streaming_label, ".scroll { background-color: rgba(0,0,0,0)}")
+        scrolled_window.set_child(self.streaming_label)
+        text_buffer = self.streaming_label.get_buffer()
+        tag = text_buffer.create_tag("no-background", background_set=False, paragraph_background_set=False)
+        text_buffer.apply_tag(tag, text_buffer.get_start_iter(), text_buffer.get_end_iter())
+        self.streaming_box=self.add_message("Assistant", scrolled_window)
+        self.streaming_box.set_overflow(Gtk.Overflow.VISIBLE)
+    
+    def update_message(self, message):  
+        self.streamed_message = message
+        if self.streaming_label is not None:
+            added_message = message[len(self.curr_label):]
+            self.curr_label = message
+            def idle_edit():
+                self.streaming_label.get_buffer().insert(self.streaming_label.get_buffer().get_end_iter(), added_message)
+                pl = self.streaming_label.create_pango_layout(self.curr_label)
+                width, height = pl.get_size()
+                width = Gtk.Widget.get_scale_factor(self.streaming_label) * width / Pango.SCALE
+                height = Gtk.Widget.get_scale_factor(self.streaming_label) * height / Pango.SCALE
+                wmax = self.chat_list_block.get_size(Gtk.Orientation.HORIZONTAL)
+                # Dynamically take the width of the label
+                self.streaming_label.set_size_request(min(width, wmax-150), -1)
+            GLib.idle_add(idle_edit)
 
     def edit_message(self, gesture, data, x, y):
         if not self.status:
