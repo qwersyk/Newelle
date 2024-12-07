@@ -1116,7 +1116,7 @@ class MistralHandler(OpenAIHandler):
 
 class GroqHandler(OpenAIHandler):
     key = "groq"
-    default_models = (("llama-3.1-70B-versatile", "llama-3.1-70B-versatile" ), ) 
+    default_models = (("llama-3.3-70B-versatile", "llama-3.3-70B-versatile" ), ) 
     def supports_vision(self) -> bool:
         return "vision" in self.get_setting("model")
 
