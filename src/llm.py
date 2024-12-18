@@ -4,7 +4,7 @@ import os, threading
 from typing import Callable, Any
 import json
 import base64
-from .extra import convert_history_openai, extract_image, find_module, get_streaming_extra_setting, install_module, open_website, get_image_path, get_spawn_command, quote_string
+from .extra import convert_history_openai, extract_image, extract_json, find_module, get_streaming_extra_setting, install_module, open_website, get_image_path, get_spawn_command, quote_string
 from .handler import Handler
 
 class LLMHandler(Handler):
@@ -130,7 +130,7 @@ class LLMHandler(Handler):
             history += message["User"] + ": " + message["Message"] + "\n"
         for i in range(0, amount):
             generated = self.generate_text(history + "\n\n" + request_prompt)
-            generated = generated.replace("```json", "").replace("```", "")
+            generated = extract_json(generated)
             try:
                 j = json.loads(generated)
             except Exception as _:
