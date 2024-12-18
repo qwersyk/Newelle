@@ -711,8 +711,8 @@ class MainWindow(Gtk.ApplicationWindow):
             button.set_child(spinner)
             button.set_can_target(False)
             button.set_has_frame(True)
-            # TODO: take the history for the correct chat
-            self.model.set_history([], self)
+             
+            self.model.set_history([], self.get_history(self.chats[int(button.get_name())]["chat"]))
             name = self.model.generate_chat_name(self.prompts["generate_name_prompt"])
             if name != "Chat has been stopped":
                 self.chats[int(button.get_name())]["name"] = name
@@ -1248,10 +1248,12 @@ class MainWindow(Gtk.ApplicationWindow):
         GLib.idle_add(self.scrolled_chat)
         self.save_chat()
 
-    def get_history(self) -> list[dict[str, str]]: 
+    def get_history(self, chat = None) -> list[dict[str, str]]: 
+        if chat is None:
+            chat = self.chat
         history = []
         count = self.memory
-        for msg in self.chat[:-1]:
+        for msg in chat[:-1]:
             if count == 0:
                 break
             if msg["User"] == "Console" and msg["Message"] == "None":
