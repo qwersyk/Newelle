@@ -1281,7 +1281,7 @@ class MainWindow(Gtk.ApplicationWindow):
             self.curr_label = ""
             GLib.idle_add(self.create_streaming_message_label)
             self.streaming_lable = None
-            message_label = self.model.send_message_stream(self, self.chat[-1]["Message"], self.update_message)
+            message_label = self.model.send_message_stream(self, self.chat[-1]["Message"], self.update_message, [stream_number_variable])
             try:
                 self.streaming_box.get_parent().set_visible(False)
             except:
@@ -1324,7 +1324,9 @@ class MainWindow(Gtk.ApplicationWindow):
         self.streaming_box=self.add_message("Assistant", scrolled_window)
         self.streaming_box.set_overflow(Gtk.Overflow.VISIBLE)
     
-    def update_message(self, message):  
+    def update_message(self, message, stream_number_variable):  
+        if self.stream_number_variable != stream_number_variable:
+            return
         self.streamed_message = message
         if self.streaming_label is not None:
             added_message = message[len(self.curr_label):]
