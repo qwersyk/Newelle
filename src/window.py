@@ -10,7 +10,7 @@ from .gtkobj import File, CopyBox, BarChartBox, MultilineEntry, apply_css_to_wid
 from .constants import AVAILABLE_LLMS, AVAILABLE_PROMPTS, PROMPTS, AVAILABLE_TTS, AVAILABLE_STT
 from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject, GLib, GdkPixbuf
 from .stt import AudioRecorder
-from .extra import get_spawn_command, install_module, markwon_to_pango, override_prompts, replace_variables
+from .extra import get_spawn_command, install_module, markwon_to_pango, override_prompts, remove_markdown, replace_variables
 import threading
 import posixpath
 import json
@@ -537,7 +537,7 @@ class MainWindow(Gtk.ApplicationWindow):
         elif type(header_widget) is Gtk.Box:
             self.explorer_panel_headerbox.append(self.headerbox)
     
-    def on_flap_button_toggled(self, toggle_button):
+    def on_flap_button_toggled(self, toggle_button): 
         self.flap_button_left.set_active(True)
         if self.main_program_block.get_name() == "visible":
             self.main_program_block.set_name("hide")
@@ -1295,6 +1295,7 @@ class MainWindow(Gtk.ApplicationWindow):
         tts_thread = None
         if self.tts_enabled: 
             message=re.sub(r"```.*?```", "", message_label, flags=re.DOTALL)
+            message = remove_markdown(message)
             if not(not message.strip() or message.isspace() or all(char == '\n' for char in message)):
                 tts_thread = threading.Thread(target=self.tts.play_audio, args=(message, ))
                 tts_thread.start()
@@ -1315,8 +1316,8 @@ class MainWindow(Gtk.ApplicationWindow):
         self.streaming_label = Gtk.TextView(wrap_mode=Gtk.WrapMode.WORD_CHAR, editable=False, hexpand=True)
         scrolled_window.add_css_class("scroll")
         self.streaming_label.add_css_class("scroll")
-        apply_css_to_widget(scrolled_window, ".scroll { background-color: rgba(0,0,0,0)}")
-        apply_css_to_widget(self.streaming_label, ".scroll { background-color: rgba(0,0,0,0)}")
+        apply_css_to_widget(scrolled_window, ".scroll { background-color: rgba(0,0,0,0);}")
+        apply_css_to_widget(self.streaming_label, ".scroll { background-color: rgba(0,0,0,0);}")
         scrolled_window.set_child(self.streaming_label)
         text_buffer = self.streaming_label.get_buffer()
         tag = text_buffer.create_tag("no-background", background_set=False, paragraph_background_set=False)
