@@ -263,6 +263,7 @@ def can_escape_sandbox() -> bool:
     except subprocess.CalledProcessError as _:
         return False
     return True
+
 def get_streaming_extra_setting():
             return {
                 "key": "streaming",
@@ -271,6 +272,7 @@ def get_streaming_extra_setting():
                 "type": "toggle",
                 "default": True
             }
+
 def override_prompts(override_setting, PROMPTS):
     prompt_list = {}
     for prompt in PROMPTS:
@@ -279,3 +281,53 @@ def override_prompts(override_setting, PROMPTS):
         else:
             prompt_list[prompt] = PROMPTS[prompt]
     return prompt_list
+
+
+
+def remove_markdown(text: str) -> str:
+    """
+    Remove markdown from text
+
+    Args:
+        text: The text to remove markdown from 
+
+    Returns:
+        str: The text without markdown 
+    """
+    # Remove headers
+    text = re.sub(r'^#{1,6}\s*', '', text, flags=re.MULTILINE)
+    
+    # Remove emphasis (bold and italic)
+    text = re.sub(r'\*\*(.*?)\*\*', r'\1', text)  # Bold
+    text = re.sub(r'__(.*?)__', r'\1', text)          # Bold
+    text = re.sub(r'\*(.*?)\*', r'\1', text)        # Italic
+    text = re.sub(r'_(.*?)_', r'\1', text)            # Italic
+    
+    # Remove inline code
+    text = re.sub(r'`([^`]*)`', r'\1', text)
+    
+    # Remove code blocks
+    text = re.sub(r'```[\s\S]*?```', '', text)
+
+    # Remove links, keep the link text
+    text = re.sub(r'\[([^\]]+)\]\([^\)]+\)', r'\1', text)
+
+    # Remove images, keep the alt text
+    text = re.sub(r'!\[([^\]]*)\]\([^\)]+\)', r'\1', text)
+
+    # Remove strikethrough
+    text = re.sub(r'~~(.*?)~~', r'\1', text)
+
+    # Remove blockquotes
+    text = re.sub(r'^>\s*', '', text, flags=re.MULTILINE)
+
+    # Remove unordered list markers
+    text = re.sub(r'^\s*[-+*]\s+', '', text, flags=re.MULTILINE)
+
+    # Remove ordered list markers
+    text = re.sub(r'^\s*\d+\.\s+', '', text, flags=re.MULTILINE)
+
+    # Remove extra newlines
+    text = re.sub(r'\n{2,}', '\n', text)
+
+    return text.strip()
