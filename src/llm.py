@@ -4,7 +4,7 @@ import os, threading
 from typing import Callable, Any
 import json
 import base64
-from .extra import convert_history_openai, extract_image, find_module, get_streaming_extra_setting, install_module, open_website, get_image_path, get_spawn_command, quote_string
+from .extra import convert_history_openai, extract_image, extract_json, find_module, get_streaming_extra_setting, install_module, open_website, get_image_path, get_spawn_command, quote_string
 from .handler import Handler
 
 class LLMHandler(Handler):
@@ -130,7 +130,7 @@ class LLMHandler(Handler):
             history += message["User"] + ": " + message["Message"] + "\n"
         for i in range(0, amount):
             generated = self.generate_text(history + "\n\n" + request_prompt)
-            generated = generated.replace("```json", "").replace("```", "")
+            generated = extract_json(generated)
             try:
                 j = json.loads(generated)
             except Exception as _:
@@ -455,10 +455,36 @@ class GeminiHandler(LLMHandler):
     Official Google Gemini APIs, they support history and system prompts
     """
 
+    default_models = [("gemini-1.5-flash","gemini-1.5-flash"), ("gemini-1.5-flash-8b", "gemini-1.5-flash-8b") , ("gemini-1.0-pro", "gemini-1.0-pro"), ("gemini-1.5-pro","gemini-1.5-pro") ]
+    
     def __init__(self, settings, path):
         super().__init__(settings, path)
         self.cache = {}
+        if self.get_setting("models", False) is None or len(self.get_setting("models", False)) == 0 or True:
+            self.models = self.default_models 
+            threading.Thread(target=self.get_models).start()
+        else:
+            self.models = json.loads(self.get_setting("models", False))
 
+    def get_models(self):
+        if self.is_installed():
+            try:
+                import google.generativeai as genai
+                api = self.get_setting("apikey", False)
+                if api is None:
+                    return
+                genai.configure(api_key=api)
+                models = genai.list_models()
+                result = tuple()
+                for model in models:
+                    if "generateContent" in model.supported_generation_methods:
+                        result += ((model.display_name, model.name,),)
+                self.models = result
+                self.set_setting("models", json.dumps(result))
+                self.settings_update()
+            except Exception as e:
+                print("Error getting " + self.key + " models: " + str(e))
+    
     @staticmethod
     def get_extra_requirements() -> list:
         return ["google-generativeai"]
@@ -480,12 +506,20 @@ class GeminiHandler(LLMHandler):
                 "default": ""
             },
             {
+                "key": "refresh_models",
+                "title": _("Refresh Models"),
+                "description": _("Refresh models list"),
+                "type": "button",
+                "icon": "view-refresh-symbolic",
+                "callback": lambda button: self.get_models(),
+            },
+            {
                 "key": "model",
                 "title": _("Model"),
                 "description": _("AI Model to use, available: gemini-1.5-pro, gemini-1.0-pro, gemini-1.5-flash"),
                 "type": "combo",
-                "default": "gemini-1.5-flash",
-                "values": [("gemini-1.5-flash-8b", "gemini-1.5-flash-8b"), ("gemini-1.5-flash","gemini-1.5-flash") , ("gemini-1.0-pro", "gemini-1.0-pro"), ("gemini-1.5-pro","gemini-1.5-pro") ]
+                "default": self.models[0][1],
+                "values": self.models, 
             },
             {
                 "key": "streaming",
@@ -1071,6 +1105,7 @@ class OpenAIHandler(LLMHandler):
         from openai import OpenAI
         history.append({"User": "User", "Message": prompt})
         messages = self.convert_history(history, system_prompt)
+        print([message["role"] for message in messages])
         api = self.get_setting("api")
         if api == "":
             api = "nokey"
@@ -1116,7 +1151,7 @@ class MistralHandler(OpenAIHandler):
 
 class GroqHandler(OpenAIHandler):
     key = "groq"
-    default_models = (("llama-3.1-70B-versatile", "llama-3.1-70B-versatile" ), ) 
+    default_models = (("llama-3.3-70B-versatile", "llama-3.3-70B-versatile" ), ) 
     def supports_vision(self) -> bool:
         return "vision" in self.get_setting("model")
 
