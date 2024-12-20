@@ -1358,7 +1358,9 @@ class MainWindow(Gtk.ApplicationWindow):
         old_message = box.get_last_child()
         entry = MultilineEntry()
 
-        wmax = self.chat_list_block.get_size(Gtk.Orientation.HORIZONTAL)
+        wmax = old_message.get_size(Gtk.Orientation.HORIZONTAL)
+        hmax = old_message.get_size(Gtk.Orientation.VERTICAL)
+        
         entry.set_text(self.chat[int(gesture.get_name())]["Message"])
         entry.set_margin_end(10)
         entry.set_margin_top(10)
@@ -1366,7 +1368,7 @@ class MainWindow(Gtk.ApplicationWindow):
         entry.set_margin_bottom(10)
         entry.set_vexpand(True)
         entry.set_hexpand(True)
-        entry.set_size_request(wmax-150, 300)
+        entry.set_size_request(wmax, hmax)
         def edit_message(entry):
             self.chat[int(gesture.get_name())]["Message"] = entry.get_text()
             self.show_chat()
