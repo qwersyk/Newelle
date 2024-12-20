@@ -1366,7 +1366,6 @@ class MainWindow(Gtk.ApplicationWindow):
 
         wmax = old_message.get_size(Gtk.Orientation.HORIZONTAL)
         hmax = old_message.get_size(Gtk.Orientation.VERTICAL)
-        print(int(gesture.get_name())) 
         entry.set_text(self.chat[int(gesture.get_name())]["Message"])
         entry.set_margin_end(10)
         entry.set_margin_top(10)
@@ -1375,7 +1374,14 @@ class MainWindow(Gtk.ApplicationWindow):
         entry.set_size_request(wmax, hmax)
         def edit_message(entry):
             self.focus_input()
+            # Delete message
+            if entry.get_text() == "":
+                del self.chat[int(gesture.get_name())]
+                self.chat_list_block.remove(box.get_parent())
+                self.save_chat()
+                return
             self.chat[int(gesture.get_name())]["Message"] = entry.get_text()
+            self.save_chat()
             box.remove(entry)
             box.append(self.show_message(entry.get_text(), restore=True, id_message=int(gesture.get_name()), is_user=self.chat[int(gesture.get_name())]["User"] == "User", return_widget=True))
         entry.set_on_enter(edit_message) 
