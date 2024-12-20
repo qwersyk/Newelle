@@ -253,7 +253,7 @@ class Settings(Adw.PreferencesWindow):
                  end = time.time()
              else:
                 self.llmrow = row
-                threading.Thread(target=self.build_local).start()
+                GLib.idle_add(self.build_local)
         else:
             row = Adw.ActionRow(title=model["title"], subtitle=model["description"])
         self.settingsrows[(key, self.convert_constants(constants))]["row"] = row
@@ -689,6 +689,7 @@ class Settings(Adw.PreferencesWindow):
     def build_local(self):
         """Build the settings for local models"""
         # Reload available models
+        print("Building local...")
         if len(self.local_models) == 0:
             self.refresh_models(None)
 
@@ -758,6 +759,7 @@ class Settings(Adw.PreferencesWindow):
             r.add_prefix(button)
             r.add_suffix(actionbutton)
             self.llmrow.add_row(r)
+        print("Local built")
 
     def choose_local_model(self, button):
         """Called when a local model is chosen
