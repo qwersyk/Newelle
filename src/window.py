@@ -325,10 +325,11 @@ class MainWindow(Gtk.ApplicationWindow):
         self.presentation_dialog = PresentationWindow("presentation", self.settings, self.directory, self)
         self.presentation_dialog.show()
 
-    def mute_tts(self, button):
+    def mute_tts(self, button: Gtk.Button):
+        self.focus_input()
         if self.tts_enabled:
             self.tts.stop()
-        button.set_visible(False)
+        return False
 
     def focus_input(self):
         self.input_panel.input_panel.grab_focus()
@@ -646,6 +647,7 @@ class MainWindow(Gtk.ApplicationWindow):
             self.notification_block.add_toast(Adw.Toast(title=_('You can no longer regenerate the message.'), timeout=2))
     def update_history(self):
         # Update UI
+        initial_scroll = self.chats_buttons_scroll_block.get_vadjustment().get_value()
         list_box = Gtk.ListBox(css_classes=["separators","background"])
         list_box.set_selection_mode(Gtk.SelectionMode.NONE)
         self.chats_buttons_scroll_block.set_child(list_box)
@@ -688,11 +690,11 @@ class MainWindow(Gtk.ApplicationWindow):
                 button.set_has_frame(True)
             else:
                 button.connect("clicked", self.chose_chat)
-            list_box.append(box)
             box.append(button)
             box.append(create_chat_clone_button)
             box.append(generate_chat_name_button)
             box.append(delete_chat_button)
+            list_box.append(box) 
 
     def remove_chat(self, button):
         if int(button.get_name()) < self.chat_id:
