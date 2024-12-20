@@ -1071,6 +1071,7 @@ class MainWindow(Gtk.ApplicationWindow):
         GLib.idle_add(self.scrolled_chat)
 
     def show_message(self, message_label, restore=False,id_message=-1, is_user=False, return_widget=False):
+        editable = True
         if message_label == " " * len(message_label) and not is_user:
             if not restore:
                 self.chat.append({"User": "Assistant", "Message": message_label})
@@ -1104,7 +1105,7 @@ class MainWindow(Gtk.ApplicationWindow):
                                 if widget is not None:
                                     box.append(widget)
                                 else:
-
+                                    editable = False
                                     if id_message==-1:
                                         id_message = len(self.chat)-1
                                     id_message+=1
@@ -1115,6 +1116,7 @@ class MainWindow(Gtk.ApplicationWindow):
                                     )
                                     text_expander.set_expanded(False)
                                     reply_from_the_console = None
+                                    
                                     if self.chat[min(id_message, len(self.chat) - 1)]["User"] == "Console":
                                         reply_from_the_console = self.chat[min(id_message, len(self.chat) - 1)]["Message"]
                                     def getresponse():
@@ -1159,6 +1161,7 @@ class MainWindow(Gtk.ApplicationWindow):
                                 box.append(image)
 
                         elif code_language == "console" and not is_user:
+                            editable = False
                             if id_message==-1:
                                 id_message = len(self.chat)-1
                             id_message+=1
@@ -1238,7 +1241,7 @@ class MainWindow(Gtk.ApplicationWindow):
                 box.append(self.create_table(table_string[start_table_index:len(table_string)]))
             if not has_terminal_command:
                 if not return_widget:
-                    self.add_message("Assistant" if not is_user else "User", box, id_message)
+                    self.add_message("Assistant" if not is_user else "User", box, id_message, editable)
                 else:
                     return box
                 if not restore:
@@ -1374,25 +1377,31 @@ class MainWindow(Gtk.ApplicationWindow):
             self.focus_input()
             self.chat[int(gesture.get_name())]["Message"] = entry.get_text()
             box.remove(entry)
-            box.append(self.show_message(entry.get_text(), id_message=int(gesture.get_name()), is_user=True, return_widget=True))
+            box.append(self.show_message(entry.get_text(), restore=True, id_message=int(gesture.get_name()), is_user=self.chat[int(gesture.get_name())]["User"] == "User", return_widget=True))
         entry.set_on_enter(edit_message) 
         box.remove(old_message)
         box.append(entry)
 
-    def add_message(self, user, message=None, id_message=0):
+    def add_message(self, user, message=None, id_message=0, editable=False):
         box = Gtk.Box(css_classes=["card"], margin_top=10, margin_start=10, margin_bottom=10, margin_end=10,
-                      halign=Gtk.Align.START)
+                      halign=Gtk.Align.START) 
+        if editable:
+            evk = Gtk.GestureClick.new()
+            evk.connect("pressed", self.edit_message, box)
+            evk.set_name(str(id_message))
+            evk.set_button(3)
+            box.add_controller(evk)
+
         if user == "User":
             evk = Gtk.GestureClick.new()
             evk.connect("pressed", self.edit_message, box)
-            print(id_message)
             evk.set_name(str(id_message))
             evk.set_button(3)
             box.add_controller(evk)
             box.append(Gtk.Label(label=user + ": ", margin_top=10, margin_start=10, margin_bottom=10, margin_end=0,
                                  css_classes=["accent", "heading"]))
             box.set_css_classes(["card", "user"])
-        if user == "Assistant":
+        if user == "Assistant": 
             box.append(Gtk.Label(label=user + ": ", margin_top=10, margin_start=10, margin_bottom=10, margin_end=0,
                                  css_classes=["warning", "heading"]))
             box.set_css_classes(["card", "assistant"])
