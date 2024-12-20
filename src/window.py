@@ -647,6 +647,7 @@ class MainWindow(Gtk.ApplicationWindow):
             self.notification_block.add_toast(Adw.Toast(title=_('You can no longer regenerate the message.'), timeout=2))
     def update_history(self):
         # Update UI
+        self.focus_input()
         initial_scroll = self.chats_buttons_scroll_block.get_vadjustment().get_value()
         list_box = Gtk.ListBox(css_classes=["separators","background"])
         list_box.set_selection_mode(Gtk.SelectionMode.NONE)
