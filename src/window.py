@@ -1070,7 +1070,7 @@ class MainWindow(Gtk.ApplicationWindow):
             self.check_streams["chat"] = False
         GLib.idle_add(self.scrolled_chat)
 
-    def show_message(self, message_label, restore=False,id_message=-1, is_user=False):
+    def show_message(self, message_label, restore=False,id_message=-1, is_user=False, return_widget=False):
         if message_label == " " * len(message_label) and not is_user:
             if not restore:
                 self.chat.append({"User": "Assistant", "Message": message_label})
@@ -1237,7 +1237,10 @@ class MainWindow(Gtk.ApplicationWindow):
             if start_table_index != -1:
                 box.append(self.create_table(table_string[start_table_index:len(table_string)]))
             if not has_terminal_command:
-                self.add_message("Assistant" if not is_user else "User", box)
+                if not return_widget:
+                    self.add_message("Assistant" if not is_user else "User", box, id_message)
+                else:
+                    return box
                 if not restore:
                     GLib.idle_add(self.update_button_text)
                     self.status = True
@@ -1360,28 +1363,29 @@ class MainWindow(Gtk.ApplicationWindow):
 
         wmax = old_message.get_size(Gtk.Orientation.HORIZONTAL)
         hmax = old_message.get_size(Gtk.Orientation.VERTICAL)
-        
+        print(int(gesture.get_name())) 
         entry.set_text(self.chat[int(gesture.get_name())]["Message"])
         entry.set_margin_end(10)
         entry.set_margin_top(10)
         entry.set_margin_start(10)
         entry.set_margin_bottom(10)
-        entry.set_vexpand(True)
-        entry.set_hexpand(True)
         entry.set_size_request(wmax, hmax)
         def edit_message(entry):
+            self.focus_input()
             self.chat[int(gesture.get_name())]["Message"] = entry.get_text()
-            self.show_chat()
+            box.remove(entry)
+            box.append(self.show_message(entry.get_text(), id_message=int(gesture.get_name()), is_user=True, return_widget=True))
         entry.set_on_enter(edit_message) 
-
         box.remove(old_message)
         box.append(entry)
+
     def add_message(self, user, message=None, id_message=0):
         box = Gtk.Box(css_classes=["card"], margin_top=10, margin_start=10, margin_bottom=10, margin_end=10,
                       halign=Gtk.Align.START)
         if user == "User":
             evk = Gtk.GestureClick.new()
             evk.connect("pressed", self.edit_message, box)
+            print(id_message)
             evk.set_name(str(id_message))
             evk.set_button(3)
             box.add_controller(evk)
