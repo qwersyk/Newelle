@@ -538,7 +538,8 @@ class MainWindow(Gtk.ApplicationWindow):
         elif type(header_widget) is Gtk.Box:
             self.explorer_panel_headerbox.append(self.headerbox)
     
-    def on_flap_button_toggled(self, toggle_button): 
+    def on_flap_button_toggled(self, toggle_button):  
+        self.focus_input()
         self.flap_button_left.set_active(True)
         if self.main_program_block.get_name() == "visible":
             self.main_program_block.set_name("hide")
@@ -900,6 +901,7 @@ class MainWindow(Gtk.ApplicationWindow):
                 subprocess.run(['xdg-open', os.path.expanduser(self.main_path + "/" + button.get_name())])
         else:
             self.notification_block.add_toast(Adw.Toast(title=_('File not found'), timeout=2))
+
     def handle_main_block_change(self, *data):
         if (self.main.get_folded()):
             self.chat_panel_header.set_show_end_title_buttons(not self.main_program_block.get_reveal_flap())
