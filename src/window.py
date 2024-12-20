@@ -1350,27 +1350,36 @@ class MainWindow(Gtk.ApplicationWindow):
                 self.streaming_label.set_size_request(min(width, wmax-150), -1)
             GLib.idle_add(idle_edit)
 
-    def edit_message(self, gesture, data, x, y):
+    def edit_message(self, gesture, data, x, y, box: Gtk.Box):
         if not self.status:
             self.notification_block.add_toast(Adw.Toast(title=_("You can't edit a message while the program is running."), timeout=2))
             return False
-        self.input_panel.set_text(self.chat[int(gesture.get_name())]["Message"])
-        self.input_panel.grab_focus()
-        self.chats.append({"name": self.chats[self.chat_id]["name"], "chat": self.chat[0:int(gesture.get_name())]})
-        self.stream_number_variable += 1
-        self.chats[self.chat_id]["chat"] = self.chat
-        self.chat_id = len(self.chats) - 1
-        self.chat = self.chats[self.chat_id]["chat"]
-        self.update_history()
-        self.show_chat()
-        GLib.idle_add(self.update_button_text)
 
+        old_message = box.get_last_child()
+        entry = MultilineEntry()
+
+        wmax = self.chat_list_block.get_size(Gtk.Orientation.HORIZONTAL)
+        entry.set_text(self.chat[int(gesture.get_name())]["Message"])
+        entry.set_margin_end(10)
+        entry.set_margin_top(10)
+        entry.set_margin_start(10)
+        entry.set_margin_bottom(10)
+        entry.set_vexpand(True)
+        entry.set_hexpand(True)
+        entry.set_size_request(wmax-150, 300)
+        def edit_message(entry):
+            self.chat[int(gesture.get_name())]["Message"] = entry.get_text()
+            self.show_chat()
+        entry.set_on_enter(edit_message) 
+
+        box.remove(old_message)
+        box.append(entry)
     def add_message(self, user, message=None, id_message=0):
         box = Gtk.Box(css_classes=["card"], margin_top=10, margin_start=10, margin_bottom=10, margin_end=10,
                       halign=Gtk.Align.START)
         if user == "User":
             evk = Gtk.GestureClick.new()
-            evk.connect("pressed", self.edit_message)
+            evk.connect("pressed", self.edit_message, box)
             evk.set_name(str(id_message))
             evk.set_button(3)
             box.add_controller(evk)
