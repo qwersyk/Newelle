@@ -1376,9 +1376,7 @@ class MainWindow(Gtk.ApplicationWindow):
             self.focus_input()
             # Delete message
             if entry.get_text() == "":
-                del self.chat[int(gesture.get_name())]
-                self.chat_list_block.remove(box.get_parent())
-                self.save_chat()
+                self.delete_message(gesture, box)
                 return
             self.chat[int(gesture.get_name())]["Message"] = entry.get_text()
             self.save_chat()
@@ -1388,18 +1386,20 @@ class MainWindow(Gtk.ApplicationWindow):
         box.remove(old_message)
         box.append(entry)
 
-    def hide_edit_button(self,data,box: Gtk.Box, user):
-        label = box.get_first_child()
+    def delete_message(self, gesture, box):
+        del self.chat[int(gesture.get_name())]
+        self.chat_list_block.remove(box.get_parent())
+        self.save_chat()
 
-    def build_edit_box(self, box):
-        box = Gtk.Box(opacity=0)
-        button = Gtk.Button(icon_name="document-edit-symbolic", css_classes=["flat", "success"])
+    def build_edit_box(self, box, id):
+        edit_box = Gtk.Box(opacity=1)
+        button = Gtk.Button(icon_name="document-edit-symbolic", css_classes=["flat", "success"], valign=Gtk.Align.CENTER, name=id)
         button.connect("clicked", self.edit_message, None, None, None, box)
-        box.append(button)
-        remove_button = Gtk.Button(icon_name="user-trash-symbolic", css_classes=["flat", "destructive-action"])
-        remove_button.connect("clicked", self.edit_message)
-        box.append(remove_button)
-        return box
+        edit_box.append(button)
+        remove_button = Gtk.Button(icon_name="user-trash-symbolic", css_classes=["flat", "destructive-action"], valign=Gtk.Align.CENTER, name=id)
+        remove_button.connect("clicked", self.delete_message, box)
+        edit_box.append(remove_button)
+        return edit_box
 
     def add_message(self, user, message=None, id_message=0, editable=False):
         box = Gtk.Box(css_classes=["card"], margin_top=10, margin_start=10, margin_bottom=10, margin_end=10,
@@ -1411,26 +1411,34 @@ class MainWindow(Gtk.ApplicationWindow):
             evk.set_button(3)
             box.add_controller(evk)
             ev = Gtk.EventControllerMotion.new() 
-            edit_box = self.build_edit_box(box) 
-            ev.connect("enter", lambda x,y,data: edit_box.set_opacity(1))
-            ev.connect("leave", lambda data: edit_box.set_opacity(0))
+            edit_box = self.build_edit_box(box, str(id_message))
+
+            stack = Gtk.Stack()
+            ev.connect("enter", lambda x,y,data: stack.set_visible_child_name("edit"))
+            ev.connect("leave", lambda data: stack.set_visible_child_name("label"))
             box.add_controller(ev)
 
         if user == "User":
-            name_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, valign=Gtk.Align.CENTER)
-            name_box.append(Gtk.Label(label=user + ": ", margin_top=10, margin_start=10, margin_bottom=10, margin_end=0,
-                                 css_classes=["accent", "heading"]))
-            if editable:
-                name_box.append(edit_box)
-            box.append(name_box)
+            label = Gtk.Label(label=user + ": ", margin_top=10, margin_start=10, margin_bottom=10, margin_end=0,
+                                 css_classes=["accent", "heading"]) 
+            if editable: 
+                stack.add_named(label, "label")
+                stack.add_named(edit_box, "edit")
+                stack.set_visible_child_name("label")
+                box.append(stack)
+            else:
+                box.append(label)
             box.set_css_classes(["card", "user"])
         if user == "Assistant": 
-            name_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, valign=Gtk.Align.CENTER)
-            name_box.append(Gtk.Label(label=user + ": ", margin_top=10, margin_start=10, margin_bottom=10, margin_end=0,
-                                 css_classes=["warning", "heading"]))
-            if editable:
-                name_box.append(edit_box)
-            box.append(name_box)
+            label = Gtk.Label(label=user + ": ", margin_top=10, margin_start=10, margin_bottom=10, margin_end=0,
+                                 css_classes=["warning", "heading"])
+            if editable: 
+                stack.add_named(label, "label")
+                stack.add_named(edit_box, "edit")
+                stack.set_visible_child_name("label")
+                box.append(stack)
+            else:
+                box.append(label)
             box.set_css_classes(["card", "assistant"])
         if user == "Done":
             box.append(Gtk.Label(label="Assistant: ", margin_top=10, margin_start=10, margin_bottom=10, margin_end=0,
