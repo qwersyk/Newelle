@@ -1405,6 +1405,7 @@ class MainWindow(Gtk.ApplicationWindow):
         del self.chat[int(gesture.get_name())]
         self.chat_list_block.remove(box.get_parent())
         self.save_chat()
+        self.show_chat()
 
     def build_edit_box(self, box, id):
         edit_box = Gtk.Box()
