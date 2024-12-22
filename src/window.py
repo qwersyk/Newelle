@@ -1415,7 +1415,7 @@ class MainWindow(Gtk.ApplicationWindow):
         apply_edit_stack = Gtk.Stack()
         apply_button = Gtk.Button(icon_name="check-plain-symbolic", css_classes=["flat", "success"], valign=Gtk.Align.CENTER, name=id)
         apply_button.connect("clicked", self.apply_edit_message,box,apply_edit_stack)
-        cancel_button = Gtk.Button(icon_name="circle-crossed-symbolic", css_classes=["flat", "success"], valign=Gtk.Align.CENTER, name=id)
+        cancel_button = Gtk.Button(icon_name="circle-crossed-symbolic", css_classes=["flat", "destructive-action"], valign=Gtk.Align.CENTER, name=id)
         cancel_button.connect("clicked", self.cancel_edit_message,box,apply_edit_stack)
         apply_box.append(apply_button)
         apply_box.append(cancel_button)
