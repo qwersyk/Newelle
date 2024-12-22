@@ -59,6 +59,8 @@ class MainWindow(Gtk.ApplicationWindow):
         self.first_load = False
 
         # Build Window
+        self.edit_entries = {}
+
         self.set_titlebar(Gtk.Box())
         self.chat_panel = Gtk.Box(hexpand_set=True, hexpand=True)
         self.chat_panel.set_size_request(450, -1)
@@ -1356,13 +1358,14 @@ class MainWindow(Gtk.ApplicationWindow):
                 self.streaming_label.set_size_request(min(width, wmax-150), -1)
             GLib.idle_add(idle_edit)
 
-    def edit_message(self, gesture, data, x, y, box: Gtk.Box):
+    def edit_message(self, gesture, data, x, y, box: Gtk.Box, apply_edit_stack: Gtk.Stack):
         if not self.status:
             self.notification_block.add_toast(Adw.Toast(title=_("You can't edit a message while the program is running."), timeout=2))
             return False
 
         old_message = box.get_last_child()
         entry = MultilineEntry()
+        self.edit_entries[int(gesture.get_name())] = entry
 
         wmax = old_message.get_size(Gtk.Orientation.HORIZONTAL)
         hmax = old_message.get_size(Gtk.Orientation.VERTICAL)
@@ -1372,46 +1375,74 @@ class MainWindow(Gtk.ApplicationWindow):
         entry.set_margin_start(10)
         entry.set_margin_bottom(10)
         entry.set_size_request(wmax, hmax)
-        def edit_message(entry):
-            self.focus_input()
-            # Delete message
-            if entry.get_text() == "":
-                self.delete_message(gesture, box)
-                return
-            self.chat[int(gesture.get_name())]["Message"] = entry.get_text()
-            self.save_chat()
-            box.remove(entry)
-            box.append(self.show_message(entry.get_text(), restore=True, id_message=int(gesture.get_name()), is_user=self.chat[int(gesture.get_name())]["User"] == "User", return_widget=True))
-        entry.set_on_enter(edit_message) 
+        apply_edit_stack.set_visible_child_name("apply")
+        entry.set_on_enter(lambda entry: self.apply_edit_message(gesture, box, apply_edit_stack)) 
         box.remove(old_message)
         box.append(entry)
 
+    def apply_edit_message(self, gesture, box: Gtk.Box, apply_edit_stack: Gtk.Stack):
+        entry = self.edit_entries[int(gesture.get_name())]
+        self.focus_input()
+        # Delete message
+        if entry.get_text() == "":
+            self.delete_message(gesture, box)
+            return
+
+        apply_edit_stack.set_visible_child_name("edit")
+        self.chat[int(gesture.get_name())]["Message"] = entry.get_text()
+        self.save_chat()
+        box.remove(entry)
+        box.append(self.show_message(entry.get_text(), restore=True, id_message=int(gesture.get_name()), is_user=self.chat[int(gesture.get_name())]["User"] == "User", return_widget=True))
+   
+    def cancel_edit_message(self, gesture, box: Gtk.Box, apply_edit_stack: Gtk.Stack):
+        entry = self.edit_entries[int(gesture.get_name())]
+        self.focus_input()
+        apply_edit_stack.set_visible_child_name("edit")
+        box.remove(entry)
+        box.append(self.show_message(self.chat[int(gesture.get_name())]["Message"], restore=True, id_message=int(gesture.get_name()), is_user=self.chat[int(gesture.get_name())]["User"] == "User", return_widget=True))
+    
     def delete_message(self, gesture, box):
         del self.chat[int(gesture.get_name())]
         self.chat_list_block.remove(box.get_parent())
         self.save_chat()
 
     def build_edit_box(self, box, id):
-        edit_box = Gtk.Box(opacity=1)
+        edit_box = Gtk.Box()
+        apply_box = Gtk.Box()
+        
+        # Apply box
+        apply_edit_stack = Gtk.Stack()
+        apply_button = Gtk.Button(icon_name="check-plain-symbolic", css_classes=["flat", "success"], valign=Gtk.Align.CENTER, name=id)
+        apply_button.connect("clicked", self.apply_edit_message,box,apply_edit_stack)
+        cancel_button = Gtk.Button(icon_name="circle-crossed-symbolic", css_classes=["flat", "success"], valign=Gtk.Align.CENTER, name=id)
+        cancel_button.connect("clicked", self.cancel_edit_message,box,apply_edit_stack)
+        apply_box.append(apply_button)
+        apply_box.append(cancel_button)
+
+        # Edit box
         button = Gtk.Button(icon_name="document-edit-symbolic", css_classes=["flat", "success"], valign=Gtk.Align.CENTER, name=id)
-        button.connect("clicked", self.edit_message, None, None, None, box)
-        edit_box.append(button)
+        button.connect("clicked", self.edit_message, None, None, None, box, apply_edit_stack)
         remove_button = Gtk.Button(icon_name="user-trash-symbolic", css_classes=["flat", "destructive-action"], valign=Gtk.Align.CENTER, name=id)
         remove_button.connect("clicked", self.delete_message, box)
+        edit_box.append(button)
         edit_box.append(remove_button)
-        return edit_box
+        
+        apply_edit_stack.add_named(apply_box, "apply")
+        apply_edit_stack.add_named(edit_box, "edit")
+        apply_edit_stack.set_visible_child_name("edit")
+        return edit_box, apply_edit_stack
 
     def add_message(self, user, message=None, id_message=0, editable=False):
         box = Gtk.Box(css_classes=["card"], margin_top=10, margin_start=10, margin_bottom=10, margin_end=10,
                       halign=Gtk.Align.START) 
         if editable:
+            edit_box, apply_edit_stack = self.build_edit_box(box, str(id_message))
             evk = Gtk.GestureClick.new()
-            evk.connect("pressed", self.edit_message, box)
+            evk.connect("pressed", self.edit_message, box, apply_edit_stack)
             evk.set_name(str(id_message))
             evk.set_button(3)
             box.add_controller(evk)
             ev = Gtk.EventControllerMotion.new() 
-            edit_box = self.build_edit_box(box, str(id_message))
 
             stack = Gtk.Stack()
             ev.connect("enter", lambda x,y,data: stack.set_visible_child_name("edit"))
@@ -1423,7 +1454,7 @@ class MainWindow(Gtk.ApplicationWindow):
                                  css_classes=["accent", "heading"]) 
             if editable: 
                 stack.add_named(label, "label")
-                stack.add_named(edit_box, "edit")
+                stack.add_named(apply_edit_stack, "edit")
                 stack.set_visible_child_name("label")
                 box.append(stack)
             else:
@@ -1434,7 +1465,7 @@ class MainWindow(Gtk.ApplicationWindow):
                                  css_classes=["warning", "heading"])
             if editable: 
                 stack.add_named(label, "label")
-                stack.add_named(edit_box, "edit")
+                stack.add_named(apply_edit_stack, "edit")
                 stack.set_visible_child_name("label")
                 box.append(stack)
             else:
