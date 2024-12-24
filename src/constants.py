@@ -20,7 +20,7 @@ AVAILABLE_LLMS = {
    "local": {
         "key": "local",
         "title": _("Local Model"),
-        "description": _("Run a LLM model locally, more privacy but slower"),
+        "description": _("NO GPU SUPPORT, USE OLLAMA INSTEAD. Run a LLM model locally, more privacy but slower"),
         "class": GPT4AllHandler,
     },
     "ollama": {
