@@ -391,7 +391,7 @@ class Settings(Adw.PreferencesWindow):
             return
         self.settings.set_string(setting_name, button.get_name())
 
-    def add_extra_settings(self, constants : dict[str, Any], handler : Handler, row : Adw.ExpanderRow):
+    def add_extra_settings(self, constants : dict[str, Any], handler : Handler, row : Adw.ExpanderRow, nested_settings : list | None = None):
         """Buld the extra settings for the specified handler. The extra settings are specified by the method get_extra_settings 
             Extra settings format:
             Required parameters:
@@ -416,8 +416,12 @@ class Settings(Adw.PreferencesWindow):
             handler: An instance of the handler
             row: row where to add the settings
         """
-        self.settingsrows[(handler.key, self.convert_constants(constants))]["extra_settings"] = []
-        for setting in handler.get_extra_settings():
+        if nested_settings is None:
+            self.settingsrows[(handler.key, self.convert_constants(constants))]["extra_settings"] = []
+            settings = handler.get_extra_settings()
+        else:
+            settings = nested_settings
+        for setting in settings:
             if setting["type"] == "entry":
                 r = Adw.ActionRow(title=setting["title"], subtitle=setting["description"])
                 value = handler.get_setting(setting["key"])
@@ -458,6 +462,9 @@ class Settings(Adw.PreferencesWindow):
                 box.append(scale)
                 self.slider_labels[scale] = label
                 r.add_suffix(box)
+            elif setting["type"] == "nested":
+                r = Adw.ExpanderRow(title=setting["title"], subtitle=setting["description"])
+                self.add_extra_settings(constants, handler, r, setting["extra_settings"])
             else:
                 continue
             if "website" in setting:

@@ -35,7 +35,9 @@ class Handler():
                 - range: for number input with a slider 
                     - min: minimum value
                     - max: maximum value 
-                    - round: how many digits to round 
+                    - round: how many digits to round
+                - nested: an expander row with nested extra settings 
+                    - extra_settings: list of extra_settings
             Optional parameters:
                 - folder: add a button that opens a folder with the specified path
                 - website: add a button that opens a website with the specified path
@@ -103,6 +105,10 @@ class Handler():
         """
         extra_settings = self.get_extra_settings()
         for s in extra_settings:
+            if s["type"] == "nested":
+                for setting in s["extra_settings"]:
+                    if setting["key"] == key:
+                        return setting["default"]
             if s["key"] == key:
                 return s["default"]
         return None
