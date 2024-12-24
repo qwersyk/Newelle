@@ -506,18 +506,11 @@ class GeminiHandler(LLMHandler):
                 "default": ""
             },
             {
-                "key": "refresh_models",
-                "title": _("Refresh Models"),
-                "description": _("Refresh models list"),
-                "type": "button",
-                "icon": "view-refresh-symbolic",
-                "callback": lambda button: self.get_models(),
-            },
-            {
                 "key": "model",
                 "title": _("Model"),
                 "description": _("AI Model to use, available: gemini-1.5-pro, gemini-1.0-pro, gemini-1.5-flash"),
                 "type": "combo",
+                "refresh": lambda button: self.get_models(),
                 "default": self.models[0][1],
                 "values": self.models, 
             },
@@ -949,18 +942,10 @@ class OpenAIHandler(LLMHandler):
                 "title": _(provider_name + " Model"),
                 "description": _(f"Name of the {provider_name} Model"),
                 "type": "combo",
+                "refresh": lambda button: self.get_models(),
                 "values": self.models,
                 "default": self.models[0][0]
             },
-            {
-                "key": "refresh_models",
-                "title": _("Refresh available models"),
-                "description": _("Update the list of models"),
-                "type": "button",
-                "icon": "update-symbolic",
-                "defualt": None,
-                "callback": lambda button: threading.Thread(target=self.get_models).start()
-            }
         ]
 
         if model_list_url is not None:

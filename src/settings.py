@@ -462,6 +462,11 @@ class Settings(Adw.PreferencesWindow):
             if "folder" in setting:
                 wbbutton = self.create_web_button(setting["folder"], folder=True)
                 r.add_suffix(wbbutton)
+            if "refresh" in setting:
+                refreshbutton = Gtk.Button(icon_name="view-refresh-symbolic", valign=Gtk.Align.CENTER, css_classes=["flat"])
+                refreshbutton.connect("clicked", setting["refresh"])
+                r.add_suffix(refreshbutton)
+
             row.add_row(r)
             handler.set_extra_settings_update(lambda _: GLib.idle_add(self.on_setting_change, constants, handler, handler.key, True))
             self.settingsrows[handler.key, self.convert_constants(constants)]["extra_settings"].append(r)
