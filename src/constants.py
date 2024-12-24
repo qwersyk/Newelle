@@ -28,6 +28,7 @@ AVAILABLE_LLMS = {
         "title": _("Ollama Instance"),
         "description": _("Easily run multiple LLM models on your own hardware"),
         "class": OllamaHandler,
+        "website": "https://ollama.com/",
     },
     "groq": {
         "key": "groq",
