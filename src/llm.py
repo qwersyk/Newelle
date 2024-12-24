@@ -4,7 +4,7 @@ import os, threading
 from typing import Callable, Any
 import json
 import base64
-from .extra import convert_history_openai, extract_image, extract_json, find_module, get_streaming_extra_setting, install_module, open_website, get_image_path, get_spawn_command, quote_string
+from .extra import can_escape_sandbox, convert_history_openai, extract_image, extract_json, find_module, get_streaming_extra_setting, install_module, open_website, get_image_path, get_spawn_command, quote_string
 from .handler import Handler
 
 class LLMHandler(Handler):
@@ -730,6 +730,37 @@ class CustomLLMHandler(LLMHandler):
 
 class OllamaHandler(LLMHandler):
     key = "ollama"
+    default_models = (("llama3.1:8b", "llama3.1:8b"), )
+
+    def __init__(self, settings, path):
+        super().__init__(settings, path)
+        models = self.get_setting("models", False)
+        if models is None or len(models) == 0:
+            self.models = self.default_models
+            threading.Thread(target=self.get_models, args=()).start()
+        else:
+            self.models = json.loads(models)
+    
+    def get_models(self):
+        from ollama import Client 
+        client = Client(
+            host=self.get_setting("endpoint")
+        )
+        self.auto_serve(client)
+        models = client.list()["models"]
+        res = tuple()
+        for model in models:
+            res += ((model.model, model.model), )
+        self.models = res
+        self.set_setting("models", json.dumps(self.models))
+        self.settings_update()
+
+    def auto_serve(self, client):
+        if self.get_setting("serve") and can_escape_sandbox():
+            try:
+                client.ps()
+            except Exception as e:
+                Popen(get_spawn_command() + ["ollama", "serve"])
 
     @staticmethod
     def get_extra_requirements() -> list:
@@ -739,7 +770,7 @@ class OllamaHandler(LLMHandler):
         return True
 
     def get_extra_settings(self) -> list:
-        return [ 
+        settings = [ 
             {
                 "key": "endpoint",
                 "title": _("API Endpoint"),
@@ -748,20 +779,40 @@ class OllamaHandler(LLMHandler):
                 "default": "http://localhost:11434"
             },
             {
+                "key": "serve",
+                "title": _("Automatically Serve"),
+                "description": _("REQUIRES SANBOX ESCAPE. Automatically run ollama serve in background when needed if it's not running. You can kill it with killall ollama"),
+                "type": "toggle",
+                "default": False,
+            },
+            {
+                "key": "custom_model",
+                "title": _("Input a custom model"),
+                "description": _("Input a custom model name instead taking it from the list"),
+                "type": "toggle",
+                "default": False,
+                "update_settings": True
+            },
+        ]
+        if not self.get_setting("custom_model", False):
+            settings.append({
+                "key": "model",
+                "title": _("Ollama Model"),
+                "description": _("Name of the Ollama Model"),
+                "type": "combo",
+                "values": self.models,
+                "default": self.models[0][1],
+                "refresh": lambda x: self.get_models(),
+            })
+        else:
+            settings.append({
                 "key": "model",
                 "title": _("Ollama Model"),
                 "description": _("Name of the Ollama Model"),
                 "type": "entry",
-                "default": "llama3.1:8b"
-            },
-            {
-                "key": "streaming",
-                "title": _("Message Streaming"),
-                "description": _("Gradually stream message output"),
-                "type": "toggle",
-                "default": True
-            },
-        ]
+                "default": self.default_models[0][1],
+            })
+        return settings
 
     def convert_history(self, history: list, prompts: list | None = None) -> list:
         if prompts is None:
@@ -796,6 +847,8 @@ class OllamaHandler(LLMHandler):
         client = Client(
             host=self.get_setting("endpoint")
         )
+
+        self.auto_serve(client)
         try:
             response = client.chat(
                 model=self.get_setting("model"),
@@ -812,6 +865,8 @@ class OllamaHandler(LLMHandler):
         client = Client(
             host=self.get_setting("endpoint")
         )
+        
+        self.auto_serve(client)
         try:
             response = client.chat(
                 model=self.get_setting("model"),
