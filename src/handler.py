@@ -38,6 +38,10 @@ class Handler():
                     - round: how many digits to round
                 - nested: an expander row with nested extra settings 
                     - extra_settings: list of extra_settings
+                - download: install something showing the downoad process
+                    - is_installed: bool, true if the module is installed, false otherwise  
+                    - callback: the function to run on press to download/delete. The download must happen in sync 
+                    - download_percentage: callable that takes the key and returns the download percentage as float
             Optional parameters:
                 - folder: add a button that opens a folder with the specified path
                 - website: add a button that opens a website with the specified path

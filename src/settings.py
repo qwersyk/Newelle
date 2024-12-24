@@ -465,6 +465,19 @@ class Settings(Adw.PreferencesWindow):
             elif setting["type"] == "nested":
                 r = Adw.ExpanderRow(title=setting["title"], subtitle=setting["description"])
                 self.add_extra_settings(constants, handler, r, setting["extra_settings"])
+            elif setting["type"] == "download":
+                r = Adw.ActionRow(title=setting["title"], subtitle=setting["description"]) 
+                
+                actionbutton = Gtk.Button(css_classes=["flat"],valign=Gtk.Align.CENTER)
+                if setting["is_installed"]:
+                    actionbutton.set_icon_name("user-trash-symbolic")
+                    actionbutton.connect("clicked", lambda button : setting["callback"](setting["key"]))
+                    actionbutton.add_css_class("error")
+                else:
+                    actionbutton.set_icon_name("folder-download-symbolic")
+                    actionbutton.connect("clicked", self.download_setting, setting, handler)
+                    actionbutton.add_css_class("accent")
+                r.add_suffix(actionbutton)
             else:
                 continue
             if "website" in setting:
@@ -785,6 +798,63 @@ class Settings(Adw.PreferencesWindow):
         """
         if button.get_active():
             self.settings.set_string("local-model", button.get_name())
+
+                         
+
+
+    def download_setting(self, button, setting, handler: Handler):
+        """Download the setting for the given handler
+
+        Args:
+            button (): button pressed
+            setting (): setting to download
+            handler (): handler to download the setting for
+        """
+
+        box = Gtk.Box(homogeneous=True, spacing=4)
+        box.set_orientation(Gtk.Orientation.VERTICAL)
+        icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="folder-download-symbolic"))
+        icon.set_icon_size(Gtk.IconSize.INHERIT)
+        progress = Gtk.ProgressBar(hexpand=False)
+        progress.set_size_request(4, 4)
+        box.append(icon)
+        box.append(progress)
+        button.set_child(box)
+        button.disconnect_by_func(self.download_setting)
+        button.connect("clicked", lambda x: setting["callback"](setting["key"]))
+        th = threading.Thread(target=self.download_setting_thread, args=(handler, setting, button, progress))
+        self.model_threads[(setting["key"]), handler.key] = [th, 0]
+        th.start()
+
+    def update_download_status_setting(self, handler, setting, progressbar):
+        """Periodically update the progressbar for the download
+
+        Args:
+            model (): model that is being downloaded
+            filesize (): filesize of the download
+            progressbar (): the bar to update
+        """
+        while (setting["key"], handler.key) in self.downloading and self.downloading[(setting["key"], handler.key)]:
+            try:
+                perc = setting["download_percentage"](setting["key"])
+                GLib.idle_add(progressbar.set_fraction, perc)
+            except Exception as e:
+                print(e)
+            time.sleep(1)
+
+    def download_setting_thread(self, handler: Handler, setting: dict, button: Gtk.Button, progressbar: Gtk.ProgressBar):
+        self.model_threads[(setting["key"], handler.key)][1] = threading.current_thread().ident
+        self.downloading[(setting["key"], handler.key)] = True
+        th = threading.Thread(target=self.update_download_status_setting, args=(handler, setting, progressbar))
+        th.start()
+        print(setting["key"])
+        setting["callback"](setting["key"])
+        icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="user-trash-symbolic"))
+        icon.set_icon_size(Gtk.IconSize.INHERIT)
+        button.add_css_class("error")
+        button.set_child(icon)
+        self.downloading[(setting["key"], handler.key)] = False
+
 
     def download_local_model(self, button):
         """Download the local model. Shows the progress while downloading
