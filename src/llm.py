@@ -42,21 +42,6 @@ class LLMHandler(Handler):
         self.prompts = prompts
         self.history = history
 
-    def get_default_setting(self, key) -> object:
-        """Get the default setting from a certain key
-
-        Args:
-            key (str): key of the setting
-
-        Returns:
-            object: setting value
-        """
-        extra_settings = self.get_extra_settings()
-        for s in extra_settings:
-            if s["key"] == key:
-                return s["default"]
-        return None
-
     @abstractmethod
     def generate_text(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = []) -> str:
         """Generate test from the given prompt, history and system prompt
@@ -731,10 +716,11 @@ class CustomLLMHandler(LLMHandler):
 class OllamaHandler(LLMHandler):
     key = "ollama"
     default_models = (("llama3.1:8b", "llama3.1:8b"), )
-
+    model_library = [{"key": "llama3.2-vision:11b", "title": "llama3.2-vision 11b", "description": "Llama 3.2 Vision is a collection of instruction-tuned image reasoning generative models in 11B and 90B sizes."}, {"key": "llama3.2:3b", "title": "llama3.2 3b", "description": "Meta's Llama 3.2 goes small with 1B and 3B models. (2GB)"}]
     def __init__(self, settings, path):
         super().__init__(settings, path)
         models = self.get_setting("models", False)
+        self.downloading = {}
         if models is None or len(models) == 0:
             self.models = self.default_models
             threading.Thread(target=self.get_models, args=()).start()
@@ -747,7 +733,11 @@ class OllamaHandler(LLMHandler):
             host=self.get_setting("endpoint")
         )
         self.auto_serve(client)
-        models = client.list()["models"]
+        try:
+            models = client.list()["models"]
+        except Exception as e:
+            print("Can't get Ollama models: ", e)
+            return
         res = tuple()
         for model in models:
             res += ((model.model, model.model), )
@@ -793,6 +783,13 @@ class OllamaHandler(LLMHandler):
                 "default": False,
                 "update_settings": True
             },
+            {
+                "key": "model_manager",
+                "title": _("Model Manager"),
+                "description": _("List of models available"),
+                "type": "nested",
+                "extra_settings": self.get_model_library()
+            }
         ]
         if not self.get_setting("custom_model", False):
             settings.append({
@@ -813,6 +810,63 @@ class OllamaHandler(LLMHandler):
                 "default": self.default_models[0][1],
             })
         return settings
+
+    def model_installed(self, model: str):
+        for mod in self.models:
+            if model == mod[0]:
+                return True 
+        return False
+
+    def load_model(self, model):
+        from ollama import Client
+        client = Client(
+            host=self.get_setting("endpoint")
+        )
+        self.auto_serve(client)
+        return True
+
+    def get_model_library(self):
+        res = []
+        for model in self.model_library:
+            res += [
+                    {
+                        "type": "download",
+                        "key": model["key"],
+                        "title": model["title"],
+                        "description": model["description"],
+                        "is_installed": self.model_installed(model["key"]),
+                        "callback": self.install_model,
+                        "download_percentage": self.get_percentage,
+                        "default": None
+                    }
+                ]   
+        return res
+
+    def install_model(self, model: str):
+        from ollama import Client
+        client = Client(
+            host=self.get_setting("endpoint")
+        )
+        self.auto_serve(client)
+        
+        if self.model_installed(model):
+            client.rm(model)
+            return
+        try:
+            stream = client.pull(model, stream=True)
+            for chunk in stream:
+                if chunk.completed is None:
+                    continue
+                self.downloading[model] = chunk.completed/chunk.total
+        except Exception as e:
+            self.settings_update()
+        self.get_models()    
+        return
+    def get_percentage(self, model: str):
+        if model in self.downloading:
+            return self.downloading[model]
+        return 0
+    
 
     def convert_history(self, history: list, prompts: list | None = None) -> list:
         if prompts is None:
