@@ -721,6 +721,8 @@ class OllamaHandler(LLMHandler):
         super().__init__(settings, path)
         models = self.get_setting("models", False)
         self.downloading = {}
+        if self.get_setting("model-library", False) is not None:
+            self.model_library = self.get_setting("model-library", False)
         if models is None or len(models) == 0:
             self.models = self.default_models
             threading.Thread(target=self.get_models, args=()).start()
@@ -741,8 +743,11 @@ class OllamaHandler(LLMHandler):
         res = tuple()
         for model in models:
             res += ((model.model, model.model), )
+            if not self.model_in_library(model.model):
+                self.model_library += [{"key": model.model, "title": model.model, "description": "User added model"}]
         self.models = res
         self.set_setting("models", json.dumps(self.models))
+        self.set_setting("model-library", self.model_library)
         self.settings_update()
 
     def auto_serve(self, client):
@@ -751,6 +756,12 @@ class OllamaHandler(LLMHandler):
                 client.ps()
             except Exception as e:
                 Popen(get_spawn_command() + ["ollama", "serve"])
+
+    def model_in_library(self, model) -> bool:
+        for m in self.model_library:
+            if m["key"] == model:
+                return True
+        return False
 
     @staticmethod
     def get_extra_requirements() -> list:
@@ -783,13 +794,6 @@ class OllamaHandler(LLMHandler):
                 "default": False,
                 "update_settings": True
             },
-            {
-                "key": "model_manager",
-                "title": _("Model Manager"),
-                "description": _("List of models available"),
-                "type": "nested",
-                "extra_settings": self.get_model_library()
-            }
         ]
         if not self.get_setting("custom_model", False):
             settings.append({
@@ -809,7 +813,50 @@ class OllamaHandler(LLMHandler):
                 "type": "entry",
                 "default": self.default_models[0][1],
             })
+        if self.is_installed():
+            settings.append({
+                "key": "model_manager",
+                "title": _("Model Manager"),
+                "description": _("List of models available"),
+                "type": "nested",
+                "extra_settings": [
+                    {
+                        "key": "extra_model_name",
+                        "type": "entry",
+                        "title": _("Add custom model"),
+                        "description": _("Add any model to this list by putting name:size"),
+                        "default": "",
+                        "refresh": self.pull_model, 
+                        "website": "https://ollama.com/library"
+                        
+                    }
+                ] + self.get_model_library()
+            })
+
         return settings
+
+    def pull_model(self, model: str):
+        from ollama import Client
+        client = Client(
+            host=self.get_setting("endpoint")
+        )
+        self.auto_serve(client)
+        model = self.get_setting("extra_model_name")
+        try:
+            stream = client.pull(model, stream=True)
+            for p in stream:
+                if p.completed is not None:
+                    print(p.completed)
+                    break
+        except Exception as e:
+            print(e)
+            return
+        if not self.model_in_library(model):
+            self.model_library = [{"key": model, "title": model, "description": "User added model"}] + self.model_library
+        self.set_setting("model_library", self.model_library)
+        self.set_setting("extra_model_name", "")
+        self.settings_update()
+        return
 
     def model_installed(self, model: str):
         for mod in self.models:
@@ -850,7 +897,7 @@ class OllamaHandler(LLMHandler):
         self.auto_serve(client)
         
         if self.model_installed(model):
-            client.rm(model)
+            client.delete(model)
             return
         try:
             stream = client.pull(model, stream=True)

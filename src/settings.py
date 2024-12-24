@@ -568,7 +568,7 @@ class Settings(Adw.PreferencesWindow):
     def on_setting_change(self, constants: dict[str, Any], handler: Handler, key: str, force_change : bool = False):
         
         if not force_change:
-            setting_info = [info for info in handler.get_extra_settings() if info["key"] == key][0]
+            setting_info = [info for info in handler.get_extra_settings_list() if info["key"] == key][0]
         else:
             setting_info = {}
 

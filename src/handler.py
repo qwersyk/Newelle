@@ -50,6 +50,16 @@ class Handler():
         """
         return []
 
+    def get_extra_settings_list(self) -> list:
+        """Get the list of extra settings"""
+        res = []
+        for setting in self.get_extra_settings():
+            if setting["type"] == "nested":
+                res += setting["extra_settings"]
+            else:
+                res.append(setting)
+        return res
+
     @staticmethod
     def get_extra_requirements() -> list:
         """The list of extra pip requirements needed by the handler"""
