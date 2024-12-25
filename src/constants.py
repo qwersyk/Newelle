@@ -33,8 +33,9 @@ AVAILABLE_LLMS = {
     "groq": {
         "key": "groq",
         "title": _("Groq"),
-        "description": "Official Groq API",
+        "description": "Groq.com Free and fast API using open source models. Suggested for free use.",
         "class": GroqHandler,
+        "website": "https://console.groq.com/",
     },
     "gemini": {
         "key": "gemini",
