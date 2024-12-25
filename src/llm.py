@@ -826,7 +826,8 @@ class OllamaHandler(LLMHandler):
                         "title": _("Add custom model"),
                         "description": _("Add any model to this list by putting name:size"),
                         "default": "",
-                        "refresh": self.pull_model, 
+                        "refresh": self.pull_model,
+                        "refresh_icon": "plus-symbolic",
                         "website": "https://ollama.com/library"
                         
                     }

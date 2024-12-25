@@ -47,6 +47,7 @@ class Handler():
                 - website: add a button that opens a website with the specified path
                 - update_settings (bool) if reload the settings in the settings page for the specified handler after that setting change
                 - refresh (callable) adds a refresh button in the row to reload the settings in the settings page for the specified handler
+                - refresh_icon(str): name of the icon for the refresh button
         """
         return []
 

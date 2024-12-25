@@ -84,7 +84,6 @@ class Settings(Adw.PreferencesWindow):
         for tts_key in AVAILABLE_TTS:
            row = self.build_row(AVAILABLE_TTS, tts_key, selected, group) 
            tts_program.add_row(row)
-
         # Build the Speech to Text settings
         stt_engine = Adw.ExpanderRow(title=_('Speech To Text Engine'), subtitle=_("Choose which speech recognition engine you want"))
         self.Voicegroup.add(stt_engine)
@@ -487,7 +486,8 @@ class Settings(Adw.PreferencesWindow):
                 wbbutton = self.create_web_button(setting["folder"], folder=True)
                 r.add_suffix(wbbutton)
             if "refresh" in setting:
-                refreshbutton = Gtk.Button(icon_name="view-refresh-symbolic", valign=Gtk.Align.CENTER, css_classes=["flat"])
+                refresh_icon = setting.get("refresh_icon", "view-refresh-symbolic")
+                refreshbutton = Gtk.Button(icon_name=refresh_icon, valign=Gtk.Align.CENTER, css_classes=["flat"])
                 refreshbutton.connect("clicked", setting["refresh"])
                 r.add_suffix(refreshbutton)
 
