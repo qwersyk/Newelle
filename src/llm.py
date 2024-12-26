@@ -789,6 +789,8 @@ class OllamaHandler(LLMHandler):
 
     def get_models(self):
         """Get the list of installed models in ollama"""
+        if not self.is_installed():
+            return
         from ollama import Client 
         client = Client(
             host=self.get_setting("endpoint")
@@ -960,19 +962,28 @@ class OllamaHandler(LLMHandler):
         """
         res = []
         for model in self.model_library:
-            res += [
-                    {
-                        "type": "download",
-                        "key": model["key"],
-                        "title": model["title"],
-                        "description": model["description"],
-                        "is_installed": self.model_installed(model["key"]),
-                        "callback": self.install_model,
-                        "download_percentage": self.get_percentage,
-                        "default": None
-                    }
-                ]   
+            s = {
+                "type": "download",
+                "key": model["key"],
+                "title": model["title"],
+                "description": model["description"],
+                "is_installed": self.model_installed(model["key"]),
+                "callback": self.install_model,
+                "download_percentage": self.get_percentage,
+                "default": None,
+            }
+            if not self.model_installed(model["key"]) and model["key"] not in self.listed_models:
+                s["refresh"] = lambda x,m=model['key']: self.remove_model_from_library(m)
+                s["refresh_icon"] = "minus-symbolic"
+            res.append(s)
         return res
+
+    def remove_model_from_library(self, model: str):
+        """Remove a model from the library"""
+        print(model)
+        self.model_library = [x for x in self.model_library if x["key"] != model]
+        self.set_setting("model_library", self.model_library)
+        self.settings_update()
 
     def install_model(self, model: str):
         """Pulls/Deletes the model
