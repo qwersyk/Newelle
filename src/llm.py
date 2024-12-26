@@ -1,9 +1,12 @@
 from abc import abstractmethod
 from subprocess import PIPE, Popen, check_output
 import os, threading
+from time import time
 from typing import Callable, Any
 import json
 import base64
+
+import requests
 from .extra import can_escape_sandbox, convert_history_openai, extract_image, extract_json, find_module, get_streaming_extra_setting, install_module, open_website, get_image_path, get_spawn_command, quote_string
 from .handler import Handler
 
@@ -716,7 +719,12 @@ class CustomLLMHandler(LLMHandler):
 class OllamaHandler(LLMHandler):
     key = "ollama"
     default_models = (("llama3.1:8b", "llama3.1:8b"), )
-    model_library = [{"key": "llama3.2-vision:11b", "title": "llama3.2-vision 11b", "description": "Llama 3.2 Vision is a collection of instruction-tuned image reasoning generative models in 11B and 90B sizes."}, {"key": "llama3.2:3b", "title": "llama3.2 3b", "description": "Meta's Llama 3.2 goes small with 1B and 3B models. (2GB)"}]
+    model_library = []
+    # Url where to get the available models info
+    library_url = "https://nyarchlinux.moe/available_models.json"
+    # List of models to be included in the library by default
+    listed_models = ["llama3.2-vision:11b", "llama3.2:3b", "llama3.1:8b", "qwq:32b", "qwen2.5:1.5b", "qwen2.5:3b", "qwen2.5:7b", "qwen2.5:14b", "gemma2:2b", "gemma2:9b", "qwen2.5-coder:3b", "qwen2.5-coder:7b", "qwen2.5-coder:14b", "llama3.3:70b", "deepseek-coder-v2:16b", "phi3.5:3.8b", "phi3:14b"]
+
     def __init__(self, settings, path):
         super().__init__(settings, path)
         models = self.get_setting("models", False)
@@ -728,8 +736,59 @@ class OllamaHandler(LLMHandler):
             threading.Thread(target=self.get_models, args=()).start()
         else:
             self.models = json.loads(models)
-    
+        if self.get_setting("models-info", False) is not None:
+            self.models_info = self.get_setting("models-info", False)
+        else:
+            self.models_info = {}
+            threading.Thread(target=self.get_models_infomation, args=()).start()
+   
+    def get_models_infomation(self):
+        """Get information about models on ollama.com"""
+        if self.is_installed(): 
+            try:
+                info = requests.get(self.library_url).json()
+                self.set_setting("models-info", info)
+                print(info)
+                self.models_info = info
+                self.add_library_information()
+                self.settings_update()
+            except Exception as e:
+                print("Error getting ollama get_models_infomation" + str(e))
+   
+    def get_info_for_library(self, model):
+        """Get information about a model in the library
+
+        Args:
+            model (): name of the model 
+
+        Returns:
+           dict - information to be added to the library 
+        """
+        if ":" in model:
+            name = model.split(":")[0]
+            tag = model.split(":")[1]
+            if name in self.models_info:
+                title = " ".join([name, tag])
+                description = str(self.models_info[name]["description"])
+                description += "\nSize: " + "".join([t[1] for t in self.models_info[name]["tags"] if t[0] == tag])
+                return {"key": model, "title": title, "description": description}
+        return {"key": model, "title": model, "description": "User added model"}
+
+    def add_library_information(self):
+        """Get information about models added by the user or in the library"""
+        if len(self.models_info) == 0:
+            return
+        new_library = []
+        for model in self.listed_models:
+            new_library.append(self.get_info_for_library(model))
+        for model in self.model_library:
+            if model["key"] not in self.listed_models:
+                new_library.append(self.get_info_for_library(model["key"]))
+        self.model_library = new_library
+        self.set_setting("model-library", self.model_library)
+
     def get_models(self):
+        """Get the list of installed models in ollama"""
         from ollama import Client 
         client = Client(
             host=self.get_setting("endpoint")
@@ -751,6 +810,11 @@ class OllamaHandler(LLMHandler):
         self.settings_update()
 
     def auto_serve(self, client):
+        """Automatically runs ollama serve on the user system if it's not running and the setting is toggles
+
+        Args:
+            client (): ollama client 
+        """
         if self.get_setting("serve") and can_escape_sandbox():
             try:
                 client.ps()
@@ -819,12 +883,13 @@ class OllamaHandler(LLMHandler):
                 "title": _("Model Manager"),
                 "description": _("List of models available"),
                 "type": "nested",
+                "refresh": lambda button : self.get_models_infomation(),
                 "extra_settings": [
                     {
                         "key": "extra_model_name",
                         "type": "entry",
                         "title": _("Add custom model"),
-                        "description": _("Add any model to this list by putting name:size"),
+                        "description": _("Add any model to this list by putting name:size\nOr any gguf from hf with hf.co/username/model"),
                         "default": "",
                         "refresh": self.pull_model,
                         "refresh_icon": "plus-symbolic",
@@ -837,6 +902,11 @@ class OllamaHandler(LLMHandler):
         return settings
 
     def pull_model(self, model: str):
+        """Check if a model given by the user is downloadable, then add it to the library
+
+        Args:
+            model: name of the model 
+        """
         from ollama import Client
         client = Client(
             host=self.get_setting("endpoint")
@@ -854,12 +924,21 @@ class OllamaHandler(LLMHandler):
             return
         if not self.model_in_library(model):
             self.model_library = [{"key": model, "title": model, "description": "User added model"}] + self.model_library
+        self.add_library_information()
         self.set_setting("model_library", self.model_library)
         self.set_setting("extra_model_name", "")
         self.settings_update()
         return
 
-    def model_installed(self, model: str):
+    def model_installed(self, model: str) -> bool:
+        """Check if a model is installed by the user
+
+        Args:
+            model: name of the model 
+
+        Returns:
+            True if the model is installed 
+        """
         for mod in self.models:
             if model == mod[0]:
                 return True 
@@ -873,7 +952,12 @@ class OllamaHandler(LLMHandler):
         self.auto_serve(client)
         return True
 
-    def get_model_library(self):
+    def get_model_library(self) -> list:
+        """Create extra settings to download models from the mode library
+
+        Returns:
+           extra settings 
+        """
         res = []
         for model in self.model_library:
             res += [
@@ -891,6 +975,11 @@ class OllamaHandler(LLMHandler):
         return res
 
     def install_model(self, model: str):
+        """Pulls/Deletes the model
+
+        Args:
+            model: model name 
+        """
         from ollama import Client
         client = Client(
             host=self.get_setting("endpoint")
@@ -910,13 +999,23 @@ class OllamaHandler(LLMHandler):
             self.settings_update()
         self.get_models()    
         return
+    
     def get_percentage(self, model: str):
+        """Get the percentage of a currently downloading model
+
+        Args:
+            model: name of the model 
+
+        Returns:
+           percentage as float 
+        """
         if model in self.downloading:
             return self.downloading[model]
         return 0
     
 
     def convert_history(self, history: list, prompts: list | None = None) -> list:
+        """Convert history into ollama format"""
         if prompts is None:
             prompts = self.prompts
         result = []
@@ -1294,6 +1393,7 @@ class MistralHandler(OpenAIHandler):
 class GroqHandler(OpenAIHandler):
     key = "groq"
     default_models = (("llama-3.3-70B-versatile", "llama-3.3-70B-versatile" ), ) 
+    
     def supports_vision(self) -> bool:
         return "vision" in self.get_setting("model")
 
