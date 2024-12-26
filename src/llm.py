@@ -900,7 +900,7 @@ class OllamaHandler(LLMHandler):
                     }
                 ] + self.get_model_library()
             })
-
+        settings.append(get_streaming_extra_setting())
         return settings
 
     def pull_model(self, model: str):
