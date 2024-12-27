@@ -20,7 +20,7 @@ AVAILABLE_LLMS = {
    "local": {
         "key": "local",
         "title": _("Local Model"),
-        "description": _("Run a LLM model locally, more privacy but slower"),
+        "description": _("NO GPU SUPPORT, USE OLLAMA INSTEAD. Run a LLM model locally, more privacy but slower"),
         "class": GPT4AllHandler,
     },
     "ollama": {
@@ -28,12 +28,14 @@ AVAILABLE_LLMS = {
         "title": _("Ollama Instance"),
         "description": _("Easily run multiple LLM models on your own hardware"),
         "class": OllamaHandler,
+        "website": "https://ollama.com/",
     },
     "groq": {
         "key": "groq",
         "title": _("Groq"),
-        "description": "Official Groq API",
+        "description": "Groq.com Free and fast API using open source models. Suggested for free use.",
         "class": GroqHandler,
+        "website": "https://console.groq.com/",
     },
     "gemini": {
         "key": "gemini",

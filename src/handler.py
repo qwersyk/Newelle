@@ -35,13 +35,31 @@ class Handler():
                 - range: for number input with a slider 
                     - min: minimum value
                     - max: maximum value 
-                    - round: how many digits to round 
+                    - round: how many digits to round
+                - nested: an expander row with nested extra settings 
+                    - extra_settings: list of extra_settings
+                - download: install something showing the downoad process
+                    - is_installed: bool, true if the module is installed, false otherwise  
+                    - callback: the function to run on press to download/delete. The download must happen in sync 
+                    - download_percentage: callable that takes the key and returns the download percentage as float
             Optional parameters:
                 - folder: add a button that opens a folder with the specified path
                 - website: add a button that opens a website with the specified path
                 - update_settings (bool) if reload the settings in the settings page for the specified handler after that setting change
+                - refresh (callable) adds a refresh button in the row to reload the settings in the settings page for the specified handler
+                - refresh_icon(str): name of the icon for the refresh button
         """
         return []
+
+    def get_extra_settings_list(self) -> list:
+        """Get the list of extra settings"""
+        res = []
+        for setting in self.get_extra_settings():
+            if setting["type"] == "nested":
+                res += setting["extra_settings"]
+            else:
+                res.append(setting)
+        return res
 
     @staticmethod
     def get_extra_requirements() -> list:
@@ -102,6 +120,10 @@ class Handler():
         """
         extra_settings = self.get_extra_settings()
         for s in extra_settings:
+            if s["type"] == "nested":
+                for setting in s["extra_settings"]:
+                    if setting["key"] == key:
+                        return setting["default"]
             if s["key"] == key:
                 return s["default"]
         return None
