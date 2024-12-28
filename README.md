@@ -1,7 +1,7 @@
 <h1 align="center">
   <img src="https://raw.githubusercontent.com/qwersyk/Newelle/master/data/icons/hicolor/scalable/apps/io.github.qwersyk.Newelle.svg" alt="Newelle" width="192" height="192"/>
   <br>
-  Newelle - Your Ultimate Virtual Assistant
+  Newelle Lite - Your Virtual Assistant for aarch64
 </h1>
 <p align="center">
   <a href="https://flathub.org/apps/details/io.github.qwersyk.Newelle">

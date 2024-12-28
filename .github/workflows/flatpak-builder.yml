@@ -1,14 +1,17 @@
 on:
   push:
-    branches: [master]
+    branches: [aarch64]
 name: Flatpak Build
 jobs:
   flatpak:
-    name: "Flatpak"
+    name: "Flatpak(aarch64)"
     runs-on: ubuntu-latest
     container:
       image: bilelmoussaoui/flatpak-github-actions:gnome-46
       options: --privileged
+    strategy:
+      matrix:
+        arch: [ aarch64 ]
     steps:
       - uses: actions/checkout@v4
       - uses: flatpak/flatpak-github-actions/flatpak-builder@v6

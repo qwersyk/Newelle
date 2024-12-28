@@ -1,5 +1,5 @@
 
-from .llm import BingHandler, GPT4AllHandler, GroqHandler, OllamaHandler, OpenAIHandler, CustomLLMHandler, GPT3AnyHandler, GeminiHandler, MistralHandler, OpenRouterHandler, NewelleAPIHandler
+from .llm import BingHandler, GroqHandler, OllamaHandler, OpenAIHandler, CustomLLMHandler, GPT3AnyHandler, GeminiHandler, MistralHandler, OpenRouterHandler, NewelleAPIHandler
 from .tts import ElevenLabs, gTTSHandler, EspeakHandler, CustomTTSHandler
 from .stt import GroqSRHandler, OpenAISRHandler, SphinxHandler, GoogleSRHandler, WhisperHandler, WitAIHandler, VoskHandler, CustomSRHandler
 
@@ -16,12 +16,6 @@ AVAILABLE_LLMS = {
         "description": "Automatically chooses a free provider using a GPT3.5-Turbo or better model",
         "class": GPT3AnyHandler,
         "secondary": True,
-    },
-   "local": {
-        "key": "local",
-        "title": _("Local Model"),
-        "description": _("NO GPU SUPPORT, USE OLLAMA INSTEAD. Run a LLM model locally, more privacy but slower"),
-        "class": GPT4AllHandler,
     },
     "ollama": {
         "key": "ollama",
