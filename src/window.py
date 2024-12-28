@@ -405,7 +405,11 @@ class MainWindow(Gtk.ApplicationWindow):
     
     def add_file(self, file_path = None, file_data=None):
         if file_path is not None:
-            self.attached_image.set_from_file(file_path)
+            if file_path.lower().endswith(('.mp4', '.avi', '.mov')):
+                self.attached_image.set_from_icon_name("video-x-generic")
+            else:
+                self.attached_image.set_from_file(file_path)
+
             self.attached_image.set_visible(True)
             self.attached_image_data = file_path
         elif file_data is not None:
@@ -1159,7 +1163,10 @@ class MainWindow(Gtk.ApplicationWindow):
                                     loader.close()
                                     image.set_from_pixbuf(loader.get_pixbuf())
                                 else:
-                                    image.set_from_file(i)
+                                    if i.lower().endswith(('.mp4', '.avi', '.mov')):
+                                        image.set_from_icon_name("video-x-generic")
+                                    else:
+                                        image.set_from_file(i)
                                 box.append(image)
 
                         elif code_language == "console" and not is_user:

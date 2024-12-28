@@ -126,10 +126,25 @@ def convert_history_openai(history: list, prompts: list, vision_support : bool =
 def open_website(website):
     subprocess.Popen(get_spawn_command() + ["xdg-open", website])
 
-def encode_image_base64(image_path):
-    with open(image_path, "rb") as image_file:
-        encoded_string = base64.b64encode(image_file.read()).decode("utf-8")
-    return "data:image/jpeg;base64," + encoded_string
+
+def encode_image_base64(file_path):
+    mime_types = {
+        '.jpg': 'image/jpeg',
+        '.jpeg': 'image/jpeg',
+        '.png': 'image/png',
+        '.webp': 'image/webp',
+        '.mp4': 'video/mp4',
+        '.avi': 'video/x-msvideo',
+        '.mov': 'video/quicktime'
+    }
+
+    ext = os.path.splitext(file_path)[1].lower()
+    mime_type = mime_types.get(ext, 'image/jpeg')
+
+    with open(file_path, "rb") as file:
+        encoded = base64.b64encode(file.read()).decode("utf-8")
+
+    return f"data:{mime_type};base64,{encoded}"
 
 def extract_image(message: str) -> tuple[str | None, str]:
     """
