@@ -467,13 +467,12 @@ class MainWindow(Gtk.ApplicationWindow):
                     loader.write(frame_data)
                     loader.close()
                     self.attached_image.set_from_pixbuf(loader.get_pixbuf())
-                    self.attached_image_data = f"data:image/png;base64,{base64.b64encode(frame_data).decode('utf-8')}"
                 else:
                     self.attached_image.set_from_icon_name("video-x-generic")
             else:
                 self.attached_image.set_from_file(file_path)
-                self.attached_image_data = file_path
 
+            self.attached_image_data = file_path
             self.attached_image.set_visible(True)
         elif file_data is not None:
             base64_image = base64.b64encode(file_data).decode("utf-8")
