@@ -292,7 +292,7 @@ class MainWindow(Gtk.ApplicationWindow):
 
         # Add screen recording button
         self.screen_record_button = Gtk.Button(
-            icon_name="media-record-symbolic",  # Напрямую указываем иконку
+            icon_name="media-record-symbolic",
             css_classes=["flat"],
             halign=Gtk.Align.CENTER
         )
@@ -559,6 +559,9 @@ class MainWindow(Gtk.ApplicationWindow):
             self.tts.connect('stop', lambda: GLib.idle_add(self.mute_tts_button.set_visible, False))
         if not self.first_load:
             if not self.model.supports_vision():
+                if self.video_recorder is not None:
+                    self.video_recorder.stop()
+                    self.video_recorder = None
                 if self.attached_image_data is not None:
                     self.delete_attachment(self.attach_button)
                 self.attach_button.set_visible(False)
