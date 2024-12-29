@@ -459,12 +459,22 @@ class MainWindow(Gtk.ApplicationWindow):
     def add_file(self, file_path=None, file_data=None):
         if file_path is not None:
             if file_path.lower().endswith(('.mp4', '.avi', '.mov')):
-                self.attached_image.set_from_icon_name("video-x-generic")
+                cmd = ['ffmpeg', '-i', file_path, '-vframes', '1', '-f', 'image2pipe', '-vcodec', 'png', '-']
+                frame_data = subprocess.run(cmd, capture_output=True).stdout
+
+                if frame_data:
+                    loader = GdkPixbuf.PixbufLoader()
+                    loader.write(frame_data)
+                    loader.close()
+                    self.attached_image.set_from_pixbuf(loader.get_pixbuf())
+                    self.attached_image_data = f"data:image/png;base64,{base64.b64encode(frame_data).decode('utf-8')}"
+                else:
+                    self.attached_image.set_from_icon_name("video-x-generic")
             else:
                 self.attached_image.set_from_file(file_path)
+                self.attached_image_data = file_path
 
             self.attached_image.set_visible(True)
-            self.attached_image_data = file_path
         elif file_data is not None:
             base64_image = base64.b64encode(file_data).decode("utf-8")
             self.attached_image_data = f"data:image/jpeg;base64,{base64_image}"
@@ -473,6 +483,7 @@ class MainWindow(Gtk.ApplicationWindow):
             loader.close()
             self.attached_image.set_from_pixbuf(loader.get_pixbuf())
             self.attached_image.set_visible(True)
+
         self.attach_button.set_icon_name("user-trash-symbolic")
         self.attach_button.set_css_classes(["destructive-action", "circular"])
         self.attach_button.connect("clicked", self.delete_attachment)
@@ -1238,21 +1249,28 @@ class MainWindow(Gtk.ApplicationWindow):
                                     CopyBox("\n".join(table_string[start_code_index:i]), code_language, parent=self))
                         elif code_language == "image":
                             for i in table_string[start_code_index:i]:
-                                image = Gtk.Image(css_classes=["image"])
                                 if i.startswith('data:image/jpeg;base64,'):
                                     data = i[len('data:image/jpeg;base64,'):]
                                     raw_data = base64.b64decode(data)
                                     loader = GdkPixbuf.PixbufLoader()
                                     loader.write(raw_data)
                                     loader.close()
+                                    image = Gtk.Image(css_classes=["image"])
                                     image.set_from_pixbuf(loader.get_pixbuf())
+                                    box.append(image)
+                                elif i.lower().endswith(('.mp4', '.avi', '.mov', '.webm')):
+                                    video = Gtk.Video(
+                                        css_classes=["video"],
+                                        vexpand=True,
+                                        hexpand=True
+                                    )
+                                    video.set_size_request(-1, 400)
+                                    video.set_file(Gio.File.new_for_path(i))
+                                    box.append(video)
                                 else:
-                                    if i.lower().endswith(('.mp4', '.avi', '.mov')):
-                                        image.set_from_icon_name("video-x-generic")
-                                    else:
-                                        image.set_from_file(i)
-                                box.append(image)
-
+                                    image = Gtk.Image(css_classes=["image"])
+                                    image.set_from_file(i)
+                                    box.append(image)
                         elif code_language == "console" and not is_user:
                             editable = False
                             if id_message == -1:

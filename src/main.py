@@ -78,6 +78,10 @@ class MyApp(Adw.Application):
         .image{
             -gtk-icon-size:400px;
         }
+        .video {
+            min-height: 400px;
+            object-fit: contain;
+        }
         '''
         css_provider = Gtk.CssProvider()
         css_provider.load_from_data(css, -1)
