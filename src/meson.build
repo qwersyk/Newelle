@@ -42,7 +42,8 @@ newelle_sources = [
   'extra.py',
   'presentation.py',
   'handler.py',
-  'extensions.py'
+  'extensions.py',
+  'screenrecorder.py'
 ]
 
 install_data(newelle_sources, install_dir: moduledir)
