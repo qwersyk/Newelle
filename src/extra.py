@@ -4,6 +4,8 @@ import re, base64, io
 import os, sys
 import xml.dom.minidom, html
 import json
+from gi.repository import Gio
+
 
 class ReplaceHelper:
     DISTRO = None
@@ -31,6 +33,25 @@ class ReplaceHelper:
         if desktop is None:
             desktop = "Unknown"
         return desktop
+
+def get_settings_dict(settings, blacklisted_keys:list = []):
+    """
+    Return a dictionary containing all settings from a Gio.Settings object.
+    """
+    settings_dict = {}
+    for key in settings.list_keys():
+        if key in blacklisted_keys:
+            continue
+        value = settings.get_value(key)
+        settings_dict[key] = value.unpack()
+    return settings_dict
+
+def restore_settings_from_dict(settings, settings_dict):
+    """
+    Restore settings from a dictionary into a Gio.Settings object.
+    """
+    for key, value in settings_dict.items():
+        settings.set_value(key, Gio.Variant.from_value(value))
 
 def get_spawn_command() -> list:
     """

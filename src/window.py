@@ -10,8 +10,8 @@ from .gtkobj import File, CopyBox, BarChartBox, MultilineEntry, apply_css_to_wid
 from .constants import AVAILABLE_LLMS, AVAILABLE_PROMPTS, PROMPTS, AVAILABLE_TTS, AVAILABLE_STT
 from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject, GLib, GdkPixbuf
 from .stt import AudioRecorder
-from .extra import get_spawn_command, install_module, markwon_to_pango, override_prompts, remove_markdown, \
-    replace_variables
+from .extra import get_settings_dict, get_spawn_command, install_module, markwon_to_pango, override_prompts, remove_markdown, \
+    replace_variables, restore_settings_from_dict
 from .screenrecorder import ScreenRecorder
 import threading
 import posixpath
@@ -290,6 +290,10 @@ class MainWindow(Gtk.ApplicationWindow):
         else:
             self.attach_button.set_visible(True)
 
+        # Profiles 
+
+        self.profiles_box = self.get_profiles_box()
+        self.chat_header.pack_start(box)
         # Add screen recording button
         self.screen_record_button = Gtk.Button(
             icon_name="media-record-symbolic",
@@ -358,6 +362,24 @@ class MainWindow(Gtk.ApplicationWindow):
 
     def focus_input(self):
         self.input_panel.input_panel.grab_focus()
+
+    def change_profile(self, profile_name):
+        old_settings = get_settings_dict(self.settings, ["current-profile", "profiles"])
+        self.current_profile = self.settings.get_string("current-profile")
+        self.profile_settings = json.loads(self.settings.get_string("profiles")) 
+        self.profile_settings[self.current_profile]["settings"] = old_settings 
+
+        new_settings = self.profile_settings[profile_name]["settings"]
+        restore_settings_from_dict(self.settings, new_settings)
+        self.settings.set_string("profiles", json.dumps(self.profile_settings)) 
+        self.settings.set_string("current-profile", profile_name)
+        self.update_settings()
+
+    def create_profile(self, profile_name, picture=None, settings={}):
+        self.profile_settings[profile_name] = {"picture": picture, "settings": settings}
+        self.settings.set_string("profiles", json.dumps(self.profile_settings))
+        self.settings.set_string("current-profile", profile_name)
+        self.update_settings() 
 
     def start_recording(self, button):
         if self.automatic_stt:
@@ -489,7 +511,22 @@ class MainWindow(Gtk.ApplicationWindow):
         self.attach_button.disconnect_by_func(self.attach_file)
         self.screen_record_button.set_visible(False)
 
+    def get_profiles_box(self):
+        box = Gtk.Box()
+        
+        profile_button = Gtk.ToggleButton()
+        avatar = Adw.Avatar(custom_image=self.profile_settings[self.current_profile]["picture"], text=self.current_profile)
+        profile_button.set_child(avatar)
+        box.append(profile_button)
+        return box
+
+
     def update_settings(self):
+        self.profile_settings = json.loads(self.settings.get_string("profiles"))
+        self.current_profile = self.settings.get_string("current-profile")
+        if len(self.profile_settings) == 0:
+            self.profile_settings[self.current_profile] = {"settings": {}, "picture": None}
+
         self.automatic_stt_status = False
         settings = self.settings
         self.offers = settings.get_int("offers")
