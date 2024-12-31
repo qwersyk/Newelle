@@ -3,15 +3,17 @@ from warnings import filters
 import gi, os, subprocess
 import pickle
 
+from .profile import ProfileDialog
+
 from .llm import LLMHandler
 
 from .presentation import PresentationWindow
-from .gtkobj import File, CopyBox, BarChartBox, MultilineEntry, apply_css_to_widget
+from .gtkobj import File, CopyBox, BarChartBox, MultilineEntry, ProfileRow, apply_css_to_widget
 from .constants import AVAILABLE_LLMS, AVAILABLE_PROMPTS, PROMPTS, AVAILABLE_TTS, AVAILABLE_STT
 from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject, GLib, GdkPixbuf
 from .stt import AudioRecorder
-from .extra import get_spawn_command, install_module, markwon_to_pango, override_prompts, remove_markdown, \
-    replace_variables
+from .extra import get_settings_dict, get_spawn_command, install_module, markwon_to_pango, override_prompts, remove_markdown, \
+    replace_variables, restore_settings_from_dict
 from .screenrecorder import ScreenRecorder
 import threading
 import posixpath
@@ -270,7 +272,8 @@ class MainWindow(Gtk.ApplicationWindow):
         self.regenerate_message_button.connect("clicked", self.regenerate_message)
         self.regenerate_message_button.set_visible(False)
         self.chat_controls_entry_block.append(self.regenerate_message_button)
-
+        self.profiles_box = None
+        self.refresh_profiles_box()
         # Input message box
         input_box = Gtk.Box(halign=Gtk.Align.FILL, margin_start=6, margin_end=6, margin_top=6, margin_bottom=6,
                             spacing=6)
@@ -342,6 +345,12 @@ class MainWindow(Gtk.ApplicationWindow):
         if not self.settings.get_boolean("welcome-screen-shown"):
             GLib.idle_add(self.show_presentation_window)
 
+    def refresh_profiles_box(self):
+        if self.profiles_box is not None:
+            self.chat_header.remove(self.profiles_box)
+        self.profiles_box = self.get_profiles_box()
+        self.chat_header.pack_start(self.profiles_box)
+
     def init_pip_path(self, path):
         install_module("pip-install-test", self.pip_directory)
         path.append(self.pip_directory)
@@ -358,6 +367,18 @@ class MainWindow(Gtk.ApplicationWindow):
 
     def focus_input(self):
         self.input_panel.input_panel.grab_focus()
+
+    def create_profile(self, profile_name, picture=None, settings={}):
+        self.profile_settings[profile_name] = {"picture": picture, "settings": settings}
+        self.settings.set_string("profiles", json.dumps(self.profile_settings))
+
+    def delete_profile(self, profile_name):
+        if profile_name == "Assistant" or profile_name == self.settings.get_string("current-profile"):
+            return
+        del self.profile_settings[profile_name]
+        self.settings.set_string("profiles", json.dumps(self.profile_settings))
+        self.refresh_profiles_box()
+        self.update_settings()
 
     def start_recording(self, button):
         if self.automatic_stt:
@@ -489,7 +510,76 @@ class MainWindow(Gtk.ApplicationWindow):
         self.attach_button.disconnect_by_func(self.attach_file)
         self.screen_record_button.set_visible(False)
 
+    def get_profiles_box(self):
+        box = Gtk.Box()
+        scroll = Gtk.ScrolledWindow(propagate_natural_width=True, propagate_natural_height=True, hscrollbar_policy=Gtk.PolicyType.NEVER) 
+        profile_button = Gtk.MenuButton() 
+        if self.profile_settings[self.current_profile]["picture"] is not None:
+            avatar = Adw.Avatar(custom_image=Gdk.Texture.new_from_filename(self.profile_settings[self.current_profile]["picture"]), text=self.current_profile, show_initials=True, size=20)
+            avatar.get_last_child().get_last_child().set_icon_size(Gtk.IconSize.NORMAL)
+        else:
+            avatar = Adw.Avatar(text=self.current_profile, show_initials=True, size=20)
+        profile_button.set_child(avatar)
+        box.append(profile_button)
+
+        profiles = Gtk.ListBox(selection_mode=Gtk.SelectionMode.SINGLE, css_classes=["boxed-list"])
+        for profile in self.profile_settings.keys():
+            account_row = ProfileRow(profile, self.profile_settings[profile]["picture"], self.current_profile == profile, allow_delete=profile != "Assistant" and profile != self.current_profile)
+            profiles.append(account_row)
+            account_row.set_on_forget(self.delete_profile)
+        # Separator
+        separator = Gtk.Separator(sensitive=False, can_focus=False, can_target=False, focus_on_click=False)
+        profiles.append(separator)
+        separator.get_parent().set_sensitive(False)
+        # Add profile row
+        profiles.append(ProfileRow(_("Create new profile"), None, False, add=True, allow_delete=False))
+        
+        # Assign widgets
+        popover = Gtk.Popover(css_classes=["menu"])
+        profiles.set_selection_mode(Gtk.SelectionMode.SINGLE)
+        scroll.set_child(profiles) 
+        popover.set_child(scroll)
+        profile_button.set_popover(popover)
+        profiles.select_row(profiles.get_row_at_index(list(self.profile_settings.keys()).index(self.current_profile)))
+        profiles.connect("row-selected", lambda listbox,action, popover=popover : self.select_profile(listbox, action, popover))
+        return box
+
+    def select_profile(self, listbox: Gtk.ListBox, action: ProfileRow, popover : Gtk.Popover):
+        if action is None:
+            return
+        if action.add:
+            dialog = ProfileDialog(self, self.profile_settings)
+            listbox.select_row(listbox.get_row_at_index(list(self.profile_settings.keys()).index(self.current_profile)))
+            popover.hide()
+            dialog.present()
+            return
+        if self.current_profile != action.profile:
+            popover.hide()
+        self.switch_profile(action.profile)
+
+    def switch_profile(self, profile: str):
+        if self.current_profile == profile:
+            return
+        print(f"Switching profile to {profile}")
+
+        old_settings = get_settings_dict(self.settings, ["current-profile", "profiles"])
+        self.profile_settings = json.loads(self.settings.get_string("profiles")) 
+        self.profile_settings[self.current_profile]["settings"] = old_settings 
+
+        new_settings = self.profile_settings[profile]["settings"]
+        restore_settings_from_dict(self.settings, new_settings)
+        self.settings.set_string("profiles", json.dumps(self.profile_settings)) 
+        self.settings.set_string("current-profile", profile)
+        self.update_settings()
+
+        self.refresh_profiles_box()
+
     def update_settings(self):
+        self.profile_settings = json.loads(self.settings.get_string("profiles"))
+        self.current_profile = self.settings.get_string("current-profile")
+        if len(self.profile_settings) == 0 or self.current_profile not in self.profile_settings:
+            self.profile_settings[self.current_profile] = {"settings": {}, "picture": None}
+
         self.automatic_stt_status = False
         settings = self.settings
         self.offers = settings.get_int("offers")
@@ -1589,8 +1679,8 @@ class MainWindow(Gtk.ApplicationWindow):
                 box.append(label)
             box.set_css_classes(["card", "user"])
         if user == "Assistant":
-            label = Gtk.Label(label=user + ": ", margin_top=10, margin_start=10, margin_bottom=10, margin_end=0,
-                              css_classes=["warning", "heading"])
+            label = Gtk.Label(label=self.current_profile + ": ", margin_top=10, margin_start=10, margin_bottom=10, margin_end=0,
+                              css_classes=["warning", "heading"], wrap=True, ellipsize=Pango.EllipsizeMode.END)
             if editable:
                 stack.add_named(label, "label")
                 stack.add_named(apply_edit_stack, "edit")

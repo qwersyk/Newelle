@@ -76,5 +76,11 @@
         <key name="extensions-settings" type="s">
           <default>"{}"</default>
         </key>
+        <key name="profiles" type="s">
+          <default>"{}"</default>
+        </key>
+        <key name="current-profile" type="s">
+          <default>"Assistant"</default>
+        </key>
 	</schema>
 </schemalist>
