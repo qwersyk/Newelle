@@ -70,6 +70,10 @@ class ProfileDialog(Adw.PreferencesDialog):
 
     def on_profile_name_changed(self, entry):
         """Updates the avatar text when the profile name changes."""
+        if len(entry.get_text()) > 30:
+            self.create_button.grab_focus()
+            entry.set_text(entry.get_text()[:30])
+            return
         profile_name = entry.get_text()
         self.profile_name = profile_name
         if profile_name:
