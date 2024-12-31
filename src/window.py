@@ -368,18 +368,6 @@ class MainWindow(Gtk.ApplicationWindow):
     def focus_input(self):
         self.input_panel.input_panel.grab_focus()
 
-    def change_profile(self, profile_name):
-        old_settings = get_settings_dict(self.settings, ["current-profile", "profiles"])
-        self.current_profile = self.settings.get_string("current-profile")
-        self.profile_settings = json.loads(self.settings.get_string("profiles")) 
-        self.profile_settings[self.current_profile]["settings"] = old_settings 
-
-        new_settings = self.profile_settings[profile_name]["settings"]
-        restore_settings_from_dict(self.settings, new_settings)
-        self.settings.set_string("profiles", json.dumps(self.profile_settings)) 
-        self.settings.set_string("current-profile", profile_name)
-        self.update_settings()
-
     def create_profile(self, profile_name, picture=None, settings={}):
         self.profile_settings[profile_name] = {"picture": picture, "settings": settings}
         self.settings.set_string("profiles", json.dumps(self.profile_settings))
@@ -571,10 +559,18 @@ class MainWindow(Gtk.ApplicationWindow):
         if self.current_profile == profile:
             return
         print(f"Switching profile to {profile}")
-        self.current_profile = profile
+
+        old_settings = get_settings_dict(self.settings, ["current-profile", "profiles"])
+        self.profile_settings = json.loads(self.settings.get_string("profiles")) 
+        self.profile_settings[self.current_profile]["settings"] = old_settings 
+
+        new_settings = self.profile_settings[profile]["settings"]
+        restore_settings_from_dict(self.settings, new_settings)
+        self.settings.set_string("profiles", json.dumps(self.profile_settings)) 
         self.settings.set_string("current-profile", profile)
-        self.refresh_profiles_box()
         self.update_settings()
+
+        self.refresh_profiles_box()
 
     def update_settings(self):
         self.profile_settings = json.loads(self.settings.get_string("profiles"))

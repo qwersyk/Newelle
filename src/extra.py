@@ -4,7 +4,7 @@ import re, base64, io
 import os, sys
 import xml.dom.minidom, html
 import json
-from gi.repository import Gio
+from gi.repository import GLib, Gio
 
 
 class ReplaceHelper:
@@ -51,7 +51,9 @@ def restore_settings_from_dict(settings, settings_dict):
     Restore settings from a dictionary into a Gio.Settings object.
     """
     for key, value in settings_dict.items():
-        settings.set_value(key, Gio.Variant.from_value(value))
+        current_value = settings.get_value(key)
+        variant = GLib.Variant(current_value.get_type_string(), value)
+        settings.set_value(key, variant)
 
 def get_spawn_command() -> list:
     """

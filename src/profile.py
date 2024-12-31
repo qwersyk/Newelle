@@ -62,7 +62,6 @@ class ProfileDialog(Adw.PreferencesDialog):
         self.image_filter = Gtk.FileFilter()
         self.image_filter.set_name("Images")
         self.image_filter.add_mime_type("image/*")
-        row.grab_focus()
 
 
     def on_profile_name_changed(self, entry):
