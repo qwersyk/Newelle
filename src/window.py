@@ -553,6 +553,8 @@ class MainWindow(Gtk.ApplicationWindow):
             popover.hide()
             dialog.present()
             return
+        if self.current_profile != action.profile:
+            popover.hide()
         self.switch_profile(action.profile)
 
     def switch_profile(self, profile: str):
