@@ -1677,7 +1677,7 @@ class MainWindow(Gtk.ApplicationWindow):
                 box.append(label)
             box.set_css_classes(["card", "user"])
         if user == "Assistant":
-            label = Gtk.Label(label=user + ": ", margin_top=10, margin_start=10, margin_bottom=10, margin_end=0,
+            label = Gtk.Label(label=self.current_profile + ": ", margin_top=10, margin_start=10, margin_bottom=10, margin_end=0,
                               css_classes=["warning", "heading"])
             if editable:
                 stack.add_named(label, "label")

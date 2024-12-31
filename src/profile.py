@@ -62,7 +62,11 @@ class ProfileDialog(Adw.PreferencesDialog):
         self.image_filter = Gtk.FileFilter()
         self.image_filter.set_name("Images")
         self.image_filter.add_mime_type("image/*")
-
+        
+        g = Adw.PreferencesGroup()
+        warning = Gtk.Label(label=_("The settings of the current profile will be copied into the new one"), wrap=True)
+        g.add(warning)
+        self.page.add(g)
 
     def on_profile_name_changed(self, entry):
         """Updates the avatar text when the profile name changes."""
