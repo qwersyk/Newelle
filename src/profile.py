@@ -1,4 +1,5 @@
 
+import shutil
 import subprocess
 from threading import Thread
 import gi, os
@@ -112,13 +113,18 @@ class ProfileDialog(Adw.PreferencesDialog):
     def on_create_clicked(self, button):
         """Handles the create button click."""
 
+        if self.pic_path is not None:
+            path = os.path.join(self.parent.path, "profiles")
+            if not os.path.exists(path):
+                os.makedirs(path)
+            shutil.copy(self.pic_path, os.path.join(path, self.profile_name + ".png"))
+            self.pic_path = os.path.join(path, self.profile_name + ".png")
         if not self.profile_name:
             toast = Adw.Toast.new("Please enter a profile name.")
             self.parent.add_toast(toast)
             return
         
-        # Get the custom image from the avatar (if any)
-        
+        # Get the custom image from the avatar (if any) 
         self.parent.create_profile(self.profile_name, self.pic_path, {})
         GLib.idle_add(self.parent.switch_profile, self.profile_name)
         self.close()
