@@ -36,6 +36,7 @@ newelle_sources = [
   'shortcuts.py',
   'thread_editing.py',
   'extension.py',
+  'profile.py',
   'llm.py',
   'tts.py',
   'stt.py',
