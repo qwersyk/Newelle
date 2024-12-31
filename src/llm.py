@@ -7,7 +7,7 @@ import json
 import base64
 
 import requests
-from .extra import can_escape_sandbox, convert_history_openai, extract_image, extract_json, find_module, get_streaming_extra_setting, install_module, open_website, get_image_path, get_spawn_command, quote_string
+from .extra import can_escape_sandbox, convert_history_openai, extract_image, extract_json, extract_video, find_module, get_streaming_extra_setting, install_module, open_website, get_image_path, get_spawn_command, quote_string
 from .handler import Handler
 
 class LLMHandler(Handler):
@@ -23,6 +23,13 @@ class LLMHandler(Handler):
     def supports_vision(self) -> bool:
         """ Return if the LLM supports receiving images"""
         return False
+
+    def supports_video_vision(self) -> bool:
+        """ Return if the LLM supports receiving videos"""
+        return False
+    def get_supported_files(self) -> list[str]:
+        """ Return the list of supported files excluding the vision ones"""
+        return []
 
     def stream_enabled(self) -> bool:
         """ Return if the LLM supports token streaming"""
@@ -479,6 +486,10 @@ class GeminiHandler(LLMHandler):
 
     def supports_vision(self) -> bool:
         return True
+    
+    def supports_video_vision(self) -> bool:
+        return True
+
     def is_installed(self) -> bool:
         if find_module("google.generativeai") is None:
             return False
@@ -554,6 +565,8 @@ class GeminiHandler(LLMHandler):
         from google.generativeai import upload_file
         img = None
         image, text = extract_image(message)
+        if image is None:
+            image, text = extract_video(message)
         if image is not None:
             if image.startswith("data:image/jpeg;base64,"):
                 image = image[len("data:image/jpeg;base64,"):]
