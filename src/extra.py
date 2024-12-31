@@ -165,6 +165,44 @@ def extract_image(message: str) -> tuple[str | None, str]:
         text = message
     return img, text
 
+def extract_video(message: str) -> tuple[str | None, str]:
+    """
+    Extract video from message
+
+    Args:
+        message: message string
+
+    Returns:
+        tuple[str, str]: image and text, if no image, image is None 
+    """
+    img = None
+    if message.startswith("```video"):
+        img = message.split("\n")[1]
+        text = message.split("\n")[3:]                    
+        text = "\n".join(text)
+    else:
+        text = message
+    return img, text
+
+def extract_file(message: str) -> tuple[str | None, str]:
+    """
+    Extract file from message
+
+    Args:
+        message: message string
+
+    Returns:
+        tuple[str, str]: file and text, if no file, file is None 
+    """
+    file = None
+    if message.startswith("```file"):
+        file = message.split("\n")[1]
+        text = message.split("\n")[3:]                    
+        text = "\n".join(text)
+    else:
+        text = message
+    return file, text
+
 def quote_string(s):
     if "'" in s:
         return "'" + s.replace("'", "'\\''") + "'"

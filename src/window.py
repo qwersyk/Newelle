@@ -1,5 +1,4 @@
 import time, re, sys
-from warnings import filters
 import gi, os, subprocess
 import pickle
 
@@ -285,7 +284,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.attach_button = button
         input_box.append(button)
         input_box.append(self.attached_image)
-        if not self.model.supports_vision():
+        if not self.model.supports_vision() and not self.model.supports_video_vision() and len(self.model.get_supported_files()) == 0:
             self.attach_button.set_visible(False)
         else:
             self.attach_button.set_visible(True)
@@ -300,7 +299,7 @@ class MainWindow(Gtk.ApplicationWindow):
         input_box.append(self.screen_record_button)
 
         # if "mp4" in self.model.get_supported_files():
-        if not self.model.supports_vision():
+        if not self.model.supports_video_vision():
             self.screen_record_button.set_visible(False)
         self.video_recorder = None
 
@@ -423,13 +422,18 @@ class MainWindow(Gtk.ApplicationWindow):
 
         image_filter = Gtk.FileFilter(name="Images", patterns=["*.png", "*.jpg", "*.jpeg", "*.webp"])
         video_filter = Gtk.FileFilter(name="Video", patterns=["*.mp4"])
+        file_filter = Gtk.FileFilter(name="Supported Files", patterns=self.model.get_supported_files())
 
-        filters.append(image_filter)
-        filters.append(video_filter)
+        if self.model.supports_vision():
+            filters.append(image_filter)
+        if self.model.supports_video_vision():    
+            filters.append(video_filter)
+        if len(self.model.get_supported_files()) > 0:
+            filters.append(file_filter)
 
         dialog = Gtk.FileDialog(title=_("Attach file"),
                                 modal=True,
-                                default_filter=image_filter,
+                                default_filter=filters.get_item(0),
                                 filters=filters)
         dialog.open(self, None, self.process_file)
 
@@ -453,7 +457,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.attach_button.disconnect_by_func(self.delete_attachment)
         self.attach_button.connect("clicked", self.attach_file)
         self.attached_image.set_visible(False)
-        self.screen_record_button.set_visible(self.model.supports_vision())
+        self.screen_record_button.set_visible(self.model.supports_video_vision())
         # self.screen_record_button.set_visible("mp4" in self.model.get_supported_files())
 
     def add_file(self, file_path=None, file_data=None):
@@ -469,8 +473,10 @@ class MainWindow(Gtk.ApplicationWindow):
                     self.attached_image.set_from_pixbuf(loader.get_pixbuf())
                 else:
                     self.attached_image.set_from_icon_name("video-x-generic")
-            else:
+            elif file_path.lower().endswith(('.png', '.jpg', '.jpeg', '.webp')):
                 self.attached_image.set_from_file(file_path)
+            else:
+                self.attached_image.set_from_icon_name("text-x-generic")
 
             self.attached_image_data = file_path
             self.attached_image.set_visible(True)
@@ -568,17 +574,17 @@ class MainWindow(Gtk.ApplicationWindow):
             self.tts.connect('start', lambda: GLib.idle_add(self.mute_tts_button.set_visible, True))
             self.tts.connect('stop', lambda: GLib.idle_add(self.mute_tts_button.set_visible, False))
         if not self.first_load:
-            if not self.model.supports_vision():
-                if self.video_recorder is not None:
-                    self.video_recorder.stop()
-                    self.video_recorder = None
+            if not self.model.supports_vision() and not self.model.supports_video_vision() and len(self.model.get_supported_files()) == 0:
                 if self.attached_image_data is not None:
                     self.delete_attachment(self.attach_button)
                 self.attach_button.set_visible(False)
             else:
                 self.attach_button.set_visible(True)
-            self.screen_record_button.set_visible(self.model.supports_vision() and not self.attached_image_data)
-            # self.screen_record_button.set_visible("mp4" in self.model.get_supported_files() and not self.attached_image_data)
+            if not self.model.supports_video_vision():
+                if self.video_recorder is not None:
+                    self.video_recorder.stop()
+                    self.video_recorder = None
+            self.screen_record_button.set_visible(self.model.supports_video_vision() and not self.attached_image_data)
 
     def send_button_start_spinner(self):
         spinner = Gtk.Spinner(spinning=True)
@@ -1125,7 +1131,12 @@ class MainWindow(Gtk.ApplicationWindow):
         entry.set_text('')
         if not text == " " * len(text):
             if self.attached_image_data is not None:
-                text = "```image\n" + self.attached_image_data + "\n```\n" + text
+                if self.attached_image_data.endswith((".png", ".jpg", ".jpeg", ".webp")):
+                    text = "```image\n" + self.attached_image_data + "\n```\n" + text
+                elif self.attached_image_data.endswith((".mp4", ".mkv", ".webm", ".avi")):
+                    text = "```video\n" + self.attached_image_data + "\n```\n" + text
+                else:
+                    text = "```file\n" + self.attached_image_data + "\n```\n" + text
                 self.delete_attachment(self.attach_button)
             self.chat.append({"User": "User", "Message": text})
             self.show_message(text, True, id_message=len(self.chat) - 1, is_user=True)
@@ -1257,19 +1268,20 @@ class MainWindow(Gtk.ApplicationWindow):
                                     image = Gtk.Image(css_classes=["image"])
                                     image.set_from_pixbuf(loader.get_pixbuf())
                                     box.append(image)
-                                elif i.lower().endswith(('.mp4', '.avi', '.mov', '.webm')):
-                                    video = Gtk.Video(
-                                        css_classes=["video"],
-                                        vexpand=True,
-                                        hexpand=True
-                                    )
-                                    video.set_size_request(-1, 400)
-                                    video.set_file(Gio.File.new_for_path(i))
-                                    box.append(video)
                                 else:
                                     image = Gtk.Image(css_classes=["image"])
                                     image.set_from_file(i)
                                     box.append(image)
+                        elif code_language == "video":
+                            for i in table_string[start_code_index:i]:
+                                video = Gtk.Video(
+                                    css_classes=["video"],
+                                    vexpand=True,
+                                    hexpand=True
+                                )
+                                video.set_size_request(-1, 400)
+                                video.set_file(Gio.File.new_for_path(i))
+                                box.append(video)
                         elif code_language == "console" and not is_user:
                             editable = False
                             if id_message == -1:
