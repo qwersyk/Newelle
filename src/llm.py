@@ -462,7 +462,7 @@ class GeminiHandler(LLMHandler):
             self.models = json.loads(self.get_setting("models", False))
 
     def get_supported_files(self) -> list[str]:
-        return ["*.pdf"]
+        return ["*"]
 
     def get_models(self):
         if self.is_installed():
