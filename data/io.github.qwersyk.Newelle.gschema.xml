@@ -13,6 +13,12 @@
         <key name="hidden-files" type="b">
             <default>false</default>
         </key>
+        <key name="reverse-order" type="b">
+            <default>false</default>
+        </key>
+        <key name="auto-generate-name" type="b">
+            <default>false</default>
+        </key>
         <key name="path" type="s">
             <default>"~"</default>
         </key>

@@ -134,6 +134,18 @@ class Settings(Adw.PreferencesWindow):
         self.settings.bind("hidden-files", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
         self.interface.add(row)
 
+        row = Adw.ActionRow(title=_("Reverse Chat Order"), subtitle=_("Show most recent chats on top in chat list (change chat to apply)"))
+        switch = Gtk.Switch(valign=Gtk.Align.CENTER)
+        row.add_suffix(switch)
+        self.settings.bind("reverse-order", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
+        self.interface.add(row)
+        
+        row = Adw.ActionRow(title=_("Automatically Generate Chat Names"), subtitle=_("Generate chat names automatically after the first two messages"))
+        switch = Gtk.Switch(valign=Gtk.Align.CENTER)
+        row.add_suffix(switch)
+        self.settings.bind("auto-generate-name", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
+        self.interface.add(row)
+        
         row = Adw.ActionRow(title=_("Number of offers"), subtitle=_("Number of message suggestions to send to chat "))
         int_spin = Gtk.SpinButton(valign=Gtk.Align.CENTER)
         int_spin.set_adjustment(Gtk.Adjustment(lower=0, upper=5, step_increment=1, page_increment=10, page_size=0))
@@ -252,7 +264,7 @@ class Settings(Adw.PreferencesWindow):
                  end = time.time()
              else:
                 self.llmrow = row
-                GLib.idle_add(self.build_local)
+                self.build_local()
         else:
             row = Adw.ActionRow(title=model["title"], subtitle=model["description"])
         self.settingsrows[(key, self.convert_constants(constants))]["row"] = row
@@ -718,7 +730,6 @@ class Settings(Adw.PreferencesWindow):
     def build_local(self):
         """Build the settings for local models"""
         # Reload available models
-        print("Building local...")
         if len(self.local_models) == 0:
             self.refresh_models(None)
 
@@ -788,7 +799,6 @@ class Settings(Adw.PreferencesWindow):
             r.add_prefix(button)
             r.add_suffix(actionbutton)
             self.llmrow.add_row(r)
-        print("Local built")
 
     def choose_local_model(self, button):
         """Called when a local model is chosen
