@@ -1,11 +1,13 @@
 import time, re, sys
 import gi, os, subprocess
 import pickle
+import threading
+import posixpath
+import json
+import base64
 
 from .profile import ProfileDialog
-
 from .llm import LLMHandler
-
 from .presentation import PresentationWindow
 from .gtkobj import File, CopyBox, BarChartBox, MultilineEntry, ProfileRow, apply_css_to_widget
 from .constants import AVAILABLE_LLMS, AVAILABLE_PROMPTS, PROMPTS, AVAILABLE_TTS, AVAILABLE_STT
@@ -14,10 +16,6 @@ from .stt import AudioRecorder
 from .extra import get_settings_dict, get_spawn_command, install_module, markwon_to_pango, override_prompts, remove_markdown, \
     replace_variables, restore_settings_from_dict
 from .screenrecorder import ScreenRecorder
-import threading
-import posixpath
-import json
-import base64
 
 from .extensions import ExtensionLoader
 
@@ -592,6 +590,8 @@ class MainWindow(Gtk.ApplicationWindow):
         self.virtualization = settings.get_boolean("virtualization")
         self.memory = settings.get_int("memory")
         self.hidden_files = settings.get_boolean("hidden-files")
+        self.reverse_order = settings.get_boolean("reverse-order")
+        self.auto_generate_name = settings.get_boolean("auto-generate-name")
         self.chat_id = settings.get_int("chat")
         self.main_path = settings.get_string("path")
         self.auto_run = settings.get_boolean("auto-run")
@@ -830,7 +830,8 @@ class MainWindow(Gtk.ApplicationWindow):
         list_box = Gtk.ListBox(css_classes=["separators", "background"])
         list_box.set_selection_mode(Gtk.SelectionMode.NONE)
         self.chats_buttons_scroll_block.set_child(list_box)
-        for i in range(len(self.chats)):
+        chat_range = range(len(self.chats)).__reversed__() if self.reverse_order else range(len(self.chats))
+        for i in chat_range:
             box = Gtk.Box(spacing=6, margin_top=3, margin_bottom=3, margin_start=3, margin_end=3)
             generate_chat_name_button = Gtk.Button(css_classes=["flat", "accent"],
                                                    valign=Gtk.Align.CENTER, icon_name="document-edit-symbolic",
@@ -898,6 +899,7 @@ class MainWindow(Gtk.ApplicationWindow):
 
             self.model.set_history([], self.get_history(self.chats[int(button.get_name())]["chat"]))
             name = self.model.generate_chat_name(self.prompts["generate_name_prompt"])
+            name = remove_markdown(name)
             if name != "Chat has been stopped":
                 self.chats[int(button.get_name())]["name"] = name
             self.update_history()
@@ -1265,6 +1267,7 @@ class MainWindow(Gtk.ApplicationWindow):
             self.check_streams["chat"] = False
         GLib.idle_add(self.scrolled_chat)
         GLib.idle_add(self.update_button_text)
+
     def show_message(self, message_label, restore=False, id_message=-1, is_user=False, return_widget=False):
         editable = True
         if message_label == " " * len(message_label) and not is_user:
@@ -1523,6 +1526,9 @@ class MainWindow(Gtk.ApplicationWindow):
         if self.stream_number_variable == stream_number_variable:
             GLib.idle_add(self.show_message, message_label)
         GLib.idle_add(self.remove_send_button_spinner)
+        # Generate chat name 
+        if self.auto_generate_name and len(self.chat) == 1: 
+            GLib.idle_add(self.generate_chat_name, Gtk.Button(name=str(self.chat_id)))
         # TTS
         tts_thread = None
         if self.tts_enabled:
