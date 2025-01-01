@@ -1689,7 +1689,7 @@ class ClaudeHandler(LLMHandler):
         return ["anthropic"]
 
     def get_models(self):
-        if not self.is_installed() or self.get_setting("api", False) == "":
+        if not self.is_installed() or self.get_setting("api", False) == "" or self.get_setting("endpoint", False) is None:
             return
         import anthropic
         client = anthropic.Client(api_key=self.get_setting("api"))
