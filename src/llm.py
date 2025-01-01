@@ -455,11 +455,14 @@ class GeminiHandler(LLMHandler):
     def __init__(self, settings, path):
         super().__init__(settings, path)
         self.cache = {}
-        if self.get_setting("models", False) is None or len(self.get_setting("models", False)) == 0 or True:
+        if self.get_setting("models", False) is None or len(self.get_setting("models", False)) == 0:
             self.models = self.default_models 
             threading.Thread(target=self.get_models).start()
         else:
             self.models = json.loads(self.get_setting("models", False))
+
+    def get_supported_files(self) -> list[str]:
+        return ["*.pdf"]
 
     def get_models(self):
         if self.is_installed():
@@ -567,6 +570,8 @@ class GeminiHandler(LLMHandler):
         image, text = extract_image(message)
         if image is None:
             image, text = extract_video(message)
+            if image is None:
+                image, text = extract_file(message)
         if image is not None:
             if image.startswith("data:image/jpeg;base64,"):
                 image = image[len("data:image/jpeg;base64,"):]
