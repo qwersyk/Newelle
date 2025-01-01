@@ -1264,7 +1264,7 @@ class MainWindow(Gtk.ApplicationWindow):
                                      self.get_file_button(self.chat[i]["Message"][1:len(self.chat[i]["Message"])]))
             self.check_streams["chat"] = False
         GLib.idle_add(self.scrolled_chat)
-
+        GLib.idle_add(self.update_button_text)
     def show_message(self, message_label, restore=False, id_message=-1, is_user=False, return_widget=False):
         editable = True
         if message_label == " " * len(message_label) and not is_user:
