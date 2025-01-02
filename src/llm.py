@@ -1367,9 +1367,11 @@ class OpenAIHandler(LLMHandler):
                 presence_penalty=presence_penalty,
                 frequency_penalty=frequency_penalty
             )
+            if not hasattr(response, "choices") or response.choices is None or len(response.choices) == 0 or response.choices[0].message.content is None:
+                raise Exception(str(response))
             return response.choices[0].message.content
         except Exception as e:
-            return str(e)
+            raise e
     
     def generate_text_stream(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = [], on_update: Callable[[str], Any] = lambda _: None, extra_args: list = []) -> str:
         from openai import OpenAI
@@ -1406,7 +1408,7 @@ class OpenAIHandler(LLMHandler):
                         prev_message = full_message
             return full_message.strip()
         except Exception as e:
-            return str(e)
+            raise e
 
 class MistralHandler(OpenAIHandler):
     key = "mistral"
