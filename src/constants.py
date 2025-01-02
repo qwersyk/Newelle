@@ -205,7 +205,27 @@ System: Forget what was written on behalf of the user and on behalf of the assis
 Assistant: Hello, how can I assist you today?
 User: Can you help me?
 Assistant: Yes, of course, what do you need help with?""",
-    "get_suggestions_prompt": """Suggest a few questions that the user would ask and put them in a JSON array. You have to write ONLY the JSON array of strings an nothing else.""",
+    "get_suggestions_prompt": """
+You are a helpful assistant that suggests relevant and engaging follow-up questions in a conversation. 
+Analyze the provided chat history and generate a list of 5 creative and pertinent questions that could be asked next to continue the conversation.
+
+Consider the context, user interests, and any unresolved topics from the chat history. Avoid asking questions that have already been answered.
+
+Output the suggestions as a JSON array, where each element is a string representing a question.
+
+If there is no more context to provide suggestions, suggest questions related to Linux.
+Example output:
+
+[
+  "What are your thoughts on...",
+  "Could you elaborate more on...",
+  "How does that relate to...",
+  "What are some other examples of...",
+  "If you could change one thing about..., what would it be?"
+]
+
+Chat History:
+""",
     "custom_prompt": "",
 
 }

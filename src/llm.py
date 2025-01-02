@@ -119,12 +119,21 @@ class LLMHandler(Handler):
             list[str]: prompt suggestions
         """
         result = []
+        max_requests = 3
+        req = 0
         history = ""
         # Only get the last four elements and reconstruct partial history
         for message in self.history[-4:] if len(self.history) >= 4 else self.history:
-            history += message["User"] + ": " + message["Message"] + "\n"
+            image, text = extract_image(message["Message"])
+            history += message["User"] + ": " + text + "\n"
         for i in range(0, amount):
-            generated = self.generate_text(history + "\n\n" + request_prompt)
+            if req >= max_requests:
+                break
+            try:
+                req+=1
+                generated = self.generate_text(request_prompt + "\n\n" + history)
+            except Exception as e:
+                continue
             generated = extract_json(generated)
             try:
                 j = json.loads(generated)
@@ -139,7 +148,7 @@ class LLMHandler(Handler):
                             break
         return result
 
-    def generate_chat_name(self, request_prompt:str = "") -> str:
+    def generate_chat_name(self, request_prompt:str = "") -> str | None:
         """Generate name of the current chat
 
         Args:
@@ -148,7 +157,10 @@ class LLMHandler(Handler):
         Returns:
             str: name of the chat
         """
-        return self.generate_text(request_prompt, self.history)
+        try:
+             self.generate_text(request_prompt, self.history)
+        except Exception as _:
+            return None 
 
 
 class NewelleAPIHandler(LLMHandler):
@@ -223,7 +235,7 @@ class NewelleAPIHandler(LLMHandler):
                                     prev_message = full_message
             return full_message.strip()
         except Exception as e:
-            return self.error_message + " " + str(e)
+            raise Exception(self.error_message + " " + str(e))
 
 
 class G4FHandler(LLMHandler):
@@ -1086,7 +1098,7 @@ class OllamaHandler(LLMHandler):
             )
             return response["message"]["content"]
         except Exception as e:
-            return str(e)
+            raise e
     
     def generate_text_stream(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = [], on_update: Callable[[str], Any] = lambda _: None, extra_args: list = []) -> str:
         from ollama import Client
@@ -1113,7 +1125,7 @@ class OllamaHandler(LLMHandler):
                     prev_message = full_message
             return full_message.strip()
         except Exception as e:
-            return str(e)
+            raise e
 
 
 class OpenAIHandler(LLMHandler):
@@ -1367,9 +1379,11 @@ class OpenAIHandler(LLMHandler):
                 presence_penalty=presence_penalty,
                 frequency_penalty=frequency_penalty
             )
+            if not hasattr(response, "choices") or response.choices is None or len(response.choices) == 0 or response.choices[0].message.content is None:
+                raise Exception(str(response))
             return response.choices[0].message.content
         except Exception as e:
-            return str(e)
+            raise e
     
     def generate_text_stream(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = [], on_update: Callable[[str], Any] = lambda _: None, extra_args: list = []) -> str:
         from openai import OpenAI
@@ -1406,7 +1420,7 @@ class OpenAIHandler(LLMHandler):
                         prev_message = full_message
             return full_message.strip()
         except Exception as e:
-            return str(e)
+            raise e
 
 class MistralHandler(OpenAIHandler):
     key = "mistral"

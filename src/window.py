@@ -61,6 +61,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.first_load = False
 
         # Build Window
+        self.last_error_box = None
         self.edit_entries = {}
 
         self.set_titlebar(Gtk.Box())
@@ -819,6 +820,11 @@ class MainWindow(Gtk.ApplicationWindow):
             self.show_chat()
             threading.Thread(target=self.send_message).start()
             self.send_button_start_spinner()
+        elif self.last_error_box is not None:
+            self.remove_error(True)
+            self.show_chat()
+            threading.Thread(target=self.send_message).start()
+            self.send_button_start_spinner()
         else:
             self.notification_block.add_toast(
                 Adw.Toast(title=_('You can no longer regenerate the message.'), timeout=2))
@@ -899,6 +905,8 @@ class MainWindow(Gtk.ApplicationWindow):
 
             self.model.set_history([], self.get_history(self.chats[int(button.get_name())]["chat"]))
             name = self.model.generate_chat_name(self.prompts["generate_name_prompt"])
+            if name is None:
+                return
             name = remove_markdown(name)
             if name != "Chat has been stopped":
                 self.chats[int(button.get_name())]["name"] = name
@@ -1177,7 +1185,7 @@ class MainWindow(Gtk.ApplicationWindow):
         if self.status:
             if self.chat != []:
                 self.button_clear.set_visible(True)
-                if self.chat[-1]["User"] in ["Assistant", "Console"]:
+                if self.chat[-1]["User"] in ["Assistant", "Console"] or self.last_error_box is not None:
                     self.regenerate_message_button.set_visible(True)
                 elif self.chat[-1]["User"] in ["Assistant", "Console", "User"]:
                     self.button_continue.set_visible(True)
@@ -1194,6 +1202,7 @@ class MainWindow(Gtk.ApplicationWindow):
 
     def generate_suggestions(self):
         """Create the suggestions and update the UI when it's finished"""
+        self.model.set_history([], self.get_history())
         suggestions = self.model.get_suggestions(self.prompts["get_suggestions_prompt"], self.offers)
         GLib.idle_add(self.populate_suggestions, suggestions)
 
@@ -1223,7 +1232,7 @@ class MainWindow(Gtk.ApplicationWindow):
         entry.set_text('')
         if not text == " " * len(text):
             if self.attached_image_data is not None:
-                if self.attached_image_data.endswith((".png", ".jpg", ".jpeg", ".webp")):
+                if self.attached_image_data.endswith((".png", ".jpg", ".jpeg", ".webp")) or self.attached_image_data.startswith("data:image/jpeg;base64,"):
                     text = "```image\n" + self.attached_image_data + "\n```\n" + text
                 elif self.attached_image_data.endswith((".mp4", ".mkv", ".webm", ".avi")):
                     text = "```video\n" + self.attached_image_data + "\n```\n" + text
@@ -1237,6 +1246,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.send_button_start_spinner()
 
     def show_chat(self):
+        self.last_error_box = None
         if not self.check_streams["chat"]:
             self.check_streams["chat"] = True
             try:
@@ -1268,7 +1278,7 @@ class MainWindow(Gtk.ApplicationWindow):
         GLib.idle_add(self.scrolled_chat)
         GLib.idle_add(self.update_button_text)
 
-    def show_message(self, message_label, restore=False, id_message=-1, is_user=False, return_widget=False):
+    def show_message(self, message_label, restore=False, id_message=-1, is_user=False, return_widget=False, newelle_error=False):
         editable = True
         if message_label == " " * len(message_label) and not is_user:
             if not restore:
@@ -1276,8 +1286,16 @@ class MainWindow(Gtk.ApplicationWindow):
                 GLib.idle_add(self.update_button_text)
                 self.status = True
                 self.chat_stop_button.set_visible(False)
+        elif newelle_error:
+            if not restore:
+                self.chat_stop_button.set_visible(False)
+                GLib.idle_add(self.update_button_text)
+                self.status = True
+            message_label = markwon_to_pango(message_label)
+            self.last_error_box = self.add_message("Error", Gtk.Label(label=message_label, use_markup= True, wrap=True, margin_top=10, margin_end=10, margin_bottom=10, margin_start=10))
         else:
-            if not restore and not is_user: self.chat.append({"User": "Assistant", "Message": message_label})
+            if not restore and not is_user: 
+                self.chat.append({"User": "Assistant", "Message": message_label})
             table_string = message_label.split("\n")
             box = Gtk.Box(margin_top=10, margin_start=10, margin_bottom=10, margin_end=10,
                           orientation=Gtk.Orientation.VERTICAL)
@@ -1474,7 +1492,6 @@ class MainWindow(Gtk.ApplicationWindow):
                     def wait_threads_sm():
                         for t in running_threads:
                             t.join()
-                        self.send_message()
 
                     threading.Thread(target=wait_threads_sm).start()
         GLib.idle_add(self.scrolled_chat)
@@ -1510,19 +1527,29 @@ class MainWindow(Gtk.ApplicationWindow):
             self.model.install()
             self.update_settings()
         self.model.set_history(prompts, self.get_history())
-        if self.model.stream_enabled():
-            self.streamed_message = ""
-            self.curr_label = ""
-            GLib.idle_add(self.create_streaming_message_label)
-            self.streaming_lable = None
-            message_label = self.model.send_message_stream(self, self.chat[-1]["Message"], self.update_message,
-                                                           [stream_number_variable])
-            try:
-                self.streaming_box.get_parent().set_visible(False)
-            except:
-                pass
-        else:
-            message_label = self.send_message_to_bot(self.chat[-1]["Message"])
+        try:
+            if self.model.stream_enabled():
+                self.streamed_message = ""
+                self.curr_label = ""
+                GLib.idle_add(self.create_streaming_message_label)
+                self.streaming_lable = None
+                message_label = self.model.send_message_stream(self, self.chat[-1]["Message"], self.update_message,
+                                                               [stream_number_variable])
+                try:
+                    self.streaming_box.get_parent().set_visible(False)
+                except:
+                    pass
+            else:
+                message_label = self.send_message_to_bot(self.chat[-1]["Message"])
+        except Exception as e:
+            GLib.idle_add(self.show_message, str(e), False,-1, False, False, True)
+            GLib.idle_add(self.remove_send_button_spinner)
+            def remove_streaming_box():
+                if self.model.stream_enabled() and hasattr(self, "streaming_box"):
+                    self.streaming_box.unparent()
+            GLib.timeout_add(250, remove_streaming_box)
+            return
+        
         if self.stream_number_variable == stream_number_variable:
             GLib.idle_add(self.show_message, message_label)
         GLib.idle_add(self.remove_send_button_spinner)
@@ -1668,6 +1695,13 @@ class MainWindow(Gtk.ApplicationWindow):
         apply_edit_stack.set_visible_child_name("edit")
         return edit_box, apply_edit_stack
 
+    def remove_error(self, idle=False):
+        if not idle:
+            GLib.idle_add(self.remove_error, True)
+        if self.last_error_box is not None:
+            self.chat_list_block.remove(self.last_error_box) 
+            self.last_error_box = None
+
     def add_message(self, user, message=None, id_message=0, editable=False):
         box = Gtk.Box(css_classes=["card"], margin_top=10, margin_start=10, margin_bottom=10, margin_end=10,
                       halign=Gtk.Align.START)
@@ -1712,7 +1746,7 @@ class MainWindow(Gtk.ApplicationWindow):
                                  css_classes=["success", "heading"]))
             box.set_css_classes(["card", "done"])
         if user == "Error":
-            box.append(Gtk.Label(label="Assistant: ", margin_top=10, margin_start=10, margin_bottom=10, margin_end=0,
+            box.append(Gtk.Label(label="Error: ", margin_top=10, margin_start=10, margin_bottom=10, margin_end=0,
                                  css_classes=["error", "heading"]))
             box.set_css_classes(["card", "failed"])
         if user == "File":
