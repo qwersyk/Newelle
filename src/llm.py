@@ -299,7 +299,7 @@ class G4FHandler(LLMHandler):
             )
             return response.choices[0].message.content
         except Exception as e:
-            return f"Error: {e}"
+            raise e
     
     def generate_text_stream(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = [], on_update: Callable[[str], Any] = lambda _: None, extra_args: list = []) -> str:
         model = self.get_setting("model")
@@ -332,7 +332,7 @@ class G4FHandler(LLMHandler):
                         prev_message = full_message
             return full_message.strip()
         except Exception as e:
-            return f"Error: {e}"
+            raise e
 
 class GPT3AnyHandler(G4FHandler):
     """
@@ -632,7 +632,7 @@ class GeminiHandler(LLMHandler):
             response = chat.send_message(txt)
             return response.text
         except Exception as e:
-            return "Message blocked: " + str(e)
+            raise "Message blocked: " + str(e)
 
     def generate_text_stream(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = [], on_update: Callable[[str], Any] = lambda _: None , extra_args: list = []) -> str:
         import google.generativeai as genai
@@ -667,7 +667,7 @@ class GeminiHandler(LLMHandler):
                 on_update(*args)
             return full_message.strip()
         except Exception as e:
-            return "Message blocked: " + str(e)
+            raise "Message blocked: " + str(e)
 
 class CustomLLMHandler(LLMHandler):
     key = "custom_command"
