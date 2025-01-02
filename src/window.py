@@ -1223,7 +1223,7 @@ class MainWindow(Gtk.ApplicationWindow):
         entry.set_text('')
         if not text == " " * len(text):
             if self.attached_image_data is not None:
-                if self.attached_image_data.endswith((".png", ".jpg", ".jpeg", ".webp")):
+                if self.attached_image_data.endswith((".png", ".jpg", ".jpeg", ".webp")) or self.attached_image_data.startswith("data:image/jpeg;base64,"):
                     text = "```image\n" + self.attached_image_data + "\n```\n" + text
                 elif self.attached_image_data.endswith((".mp4", ".mkv", ".webm", ".avi")):
                     text = "```video\n" + self.attached_image_data + "\n```\n" + text
