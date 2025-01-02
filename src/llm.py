@@ -139,7 +139,7 @@ class LLMHandler(Handler):
                             break
         return result
 
-    def generate_chat_name(self, request_prompt:str = "") -> str:
+    def generate_chat_name(self, request_prompt:str = "") -> str | None:
         """Generate name of the current chat
 
         Args:
@@ -148,7 +148,10 @@ class LLMHandler(Handler):
         Returns:
             str: name of the chat
         """
-        return self.generate_text(request_prompt, self.history)
+        try:
+             self.generate_text(request_prompt, self.history)
+        except Exception as _:
+            return None 
 
 
 class NewelleAPIHandler(LLMHandler):
@@ -1086,7 +1089,7 @@ class OllamaHandler(LLMHandler):
             )
             return response["message"]["content"]
         except Exception as e:
-            return str(e)
+            raise e
     
     def generate_text_stream(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = [], on_update: Callable[[str], Any] = lambda _: None, extra_args: list = []) -> str:
         from ollama import Client
@@ -1113,7 +1116,7 @@ class OllamaHandler(LLMHandler):
                     prev_message = full_message
             return full_message.strip()
         except Exception as e:
-            return str(e)
+            raise e
 
 
 class OpenAIHandler(LLMHandler):

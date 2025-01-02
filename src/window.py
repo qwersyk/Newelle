@@ -905,6 +905,8 @@ class MainWindow(Gtk.ApplicationWindow):
 
             self.model.set_history([], self.get_history(self.chats[int(button.get_name())]["chat"]))
             name = self.model.generate_chat_name(self.prompts["generate_name_prompt"])
+            if name is None:
+                return
             name = remove_markdown(name)
             if name != "Chat has been stopped":
                 self.chats[int(button.get_name())]["name"] = name
@@ -1538,10 +1540,12 @@ class MainWindow(Gtk.ApplicationWindow):
             else:
                 message_label = self.send_message_to_bot(self.chat[-1]["Message"])
         except Exception as e:
-            if self.model.stream_enabled():
-                GLib.idle_add(self.streaming_box.unparent)
             GLib.idle_add(self.show_message, str(e), False,-1, False, False, True)
             GLib.idle_add(self.remove_send_button_spinner)
+            def remove_streaming_box():
+                if self.model.stream_enabled() and hasattr(self, "streaming_box"):
+                    self.streaming_box.unparent()
+            GLib.timeout_add(250, remove_streaming_box)
             return
         
         if self.stream_number_variable == stream_number_variable:
