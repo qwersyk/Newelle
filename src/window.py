@@ -1202,6 +1202,7 @@ class MainWindow(Gtk.ApplicationWindow):
 
     def generate_suggestions(self):
         """Create the suggestions and update the UI when it's finished"""
+        self.model.set_history([], self.get_history())
         suggestions = self.model.get_suggestions(self.prompts["get_suggestions_prompt"], self.offers)
         GLib.idle_add(self.populate_suggestions, suggestions)
 
@@ -1290,7 +1291,8 @@ class MainWindow(Gtk.ApplicationWindow):
                 self.chat_stop_button.set_visible(False)
                 GLib.idle_add(self.update_button_text)
                 self.status = True
-            self.last_error_box = self.add_message("Error", Gtk.Label(label=message_label, wrap=True, margin_top=10, margin_end=10, margin_bottom=10, margin_start=10))
+            message_label = markwon_to_pango(message_label)
+            self.last_error_box = self.add_message("Error", Gtk.Label(label=message_label, use_markup= True, wrap=True, margin_top=10, margin_end=10, margin_bottom=10, margin_start=10))
         else:
             if not restore and not is_user: 
                 self.chat.append({"User": "Assistant", "Message": message_label})
@@ -1744,7 +1746,7 @@ class MainWindow(Gtk.ApplicationWindow):
                                  css_classes=["success", "heading"]))
             box.set_css_classes(["card", "done"])
         if user == "Error":
-            box.append(Gtk.Label(label="Assistant: ", margin_top=10, margin_start=10, margin_bottom=10, margin_end=0,
+            box.append(Gtk.Label(label="Error: ", margin_top=10, margin_start=10, margin_bottom=10, margin_end=0,
                                  css_classes=["error", "heading"]))
             box.set_css_classes(["card", "failed"])
         if user == "File":

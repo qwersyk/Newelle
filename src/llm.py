@@ -119,12 +119,21 @@ class LLMHandler(Handler):
             list[str]: prompt suggestions
         """
         result = []
+        max_requests = 3
+        req = 0
         history = ""
         # Only get the last four elements and reconstruct partial history
         for message in self.history[-4:] if len(self.history) >= 4 else self.history:
-            history += message["User"] + ": " + message["Message"] + "\n"
+            image, text = extract_image(message["Message"])
+            history += message["User"] + ": " + text + "\n"
         for i in range(0, amount):
-            generated = self.generate_text(history + "\n\n" + request_prompt)
+            if req >= max_requests:
+                break
+            try:
+                req+=1
+                generated = self.generate_text(request_prompt + "\n\n" + history)
+            except Exception as e:
+                continue
             generated = extract_json(generated)
             try:
                 j = json.loads(generated)
@@ -226,7 +235,7 @@ class NewelleAPIHandler(LLMHandler):
                                     prev_message = full_message
             return full_message.strip()
         except Exception as e:
-            return self.error_message + " " + str(e)
+            raise Exception(self.error_message + " " + str(e))
 
 
 class G4FHandler(LLMHandler):
