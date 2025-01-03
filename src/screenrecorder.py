@@ -11,7 +11,7 @@ class ScreenRecorder:
         self.window = parent_window
         self.recording = False
         timestamp = time.strftime("%Y%m%d_%H%M%S")
-        self.output_path = os.path.join(GLib.get_user_cache_dir(), "screen_records", f"{timestamp}.mp4")
+        self.output_path = os.path.join(GLib.get_user_cache_dir(), "screen_records", f"{timestamp}")
         self.init_proxy()
 
     def init_proxy(self):
@@ -31,7 +31,7 @@ class ScreenRecorder:
     def start(self):
         if not self.recording:
             try:
-                old_file = self.output_path
+                old_file = self.output_path + ".mp4"
                 if os.path.exists(old_file):
                     try:
                         os.remove(old_file)

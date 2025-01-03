@@ -436,7 +436,7 @@ class MainWindow(Gtk.ApplicationWindow):
             self.video_recorder.stop()
             self.screen_record_button.set_icon_name("media-record-symbolic")
             self.screen_record_button.set_css_classes(["flat"])
-            self.add_file(file_path=self.video_recorder.output_path)
+            self.add_file(file_path=self.video_recorder.output_path+".mp4")
             self.video_recorder = None
 
     def attach_file(self, button):
