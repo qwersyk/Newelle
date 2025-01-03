@@ -3,14 +3,15 @@ import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 from gi.repository import Gtk, Adw, GLib, Gio
-import os
+import os, time
 
 
 class ScreenRecorder:
     def __init__(self, parent_window):
         self.window = parent_window
         self.recording = False
-        self.output_path = os.path.join(GLib.get_user_cache_dir(), "screen")
+        timestamp = time.strftime("%Y%m%d_%H%M%S")
+        self.output_path = os.path.join(GLib.get_user_cache_dir(), "screen_records", f"{timestamp}.mp4")
         self.init_proxy()
 
     def init_proxy(self):
@@ -30,7 +31,7 @@ class ScreenRecorder:
     def start(self):
         if not self.recording:
             try:
-                old_file = self.output_path + ".mp4"
+                old_file = self.output_path
                 if os.path.exists(old_file):
                     try:
                         os.remove(old_file)
