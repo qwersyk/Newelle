@@ -423,12 +423,14 @@ class MainWindow(Gtk.ApplicationWindow):
             self.notification_block.add_toast(Adw.Toast(title=_('Could not recognize your voice'), timeout=2))
 
     def start_screen_recording(self, button):
-
         if self.video_recorder is None:
             self.video_recorder = ScreenRecorder(self)
             self.video_recorder.start()
-            self.screen_record_button.set_icon_name("media-playback-stop-symbolic")
-            self.screen_record_button.set_css_classes(["destructive-action", "circular"])
+            if self.video_recorder.recording:
+                self.screen_record_button.set_icon_name("media-playback-stop-symbolic")
+                self.screen_record_button.set_css_classes(["destructive-action", "circular"])
+            else:
+                self.video_recorder = None
         else:
             self.screen_record_button.set_visible(False)
             self.video_recorder.stop()
