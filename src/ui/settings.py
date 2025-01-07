@@ -1,20 +1,19 @@
 from typing import Any
-import gi
 import re, threading, os, json, time, ctypes
 from subprocess import Popen 
 from gi.repository import Gtk, Adw, Gio, GLib
 
-from .handler import Handler
+from ..handler import Handler
 
-from .stt import STTHandler
-from .tts import TTSHandler
-from .constants import AVAILABLE_LLMS, AVAILABLE_PROMPTS, AVAILABLE_TTS, AVAILABLE_STT, PROMPTS
+from ..stt import STTHandler
+from ..tts import TTSHandler
+from ..constants import AVAILABLE_LLMS, AVAILABLE_PROMPTS, AVAILABLE_TTS, AVAILABLE_STT, PROMPTS
 from gpt4all import GPT4All
-from .llm import GPT4AllHandler, LLMHandler
+from ..llm import GPT4AllHandler, LLMHandler
 from .gtkobj import ComboRowHelper, CopyBox, MultilineEntry
-from .extra import can_escape_sandbox, get_spawn_command, override_prompts, human_readable_size
+from ..extra import can_escape_sandbox, get_spawn_command, override_prompts, human_readable_size
 
-from .extensions import ExtensionLoader, NewelleExtension
+from ..extensions import ExtensionLoader, NewelleExtension
 
 class Settings(Adw.PreferencesWindow):
     def __init__(self,app,headless=False, *args, **kwargs):

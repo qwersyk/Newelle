@@ -6,10 +6,10 @@ import posixpath
 import json
 import base64
 
-from .profile import ProfileDialog
+from .ui.profile import ProfileDialog
 from .llm import LLMHandler
-from .presentation import PresentationWindow
-from .gtkobj import File, CopyBox, BarChartBox, MultilineEntry, ProfileRow, apply_css_to_widget
+from .ui.presentation import PresentationWindow
+from .ui.gtkobj import File, CopyBox, BarChartBox, MultilineEntry, ProfileRow, apply_css_to_widget
 from .constants import AVAILABLE_LLMS, AVAILABLE_PROMPTS, PROMPTS, AVAILABLE_TTS, AVAILABLE_STT
 from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject, GLib, GdkPixbuf
 from .stt import AudioRecorder

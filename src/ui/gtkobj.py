@@ -1,10 +1,10 @@
 from collections.abc import Callable
-import gi, os, subprocess
+import os, subprocess
 
 from gi.repository import Gtk, Pango, Gio, Gdk, GtkSource, GObject, Adw, GLib
 import threading
 
-from .extra import get_spawn_command, quote_string
+from ..extra import get_spawn_command, quote_string
 
 def apply_css_to_widget(widget, css_string):
     provider = Gtk.CssProvider()

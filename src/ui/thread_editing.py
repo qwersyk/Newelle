@@ -1,6 +1,4 @@
-import gi
 from gi.repository import Gtk, Adw, Gio, Pango
-import time
 
 
 class ThreadEditing(Gtk.Window):

@@ -29,22 +29,26 @@ configure_file(
 newelle_sources = [
   '__init__.py',
   'main.py',
-  'gtkobj.py',
   'constants.py',
-  'settings.py',
   'window.py',
-  'shortcuts.py',
-  'thread_editing.py',
-  'extension.py',
-  'profile.py',
   'llm.py',
   'tts.py',
   'stt.py',
   'extra.py',
-  'presentation.py',
   'handler.py',
   'extensions.py',
   'screenrecorder.py'
 ]
 
+ui_sources = [
+  'ui/__init__.py',
+  'ui/gtkobj.py',
+  'ui/profile.py',
+  'ui/extension.py',
+  'ui/settings.py',
+  'ui/presentation.py',
+  'ui/thread_editing.py',
+  'ui/shortcuts.py',
+]
 install_data(newelle_sources, install_dir: moduledir)
+install_data(ui_sources, install_dir: moduledir / 'ui')

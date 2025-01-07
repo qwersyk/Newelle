@@ -4,13 +4,12 @@ import gi, os
 gi.require_version('Gtk', '4.0')
 gi.require_version('GtkSource', '5')
 gi.require_version('Adw', '1')
-import pickle
 from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GtkSource, GObject
-from .settings import Settings
+from .ui.settings import Settings
 from .window import MainWindow
-from .shortcuts import Shortcuts
-from .thread_editing import ThreadEditing
-from .extension import Extension
+from .ui.shortcuts import Shortcuts
+from .ui.thread_editing import ThreadEditing
+from .ui.extension import Extension
 
 
 
