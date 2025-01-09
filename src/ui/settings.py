@@ -10,7 +10,8 @@ from ..tts import TTSHandler
 from ..constants import AVAILABLE_LLMS, AVAILABLE_PROMPTS, AVAILABLE_TTS, AVAILABLE_STT, PROMPTS
 from gpt4all import GPT4All
 from ..llm import GPT4AllHandler, LLMHandler
-from .gtkobj import ComboRowHelper, CopyBox, MultilineEntry
+from .gtkobj import ComboRowHelper, CopyBox 
+from .widgets import MultilineEntry
 from ..extra import can_escape_sandbox, get_spawn_command, override_prompts, human_readable_size
 
 from ..extensions import ExtensionLoader, NewelleExtension

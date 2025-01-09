@@ -1,7 +1,7 @@
 from collections.abc import Callable
 import os, subprocess
 
-from gi.repository import Gtk, Pango, Gio, Gdk, GtkSource, GObject, Adw, GLib
+from gi.repository import Gtk, Pango, Gio, Gdk, GtkSource, GObject, Adw
 import threading
 
 from ..extra import get_spawn_command, quote_string
@@ -15,59 +15,6 @@ def apply_css_to_widget(widget, css_string):
 
     # Add the provider to the widget's style context
     context.add_provider(provider, Gtk.STYLE_PROVIDER_PRIORITY_USER)
-
-
-class ProfileRow(Adw.ActionRow):
-    def __init__(self, profile, picture, selected, add=False, allow_delete=False):
-        super().__init__(height_request=50, width_request=250, use_markup=False, activatable=False)
-        self.profile = profile
-        self.add = add
-        # Set properties
-        self.on_forget_f = lambda _: None
-        self.set_name(profile)
-        self.set_title(profile)
-        # Create prefix widget (GtkOverlay)
-        overlay = Gtk.Overlay(width_request=40)
-        self.add_prefix(overlay)
-
-        # Create avatar widget
-        if add:
-            avatar = Adw.Avatar(size=36, text=profile, icon_name="plus-symbolic")
-        elif picture is not None: 
-            avatar = Adw.Avatar(custom_image=Gdk.Texture.new_from_filename(picture), text=profile, show_initials=True, size=36)
-            avatar.get_last_child().get_last_child().set_icon_size(Gtk.IconSize.NORMAL)
-        else:    
-            avatar = Adw.Avatar(text=profile, show_initials=True, size=36)
-        avatar.set_tooltip_text(_("Select profile"))
-        # Signal handler for avatar clicked
-        overlay.add_overlay(avatar)
-
-        # Create checkmark widget
-        if selected:
-            checkmark = Gtk.Image(focusable=False, halign=Gtk.Align.END, valign=Gtk.Align.END)
-            checkmark.set_from_icon_name("check-plain-symbolic")
-            checkmark.set_pixel_size(11)
-            # Apply style to checkmark
-            checkmark.add_css_class("blue-checkmark")
-            overlay.add_overlay(checkmark)
-
-        if allow_delete:
-            # Create suffix widget (GtkButton)
-            forget_button = Gtk.Button()
-            forget_button.set_icon_name("user-trash-symbolic")
-            forget_button.set_valign(Gtk.Align.CENTER)
-            forget_button.set_tooltip_text("Delete Profile")
-            # Signal handler for forget button clicked
-            forget_button.connect("clicked", self.on_forget)
-            # Apply style to forget button
-            forget_button.add_css_class("circular")
-            self.add_suffix(forget_button)
-
-    def set_on_forget(self, f : Callable):
-        self.on_forget_f = f
-
-    def on_forget(self, widget):
-        self.on_forget_f(self.profile)
 
 
 class File(Gtk.Image):
@@ -116,114 +63,6 @@ class File(Gtk.Image):
         data = os.path.normpath(os.path.expanduser(f"{self.path}/{self.file_name}"))
         return Gdk.ContentProvider.new_for_value(data)
 
-
-class MultilineEntry(Gtk.Box):
-
-    def __init__(self):
-        Gtk.Box.__init__(self)
-        self.placeholding = True
-        self.placeholder = ""
-        self.enter_func = None
-        self.on_change_func = None
-        self.on_image_pasted = lambda *a: None
-        # Handle enter key
-        # Call handle_enter_key only when shift is not pressed
-        # shift + enter = new line
-        key_controller = Gtk.EventControllerKey.new()
-        key_controller.connect("key-pressed", lambda controller, keyval, keycode, state:
-            self.handle_enter_key() if keyval == Gdk.KEY_Return and not (state & Gdk.ModifierType.SHIFT_MASK) 
-            else self.handle_paste() if keyval == Gdk.KEY_v and (state & Gdk.ModifierType.CONTROL_MASK) else None
-        )
-
-        # Scroll
-        scroll = Gtk.ScrolledWindow()
-        scroll.set_hexpand(True)
-        scroll.set_max_content_height(150)
-        scroll.set_propagate_natural_height(True)
-        scroll.set_margin_start(10)
-        scroll.set_margin_end(10)
-        self.append(scroll)
-
-        # TextView
-        self.input_panel = Gtk.TextView()
-        self.input_panel.set_wrap_mode(Gtk.WrapMode.WORD)
-        self.input_panel.set_hexpand(True)
-        self.input_panel.set_vexpand(False)
-        self.input_panel.set_top_margin(5)
-        self.input_panel.add_controller(key_controller)
-        # Event management
-        focus_controller = Gtk.EventControllerFocus.new()
-        self.input_panel.add_controller(focus_controller)
-         
-        # Connect the enter and leave signals
-        focus_controller.connect("enter", self.on_focus_in, None)
-        focus_controller.connect("leave", self.on_focus_out, None)
-
-        # Add style to look like a GTK Entry
-        self.add_css_class("card")
-        self.add_css_class("frame")
-        self.input_panel.add_css_class("multilineentry")
-        apply_css_to_widget(self.input_panel, ".multilineentry { background-color: rgba(0,0,0,0); font-size: 15px;}")
-
-        # Add TextView to the ScrolledWindow
-        scroll.set_child(self.input_panel)
-
-    def handle_paste(self):
-        clipboard = Gdk.Display.get_default().get_clipboard()
-        clipboard.read_texture_async(None, self.image_pasted)
-    
-    def image_pasted(self, clipboard, texture):
-        try:
-            img : Gdk.MemoryTexture = clipboard.read_texture_finish(texture)
-        except Exception as _:
-            return
-        self.on_image_pasted(img.save_to_png_bytes().get_data())
-
-    def set_placeholder(self, text):
-        self.placeholder = text
-        if self.placeholding:
-            self.set_text(self.placeholder, False)
-
-    def set_on_image_pasted(self, function):
-        self.on_image_pasted = function
-
-    def set_on_enter(self, function):
-        """Add a function that is called when ENTER (without SHIFT) is pressed"""
-        self.enter_func = function
-
-    def handle_enter_key(self):
-        if self.enter_func is not None:
-            GLib.idle_add(self.set_text, self.get_text().rstrip("\n"))
-            GLib.idle_add(self.enter_func, self)
-
-    def get_input_panel(self):
-        return self.input_panel
-
-    def set_text(self, text, remove_placeholder=True):
-        if remove_placeholder:
-            self.placeholding = False
-        self.input_panel.get_buffer().set_text(text)
-
-    def get_text(self):
-        return self.input_panel.get_buffer().get_text(self.input_panel.get_buffer().get_start_iter(), self.input_panel.get_buffer().get_end_iter(), False)
-
-    def on_focus_in(self, widget, data):
-        if self.placeholding:
-            self.set_text("", False)
-            self.placeholding = False
-
-    def on_focus_out(self, widget, data):
-        if self.get_text() == "":
-            self.placeholding = True
-            self.set_text(self.placeholder, False)
-
-    def set_on_change(self, function):
-        self.on_change_func = function
-        self.input_panel.get_buffer().connect("changed", self.on_change)
-
-    def on_change(self, buffer):
-        if self.on_change_func is not None:
-            self.on_change_func(self)
 
 class CopyBox(Gtk.Box):
     def __init__(self, txt, lang, parent = None,id_message=-1):

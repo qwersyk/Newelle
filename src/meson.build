@@ -50,5 +50,13 @@ ui_sources = [
   'ui/thread_editing.py',
   'ui/shortcuts.py',
 ]
+
+widgets_sources = [
+  'ui/widgets/__init__.py',
+  'ui/widgets/multiline.py',
+  'ui/widgets/profilerow.py',
+]
+
 install_data(newelle_sources, install_dir: moduledir)
 install_data(ui_sources, install_dir: moduledir / 'ui')
+install_data(widgets_sources, install_dir: moduledir / 'ui' / 'widgets')
