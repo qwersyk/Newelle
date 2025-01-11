@@ -1,5 +1,5 @@
 import time, re, sys
-import gi, os, subprocess
+import os, subprocess
 import pickle
 import threading
 import posixpath
@@ -16,7 +16,7 @@ from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject, GLib, GdkPixbuf
 from .stt import AudioRecorder
 from .extra import get_settings_dict, get_spawn_command, install_module, markwon_to_pango, override_prompts, remove_markdown, \
     replace_variables, restore_settings_from_dict
-from .screenrecorder import ScreenRecorder
+from .ui.screenrecorder import ScreenRecorder
 
 from .extensions import ExtensionLoader
 
