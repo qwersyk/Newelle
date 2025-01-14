@@ -1,68 +1,8 @@
-from collections.abc import Callable
-import os, subprocess
-
-from gi.repository import Gtk, Pango, Gio, Gdk, GtkSource, GObject, Adw
 import threading
-
-from ..extra import get_spawn_command, quote_string
-
-def apply_css_to_widget(widget, css_string):
-    provider = Gtk.CssProvider()
-    context = widget.get_style_context()
-
-    # Load the CSS from the string
-    provider.load_from_data(css_string.encode())
-
-    # Add the provider to the widget's style context
-    context.add_provider(provider, Gtk.STYLE_PROVIDER_PRIORITY_USER)
-
-
-class File(Gtk.Image):
-    def __init__(self, path, file_name):
-        if os.path.isdir(os.path.join(os.path.expanduser(path), file_name)):
-            if file_name == "Desktop":
-                name = "user-desktop"
-            elif file_name == "Documents":
-                name = "folder-documents"
-            elif file_name == "Downloads":
-                name = "folder-download"
-            elif file_name == "Music":
-                name = "folder-music"
-            elif file_name == "Pictures":
-                name = "folder-pictures"
-            elif file_name == "Public":
-                name = "folder-publicshare"
-            elif file_name == "Templates":
-                name = "folder-templates"
-            elif file_name == "Videos":
-                name = "folder-videos"
-            elif file_name == ".var/app/io.github.qwersyk.Newelle/Newelle":
-                name = "user-bookmarks"
-            else:
-                name = "folder"
-        else:
-            if file_name[len(file_name) - 4:len(file_name)] in [".png", ".jpg"]:
-                name = "image-x-generic"
-            else:
-                name = "text-x-generic"
-        super().__init__(icon_name=name)
-
-        self.path = path
-        self.file_name = file_name
-        self.drag_source = Gtk.DragSource.new()
-        self.drag_source.set_actions(Gdk.DragAction.COPY)
-        self.drag_source.connect("prepare", self.move)
-        self.add_controller(self.drag_source)
-
-    def move(self, drag_source, x, y):
-        snapshot = Gtk.Snapshot.new()
-        self.do_snapshot(self, snapshot)
-        paintable = snapshot.to_paintable()
-        drag_source.set_icon(paintable, int(x), int(y))
-
-        data = os.path.normpath(os.path.expanduser(f"{self.path}/{self.file_name}"))
-        return Gdk.ContentProvider.new_for_value(data)
-
+import subprocess
+import os
+from gi.repository import Gtk, GtkSource, Gio, Pango, Gdk
+from ...extra import get_spawn_command, quote_string
 
 class CopyBox(Gtk.Box):
     def __init__(self, txt, lang, parent = None,id_message=-1):
@@ -113,7 +53,7 @@ class CopyBox(Gtk.Box):
         self.append(main)
         self.append(self.sourceview)
         main.append(box)
-        if lang == "python":
+        if lang == "python" and parent is not None:
             icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="media-playback-start-symbolic"))
             icon.set_icon_size(Gtk.IconSize.INHERIT)
             self.run_button = Gtk.Button(halign=Gtk.Align.END, margin_end=10, css_classes=["flat"])
@@ -130,7 +70,7 @@ class CopyBox(Gtk.Box):
             box.append(self.run_button)
             self.append(self.text_expander)
 
-        elif lang == "console":
+        elif lang == "console" and parent is not None:
             # Run button
             icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="media-playback-start-symbolic"))
             icon.set_icon_size(Gtk.IconSize.INHERIT)
@@ -163,7 +103,10 @@ class CopyBox(Gtk.Box):
         box.append(self.copy_button)
 
     def copy_button_clicked(self, widget):
-        clipboard = Gdk.Display.get_default().get_clipboard()
+        display = Gdk.Display.get_default()
+        if display is None:
+            return
+        clipboard = display.get_clipboard()
         clipboard.set_content(Gdk.ContentProvider.new_for_value(self.txt))
 
         icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="object-select-symbolic"))
@@ -224,77 +167,4 @@ class CopyBox(Gtk.Box):
                 text = stdout.decode()
         self.text_expander.set_child(
             Gtk.Label(wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR, label=text, selectable=True))
-
-
-class BarChartBox(Gtk.Box):
-    def __init__(self, data_dict,percentages):
-        Gtk.Box.__init__(self,orientation=Gtk.Orientation.VERTICAL, margin_top=10, margin_start=10,
-                         margin_bottom=10, margin_end=10, css_classes=["card","chart"])
-
-        self.data_dict = data_dict
-        max_value = max(self.data_dict.values())
-        if percentages and max_value<=100:
-            max_value = 100
-        for label, value in self.data_dict.items():
-            bar_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL,margin_top=10, margin_start=10,
-                         margin_bottom=10, margin_end=10)
-
-            bar = Gtk.ProgressBar()
-            bar.set_fraction(value / max_value)
-
-            label = Gtk.Label(label=label,wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR)
-            label.set_halign(Gtk.Align.CENTER)
-            bar_box.append(label)
-            bar_box.append(bar)
-            self.append(bar_box)
-
-class ComboRowHelper(GObject.Object):
-    __gsignals__ = {
-        "changed": (GObject.SignalFlags.RUN_FIRST, None, (str,)),
-    }
-
-    def __init__(
-        self,
-        combo: Adw.ComboRow,
-        options: tuple[tuple[str, str]],
-        selected_value: str,
-    ):
-        super().__init__()
-        self.combo = combo
-        self.__combo = combo
-        self.__factory = Gtk.SignalListItemFactory()
-        self.__factory.connect("setup", self.__on_setup_listitem)
-        self.__factory.connect("bind", self.__on_bind_listitem)
-        combo.set_factory(self.__factory)
-
-        self.__store = Gio.ListStore(item_type=self.ItemWrapper)
-        i = 0
-        selected_index = 0
-        for option in options:
-            if option[1] == selected_value:
-                selected_index = i
-            i += 1
-            self.__store.append(self.ItemWrapper(option[0], option[1]))
-        combo.set_model(self.__store)
-
-        combo.set_selected(selected_index)
-        combo.connect("notify::selected-item", self.__on_selected)
-    class ItemWrapper(GObject.Object):
-        def __init__(self, name: str, value: str):
-            super().__init__()
-            self.name = name
-            self.value = value
-
-    def __on_selected(self, combo: Adw.ComboRow, selected_item: GObject.ParamSpec) -> None:
-        value = self.__combo.get_selected_item().value
-        self.emit("changed", value)
-
-    def __on_setup_listitem(self, factory: Gtk.ListItemFactory, list_item: Gtk.ListItem) -> None:
-        label = Gtk.Label()
-        list_item.set_child(label)
-        list_item.row_w = label
-
-    def __on_bind_listitem(self, factory: Gtk.ListItemFactory, list_item: Gtk.ListItem) -> None:
-        label = list_item.get_child()
-        label.set_text(list_item.get_item().name)
 

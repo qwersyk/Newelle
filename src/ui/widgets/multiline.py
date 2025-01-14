@@ -1,5 +1,5 @@
 from gi.repository import Gtk, Gdk, GLib
-from ..gtkobj import apply_css_to_widget
+from .. import apply_css_to_widget
 
 class MultilineEntry(Gtk.Box):
 

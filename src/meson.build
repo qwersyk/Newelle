@@ -37,17 +37,16 @@ newelle_sources = [
   'extra.py',
   'handler.py',
   'extensions.py',
-  'screenrecorder.py'
 ]
 
 ui_sources = [
   'ui/__init__.py',
-  'ui/gtkobj.py',
   'ui/profile.py',
   'ui/extension.py',
   'ui/settings.py',
   'ui/presentation.py',
   'ui/thread_editing.py',
+  'ui/screenrecorder.py',
   'ui/shortcuts.py',
 ]
 
@@ -55,6 +54,10 @@ widgets_sources = [
   'ui/widgets/__init__.py',
   'ui/widgets/multiline.py',
   'ui/widgets/profilerow.py',
+  'ui/widgets/barchart.py',
+  'ui/widgets/comborow.py',
+  'ui/widgets/copybox.py',
+  'ui/widgets/file.py',
 ]
 
 install_data(newelle_sources, install_dir: moduledir)
