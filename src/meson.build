@@ -31,11 +31,7 @@ newelle_sources = [
   'main.py',
   'constants.py',
   'window.py',
-  'llm.py',
-  'tts.py',
-  'stt.py',
   'extra.py',
-  'handler.py',
   'extensions.py',
 ]
 
@@ -60,6 +56,32 @@ widgets_sources = [
   'ui/widgets/file.py',
 ]
 
+handler_sources = [
+  'handlers/__init__.py',
+  'handlers/handler.py',
+]
+
+llm_sources = [
+  'handlers/llm/__init__.py',
+  'handlers/llm/llm.py',
+]
+
+tts_sources = [
+  'handlers/tts/__init__.py',
+  'handlers/tts/tts.py',
+]
+
+stt_sources = [  
+  'handlers/stt/__init__.py',
+  'handlers/stt/stt.py',
+]
+
 install_data(newelle_sources, install_dir: moduledir)
 install_data(ui_sources, install_dir: moduledir / 'ui')
 install_data(widgets_sources, install_dir: moduledir / 'ui' / 'widgets')
+install_data(handler_sources, install_dir: moduledir / 'handlers')
+install_data(llm_sources, install_dir: moduledir / 'handlers' / 'llm')
+install_data(tts_sources, install_dir: moduledir / 'handlers' / 'tts')
+install_data(stt_sources, install_dir: moduledir / 'handlers' / 'stt')
+
+
