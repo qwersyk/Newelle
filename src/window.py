@@ -1,10 +1,15 @@
-import time, re, sys
-import os, subprocess
+import time 
+import re 
+import sys
+import os 
+import subprocess
 import pickle
 import threading
 import posixpath
 import json
 import base64
+
+from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject, GLib, GdkPixbuf
 
 from .ui.profile import ProfileDialog
 from .handlers.llm import LLMHandler
@@ -13,7 +18,6 @@ from .ui.widgets import File, CopyBox, BarChartBox
 from .ui import apply_css_to_widget
 from .ui.widgets import MultilineEntry, ProfileRow
 from .constants import AVAILABLE_LLMS, AVAILABLE_PROMPTS, PROMPTS, AVAILABLE_TTS, AVAILABLE_STT
-from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject, GLib, GdkPixbuf
 
 from .utility import override_prompts
 from .utility.system import get_spawn_command 

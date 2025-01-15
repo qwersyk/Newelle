@@ -1,6 +1,13 @@
 from typing import Any
-import re, threading, os, json, time, ctypes
+import re 
+import threading 
+import os 
+import json 
+import time 
+import ctypes
 from subprocess import Popen 
+from gpt4all import GPT4All
+
 from gi.repository import Gtk, Adw, Gio, GLib
 
 from ..handlers import Handler
@@ -8,7 +15,6 @@ from ..handlers import Handler
 from ..handlers.stt import STTHandler
 from ..handlers.tts import TTSHandler
 from ..constants import AVAILABLE_LLMS, AVAILABLE_PROMPTS, AVAILABLE_TTS, AVAILABLE_STT, PROMPTS
-from gpt4all import GPT4All
 from ..handlers.llm import GPT4AllHandler, LLMHandler
 from .widgets import ComboRowHelper, CopyBox 
 from .widgets import MultilineEntry

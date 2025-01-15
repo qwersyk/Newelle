@@ -1,6 +1,8 @@
-import sys, importlib, os, json, shutil
-from typing import Any
-
+import importlib 
+import os 
+import json 
+import shutil
+import sys
 from gi.repository import Gtk
 
 from .handlers import Handler
@@ -337,7 +339,8 @@ class ExtensionLoader:
 
     def save_settings(self):
         """Save the extensions settings"""
-        
+        if self.settings is None:
+            return
         self.settings.set_string("extensions-settings", json.dumps(self.extensions_settings))
     
     def check_validity(self, extension : NewelleExtension):
