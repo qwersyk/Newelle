@@ -31,7 +31,6 @@ newelle_sources = [
   'main.py',
   'constants.py',
   'window.py',
-  'extra.py',
   'extensions.py',
 ]
 
@@ -64,7 +63,20 @@ handler_sources = [
 llm_sources = [
   'handlers/llm/__init__.py',
   'handlers/llm/llm.py',
-]
+  'handlers/llm/bing_handler.py',
+  'handlers/llm/claude_handler.py',
+  'handlers/llm/custom_handler.py',
+  'handlers/llm/g4f_handler.py',
+  'handlers/llm/gemini_handler.py',
+  'handlers/llm/gpt3any_handler.py',
+  'handlers/llm/gpt4all_handler.py',
+  'handlers/llm/groq_handler.py',
+  'handlers/llm/mistral_handler.py',
+  'handlers/llm/newelle_handler.py',
+  'handlers/llm/ollama_handler.py',
+  'handlers/llm/openai_handler.py',
+  'handlers/llm/openrouter_handler.py',
+  ]
 
 tts_sources = [
   'handlers/tts/__init__.py',
@@ -76,6 +88,17 @@ stt_sources = [
   'handlers/stt/stt.py',
 ]
 
+utility_sources = [
+  'utility/__init__.py',
+  'utility/media.py',
+  'utility/pip.py',
+  'utility/replacehelper.py',
+  'utility/strings.py',
+  'utility/system.py',
+  'utility/util.py',
+  'utility/profile_settings.py',
+]
+
 install_data(newelle_sources, install_dir: moduledir)
 install_data(ui_sources, install_dir: moduledir / 'ui')
 install_data(widgets_sources, install_dir: moduledir / 'ui' / 'widgets')
@@ -83,5 +106,5 @@ install_data(handler_sources, install_dir: moduledir / 'handlers')
 install_data(llm_sources, install_dir: moduledir / 'handlers' / 'llm')
 install_data(tts_sources, install_dir: moduledir / 'handlers' / 'tts')
 install_data(stt_sources, install_dir: moduledir / 'handlers' / 'stt')
-
+install_data(utility_sources, install_dir: moduledir / 'utility')
 

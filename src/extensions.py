@@ -3,11 +3,11 @@ from typing import Any
 
 from gi.repository import Gtk
 
-from .handler import Handler
+from .handlers import Handler
 
-from .llm import LLMHandler
-from .stt import STTHandler
-from .tts import TTSHandler
+from .handlers.llm import LLMHandler
+from .handlers.stt import STTHandler
+from .handlers.tts import TTSHandler
 
 
 class NewelleExtension(Handler):

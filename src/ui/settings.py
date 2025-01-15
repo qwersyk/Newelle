@@ -3,16 +3,18 @@ import re, threading, os, json, time, ctypes
 from subprocess import Popen 
 from gi.repository import Gtk, Adw, Gio, GLib
 
-from ..handler import Handler
+from ..handlers import Handler
 
-from ..stt import STTHandler
-from ..tts import TTSHandler
+from ..handlers.stt import STTHandler
+from ..handlers.tts import TTSHandler
 from ..constants import AVAILABLE_LLMS, AVAILABLE_PROMPTS, AVAILABLE_TTS, AVAILABLE_STT, PROMPTS
 from gpt4all import GPT4All
-from ..llm import GPT4AllHandler, LLMHandler
+from ..handlers.llm import GPT4AllHandler, LLMHandler
 from .widgets import ComboRowHelper, CopyBox 
 from .widgets import MultilineEntry
-from ..extra import can_escape_sandbox, get_spawn_command, override_prompts, human_readable_size
+from ..utility import override_prompts
+from ..utility.system import can_escape_sandbox, get_spawn_command 
+from ..utility.strings import human_readable_size
 
 from ..extensions import ExtensionLoader, NewelleExtension
 
@@ -58,7 +60,7 @@ class Settings(Adw.PreferencesWindow):
         self.LLM.set_header_suffix(help)
         # Add LLMs
         self.general_page.add(self.LLM)
-        self.llmbuttons = [];
+        self.llmbuttons = []
         group = Gtk.CheckButton()
         selected = self.settings.get_string("language-model")
         others_row = Adw.ExpanderRow(title=_('Other LLMs'), subtitle=_("Other available LLM providers"))

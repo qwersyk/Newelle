@@ -3,7 +3,7 @@ from gi.repository import Gtk, Adw
 
 from .settings import Settings
 from .widgets import CopyBox
-from ..extra import can_escape_sandbox
+from ..utility.system import can_escape_sandbox
 import subprocess
 
 

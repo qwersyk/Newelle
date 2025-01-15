@@ -2,7 +2,9 @@ import threading
 import subprocess
 import os
 from gi.repository import Gtk, GtkSource, Gio, Pango, Gdk
-from ...extra import get_spawn_command, quote_string
+from ...utility.system import get_spawn_command 
+from ...utility.strings import quote_string
+
 
 class CopyBox(Gtk.Box):
     def __init__(self, txt, lang, parent = None,id_message=-1):

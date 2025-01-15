@@ -2,7 +2,7 @@ import subprocess
 from threading import Thread
 import os
 
-from ..extra import get_spawn_command
+from ..utility.system import get_spawn_command
 
 from ..constants import AVAILABLE_LLMS, AVAILABLE_PROMPTS, AVAILABLE_STT, AVAILABLE_TTS, PROMPTS
 from .settings import Settings

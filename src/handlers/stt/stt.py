@@ -1,15 +1,13 @@
 from abc import abstractmethod
 from subprocess import check_output
 import os, sys, json
-import importlib
-from typing import Any
 import pyaudio
 import wave
 import struct
 import speech_recognition as sr
-from .extra import find_module, get_spawn_command, install_module
-from .handler import Handler
-import math
+from ...utility.pip import find_module
+from ...utility.system import get_spawn_command
+from ..handler import Handler
 
 
 class AudioRecorder:
