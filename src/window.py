@@ -1,21 +1,32 @@
-import time, re, sys
-import gi, os, subprocess
+import time 
+import re 
+import sys
+import os 
+import subprocess
 import pickle
 import threading
 import posixpath
 import json
 import base64
 
-from .profile import ProfileDialog
-from .llm import LLMHandler
-from .presentation import PresentationWindow
-from .gtkobj import File, CopyBox, BarChartBox, MultilineEntry, ProfileRow, apply_css_to_widget
-from .constants import AVAILABLE_LLMS, AVAILABLE_PROMPTS, PROMPTS, AVAILABLE_TTS, AVAILABLE_STT
 from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject, GLib, GdkPixbuf
-from .stt import AudioRecorder
-from .extra import get_settings_dict, get_spawn_command, install_module, markwon_to_pango, override_prompts, remove_markdown, \
-    replace_variables, restore_settings_from_dict
-from .screenrecorder import ScreenRecorder
+
+from .ui.profile import ProfileDialog
+from .handlers.llm import LLMHandler
+from .ui.presentation import PresentationWindow
+from .ui.widgets import File, CopyBox, BarChartBox
+from .ui import apply_css_to_widget
+from .ui.widgets import MultilineEntry, ProfileRow
+from .constants import AVAILABLE_LLMS, AVAILABLE_PROMPTS, PROMPTS, AVAILABLE_TTS, AVAILABLE_STT
+
+from .utility import override_prompts
+from .utility.system import get_spawn_command 
+from .utility.pip import install_module
+from .utility.strings import markwon_to_pango, remove_markdown
+from .utility.replacehelper import replace_variables
+from .utility.profile_settings import get_settings_dict, restore_settings_from_dict
+from .utility.audio_recorder import AudioRecorder
+from .ui.screenrecorder import ScreenRecorder
 
 from .extensions import ExtensionLoader
 

@@ -1,16 +1,16 @@
 import sys
-import gi, os
+import os
+import gi 
 
 gi.require_version('Gtk', '4.0')
 gi.require_version('GtkSource', '5')
 gi.require_version('Adw', '1')
-import pickle
-from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GtkSource, GObject
-from .settings import Settings
+from gi.repository import Gtk, Adw, Gio, Gdk
+from .ui.settings import Settings
 from .window import MainWindow
-from .shortcuts import Shortcuts
-from .thread_editing import ThreadEditing
-from .extension import Extension
+from .ui.shortcuts import Shortcuts
+from .ui.thread_editing import ThreadEditing
+from .ui.extension import Extension
 
 
 
@@ -80,16 +80,17 @@ class MyApp(Adw.Application):
         }
         .video {
             min-height: 400px;
-            object-fit: contain;
         }
         '''
         css_provider = Gtk.CssProvider()
         css_provider.load_from_data(css, -1)
-        Gtk.StyleContext.add_provider_for_display(
-            Gdk.Display.get_default(),
-            css_provider,
-            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
-        )
+        display = Gdk.Display.get_default() 
+        if display is not None:
+            Gtk.StyleContext.add_provider_for_display(
+                display,
+                css_provider,
+                Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+            )
         self.connect('activate', self.on_activate)
         action = Gio.SimpleAction.new("about", None)
         action.connect('activate', self.on_about_action)
@@ -161,6 +162,7 @@ class MyApp(Adw.Application):
             return True
         extension.connect("close-request", close) 
         extension.present()
+    
     def close_window(self, *a):
         if all(element.poll() is not None for element in self.win.streams):
             return False
@@ -179,11 +181,13 @@ class MyApp(Adw.Application):
             dialog.connect("response", self.close_message)
             dialog.present()
             return True
+    
     def close_message(self,a,status):
         if status=="close":
             for i in self.win.streams:
                 i.terminate()
             self.win.destroy()
+    
     def on_activate(self, app):
         self.win = MainWindow(application=app)
         self.win.connect("close-request", self.close_window)

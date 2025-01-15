@@ -1,11 +1,11 @@
-import gi
-from gi.repository import Gtk, Adw, GdkPixbuf
-from gi.repository.Gio import Subprocess
+from gi.repository import Gtk, Adw
 
 from .settings import Settings
-from .gtkobj import CopyBox
-from .extra import can_escape_sandbox
+from .widgets import CopyBox
+from ..utility.system import can_escape_sandbox
 import subprocess
+
+
 class PresentationWindow(Adw.Window):
     def __init__(self, title, settings, path, parent : Adw.ApplicationWindow):
         super().__init__(title=title, deletable=True, modal=True)

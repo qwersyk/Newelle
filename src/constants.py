@@ -1,7 +1,7 @@
 
-from .llm import BingHandler, ClaudeHandler, GPT4AllHandler, GroqHandler, OllamaHandler, OpenAIHandler, CustomLLMHandler, GPT3AnyHandler, GeminiHandler, MistralHandler, OpenRouterHandler, NewelleAPIHandler
-from .tts import ElevenLabs, gTTSHandler, EspeakHandler, CustomTTSHandler
-from .stt import GroqSRHandler, OpenAISRHandler, SphinxHandler, GoogleSRHandler, WhisperHandler, WitAIHandler, VoskHandler, CustomSRHandler
+from .handlers.llm import BingHandler, ClaudeHandler, GPT4AllHandler, GroqHandler, OllamaHandler, OpenAIHandler, CustomLLMHandler, GPT3AnyHandler, GeminiHandler, MistralHandler, OpenRouterHandler, NewelleAPIHandler
+from .handlers.tts import ElevenLabs, gTTSHandler, EspeakHandler, CustomTTSHandler
+from .handlers.stt import GroqSRHandler, OpenAISRHandler, SphinxHandler, GoogleSRHandler, WhisperHandler, WitAIHandler, VoskHandler, CustomSRHandler
 
 AVAILABLE_LLMS = {
     "newelle": {

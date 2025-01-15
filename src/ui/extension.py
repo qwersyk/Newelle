@@ -1,12 +1,12 @@
 import subprocess
 from threading import Thread
-import gi, os
+import os
 
-from .extra import get_spawn_command
+from ..utility.system import get_spawn_command
 
-from .constants import AVAILABLE_LLMS, AVAILABLE_PROMPTS, AVAILABLE_STT, AVAILABLE_TTS, PROMPTS
+from ..constants import AVAILABLE_LLMS, AVAILABLE_PROMPTS, AVAILABLE_STT, AVAILABLE_TTS, PROMPTS
 from .settings import Settings
-from .extensions import ExtensionLoader
+from ..extensions import ExtensionLoader
 from gi.repository import Gtk, Adw, Gio, GLib
 
 

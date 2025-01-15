@@ -1,15 +1,8 @@
 
 import shutil
-import subprocess
-from threading import Thread
-import gi, os
+import os
 
-from .extra import get_spawn_command
-
-from .constants import AVAILABLE_LLMS, AVAILABLE_PROMPTS, AVAILABLE_STT, AVAILABLE_TTS, PROMPTS
-from .settings import Settings
-from .extensions import ExtensionLoader
-from gi.repository import Gdk, Gtk, Adw, Gio, GLib, GdkPixbuf
+from gi.repository import Gdk, Gtk, Adw, Gio, GLib
 
 class ProfileDialog(Adw.PreferencesDialog):
     def __init__(self, parent, profile_settings):

@@ -1,9 +1,6 @@
-import gi
-
-gi.require_version('Gtk', '4.0')
-gi.require_version('Adw', '1')
-from gi.repository import Gtk, Adw, GLib, Gio
-import os, time
+from gi.repository import GLib, Gio, Adw
+import os 
+import time
 
 
 class ScreenRecorder:

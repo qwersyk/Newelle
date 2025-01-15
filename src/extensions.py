@@ -1,13 +1,15 @@
-import sys, importlib, os, json, shutil
-from typing import Any
-
+import importlib 
+import os 
+import json 
+import shutil
+import sys
 from gi.repository import Gtk
 
-from .handler import Handler
+from .handlers import Handler
 
-from .llm import LLMHandler
-from .stt import STTHandler
-from .tts import TTSHandler
+from .handlers.llm import LLMHandler
+from .handlers.stt import STTHandler
+from .handlers.tts import TTSHandler
 
 
 class NewelleExtension(Handler):
@@ -337,7 +339,8 @@ class ExtensionLoader:
 
     def save_settings(self):
         """Save the extensions settings"""
-        
+        if self.settings is None:
+            return
         self.settings.set_string("extensions-settings", json.dumps(self.extensions_settings))
     
     def check_validity(self, extension : NewelleExtension):

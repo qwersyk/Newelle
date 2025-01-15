@@ -1,5 +1,3 @@
-import gi, os
-import pickle
 from gi.repository import Gtk, Adw
 
 
