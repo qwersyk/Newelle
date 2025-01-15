@@ -81,6 +81,10 @@ llm_sources = [
 tts_sources = [
   'handlers/tts/__init__.py',
   'handlers/tts/tts.py',
+  'handlers/tts/gtts_handler.py',
+  'handlers/tts/espeak_handler.py',
+  'handlers/tts/elevenlabs_handler.py',
+  'handlers/tts/custom_handler.py',
 ]
 
 stt_sources = [  
