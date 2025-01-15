@@ -90,6 +90,14 @@ tts_sources = [
 stt_sources = [  
   'handlers/stt/__init__.py',
   'handlers/stt/stt.py',
+  'handlers/stt/googlesr_handler.py',
+  'handlers/stt/groqsr_handler.py',
+  'handlers/stt/openaisr_handler.py',
+  'handlers/stt/sphinx_handler.py',
+  'handlers/stt/witai_handler.py',
+  'handlers/stt/whisper_handler.py',
+  'handlers/stt/custom_handler.py',
+  'handlers/stt/vosk_handler.py',
 ]
 
 utility_sources = [
@@ -101,6 +109,7 @@ utility_sources = [
   'utility/system.py',
   'utility/util.py',
   'utility/profile_settings.py',
+  'utility/audio_recorder.py',
 ]
 
 install_data(newelle_sources, install_dir: moduledir)
