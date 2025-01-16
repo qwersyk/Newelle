@@ -44,7 +44,7 @@ class Settings(Adw.PreferencesWindow):
         self.extensionloader.load_extensions()
         self.extensionloader.add_handlers(AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT)
         self.extensionloader.add_prompts(PROMPTS, AVAILABLE_PROMPTS)
-
+        self.model_threads = {}
         # Load custom prompts
         self.custom_prompts = json.loads(self.settings.get_string("custom-prompts"))
         self.prompts_settings = json.loads(self.settings.get_string("prompts-settings"))
@@ -267,9 +267,8 @@ class Settings(Adw.PreferencesWindow):
         self.settingsrows[(key, self.convert_constants(constants))] = {}
         if len(handler.get_extra_settings()) > 0 or key == "local":
              row = Adw.ExpanderRow(title=model["title"], subtitle=model["description"])
-             if key != "local":
+             if key != "local" or True:
                  self.add_extra_settings(constants, handler, row)
-                 end = time.time()
              else:
                 self.llmrow = row
                 self.build_local()
@@ -766,7 +765,6 @@ class Settings(Adw.PreferencesWindow):
                     button.set_sensitive(False)
         # Create entries
         self.rows = {}
-        self.model_threads = {}
          
         for model in self.local_models:
             available = self.gpt.model_available(model["filename"])
