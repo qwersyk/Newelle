@@ -14,7 +14,8 @@ class GPT4AllHandler(LLMHandler):
         """This class handles downloading, generating and history managing for Local Models using GPT4All library
         """
         self.settings = settings
-        self.modelspath = modelspath
+        self.path = modelspath
+        self.modelspath = os.path.join(modelspath, "models")
         self.history = {}
         self.model_folder = os.path.join(self.modelspath, "custom_models")
         if not os.path.isdir(self.model_folder):
@@ -55,7 +56,7 @@ class GPT4AllHandler(LLMHandler):
     def add_library_information(self):
         library = []
         models = tuple()
-        for model in self.models_info:
+        for model in self.models_info: 
             available = self.model_available(model["filename"])
             if available:
                 models += ((model["name"], model["filename"]), )
@@ -173,8 +174,9 @@ class GPT4AllHandler(LLMHandler):
             list: list of models 
         """
         file_list = tuple()
+        print(self.model_folder)
         for root, _, files in os.walk(self.model_folder):
-            for file in files: 
+            for file in files:
                 if file.endswith('.gguf'):
                     file_name = file.rstrip('.gguf')
                     relative_path = os.path.relpath(os.path.join(root, file), self.model_folder)
@@ -193,6 +195,7 @@ class GPT4AllHandler(LLMHandler):
 
     def load_model(self, model:str):
         """Loads the local model on another thread"""
+        model = self.get_setting("model")
         t = threading.Thread(target=self.load_model_async, args=(model, ))
         t.start()
         return True
@@ -200,15 +203,14 @@ class GPT4AllHandler(LLMHandler):
     def load_model_async(self, model: str):
         """Loads the local model"""
         if self.model is None:
-            print(model)
             try:
                 from gpt4all import GPT4All
-                if model == "custom":
-                    model = self.get_setting("custom_model")
-                    models = self.get_custom_model_list()
-                    if model not in models:
-                        if len(models) > 0:
-                            model = models[0][1]
+                models = self.get_custom_model_list()
+                print(models)
+                print(model)
+                if any(model == m[1] for m in models):
+                    print("Loading custom model...")
+                    print(model)
                     self.model = GPT4All(model, model_path=self.model_folder)
                 else:
                     self.model = GPT4All(model, model_path=self.modelspath)
@@ -260,7 +262,7 @@ class GPT4AllHandler(LLMHandler):
 
     def generate_text_stream(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = [], on_update: Callable[[str], Any] = lambda _: None, extra_args: list = []) -> str:
         if self.session is None or self.model is None:
-            return "Model not yet loaded..."
+            raise Exception("Model not yet loaded...")
         # Temporary history management
         if len(history) > 0:
             system_prompt.append(self.__convert_history_text(history))

@@ -633,12 +633,10 @@ class MainWindow(Gtk.ApplicationWindow):
         self.prompts_settings = json.loads(self.settings.get_string("prompts-settings"))
 
         if self.language_model in AVAILABLE_LLMS:
-            self.model: LLMHandler = AVAILABLE_LLMS[self.language_model]["class"](self.settings,
-                                                                                  os.path.join(self.directory,
-                                                                                               "models"))
+            self.model: LLMHandler = AVAILABLE_LLMS[self.language_model]["class"](self.settings, os.path.join(self.directory))
         else:
             mod = list(AVAILABLE_LLMS.values())[0]
-            self.model: LLMHandler = mod["class"](self.settings, os.path.join(self.directory, "models"))
+            self.model: LLMHandler = mod["class"](self.settings, os.path.join(self.directory))
 
         # Load handlers and models
         self.model.load_model(self.local_model)

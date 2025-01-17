@@ -319,11 +319,11 @@ class Settings(Adw.PreferencesWindow):
             return self.handlers[(key, self.convert_constants(constants))]
 
         if constants == AVAILABLE_LLMS:
-            model = constants[key]["class"](self.settings, os.path.join(self.directory, "pip"))
+            model = constants[key]["class"](self.settings, os.path.join(self.directory))
         elif constants == AVAILABLE_STT:
-            model = constants[key]["class"](self.settings,os.path.join(self.directory, "models"))
+            model = constants[key]["class"](self.settings,os.path.join(self.directory))
         elif constants == AVAILABLE_TTS:
-            model = constants[key]["class"](self.settings, os.path.join(self.directory, "pip"))
+            model = constants[key]["class"](self.settings, os.path.join(self.directory))
         elif constants == self.extensionloader.extensionsmap:
             model = self.extensionloader.extensionsmap[key]
             if model is None:
