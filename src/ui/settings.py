@@ -6,7 +6,6 @@ import json
 import time 
 import ctypes
 from subprocess import Popen 
-from gpt4all import GPT4All
 
 from gi.repository import Gtk, Adw, Gio, GLib
 
@@ -15,12 +14,11 @@ from ..handlers import Handler
 from ..handlers.stt import STTHandler
 from ..handlers.tts import TTSHandler
 from ..constants import AVAILABLE_LLMS, AVAILABLE_PROMPTS, AVAILABLE_TTS, AVAILABLE_STT, PROMPTS
-from ..handlers.llm import GPT4AllHandler, LLMHandler
+from ..handlers.llm import LLMHandler
 from .widgets import ComboRowHelper, CopyBox 
 from .widgets import MultilineEntry
 from ..utility import override_prompts
-from ..utility.system import can_escape_sandbox, get_spawn_command 
-from ..utility.strings import human_readable_size
+from ..utility.system import can_escape_sandbox, get_spawn_command, open_website, open_folder 
 
 from ..extensions import ExtensionLoader, NewelleExtension
 
@@ -33,9 +31,7 @@ class Settings(Adw.PreferencesWindow):
         self.set_modal(True)
         self.downloading = {}
         self.slider_labels = {}
-        self.local_models = json.loads(self.settings.get_string("available-models"))
         self.directory = GLib.get_user_config_dir()
-        self.gpt = GPT4AllHandler(self.settings, os.path.join(self.directory, "models"))
         self.extension_path = os.path.join(self.directory, "extensions")
         self.pip_directory = os.path.join(self.directory, "pip")
         self.extensions_cache = os.path.join(self.directory, "extensions_cache")
@@ -265,13 +261,9 @@ class Settings(Adw.PreferencesWindow):
             active = True
         # Define the type of row
         self.settingsrows[(key, self.convert_constants(constants))] = {}
-        if len(handler.get_extra_settings()) > 0 or key == "local":
+        if len(handler.get_extra_settings()) > 0:
              row = Adw.ExpanderRow(title=model["title"], subtitle=model["description"])
-             if key != "local" or True:
-                 self.add_extra_settings(constants, handler, row)
-             else:
-                self.llmrow = row
-                self.build_local()
+             self.add_extra_settings(constants, handler, row)
         else:
             row = Adw.ActionRow(title=model["title"], subtitle=model["description"])
         self.settingsrows[(key, self.convert_constants(constants))]["row"] = row
@@ -319,11 +311,11 @@ class Settings(Adw.PreferencesWindow):
             return self.handlers[(key, self.convert_constants(constants))]
 
         if constants == AVAILABLE_LLMS:
-            model = constants[key]["class"](self.settings, os.path.join(self.directory))
+            model = constants[key]["class"](self.settings, os.path.join(self.directory, "models"))
         elif constants == AVAILABLE_STT:
-            model = constants[key]["class"](self.settings,os.path.join(self.directory))
+            model = constants[key]["class"](self.settings,os.path.join(self.directory, "models"))
         elif constants == AVAILABLE_TTS:
-            model = constants[key]["class"](self.settings, os.path.join(self.directory))
+            model = constants[key]["class"](self.settings, os.path.join(self.directory, "models"))
         elif constants == self.extensionloader.extensionsmap:
             model = self.extensionloader.extensionsmap[key]
             if model is None:
@@ -489,7 +481,7 @@ class Settings(Adw.PreferencesWindow):
                 actionbutton = Gtk.Button(css_classes=["flat"],valign=Gtk.Align.CENTER)
                 if setting["is_installed"]:
                     actionbutton.set_icon_name("user-trash-symbolic")
-                    actionbutton.connect("clicked", lambda button : setting["callback"](setting["key"]))
+                    actionbutton.connect("clicked", lambda button,cb=setting["callback"],key=setting["key"] : cb(key))
                     actionbutton.add_css_class("error")
                 else:
                     actionbutton.set_icon_name("folder-download-symbolic")
@@ -581,8 +573,7 @@ class Settings(Adw.PreferencesWindow):
         else:
             self.settings.set_boolean("virtualization", status)
 
-    def open_website(self, button):
-        Popen(get_spawn_command() + ["xdg-open", button.get_name()])
+        
 
     def on_setting_change(self, constants: dict[str, Any], handler: Handler, key: str, force_change : bool = False):
         
@@ -717,6 +708,12 @@ class Settings(Adw.PreferencesWindow):
         GLib.idle_add(self.update_ui_after_install, button, model)
 
     def update_ui_after_install(self, button, model):
+        """Update the UI after a model installation
+
+        Args:
+            button (): button 
+            model (): a handler instance 
+        """
         if model.is_installed():
             self.on_setting_change(self.get_constants_from_object(model), model, "", True)
         button.set_child(None)
@@ -724,101 +721,7 @@ class Settings(Adw.PreferencesWindow):
         checkbutton = self.settingsrows[(model.key, self.convert_constants(self.get_constants_from_object(model)))]["button"]
         checkbutton.set_sensitive(True)
 
-    def refresh_models(self, action):
-        """Refresh local models for LLM
-
-        Args:
-            action (): 
-        """
-        models = GPT4All.list_models()
-        self.settings.set_string("available-models", json.dumps(models))
-        self.local_models = models
-
-    def build_local(self):
-        """Build the settings for local models"""
-        # Reload available models
-        if len(self.local_models) == 0:
-            self.refresh_models(None)
-
-
-        radio = Gtk.CheckButton()
-        
-        # Create refresh button
-        actionbutton = Gtk.Button(css_classes=["flat"], valign=Gtk.Align.CENTER)
-        icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="update-symbolic"))
-        actionbutton.connect("clicked", self.refresh_models)
-        actionbutton.add_css_class("accent")
-        actionbutton.set_child(icon)
-        self.llmrow.add_action(actionbutton)
-        
-        # Add extra settings
-        self.add_extra_settings(AVAILABLE_LLMS,self.gpt,self.llmrow)
-        for row in self.settingsrows["local", self.convert_constants(AVAILABLE_LLMS)]["extra_settings"]:
-            if row.get_name() == "custom_model":
-                button = Gtk.CheckButton()
-                button.set_group(radio)
-                button.set_active(self.settings.get_string("local-model") == "custom")
-                button.set_name("custom")
-                button.connect("toggled", self.choose_local_model)
-                row.add_prefix(button)
-                if len(self.gpt.get_custom_model_list()) == 0:
-                    button.set_sensitive(False)
-        # Create entries
-        self.rows = {}
-         
-        for model in self.local_models:
-            available = self.gpt.model_available(model["filename"])
-            active = False
-            if model["filename"] == self.settings.get_string("local-model"):
-                active = True
-            # Write model description
-            subtitle = _(" RAM Required: ") + str(model["ramrequired"]) + "GB"
-            subtitle += "\n" + _(" Parameters: ") + model["parameters"]
-            subtitle += "\n" + _(" Size: ") + human_readable_size(model["filesize"], 1)
-            subtitle += "\n" + re.sub('<[^<]+?>', '', model["description"]).replace("</ul", "")
-            # Configure buttons and model's row
-            r = Adw.ActionRow(title=model["name"], subtitle=subtitle)
-            button = Gtk.CheckButton()
-            button.set_group(radio)
-            button.set_active(active)
-            button.set_name(model["filename"])
-            button.connect("toggled", self.choose_local_model)
-            # TOFIX: Causes some errors sometimes
-            button.set_sensitive(available)
-            actionbutton = Gtk.Button(css_classes=["flat"],
-                                                valign=Gtk.Align.CENTER)
-            if available:
-                icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="user-trash-symbolic"))
-                actionbutton.connect("clicked", self.remove_local_model)
-                actionbutton.add_css_class("error")
-            else:
-                icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="folder-download-symbolic"))
-                actionbutton.connect("clicked", self.download_local_model)
-                actionbutton.add_css_class("accent")
-            actionbutton.set_child(icon)
-            icon.set_icon_size(Gtk.IconSize.INHERIT)
-
-            actionbutton.set_name(model["filename"])
-
-            self.rows[model["filename"]] = {"radio": button}
-
-            r.add_prefix(button)
-            r.add_suffix(actionbutton)
-            self.llmrow.add_row(r)
-
-    def choose_local_model(self, button):
-        """Called when a local model is chosen
-
-        Args:
-            button (): 
-        """
-        if button.get_active():
-            self.settings.set_string("local-model", button.get_name())
-
-                         
-
-
-    def download_setting(self, button, setting, handler: Handler):
+    def download_setting(self, button: Gtk.Button, setting, handler: Handler, uninstall=False):
         """Download the setting for the given handler
 
         Args:
@@ -827,6 +730,8 @@ class Settings(Adw.PreferencesWindow):
             handler (): handler to download the setting for
         """
 
+        if uninstall:
+            return
         box = Gtk.Box(homogeneous=True, spacing=4)
         box.set_orientation(Gtk.Orientation.VERTICAL)
         icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="folder-download-symbolic"))
@@ -871,102 +776,6 @@ class Settings(Adw.PreferencesWindow):
         button.set_child(icon)
         self.downloading[(setting["key"], handler.key)] = False
 
-
-    def download_local_model(self, button):
-        """Download the local model. Shows the progress while downloading
-
-        Args:
-            button (): button pressed
-        """
-        model = button.get_name()
-        box = Gtk.Box(homogeneous=True, spacing=4)
-        box.set_orientation(Gtk.Orientation.VERTICAL)
-        icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="folder-download-symbolic"))
-        icon.set_icon_size(Gtk.IconSize.INHERIT)
-        progress = Gtk.ProgressBar(hexpand=False)
-        progress.set_size_request(4, 4)
-        box.append(icon)
-        box.append(progress)
-        button.set_child(box)
-        button.disconnect_by_func(self.download_local_model)
-        button.connect("clicked", self.remove_local_model)
-        th = threading.Thread(target=self.download_model_thread, args=(model, button, progress))
-        self.model_threads[model] = [th, 0]
-        th.start()
-
-    def update_download_status(self, model, filesize, progressbar):
-        """Periodically update the progressbar for the download
-
-        Args:
-            model (): model that is being downloaded
-            filesize (): filesize of the download
-            progressbar (): the bar to update
-        """
-        file = os.path.join(self.gpt.modelspath, model) + ".part"
-        while model in self.downloading and self.downloading[model]:
-            try:
-                currentsize = os.path.getsize(file)
-                perc = currentsize/int(filesize)
-                progressbar.set_fraction(perc)
-            except Exception as e:
-                print(e)
-            time.sleep(1)
-
-    def download_model_thread(self, model, button, progressbar):
-        """Create the thread that downloads the local model
-
-        Args:
-            model (): model to download 
-            button (): button to udpate
-            progressbar (): progressbar to udpate
-        """
-        for x in self.local_models:
-            if x["filename"] == model:
-                filesize = x["filesize"]
-                break
-        self.model_threads[model][1] = threading.current_thread().ident
-        self.downloading[model] = True
-        th = threading.Thread(target=self.update_download_status, args=(model, filesize, progressbar))
-        th.start()
-        self.gpt.download_model(model)
-        icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="user-trash-symbolic"))
-        icon.set_icon_size(Gtk.IconSize.INHERIT)
-        button.add_css_class("error")
-        button.set_child(icon)
-        self.downloading[model] = False
-        self.rows[model]["radio"].set_sensitive(True)
-
-    def remove_local_model(self, button):
-        """Remove a local model
-
-        Args:
-            button (): button for the local model
-        """
-        model = button.get_name()
-        # Kill threads if stopping download
-        if model in self.downloading and self.downloading[model]:
-            self.downloading[model] = False
-            if model in self.model_threads:
-                thid = self.model_threads[model][1]
-                # NOTE: This does only work on Linux
-                res = ctypes.pythonapi.PyThreadState_SetAsyncExc(ctypes.c_long(thid), ctypes.py_object(SystemExit))
-                if res > 1:
-                    ctypes.pythonapi.PyThreadState_SetAsyncExc(ctypes.c_long(thid), 0)
-        try:
-            os.remove(os.path.join(self.gpt.modelspath, model))
-            button.add_css_class("accent")
-            if model in self.downloading:
-                self.downloading[model] = False
-            icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="folder-download-symbolic"))
-            button.disconnect_by_func(self.remove_local_model)
-            button.connect("clicked", self.download_local_model)
-            button.add_css_class("accent")
-            button.remove_css_class("error")
-            icon.set_icon_size(Gtk.IconSize.INHERIT)
-            button.set_child(icon)
-        except Exception as e:
-            print(e)
-
     def create_web_button(self, website, folder=False) -> Gtk.Button:
         """Create an icon to open a specified website or folder
 
@@ -981,7 +790,10 @@ class Settings(Adw.PreferencesWindow):
         wbbutton.add_css_class("flat")
         wbbutton.set_valign(Gtk.Align.CENTER)
         wbbutton.set_name(website)
-        wbbutton.connect("clicked", self.open_website)
+        if not folder:
+            wbbutton.connect("clicked", lambda _: open_website(website))
+        else:
+            wbbutton.connect("clicked", lambda _: open_folder(website))
         return wbbutton
 
     def show_flatpak_sandbox_notice(self, el=None):
@@ -1013,12 +825,3 @@ class Settings(Adw.PreferencesWindow):
         # Show the window
         dialog.present()
 
-
-
-class TextItemFactory(Gtk.ListItemFactory):
-    def create_widget(self, item):
-        label = Gtk.Label()
-        return label
-
-    def bind_widget(self, widget, item):
-        widget.set_text(item)

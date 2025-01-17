@@ -1,6 +1,7 @@
 import os
 import re
 import threading
+import ctypes
 from typing import Callable, Any
 
 from .llm import LLMHandler
@@ -15,8 +16,10 @@ class GPT4AllHandler(LLMHandler):
         """
         self.settings = settings
         self.path = modelspath
-        self.modelspath = os.path.join(modelspath, "models")
+        self.modelspath = modelspath
         self.history = {}
+        self.model_threads = {}
+
         self.model_folder = os.path.join(self.modelspath, "custom_models")
         if not os.path.isdir(self.model_folder):
             os.makedirs(self.model_folder)
@@ -60,9 +63,9 @@ class GPT4AllHandler(LLMHandler):
             available = self.model_available(model["filename"])
             if available:
                 models += ((model["name"], model["filename"]), )
-            subtitle = _(" RAM Required: ") + str(model["ramrequired"]) + "GB"
-            subtitle += "\n" + _(" Parameters: ") + model["parameters"]
-            subtitle += "\n" + _(" Size: ") + human_readable_size(model["filesize"], 1)
+            subtitle = _("RAM Required: ") + str(model["ramrequired"]) + "GB"
+            subtitle += "\n" + _("Parameters: ") + model["parameters"]
+            subtitle += "\n" + _("Size: ") + human_readable_size(model["filesize"], 1)
             subtitle += "\n" + re.sub('<[^<]+?>', '', model["description"]).replace("</ul", "")
             # Configure buttons and model's row 
             library.append({
@@ -106,9 +109,23 @@ class GPT4AllHandler(LLMHandler):
         if self.model_available(model):
             self.remove_local_model(model)
             return
-        self.downloading[model] = True
-        self.download_model(model)
+        if model in self.downloading and self.downloading[model]:
+            self.downloading[model] = False 
 
+            if model in self.model_threads:
+                thid = self.model_threads[model][1]
+                # NOTE: This does only work on Linux
+                res = ctypes.pythonapi.PyThreadState_SetAsyncExc(ctypes.c_long(thid), ctypes.py_object(SystemExit))
+                if res > 1:
+                    ctypes.pythonapi.PyThreadState_SetAsyncExc(ctypes.c_long(thid), 0)
+            self.settings_update()
+        else:
+            self.downloading[model] = True
+            t = threading.Thread(target=self.download_model, args=(model,))
+            self.model_threads[model] = [t, 0]
+            t.start()
+            t.join()
+    
     def get_percentage(self, model: str):
         filesize = None
         for x in self.models_info:
@@ -128,11 +145,12 @@ class GPT4AllHandler(LLMHandler):
             button (): button for the local model
         """
         try:
+            if model == self.get_setting("model"):
+                self.set_setting("model", "")
             os.remove(os.path.join(self.modelspath, model))
             if model in self.downloading:
                 self.downloading[model] = False
             self.get_models_infomation()
-            self.settings_update()
         except Exception as e:
             print(e)
 
@@ -174,7 +192,6 @@ class GPT4AllHandler(LLMHandler):
             list: list of models 
         """
         file_list = tuple()
-        print(self.model_folder)
         for root, _, files in os.walk(self.model_folder):
             for file in files:
                 if file.endswith('.gguf'):
@@ -206,8 +223,6 @@ class GPT4AllHandler(LLMHandler):
             try:
                 from gpt4all import GPT4All
                 models = self.get_custom_model_list()
-                print(models)
-                print(model)
                 if any(model == m[1] for m in models):
                     print("Loading custom model...")
                     print(model)
@@ -223,6 +238,7 @@ class GPT4AllHandler(LLMHandler):
 
     def download_model(self, model:str) -> bool:
         """Downloads GPT4All model"""
+        self.model_threads[model][1] = threading.current_thread().ident
         try:
             from gpt4all import GPT4All
             GPT4All.retrieve_model(model, model_path=self.modelspath, allow_download=True, verbose=False)
