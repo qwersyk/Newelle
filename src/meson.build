@@ -43,6 +43,7 @@ ui_sources = [
   'ui/thread_editing.py',
   'ui/screenrecorder.py',
   'ui/shortcuts.py',
+  'ui/mini_window.py'
 ]
 
 widgets_sources = [

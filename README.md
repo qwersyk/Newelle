@@ -66,6 +66,26 @@ application.
   <img src="https://raw.githubusercontent.com/qwersyk/Newelle/master/screenshots/2w.png" alt="screenshot">
 </picture>
 
+## Mini Window Mode
+
+A lightweight version of Newelle that can be triggered via keyboard shortcuts.
+
+### Configuration
+
+#### 1. Set Global Keyboard Shortcut
+To configure the mini window launch (example using Ctrl+Space), set the following command in your system keyboard settings:
+
+```bash
+/bin/bash -c 'flatpak run --command=gsettings io.github.qwersyk.Newelle set io.github.qwersyk.Newelle startup-mode "mini" && flatpak run io.github.qwersyk.Newelle'
+```
+
+#### 2. Enable Window Centering
+For GNOME desktop environment users, you may need to enable automatic window centering:
+
+```bash
+gsettings set org.gnome.mutter center-new-windows true
+```
+
 # Installation
 
 <a href="https://github.com/qwersyk/Newelle/archive/refs/heads/master.zip">

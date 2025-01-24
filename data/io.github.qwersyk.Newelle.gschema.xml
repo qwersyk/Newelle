@@ -88,5 +88,8 @@
         <key name="current-profile" type="s">
           <default>"Assistant"</default>
         </key>
+	      <key name="startup-mode" type="s">
+          <default>"normal"</default>
+        </key>
 	</schema>
 </schemalist>
