@@ -171,6 +171,8 @@ class MyApp(Adw.Application):
         extension.present()
     
     def close_window(self, *a):
+        if hasattr(self,"mini_win"):
+            self.mini_win.close()
         if all(element.poll() is not None for element in self.win.streams):
             return False
         else:
@@ -196,17 +198,17 @@ class MyApp(Adw.Application):
             self.win.destroy()
     
     def on_activate(self, app):
-        self.win = MainWindow(application=app)
+        if not hasattr(self,"win"):
+            self.win = MainWindow(application=app)
+            self.win.connect("close-request", self.close_window)
 
         if self.settings.get_string("startup-mode") == "mini":
             if hasattr(self,"mini_win"):
                 self.mini_win.close()
             self.mini_win = MiniWindow(application=self, main_window=self.win)
-            self.mini_win.connect("close-request", self.close_window)
             self.mini_win.present()
             self.settings.set_string("startup-mode", "normal")
         else:
-            self.win.connect("close-request", self.close_window)
             self.win.present()
 
     def focus_message(self, *a):

@@ -13,20 +13,59 @@ class MiniWindow(Gtk.Window):
         self.main_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.set_child(self.main_box)
 
+        self.placeholder = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        self.placeholder.set_valign(Gtk.Align.CENTER)
+        self.placeholder.set_halign(Gtk.Align.CENTER)
+        self.placeholder.set_vexpand(True)
+        placeholder_label = Gtk.Label(label=_("Chat is opened in mini window"))
+        placeholder_label.add_css_class("dim-label")
+        self.placeholder.append(placeholder_label)
+
+        self.chat_panel = None
         if hasattr(main_window, 'secondary_message_chat_block'):
-            chat_panel = main_window.secondary_message_chat_block
-            if chat_panel.get_parent():
-                chat_panel.unparent()
-            self.main_box.append(chat_panel)
+            self.chat_panel = main_window.secondary_message_chat_block
+            if self.chat_panel.get_parent():
+                self.original_parent = self.chat_panel.get_parent()
+                self.chat_panel.unparent()
+
+                for child in self.original_parent:
+                    if isinstance(child, Gtk.Box) and child != self.chat_panel:
+                        child.unparent()
+
+                self.original_parent.append(self.placeholder)
+
+            self.main_box.append(self.chat_panel)
 
         self.target_height = 100
         self.current_height = 100
         self.is_animating = False
+
+        key_controller = Gtk.EventControllerKey()
+        key_controller.connect('key-pressed', self._on_key_pressed)
+        self.add_controller(key_controller)
         self.connect('close-request', self._on_close_request)
         GLib.timeout_add(100, self._check_size)
 
+    def _on_key_pressed(self, controller, keyval, keycode, state):
+        if keyval == Gdk.KEY_Escape:
+            self.close()
+            return True
+        return False
+
     def _on_close_request(self, *args):
-        self.__class__._instance = None
+        if self.chat_panel:
+            if self.chat_panel.get_parent():
+                self.chat_panel.unparent()
+
+            if self.placeholder.get_parent():
+                self.placeholder.unparent()
+
+            if hasattr(self, 'original_parent'):
+                self.original_parent.append(self.chat_panel)
+
+            self.chat_panel = None
+            self.original_parent = None
+
         return False
 
     def _check_size(self):
