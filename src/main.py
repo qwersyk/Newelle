@@ -82,7 +82,6 @@ class MyApp(Adw.Application):
             min-height: 400px;
         }
         .mini-window {
-            background: @card_bg_color;
             border-radius: 12px;
             border: 1px solid alpha(@card_fg_color, 0.15);
             box-shadow: 0 2px 4px alpha(black, 0.1);
