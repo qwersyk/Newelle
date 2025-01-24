@@ -929,7 +929,12 @@ class MainWindow(Gtk.ApplicationWindow):
 
     def new_chat(self, button, *a):
         self.chats.append({"name": _("Chat ") + str(len(self.chats) + 1), "chat": []})
+        self.chat_id = len(self.chats) - 1
+        self.chat = self.chats[self.chat_id]["chat"]
         self.update_history()
+        self.show_chat()
+        self.stream_number_variable += 1
+        GLib.idle_add(self.update_button_text)
 
     def copy_chat(self, button, *a):
         self.chats.append(
