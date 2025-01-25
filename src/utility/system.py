@@ -47,3 +47,11 @@ def open_website(website):
     """
     subprocess.Popen(get_spawn_command() + ["xdg-open", website])
 
+def open_folder(folder):
+    """Opens a website using xdg-open
+
+    Args:
+        folder (): location of the folder 
+    """
+    subprocess.Popen(get_spawn_command() + ["xdg-open", folder])
+

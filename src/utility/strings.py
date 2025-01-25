@@ -11,7 +11,6 @@ def quote_string(s):
     else:
         return "'" + s + "'"
 
-
 def markwon_to_pango(markdown_text):
     markdown_text = html.escape(markdown_text)
     initial_string = markdown_text

@@ -206,7 +206,7 @@ class GeminiHandler(LLMHandler):
         if instructions == "":
             instructions=None
         model = genai.GenerativeModel(self.get_setting("model"), system_instruction=instructions, safety_settings=safety)
-        converted_history = self.__convert_history(history) 
+        converted_history = self.__convert_history(history)
         try: 
             img, txt = self.get_gemini_image(prompt)
             if img is not None:
