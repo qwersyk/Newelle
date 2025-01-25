@@ -3,7 +3,7 @@ import json
 import requests 
 from subprocess import Popen 
 from typing import Any, Callable
-
+import time
 
 from .llm import LLMHandler
 from ...utility.system import can_escape_sandbox, get_spawn_command
@@ -117,6 +117,7 @@ class OllamaHandler(LLMHandler):
                 client.ps()
             except Exception as e:
                 Popen(get_spawn_command() + ["ollama", "serve"])
+                time.sleep(1)
 
     def model_in_library(self, model) -> bool:
         for m in self.model_library:
@@ -295,6 +296,7 @@ class OllamaHandler(LLMHandler):
         
         if self.model_installed(model):
             client.delete(model)
+            self.get_models()
             return
         try:
             stream = client.pull(model, stream=True)
