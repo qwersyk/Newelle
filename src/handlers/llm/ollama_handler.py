@@ -132,6 +132,7 @@ class OllamaHandler(LLMHandler):
         return True
 
     def get_extra_settings(self) -> list:
+        default = self.models[0][1] if len(self.models) > 0 else ""
         settings = [ 
             {
                 "key": "endpoint",
@@ -163,7 +164,7 @@ class OllamaHandler(LLMHandler):
                 "description": _("Name of the Ollama Model"),
                 "type": "combo",
                 "values": self.models,
-                "default": self.models[0][1],
+                "default": default,
                 "refresh": lambda x: self.get_models(),
             })
         else:
