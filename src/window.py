@@ -1605,8 +1605,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.update_button_text()
 
         # Append extensions prompts
-        prompts = [replace_variables(value["prompt"]) for value in self.extensions.values() if value["status"]]
-
+        prompts = []
         for prompt in self.bot_prompts:
             prompts.append(replace_variables(prompt))
         if not self.model.is_installed():
