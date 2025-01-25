@@ -11,14 +11,14 @@ from .window import MainWindow
 from .ui.shortcuts import Shortcuts
 from .ui.thread_editing import ThreadEditing
 from .ui.extension import Extension
-
-
+from .ui.mini_window import MiniWindow
 
 
 class MyApp(Adw.Application):
     def __init__(self, version, **kwargs):
         self.version = version
         super().__init__(**kwargs)
+        self.settings = Gio.Settings.new("io.github.qwersyk.Newelle")
         css = '''
         .code{
         background-color: rgb(38,38,38);
@@ -80,6 +80,12 @@ class MyApp(Adw.Application):
         }
         .video {
             min-height: 400px;
+        }
+        .mini-window {
+            border-radius: 12px;
+            border: 1px solid alpha(@card_fg_color, 0.15);
+            box-shadow: 0 2px 4px alpha(black, 0.1);
+            margin: 4px;
         }
         '''
         css_provider = Gtk.CssProvider()
@@ -164,6 +170,8 @@ class MyApp(Adw.Application):
         extension.present()
     
     def close_window(self, *a):
+        if hasattr(self,"mini_win"):
+            self.mini_win.close()
         if all(element.poll() is not None for element in self.win.streams):
             return False
         else:
@@ -189,9 +197,18 @@ class MyApp(Adw.Application):
             self.win.destroy()
     
     def on_activate(self, app):
-        self.win = MainWindow(application=app)
-        self.win.connect("close-request", self.close_window)
-        self.win.present()
+        if not hasattr(self,"win"):
+            self.win = MainWindow(application=app)
+            self.win.connect("close-request", self.close_window)
+
+        if self.settings.get_string("startup-mode") == "mini":
+            if hasattr(self,"mini_win"):
+                self.mini_win.close()
+            self.mini_win = MiniWindow(application=self, main_window=self.win)
+            self.mini_win.present()
+            self.settings.set_string("startup-mode", "normal")
+        else:
+            self.win.present()
 
     def focus_message(self, *a):
         self.win.focus_input()

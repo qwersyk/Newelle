@@ -301,9 +301,9 @@ class MainWindow(Gtk.ApplicationWindow):
         self.refresh_profiles_box()
 
         # Input message box
-        input_box = Gtk.Box(halign=Gtk.Align.FILL, margin_start=6, margin_end=6, margin_top=6, margin_bottom=6,
+        self.input_box = Gtk.Box(halign=Gtk.Align.FILL, margin_start=6, margin_end=6, margin_top=6, margin_bottom=6,
                             spacing=6)
-        input_box.set_valign(Gtk.Align.CENTER)
+        self.input_box.set_valign(Gtk.Align.CENTER)
         # Attach icon
         button = Gtk.Button(css_classes=["flat", "circular"], icon_name="attach-symbolic")
         button.connect("clicked", self.attach_file)
@@ -312,8 +312,8 @@ class MainWindow(Gtk.ApplicationWindow):
         self.attached_image.set_size_request(36, 36)
         self.attached_image_data = None
         self.attach_button = button
-        input_box.append(button)
-        input_box.append(self.attached_image)
+        self.input_box.append(button)
+        self.input_box.append(self.attached_image)
         if not self.model.supports_vision() and not self.model.supports_video_vision() and len(self.model.get_supported_files()) == 0:
             self.attach_button.set_visible(False)
         else:
@@ -326,7 +326,7 @@ class MainWindow(Gtk.ApplicationWindow):
             halign=Gtk.Align.CENTER
         )
         self.screen_record_button.connect("clicked", self.start_screen_recording)
-        input_box.append(self.screen_record_button)
+        self.input_box.append(self.screen_record_button)
 
         # if "mp4" in self.model.get_supported_files():
         if not self.model.supports_video_vision():
@@ -336,13 +336,13 @@ class MainWindow(Gtk.ApplicationWindow):
         # Text Entry
         self.input_panel = MultilineEntry()
         self.input_panel.set_on_image_pasted(self.image_pasted)
-        input_box.append(self.input_panel)
+        self.input_box.append(self.input_panel)
         self.input_panel.set_placeholder(_("Send a message..."))
 
         # Buttons on the right
         self.secondary_message_chat_block.append(Gtk.Separator())
-        self.secondary_message_chat_block.append(input_box)
-        
+        self.secondary_message_chat_block.append(self.input_box)
+
         # Mic button
         self.mic_button = Gtk.Button(css_classes=["suggested-action"], icon_name="audio-input-microphone-symbolic",
                                      width_request=36, height_request=36)
@@ -350,7 +350,8 @@ class MainWindow(Gtk.ApplicationWindow):
         self.mic_button.set_valign(Gtk.Align.CENTER)
         self.mic_button.connect("clicked", self.start_recording)
         self.recording_button = self.mic_button
-        input_box.append(self.mic_button)
+        self.input_box.append(self.mic_button)
+
         
         # Send button
         box = Gtk.Box()
@@ -360,7 +361,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.send_button.set_vexpand(False)
         self.send_button.set_valign(Gtk.Align.CENTER)
         box.append(self.send_button)
-        input_box.append(box)
+        self.input_box.append(box)
         self.input_panel.set_on_enter(self.on_entry_activate)
         self.send_button.connect('clicked', self.on_entry_button_clicked)
         self.main.connect("notify::folded", self.handle_main_block_change)
@@ -1003,7 +1004,15 @@ class MainWindow(Gtk.ApplicationWindow):
 
     def new_chat(self, button, *a):
         self.chats.append({"name": _("Chat ") + str(len(self.chats) + 1), "chat": []})
+        if not self.status:
+            self.stop_chat()
+        self.stream_number_variable += 1
+        self.chat_id = len(self.chats) - 1
+        self.chat = self.chats[self.chat_id]["chat"]
         self.update_history()
+        self.show_chat()
+        GLib.idle_add(self.update_button_text)
+
 
     def copy_chat(self, button, *a):
         self.chats.append(
