@@ -153,8 +153,9 @@ class LLMHandler(Handler):
             str: name of the chat
         """
         try:
-             self.generate_text(request_prompt, self.history)
-        except Exception as _:
+             t = self.generate_text(request_prompt, self.history)
+             return t
+        except Exception as e:          
             return None 
 
 
