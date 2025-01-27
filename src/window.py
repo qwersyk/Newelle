@@ -126,7 +126,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.chat_panel.append(Gtk.Separator())
 
         # Setup main program block
-        self.main = Adw.Leaflet(fold_threshold_policy=True, can_navigate_back=True, can_navigate_forward=True)
+        self.main = Adw.Leaflet(fold_threshold_policy=Adw.FoldThresholdPolicy.NATURAL, can_navigate_back=True, can_navigate_forward=True)
         self.chats_main_box = Gtk.Box(hexpand_set=True)
         self.chats_main_box.set_size_request(300, -1)
         self.chats_secondary_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, hexpand=True)
@@ -547,7 +547,9 @@ class MainWindow(Gtk.ApplicationWindow):
         # Separator
         separator = Gtk.Separator(sensitive=False, can_focus=False, can_target=False, focus_on_click=False)
         profiles.append(separator)
-        separator.get_parent().set_sensitive(False)
+        parent = separator.get_parent()
+        if parent is not None:
+            parent.set_sensitive(False)
         # Add profile row
         profiles.append(ProfileRow(_("Create new profile"), None, False, add=True, allow_delete=False))
         
@@ -670,17 +672,20 @@ class MainWindow(Gtk.ApplicationWindow):
         image_filter = Gtk.FileFilter(name="Images", patterns=["*.png", "*.jpg", "*.jpeg", "*.webp"])
         video_filter = Gtk.FileFilter(name="Video", patterns=["*.mp4"])
         file_filter = Gtk.FileFilter(name="Supported Files", patterns=self.model.get_supported_files())
-
-        if self.model.supports_vision():
-            filters.append(image_filter)
+        default_filter = None
         if self.model.supports_video_vision():    
             filters.append(video_filter)
+            default_filter = video_filter
         if len(self.model.get_supported_files()) > 0:
             filters.append(file_filter)
+            default_filter = file_filter
+        if self.model.supports_vision():
+            filters.append(image_filter)
+            default_filter = image_filter
 
         dialog = Gtk.FileDialog(title=_("Attach file"),
                                 modal=True,
-                                default_filter=filters.get_item(0),
+                                default_filter=default_filter,
                                 filters=filters)
         dialog.open(self, None, self.process_file)
 
@@ -1120,7 +1125,7 @@ class MainWindow(Gtk.ApplicationWindow):
                 # name = name[0:27] + "…"
                 button.set_tooltip_text(name)
             button.set_child(
-                Gtk.Label(label=name, wrap=False, wrap_mode=Pango.WrapMode.WORD_CHAR, xalign=0, ellipsize=3,
+                Gtk.Label(label=name, wrap=False, wrap_mode=Pango.WrapMode.WORD_CHAR, xalign=0, ellipsize=Pango.EllipsizeMode.END,
                           width_chars=22))
             button.set_name(str(i))
 
@@ -1380,8 +1385,10 @@ class MainWindow(Gtk.ApplicationWindow):
                 message_label = self.model.send_message_stream(self, self.chat[-1]["Message"], self.update_message,
                                                                [stream_number_variable])
                 try:
-                    self.streaming_box.get_parent().set_visible(False)
-                except:
+                    parent = self.streaming_box.get_parent()
+                    if parent is not None: 
+                        parent.set_visible(False)
+                except Exception as _:
                     pass
             else:
                 message_label = self.send_message_to_bot(self.chat[-1]["Message"])
@@ -1438,7 +1445,8 @@ class MainWindow(Gtk.ApplicationWindow):
         # Remove background from the text buffer
         text_buffer = self.streaming_label.get_buffer()
         tag = text_buffer.create_tag("no-background", background_set=False, paragraph_background_set=False)
-        text_buffer.apply_tag(tag, text_buffer.get_start_iter(), text_buffer.get_end_iter())
+        if tag is not None:
+            text_buffer.apply_tag(tag, text_buffer.get_start_iter(), text_buffer.get_end_iter())
         # Create the message label
         self.streaming_box = self.add_message("Assistant", scrolled_window)
         self.streaming_box.set_overflow(Gtk.Overflow.VISIBLE)
@@ -1485,7 +1493,7 @@ class MainWindow(Gtk.ApplicationWindow):
 
                 self.chat_scroll_window.append(self.chat_list_block)
             except Exception as e:
-                self.notification_block.add_toast(Adw.Toast(title=e))
+                self.notification_block.add_toast(Adw.Toast(title=str(e)))
 
             self.chat_scroll_window.remove(self.chat_controls_entry_block)
             self.chat_scroll_window.remove(self.offers_entry_block)
@@ -1601,7 +1609,7 @@ class MainWindow(Gtk.ApplicationWindow):
                                         else:
                                             self.add_message("Done", text_expander)
                                         if not restore:
-                                            self.chat.append({"User": "Console", "Message": " " + code[1]})
+                                            self.chat.append({"User": "Console", "Message": " " + str(code[1])})
 
                                     t = threading.Thread(target=getresponse)
                                     t.start()
@@ -1671,10 +1679,10 @@ class MainWindow(Gtk.ApplicationWindow):
                                 else:
                                     self.add_message("Done", text_expander)
                                 if not restore:
-                                    self.chat.append({"User": "Console", "Message": " " + code[1]})
+                                    self.chat.append({"User": "Console", "Message": " " + str(code[1])})
                             else:
                                 if not restore:
-                                    self.chat.append({"User": "Console", "Message": f"None"})
+                                    self.chat.append({"User": "Console", "Message": "None"})
                                 box.append(CopyBox("\n".join(table_string[start_code_index:i]), code_language, self,
                                                    id_message))
                             result = {}
@@ -1684,6 +1692,7 @@ class MainWindow(Gtk.ApplicationWindow):
                         elif code_language == "chart" and not is_user:
                             result = {}
                             lines = table_string[start_code_index:i]
+                            percentages = ""
                             for line in lines:
                                 parts = line.split('-')
                                 if len(parts) == 2:
@@ -1864,7 +1873,7 @@ class MainWindow(Gtk.ApplicationWindow):
             id (): id of the message
 
         Returns:
-            Gtk.Box, Gtk.Stack 
+            Gtk.Stack 
         """
         edit_box = Gtk.Box()
         apply_box = Gtk.Box()
@@ -1893,7 +1902,7 @@ class MainWindow(Gtk.ApplicationWindow):
         apply_edit_stack.add_named(apply_box, "apply")
         apply_edit_stack.add_named(edit_box, "edit")
         apply_edit_stack.set_visible_child_name("edit")
-        return edit_box, apply_edit_stack
+        return apply_edit_stack
 
     def add_message(self, user, message=None, id_message=0, editable=False):
         """Add a message to the chat and return the box
@@ -1909,19 +1918,20 @@ class MainWindow(Gtk.ApplicationWindow):
         """
         box = Gtk.Box(css_classes=["card"], margin_top=10, margin_start=10, margin_bottom=10, margin_end=10,
                       halign=Gtk.Align.START)
-        if editable:
-            edit_box, apply_edit_stack = self.build_edit_box(box, str(id_message))
-            evk = Gtk.GestureClick.new()
-            evk.connect("pressed", self.edit_message, box, apply_edit_stack)
-            evk.set_name(str(id_message))
-            evk.set_button(3)
-            box.add_controller(evk)
-            ev = Gtk.EventControllerMotion.new()
+        
+        # Create edit controls
+        apply_edit_stack = self.build_edit_box(box, str(id_message))
+        evk = Gtk.GestureClick.new()
+        evk.connect("pressed", self.edit_message, box, apply_edit_stack)
+        evk.set_name(str(id_message))
+        evk.set_button(3)
+        box.add_controller(evk)
+        ev = Gtk.EventControllerMotion.new()
 
-            stack = Gtk.Stack()
-            ev.connect("enter", lambda x, y, data: stack.set_visible_child_name("edit"))
-            ev.connect("leave", lambda data: stack.set_visible_child_name("label"))
-            box.add_controller(ev)
+        stack = Gtk.Stack()
+        ev.connect("enter", lambda x, y, data: stack.set_visible_child_name("edit"))
+        ev.connect("leave", lambda data: stack.set_visible_child_name("label"))
+        box.add_controller(ev)
 
         if user == "User":
             label = Gtk.Label(label=user + ": ", margin_top=10, margin_start=10, margin_bottom=10, margin_end=0,
@@ -1997,7 +2007,7 @@ class MainWindow(Gtk.ApplicationWindow):
             box.append(box_warning)
             box.set_halign(Gtk.Align.CENTER)
             box.set_css_classes(["card"])
-        else:
+        elif message is not None:
             box.append(message)
         self.chat_list_block.append(box)
         return box

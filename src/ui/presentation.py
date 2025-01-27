@@ -7,7 +7,7 @@ import subprocess
 
 
 class PresentationWindow(Adw.Window):
-    def __init__(self, title, settings, path, parent : Adw.ApplicationWindow):
+    def __init__(self, title, settings, path, parent):
         super().__init__(title=title, deletable=True, modal=True)
         self.app = parent.get_application()
         self.settings = settings
