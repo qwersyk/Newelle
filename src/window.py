@@ -8,7 +8,6 @@ import threading
 import posixpath
 import json
 import base64
-import uuid
 
 from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject, GLib, GdkPixbuf
 
@@ -23,7 +22,7 @@ from .constants import AVAILABLE_LLMS, AVAILABLE_PROMPTS, PROMPTS, AVAILABLE_TTS
 from .utility import override_prompts
 from .utility.system import get_spawn_command 
 from .utility.pip import install_module
-from .utility.strings import markwon_to_pango, remove_markdown
+from .utility.strings import convert_think_codeblocks, markwon_to_pango, remove_markdown
 from .utility.replacehelper import replace_variables
 from .utility.profile_settings import get_settings_dict, restore_settings_from_dict
 from .utility.audio_recorder import AudioRecorder
@@ -31,8 +30,6 @@ from .ui.screenrecorder import ScreenRecorder
 
 from .extensions import ExtensionLoader
 
-def _(s):
-    return s
 
 class MainWindow(Gtk.ApplicationWindow):
     def __init__(self, *args, **kwargs):
@@ -1401,6 +1398,7 @@ class MainWindow(Gtk.ApplicationWindow):
             else:
                 message_label = self.send_message_to_bot(self.chat[-1]["Message"])
         except Exception as e:
+            # Convert thinking block 
             # Show error messsage
             GLib.idle_add(self.show_message, str(e), False,-1, False, False, True)
             GLib.idle_add(self.remove_send_button_spinner)
@@ -1410,6 +1408,7 @@ class MainWindow(Gtk.ApplicationWindow):
             GLib.timeout_add(250, remove_streaming_box)
             return
         
+        message_label = convert_think_codeblocks(message_label)
         if self.stream_number_variable == stream_number_variable:
             GLib.idle_add(self.show_message, message_label)
         GLib.idle_add(self.remove_send_button_spinner)
@@ -1552,7 +1551,7 @@ class MainWindow(Gtk.ApplicationWindow):
             message_label = markwon_to_pango(message_label)
             self.last_error_box = self.add_message("Error", Gtk.Label(label=message_label, use_markup= True, wrap=True, margin_top=10, margin_end=10, margin_bottom=10, margin_start=10))
         else:
-            if not restore and not is_user: 
+            if not restore and not is_user:
                 self.chat.append({"User": "Assistant", "Message": message_label})
             table_string = message_label.split("\n")
             box = Gtk.Box(margin_top=10, margin_start=10, margin_bottom=10, margin_end=10,
@@ -1626,6 +1625,13 @@ class MainWindow(Gtk.ApplicationWindow):
                                 print("Extension error " + extension.id + ": " + str(e))
                                 box.append(
                                     CopyBox("\n".join(table_string[start_code_index:i]), code_language, parent=self))
+                        elif code_language == "think":
+                            box.append(
+                                Gtk.Expander(label="think", child=Gtk.Label(label="\n".join(table_string[start_code_index:i]), wrap=True),css_classes=["toolbar", "osd"], margin_top=10,
+                                        margin_start=10,
+                                        margin_bottom=10, margin_end=10
+)
+                            )
                         elif code_language == "image":
                             for i in table_string[start_code_index:i]:
                                 if i.startswith('data:image/jpeg;base64,'):
