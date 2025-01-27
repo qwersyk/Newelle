@@ -1125,8 +1125,8 @@ class MainWindow(Gtk.ApplicationWindow):
                 # name = name[0:27] + "…"
                 button.set_tooltip_text(name)
             button.set_child(
-                Gtk.Label(label=name, wrap=False, wrap_mode=Pango.WrapMode.WORD_CHAR, xalign=0, ellipsize=Pango.EllipsizeMode.END,
-                          width_chars=22))
+                Gtk.Label(label=name, wrap=False, wrap_mode=Pango.WrapMode.WORD_CHAR, xalign=0, ellipsize=Pango.EllipsizeMode.MIDDLE,
+                          width_chars=22,single_line_mode=True))
             button.set_name(str(i))
 
             if i == self.chat_id:
