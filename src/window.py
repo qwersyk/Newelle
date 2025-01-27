@@ -250,15 +250,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.explorer_panel_header.pack_end(box)
         self.status = True
         self.chat_controls_entry_block.append(self.chat_stop_button)
-        for text in range(self.offers):
-            button = Gtk.Button(css_classes=["flat"], margin_start=6, margin_end=6)
-            label = Gtk.Label(label=str(text), wrap=True, wrap_mode=Pango.WrapMode.CHAR)
-            button.set_child(label)
-            button.connect("clicked", self.send_bot_response)
-            button.set_visible(False)
-            self.offers_entry_block.append(button)
-            self.message_suggestion_buttons_array.append(button)
-
+        self.build_offers()
         # Clear chat button
         self.button_clear = Gtk.Button(css_classes=["flat"])
         icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="edit-clear-all-symbolic"))
@@ -374,6 +366,16 @@ class MainWindow(Gtk.ApplicationWindow):
         if not self.settings.get_boolean("welcome-screen-shown"):
             GLib.idle_add(self.show_presentation_window)
 
+    def build_offers(self):
+        """Build offers buttons, called by update_settings to update the number of buttons"""
+        for text in range(self.offers):
+            button = Gtk.Button(css_classes=["flat"], margin_start=6, margin_end=6)
+            label = Gtk.Label(label=str(text), wrap=True, wrap_mode=Pango.WrapMode.CHAR)
+            button.set_child(label)
+            button.connect("clicked", self.send_bot_response)
+            button.set_visible(False)
+            self.offers_entry_block.append(button)
+            self.message_suggestion_buttons_array.append(button)
 
     def update_settings(self):
         """Update settings, run every time the program is started or settings dialog closed"""
@@ -453,6 +455,7 @@ class MainWindow(Gtk.ApplicationWindow):
         
         # Setup attach buttons to the model capabilities
         if not self.first_load:
+            self.build_offers()
             if not self.model.supports_vision() and not self.model.supports_video_vision() and len(self.model.get_supported_files()) == 0:
                 if self.attached_image_data is not None:
                     self.delete_attachment(self.attach_button)
@@ -1125,7 +1128,7 @@ class MainWindow(Gtk.ApplicationWindow):
                 # name = name[0:27] + "…"
                 button.set_tooltip_text(name)
             button.set_child(
-                Gtk.Label(label=name, wrap=False, wrap_mode=Pango.WrapMode.WORD_CHAR, xalign=0, ellipsize=Pango.EllipsizeMode.MIDDLE,
+                Gtk.Label(label=name, wrap=False, wrap_mode=Pango.WrapMode.WORD_CHAR, xalign=0, ellipsize=Pango.EllipsizeMode.END,
                           width_chars=22,single_line_mode=True))
             button.set_name(str(i))
 
