@@ -2,8 +2,8 @@ import pyaudio
 import wave
 import struct
 from typing import Callable
-
-
+import os
+import math
 
 class AudioRecorder:
     """Record audio with optional auto-stop on silence detection."""
@@ -19,29 +19,33 @@ class AudioRecorder:
         self.sample_rate = 44100
         self.chunk_size = 1024
         self.silent_chunks = 0
-        self.max_rms = 32767  # Maximum possible RMS for 16-bit audio
+        self.max_rms = 1000  # Max reasonable value for rms 
 
     def start_recording(self, output_file):
+        if os.path.exists(output_file):
+            os.remove(output_file)
         self.recording = True
         self.frames = []
         self.silent_chunks = 0
         p = pyaudio.PyAudio()
         stream = p.open(format=self.sample_format,
-                        channels=self.channels,
-                        rate=self.sample_rate,
-                        frames_per_buffer=self.chunk_size,
-                        input=True)
+                       channels=self.channels,
+                       rate=self.sample_rate,
+                       frames_per_buffer=self.chunk_size,
+                       input=True)
         silence_threshold = self.max_rms * self.silence_threshold_percent
+        required_chunks = math.ceil(self.silence_duration * (self.sample_rate / self.chunk_size))
         while self.recording:
             data = stream.read(self.chunk_size)
             self.frames.append(data)
             if self.auto_stop:
                 rms = self._calculate_rms(data)
+                print(rms)
                 if rms < silence_threshold:
                     self.silent_chunks += 1
                 else:
                     self.silent_chunks = 0
-                if self.silent_chunks >= self.silence_duration * (self.sample_rate / self.chunk_size):
+                if self.silent_chunks >= required_chunks:
                     self.recording = False
         stream.stop_stream()
         stream.close()
@@ -72,4 +76,3 @@ class AudioRecorder:
         sum_squares = sum(sample * sample for sample in shorts_demeaned)
         rms = (sum_squares / count) ** 0.5
         return rms
-
