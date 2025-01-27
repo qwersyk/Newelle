@@ -8,6 +8,7 @@ import threading
 import posixpath
 import json
 import base64
+import uuid
 
 from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject, GLib, GdkPixbuf
 
@@ -601,6 +602,9 @@ class MainWindow(Gtk.ApplicationWindow):
     # Voice Recording
     def start_recording(self, button):
         """Start recording voice for Speech to Text"""
+        path = os.path.join(self.directory, "recording.wav")
+        if os.path.exists(path):
+            os.remove(path)
         if self.automatic_stt:
             self.automatic_stt_status = True
         # button.set_child(Gtk.Spinner(spinning=True))
@@ -613,7 +617,7 @@ class MainWindow(Gtk.ApplicationWindow):
                                       silence_duration=self.stt_silence_detection_duration,
                                       silence_threshold_percent=self.stt_silence_detection_threshold)
         t = threading.Thread(target=self.recorder.start_recording,
-                             args=(os.path.join(self.directory, "recording.wav"),))
+                             args=(path,))
         t.start()
 
     def auto_stop_recording(self, button=False):
@@ -642,12 +646,13 @@ class MainWindow(Gtk.ApplicationWindow):
         """Stop recording and save the file"""
         recognizer = self.stt_handler
         result = recognizer.recognize_file(os.path.join(self.directory, "recording.wav"))
-        if result is not None:
-            self.input_panel.set_text(result)
-            self.on_entry_activate(self.input_panel)
-        else:
-            self.notification_block.add_toast(Adw.Toast(title=_('Could not recognize your voice'), timeout=2))
-
+        def idle_record():
+            if result is not None and "stop" not in result.lower() and len(result.replace(" ", "")) > 2:
+                self.input_panel.set_text(result)
+                self.on_entry_activate(self.input_panel)
+            else:
+                self.notification_block.add_toast(Adw.Toast(title=_('Could not recognize your voice'), timeout=2))
+        GLib.idle_add(idle_record)
     # Screen recording
     def start_screen_recording(self, button):
         """Start screen recording"""
