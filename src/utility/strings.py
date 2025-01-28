@@ -124,3 +124,14 @@ def remove_markdown(text: str) -> str:
     text = re.sub(r'\n{2,}', '\n', text)
 
     return text.strip()
+
+def convert_think_codeblocks(text: str) -> str:
+    """Convert think codeblocks to markdown
+
+    Args:
+        text (str): The text to convert 
+
+    Returns:
+        str: The converted text 
+    """
+    return text.replace("<think>", "```think").replace("</think>", "```")

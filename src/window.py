@@ -22,7 +22,7 @@ from .constants import AVAILABLE_LLMS, AVAILABLE_PROMPTS, PROMPTS, AVAILABLE_TTS
 from .utility import override_prompts
 from .utility.system import get_spawn_command 
 from .utility.pip import install_module
-from .utility.strings import markwon_to_pango, remove_markdown
+from .utility.strings import convert_think_codeblocks, markwon_to_pango, remove_markdown
 from .utility.replacehelper import replace_variables
 from .utility.profile_settings import get_settings_dict, restore_settings_from_dict
 from .utility.audio_recorder import AudioRecorder
@@ -30,8 +30,6 @@ from .ui.screenrecorder import ScreenRecorder
 
 from .extensions import ExtensionLoader
 
-def _(s):
-    return s
 
 class MainWindow(Gtk.ApplicationWindow):
     def __init__(self, *args, **kwargs):
@@ -126,7 +124,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.chat_panel.append(Gtk.Separator())
 
         # Setup main program block
-        self.main = Adw.Leaflet(fold_threshold_policy=True, can_navigate_back=True, can_navigate_forward=True)
+        self.main = Adw.Leaflet(fold_threshold_policy=Adw.FoldThresholdPolicy.NATURAL, can_navigate_back=True, can_navigate_forward=True)
         self.chats_main_box = Gtk.Box(hexpand_set=True)
         self.chats_main_box.set_size_request(300, -1)
         self.chats_secondary_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, hexpand=True)
@@ -250,15 +248,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.explorer_panel_header.pack_end(box)
         self.status = True
         self.chat_controls_entry_block.append(self.chat_stop_button)
-        for text in range(self.offers):
-            button = Gtk.Button(css_classes=["flat"], margin_start=6, margin_end=6)
-            label = Gtk.Label(label=str(text), wrap=True, wrap_mode=Pango.WrapMode.CHAR)
-            button.set_child(label)
-            button.connect("clicked", self.send_bot_response)
-            button.set_visible(False)
-            self.offers_entry_block.append(button)
-            self.message_suggestion_buttons_array.append(button)
-
+        self.build_offers()
         # Clear chat button
         self.button_clear = Gtk.Button(css_classes=["flat"])
         icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="edit-clear-all-symbolic"))
@@ -374,6 +364,16 @@ class MainWindow(Gtk.ApplicationWindow):
         if not self.settings.get_boolean("welcome-screen-shown"):
             GLib.idle_add(self.show_presentation_window)
 
+    def build_offers(self):
+        """Build offers buttons, called by update_settings to update the number of buttons"""
+        for text in range(self.offers):
+            button = Gtk.Button(css_classes=["flat"], margin_start=6, margin_end=6)
+            label = Gtk.Label(label=str(text), wrap=True, wrap_mode=Pango.WrapMode.CHAR)
+            button.set_child(label)
+            button.connect("clicked", self.send_bot_response)
+            button.set_visible(False)
+            self.offers_entry_block.append(button)
+            self.message_suggestion_buttons_array.append(button)
 
     def update_settings(self):
         """Update settings, run every time the program is started or settings dialog closed"""
@@ -453,6 +453,7 @@ class MainWindow(Gtk.ApplicationWindow):
         
         # Setup attach buttons to the model capabilities
         if not self.first_load:
+            self.build_offers()
             if not self.model.supports_vision() and not self.model.supports_video_vision() and len(self.model.get_supported_files()) == 0:
                 if self.attached_image_data is not None:
                     self.delete_attachment(self.attach_button)
@@ -547,7 +548,9 @@ class MainWindow(Gtk.ApplicationWindow):
         # Separator
         separator = Gtk.Separator(sensitive=False, can_focus=False, can_target=False, focus_on_click=False)
         profiles.append(separator)
-        separator.get_parent().set_sensitive(False)
+        parent = separator.get_parent()
+        if parent is not None:
+            parent.set_sensitive(False)
         # Add profile row
         profiles.append(ProfileRow(_("Create new profile"), None, False, add=True, allow_delete=False))
         
@@ -596,6 +599,9 @@ class MainWindow(Gtk.ApplicationWindow):
     # Voice Recording
     def start_recording(self, button):
         """Start recording voice for Speech to Text"""
+        path = os.path.join(self.directory, "recording.wav")
+        if os.path.exists(path):
+            os.remove(path)
         if self.automatic_stt:
             self.automatic_stt_status = True
         # button.set_child(Gtk.Spinner(spinning=True))
@@ -608,7 +614,7 @@ class MainWindow(Gtk.ApplicationWindow):
                                       silence_duration=self.stt_silence_detection_duration,
                                       silence_threshold_percent=self.stt_silence_detection_threshold)
         t = threading.Thread(target=self.recorder.start_recording,
-                             args=(os.path.join(self.directory, "recording.wav"),))
+                             args=(path,))
         t.start()
 
     def auto_stop_recording(self, button=False):
@@ -637,12 +643,13 @@ class MainWindow(Gtk.ApplicationWindow):
         """Stop recording and save the file"""
         recognizer = self.stt_handler
         result = recognizer.recognize_file(os.path.join(self.directory, "recording.wav"))
-        if result is not None:
-            self.input_panel.set_text(result)
-            self.on_entry_activate(self.input_panel)
-        else:
-            self.notification_block.add_toast(Adw.Toast(title=_('Could not recognize your voice'), timeout=2))
-
+        def idle_record():
+            if result is not None and "stop" not in result.lower() and len(result.replace(" ", "")) > 2:
+                self.input_panel.set_text(result)
+                self.on_entry_activate(self.input_panel)
+            else:
+                self.notification_block.add_toast(Adw.Toast(title=_('Could not recognize your voice'), timeout=2))
+        GLib.idle_add(idle_record)
     # Screen recording
     def start_screen_recording(self, button):
         """Start screen recording"""
@@ -670,17 +677,20 @@ class MainWindow(Gtk.ApplicationWindow):
         image_filter = Gtk.FileFilter(name="Images", patterns=["*.png", "*.jpg", "*.jpeg", "*.webp"])
         video_filter = Gtk.FileFilter(name="Video", patterns=["*.mp4"])
         file_filter = Gtk.FileFilter(name="Supported Files", patterns=self.model.get_supported_files())
-
-        if self.model.supports_vision():
-            filters.append(image_filter)
+        default_filter = None
         if self.model.supports_video_vision():    
             filters.append(video_filter)
+            default_filter = video_filter
         if len(self.model.get_supported_files()) > 0:
             filters.append(file_filter)
+            default_filter = file_filter
+        if self.model.supports_vision():
+            filters.append(image_filter)
+            default_filter = image_filter
 
         dialog = Gtk.FileDialog(title=_("Attach file"),
                                 modal=True,
-                                default_filter=filters.get_item(0),
+                                default_filter=default_filter,
                                 filters=filters)
         dialog.open(self, None, self.process_file)
 
@@ -1120,8 +1130,8 @@ class MainWindow(Gtk.ApplicationWindow):
                 # name = name[0:27] + "…"
                 button.set_tooltip_text(name)
             button.set_child(
-                Gtk.Label(label=name, wrap=False, wrap_mode=Pango.WrapMode.WORD_CHAR, xalign=0, ellipsize=3,
-                          width_chars=22))
+                Gtk.Label(label=name, wrap=False, wrap_mode=Pango.WrapMode.WORD_CHAR, xalign=0, ellipsize=Pango.EllipsizeMode.END,
+                          width_chars=22,single_line_mode=True))
             button.set_name(str(i))
 
             if i == self.chat_id:
@@ -1380,12 +1390,15 @@ class MainWindow(Gtk.ApplicationWindow):
                 message_label = self.model.send_message_stream(self, self.chat[-1]["Message"], self.update_message,
                                                                [stream_number_variable])
                 try:
-                    self.streaming_box.get_parent().set_visible(False)
-                except:
+                    parent = self.streaming_box.get_parent()
+                    if parent is not None: 
+                        parent.set_visible(False)
+                except Exception as _:
                     pass
             else:
                 message_label = self.send_message_to_bot(self.chat[-1]["Message"])
         except Exception as e:
+            # Convert thinking block 
             # Show error messsage
             GLib.idle_add(self.show_message, str(e), False,-1, False, False, True)
             GLib.idle_add(self.remove_send_button_spinner)
@@ -1395,6 +1408,7 @@ class MainWindow(Gtk.ApplicationWindow):
             GLib.timeout_add(250, remove_streaming_box)
             return
         
+        message_label = convert_think_codeblocks(message_label)
         if self.stream_number_variable == stream_number_variable:
             GLib.idle_add(self.show_message, message_label)
         GLib.idle_add(self.remove_send_button_spinner)
@@ -1438,7 +1452,8 @@ class MainWindow(Gtk.ApplicationWindow):
         # Remove background from the text buffer
         text_buffer = self.streaming_label.get_buffer()
         tag = text_buffer.create_tag("no-background", background_set=False, paragraph_background_set=False)
-        text_buffer.apply_tag(tag, text_buffer.get_start_iter(), text_buffer.get_end_iter())
+        if tag is not None:
+            text_buffer.apply_tag(tag, text_buffer.get_start_iter(), text_buffer.get_end_iter())
         # Create the message label
         self.streaming_box = self.add_message("Assistant", scrolled_window)
         self.streaming_box.set_overflow(Gtk.Overflow.VISIBLE)
@@ -1485,7 +1500,7 @@ class MainWindow(Gtk.ApplicationWindow):
 
                 self.chat_scroll_window.append(self.chat_list_block)
             except Exception as e:
-                self.notification_block.add_toast(Adw.Toast(title=e))
+                self.notification_block.add_toast(Adw.Toast(title=str(e)))
 
             self.chat_scroll_window.remove(self.chat_controls_entry_block)
             self.chat_scroll_window.remove(self.offers_entry_block)
@@ -1536,7 +1551,7 @@ class MainWindow(Gtk.ApplicationWindow):
             message_label = markwon_to_pango(message_label)
             self.last_error_box = self.add_message("Error", Gtk.Label(label=message_label, use_markup= True, wrap=True, margin_top=10, margin_end=10, margin_bottom=10, margin_start=10))
         else:
-            if not restore and not is_user: 
+            if not restore and not is_user:
                 self.chat.append({"User": "Assistant", "Message": message_label})
             table_string = message_label.split("\n")
             box = Gtk.Box(margin_top=10, margin_start=10, margin_bottom=10, margin_end=10,
@@ -1601,7 +1616,7 @@ class MainWindow(Gtk.ApplicationWindow):
                                         else:
                                             self.add_message("Done", text_expander)
                                         if not restore:
-                                            self.chat.append({"User": "Console", "Message": " " + code[1]})
+                                            self.chat.append({"User": "Console", "Message": " " + str(code[1])})
 
                                     t = threading.Thread(target=getresponse)
                                     t.start()
@@ -1610,6 +1625,13 @@ class MainWindow(Gtk.ApplicationWindow):
                                 print("Extension error " + extension.id + ": " + str(e))
                                 box.append(
                                     CopyBox("\n".join(table_string[start_code_index:i]), code_language, parent=self))
+                        elif code_language == "think":
+                            box.append(
+                                Gtk.Expander(label="think", child=Gtk.Label(label="\n".join(table_string[start_code_index:i]), wrap=True),css_classes=["toolbar", "osd"], margin_top=10,
+                                        margin_start=10,
+                                        margin_bottom=10, margin_end=10
+)
+                            )
                         elif code_language == "image":
                             for i in table_string[start_code_index:i]:
                                 if i.startswith('data:image/jpeg;base64,'):
@@ -1671,10 +1693,10 @@ class MainWindow(Gtk.ApplicationWindow):
                                 else:
                                     self.add_message("Done", text_expander)
                                 if not restore:
-                                    self.chat.append({"User": "Console", "Message": " " + code[1]})
+                                    self.chat.append({"User": "Console", "Message": " " + str(code[1])})
                             else:
                                 if not restore:
-                                    self.chat.append({"User": "Console", "Message": f"None"})
+                                    self.chat.append({"User": "Console", "Message": "None"})
                                 box.append(CopyBox("\n".join(table_string[start_code_index:i]), code_language, self,
                                                    id_message))
                             result = {}
@@ -1684,6 +1706,7 @@ class MainWindow(Gtk.ApplicationWindow):
                         elif code_language == "chart" and not is_user:
                             result = {}
                             lines = table_string[start_code_index:i]
+                            percentages = ""
                             for line in lines:
                                 parts = line.split('-')
                                 if len(parts) == 2:
@@ -1864,7 +1887,7 @@ class MainWindow(Gtk.ApplicationWindow):
             id (): id of the message
 
         Returns:
-            Gtk.Box, Gtk.Stack 
+            Gtk.Stack 
         """
         edit_box = Gtk.Box()
         apply_box = Gtk.Box()
@@ -1893,7 +1916,7 @@ class MainWindow(Gtk.ApplicationWindow):
         apply_edit_stack.add_named(apply_box, "apply")
         apply_edit_stack.add_named(edit_box, "edit")
         apply_edit_stack.set_visible_child_name("edit")
-        return edit_box, apply_edit_stack
+        return apply_edit_stack
 
     def add_message(self, user, message=None, id_message=0, editable=False):
         """Add a message to the chat and return the box
@@ -1909,19 +1932,20 @@ class MainWindow(Gtk.ApplicationWindow):
         """
         box = Gtk.Box(css_classes=["card"], margin_top=10, margin_start=10, margin_bottom=10, margin_end=10,
                       halign=Gtk.Align.START)
-        if editable:
-            edit_box, apply_edit_stack = self.build_edit_box(box, str(id_message))
-            evk = Gtk.GestureClick.new()
-            evk.connect("pressed", self.edit_message, box, apply_edit_stack)
-            evk.set_name(str(id_message))
-            evk.set_button(3)
-            box.add_controller(evk)
-            ev = Gtk.EventControllerMotion.new()
+        
+        # Create edit controls
+        apply_edit_stack = self.build_edit_box(box, str(id_message))
+        evk = Gtk.GestureClick.new()
+        evk.connect("pressed", self.edit_message, box, apply_edit_stack)
+        evk.set_name(str(id_message))
+        evk.set_button(3)
+        box.add_controller(evk)
+        ev = Gtk.EventControllerMotion.new()
 
-            stack = Gtk.Stack()
-            ev.connect("enter", lambda x, y, data: stack.set_visible_child_name("edit"))
-            ev.connect("leave", lambda data: stack.set_visible_child_name("label"))
-            box.add_controller(ev)
+        stack = Gtk.Stack()
+        ev.connect("enter", lambda x, y, data: stack.set_visible_child_name("edit"))
+        ev.connect("leave", lambda data: stack.set_visible_child_name("label"))
+        box.add_controller(ev)
 
         if user == "User":
             label = Gtk.Label(label=user + ": ", margin_top=10, margin_start=10, margin_bottom=10, margin_end=0,
@@ -1997,7 +2021,7 @@ class MainWindow(Gtk.ApplicationWindow):
             box.append(box_warning)
             box.set_halign(Gtk.Align.CENTER)
             box.set_css_classes(["card"])
-        else:
+        elif message is not None:
             box.append(message)
         self.chat_list_block.append(box)
         return box
