@@ -33,7 +33,7 @@ def append_chunk(chunks: list[MessageChunk], new_chunk: MessageChunk):
     """
     if chunks and chunks[-1].type == "text" and new_chunk.type == "text":
         # Merge the text
-        chunks[-1].text += new_chunk.text
+        chunks[-1].text += "\n" + new_chunk.text
     else:
         chunks.append(new_chunk)
 

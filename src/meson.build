@@ -112,6 +112,7 @@ utility_sources = [
   'utility/util.py',
   'utility/profile_settings.py',
   'utility/audio_recorder.py',
+  'utility/message_chunk.py'
 ]
 
 install_data(newelle_sources, install_dir: moduledir)
