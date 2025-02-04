@@ -27,7 +27,7 @@ from .constants import AVAILABLE_LLMS, AVAILABLE_PROMPTS, PROMPTS, AVAILABLE_TTS
 from .utility import override_prompts
 from .utility.system import get_spawn_command 
 from .utility.pip import install_module
-from .utility.strings import convert_think_codeblocks, markwon_to_pango, remove_markdown
+from .utility.strings import markwon_to_pango, remove_markdown
 from .utility.replacehelper import replace_variables
 from .utility.profile_settings import get_settings_dict, restore_settings_from_dict
 from .utility.audio_recorder import AudioRecorder
@@ -1721,9 +1721,9 @@ class MainWindow(Gtk.ApplicationWindow):
                             box.append(BarChartBox(result, percentages))
                     elif code_language == "latex":
                         try:
-                            box.append(DisplayLatex(chunk.text, 75))
-                            print(chunk.text)
-                        except Exception:
+                            box.append(DisplayLatex(chunk.text, 100))
+                        except Exception as e:
+                            print(e)
                             box.append(CopyBox(chunk.text, code_language, parent=self))
                     else:
                         box.append(CopyBox(chunk.text, code_language, parent=self))

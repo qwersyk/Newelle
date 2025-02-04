@@ -42,6 +42,8 @@ class DisplayLatex(Gtk.Box):
         self.picture.set_size_request(-1, self.size)
     
     def zoom_out(self, *_):
+        if self.size < 20:
+            return
         self.size -= 10
         self.picture.set_size_request(-1, self.size)
 
