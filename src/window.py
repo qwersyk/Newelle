@@ -402,6 +402,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.chat_id = settings.get_int("chat")
         self.main_path = settings.get_string("path")
         self.auto_run = settings.get_boolean("auto-run")
+        self.display_latex = settings.get_boolean("display-latex")
         self.chat = self.chats[min(self.chat_id, len(self.chats) - 1)]["chat"]
         self.language_model = settings.get_string("language-model")
         self.tts_enabled = settings.get_boolean("tts-on")
@@ -1403,7 +1404,6 @@ class MainWindow(Gtk.ApplicationWindow):
             else:
                 message_label = self.send_message_to_bot(self.chat[-1]["Message"])
         except Exception as e:
-            # Convert thinking block 
             # Show error messsage
             GLib.idle_add(self.show_message, str(e), False,-1, False, False, True)
             GLib.idle_add(self.remove_send_button_spinner)
@@ -1413,7 +1413,6 @@ class MainWindow(Gtk.ApplicationWindow):
             GLib.timeout_add(250, remove_streaming_box)
             return
         
-        message_label = convert_think_codeblocks(message_label)
         if self.stream_number_variable == stream_number_variable:
             GLib.idle_add(self.show_message, message_label)
         GLib.idle_add(self.remove_send_button_spinner)
@@ -1561,7 +1560,7 @@ class MainWindow(Gtk.ApplicationWindow):
         else:
             if not restore and not is_user:
                 self.chat.append({"User": "Assistant", "Message": message_label})
-            chunks = get_message_chunks(message_label)  
+            chunks = get_message_chunks(message_label, self.display_latex)  
             box = Gtk.Box(margin_top=10, margin_start=10, margin_bottom=10, margin_end=10,
                           orientation=Gtk.Orientation.VERTICAL)
             code_language = ""
@@ -1738,7 +1737,6 @@ class MainWindow(Gtk.ApplicationWindow):
                         if chunk.type == "text":
                             txt += chunk.text
                         elif chunk.type == "latex_inline":
-                            print(chunk.text)
                             txt += LatexNodes2Text().latex_to_text(chunk.text)
                     label = markwon_to_pango(txt)
                     box.append(Gtk.Label(label=label, wrap=True, halign=Gtk.Align.START,
@@ -1749,7 +1747,14 @@ class MainWindow(Gtk.ApplicationWindow):
                         box.append(DisplayLatex(chunk.text, 100))
                     except Exception:
                         print(chunk.text)
-                        box.append(CopyBox(chunk.text, code_language, parent=self))
+                        box.append(CopyBox(chunk.text, "latex", parent=self))
+                elif chunk.type == "thinking":
+                    box.append(
+                        Gtk.Expander(label="think", child=Gtk.Label(label=chunk.text, wrap=True),css_classes=["toolbar", "osd"], margin_top=10,
+                                margin_start=10,
+                                margin_bottom=10, margin_end=10
+)
+                    )
                 elif chunk.type == "text":
                     label = markwon_to_pango(chunk.text)
                     box.append(Gtk.Label(label=label, wrap=True, halign=Gtk.Align.START,

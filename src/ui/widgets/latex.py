@@ -13,7 +13,7 @@ class DisplayLatex(Gtk.Box):
         
        # Create equation image
        plt.figure()
-       plt.text(0.5, 0.5, r'$' + latex + r'$', fontsize=100, ha='center', color=(color.red, color.blue, color.green)) 
+       plt.text(0.5, 0.5, r'$' + latex + r'$', fontsize=size, ha='center', va='center', color=(color.red, color.blue, color.green)) 
        plt.axis('off')
        # Get file name and save it in the cache
        fname = os.path.join(self.cachedir, uuid.uuid4().hex + '-symbolic.svg')

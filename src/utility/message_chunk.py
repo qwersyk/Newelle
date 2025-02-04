@@ -4,7 +4,7 @@ from typing import List, Optional
 
 @dataclass
 class MessageChunk:
-    type: str  # One of "codeblock", "table", "latex", "latex_inline", "text", or "inline_chunks"
+    type: str  # "codeblock", "table", "latex", "latex_inline", "inline_chunks", "thinking", or "text"
     text: str
     lang: str = ''  # Only used for codeblocks
     subchunks: Optional[List['MessageChunk']] = None  # Only used for inline_chunks
@@ -21,6 +21,8 @@ class MessageChunk:
         elif self.type == "inline_chunks":
             sub = "\n".join("  " + str(sc) for sc in self.subchunks) if self.subchunks else ""
             return f"<InlineChunks>\n{sub}\n</InlineChunks>"
+        elif self.type == "thinking":
+            return f"<Thinking>{self.text}</Thinking>"
         elif self.type == "text":
             return f"<Text>{self.text}</Text>"
         else:
@@ -28,97 +30,18 @@ class MessageChunk:
 
 def append_chunk(chunks: List[MessageChunk], new_chunk: MessageChunk):
     """
-    Append new_chunk to chunks. If the last chunk is a plain text chunk and new_chunk
-    is also a plain text chunk, merge their text.
+    Append new_chunk to chunks. If the last chunk and new_chunk are both plain text,
+    merge their text.
     """
     if chunks and chunks[-1].type == "text" and new_chunk.type == "text":
         chunks[-1].text += "\n" + new_chunk.text
     else:
         chunks.append(new_chunk)
 
-def is_display_latex(block: str) -> bool:
-    """
-    Returns True if the entire block is a display LaTeX equation.
-    Display equations are those that start and end with one of:
-      - $$ ... $$
-      - \[ ... \]
-      - \( ... \)  (if the whole block is just that)
-    """
-    block = block.strip()
-    if block.startswith("$$") and block.endswith("$$"):
-        return True
-    if block.startswith(r"\[") and block.endswith(r"\]"):
-        return True
-    if block.startswith(r"\(") and block.endswith(r"\)"):
-        return True
-    return False
-
-def extract_display_latex(block: str) -> str:
-    """
-    Removes the display LaTeX delimiters from the block.
-    """
-    block = block.strip()
-    if block.startswith("$$") and block.endswith("$$"):
-        return block[2:-2].strip()
-    if block.startswith(r"\[") and block.endswith(r"\]"):
-        return block[2:-2].strip()
-    if block.startswith(r"\(") and block.endswith(r"\)"):
-        return block[2:-2].strip()
-    return block
-
-def process_inline_by_line(text: str) -> List[MessageChunk]:
-    """
-    Processes inline LaTeX for each line in the given text.
-    For each line, it extracts pieces of plain text and inline LaTeX (using $...$ or \( ... \)).
-    If more than one piece is found on the same line (or if inline LaTeX is present),
-    group them into a single MessageChunk of type "inline_chunks" (using its 'subchunks' attribute).
-    If the line is pure text, a plain text chunk is returned.
-    """
-    chunks = []
-    # Regex to match inline LaTeX (using single $ delimiters—not $$—or \( ... \))
-    inline_latex_pattern = re.compile(
-        r'(?<!\$)\$(?!\$)(.+?)(?<!\$)\$(?!\$)|\\\((.+?)\\\)'
-    )
-    lines = text.splitlines()
-    for line in lines:
-        if not line:
-            continue
-        subchunks = []
-        last_index = 0
-        for m in inline_latex_pattern.finditer(line):
-            start, end = m.span()
-            # Text before the inline LaTeX match
-            if start > last_index:
-                plain = line[last_index:start]
-                if plain:
-                    subchunks.append(MessageChunk(type="text", text=plain))
-            latex_str = m.group(0)
-            if latex_str.startswith("$"):
-                content = latex_str[1:-1].strip()
-            elif latex_str.startswith(r"\("):
-                content = latex_str[2:-2].strip()
-            else:
-                content = latex_str
-            subchunks.append(MessageChunk(type="latex_inline", text=content))
-            last_index = end
-        # Any remaining text after the last match.
-        if last_index < len(line):
-            remaining = line[last_index:]
-            if remaining:
-                subchunks.append(MessageChunk(type="text", text=remaining))
-        # If the line contains only a single plain text segment, return it as a text chunk.
-        # Otherwise, group the pieces into an inline_chunks chunk.
-        if len(subchunks) == 1 and subchunks[0].type == "text":
-            chunks.append(MessageChunk(type="text", text=subchunks[0].text))
-        else:
-            chunks.append(MessageChunk(type="inline_chunks", text="", subchunks=subchunks))
-    return chunks
-
 def is_markdown_table(block: str) -> bool:
     """
     A simple heuristic for detecting markdown tables.
-    The block must have at least two lines and the second line should be a separator
-    made up of dashes, colons, pipes, and whitespace.
+    The block must have at least two lines and the second line should look like a separator.
     """
     lines = block.splitlines()
     if len(lines) < 2:
@@ -128,67 +51,155 @@ def is_markdown_table(block: str) -> bool:
         return True
     return False
 
-def process_text_segment(text: str) -> List[MessageChunk]:
+# Regex for display LaTeX blocks (treated as "latex" chunks)
+_display_latex_pattern = re.compile(r'(\$\$(.+?)\$\$)|(\\\[(.+?)\\\])', re.DOTALL)
+
+def process_text_with_display_latex(text: str, allow_latex: bool) -> List[MessageChunk]:
     """
-    Processes a segment of text (outside of codeblocks) and splits it into chunks.
-    The function first splits the text by double newlines (to separate blocks).
-    Then, for each block:
-      - If it is a markdown table, returns a table chunk.
-      - If it is a display LaTeX equation, returns a latex chunk.
-      - Otherwise, it is processed line by line to extract inline elements.
+    Processes text by detecting display LaTeX blocks (using $$...$$ or \\[…\\]) anywhere in the text.
+    Text outside these blocks is processed for inline LaTeX.
     """
     chunks = []
-    blocks = re.split(r'\n\s*\n', text)
-    for block in blocks:
-        block = block.strip()
-        if not block:
-            continue
-        if is_markdown_table(block):
-            chunks.append(MessageChunk(type="table", text=block))
-        elif is_display_latex(block):
-            latex_content = extract_display_latex(block)
-            chunks.append(MessageChunk(type="latex", text=latex_content))
-        else:
-            # Process inline elements line by line.
-            inline_line_chunks = process_inline_by_line(block)
-            chunks.extend(inline_line_chunks)
+    last_index = 0
+    for match in _display_latex_pattern.finditer(text):
+        start, end = match.span()
+        # Process text before the display LaTeX block.
+        if start > last_index:
+            intermediate = text[last_index:start]
+            chunks.extend(process_inline_by_line(intermediate, allow_latex))
+        # Extract the LaTeX content.
+        content = None
+        if match.group(2) is not None:
+            content = match.group(2).strip()
+        elif match.group(4) is not None:
+            content = match.group(4).strip()
+        if content is not None:
+            chunks.append(MessageChunk(type="latex", text=content))
+        last_index = end
+    # Process any remaining text.
+    if last_index < len(text):
+        remaining = text[last_index:]
+        chunks.extend(process_inline_by_line(remaining, allow_latex))
     return chunks
 
-def get_message_chunks(message: str) -> List[MessageChunk]:
+def process_inline_by_line(text: str, allow_latex: bool) -> List[MessageChunk]:
+    """
+    Processes each line for inline LaTeX.
+    When allow_latex is True, each line is scanned for inline LaTeX using:
+      - Single-dollar delimiters (avoiding $$),
+      - \\( ... \\), and
+      - \\[ ... \\] as inline delimiters.
+    Pieces on the same line are grouped into an "inline_chunks" chunk.
+    When allow_latex is False, each line is returned as a plain text chunk.
+    """
+    chunks = []
+    lines = text.splitlines()
+    inline_latex_pattern = re.compile(
+        r'(?<!\$)\$(?!\$)(.+?)(?<!\$)\$(?!\$)|\\\((.+?)\\\)|\\\[(.+?)\\\]',
+        re.DOTALL
+    )
+    for line in lines:
+        if not line:
+            continue
+        if not allow_latex:
+            chunks.append(MessageChunk(type="text", text=line))
+            continue
+
+        subchunks = []
+        last_index = 0
+        for m in inline_latex_pattern.finditer(line):
+            start, end = m.span()
+            if start > last_index:
+                plain = line[last_index:start]
+                if plain:
+                    subchunks.append(MessageChunk(type="text", text=plain))
+            latex_str = m.group(0)
+            if latex_str.startswith("$"):
+                content = latex_str[1:-1].strip()
+            elif latex_str.startswith(r"\("):
+                content = latex_str[2:-2].strip()
+            elif latex_str.startswith(r"\["):
+                content = latex_str[2:-2].strip()
+            else:
+                content = latex_str
+            subchunks.append(MessageChunk(type="latex_inline", text=content))
+            last_index = end
+        if last_index < len(line):
+            remaining = line[last_index:]
+            if remaining:
+                subchunks.append(MessageChunk(type="text", text=remaining))
+        if len(subchunks) == 1 and subchunks[0].type == "text":
+            chunks.append(MessageChunk(type="text", text=subchunks[0].text))
+        else:
+            chunks.append(MessageChunk(type="inline_chunks", text="", subchunks=subchunks))
+    return chunks
+
+def process_text_segment_no_think(text: str, allow_latex: bool) -> List[MessageChunk]:
+    """
+    Processes a segment of text that does not contain any <think> blocks.
+    It checks for markdown tables, display LaTeX (if allowed), and then processes
+    the text for inline LaTeX.
+    """
+    text = text.strip()
+    if not text:
+        return []
+    if is_markdown_table(text):
+        return [MessageChunk(type="table", text=text)]
+    if allow_latex:
+        return process_text_with_display_latex(text, allow_latex)
+    else:
+        return process_inline_by_line(text, allow_latex)
+
+def process_text_segment(text: str, allow_latex: bool) -> List[MessageChunk]:
+    """
+    Processes a segment of text (outside of codeblocks) and splits it into chunks.
+    First it checks for <think> blocks. Any text outside these tags is processed normally.
+    """
+    chunks = []
+    think_pattern = re.compile(r'<think>(.*?)</think>', re.DOTALL)
+    last_index = 0
+    for m in think_pattern.finditer(text):
+        start, end = m.span()
+        # Process any text before the <think> block.
+        if start > last_index:
+            pre_text = text[last_index:start]
+            chunks.extend(process_text_segment_no_think(pre_text, allow_latex))
+        # Create a thinking chunk.
+        think_content = m.group(1).strip()
+        chunks.append(MessageChunk(type="thinking", text=think_content))
+        last_index = end
+    # Process any remaining text after the last <think> block.
+    if last_index < len(text):
+        remainder = text[last_index:]
+        chunks.extend(process_text_segment_no_think(remainder, allow_latex))
+    return chunks
+
+def get_message_chunks(message: str, allow_latex: bool = True) -> List[MessageChunk]:
     """
     Splits the input message into a list of MessageChunk objects.
-    
     Processing order:
       1. Extract codeblocks (fenced with ``` ... ```).
-      2. For remaining text, split by double newlines.
-         Each block is then checked:
-           - If it's a markdown table → type "table".
-           - If it's a display LaTeX equation → type "latex".
-           - Otherwise, process line by line for inline elements.
-    
-    Plain text chunks on the same line that contain inline elements are grouped
-    into an "inline_chunks" chunk with a 'subchunks' list.
+      2. Process the remaining text for markdown tables, display LaTeX (if allowed),
+         inline LaTeX, and <think> blocks.
+    When allow_latex is False, all content that might otherwise be processed as LaTeX
+    is treated as plain text.
+    Consecutive text chunks are merged.
     """
     chunks = []
     codeblock_pattern = re.compile(r'```(\w+)?\n(.*?)\n```', re.DOTALL)
-    
     last_end = 0
     for match in codeblock_pattern.finditer(message):
         start, end = match.span()
-        # Process any text before the codeblock.
         if start > last_end:
             pre_text = message[last_end:start]
-            for chunk in process_text_segment(pre_text):
+            for chunk in process_text_segment(pre_text, allow_latex):
                 append_chunk(chunks, chunk)
         lang = match.group(1) if match.group(1) else ""
         code = match.group(2)
         append_chunk(chunks, MessageChunk(type="codeblock", text=code, lang=lang))
         last_end = end
-        
-    # Process any remaining text after the last codeblock.
     if last_end < len(message):
         post_text = message[last_end:]
-        for chunk in process_text_segment(post_text):
+        for chunk in process_text_segment(post_text, allow_latex):
             append_chunk(chunks, chunk)
-            
     return chunks
