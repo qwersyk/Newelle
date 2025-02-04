@@ -54,7 +54,7 @@ widgets_sources = [
   'ui/widgets/comborow.py',
   'ui/widgets/copybox.py',
   'ui/widgets/file.py',
-  'ui/widgets/latex.py'
+  'ui/widgets/latex.py',
 ]
 
 handler_sources = [

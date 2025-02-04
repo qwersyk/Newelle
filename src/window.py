@@ -1,3 +1,4 @@
+from pylatexenc.latex2text import LatexNodes2Text
 import time 
 import re 
 import sys
@@ -10,6 +11,7 @@ import json
 import base64
 
 from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject, GLib, GdkPixbuf
+
 
 
 from .utility.message_chunk import get_message_chunks
@@ -1718,20 +1720,36 @@ class MainWindow(Gtk.ApplicationWindow):
                                 break
                         if result != {}:
                             box.append(BarChartBox(result, percentages))
+                    elif code_language == "latex":
+                        try:
+                            box.append(DisplayLatex(chunk.text, 100))
+                            print(chunk.text)
+                        except Exception:
+                            box.append(CopyBox(chunk.text, code_language, parent=self))
                     else:
                         box.append(CopyBox(chunk.text, code_language, parent=self))
                 elif chunk.type == "table":
                     box.append(self.create_table(chunk.text.split("\n")))
                 elif chunk.type == "inline_chunks":
-                    line = Gtk.FlowBox(orientation=Gtk.Orientation.HORIZONTAL, max_children_per_line=20, row_spacing=10, min_children_per_line=20)
                     if chunk.subchunks is None:
                         continue
+                    txt = ""
                     for chunk in chunk.subchunks:
                         if chunk.type == "text":
-                            line.append(Gtk.Label(label=chunk.text, halign=Gtk.Align.START, width_request=-1, wrap=True))
+                            txt += chunk.text
                         elif chunk.type == "latex_inline":
-                            line.append(DisplayLatex(chunk.text, 30))
-                    box.append(line)
+                            print(chunk.text)
+                            txt += LatexNodes2Text().latex_to_text(chunk.text)
+                    label = markwon_to_pango(txt)
+                    box.append(Gtk.Label(label=label, wrap=True, halign=Gtk.Align.START,
+                                         wrap_mode=Pango.WrapMode.WORD_CHAR, width_chars=1, selectable=True,
+                                         use_markup=True))
+                elif chunk.type == "latex":
+                    try:
+                        box.append(DisplayLatex(chunk.text, 100))
+                    except Exception:
+                        print(chunk.text)
+                        box.append(CopyBox(chunk.text, code_language, parent=self))
                 elif chunk.type == "text":
                     label = markwon_to_pango(chunk.text)
                     box.append(Gtk.Label(label=label, wrap=True, halign=Gtk.Align.START,

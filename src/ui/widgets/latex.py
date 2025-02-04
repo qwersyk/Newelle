@@ -7,7 +7,7 @@ class DisplayLatex(Gtk.Box):
     cachedir = GLib.get_user_data_dir()
  
     def __init__(self, latex:str, size:int) -> None:
-       super().__init__(width_request=-1)
+       super().__init__()
        color = self.get_style_context().lookup_color("window_fg_color")[1]
        id = latex + str(size) + str(color.red) + str(color.green) + str(color.blue)
         
