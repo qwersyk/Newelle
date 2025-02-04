@@ -1721,7 +1721,7 @@ class MainWindow(Gtk.ApplicationWindow):
                             box.append(BarChartBox(result, percentages))
                     elif code_language == "latex":
                         try:
-                            box.append(DisplayLatex(chunk.text, 100))
+                            box.append(DisplayLatex(chunk.text, 75))
                             print(chunk.text)
                         except Exception:
                             box.append(CopyBox(chunk.text, code_language, parent=self))
@@ -1951,18 +1951,19 @@ class MainWindow(Gtk.ApplicationWindow):
                       halign=Gtk.Align.START)
         
         # Create edit controls
-        apply_edit_stack = self.build_edit_box(box, str(id_message))
-        evk = Gtk.GestureClick.new()
-        evk.connect("pressed", self.edit_message, box, apply_edit_stack)
-        evk.set_name(str(id_message))
-        evk.set_button(3)
-        box.add_controller(evk)
-        ev = Gtk.EventControllerMotion.new()
+        if editable:
+            apply_edit_stack = self.build_edit_box(box, str(id_message))
+            evk = Gtk.GestureClick.new()
+            evk.connect("pressed", self.edit_message, box, apply_edit_stack)
+            evk.set_name(str(id_message))
+            evk.set_button(3)
+            box.add_controller(evk)
+            ev = Gtk.EventControllerMotion.new()
 
-        stack = Gtk.Stack()
-        ev.connect("enter", lambda x, y, data: stack.set_visible_child_name("edit"))
-        ev.connect("leave", lambda data: stack.set_visible_child_name("label"))
-        box.add_controller(ev)
+            stack = Gtk.Stack()
+            ev.connect("enter", lambda x, y, data: stack.set_visible_child_name("edit"))
+            ev.connect("leave", lambda data: stack.set_visible_child_name("label"))
+            box.add_controller(ev)
 
         if user == "User":
             label = Gtk.Label(label=user + ": ", margin_top=10, margin_start=10, margin_bottom=10, margin_end=0,
