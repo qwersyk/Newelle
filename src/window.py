@@ -11,6 +11,7 @@ import base64
 
 from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject, GLib, GdkPixbuf
 
+
 from .utility.message_chunk import get_message_chunks
 
 from .ui.profile import ProfileDialog
@@ -18,7 +19,7 @@ from .handlers.llm import LLMHandler
 from .ui.presentation import PresentationWindow
 from .ui.widgets import File, CopyBox, BarChartBox
 from .ui import apply_css_to_widget
-from .ui.widgets import MultilineEntry, ProfileRow
+from .ui.widgets import MultilineEntry, ProfileRow, DisplayLatex
 from .constants import AVAILABLE_LLMS, AVAILABLE_PROMPTS, PROMPTS, AVAILABLE_TTS, AVAILABLE_STT
 
 from .utility import override_prompts
@@ -1721,6 +1722,16 @@ class MainWindow(Gtk.ApplicationWindow):
                         box.append(CopyBox(chunk.text, code_language, parent=self))
                 elif chunk.type == "table":
                     box.append(self.create_table(chunk.text.split("\n")))
+                elif chunk.type == "inline_chunks":
+                    line = Gtk.FlowBox(orientation=Gtk.Orientation.HORIZONTAL, max_children_per_line=20, row_spacing=10, min_children_per_line=20)
+                    if chunk.subchunks is None:
+                        continue
+                    for chunk in chunk.subchunks:
+                        if chunk.type == "text":
+                            line.append(Gtk.Label(label=chunk.text, halign=Gtk.Align.START, width_request=-1, wrap=True))
+                        elif chunk.type == "latex_inline":
+                            line.append(DisplayLatex(chunk.text, 30))
+                    box.append(line)
                 elif chunk.type == "text":
                     label = markwon_to_pango(chunk.text)
                     box.append(Gtk.Label(label=label, wrap=True, halign=Gtk.Align.START,
