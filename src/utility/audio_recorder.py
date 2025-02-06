@@ -40,7 +40,6 @@ class AudioRecorder:
             self.frames.append(data)
             if self.auto_stop:
                 rms = self._calculate_rms(data)
-                print(rms)
                 if rms < silence_threshold:
                     self.silent_chunks += 1
                 else:
