@@ -27,7 +27,7 @@ from .constants import AVAILABLE_LLMS, AVAILABLE_PROMPTS, PROMPTS, AVAILABLE_TTS
 from .utility import override_prompts
 from .utility.system import get_spawn_command 
 from .utility.pip import install_module
-from .utility.strings import markwon_to_pango, remove_markdown
+from .utility.strings import convert_think_codeblocks, markwon_to_pango, remove_markdown
 from .utility.replacehelper import replace_variables
 from .utility.profile_settings import get_settings_dict, restore_settings_from_dict
 from .utility.audio_recorder import AudioRecorder
@@ -1423,6 +1423,7 @@ class MainWindow(Gtk.ApplicationWindow):
         # TTS
         tts_thread = None
         if self.tts_enabled:
+            message_label = convert_think_codeblocks(message_label)
             message = re.sub(r"```.*?```", "", message_label, flags=re.DOTALL)
             message = remove_markdown(message)
             if not (not message.strip() or message.isspace() or all(char == '\n' for char in message)):
