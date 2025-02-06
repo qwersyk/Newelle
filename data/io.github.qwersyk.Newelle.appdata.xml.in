@@ -8,23 +8,19 @@
 	<description>
 	  <p>Train Newelle to do more with custom extensions and new AI modules, giving your chatbot endless possibilities.</p>
 	</description>
-	<summary>Your AI-Powered System Assistant</summary>
+	<summary>AI chatbot</summary>
 	<screenshots>
 		<screenshot type="default">
 			<image>https://raw.githubusercontent.com/qwersyk/Newelle/master/data/screenshots/screenshot1.png</image>
-			<caption>Chat page 1</caption>
+			<caption>Quick profile selection</caption>
 		</screenshot>
 		<screenshot>
 			<image>https://raw.githubusercontent.com/qwersyk/Newelle/master/data/screenshots/screenshot2.png</image>
-			<caption>Chat page 2</caption>
+			<caption>Message Editing</caption>
 		</screenshot>
  		<screenshot>
 			<image>https://raw.githubusercontent.com/qwersyk/Newelle/master/data/screenshots/screenshot3.png</image>
-			<caption>Chat page 3</caption>
-		</screenshot>
-  		<screenshot>
-			<image>https://raw.githubusercontent.com/qwersyk/Newelle/master/data/screenshots/screenshot4.png</image>
-			<caption>Chat page 4</caption>
+			<caption>More than 10 standard AI providers</caption>
 		</screenshot>
 	</screenshots>
   <branding>
@@ -35,6 +31,11 @@
 	<url type="bugtracker">https://github.com/qwersyk/Newelle/issues</url>
 	<content_rating type="oars-1.0" />
 	<releases>
+	    <release version="0.7.0" date="2025-02-06">
+            <description>
+                <p>Added many new features and bug fixes</p>
+            </description>
+        </release>
 	    <release version="0.6.0" date="2025-01-04">
             <description>
                 <p>Added many new features and bug fixes</p>
