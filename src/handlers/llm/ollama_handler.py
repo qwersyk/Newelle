@@ -18,7 +18,7 @@ class OllamaHandler(LLMHandler):
     # Url where to get the available models info
     library_url = "https://nyarchlinux.moe/available_models.json"
     # List of models to be included in the library by default
-    listed_models = ["llama3.2-vision:11b", "llama3.2:3b", "llama3.1:8b", "qwq:32b", "qwen2.5:1.5b", "qwen2.5:3b", "qwen2.5:7b", "qwen2.5:14b", "gemma2:2b", "gemma2:9b", "qwen2.5-coder:3b", "qwen2.5-coder:7b", "qwen2.5-coder:14b", "llama3.3:70b", "deepseek-coder-v2:16b", "phi3.5:3.8b", "phi3:14b"]
+    listed_models = ["llama3.2-vision:11b", "deepseek-r1:1.5b", "deepseek-r1:7b", "deepseek-r1:14b", "llama3.2:3b", "llama3.1:8b", "qwq:32b", "qwen2.5:1.5b", "qwen2.5:3b", "qwen2.5:7b", "qwen2.5:14b", "gemma2:2b", "gemma2:9b", "qwen2.5-coder:3b", "qwen2.5-coder:7b", "qwen2.5-coder:14b", "llama3.3:70b", "phi4:14b"]
 
     def __init__(self, settings, path):
         super().__init__(settings, path)
@@ -64,8 +64,11 @@ class OllamaHandler(LLMHandler):
             tag = model.split(":")[1]
             if name in self.models_info:
                 title = " ".join([name, tag])
-                description = str(self.models_info[name]["description"])
-                description += "\nSize: " + "".join([t[1] for t in self.models_info[name]["tags"] if t[0] == tag])
+                if self.models_info[name]["description"] is None:
+                    description = ""
+                else:
+                    description = str(self.models_info[name]["description"])
+                    description += "\nSize: " + "".join([t[1] for t in self.models_info[name]["tags"] if t[0] == tag])
                 return {"key": model, "title": title, "description": description}
         return {"key": model, "title": model, "description": "User added model"}
 
