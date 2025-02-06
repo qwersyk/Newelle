@@ -631,6 +631,7 @@ class MainWindow(Gtk.ApplicationWindow):
     def stop_recording(self, button=False):
         """Stop a recording manually"""
         self.automatic_stt_status = False
+        print("ae")
         self.recorder.stop_recording(os.path.join(self.directory, "recording.wav"))
         self.stop_recording_ui(self.recording_button)
         t = threading.Thread(target=self.stop_recording_async)
@@ -1430,6 +1431,8 @@ class MainWindow(Gtk.ApplicationWindow):
 
         # Wait for tts to finish to restart recording
         def restart_recording():
+            if not self.automatic_stt_status:
+                return
             if tts_thread is not None:
                 tts_thread.join()
             GLib.idle_add(self.start_recording, self.recording_button)
