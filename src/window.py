@@ -12,7 +12,7 @@ import base64
 
 from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject, GLib, GdkPixbuf
 
-
+from .ui.settings import Settings
 
 from .utility.message_chunk import get_message_chunks
 
@@ -362,6 +362,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.main.connect("notify::folded", self.handle_main_block_change)
         self.main_program_block.connect("notify::reveal-flap", self.handle_second_block_change)
 
+        self.chat_header.set_title_widget(self.build_model_popup())
         self.stream_number_variable = 0
         GLib.idle_add(self.update_folder)
         GLib.idle_add(self.update_history)
@@ -404,7 +405,6 @@ class MainWindow(Gtk.ApplicationWindow):
         self.auto_run = settings.get_boolean("auto-run")
         self.display_latex = settings.get_boolean("display-latex")
         self.chat = self.chats[min(self.chat_id, len(self.chats) - 1)]["chat"]
-        self.language_model = settings.get_string("language-model")
         self.tts_enabled = settings.get_boolean("tts-on")
         self.tts_program = settings.get_string("tts")
         self.tts_voice = settings.get_string("tts-voice")
@@ -420,7 +420,23 @@ class MainWindow(Gtk.ApplicationWindow):
         self.extensionloader.load_extensions()
         self.extensionloader.add_handlers(AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT)
         self.extensionloader.add_prompts(PROMPTS, AVAILABLE_PROMPTS)
-        # Load custom prompts
+
+        # Load quick settings 
+        self.quick_settings_update()
+        
+        if os.path.exists(os.path.expanduser(self.main_path)):
+            os.chdir(os.path.expanduser(self.main_path))
+        else:
+            self.main_path = "~"
+        # Setup TTS
+        if self.tts_program in AVAILABLE_TTS:
+            self.tts = AVAILABLE_TTS[self.tts_program]["class"](self.settings, self.directory)
+            self.tts.connect('start', lambda: GLib.idle_add(self.mute_tts_button.set_visible, True))
+            self.tts.connect('stop', lambda: GLib.idle_add(self.mute_tts_button.set_visible, False))
+        
+    def quick_settings_update(self):  
+        """Update LLM and prompt settings"""
+        self.language_model = self.settings.get_string("language-model")
         self.custom_prompts = json.loads(self.settings.get_string("custom-prompts"))
         self.prompts = override_prompts(self.custom_prompts, PROMPTS)
         self.prompts_settings = json.loads(self.settings.get_string("prompts-settings"))
@@ -430,11 +446,9 @@ class MainWindow(Gtk.ApplicationWindow):
         else:
             mod = list(AVAILABLE_LLMS.values())[0]
             self.model: LLMHandler = mod["class"](self.settings, os.path.join(self.directory))
-
         # Load handlers and models
         self.model.load_model(None)
         self.stt_handler = AVAILABLE_STT[self.stt_engine]["class"](self.settings, self.pip_directory)
-
         # Load prompts
         self.bot_prompts = []
         for prompt in AVAILABLE_PROMPTS:
@@ -445,18 +459,9 @@ class MainWindow(Gtk.ApplicationWindow):
                 is_active = prompt["default"]
             if is_active:
                 self.bot_prompts.append(self.prompts[prompt["key"]])
-
-        if os.path.exists(os.path.expanduser(self.main_path)):
-            os.chdir(os.path.expanduser(self.main_path))
-        else:
-            self.main_path = "~"
-
-        # Setup TTS
-        if self.tts_program in AVAILABLE_TTS:
-            self.tts = AVAILABLE_TTS[self.tts_program]["class"](self.settings, self.directory)
-            self.tts.connect('start', lambda: GLib.idle_add(self.mute_tts_button.set_visible, True))
-            self.tts.connect('stop', lambda: GLib.idle_add(self.mute_tts_button.set_visible, False))
-        
+        if hasattr(self, "model_popup"):
+            self.update_model_popup()
+    
         # Setup attach buttons to the model capabilities
         if not self.first_load:
             self.build_offers()
@@ -471,6 +476,46 @@ class MainWindow(Gtk.ApplicationWindow):
                     self.video_recorder.stop()
                     self.video_recorder = None
             self.screen_record_button.set_visible(self.model.supports_video_vision() and not self.attached_image_data)
+            self.chat_header.set_title_widget(self.build_model_popup())
+    
+    # Model popup 
+    def update_model_popup(self):
+        """Update the label in the popup"""
+        model_name = AVAILABLE_LLMS[self.language_model]["title"]
+        if self.model.get_setting("model") is not None:
+            model_name = model_name + " - " + self.model.get_setting("model")
+        self.model_menu_button.set_child(Gtk.Label(label=model_name, ellipsize=Pango.EllipsizeMode.MIDDLE))
+
+    def build_model_popup(self):
+        self.model_menu_button = Gtk.MenuButton()
+        self.update_model_popup()
+        self.model_popup = Gtk.Popover()
+        self.model_popup.set_size_request(500, 500)
+        scroll = Gtk.ScrolledWindow()
+        scroll.set_vexpand(True)
+        scroll.set_hexpand(True)
+        settings = Settings(self, headless=True) 
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        stack = Adw.ViewStack()
+        stack.add_titled_with_icon(self.steal_from_settings(settings.LLM), title="LLM", name="LLM", icon_name="brain-augemnted-symbolic")
+        stack.add_titled_with_icon(self.steal_from_settings(settings.prompt), title="Prompts", name="Prompts", icon_name="question-round-outline-symbolic")
+        switcher = Adw.ViewSwitcher()
+        switcher.set_stack(stack)
+        scroll.set_child(stack) 
+        box.append(switcher)
+        box.append(scroll)
+        self.model_menu_button.set_popover(self.model_popup)
+        self.model_popup.connect("closed", lambda x: self.quick_settings_update())
+        self.model_popup.set_child(box)
+        return self.model_menu_button
+
+    def steal_from_settings(self, widget):
+        widget.unparent()
+        widget.set_margin_bottom(3)
+        widget.set_margin_end(3)
+        widget.set_margin_start(3)
+        widget.set_margin_top(3)
+        return widget
 
     # UI Functions
     def show_presentation_window(self):
