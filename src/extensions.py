@@ -136,17 +136,17 @@ class NewelleExtension(Handler):
         """
         return None
 
-    def preprocess_history(self, history: list, prompts : list, user_prompt: str) -> tuple[list, list, str]:
+    def preprocess_history(self, history: list, prompts : list) -> tuple[list, list]:
         """
         Called on the history before it is sent to the LLM. History is given in Newelle format
         """
-        return history, prompts, user_prompt
+        return history, prompts
 
-    def postprocess_history(self, history: list, prompts: list, bot_response: str) -> tuple[list, list, str]:
+    def postprocess_history(self, history: list, bot_response: str) -> tuple[list, str]:
         """
         Called on the history after it is received from the LLM. History is given in Newelle format
         """
-        return history, prompts, bot_response
+        return history, bot_response
 
 
 class ExtensionLoader:
@@ -398,18 +398,18 @@ class ExtensionLoader:
             return False
         return True
 
-    def preprocess_history(self, history: list, prompts : list, user_prompt: str) -> tuple[list, list, str]:
+    def preprocess_history(self, history: list, prompts : list) -> tuple[list, list]:
         """
         Called on the history before it is sent to the LLM. History is given in Newelle format
         """
         for extension in self.extensions:
-            history, prompts, user_prompt = extension.preprocess_history(history, prompts, user_prompt)
-        return history, prompts, user_prompt
+            history, prompts = extension.preprocess_history(history, prompts)
+        return history, prompts
 
-    def postprocess_history(self, history: list, prompts: list, bot_response: str) -> tuple[list, list, str]:
+    def postprocess_history(self, history: list, bot_response: str) -> tuple[list, str]:
         """
         Called on the history after it is received from the LLM. History is given in Newelle format
         """
         for extension in self.extensions:
-            history, prompts, bot_response = extension.postprocess_history(history, prompts, bot_response)
-        return history, prompts, bot_response
+            history, bot_response = extension.postprocess_history(history, bot_response)
+        return history, bot_response
