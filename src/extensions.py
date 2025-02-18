@@ -403,7 +403,10 @@ class ExtensionLoader:
         Called on the history before it is sent to the LLM. History is given in Newelle format
         """
         for extension in self.extensions:
-            history, prompts = extension.preprocess_history(history, prompts)
+            try:
+                history, prompts = extension.preprocess_history(history, prompts)
+            except Exception as e:
+                print(e)
         return history, prompts
 
     def postprocess_history(self, history: list, bot_response: str) -> tuple[list, str]:
@@ -411,5 +414,8 @@ class ExtensionLoader:
         Called on the history after it is received from the LLM. History is given in Newelle format
         """
         for extension in self.extensions:
-            history, bot_response = extension.postprocess_history(history, bot_response)
+            try:
+                history, bot_response = extension.postprocess_history(history, bot_response)
+            except Exception as e:
+                print(e)
         return history, bot_response
