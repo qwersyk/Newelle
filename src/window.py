@@ -1431,7 +1431,9 @@ class MainWindow(Gtk.ApplicationWindow):
             self.model.install()
             self.update_settings()
         # Set the history for the model
-        self.model.set_history(prompts, self.get_history())
+        history = self.get_history()
+        self.extensionloader.preprocess_history(history, prompts, self.chat[-1]["Message"])
+        self.model.set_history(prompts, history)
         try:
             if self.model.stream_enabled():
                 self.streamed_message = ""
@@ -1459,6 +1461,7 @@ class MainWindow(Gtk.ApplicationWindow):
             return
         
         if self.stream_number_variable == stream_number_variable:
+            history, prompts, message_label = self.extensionloader.postprocess_history(history, prompts, message_label) 
             GLib.idle_add(self.show_message, message_label)
         GLib.idle_add(self.remove_send_button_spinner)
         # Generate chat name 
@@ -1677,7 +1680,7 @@ class MainWindow(Gtk.ApplicationWindow):
                             Gtk.Expander(label="think", child=Gtk.Label(label=chunk.text, wrap=True),css_classes=["toolbar", "osd"], margin_top=10,
                                     margin_start=10,
                                     margin_bottom=10, margin_end=10
-)
+                            )
                         )
                     elif code_language == "image":
                         for i in chunk.text.split("\n"):
