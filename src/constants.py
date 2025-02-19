@@ -114,8 +114,9 @@ AVAILABLE_STT = {
         "title": _("OpenWakeWord"),
         "description": _("Works offline. Model optimized for wakeword detection. Will output any wakeword listed if detected by the model"),
         "class": OpenWakeWordHandler,
-        "secondary": True,
+        "secondary": False,
         "primary": False,
+        "wakeword": True,
     },
     "sphinx": {
         "key": "sphinx",
@@ -555,7 +556,7 @@ SETTINGS_GROUPS = {
         },
         "STT": {
             "title": _("STT"),
-            "settings": ["stt-engine", "stt-settings", "secondary-stt-on", "secondary-stt-engine", "stt-secondary-settings", "automatic-stt", "stt-silence-detection-threshold", "stt-silence-detection-duration"],
+            "settings": ["stt-engine", "stt-settings", "automatic-stt", "stt-silence-detection-threshold", "stt-silence-detection-duration"],
             "description": _("Speech to Text settings"),
         },
         "Embedding": {
@@ -605,9 +606,9 @@ SETTINGS_GROUPS = {
         },
         "wakeword": {
             "title": _("Wakeword"),
-            "settings": ["wakeword-on", "wakeword",
+            "settings": ["wakeword-on", "wakeword-mode", "wakeword-engine", "wakeword-engine-settings", "wakeword",
                          "wakeword-pre-buffer-duration", "wakeword-silence-duration", "wakeword-energy-threshold",
-                         "secondary-stt-on", "secondary-stt-engine"],
+                         "secondary-stt-on", "secondary-stt-engine", "stt-secondary-settings"],
             "description": _("Wakeword detection settings"),
         }
 

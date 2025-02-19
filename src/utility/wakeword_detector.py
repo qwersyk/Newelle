@@ -37,7 +37,7 @@ class WakewordDetector:
     def __init__(self, stt_handler, wakeword, vad_aggressiveness=1,
                  pre_buffer_duration=0.5, silence_duration=0.5, energy_threshold=500, callback=None,
                  on_speech_started=None, on_transcribing=None, on_transcribing_done=None,
-                 secondary_stt_handler=None, secondary_stt_check_duration=2.0):
+                 secondary_stt_handler=None, wakeword_handler=None, secondary_stt_check_duration=2.0):
         """Initialize wakeword detector
 
         Args:
@@ -51,7 +51,8 @@ class WakewordDetector:
             on_speech_started: Callback when speech detection starts
             on_transcribing: Callback when transcription starts
             on_transcribing_done: Callback when transcription completes
-            secondary_stt_handler: Optional secondary STTHandler for quick wakeword check
+            secondary_stt_handler: Optional secondary STTHandler for quick wakeword check (secondary-stt mode)
+            wakeword_handler: Optional specialized wakeword detection handler (openwakeword mode)
             secondary_stt_check_duration: Seconds of audio to check with secondary STT (default 2.0)
         """
         if not DEPENDENCIES_AVAILABLE:
@@ -59,6 +60,7 @@ class WakewordDetector:
 
         self.stt_handler = stt_handler
         self.secondary_stt_handler = secondary_stt_handler
+        self.wakeword_handler = wakeword_handler
         self.secondary_stt_check_duration = secondary_stt_check_duration
         self.wakewords = self._parse_wakewords(wakeword)
         self.vad_aggressiveness = vad_aggressiveness  # Kept for compatibility
@@ -128,6 +130,10 @@ class WakewordDetector:
     def set_secondary_stt_handler(self, secondary_stt_handler):
         """Update secondary STT handler at runtime"""
         self.secondary_stt_handler = secondary_stt_handler
+
+    def set_wakeword_handler(self, wakeword_handler):
+        """Update wakeword handler at runtime"""
+        self.wakeword_handler = wakeword_handler
 
     def set_secondary_stt_check_duration(self, duration):
         """Update secondary STT check duration at runtime"""
@@ -253,6 +259,23 @@ class WakewordDetector:
             print(f"WakewordDetector: Secondary transcription error: {e}")
             return None
 
+    def _transcribe_audio_wakeword(self, temp_file):
+        """Transcribe audio file using wakeword handler
+
+        Args:
+            temp_file: Path to WAV file
+
+        Returns:
+            Detected wakewords or None
+        """
+        print("recognizing with wakeword handler")
+        try:
+            result = self.wakeword_handler.recognize_file(temp_file)
+            return result
+        except Exception as e:
+            print(f"WakewordDetector: Wakeword handler error: {e}")
+            return None
+
     def _process_speech(self, frames):
         """Process detected speech segment
 
@@ -282,8 +305,48 @@ class WakewordDetector:
             if not self._save_to_wav(frames, temp_file_path):
                 return
 
+            # Wakeword handler workflow: use specialized wakeword detection model
+            if self.wakeword_handler is not None:
+                print(f"WakewordDetector: Checking with wakeword handler")
+                wakeword_result = self._transcribe_audio_wakeword(temp_file_path)
+                
+                # Check if wakeword was detected by the specialized model
+                wakeword_detected = False
+                matched_wakeword = None
+                if wakeword_result:
+                    result_lower = wakeword_result.lower()
+                    # The wakeword handler returns the detected wakewords
+                    # Check if any of our configured wakewords match
+                    for wakeword in self.wakewords:
+                        if wakeword in result_lower:
+                            wakeword_detected = True
+                            matched_wakeword = wakeword
+                            print(f"WakewordDetector: Wakeword '{wakeword}' detected by wakeword handler!")
+                            break
+                    # If no exact match, check if the handler detected any wakeword
+                    if not wakeword_detected and result_lower.strip():
+                        wakeword_detected = True
+                        matched_wakeword = result_lower.strip()
+                        print(f"WakewordDetector: Wakeword handler detected: '{result_lower}'")
+
+                if wakeword_detected:
+                    print(f"WakewordDetector: Wakeword found, transcribing full audio with primary STT")
+                    result = self._transcribe_audio(temp_file_path)
+                    if result:
+                        result_lower = result.lower()
+                        # Remove the wakeword from the result
+                        if matched_wakeword and matched_wakeword in result_lower:
+                            command = result_lower.replace(matched_wakeword, "").strip()
+                        else:
+                            command = result_lower.strip()
+                        
+                        if self.callback:
+                            GLib.idle_add(self.callback, command)
+                else:
+                    print(f"WakewordDetector: No wakeword detected by wakeword handler")
+                    return
             # Secondary STT workflow: check first N seconds for wakeword
-            if self.secondary_stt_handler is not None:
+            elif self.secondary_stt_handler is not None:
                 # Calculate how many frames for the check duration
                 check_frames_count = int(self.secondary_stt_check_duration * self.sample_rate / self.chunk_size)
                 check_frames = frames[:check_frames_count]
@@ -319,24 +382,26 @@ class WakewordDetector:
                 # Normal workflow: transcribe full audio
                 result = self._transcribe_audio(temp_file_path)
 
-            result_lower = result.lower() if result else ""
-            matched_wakeword = None
-            for wakeword in self.wakewords:
-                if wakeword in result_lower:
-                    matched_wakeword = wakeword
-                    break
+            # For secondary STT and normal workflows, check for wakeword in result
+            if self.wakeword_handler is None:
+                result_lower = result.lower() if result else ""
+                matched_wakeword = None
+                for wakeword in self.wakewords:
+                    if wakeword in result_lower:
+                        matched_wakeword = wakeword
+                        break
 
-            if matched_wakeword:
-                # Remove matched wakeword from text
-                command = result_lower.replace(matched_wakeword, "").strip()
+                if matched_wakeword:
+                    # Remove matched wakeword from text
+                    command = result_lower.replace(matched_wakeword, "").strip()
 
-                print(f"WakewordDetector: Wakeword '{matched_wakeword}' detected! Command: '{command}'")
+                    print(f"WakewordDetector: Wakeword '{matched_wakeword}' detected! Command: '{command}'")
 
-                # Call callback on main thread
-                if self.callback:
-                    GLib.idle_add(self.callback, command)
-            else:
-                print(f"WakewordDetector: Speech detected but no wakeword found. Transcription: '{result_lower}'")
+                    # Call callback on main thread
+                    if self.callback:
+                        GLib.idle_add(self.callback, command)
+                else:
+                    print(f"WakewordDetector: Speech detected but no wakeword found. Transcription: '{result_lower}'")
 
         except Exception as e:
             print(f"WakewordDetector: Error processing speech: {e}")

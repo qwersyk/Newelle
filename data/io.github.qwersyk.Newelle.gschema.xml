@@ -198,6 +198,15 @@
         <key name="wakeword-on" type="b">
             <default>false</default>
         </key>
+        <key name="wakeword-mode" type="s">
+            <default>"secondary-stt"</default>
+        </key>
+        <key name="wakeword-engine" type="s">
+            <default>"openwakeword"</default>
+        </key>
+        <key name="wakeword-engine-settings" type="s">
+            <default>"{}"</default>
+        </key>
         <key name="wakeword" type="s">
             <default>"hello, hi, newelle, computer"</default>
         </key>

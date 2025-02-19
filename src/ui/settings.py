@@ -149,24 +149,6 @@ class Settings(Adw.PreferencesWindow):
                 row = self.build_row(AVAILABLE_STT, stt_key, selected, group)
                 stt_engine.add_row(row)
 
-        # Secondary STT for wakeword detection
-        secondary_stt_enabled = Gtk.Switch(valign=Gtk.Align.CENTER)
-        self.settings.bind("secondary-stt-on", secondary_stt_enabled, 'active', Gio.SettingsBindFlags.DEFAULT)
-        secondary_stt_engine = Adw.ExpanderRow(
-            title=_('Secondary STT for Wakeword'),
-            subtitle=_("Faster STT for quick wakeword detection (first 2s of speech)")
-        )
-        secondary_stt_engine.add_action(secondary_stt_enabled)
-
-        # Add secondary STTs
-        self.Voicegroup.add(secondary_stt_engine)
-        group = Gtk.CheckButton()
-        selected = self.settings.get_string("secondary-stt-engine")
-        for stt_key in AVAILABLE_STT:
-            if "secondary" in AVAILABLE_STT[stt_key] and AVAILABLE_STT[stt_key]["secondary"]:
-                row = self.build_row(AVAILABLE_STT, stt_key, selected, group, True)
-                secondary_stt_engine.add_row(row)
-
         # Automatic STT settings
         self.auto_stt = Adw.ExpanderRow(title=_('Automatic Speech To Text'), subtitle=_("Automatically restart speech to text at the end of a text/TTS"))
         self.build_auto_stt()
@@ -181,12 +163,62 @@ class Settings(Adw.PreferencesWindow):
                            Gio.SettingsBindFlags.DEFAULT)
         self.wakeword_row.add_action(wakeword_enabled)
 
-        # Wakeword text entry
+        # Wakeword mode toggle group
+        mode_row = Adw.ActionRow(title=_('Detection Method'), subtitle=_("Choose wakeword detection method"))
+        mode_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6, valign=Gtk.Align.CENTER)
+        
+        current_mode = self.settings.get_string("wakeword-mode")
+        self.wakeword_mode_secondary = Gtk.ToggleButton(label=_("Secondary STT"), active=(current_mode == "secondary-stt"))
+        self.wakeword_mode_secondary.add_css_class("flat")
+        self.wakeword_mode_wakeword = Gtk.ToggleButton(label=_("Wakeword Model"), group=self.wakeword_mode_secondary, active=(current_mode == "openwakeword"))
+        self.wakeword_mode_wakeword.add_css_class("flat")
+        
+        mode_box.append(self.wakeword_mode_secondary)
+        mode_box.append(self.wakeword_mode_wakeword)
+        mode_row.add_suffix(mode_box)
+        self.wakeword_row.add_row(mode_row)
+
+        # Secondary STT mode rows (visible when secondary-stt mode is selected)
+        self.secondary_stt_rows = []
+        
+        # Secondary STT engine selection
+        secondary_stt_engine = Adw.ExpanderRow(
+            title=_('Secondary STT Engine'),
+            subtitle=_("Fast STT for quick wakeword detection")
+        )
+        group = Gtk.CheckButton()
+        selected = self.settings.get_string("secondary-stt-engine")
+        for stt_key in AVAILABLE_STT:
+            if "secondary" in AVAILABLE_STT[stt_key] and AVAILABLE_STT[stt_key]["secondary"]:
+                row = self.build_row(AVAILABLE_STT, stt_key, selected, group, True)
+                secondary_stt_engine.add_row(row)
+        self.wakeword_row.add_row(secondary_stt_engine)
+        self.secondary_stt_rows.append(secondary_stt_engine)
+
+        # Wakeword text entry (for secondary STT mode)
         wakeword_entry = Adw.EntryRow(title=_('Wakeword'))
         wakeword_entry.set_tooltip_text(_("Word or phrase to detect (multiple separated by comma)"))
         self.settings.bind("wakeword", wakeword_entry, 'text',
                            Gio.SettingsBindFlags.DEFAULT)
         self.wakeword_row.add_row(wakeword_entry)
+        self.secondary_stt_rows.append(wakeword_entry)
+
+        # Wakeword engine mode rows (visible when openwakeword mode is selected)
+        self.wakeword_engine_rows = []
+        
+        # Wakeword engine selection (handlers with "wakeword": True)
+        wakeword_engine = Adw.ExpanderRow(
+            title=_('Wakeword Engine'),
+            subtitle=_("Model specialized for wakeword detection")
+        )
+        group = Gtk.CheckButton()
+        selected = self.settings.get_string("wakeword-engine")
+        for stt_key in AVAILABLE_STT:
+            if AVAILABLE_STT[stt_key].get("wakeword", False):
+                row = self.build_row(AVAILABLE_STT, stt_key, selected, group, True)
+                wakeword_engine.add_row(row)
+        self.wakeword_row.add_row(wakeword_engine)
+        self.wakeword_engine_rows.append(wakeword_engine)
 
         # Pre-buffer duration
         pre_buffer_adj = Gtk.Adjustment(
@@ -247,6 +279,26 @@ class Settings(Adw.PreferencesWindow):
             return False
         energy_row.connect("input", update_energy)
         self.wakeword_row.add_row(energy_row)
+
+        # Toggle visibility based on mode
+        def on_wakeword_mode_changed(btn):
+            is_wakeword = self.wakeword_mode_wakeword.get_active()
+            mode = "openwakeword" if is_wakeword else "secondary-stt"
+            self.settings.set_string("wakeword-mode", mode)
+            for row in self.secondary_stt_rows:
+                row.set_visible(not is_wakeword)
+            for row in self.wakeword_engine_rows:
+                row.set_visible(is_wakeword)
+        
+        self.wakeword_mode_secondary.connect("toggled", on_wakeword_mode_changed)
+        self.wakeword_mode_wakeword.connect("toggled", on_wakeword_mode_changed)
+        
+        # Set initial visibility
+        is_wakeword_mode = current_mode == "openwakeword"
+        for row in self.secondary_stt_rows:
+            row.set_visible(not is_wakeword_mode)
+        for row in self.wakeword_engine_rows:
+            row.set_visible(is_wakeword_mode)
 
         self.Voicegroup.add(self.wakeword_row)
         # Build prompts settings 
