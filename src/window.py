@@ -9,6 +9,7 @@ import threading
 import posixpath
 import json
 import base64
+import copy
 
 from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject, GLib, GdkPixbuf
 
@@ -27,7 +28,7 @@ from .constants import AVAILABLE_LLMS, AVAILABLE_PROMPTS, PROMPTS, AVAILABLE_TTS
 from .utility import override_prompts
 from .utility.system import get_spawn_command 
 from .utility.pip import install_module
-from .utility.strings import convert_think_codeblocks, markwon_to_pango, remove_markdown
+from .utility.strings import convert_think_codeblocks, get_edited_messages, markwon_to_pango, remove_markdown
 from .utility.replacehelper import replace_variables
 from .utility.profile_settings import get_settings_dict, restore_settings_from_dict
 from .utility.audio_recorder import AudioRecorder
@@ -1281,7 +1282,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.stream_number_variable += 1
         self.chat_stop_button.set_visible(False)
         GLib.idle_add(self.update_button_text)
-        if self.chat[-1]["User"] != "Assistant" or "```console" in self.chat[-1]["Message"]:
+        if len(self.chat) > 0 and (self.chat[-1]["User"] != "Assistant" or "```console" in self.chat[-1]["Message"]):
             for i in range(len(self.chat) - 1, -1, -1):
                 if self.chat[i]["User"] in ["Assistant", "Console"]:
                     self.chat.pop(i)
@@ -1431,15 +1432,28 @@ class MainWindow(Gtk.ApplicationWindow):
             self.model.install()
             self.update_settings()
         # Set the history for the model
-        self.model.set_history(prompts, self.get_history())
+        history = self.get_history()
+        # Let extensions preprocess the history 
+        old_history = copy.deepcopy(history)
+        old_user_prompt = self.chat[-1]["Message"]
+
+        self.chat, prompts = self.extensionloader.preprocess_history(self.chat, prompts)
+        if len(self.chat) == 0:
+            GLib.idle_add(self.remove_send_button_spinner)
+            GLib.idle_add(self.show_chat)
+            return
+        if self.chat[-1]["Message"] != old_user_prompt:
+            self.reload_message(len(self.chat) - 1)
+
+        self.model.set_history(prompts, history)
         try:
             if self.model.stream_enabled():
                 self.streamed_message = ""
                 self.curr_label = ""
                 GLib.idle_add(self.create_streaming_message_label)
-                self.streaming_lable = None
+                self.streaming_label = None
                 message_label = self.model.send_message_stream(self, self.chat[-1]["Message"], self.update_message,
-                                                               [stream_number_variable])
+                                                            [stream_number_variable])
                 try:
                     parent = self.streaming_box.get_parent()
                     if parent is not None: 
@@ -1459,6 +1473,14 @@ class MainWindow(Gtk.ApplicationWindow):
             return
         
         if self.stream_number_variable == stream_number_variable:
+            history, message_label = self.extensionloader.postprocess_history(self.chat, message_label)
+            # Edit messages that require to be updated 
+            edited_messages = get_edited_messages(history, old_history)
+            if edited_messages is None:
+                GLib.idle_add(self.show_chat) 
+            else:
+                for message in edited_messages:
+                    GLib.idle_add(self.reload_message, message)
             GLib.idle_add(self.show_message, message_label)
         GLib.idle_add(self.remove_send_button_spinner)
         # Generate chat name 
@@ -1542,6 +1564,7 @@ class MainWindow(Gtk.ApplicationWindow):
     # Show messages in chat
     def show_chat(self):
         """Show a chat"""
+        self.messages_box = []
         self.last_error_box = None
         if not self.check_streams["chat"]:
             self.check_streams["chat"] = True
@@ -1677,7 +1700,7 @@ class MainWindow(Gtk.ApplicationWindow):
                             Gtk.Expander(label="think", child=Gtk.Label(label=chunk.text, wrap=True),css_classes=["toolbar", "osd"], margin_top=10,
                                     margin_start=10,
                                     margin_bottom=10, margin_end=10
-)
+                            )
                         )
                     elif code_language == "image":
                         for i in chunk.text.split("\n"):
@@ -1894,6 +1917,24 @@ class MainWindow(Gtk.ApplicationWindow):
         box.remove(old_message)
         box.append(entry)
 
+    def reload_message(self, message_id: int):
+        """Reload a message
+
+        Args:
+            message_id (int): the id of the message to reload 
+        """
+        if len(self.messages_box) <= message_id:
+            return
+        if self.chat[message_id]["User"] == "Console":
+            return
+        message_box = self.messages_box[message_id+1] # +1 to fix message warning
+        old_label = message_box.get_last_child()
+        if old_label is not None:
+            message_box.remove(old_label)
+            message_box.append(
+                self.show_message(self.chat[message_id]["Message"], id_message=message_id, is_user=self.chat[message_id]["User"] == "User", return_widget=True)
+            )
+
     def apply_edit_message(self, gesture, box: Gtk.Box, apply_edit_stack: Gtk.Stack):
         """Apply edit for a message
 
@@ -1941,6 +1982,7 @@ class MainWindow(Gtk.ApplicationWindow):
         """
         del self.chat[int(gesture.get_name())]
         self.chat_list_block.remove(box.get_parent())
+        self.messages_box.remove(box)
         self.save_chat()
         self.show_chat()
 
@@ -1997,7 +2039,7 @@ class MainWindow(Gtk.ApplicationWindow):
         """
         box = Gtk.Box(css_classes=["card"], margin_top=10, margin_start=10, margin_bottom=10, margin_end=10,
                       halign=Gtk.Align.START)
-        
+        self.messages_box.append(box) 
         # Create edit controls
         if editable:
             apply_edit_stack = self.build_edit_box(box, str(id_message))

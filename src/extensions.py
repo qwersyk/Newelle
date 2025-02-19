@@ -136,6 +136,19 @@ class NewelleExtension(Handler):
         """
         return None
 
+    def preprocess_history(self, history: list, prompts : list) -> tuple[list, list]:
+        """
+        Called on the history before it is sent to the LLM. History is given in Newelle format
+        """
+        return history, prompts
+
+    def postprocess_history(self, history: list, bot_response: str) -> tuple[list, str]:
+        """
+        Called on the history after it is received from the LLM. History is given in Newelle format
+        """
+        return history, bot_response
+
+
 class ExtensionLoader:
     """
     Class that loads the extensions
@@ -385,3 +398,24 @@ class ExtensionLoader:
             return False
         return True
 
+    def preprocess_history(self, history: list, prompts : list) -> tuple[list, list]:
+        """
+        Called on the history before it is sent to the LLM. History is given in Newelle format
+        """
+        for extension in self.extensions:
+            try:
+                history, prompts = extension.preprocess_history(history, prompts)
+            except Exception as e:
+                print(e)
+        return history, prompts
+
+    def postprocess_history(self, history: list, bot_response: str) -> tuple[list, str]:
+        """
+        Called on the history after it is received from the LLM. History is given in Newelle format
+        """
+        for extension in self.extensions:
+            try:
+                history, bot_response = extension.postprocess_history(history, bot_response)
+            except Exception as e:
+                print(e)
+        return history, bot_response
