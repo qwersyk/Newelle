@@ -438,15 +438,30 @@ class MainWindow(Gtk.ApplicationWindow):
     def quick_settings_update(self):  
         """Update LLM and prompt settings"""
         self.language_model = self.settings.get_string("language-model")
+        self.secondary_language_model = self.settings.get_string("secondary-language-model")
+        self.use_secondary_language_model = self.settings.get_boolean("secondary-llm-on")
         self.custom_prompts = json.loads(self.settings.get_string("custom-prompts"))
         self.prompts = override_prompts(self.custom_prompts, PROMPTS)
         self.prompts_settings = json.loads(self.settings.get_string("prompts-settings"))
 
+        # Primary LLM
         if self.language_model in AVAILABLE_LLMS:
             self.model: LLMHandler = AVAILABLE_LLMS[self.language_model]["class"](self.settings, os.path.join(self.directory, "models"))
         else:
             mod = list(AVAILABLE_LLMS.values())[0]
             self.model: LLMHandler = mod["class"](self.settings, os.path.join(self.directory))
+       
+        # Secondary LLM
+        if self.use_secondary_language_model:
+            if self.secondary_language_model in AVAILABLE_LLMS:
+                self.secondary_model: LLMHandler = AVAILABLE_LLMS[self.secondary_language_model]["class"](self.settings, os.path.join(self.directory, "models"))
+            else:
+                mod = list(AVAILABLE_LLMS.values())[0]
+                self.secondary_model: LLMHandler = mod["class"](self.settings, os.path.join(self.directory))
+            self.secondary_model.set_secondary_settings(True)
+        else:
+            self.secondary_model = self.model
+
         # Load handlers and models
         self.model.load_model(None)
         self.stt_handler = AVAILABLE_STT[self.stt_engine]["class"](self.settings, self.pip_directory)
@@ -1221,9 +1236,12 @@ class MainWindow(Gtk.ApplicationWindow):
             button.set_can_target(False)
             button.set_has_frame(True)
 
-            self.model.set_history([], self.get_history(self.chats[int(button.get_name())]["chat"]))
-            name = self.model.generate_chat_name(self.prompts["generate_name_prompt"])
+            self.secondary_model.set_history([], self.get_history(self.chats[int(button.get_name())]["chat"]))
+            print("Generating")
+            name = self.secondary_model.generate_chat_name(self.prompts["generate_name_prompt"])
+            print(name)
             if name is None:
+                self.update_history()
                 return
             name = remove_markdown(name)
             if name != "Chat has been stopped":
@@ -1373,7 +1391,7 @@ class MainWindow(Gtk.ApplicationWindow):
     def generate_suggestions(self):
         """Create the suggestions and update the UI when it's finished"""
         self.model.set_history([], self.get_history())
-        suggestions = self.model.get_suggestions(self.prompts["get_suggestions_prompt"], self.offers)
+        suggestions = self.secondary_model.get_suggestions(self.prompts["get_suggestions_prompt"], self.offers)
         GLib.idle_add(self.populate_suggestions, suggestions)
 
     def populate_suggestions(self, suggestions):

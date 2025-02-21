@@ -11,6 +11,17 @@ class Handler():
         self.settings = settings
         self.path = path
 
+    def set_secondary(self, secondary: bool):
+        """Set the secondary settings for the LLM"""
+        if secondary:
+            self.schema_key = "secondary-settings"
+        else:
+            self.schema_key = "settings"
+
+    def is_secondary(self) -> bool:
+        """ Return if the LLM is a secondary one"""
+        return self.schema_key == "secondary-settings"
+
     @staticmethod
     def requires_sandbox_escape() -> bool:
         """If the handler requires to run commands on the user host system"""
@@ -127,6 +138,10 @@ class Handler():
             if s["key"] == key:
                 return s["default"]
         return None
+
+    def get_all_settings(self) -> dict:
+        j = json.loads(self.settings.get_string(self.schema_key))
+        return j[self.key] if self.key in j else {}
 
     def set_extra_settings_update(self, callback):
         self.on_extra_settings_update = callback

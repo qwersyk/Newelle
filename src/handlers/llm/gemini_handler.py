@@ -75,7 +75,7 @@ class GeminiHandler(LLMHandler):
             {
                 "key": "model",
                 "title": _("Model"),
-                "description": _("AI Model to use, available: gemini-1.5-pro, gemini-1.0-pro, gemini-1.5-flash"),
+                "description": _("AI Model to use"),
                 "type": "combo",
                 "refresh": lambda button: self.get_models(),
                 "default": self.models[0][1],

@@ -62,7 +62,6 @@ class Settings(Adw.PreferencesWindow):
         self.LLM.set_header_suffix(help)
         # Add LLMs
         self.general_page.add(self.LLM)
-        self.llmbuttons = []
         group = Gtk.CheckButton()
         selected = self.settings.get_string("language-model")
         others_row = Adw.ExpanderRow(title=_('Other LLMs'), subtitle=_("Other available LLM providers"))
@@ -74,6 +73,26 @@ class Settings(Adw.PreferencesWindow):
                 self.LLM.add(row)
         self.LLM.add(others_row)
 
+        # Secondary LLM
+        self.SECONDARY_LLM = Adw.PreferencesGroup(title=_('Secondary Language Model'))
+        # Create row
+        secondary_LLM_enabled = Gtk.Switch(valign=Gtk.Align.CENTER)
+        self.settings.bind("secondary-llm-on", secondary_LLM_enabled, 'active', Gio.SettingsBindFlags.DEFAULT)
+        secondary_LLM = Adw.ExpanderRow(title=_('Secondary Language Model'), subtitle=_("Model used for secondary tasks, like offer and chat name generation"))
+        secondary_LLM.add_action(secondary_LLM_enabled)
+        # Add LLMs
+        self.general_page.add(self.SECONDARY_LLM)
+        group = Gtk.CheckButton()
+        selected = self.settings.get_string("secondary-language-model")
+        others_row = Adw.ExpanderRow(title=_('Other LLMs'), subtitle=_("Other available LLM providers"))
+        for model_key in AVAILABLE_LLMS:
+           row = self.build_row(AVAILABLE_LLMS, model_key, selected, group, True)
+           if "secondary" in AVAILABLE_LLMS[model_key] and AVAILABLE_LLMS[model_key]["secondary"]:
+               others_row.add_row(row)
+           else:
+               secondary_LLM.add_row(row)
+        secondary_LLM.add_row(others_row)
+        self.SECONDARY_LLM.add(secondary_LLM)
         
         # Build the TTS settings
         self.Voicegroup = Adw.PreferencesGroup(title=_('Voice'))
@@ -247,7 +266,7 @@ class Settings(Adw.PreferencesWindow):
         self.prompts_settings[key] = switch.get_active()
         self.settings.set_string("prompts-settings", json.dumps(self.prompts_settings))
 
-    def build_row(self, constants: dict[str, Any], key: str, selected: str, group: Gtk.CheckButton) -> Adw.ActionRow | Adw.ExpanderRow:
+    def build_row(self, constants: dict[str, Any], key: str, selected: str, group: Gtk.CheckButton, secondary: bool = False) -> Adw.ActionRow | Adw.ExpanderRow:
         """Build the row for every handler
 
         Args:
@@ -255,33 +274,39 @@ class Settings(Adw.PreferencesWindow):
             key: key of the specified handler
             selected: the key of the selected handler
             group: the check group for che checkbox in the row
+            secondary: if to use secondary settings
 
         Returns:
             The created row
         """
         model = constants[key]
-        handler = self.get_object(constants, key)
+        handler = self.get_object(constants, key, secondary)
         # Check if the model is the currently selected
         active = False
         if model["key"] == selected:
             active = True
         # Define the type of row
-        self.settingsrows[(key, self.convert_constants(constants))] = {}
+        self.settingsrows[(key, self.convert_constants(constants), secondary)] = {}
         if len(handler.get_extra_settings()) > 0:
              row = Adw.ExpanderRow(title=model["title"], subtitle=model["description"])
              self.add_extra_settings(constants, handler, row)
         else:
             row = Adw.ActionRow(title=model["title"], subtitle=model["description"])
-        self.settingsrows[(key, self.convert_constants(constants))]["row"] = row
+        self.settingsrows[(key, self.convert_constants(constants), secondary)]["row"] = row
         
         # Add extra buttons 
         threading.Thread(target=self.add_download_button, args=(handler, row)).start()
         self.add_flatpak_waning_button(handler, row)
-        
+       
+        # Add copy settings button if it's secondary 
+        if secondary:
+            button = Gtk.Button(css_classes=["flat"], icon_name="edit-copy-symbolic", valign=Gtk.Align.CENTER)
+            button.connect("clicked", self.copy_settings, constants, handler)
+            row.add_suffix(button)
         # Add check button
         button = Gtk.CheckButton(name=key, group=group, active=active)
-        button.connect("toggled", self.choose_row, constants)
-        self.settingsrows[(key, self.convert_constants(constants))]["button"] = button 
+        button.connect("toggled", self.choose_row, constants, secondary)
+        self.settingsrows[(key, self.convert_constants(constants), secondary)]["button"] = button 
         if not self.sandbox and handler.requires_sandbox_escape() or not handler.is_installed():
             button.set_sensitive(False)
         row.add_prefix(button)
@@ -291,6 +316,15 @@ class Settings(Adw.PreferencesWindow):
             row.add_suffix(wbbutton)
         return row
 
+    def copy_settings(self, button, constants: dict[str, Any], handler: Handler):
+        """Copy the settings"""
+        primary = self.get_object(constants, handler.key, False)
+        secondary = self.get_object(constants, handler.key, True)
+        for setting in primary.get_all_settings():
+            secondary.set_setting(setting, primary.get_setting(setting))
+        self.on_setting_change(constants, handler, "", True)
+
+
     def cache_handlers(self):
         self.handlers = {}
         for key in AVAILABLE_TTS:
@@ -298,14 +332,18 @@ class Settings(Adw.PreferencesWindow):
         for key in AVAILABLE_STT:
             self.handlers[(key, self.convert_constants(AVAILABLE_STT))] = self.get_object(AVAILABLE_STT, key)
         for key in AVAILABLE_LLMS:
-            self.handlers[(key, self.convert_constants(AVAILABLE_LLMS))] = self.get_object(AVAILABLE_LLMS, key)
+            self.handlers[(key, self.convert_constants(AVAILABLE_LLMS), False)] = self.get_object(AVAILABLE_LLMS, key)
+        # Secondary LLMs
+        for key in AVAILABLE_LLMS:
+            self.handlers[(key, self.convert_constants(AVAILABLE_LLMS), True)] = self.get_object(AVAILABLE_LLMS, key, True)
 
-    def get_object(self, constants: dict[str, Any], key:str) -> (Handler):
+    def get_object(self, constants: dict[str, Any], key:str, secondary=False) -> (Handler):
         """Get an handler instance for the specified handler key
 
         Args:
             constants: The constants for the specified handler, can be AVAILABLE_TTS, AVAILABLE_STT...
             key: key of the specified handler
+            secondary: if to use secondary settings
 
         Raises:
             Exception: if the constant is not valid 
@@ -318,6 +356,7 @@ class Settings(Adw.PreferencesWindow):
 
         if constants == AVAILABLE_LLMS:
             model = constants[key]["class"](self.settings, os.path.join(self.directory, "models"))
+            model.set_secondary_settings(secondary)
         elif constants == AVAILABLE_STT:
             model = constants[key]["class"](self.settings,os.path.join(self.directory, "models"))
         elif constants == AVAILABLE_TTS:
@@ -389,7 +428,7 @@ class Settings(Adw.PreferencesWindow):
         else:
             raise Exception("Unknown handler")
 
-    def choose_row(self, button, constants : dict):
+    def choose_row(self, button, constants : dict, secondary=False):
         """Called by GTK the selected handler is changed
 
         Args:
@@ -398,7 +437,10 @@ class Settings(Adw.PreferencesWindow):
         """
         setting_name = ""
         if constants == AVAILABLE_LLMS:
-            setting_name = "language-model"
+            if secondary:
+                setting_name = "secondary-language-model"
+            else:
+                setting_name = "language-model"
         elif constants == AVAILABLE_TTS:
             setting_name = "tts"
         elif constants == AVAILABLE_STT:
@@ -433,7 +475,7 @@ class Settings(Adw.PreferencesWindow):
             row: row where to add the settings
         """
         if nested_settings is None:
-            self.settingsrows[(handler.key, self.convert_constants(constants))]["extra_settings"] = []
+            self.settingsrows[(handler.key, self.convert_constants(constants), handler.is_secondary())]["extra_settings"] = []
             settings = handler.get_extra_settings()
         else:
             settings = nested_settings
@@ -510,7 +552,7 @@ class Settings(Adw.PreferencesWindow):
 
             row.add_row(r)
             handler.set_extra_settings_update(lambda _: GLib.idle_add(self.on_setting_change, constants, handler, handler.key, True))
-            self.settingsrows[handler.key, self.convert_constants(constants)]["extra_settings"].append(r)
+            self.settingsrows[handler.key, self.convert_constants(constants), handler.is_secondary()]["extra_settings"].append(r)
 
 
     def add_customize_prompt_content(self, row, prompt_name):
@@ -590,8 +632,8 @@ class Settings(Adw.PreferencesWindow):
 
         if force_change or "update_settings" in setting_info and setting_info["update_settings"]:
             # remove all the elements in the specified expander row 
-            row = self.settingsrows[(handler.key, self.convert_constants(constants))]["row"]
-            setting_list = self.settingsrows[(handler.key, self.convert_constants(constants))]["extra_settings"]
+            row = self.settingsrows[(handler.key, self.convert_constants(constants), handler.is_secondary())]["row"]
+            setting_list = self.settingsrows[(handler.key, self.convert_constants(constants), handler.is_secondary())]["extra_settings"]
             for setting_row in setting_list:
                 row.remove(setting_row)
             self.add_extra_settings(constants, handler, row)
@@ -724,7 +766,7 @@ class Settings(Adw.PreferencesWindow):
             self.on_setting_change(self.get_constants_from_object(model), model, "", True)
         button.set_child(None)
         button.set_sensitive(False)
-        checkbutton = self.settingsrows[(model.key, self.convert_constants(self.get_constants_from_object(model)))]["button"]
+        checkbutton = self.settingsrows[(model.key, self.convert_constants(self.get_constants_from_object(model)), model.is_secondary())]["button"]
         checkbutton.set_sensitive(True)
 
     def download_setting(self, button: Gtk.Button, setting, handler: Handler, uninstall=False):

@@ -38,10 +38,19 @@
 	  	  <key name="custom-extra-prompt" type="b">
             <default>false</default>
         </key>
+	      <key name="secondary-llm-on" type="b">
+            <default>false</default>
+        </key>
+	      <key name="secondary-language-model" type="s">
+            <default>"newelle"</default>
+        </key>
 	      <key name="language-model" type="s">
             <default>"newelle"</default>
         </key>
 	      <key name="llm-settings" type="s">
+            <default>"{}"</default>
+        </key>
+	      <key name="llm-secondary-settings" type="s">
             <default>"{}"</default>
         </key>
 	      <key name="tts-on" type="b">
