@@ -104,6 +104,11 @@ stt_sources = [
   'handlers/stt/vosk_handler.py',
 ]
 
+embedding_sources = [  
+  'handlers/embeddings/__init__.py',
+  'handlers/embeddings/embedding.py',
+  'handlers/embeddings/wordllama_handler.py',
+]
 utility_sources = [
   'utility/__init__.py',
   'utility/media.py',
