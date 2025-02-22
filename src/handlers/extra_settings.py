@@ -65,7 +65,8 @@ class ExtraSettings:
             r["icon"] = icon
         return r
 
-    def ComboSetting(self, key: str, title: str, description: str, values: list | dict | tuple, default: str,
+    @staticmethod
+    def ComboSetting(key: str, title: str, description: str, values: list | dict | tuple, default: str,
                      folder: str|None = None, website: str|None = None, update_settings: bool = False, refresh: Callable|None = None, refresh_icon: str|None = None) -> dict:
         r = ExtraSettings.Setting(key, title, description, default, folder, website, update_settings, refresh, refresh_icon)
         r["type"] = "combo"
