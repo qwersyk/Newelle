@@ -2,6 +2,9 @@
 from .handlers.llm import BingHandler, ClaudeHandler, DeepseekHandler, GPT4AllHandler, GroqHandler, OllamaHandler, OpenAIHandler, CustomLLMHandler, GPT3AnyHandler, GeminiHandler, MistralHandler, OpenRouterHandler, NewelleAPIHandler
 from .handlers.tts import ElevenLabs, gTTSHandler, EspeakHandler, CustomTTSHandler
 from .handlers.stt import GroqSRHandler, OpenAISRHandler, SphinxHandler, GoogleSRHandler, WhisperHandler, WitAIHandler, VoskHandler, CustomSRHandler
+from .handlers.embeddings import WordLlamaHandler
+from .handlers.memory import MemoripyHandler
+
 
 AVAILABLE_LLMS = {
     "newelle": {
@@ -177,6 +180,23 @@ AVAILABLE_TTS = {
     }
 }
 
+AVAILABLE_EMBEDDINGS = {
+    "wordllama": {
+        "key": "wordllama",
+        "title": _("WordLlama"),
+        "description": _("WordLlama Embeddings"),
+        "class": WordLlamaHandler,
+    }
+}
+
+AVAILABLE_MEMORIES = {
+    "memoripy": {
+        "key": "memoripy",
+        "title": _("Memoripy"),
+        "description": _("Memoripy"),
+        "class": MemoripyHandler,
+    }
+}
 
 PROMPTS = {
     "generate_name_prompt": """Write a short title for the dialog, summarizing the theme in 5 words. No additional text.""",

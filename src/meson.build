@@ -109,6 +109,13 @@ embedding_sources = [
   'handlers/embeddings/embedding.py',
   'handlers/embeddings/wordllama_handler.py',
 ]
+
+memory_sources = [  
+  'handlers/memory/__init__.py',
+  'handlers/memory/memory_handler.py',
+  'handlers/memory/memoripy_handler.py',
+]
+
 utility_sources = [
   'utility/__init__.py',
   'utility/media.py',
@@ -129,5 +136,7 @@ install_data(handler_sources, install_dir: moduledir / 'handlers')
 install_data(llm_sources, install_dir: moduledir / 'handlers' / 'llm')
 install_data(tts_sources, install_dir: moduledir / 'handlers' / 'tts')
 install_data(stt_sources, install_dir: moduledir / 'handlers' / 'stt')
+install_data(memory_sources, install_dir: moduledir / 'handlers' / 'memory')
+install_data(embedding_sources, install_dir: moduledir / 'handlers' / 'embeddings')
 install_data(utility_sources, install_dir: moduledir / 'utility')
 
