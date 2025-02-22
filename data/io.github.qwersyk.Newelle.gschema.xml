@@ -68,6 +68,21 @@
 	      <key name="stt-settings" type="s">
 	        <default>"{}"</default>
         </key>
+	      <key name="embedding-model" type="s">
+            <default>"wordllama"</default>
+        </key>
+	      <key name="embedding-settings" type="s">
+            <default>"{}"</default>
+        </key>
+        <key name="memory-on" type="b">
+          <default>false</default>
+        </key>
+	      <key name="memory-model" type="s">
+            <default>"memoripy"</default>
+        </key>
+	      <key name="memory-settings" type="s">
+            <default>"{}"</default>
+        </key>
         <key name="automatic-stt" type="b">
           <default>false</default>
         </key>

@@ -14,7 +14,7 @@ class MemoryHandler(Handler):
         return []
 
     @abstractmethod 
-    def register_response(self, history, embedding, llm):
+    def register_response(self, bot_response, history, embedding, llm):
         pass
 
     @abstractmethod

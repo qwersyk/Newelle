@@ -4,6 +4,7 @@ from .memory_handler import MemoryHandler
 from ...handlers.embeddings.embedding import EmbeddingHandler
 from ...handlers.llm.llm import LLMHandler
 from ...handlers import Handler
+from ...handlers import ExtraSettings
 from ...utility.util import convert_history_newelle
 from ...utility.strings import extract_json
 from ...utility.pip import find_module, install_module
@@ -23,13 +24,22 @@ class MemoripyHandler(MemoryHandler):
         pip_path = os.path.join(os.path.abspath(os.path.join(self.path, os.pardir)), "pip")
         install_module("git+https://github.com/FrancescoCaracciolo/Memoripy.git", pip_path)
 
+    def get_extra_settings(self) -> list:
+        return [
+            ExtraSettings.ButtonSetting("reset_memory", "Reset Memory", "Reset the memory", lambda x: self.reset_memory(), "Reset Memory"),
+        ]
+    def reset_memory(self):
+        storage = os.path.join(self.path, "memory2.json")
+        if os.path.exists(storage):
+            os.remove(storage)
+ 
     def load(self, embedding, llm):
         from memoripy import JSONStorage
         from memoripy import MemoryManager
-        storage = os.path.join(self.path, "memory.json")
+        storage = os.path.join(self.path, "memory2.json")
         storage_option = JSONStorage(storage)
         self.memory_manager = MemoryManager(self._create_chat_adapter(llm), self._create_embedding_adapter(embedding), storage_option)
-    
+
     def _create_embedding_adapter(self, embedding: EmbeddingHandler):
         from memoripy.model import EmbeddingModel
         
@@ -38,7 +48,8 @@ class MemoripyHandler(MemoryHandler):
                 self.embedding = embedding
 
             def get_embedding(self, text: str) -> np.ndarray:
-                return self.embedding.get_embedding([text])
+                emb = self.embedding.get_embedding([text])
+                return emb
        
             def initialize_embedding_dimension(self) -> int:
                 return self.embedding.get_embedding(["test"]).shape[1]
@@ -73,14 +84,16 @@ class MemoripyHandler(MemoryHandler):
         if self.memory_manager is None:
             self.load(embedding, llm)
         if self.memory_manager is not None:
-            relevant_interactions = self.memory_manager.retrieve_relevant_interactions(prompt, exclude_last_n=len(history))
+            relevant_interactions = self.memory_manager.retrieve_relevant_interactions(prompt, exclude_last_n=max(2, len(history)))
+            print(relevant_interactions)
         else:
             return []
-        return relevant_interactions
+        return ["\n".join(relevant_interactions)]
 
-    def register_response(self, history, embedding, llm):
+    def register_response(self, bot_response, history, embedding, llm):
         if self.memory_manager is not None:
-            combined_text = " ".join([history[i]["Message"] for i in range(2)])
+            combined_text = " ".join([history[-1]["Message"], bot_response])
+            print(combined_text)
             concepts = self.memory_manager.extract_concepts(combined_text)
-            new_embedding = embedding.get_embedding(concepts)
-            self.memory_manager.add_interaction(history[-2]["Message"], history[-1]["Message"], new_embedding, concepts)
+            new_embedding = embedding.get_embedding([combined_text])[0]
+            self.memory_manager.add_interaction(history[-1]["Message"], bot_response, new_embedding, concepts)

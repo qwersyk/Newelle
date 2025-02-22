@@ -21,7 +21,7 @@ class WordLlamaHandler(EmbeddingHandler):
 
     def load_model(self):
         from wordllama import WordLlama 
-        self.wl = WordLlama(int(self.get_setting("model_size")))
+        self.wl = WordLlama.load()
 
     def get_embedding(self, text: list[str]) -> np.ndarray:
         if self.wl is not None:
