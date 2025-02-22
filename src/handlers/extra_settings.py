@@ -73,7 +73,7 @@ class ExtraSettings:
         if type(values) is list:
             val = tuple()
             for v in values:
-                val += ((v,v))
+                val += ((v,v), )
         elif type(values) is dict:
             val = tuple()
             for k, v in values.items():

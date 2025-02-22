@@ -4,7 +4,7 @@ from numpy import ndarray
 
 class EmbeddingHandler(Handler):
     key = ""
-    schema_key = "embeddings-settings"
+    schema_key = "embedding-settings"
 
 
     def __init__(self, settings, path):
