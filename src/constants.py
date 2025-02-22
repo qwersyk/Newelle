@@ -3,7 +3,7 @@ from .handlers.llm import BingHandler, ClaudeHandler, DeepseekHandler, GPT4AllHa
 from .handlers.tts import ElevenLabs, gTTSHandler, EspeakHandler, CustomTTSHandler
 from .handlers.stt import GroqSRHandler, OpenAISRHandler, SphinxHandler, GoogleSRHandler, WhisperHandler, WitAIHandler, VoskHandler, CustomSRHandler
 from .handlers.embeddings import WordLlamaHandler
-from .handlers.memory import MemoripyHandler
+from .handlers.memory import MemoripyHandler, UserSummaryHandler
 
 
 AVAILABLE_LLMS = {
@@ -190,10 +190,16 @@ AVAILABLE_EMBEDDINGS = {
 }
 
 AVAILABLE_MEMORIES = {
+    "user-summary": {
+        "key": "user-summary",
+        "title": _("User Summary"),
+        "description": _("Generate a summary of the user's conversation"),
+        "class": UserSummaryHandler,
+    },
     "memoripy": {
         "key": "memoripy",
         "title": _("Memoripy"),
-        "description": _("Memoripy"),
+        "description": _("Extract messages from previous conversations using contextual memory retrivial, memory decay, concept extraction and other advanced techniques. Does 1 llm call per message."),
         "class": MemoripyHandler,
     }
 }

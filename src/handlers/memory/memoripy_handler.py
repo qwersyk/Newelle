@@ -49,7 +49,7 @@ class MemoripyHandler(MemoryHandler):
 
             def get_embedding(self, text: str) -> np.ndarray:
                 emb = self.embedding.get_embedding([text])
-                return emb
+                return emb[0]
        
             def initialize_embedding_dimension(self) -> int:
                 return self.embedding.get_embedding(["test"]).shape[1]
@@ -84,16 +84,14 @@ class MemoripyHandler(MemoryHandler):
         if self.memory_manager is None:
             self.load(embedding, llm)
         if self.memory_manager is not None:
-            relevant_interactions = self.memory_manager.retrieve_relevant_interactions(prompt, exclude_last_n=max(2, len(history)))
-            print(relevant_interactions)
+            relevant_interactions = self.memory_manager.retrieve_relevant_interactions(prompt, exclude_last_n=self.memory_size)
         else:
             return []
-        return ["\n".join(relevant_interactions)]
+        return ["---\nEarlier interactions:"] + ["\nUser: ".join([i["prompt"] + "\nAssistant: " + i["output"] for i in relevant_interactions])]
 
     def register_response(self, bot_response, history, embedding, llm):
         if self.memory_manager is not None:
             combined_text = " ".join([history[-1]["Message"], bot_response])
-            print(combined_text)
             concepts = self.memory_manager.extract_concepts(combined_text)
             new_embedding = embedding.get_embedding([combined_text])[0]
             self.memory_manager.add_interaction(history[-1]["Message"], bot_response, new_embedding, concepts)

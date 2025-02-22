@@ -21,6 +21,7 @@ class ExtraSettings:
         if refresh_icon is not None:
             r["refresh_icon"] = refresh_icon
         return r
+    
     @staticmethod
     def EntrySetting(key:str, title: str, description: str, default: str, 
                      folder: str|None = None, website: str|None = None, update_settings: bool = False, refresh: Callable|None = None, refresh_icon: str|None = None) -> dict:
@@ -83,4 +84,13 @@ class ExtraSettings:
 
         r["values"] = values
         return r
-
+    
+    @staticmethod 
+    def ScaleSetting(key: str, title: str, description: str, default: float, min: float, max: float, round: int,
+                     folder: str|None = None, website: str|None = None, update_settings: bool = False, refresh: Callable|None = None, refresh_icon: str|None = None) -> dict:
+        r = ExtraSettings.Setting(key, title, description, default, folder, website, update_settings, refresh, refresh_icon)
+        r["type"] = "range"
+        r["min"] = min
+        r["max"] = max
+        r["round-digits"] = round
+        return r

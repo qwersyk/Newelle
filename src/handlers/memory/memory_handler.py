@@ -8,6 +8,10 @@ class MemoryHandler(Handler):
 
     key = ""
     schema_key = "memory-settings"
+    memory_size = 0
+
+    def set_memory_size(self, length: int):
+        self.memory_size = length
 
     @abstractmethod
     def get_context(self, prompt:str, history: list[dict[str, str]], embedding: EmbeddingHandler, llm: LLMHandler) -> list[str]:

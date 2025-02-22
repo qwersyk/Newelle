@@ -469,6 +469,7 @@ class MainWindow(Gtk.ApplicationWindow):
 
         if self.memory_on:
             self.memory_handler : MemoripyHandler= AVAILABLE_MEMORIES[self.memory_model]["class"](self.settings, os.path.join(self.directory, "models"))
+            self.memory_handler.set_memory_size(self.memory)
         self.embeddings : EmbeddingHandler = AVAILABLE_EMBEDDINGS[self.embedding_model]["class"](self.settings, os.path.join(self.directory, "models"))
         self.embeddings.load_model()
         # Load handlers and models
@@ -1450,7 +1451,7 @@ class MainWindow(Gtk.ApplicationWindow):
 
     def update_memory(self, bot_response):
         if self.memory_on:
-            threading.Thread(target=self.memory_handler.register_response, args=(bot_response, self.get_history(), self.embeddings, self.secondary_model)).start()
+            threading.Thread(target=self.memory_handler.register_response, args=(bot_response, self.chat, self.embeddings, self.secondary_model)).start()
     
     def send_message(self):
         """Send a message in the chat and get bot answer, handle TTS etc"""
@@ -1526,9 +1527,9 @@ class MainWindow(Gtk.ApplicationWindow):
             GLib.idle_add(self.show_message, message_label)
         GLib.idle_add(self.remove_send_button_spinner)
         # Generate chat name 
+        self.update_memory(message_label)
         if self.auto_generate_name and len(self.chat) == 1: 
             GLib.idle_add(self.generate_chat_name, Gtk.Button(name=str(self.chat_id)))
-        self.update_memory(message_label)
         # TTS
         tts_thread = None
         if self.tts_enabled:
