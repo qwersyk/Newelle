@@ -41,7 +41,7 @@ class Settings(Adw.PreferencesWindow):
         # Load extensions 
         self.extensionloader = ExtensionLoader(self.extension_path, pip_path=self.pip_directory,extension_cache=self.extensions_cache, settings=self.settings)
         self.extensionloader.load_extensions()
-        self.extensionloader.add_handlers(AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT)
+        self.extensionloader.add_handlers(AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS)
         self.extensionloader.add_prompts(PROMPTS, AVAILABLE_PROMPTS)
         self.model_threads = {}
         # Load custom prompts
@@ -77,11 +77,11 @@ class Settings(Adw.PreferencesWindow):
         self.LLM.add(others_row)
 
         # Secondary LLM
-        self.SECONDARY_LLM = Adw.PreferencesGroup(title=_('Secondary Language Model'))
+        self.SECONDARY_LLM = Adw.PreferencesGroup(title=_('Advanced LLM Settings'))
         # Create row
         secondary_LLM_enabled = Gtk.Switch(valign=Gtk.Align.CENTER)
         self.settings.bind("secondary-llm-on", secondary_LLM_enabled, 'active', Gio.SettingsBindFlags.DEFAULT)
-        secondary_LLM = Adw.ExpanderRow(title=_('Secondary Language Model'), subtitle=_("Model used for secondary tasks, like offer and chat name generation"))
+        secondary_LLM = Adw.ExpanderRow(title=_('Secondary Language Model'), subtitle=_("Model used for secondary tasks, like offer, chat name and memory generation"))
         secondary_LLM.add_action(secondary_LLM_enabled)
         # Add LLMs
         self.general_page.add(self.SECONDARY_LLM)

@@ -421,7 +421,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.extensionloader = ExtensionLoader(self.extension_path, pip_path=self.pip_directory,
                                                extension_cache=self.extensions_cache, settings=self.settings)
         self.extensionloader.load_extensions()
-        self.extensionloader.add_handlers(AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT)
+        self.extensionloader.add_handlers(AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS)
         self.extensionloader.add_prompts(PROMPTS, AVAILABLE_PROMPTS)
 
         # Load quick settings 
