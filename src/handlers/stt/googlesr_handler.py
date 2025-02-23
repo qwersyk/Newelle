@@ -7,6 +7,7 @@ class GoogleSRHandler(STTHandler):
 
     def get_extra_settings(self) -> list:
         return [
+
             {
                 "key": "api",
                 "title": _("API Key"),

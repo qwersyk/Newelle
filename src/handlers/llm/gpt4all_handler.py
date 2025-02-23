@@ -6,6 +6,7 @@ from typing import Callable, Any
 
 from .llm import LLMHandler
 from ...utility.strings import human_readable_size
+from ...handlers import ExtraSettings
 
 class GPT4AllHandler(LLMHandler):
     key = "local"
@@ -87,16 +88,7 @@ class GPT4AllHandler(LLMHandler):
         """
         res = []
         for model in self.model_library:
-            s = {
-                "type": "download",
-                "key": model["key"],
-                "title": model["title"],
-                "description": model["description"],
-                "is_installed": self.model_available(model["key"]),
-                "callback": self.install_model,
-                "download_percentage": self.get_percentage,
-                "default": None,
-            }
+            s = ExtraSettings.DownloadSetting(model["key"], model["title"], model["description"], self.model_available(model["key"]), self.install_model, self.get_percentage) 
             res.append(s)
         return res
 
@@ -158,31 +150,10 @@ class GPT4AllHandler(LLMHandler):
         models = self.get_custom_model_list() + self.models
         default = models[0][1] if len(models) > 0 else ""
         settings = [
-            {
-                "key": "streaming",
-                "title": _("Message Streaming"),
-                "description": _("Gradually stream message output"),
-                "type": "toggle",
-                "default": True,
-            }, 
-            {
-                "key": "model",
-                "title": _("Model to use"),
-                "description": _("Name of the model to use. You can download models from the model manager. You can add custom gguf files in the specified folder"),
-                "type": "combo",
-                "default": default,
-                "values": models,
-                "folder": self.model_folder,
-                "refresh": lambda _: self.get_models_infomation()
-            },
+            ExtraSettings.ToggleSetting("streaming", _("Message Streaming"), _("Gradually stream message output"), True),
+            ExtraSettings.ComboSetting("model", _("Model to use"), _("Name of the model to use"), models, default, refresh=lambda button: self.get_models_infomation(), folder=self.model_folder),
+            ExtraSettings.NestedSetting("model_manager", _("Model Manager"), _("List of models available"), self.get_model_library()),
         ]
-        settings += [{
-            "key": "model_manager",
-            "title": _("Model Manager"),
-            "description": _("List of models available"),
-            "type": "nested",
-            "extra_settings": self.get_model_library()
-        }]
         return settings
     
     def get_custom_model_list(self): 

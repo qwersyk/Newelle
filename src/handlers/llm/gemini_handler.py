@@ -7,6 +7,7 @@ from .llm import LLMHandler
 from ...utility.media import extract_image, extract_video, extract_file
 from ...utility.pip import find_module
 from ...utility.system import open_website
+from ...handlers import ExtraSettings
 
 class GeminiHandler(LLMHandler):
     key = "gemini"
@@ -25,6 +26,13 @@ class GeminiHandler(LLMHandler):
             threading.Thread(target=self.get_models).start()
         else:
             self.models = json.loads(self.get_setting("models", False))
+            self.fix_models_format()
+
+    def fix_models_format(self):
+        m = tuple()
+        for model in self.models:
+            m += ((model[0], model[1]),)
+        self.models = m
 
     def get_supported_files(self) -> list[str]:
         return ["*"]
@@ -65,45 +73,33 @@ class GeminiHandler(LLMHandler):
 
     def get_extra_settings(self) -> list:
         return [
-            {
-                "key": "apikey",
-                "title": _("API Key (required)"),
-                "description": _("API Key got from ai.google.dev"),
-                "type": "entry",
-                "default": ""
-            },
-            {
-                "key": "model",
-                "title": _("Model"),
-                "description": _("AI Model to use, available: gemini-1.5-pro, gemini-1.0-pro, gemini-1.5-flash"),
-                "type": "combo",
-                "refresh": lambda button: self.get_models(),
-                "default": self.models[0][1],
-                "values": self.models, 
-            },
-            {
-                "key": "streaming",
-                "title": _("Message Streaming"),
-                "description": _("Gradually stream message output"),
-                "type": "toggle",
-                "default": True
-            },
-            {
-                "key": "safety",
-                "title": _("Enable safety settings"),
-                "description": _("Enable google safety settings to avoid generating harmful content"),
-                "type": "toggle",
-                "default": True
-            },
-            {
-                "key": "privacy",
-                "title": _("Privacy Policy"),
-                "description": _("Open privacy policy website"),
-                "type": "button",
-                "icon": "internet-symbolic",
-                "callback": lambda button: open_website("https://ai.google.dev/gemini-api/terms"),
-                "default": True,
-            },
+            ExtraSettings.EntrySetting("apikey", _("API Key (required)"), _("API key got from ai.google.dev"), ""), 
+            ExtraSettings.ComboSetting(
+                "model",
+                _("Model"),
+                _("AI Model to use"),
+                self.models,
+                self.models[0][1],
+                refresh=lambda button: self.get_models(),
+            ),
+            ExtraSettings.ToggleSetting(
+                "streaming",
+                _("Message Streaming"),
+                _("Gradually stream message output"),
+                True
+            ),
+            ExtraSettings.ToggleSetting(
+                "safety",
+                _("Enable safety settings"),
+                _("Enable google safety settings to avoid generating harmful content"),
+                True
+            ),
+            ExtraSettings.ButtonSetting(
+                "privacy",
+                _("Privacy Policy"),
+                _("Open privacy policy website"),
+                lambda button: open_website("https://ai.google.dev/gemini-api/terms"), None, "internet-symbolic"
+            )
         ]
 
     def __convert_history(self, history: list):

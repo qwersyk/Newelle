@@ -6,6 +6,7 @@ from .llm import LLMHandler
 from ...utility import convert_history_openai 
 from ...utility.pip import find_module, install_module
 from ...utility.media import extract_image, get_image_path
+from ...utility.util import get_streaming_extra_setting
 
 class G4FHandler(LLMHandler):
     """Common methods for g4f models"""
@@ -33,15 +34,7 @@ class G4FHandler(LLMHandler):
         print("g4f==" + self.version + " installed")
 
     def get_extra_settings(self) -> list:
-        return [
-            {
-                "key": "streaming",
-                "title": _("Message Streaming"),
-                "description": _("Gradually stream message output"),
-                "type": "toggle",
-                "default": True,
-            },
-        ]
+        return [get_streaming_extra_setting()]
 
     def convert_history(self, history: list, prompts: list | None = None) -> list:
         if prompts is None:

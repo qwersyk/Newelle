@@ -15,6 +15,17 @@ class LLMHandler(Handler):
         self.settings = settings
         self.path = path
 
+    def set_secondary_settings(self, secondary: bool):
+        """Set the secondary settings for the LLM"""
+        if secondary:
+            self.schema_key = "llm-secondary-settings"
+        else:
+            self.schema_key = "llm-settings"
+
+    def is_secondary(self) -> bool:
+        """ Return if the LLM is a secondary one"""
+        return self.schema_key == "llm-secondary-settings"
+
     def supports_vision(self) -> bool:
         """ Return if the LLM supports receiving images"""
         return False
@@ -156,6 +167,7 @@ class LLMHandler(Handler):
              t = self.generate_text(request_prompt, self.history)
              return t
         except Exception as e:          
+            print(e)
             return None 
 
 

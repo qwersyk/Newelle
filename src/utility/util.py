@@ -1,6 +1,5 @@
 from .media import get_image_base64, extract_image
 
-
 def convert_history_openai(history: list, prompts: list, vision_support : bool = False):
     """Converts Newelle history into OpenAI format
 
@@ -45,6 +44,85 @@ def convert_history_openai(history: list, prompts: list, vision_support : bool =
                     "content": message["Message"]
                 })
     return result
+
+def embed_image(text: str, image: str):
+    """
+    Inverse helper of extract_image.
+    Combines text and image URL into a single Newelle message string.
+    
+    Adjust this function so that the resulting string, when passed to
+    extract_image, returns the original (image, text) pair.
+    """
+    # For this example, we simply prepend the image marker.
+    if image:
+        # You might want to choose a format that matches your original extraction logic.
+        return f"[image:{image}]\n{text}" if text else f"[image:{image}]"
+    return text
+
+def convert_history_newelle(openai_history: list, vision_support: bool = False):
+    """
+    Converts OpenAI history back into Newelle format.
+    
+    Args:
+        openai_history (list): List of messages in OpenAI format.
+        vision_support (bool): True if vision support is enabled.
+    
+    Returns:
+        tuple: A tuple (newelle_history, prompts) where newelle_history is a list
+               of dictionaries with keys "User" and "Message", and prompts is a list of prompt strings.
+    """
+    newelle_history = []
+    prompts = []
+    
+    # If the first message is a system message, extract prompts from it.
+    if openai_history and openai_history[0].get("role") == "system":
+        prompts = openai_history[0].get("content", "").split("\n")
+        openai_history = openai_history[1:]
+    
+    for message in openai_history:
+        role = message.get("role")
+        content = message.get("content")
+        
+        # Handle vision-support messages if content is a list.
+        if vision_support and isinstance(content, list):
+            text = None
+            image = None
+            for part in content:
+                if part.get("type") == "text":
+                    text = part.get("text")
+                elif part.get("type") == "image_url":
+                    image = part.get("image_url", {}).get("url")
+            combined_message = embed_image(text, image)
+            newelle_history.append({
+                "User": "User",  # Vision messages came from a user.
+                "Message": combined_message
+            })
+        # Handle Console messages (role "user" with a "Console: " prefix)
+        elif isinstance(content, str) and content.startswith("Console: "):
+            newelle_history.append({
+                "User": "Console",
+                "Message": content[len("Console: "):]
+            })
+        # Regular text messages.
+        else:
+            if role == "user":
+                newelle_history.append({
+                    "User": "User",
+                    "Message": content
+                })
+            elif role == "assistant":
+                newelle_history.append({
+                    "User": "Assistant",
+                    "Message": content
+                })
+            else:
+                # Fallback for any unexpected role.
+                newelle_history.append({
+                    "User": role,
+                    "Message": content
+                })
+                
+    return newelle_history, prompts
 
 def get_streaming_extra_setting():
             """Return extra setting for handler to stream messages

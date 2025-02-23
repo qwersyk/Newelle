@@ -12,6 +12,8 @@ import base64
 import copy
 
 from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject, GLib, GdkPixbuf
+from .handlers.embeddings.embedding import EmbeddingHandler
+from .handlers.memory.memoripy_handler import MemoripyHandler
 
 from .ui.settings import Settings
 
@@ -23,7 +25,7 @@ from .ui.presentation import PresentationWindow
 from .ui.widgets import File, CopyBox, BarChartBox
 from .ui import apply_css_to_widget
 from .ui.widgets import MultilineEntry, ProfileRow, DisplayLatex
-from .constants import AVAILABLE_LLMS, AVAILABLE_PROMPTS, PROMPTS, AVAILABLE_TTS, AVAILABLE_STT
+from .constants import AVAILABLE_LLMS, AVAILABLE_PROMPTS, PROMPTS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS
 
 from .utility import override_prompts
 from .utility.system import get_spawn_command 
@@ -419,7 +421,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.extensionloader = ExtensionLoader(self.extension_path, pip_path=self.pip_directory,
                                                extension_cache=self.extensions_cache, settings=self.settings)
         self.extensionloader.load_extensions()
-        self.extensionloader.add_handlers(AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT)
+        self.extensionloader.add_handlers(AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS)
         self.extensionloader.add_prompts(PROMPTS, AVAILABLE_PROMPTS)
 
         # Load quick settings 
@@ -438,15 +440,38 @@ class MainWindow(Gtk.ApplicationWindow):
     def quick_settings_update(self):  
         """Update LLM and prompt settings"""
         self.language_model = self.settings.get_string("language-model")
+        self.secondary_language_model = self.settings.get_string("secondary-language-model")
+        self.use_secondary_language_model = self.settings.get_boolean("secondary-llm-on")
         self.custom_prompts = json.loads(self.settings.get_string("custom-prompts"))
         self.prompts = override_prompts(self.custom_prompts, PROMPTS)
         self.prompts_settings = json.loads(self.settings.get_string("prompts-settings"))
+        self.embedding_model = self.settings.get_string("embedding-model")
+        self.memory_on = self.settings.get_boolean("memory-on")
+        self.memory_model = self.settings.get_string("memory-model")
 
+        # Primary LLM
         if self.language_model in AVAILABLE_LLMS:
             self.model: LLMHandler = AVAILABLE_LLMS[self.language_model]["class"](self.settings, os.path.join(self.directory, "models"))
         else:
             mod = list(AVAILABLE_LLMS.values())[0]
             self.model: LLMHandler = mod["class"](self.settings, os.path.join(self.directory))
+       
+        # Secondary LLM
+        if self.use_secondary_language_model:
+            if self.secondary_language_model in AVAILABLE_LLMS:
+                self.secondary_model: LLMHandler = AVAILABLE_LLMS[self.secondary_language_model]["class"](self.settings, os.path.join(self.directory, "models"))
+            else:
+                mod = list(AVAILABLE_LLMS.values())[0]
+                self.secondary_model: LLMHandler = mod["class"](self.settings, os.path.join(self.directory))
+            self.secondary_model.set_secondary_settings(True)
+        else:
+            self.secondary_model = self.model
+
+        if self.memory_on:
+            self.memory_handler : MemoripyHandler= AVAILABLE_MEMORIES[self.memory_model]["class"](self.settings, os.path.join(self.directory, "models"))
+            self.memory_handler.set_memory_size(self.memory)
+        self.embeddings : EmbeddingHandler = AVAILABLE_EMBEDDINGS[self.embedding_model]["class"](self.settings, os.path.join(self.directory, "models"))
+        self.embeddings.load_model()
         # Load handlers and models
         self.model.load_model(None)
         self.stt_handler = AVAILABLE_STT[self.stt_engine]["class"](self.settings, self.pip_directory)
@@ -1221,9 +1246,12 @@ class MainWindow(Gtk.ApplicationWindow):
             button.set_can_target(False)
             button.set_has_frame(True)
 
-            self.model.set_history([], self.get_history(self.chats[int(button.get_name())]["chat"]))
-            name = self.model.generate_chat_name(self.prompts["generate_name_prompt"])
+            self.secondary_model.set_history([], self.get_history(self.chats[int(button.get_name())]["chat"]))
+            print("Generating")
+            name = self.secondary_model.generate_chat_name(self.prompts["generate_name_prompt"])
+            print(name)
             if name is None:
+                self.update_history()
                 return
             name = remove_markdown(name)
             if name != "Chat has been stopped":
@@ -1373,7 +1401,7 @@ class MainWindow(Gtk.ApplicationWindow):
     def generate_suggestions(self):
         """Create the suggestions and update the UI when it's finished"""
         self.model.set_history([], self.get_history())
-        suggestions = self.model.get_suggestions(self.prompts["get_suggestions_prompt"], self.offers)
+        suggestions = self.secondary_model.get_suggestions(self.prompts["get_suggestions_prompt"], self.offers)
         GLib.idle_add(self.populate_suggestions, suggestions)
 
     def populate_suggestions(self, suggestions):
@@ -1415,6 +1443,16 @@ class MainWindow(Gtk.ApplicationWindow):
             count -= 1
         return history
 
+    def get_memory_prompt(self):
+        if self.memory_on:
+            return self.memory_handler.get_context(self.chat[-1]["Message"], self.get_history(), self.embeddings, self.secondary_model)
+        else:
+            return []
+
+    def update_memory(self, bot_response):
+        if self.memory_on:
+            threading.Thread(target=self.memory_handler.register_response, args=(bot_response, self.chat, self.embeddings, self.secondary_model)).start()
+    
     def send_message(self):
         """Send a message in the chat and get bot answer, handle TTS etc"""
         self.stream_number_variable += 1
@@ -1426,6 +1464,11 @@ class MainWindow(Gtk.ApplicationWindow):
         prompts = []
         for prompt in self.bot_prompts:
             prompts.append(replace_variables(prompt))
+        
+        # Append memory
+        if self.memory_on:
+            prompts += self.get_memory_prompt()
+
         # If the model is not installed, install it
         if not self.model.is_installed():
             print("Installing the model...")
@@ -1484,6 +1527,7 @@ class MainWindow(Gtk.ApplicationWindow):
             GLib.idle_add(self.show_message, message_label)
         GLib.idle_add(self.remove_send_button_spinner)
         # Generate chat name 
+        self.update_memory(message_label)
         if self.auto_generate_name and len(self.chat) == 1: 
             GLib.idle_add(self.generate_chat_name, Gtk.Button(name=str(self.chat_id)))
         # TTS

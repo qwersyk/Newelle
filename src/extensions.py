@@ -83,6 +83,36 @@ class NewelleExtension(Handler):
         """
         return [] 
 
+    def get_memory_handlers(self) -> list[dict]:
+        """
+        Returns the list of memory handlers
+
+        Returns:
+            list: list of memory handlers in this format
+            {
+                "key": "key of the handler",
+                "title": "title of the handler",
+                "description": "description of the handler",
+                "class": MemoryHandler - The class of the handler,
+            }
+        """
+        return []
+
+    def get_embedding_handlers(self) -> list[dict]:
+        """
+        Returns the list of embedding handlers
+
+        Returns:
+            list: list of embedding handlers in this format
+            {
+                "key": "key of the handler",
+                "title": "title of the handler",
+                "description": "description of the handler",
+                "class": EmbeddingHandler - The class of the handler,
+            }
+        """
+        return []
+
     def get_additional_prompts(self) -> list:
         """
         Returns the list of additional prompts
@@ -221,7 +251,7 @@ class ExtensionLoader:
             
         sys.path.remove(self.project_dir)
 
-    def add_handlers(self, AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT):
+    def add_handlers(self, AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS):
         """Add the handlers of each extension to the available handlers
 
         Args:
@@ -240,7 +270,13 @@ class ExtensionLoader:
                 AVAILABLE_TTS[handler["key"]] = handler
             handlers = extension.get_stt_handlers()
             for handler in handlers:
-                AVAILABLE_STT[handler["key"]] = handler 
+                AVAILABLE_STT[handler["key"]] = handler
+            handlers = extension.get_memory_handlers()
+            for handler in handlers:
+                AVAILABLE_MEMORIES[handler["key"]] = handler
+            handlers = extension.get_embedding_handlers()
+            for handler in handlers:
+                AVAILABLE_EMBEDDINGS[handler["key"]] = handler
 
     def add_prompts(self, PROMPTS, AVAILABLE_PROMPTS):
         """Add the prompts of each extension to the available prompts

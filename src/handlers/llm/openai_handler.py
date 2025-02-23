@@ -6,7 +6,7 @@ from typing import Any, Callable
 from .llm import LLMHandler
 from ...utility.system import open_website
 from ...utility import convert_history_openai, get_streaming_extra_setting
-
+from ...handlers import ExtraSettings
 
 class OpenAIHandler(LLMHandler):
     key = "openai"
@@ -64,137 +64,49 @@ class OpenAIHandler(LLMHandler):
             list containing the extra settings
         """
         api_settings = [ 
-            {
-                "key": "api",
-                "title": _("API Key"),
-                "description": _("API Key for " + provider_name),
-                "type": "entry",
-                "default": ""
-            },
+            ExtraSettings.EntrySetting("api", _("API Key"), _("API Key for " + provider_name), ""),
         ]
         endpoint_settings = [
-            {
-                "key": "endpoint",
-                "title": _("API Endpoint"),
-                "description": _("API base url, change this to use interference APIs"),
-                "type": "entry",
-                "default": "https://api.openai.com/v1/" 
-            },
-
+            ExtraSettings.EntrySetting("endpoint", _("API Endpoint"), _("API base url, change this to use interference APIs"), "https://api.openai.com/v1/"),
         ]
         custom_model = [
-            {
-                "key": "custom_model",
-                "title": _("Input a custom model"),
-                "description": _("Input a custom model name instead taking it from the list"),
-                "type": "toggle",
-                "default": not default_automatic_models,
-                "update_settings": True
-            },
+            ExtraSettings.ToggleSetting("custom_model", _("Use Custom Model"), _("Use a custom model"), False)
         ]
         advanced_param_toggle = [
-            {
-                "key": "advanced_params",
-                "title": _("Advanced Parameters"),
-                "description": _("Include parameters like Max Tokens, Top-P, Temperature, etc."),
-                "type": "toggle",
-                "default": default_advanced_params,
-                "update_settings": True
-            }
+            ExtraSettings.ToggleSetting("advanced_params", _("Advanced Parameters"), _("Include parameters like Max Tokens, Top-P, Temperature, etc."), default_advanced_params, update_settings=True)
         ]
         models_settings = [ 
-            {
-                "key": "model",
-                "title": _(provider_name + " Model"),
-                "description": _("Name of the LLM Model to use"),
-                "type": "entry",
-                "default": self.models[0][0],
-            },
+            ExtraSettings.EntrySetting("model", _("Model"), _("Name of the LLM Model to use"), self.models[0][0]),
         ]
         if model_list_url is not None:
             models_settings[0]["website"] = model_list_url
         automatic_models_settings = [
-            {
-                "key": "model",
-                "title": _(provider_name + " Model"),
-                "description": _(f"Name of the {provider_name} Model"),
-                "type": "combo",
-                "refresh": lambda button: self.get_models(),
-                "values": self.models,
-                "default": self.models[0][0]
-            },
+            ExtraSettings.ComboSetting(
+                    "model",
+                    _(provider_name + " Model"),
+                    _(f"Name of the {provider_name} Model"),
+                    self.models,
+                    self.models[0][0],
+                    refresh=lambda button: self.get_models(),
+                )
         ]
 
         if model_list_url is not None:
             models_settings[0]["website"] = model_list_url
         
         advanced_settings = [
-            {
-                "key": "max-tokens",
-                "title": _("Max Tokens"),
-                "description": _("Max tokens of the generated text"),
-                "website": "https://help.openai.com/en/articles/4936856-what-are-tokens-and-how-to-count-them",
-                "type": "range",
-                "min": 3,
-                "max": 8000,
-                "default": 4000,
-                "round-digits": 0
-            },
-            {
-                "key": "top-p",
-                "title": _("Top-P"),
-                "description": _("An alternative to sampling with temperature, called nucleus sampling"),
-                "website": "https://platform.openai.com/docs/api-reference/completions/create#completions/create-top_p",
-                "type": "range",
-                "min": 0,
-                "max": 1,
-                "default": 1,
-                "round-digits": 2,
-            },
-            {
-                "key": "temperature",
-                "title": _("Temperature"),
-                "description": _("What sampling temperature to use. Higher values will make the output more random"),
-                "website": "https://platform.openai.com/docs/api-reference/completions/create#completions/create-temperature",
-                "type": "range",
-                "min": 0,
-                "max": 2,
-                "default": 1,
-                "round-digits": 2,
-            },
-            {
-                "key": "frequency-penalty",
-                "title": _("Frequency Penalty"),
-                "description": _("Positive values penalize new tokens based on their existing frequency in the text so far, decreasing the model's likelihood to repeat the same line"),
-                "website": "https://platform.openai.com/docs/api-reference/completions/create#completions/create-frequency_penalty",
-                "type": "range",
-                "min": -2,
-                "max": 2,
-                "default": 0,
-                "round-digits": 1,
-            },
-            {
-                "key": "presence-penalty",
-                "title": _("Presence Penalty"),
-                "description": _("Positive values penalize new tokens based on whether they appear in the text so far, increasing the model's likelihood to talk about new topics."),
-                "website": "https://platform.openai.com/docs/api-reference/completions/create#completions/create-frequency_penalty",
-                "type": "range",
-                "min": -2,
-                "max": 2,
-                "default": 0,
-                "round-digits": 1,
-            },
+            ExtraSettings.ScaleSetting("max-tokens", _("max Tokens"), _("Max tokens of the generated text"), 4000, 3, 8000, 0),
+            ExtraSettings.ScaleSetting("top-p", _("Top-P"), _("An alternative to sampling with temperature, called nucleus sampling"), 1, 0, 1, 2),
+            ExtraSettings.ScaleSetting("temperature", _("Temperature"), _("What sampling temperature to use. Higher values will make the output more random"), 1, 0, 2, 1),
+            ExtraSettings.ScaleSetting("frequency-penalty", _("Frequency Penalty"), _("Number between -2.0 and 2.0. Positive values decrease the model's likelihood to repeat the same line verbatim"), 0, -2, 2, 0),
+            ExtraSettings.ScaleSetting("presence-penalty", _("Presence Penalty"), _("Number between -2.0 and 2.0. Positive values decrease the model's likelihood to talk about new topics"), 0, -2, 2, 0),
         ]
         
-        privacy_notice = [{
-                "key": "privacy",
-                "title": _("Privacy Policy"),
-                "description": _("Open privacy policy website"),
-                "type": "button",
-                "icon": "internet-symbolic",
-                "callback": lambda button: open_website(privacy_notice_url),
-                "default": True,
-            }
+        privacy_notice = [
+            ExtraSettings.ButtonSetting(
+                    "privacy", _("Privacy Policy"), _("Open privacy policy website"),
+                    lambda button: open_website(privacy_notice_url), None, "internet-symbolic"
+                )
         ]
         settings = []
         if has_api_key:

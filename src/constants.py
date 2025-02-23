@@ -1,7 +1,10 @@
 
-from .handlers.llm import BingHandler, ClaudeHandler, DeepseekHandler, GPT4AllHandler, GroqHandler, OllamaHandler, OpenAIHandler, CustomLLMHandler, GPT3AnyHandler, GeminiHandler, MistralHandler, OpenRouterHandler, NewelleAPIHandler
+from .handlers.llm import ClaudeHandler, DeepseekHandler, GPT4AllHandler, GroqHandler, OllamaHandler, OpenAIHandler, CustomLLMHandler, GPT3AnyHandler, GeminiHandler, MistralHandler, OpenRouterHandler, NewelleAPIHandler
 from .handlers.tts import ElevenLabs, gTTSHandler, EspeakHandler, CustomTTSHandler
 from .handlers.stt import GroqSRHandler, OpenAISRHandler, SphinxHandler, GoogleSRHandler, WhisperHandler, WitAIHandler, VoskHandler, CustomSRHandler
+from .handlers.embeddings import WordLlamaHandler
+from .handlers.memory import MemoripyHandler, UserSummaryHandler
+
 
 AVAILABLE_LLMS = {
     "newelle": {
@@ -76,13 +79,6 @@ AVAILABLE_LLMS = {
         "description": _("Deepseek API, strongest open source models"),
         "class": DeepseekHandler, 
         "secondary": True,
-    },
-    "bing": {
-        "key": "bing",
-        "title": _("Microsoft Copilot"),
-        "description": _("Microsoft Copilot model using GPT4 - Requires a cookies json file"),
-        "class": BingHandler,
-        "secondary": True
     },
     "custom_command": {
         "key": "custom_command",
@@ -177,6 +173,29 @@ AVAILABLE_TTS = {
     }
 }
 
+AVAILABLE_EMBEDDINGS = {
+    "wordllama": {
+        "key": "wordllama",
+        "title": _("WordLlama"),
+        "description": _("Light local embedding model based on llama. Works offline, very low resources usage"),
+        "class": WordLlamaHandler,
+    }
+}
+
+AVAILABLE_MEMORIES = {
+    "user-summary": {
+        "key": "user-summary",
+        "title": _("User Summary"),
+        "description": _("Generate a summary of the user's conversation"),
+        "class": UserSummaryHandler,
+    },
+    "memoripy": {
+        "key": "memoripy",
+        "title": _("Memoripy"),
+        "description": _("Extract messages from previous conversations using contextual memory retrivial, memory decay, concept extraction and other advanced techniques. Does 1 llm call per message."),
+        "class": MemoripyHandler,
+    }
+}
 
 PROMPTS = {
     "generate_name_prompt": """Write a short title for the dialog, summarizing the theme in 5 words. No additional text.""",
