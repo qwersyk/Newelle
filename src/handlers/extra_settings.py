@@ -78,11 +78,11 @@ class ExtraSettings:
         elif type(values) is dict:
             val = tuple()
             for k, v in values.items():
-                val += ((k, v))
+                val += ((k, v), )
         else:
             val = values
 
-        r["values"] = values
+        r["values"] = val
         return r
     
     @staticmethod 
