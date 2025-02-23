@@ -5,6 +5,7 @@ from typing import Any, Callable
 from .llm import LLMHandler
 from ...utility.strings import quote_string
 from ...utility.system import get_spawn_command
+from ...handlers import ExtraSettings
 
 class CustomLLMHandler(LLMHandler):
     key = "custom_command"
@@ -16,29 +17,9 @@ class CustomLLMHandler(LLMHandler):
 
     def get_extra_settings(self):
         return [
-            {
-                "key": "streaming",
-                "title": _("Message Streaming"),
-                "description": _("Gradually stream message output"),
-                "type": "toggle",
-                "default": True
-            },
-           
-            {
-                "key": "command",
-                "title": _("Command to execute to get bot output"),
-                "description": _("Command to execute to get bot response, {0} will be replaced with a JSON file containing the chat, {1} with the system prompt"),
-                "type": "entry",
-                "default": ""
-            },
-            {
-                "key": "suggestion",
-                "title": _("Command to execute to get bot's suggestions"),
-                "description": _("Command to execute to get chat suggestions, {0} will be replaced with a JSON file containing the chat, {1} with the extra prompts, {2} with the numer of suggestions to generate. Must return a JSON array containing the suggestions as strings"),
-                "type": "entry",
-                "default": ""
-            },
-
+            ExtraSettings.ToggleSetting("streaming", _("Message Streaming"), _("Gradually stream message output"), True),
+            ExtraSettings.EntrySetting("command", _("Command to execute to get bot output"), _("Command to execute to get bot response, {0} will be replaced with a JSON file containing the chat, {1} with the system prompt"), ""),
+            ExtraSettings.EntrySetting("suggestion", _("Command to execute to get bot's suggestions"), _("Command to execute to get chat suggestions, {0} will be replaced with a JSON file containing the chat, {1} with the extra prompts, {2} with the numer of suggestions to generate. Must return a JSON array containing the suggestions as strings"), "")
         ]
 
     def generate_text(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = []) -> str:

@@ -37,9 +37,9 @@ class ExtraSettings:
         return r
 
     @staticmethod 
-    def NestedSetting(key:str, title: str, description: str, default: list, extra_settings: list, 
+    def NestedSetting(key:str, title: str, description: str, extra_settings: list, 
                       folder: str|None = None, website: str|None = None, update_settings: bool = False, refresh: Callable|None = None, refresh_icon: str|None = None) -> dict:
-        r = ExtraSettings.Setting(key, title, description, default, folder, website, update_settings, refresh, refresh_icon)
+        r = ExtraSettings.Setting(key, title, description, None, folder, website, update_settings, refresh, refresh_icon)
         r["type"] = "nested"
         r["extra_settings"] = extra_settings
         return r
@@ -71,6 +71,7 @@ class ExtraSettings:
                      folder: str|None = None, website: str|None = None, update_settings: bool = False, refresh: Callable|None = None, refresh_icon: str|None = None) -> dict:
         r = ExtraSettings.Setting(key, title, description, default, folder, website, update_settings, refresh, refresh_icon)
         r["type"] = "combo"
+        values = ExtraSettings.fix_models_format(values)
         if type(values) is list:
             val = tuple()
             for v in values:
@@ -85,6 +86,15 @@ class ExtraSettings:
         r["values"] = val
         return r
     
+    @staticmethod
+    def fix_models_format(models):
+        if type(models) is not list or len(models) == 0 or type(models[0]) is not list:
+            return models
+        m = tuple()
+        for model in models:
+            m += ((model[0], model[1]),)
+        return m
+
     @staticmethod 
     def ScaleSetting(key: str, title: str, description: str, default: float, min: float, max: float, round: int,
                      folder: str|None = None, website: str|None = None, update_settings: bool = False, refresh: Callable|None = None, refresh_icon: str|None = None) -> dict:

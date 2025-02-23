@@ -66,7 +66,6 @@ handler_sources = [
 llm_sources = [
   'handlers/llm/__init__.py',
   'handlers/llm/llm.py',
-  'handlers/llm/bing_handler.py',
   'handlers/llm/claude_handler.py',
   'handlers/llm/custom_handler.py',
   'handlers/llm/g4f_handler.py',

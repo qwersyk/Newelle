@@ -5,6 +5,7 @@ from typing import Any, Callable
 from .llm import LLMHandler
 from ...utility import convert_history_openai, get_streaming_extra_setting
 from ...utility.media import extract_image, extract_file, get_image_base64
+from ...handlers import ExtraSettings
 
 class ClaudeHandler(LLMHandler):
     key = "claude"
@@ -77,56 +78,19 @@ class ClaudeHandler(LLMHandler):
 
     def get_extra_settings(self) -> list:
         settings = [
-            {
-                "key": "api",
-                "title": _("API Key"),
-                "description": _("The API key to use"),
-                "type": "entry",
-                "default": ""
-            },
-            {
-                "key": "custom_model",
-                "title": _("Input a custom model"),
-                "description": _("Input a custom model name instead taking it from the list"),
-                "type": "toggle",
-                "default": False,
-                "update_settings": True
-            },
+            ExtraSettings.EntrySetting("api", _("API Key"), _("The API key to use"), ""),
+            ExtraSettings.ToggleSetting("custom_model", _("Use a custom model"), _("Use a custom model"), False, update_settings=True),
         ]
         if self.get_setting("custom_model", False):
             settings.append(
-                {
-                    "key": "model",
-                    "title": _("Model"),
-                    "description": _("The model to use"),
-                    "type": "entry",
-                    "default": ""
-                }
+                ExtraSettings.EntrySetting("model", _("Model"), _("The model to use"),"")
             )
         else:
             settings.append(
-                {
-                    "key": "model",
-                    "title": _("Model"),
-                    "description": _("The model to use"),
-                    "type": "combo",
-                    "values": self.models,
-                    "default": self.models[0][1],
-                    "refresh": lambda x: self.get_models()
-                }
+                ExtraSettings.ComboSetting("model", _("Model"), _("The model to use"), self.models, self.models[0][1], refresh= lambda x : self.get_models())
             )
         settings.append(
-            {
-                "key": "max_tokens",
-                "title": _("Max Tokens"),
-                "description": _("The maximum number of tokens to generate"),
-                "type": "range",
-                "min": 100,
-                "max": 8912,
-                "step": 1,
-                "round-digits": 0,
-                "default": 1024
-            }
+            ExtraSettings.ScaleSetting("max_tokens", _("Max Tokens"), _("The maximum number of tokens to generate"), 1024, 100, 8912, 0)
         )
         settings.append(get_streaming_extra_setting())
         return settings

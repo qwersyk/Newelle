@@ -9,7 +9,7 @@ from .llm import LLMHandler
 from ...utility.system import can_escape_sandbox, get_spawn_command
 from ...utility.media import extract_image
 from ...utility import get_streaming_extra_setting
-
+from ...handlers import ExtraSettings
 
 class OllamaHandler(LLMHandler):
     key = "ollama"
@@ -137,69 +137,42 @@ class OllamaHandler(LLMHandler):
 
     def get_extra_settings(self) -> list:
         default = self.models[0][1] if len(self.models) > 0 else ""
-        settings = [ 
-            {
-                "key": "endpoint",
-                "title": _("API Endpoint"),
-                "description": _("API base url, change this to use interference APIs"),
-                "type": "entry",
-                "default": "http://localhost:11434"
-            },
-            {
-                "key": "serve",
-                "title": _("Automatically Serve"),
-                "description": _("REQUIRES SANBOX ESCAPE. Automatically run ollama serve in background when needed if it's not running. You can kill it with killall ollama"),
-                "type": "toggle",
-                "default": False,
-            },
-            {
-                "key": "custom_model",
-                "title": _("Input a custom model"),
-                "description": _("Input a custom model name instead taking it from the list"),
-                "type": "toggle",
-                "default": False,
-                "update_settings": True
-            },
+        settings = [
+            ExtraSettings.EntrySetting("endpoint", _("API Endpoint"), _("API base url, change this to use interference APIs"), "http://localhost:11434"),
+            ExtraSettings.ToggleSetting("serve", _("Automatically Serve"), _("Automatically run ollama serve in background when needed if it's not running. You can kill it with killall ollama"), False),
+            ExtraSettings.ToggleSetting("custom_model", _("Custom Model"), _("Use a custom model"), False, update_settings=True),
         ]
         if not self.get_setting("custom_model", False):
-            settings.append({
-                "key": "model",
-                "title": _("Ollama Model"),
-                "description": _("Name of the Ollama Model"),
-                "type": "combo",
-                "values": self.models,
-                "default": default,
-                "refresh": lambda x: self.get_models(),
-            })
+            settings.append(
+                ExtraSettings.ComboSetting(
+                    "model",
+                    _("Ollama Model"),
+                    _("Name of the Ollama Model"),
+                    self.models,
+                    default,
+                    refresh= lambda x: self.get_models(),
+                )
+            )
         else:
-            settings.append({
-                "key": "model",
-                "title": _("Ollama Model"),
-                "description": _("Name of the Ollama Model"),
-                "type": "entry",
-                "default": self.default_models[0][1],
-            })
+            settings.append(
+                ExtraSettings.EntrySetting("model", _("Ollama Model"), _("Name of the Ollama Model"), default)
+            )
         if self.is_installed():
-            settings.append({
-                "key": "model_manager",
-                "title": _("Model Manager"),
-                "description": _("List of models available"),
-                "type": "nested",
-                "refresh": lambda button : self.get_models_infomation(),
-                "extra_settings": [
-                    {
-                        "key": "extra_model_name",
-                        "type": "entry",
-                        "title": _("Add custom model"),
-                        "description": _("Add any model to this list by putting name:size\nOr any gguf from hf with hf.co/username/model"),
-                        "default": "",
-                        "refresh": self.pull_model,
-                        "refresh_icon": "plus-symbolic",
-                        "website": "https://ollama.com/library"
-                        
-                    }
-                ] + self.get_model_library()
-            })
+            settings.append(
+                ExtraSettings.NestedSetting("model_manager", _("Model Manager"), _("List of models available"),
+                    [
+                        ExtraSettings.EntrySetting(
+                            "extra_model_name",
+                            _("Add custom model"),
+                            _("Add any model to this list by putting name:size\nOr any gguf from hf with hf.co/username/model"),
+                            "",
+                            refresh=self.pull_model,
+                            refresh_icon="plus-symbolic",
+                            website="https://ollama.com/library"
+                        )
+                    ] + self.get_model_library()
+                )
+            )
         settings.append(get_streaming_extra_setting())
         return settings
 
@@ -262,16 +235,7 @@ class OllamaHandler(LLMHandler):
         """
         res = []
         for model in self.model_library:
-            s = {
-                "type": "download",
-                "key": model["key"],
-                "title": model["title"],
-                "description": model["description"],
-                "is_installed": self.model_installed(model["key"]),
-                "callback": self.install_model,
-                "download_percentage": self.get_percentage,
-                "default": None,
-            }
+            s = ExtraSettings.DownloadSetting(model["key"], model["title"], model["description"], self.model_installed(model["key"]), self.install_model, self.get_percentage) 
             if not self.model_installed(model["key"]) and model["key"] not in self.listed_models:
                 s["refresh"] = lambda x,m=model['key']: self.remove_model_from_library(m)
                 s["refresh_icon"] = "minus-symbolic"
@@ -280,7 +244,6 @@ class OllamaHandler(LLMHandler):
 
     def remove_model_from_library(self, model: str):
         """Remove a model from the library"""
-        print(model)
         self.model_library = [x for x in self.model_library if x["key"] != model]
         self.set_setting("model_library", self.model_library)
         self.settings_update()
