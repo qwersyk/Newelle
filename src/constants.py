@@ -184,7 +184,7 @@ AVAILABLE_EMBEDDINGS = {
     "wordllama": {
         "key": "wordllama",
         "title": _("WordLlama"),
-        "description": _("WordLlama Embeddings"),
+        "description": _("Light local embedding model based on llama. Works offline, very low resources usage"),
         "class": WordLlamaHandler,
     }
 }

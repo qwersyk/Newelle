@@ -78,7 +78,7 @@
           <default>false</default>
         </key>
 	      <key name="memory-model" type="s">
-            <default>"memoripy"</default>
+            <default>"user-summary"</default>
         </key>
 	      <key name="memory-settings" type="s">
             <default>"{}"</default>
