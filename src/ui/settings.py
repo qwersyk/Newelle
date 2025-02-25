@@ -13,10 +13,11 @@ from ..handlers import Handler
 
 from ..handlers.stt import STTHandler
 from ..handlers.tts import TTSHandler
-from ..constants import AVAILABLE_EMBEDDINGS, AVAILABLE_LLMS, AVAILABLE_MEMORIES, AVAILABLE_PROMPTS, AVAILABLE_TTS, AVAILABLE_STT, PROMPTS
+from ..constants import AVAILABLE_EMBEDDINGS, AVAILABLE_LLMS, AVAILABLE_MEMORIES, AVAILABLE_PROMPTS, AVAILABLE_TTS, AVAILABLE_STT, PROMPTS, AVAILABLE_RAGS
 from ..handlers.llm import LLMHandler
 from ..handlers.embeddings import EmbeddingHandler
 from ..handlers.memory import MemoryHandler
+from ..handlers.rag import RAGHandler
 
 from .widgets import ComboRowHelper, CopyBox 
 from .widgets import MultilineEntry
@@ -116,6 +117,18 @@ class Settings(Adw.PreferencesWindow):
         selected = self.settings.get_string("memory-model")
         for key in AVAILABLE_MEMORIES:
            row = self.build_row(AVAILABLE_MEMORIES, key, selected, group) 
+           tts_program.add_row(row)
+        
+        # Build the RAG settings
+        memory_enabled = Gtk.Switch(valign=Gtk.Align.CENTER)
+        self.settings.bind("rag-on", memory_enabled, 'active', Gio.SettingsBindFlags.DEFAULT)
+        tts_program = Adw.ExpanderRow(title=_('Document Sources'), subtitle=_("Include content from your documents in the responses"))
+        tts_program.add_action(memory_enabled)
+        self.SECONDARY_LLM.add(tts_program)
+        group = Gtk.CheckButton()
+        selected = self.settings.get_string("rag-model")
+        for key in AVAILABLE_RAGS:
+           row = self.build_row(AVAILABLE_RAGS, key, selected, group) 
            tts_program.add_row(row)
         
         # Build the TTS settings
@@ -364,6 +377,8 @@ class Settings(Adw.PreferencesWindow):
             self.handlers[(key, self.convert_constants(AVAILABLE_MEMORIES), False)] = self.get_object(AVAILABLE_MEMORIES, key)
         for key in AVAILABLE_MEMORIES:
             self.handlers[(key, self.convert_constants(AVAILABLE_MEMORIES), True)] = self.get_object(AVAILABLE_MEMORIES, key, True)
+        for key in AVAILABLE_RAGS:
+            self.handlers[(key, self.convert_constants(AVAILABLE_RAGS), False)] = self.get_object(AVAILABLE_RAGS, key)
 
     def get_object(self, constants: dict[str, Any], key:str, secondary=False) -> (Handler):
         """Get an handler instance for the specified handler key
@@ -392,6 +407,8 @@ class Settings(Adw.PreferencesWindow):
         elif constants == AVAILABLE_MEMORIES:
             model = constants[key]["class"](self.settings, os.path.join(self.directory, "models"))
         elif constants == AVAILABLE_EMBEDDINGS:
+            model = constants[key]["class"](self.settings, os.path.join(self.directory, "models"))
+        elif constants == AVAILABLE_RAGS:
             model = constants[key]["class"](self.settings, os.path.join(self.directory, "models"))
         elif constants == self.extensionloader.extensionsmap:
             model = self.extensionloader.extensionsmap[key]
@@ -426,6 +443,8 @@ class Settings(Adw.PreferencesWindow):
                     return AVAILABLE_MEMORIES
                 case "embedding":
                     return AVAILABLE_EMBEDDINGS
+                case "rag":
+                    return AVAILABLE_RAGS
                 case "extension":
                     return self.extensionloader.extensionsmap
                 case _:
@@ -441,6 +460,8 @@ class Settings(Adw.PreferencesWindow):
                 return "memory"
             elif constants == AVAILABLE_EMBEDDINGS:
                 return "embedding"
+            elif constants == AVAILABLE_RAGS:
+                return "rag"
             elif constants == self.extensionloader.extensionsmap:
                 return "extension"
             else:
@@ -469,11 +490,14 @@ class Settings(Adw.PreferencesWindow):
             return AVAILABLE_MEMORIES
         elif issubclass(type(handler), EmbeddingHandler):
             return AVAILABLE_EMBEDDINGS
+        elif issubclass(type(handler), RAGHandler):
+            return AVAILABLE_RAGS
         else:
             raise Exception("Unknown handler")
 
     def choose_row(self, button, constants : dict, secondary=False):
-        """Called by GTK the selected handler is changed
+        """Called by GTK the selected h
+        andler is changed
 
         Args:
             button (): the button that triggered the change
@@ -493,6 +517,8 @@ class Settings(Adw.PreferencesWindow):
             setting_name = "memory-model"
         elif constants == AVAILABLE_EMBEDDINGS:
             setting_name = "embedding-model"
+        elif constants == AVAILABLE_RAGS:
+            setting_name = "rag-model"
         else:
             return
         self.settings.set_string(setting_name, button.get_name())

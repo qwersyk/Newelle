@@ -14,6 +14,7 @@ import copy
 from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject, GLib, GdkPixbuf
 from .handlers.embeddings.embedding import EmbeddingHandler
 from .handlers.memory.memoripy_handler import MemoripyHandler
+from .handlers.rag import RAGHandler
 
 from .ui.settings import Settings
 
@@ -25,7 +26,7 @@ from .ui.presentation import PresentationWindow
 from .ui.widgets import File, CopyBox, BarChartBox
 from .ui import apply_css_to_widget
 from .ui.widgets import MultilineEntry, ProfileRow, DisplayLatex
-from .constants import AVAILABLE_LLMS, AVAILABLE_PROMPTS, PROMPTS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS
+from .constants import AVAILABLE_LLMS, AVAILABLE_PROMPTS, PROMPTS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS, AVAILABLE_RAGS
 
 from .utility import override_prompts
 from .utility.system import get_spawn_command 
@@ -448,7 +449,8 @@ class MainWindow(Gtk.ApplicationWindow):
         self.embedding_model = self.settings.get_string("embedding-model")
         self.memory_on = self.settings.get_boolean("memory-on")
         self.memory_model = self.settings.get_string("memory-model")
-
+        self.rag_on = self.settings.get_boolean("rag-on")
+        self.rag_model = self.settings.get_string("rag-model")
         # Primary LLM
         if self.language_model in AVAILABLE_LLMS:
             self.model: LLMHandler = AVAILABLE_LLMS[self.language_model]["class"](self.settings, os.path.join(self.directory, "models"))
@@ -466,12 +468,14 @@ class MainWindow(Gtk.ApplicationWindow):
             self.secondary_model.set_secondary_settings(True)
         else:
             self.secondary_model = self.model
-
+        self.embeddings : EmbeddingHandler = AVAILABLE_EMBEDDINGS[self.embedding_model]["class"](self.settings, os.path.join(self.directory, "models"))
+        self.embeddings.load_model()
         if self.memory_on:
             self.memory_handler : MemoripyHandler= AVAILABLE_MEMORIES[self.memory_model]["class"](self.settings, os.path.join(self.directory, "models"))
             self.memory_handler.set_memory_size(self.memory)
-        self.embeddings : EmbeddingHandler = AVAILABLE_EMBEDDINGS[self.embedding_model]["class"](self.settings, os.path.join(self.directory, "models"))
-        self.embeddings.load_model()
+        if self.rag_on:
+            self.rag_handler : RAGHandler = AVAILABLE_RAGS[self.rag_model]["class"](self.settings, os.path.join(self.directory, "models"))
+            self.rag_handler.load(self.embeddings, self.model)
         # Load handlers and models
         self.model.load_model(None)
         self.stt_handler = AVAILABLE_STT[self.stt_engine]["class"](self.settings, self.pip_directory)
@@ -1444,11 +1448,12 @@ class MainWindow(Gtk.ApplicationWindow):
         return history
 
     def get_memory_prompt(self):
+        r = [] 
         if self.memory_on:
-            return self.memory_handler.get_context(self.chat[-1]["Message"], self.get_history(), self.embeddings, self.secondary_model)
-        else:
-            return []
-
+            r += self.memory_handler.get_context(self.chat[-1]["Message"], self.get_history(), self.embeddings, self.secondary_model)
+        if self.rag_on:
+            r += self.rag_handler.get_context(self.chat[-1]["Message"], self.get_history(), self.embeddings, self.secondary_model)
+        return r
     def update_memory(self, bot_response):
         if self.memory_on:
             threading.Thread(target=self.memory_handler.register_response, args=(bot_response, self.chat, self.embeddings, self.secondary_model)).start()

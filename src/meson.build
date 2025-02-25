@@ -116,6 +116,12 @@ memory_sources = [
   'handlers/memory/user_summary_handler.py',
 ]
 
+rag_sources = [  
+  'handlers/rag/__init__.py',
+  'handlers/rag/rag_handler.py',
+  'handlers/rag/llamaindex_handler.py',
+]
+
 utility_sources = [
   'utility/__init__.py',
   'utility/media.py',
@@ -137,6 +143,7 @@ install_data(llm_sources, install_dir: moduledir / 'handlers' / 'llm')
 install_data(tts_sources, install_dir: moduledir / 'handlers' / 'tts')
 install_data(stt_sources, install_dir: moduledir / 'handlers' / 'stt')
 install_data(memory_sources, install_dir: moduledir / 'handlers' / 'memory')
+install_data(rag_sources, install_dir: moduledir / 'handlers' / 'rag')
 install_data(embedding_sources, install_dir: moduledir / 'handlers' / 'embeddings')
 install_data(utility_sources, install_dir: moduledir / 'utility')
 

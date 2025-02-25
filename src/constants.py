@@ -4,7 +4,7 @@ from .handlers.tts import ElevenLabs, gTTSHandler, EspeakHandler, CustomTTSHandl
 from .handlers.stt import GroqSRHandler, OpenAISRHandler, SphinxHandler, GoogleSRHandler, WhisperHandler, WitAIHandler, VoskHandler, CustomSRHandler
 from .handlers.embeddings import WordLlamaHandler
 from .handlers.memory import MemoripyHandler, UserSummaryHandler
-
+from .handlers.rag import LlamaIndexHanlder
 
 AVAILABLE_LLMS = {
     "newelle": {
@@ -195,6 +195,15 @@ AVAILABLE_MEMORIES = {
         "description": _("Extract messages from previous conversations using contextual memory retrivial, memory decay, concept extraction and other advanced techniques. Does 1 llm call per message."),
         "class": MemoripyHandler,
     }
+}
+
+AVAILABLE_RAGS = {
+    "llamaindex": {
+        "key": "llamaindex",
+        "title": _("Llama index"),
+        "description": _("LLama Index library"),
+        "class": LlamaIndexHanlder,
+    },
 }
 
 PROMPTS = {
