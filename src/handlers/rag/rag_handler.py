@@ -14,8 +14,12 @@ class RAGHandler(Handler):
         if not os.path.exists(self.documents_path):
             os.mkdir(self.documents_path)
 
+    @abstractmethod 
+    def load(self, embedding, llm):
+        pass 
+
     @abstractmethod
-    def get_context(self, prompt:str, history: list[dict[str, str]], embedding: EmbeddingHandler, llm: LLMHandler, documents: list[str]) -> list[str]:
+    def get_context(self, prompt:str, history: list[dict[str, str]], embedding: EmbeddingHandler, llm: LLMHandler) -> list[str]:
         return []
 
     @abstractmethod

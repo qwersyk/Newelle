@@ -52,7 +52,7 @@ class MemoripyHandler(MemoryHandler):
                 return emb[0]
        
             def initialize_embedding_dimension(self) -> int:
-                return self.embedding.get_embedding(["test"]).shape[1]
+                return self.embedding.get_embedding_size()
 
         return EmbeddingAdapter(embedding)
 

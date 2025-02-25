@@ -1,5 +1,4 @@
 from .llm import LLMHandler
-from .bing_handler import BingHandler
 from .claude_handler import ClaudeHandler
 from .custom_handler import CustomLLMHandler
 from .g4f_handler import G4FHandler
@@ -16,7 +15,6 @@ from .deepseek_handler import DeepseekHandler
 
 __all__ = [
     "LLMHandler",
-    "BingHandler",
     "ClaudeHandler",
     "CustomLLMHandler",
     "G4FHandler",

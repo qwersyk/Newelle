@@ -26,3 +26,6 @@ class EmbeddingHandler(Handler):
             ndarray: embedding 
         """
         pass
+
+    def get_embedding_size(self) -> int:
+        return 0
