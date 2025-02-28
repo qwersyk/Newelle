@@ -84,7 +84,7 @@ class MemoripyHandler(MemoryHandler):
         if self.memory_manager is None:
             self.load(embedding, llm)
         if self.memory_manager is not None:
-            relevant_interactions = self.memory_manager.retrieve_relevant_interactions(prompt, exclude_last_n=self.memory_size)
+            relevant_interactions = self.memory_manager.retrieve_relevant_interactions(prompt, exclude_last_n=min(self.memory_size, len(history)))
         else:
             return []
         return ["---\nEarlier interactions:"] + ["\nUser: ".join([i["prompt"] + "\nAssistant: " + i["output"] for i in relevant_interactions])]

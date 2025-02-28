@@ -2,7 +2,7 @@
 from .handlers.llm import ClaudeHandler, DeepseekHandler, GPT4AllHandler, GroqHandler, OllamaHandler, OpenAIHandler, CustomLLMHandler, GPT3AnyHandler, GeminiHandler, MistralHandler, OpenRouterHandler, NewelleAPIHandler
 from .handlers.tts import ElevenLabs, gTTSHandler, EspeakHandler, CustomTTSHandler
 from .handlers.stt import GroqSRHandler, OpenAISRHandler, SphinxHandler, GoogleSRHandler, WhisperHandler, WitAIHandler, VoskHandler, CustomSRHandler
-from .handlers.embeddings import WordLlamaHandler
+from .handlers.embeddings import WordLlamaHandler, OpenAIEmbeddingHandler, GeminiEmbeddingHanlder
 from .handlers.memory import MemoripyHandler, UserSummaryHandler
 from .handlers.rag import LlamaIndexHanlder
 
@@ -179,6 +179,18 @@ AVAILABLE_EMBEDDINGS = {
         "title": _("WordLlama"),
         "description": _("Light local embedding model based on llama. Works offline, very low resources usage"),
         "class": WordLlamaHandler,
+    },
+    "openaiembedding": {
+        "key": "openaiembedding",
+        "title": _("OpenAI API"),
+        "description": _("OpenAI API"),
+        "class": OpenAIEmbeddingHandler,
+    },
+    "geminiembedding": {
+        "key": "geminiembedding",
+        "title": _("Google Gemini API"),
+        "description": _("Use Google Gemini API to get embeddings"),
+        "class": GeminiEmbeddingHanlder,
     }
 }
 
