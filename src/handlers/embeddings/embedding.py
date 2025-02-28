@@ -28,4 +28,4 @@ class EmbeddingHandler(Handler):
         pass
 
     def get_embedding_size(self) -> int:
-        return 0
+        return self.get_embedding(["test"]).shape[1]

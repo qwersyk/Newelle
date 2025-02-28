@@ -472,10 +472,12 @@ class MainWindow(Gtk.ApplicationWindow):
         self.embeddings.load_model()
         if self.memory_on:
             self.memory_handler : MemoripyHandler= AVAILABLE_MEMORIES[self.memory_model]["class"](self.settings, os.path.join(self.directory, "models"))
+            self.memory_handler.set_handlers(self.secondary_model, self.embeddings)
             self.memory_handler.set_memory_size(self.memory)
         if self.rag_on:
             self.rag_handler : RAGHandler = AVAILABLE_RAGS[self.rag_model]["class"](self.settings, os.path.join(self.directory, "models"))
-            self.rag_handler.load(self.embeddings, self.model)
+            self.rag_handler.set_handlers(self.secondary_model, self.embeddings)
+            self.rag_handler.load()
         # Load handlers and models
         self.model.load_model(None)
         self.stt_handler = AVAILABLE_STT[self.stt_engine]["class"](self.settings, self.pip_directory)
@@ -1450,9 +1452,9 @@ class MainWindow(Gtk.ApplicationWindow):
     def get_memory_prompt(self):
         r = [] 
         if self.memory_on:
-            r += self.memory_handler.get_context(self.chat[-1]["Message"], self.get_history(), self.embeddings, self.secondary_model)
+            r += self.memory_handler.get_context(self.chat[-1]["Message"], self.get_history())
         if self.rag_on:
-            r += self.rag_handler.get_context(self.chat[-1]["Message"], self.get_history(), self.embeddings, self.secondary_model)
+            r += self.rag_handler.get_context(self.chat[-1]["Message"], self.get_history())
         return r
     def update_memory(self, bot_response):
         if self.memory_on:
@@ -1471,7 +1473,7 @@ class MainWindow(Gtk.ApplicationWindow):
             prompts.append(replace_variables(prompt))
         
         # Append memory
-        if self.memory_on:
+        if self.memory_on or self.rag_on:
             prompts += self.get_memory_prompt()
 
         # If the model is not installed, install it

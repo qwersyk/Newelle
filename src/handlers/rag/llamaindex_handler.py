@@ -17,12 +17,11 @@ class LlamaIndexHanlder(RAGHandler):
         return [
             ExtraSettings.ButtonSetting("index", "Index Files", "Put the files you want to query in the specified folder. Every time you add or remove a file, or change the embedding model, you should reindex it.", self.create_index, "Re-index", None, self.documents_path),
             ExtraSettings.ScaleSetting("chunk_size", "Chunk Size", "Split text in chunks of the given size", 512, 64, 2048, 1), 
-            ExtraSettings.ScaleSetting("return_documents", "Documents to return", "Maximum number of documents to return", 3,1,5, 1) 
+            ExtraSettings.ScaleSetting("return_documents", "Documents to return", "Maximum number of documents to return", 3,1,5, 1), 
+            ExtraSettings.ScaleSetting("similarity_threshold", "Similarity of the document to be returned", "Set the percentage similarity of a document to get returned", 0.65,0,1, 2) 
         ]
 
-    def load(self, embedding: EmbeddingHandler, llm: LLMHandler):
-        self.llm = llm 
-        self.embedding = embedding 
+    def load(self):
         if not os.path.exists(os.path.join(self.data_path, "docstore.json")):
             self.create_index()
         threading.Thread(target=self.load_index).start()
@@ -49,21 +48,26 @@ class LlamaIndexHanlder(RAGHandler):
         retriever.retrieve("test")
         print("Index loaded")
    
-    def get_context(self, prompt: str, history: list[dict[str, str]], embedding: EmbeddingHandler, llm: LLMHandler) -> list[str]:
+    def get_context(self, prompt: str, history: list[dict[str, str]]) -> list[str]:
         r = []
         nodes = self.retriever.retrieve(prompt)
         if len(nodes) > 0:
-            r.append("--- Context from Files ---") 
+            r.append("--- Context from Files ---")
             for node in nodes:
+                if node.score < float(self.get_setting("similarity_threshold")):
+                    continue
                 r.append("--")
                 r.append("- Source: " + node.metadata.get("file_name"))
                 r.append(node.node.get_content())
         return r
 
     def create_index(self, button=None):  
-        print("Creating index")
         from llama_index.core.settings import Settings
         from llama_index.core import VectorStoreIndex, SimpleDirectoryReader
+        # Ensure llm and embedding load 
+        self.llm.load_model(None)
+        self.embedding.load_model()
+        print("Creating index")
         Settings.embed_model = self.get_embedding_adapter(self.embedding)
         chunk_size = int(self.get_setting("chunk_size"))
         Settings.chunk_size = chunk_size 

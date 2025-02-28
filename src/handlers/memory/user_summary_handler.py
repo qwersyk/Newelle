@@ -23,7 +23,7 @@ class UserSummaryHandler(MemoryHandler):
         self.set_setting("user_summary", "")
         self.settings_update()
 
-    def get_context(self, prompt: str, history: list[dict[str, str]], embedding: EmbeddingHandler, llm: LLMHandler) -> list[str]:
+    def get_context(self, prompt: str, history: list[dict[str, str]]) -> list[str]:
         self.seen_messages.append(prompt)
         PROMPT = """
             For the duration of this conversation, please keep the following long-term memory summary in mind. This summary includes important details about the user's preferences, interests, and previous interactions. Use this context to ensure your responses are consistent and personalized.
@@ -33,7 +33,7 @@ class UserSummaryHandler(MemoryHandler):
             """
         return ["---"+PROMPT.format(prompt=prompt)]
 
-    def register_response(self, bot_response, history, embedding, llm: LLMHandler):
+    def register_response(self, bot_response, history):
         self.seen_messages.append(bot_response)
         update_frequency = min(self.get_setting("update_freq"), self.memory_size)
         PROMPT = """
@@ -50,6 +50,6 @@ Only output the summary with no other details.
         """
         if len(self.seen_messages) % update_frequency == 0:
             prompt = PROMPT.format(history="\n".join([i["User"] + ": " + i["Message"] for i in history[-update_frequency:]]), summary=self.get_setting("user_summary"))
-            upd = llm.generate_text(prompt)
+            upd = self.llm.generate_text(prompt)
             self.set_setting("user_summary", upd)
         self.set_setting("seen_messages", self.seen_messages)

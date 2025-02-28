@@ -87,7 +87,7 @@
           <default>false</default>
         </key>
 	      <key name="rag-model" type="s">
-            <default>"user-summary"</default>
+            <default>"llamaindex"</default>
         </key>
 	      <key name="rag-settings" type="s">
             <default>"{}"</default>

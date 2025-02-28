@@ -10,16 +10,22 @@ class RAGHandler(Handler):
 
     def __init__(self, settings, path):
         super().__init__(settings, path)
+        print(self.key, "Initialized")
         self.documents_path = os.path.join(os.path.dirname(self.path), "documents")
         if not os.path.exists(self.documents_path):
             os.mkdir(self.documents_path)
 
+    def set_handlers(self, llm: LLMHandler, embeddings: EmbeddingHandler):
+        print(self.key, "Handlers set")
+        self.llm = llm
+        self.embedding = embeddings
+
     @abstractmethod 
-    def load(self, embedding, llm):
+    def load(self):
         pass 
 
     @abstractmethod
-    def get_context(self, prompt:str, history: list[dict[str, str]], embedding: EmbeddingHandler, llm: LLMHandler) -> list[str]:
+    def get_context(self, prompt:str, history: list[dict[str, str]]) -> list[str]:
         return []
 
     @abstractmethod

@@ -52,6 +52,7 @@ class Settings(Adw.PreferencesWindow):
         self.sandbox = can_escape_sandbox()
         
         self.cache_handlers()
+        self.update_handler_choice()
         # Page building
         self.general_page = Adw.PreferencesPage()
        
@@ -362,6 +363,24 @@ class Settings(Adw.PreferencesWindow):
         self.on_setting_change(constants, handler, "", True)
 
 
+    def update_handler_choice(self):
+        """Update handlers for Memory and RAG"""
+        self.language_model = self.settings.get_string("language-model")
+        self.secondary_language_model = self.settings.get_string("secondary-language-model")
+        self.use_secondary_language_model = self.settings.get_boolean("secondary-llm-on")
+        self.embedding_model = self.settings.get_string("embedding-model")
+        if self.use_secondary_language_model and self.secondary_language_model in AVAILABLE_LLMS:
+            llm = self.get_object(AVAILABLE_LLMS, self.secondary_language_model, True)
+        elif not self.use_secondary_language_model and self.language_model in AVAILABLE_LLMS:
+            llm = self.get_object(AVAILABLE_LLMS, self.language_model)
+        else:
+            llm = None
+        embedding = self.get_object(AVAILABLE_EMBEDDINGS, self.embedding_model)
+        for key in AVAILABLE_MEMORIES:
+            self.get_object(AVAILABLE_MEMORIES, key).set_handlers(llm, embedding)
+        for key in AVAILABLE_RAGS:
+            self.get_object(AVAILABLE_RAGS, key).set_handlers(llm, embedding)
+
     def cache_handlers(self):
         self.handlers = {}
         for key in AVAILABLE_TTS:
@@ -375,8 +394,6 @@ class Settings(Adw.PreferencesWindow):
             self.handlers[(key, self.convert_constants(AVAILABLE_LLMS), True)] = self.get_object(AVAILABLE_LLMS, key, True)
         for key in AVAILABLE_MEMORIES:
             self.handlers[(key, self.convert_constants(AVAILABLE_MEMORIES), False)] = self.get_object(AVAILABLE_MEMORIES, key)
-        for key in AVAILABLE_MEMORIES:
-            self.handlers[(key, self.convert_constants(AVAILABLE_MEMORIES), True)] = self.get_object(AVAILABLE_MEMORIES, key, True)
         for key in AVAILABLE_RAGS:
             self.handlers[(key, self.convert_constants(AVAILABLE_RAGS), False)] = self.get_object(AVAILABLE_RAGS, key)
 
@@ -394,8 +411,8 @@ class Settings(Adw.PreferencesWindow):
         Returns:
             The created handler           
         """
-        if (key, self.convert_constants(constants)) in self.handlers:
-            return self.handlers[(key, self.convert_constants(constants))]
+        if (key, self.convert_constants(constants), secondary) in self.handlers:
+            return self.handlers[(key, self.convert_constants(constants), secondary)]
 
         if constants == AVAILABLE_LLMS:
             model = constants[key]["class"](self.settings, os.path.join(self.directory, "models"))
@@ -522,6 +539,7 @@ class Settings(Adw.PreferencesWindow):
         else:
             return
         self.settings.set_string(setting_name, button.get_name())
+        self.update_handler_choice()
 
     def add_extra_settings(self, constants : dict[str, Any], handler : Handler, row : Adw.ExpanderRow, nested_settings : list | None = None):
         """Buld the extra settings for the specified handler. The extra settings are specified by the method get_extra_settings 

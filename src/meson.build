@@ -109,6 +109,7 @@ embedding_sources = [
   'handlers/embeddings/wordllama_handler.py',
   'handlers/embeddings/openai_handler.py',
   'handlers/embeddings/gemini_handler.py',
+  'handlers/embeddings/ollama_handler.py'
 ]
 
 memory_sources = [  

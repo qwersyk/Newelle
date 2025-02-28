@@ -80,18 +80,18 @@ class MemoripyHandler(MemoryHandler):
                     return j
         return ChatModelAdapter(llm)
 
-    def get_context(self, prompt, history: list[dict[str, str]], embedding: EmbeddingHandler, llm: LLMHandler) -> list[str]:
+    def get_context(self, prompt, history: list[dict[str, str]]) -> list[str]:
         if self.memory_manager is None:
-            self.load(embedding, llm)
+            self.load(self.embedding, self.llm)
         if self.memory_manager is not None:
             relevant_interactions = self.memory_manager.retrieve_relevant_interactions(prompt, exclude_last_n=min(self.memory_size, len(history)))
         else:
             return []
         return ["---\nEarlier interactions:"] + ["\nUser: ".join([i["prompt"] + "\nAssistant: " + i["output"] for i in relevant_interactions])]
 
-    def register_response(self, bot_response, history, embedding, llm):
+    def register_response(self, bot_response, history):
         if self.memory_manager is not None:
             combined_text = " ".join([history[-1]["Message"], bot_response])
             concepts = self.memory_manager.extract_concepts(combined_text)
-            new_embedding = embedding.get_embedding([combined_text])[0]
+            new_embedding = self.embedding.get_embedding([combined_text])[0]
             self.memory_manager.add_interaction(history[-1]["Message"], bot_response, new_embedding, concepts)
