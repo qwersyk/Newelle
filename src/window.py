@@ -418,6 +418,11 @@ class MainWindow(Gtk.ApplicationWindow):
         self.automatic_stt = settings.get_boolean("automatic-stt")
         self.stt_silence_detection_threshold = settings.get_double("stt-silence-detection-threshold")
         self.stt_silence_detection_duration = settings.get_int("stt-silence-detection-duration")
+        self.embedding_model = self.settings.get_string("embedding-model")
+        self.memory_on = self.settings.get_boolean("memory-on")
+        self.memory_model = self.settings.get_string("memory-model")
+        self.rag_on = self.settings.get_boolean("rag-on")
+        self.rag_model = self.settings.get_string("rag-model")
         # Load extensions
         self.extensionloader = ExtensionLoader(self.extension_path, pip_path=self.pip_directory,
                                                extension_cache=self.extensions_cache, settings=self.settings)
@@ -425,9 +430,23 @@ class MainWindow(Gtk.ApplicationWindow):
         self.extensionloader.add_handlers(AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS)
         self.extensionloader.add_prompts(PROMPTS, AVAILABLE_PROMPTS)
 
+        # Create RAG and memory handler and embedding handler first
+        if self.rag_on:
+            self.rag_handler : RAGHandler = AVAILABLE_RAGS[self.rag_model]["class"](self.settings, os.path.join(self.directory, "models"))
+        if self.memory_on:
+            self.memory_handler : MemoripyHandler= AVAILABLE_MEMORIES[self.memory_model]["class"](self.settings, os.path.join(self.directory, "models"))
+            self.memory_handler.set_memory_size(self.memory)
+        self.embeddings : EmbeddingHandler = AVAILABLE_EMBEDDINGS[self.embedding_model]["class"](self.settings, os.path.join(self.directory, "models"))
+        # Quick settings will add the handlers to RAG and memory 
+
         # Load quick settings 
         self.quick_settings_update()
+        self.embeddings.load_model()
+        # Load RAG
+        if self.rag_on:
+            self.rag_handler.load()
         
+        # Adjust paths
         if os.path.exists(os.path.expanduser(self.main_path)):
             os.chdir(os.path.expanduser(self.main_path))
         else:
@@ -446,11 +465,6 @@ class MainWindow(Gtk.ApplicationWindow):
         self.custom_prompts = json.loads(self.settings.get_string("custom-prompts"))
         self.prompts = override_prompts(self.custom_prompts, PROMPTS)
         self.prompts_settings = json.loads(self.settings.get_string("prompts-settings"))
-        self.embedding_model = self.settings.get_string("embedding-model")
-        self.memory_on = self.settings.get_boolean("memory-on")
-        self.memory_model = self.settings.get_string("memory-model")
-        self.rag_on = self.settings.get_boolean("rag-on")
-        self.rag_model = self.settings.get_string("rag-model")
         # Primary LLM
         if self.language_model in AVAILABLE_LLMS:
             self.model: LLMHandler = AVAILABLE_LLMS[self.language_model]["class"](self.settings, os.path.join(self.directory, "models"))
@@ -468,16 +482,12 @@ class MainWindow(Gtk.ApplicationWindow):
             self.secondary_model.set_secondary_settings(True)
         else:
             self.secondary_model = self.model
-        self.embeddings : EmbeddingHandler = AVAILABLE_EMBEDDINGS[self.embedding_model]["class"](self.settings, os.path.join(self.directory, "models"))
-        self.embeddings.load_model()
+        # Update handlers in memory and rag 
         if self.memory_on:
-            self.memory_handler : MemoripyHandler= AVAILABLE_MEMORIES[self.memory_model]["class"](self.settings, os.path.join(self.directory, "models"))
             self.memory_handler.set_handlers(self.secondary_model, self.embeddings)
-            self.memory_handler.set_memory_size(self.memory)
         if self.rag_on:
-            self.rag_handler : RAGHandler = AVAILABLE_RAGS[self.rag_model]["class"](self.settings, os.path.join(self.directory, "models"))
             self.rag_handler.set_handlers(self.secondary_model, self.embeddings)
-            self.rag_handler.load()
+
         # Load handlers and models
         self.model.load_model(None)
         self.stt_handler = AVAILABLE_STT[self.stt_engine]["class"](self.settings, self.pip_directory)

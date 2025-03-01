@@ -624,7 +624,7 @@ class Settings(Adw.PreferencesWindow):
                     actionbutton.connect("clicked", lambda button,cb=setting["callback"],key=setting["key"] : cb(key))
                     actionbutton.add_css_class("error")
                 else:
-                    actionbutton.set_icon_name("folder-download-symbolic")
+                    actionbutton.set_icon_name("folder-download-symbolic" if "download-icon" not in setting else setting["download-icon"])
                     actionbutton.connect("clicked", self.download_setting, setting, handler)
                     actionbutton.add_css_class("accent")
                 r.add_suffix(actionbutton)
@@ -874,7 +874,7 @@ class Settings(Adw.PreferencesWindow):
             return
         box = Gtk.Box(homogeneous=True, spacing=4)
         box.set_orientation(Gtk.Orientation.VERTICAL)
-        icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="folder-download-symbolic"))
+        icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="folder-download-symbolic" if "download-icon" not in setting else setting["download-icon"]))
         icon.set_icon_size(Gtk.IconSize.INHERIT)
         progress = Gtk.ProgressBar(hexpand=False)
         progress.set_size_request(4, 4)

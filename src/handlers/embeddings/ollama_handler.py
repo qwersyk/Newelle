@@ -19,6 +19,10 @@ class OllamaEmbeddingHandler(EmbeddingHandler):
         else:
             self.models = json.loads(models)
 
+    @staticmethod 
+    def get_extra_requirements() -> list:
+        return ["ollama"]
+
     def get_extra_settings(self) -> list:
         default = self.models[0][1] if len(self.models) > 0 else ""
         settings = [
