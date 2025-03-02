@@ -23,6 +23,7 @@ class GeminiHandler(LLMHandler):
         self.cache = {}
         if self.get_setting("models", False) is None or len(self.get_setting("models", False)) == 0:
             self.models = self.default_models 
+            self.fix_models_format()
             threading.Thread(target=self.get_models).start()
         else:
             self.models = json.loads(self.get_setting("models", False))
