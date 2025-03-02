@@ -113,6 +113,21 @@ class NewelleExtension(Handler):
         """
         return []
 
+    def get_rag_handlers(self) -> list[dict]:
+        """
+        Returns the list of RAG handlers
+
+        Returns:
+            list: list of RAG handlers in this format
+            {
+                "key": "key of the handler",
+                "title": "title of the handler",
+                "description": "description of the handler",
+                "class": RAGHandler - The class of the handler,
+            }
+        """
+        return []
+
     def get_additional_prompts(self) -> list:
         """
         Returns the list of additional prompts
