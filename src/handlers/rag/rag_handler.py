@@ -27,5 +27,19 @@ class RAGHandler(Handler):
         return []
 
     @abstractmethod
-    def query_document(self, prompt: str, documents: list[str]) -> str:
+    def query_document(self, prompt: str, documents: list[str], chunk_size: int|None = None) -> list[str]:
+        """
+        Query the document
+
+        Args:
+            prompt: Prompt for the query 
+            documents: List of documents to query, can be in this format:
+                file:path/to/file
+                text:text of the content to index
+                url:https://url
+            chunk_size: Chunk size for the query 
+
+        Returns:
+            The query result 
+        """
         pass
