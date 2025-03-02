@@ -42,7 +42,7 @@ class Settings(Adw.PreferencesWindow):
         # Load extensions 
         self.extensionloader = ExtensionLoader(self.extension_path, pip_path=self.pip_directory,extension_cache=self.extensions_cache, settings=self.settings)
         self.extensionloader.load_extensions()
-        self.extensionloader.add_handlers(AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS)
+        self.extensionloader.add_handlers(AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS, AVAILABLE_RAGS)
         self.extensionloader.add_prompts(PROMPTS, AVAILABLE_PROMPTS)
         self.model_threads = {}
         # Load custom prompts
@@ -908,7 +908,6 @@ class Settings(Adw.PreferencesWindow):
         self.downloading[(setting["key"], handler.key)] = True
         th = threading.Thread(target=self.update_download_status_setting, args=(handler, setting, progressbar))
         th.start()
-        print(setting["key"])
         setting["callback"](setting["key"])
         icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="user-trash-symbolic"))
         icon.set_icon_size(Gtk.IconSize.INHERIT)

@@ -84,7 +84,6 @@ class ExtraSettings:
                 val += ((k, v), )
         else:
             val = values
-
         r["values"] = val
         return r
     

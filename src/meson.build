@@ -10,8 +10,7 @@ gnome.compile_resources('newelle',
 )
 
 python = import('python')
-
-conf = configuration_data()
+conf = configuration_data() 
 conf.set('PYTHON', python.find_installation('python3').path())
 conf.set('VERSION', meson.project_version())
 conf.set('localedir', join_paths(get_option('prefix'), get_option('localedir')))
@@ -109,7 +108,7 @@ embedding_sources = [
   'handlers/embeddings/wordllama_handler.py',
   'handlers/embeddings/openai_handler.py',
   'handlers/embeddings/gemini_handler.py',
-  'handlers/embeddings/ollama_handler.py'
+  'handlers/embeddings/ollama_handler.py',
 ]
 
 memory_sources = [  

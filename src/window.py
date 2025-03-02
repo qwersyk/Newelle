@@ -430,6 +430,12 @@ class MainWindow(Gtk.ApplicationWindow):
         self.extensionloader.add_handlers(AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS, AVAILABLE_RAGS)
         self.extensionloader.add_prompts(PROMPTS, AVAILABLE_PROMPTS)
 
+        # Setup TTS
+        if self.tts_program in AVAILABLE_TTS:
+            self.tts = AVAILABLE_TTS[self.tts_program]["class"](self.settings, self.directory)
+            self.tts.connect('start', lambda: GLib.idle_add(self.mute_tts_button.set_visible, True))
+            self.tts.connect('stop', lambda: GLib.idle_add(self.mute_tts_button.set_visible, False))
+        
         # Create RAG and memory handler and embedding handler first
         if self.rag_on:
             self.rag_handler : RAGHandler = AVAILABLE_RAGS[self.rag_model]["class"](self.settings, os.path.join(self.directory, "models"))
@@ -437,11 +443,16 @@ class MainWindow(Gtk.ApplicationWindow):
             self.memory_handler : MemoripyHandler= AVAILABLE_MEMORIES[self.memory_model]["class"](self.settings, os.path.join(self.directory, "models"))
             self.memory_handler.set_memory_size(self.memory)
         self.embeddings : EmbeddingHandler = AVAILABLE_EMBEDDINGS[self.embedding_model]["class"](self.settings, os.path.join(self.directory, "models"))
+        if not self.embeddings.is_installed():
+            # Install embeddings if missing
+            threading.Thread(target=self.embeddings.install).start()
+        
         # Quick settings will add the handlers to RAG and memory 
-
         # Load quick settings 
         self.quick_settings_update()
-        self.embeddings.load_model()
+        # Load embeddings only if required
+        if self.rag_on or self.memory_on:
+            self.embeddings.load_model()
         # Load RAG
         if self.rag_on:
             self.rag_handler.load()
@@ -451,11 +462,6 @@ class MainWindow(Gtk.ApplicationWindow):
             os.chdir(os.path.expanduser(self.main_path))
         else:
             self.main_path = "~"
-        # Setup TTS
-        if self.tts_program in AVAILABLE_TTS:
-            self.tts = AVAILABLE_TTS[self.tts_program]["class"](self.settings, self.directory)
-            self.tts.connect('start', lambda: GLib.idle_add(self.mute_tts_button.set_visible, True))
-            self.tts.connect('stop', lambda: GLib.idle_add(self.mute_tts_button.set_visible, False))
         
     def quick_settings_update(self):  
         """Update LLM and prompt settings"""
@@ -493,8 +499,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.stt_handler = AVAILABLE_STT[self.stt_engine]["class"](self.settings, self.pip_directory)
        
         # Update handlers in extensions 
-        self.extensionloader.set_handlers(self.model, self.stt_handler, self.tts, self.secondary_model, self.embeddings, self.rag_handler, self.memory_handler)
-
+        self.extensionloader.set_handlers(self.model, self.stt_handler, self.tts if self.tts_enabled else None, self.secondary_model, self.embeddings, self.rag_handler if self.rag_on else None, self.memory_handler if self.memory_on else None)
         # Load prompts
         self.bot_prompts = []
         for prompt in AVAILABLE_PROMPTS:
@@ -1472,7 +1477,7 @@ class MainWindow(Gtk.ApplicationWindow):
         return r
     def update_memory(self, bot_response):
         if self.memory_on:
-            threading.Thread(target=self.memory_handler.register_response, args=(bot_response, self.chat, self.embeddings, self.secondary_model)).start()
+            threading.Thread(target=self.memory_handler.register_response, args=(bot_response, self.chat)).start()
     
     def send_message(self):
         """Send a message in the chat and get bot answer, handle TTS etc"""
