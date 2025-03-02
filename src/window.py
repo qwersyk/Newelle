@@ -427,7 +427,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.extensionloader = ExtensionLoader(self.extension_path, pip_path=self.pip_directory,
                                                extension_cache=self.extensions_cache, settings=self.settings)
         self.extensionloader.load_extensions()
-        self.extensionloader.add_handlers(AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS)
+        self.extensionloader.add_handlers(AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS, AVAILABLE_RAGS)
         self.extensionloader.add_prompts(PROMPTS, AVAILABLE_PROMPTS)
 
         # Create RAG and memory handler and embedding handler first
@@ -491,6 +491,10 @@ class MainWindow(Gtk.ApplicationWindow):
         # Load handlers and models
         self.model.load_model(None)
         self.stt_handler = AVAILABLE_STT[self.stt_engine]["class"](self.settings, self.pip_directory)
+       
+        # Update handlers in extensions 
+        self.extensionloader.set_handlers(self.model, self.stt_handler, self.tts, self.secondary_model, self.embeddings, self.rag_handler, self.memory_handler)
+
         # Load prompts
         self.bot_prompts = []
         for prompt in AVAILABLE_PROMPTS:
