@@ -30,6 +30,13 @@ class ExtraSettings:
         return r
 
     @staticmethod
+    def MultilineEntrySetting(key:str, title: str, description: str, default: str, 
+                     folder: str|None = None, website: str|None = None, update_settings: bool = False, refresh: Callable|None = None, refresh_icon: str|None = None) -> dict:
+        r = ExtraSettings.Setting(key, title, description, default, folder, website, update_settings, refresh, refresh_icon)
+        r["type"] = "multilineentry"
+        return r
+    
+    @staticmethod
     def ToggleSetting(key:str, title: str, description: str, default: bool, 
                       folder: str|None = None, website: str|None = None, update_settings: bool = False, refresh: Callable|None = None, refresh_icon: str|None = None) -> dict:
         r = ExtraSettings.Setting(key, title, description, default, folder, website, update_settings, refresh, refresh_icon)

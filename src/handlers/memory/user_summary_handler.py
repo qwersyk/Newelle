@@ -16,7 +16,7 @@ class UserSummaryHandler(MemoryHandler):
         return [
             ExtraSettings.ButtonSetting("reset_memory", "Reset Memory", "Reset the memory", lambda x: self.reset_memory(), "Reset Memory"),
             ExtraSettings.ScaleSetting("update_freq", "Update Summary Frequency", "How often to update the summary", 5, 1, 10, 0), 
-            ExtraSettings.EntrySetting("user_summary", "User Summary", "Current summary of the interactions with the assistant", "")
+            ExtraSettings.MultilineEntrySetting("user_summary", "User Summary", "Current summary of the interactions with the assistant", "")
         ]
     
     def reset_memory(self):

@@ -579,6 +579,17 @@ class Settings(Adw.PreferencesWindow):
                 entry = Gtk.Entry(valign=Gtk.Align.CENTER, text=value, name=setting["key"])
                 entry.connect("changed", self.setting_change_entry, constants, handler)
                 r.add_suffix(entry)
+            elif setting["type"] == "multilineentry":
+                r = Adw.ExpanderRow(title=setting["title"], subtitle=setting["description"])
+                value = handler.get_setting(setting["key"])
+                value = str(value)
+                entry = MultilineEntry()
+                entry.set_text(value)
+                entry.set_on_change(self.setting_change_multilinentry)
+                entry.name = setting["key"]
+                entry.constants = constants
+                entry.handler = handler
+                r.add_row(entry)
             elif setting["type"] == "button":
                 r = Adw.ActionRow(title=setting["title"], subtitle=setting["description"])
                 button = Gtk.Button(valign=Gtk.Align.CENTER, name=setting["key"])
@@ -741,6 +752,17 @@ class Settings(Adw.PreferencesWindow):
         name = entry.get_name()
         handler.set_setting(name, entry.get_text())
         self.on_setting_change(constants, handler, name)
+
+    def setting_change_multilinentry(self, entry):
+        """ Called when an entry handler setting is changed 
+
+        Args:
+            entry (): the entry whose contents are changed
+            constants : The constants for the specified handler, can be AVAILABLE_TTS, AVAILABLE_STT...
+            handler: An instance of the specified handler
+        """
+        entry.handler.set_setting(entry.name, entry.get_text())
+        self.on_setting_change(entry.constants, entry.handler, entry.name)
 
     def setting_change_toggle(self, toggle, state, constants, handler):
         """Called when a toggle for the handler setting is triggered
