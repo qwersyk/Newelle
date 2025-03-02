@@ -37,6 +37,9 @@ class LlamaIndexHanlder(RAGHandler):
         if self.loading_thread is not None:
             self.loading_thread.join()
 
+    def get_supported_files(self) -> list:
+        return ["*" + x for x in self.get_supported_formats()]
+
     def get_supported_formats(self) -> list[str]:
         r = []
         if self.get_setting("md"):

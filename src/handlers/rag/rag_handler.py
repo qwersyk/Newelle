@@ -18,6 +18,9 @@ class RAGHandler(Handler):
         self.llm = llm
         self.embedding = embeddings
 
+    def get_supported_files(self) -> list:
+        return []
+
     @abstractmethod 
     def load(self):
         pass 
