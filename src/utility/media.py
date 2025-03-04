@@ -1,5 +1,6 @@
 import os
 import base64
+from .message_chunk import get_message_chunks
 
 def encode_image_base64(file_path):
     mime_types = {
@@ -112,3 +113,27 @@ def extract_file(message: str) -> tuple[str | None, str]:
         text = message
     return file, text
 
+def extract_supported_files(history: list, supported_extensions: list) -> list[str]:
+    """
+    Extract supported files from message history
+
+    Args:
+        history: message history
+        extensions: list of supported file extensions
+
+    Returns:
+        list[str]: list of supported files
+    """
+    documents = []
+    for message in history:
+        chunks = get_message_chunks(message["Message"])
+        for chunk in chunks:
+            if chunk.type == "codeblock" and chunk.lang == "file":
+                files = chunk.text.split("\n")
+                for file in files:
+                    if file.startswith("#"):
+                        continue
+                    ext = os.path.splitext(file)[1].lower()
+                    if "*" + ext in supported_extensions:
+                        documents.append("file:" + file)
+    return documents

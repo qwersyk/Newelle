@@ -35,6 +35,7 @@ from .utility.strings import convert_think_codeblocks, get_edited_messages, mark
 from .utility.replacehelper import replace_variables
 from .utility.profile_settings import get_settings_dict, restore_settings_from_dict
 from .utility.audio_recorder import AudioRecorder
+from .utility.media import extract_supported_files
 from .ui.screenrecorder import ScreenRecorder
 
 from .extensions import ExtensionLoader
@@ -313,7 +314,8 @@ class MainWindow(Gtk.ApplicationWindow):
         self.attach_button = button
         self.input_box.append(button)
         self.input_box.append(self.attached_image)
-        if not self.model.supports_vision() and not self.model.supports_video_vision() and len(self.model.get_supported_files()) == 0:
+        if (not self.model.supports_vision() and not self.model.supports_video_vision() and 
+                (len(self.model.get_supported_files()) + (len(self.rag_handler.get_supported_files()) if self.rag_handler is not None else 0) == 0)):
             self.attach_button.set_visible(False)
         else:
             self.attach_button.set_visible(True)
@@ -327,7 +329,6 @@ class MainWindow(Gtk.ApplicationWindow):
         self.screen_record_button.connect("clicked", self.start_screen_recording)
         self.input_box.append(self.screen_record_button)
 
-        # if "mp4" in self.model.get_supported_files():
         if not self.model.supports_video_vision():
             self.screen_record_button.set_visible(False)
         self.video_recorder = None
@@ -422,6 +423,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.memory_on = self.settings.get_boolean("memory-on")
         self.memory_model = self.settings.get_string("memory-model")
         self.rag_on = self.settings.get_boolean("rag-on")
+        self.rag_on_documents = self.settings.get_boolean("rag-on-documents")
         self.rag_model = self.settings.get_string("rag-model")
         # Load extensions
         self.extensionloader = ExtensionLoader(self.extension_path, pip_path=self.pip_directory,
@@ -437,8 +439,11 @@ class MainWindow(Gtk.ApplicationWindow):
             self.tts.connect('stop', lambda: GLib.idle_add(self.mute_tts_button.set_visible, False))
         
         # Create RAG and memory handler and embedding handler first
-        if self.rag_on:
-            self.rag_handler : RAGHandler = AVAILABLE_RAGS[self.rag_model]["class"](self.settings, os.path.join(self.directory, "models"))
+        if self.rag_on or self.rag_on_documents:
+            self.rag_handler : RAGHandler | None = AVAILABLE_RAGS[self.rag_model]["class"](self.settings, os.path.join(self.directory, "models"))
+        else:
+            self.rag_handler = None
+
         if self.memory_on:
             self.memory_handler : MemoripyHandler= AVAILABLE_MEMORIES[self.memory_model]["class"](self.settings, os.path.join(self.directory, "models"))
             self.memory_handler.set_memory_size(self.memory)
@@ -451,7 +456,7 @@ class MainWindow(Gtk.ApplicationWindow):
         # Load quick settings 
         self.quick_settings_update()
         # Load embeddings only if required
-        if self.rag_on or self.memory_on:
+        if self.rag_on or self.memory_on or self.rag_on_documents:
             self.embeddings.load_model()
         # Load RAG
         if self.rag_on:
@@ -491,7 +496,7 @@ class MainWindow(Gtk.ApplicationWindow):
         # Update handlers in memory and rag 
         if self.memory_on:
             self.memory_handler.set_handlers(self.secondary_model, self.embeddings)
-        if self.rag_on:
+        if self.rag_on or self.rag_on_documents:
             self.rag_handler.set_handlers(self.secondary_model, self.embeddings)
 
         # Load handlers and models
@@ -499,7 +504,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.stt_handler = AVAILABLE_STT[self.stt_engine]["class"](self.settings, self.pip_directory)
        
         # Update handlers in extensions 
-        self.extensionloader.set_handlers(self.model, self.stt_handler, self.tts if self.tts_enabled else None, self.secondary_model, self.embeddings, self.rag_handler if self.rag_on else None, self.memory_handler if self.memory_on else None)
+        self.extensionloader.set_handlers(self.model, self.stt_handler, self.tts if self.tts_enabled else None, self.secondary_model, self.embeddings, self.rag_handler if (self.rag_on or self.rag_on_documents) else None, self.memory_handler if self.memory_on else None)
         # Load prompts
         self.bot_prompts = []
         for prompt in AVAILABLE_PROMPTS:
@@ -516,7 +521,8 @@ class MainWindow(Gtk.ApplicationWindow):
         # Setup attach buttons to the model capabilities
         if not self.first_load:
             self.build_offers()
-            if not self.model.supports_vision() and not self.model.supports_video_vision() and len(self.model.get_supported_files()) == 0:
+            if (not self.model.supports_vision() and not self.model.supports_video_vision() 
+                    and len(self.model.get_supported_files()) + (len(self.rag_handler.get_supported_files()) if self.rag_handler is not None else 0) == 0):
                 if self.attached_image_data is not None:
                     self.delete_attachment(self.attach_button)
                 self.attach_button.set_visible(False)
@@ -779,7 +785,13 @@ class MainWindow(Gtk.ApplicationWindow):
         image_filter = Gtk.FileFilter(name="Images", patterns=["*.png", "*.jpg", "*.jpeg", "*.webp"])
         video_filter = Gtk.FileFilter(name="Video", patterns=["*.mp4"])
         file_filter = Gtk.FileFilter(name="Supported Files", patterns=self.model.get_supported_files())
+        second_file_filter = None
+        if self.rag_handler is not None and self.rag_on_documents:
+            second_file_filter = Gtk.FileFilter(name="RAG Supported files", patterns=self.rag_handler.get_supported_files())
         default_filter = None
+        if second_file_filter is not None:
+            filters.append(second_file_filter)
+            default_filter = video_filter
         if self.model.supports_video_vision():    
             filters.append(video_filter)
             default_filter = video_filter
@@ -1446,7 +1458,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.chat_stop_button.set_visible(False)
         GLib.idle_add(self.scrolled_chat)
 
-    def get_history(self, chat=None) -> list[dict[str, str]]:
+    def get_history(self, chat=None, include_last_message=False) -> list[dict[str, str]]:
         """Format the history excluding none messages and picking the right context size 
 
         Args:
@@ -1459,7 +1471,8 @@ class MainWindow(Gtk.ApplicationWindow):
             chat = self.chat
         history = []
         count = self.memory
-        for msg in chat[:-1]:
+        msgs = chat[:-1] if not include_last_message else chat
+        for msg in msgs:
             if count == 0:
                 break
             if msg["User"] == "Console" and msg["Message"] == "None":
@@ -1474,6 +1487,10 @@ class MainWindow(Gtk.ApplicationWindow):
             r += self.memory_handler.get_context(self.chat[-1]["Message"], self.get_history())
         if self.rag_on:
             r += self.rag_handler.get_context(self.chat[-1]["Message"], self.get_history())
+        if self.rag_on_documents and self.rag_handler is not None:
+            documents = extract_supported_files(self.get_history(include_last_message=True), self.rag_handler.get_supported_files())
+            if len(documents) > 0:
+                r += self.rag_handler.query_document(self.chat[-1]["Message"],documents) 
         return r
     def update_memory(self, bot_response):
         if self.memory_on:

@@ -136,7 +136,6 @@ class LlamaIndexHanlder(RAGHandler):
     def query_document(self, prompt: str, documents: list[str], chunk_size: int|None = None) -> list[str]: 
         from llama_index.core.settings import Settings
         from llama_index.core import VectorStoreIndex, SimpleDirectoryReader, Document
-        from llama_index.readers.web import SimpleWebPageReader
         from llama_index.core.retrievers import VectorIndexRetriever
         import requests
         self.llm.load_model(None)
@@ -155,8 +154,6 @@ class LlamaIndexHanlder(RAGHandler):
             elif document.startswith("url:"):
                 url = document.lstrip("url:")
                 urls.append(url)
-        if len(urls) > 0:
-            document_list.extend(SimpleWebPageReader(html_to_text=True).load_data(urls))
         index = VectorStoreIndex.from_documents(document_list)
         retriever = VectorIndexRetriever(
             index=index,
@@ -167,6 +164,8 @@ class LlamaIndexHanlder(RAGHandler):
         for node in nodes:
             if node.score < float(self.get_setting("similarity_threshold")):
                 continue
+            r.append("--")
+            r.append("- Source: " + node.metadata.get("file_name"))
             r.append(node.node.get_content())
         return r
 

@@ -100,7 +100,7 @@ class Settings(Adw.PreferencesWindow):
         self.SECONDARY_LLM.add(secondary_LLM)
         
         # Build the Embedding settings
-        embedding_row = Adw.ExpanderRow(title=_('Embedding Model'), subtitle=_("Choose which embedding model to choose"))
+        embedding_row = Adw.ExpanderRow(title=_('Embedding Model'), subtitle=_("Embedding is used to trasform text into vectors. Used by Long Term Memory and RAG. Changing it might require you to re-index documents or reset memory."))
         self.SECONDARY_LLM.add(embedding_row)
         group = Gtk.CheckButton()
         selected = self.settings.get_string("embedding-model")
@@ -132,6 +132,12 @@ class Settings(Adw.PreferencesWindow):
            row = self.build_row(AVAILABLE_RAGS, key, selected, group) 
            tts_program.add_row(row)
         
+        rag_on_docuements = Gtk.Switch(valign=Gtk.Align.CENTER)
+        self.settings.bind("rag-on-documents", rag_on_docuements, 'active', Gio.SettingsBindFlags.DEFAULT)
+        rag_row = Adw.ExpanderRow(title=_("Read documents if unsupported"), subtitle=_("If the LLM does not support reading documents, relevant information about documents sent in the chat will be given to the LLM using RAG."))
+        rag_row.add_action(rag_on_docuements)
+        self.SECONDARY_LLM.add(rag_row)
+
         # Build the TTS settings
         self.Voicegroup = Adw.PreferencesGroup(title=_('Voice'))
         self.general_page.add(self.Voicegroup)
