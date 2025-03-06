@@ -121,42 +121,8 @@ class Settings(Adw.PreferencesWindow):
            tts_program.add_row(row)
         
         # Build the RAG settings
-        self.RAG = Adw.PreferencesGroup(title=_('Document Sources (RAG)'), description=_("Include content from your documents in the responses"))
-        tts_program = Adw.ExpanderRow(title=_('Document Analyzer'), subtitle=_("The document analyzer uses multiple techniques to extract relevant information about your documents"))
-        #tts_program.add_action(memory_enabled)
-        self.RAG.add(tts_program)
-        group = Gtk.CheckButton()
-        selected = self.settings.get_string("rag-model")
-        for key in AVAILABLE_RAGS:
-           row = self.build_row(AVAILABLE_RAGS, key, selected, group) 
-           tts_program.add_row(row)
-       
-        rag_on_docuements = Gtk.Switch(valign=Gtk.Align.CENTER)
-        self.settings.bind("rag-on-documents", rag_on_docuements, 'active', Gio.SettingsBindFlags.DEFAULT)
-        rag_row = Adw.ActionRow(title=_("Read documents if unsupported"), subtitle=_("If the LLM does not support reading documents, relevant information about documents sent in the chat will be given to the LLM using your Document Analyzer."))
-        rag_row.add_suffix(rag_on_docuements)
-        self.RAG.add(rag_row)
-        # Document folder 
-        rag_enabled = Gtk.Switch(valign=Gtk.Align.CENTER)
-        self.settings.bind("rag-on", rag_enabled, 'active', Gio.SettingsBindFlags.DEFAULT)
-        document_folder = Adw.ExpanderRow(title=_("Document Folder"), subtitle=_("Put the documents you want to query in your document folder. The document analyzer will find relevant information in them if this option is enabled"))
-        document_folder.add_suffix(rag_enabled)
-        # Document folder rows 
-        folder = Adw.ActionRow(title="Open your document folder", subtitle=_("Put all the documents you want to index in this folder"))
-        folder_button = Gtk.Button(icon_name="folder-symbolic", css_classes=["flat"])
-        folder_button.connect("clicked", lambda _: open_folder(os.path.join(self.directory, "documents")))
-        folder.add_suffix(folder_button)
-        document_folder.add_row(folder)
+        self.build_rag_settings()
 
-        index = Adw.ActionRow(title="Index your documents", subtitle=_("Index all the documents in your document folder. You have to run this operation every time you edit/create a document, change document analyzer or change embedding model"))
-        index_button = Gtk.Button(icon_name="text-x-generic", css_classes=["flat", "accent"])
-        index_button.connect("clicked", lambda _: open_folder(os.path.join(self.directory, "documents")))
-        index.add_suffix(index_button)
-        document_folder.add_row(index)
-        
-        self.RAG.add(document_folder)
-        self.general_page.add(self.RAG)
-        
         # Build the TTS settings
         self.Voicegroup = Adw.PreferencesGroup(title=_('Voice'))
         self.general_page.add(self.Voicegroup)
@@ -276,6 +242,48 @@ class Settings(Adw.PreferencesWindow):
         self.neural_network.add(row)
 
         self.add(self.general_page)
+
+    def build_rag_settings(self):
+        self.RAG = Adw.PreferencesGroup(title=_('Document Sources (RAG)'), description=_("Include content from your documents in the responses"))
+        tts_program = Adw.ExpanderRow(title=_('Document Analyzer'), subtitle=_("The document analyzer uses multiple techniques to extract relevant information about your documents"))
+        #tts_program.add_action(memory_enabled)
+        self.RAG.add(tts_program)
+        group = Gtk.CheckButton()
+        selected = self.settings.get_string("rag-model")
+        for key in AVAILABLE_RAGS:
+           row = self.build_row(AVAILABLE_RAGS, key, selected, group) 
+           tts_program.add_row(row)
+       
+        rag_on_docuements = Gtk.Switch(valign=Gtk.Align.CENTER)
+        self.settings.bind("rag-on-documents", rag_on_docuements, 'active', Gio.SettingsBindFlags.DEFAULT)
+        rag_row = Adw.ActionRow(title=_("Read documents if unsupported"), subtitle=_("If the LLM does not support reading documents, relevant information about documents sent in the chat will be given to the LLM using your Document Analyzer."))
+        rag_row.add_suffix(rag_on_docuements)
+        self.RAG.add(rag_row)
+        # Document folder 
+        rag_enabled = Gtk.Switch(valign=Gtk.Align.CENTER)
+        self.settings.bind("rag-on", rag_enabled, 'active', Gio.SettingsBindFlags.DEFAULT)
+        document_folder = Adw.ExpanderRow(title=_("Document Folder"), subtitle=_("Put the documents you want to query in your document folder. The document analyzer will find relevant information in them if this option is enabled"))
+        document_folder.add_suffix(rag_enabled)
+        # Document folder rows 
+        folder = Adw.ActionRow(title="Open your document folder", subtitle=_("Put all the documents you want to index in this folder"))
+        folder_button = Gtk.Button(icon_name="folder-symbolic", css_classes=["flat"])
+        folder_button.connect("clicked", lambda _: open_folder(os.path.join(self.directory, "documents")))
+        folder.add_suffix(folder_button)
+        document_folder.add_row(folder)
+        
+        self.rag_handler = self.get_object(AVAILABLE_RAGS, selected) 
+        self.rag_index = self.create_extra_setting(self.rag_handler.get_index_row(), self.rag_handler, AVAILABLE_RAGS) 
+        document_folder.add_row(self.rag_index)
+        self.document_folder = document_folder
+
+        self.RAG.add(document_folder)
+        self.general_page.add(self.RAG)
+    
+    def update_rag_index(self):
+        self.rag_handler = self.get_object(AVAILABLE_RAGS, self.settings.get_string("rag-model"))
+        self.document_folder.remove(self.rag_index)
+        self.rag_index = self.create_extra_setting(self.rag_handler.get_index_row(), self.rag_handler, AVAILABLE_RAGS)
+        self.document_folder.add_row(self.rag_index)
 
     def build_auto_stt(self):
         auto_stt_enabled = Gtk.Switch(valign=Gtk.Align.CENTER)
@@ -565,6 +573,8 @@ class Settings(Adw.PreferencesWindow):
             return
         self.settings.set_string(setting_name, button.get_name())
         self.update_handler_choice()
+        if constants == AVAILABLE_RAGS:
+            self.update_rag_index()
 
     def add_extra_settings(self, constants : dict[str, Any], handler : Handler, row : Adw.ExpanderRow, nested_settings : list | None = None):
         """Buld the extra settings for the specified handler. The extra settings are specified by the method get_extra_settings 
@@ -597,92 +607,94 @@ class Settings(Adw.PreferencesWindow):
         else:
             settings = nested_settings
         for setting in settings:
-            if setting["type"] == "entry":
-                r = Adw.ActionRow(title=setting["title"], subtitle=setting["description"])
-                value = handler.get_setting(setting["key"])
-                value = str(value)
-                entry = Gtk.Entry(valign=Gtk.Align.CENTER, text=value, name=setting["key"])
-                entry.connect("changed", self.setting_change_entry, constants, handler)
-                r.add_suffix(entry)
-            elif setting["type"] == "multilineentry":
-                r = Adw.ExpanderRow(title=setting["title"], subtitle=setting["description"])
-                value = handler.get_setting(setting["key"])
-                value = str(value)
-                entry = MultilineEntry()
-                entry.set_text(value)
-                entry.set_on_change(self.setting_change_multilinentry)
-                entry.name = setting["key"]
-                entry.constants = constants
-                entry.handler = handler
-                r.add_row(entry)
-            elif setting["type"] == "button":
-                r = Adw.ActionRow(title=setting["title"], subtitle=setting["description"])
-                button = Gtk.Button(valign=Gtk.Align.CENTER, name=setting["key"])
-                if "label" in setting:
-                    button.set_label(setting["label"])
-                elif "icon" in setting:
-                    button.set_icon_name(setting["icon"])
-                button.connect("clicked", setting["callback"])
-                r.add_suffix(button)
-            elif setting["type"] == "toggle":
-                r = Adw.ActionRow(title=setting["title"], subtitle=setting["description"])
-                value = handler.get_setting(setting["key"])
-                value = bool(value)
-                toggle = Gtk.Switch(valign=Gtk.Align.CENTER, active=value, name=setting["key"])
-                toggle.connect("state-set", self.setting_change_toggle, constants, handler)
-                r.add_suffix(toggle)
-            elif setting["type"] == "combo":
-                r = Adw.ComboRow(title=setting["title"], subtitle=setting["description"], name=setting["key"])
-                helper = ComboRowHelper(r, setting["values"], handler.get_setting(setting["key"]))
-                helper.connect("changed", self.setting_change_combo, constants, handler)
-            elif setting["type"] == "range":
-                r = Adw.ActionRow(title=setting["title"], subtitle=setting["description"], valign=Gtk.Align.CENTER)
-                box = Gtk.Box()
-                scale = Gtk.Scale(name=setting["key"], round_digits=setting["round-digits"])
-                scale.set_range(setting["min"], setting["max"]) 
-                scale.set_value(round(handler.get_setting(setting["key"]), setting["round-digits"]))
-                scale.set_size_request(120, -1)
-                scale.connect("change-value", self.setting_change_scale, constants, handler)
-                label = Gtk.Label(label=handler.get_setting(setting["key"]))
-                box.append(label)
-                box.append(scale)
-                self.slider_labels[scale] = label
-                r.add_suffix(box)
-            elif setting["type"] == "nested":
-                r = Adw.ExpanderRow(title=setting["title"], subtitle=setting["description"])
-                self.add_extra_settings(constants, handler, r, setting["extra_settings"])
-            elif setting["type"] == "download":
-                r = Adw.ActionRow(title=setting["title"], subtitle=setting["description"]) 
-                
-                actionbutton = Gtk.Button(css_classes=["flat"],valign=Gtk.Align.CENTER)
-                if setting["is_installed"]:
-                    actionbutton.set_icon_name("user-trash-symbolic")
-                    actionbutton.connect("clicked", lambda button,cb=setting["callback"],key=setting["key"] : cb(key))
-                    actionbutton.add_css_class("error")
-                else:
-                    actionbutton.set_icon_name("folder-download-symbolic" if "download-icon" not in setting else setting["download-icon"])
-                    actionbutton.connect("clicked", self.download_setting, setting, handler)
-                    actionbutton.add_css_class("accent")
-                r.add_suffix(actionbutton)
-            else:
-                continue
-            if "website" in setting:
-                wbbutton = self.create_web_button(setting["website"])
-                r.add_prefix(wbbutton)
-            if "folder" in setting:
-                wbbutton = self.create_web_button(setting["folder"], folder=True)
-                r.add_suffix(wbbutton)
-            if "refresh" in setting:
-                refresh_icon = setting.get("refresh_icon", "view-refresh-symbolic")
-                refreshbutton = Gtk.Button(icon_name=refresh_icon, valign=Gtk.Align.CENTER, css_classes=["flat"])
-                refreshbutton.connect("clicked", setting["refresh"])
-                r.add_suffix(refreshbutton)
-
+            r = self.create_extra_setting(setting, handler, constants) 
             row.add_row(r)
-            handler.set_extra_settings_update(lambda _: GLib.idle_add(self.on_setting_change, constants, handler, handler.key, True))
             self.settingsrows[handler.key, self.convert_constants(constants), handler.is_secondary()]["extra_settings"].append(r)
-
-
+        handler.set_extra_settings_update(lambda _: GLib.idle_add(self.on_setting_change, constants, handler, handler.key, True))
+    
+    def create_extra_setting(self, setting : dict, handler: Handler, constants : dict[str, Any]) -> Adw.ExpanderRow | Adw.ActionRow:
+        if setting["type"] == "entry":
+            r = Adw.ActionRow(title=setting["title"], subtitle=setting["description"])
+            value = handler.get_setting(setting["key"])
+            value = str(value)
+            entry = Gtk.Entry(valign=Gtk.Align.CENTER, text=value, name=setting["key"])
+            entry.connect("changed", self.setting_change_entry, constants, handler)
+            r.add_suffix(entry)
+        elif setting["type"] == "multilineentry":
+            r = Adw.ExpanderRow(title=setting["title"], subtitle=setting["description"])
+            value = handler.get_setting(setting["key"])
+            value = str(value)
+            entry = MultilineEntry()
+            entry.set_text(value)
+            entry.set_on_change(self.setting_change_multilinentry)
+            entry.name = setting["key"]
+            entry.constants = constants
+            entry.handler = handler
+            r.add_row(entry)
+        elif setting["type"] == "button":
+            r = Adw.ActionRow(title=setting["title"], subtitle=setting["description"])
+            button = Gtk.Button(valign=Gtk.Align.CENTER, name=setting["key"])
+            if "label" in setting:
+                button.set_label(setting["label"])
+            elif "icon" in setting:
+                button.set_icon_name(setting["icon"])
+            button.connect("clicked", setting["callback"])
+            r.add_suffix(button)
+        elif setting["type"] == "toggle":
+            r = Adw.ActionRow(title=setting["title"], subtitle=setting["description"])
+            value = handler.get_setting(setting["key"])
+            value = bool(value)
+            toggle = Gtk.Switch(valign=Gtk.Align.CENTER, active=value, name=setting["key"])
+            toggle.connect("state-set", self.setting_change_toggle, constants, handler)
+            r.add_suffix(toggle)
+        elif setting["type"] == "combo":
+            r = Adw.ComboRow(title=setting["title"], subtitle=setting["description"], name=setting["key"])
+            helper = ComboRowHelper(r, setting["values"], handler.get_setting(setting["key"]))
+            helper.connect("changed", self.setting_change_combo, constants, handler)
+        elif setting["type"] == "range":
+            r = Adw.ActionRow(title=setting["title"], subtitle=setting["description"], valign=Gtk.Align.CENTER)
+            box = Gtk.Box()
+            scale = Gtk.Scale(name=setting["key"], round_digits=setting["round-digits"])
+            scale.set_range(setting["min"], setting["max"]) 
+            scale.set_value(round(handler.get_setting(setting["key"]), setting["round-digits"]))
+            scale.set_size_request(120, -1)
+            scale.connect("change-value", self.setting_change_scale, constants, handler)
+            label = Gtk.Label(label=handler.get_setting(setting["key"]))
+            box.append(label)
+            box.append(scale)
+            self.slider_labels[scale] = label
+            r.add_suffix(box)
+        elif setting["type"] == "nested":
+            r = Adw.ExpanderRow(title=setting["title"], subtitle=setting["description"])
+            self.add_extra_settings(constants, handler, r, setting["extra_settings"])
+        elif setting["type"] == "download":
+            r = Adw.ActionRow(title=setting["title"], subtitle=setting["description"]) 
+            
+            actionbutton = Gtk.Button(css_classes=["flat"],valign=Gtk.Align.CENTER)
+            if setting["is_installed"]:
+                actionbutton.set_icon_name("user-trash-symbolic")
+                actionbutton.connect("clicked", lambda button,cb=setting["callback"],key=setting["key"] : cb(key))
+                actionbutton.add_css_class("error")
+            else:
+                actionbutton.set_icon_name("folder-download-symbolic" if "download-icon" not in setting else setting["download-icon"])
+                actionbutton.connect("clicked", self.download_setting, setting, handler)
+                actionbutton.add_css_class("accent")
+            r.add_suffix(actionbutton)
+        else:
+            return
+        if "website" in setting:
+            wbbutton = self.create_web_button(setting["website"])
+            r.add_prefix(wbbutton)
+        if "folder" in setting:
+            wbbutton = self.create_web_button(setting["folder"], folder=True)
+            r.add_suffix(wbbutton)
+        if "refresh" in setting:
+            refresh_icon = setting.get("refresh_icon", "view-refresh-symbolic")
+            refreshbutton = Gtk.Button(icon_name=refresh_icon, valign=Gtk.Align.CENTER, css_classes=["flat"])
+            refreshbutton.connect("clicked", setting["refresh"])
+            r.add_suffix(refreshbutton)
+        return r 
+    
     def add_customize_prompt_content(self, row, prompt_name):
         """Add a MultilineEntry to edit a prompt from the given prompt name
 
@@ -762,6 +774,8 @@ class Settings(Adw.PreferencesWindow):
             # remove all the elements in the specified expander row 
             row = self.settingsrows[(handler.key, self.convert_constants(constants), handler.is_secondary())]["row"]
             setting_list = self.settingsrows[(handler.key, self.convert_constants(constants), handler.is_secondary())]["extra_settings"]
+            if constants == AVAILABLE_RAGS:
+                GLib.idle_add(self.update_rag_index)
             for setting_row in setting_list:
                 row.remove(setting_row)
             self.add_extra_settings(constants, handler, row)

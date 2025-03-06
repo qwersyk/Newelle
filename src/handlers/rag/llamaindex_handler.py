@@ -103,13 +103,8 @@ class LlamaIndexHanlder(RAGHandler):
     def index_exists(self):
         return os.path.exists(os.path.join(self.data_path, "docstore.json")) and (not self.indexing) 
     
-    def index_button_pressed(self, button=None):
-        if self.index_exists():
-            os.remove(os.path.join(self.data_path, "docstore.json"))
-            self.settings_update()
-        else:
-            self.indexing = True
-            self.create_index()
+    def delete_index(self):
+        os.remove(os.path.join(self.data_path, "docstore.json"))
 
     def create_index(self, button=None):  
         from llama_index.core.settings import Settings
