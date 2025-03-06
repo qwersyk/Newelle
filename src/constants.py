@@ -219,7 +219,7 @@ AVAILABLE_RAGS = {
     "llamaindex": {
         "key": "llamaindex",
         "title": _("Document reader"),
-        "description": _("Classic RAG approach - chunk docuemnts and embed them, then compare them to the query and return the most relevant documents"),
+        "description": _("Classic RAG approach - chunk documents and embed them, then compare them to the query and return the most relevant documents"),
         "class": LlamaIndexHanlder,
     },
 }
