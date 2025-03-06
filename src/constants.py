@@ -218,8 +218,8 @@ AVAILABLE_MEMORIES = {
 AVAILABLE_RAGS = {
     "llamaindex": {
         "key": "llamaindex",
-        "title": _("Llama index"),
-        "description": _("LLama Index library"),
+        "title": _("Document reader"),
+        "description": _("Classic RAG approach - chunk docuemnts and embed them, then compare them to the query and return the most relevant documents"),
         "class": LlamaIndexHanlder,
     },
 }
