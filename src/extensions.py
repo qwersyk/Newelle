@@ -254,6 +254,9 @@ class ExtensionLoader:
     def get_extensions(self) -> list[NewelleExtension]:
         return self.extensions
 
+    def get_enabled_extensions(self) -> list[NewelleExtension]:
+        return [x for x in self.get_extensions() if x not in self.disabled_extensions]
+
     def load_extensions(self):
         """Load extensions from the extension directory"""
         sys.path.insert(0, self.project_dir)
@@ -491,7 +494,7 @@ class ExtensionLoader:
         """
         Called on the history before it is sent to the LLM. History is given in Newelle format
         """
-        for extension in self.extensions:
+        for extension in self.get_enabled_extensions():
             try:
                 history, prompts = extension.preprocess_history(history, prompts)
             except Exception as e:
@@ -502,7 +505,7 @@ class ExtensionLoader:
         """
         Called on the history after it is received from the LLM. History is given in Newelle format
         """
-        for extension in self.extensions:
+        for extension in self.get_enabled_extensions():
             try:
                 history, bot_response = extension.postprocess_history(history, bot_response)
             except Exception as e:
