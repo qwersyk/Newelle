@@ -562,7 +562,7 @@ class MainWindow(Gtk.ApplicationWindow):
         box.append(switcher)
         box.append(scroll)
         self.model_menu_button.set_popover(self.model_popup)
-        self.model_popup.connect("closed", lambda x: self.quick_settings_update())
+        self.model_popup.connect("closed", lambda x: GLib.idle_add(self.quick_settings_update))
         self.model_popup.set_child(box)
         return self.model_menu_button
 
