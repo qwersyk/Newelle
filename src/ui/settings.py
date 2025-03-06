@@ -121,23 +121,42 @@ class Settings(Adw.PreferencesWindow):
            tts_program.add_row(row)
         
         # Build the RAG settings
-        memory_enabled = Gtk.Switch(valign=Gtk.Align.CENTER)
-        self.settings.bind("rag-on", memory_enabled, 'active', Gio.SettingsBindFlags.DEFAULT)
-        tts_program = Adw.ExpanderRow(title=_('Document Sources'), subtitle=_("Include content from your documents in the responses"))
-        tts_program.add_action(memory_enabled)
-        self.SECONDARY_LLM.add(tts_program)
+        self.RAG = Adw.PreferencesGroup(title=_('Document Sources (RAG)'), description=_("Include content from your documents in the responses"))
+        tts_program = Adw.ExpanderRow(title=_('Document Analyzer'), subtitle=_("The document analyzer uses multiple techniques to extract relevant information about your documents"))
+        #tts_program.add_action(memory_enabled)
+        self.RAG.add(tts_program)
         group = Gtk.CheckButton()
         selected = self.settings.get_string("rag-model")
         for key in AVAILABLE_RAGS:
            row = self.build_row(AVAILABLE_RAGS, key, selected, group) 
            tts_program.add_row(row)
-        
+       
         rag_on_docuements = Gtk.Switch(valign=Gtk.Align.CENTER)
         self.settings.bind("rag-on-documents", rag_on_docuements, 'active', Gio.SettingsBindFlags.DEFAULT)
-        rag_row = Adw.ExpanderRow(title=_("Read documents if unsupported"), subtitle=_("If the LLM does not support reading documents, relevant information about documents sent in the chat will be given to the LLM using RAG."))
-        rag_row.add_action(rag_on_docuements)
-        self.SECONDARY_LLM.add(rag_row)
+        rag_row = Adw.ActionRow(title=_("Read documents if unsupported"), subtitle=_("If the LLM does not support reading documents, relevant information about documents sent in the chat will be given to the LLM using your Document Analyzer."))
+        rag_row.add_suffix(rag_on_docuements)
+        self.RAG.add(rag_row)
+        # Document folder 
+        rag_enabled = Gtk.Switch(valign=Gtk.Align.CENTER)
+        self.settings.bind("rag-on", rag_enabled, 'active', Gio.SettingsBindFlags.DEFAULT)
+        document_folder = Adw.ExpanderRow(title=_("Document Folder"), subtitle=_("Put the documents you want to query in your document folder. The document analyzer will find relevant information in them if this option is enabled"))
+        document_folder.add_suffix(rag_enabled)
+        # Document folder rows 
+        folder = Adw.ActionRow(title="Open your document folder", subtitle=_("Put all the documents you want to index in this folder"))
+        folder_button = Gtk.Button(icon_name="folder-symbolic", css_classes=["flat"])
+        folder_button.connect("clicked", lambda _: open_folder(os.path.join(self.directory, "documents")))
+        folder.add_suffix(folder_button)
+        document_folder.add_row(folder)
 
+        index = Adw.ActionRow(title="Index your documents", subtitle=_("Index all the documents in your document folder. You have to run this operation every time you edit/create a document, change document analyzer or change embedding model"))
+        index_button = Gtk.Button(icon_name="text-x-generic", css_classes=["flat", "accent"])
+        index_button.connect("clicked", lambda _: open_folder(os.path.join(self.directory, "documents")))
+        index.add_suffix(index_button)
+        document_folder.add_row(index)
+        
+        self.RAG.add(document_folder)
+        self.general_page.add(self.RAG)
+        
         # Build the TTS settings
         self.Voicegroup = Adw.PreferencesGroup(title=_('Voice'))
         self.general_page.add(self.Voicegroup)
