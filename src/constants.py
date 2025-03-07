@@ -2,9 +2,9 @@
 from .handlers.llm import ClaudeHandler, DeepseekHandler, GPT4AllHandler, GroqHandler, OllamaHandler, OpenAIHandler, CustomLLMHandler, GPT3AnyHandler, GeminiHandler, MistralHandler, OpenRouterHandler, NewelleAPIHandler
 from .handlers.tts import ElevenLabs, gTTSHandler, EspeakHandler, CustomTTSHandler
 from .handlers.stt import GroqSRHandler, OpenAISRHandler, SphinxHandler, GoogleSRHandler, WhisperHandler, WitAIHandler, VoskHandler, CustomSRHandler
-from .handlers.embeddings import WordLlamaHandler
+from .handlers.embeddings import WordLlamaHandler, OpenAIEmbeddingHandler, GeminiEmbeddingHanlder, OllamaEmbeddingHandler
 from .handlers.memory import MemoripyHandler, UserSummaryHandler
-
+from .handlers.rag import LlamaIndexHanlder
 
 AVAILABLE_LLMS = {
     "newelle": {
@@ -179,6 +179,24 @@ AVAILABLE_EMBEDDINGS = {
         "title": _("WordLlama"),
         "description": _("Light local embedding model based on llama. Works offline, very low resources usage"),
         "class": WordLlamaHandler,
+    },
+    "ollamaembedding": {
+        "key": "ollamaembedding",
+        "title": _("Ollama Embedding"),
+        "description": _("Use Ollama models for Embedding. Works offline, very low resources usage"),
+        "class": OllamaEmbeddingHandler,
+    },
+    "openaiembedding": {
+        "key": "openaiembedding",
+        "title": _("OpenAI API"),
+        "description": _("OpenAI API"),
+        "class": OpenAIEmbeddingHandler,
+    },
+    "geminiembedding": {
+        "key": "geminiembedding",
+        "title": _("Google Gemini API"),
+        "description": _("Use Google Gemini API to get embeddings"),
+        "class": GeminiEmbeddingHanlder,
     }
 }
 
@@ -195,6 +213,15 @@ AVAILABLE_MEMORIES = {
         "description": _("Extract messages from previous conversations using contextual memory retrivial, memory decay, concept extraction and other advanced techniques. Does 1 llm call per message."),
         "class": MemoripyHandler,
     }
+}
+
+AVAILABLE_RAGS = {
+    "llamaindex": {
+        "key": "llamaindex",
+        "title": _("Document reader"),
+        "description": _("Classic RAG approach - chunk documents and embed them, then compare them to the query and return the most relevant documents"),
+        "class": LlamaIndexHanlder,
+    },
 }
 
 PROMPTS = {

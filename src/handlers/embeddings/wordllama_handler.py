@@ -20,11 +20,20 @@ class WordLlamaHandler(EmbeddingHandler):
         ]
 
     def load_model(self):
-        from wordllama import WordLlama 
-        self.wl = WordLlama.load()
+        if not self.is_installed():
+            return
+        from wordllama import WordLlama
+        size = self.get_embedding_size()
+        if (size >= 256):
+            self.wl = WordLlama.load(dim=size)
+        else:
+            self.wl = WordLlama.load(truncate_dim=size)
 
     def get_embedding(self, text: list[str]) -> np.ndarray:
         if self.wl is not None:
             return self.wl.embed(text)
         else:
             return np.array([])
+
+    def get_embedding_size(self) -> int:
+        return int(self.get_setting("model_size"))

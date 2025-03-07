@@ -83,6 +83,18 @@
 	      <key name="memory-settings" type="s">
             <default>"{}"</default>
         </key>
+        <key name="rag-on" type="b">
+          <default>false</default>
+        </key>
+	      <key name="rag-model" type="s">
+            <default>"llamaindex"</default>
+        </key>
+	      <key name="rag-settings" type="s">
+            <default>"{}"</default>
+        </key>
+	      <key name="rag-on-documents" type="b">
+            <default>false</default>
+        </key>
         <key name="automatic-stt" type="b">
           <default>false</default>
         </key>

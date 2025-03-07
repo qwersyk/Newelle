@@ -13,12 +13,17 @@ class MemoryHandler(Handler):
     def set_memory_size(self, length: int):
         self.memory_size = length
 
+    def set_handlers(self, llm: LLMHandler, embedding: EmbeddingHandler):
+        self.llm = llm
+        self.embedding = embedding
+
+
     @abstractmethod
-    def get_context(self, prompt:str, history: list[dict[str, str]], embedding: EmbeddingHandler, llm: LLMHandler) -> list[str]:
+    def get_context(self, prompt:str, history: list[dict[str, str]]) -> list[str]:
         return []
 
     @abstractmethod 
-    def register_response(self, bot_response, history, embedding, llm):
+    def register_response(self, bot_response:str, history:list[dict[str, str]]):
         pass
 
     @abstractmethod

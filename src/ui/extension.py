@@ -4,7 +4,7 @@ import os
 
 from ..utility.system import get_spawn_command
 
-from ..constants import AVAILABLE_LLMS, AVAILABLE_PROMPTS, AVAILABLE_STT, AVAILABLE_TTS, PROMPTS
+from ..constants import AVAILABLE_EMBEDDINGS, AVAILABLE_LLMS, AVAILABLE_MEMORIES, AVAILABLE_PROMPTS, AVAILABLE_RAGS, AVAILABLE_STT, AVAILABLE_TTS, PROMPTS
 from .settings import Settings
 from ..extensions import ExtensionLoader
 from gi.repository import Gtk, Adw, Gio, GLib
@@ -48,7 +48,7 @@ class Extension(Gtk.Window):
         self.main.append(self.extensiongroup)
         for extension in self.extensionloader.get_extensions():
             
-            settings.settingsrows[(extension.key, "extension")]= {} 
+            settings.settingsrows[(extension.key, "extension", False)]= {} 
             button = Gtk.Button(css_classes=["flat", "destructive-action"], margin_top=10,margin_start=10,margin_end=10,margin_bottom=10)
             button.connect("clicked", self.delete_extension)
             button.set_name(extension.id)
@@ -95,7 +95,7 @@ class Extension(Gtk.Window):
             self.extensionloader.enable(name)
         else:
             self.extensionloader.disable(name)
-            self.extensionloader.remove_handlers(self.extensionloader.get_extension_by_id(name), AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT)
+            self.extensionloader.remove_handlers(self.extensionloader.get_extension_by_id(name), AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS, AVAILABLE_RAGS)
             self.extensionloader.remove_prompts(self.extensionloader.get_extension_by_id(name), PROMPTS, AVAILABLE_PROMPTS)
     def delete_extension(self,widget):
         self.extensionloader.remove_extension(widget.get_name())
