@@ -186,6 +186,12 @@ class Settings(Adw.PreferencesWindow):
         self.settings.bind("hidden-files", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
         self.interface.add(row)
 
+        row = Adw.ActionRow(title=_("Remove thinking from history"), subtitle=_("Do not send old thinking blocks for reasoning models in order to reduce token usage"))
+        switch = Gtk.Switch(valign=Gtk.Align.CENTER)
+        row.add_suffix(switch)
+        self.settings.bind("remove-thinking", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
+        self.interface.add(row)
+        
         row = Adw.ActionRow(title=_("Display LaTex"), subtitle=_("Display LaTex formulas in chat"))
         switch = Gtk.Switch(valign=Gtk.Align.CENTER)
         row.add_suffix(switch)
@@ -229,6 +235,9 @@ class Settings(Adw.PreferencesWindow):
         self.neural_network.add(row)
         
         row = Adw.ExpanderRow(title=_("External Terminal"), subtitle=_("Choose the external terminal where to run the console commands"))
+        terminal_enabled = Gtk.Switch(valign=Gtk.Align.CENTER)
+        self.settings.bind("external-terminal-on", terminal_enabled, 'active', Gio.SettingsBindFlags.DEFAULT)
+        row.add_suffix(terminal_enabled)
         entry = Gtk.Entry()
         self.settings.bind("external-terminal", entry, 'text', Gio.SettingsBindFlags.DEFAULT)
         row.add_row(entry)

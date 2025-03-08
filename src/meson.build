@@ -54,6 +54,7 @@ widgets_sources = [
   'ui/widgets/copybox.py',
   'ui/widgets/file.py',
   'ui/widgets/latex.py',
+  'ui/widgets/terminal_dialog.py',
 ]
 
 handler_sources = [

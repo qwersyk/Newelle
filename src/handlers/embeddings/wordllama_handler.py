@@ -22,6 +22,8 @@ class WordLlamaHandler(EmbeddingHandler):
     def load_model(self):
         if not self.is_installed():
             return
+        if self.wl is not None:
+            return
         from wordllama import WordLlama
         size = self.get_embedding_size()
         if (size >= 256):

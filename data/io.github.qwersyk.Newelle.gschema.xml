@@ -13,6 +13,9 @@
         <key name="hidden-files" type="b">
             <default>false</default>
         </key>
+        <key name="remove-thinking" type="b">
+            <default>true</default>
+        </key>
         <key name="reverse-order" type="b">
             <default>false</default>
         </key>
@@ -109,6 +112,9 @@
         </key>
 	      <key name="custom-prompts" type="s">
 	        <default>"{}"</default>
+        </key>
+        <key name="external-terminal-on" type="b">
+          <default>false</default>
         </key>
         <key name="external-terminal" type="s">
           <default>"gnome-terminal -- bash -c {0}"</default>

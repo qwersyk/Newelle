@@ -136,6 +136,20 @@ def convert_think_codeblocks(text: str) -> str:
     """
     return text.replace("<think>", "```think").replace("</think>", "```")
 
+def remove_thinking_blocks(text):
+  """
+  Removes <think>...</think> blocks from a given text using regular expressions.
+
+  Args:
+    text: The input text string.
+
+  Returns:
+    The text string with all <think>...</think> blocks removed.
+  """
+  pattern = r"<think>.*?</think>"  # Non-greedy match
+  cleaned_text = re.sub(pattern, "", text, flags=re.DOTALL) # flags=re.DOTALL allows . to match newline characters
+  return cleaned_text
+
 def get_edited_messages(history: list, old_history: list) -> list | None:
     """Get the edited messages from the history
 

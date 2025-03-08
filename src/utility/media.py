@@ -1,6 +1,7 @@
 import os
 import base64
 from .message_chunk import get_message_chunks
+import fnmatch
 
 def encode_image_base64(file_path):
     mime_types = {
@@ -133,7 +134,7 @@ def extract_supported_files(history: list, supported_extensions: list) -> list[s
                 for file in files:
                     if file.startswith("#"):
                         continue
-                    ext = os.path.splitext(file)[1].lower()
-                    if "*" + ext in supported_extensions:
+                    # Check if any pattern in supported_extensions matches the file name (case-insensitive)
+                    if any(fnmatch.fnmatch(file.lower(), pattern.lower()) for pattern in supported_extensions):
                         documents.append("file:" + file)
     return documents

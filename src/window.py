@@ -31,7 +31,7 @@ from .constants import AVAILABLE_LLMS, AVAILABLE_PROMPTS, PROMPTS, AVAILABLE_TTS
 from .utility import override_prompts
 from .utility.system import get_spawn_command 
 from .utility.pip import install_module
-from .utility.strings import convert_think_codeblocks, get_edited_messages, markwon_to_pango, remove_markdown
+from .utility.strings import convert_think_codeblocks, get_edited_messages, markwon_to_pango, remove_markdown, remove_thinking_blocks
 from .utility.replacehelper import replace_variables
 from .utility.profile_settings import get_settings_dict, restore_settings_from_dict
 from .utility.audio_recorder import AudioRecorder
@@ -304,6 +304,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.input_box = Gtk.Box(halign=Gtk.Align.FILL, margin_start=6, margin_end=6, margin_top=6, margin_bottom=6,
                             spacing=6)
         self.input_box.set_valign(Gtk.Align.CENTER)
+        self.build_quick_toggles()
         # Attach icon
         button = Gtk.Button(css_classes=["flat", "circular"], icon_name="attach-symbolic")
         button.connect("clicked", self.attach_file)
@@ -375,6 +376,52 @@ class MainWindow(Gtk.ApplicationWindow):
         if not self.settings.get_boolean("welcome-screen-shown"):
             GLib.idle_add(self.show_presentation_window)
 
+    def build_quick_toggles(self):
+        self.quick_toggles = Gtk.MenuButton(css_classes=["flat"], icon_name="controls-big")
+        self.quick_toggles_popover = Gtk.Popover()
+        entries = [  # Your provided list
+            {"setting_name": "rag-on", "title": "Local Documents"},
+            {"setting_name": "memory-on", "title": "Long Term Memory"},
+            {"setting_name": "tts-on", "title": "TTS"},
+        ]
+
+        container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
+        container.set_margin_start(12)
+        container.set_margin_end(12)
+        container.set_margin_top(6)
+        container.set_margin_bottom(6)
+
+        for entry in entries:
+            title = entry["title"]
+            setting_key = entry["setting_name"]
+            # Create row container
+            row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+            row.set_margin_top(6)
+            row.set_margin_bottom(6)
+            # Label with title
+            label = Gtk.Label(label=title, xalign=0)
+            label.set_hexpand(True)  # Expand horizontally to push switch right
+            # Create the Switch
+            switch = Gtk.Switch()
+            # Bind to settings
+            self.settings.bind(
+                setting_key,
+                switch,
+                "active",
+                Gio.SettingsBindFlags.DEFAULT
+            )
+            # Pack row items
+            row.append(label)
+            row.append(switch)
+            # Add row to vertical container
+            container.append(row)
+
+        # Apply to UI
+        self.quick_toggles_popover.set_child(container)
+        self.quick_toggles.set_popover(self.quick_toggles_popover)
+        self.input_box.append(self.quick_toggles)
+        self.quick_toggles_popover.connect("closed", self.update_toggles)
+
     def build_offers(self):
         """Build offers buttons, called by update_settings to update the number of buttons"""
         for text in range(self.offers):
@@ -385,6 +432,17 @@ class MainWindow(Gtk.ApplicationWindow):
             button.set_visible(False)
             self.offers_entry_block.append(button)
             self.message_suggestion_buttons_array.append(button)
+
+    def update_toggles(self, *_):
+        """Update the quick toggles"""
+        self.tts_enabled = self.settings.get_boolean("tts-on")
+        self.rag_on = self.settings.get_boolean("rag-on")
+        self.memory_on = self.settings.get_boolean("memory-on")
+        if not self.first_load:
+            if self.rag_on or self.memory_on:
+                self.embeddings.load_model()
+            if self.rag_on:
+                self.rag_handler.load()
 
     def update_settings(self):
         """Update settings, run every time the program is started or settings dialog closed"""
@@ -404,6 +462,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.memory = settings.get_int("memory")
         self.hidden_files = settings.get_boolean("hidden-files")
         self.reverse_order = settings.get_boolean("reverse-order")
+        self.remove_thinking = settings.get_boolean("remove-thinking")
         self.auto_generate_name = settings.get_boolean("auto-generate-name")
         self.chat_id = settings.get_int("chat")
         self.main_path = settings.get_string("path")
@@ -439,14 +498,9 @@ class MainWindow(Gtk.ApplicationWindow):
             self.tts.connect('stop', lambda: GLib.idle_add(self.mute_tts_button.set_visible, False))
         
         # Create RAG and memory handler and embedding handler first
-        if self.rag_on or self.rag_on_documents:
-            self.rag_handler : RAGHandler | None = AVAILABLE_RAGS[self.rag_model]["class"](self.settings, os.path.join(self.directory, "models"))
-        else:
-            self.rag_handler = None
-
-        if self.memory_on:
-            self.memory_handler : MemoripyHandler= AVAILABLE_MEMORIES[self.memory_model]["class"](self.settings, os.path.join(self.directory, "models"))
-            self.memory_handler.set_memory_size(self.memory)
+        self.rag_handler : RAGHandler = AVAILABLE_RAGS[self.rag_model]["class"](self.settings, os.path.join(self.directory, "models"))
+        self.memory_handler : MemoripyHandler= AVAILABLE_MEMORIES[self.memory_model]["class"](self.settings, os.path.join(self.directory, "models"))
+        self.memory_handler.set_memory_size(self.memory)
         self.embeddings : EmbeddingHandler = AVAILABLE_EMBEDDINGS[self.embedding_model]["class"](self.settings, os.path.join(self.directory, "models"))
         if not self.embeddings.is_installed():
             # Install embeddings if missing
@@ -494,10 +548,8 @@ class MainWindow(Gtk.ApplicationWindow):
         else:
             self.secondary_model = self.model
         # Update handlers in memory and rag 
-        if self.memory_on:
-            self.memory_handler.set_handlers(self.secondary_model, self.embeddings)
-        if self.rag_on or self.rag_on_documents:
-            self.rag_handler.set_handlers(self.secondary_model, self.embeddings)
+        self.memory_handler.set_handlers(self.secondary_model, self.embeddings)
+        self.rag_handler.set_handlers(self.secondary_model, self.embeddings)
 
         # Load handlers and models
         self.model.load_model(None)
@@ -1477,6 +1529,8 @@ class MainWindow(Gtk.ApplicationWindow):
                 break
             if msg["User"] == "Console" and msg["Message"] == "None":
                 continue
+            if self.remove_thinking:
+                msg["Message"] = remove_thinking_blocks(msg["Message"])
             history.append(msg)
             count -= 1
         return history
@@ -1538,6 +1592,7 @@ class MainWindow(Gtk.ApplicationWindow):
                 self.curr_label = ""
                 GLib.idle_add(self.create_streaming_message_label)
                 self.streaming_label = None
+                self.last_update = time.time()
                 message_label = self.model.send_message_stream(self, self.chat[-1]["Message"], self.update_message,
                                                             [stream_number_variable])
                 try:
@@ -1567,7 +1622,7 @@ class MainWindow(Gtk.ApplicationWindow):
             else:
                 for message in edited_messages:
                     GLib.idle_add(self.reload_message, message)
-            GLib.idle_add(self.show_message, message_label)
+            GLib.idle_add(self.show_message, message_label, False, -1, False, False, False, "\n".join(prompts))
         GLib.idle_add(self.remove_send_button_spinner)
         # Generate chat name 
         self.update_memory(message_label)
@@ -1632,6 +1687,10 @@ class MainWindow(Gtk.ApplicationWindow):
         if self.streaming_label is not None:
             # Find the differences between the messages
             added_message = message[len(self.curr_label):]
+            t = time.time()
+            if t - self.last_update < 0.05:
+                return
+            self.last_update = t
             self.curr_label = message
 
             # Edit the label on the main thread
@@ -1685,9 +1744,12 @@ class MainWindow(Gtk.ApplicationWindow):
         GLib.idle_add(self.update_button_text)
 
    
-
-
-    def show_message(self, message_label, restore=False, id_message=-1, is_user=False, return_widget=False, newelle_error=False):
+    def add_prompt(self, prompt: str|None):
+        if prompt is None:
+            return
+        self.chat[-1]["Prompt"] = prompt
+        
+    def show_message(self, message_label, restore=False, id_message=-1, is_user=False, return_widget=False, newelle_error=False, prompt:str|None=None):
         """Show a message
 
         Args:
@@ -1705,6 +1767,7 @@ class MainWindow(Gtk.ApplicationWindow):
         if message_label == " " * len(message_label) and not is_user:
             if not restore:
                 self.chat.append({"User": "Assistant", "Message": message_label})
+                self.add_prompt(prompt)
                 GLib.idle_add(self.update_button_text)
                 self.status = True
                 self.chat_stop_button.set_visible(False)
@@ -1718,6 +1781,7 @@ class MainWindow(Gtk.ApplicationWindow):
         else:
             if not restore and not is_user:
                 self.chat.append({"User": "Assistant", "Message": message_label})
+                self.add_prompt(prompt)
             chunks = get_message_chunks(message_label, self.display_latex)  
             box = Gtk.Box(margin_top=10, margin_start=10, margin_bottom=10, margin_end=10,
                           orientation=Gtk.Orientation.VERTICAL)
@@ -2073,6 +2137,22 @@ class MainWindow(Gtk.ApplicationWindow):
         self.save_chat()
         self.show_chat()
 
+    def show_prompt(self, button, id):
+        """Show a prompt
+
+        Args:
+            id (): id of the prompt to show 
+        """
+        dialog = Adw.Dialog(can_close=True)
+        dialog.set_title(_("Prompt content"))
+        label = Gtk.Label(label=self.chat[id]["Prompt"], wrap=True, wrap_mode=Pango.WrapMode.WORD, selectable=True, halign=Gtk.Align.START)
+        scroll = Gtk.ScrolledWindow(propagate_natural_width=True, height_request=600)
+        scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+        scroll.set_child(label)
+        dialog.set_child(scroll)
+        dialog.set_content_width(400)
+        dialog.present()
+
     def build_edit_box(self, box, id):
         """Create the box and the stack with the edit buttons
 
@@ -2083,7 +2163,9 @@ class MainWindow(Gtk.ApplicationWindow):
         Returns:
             Gtk.Stack 
         """
+        has_prompt = len(self.chat) > int(id) and "Prompt" in self.chat[int(id)]
         edit_box = Gtk.Box()
+        buttons_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, valign=Gtk.Align.CENTER)
         apply_box = Gtk.Box()
 
         # Apply box
@@ -2106,9 +2188,17 @@ class MainWindow(Gtk.ApplicationWindow):
         remove_button.connect("clicked", self.delete_message, box)
         edit_box.append(button)
         edit_box.append(remove_button)
+        buttons_box.append(edit_box)
+        # Prompt box 
+        if has_prompt:
+            prompt_box = Gtk.Box(halign=Gtk.Align.CENTER)
+            button = Gtk.Button(icon_name="question-round-outline-symbolic", css_classes=["flat", "accent"], valign=Gtk.Align.CENTER)
+            button.connect("clicked", self.show_prompt, int(id))
+            prompt_box.append(button)
+            buttons_box.append(prompt_box) 
 
         apply_edit_stack.add_named(apply_box, "apply")
-        apply_edit_stack.add_named(edit_box, "edit")
+        apply_edit_stack.add_named(buttons_box, "edit")
         apply_edit_stack.set_visible_child_name("edit")
         return apply_edit_stack
 

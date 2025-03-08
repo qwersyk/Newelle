@@ -1,10 +1,10 @@
 import threading
 import subprocess
 import os
-from gi.repository import Gtk, GtkSource, Gio, Pango, Gdk
+from gi.repository import GLib, Gtk, GtkSource, Gio, Pango, Gdk
 from ...utility.system import get_spawn_command 
 from ...utility.strings import quote_string
-
+from .terminal_dialog import TerminalDialog
 
 class CopyBox(Gtk.Box):
     def __init__(self, txt, lang, parent = None,id_message=-1):
@@ -110,29 +110,17 @@ class CopyBox(Gtk.Box):
             return
         clipboard = display.get_clipboard()
         clipboard.set_content(Gdk.ContentProvider.new_for_value(self.txt))
-
-        icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="object-select-symbolic"))
-        icon.set_icon_size(Gtk.IconSize.INHERIT)
-        self.copy_button.set_child(icon)
+        self.copy_button.set_icon_name("object-select-symbolic")
+        GLib.timeout_add(2000, lambda : self.copy_button.set_icon_name("edit-copy-symbolic"))
 
     def run_console(self, widget,multithreading=False):
         if multithreading:
-            icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="emblem-ok-symbolic"))
+            icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="object-select-symbolic"))
             icon.set_icon_size(Gtk.IconSize.INHERIT)
             widget.set_child(icon)
             widget.set_sensitive(False)
             code = self.parent.execute_terminal_command(self.txt.split("\n"))
-            if self.id_message<len(self.parent.chat) and self.parent.chat[self.id_message]["User"]=="Console":
-                self.parent.chat[self.id_message]["Message"] = code[1]
-            else:
-                self.parent.chat.append({"User": "Console", "Message": " " + code[1]})
-            self.text_expander.set_child(
-                Gtk.Label(wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR, label=code[1], selectable=True))
-            if self.parent.status and len(self.parent.chat)-1==self.id_message and self.id_message<len(self.parent.chat) and self.parent.chat[self.id_message]["User"]=="Console":
-                self.parent.status = False
-                self.parent.update_button_text()
-                self.parent.scrolled_chat()
-                self.parent.send_message()
+            self.set_output(code[1])
             icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="media-playback-start-symbolic"))
             icon.set_icon_size(Gtk.IconSize.INHERIT)
             widget.set_child(icon)
@@ -140,15 +128,49 @@ class CopyBox(Gtk.Box):
         else:
             threading.Thread(target=self.run_console, args=[widget, True]).start()
     
+    def set_output(self, output):
+            if self.id_message<len(self.parent.chat) and self.parent.chat[self.id_message]["User"]=="Console":
+                self.parent.chat[self.id_message]["Message"] = output
+            else:
+                self.parent.chat.append({"User": "Console", "Message": " " + output})
+            self.text_expander.set_child(
+                Gtk.Label(wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR, label=output, selectable=True))
+            if self.parent.status and len(self.parent.chat)-1==self.id_message and self.id_message<len(self.parent.chat) and self.parent.chat[self.id_message]["User"]=="Console":
+                self.parent.status = False
+                self.parent.update_button_text()
+                self.parent.scrolled_chat()
+                threading.Thread(target=self.parent.send_message).start()
+
     def run_console_terminal(self, widget,multithreading=False):
-        icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="emblem-ok-symbolic"))
+        icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="object-select-symbolic"))
         icon.set_icon_size(Gtk.IconSize.INHERIT)
         widget.set_child(icon)
         widget.set_sensitive(False)
         command = "cd " + quote_string(os.getcwd()) +"; " + self.txt + "; exec bash"
-        cmd = self.parent.external_terminal.split()
-        arguments = [s.replace("{0}", command) for s in cmd]
-        subprocess.Popen(get_spawn_command() + arguments)
+        external_terminal = False
+        if external_terminal:
+            cmd = self.parent.external_terminal.split() 
+            arguments = [s.replace("{0}", command) for s in cmd]
+            subprocess.Popen(get_spawn_command() + arguments)
+        else:
+            terminal = TerminalDialog()
+            output_dir = GLib.get_user_cache_dir()
+            terminal_output = output_dir + "/terminal.log"
+            def save_output(save):
+                widget.set_sensitive(True)
+                widget.set_icon_name("gnome-terminal-symbolic")
+                if save is not None:
+                    self.set_output(save)
+                else:
+                    return
+
+            if not self.parent.virtualization:
+                command = get_spawn_command() + ["bash", "-c", command]
+            else:
+                command = ["bash", "-c", "bash -c " + quote_string(command)]
+            terminal.load_terminal(command)
+            terminal.save_output_func(save_output)
+            terminal.present()
 
 
     def run_python(self, widget):
