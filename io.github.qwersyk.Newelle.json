@@ -27,6 +27,7 @@
     "*.a"
   ],
   "modules": [
+    "modules/vte.json",
     "modules/python3-requests.json",
     "modules/python3-expandvars.json",
     "modules/python3-gpt4all.json",
