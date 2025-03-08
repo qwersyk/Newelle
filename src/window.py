@@ -1541,6 +1541,7 @@ class MainWindow(Gtk.ApplicationWindow):
                 self.curr_label = ""
                 GLib.idle_add(self.create_streaming_message_label)
                 self.streaming_label = None
+                self.last_update = time.time()
                 message_label = self.model.send_message_stream(self, self.chat[-1]["Message"], self.update_message,
                                                             [stream_number_variable])
                 try:
@@ -1635,6 +1636,10 @@ class MainWindow(Gtk.ApplicationWindow):
         if self.streaming_label is not None:
             # Find the differences between the messages
             added_message = message[len(self.curr_label):]
+            t = time.time()
+            if t - self.last_update < 0.05:
+                return
+            self.last_update = t
             self.curr_label = message
 
             # Edit the label on the main thread
