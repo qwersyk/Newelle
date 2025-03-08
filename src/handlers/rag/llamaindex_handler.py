@@ -15,6 +15,7 @@ class LlamaIndexHanlder(RAGHandler):
         self.indexing_status = 0
         self.indexing = False
         self.loading_thread = None
+        self.index = None
     
     def get_extra_settings(self) -> list:
         return [
@@ -52,7 +53,7 @@ class LlamaIndexHanlder(RAGHandler):
         return r
 
     def load(self):
-        if self.index_exists():
+        if self.index_exists() and self.index is None:
             self.loading_thread = threading.Thread(target=self.load_index)
             self.loading_thread.start()
 

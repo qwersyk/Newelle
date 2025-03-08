@@ -304,6 +304,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.input_box = Gtk.Box(halign=Gtk.Align.FILL, margin_start=6, margin_end=6, margin_top=6, margin_bottom=6,
                             spacing=6)
         self.input_box.set_valign(Gtk.Align.CENTER)
+        self.build_quick_toggles()
         # Attach icon
         button = Gtk.Button(css_classes=["flat", "circular"], icon_name="attach-symbolic")
         button.connect("clicked", self.attach_file)
@@ -375,6 +376,52 @@ class MainWindow(Gtk.ApplicationWindow):
         if not self.settings.get_boolean("welcome-screen-shown"):
             GLib.idle_add(self.show_presentation_window)
 
+    def build_quick_toggles(self):
+        self.quick_toggles = Gtk.MenuButton(css_classes=["flat"], icon_name="controls-big")
+        self.quick_toggles_popover = Gtk.Popover()
+        entries = [  # Your provided list
+            {"setting_name": "rag-on", "title": "Local Documents"},
+            {"setting_name": "memory-on", "title": "Long Term Memory"},
+            {"setting_name": "tts-on", "title": "TTS"},
+        ]
+
+        container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
+        container.set_margin_start(12)
+        container.set_margin_end(12)
+        container.set_margin_top(6)
+        container.set_margin_bottom(6)
+
+        for entry in entries:
+            title = entry["title"]
+            setting_key = entry["setting_name"]
+            # Create row container
+            row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+            row.set_margin_top(6)
+            row.set_margin_bottom(6)
+            # Label with title
+            label = Gtk.Label(label=title, xalign=0)
+            label.set_hexpand(True)  # Expand horizontally to push switch right
+            # Create the Switch
+            switch = Gtk.Switch()
+            # Bind to settings
+            self.settings.bind(
+                setting_key,
+                switch,
+                "active",
+                Gio.SettingsBindFlags.DEFAULT
+            )
+            # Pack row items
+            row.append(label)
+            row.append(switch)
+            # Add row to vertical container
+            container.append(row)
+
+        # Apply to UI
+        self.quick_toggles_popover.set_child(container)
+        self.quick_toggles.set_popover(self.quick_toggles_popover)
+        self.input_box.append(self.quick_toggles)
+        self.quick_toggles_popover.connect("closed", self.update_toggles)
+
     def build_offers(self):
         """Build offers buttons, called by update_settings to update the number of buttons"""
         for text in range(self.offers):
@@ -385,6 +432,12 @@ class MainWindow(Gtk.ApplicationWindow):
             button.set_visible(False)
             self.offers_entry_block.append(button)
             self.message_suggestion_buttons_array.append(button)
+
+    def update_toggles(self, *_):
+        """Update the quick toggles"""
+        self.tts_enabled = self.settings.get_boolean("tts-on")
+        self.rag_on = self.settings.get_boolean("rag-on")
+        self.memory_on = self.settings.get_boolean("memory-on")
 
     def update_settings(self):
         """Update settings, run every time the program is started or settings dialog closed"""
@@ -440,14 +493,9 @@ class MainWindow(Gtk.ApplicationWindow):
             self.tts.connect('stop', lambda: GLib.idle_add(self.mute_tts_button.set_visible, False))
         
         # Create RAG and memory handler and embedding handler first
-        if self.rag_on or self.rag_on_documents:
-            self.rag_handler : RAGHandler | None = AVAILABLE_RAGS[self.rag_model]["class"](self.settings, os.path.join(self.directory, "models"))
-        else:
-            self.rag_handler = None
-
-        if self.memory_on:
-            self.memory_handler : MemoripyHandler= AVAILABLE_MEMORIES[self.memory_model]["class"](self.settings, os.path.join(self.directory, "models"))
-            self.memory_handler.set_memory_size(self.memory)
+        self.rag_handler : RAGHandler = AVAILABLE_RAGS[self.rag_model]["class"](self.settings, os.path.join(self.directory, "models"))
+        self.memory_handler : MemoripyHandler= AVAILABLE_MEMORIES[self.memory_model]["class"](self.settings, os.path.join(self.directory, "models"))
+        self.memory_handler.set_memory_size(self.memory)
         self.embeddings : EmbeddingHandler = AVAILABLE_EMBEDDINGS[self.embedding_model]["class"](self.settings, os.path.join(self.directory, "models"))
         if not self.embeddings.is_installed():
             # Install embeddings if missing
