@@ -110,14 +110,12 @@ class CopyBox(Gtk.Box):
             return
         clipboard = display.get_clipboard()
         clipboard.set_content(Gdk.ContentProvider.new_for_value(self.txt))
-
-        icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="object-select-symbolic"))
-        icon.set_icon_size(Gtk.IconSize.INHERIT)
-        self.copy_button.set_child(icon)
+        self.copy_button.set_icon_name("object-select-symbolic")
+        GLib.timeout_add(2000, lambda : self.copy_button.set_icon_name("edit-copy-symbolic"))
 
     def run_console(self, widget,multithreading=False):
         if multithreading:
-            icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="emblem-ok-symbolic"))
+            icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="object-select-symbolic"))
             icon.set_icon_size(Gtk.IconSize.INHERIT)
             widget.set_child(icon)
             widget.set_sensitive(False)
@@ -144,7 +142,7 @@ class CopyBox(Gtk.Box):
                 threading.Thread(target=self.parent.send_message).start()
 
     def run_console_terminal(self, widget,multithreading=False):
-        icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="emblem-ok-symbolic"))
+        icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="object-select-symbolic"))
         icon.set_icon_size(Gtk.IconSize.INHERIT)
         widget.set_child(icon)
         widget.set_sensitive(False)
@@ -159,6 +157,8 @@ class CopyBox(Gtk.Box):
             output_dir = GLib.get_user_cache_dir()
             terminal_output = output_dir + "/terminal.log"
             def save_output(save):
+                widget.set_sensitive(True)
+                widget.set_icon_name("gnome-terminal-symbolic")
                 if save is not None:
                     self.set_output(save)
                 else:
