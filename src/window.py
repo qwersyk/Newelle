@@ -438,6 +438,11 @@ class MainWindow(Gtk.ApplicationWindow):
         self.tts_enabled = self.settings.get_boolean("tts-on")
         self.rag_on = self.settings.get_boolean("rag-on")
         self.memory_on = self.settings.get_boolean("memory-on")
+        if not self.first_load:
+            if self.rag_on or self.memory_on:
+                self.embeddings.load_model()
+            if self.rag_on:
+                self.rag_handler.load()
 
     def update_settings(self):
         """Update settings, run every time the program is started or settings dialog closed"""
@@ -543,10 +548,8 @@ class MainWindow(Gtk.ApplicationWindow):
         else:
             self.secondary_model = self.model
         # Update handlers in memory and rag 
-        if self.memory_on:
-            self.memory_handler.set_handlers(self.secondary_model, self.embeddings)
-        if self.rag_on or self.rag_on_documents:
-            self.rag_handler.set_handlers(self.secondary_model, self.embeddings)
+        self.memory_handler.set_handlers(self.secondary_model, self.embeddings)
+        self.rag_handler.set_handlers(self.secondary_model, self.embeddings)
 
         # Load handlers and models
         self.model.load_model(None)
@@ -1619,7 +1622,7 @@ class MainWindow(Gtk.ApplicationWindow):
             else:
                 for message in edited_messages:
                     GLib.idle_add(self.reload_message, message)
-            GLib.idle_add(self.show_message, message_label)
+            GLib.idle_add(self.show_message, message_label, False, -1, False, False, False, "\n".join(prompts))
         GLib.idle_add(self.remove_send_button_spinner)
         # Generate chat name 
         self.update_memory(message_label)
@@ -1741,9 +1744,12 @@ class MainWindow(Gtk.ApplicationWindow):
         GLib.idle_add(self.update_button_text)
 
    
-
-
-    def show_message(self, message_label, restore=False, id_message=-1, is_user=False, return_widget=False, newelle_error=False):
+    def add_prompt(self, prompt: str|None):
+        if prompt is None:
+            return
+        self.chat[-1]["Prompt"] = prompt
+        
+    def show_message(self, message_label, restore=False, id_message=-1, is_user=False, return_widget=False, newelle_error=False, prompt:str|None=None):
         """Show a message
 
         Args:
@@ -1761,6 +1767,7 @@ class MainWindow(Gtk.ApplicationWindow):
         if message_label == " " * len(message_label) and not is_user:
             if not restore:
                 self.chat.append({"User": "Assistant", "Message": message_label})
+                self.add_prompt(prompt)
                 GLib.idle_add(self.update_button_text)
                 self.status = True
                 self.chat_stop_button.set_visible(False)
@@ -1774,6 +1781,7 @@ class MainWindow(Gtk.ApplicationWindow):
         else:
             if not restore and not is_user:
                 self.chat.append({"User": "Assistant", "Message": message_label})
+                self.add_prompt(prompt)
             chunks = get_message_chunks(message_label, self.display_latex)  
             box = Gtk.Box(margin_top=10, margin_start=10, margin_bottom=10, margin_end=10,
                           orientation=Gtk.Orientation.VERTICAL)
@@ -2129,6 +2137,22 @@ class MainWindow(Gtk.ApplicationWindow):
         self.save_chat()
         self.show_chat()
 
+    def show_prompt(self, button, id):
+        """Show a prompt
+
+        Args:
+            id (): id of the prompt to show 
+        """
+        dialog = Adw.Dialog(can_close=True)
+        dialog.set_title(_("Prompt content"))
+        label = Gtk.Label(label=self.chat[id]["Prompt"], wrap=True, wrap_mode=Pango.WrapMode.WORD, selectable=True, halign=Gtk.Align.START)
+        scroll = Gtk.ScrolledWindow(propagate_natural_width=True, height_request=600)
+        scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+        scroll.set_child(label)
+        dialog.set_child(scroll)
+        dialog.set_content_width(400)
+        dialog.present()
+
     def build_edit_box(self, box, id):
         """Create the box and the stack with the edit buttons
 
@@ -2139,7 +2163,9 @@ class MainWindow(Gtk.ApplicationWindow):
         Returns:
             Gtk.Stack 
         """
+        has_prompt = len(self.chat) > int(id) and "Prompt" in self.chat[int(id)]
         edit_box = Gtk.Box()
+        buttons_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, valign=Gtk.Align.CENTER)
         apply_box = Gtk.Box()
 
         # Apply box
@@ -2162,9 +2188,17 @@ class MainWindow(Gtk.ApplicationWindow):
         remove_button.connect("clicked", self.delete_message, box)
         edit_box.append(button)
         edit_box.append(remove_button)
+        buttons_box.append(edit_box)
+        # Prompt box 
+        if has_prompt:
+            prompt_box = Gtk.Box(halign=Gtk.Align.CENTER)
+            button = Gtk.Button(icon_name="question-round-outline-symbolic", css_classes=["flat", "accent"], valign=Gtk.Align.CENTER)
+            button.connect("clicked", self.show_prompt, int(id))
+            prompt_box.append(button)
+            buttons_box.append(prompt_box) 
 
         apply_edit_stack.add_named(apply_box, "apply")
-        apply_edit_stack.add_named(edit_box, "edit")
+        apply_edit_stack.add_named(buttons_box, "edit")
         apply_edit_stack.set_visible_child_name("edit")
         return apply_edit_stack
 

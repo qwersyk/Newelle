@@ -26,6 +26,7 @@ install_data (
     'zoom-out-symbolic.svg',
     'brain-augemnted-symbolic.svg',
     'question-round-outline-symbolic.svg',
+    'controls-big-symbolic.svg',
     install_dir: symbolic_dir
 )
 install_data (
