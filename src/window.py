@@ -31,7 +31,7 @@ from .constants import AVAILABLE_LLMS, AVAILABLE_PROMPTS, PROMPTS, AVAILABLE_TTS
 from .utility import override_prompts
 from .utility.system import get_spawn_command 
 from .utility.pip import install_module
-from .utility.strings import convert_think_codeblocks, get_edited_messages, markwon_to_pango, remove_markdown
+from .utility.strings import convert_think_codeblocks, get_edited_messages, markwon_to_pango, remove_markdown, remove_thinking_blocks
 from .utility.replacehelper import replace_variables
 from .utility.profile_settings import get_settings_dict, restore_settings_from_dict
 from .utility.audio_recorder import AudioRecorder
@@ -404,6 +404,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.memory = settings.get_int("memory")
         self.hidden_files = settings.get_boolean("hidden-files")
         self.reverse_order = settings.get_boolean("reverse-order")
+        self.remove_thinking = settings.get_boolean("remove-thinking")
         self.auto_generate_name = settings.get_boolean("auto-generate-name")
         self.chat_id = settings.get_int("chat")
         self.main_path = settings.get_string("path")
@@ -1477,6 +1478,8 @@ class MainWindow(Gtk.ApplicationWindow):
                 break
             if msg["User"] == "Console" and msg["Message"] == "None":
                 continue
+            if self.remove_thinking:
+                msg["Message"] = remove_thinking_blocks(msg["Message"])
             history.append(msg)
             count -= 1
         return history
