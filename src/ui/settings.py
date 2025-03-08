@@ -235,6 +235,9 @@ class Settings(Adw.PreferencesWindow):
         self.neural_network.add(row)
         
         row = Adw.ExpanderRow(title=_("External Terminal"), subtitle=_("Choose the external terminal where to run the console commands"))
+        terminal_enabled = Gtk.Switch(valign=Gtk.Align.CENTER)
+        self.settings.bind("external-terminal-on", terminal_enabled, 'active', Gio.SettingsBindFlags.DEFAULT)
+        row.add_suffix(terminal_enabled)
         entry = Gtk.Entry()
         self.settings.bind("external-terminal", entry, 'text', Gio.SettingsBindFlags.DEFAULT)
         row.add_row(entry)
