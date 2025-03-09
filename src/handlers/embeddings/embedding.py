@@ -9,6 +9,7 @@ class EmbeddingHandler(Handler):
 
     def __init__(self, settings, path):
         super().__init__(settings, path)
+        self.dim = None 
 
     def load_model(self):
         """Load embedding model, called at every settings reload"""
@@ -28,4 +29,6 @@ class EmbeddingHandler(Handler):
         pass
 
     def get_embedding_size(self) -> int:
-        return self.get_embedding(["test"]).shape[1]
+        if self.dim is None:
+            self.dim = self.get_embedding(["test"]).shape[1]
+        return self.dim
