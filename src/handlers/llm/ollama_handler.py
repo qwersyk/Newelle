@@ -173,7 +173,7 @@ class OllamaHandler(LLMHandler):
                             refresh_icon="plus-symbolic",
                             website="https://ollama.com/library"
                         )
-                    ] + self.get_model_library()
+                    ] + self.get_model_library(), refresh=self.get_models_infomation
                 )
             )
         settings.append(get_streaming_extra_setting())
