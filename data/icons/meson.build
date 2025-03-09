@@ -27,6 +27,8 @@ install_data (
     'brain-augemnted-symbolic.svg',
     'question-round-outline-symbolic.svg',
     'controls-big-symbolic.svg',
+    'vcard-symbolic.svg',
+    'settings-symbolic.svg',
     install_dir: symbolic_dir
 )
 install_data (
