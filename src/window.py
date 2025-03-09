@@ -505,7 +505,10 @@ class MainWindow(Gtk.ApplicationWindow):
         if not self.embeddings.is_installed():
             # Install embeddings if missing
             threading.Thread(target=self.embeddings.install).start()
-        
+        if not self.rag_handler.is_installed():
+            # Install RAG if missing
+            threading.Thread(target=self.rag_handler.install).start()
+
         # Quick settings will add the handlers to RAG and memory 
         # Load quick settings 
         self.quick_settings_update()
