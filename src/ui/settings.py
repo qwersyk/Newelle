@@ -245,7 +245,7 @@ class Settings(Adw.PreferencesWindow):
         # Set default value for the switch        
         row = Adw.ActionRow(title=_("Program memory"), subtitle=_("How long the program remembers the chat "))
         int_spin = Gtk.SpinButton(valign=Gtk.Align.CENTER)
-        int_spin.set_adjustment(Gtk.Adjustment(lower=0, upper=30, step_increment=1, page_increment=10, page_size=0))
+        int_spin.set_adjustment(Gtk.Adjustment(lower=0, upper=90, step_increment=1, page_increment=10, page_size=0))
         row.add_suffix(int_spin)
         self.settings.bind("memory", int_spin, 'value', Gio.SettingsBindFlags.DEFAULT)
         self.neural_network.add(row)
