@@ -113,6 +113,20 @@ class PresentationWindow(Adw.Window):
                 ] 
             },
             {
+                "title": _("Chat with your documents"),
+                "description": _("Newelle can retrieve relevant information from documents you send in the chat or from your own files! Information relevant to your query will be sent to the LLM."),
+                "widget": self.__steal_from_settings(settings.RAG),
+                "actions": [
+                ] 
+            },
+            {
+                "title": _("Command virtualization"),
+                "description": _("Newelle can be used to run commands on your system, but pay attention at what you run! <b>The LLM is not under our control, so it might generate malicious code!</b>\nBy default, your commands will be <b>virtualized in the Flatpak environment</b>, but pay attention!"),
+                "widget": self.__steal_from_settings(settings.neural_network),
+                "actions": [
+                ] 
+            },
+            {
                 "title": _("Extensions"),
                 "description": _("You can extend Newelle's functionalities using extensions!"),
                 "picture": "/io/github/qwersyk/Newelle/images/extension.svg",

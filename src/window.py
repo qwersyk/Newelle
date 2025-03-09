@@ -505,7 +505,10 @@ class MainWindow(Gtk.ApplicationWindow):
         if not self.embeddings.is_installed():
             # Install embeddings if missing
             threading.Thread(target=self.embeddings.install).start()
-        
+        if not self.rag_handler.is_installed():
+            # Install RAG if missing
+            threading.Thread(target=self.rag_handler.install).start()
+
         # Quick settings will add the handlers to RAG and memory 
         # Load quick settings 
         self.quick_settings_update()
@@ -514,7 +517,7 @@ class MainWindow(Gtk.ApplicationWindow):
             self.embeddings.load_model()
         # Load RAG
         if self.rag_on:
-            self.rag_handler.load()
+            GLib.idle_add(self.rag_handler.load)
         
         # Adjust paths
         if os.path.exists(os.path.expanduser(self.main_path)):
@@ -2153,6 +2156,20 @@ class MainWindow(Gtk.ApplicationWindow):
         dialog.set_content_width(400)
         dialog.present()
 
+    def copy_message(self, button, id):
+        """Copy a message
+
+        Args:
+            id (): id of the message to copy 
+        """
+        display = Gdk.Display.get_default()
+        if display is None or len(self.chat) <= id:
+            return
+        clipboard = display.get_clipboard()
+        clipboard.set_content(Gdk.ContentProvider.new_for_value(self.chat[id]["Message"]))
+        button.set_icon_name("object-select-symbolic")
+        GLib.timeout_add(2000, lambda : button.set_icon_name("edit-copy-symbolic"))
+
     def build_edit_box(self, box, id):
         """Create the box and the stack with the edit buttons
 
@@ -2195,6 +2212,9 @@ class MainWindow(Gtk.ApplicationWindow):
             button = Gtk.Button(icon_name="question-round-outline-symbolic", css_classes=["flat", "accent"], valign=Gtk.Align.CENTER)
             button.connect("clicked", self.show_prompt, int(id))
             prompt_box.append(button)
+            copy_button = Gtk.Button(icon_name="edit-copy-symbolic", css_classes=["flat"], valign=Gtk.Align.CENTER)
+            copy_button.connect("clicked", self.copy_message, int(id))
+            prompt_box.append(copy_button)
             buttons_box.append(prompt_box) 
 
         apply_edit_stack.add_named(apply_box, "apply")

@@ -54,9 +54,10 @@ class Settings(Adw.PreferencesWindow):
         self.cache_handlers()
         self.update_handler_choice()
         # Page building
-        self.general_page = Adw.PreferencesPage()
-       
-        
+        self.general_page = Adw.PreferencesPage(icon_name="settings-symbolic", title=_("General"))
+        self.LLMPage = Adw.PreferencesPage(icon_name="brain-augemnted-symbolic", title=_("LLM")) 
+        self.PromptsPage = Adw.PreferencesPage(icon_name="question-round-outline-symbolic", title=_("Prompts"))
+        self.MemoryPage = Adw.PreferencesPage(icon_name="vcard-symbolic", title=_("Memory"))
         # Dictionary containing all the rows for settings update
         self.settingsrows = {}
         # Build the LLMs settings
@@ -66,7 +67,7 @@ class Settings(Adw.PreferencesWindow):
         help.connect("clicked", lambda button : Popen(get_spawn_command() + ["xdg-open", "https://github.com/qwersyk/Newelle/wiki/User-guide-to-the-available-LLMs"]))
         self.LLM.set_header_suffix(help)
         # Add LLMs
-        self.general_page.add(self.LLM)
+        self.LLMPage.add(self.LLM)
         group = Gtk.CheckButton()
         selected = self.settings.get_string("language-model")
         others_row = Adw.ExpanderRow(title=_('Other LLMs'), subtitle=_("Other available LLM providers"))
@@ -86,7 +87,7 @@ class Settings(Adw.PreferencesWindow):
         secondary_LLM = Adw.ExpanderRow(title=_('Secondary Language Model'), subtitle=_("Model used for secondary tasks, like offer, chat name and memory generation"))
         secondary_LLM.add_action(secondary_LLM_enabled)
         # Add LLMs
-        self.general_page.add(self.SECONDARY_LLM)
+        self.MemoryPage.add(self.SECONDARY_LLM)
         group = Gtk.CheckButton()
         selected = self.settings.get_string("secondary-language-model")
         others_row = Adw.ExpanderRow(title=_('Other LLMs'), subtitle=_("Other available LLM providers"))
@@ -150,7 +151,7 @@ class Settings(Adw.PreferencesWindow):
         self.Voicegroup.add(self.auto_stt)
         # Prompts settings
         self.prompt = Adw.PreferencesGroup(title=_('Prompt control'))
-        self.general_page.add(self.prompt)
+        self.PromptsPage.add(self.prompt)
 
         row = Adw.ActionRow(title=_("Auto-run commands"), subtitle=_("Commands that the bot will write will automatically run"))
         switch = Gtk.Switch(valign=Gtk.Align.CENTER)
@@ -245,13 +246,15 @@ class Settings(Adw.PreferencesWindow):
         # Set default value for the switch        
         row = Adw.ActionRow(title=_("Program memory"), subtitle=_("How long the program remembers the chat "))
         int_spin = Gtk.SpinButton(valign=Gtk.Align.CENTER)
-        int_spin.set_adjustment(Gtk.Adjustment(lower=0, upper=30, step_increment=1, page_increment=10, page_size=0))
+        int_spin.set_adjustment(Gtk.Adjustment(lower=0, upper=90, step_increment=1, page_increment=10, page_size=0))
         row.add_suffix(int_spin)
         self.settings.bind("memory", int_spin, 'value', Gio.SettingsBindFlags.DEFAULT)
         self.neural_network.add(row)
 
+        self.add(self.LLMPage)
+        self.add(self.PromptsPage)
+        self.add(self.MemoryPage)
         self.add(self.general_page)
-
     def build_rag_settings(self):
         self.RAG = Adw.PreferencesGroup(title=_('Document Sources (RAG)'), description=_("Include content from your documents in the responses"))
         tts_program = Adw.ExpanderRow(title=_('Document Analyzer'), subtitle=_("The document analyzer uses multiple techniques to extract relevant information about your documents"))
@@ -286,7 +289,7 @@ class Settings(Adw.PreferencesWindow):
         self.document_folder = document_folder
 
         self.RAG.add(document_folder)
-        self.general_page.add(self.RAG)
+        self.MemoryPage.add(self.RAG)
     
     def update_rag_index(self):
         self.rag_handler = self.get_object(AVAILABLE_RAGS, self.settings.get_string("rag-model"))

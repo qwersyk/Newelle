@@ -29,6 +29,7 @@ class LlamaIndexHanlder(RAGHandler):
                     ExtraSettings.ToggleSetting("pdf", "PDF", ".pdf files", True),
                     ExtraSettings.ToggleSetting("docx", "Docx", ".docx files", True),
                     ExtraSettings.ToggleSetting("epub", "Epub", ".epub files", True),
+                    ExtraSettings.ToggleSetting("csv", "CSV", ".csv files", True),
                 ]
             )
         ]
@@ -50,6 +51,8 @@ class LlamaIndexHanlder(RAGHandler):
             r.append(".docx")
         if self.get_setting("epub"):
             r.append(".epub")
+        if self.get_setting("csv"):
+            r.append(".csv")
         return r
 
     def load(self):
@@ -67,7 +70,7 @@ class LlamaIndexHanlder(RAGHandler):
     def load_index(self):
         from llama_index.core import StorageContext, load_index_from_storage
         from llama_index.core.settings import Settings
-        from llama_index.core.indices.vector_store import VectorIndexRetriever
+        from llama_index.core.indices.vector_store import VectorIndexRetriever 
         Settings.embed_model = self.get_embedding_adapter(self.embedding)
         Settings.llm = self.get_llm_adapter()
         storage_context = StorageContext.from_defaults(persist_dir=self.data_path)
@@ -83,6 +86,8 @@ class LlamaIndexHanlder(RAGHandler):
 
     def get_context(self, prompt: str, history: list[dict[str, str]]) -> list[str]:
         self.wait_for_loading()
+        if self.index is None:
+            return []
         r = []
         if self.get_setting("use_llm"):
             query_engine = self.index.as_query_engine()
@@ -107,26 +112,33 @@ class LlamaIndexHanlder(RAGHandler):
         os.remove(os.path.join(self.data_path, "docstore.json"))
 
     def create_index(self, button=None):  
+        if not self.is_installed():
+            return
         from llama_index.core.settings import Settings
         from llama_index.core import VectorStoreIndex, SimpleDirectoryReader
         # Ensure llm and embedding load 
-        self.llm.load_model(None)
-        self.embedding.load_model()
-        print("Creating index")
-        Settings.embed_model = self.get_embedding_adapter(self.embedding)
-        chunk_size = int(self.get_setting("chunk_size"))
-        Settings.chunk_size = chunk_size 
-        documents = SimpleDirectoryReader(self.documents_path + "/", recursive=True, required_exts=self.get_supported_formats(), exclude_hidden=False).load_data() 
-        self.indexing_status = 0
-        index = VectorStoreIndex.from_documents(documents[:1])
-        i = 1
-        for document in documents[1:]:
-            index.insert(document)
-            i += 1
-            self.indexing_status = (i / len(documents))
+        try:
+            self.llm.load_model(None)
+            self.embedding.load_model()
+            print("Creating index")
+            Settings.embed_model = self.get_embedding_adapter(self.embedding)
+            chunk_size = int(self.get_setting("chunk_size"))
+            Settings.chunk_size = chunk_size 
+            documents = SimpleDirectoryReader(self.documents_path + "/", recursive=True, required_exts=self.get_supported_formats(), exclude_hidden=False).load_data() 
+            self.indexing_status = 0
+            index = VectorStoreIndex.from_documents(documents[:1])
+            i = 1
+            for document in documents[1:]:
+                index.insert(document)
+                i += 1
+                self.indexing_status = (i / len(documents))
 
-        index.storage_context.persist(self.data_path)
-        self.indexing = False
+            index.storage_context.persist(self.data_path)
+            self.indexing = False
+        except Exception as e:
+            print(e)
+            self.indexing = False
+            self.indexing_status = 1
    
     def query_document(self, prompt: str, documents: list[str], chunk_size: int|None = None) -> list[str]: 
         from llama_index.core.settings import Settings

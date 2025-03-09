@@ -3,7 +3,7 @@ import subprocess
 import os
 from gi.repository import GLib, Gtk, GtkSource, Gio, Pango, Gdk
 from ...utility.system import get_spawn_command 
-from ...utility.strings import quote_string
+from ...utility.strings import add_S_to_sudo, quote_string
 from .terminal_dialog import TerminalDialog
 
 class CopyBox(Gtk.Box):
@@ -165,9 +165,10 @@ class CopyBox(Gtk.Box):
                     return
 
             if not self.parent.virtualization:
-                command = get_spawn_command() + ["bash", "-c", command]
+                command = add_S_to_sudo(command)
+                command = get_spawn_command() + ["bash", "-c", "export TERM=xterm-256color;alias sudo=\"sudo -S\";" + command]
             else:
-                command = ["bash", "-c", "bash -c " + quote_string(command)]
+                command = ["bash", "-c", "export TERM=xterm-256color;" + command]
             terminal.load_terminal(command)
             terminal.save_output_func(save_output)
             terminal.present()
