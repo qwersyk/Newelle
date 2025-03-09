@@ -29,6 +29,7 @@ class LlamaIndexHanlder(RAGHandler):
                     ExtraSettings.ToggleSetting("pdf", "PDF", ".pdf files", True),
                     ExtraSettings.ToggleSetting("docx", "Docx", ".docx files", True),
                     ExtraSettings.ToggleSetting("epub", "Epub", ".epub files", True),
+                    ExtraSettings.ToggleSetting("csv", "CSV", ".csv files", True),
                 ]
             )
         ]
@@ -50,6 +51,8 @@ class LlamaIndexHanlder(RAGHandler):
             r.append(".docx")
         if self.get_setting("epub"):
             r.append(".epub")
+        if self.get_setting("csv"):
+            r.append(".csv")
         return r
 
     def load(self):
