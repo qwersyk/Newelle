@@ -18,7 +18,7 @@ if sys.platform != 'win32':
             pty.spawn_async(
                 GLib.get_current_dir(),
                 script,
-                [],
+                None,
                 GLib.SpawnFlags.DEFAULT,
                 None,
                 None,

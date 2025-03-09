@@ -168,3 +168,40 @@ def get_edited_messages(history: list, old_history: list) -> list | None:
             edited_messages.append(i)
     return edited_messages
 
+
+def add_S_to_sudo(commands_string):
+    """
+    Adds the -S flag to every sudo command in a string of Linux commands.
+
+    Args:
+        commands_string: A string containing Linux commands.
+
+    Returns:
+        A string with the -S flag added to all sudo commands.
+    """
+
+    def replace_sudo(match):
+        command_parts = match.group(0).split()
+        if "-S" in command_parts:
+            return " ".join(command_parts)  # Already has -S
+        
+        sudo_index = command_parts.index("sudo")
+
+        if len(command_parts) > sudo_index + 1 and command_parts[sudo_index + 1].startswith("-"):
+            #sudo has options, insert -S
+            command_parts.insert(sudo_index + 1, "-S")
+            return " ".join(command_parts)
+
+        elif len(command_parts) > sudo_index:
+            #Insert -S after sudo, no existing option
+            command_parts.insert(sudo_index + 1, "-S")
+            return " ".join(command_parts)
+        else:
+            # this case should not happen in normal command string
+            return " ".join(command_parts)
+
+
+    # Use regex to find all "sudo" commands, handling different scenarios
+    modified_string = re.sub(r'(^|\s)sudo(\s+[\w\/\.-]+)*', replace_sudo, commands_string)
+
+    return modified_string
