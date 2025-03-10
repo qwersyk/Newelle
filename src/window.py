@@ -1341,7 +1341,7 @@ class MainWindow(Gtk.ApplicationWindow):
             self.secondary_model.set_history([], self.get_history(self.chats[int(button.get_name())]["chat"]))
             print("Generating")
             name = self.secondary_model.generate_chat_name(self.prompts["generate_name_prompt"])
-            print(name)
+            name = remove_thinking_blocks(name)
             if name is None:
                 self.update_history()
                 return
