@@ -1341,7 +1341,7 @@ class MainWindow(Gtk.ApplicationWindow):
             self.secondary_model.set_history([], self.get_history(self.chats[int(button.get_name())]["chat"]))
             print("Generating")
             name = self.secondary_model.generate_chat_name(self.prompts["generate_name_prompt"])
-            print(name)
+            name = remove_thinking_blocks(name)
             if name is None:
                 self.update_history()
                 return
@@ -2152,7 +2152,10 @@ class MainWindow(Gtk.ApplicationWindow):
         scroll = Gtk.ScrolledWindow(propagate_natural_width=True, height_request=600)
         scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
         scroll.set_child(label)
-        dialog.set_child(scroll)
+        content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        content.append(Adw.HeaderBar(css_classes=["flat"], show_start_title_buttons=False))
+        content.append(scroll)
+        dialog.set_child(content)
         dialog.set_content_width(400)
         dialog.present()
 
@@ -2182,7 +2185,7 @@ class MainWindow(Gtk.ApplicationWindow):
         """
         has_prompt = len(self.chat) > int(id) and "Prompt" in self.chat[int(id)]
         edit_box = Gtk.Box()
-        buttons_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, valign=Gtk.Align.CENTER)
+        buttons_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, valign=Gtk.Align.CENTER, halign=Gtk.Align.CENTER)
         apply_box = Gtk.Box()
 
         # Apply box
@@ -2209,7 +2212,7 @@ class MainWindow(Gtk.ApplicationWindow):
         # Prompt box 
         if has_prompt:
             prompt_box = Gtk.Box(halign=Gtk.Align.CENTER)
-            button = Gtk.Button(icon_name="question-round-outline-symbolic", css_classes=["flat", "accent"], valign=Gtk.Align.CENTER)
+            button = Gtk.Button(icon_name="question-round-outline-symbolic", css_classes=["flat", "accent"], valign=Gtk.Align.CENTER, halign=Gtk.Align.CENTER)
             button.connect("clicked", self.show_prompt, int(id))
             prompt_box.append(button)
             copy_button = Gtk.Button(icon_name="edit-copy-symbolic", css_classes=["flat"], valign=Gtk.Align.CENTER)
