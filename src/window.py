@@ -2182,7 +2182,7 @@ class MainWindow(Gtk.ApplicationWindow):
         """
         has_prompt = len(self.chat) > int(id) and "Prompt" in self.chat[int(id)]
         edit_box = Gtk.Box()
-        buttons_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, valign=Gtk.Align.CENTER)
+        buttons_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, valign=Gtk.Align.CENTER, halign=Gtk.Align.CENTER)
         apply_box = Gtk.Box()
 
         # Apply box
@@ -2209,7 +2209,7 @@ class MainWindow(Gtk.ApplicationWindow):
         # Prompt box 
         if has_prompt:
             prompt_box = Gtk.Box(halign=Gtk.Align.CENTER)
-            button = Gtk.Button(icon_name="question-round-outline-symbolic", css_classes=["flat", "accent"], valign=Gtk.Align.CENTER)
+            button = Gtk.Button(icon_name="question-round-outline-symbolic", css_classes=["flat", "accent"], valign=Gtk.Align.CENTER, halign=Gtk.Align.CENTER)
             button.connect("clicked", self.show_prompt, int(id))
             prompt_box.append(button)
             copy_button = Gtk.Button(icon_name="edit-copy-symbolic", css_classes=["flat"], valign=Gtk.Align.CENTER)
