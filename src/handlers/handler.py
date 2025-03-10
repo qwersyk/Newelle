@@ -10,6 +10,7 @@ class Handler():
     def __init__(self, settings, path):
         self.settings = settings
         self.path = path
+        self.pip_path = os.path.join(os.path.abspath(os.path.join(self.path, os.pardir)), "pip")
 
     def set_secondary(self, secondary: bool):
         """Set the secondary settings for the LLM"""
