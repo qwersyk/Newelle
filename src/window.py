@@ -2152,7 +2152,10 @@ class MainWindow(Gtk.ApplicationWindow):
         scroll = Gtk.ScrolledWindow(propagate_natural_width=True, height_request=600)
         scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
         scroll.set_child(label)
-        dialog.set_child(scroll)
+        content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        content.append(Adw.HeaderBar(css_classes=["flat"], show_start_title_buttons=False))
+        content.append(scroll)
+        dialog.set_child(content)
         dialog.set_content_width(400)
         dialog.present()
 
