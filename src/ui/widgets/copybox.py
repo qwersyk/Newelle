@@ -40,9 +40,9 @@ class CopyBox(Gtk.Box):
         self.sourceview.set_background_pattern(GtkSource.BackgroundPatternType.GRID)
         self.sourceview.set_editable(False)
         style = "success"
-        if lang in ["python", "cpp", "php", "objc", "go", "typescript", "lua", "perl", "r", "dart", "sql"]:
+        if lang in ["python", "python3", "cpp", "php", "objc", "go", "typescript", "lua", "perl", "r", "dart", "sql", "latex"]:
             style = "accent"
-        if lang in ["java", "javascript", "kotlin", "rust"]:
+        if lang in ["java", "javascript", "kotlin", "rust", "json"]:
             style = "warning"
         if lang in ["ruby", "swift", "scala"]:
             style = "error"
@@ -55,12 +55,12 @@ class CopyBox(Gtk.Box):
         self.append(main)
         self.append(self.sourceview)
         main.append(box)
-        if lang == "python" and parent is not None:
+        if lang == "python" or lang == "python3" and parent is not None:
             icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="media-playback-start-symbolic"))
             icon.set_icon_size(Gtk.IconSize.INHERIT)
             self.run_button = Gtk.Button(halign=Gtk.Align.END, margin_end=10, css_classes=["flat"])
             self.run_button.set_child(icon)
-            self.run_button.connect("clicked", self.run_python)
+            self.run_button.connect("clicked", self.run_code, "python")
             self.parent = parent
 
             self.text_expander = Gtk.Expander(
@@ -115,17 +115,19 @@ class CopyBox(Gtk.Box):
 
     def run_console(self, widget,multithreading=False):
         if multithreading:
+            code = self.parent.execute_terminal_command(self.txt.split("\n"))
+            self.set_output(code[1])
+            def update_ui():
+                icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="media-playback-start-symbolic"))
+                icon.set_icon_size(Gtk.IconSize.INHERIT)
+                widget.set_child(icon)
+                widget.set_sensitive(True)
+            GLib.idle_add(update_ui)
+        else:
             icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="object-select-symbolic"))
             icon.set_icon_size(Gtk.IconSize.INHERIT)
             widget.set_child(icon)
             widget.set_sensitive(False)
-            code = self.parent.execute_terminal_command(self.txt.split("\n"))
-            self.set_output(code[1])
-            icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="media-playback-start-symbolic"))
-            icon.set_icon_size(Gtk.IconSize.INHERIT)
-            widget.set_child(icon)
-            widget.set_sensitive(True)
-        else:
             threading.Thread(target=self.run_console, args=[widget, True]).start()
     
     def set_output(self, output):
@@ -174,22 +176,25 @@ class CopyBox(Gtk.Box):
             terminal.present()
 
 
-    def run_python(self, widget):
-        self.text_expander.set_visible(True)
-        t = self.txt.replace("'", '"""')
-        console_permissions = ""
-        if not self.parent.virtualization:
-            console_permissions = " ".join(get_spawn_command()) + " "
-        process = subprocess.Popen(f"""{console_permissions}python3 -c '{t}'""", stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE, shell=True)
-        stdout, stderr = process.communicate()
-        text = "Done"
-        if process.returncode != 0:
-            text = stderr.decode()
+    def run_code(self, widget, language, mutlithreading=False):
+        if mutlithreading:
+            if language.lower() in ["python", "python3", "py"]:
+                code = self.parent.execute_terminal_command(["python3 -c {}".format(quote_string(self.txt))])
 
+            else:
+                code = "ae"
+            self.set_output(code[1])
+            def update_ui():
+                icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="media-playback-start-symbolic"))
+                icon.set_icon_size(Gtk.IconSize.INHERIT)
+                widget.set_child(icon)
+                widget.set_sensitive(True)
+            GLib.idle_add(update_ui)
         else:
-            if stdout.decode() != "":
-                text = stdout.decode()
-        self.text_expander.set_child(
-            Gtk.Label(wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR, label=text, selectable=True))
-
+            self.text_expander.set_visible(True)
+            icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="object-select-symbolic"))
+            icon.set_icon_size(Gtk.IconSize.INHERIT)
+            widget.set_child(icon)
+            widget.set_sensitive(False)
+            threading.Thread(target=self.run_code, args=[widget,language, True]).start()
+             
