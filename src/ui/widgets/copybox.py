@@ -60,7 +60,7 @@ class CopyBox(Gtk.Box):
             icon.set_icon_size(Gtk.IconSize.INHERIT)
             self.run_button = Gtk.Button(halign=Gtk.Align.END, margin_end=10, css_classes=["flat"])
             self.run_button.set_child(icon)
-            self.run_button.connect("clicked", self.run_python)
+            self.run_button.connect("clicked", lambda x: threading.Thread(target=self.run_python).start())
             self.parent = parent
 
             self.text_expander = Gtk.Expander(
@@ -190,6 +190,7 @@ class CopyBox(Gtk.Box):
         else:
             if stdout.decode() != "":
                 text = stdout.decode()
-        self.text_expander.set_child(
-            Gtk.Label(wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR, label=text, selectable=True))
-
+        def update_ui():
+            self.text_expander.set_child(
+                Gtk.Label(wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR, label=text, selectable=True))
+        GLib.idle_add(update_ui)
