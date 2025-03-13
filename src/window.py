@@ -600,26 +600,123 @@ class MainWindow(Gtk.ApplicationWindow):
 
     def build_model_popup(self):
         self.model_menu_button = Gtk.MenuButton()
-        self.update_model_popup()
+        self.update_model_popup()  # Update the button's label with the current LLM name
         self.model_popup = Gtk.Popover()
-        self.model_popup.set_size_request(500, 500)
-        scroll = Gtk.ScrolledWindow()
-        scroll.set_vexpand(True)
-        scroll.set_hexpand(True)
-        settings = Settings(self, headless=True) 
-        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        stack = Adw.ViewStack()
-        stack.add_titled_with_icon(self.steal_from_settings(settings.LLM), title="LLM", name="LLM", icon_name="brain-augemnted-symbolic")
-        stack.add_titled_with_icon(self.steal_from_settings(settings.prompt), title="Prompts", name="Prompts", icon_name="question-round-outline-symbolic")
-        switcher = Adw.ViewSwitcher()
-        switcher.set_stack(stack)
-        scroll.set_child(stack) 
-        box.append(switcher)
-        box.append(scroll)
+
+        # Create a vertical box with some spacing & margins.
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
+
+        # Create a ListBox in SINGLE selection mode with activate-on-single-click.
+        models_list = Gtk.ListBox()
+        models_list.set_selection_mode(Gtk.SelectionMode.SINGLE)
+        models_list.set_activate_on_single_click(True)
+        models_list.connect("row-activated", self.on_model_row_activated)
+
+        # Populate the list with downloaded models.
+        for display, provider_key, internal_model in self.get_downloaded_models():
+            # Create a ListBoxRow to hold our action row.
+            listbox_row = Gtk.ListBoxRow()
+            listbox_row.get_style_context().add_class("card")
+            listbox_row.set_margin_bottom(5)
+
+            # Create an ActionRow with a title and subtitle.
+            # The title shows provider and display; the subtitle shows a per‑model description.
+            provider_title = AVAILABLE_LLMS[provider_key]["title"]
+            # Retrieve a model-specific subtitle (for example, using a model library if available).
+            instance = AVAILABLE_LLMS[provider_key]["class"](self.settings, os.path.join(self.directory, "models"))
+            model_subtitle = "Model: " + internal_model
+            if hasattr(instance, "model_library"):
+                for info_dict in instance.model_library:
+                    if info_dict["key"] == internal_model:
+                        model_subtitle = info_dict["description"]
+                        break
+            action_row = Adw.ActionRow(
+                title=f"{provider_title} - {display}",
+                subtitle=model_subtitle
+            )
+            listbox_row.set_child(action_row)
+
+            # Save attributes for selection handling.
+            listbox_row.provider_key = provider_key
+            listbox_row.internal_model = internal_model
+
+            # Select the correct row on init
+            if (hasattr(listbox_row, "provider_key") and getattr(listbox_row, "provider_key") == self.language_model and
+                hasattr(listbox_row, "internal_model") and getattr(listbox_row, "internal_model") == self.model.get_setting("model")):
+                models_list.select_row(listbox_row)
+
+            models_list.get_style_context().add_class("transparent")
+            models_list.append(listbox_row)
+
+        vbox.append(models_list)
+
+        # “+” button to open the full settings
+        plus_button = Gtk.Button(label="+")
+        plus_button.get_style_context().add_class("suggested-action")
+        plus_button.connect("clicked",
+            lambda btn: self.get_application().lookup_action("settings").activate(None)
+        )
+        vbox.append(plus_button)
+
         self.model_menu_button.set_popover(self.model_popup)
-        self.model_popup.connect("closed", lambda x: GLib.idle_add(self.quick_settings_update))
-        self.model_popup.set_child(box)
+        self.model_popup.set_child(vbox)
         return self.model_menu_button
+
+    def on_model_row_activated(self, listbox, row):
+        # Retrieve the stored provider key and internal model.
+        provider_key = row.provider_key
+        internal_model = row.internal_model
+
+        # Set the active LLM
+        self.settings.set_string("language-model", provider_key)
+        self.model.set_setting("model", internal_model)
+
+        # Update the header label to reflect the new choice.
+        self.language_model = provider_key
+        self.update_model_popup()
+
+        # Optionally dismiss the popover.
+        self.model_popup.popdown()
+
+    # This should hopefully get downloaded models and API connected models.
+    # Unfortunately I don't have any API keys to test it.
+    def get_downloaded_models(self):
+        """
+        Returns a list of tuples: (display, provider_key, internal_model).
+        For local models (found in the models directory) the provider_key is set to "custom".
+        """
+        models = []
+        # # Include local models.
+        # models_dir = os.path.join(self.directory, "models")
+        # if os.path.exists(models_dir):
+        #     for d in os.listdir(models_dir):
+        #         if os.path.isdir(os.path.join(models_dir, d)):
+        #             models.append((d, "custom", d))  # For local models, display and internal value are the same.
+
+        # Iterate over each LLM handler defined in AVAILABLE_LLMS.
+        for key, info in AVAILABLE_LLMS.items():
+            try:
+                handler_class = info["class"]
+                instance = handler_class(self.settings, os.path.join(self.directory, "models"))
+                # Skip handlers that are not installed/ready.
+                if hasattr(instance, "is_installed") and callable(instance.is_installed):
+                    if not instance.is_installed():
+                        continue
+                if hasattr(instance, "models") and instance.models:
+                    # Each model_pair is expected to be a tuple: (internal_model, display_name)
+                    for model_pair in instance.models:
+                        models.append((model_pair[1], key, model_pair[0]))
+                        print(model_pair, key)
+            except Exception as e:
+                print(f"Error retrieving models from {key}: {e}")
+        return models
+
+
+
+
+
+
+
 
     def steal_from_settings(self, widget):
         widget.unparent()
