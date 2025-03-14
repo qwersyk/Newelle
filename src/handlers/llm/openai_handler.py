@@ -70,7 +70,7 @@ class OpenAIHandler(LLMHandler):
             ExtraSettings.EntrySetting("endpoint", _("API Endpoint"), _("API base url, change this to use interference APIs"), "https://api.openai.com/v1/"),
         ]
         custom_model = [
-            ExtraSettings.ToggleSetting("custom_model", _("Use Custom Model"), _("Use a custom model"), False)
+            ExtraSettings.ToggleSetting("custom_model", _("Use Custom Model"), _("Use a custom model"), False, update_settings=True)
         ]
         advanced_param_toggle = [
             ExtraSettings.ToggleSetting("advanced_params", _("Advanced Parameters"), _("Include parameters like Max Tokens, Top-P, Temperature, etc."), default_advanced_params, update_settings=True)
