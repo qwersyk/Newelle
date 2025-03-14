@@ -2,6 +2,9 @@ import json
 import threading
 import base64
 from typing import Callable, Any
+import os 
+import uuid 
+import time 
 
 from .llm import LLMHandler
 from ...utility.media import extract_image, extract_video, extract_file
@@ -16,7 +19,7 @@ class GeminiHandler(LLMHandler):
     Official Google Gemini APIs, they support history and system prompts
     """
 
-    default_models = [("gemini-1.5-flash","gemini-1.5-flash"), ("gemini-1.5-flash-8b", "gemini-1.5-flash-8b") , ("gemini-1.0-pro", "gemini-1.0-pro"), ("gemini-1.5-pro","gemini-1.5-pro") ]
+    default_models = [("Gemini 2.0 Flash","gemini-2.0-flash"), ("Gemini 2.0 Flash Lite", "gemini-2.0-flash-lite")]
     
     def __init__(self, settings, path):
         super().__init__(settings, path)
@@ -29,6 +32,8 @@ class GeminiHandler(LLMHandler):
             self.models = json.loads(self.get_setting("models", False))
             self.fix_models_format()
 
+    def stream_enabled(self) -> bool:
+        return True
     def fix_models_format(self):
         m = tuple()
         for model in self.models:
@@ -41,16 +46,16 @@ class GeminiHandler(LLMHandler):
     def get_models(self):
         if self.is_installed():
             try:
-                import google.generativeai as genai
+                from google import genai
                 api = self.get_setting("apikey", False)
                 if api is None:
                     return
-                genai.configure(api_key=api)
-                models = genai.list_models()
+                client = genai.Client(api_key=api)
+                
+                models = client.models.list()
                 result = tuple()
                 for model in models:
-                    if "generateContent" in model.supported_generation_methods:
-                        result += ((model.display_name, model.name,),)
+                    result += ((model.display_name, model.name,),)
                 self.models = result
                 self.set_setting("models", json.dumps(result))
                 self.settings_update()
@@ -59,7 +64,7 @@ class GeminiHandler(LLMHandler):
     
     @staticmethod
     def get_extra_requirements() -> list:
-        return ["google-generativeai"]
+        return ["google-genai"]
 
     def supports_vision(self) -> bool:
         return True
@@ -68,12 +73,14 @@ class GeminiHandler(LLMHandler):
         return True
 
     def is_installed(self) -> bool:
-        if find_module("google.generativeai") is None:
+        try:
+            from google import genai
+        except Exception as e:
             return False
         return True
 
     def get_extra_settings(self) -> list:
-        return [
+        r = [
             ExtraSettings.EntrySetting("apikey", _("API Key (required)"), _("API key got from ai.google.dev"), ""), 
             ExtraSettings.ComboSetting(
                 "model",
@@ -83,6 +90,14 @@ class GeminiHandler(LLMHandler):
                 self.models[0][1],
                 refresh=lambda button: self.get_models(),
             ),
+            ExtraSettings.ToggleSetting("system_prompt", _("Enable System Prompt"), _("Some models don't support system prompt (or developers instructions), disable it if you get errors about it"), True, update_settings=True),
+        ]
+
+        if not (self.get_setting("system_prompt", False) is None or self.get_setting("system_prompt", False)):
+            r+= [ExtraSettings.ToggleSetting("force_system_prompt", _("Inject system prompt"), _("Even if the model doesn't support system prompts, put the prompts on top of the user message"), True)]
+        
+        r += [
+            ExtraSettings.ToggleSetting("img_output", _("Image Output"), _("Enable image output, only supported by gemini-2.0-flash-exp"), False), 
             ExtraSettings.ToggleSetting(
                 "streaming",
                 _("Message Streaming"),
@@ -100,23 +115,38 @@ class GeminiHandler(LLMHandler):
                 _("Privacy Policy"),
                 _("Open privacy policy website"),
                 lambda button: open_website("https://ai.google.dev/gemini-api/terms"), None, "internet-symbolic"
-            )
+            ),
+            ExtraSettings.ToggleSetting("advanced_params", _("Advanced Parameters"), _("Enable advanced parameters"), False, update_settings=True),
         ]
-
+        if self.get_setting("advanced_params", False):
+            r += [
+                ExtraSettings.ScaleSetting("temperature", "Temperature", "Creativity allowed in the responses", 1, 0, 2, 1),
+                ExtraSettings.ScaleSetting("top_p", "Top P", "Probability of the top tokens to keep", 1, 0, 1, 1),
+                ExtraSettings.ScaleSetting("max_tokens", "Max Tokens", "Maximum number of tokens to generate", 8192, 0, 8192, 1),
+                ExtraSettings.ScaleSetting("frequency-penalty", "Frequency Penalty", "Frequency penalty", 1, 0, 2, 1),
+            ]
+        return r
     def __convert_history(self, history: list):
+        from google.genai import types
         result = []
         for message in history:
             if message["User"] == "Console":
-                result.append({
-                    "role": "user",
-                    "parts": "Console: " + message["Message"]
-                })
+                result.append(
+                    types.Content(
+                        role="user",
+                        parts=[
+                            types.Part.from_text(text="Console: " + message["Message"])
+                        ]
+                    )
+                )
             else: 
                 img, text = self.get_gemini_image(message["Message"]) 
-                result.append({
-                    "role": message["User"].lower() if message["User"] == "User" else "model",
-                    "parts": message["Message"] if img is None else [img, text]
-                })
+                result.append(
+                    types.Content(
+                        role="user" if message["User"] == "User" else "model",
+                        parts=[types.Part.from_text(text=text)] if img is None else [types.Part.from_text(text=text), types.Part.from_uri(file_uri=img.uri, mime_type=img.mime_type)]
+                    )
+                )
         return result
 
     def add_image_to_history(self, history: list, image: object) -> list:
@@ -127,7 +157,8 @@ class GeminiHandler(LLMHandler):
         return history
     
     def get_gemini_image(self, message: str) -> tuple[object, str]:
-        from google.generativeai import upload_file
+        from google.genai import Client 
+        client = Client(api_key=self.get_setting("apikey"))
         img = None
         image, text = extract_image(message)
         if image is None:
@@ -146,49 +177,42 @@ class GeminiHandler(LLMHandler):
             if image in self.cache:
                 img = self.cache[image]
             else:
-                img = upload_file(image_path)
+                img = client.files.upload(file=image_path)
+                
                 self.cache[image] = img
         else:
             text = message
+        self.wait_for_video(img, client)
         return img, text
+   
+    def wait_for_video(self, video_file, client):
+        if video_file is None:
+            return
+        while video_file.state == "PROCESSING":
+            time.sleep(2)
+            video_file = client.files.get(name=video_file.name)
+
+        if video_file.state == "FAILED":
+          raise ValueError(video_file.state)
+    
+    @staticmethod
+    def save_binary_file(file_name, data):
+        f = open(file_name, "wb")
+        f.write(data)
+        f.close()
+   
+    def generate_file_name(self, extension):
+        image_dir = os.path.join(self.path, "images")
+        if not os.path.exists(image_dir):
+            os.makedirs(image_dir)
+        return os.path.join(image_dir, str(uuid.uuid4()) + extension)
 
     def generate_text(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = []) -> str:
-        import google.generativeai as genai
-        
-        from google.generativeai.protos import HarmCategory
-        from google.generativeai.types import HarmBlockThreshold
-        if self.get_setting("safety"):
-            safety = None
-        else:
-            safety = { 
-                HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
-                HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
-                HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
-            }
- 
-        genai.configure(api_key=self.get_setting("apikey"))
-        instructions = "\n"+"\n".join(system_prompt)
-        if instructions == "":
-            instructions=None
-        model = genai.GenerativeModel(self.get_setting("model"), system_instruction=instructions, safety_settings=safety)
-        converted_history = self.__convert_history(history)
-        try:
-            img, txt = self.get_gemini_image(prompt)
-            if img is not None:
-                converted_history = self.add_image_to_history(converted_history, img)
-            chat = model.start_chat(
-                history=converted_history
-            )
-            response = chat.send_message(txt)
-            return response.text
-        except Exception as e:
-            raise Exception("Message blocked: " + str(e))
-
+        return self.generate_text_stream(prompt, history, system_prompt) 
+    
     def generate_text_stream(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = [], on_update: Callable[[str], Any] = lambda _: None , extra_args: list = []) -> str:
-        import google.generativeai as genai
-        from google.generativeai.protos import HarmCategory
-        from google.generativeai.types import HarmBlockThreshold
-        
+        from google import genai
+        from google.genai.types import HarmCategory, HarmBlockThreshold, GenerateContentConfig, Part
         if self.get_setting("safety"):
             safety = None
         else:
@@ -197,24 +221,51 @@ class GeminiHandler(LLMHandler):
                 HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
                 HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
             }
- 
-        genai.configure(api_key=self.get_setting("apikey"))
+
+        client = genai.Client(api_key=self.get_setting("apikey"))
         instructions = "\n".join(system_prompt)
-        if instructions == "":
-            instructions=None
-        model = genai.GenerativeModel(self.get_setting("model"), system_instruction=instructions, safety_settings=safety)
+        append_instructions = None
+        if not self.get_setting("system_prompt"): 
+            instructions = None
+            if self.get_setting("force_system_prompt"):
+                append_instructions = "\n".join(system_prompt)
+        if not self.get_setting("advanced_params"):
+            generate_content_config = GenerateContentConfig( system_instruction=instructions, 
+                                                            safety_settings=safety, response_modalities=["text"] + ["image"] if self.get_setting("img_output") else ["text"])
+        else:
+            generate_content_config = GenerateContentConfig(system_instruction=instructions if not self.get_setting("img_output") else None, safety_settings=safety, response_modalities=["text"] + ["image"] if self.get_setting("img_output") else ["text"],
+                top_p=self.get_setting("top-p"),
+                temperature=self.get_setting("temperature"),
+                frequency_penalty=self.get_setting("frequency-penalty"),
+                max_output_tokens=int(self.get_setting("max_tokens")),
+            )
+
+        history.append({"User": "User", "Message": prompt}) 
+        if append_instructions is not None:
+            history.insert(0,{"User": "User", "Message": append_instructions})
         converted_history = self.__convert_history(history)
         try: 
-            img, txt = self.get_gemini_image(prompt)
-            if img is not None:
-                converted_history = self.add_image_to_history(converted_history, img)
-            chat = model.start_chat(history=converted_history)
-            response = chat.send_message(txt, stream=True)
+            response = client.models.generate_content_stream(
+                contents=converted_history,
+                config=generate_content_config,
+                model=self.get_setting("model"),
+            )
             full_message = ""
             for chunk in response:
-                full_message += chunk.text
-                args = (full_message.strip(), ) + tuple(extra_args)
-                on_update(*args)
+                if not chunk.candidates or not chunk.candidates[0].content or not chunk.candidates[0].content.parts:
+                    continue
+                if chunk.candidates[0].content.parts[0].inline_data:
+                    args = (full_message.strip(), ) + tuple(extra_args)
+                    on_update(*args)
+                    file_name = self.generate_file_name(".png") 
+                    self.save_binary_file(
+                        file_name, chunk.candidates[0].content.parts[0].inline_data.data
+                    )
+                    full_message += "\n```image\n" + file_name + "\n```\n"
+                elif chunk.text is not None:
+                    full_message += chunk.text
+                    args = (full_message.strip(), ) + tuple(extra_args)
+                    on_update(*args)
             return full_message.strip()
         except Exception as e:
             raise Exception("Message blocked: " + str(e))
