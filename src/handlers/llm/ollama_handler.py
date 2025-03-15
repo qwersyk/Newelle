@@ -223,6 +223,8 @@ class OllamaHandler(LLMHandler):
         return False
 
     def load_model(self, model):
+        if not self.is_installed():
+            return
         from ollama import Client
         client = Client(
             host=self.get_setting("endpoint")
