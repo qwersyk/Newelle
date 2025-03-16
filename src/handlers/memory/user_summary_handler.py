@@ -41,6 +41,8 @@ Continue with the conversation while considering the above context.
     def register_response(self, bot_response, history):
         self.seen_messages.append(bot_response)
         update_frequency = min(int(self.get_setting("update_freq")), self.memory_size)
+        if update_frequency == 0:
+            update_frequency = int(self.get_setting("update_freq"))
         PROMPT = """
 You are tasked with updating the user's long-term memory summary based on the latest chat history. The goal is to capture everything useful about the user that will improve future interactions. Retain all relevant details from the existing summary and incorporate new information from the provided chat history. Be sure to include the user's preferences, interests, recurring topics, and any personal context that could help tailor responses in the future.
 
@@ -54,7 +56,7 @@ Please generate an updated long-term memory summary that is clear, concise, and 
 Only output the summary with no other details.
         """
         if len(self.seen_messages) % update_frequency == 0:
-            prompt = PROMPT.format(history="\n".join([i["User"] + ": " + i["Message"] for i in history[-update_frequency:]]), summary=self.get_setting("user_summary"))
+            prompt = PROMPT.format(history="\n".join([i["User"] + ": " + i["Message"] for i in history[-update_frequency-2:]]), summary=self.get_setting("user_summary"))
             upd = self.llm.generate_text(prompt)
             self.set_setting("user_summary", upd)
         self.set_setting("seen_messages", self.seen_messages)

@@ -3,7 +3,7 @@ from .handlers.llm import ClaudeHandler, DeepseekHandler, GPT4AllHandler, GroqHa
 from .handlers.tts import ElevenLabs, gTTSHandler, EspeakHandler, CustomTTSHandler
 from .handlers.stt import GroqSRHandler, OpenAISRHandler, SphinxHandler, GoogleSRHandler, WhisperHandler, WitAIHandler, VoskHandler, CustomSRHandler
 from .handlers.embeddings import WordLlamaHandler, OpenAIEmbeddingHandler, GeminiEmbeddingHanlder, OllamaEmbeddingHandler
-from .handlers.memory import MemoripyHandler, UserSummaryHandler
+from .handlers.memory import MemoripyHandler, UserSummaryHandler, SummaryMemoripyHanlder
 from .handlers.rag import LlamaIndexHanlder
 
 AVAILABLE_LLMS = {
@@ -212,6 +212,12 @@ AVAILABLE_MEMORIES = {
         "title": _("Memoripy"),
         "description": _("Extract messages from previous conversations using contextual memory retrivial, memory decay, concept extraction and other advanced techniques. Does 1 llm call per message."),
         "class": MemoripyHandler,
+    },
+    "summary-memoripy": {
+        "key": "summary-memoripy",
+        "title": _("User Summary + Memoripy"),
+        "description": _("Use both technologies for long term memory"),
+        "class": SummaryMemoripyHanlder,
     }
 }
 
