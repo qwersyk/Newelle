@@ -11,12 +11,22 @@ class UserSummaryHandler(MemoryHandler):
         self.seen_messages = self.get_setting("seen_messages", False)
         if self.seen_messages is None:
             self.seen_messages = []
+        self.DEFAULT_PROMPT = """For the duration of this conversation, please keep the following long-term memory summary in mind. This summary includes important details about the user's preferences, interests, and previous interactions. Use this context to ensure your responses are consistent and personalized.
+User Long-Term Memory Summary:
+{prompt}
+Continue with the conversation while considering the above context.
+            """
+
+    def restore_prompt(self, button=None):
+        self.set_setting("prompt", self.DEFAULT_PROMPT)
+        self.settings_update()
 
     def get_extra_settings(self) -> list:
         return [
             ExtraSettings.ButtonSetting("reset_memory", "Reset Memory", "Reset the memory", lambda x: self.reset_memory(), "Reset Memory"),
             ExtraSettings.ScaleSetting("update_freq", "Update Summary Frequency", "How often to update the summary", 5, 1, 10, 0), 
-            ExtraSettings.MultilineEntrySetting("user_summary", "User Summary", "Current summary of the interactions with the assistant", "")
+            ExtraSettings.MultilineEntrySetting("user_summary", "User Summary", "Current summary of the interactions with the assistant", ""),
+            ExtraSettings.MultilineEntrySetting("prompt", "Summary prompt", "Prompt to get the summary. {prompt} will be replaced with the user summary.", self.DEFAULT_PROMPT, refresh=self.restore_prompt, refresh_icon="star-filled-rounded-symbolic")
         ]
     
     def reset_memory(self):
@@ -25,12 +35,7 @@ class UserSummaryHandler(MemoryHandler):
 
     def get_context(self, prompt: str, history: list[dict[str, str]]) -> list[str]:
         self.seen_messages.append(prompt)
-        PROMPT = """
-            For the duration of this conversation, please keep the following long-term memory summary in mind. This summary includes important details about the user's preferences, interests, and previous interactions. Use this context to ensure your responses are consistent and personalized.
-            User Long-Term Memory Summary:
-            {prompt}
-            Continue with the conversation while considering the above context.
-            """
+        PROMPT = self.get_setting("prompt")
         return ["---"+PROMPT.format(prompt=self.get_setting("user_summary"))]
 
     def register_response(self, bot_response, history):
