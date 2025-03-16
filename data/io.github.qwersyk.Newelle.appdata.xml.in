@@ -31,20 +31,14 @@
 	<url type="bugtracker">https://github.com/qwersyk/Newelle/issues</url>
 	<content_rating type="oars-1.0" />
 	<releases>
+	    <release version="0.8.1" date="2025-03-16">
+            <description>
+                <p>Support for new features and bug fixes</p>
+            </description>
+        </release>
 	    <release version="0.8.0" date="2025-03-11">
             <description>
-                <p>Added many new features and bug fixes:
-- Add Long Term Memory support
-- Add the ability to chat with local documents
-- Add an integrated terminal
-- Changed settings design
-- Added a popup to change models
-- Add the option to choose a secondary LLM for extra tasks
-- Add the ability for extensions to see and edit history
-- Add the ability for extensions to use Handlers
-- Add ability to remove thinking steps from history
-- Add a button to check the prompt that generated an assistant message
-- Add quick toggles</p>
+                <p>Added many new features and bug fixes</p>
             </description>
         </release>
 	    <release version="0.7.0" date="2025-02-06">
