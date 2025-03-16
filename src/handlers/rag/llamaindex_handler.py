@@ -16,16 +16,32 @@ class LlamaIndexHanlder(RAGHandler):
         self.indexing = False
         self.loading_thread = None
         self.index = None
+   
+    def get_subdirectories(self):
+        r = []
+        for dir in os.scandir(self.documents_path):
+            if os.path.isdir(dir.path):
+                r.append([dir.name, dir.path])
+        return r
     
     def get_extra_settings(self) -> list:
-        return [
-            ExtraSettings.ScaleSetting("chunk_size", "Chunk Size", "Split text in chunks of the given size (in tokens). Requires a reindex", 512, 64, 2048, 1), 
-            ExtraSettings.ScaleSetting("return_documents", "Documents to return", "Maximum number of documents to return", 3,1,5, 1), 
+        r = [
+            ExtraSettings.ScaleSetting("chunk_size", "Chunk Size", "Split text in chunks of the given size (in tokens). Requires a reindex", 512, 64, 2048, 0), 
+            ExtraSettings.ScaleSetting("return_documents", "Documents to return", "Maximum number of documents to return", 3,1,5, 0), 
             ExtraSettings.ScaleSetting("similarity_threshold", "Similarity of the document to be returned", "Set the percentage similarity of a document to get returned", 0.65,0,1, 2), 
             ExtraSettings.ToggleSetting("use_llm", "Secondary LLM", "Use the secondary LLM to improve retrivial", False),
+            ExtraSettings.ToggleSetting("subdirectory_on", "Index Only a subdirectory", "Choose only a subdirectory to index. If you already have indexed it, you don't need to re-index", False, update_settings=True), 
+        ]
+        if self.get_setting("subdirectory_on", False, False):
+            r += [
+                ExtraSettings.ComboSetting("subdirectory", "Subdirectory", "Subdirectory to index", self.get_subdirectories(), self.get_subdirectories()[0][1] if len(self.get_subdirectories()) > 0 else ".", update_settings=True)
+            ]
+
+        r += [ 
             ExtraSettings.NestedSetting("documents", "Document extensions", "List of document extensions to index", 
                 [
                     ExtraSettings.ToggleSetting("md", "Markdown", ".md files", True),
+                    ExtraSettings.ToggleSetting("txt", "TXT", ".txt files", True),
                     ExtraSettings.ToggleSetting("pdf", "PDF", ".pdf files", True),
                     ExtraSettings.ToggleSetting("docx", "Docx", ".docx files", True),
                     ExtraSettings.ToggleSetting("epub", "Epub", ".epub files", True),
@@ -33,6 +49,7 @@ class LlamaIndexHanlder(RAGHandler):
                 ]
             )
         ]
+        return r
 
     def wait_for_loading(self):
         if self.loading_thread is not None:
@@ -71,9 +88,10 @@ class LlamaIndexHanlder(RAGHandler):
         from llama_index.core import StorageContext, load_index_from_storage
         from llama_index.core.settings import Settings
         from llama_index.core.indices.vector_store import VectorIndexRetriever 
+        documents_path, data_path = self.get_paths()
         Settings.embed_model = self.get_embedding_adapter(self.embedding)
         Settings.llm = self.get_llm_adapter()
-        storage_context = StorageContext.from_defaults(persist_dir=self.data_path)
+        storage_context = StorageContext.from_defaults(persist_dir=data_path)
         index = load_index_from_storage(storage_context) 
         retriever = VectorIndexRetriever(
             index=index,
@@ -106,17 +124,30 @@ class LlamaIndexHanlder(RAGHandler):
         return r
 
     def index_exists(self):
-        return os.path.exists(os.path.join(self.data_path, "docstore.json")) and (not self.indexing) 
+        documents_path, data_path = self.get_paths()
+        return os.path.exists(os.path.join(data_path, "docstore.json")) and (not self.indexing) 
     
     def delete_index(self):
         os.remove(os.path.join(self.data_path, "docstore.json"))
 
+    def get_paths(self):
+        if self.get_setting("subdirectory_on"):
+            documents_path = self.get_setting("subdirectory")
+            name = documents_path.split("/")[-1]
+            data_path = os.path.join(self.data_path, name)
+            if not os.path.exists(data_path):
+                os.makedirs(data_path)
+        else:
+            documents_path = self.documents_path
+            data_path = self.data_path
+        return documents_path, data_path
     def create_index(self, button=None):  
         if not self.is_installed():
             return
         from llama_index.core.settings import Settings
         from llama_index.core import VectorStoreIndex, SimpleDirectoryReader
         # Ensure llm and embedding load 
+        documents_path, data_path = self.get_paths()
         try:
             self.llm.load_model(None)
             self.embedding.load_model()
@@ -124,7 +155,7 @@ class LlamaIndexHanlder(RAGHandler):
             Settings.embed_model = self.get_embedding_adapter(self.embedding)
             chunk_size = int(self.get_setting("chunk_size"))
             Settings.chunk_size = chunk_size 
-            documents = SimpleDirectoryReader(self.documents_path + "/", recursive=True, required_exts=self.get_supported_formats(), exclude_hidden=False).load_data() 
+            documents = SimpleDirectoryReader(documents_path, recursive=True, required_exts=self.get_supported_formats(), exclude_hidden=False).load_data() 
             self.indexing_status = 0
             index = VectorStoreIndex.from_documents(documents[:1])
             i = 1
@@ -133,7 +164,7 @@ class LlamaIndexHanlder(RAGHandler):
                 i += 1
                 self.indexing_status = (i / len(documents))
 
-            index.storage_context.persist(self.data_path)
+            index.storage_context.persist(data_path)
             self.indexing = False
         except Exception as e:
             print(e)

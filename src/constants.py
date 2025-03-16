@@ -1,9 +1,9 @@
 
 from .handlers.llm import ClaudeHandler, DeepseekHandler, GPT4AllHandler, GroqHandler, OllamaHandler, OpenAIHandler, CustomLLMHandler, GPT3AnyHandler, GeminiHandler, MistralHandler, OpenRouterHandler, NewelleAPIHandler
-from .handlers.tts import ElevenLabs, gTTSHandler, EspeakHandler, CustomTTSHandler
+from .handlers.tts import ElevenLabs, gTTSHandler, EspeakHandler, CustomTTSHandler, KokoroTTSHandler
 from .handlers.stt import GroqSRHandler, OpenAISRHandler, SphinxHandler, GoogleSRHandler, WhisperHandler, WitAIHandler, VoskHandler, CustomSRHandler
 from .handlers.embeddings import WordLlamaHandler, OpenAIEmbeddingHandler, GeminiEmbeddingHanlder, OllamaEmbeddingHandler
-from .handlers.memory import MemoripyHandler, UserSummaryHandler
+from .handlers.memory import MemoripyHandler, UserSummaryHandler, SummaryMemoripyHanlder
 from .handlers.rag import LlamaIndexHanlder
 
 AVAILABLE_LLMS = {
@@ -153,6 +153,12 @@ AVAILABLE_TTS = {
         "description": _("Google's text to speech"),
         "class": gTTSHandler,
     },
+    "kokoro": {
+        "key": "kokoro",
+        "title": _("Kokoro TTS"),
+        "description": _("Lightweight and fast open source TTS engine. ~3GB dependencies, 400MB model"),
+        "class": KokoroTTSHandler,
+    },
     "elevenlabs": {
         "key": "elevenlabs",
         "title": _("ElevenLabs TTS"),
@@ -212,6 +218,12 @@ AVAILABLE_MEMORIES = {
         "title": _("Memoripy"),
         "description": _("Extract messages from previous conversations using contextual memory retrivial, memory decay, concept extraction and other advanced techniques. Does 1 llm call per message."),
         "class": MemoripyHandler,
+    },
+    "summary-memoripy": {
+        "key": "summary-memoripy",
+        "title": _("User Summary + Memoripy"),
+        "description": _("Use both technologies for long term memory"),
+        "class": SummaryMemoripyHanlder,
     }
 }
 

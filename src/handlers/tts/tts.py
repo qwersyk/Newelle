@@ -17,6 +17,7 @@ class TTSHandler(Handler):
     voices : tuple
     _play_lock : threading.Semaphore = threading.Semaphore(1)
     def __init__(self, settings, path):
+        super().__init__(settings, path)
         mixer.init()
         self.settings = settings
         self.path = path

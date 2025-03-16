@@ -88,6 +88,7 @@ tts_sources = [
   'handlers/tts/espeak_handler.py',
   'handlers/tts/elevenlabs_handler.py',
   'handlers/tts/custom_handler.py',
+  'handlers/tts/kokoro_handler.py',
 ]
 
 stt_sources = [  
@@ -116,6 +117,7 @@ memory_sources = [
   'handlers/memory/__init__.py',
   'handlers/memory/memory_handler.py',
   'handlers/memory/memoripy_handler.py',
+  'handlers/memory/summary_memoripy_handler.py',
   'handlers/memory/user_summary_handler.py',
 ]
 
