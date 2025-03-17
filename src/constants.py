@@ -6,6 +6,9 @@ from .handlers.embeddings import WordLlamaHandler, OpenAIEmbeddingHandler, Gemin
 from .handlers.memory import MemoripyHandler, UserSummaryHandler, SummaryMemoripyHanlder
 from .handlers.rag import LlamaIndexHanlder
 
+DIR_NAME = "Newelle"
+SCHEMA_ID = 'io.github.qwersyk.Newelle'
+
 AVAILABLE_LLMS = {
     "newelle": {
         "key": "newelle",
