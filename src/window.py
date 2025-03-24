@@ -39,8 +39,10 @@ from .utility.media import extract_supported_files
 from .ui.screenrecorder import ScreenRecorder
 
 from .extensions import ExtensionLoader
+from .controller import NewelleController
 
-
+def _(string):
+    return string
 class MainWindow(Gtk.ApplicationWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -49,39 +51,9 @@ class MainWindow(Gtk.ApplicationWindow):
                                            swipe_to_open=False)
         self.main_program_block.set_name("hide")
         self.check_streams = {"folder": False, "chat": False}
-
+        self.controller = NewelleController()
+        self.controller.ui_init()
         # Directories
-        self.path = GLib.get_user_data_dir()
-        self.directory = GLib.get_user_config_dir()
-        # Pip directory for optional modules
-        self.pip_directory = os.path.join(self.directory, "pip")
-        self.extension_path = os.path.join(self.directory, "extensions")
-        self.extensions_cache = os.path.join(self.directory, "extensions_cache")
-        if not os.path.exists(self.extension_path):
-            os.makedirs(self.extension_path)
-        if not os.path.exists(self.extensions_cache):
-            os.makedirs(self.extensions_cache)
-        if os.path.isdir(self.pip_directory):
-            sys.path.append(self.pip_directory)
-        else:
-            threading.Thread(target=self.init_pip_path, args=(sys.path,)).start()
-
-        # Chat loading
-        if not os.path.exists(self.path):
-            os.makedirs(self.path)
-        self.filename = "chats.pkl"
-        if os.path.exists(self.path + self.filename):
-            with open(self.path + self.filename, 'rb') as f:
-                self.chats = pickle.load(f)
-        else:
-            self.chats = [{"name": _("Chat ") + "1", "chat": []}]
-
-        # Init variables 
-        self.streams = []
-        # Init Settings
-        settings = Gio.Settings.new('io.github.qwersyk.Newelle')
-        self.settings = settings
-        # Indicate that it's the first load of the program
         self.first_load = True
         self.update_settings()
         self.first_load = False
@@ -445,85 +417,12 @@ class MainWindow(Gtk.ApplicationWindow):
                 self.rag_handler.load()
 
     def update_settings(self):
-        """Update settings, run every time the program is started or settings dialog closed"""
-        # Load profile
-        self.profile_settings = json.loads(self.settings.get_string("profiles"))
-        self.current_profile = self.settings.get_string("current-profile")
-        if len(self.profile_settings) == 0 or self.current_profile not in self.profile_settings:
-            self.profile_settings[self.current_profile] = {"settings": {}, "picture": None}
-
-        # Init variables
-        self.automatic_stt_status = False
-        settings = self.settings
-       
-        # Get settings variables
-        self.offers = settings.get_int("offers")
-        self.virtualization = settings.get_boolean("virtualization")
-        self.memory = settings.get_int("memory")
-        self.hidden_files = settings.get_boolean("hidden-files")
-        self.reverse_order = settings.get_boolean("reverse-order")
-        self.remove_thinking = settings.get_boolean("remove-thinking")
-        self.auto_generate_name = settings.get_boolean("auto-generate-name")
-        self.chat_id = settings.get_int("chat")
-        self.main_path = settings.get_string("path")
-        self.auto_run = settings.get_boolean("auto-run")
-        self.display_latex = settings.get_boolean("display-latex")
-        self.chat = self.chats[min(self.chat_id, len(self.chats) - 1)]["chat"]
-        self.tts_enabled = settings.get_boolean("tts-on")
-        self.tts_program = settings.get_string("tts")
-        self.tts_voice = settings.get_string("tts-voice")
-        self.stt_engine = settings.get_string("stt-engine")
-        self.stt_settings = settings.get_string("stt-settings")
-        self.external_terminal = settings.get_string("external-terminal")
-        self.automatic_stt = settings.get_boolean("automatic-stt")
-        self.stt_silence_detection_threshold = settings.get_double("stt-silence-detection-threshold")
-        self.stt_silence_detection_duration = settings.get_int("stt-silence-detection-duration")
-        self.embedding_model = self.settings.get_string("embedding-model")
-        self.memory_on = self.settings.get_boolean("memory-on")
-        self.memory_model = self.settings.get_string("memory-model")
-        self.rag_on = self.settings.get_boolean("rag-on")
-        self.rag_on_documents = self.settings.get_boolean("rag-on-documents")
-        self.rag_model = self.settings.get_string("rag-model")
-        # Load extensions
-        self.extensionloader = ExtensionLoader(self.extension_path, pip_path=self.pip_directory,
-                                               extension_cache=self.extensions_cache, settings=self.settings)
-        self.extensionloader.load_extensions()
-        self.extensionloader.add_handlers(AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS, AVAILABLE_RAGS)
-        self.extensionloader.add_prompts(PROMPTS, AVAILABLE_PROMPTS)
-
+        """Update settings, run every time the program is started or settings dialog closed""" 
+        self.tts = self.controller.handlers.tts 
         # Setup TTS
-        if self.tts_program in AVAILABLE_TTS:
-            self.tts = AVAILABLE_TTS[self.tts_program]["class"](self.settings, self.directory)
-            self.tts.connect('start', lambda: GLib.idle_add(self.mute_tts_button.set_visible, True))
-            self.tts.connect('stop', lambda: GLib.idle_add(self.mute_tts_button.set_visible, False))
-        
-        # Create RAG and memory handler and embedding handler first
-        self.rag_handler : RAGHandler = AVAILABLE_RAGS[self.rag_model]["class"](self.settings, os.path.join(self.directory, "models"))
-        self.memory_handler : MemoripyHandler= AVAILABLE_MEMORIES[self.memory_model]["class"](self.settings, os.path.join(self.directory, "models"))
-        self.memory_handler.set_memory_size(self.memory)
-        self.embeddings : EmbeddingHandler = AVAILABLE_EMBEDDINGS[self.embedding_model]["class"](self.settings, os.path.join(self.directory, "models"))
-        if not self.embeddings.is_installed():
-            # Install embeddings if missing
-            threading.Thread(target=self.embeddings.install).start()
-        if not self.rag_handler.is_installed():
-            # Install RAG if missing
-            threading.Thread(target=self.rag_handler.install).start()
-
-        # Quick settings will add the handlers to RAG and memory 
-        # Load quick settings 
-        self.quick_settings_update()
-        # Load embeddings only if required
-        if self.rag_on or self.memory_on or self.rag_on_documents:
-            self.embeddings.load_model()
-        # Load RAG
-        if self.rag_on:
-            GLib.idle_add(self.rag_handler.load)
-        
-        # Adjust paths
-        if os.path.exists(os.path.expanduser(self.main_path)):
-            os.chdir(os.path.expanduser(self.main_path))
-        else:
-            self.main_path = "~"
+        self.tts.connect('start', lambda: GLib.idle_add(self.mute_tts_button.set_visible, True))
+        self.tts.connect('stop', lambda: GLib.idle_add(self.mute_tts_button.set_visible, False))
+                
         
     def quick_settings_update(self):  
         """Update LLM and prompt settings"""
