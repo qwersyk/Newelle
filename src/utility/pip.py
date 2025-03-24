@@ -21,5 +21,6 @@ def install_module(module, path):
     if find_module("pip") is None:
         print("Downloading pip...")
         subprocess.check_output(["bash", "-c", "cd " + os.path.dirname(path) + " && wget https://bootstrap.pypa.io/get-pip.py && python get-pip.py"])
+        subprocess.check_output(["bash", "-c", "cd " + os.path.dirname(path) + " && rm get-pip.py"])
     r = subprocess.run([sys.executable, "-m", "pip", "install","--target", path, "--upgrade", module], capture_output=False) 
     return r
