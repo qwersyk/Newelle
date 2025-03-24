@@ -2,6 +2,14 @@ from dataclasses import dataclass
 from typing import Any
 from gi.repository import GLib, Gio
 import os
+
+from .handlers.llm import LLMHandler
+from .handlers.tts import TTSHandler
+from .handlers.stt import STTHandler
+from .handlers.rag import RAGHandler
+from .handlers.memory import MemoryHandler
+from .handlers.embeddings import EmbeddingHandler
+
 from .utility.system import is_flatpak
 from .utility.pip import install_module
 from .constants import DIR_NAME, SCHEMA_ID, PROMPTS, AVAILABLE_STT, AVAILABLE_TTS, AVAILABLE_LLMS, AVAILABLE_RAGS, AVAILABLE_PROMPTS, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS
@@ -40,6 +48,7 @@ class NewelleController:
         self.newelle_settings = NewelleSettings()
         self.newelle_settings.load_settings(self.settings)
         self.load_chats(self.newelle_settings.chat_id)
+        self.handlers = HandlersManager(self.settings, self.extensionloader, self.models_dir)
 
     def init_paths(self) -> None:
         """Define paths for the application"""
@@ -186,7 +195,60 @@ class HandlersManager:
         self.extensionloader = extensionloader
         self.directory = models_path
 
+    def fix_handlers_integrity(self, newelle_settings: NewelleSettings):
+        """Select available handlers if not available handlers in settings
+
+        Args:
+            newelle_settings: Newelle settings
+        """
+        if newelle_settings.language_model not in AVAILABLE_LLMS:
+            newelle_settings.language_model = list(AVAILABLE_LLMS.keys())[0]
+        if newelle_settings.secondary_language_model not in AVAILABLE_LLMS:
+            newelle_settings.secondary_language_model = list(AVAILABLE_LLMS.keys())[0]
+        if newelle_settings.embedding_model not in AVAILABLE_EMBEDDINGS:
+            newelle_settings.embedding_model = list(AVAILABLE_EMBEDDINGS.keys())[0]
+        if newelle_settings.memory_model not in AVAILABLE_MEMORIES:
+            newelle_settings.memory_model = list(AVAILABLE_MEMORIES.keys())[0]
+        if newelle_settings.rag_model not in AVAILABLE_RAGS:
+            newelle_settings.rag_model = list(AVAILABLE_RAGS.keys())[0]
+       
+    def select_handlers(self, newelle_settings: NewelleSettings):
+        """Assign the selected handlers
+
+        Args:
+            newelle_settings: Newelle settings 
+        """
+        self.fix_handlers_integrity(newelle_settings)
+        # Get LLM 
+        self.llm : LLMHandler = self.get_object(AVAILABLE_LLMS, newelle_settings.language_model)
+        if newelle_settings.use_secondary_language_model:
+            self.secondary_llm : LLMHandler = self.get_object(AVAILABLE_LLMS, newelle_settings.secondary_language_model, True)
+        else:
+            self.secondary_llm : LLMHandler = self.llm
+        self.stt : STTHandler = self.get_object(AVAILABLE_STT, newelle_settings.stt_engine)
+        self.tts : TTSHandler = self.get_object(AVAILABLE_TTS, newelle_settings.tts_program)
+        self.embedding : EmbeddingHandler= self.get_object(AVAILABLE_EMBEDDINGS, newelle_settings.embedding_model)
+        self.memory : MemoryHandler = self.get_object(AVAILABLE_MEMORIES, newelle_settings.memory_model)
+        self.memory.set_memory_size(newelle_settings.memory)
+        self.rag : RAGHandler = self.get_object(AVAILABLE_RAGS, newelle_settings.rag_model)
+
+    def install_missing_handlers(self):
+        """Install selected handlers that are not installed. Assumes that select_handlers has been called"""
+        if not self.llm.is_installed():
+            self.llm.install()
+        if not self.stt.is_installed():
+            self.stt.install()
+        if not self.tts.is_installed():
+            self.tts.install()
+        if not self.embedding.is_installed():
+            self.embedding.install()
+        if not self.memory.is_installed():
+            self.memory.install()
+        if not self.rag.is_installed():
+            self.rag.install()
+
     def cache_handlers(self):
+        """Cache handlers"""
         self.handlers = {}
         for key in AVAILABLE_TTS:
             self.handlers[(key, self.convert_constants(AVAILABLE_TTS))] = self.get_object(AVAILABLE_TTS, key)
