@@ -7,11 +7,11 @@ import subprocess
 
 
 class PresentationWindow(Adw.Window):
-    def __init__(self, title, settings, path, parent):
+    def __init__(self, title, settings, parent):
         super().__init__(title=title, deletable=True, modal=True)
         self.app = parent.get_application()
+        self.controller = parent.controller
         self.settings = settings
-        self.path = path
 
         self.set_default_size(640, 700)
         self.set_transient_for(parent)
@@ -86,7 +86,7 @@ class PresentationWindow(Adw.Window):
         - callback: Callback to be called when the button is pressed
         - classes: List of classes to be applied to the button
         """
-        settings = Settings(self.app, headless=True)
+        settings = Settings(self.app, self.controller, headless=True)
         pages = [
             {
                 "title": _("Welcome to Newelle"),
@@ -242,8 +242,7 @@ class PresentationWindow(Adw.Window):
             description_label.set_halign(Gtk.Align.CENTER)
             description_label.set_text(description)
             description_label.set_use_markup(True)
-            page.append(description_label)
-        # Actions
+            page.append(description_label) # Actions 
         buttons = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10, halign=Gtk.Align.CENTER, hexpand=False, baseline_position=Gtk.BaselinePosition.CENTER, margin_bottom=20)
         for action in actions:
             button = Gtk.Button(css_classes=action["classes"])

@@ -10,6 +10,8 @@ class SummaryMemoripyHanlder(MemoryHandler):
         super().__init__(settings, path)
         self.memoripy = None
         self.user_summary = None
+        self.llm = None 
+        self.embedding = None
 
     def is_installed(self) -> bool:
         memoripy, user_summary = self.initialize_handlers() 

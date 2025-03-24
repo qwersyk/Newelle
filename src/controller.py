@@ -3,6 +3,7 @@ from typing import Any
 from gi.repository import GLib, Gio
 import os
 
+from .extensions import NewelleExtension
 from .handlers.llm import LLMHandler
 from .handlers.tts import TTSHandler
 from .handlers.stt import STTHandler
@@ -45,10 +46,12 @@ class NewelleController:
     def ui_init(self):
         self.init_paths()
         self.check_path_integrity()
+        self.load_extensions()
         self.newelle_settings = NewelleSettings()
         self.newelle_settings.load_settings(self.settings)
         self.load_chats(self.newelle_settings.chat_id)
         self.handlers = HandlersManager(self.settings, self.extensionloader, self.models_dir)
+        self.handlers.select_handlers(self.newelle_settings)
 
     def init_paths(self) -> None:
         """Define paths for the application"""
@@ -71,13 +74,17 @@ class NewelleController:
     def load_chats(self, chat_id):
         """Load chats"""
         self.filename = "chats.pkl"
-        if os.path.exists(self.data_dir + self.filename):
-            with open(self.data_dir + self.filename, 'rb') as f:
+        if os.path.exists(os.path.join(self.data_dir, self.filename)):
+            with open(os.path.join(self.data_dir, self.filename), 'rb') as f:
                 self.chats = pickle.load(f)
         else:
             self.chats = [{"name": _("Chat ") + "1", "chat": []}]
         self.chat = self.chats[min(chat_id, len(self.chats) - 1)]["chat"]
-    
+   
+    def save_chats(self):
+        with open(os.path.join(self.data_dir, self.filename), 'wb') as f:
+            pickle.dump(self.chats, f)
+
     def check_path_integrity(self):
         """Create missing directories"""
         # Create directories
@@ -87,6 +94,8 @@ class NewelleController:
             os.makedirs(self.extension_path)
         if not os.path.exists(self.extensions_cache):
             os.makedirs(self.extensions_cache)
+        if not os.path.exists(self.models_dir):
+            os.makedirs(self.models_dir)
         # Fix Pip environment
         if os.path.isdir(self.pip_path):
             sys.path.append(self.pip_path)
@@ -97,6 +106,40 @@ class NewelleController:
         """Install a pip module to init a pip path"""
         install_module("pip-install-test", self.pip_path)
         path.append(self.pip_path)
+
+    def update_settings(self):
+        """Update settings"""
+        newsettings = NewelleSettings()
+        newsettings.load_settings(self.settings)
+        reload = self.newelle_settings.compare_settings(newsettings)
+        for r in reload:
+            self.reload(r)
+        return reload
+
+    def reload(self, reload_type: ReloadType):
+        if reload_type == ReloadType.EXTENSIONS:
+            return # TODO
+            self.extensionloader = ExtensionLoader(self.extension_path, pip_path=self.pip_path,
+                                                   extension_cache=self.extensions_cache, settings=self.settings)
+            self.extensionloader.load_extensions()
+            self.extensionloader.add_handlers(AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS, AVAILABLE_RAGS)
+            self.extensionloader.add_prompts(PROMPTS, AVAILABLE_PROMPTS)
+        elif reload_type == ReloadType.LLM:
+            self.handlers.select_handlers(self.newelle_settings)
+            def async_load():
+                self.handlers.llm.load_model(None)
+                self.handlers.secondary_llm.load_model(None)
+            threading.Thread(target=async_load).start()
+        elif reload_type == ReloadType.TTS or reload_type == ReloadType.STT or reload_type == ReloadType.MEMORIES:
+            self.handlers.select_handlers(self.newelle_settings)
+        elif reload_type == ReloadType.RAG:
+            self.handlers.select_handlers(self.newelle_settings)
+            threading.Thread(target=self.handlers.rag.load).start()
+        elif reload_type == ReloadType.EMBEDDINGS:
+            self.handlers.select_handlers(self.newelle_settings)
+            threading.Thread(target=self.handlers.embedding.load_model).start()
+        elif reload_type == ReloadType.PROMPTS:
+            return
 
     def load_extensions(self):
         """Load extensions"""
@@ -156,14 +199,26 @@ class NewelleSettings:
         self.secondary_language_model = self.settings.get_string("secondary-language-model")
         self.use_secondary_language_model = self.settings.get_boolean("secondary-llm-on")
         self.custom_prompts = json.loads(self.settings.get_string("custom-prompts"))
-        #self.prompts = override_prompts(self.custom_prompts, PROMPTS)
-        self.prompts_settings = json.loads(self.settings.get_string("prompts-settings"))
-        
+        self.prompts_settings = json.loads(self.settings.get_string("prompts-settings")) 
+        self.custom_prompts = json.loads(self.settings.get_string("custom-prompts"))
+        self.prompts = override_prompts(self.custom_prompts, PROMPTS)
+        self.load_prompts()
         # Adjust paths
         if os.path.exists(os.path.expanduser(self.main_path)):
             os.chdir(os.path.expanduser(self.main_path))
         else:
             self.main_path = "~"
+
+    def load_prompts(self):
+        self.bot_prompts = []
+        for prompt in AVAILABLE_PROMPTS:
+            is_active = False
+            if prompt["setting_name"] in self.prompts_settings:
+                is_active = self.prompts_settings[prompt["setting_name"]]
+            else:
+                is_active = prompt["default"]
+            if is_active:
+                self.bot_prompts.append(self.prompts[prompt["key"]])
 
     def compare_settings(self, new_settings) -> list[ReloadType]:
         reloads = []
@@ -186,6 +241,16 @@ class NewelleSettings:
 
         if self.rag_on != new_settings.rag_on or self.rag_on_documents != new_settings.rag_on_documents or self.rag_model != new_settings.rag_model:
             reloads.append(ReloadType.RAG)
+        
+        # Check prompts
+        if len(self.prompts) != len(new_settings.prompts):
+            reloads.append(ReloadType.PROMPTS)
+        elif False:
+            for prompt in self.prompts_settings:
+                if (prompt["key"] not in new_settings.prompts) or self.prompts[prompt["key"]] != new_settings.prompts[prompt["key"]]:
+                    reloads.append(ReloadType.PROMPTS)
+                    break
+
         return reloads
 
 
@@ -194,6 +259,7 @@ class HandlersManager:
         self.settings = settings
         self.extensionloader = extensionloader
         self.directory = models_path
+        self.handlers =  {} 
 
     def fix_handlers_integrity(self, newelle_settings: NewelleSettings):
         """Select available handlers if not available handlers in settings
@@ -231,6 +297,10 @@ class HandlersManager:
         self.memory : MemoryHandler = self.get_object(AVAILABLE_MEMORIES, newelle_settings.memory_model)
         self.memory.set_memory_size(newelle_settings.memory)
         self.rag : RAGHandler = self.get_object(AVAILABLE_RAGS, newelle_settings.rag_model)
+        # Assign handlers 
+        self.extensionloader.set_handlers(self.llm, self.stt, self.tts, self.secondary_llm, self.embedding, self.rag, self.memory)
+        self.memory.set_handlers(self.secondary_llm, self.embedding)
+        self.rag.set_handlers(self.llm, self.embedding)
 
     def install_missing_handlers(self):
         """Install selected handlers that are not installed. Assumes that select_handlers has been called"""
@@ -350,3 +420,32 @@ class HandlersManager:
         else:
             raise Exception("Unknown constants")
         return model
+
+    def get_constants_from_object(self, handler: Handler) -> dict[str, Any]:
+        """Get the constants from an hander
+
+        Args:
+            handler: the handler 
+
+        Raises:
+            Exception: if the handler is not known
+
+        Returns: AVAILABLE_LLMS, AVAILABLE_STT, AVAILABLE_TTS based on the type of the handler 
+        """
+        if issubclass(type(handler), TTSHandler):
+            return AVAILABLE_TTS
+        elif issubclass(type(handler), STTHandler):
+            return AVAILABLE_STT
+        elif issubclass(type(handler), LLMHandler):
+            return AVAILABLE_LLMS
+        elif issubclass(type(handler), NewelleExtension):
+            return self.extensionloader.extensionsmap
+        elif issubclass(type(handler), MemoryHandler):
+            return AVAILABLE_MEMORIES
+        elif issubclass(type(handler), EmbeddingHandler):
+            return AVAILABLE_EMBEDDINGS
+        elif issubclass(type(handler), RAGHandler):
+            return AVAILABLE_RAGS
+        else:
+            raise Exception("Unknown handler")
+

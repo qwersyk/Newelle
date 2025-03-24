@@ -31,6 +31,7 @@ newelle_sources = [
   'constants.py',
   'window.py',
   'extensions.py',
+  'controller.py'
 ]
 
 ui_sources = [

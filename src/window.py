@@ -51,8 +51,16 @@ class MainWindow(Gtk.ApplicationWindow):
                                            swipe_to_open=False)
         self.main_program_block.set_name("hide")
         self.check_streams = {"folder": False, "chat": False}
+        # Init controller
         self.controller = NewelleController()
         self.controller.ui_init()
+        self.chats = self.controller.chats
+        self.chat = self.controller.chat
+        self.settings = self.controller.settings
+        self.extensionloader = self.controller.extensionloader
+        self.chat_id = self.controller.newelle_settings.chat_id
+        self.main_path = self.controller.newelle_settings.main_path
+        self.streams = []
         # Directories
         self.first_load = True
         self.update_settings()
@@ -418,61 +426,27 @@ class MainWindow(Gtk.ApplicationWindow):
 
     def update_settings(self):
         """Update settings, run every time the program is started or settings dialog closed""" 
-        self.tts = self.controller.handlers.tts 
+        self.controller.update_settings()
+        # Basic settings 
+        self.offers = self.controller.newelle_settings.offers
+        self.current_profile = self.controller.newelle_settings.current_profile
+        self.profile_settings = self.controller.newelle_settings.profile_settings
+        self.memory_on = self.controller.newelle_settings.memory_on
+        self.rag_on = self.controller.newelle_settings.rag_on
+        self.tts_enabled = self.controller.newelle_settings.tts_enabled
+        # Handlers
+        self.tts = self.controller.handlers.tts
+        self.stt = self.controller.handlers.stt
+        self.model = self.controller.handlers.llm
+        self.secondary_model = self.controller.handlers.secondary_llm
+        self.embeddings = self.controller.handlers.embedding
+        self.memory_handler = self.controller.handlers.memory
+        self.rag_handler = self.controller.handlers.rag
+        
         # Setup TTS
         self.tts.connect('start', lambda: GLib.idle_add(self.mute_tts_button.set_visible, True))
         self.tts.connect('stop', lambda: GLib.idle_add(self.mute_tts_button.set_visible, False))
                 
-        
-    def quick_settings_update(self):  
-        """Update LLM and prompt settings"""
-        self.language_model = self.settings.get_string("language-model")
-        self.secondary_language_model = self.settings.get_string("secondary-language-model")
-        self.use_secondary_language_model = self.settings.get_boolean("secondary-llm-on")
-        self.custom_prompts = json.loads(self.settings.get_string("custom-prompts"))
-        self.prompts = override_prompts(self.custom_prompts, PROMPTS)
-        self.prompts_settings = json.loads(self.settings.get_string("prompts-settings"))
-        # Primary LLM
-        if self.language_model in AVAILABLE_LLMS:
-            self.model: LLMHandler = AVAILABLE_LLMS[self.language_model]["class"](self.settings, os.path.join(self.directory, "models"))
-        else:
-            mod = list(AVAILABLE_LLMS.values())[0]
-            self.model: LLMHandler = mod["class"](self.settings, os.path.join(self.directory))
-       
-        # Secondary LLM
-        if self.use_secondary_language_model:
-            if self.secondary_language_model in AVAILABLE_LLMS:
-                self.secondary_model: LLMHandler = AVAILABLE_LLMS[self.secondary_language_model]["class"](self.settings, os.path.join(self.directory, "models"))
-            else:
-                mod = list(AVAILABLE_LLMS.values())[0]
-                self.secondary_model: LLMHandler = mod["class"](self.settings, os.path.join(self.directory))
-            self.secondary_model.set_secondary_settings(True)
-        else:
-            self.secondary_model = self.model
-        # Update handlers in memory and rag 
-        self.memory_handler.set_handlers(self.secondary_model, self.embeddings)
-        self.rag_handler.set_handlers(self.secondary_model, self.embeddings)
-
-        # Load handlers and models
-        self.model.load_model(None)
-        self.stt_handler = AVAILABLE_STT[self.stt_engine]["class"](self.settings, self.pip_directory)
-       
-        # Update handlers in extensions 
-        self.extensionloader.set_handlers(self.model, self.stt_handler, self.tts if self.tts_enabled else None, self.secondary_model, self.embeddings, self.rag_handler if (self.rag_on or self.rag_on_documents) else None, self.memory_handler if self.memory_on else None)
-        # Load prompts
-        self.bot_prompts = []
-        for prompt in AVAILABLE_PROMPTS:
-            is_active = False
-            if prompt["setting_name"] in self.prompts_settings:
-                is_active = self.prompts_settings[prompt["setting_name"]]
-            else:
-                is_active = prompt["default"]
-            if is_active:
-                self.bot_prompts.append(self.prompts[prompt["key"]])
-        if hasattr(self, "model_popup"):
-            self.update_model_popup()
-    
-        # Setup attach buttons to the model capabilities
         if not self.first_load:
             self.build_offers()
             if (not self.model.supports_vision() and not self.model.supports_video_vision() 
@@ -488,11 +462,11 @@ class MainWindow(Gtk.ApplicationWindow):
                     self.video_recorder = None
             self.screen_record_button.set_visible(self.model.supports_video_vision() and not self.attached_image_data)
             self.chat_header.set_title_widget(self.build_model_popup())
-    
+         
     # Model popup 
     def update_model_popup(self):
         """Update the label in the popup"""
-        model_name = AVAILABLE_LLMS[self.language_model]["title"]
+        model_name = AVAILABLE_LLMS[self.model.key]["title"]
         if self.model.get_setting("model") is not None:
             model_name = model_name + " - " + self.model.get_setting("model")
         self.model_menu_button.set_child(Gtk.Label(label=model_name, ellipsize=Pango.EllipsizeMode.MIDDLE))
@@ -505,7 +479,7 @@ class MainWindow(Gtk.ApplicationWindow):
         scroll = Gtk.ScrolledWindow()
         scroll.set_vexpand(True)
         scroll.set_hexpand(True)
-        settings = Settings(self, headless=True) 
+        settings = Settings(self, self.controller, headless=True) 
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         stack = Adw.ViewStack()
         stack.add_titled_with_icon(self.steal_from_settings(settings.LLM), title="LLM", name="LLM", icon_name="brain-augemnted-symbolic")
@@ -516,7 +490,7 @@ class MainWindow(Gtk.ApplicationWindow):
         box.append(switcher)
         box.append(scroll)
         self.model_menu_button.set_popover(self.model_popup)
-        self.model_popup.connect("closed", lambda x: GLib.idle_add(self.quick_settings_update))
+        self.model_popup.connect("closed", lambda x: GLib.idle_add(self.update_settings))
         self.model_popup.set_child(box)
         return self.model_menu_button
 
@@ -531,7 +505,7 @@ class MainWindow(Gtk.ApplicationWindow):
     # UI Functions
     def show_presentation_window(self):
         """Show the window for the initial program presentation on first start"""
-        self.presentation_dialog = PresentationWindow("presentation", self.settings, self.directory, self)
+        self.presentation_dialog = PresentationWindow("presentation", self.settings, self)
         self.presentation_dialog.show()
 
     def mute_tts(self, button: Gtk.Button):
@@ -548,8 +522,8 @@ class MainWindow(Gtk.ApplicationWindow):
     # Utility functions
     def init_pip_path(self, path):
         """Install a pip module to init a pip path"""
-        install_module("pip-install-test", self.pip_directory)
-        path.append(self.pip_directory)
+        install_module("pip-install-test", self.controller.pip_path)
+        path.append(self.controller.pip_path)
     
     # Profiles
     def refresh_profiles_box(self):
@@ -661,10 +635,10 @@ class MainWindow(Gtk.ApplicationWindow):
     # Voice Recording
     def start_recording(self, button):
         """Start recording voice for Speech to Text"""
-        path = os.path.join(self.directory, "recording.wav")
+        path = os.path.join(self.controller.cache_dir, "recording.wav")
         if os.path.exists(path):
             os.remove(path)
-        if self.automatic_stt:
+        if self.controller.newelle_settings.automatic_stt:
             self.automatic_stt_status = True
         # button.set_child(Gtk.Spinner(spinning=True))
         button.set_icon_name("media-playback-stop-symbolic")
@@ -673,8 +647,8 @@ class MainWindow(Gtk.ApplicationWindow):
         button.add_css_class("error")
         button.connect("clicked", self.stop_recording)
         self.recorder = AudioRecorder(auto_stop=True, stop_function=self.auto_stop_recording,
-                                      silence_duration=self.stt_silence_detection_duration,
-                                      silence_threshold_percent=self.stt_silence_detection_threshold)
+                                      silence_duration=self.controller.newelle_settings.stt_silence_detection_duration,
+                                      silence_threshold_percent=self.controller.newelle_settings.stt_silence_detection_threshold)
         t = threading.Thread(target=self.recorder.start_recording,
                              args=(path,))
         t.start()
@@ -687,7 +661,7 @@ class MainWindow(Gtk.ApplicationWindow):
     def stop_recording(self, button=False):
         """Stop a recording manually"""
         self.automatic_stt_status = False
-        self.recorder.stop_recording(os.path.join(self.directory, "recording.wav"))
+        self.recorder.stop_recording(os.path.join(self.controller.cache_dir, "recording.wav"))
         self.stop_recording_ui(self.recording_button)
         t = threading.Thread(target=self.stop_recording_async)
         t.start()
@@ -703,8 +677,8 @@ class MainWindow(Gtk.ApplicationWindow):
 
     def stop_recording_async(self, button=False):
         """Stop recording and save the file"""
-        recognizer = self.stt_handler
-        result = recognizer.recognize_file(os.path.join(self.directory, "recording.wav"))
+        recognizer = self.stt
+        result = recognizer.recognize_file(os.path.join(self.controller.cache_dir, "recording.wav"))
         def idle_record():
             if result is not None and "stop" not in result.lower() and len(result.replace(" ", "")) > 2:
                 self.input_panel.set_text(result)
@@ -740,7 +714,7 @@ class MainWindow(Gtk.ApplicationWindow):
         video_filter = Gtk.FileFilter(name="Video", patterns=["*.mp4"])
         file_filter = Gtk.FileFilter(name="Supported Files", patterns=self.model.get_supported_files())
         second_file_filter = None
-        if self.rag_handler is not None and self.rag_on_documents:
+        if self.rag_handler is not None and self.controller.newelle_settings.rag_on_documents:
             second_file_filter = Gtk.FileFilter(name="RAG Supported files", patterns=self.rag_handler.get_supported_files())
         default_filter = None
         if second_file_filter is not None:
@@ -1007,7 +981,7 @@ class MainWindow(Gtk.ApplicationWindow):
                     halign=Gtk.Align.CENTER, hexpand=True))
                 if len(os.listdir(os.path.expanduser(self.main_path))) == 0 or (sum(
                         1 for filename in os.listdir(os.path.expanduser(self.main_path)) if
-                        not filename.startswith('.')) == 0 and not self.hidden_files) and os.path.normpath(
+                        not filename.startswith('.')) == 0 and not self.controller.newelle_settings.hidden_files) and os.path.normpath(
                     self.main_path) != "~":
                     self.explorer_panel.remove(self.folder_blocks_panel)
                     self.folder_blocks_panel = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=20, opacity=0.25)
@@ -1052,7 +1026,7 @@ class MainWindow(Gtk.ApplicationWindow):
 
                         flow_box.append(button)
                     for file_info in os.listdir(os.path.expanduser(self.main_path)):
-                        if file_info[0] == "." and not self.hidden_files:
+                        if file_info[0] == "." and not self.controller.newelle_settings.hidden_files:
                             continue
                         button = Gtk.Button(css_classes=["flat"])
                         button.set_name(file_info)
@@ -1168,7 +1142,7 @@ class MainWindow(Gtk.ApplicationWindow):
         list_box = Gtk.ListBox(css_classes=["separators", "background"])
         list_box.set_selection_mode(Gtk.SelectionMode.NONE)
         self.chats_buttons_scroll_block.set_child(list_box)
-        chat_range = range(len(self.chats)).__reversed__() if self.reverse_order else range(len(self.chats))
+        chat_range = range(len(self.chats)).__reversed__() if self.controller.newelle_settings.reverse_order else range(len(self.chats))
         for i in chat_range:
             box = Gtk.Box(spacing=6, margin_top=3, margin_bottom=3, margin_start=3, margin_end=3)
             generate_chat_name_button = Gtk.Button(css_classes=["flat", "accent"],
@@ -1392,7 +1366,7 @@ class MainWindow(Gtk.ApplicationWindow):
     def generate_suggestions(self):
         """Create the suggestions and update the UI when it's finished"""
         self.model.set_history([], self.get_history())
-        suggestions = self.secondary_model.get_suggestions(self.prompts["get_suggestions_prompt"], self.offers)
+        suggestions = self.secondary_model.get_suggestions(self.controller.newelle_settings.prompts["get_suggestions_prompt"], self.offers)
         GLib.idle_add(self.populate_suggestions, suggestions)
 
     def populate_suggestions(self, suggestions):
@@ -1424,14 +1398,14 @@ class MainWindow(Gtk.ApplicationWindow):
         if chat is None:
             chat = self.chat
         history = []
-        count = self.memory
+        count = self.controller.newelle_settings.memory
         msgs = chat[:-1] if not include_last_message else chat
         for msg in msgs:
             if count == 0:
                 break
             if msg["User"] == "Console" and msg["Message"] == "None":
                 continue
-            if self.remove_thinking:
+            if self.controller.newelle_settings.remove_thinking:
                 msg["Message"] = remove_thinking_blocks(msg["Message"])
             history.append(msg)
             count -= 1
@@ -1443,7 +1417,7 @@ class MainWindow(Gtk.ApplicationWindow):
             r += self.memory_handler.get_context(self.chat[-1]["Message"], self.get_history())
         if self.rag_on:
             r += self.rag_handler.get_context(self.chat[-1]["Message"], self.get_history())
-        if self.rag_on_documents and self.rag_handler is not None:
+        if self.controller.newelle_settings.rag_on_documents and self.rag_handler is not None:
             documents = extract_supported_files(self.get_history(include_last_message=True), self.rag_handler.get_supported_files())
             if len(documents) > 0:
                 r += self.rag_handler.query_document(self.chat[-1]["Message"],documents) 
@@ -1461,7 +1435,7 @@ class MainWindow(Gtk.ApplicationWindow):
 
         # Append extensions prompts
         prompts = []
-        for prompt in self.bot_prompts:
+        for prompt in self.controller.newelle_settings.bot_prompts:
             prompts.append(replace_variables(prompt))
         
         # Append memory
@@ -1528,7 +1502,7 @@ class MainWindow(Gtk.ApplicationWindow):
         GLib.idle_add(self.remove_send_button_spinner)
         # Generate chat name 
         self.update_memory(message_label)
-        if self.auto_generate_name and len(self.chat) == 1: 
+        if self.controller.newelle_settings.auto_generate_name and len(self.chat) == 1: 
             GLib.idle_add(self.generate_chat_name, Gtk.Button(name=str(self.chat_id)))
         # TTS
         tts_thread = None
@@ -1548,7 +1522,7 @@ class MainWindow(Gtk.ApplicationWindow):
                 tts_thread.join()
             GLib.idle_add(self.start_recording, self.recording_button)
 
-        if self.automatic_stt:
+        if self.controller.newelle_settings.automatic_stt:
             threading.Thread(target=restart_recording).start()
 
     def create_streaming_message_label(self):
@@ -1629,7 +1603,7 @@ class MainWindow(Gtk.ApplicationWindow):
             self.chat_scroll_window.remove(self.offers_entry_block)
             self.chat_scroll_window.append(self.chat_controls_entry_block)
             self.chat_scroll_window.append(self.offers_entry_block)
-            if not self.virtualization:
+            if not self.controller.newelle_settings.virtualization:
                 self.add_message("WarningNoVirtual")
             else:
                 self.add_message("Disclaimer")
@@ -1684,7 +1658,7 @@ class MainWindow(Gtk.ApplicationWindow):
             if not restore and not is_user:
                 self.chat.append({"User": "Assistant", "Message": message_label})
                 self.add_prompt(prompt)
-            chunks = get_message_chunks(message_label, self.display_latex)  
+            chunks = get_message_chunks(message_label, self.controller.newelle_settings.display_latex)  
             box = Gtk.Box(margin_top=10, margin_start=10, margin_bottom=10, margin_end=10,
                           orientation=Gtk.Orientation.VERTICAL)
             code_language = ""
@@ -1785,7 +1759,7 @@ class MainWindow(Gtk.ApplicationWindow):
                         if id_message == -1:
                             id_message = len(self.chat) - 1
                         id_message += 1
-                        if self.auto_run and not any(
+                        if self.controller.newelle_settings.auto_run and not any(
                                 command in chunk.text for command in
                                 ["rm ", "apt ", "sudo ", "yum ", "mkfs "]):
                             has_terminal_command = True
@@ -2235,11 +2209,7 @@ class MainWindow(Gtk.ApplicationWindow):
 
     def save_chat(self):
         """Save the chat to a file"""
-        prevdir = os.getcwd()
-        os.chdir(os.path.expanduser("~"))
-        with open(self.path + self.filename, 'wb') as f:
-            pickle.dump(self.chats, f)
-        os.chdir(prevdir)
+        self.controller.save_chats()
 
     def execute_terminal_command(self, command):
         """Run console commands

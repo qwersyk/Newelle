@@ -144,7 +144,7 @@ class MyApp(Adw.Application):
         threadediting.present()
 
     def settings_action(self, *a):
-        settings = Settings(self)
+        settings = Settings(self, self.win.controller)
         settings.present()
         settings.connect("close-request", self.close_settings)
         self.settingswindow = settings
