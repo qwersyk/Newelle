@@ -52,7 +52,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.main_program_block.set_name("hide")
         self.check_streams = {"folder": False, "chat": False}
         # Init controller
-        self.controller = NewelleController()
+        self.controller = NewelleController(sys.path)
         self.controller.ui_init()
         self.chats = self.controller.chats
         self.chat = self.controller.chat
@@ -518,13 +518,7 @@ class MainWindow(Gtk.ApplicationWindow):
     def focus_input(self):
         """Focus the input box. Often used to avoid removing focues objects"""
         self.input_panel.input_panel.grab_focus()
-
-    # Utility functions
-    def init_pip_path(self, path):
-        """Install a pip module to init a pip path"""
-        install_module("pip-install-test", self.controller.pip_path)
-        path.append(self.controller.pip_path)
-    
+ 
     # Profiles
     def refresh_profiles_box(self):
         """Changes the profile switch button on the header"""

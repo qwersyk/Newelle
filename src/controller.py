@@ -40,8 +40,9 @@ class ReloadType(Enum):
     EXTENSIONS = 8
 
 class NewelleController:
-    def __init__(self) -> None:
+    def __init__(self, python_path) -> None:
         self.settings = Gio.Settings.new(SCHEMA_ID)
+        self.python_path = python_path
     
     def ui_init(self):
         self.init_paths()
@@ -52,6 +53,7 @@ class NewelleController:
         self.load_chats(self.newelle_settings.chat_id)
         self.handlers = HandlersManager(self.settings, self.extensionloader, self.models_dir)
         self.handlers.select_handlers(self.newelle_settings)
+        threading.Thread(target=self.handlers.cache_handlers).start()
 
     def init_paths(self) -> None:
         """Define paths for the application"""
@@ -69,6 +71,7 @@ class NewelleController:
         self.models_dir = os.path.join(self.config_dir, "models")
         self.extension_path = os.path.join(self.config_dir, "extensions")
         self.extensions_cache = os.path.join(self.cache_dir, "extensions_cache")
+        print(self.pip_path, self.models_dir)
 
 
     def load_chats(self, chat_id):
@@ -98,14 +101,14 @@ class NewelleController:
             os.makedirs(self.models_dir)
         # Fix Pip environment
         if os.path.isdir(self.pip_path):
-            sys.path.append(self.pip_path)
+            self.python_path.append(self.pip_path)
         else:
-            threading.Thread(target=self.init_pip_path, args=(sys.path,)).start()
+            threading.Thread(target=self.init_pip_path, args=(self.python_path,)).start()
 
-    def init_pip_path(self, path):
+    def init_pip_path(self):
         """Install a pip module to init a pip path"""
         install_module("pip-install-test", self.pip_path)
-        path.append(self.pip_path)
+        self.python_path.append(self.pip_path)
 
     def update_settings(self):
         """Update settings"""
@@ -401,18 +404,18 @@ class HandlersManager:
             return self.handlers[(key, self.convert_constants(constants), secondary)]
 
         if constants == AVAILABLE_LLMS:
-            model = constants[key]["class"](self.settings, os.path.join(self.directory, "models"))
+            model = constants[key]["class"](self.settings, self.directory)
             model.set_secondary_settings(secondary)
         elif constants == AVAILABLE_STT:
-            model = constants[key]["class"](self.settings,os.path.join(self.directory, "models"))
+            model = constants[key]["class"](self.settings,self.directory)
         elif constants == AVAILABLE_TTS:
-            model = constants[key]["class"](self.settings, os.path.join(self.directory, "models"))
+            model = constants[key]["class"](self.settings, self.directory)
         elif constants == AVAILABLE_MEMORIES:
-            model = constants[key]["class"](self.settings, os.path.join(self.directory, "models"))
+            model = constants[key]["class"](self.settings, self.directory)
         elif constants == AVAILABLE_EMBEDDINGS:
-            model = constants[key]["class"](self.settings, os.path.join(self.directory, "models"))
+            model = constants[key]["class"](self.settings, self.directory)
         elif constants == AVAILABLE_RAGS:
-            model = constants[key]["class"](self.settings, os.path.join(self.directory, "models"))
+            model = constants[key]["class"](self.settings, self.directory)
         elif constants == self.extensionloader.extensionsmap:
             model = self.extensionloader.extensionsmap[key]
             if model is None:

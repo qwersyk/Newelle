@@ -18,6 +18,7 @@ def find_module(full_module_name):
 
 
 def install_module(module, path):
+    print(path)
     if find_module("pip") is None:
         print("Downloading pip...")
         subprocess.check_output(["bash", "-c", "cd " + os.path.dirname(path) + " && wget https://bootstrap.pypa.io/get-pip.py && python get-pip.py"])
