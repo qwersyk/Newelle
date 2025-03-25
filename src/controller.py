@@ -3,6 +3,8 @@ from typing import Any
 from gi.repository import GLib, Gio
 import os
 
+from gi.repository.GObject import new
+
 from .extensions import NewelleExtension
 from .handlers.llm import LLMHandler
 from .handlers.tts import TTSHandler
@@ -38,6 +40,7 @@ class ReloadType(Enum):
     MEMORIES = 6
     EMBEDDINGS = 7
     EXTENSIONS = 8
+    SECONDARY_LLM = 9
 
 class NewelleController:
     def __init__(self, python_path) -> None:
@@ -115,13 +118,13 @@ class NewelleController:
         newsettings = NewelleSettings()
         newsettings.load_settings(self.settings)
         reload = self.newelle_settings.compare_settings(newsettings)
+        self.newelle_settings = newsettings
         for r in reload:
             self.reload(r)
         return reload
 
     def reload(self, reload_type: ReloadType):
         if reload_type == ReloadType.EXTENSIONS:
-            return # TODO
             self.extensionloader = ExtensionLoader(self.extension_path, pip_path=self.pip_path,
                                                    extension_cache=self.extensions_cache, settings=self.settings)
             self.extensionloader.load_extensions()
@@ -129,10 +132,10 @@ class NewelleController:
             self.extensionloader.add_prompts(PROMPTS, AVAILABLE_PROMPTS)
         elif reload_type == ReloadType.LLM:
             self.handlers.select_handlers(self.newelle_settings)
-            def async_load():
-                self.handlers.llm.load_model(None)
-                self.handlers.secondary_llm.load_model(None)
-            threading.Thread(target=async_load).start()
+            threading.Thread(target=self.handlers.llm.load_model, args=(None,)).start()
+        elif reload_type == ReloadType.SECONDARY_LLM and self.newelle_settings.use_secondary_language_model:
+            self.handlers.select_handlers(self.newelle_settings)
+            threading.Thread(target=self.handlers.secondary_llm.load_model, args=(None,)).start()
         elif reload_type == ReloadType.TTS or reload_type == ReloadType.STT or reload_type == ReloadType.MEMORIES:
             self.handlers.select_handlers(self.newelle_settings)
         elif reload_type == ReloadType.RAG:
@@ -143,6 +146,10 @@ class NewelleController:
             threading.Thread(target=self.handlers.embedding.load_model).start()
         elif reload_type == ReloadType.PROMPTS:
             return
+
+    def set_extensionsloader(self, extensionloader):
+        self.extensionloader = extensionloader
+        self.handlers.extensionloader = extensionloader
 
     def load_extensions(self):
         """Load extensions"""
@@ -193,13 +200,18 @@ class NewelleSettings:
         self.stt_silence_detection_threshold = settings.get_double("stt-silence-detection-threshold")
         self.stt_silence_detection_duration = settings.get_int("stt-silence-detection-duration")
         self.embedding_model = self.settings.get_string("embedding-model")
+        self.embedding_settings = self.settings.get_string("embedding-settings")
         self.memory_on = self.settings.get_boolean("memory-on")
         self.memory_model = self.settings.get_string("memory-model")
+        self.memory_settings = self.settings.get_string("memory-settings")
         self.rag_on = self.settings.get_boolean("rag-on")
         self.rag_on_documents = self.settings.get_boolean("rag-on-documents")
         self.rag_model = self.settings.get_string("rag-model")
+        self.rag_settings = self.settings.get_string("rag-settings")
         self.language_model = self.settings.get_string("language-model")
+        self.llm_settings = self.settings.get_string("llm-settings")
         self.secondary_language_model = self.settings.get_string("secondary-language-model")
+        self.secondary_language_model_settings = self.settings.get_string("llm-secondary-settings")
         self.use_secondary_language_model = self.settings.get_boolean("secondary-llm-on")
         self.custom_prompts = json.loads(self.settings.get_string("custom-prompts"))
         self.prompts_settings = json.loads(self.settings.get_string("prompts-settings")) 
@@ -225,10 +237,10 @@ class NewelleSettings:
 
     def compare_settings(self, new_settings) -> list[ReloadType]:
         reloads = []
-        if self.language_model != new_settings.language_model:
+        if self.language_model != new_settings.language_model or self.llm_settings != new_settings.llm_settings:
             reloads.append(ReloadType.LLM)
-        if self.secondary_language_model != new_settings.secondary_language_model or self.use_secondary_language_model != new_settings.use_secondary_language_model:
-            reloads.append(ReloadType.LLM)
+        if self.secondary_language_model != new_settings.secondary_language_model or self.use_secondary_language_model != new_settings.use_secondary_language_model or self.secondary_language_model_settings != new_settings.secondary_language_model_settings:
+            reloads.append(ReloadType.SECONDARY_LLM)
         
         if self.tts_program != new_settings.tts_program:
             reloads.append(ReloadType.TTS)
@@ -236,13 +248,13 @@ class NewelleSettings:
         if self.stt_engine != new_settings.stt_engine:
             reloads.append(ReloadType.STT)
 
-        if self.embedding_model != new_settings.embedding_model:
+        if self.embedding_model != new_settings.embedding_model or self.embedding_settings != new_settings.embedding_settings:
             reloads.append(ReloadType.EMBEDDINGS)
 
-        if self.memory_on != new_settings.memory_on or self.memory_model != new_settings.memory_model:
+        if self.memory_on != new_settings.memory_on or self.memory_model != new_settings.memory_model or self.memory_settings != new_settings.memory_settings:
             reloads.append(ReloadType.MEMORIES)
 
-        if self.rag_on != new_settings.rag_on or self.rag_on_documents != new_settings.rag_on_documents or self.rag_model != new_settings.rag_model:
+        if self.rag_on != new_settings.rag_on or self.rag_on_documents != new_settings.rag_on_documents or self.rag_model != new_settings.rag_model or self.rag_settings != new_settings.rag_settings:
             reloads.append(ReloadType.RAG)
         
         # Check prompts
@@ -304,6 +316,15 @@ class HandlersManager:
         self.extensionloader.set_handlers(self.llm, self.stt, self.tts, self.secondary_llm, self.embedding, self.rag, self.memory)
         self.memory.set_handlers(self.secondary_llm, self.embedding)
         self.rag.set_handlers(self.llm, self.embedding)
+        threading.Thread(target=self.install_missing_handlers).start()
+
+    def load_handlers(self):
+        """Load handlers"""
+        self.llm.load_model(None)
+        if self.settings.get_boolean("secondary-llm-on"):
+            self.secondary_llm.load_model(None)
+        self.embedding.load_model()
+        self.rag.load()
 
     def install_missing_handlers(self):
         """Install selected handlers that are not installed. Assumes that select_handlers has been called"""
@@ -324,9 +345,9 @@ class HandlersManager:
         """Cache handlers"""
         self.handlers = {}
         for key in AVAILABLE_TTS:
-            self.handlers[(key, self.convert_constants(AVAILABLE_TTS))] = self.get_object(AVAILABLE_TTS, key)
+            self.handlers[(key, self.convert_constants(AVAILABLE_TTS), False)] = self.get_object(AVAILABLE_TTS, key)
         for key in AVAILABLE_STT:
-            self.handlers[(key, self.convert_constants(AVAILABLE_STT))] = self.get_object(AVAILABLE_STT, key)
+            self.handlers[(key, self.convert_constants(AVAILABLE_STT), False)] = self.get_object(AVAILABLE_STT, key)
         for key in AVAILABLE_LLMS:
             self.handlers[(key, self.convert_constants(AVAILABLE_LLMS), False)] = self.get_object(AVAILABLE_LLMS, key)
         # Secondary LLMs
@@ -336,6 +357,8 @@ class HandlersManager:
             self.handlers[(key, self.convert_constants(AVAILABLE_MEMORIES), False)] = self.get_object(AVAILABLE_MEMORIES, key)
         for key in AVAILABLE_RAGS:
             self.handlers[(key, self.convert_constants(AVAILABLE_RAGS), False)] = self.get_object(AVAILABLE_RAGS, key)
+        for key in AVAILABLE_EMBEDDINGS:
+            self.handlers[(key, self.convert_constants(AVAILABLE_EMBEDDINGS), False)] = self.get_object(AVAILABLE_EMBEDDINGS, key)
 
     def convert_constants(self, constants: str | dict[str, Any]) -> (str | dict):
         """Get an handler instance for the specified handler key

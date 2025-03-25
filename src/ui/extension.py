@@ -2,6 +2,8 @@ import subprocess
 from threading import Thread
 import os
 
+from ..controller import NewelleController
+
 from ..utility.system import get_spawn_command
 
 from ..constants import AVAILABLE_EMBEDDINGS, AVAILABLE_LLMS, AVAILABLE_MEMORIES, AVAILABLE_PROMPTS, AVAILABLE_RAGS, AVAILABLE_STT, AVAILABLE_TTS, PROMPTS
@@ -16,10 +18,11 @@ class Extension(Gtk.Window):
         self.settings = Gio.Settings.new('io.github.qwersyk.Newelle')
 
         self.directory = GLib.get_user_config_dir()
-        self.path = os.path.join(self.directory, "extensions")
-        self.pip_directory = os.path.join(self.directory, "pip")
-        self.extension_path = os.path.join(self.directory, "extensions")
-        self.extensions_cache = os.path.join(self.directory, "extensions_cache")
+        self.controller : NewelleController = app.win.controller
+        self.path = self.controller.extension_path 
+        self.pip_directory = self.controller.pip_path 
+        self.extension_path = self.controller.extension_path 
+        self.extensions_cache = self.controller.extension_path
                 
         self.app = app
         self.set_default_size(500, 500)
@@ -38,8 +41,8 @@ class Extension(Gtk.Window):
     def update(self):
         self.extensionloader = ExtensionLoader(self.extension_path, pip_path=self.pip_directory, extension_cache=self.extensions_cache, settings=self.settings)
         self.extensionloader.load_extensions()
-    
-        settings = Settings(self.app, headless=True)
+        self.controller.set_extensionsloader(self.extensionloader) 
+        settings = Settings(self.app, self.controller, headless=True)
 
         self.main = Gtk.Box(margin_top=10,margin_start=10,margin_bottom=10,margin_end=10,valign=Gtk.Align.FILL,halign=Gtk.Align.CENTER,orientation=Gtk.Orientation.VERTICAL)
         self.main.set_size_request(300, -1)

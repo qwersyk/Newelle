@@ -12,6 +12,7 @@ class LLMHandler(Handler):
     schema_key = "llm-settings"
 
     def __init__(self, settings, path):
+        super().__init__(settings, path)
         self.settings = settings
         self.path = path
 

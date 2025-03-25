@@ -8,6 +8,7 @@ class Handler():
     schema_key = ""
     on_extra_settings_update = None
     def __init__(self, settings, path):
+        print(self.key)
         self.settings = settings
         self.path = path
         self.pip_path = os.path.join(os.path.abspath(os.path.join(self.path, os.pardir)), "pip")

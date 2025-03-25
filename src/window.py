@@ -424,9 +424,21 @@ class MainWindow(Gtk.ApplicationWindow):
             if self.rag_on:
                 self.rag_handler.load()
 
+    def quick_settings_update(self):
+        """Update settings from the quick settings"""
+        self.controller.update_settings()
+        self.model = self.controller.handlers.llm
+        self.tts_enabled = self.controller.newelle_settings.tts_enabled
+        self.rag_on = self.controller.newelle_settings.rag_on
+        self.rag_on_documents = self.controller.newelle_settings.rag_on_documents
+        self.memory_on = self.controller.newelle_settings.memory_on
+        self.update_model_popup()
+
     def update_settings(self):
         """Update settings, run every time the program is started or settings dialog closed""" 
         self.controller.update_settings()
+        if self.first_load:
+            threading.Thread(target=self.controller.handlers.load_handlers).start()
         # Basic settings 
         self.offers = self.controller.newelle_settings.offers
         self.current_profile = self.controller.newelle_settings.current_profile
@@ -490,7 +502,7 @@ class MainWindow(Gtk.ApplicationWindow):
         box.append(switcher)
         box.append(scroll)
         self.model_menu_button.set_popover(self.model_popup)
-        self.model_popup.connect("closed", lambda x: GLib.idle_add(self.update_settings))
+        self.model_popup.connect("closed", lambda x: GLib.idle_add(self.quick_settings_update))
         self.model_popup.set_child(box)
         return self.model_menu_button
 
@@ -2216,7 +2228,7 @@ class MainWindow(Gtk.ApplicationWindow):
         """
         os.chdir(os.path.expanduser(self.main_path))
         console_permissions = ""
-        if not self.virtualization:
+        if not self.controller.newelle_settings.virtualization:
             console_permissions = " ".join(get_spawn_command())
         commands = ('\n'.join(command)).split(" && ")
         txt = ""
