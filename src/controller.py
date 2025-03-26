@@ -31,6 +31,21 @@ Manage Newelle Application, create handlers, check integrity, manage settings...
 """
 
 class ReloadType(Enum):
+    """
+    Enum for reload type
+
+    Attributes: 
+        NONE: Nothing to realod  
+        LLM: Reload LLM
+        TTS: Reload TTS 
+        STT: Reload STT 
+        PROMPTS: Reload PROMPTS 
+        RAG: Reload RAG 
+        MEMORIES: Reload MEMORIES 
+        EMBEDDINGS: Reload EMBEDDINGS 
+        EXTENSIONS: Reload EXTENSIONS 
+        SECONDARY_LLM: Reload SECONDARY_LLM 
+    """
     NONE = 0
     LLM = 1
     TTS = 2
@@ -43,11 +58,30 @@ class ReloadType(Enum):
     SECONDARY_LLM = 9
 
 class NewelleController:
+    """Main controller, manages the application
+
+    Attributes: 
+        settings: Gio Settings 
+        python_path: Path for python sources 
+        newelle_settings: current NewelleSettings object 
+        handlers: HandlersManager object 
+        config_dir: Config dir of the application 
+        data_dir: data dir of the application 
+        cache_dir: cache dir of the application 
+        pip_path: Path for the runtime pip dependencies  
+        models_dir: Path for the models 
+        extension_path: Path for the extensions 
+        extensions_cache: Path for the extensions cache 
+        filename: Chat object filename 
+        chat: current chat 
+        extensionloader: Extensionloader object 
+    """
     def __init__(self, python_path) -> None:
         self.settings = Gio.Settings.new(SCHEMA_ID)
         self.python_path = python_path
     
     def ui_init(self):
+        """Init necessary variables for the UI and load models and handlers"""
         self.init_paths()
         self.check_path_integrity()
         self.load_extensions()
@@ -88,6 +122,7 @@ class NewelleController:
         self.chat = self.chats[min(chat_id, len(self.chats) - 1)]["chat"]
    
     def save_chats(self):
+        """Save chats"""
         with open(os.path.join(self.data_dir, self.filename), 'wb') as f:
             pickle.dump(self.chats, f)
 
@@ -124,6 +159,11 @@ class NewelleController:
         return reload
 
     def reload(self, reload_type: ReloadType):
+        """Reload the specified settings
+
+        Args:
+            reload_type: type of reload
+        """
         if reload_type == ReloadType.EXTENSIONS:
             self.extensionloader = ExtensionLoader(self.extension_path, pip_path=self.pip_path,
                                                    extension_cache=self.extensions_cache, settings=self.settings)
@@ -151,6 +191,11 @@ class NewelleController:
             return
 
     def set_extensionsloader(self, extensionloader):
+        """Change extension loader
+
+        Args:
+            extensionloader (): new extension loader 
+        """
         self.extensionloader = extensionloader
         self.handlers.extensionloader = extensionloader
 
@@ -227,6 +272,7 @@ class NewelleSettings:
             self.main_path = "~"
 
     def load_prompts(self):
+        """Load prompts and do overrides"""
         self.custom_prompts = json.loads(self.settings.get_string("custom-prompts"))
         self.prompts = override_prompts(self.custom_prompts, PROMPTS)
         self.bot_prompts = []
@@ -240,6 +286,14 @@ class NewelleSettings:
                 self.bot_prompts.append(self.prompts[prompt["key"]])
 
     def compare_settings(self, new_settings) -> list[ReloadType]:
+        """Find the difference between two NewelleSettings
+
+        Args:
+            new_settings (NewelleSettings): settings to compare   
+
+        Returns:
+            list[ReloadType]: list of ReloadType to reload
+        """
         reloads = []
         if self.language_model != new_settings.language_model or self.llm_settings != new_settings.llm_settings:
             reloads.append(ReloadType.LLM)
@@ -275,6 +329,20 @@ class NewelleSettings:
 
 
 class HandlersManager:
+    """Manage handlers
+
+    Attributes: 
+        settings: Gio.Settings 
+        extensionloader: ExtensionLoader 
+        directory: Models direcotry 
+        handlers: Cached handlers 
+        llm: LLM Handler 
+        stt: STT Handler 
+        tts: TTS Handler
+        embedding: Embedding Handler 
+        memory: Memory Handler
+        rag: RAG Handler 
+    """
     def __init__(self, settings: Gio.Settings, extensionloader : ExtensionLoader, models_path):
         self.settings = settings
         self.extensionloader = extensionloader
