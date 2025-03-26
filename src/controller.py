@@ -130,6 +130,9 @@ class NewelleController:
             self.extensionloader.load_extensions()
             self.extensionloader.add_handlers(AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS, AVAILABLE_RAGS)
             self.extensionloader.add_prompts(PROMPTS, AVAILABLE_PROMPTS)
+            self.newelle_settings.load_prompts()
+            self.handlers.select_handlers(self.newelle_settings)
+            print("Extensions reload")
         elif reload_type == ReloadType.LLM:
             self.handlers.select_handlers(self.newelle_settings)
             threading.Thread(target=self.handlers.llm.load_model, args=(None,)).start()
@@ -215,8 +218,7 @@ class NewelleSettings:
         self.use_secondary_language_model = self.settings.get_boolean("secondary-llm-on")
         self.custom_prompts = json.loads(self.settings.get_string("custom-prompts"))
         self.prompts_settings = json.loads(self.settings.get_string("prompts-settings")) 
-        self.custom_prompts = json.loads(self.settings.get_string("custom-prompts"))
-        self.prompts = override_prompts(self.custom_prompts, PROMPTS)
+        self.extensions_settings = self.settings.get_string("extensions-settings")
         self.load_prompts()
         # Adjust paths
         if os.path.exists(os.path.expanduser(self.main_path)):
@@ -225,6 +227,8 @@ class NewelleSettings:
             self.main_path = "~"
 
     def load_prompts(self):
+        self.custom_prompts = json.loads(self.settings.get_string("custom-prompts"))
+        self.prompts = override_prompts(self.custom_prompts, PROMPTS)
         self.bot_prompts = []
         for prompt in AVAILABLE_PROMPTS:
             is_active = False
@@ -256,7 +260,8 @@ class NewelleSettings:
 
         if self.rag_on != new_settings.rag_on or self.rag_on_documents != new_settings.rag_on_documents or self.rag_model != new_settings.rag_model or self.rag_settings != new_settings.rag_settings:
             reloads.append(ReloadType.RAG)
-        
+        if self.extensions_settings != new_settings.extensions_settings:
+            reloads.append(ReloadType.EXTENSIONS)
         # Check prompts
         if len(self.prompts) != len(new_settings.prompts):
             reloads.append(ReloadType.PROMPTS)
