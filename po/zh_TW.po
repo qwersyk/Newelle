@@ -1,0 +1,310 @@
+# English translations for PACKAGE package.
+# Copyright (C) 2023 THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# Yehor Qwersyk <qsk@gmx.at>, 2023.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Newelle 0.3.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-03-26 19:30\n"
+"PO-Revision-Date: 2025-03-26 19:30\n"
+"Last-Translator: Oliver Tzeng（曾嘉禾）<olivertzeng@proton.me>\n"
+"Language-Team: l10n-tw\n"
+"Language: zh_TW\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=ASCII\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: extension.py:9 window.py:148
+msgid "Extensions"
+msgstr "擴充功能"
+
+#: extension.py:56
+msgid "Choose an extension"
+msgstr "選擇擴充功能"
+
+#: extension.py:75
+msgid " has been removed"
+msgstr " 已經被移除"
+
+#: extension.py:78
+msgid "Add extension"
+msgstr "新增擴充功能"
+
+#: extension.py:105
+msgid "Extension added. New extensions will run from the next launch"
+msgstr "擴充功能安裝成功。新的擴充功能將在下次重新啟動後套用。"
+
+#: extension.py:112
+msgid "The extension is wrong"
+msgstr "錯誤的擴充功能"
+
+#: extension.py:114
+msgid "This is not an extension"
+msgstr "此非擴充功能"
+
+#: main.py:142
+msgid "Terminal threads are still running in the background"
+msgstr "終端機執行緒正在背景中執行"
+
+#: main.py:143
+msgid "When you close the window, they will be automatically terminated"
+msgstr "關閉視窗後將自動停止執行"
+
+#: main.py:146
+msgid "Cancel"
+msgstr "取消"
+
+#: main.py:147
+msgid "Close"
+msgstr "關閉"
+
+#: main.py:167
+msgid "Chat is rebooted"
+msgstr "重新整理聊天紀錄完成"
+
+#: main.py:172
+msgid "Folder is rebooted"
+msgstr "重新整理資料夾完成"
+
+#: main.py:177
+msgid "Chat is created"
+msgstr "已建立新的聊天室"
+
+#: window.py:28 window.py:551
+msgid "Chat "
+msgstr "聊天室 "
+
+#: window.py:147 thread_editing.py:8
+msgid "Thread editing"
+msgstr "執行緒編輯"
+
+#: window.py:149
+msgid "Settings"
+msgstr "設定"
+
+#: window.py:150
+msgid "Keyboard shorcuts"
+msgstr "快捷鍵"
+
+#: window.py:151
+msgid "About"
+msgstr "關於"
+
+#: window.py:155
+msgid "Chat"
+msgstr "聊天"
+
+#: window.py:182
+msgid "History"
+msgstr "歷史"
+
+#: window.py:193
+msgid "Create a chat"
+msgstr "建立聊天室"
+
+#: window.py:236
+msgid " Stop"
+msgstr " 停止"
+
+#: window.py:305
+msgid " Clear"
+msgstr " 清除"
+
+#: window.py:317
+msgid " Continue"
+msgstr " 繼續"
+
+#: window.py:329
+msgid " Regenerate"
+msgstr " 重新生成"
+
+#: window.py:417 window.py:737
+msgid "File not found"
+msgstr "找不到檔案"
+
+#: window.py:421
+msgid "The file cannot be sent until the program is finished"
+msgstr "在執行完成前無法上傳檔案"
+
+#: window.py:435
+msgid "The file is not recognized"
+msgstr "檔案無法辨識"
+
+#: window.py:458
+msgid "You can no longer continue the message."
+msgstr "您無法繼續此訊息。"
+
+#: window.py:471
+msgid "You can no longer regenerate the message."
+msgstr "您無法重新生成此訊息。"
+
+#: window.py:532
+msgid "Chat is empty"
+msgstr "聊天室為空"
+
+#: window.py:593
+msgid "Chat is cleared"
+msgstr "已清除聊天紀錄"
+
+#: window.py:611
+msgid "The message was canceled and deleted from history"
+msgstr "此訊息已從聊天紀錄中取消並且刪除"
+
+#: window.py:624
+msgid "Failed to send bot a message"
+msgstr "訊息傳送失敗"
+
+#: window.py:626
+msgid "Chat has been stopped"
+msgstr "已停止聊天室"
+
+#: window.py:652
+msgid "Folder is Empty"
+msgstr "資料夾為空"
+
+#: window.py:762
+msgid "Wrong folder path"
+msgstr "錯誤資料夾路徑"
+
+#: window.py:790
+msgid "Thread has not been completed, thread number: "
+msgstr "執行緒尚未完成，執行緒序號："
+
+#: window.py:796
+msgid "Failed to open the folder"
+msgstr "無法開啟資料夾"
+
+#: window.py:845
+msgid "The message cannot be sent until the program is finished"
+msgstr "在執行完成前無法傳送訊息"
+
+#: window.py:1057
+msgid "You can't edit a message while the program is running."
+msgstr "在執行完成前無法編輯訊息"
+
+#: window.py:1110
+msgid ""
+"Attention the neural network has access to your computer, be careful, we are "
+"not responsible for the neural network."
+msgstr ""
+"注意：此人工智慧模型有權取用電腦中的資料"
+"我們對這些模型不承擔任何責任"
+
+#: thread_editing.py:38
+msgid "No threads are running"
+msgstr "沒有正在執行的執行緒"
+
+#: thread_editing.py:44
+msgid "Thread number: "
+msgstr "執行緒序號："
+
+#: shortcuts.py:8
+msgid "Help"
+msgstr "幫助"
+
+#: shortcuts.py:14
+msgid "Shortcuts"
+msgstr "捷徑"
+
+#: shortcuts.py:15
+msgid "Reload chat"
+msgstr "重新整理聊天室"
+
+#: shortcuts.py:16
+msgid "Reload folder"
+msgstr "重新整理資料夾"
+
+#: shortcuts.py:17
+msgid "New tab"
+msgstr "新分頁"
+
+#: settings.py:13
+msgid "Interface"
+msgstr "界面"
+
+#: settings.py:16
+msgid "Hidden files"
+msgstr "隱藏檔"
+
+#: settings.py:16
+msgid "Show hidden files"
+msgstr "顯示隱藏檔"
+
+#: settings.py:22
+msgid "Number of offers"
+msgstr "建議訊息數量"
+
+#: settings.py:22
+msgid "Number of message suggestions to send to chat "
+msgstr "建議訊息的顯示數量"
+
+#: settings.py:29
+msgid "Prompt control"
+msgstr "提示控制"
+
+#: settings.py:32
+msgid "Auto-run commands"
+msgstr "自動執行的指令"
+
+#: settings.py:32
+msgid "Commands that the bot will write will automatically run"
+msgstr "將會在終端機內自動執行指令"
+
+#: settings.py:38
+msgid "Console access"
+msgstr "終端機取用權"
+
+#: settings.py:38
+msgid "Can the program run terminal commands on the computer"
+msgstr "模型將有權使用電腦上的終端機"
+
+#: settings.py:44
+msgid "Graphs access"
+msgstr "圖表取用權"
+
+#: settings.py:44
+msgid "Can the program display graphs"
+msgstr "模型將有權生成圖表"
+
+#: settings.py:50
+msgid "Basic functionality"
+msgstr "基本功能"
+
+#: settings.py:50
+msgid "Showing tables and code (*can work without it)"
+msgstr "顯示表格與程式（不必啟用）"
+
+#: settings.py:56
+msgid "Show image"
+msgstr "顯示圖片"
+
+#: settings.py:56
+msgid "Show image in chat"
+msgstr "模型將會生成圖片"
+
+#: settings.py:62
+msgid "Neural Network Control"
+msgstr "類神經網路控制"
+
+#: settings.py:65
+msgid "Command virtualization"
+msgstr "指令虛擬化"
+
+#: settings.py:65
+msgid "Run commands in a virtual machine"
+msgstr "在模擬器中執行指令"
+
+#: settings.py:71
+msgid "Program memory"
+msgstr "模型記憶"
+
+#: settings.py:71
+msgid "How long the program remembers the chat "
+msgstr "模型將會記得多久的聊天紀錄"
+
+#: settings.py:78
+msgid "The change will take effect after you restart the program."
+msgstr "將在下次重新啟動後套用設定。"
