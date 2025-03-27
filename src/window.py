@@ -538,7 +538,7 @@ class MainWindow(Gtk.ApplicationWindow):
             self.chat_header.remove(self.profiles_box)
         self.profiles_box = self.get_profiles_box()
         self.chat_header.pack_start(self.profiles_box)
-    
+     
     def create_profile(self, profile_name, picture=None, settings={}):
         """Create a profile
 
@@ -547,8 +547,7 @@ class MainWindow(Gtk.ApplicationWindow):
             picture (): path to the profile picture 
             settings (): settings to override for that profile 
         """
-        self.profile_settings[profile_name] = {"picture": picture, "settings": settings}
-        self.settings.set_string("profiles", json.dumps(self.profile_settings))
+        self.controller.create_profile(profile_name, picture, settings)
 
     def delete_profile(self, profile_name):
         """Delete a profile
@@ -556,10 +555,7 @@ class MainWindow(Gtk.ApplicationWindow):
         Args:
             profile_name (): name of the profile to delete 
         """
-        if profile_name == "Assistant" or profile_name == self.settings.get_string("current-profile"):
-            return
-        del self.profile_settings[profile_name]
-        self.settings.set_string("profiles", json.dumps(self.profile_settings))
+        self.controller.delete_profile(profile_name)
         self.refresh_profiles_box()
         self.update_settings()
 

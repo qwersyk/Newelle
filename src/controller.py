@@ -16,7 +16,6 @@ from .handlers.embeddings import EmbeddingHandler
 from .utility.system import is_flatpak
 from .utility.pip import install_module
 from .constants import DIR_NAME, SCHEMA_ID, PROMPTS, AVAILABLE_STT, AVAILABLE_TTS, AVAILABLE_LLMS, AVAILABLE_RAGS, AVAILABLE_PROMPTS, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS
-import sys
 import threading
 import pickle
 import json
@@ -207,6 +206,29 @@ class NewelleController:
         self.extensionloader.load_extensions()
         self.extensionloader.add_handlers(AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS, AVAILABLE_RAGS)
         self.extensionloader.add_prompts(PROMPTS, AVAILABLE_PROMPTS)
+
+    def create_profile(self, profile_name, picture=None, settings={}):
+        """Create a profile
+
+        Args:
+            profile_name (): name of the profile 
+            picture (): path to the profile picture 
+            settings (): settings to override for that profile 
+        """
+        self.newelle_settings.profile_settings[profile_name] = {"picture": picture, "settings": settings}
+        self.settings.set_string("profiles", json.dumps(self.newelle_settings.profile_settings))
+
+    def delete_profile(self, profile_name):
+        """Delete a profile
+
+        Args:
+            profile_name (): name of the profile to delete 
+        """
+        if profile_name == "Assistant" or profile_name == self.settings.get_string("current-profile"):
+            return
+        del self.newelle_settings.profile_settings[profile_name]
+        self.settings.set_string("profiles", json.dumps(self.newelle_settings.profile_settings))
+        self.update_settings()
 
 class NewelleSettings:
 
