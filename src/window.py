@@ -1433,7 +1433,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.stream_number_variable += 1
         stream_number_variable = self.stream_number_variable
         self.status = False
-        self.update_button_text()
+        GLib.idle_add(self.update_button_text)
 
         # Append extensions prompts
         prompts = []
@@ -1490,7 +1490,6 @@ class MainWindow(Gtk.ApplicationWindow):
                     self.streaming_box.unparent()
             GLib.timeout_add(250, remove_streaming_box)
             return
-        
         if self.stream_number_variable == stream_number_variable:
             history, message_label = self.extensionloader.postprocess_history(self.chat, message_label)
             # Edit messages that require to be updated 
@@ -1703,20 +1702,20 @@ class MainWindow(Gtk.ApplicationWindow):
                                             code = (False, "Error:")
                                     else:
                                         code = (True, reply_from_the_console)
-                                    text_expander.set_child(
-                                        Gtk.Label(wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR,
-                                                  label=chunk.text + "\n" + str(
-                                                      code[1]),
-                                                  selectable=True))
-                                    if not code[0]:
-                                        self.add_message("Error", text_expander)
-                                    elif restore:
-                                        self.add_message("Assistant", text_expander)
-                                    else:
-                                        self.add_message("Done", text_expander)
-                                    if not restore:
-                                        self.chat.append({"User": "Console", "Message": " " + str(code[1])})
-
+                                    # Apply the changes on the main thread 
+                                    # Avoid crashes
+                                    def apply_sync():
+                                        text_expander.set_child(
+                                            Gtk.Label(wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR,
+                                                      label=chunk.text + "\n" + str(
+                                                          code[1]),
+                                                      selectable=True))
+                                        
+                                        if not code[0]:
+                                            self.add_message("Error", text_expander)
+                                    self.chat.append({"User": "Console", "Message": " " + str(code[1])})
+                                    GLib.idle_add(apply_sync)
+                                box.append(text_expander)
                                 t = threading.Thread(target=getresponse)
                                 t.start()
                                 running_threads.append(t)
@@ -1871,11 +1870,17 @@ class MainWindow(Gtk.ApplicationWindow):
                     self.chat_stop_button.set_visible(False)
                     self.chats[self.chat_id]["chat"] = self.chat
             else:
+                if not return_widget:
+                    self.add_message("Assistant", box, id_message, editable)
+                else:
+                    return box
                 if not restore and not is_user:
                     def wait_threads_sm():
                         for t in running_threads:
                             t.join()
-                        self.send_message()
+                        if len(running_threads) > 0:
+                            self.send_message()
+                    self.chats[self.chat_id]["chat"] = self.chat
                     threading.Thread(target=wait_threads_sm).start()
         GLib.idle_add(self.scrolled_chat)
         self.save_chat()
