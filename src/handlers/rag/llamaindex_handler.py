@@ -1,5 +1,10 @@
 from typing import Any, List
-import threading from ...handlers.llm import LLMHandler from ...handlers.embeddings.embedding import EmbeddingHandler from ...handlers import ExtraSettings from .rag_handler import RAGHandler, RAGIndex from ...utility.pip import find_module, install_module
+import threading 
+from ...handlers.llm import LLMHandler 
+from ...handlers.embeddings.embedding import EmbeddingHandler 
+from ...handlers import ExtraSettings 
+from .rag_handler import RAGHandler, RAGIndex 
+from ...utility.pip import find_module, install_module
 import os
 
 class LlamaIndexHanlder(RAGHandler):
@@ -292,10 +297,10 @@ class LlamaIndexIndex(RAGIndex):
             if node.score < float(self.similarity_threshold):
                 continue
             r.append("--")
-            r.append("- Source: " + node.metadata.get("file_name"))
             r.append(node.node.get_content())
         return r
 
     def insert(self, documents: list[str]):
         documents_list = LlamaIndexHanlder.parse_document_list(documents)
-        self.index.insert(documents_list)
+        for document in documents_list:
+            self.index.insert(document)
