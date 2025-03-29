@@ -5,6 +5,18 @@ from ...handlers import ExtraSettings
 from abc import abstractmethod
 import os
 
+class RAGIndex:
+    def __init__(self):
+        pass
+
+    @abstractmethod 
+    def query(self, query:str) -> list[str]:
+        pass
+
+    @abstractmethod
+    def insert(self, documents: list[str]):
+        pass
+
 class RAGHandler(Handler):
     key = ""
     schema_key = "rag-settings"
@@ -42,7 +54,6 @@ class RAGHandler(Handler):
     def get_context(self, prompt:str, history: list[dict[str, str]]) -> list[str]:
         return []
 
-    @abstractmethod
     def query_document(self, prompt: str, documents: list[str], chunk_size: int|None = None) -> list[str]:
         """
         Query the document
@@ -58,8 +69,13 @@ class RAGHandler(Handler):
         Returns:
             The query result 
         """
-        pass
-    
+        index = self.build_index(documents, chunk_size)
+        return index.query(prompt)
+
+    @abstractmethod
+    def build_index(self, documents: list[str], chunk_size: int|None = None) -> RAGIndex:
+       pass
+
     @abstractmethod 
     def index_exists(self) -> bool:
         """
@@ -107,5 +123,4 @@ class RAGHandler(Handler):
         else:
             self.indexing = True
             self.create_index()
-
 

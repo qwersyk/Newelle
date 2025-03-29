@@ -1,10 +1,5 @@
 from typing import Any, List
-import threading
-from ...handlers.llm import LLMHandler
-from ...handlers.embeddings.embedding import EmbeddingHandler
-from ...handlers import ExtraSettings
-from .rag_handler import RAGHandler
-from ...utility.pip import find_module, install_module
+import threading from ...handlers.llm import LLMHandler from ...handlers.embeddings.embedding import EmbeddingHandler from ...handlers import ExtraSettings from .rag_handler import RAGHandler, RAGIndex from ...utility.pip import find_module, install_module
 import os
 
 class LlamaIndexHanlder(RAGHandler):
@@ -141,6 +136,7 @@ class LlamaIndexHanlder(RAGHandler):
             documents_path = self.documents_path
             data_path = self.data_path
         return documents_path, data_path
+    
     def create_index(self, button=None):  
         if not self.is_installed():
             return
@@ -170,16 +166,11 @@ class LlamaIndexHanlder(RAGHandler):
             print(e)
             self.indexing = False
             self.indexing_status = 1
-   
-    def query_document(self, prompt: str, documents: list[str], chunk_size: int|None = None) -> list[str]: 
-        from llama_index.core.settings import Settings
-        from llama_index.core import VectorStoreIndex, SimpleDirectoryReader, Document
-        from llama_index.core.retrievers import VectorIndexRetriever
+  
+    @staticmethod 
+    def parse_document_list(documents: list[str]):
+        from llama_index.core import SimpleDirectoryReader, Document
         import requests
-        self.llm.load_model(None)
-        self.embedding.load_model()
-        Settings.embed_model = self.get_embedding_adapter(self.embedding)
-        chunk_size = int(self.get_setting("chunk_size")) if chunk_size is None else chunk_size
         document_list = []
         urls = []
         for document in documents:
@@ -192,20 +183,28 @@ class LlamaIndexHanlder(RAGHandler):
             elif document.startswith("url:"):
                 url = document.lstrip("url:")
                 urls.append(url)
+        t = []
+        for url in urls:
+            def request(url):
+                r = requests.get(url)
+                document_list.append(Document(text=r.text))
+            th = threading.Thread(target=request, args=(url, ))
+            th.start()
+        [t.join() for t in t]
+        return document_list
+    
+    def build_index(self, documents: list[str], chunk_size: int | None = None) -> RAGIndex: 
+        from llama_index.core.settings import Settings
+        from llama_index.core import VectorStoreIndex, SimpleDirectoryReader, Document
+        from llama_index.core.retrievers import VectorIndexRetriever
+        import requests
+        self.llm.load_model(None)
+        self.embedding.load_model()
+        Settings.embed_model = self.get_embedding_adapter(self.embedding)
+        chunk_size = int(self.get_setting("chunk_size")) if chunk_size is None else chunk_size
+        document_list = self.parse_document_list(documents)
         index = VectorStoreIndex.from_documents(document_list)
-        retriever = VectorIndexRetriever(
-            index=index,
-            similarity_top_k=int(self.get_setting("return_documents")),
-        )
-        r = []
-        nodes = retriever.retrieve(prompt)
-        for node in nodes:
-            if node.score < float(self.get_setting("similarity_threshold")):
-                continue
-            r.append("--")
-            r.append("- Source: " + node.metadata.get("file_name"))
-            r.append(node.node.get_content())
-        return r
+        return LlamaIndexIndex(index, int(self.get_setting("return_documents")), float(self.get_setting("similarity_threshold"))) 
 
     def get_embedding_adapter(self, embedding: EmbeddingHandler):
         from llama_index.core.embeddings import BaseEmbedding
@@ -271,3 +270,32 @@ class LlamaIndexHanlder(RAGHandler):
         adapter = LLMAdapter()
         adapter.set_llm(self.llm) 
         return adapter
+
+
+class LlamaIndexIndex(RAGIndex):
+    def __init__(self, index, return_documents, similarity_threshold):
+        self.index = index
+        self.retriever = None
+        self.return_documents = return_documents
+        self.similarity_threshold = similarity_threshold
+
+    def query(self, query: str) -> list[str]:
+        from llama_index.core.retrievers import VectorIndexRetriever
+        if self.retriever is None:
+            retriever = VectorIndexRetriever(
+                index=self.index,
+                similarity_top_k=int(self.return_documents))
+            self.retriever = retriever 
+        r = []
+        nodes = self.retriever.retrieve(query)
+        for node in nodes:
+            if node.score < float(self.similarity_threshold):
+                continue
+            r.append("--")
+            r.append("- Source: " + node.metadata.get("file_name"))
+            r.append(node.node.get_content())
+        return r
+
+    def insert(self, documents: list[str]):
+        documents_list = LlamaIndexHanlder.parse_document_list(documents)
+        self.index.insert(documents_list)
