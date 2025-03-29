@@ -334,7 +334,7 @@ class NewelleSettings:
         if self.memory_on != new_settings.memory_on or self.memory_model != new_settings.memory_model or self.memory_settings != new_settings.memory_settings:
             reloads.append(ReloadType.MEMORIES)
 
-        if self.rag_on != new_settings.rag_on or self.rag_on_documents != new_settings.rag_on_documents or self.rag_model != new_settings.rag_model or self.rag_settings != new_settings.rag_settings:
+        if self.rag_on != new_settings.rag_on or self.rag_model != new_settings.rag_model or self.rag_settings != new_settings.rag_settings:
             reloads.append(ReloadType.RAG)
         if self.extensions_settings != new_settings.extensions_settings:
             reloads.append(ReloadType.EXTENSIONS)
@@ -419,7 +419,8 @@ class HandlersManager:
         if self.settings.get_boolean("secondary-llm-on"):
             self.secondary_llm.load_model(None)
         self.embedding.load_model()
-        self.rag.load()
+        if self.settings.get_boolean("rag-on"):
+            self.rag.load()
 
     def install_missing_handlers(self):
         """Install selected handlers that are not installed. Assumes that select_handlers has been called"""
