@@ -13,25 +13,19 @@ import base64
 import copy
 
 from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject, GLib, GdkPixbuf
-from .handlers.embeddings.embedding import EmbeddingHandler
-from .handlers.memory.memoripy_handler import MemoripyHandler
-from .handlers.rag import RAGHandler
 
 from .ui.settings import Settings
 
 from .utility.message_chunk import get_message_chunks
 
 from .ui.profile import ProfileDialog
-from .handlers.llm import LLMHandler
 from .ui.presentation import PresentationWindow
 from .ui.widgets import File, CopyBox, BarChartBox
 from .ui import apply_css_to_widget
 from .ui.widgets import MultilineEntry, ProfileRow, DisplayLatex
-from .constants import AVAILABLE_LLMS, AVAILABLE_PROMPTS, PROMPTS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS, AVAILABLE_RAGS
+from .constants import AVAILABLE_LLMS
 
-from .utility import override_prompts
 from .utility.system import get_spawn_command 
-from .utility.pip import install_module
 from .utility.strings import convert_think_codeblocks, get_edited_messages, markwon_to_pango, remove_markdown, remove_thinking_blocks, simple_markdown_to_pango
 from .utility.replacehelper import replace_variables
 from .utility.profile_settings import get_settings_dict, restore_settings_from_dict
@@ -39,11 +33,8 @@ from .utility.audio_recorder import AudioRecorder
 from .utility.media import extract_supported_files
 from .ui.screenrecorder import ScreenRecorder
 
-from .extensions import ExtensionLoader
 from .controller import NewelleController, ReloadType
 
-def _(string):
-    return string
 class MainWindow(Gtk.ApplicationWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -55,22 +46,25 @@ class MainWindow(Gtk.ApplicationWindow):
         # Init controller
         self.controller = NewelleController(sys.path)
         self.controller.ui_init()
+        # Set basic vars
         self.chats = self.controller.chats
         self.chat = self.controller.chat
         self.settings = self.controller.settings
         self.extensionloader = self.controller.extensionloader
         self.chat_id = self.controller.newelle_settings.chat_id
         self.main_path = self.controller.newelle_settings.main_path
-        self.streams = []
-        # Directories
+        
+        # Update the settings
         self.first_load = True
         self.update_settings()
         self.first_load = False
-
-        # Build Window
+        
+        # Helper vars
+        self.streams = []
         self.last_error_box = None
         self.edit_entries = {}
 
+        # Build Window
         self.set_titlebar(Gtk.Box())
         self.chat_panel = Gtk.Box(hexpand_set=True, hexpand=True)
         self.chat_panel.set_size_request(450, -1)
@@ -348,15 +342,17 @@ class MainWindow(Gtk.ApplicationWindow):
         self.send_button.connect('clicked', self.on_entry_button_clicked)
         self.main.connect("notify::folded", self.handle_main_block_change)
         self.main_program_block.connect("notify::reveal-flap", self.handle_second_block_change)
-
-        self.chat_header.set_title_widget(self.build_model_popup())
+        
+        def build_model_popup():
+            self.chat_header.set_title_widget(self.build_model_popup())
+        GLib.idle_add(build_model_popup)
         self.stream_number_variable = 0
         GLib.idle_add(self.update_folder)
         GLib.idle_add(self.update_history)
         GLib.idle_add(self.show_chat)
         if not self.settings.get_boolean("welcome-screen-shown"):
             GLib.idle_add(self.show_presentation_window)
-
+    
     def build_quick_toggles(self):
         self.quick_toggles = Gtk.MenuButton(css_classes=["flat"], icon_name="controls-big")
         self.quick_toggles_popover = Gtk.Popover()
@@ -402,6 +398,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.quick_toggles.set_popover(self.quick_toggles_popover)
         self.input_box.append(self.quick_toggles)
         self.quick_toggles_popover.connect("closed", self.update_toggles)
+    
 
     def build_offers(self):
         """Build offers buttons, called by update_settings to update the number of buttons"""

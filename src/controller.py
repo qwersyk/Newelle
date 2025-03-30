@@ -12,7 +12,7 @@ from .handlers.stt import STTHandler
 from .handlers.rag import RAGHandler
 from .handlers.memory import MemoryHandler
 from .handlers.embeddings import EmbeddingHandler
-
+import time
 from .utility.system import is_flatpak
 from .utility.pip import install_module
 from .constants import DIR_NAME, SCHEMA_ID, PROMPTS, AVAILABLE_STT, AVAILABLE_TTS, AVAILABLE_LLMS, AVAILABLE_RAGS, AVAILABLE_PROMPTS, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS

@@ -19,9 +19,6 @@ from ..utility.system import can_escape_sandbox, get_spawn_command, open_website
 
 from ..controller import NewelleController
 
-def _(s):
-    return s
-
 class Settings(Adw.PreferencesWindow):
     def __init__(self,app, controller: NewelleController,headless=False, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -334,7 +331,7 @@ class Settings(Adw.PreferencesWindow):
         box.append(label)
         silence_time.add_suffix(box)
         self.auto_stt.add_row(silence_threshold) 
-        self.auto_stt.add_row(silence_time) 
+        self.auto_stt.add_row(silence_time)
 
     def update_prompt(self, switch: Gtk.Switch, state, key: str):
         """Update the prompt in the settings
