@@ -345,14 +345,13 @@ class MainWindow(Gtk.ApplicationWindow):
         
         def build_model_popup():
             self.chat_header.set_title_widget(self.build_model_popup())
-        GLib.idle_add(build_model_popup)
         self.stream_number_variable = 0
         GLib.idle_add(self.update_folder)
         GLib.idle_add(self.update_history)
         GLib.idle_add(self.show_chat)
         if not self.settings.get_boolean("welcome-screen-shown"):
-            GLib.idle_add(self.show_presentation_window)
-    
+            GLib.idle_add(self.show_presentation_window) 
+        GLib.timeout_add(10, build_model_popup)
     def build_quick_toggles(self):
         self.quick_toggles = Gtk.MenuButton(css_classes=["flat"], icon_name="controls-big")
         self.quick_toggles_popover = Gtk.Popover()
