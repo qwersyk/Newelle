@@ -1840,11 +1840,13 @@ class MainWindow(Gtk.ApplicationWindow):
                             txt += chunk.text
                         elif chunk.type == "latex_inline":
                             txt += LatexNodes2Text().latex_to_text(chunk.text)
+                            print(chunk.text)
+                            print(txt)
                     label = markwon_to_pango(txt)
                     box.append(Gtk.Label(label=label, wrap=True, halign=Gtk.Align.START,
                                          wrap_mode=Pango.WrapMode.WORD_CHAR, width_chars=1, selectable=True,
                                          use_markup=True))
-                elif chunk.type == "latex":
+                elif chunk.type == "latex" or chunk.type == "latex_inline":
                     try:
                         box.append(DisplayLatex(chunk.text, 100))
                     except Exception:
