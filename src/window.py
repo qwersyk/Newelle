@@ -40,7 +40,7 @@ from .utility.media import extract_supported_files
 from .ui.screenrecorder import ScreenRecorder
 
 from .extensions import ExtensionLoader
-from .controller import NewelleController
+from .controller import NewelleController, ReloadType
 
 def _(string):
     return string
@@ -437,7 +437,7 @@ class MainWindow(Gtk.ApplicationWindow):
 
     def update_settings(self):
         """Update settings, run every time the program is started or settings dialog closed""" 
-        self.controller.update_settings()
+        reloads = self.controller.update_settings()
         if self.first_load:
             threading.Thread(target=self.controller.handlers.load_handlers).start()
         # Basic settings 
@@ -455,11 +455,14 @@ class MainWindow(Gtk.ApplicationWindow):
         self.embeddings = self.controller.handlers.embedding
         self.memory_handler = self.controller.handlers.memory
         self.rag_handler = self.controller.handlers.rag
-        
+        if ReloadType.RELOAD_CHAT in reloads:
+            self.show_chat()
+        if ReloadType.RELOAD_CHAT_LIST in reloads:
+            self.update_history()
         # Setup TTS
         self.tts.connect('start', lambda: GLib.idle_add(self.mute_tts_button.set_visible, True))
         self.tts.connect('stop', lambda: GLib.idle_add(self.mute_tts_button.set_visible, False))
-                
+            
         if not self.first_load:
             self.build_offers()
             if (not self.model.supports_vision() and not self.model.supports_video_vision() 
@@ -2148,7 +2151,7 @@ class MainWindow(Gtk.ApplicationWindow):
             box.add_controller(ev)
 
         if user == "User":
-            label = Gtk.Label(label=user + ": ", margin_top=10, margin_start=10, margin_bottom=10, margin_end=0,
+            label = Gtk.Label(label=self.controller.newelle_settings.username + ": ", margin_top=10, margin_start=10, margin_bottom=10, margin_end=0,
                               css_classes=["accent", "heading"])
             if editable:
                 stack.add_named(label, "label")
@@ -2178,11 +2181,11 @@ class MainWindow(Gtk.ApplicationWindow):
                                  css_classes=["error", "heading"]))
             box.set_css_classes(["card", "failed"])
         if user == "File":
-            box.append(Gtk.Label(label="User: ", margin_top=10, margin_start=10, margin_bottom=10, margin_end=0,
+            box.append(Gtk.Label(label=self.controller.newelle_settings.username + ": ", margin_top=10, margin_start=10, margin_bottom=10, margin_end=0,
                                  css_classes=["accent", "heading"]))
             box.set_css_classes(["card", "file"])
         if user == "Folder":
-            box.append(Gtk.Label(label="User: ", margin_top=10, margin_start=10, margin_bottom=10, margin_end=0,
+            box.append(Gtk.Label(label=self.controller.newelle_settings.username + ": ", margin_top=10, margin_start=10, margin_bottom=10, margin_end=0,
                                  css_classes=["accent", "heading"]))
             box.set_css_classes(["card", "folder"])
         if user == "WarningNoVirtual":

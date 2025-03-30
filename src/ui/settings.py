@@ -11,20 +11,12 @@ from gi.repository import Gtk, Adw, Gio, GLib
 
 from ..handlers import Handler
 
-from ..handlers.stt import STTHandler
-from ..handlers.tts import TTSHandler
 from ..constants import AVAILABLE_EMBEDDINGS, AVAILABLE_LLMS, AVAILABLE_MEMORIES, AVAILABLE_PROMPTS, AVAILABLE_TTS, AVAILABLE_STT, PROMPTS, AVAILABLE_RAGS
-from ..handlers.llm import LLMHandler
-from ..handlers.embeddings import EmbeddingHandler
-from ..handlers.memory import MemoryHandler
-from ..handlers.rag import RAGHandler
 
 from .widgets import ComboRowHelper, CopyBox 
 from .widgets import MultilineEntry
-from ..utility import override_prompts
 from ..utility.system import can_escape_sandbox, get_spawn_command, open_website, open_folder 
 
-from ..extensions import ExtensionLoader, NewelleExtension
 from ..controller import NewelleController
 
 def _(s):
@@ -216,6 +208,12 @@ class Settings(Adw.PreferencesWindow):
         self.settings.bind("offers", int_spin, 'value', Gio.SettingsBindFlags.DEFAULT)
         self.interface.add(row)
         
+        row = Adw.ActionRow(title=_("Username"), subtitle=_("Change the label that appears before your message\nThis information is not sent to the LLM"))
+        entry = Gtk.Entry(text=self.controller.newelle_settings.username, valign=Gtk.Align.CENTER)
+        entry.connect("changed", lambda entry: self.settings.set_string("user-name", entry.get_text()))
+        row.add_suffix(entry)
+        self.settings.bind("offers", int_spin, 'value', Gio.SettingsBindFlags.DEFAULT)
+        self.interface.add(row)
         # Neural Network Control
         self.neural_network = Adw.PreferencesGroup(title=_('Neural Network Control'))
         self.general_page.add(self.neural_network) 

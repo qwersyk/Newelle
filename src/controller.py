@@ -43,7 +43,8 @@ class ReloadType(Enum):
         MEMORIES: Reload MEMORIES 
         EMBEDDINGS: Reload EMBEDDINGS 
         EXTENSIONS: Reload EXTENSIONS 
-        SECONDARY_LLM: Reload SECONDARY_LLM 
+        SECONDARY_LLM: Reload SECONDARY_LLM
+        RELOAD_CHAT: Reload RELOAD_CHAT
     """
     NONE = 0
     LLM = 1
@@ -55,6 +56,8 @@ class ReloadType(Enum):
     EMBEDDINGS = 7
     EXTENSIONS = 8
     SECONDARY_LLM = 9
+    RELOAD_CHAT = 10
+    RELOAD_CHAT_LIST = 11
 
 class NewelleController:
     """Main controller, manages the application
@@ -286,6 +289,7 @@ class NewelleSettings:
         self.custom_prompts = json.loads(self.settings.get_string("custom-prompts"))
         self.prompts_settings = json.loads(self.settings.get_string("prompts-settings")) 
         self.extensions_settings = self.settings.get_string("extensions-settings")
+        self.username = self.settings.get_string("user-name")
         self.load_prompts()
         # Adjust paths
         if os.path.exists(os.path.expanduser(self.main_path)):
@@ -338,14 +342,13 @@ class NewelleSettings:
             reloads.append(ReloadType.RAG)
         if self.extensions_settings != new_settings.extensions_settings:
             reloads.append(ReloadType.EXTENSIONS)
+        if self.username != new_settings.username:
+            reloads.append(ReloadType.RELOAD_CHAT)
+        if self.reverse_order != new_settings.reverse_order:
+            reloads.append(ReloadType.RELOAD_CHAT_LIST)
         # Check prompts
         if len(self.prompts) != len(new_settings.prompts):
             reloads.append(ReloadType.PROMPTS)
-        elif False:
-            for prompt in self.prompts_settings:
-                if (prompt["key"] not in new_settings.prompts) or self.prompts[prompt["key"]] != new_settings.prompts[prompt["key"]]:
-                    reloads.append(ReloadType.PROMPTS)
-                    break
 
         return reloads
 
