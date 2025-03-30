@@ -1,4 +1,5 @@
 from .media import get_image_base64, extract_image
+import time 
 
 def convert_history_openai(history: list, prompts: list, vision_support : bool = False):
     """Converts Newelle history into OpenAI format
@@ -156,3 +157,16 @@ def override_prompts(override_setting, PROMPTS):
             prompt_list[prompt] = PROMPTS[prompt]
     return prompt_list
 
+
+class PerformanceMonitor():
+    def __init__(self) -> None:
+        self.times = []
+        self.names = []
+
+    def add(self, name):
+        self.times.append(time.time())
+        self.names.append(name)
+
+    def print_differences(self):
+        for i in range(len(self.times) - 1):
+            print(self.names[i], self.times[i + 1] - self.times[i])

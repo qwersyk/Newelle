@@ -11,48 +11,35 @@ from gi.repository import Gtk, Adw, Gio, GLib
 
 from ..handlers import Handler
 
-from ..handlers.stt import STTHandler
-from ..handlers.tts import TTSHandler
 from ..constants import AVAILABLE_EMBEDDINGS, AVAILABLE_LLMS, AVAILABLE_MEMORIES, AVAILABLE_PROMPTS, AVAILABLE_TTS, AVAILABLE_STT, PROMPTS, AVAILABLE_RAGS
-from ..handlers.llm import LLMHandler
-from ..handlers.embeddings import EmbeddingHandler
-from ..handlers.memory import MemoryHandler
-from ..handlers.rag import RAGHandler
 
 from .widgets import ComboRowHelper, CopyBox 
 from .widgets import MultilineEntry
-from ..utility import override_prompts
 from ..utility.system import can_escape_sandbox, get_spawn_command, open_website, open_folder 
 
-from ..extensions import ExtensionLoader, NewelleExtension
+from ..controller import NewelleController
 
 class Settings(Adw.PreferencesWindow):
-    def __init__(self,app,headless=False, *args, **kwargs):
+    def __init__(self,app, controller: NewelleController,headless=False, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.settings = Gio.Settings.new('io.github.qwersyk.Newelle')
+        self.controller = controller
+        self.settings = controller.settings
         if not headless:
             self.set_transient_for(app.win)
         self.set_modal(True)
         self.downloading = {}
         self.slider_labels = {}
         self.directory = GLib.get_user_config_dir()
-        self.extension_path = os.path.join(self.directory, "extensions")
-        self.pip_directory = os.path.join(self.directory, "pip")
-        self.extensions_cache = os.path.join(self.directory, "extensions_cache")
         # Load extensions 
-        self.extensionloader = ExtensionLoader(self.extension_path, pip_path=self.pip_directory,extension_cache=self.extensions_cache, settings=self.settings)
-        self.extensionloader.load_extensions()
-        self.extensionloader.add_handlers(AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS, AVAILABLE_RAGS)
-        self.extensionloader.add_prompts(PROMPTS, AVAILABLE_PROMPTS)
+        self.extensionloader = controller.extensionloader
         self.model_threads = {}
         # Load custom prompts
-        self.custom_prompts = json.loads(self.settings.get_string("custom-prompts"))
-        self.prompts_settings = json.loads(self.settings.get_string("prompts-settings"))
-        self.prompts = override_prompts(self.custom_prompts, PROMPTS)
+        self.custom_prompts = self.controller.newelle_settings.custom_prompts 
+        self.prompts_settings = self.controller.newelle_settings.prompts_settings
+        self.prompts = self.controller.newelle_settings.prompts
         self.sandbox = can_escape_sandbox()
-        
-        self.cache_handlers()
-        self.update_handler_choice()
+       
+        self.handlers = self.controller.handlers
         # Page building
         self.general_page = Adw.PreferencesPage(icon_name="settings-symbolic", title=_("General"))
         self.LLMPage = Adw.PreferencesPage(icon_name="brain-augemnted-symbolic", title=_("LLM")) 
@@ -218,6 +205,12 @@ class Settings(Adw.PreferencesWindow):
         self.settings.bind("offers", int_spin, 'value', Gio.SettingsBindFlags.DEFAULT)
         self.interface.add(row)
         
+        row = Adw.ActionRow(title=_("Username"), subtitle=_("Change the label that appears before your message\nThis information is not sent to the LLM"))
+        entry = Gtk.Entry(text=self.controller.newelle_settings.username, valign=Gtk.Align.CENTER)
+        entry.connect("changed", lambda entry: self.settings.set_string("user-name", entry.get_text()))
+        row.add_suffix(entry)
+        self.settings.bind("offers", int_spin, 'value', Gio.SettingsBindFlags.DEFAULT)
+        self.interface.add(row)
         # Neural Network Control
         self.neural_network = Adw.PreferencesGroup(title=_('Neural Network Control'))
         self.general_page.add(self.neural_network) 
@@ -255,6 +248,7 @@ class Settings(Adw.PreferencesWindow):
         self.add(self.PromptsPage)
         self.add(self.MemoryPage)
         self.add(self.general_page)
+
     def build_rag_settings(self):
         self.RAG = Adw.PreferencesGroup(title=_('Document Sources (RAG)'), description=_("Include content from your documents in the responses"))
         tts_program = Adw.ExpanderRow(title=_('Document Analyzer'), subtitle=_("The document analyzer uses multiple techniques to extract relevant information about your documents"))
@@ -337,7 +331,7 @@ class Settings(Adw.PreferencesWindow):
         box.append(label)
         silence_time.add_suffix(box)
         self.auto_stt.add_row(silence_threshold) 
-        self.auto_stt.add_row(silence_time) 
+        self.auto_stt.add_row(silence_time)
 
     def update_prompt(self, switch: Gtk.Switch, state, key: str):
         """Update the prompt in the settings
@@ -407,155 +401,14 @@ class Settings(Adw.PreferencesWindow):
             secondary.set_setting(setting, primary.get_setting(setting))
         self.on_setting_change(constants, handler, "", True)
 
+    def get_object(self, constants, key, secondary=False):
+        return self.handlers.get_object(constants, key, secondary)
 
-    def update_handler_choice(self):
-        """Update handlers for Memory and RAG"""
-        self.language_model = self.settings.get_string("language-model")
-        self.secondary_language_model = self.settings.get_string("secondary-language-model")
-        self.use_secondary_language_model = self.settings.get_boolean("secondary-llm-on")
-        self.embedding_model = self.settings.get_string("embedding-model")
-        if self.use_secondary_language_model and self.secondary_language_model in AVAILABLE_LLMS:
-            llm = self.get_object(AVAILABLE_LLMS, self.secondary_language_model, True)
-        elif not self.use_secondary_language_model and self.language_model in AVAILABLE_LLMS:
-            llm = self.get_object(AVAILABLE_LLMS, self.language_model)
-        else:
-            llm = None
-        embedding = self.get_object(AVAILABLE_EMBEDDINGS, self.embedding_model)
-        for key in AVAILABLE_MEMORIES:
-            self.get_object(AVAILABLE_MEMORIES, key).set_handlers(llm, embedding)
-        for key in AVAILABLE_RAGS:
-            self.get_object(AVAILABLE_RAGS, key).set_handlers(llm, embedding)
+    def convert_constants(self, constants):
+        return self.handlers.convert_constants(constants)
 
-    def cache_handlers(self):
-        self.handlers = {}
-        for key in AVAILABLE_TTS:
-            self.handlers[(key, self.convert_constants(AVAILABLE_TTS))] = self.get_object(AVAILABLE_TTS, key)
-        for key in AVAILABLE_STT:
-            self.handlers[(key, self.convert_constants(AVAILABLE_STT))] = self.get_object(AVAILABLE_STT, key)
-        for key in AVAILABLE_LLMS:
-            self.handlers[(key, self.convert_constants(AVAILABLE_LLMS), False)] = self.get_object(AVAILABLE_LLMS, key)
-        # Secondary LLMs
-        for key in AVAILABLE_LLMS:
-            self.handlers[(key, self.convert_constants(AVAILABLE_LLMS), True)] = self.get_object(AVAILABLE_LLMS, key, True)
-        for key in AVAILABLE_MEMORIES:
-            self.handlers[(key, self.convert_constants(AVAILABLE_MEMORIES), False)] = self.get_object(AVAILABLE_MEMORIES, key)
-        for key in AVAILABLE_RAGS:
-            self.handlers[(key, self.convert_constants(AVAILABLE_RAGS), False)] = self.get_object(AVAILABLE_RAGS, key)
-
-    def get_object(self, constants: dict[str, Any], key:str, secondary=False) -> (Handler):
-        """Get an handler instance for the specified handler key
-
-        Args:
-            constants: The constants for the specified handler, can be AVAILABLE_TTS, AVAILABLE_STT...
-            key: key of the specified handler
-            secondary: if to use secondary settings
-
-        Raises:
-            Exception: if the constant is not valid 
-
-        Returns:
-            The created handler           
-        """
-        if (key, self.convert_constants(constants), secondary) in self.handlers:
-            return self.handlers[(key, self.convert_constants(constants), secondary)]
-
-        if constants == AVAILABLE_LLMS:
-            model = constants[key]["class"](self.settings, os.path.join(self.directory, "models"))
-            model.set_secondary_settings(secondary)
-        elif constants == AVAILABLE_STT:
-            model = constants[key]["class"](self.settings,os.path.join(self.directory, "models"))
-        elif constants == AVAILABLE_TTS:
-            model = constants[key]["class"](self.settings, os.path.join(self.directory, "models"))
-        elif constants == AVAILABLE_MEMORIES:
-            model = constants[key]["class"](self.settings, os.path.join(self.directory, "models"))
-        elif constants == AVAILABLE_EMBEDDINGS:
-            model = constants[key]["class"](self.settings, os.path.join(self.directory, "models"))
-        elif constants == AVAILABLE_RAGS:
-            model = constants[key]["class"](self.settings, os.path.join(self.directory, "models"))
-        elif constants == self.extensionloader.extensionsmap:
-            model = self.extensionloader.extensionsmap[key]
-            if model is None:
-                raise Exception("Extension not found")
-        else:
-            raise Exception("Unknown constants")
-        return model
-    
-    def convert_constants(self, constants: str | dict[str, Any]) -> (str | dict):
-        """Get an handler instance for the specified handler key
-
-        Args:
-            constants: The constants for the specified handler, can be AVAILABLE_TTS, AVAILABLE_STT...
-            key: key of the specified handler
-
-        Raises:
-            Exception: if the constant is not valid 
-
-        Returns:
-            The created handler           
-        """
-        if type(constants) is str:
-            match constants:
-                case "tts":
-                    return AVAILABLE_TTS
-                case "stt":
-                    return AVAILABLE_STT
-                case "llm":
-                    return AVAILABLE_LLMS
-                case "memory":
-                    return AVAILABLE_MEMORIES
-                case "embedding":
-                    return AVAILABLE_EMBEDDINGS
-                case "rag":
-                    return AVAILABLE_RAGS
-                case "extension":
-                    return self.extensionloader.extensionsmap
-                case _:
-                    raise Exception("Unknown constants")
-        else:
-            if constants == AVAILABLE_LLMS:
-                return "llm"
-            elif constants == AVAILABLE_STT:
-                return "stt"
-            elif constants == AVAILABLE_TTS:
-                return "tts"
-            elif constants == AVAILABLE_MEMORIES:
-                return "memory"
-            elif constants == AVAILABLE_EMBEDDINGS:
-                return "embedding"
-            elif constants == AVAILABLE_RAGS:
-                return "rag"
-            elif constants == self.extensionloader.extensionsmap:
-                return "extension"
-            else:
-                raise Exception("Unknown constants")
-
-    def get_constants_from_object(self, handler: Handler) -> dict[str, Any]:
-        """Get the constants from an hander
-
-        Args:
-            handler: the handler 
-
-        Raises:
-            Exception: if the handler is not known
-
-        Returns: AVAILABLE_LLMS, AVAILABLE_STT, AVAILABLE_TTS based on the type of the handler 
-        """
-        if issubclass(type(handler), TTSHandler):
-            return AVAILABLE_TTS
-        elif issubclass(type(handler), STTHandler):
-            return AVAILABLE_STT
-        elif issubclass(type(handler), LLMHandler):
-            return AVAILABLE_LLMS
-        elif issubclass(type(handler), NewelleExtension):
-            return self.extensionloader.extensionsmap
-        elif issubclass(type(handler), MemoryHandler):
-            return AVAILABLE_MEMORIES
-        elif issubclass(type(handler), EmbeddingHandler):
-            return AVAILABLE_EMBEDDINGS
-        elif issubclass(type(handler), RAGHandler):
-            return AVAILABLE_RAGS
-        else:
-            raise Exception("Unknown handler")
+    def get_constants_from_object(self, handler):
+        return self.handlers.get_constants_from_object(handler)
 
     def choose_row(self, button, constants : dict, secondary=False):
         """Called by GTK the selected h
@@ -584,7 +437,7 @@ class Settings(Adw.PreferencesWindow):
         else:
             return
         self.settings.set_string(setting_name, button.get_name())
-        self.update_handler_choice()
+        self.controller.update_settings()
         if constants == AVAILABLE_RAGS:
             self.update_rag_index()
 
@@ -613,7 +466,7 @@ class Settings(Adw.PreferencesWindow):
             handler: An instance of the handler
             row: row where to add the settings
         """
-        if nested_settings is None:
+        if nested_settings is None: 
             self.settingsrows[(handler.key, self.convert_constants(constants), handler.is_secondary())]["extra_settings"] = []
             settings = handler.get_extra_settings()
         else:

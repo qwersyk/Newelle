@@ -1,5 +1,5 @@
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import List, Optional
 
 @dataclass
@@ -7,7 +7,7 @@ class MessageChunk:
     type: str  # "codeblock", "table", "latex", "latex_inline", "inline_chunks", "thinking", or "text"
     text: str
     lang: str = ''  # Only used for codeblocks
-    subchunks: Optional[List['MessageChunk']] = None  # Only used for inline_chunks
+    subchunks: Optional[List['MessageChunk']] = field(default_factory=list)
 
     def __str__(self):
         if self.type == "codeblock":
@@ -19,20 +19,43 @@ class MessageChunk:
         elif self.type == "latex_inline":
             return f"<LatexInline>{self.text}</LatexInline>"
         elif self.type == "inline_chunks":
-            sub = "\n".join("  " + str(sc) for sc in self.subchunks) if self.subchunks else ""
-            return f"<InlineChunks>\n{sub}\n</InlineChunks>"
+            # Represent subchunks indented for clarity
+            sub_repr = "\n".join("  " + str(sc).replace("\n", "\n  ") for sc in self.subchunks) if self.subchunks else ""
+            return f"<InlineChunks>\n{sub_repr}\n</InlineChunks>"
         elif self.type == "thinking":
             return f"<Thinking>{self.text}</Thinking>"
         elif self.type == "text":
+            # Ensure text content doesn't have unintended newlines for simple strings
+            # For multi-line text, keep them. Let's just represent the text directly.
             return f"<Text>{self.text}</Text>"
         else:
+            # Fallback for unknown types
             return f"<{self.type}>{self.text}</{self.type}>"
 
+# ============================================================
+# Chunk Processing Logic (Mostly unchanged, but crucial for context)
+# ============================================================
+
 def append_chunk(chunks: List[MessageChunk], new_chunk: MessageChunk):
-    if chunks and chunks[-1].type == "text" and new_chunk.type == "text":
+    """Appends a chunk, merging consecutive text chunks."""
+    if new_chunk.type == "text" and chunks and chunks[-1].type == "text":
+        # Merge consecutive text chunks. Add a newline ONLY if the previous
+        # text didn't already end with one AND the new text doesn't start with one.
+        # Simplest reliable merge: always add a newline separator, assuming
+        # append_chunk is called when a logical separation (like end of processing
+        # a line or segment) occurs.
         chunks[-1].text += "\n" + new_chunk.text
+    elif new_chunk.type == "text" and new_chunk.text == "" and chunks and chunks[-1].type == "text":
+        # Handle adding a blank line explicitly. If last was text, add a newline.
+         chunks[-1].text += "\n"
+    elif new_chunk.type == "text" and new_chunk.text == "":
+         # If it's an empty text chunk and the previous wasn't text, or it's the first chunk,
+         # it represents a blank line. Append it, but maybe filter later? Let's keep it for now.
+         chunks.append(new_chunk)
     else:
+        # Append non-text chunks or the first text chunk, or text after non-text
         chunks.append(new_chunk)
+
 
 def is_markdown_table(block: str) -> bool:
     """
@@ -42,182 +65,310 @@ def is_markdown_table(block: str) -> bool:
     lines = [line.strip() for line in block.strip().splitlines() if line.strip()]
     if len(lines) < 2:
         return False
-    
+
     # Check if first line has pipes (header)
     if '|' not in lines[0]:
         return False
-    
+
     # Check if second line is a separator (contains dashes between pipes)
     sep_line = lines[1]
-    if not re.match(r'^\|?[-:\s\|]+$', sep_line):
-        return False
-        
-    # Verify consistent number of columns
-    header_cols = len(lines[0].split('|')) - 1  # Subtract 1 for empty ends
-    sep_cols = len(sep_line.split('|')) - 1
-    return header_cols == sep_cols and header_cols > 0
+    # More robust check for separator structure
+    # Remove leading/trailing pipe and whitespace for splitting
+    sep_line_stripped = sep_line.strip().strip('|').strip()
+    parts = [part.strip() for part in sep_line_stripped.split('|')]
+    # All parts must match the pattern of dashes and optional colons
+    if not all(re.match(r':?-+:?$', part) for part in parts if part):
+         # Allow for simpler patterns like just '---' if split resulted in single element
+         if not re.match(r'[-:| ]+', sep_line): # Fallback basic check
+              return False
+
+    # Verify consistent number of columns more carefully
+    header_parts = [p.strip() for p in lines[0].strip('|').split('|')]
+    sep_parts_check = [p.strip() for p in sep_line.strip('|').split('|')]
+
+    num_header_cols = len(header_parts)
+    num_sep_cols = len(sep_parts_check)
+
+    # Ensure header and separator have the same number of columns > 0
+    return num_header_cols == num_sep_cols and num_header_cols > 0
+
 
 def extract_tables(text: str) -> List[MessageChunk]:
     """
     Extracts markdown tables from text and returns chunks with remaining text.
+    Uses append_chunk logic internally now for better text merging.
     """
     chunks = []
-    last_pos = 0
-    lines = text.splitlines()
-    
+    lines = text.splitlines() # Split into lines
+    last_line_processed = 0 # Index in the `lines` list
+
     i = 0
     while i < len(lines):
-        # Look for potential table start
-        if '|' in lines[i] and i + 1 < len(lines):
-            # Try to build a table starting from this line
-            table_lines = [lines[i]]
-            j = i + 1
-            while j < len(lines) and '|' in lines[j]:
-                table_lines.append(lines[j])
-                j += 1
-            
-            potential_table = '\n'.join(table_lines)
-            if is_markdown_table(potential_table):
-                # Add text before table
-                if last_pos < i:
-                    pre_text = '\n'.join(lines[last_pos:i])
-                    if pre_text.strip():
-                        chunks.append(MessageChunk(type="text", text=pre_text))
-                
-                # Add table chunk
-                chunks.append(MessageChunk(type="table", text=potential_table))
-                i = j
-                last_pos = i
-                continue
+        # Check if line 'i' could be a table header and 'i+1' a separator
+        potential_header = lines[i].strip()
+        if '|' in potential_header and i + 1 < len(lines):
+            potential_separator = lines[i+1].strip()
+            # Basic separator check
+            if re.match(r'^\|? *[-:| ]+ *\|?$', potential_separator):
+                potential_table_lines = [lines[i], lines[i+1]]
+                j = i + 2
+                while j < len(lines) and '|' in lines[j].strip():
+                    potential_table_lines.append(lines[j])
+                    j += 1
+
+                potential_table_block = '\n'.join(potential_table_lines)
+                if is_markdown_table(potential_table_block):
+                    # Add preceding text chunk if any
+                    if last_line_processed < i:
+                        pre_text = '\n'.join(lines[last_line_processed:i])
+                        append_chunk(chunks, MessageChunk(type="text", text=pre_text))
+
+                    # Add the table chunk (don't use append_chunk for non-text)
+                    chunks.append(MessageChunk(type="table", text=potential_table_block))
+                    last_line_processed = j
+                    i = j
+                    continue # Skip increment
+
+        # Not a table start
         i += 1
-    
-    # Add remaining text
-    if last_pos < len(lines):
-        remaining = '\n'.join(lines[last_pos:])
-        if remaining.strip():
-            chunks.append(MessageChunk(type="text", text=remaining))
-    
-    return chunks
+
+    # Add any remaining text after the last table
+    if last_line_processed < len(lines):
+        remaining_text = '\n'.join(lines[last_line_processed:])
+        append_chunk(chunks, MessageChunk(type="text", text=remaining_text))
+
+    # Re-add trailing newline if original text had one and it got lost
+    if text.endswith('\n') and chunks and chunks[-1].type == "text":
+         if not chunks[-1].text.endswith('\n'):
+              chunks[-1].text += '\n'
+    # Filter out potentially fully empty text chunks added by mistake?
+    # Let's keep them for now, append_chunk tries to handle structure.
+    return [c for c in chunks if c.type != "text" or c.text != ""]
+
 
 _display_latex_pattern = re.compile(r'(\$\$(.+?)\$\$)|(\\\[(.+?)\\\])', re.DOTALL)
 
 def process_text_with_display_latex(text: str, allow_latex: bool) -> List[MessageChunk]:
+    """Processes text for display latex, passing segments to inline processor."""
+    if not allow_latex:
+        return process_inline_elements(text, allow_latex=False)
+
     chunks = []
     last_index = 0
     for match in _display_latex_pattern.finditer(text):
         start, end = match.span()
         if start > last_index:
-            intermediate = text[last_index:start]
-            chunks.extend(process_inline_by_line(intermediate, allow_latex))
+            intermediate_text = text[last_index:start]
+            # Use append_chunk logic when extending
+            processed_intermediate = process_inline_elements(intermediate_text, allow_latex)
+            for chunk in processed_intermediate:
+                append_chunk(chunks, chunk)
+
+
         content = match.group(2) or match.group(4)
-        if content:
-            chunks.append(MessageChunk(type="latex", text=content.strip()))
+        if content is not None:
+             # Add latex chunk directly (not via append_chunk)
+             chunks.append(MessageChunk(type="latex", text=content.strip()))
         last_index = end
+
     if last_index < len(text):
-        remaining = text[last_index:]
-        chunks.extend(process_inline_by_line(remaining, allow_latex))
+        remaining_text = text[last_index:]
+        processed_remaining = process_inline_elements(remaining_text, allow_latex)
+        for chunk in processed_remaining:
+            append_chunk(chunks, chunk)
+
     return chunks
 
-def process_inline_by_line(text: str, allow_latex: bool) -> List[MessageChunk]:
+
+def process_inline_elements(text: str, allow_latex: bool) -> List[MessageChunk]:
+    """
+    Processes text segment for inline latex ($...$ or \(...\)).
+    Returns a flat list of Text and LatexInline chunks for this segment.
+    The calling function will decide how to integrate these.
+    """
     chunks = []
-    lines = text.splitlines()
-    inline_latex_pattern = re.compile(
-        r'(?<!\$)\$(?!\$)(.+?)(?<!\$)\$(?!\$)|\\\((.+?)\\\)|\\\[(.+?)\\\]',
-        re.DOTALL
-    )
-    for line in lines:
-        if not line.strip():
-            continue
-        if not allow_latex:
-            chunks.append(MessageChunk(type="text", text=line))
-            continue
+    if not allow_latex:
+        if text: # Avoid adding chunk for empty string
+            chunks.append(MessageChunk(type="text", text=text))
+        return chunks
 
-        subchunks = []
-        last_index = 0
-        for m in inline_latex_pattern.finditer(line):
-            start, end = m.span()
-            if start > last_index:
-                plain = line[last_index:start]
-                if plain:
-                    subchunks.append(MessageChunk(type="text", text=plain))
-            latex_str = m.group(0)
-            content = latex_str[1:-1].strip() if latex_str.startswith("$") else latex_str[2:-2].strip()
-            subchunks.append(MessageChunk(type="latex_inline", text=content))
-            last_index = end
-        if last_index < len(line):
-            remaining = line[last_index:]
-            if remaining:
-                subchunks.append(MessageChunk(type="text", text=remaining))
-        if len(subchunks) == 1 and subchunks[0].type == "text":
-            chunks.append(subchunks[0])
-        elif subchunks:
-            chunks.append(MessageChunk(type="inline_chunks", text="", subchunks=subchunks))
-    return chunks
+    # Pattern for $...$ (excluding $$) and \(...\)
+    # Ensures $ is not preceded/followed by $ or backslash (for $$ or \$)
+    inline_latex_pattern = re.compile(
+        r'(?<![\$\\])\$(?!\$)(.+?)(?<![\$\\])\$(?!\$)|' # $...$ (no $$ or escaped \$)
+        r'\\\((.+?)\\\)',                               # \(...\)
+        re.DOTALL # Allow matching across newlines? Usually inline latex is single line. Let's remove DOTALL.
+    )
+    # Corrected inline_latex_pattern without DOTALL
+    inline_latex_pattern = re.compile(
+        r'(?<![\$\\])\$(?!\$)(.+?)(?<![\$\\])\$(?!\$)|' # $...$ (no $$ or escaped \$)
+        r'\\\((.+?)\\\)'                               # \(...\)
+    )
+
+
+    last_index = 0
+    for m in inline_latex_pattern.finditer(text):
+        start, end = m.span()
+        # Add text before the match
+        if start > last_index:
+            plain_text = text[last_index:start]
+            chunks.append(MessageChunk(type="text", text=plain_text))
+
+        # Add the inline latex chunk
+        content = m.group(1) or m.group(2) # Group 1 for $..$, Group 2 for \(..\)
+        if content is not None:
+            chunks.append(MessageChunk(type="latex_inline", text=content.strip()))
+        last_index = end
+
+    # Add any remaining text after the last match
+    if last_index < len(text):
+        remaining_text = text[last_index:]
+        chunks.append(MessageChunk(type="text", text=remaining_text))
+
+    # Filter out empty text chunks that might result from regex artifacts
+    return [c for c in chunks if c.type != "text" or c.text != ""]
+
 
 def process_text_segment_no_think(text: str, allow_latex: bool) -> List[MessageChunk]:
-    text = text.strip()
+    """Processes a text segment without think tags, handling tables and latex."""
     if not text:
         return []
-    
-    # First extract tables, then process remaining text
-    chunks = []
-    for chunk in extract_tables(text):
+
+    # This function produces a FLAT list of basic chunks (Text, Table, Latex, LatexInline)
+    # The grouping into InlineChunks happens later.
+    final_chunks = []
+    table_and_text_parts = extract_tables(text) # Returns Text and Table chunks
+
+    for chunk in table_and_text_parts:
         if chunk.type == "table":
-            chunks.append(chunk)
-        elif chunk.type == "text" and allow_latex:
-            chunks.extend(process_text_with_display_latex(chunk.text, allow_latex))
-        else:
-            chunks.extend(process_inline_by_line(chunk.text, allow_latex))
-    return chunks
+            final_chunks.append(chunk) # Add table directly
+        elif chunk.type == "text":
+            # Process this text part for display and inline latex
+            latex_processed_parts = process_text_with_display_latex(chunk.text, allow_latex)
+            # Extend the final list. These parts are already Text, Latex, LatexInline
+            final_chunks.extend(latex_processed_parts) # Extend, don't use append_chunk here
+
+    return final_chunks
+
 
 def process_text_segment(text: str, allow_latex: bool) -> List[MessageChunk]:
-    chunks = []
+    """Processes text segment potentially containing <think> tags."""
+    # This function also produces a FLAT list, handling think tags.
+    flat_chunks = []
     think_pattern = re.compile(r'<think>(.*?)</think>', re.DOTALL)
     last_index = 0
+
     for m in think_pattern.finditer(text):
         start, end = m.span()
         if start > last_index:
             pre_text = text[last_index:start]
-            chunks.extend(process_text_segment_no_think(pre_text, allow_latex))
+            # Get flat list for segment before think tag
+            processed_pre_chunks = process_text_segment_no_think(pre_text, allow_latex)
+            flat_chunks.extend(processed_pre_chunks)
+
+        # Add the think chunk directly
         think_content = m.group(1).strip()
-        chunks.append(MessageChunk(type="thinking", text=think_content))
+        if think_content: # Avoid empty think tags? Or keep them? Keep for now.
+            flat_chunks.append(MessageChunk(type="thinking", text=think_content))
         last_index = end
+
+    # Process text after the last think block
     if last_index < len(text):
         remainder = text[last_index:]
-        chunks.extend(process_text_segment_no_think(remainder, allow_latex))
-    return chunks
+        processed_post_chunks = process_text_segment_no_think(remainder, allow_latex)
+        flat_chunks.extend(processed_post_chunks)
 
+    return flat_chunks
+
+
+# ============================================================
+# Main Function with Fix (Grouping Step Added)
+# ============================================================
 def get_message_chunks(message: str, allow_latex: bool = True) -> List[MessageChunk]:
-    chunks = []
-    codeblock_pattern = re.compile(r'```(\w+)?\n(.*?)\n```', re.DOTALL)
+    """
+    Main function to parse message into chunks. Includes a final step
+    to group consecutive Text and LatexInline chunks into InlineChunks.
+    """
+    # Step 1: Parse Code Blocks and process intermediate text segments
+    flat_chunks = []
+    codeblock_pattern = re.compile(r'^\s*```(\w*)\s*\n(.*?)\n^\s*```\s*$', re.DOTALL | re.MULTILINE)
     last_end = 0
+
     for match in codeblock_pattern.finditer(message):
         start, end = match.span()
+        # Process text before the code block -> returns flat list
         if start > last_end:
             pre_text = message[last_end:start]
-            for chunk in process_text_segment(pre_text, allow_latex):
-                append_chunk(chunks, chunk)
-        lang = match.group(1) if match.group(1) else ""
+            processed_pre_chunks = process_text_segment(pre_text, allow_latex)
+            flat_chunks.extend(processed_pre_chunks)
+
+        # Add the code block chunk
+        lang = match.group(1).strip() if match.group(1) else ""
         code = match.group(2)
-        append_chunk(chunks, MessageChunk(type="codeblock", text=code, lang=lang))
+        flat_chunks.append(MessageChunk(type="codeblock", text=code, lang=lang))
         last_end = end
+
+    # Process any remaining text after the last code block -> returns flat list
     if last_end < len(message):
         post_text = message[last_end:]
-        for chunk in process_text_segment(post_text, allow_latex):
-            append_chunk(chunks, chunk)
-    return chunks
+        processed_post_chunks = process_text_segment(post_text, allow_latex)
+        flat_chunks.extend(processed_post_chunks)
 
-# Test the code
-if __name__ == "__main__":
-    test_message = """
-Here's a table:
+    # Step 2: Group consecutive Text and LatexInline chunks into InlineChunks
+    grouped_chunks = []
+    current_inline_sequence = []
 
-| Header 1 | Header 2 |
-|----------|----------|
-| Cell 1   | Cell 2   |
+    # Merge adjacent text chunks in the flat list *first* before grouping
+    # This simplifies the grouping logic slightly. Use append_chunk's logic.
+    merged_flat_chunks = []
+    for chunk in flat_chunks:
+         # Apply merging logic as if we were building the list with append_chunk
+         if chunk.type == "text" and merged_flat_chunks and merged_flat_chunks[-1].type == "text":
+             merged_flat_chunks[-1].text += "\n" + chunk.text # Simple newline merge for now
+         elif chunk.type == "text" and chunk.text == "" and merged_flat_chunks and merged_flat_chunks[-1].type == "text":
+             merged_flat_chunks[-1].text += "\n" # Represent blank line
+         elif chunk.type == "text" and chunk.text == "":
+             # Skip adding completely empty text chunks if they stand alone initially?
+             # Let's keep them for now, might represent structure. Append if list is empty or prev is non-text
+             if not merged_flat_chunks or merged_flat_chunks[-1].type != "text":
+                  merged_flat_chunks.append(chunk)
+         else:
+             merged_flat_chunks.append(chunk)
+    # Filter truly empty text chunks that might remain after merging
+    merged_flat_chunks = [c for c in merged_flat_chunks if c.type != "text" or c.text != ""]
 
-Some text after the table.
-"""
-    chunks = get_message_chunks(test_message)
-    for chunk in chunks:
-        print(str(chunk))
+
+    # Now group the merged flat list
+    for chunk in merged_flat_chunks:
+        is_inline_constituent = chunk.type in ("text", "latex_inline")
+
+        if is_inline_constituent:
+            current_inline_sequence.append(chunk)
+        else:
+            # End of an inline sequence (or none existed)
+            if current_inline_sequence:
+                # Check if the sequence qualifies for wrapping
+                is_mixed_or_multiple = (len(current_inline_sequence) > 1 or
+                                        any(c.type == "latex_inline" for c in current_inline_sequence))
+
+                if is_mixed_or_multiple:
+                    grouped_chunks.append(MessageChunk(type="inline_chunks", text="", subchunks=current_inline_sequence))
+                else:
+                    # Only a single text chunk, add it directly
+                    grouped_chunks.append(current_inline_sequence[0])
+                current_inline_sequence = [] # Reset sequence
+
+            # Add the non-inline chunk
+            grouped_chunks.append(chunk)
+
+    # After the loop, handle any remaining inline sequence
+    if current_inline_sequence:
+        is_mixed_or_multiple = (len(current_inline_sequence) > 1 or
+                                any(c.type == "latex_inline" for c in current_inline_sequence))
+        if is_mixed_or_multiple:
+            grouped_chunks.append(MessageChunk(type="inline_chunks", text="", subchunks=current_inline_sequence))
+        else:
+             # Only a single text chunk
+            grouped_chunks.append(current_inline_sequence[0])
+
+    return grouped_chunks
