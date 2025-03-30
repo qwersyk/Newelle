@@ -1903,7 +1903,7 @@ class MainWindow(Gtk.ApplicationWindow):
             data.append([cell.strip() for cell in cells])
         model = Gtk.ListStore(*[str] * len(data[0]))
         for row in data[1:]:
-            if not all(element == "-" * len(element) for element in row):
+            if not all(len(element.replace(":", "").replace(" ", "").replace("-", "").strip()) == 0 for element in row):
                 model.append(row)
         self.treeview = Gtk.TreeView(model=model, css_classes=["toolbar", "view", "transparent"])
 
