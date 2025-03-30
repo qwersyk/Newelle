@@ -3,7 +3,7 @@ import html
 import xml 
 import xml.dom.minidom
 import json
-
+from gi.repository import GLib
 
 def quote_string(s):
     if "'" in s:
@@ -11,36 +11,127 @@ def quote_string(s):
     else:
         return "'" + s + "'"
 
+
 def markwon_to_pango(markdown_text):
-    markdown_text = html.escape(markdown_text)
-    initial_string = markdown_text
-    # Convert bold text
-    markdown_text = re.sub(r'\*\*(.*?)\*\*', r'<b>\1</b>', markdown_text)
+    """
+    Converts a subset of Markdown text to Pango markup.
+
+    Supports:
+    - Bold: **text** -> <b>text</b>
+    - Italic: *text* -> <i>text</i>
+    - Monospace: `text` -> <tt>text</tt>
+    - Strikethrough: ~text~ -> <span strikethrough="true">text</span>
+    - Subscript: _(text) or _digit -> <sub>text</sub> or <sub>digit</sub>
+    - Superscript: ^(text) or ^digit -> <sup>text</sup> or <sup>digit</sup>
+    - Links: [text](url) -> <a href="url">text</a>
+    - Headers: # text -> <span font_weight="bold" font_size="...">text</span> (up to H6)
+    - Unordered Lists: -/*/+ item ->   • item (with indentation)
+    """
+    # Escape potential Pango/XML characters first to avoid issues
+    # with user input containing <, >, &
+    escaped_text = GLib.markup_escape_text(markdown_text)
+    initial_string = escaped_text # Keep the escaped version as fallback
+
+    processed_text = escaped_text
+
+    # --- Block Formatting ---
+
+    # Convert Unordered Lists
+    # Looks for lines starting with optional whitespace, then -, *, or +, then a space.
+    # Captures the leading whitespace (indent) and the list item text.
+    # Replaces with the original indent, two spaces, a bullet, and the text.
+    # Using lambda to reconstruct allows preserving original indent before adding list indent.
+    processed_text = re.sub(
+        r'^([ \t]*)([-*+])[ \t]+(.*)$',  # Capture: (indent)(marker) (text)
+        lambda match: f'{match.group(1)}  • {match.group(3)}', # Replace: indent + "  • " + text
+        processed_text,
+        flags=re.MULTILINE
+    )
     
+    # Convert bold text
+    processed_text = re.sub(r'\*\*(?!\s)(.*?)(?<!\s)\*\*', r'<b>\1</b>', processed_text)
+
     # Convert italic text
-    markdown_text = re.sub(r'\*(.*?)\*', r'<i>\1</i>', markdown_text)
+    processed_text = re.sub(r'(?<!\*)\*(?!\s|\*)(.*?)(?<!\s|\*)\*(?!\*)', r'<i>\1</i>', processed_text)
 
     # Convert monospace text
-    markdown_text = re.sub(r'`(.*?)`', r'<tt>\1</tt>', markdown_text)
+    processed_text = re.sub(r'`(.*?)`', r'<tt>\1</tt>', processed_text)
 
     # Convert strikethrough text
-    markdown_text = re.sub(r'~(.*?)~', r'<span strikethrough="true">\1</span>', markdown_text)
+    processed_text = re.sub(r'~(.*?)~', r'<span strikethrough="true">\1</span>', processed_text)
+
+    # Convert exponents and subscripts (handle digits or parenthesized text)
+    processed_text = re.sub(r'_(\d+|\([^)]+\))', lambda m: f'<sub>{m.group(1).strip("()")}</sub>', processed_text)
+    processed_text = re.sub(r'\^(\d+|\([^)]+\))', lambda m: f'<sup>{m.group(1).strip("()")}</sup>', processed_text)
     
     # Convert links
-    markdown_text = re.sub(r'\[(.*?)\]\((.*?)\)', r'<a href="\2">\1</a>', markdown_text)
-    
-    # Convert headers
+    processed_text = re.sub(r'\[(.*?)\]\((.*?)\)', r'<a href="\2">\1</a>', processed_text)
+
+
+    # Convert headers (needs to be after lists potentially, though headers usually don't have list markers)
     absolute_sizes = ['xx-small', 'x-small', 'small', 'medium', 'large', 'x-large', 'xx-large']
-    markdown_text = re.sub(r'^(#+) (.*)$', lambda match: f'<span font_weight="bold" font_size="{absolute_sizes[6 - len(match.group(1))]}">{match.group(2)}</span>', markdown_text, flags=re.MULTILINE)
-    
-    # Check if the generated text is valid. If not just print it unformatted
+    # Make sure header regex doesn't consume list items if they somehow start with #
+    processed_text = re.sub(
+        r'^[ \t]*(#+)[ \t]+(.*)$', 
+        lambda match: f'<span font_weight="bold" font_size="{absolute_sizes[min(len(absolute_sizes)-1, 6 - len(match.group(1)))]}">{match.group(2).strip()}</span>',
+        processed_text,
+        flags=re.MULTILINE
+    )
+
     try:
-        xml.dom.minidom.parseString("<html>" + markdown_text + "</html>")
+        check_text = processed_text.replace('&', '&')
+        xml.dom.minidom.parseString(f"<span>{check_text}</span>")
+        return processed_text
     except Exception as e:
-        print(markdown_text)
-        print(e)
+        print(f"Pango conversion warning: Generated markup might be invalid. Error: {e}")
+        print("Problematic Markup:\n", processed_text)
+        return simple_markdown_to_pango(initial_string)
+
+def simple_markdown_to_pango(markdown_text):
+    """
+    Converts a subset of Markdown text to Pango markup. (Used as a Fallback)
+
+    Supports:
+    - Bold: **text** -> <b>text</b>
+    - Italic: *text* -> <i>text</i>
+    - Links: [text](url) -> <a href="url">text</a>
+    - Headers: # text -> <span font_weight="bold" font_size="...">text</span> (up to H6)
+    """
+    # Escape potential Pango/XML characters first to avoid issues
+    # with user input containing <, >, &
+    escaped_text = GLib.markup_escape_text(markdown_text)
+    initial_string = escaped_text # Keep the escaped version as fallback
+
+    processed_text = escaped_text
+ 
+    # Convert bold text
+    processed_text = re.sub(r'\*\*(?!\s)(.*?)(?<!\s)\*\*', r'<b>\1</b>', processed_text)
+
+    # Convert italic text
+    processed_text = re.sub(r'(?<!\*)\*(?!\s|\*)(.*?)(?<!\s|\*)\*(?!\*)', r'<i>\1</i>', processed_text)
+
+    # Convert links
+    processed_text = re.sub(r'\[(.*?)\]\((.*?)\)', r'<a href="\2">\1</a>', processed_text)
+
+
+    # Convert headers (needs to be after lists potentially, though headers usually don't have list markers)
+    absolute_sizes = ['xx-small', 'x-small', 'small', 'medium', 'large', 'x-large', 'xx-large']
+    # Make sure header regex doesn't consume list items if they somehow start with #
+    processed_text = re.sub(
+        r'^[ \t]*(#+)[ \t]+(.*)$', 
+        lambda match: f'<span font_weight="bold" font_size="{absolute_sizes[min(len(absolute_sizes)-1, 6 - len(match.group(1)))]}">{match.group(2).strip()}</span>',
+        processed_text,
+        flags=re.MULTILINE
+    )
+
+    try:
+        check_text = processed_text.replace('&', '&')
+        xml.dom.minidom.parseString(f"<span>{check_text}</span>")
+        return processed_text
+    except Exception as e:
+        print(f"Pango conversion warning (Simple): Generated markup might be invalid. Error: {e}")
+        print("Problematic Markup (Simple):\n", processed_text)
         return initial_string
-    return markdown_text
 
 def human_readable_size(size: float, decimal_places:int =2) -> str:
     size = int(size)
