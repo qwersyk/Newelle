@@ -55,6 +55,8 @@ class GeminiHandler(LLMHandler):
                 models = client.models.list()
                 result = tuple()
                 for model in models:
+                    if "embedding" in model.display_name.lower() or "legacy" in model.display_name.lower():
+                        continue
                     result += ((model.display_name, model.name,),)
                 self.models = result
                 self.set_setting("models", json.dumps(result))
