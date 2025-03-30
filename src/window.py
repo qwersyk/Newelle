@@ -32,7 +32,7 @@ from .constants import AVAILABLE_LLMS, AVAILABLE_PROMPTS, PROMPTS, AVAILABLE_TTS
 from .utility import override_prompts
 from .utility.system import get_spawn_command 
 from .utility.pip import install_module
-from .utility.strings import convert_think_codeblocks, get_edited_messages, markwon_to_pango, remove_markdown, remove_thinking_blocks
+from .utility.strings import convert_think_codeblocks, get_edited_messages, markwon_to_pango, remove_markdown, remove_thinking_blocks, simple_markdown_to_pango
 from .utility.replacehelper import replace_variables
 from .utility.profile_settings import get_settings_dict, restore_settings_from_dict
 from .utility.audio_recorder import AudioRecorder
@@ -1830,7 +1830,11 @@ class MainWindow(Gtk.ApplicationWindow):
                     else:
                         box.append(CopyBox(chunk.text, code_language, parent=self))
                 elif chunk.type == "table":
-                    box.append(self.create_table(chunk.text.split("\n")))
+                    try:
+                        box.append(self.create_table(chunk.text.split("\n")))
+                    except Exception as e:
+                        print(e)
+                        box.append(CopyBox(chunk.text, "table", parent=self))
                 elif chunk.type == "inline_chunks":
                     if chunk.subchunks is None:
                         continue
@@ -1906,12 +1910,15 @@ class MainWindow(Gtk.ApplicationWindow):
         model = Gtk.ListStore(*[str] * len(data[0]))
         for row in data[1:]:
             if not all(len(element.replace(":", "").replace(" ", "").replace("-", "").strip()) == 0 for element in row):
-                model.append(row)
+                r = []
+                for element in row:
+                    r.append(simple_markdown_to_pango(element))
+                model.append(r)
         self.treeview = Gtk.TreeView(model=model, css_classes=["toolbar", "view", "transparent"])
 
         for i, title in enumerate(data[0]):
             renderer = Gtk.CellRendererText()
-            column = Gtk.TreeViewColumn(title, renderer, text=i)
+            column = Gtk.TreeViewColumn(title, renderer, markup=i)
             self.treeview.append_column(column)
         return self.treeview
     
