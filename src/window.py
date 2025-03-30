@@ -1,3 +1,4 @@
+import cairo
 from pylatexenc.latex2text import LatexNodes2Text
 import time 
 import re 
@@ -1770,28 +1771,30 @@ class MainWindow(Gtk.ApplicationWindow):
                                 margin_bottom=10, margin_end=10
                             )
                             text_expander.set_expanded(False)
+                            box.append(text_expander)
                             path = ""
                             reply_from_the_console = None
                             if self.chat[min(id_message, len(self.chat) - 1)]["User"] == "Console":
                                 reply_from_the_console = self.chat[min(id_message, len(self.chat) - 1)]["Message"]
-                            if not restore:
-                                path = os.path.normpath(self.main_path)
-                                code = self.execute_terminal_command(value)
-                            else:
-                                code = (True, reply_from_the_console)
-                            val = '\n'.join(value)
-                            text = f"[User {path}]:$ {val}\n{code[1]}"
-                            text_expander.set_child(
-                                Gtk.Label(wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR, label=text,
-                                          selectable=True))
-                            if not code[0]:
-                                self.add_message("Error", text_expander)
-                            elif restore:
-                                self.add_message("Assistant", text_expander)
-                            else:
-                                self.add_message("Done", text_expander)
-                            if not restore:
-                                self.chat.append({"User": "Console", "Message": " " + str(code[1])})
+                            def getresponse(path): 
+                                if not restore:
+                                    path = os.path.normpath(self.main_path)
+                                    code = self.execute_terminal_command(value)
+                                else:
+                                    code = (True, reply_from_the_console)
+                                text = f"[User {path}]:$ {value}\n{code[1]}"
+                                if not restore:
+                                    self.chat.append({"User": "Console", "Message": " " + str(code[1])})
+                                def apply_sync():
+                                    text_expander.set_child(
+                                        Gtk.Label(wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR, label=text,
+                                                  selectable=True)) 
+                                    if not code[0]:
+                                        self.add_message("Error", text_expander)
+                                GLib.idle_add(apply_sync)
+                            t = threading.Thread(target=getresponse, args=(path,))
+                            t.start()
+                            running_threads.append(t)
                         else:
                             if not restore:
                                 self.chat.append({"User": "Console", "Message": "None"})
@@ -2231,7 +2234,7 @@ class MainWindow(Gtk.ApplicationWindow):
         console_permissions = ""
         if not self.controller.newelle_settings.virtualization:
             console_permissions = " ".join(get_spawn_command())
-        commands = ('\n'.join(command)).split(" && ")
+        commands = command.split(" && ")
         txt = ""
         path = self.main_path
         for t in commands:

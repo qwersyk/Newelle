@@ -115,7 +115,7 @@ class CopyBox(Gtk.Box):
 
     def run_console(self, widget,multithreading=False):
         if multithreading:
-            code = self.parent.execute_terminal_command(self.txt.split("\n"))
+            code = self.parent.execute_terminal_command(self.txt)
             self.set_output(code[1])
             def update_ui():
                 icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="media-playback-start-symbolic"))
