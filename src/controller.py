@@ -99,12 +99,12 @@ class NewelleController:
         self.config_dir = GLib.get_user_config_dir()
         self.data_dir = GLib.get_user_data_dir()
         self.cache_dir = GLib.get_user_cache_dir()
-
+        self.chats_path = os.path.join(os.path.dirname(self.data_dir), "datachats.pkl")
         if not is_flatpak():
             self.config_dir = os.path.join(self.config_dir, DIR_NAME)
             self.data_dir = os.path.join(self.config_dir, DIR_NAME)
             self.cache_dir = os.path.join(self.cache_dir, DIR_NAME)
-
+            self.chats_path = os.path.join(self.data_dir, "chats.pkl")
 
         self.pip_path = os.path.join(self.config_dir, "pip")
         self.models_dir = os.path.join(self.config_dir, "models")
@@ -116,8 +116,8 @@ class NewelleController:
     def load_chats(self, chat_id):
         """Load chats"""
         self.filename = "chats.pkl"
-        if os.path.exists(os.path.join(self.data_dir, self.filename)):
-            with open(os.path.join(self.data_dir, self.filename), 'rb') as f:
+        if os.path.exists(self.chats_path):
+            with open(self.chats_path, 'rb') as f:
                 self.chats = pickle.load(f)
         else:
             self.chats = [{"name": _("Chat ") + "1", "chat": []}]
@@ -125,7 +125,7 @@ class NewelleController:
    
     def save_chats(self):
         """Save chats"""
-        with open(os.path.join(self.data_dir, self.filename), 'wb') as f:
+        with open(self.chats_path, 'wb') as f:
             pickle.dump(self.chats, f)
 
     def check_path_integrity(self):
@@ -181,7 +181,7 @@ class NewelleController:
         elif reload_type == ReloadType.SECONDARY_LLM and self.newelle_settings.use_secondary_language_model:
             self.handlers.select_handlers(self.newelle_settings)
             threading.Thread(target=self.handlers.secondary_llm.load_model, args=(None,)).start()
-        elif reload_type == ReloadType.TTS or reload_type == ReloadType.STT or reload_type == ReloadType.MEMORIES:
+        elif reload_type in [ReloadType.TTS, ReloadType.STT, ReloadType.MEMORIES]:
             self.handlers.select_handlers(self.newelle_settings)
         elif reload_type == ReloadType.RAG:
             self.handlers.select_handlers(self.newelle_settings)
@@ -290,6 +290,7 @@ class NewelleSettings:
         self.prompts_settings = json.loads(self.settings.get_string("prompts-settings")) 
         self.extensions_settings = self.settings.get_string("extensions-settings")
         self.username = self.settings.get_string("user-name")
+        self.zoom = self.settings.get_int("zoom")
         self.load_prompts()
         # Adjust paths
         if os.path.exists(os.path.expanduser(self.main_path)):
