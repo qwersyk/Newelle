@@ -53,7 +53,8 @@ class MainWindow(Gtk.ApplicationWindow):
         self.extensionloader = self.controller.extensionloader
         self.chat_id = self.controller.newelle_settings.chat_id
         self.main_path = self.controller.newelle_settings.main_path
-        
+        # Set zoom 
+        self.set_zoom(self.controller.newelle_settings.zoom)
         # Update the settings
         self.first_load = True
         self.update_settings()
@@ -352,6 +353,13 @@ class MainWindow(Gtk.ApplicationWindow):
         if not self.settings.get_boolean("welcome-screen-shown"):
             GLib.idle_add(self.show_presentation_window) 
         GLib.timeout_add(10, build_model_popup)
+
+    def set_zoom(self, zoom):
+        settings = Gtk.Settings.get_default()
+        if settings is not None:
+            settings.reset_property('gtk-xft-dpi')
+            settings.set_property('gtk-xft-dpi',  settings.get_property('gtk-xft-dpi') + (zoom - 100) * 400) 
+    
     def build_quick_toggles(self):
         self.quick_toggles = Gtk.MenuButton(css_classes=["flat"], icon_name="controls-big")
         self.quick_toggles_popover = Gtk.Popover()
@@ -423,13 +431,15 @@ class MainWindow(Gtk.ApplicationWindow):
 
     def quick_settings_update(self):
         """Update settings from the quick settings"""
-        self.controller.update_settings()
+        reloads = self.controller.update_settings()
         self.model = self.controller.handlers.llm
         self.tts_enabled = self.controller.newelle_settings.tts_enabled
         self.rag_on = self.controller.newelle_settings.rag_on
         self.rag_on_documents = self.controller.newelle_settings.rag_on_documents
         self.memory_on = self.controller.newelle_settings.memory_on
         self.update_model_popup()
+        if ReloadType.LLM in reloads:
+            self.reload_buttons()
 
     def update_settings(self):
         """Update settings, run every time the program is started or settings dialog closed""" 
@@ -458,8 +468,14 @@ class MainWindow(Gtk.ApplicationWindow):
         # Setup TTS
         self.tts.connect('start', lambda: GLib.idle_add(self.mute_tts_button.set_visible, True))
         self.tts.connect('stop', lambda: GLib.idle_add(self.mute_tts_button.set_visible, False))
-            
+        if ReloadType.LLM in reloads:
+            self.reload_buttons()
+           
+    def reload_buttons(self):
+        """Reload offers and buttons on LLM change"""
+        print("ae")
         if not self.first_load:
+            print("ae12")
             self.build_offers()
             if (not self.model.supports_vision() and not self.model.supports_video_vision() 
                     and len(self.model.get_supported_files()) + (len(self.rag_handler.get_supported_files()) if self.rag_handler is not None else 0) == 0):
@@ -474,7 +490,6 @@ class MainWindow(Gtk.ApplicationWindow):
                     self.video_recorder = None
             self.screen_record_button.set_visible(self.model.supports_video_vision() and not self.attached_image_data)
             self.chat_header.set_title_widget(self.build_model_popup())
-         
     # Model popup 
     def update_model_popup(self):
         """Update the label in the popup"""
@@ -1444,11 +1459,6 @@ class MainWindow(Gtk.ApplicationWindow):
         if self.memory_on or self.rag_on:
             prompts += self.get_memory_prompt()
 
-        # If the model is not installed, install it
-        if not self.model.is_installed():
-            print("Installing the model...")
-            self.model.install()
-            self.update_settings()
         # Set the history for the model
         history = self.get_history()
         # Let extensions preprocess the history 
@@ -1822,7 +1832,7 @@ class MainWindow(Gtk.ApplicationWindow):
                             box.append(BarChartBox(result, percentages))
                     elif code_language == "latex":
                         try:
-                            box.append(DisplayLatex(chunk.text, 100))
+                            box.append(DisplayLatex(chunk.text, 100, self.controller.cache_dir))
                         except Exception as e:
                             print(e)
                             box.append(CopyBox(chunk.text, code_language, parent=self))
@@ -1851,7 +1861,7 @@ class MainWindow(Gtk.ApplicationWindow):
                                          use_markup=True))
                 elif chunk.type == "latex" or chunk.type == "latex_inline":
                     try:
-                        box.append(DisplayLatex(chunk.text, 100))
+                        box.append(DisplayLatex(chunk.text, 100, self.controller.cache_dir))
                     except Exception:
                         print(chunk.text)
                         box.append(CopyBox(chunk.text, "latex", parent=self))
@@ -1892,7 +1902,7 @@ class MainWindow(Gtk.ApplicationWindow):
                     threading.Thread(target=wait_threads_sm).start()
         GLib.idle_add(self.scrolled_chat)
         self.save_chat()
-
+ 
     def create_table(self, table):
         """Create a table
 

@@ -3,27 +3,27 @@ import matplotlib.pyplot as plt
 import uuid
 import os 
 
-class DisplayLatex(Gtk.Box):
-    cachedir = GLib.get_user_data_dir()
- 
-    def __init__(self, latex:str, size:int) -> None:
+class DisplayLatex(Gtk.Box): 
+    def __init__(self, latex:str, size:int, cache_dir: str) -> None:
         super().__init__()
+        self.cachedir = cache_dir
         self.size = size
         overlay = Gtk.Overlay() 
         color = self.get_style_context().lookup_color("window_fg_color")[1]
         id = latex + str(size) + str(color.red) + str(color.green) + str(color.blue)
 
         self.latex = latex 
-# Create equation image
-        plt.figure()
-        plt.text(0.5, 0.5, r'$' + latex + r'$', fontsize=size, ha='center', va='center', color=(color.red, color.blue, color.green)) 
+        # Create equation image
+        fig = plt.figure()
+        fig.patch.set_alpha(0)
+        plt.text(0.5, 0.5, r'$' + latex + r'$', fontsize=size, ha='center', va='center', color=(color.red, color.blue, color.green))  
         plt.axis('off')
-# Get file name and save it in the cache
-        fname = os.path.join(self.cachedir, uuid.uuid4().hex + '-symbolic.svg')
+        # Get file name and save it in the cache
+        fname = os.path.join(self.cachedir, "latex" + '-symbolic.svg')
 
         plt.tight_layout(pad=0)
         plt.savefig(fname, transparent=True, bbox_inches='tight', pad_inches=0)
-# Create Gtk.Picture
+        # Create Gtk.Picture
         self.picture = Gtk.Picture()
         self.picture.set_file(Gio.File.new_for_path(fname)) 
         self.picture.set_size_request(-1, size)

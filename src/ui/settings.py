@@ -22,6 +22,7 @@ from ..controller import NewelleController
 class Settings(Adw.PreferencesWindow):
     def __init__(self,app, controller: NewelleController,headless=False, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.app = app
         self.controller = controller
         self.settings = controller.settings
         if not headless:
@@ -168,6 +169,15 @@ class Settings(Adw.PreferencesWindow):
         self.interface = Adw.PreferencesGroup(title=_('Interface'))
         self.general_page.add(self.interface)
 
+        row = Adw.ActionRow(title=_("Interface Size"), subtitle=_("Adjust the size of the interface"))
+        spin = Adw.SpinRow(adjustment=Gtk.Adjustment(lower=100, upper=250, value=self.controller.newelle_settings.zoom, page_increment=20, step_increment=10))
+        row.add_suffix(spin)
+        def update_zoom(x,y):
+            self.controller.settings.set_int("zoom", spin.get_value())
+            self.app.win.set_zoom(spin.get_value())
+        spin.connect("input", update_zoom)
+        self.interface.add(row)
+
         row = Adw.ActionRow(title=_("Hidden files"), subtitle=_("Show hidden files"))
         switch = Gtk.Switch(valign=Gtk.Align.CENTER)
         row.add_suffix(switch)
@@ -248,7 +258,7 @@ class Settings(Adw.PreferencesWindow):
         self.add(self.PromptsPage)
         self.add(self.MemoryPage)
         self.add(self.general_page)
-
+ 
     def build_rag_settings(self):
         self.RAG = Adw.PreferencesGroup(title=_('Document Sources (RAG)'), description=_("Include content from your documents in the responses"))
         tts_program = Adw.ExpanderRow(title=_('Document Analyzer'), subtitle=_("The document analyzer uses multiple techniques to extract relevant information about your documents"))
@@ -437,8 +447,8 @@ class Settings(Adw.PreferencesWindow):
         else:
             return
         self.settings.set_string(setting_name, button.get_name())
-        self.controller.update_settings()
-        if constants == AVAILABLE_RAGS:
+        if constants == AVAILABLE_RAGS or constants == AVAILABLE_EMBEDDINGS:
+            self.controller.update_settings()
             self.update_rag_index()
 
     def add_extra_settings(self, constants : dict[str, Any], handler : Handler, row : Adw.ExpanderRow, nested_settings : list | None = None):

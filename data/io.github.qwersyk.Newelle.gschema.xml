@@ -134,5 +134,8 @@
 	      <key name="startup-mode" type="s">
           <default>"normal"</default>
         </key>
+        <key name="zoom" type="i">
+          <default>100</default>
+        </key>
 	</schema>
 </schemalist>
