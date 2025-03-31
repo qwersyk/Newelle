@@ -182,7 +182,7 @@ def process_text_with_display_latex(text: str, allow_latex: bool) -> List[Messag
 
 def process_inline_elements(text: str, allow_latex: bool) -> List[MessageChunk]:
     """
-    Processes text segment for inline latex ($...$ or \(...\)).
+    Processes text segment for inline latex ($...$ or \\(...\\)).
     Returns a flat list of Text and LatexInline chunks for this segment.
     The calling function will decide how to integrate these.
     """

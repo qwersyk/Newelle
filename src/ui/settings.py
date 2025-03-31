@@ -556,7 +556,10 @@ class Settings(Adw.PreferencesWindow):
         if "refresh" in setting:
             refresh_icon = setting.get("refresh_icon", "view-refresh-symbolic")
             refreshbutton = Gtk.Button(icon_name=refresh_icon, valign=Gtk.Align.CENTER, css_classes=["flat"])
-            refreshbutton.connect("clicked", setting["refresh"])
+            def refresh_setting(button, cb=setting["refresh"], refresh_icon=refresh_icon):
+                refreshbutton.set_child(Gtk.Spinner(spinning=True))
+                cb(button)
+            refreshbutton.connect("clicked", refresh_setting)
             r.add_suffix(refreshbutton)
         return r 
     

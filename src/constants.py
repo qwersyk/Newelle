@@ -52,7 +52,7 @@ AVAILABLE_LLMS = {
     "openai": {
         "key": "openai",
         "title": _("OpenAI API"),
-        "description": _("OpenAI API"),
+        "description": _("OpenAI API. Custom endpoints supported. Use this for custom providers"),
         "class": OpenAIHandler,
     },
     "claude": {
