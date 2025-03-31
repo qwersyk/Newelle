@@ -416,6 +416,10 @@ class HandlersManager:
         self.rag.set_handlers(self.llm, self.embedding)
         threading.Thread(target=self.install_missing_handlers).start()
 
+    def set_error_func(self, func):
+        for handler in self.handlers.values():
+            handler.set_error_func(func)
+
     def load_handlers(self):
         """Load handlers"""
         self.llm.load_model(None)

@@ -1,6 +1,14 @@
 import os, json
 from ..utility.pip import find_module, install_module
 from typing import Any
+from enum import Enum
+
+
+class ErrorSeverity(Enum):
+    """Severity of the error"""
+    NONE = 0
+    WARNING = 1
+    ERROR = 2
 
 class Handler():
     """Handler for a module"""
@@ -11,6 +19,21 @@ class Handler():
         self.settings = settings
         self.path = path
         self.pip_path = os.path.join(os.path.abspath(os.path.join(self.path, os.pardir)), "pip")
+        self.error_func = None
+
+    def set_error_func(self, func):
+        """Set the error function for the handler. The function must take the error message and ErrorSeverity as arguments"""
+        self.error_func = func
+
+    def throw(self, message : str, severity : ErrorSeverity = ErrorSeverity.WARNING):
+        """Throw an error message
+
+        Args:
+            message (str): The error message
+            severity (ErrorSeverity, optional): The severity of the error. Defaults to ErrorSeverity.WARNING.
+        """
+        if self.error_func:
+            self.error_func(message, severity)
 
     def set_secondary(self, secondary: bool):
         """Set the secondary settings for the LLM"""
