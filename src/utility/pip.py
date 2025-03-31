@@ -3,7 +3,6 @@ import subprocess
 import sys
 import os 
 
-RUNTIME_INSTALLED = []
 def is_module_available(module_name: str) -> bool:
     """
     Checks if a module can be found by the import system without importing it.
@@ -18,7 +17,7 @@ def is_module_available(module_name: str) -> bool:
         True if the module specification can be found, False otherwise.
             Returns True immediately if the module is already imported.
     """
-    if module_name in sys.modules or module_name in RUNTIME_INSTALLED:
+    if module_name in sys.modules:
         return True
     try:
         spec = importlib.util.find_spec(module_name)
@@ -50,8 +49,4 @@ def install_module(module, path):
         print("Downloading pip...")
         subprocess.check_output(["bash", "-c", "cd " + os.path.dirname(path) + " && wget https://bootstrap.pypa.io/get-pip.py && python get-pip.py"])
     r = subprocess.run([sys.executable, "-m", "pip", "install","--target", path, "--upgrade", module], capture_output=False) 
-    if runtime_find_module(module) is None:
-        print("Failed to install module " + module)
-    else:
-        RUNTIME_INSTALLED.append(module)
     return r

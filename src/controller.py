@@ -145,7 +145,7 @@ class NewelleController:
         else:
             threading.Thread(target=self.init_pip_path, args=(self.python_path,)).start()
 
-    def init_pip_path(self):
+    def init_pip_path(self, path):
         """Install a pip module to init a pip path"""
         install_module("pip-install-test", self.pip_path)
         self.python_path.append(self.pip_path)
