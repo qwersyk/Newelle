@@ -1,10 +1,15 @@
 import os 
 import subprocess
 from .system import get_spawn_command
-
+import time
 
 class ReplaceHelper:
     DISTRO = None
+    controller = None
+
+    @staticmethod
+    def set_controller(controller):
+        ReplaceHelper.controller = controller
 
     @staticmethod
     def get_distribution() -> str:
@@ -30,6 +35,18 @@ class ReplaceHelper:
             desktop = "Unknown"
         return desktop
 
+    @staticmethod
+    def get_user() -> str:
+        """
+        Get the user
+
+        Returns:
+            str: user name
+            
+        """
+        if ReplaceHelper.controller is None:
+            return "User"
+        return ReplaceHelper.controller.newelle_settings.username
 
 def replace_variables(text: str) -> str:
     """
@@ -38,6 +55,8 @@ def replace_variables(text: str) -> str:
         {DIR}: current directory
         {DISTRO}: distribution name
         {DE}: desktop environment
+        {USER}: user's username
+        {DATE}: current date
 
     Args:
         text: text of the prompt
@@ -50,4 +69,8 @@ def replace_variables(text: str) -> str:
         text = text.replace("{DISTRO}", ReplaceHelper.get_distribution())
     if "{DE}" in text:
         text = text.replace("{DE}", ReplaceHelper.get_desktop_environment())
+    if "{DATE}" in text:
+        text = text.replace("{DATE}", str(time.strftime("%H:%M %Y-%m-%d")))
+    if "{USER}" in text:
+        text = text.replace("{USER}", ReplaceHelper.get_user())
     return text

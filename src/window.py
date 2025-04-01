@@ -27,7 +27,7 @@ from .constants import AVAILABLE_LLMS
 
 from .utility.system import get_spawn_command 
 from .utility.strings import convert_think_codeblocks, get_edited_messages, markwon_to_pango, remove_markdown, remove_thinking_blocks, simple_markdown_to_pango
-from .utility.replacehelper import replace_variables
+from .utility.replacehelper import replace_variables, ReplaceHelper
 from .utility.profile_settings import get_settings_dict, restore_settings_from_dict
 from .utility.audio_recorder import AudioRecorder
 from .utility.media import extract_supported_files
@@ -46,6 +46,7 @@ class MainWindow(Gtk.ApplicationWindow):
         # Init controller
         self.controller = NewelleController(sys.path)
         self.controller.ui_init()
+        ReplaceHelper.set_controller(self.controller)
         # Set basic vars
         self.chats = self.controller.chats
         self.chat = self.controller.chat
@@ -453,6 +454,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.memory_on = self.controller.newelle_settings.memory_on
         self.rag_on = self.controller.newelle_settings.rag_on
         self.tts_enabled = self.controller.newelle_settings.tts_enabled
+        self.virtualization = self.controller.newelle_settings.virtualization
         # Handlers
         self.tts = self.controller.handlers.tts
         self.stt = self.controller.handlers.stt
@@ -473,9 +475,7 @@ class MainWindow(Gtk.ApplicationWindow):
            
     def reload_buttons(self):
         """Reload offers and buttons on LLM change"""
-        print("ae")
         if not self.first_load:
-            print("ae12")
             self.build_offers()
             if (not self.model.supports_vision() and not self.model.supports_video_vision() 
                     and len(self.model.get_supported_files()) + (len(self.rag_handler.get_supported_files()) if self.rag_handler is not None else 0) == 0):
@@ -519,7 +519,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.model_menu_button.set_popover(self.model_popup)
         self.model_popup.connect("closed", lambda x: GLib.idle_add(self.quick_settings_update))
         self.model_popup.set_child(box)
-        return self.model_menu_button
+        return self.model_menu_button 
 
     def steal_from_settings(self, widget):
         widget.unparent()

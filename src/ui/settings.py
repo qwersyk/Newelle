@@ -215,7 +215,7 @@ class Settings(Adw.PreferencesWindow):
         self.settings.bind("offers", int_spin, 'value', Gio.SettingsBindFlags.DEFAULT)
         self.interface.add(row)
         
-        row = Adw.ActionRow(title=_("Username"), subtitle=_("Change the label that appears before your message\nThis information is not sent to the LLM"))
+        row = Adw.ActionRow(title=_("Username"), subtitle=_("Change the label that appears before your message\nThis information is not sent to the LLM by default\nYou can add it to a prompt using the {USER} variable"))
         entry = Gtk.Entry(text=self.controller.newelle_settings.username, valign=Gtk.Align.CENTER)
         entry.connect("changed", lambda entry: self.settings.set_string("user-name", entry.get_text()))
         row.add_suffix(entry)
