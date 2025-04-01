@@ -50,6 +50,7 @@ class PresentationWindow(Adw.Window):
 
     def close_window(self,_=None):
         self.settings.set_boolean("welcome-screen-shown", True)
+        self.app.win.update_settings()
         self.destroy()
     def page_changes(self, carousel, page):
         """Called when a page of the carousel is changed. Changes the opacity of the next and previous buttons"""
