@@ -85,4 +85,6 @@ def replace_variables(text: str) -> str:
         text = text.replace("{DATE}", str(time.strftime("%H:%M %Y-%m-%d")))
     if "{USER}" in text:
         text = text.replace("{USER}", ReplaceHelper.get_user())
+    if "{DISPLAY}" in text:
+        text = text.replace("{DISPLAY}", ReplaceHelper.gisplay_server())
     return text
