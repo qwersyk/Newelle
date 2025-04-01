@@ -368,6 +368,7 @@ class MainWindow(Gtk.ApplicationWindow):
             {"setting_name": "rag-on", "title": "Local Documents"},
             {"setting_name": "memory-on", "title": "Long Term Memory"},
             {"setting_name": "tts-on", "title": "TTS"},
+            {"setting_name": "virtualization", "title": "Command virutalization"}
         ]
 
         container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
