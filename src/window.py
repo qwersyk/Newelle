@@ -27,7 +27,7 @@ from .constants import AVAILABLE_LLMS
 
 from .utility.system import get_spawn_command 
 from .utility.strings import convert_think_codeblocks, get_edited_messages, markwon_to_pango, remove_markdown, remove_thinking_blocks, simple_markdown_to_pango
-from .utility.replacehelper import replace_variables
+from .utility.replacehelper import replace_variables, ReplaceHelper
 from .utility.profile_settings import get_settings_dict, restore_settings_from_dict
 from .utility.audio_recorder import AudioRecorder
 from .utility.media import extract_supported_files
@@ -46,6 +46,7 @@ class MainWindow(Gtk.ApplicationWindow):
         # Init controller
         self.controller = NewelleController(sys.path)
         self.controller.ui_init()
+        ReplaceHelper.set_controller(self.controller)
         # Set basic vars
         self.chats = self.controller.chats
         self.chat = self.controller.chat
@@ -53,7 +54,8 @@ class MainWindow(Gtk.ApplicationWindow):
         self.extensionloader = self.controller.extensionloader
         self.chat_id = self.controller.newelle_settings.chat_id
         self.main_path = self.controller.newelle_settings.main_path
-        
+        # Set zoom 
+        self.set_zoom(self.controller.newelle_settings.zoom)
         # Update the settings
         self.first_load = True
         self.update_settings()
@@ -152,6 +154,9 @@ class MainWindow(Gtk.ApplicationWindow):
         self.chat_scroll_window = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, css_classes=["background", "view"])
         self.chat_scroll.set_child(self.chat_scroll_window)
         drop_target = Gtk.DropTarget.new(GObject.TYPE_STRING, Gdk.DragAction.COPY)
+        drop_target.connect('drop', self.handle_file_drag)
+        self.chat_scroll.add_controller(drop_target)
+        drop_target = Gtk.DropTarget.new(Gdk.FileList, Gdk.DragAction.COPY)
         drop_target.connect('drop', self.handle_file_drag)
         self.chat_scroll.add_controller(drop_target)
         self.chat_scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
@@ -352,6 +357,13 @@ class MainWindow(Gtk.ApplicationWindow):
         if not self.settings.get_boolean("welcome-screen-shown"):
             GLib.idle_add(self.show_presentation_window) 
         GLib.timeout_add(10, build_model_popup)
+
+    def set_zoom(self, zoom):
+        settings = Gtk.Settings.get_default()
+        if settings is not None:
+            settings.reset_property('gtk-xft-dpi')
+            settings.set_property('gtk-xft-dpi',  settings.get_property('gtk-xft-dpi') + (zoom - 100) * 400) 
+    
     def build_quick_toggles(self):
         self.quick_toggles = Gtk.MenuButton(css_classes=["flat"], icon_name="controls-big")
         self.quick_toggles_popover = Gtk.Popover()
@@ -359,6 +371,7 @@ class MainWindow(Gtk.ApplicationWindow):
             {"setting_name": "rag-on", "title": "Local Documents"},
             {"setting_name": "memory-on", "title": "Long Term Memory"},
             {"setting_name": "tts-on", "title": "TTS"},
+            {"setting_name": "virtualization", "title": "Command virutalization"}
         ]
 
         container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
@@ -423,13 +436,15 @@ class MainWindow(Gtk.ApplicationWindow):
 
     def quick_settings_update(self):
         """Update settings from the quick settings"""
-        self.controller.update_settings()
+        reloads = self.controller.update_settings()
         self.model = self.controller.handlers.llm
         self.tts_enabled = self.controller.newelle_settings.tts_enabled
         self.rag_on = self.controller.newelle_settings.rag_on
         self.rag_on_documents = self.controller.newelle_settings.rag_on_documents
         self.memory_on = self.controller.newelle_settings.memory_on
         self.update_model_popup()
+        if ReloadType.LLM in reloads:
+            self.reload_buttons()
 
     def update_settings(self):
         """Update settings, run every time the program is started or settings dialog closed""" 
@@ -443,6 +458,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.memory_on = self.controller.newelle_settings.memory_on
         self.rag_on = self.controller.newelle_settings.rag_on
         self.tts_enabled = self.controller.newelle_settings.tts_enabled
+        self.virtualization = self.controller.newelle_settings.virtualization
         # Handlers
         self.tts = self.controller.handlers.tts
         self.stt = self.controller.handlers.stt
@@ -458,7 +474,11 @@ class MainWindow(Gtk.ApplicationWindow):
         # Setup TTS
         self.tts.connect('start', lambda: GLib.idle_add(self.mute_tts_button.set_visible, True))
         self.tts.connect('stop', lambda: GLib.idle_add(self.mute_tts_button.set_visible, False))
-            
+        if ReloadType.LLM in reloads:
+            self.reload_buttons()
+           
+    def reload_buttons(self):
+        """Reload offers and buttons on LLM change"""
         if not self.first_load:
             self.build_offers()
             if (not self.model.supports_vision() and not self.model.supports_video_vision() 
@@ -474,7 +494,6 @@ class MainWindow(Gtk.ApplicationWindow):
                     self.video_recorder = None
             self.screen_record_button.set_visible(self.model.supports_video_vision() and not self.attached_image_data)
             self.chat_header.set_title_widget(self.build_model_popup())
-         
     # Model popup 
     def update_model_popup(self):
         """Update the label in the popup"""
@@ -504,7 +523,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.model_menu_button.set_popover(self.model_popup)
         self.model_popup.connect("closed", lambda x: GLib.idle_add(self.quick_settings_update))
         self.model_popup.set_child(box)
-        return self.model_menu_button
+        return self.model_menu_button 
 
     def steal_from_settings(self, widget):
         widget.unparent()
@@ -941,6 +960,11 @@ class MainWindow(Gtk.ApplicationWindow):
             self.notification_block.add_toast(
                 Adw.Toast(title=_('The file cannot be sent until the program is finished'), timeout=2))
             return False
+        if type(data) is Gdk.FileList: 
+            paths = []
+            for file in data.get_files():
+                paths += [file.get_path()]
+            data = "\n".join(paths)
         for path in data.split("\n"):
             if os.path.exists(path):
                 message_label = self.get_file_button(path)
@@ -1444,11 +1468,6 @@ class MainWindow(Gtk.ApplicationWindow):
         if self.memory_on or self.rag_on:
             prompts += self.get_memory_prompt()
 
-        # If the model is not installed, install it
-        if not self.model.is_installed():
-            print("Installing the model...")
-            self.model.install()
-            self.update_settings()
         # Set the history for the model
         history = self.get_history()
         # Let extensions preprocess the history 
@@ -1822,7 +1841,7 @@ class MainWindow(Gtk.ApplicationWindow):
                             box.append(BarChartBox(result, percentages))
                     elif code_language == "latex":
                         try:
-                            box.append(DisplayLatex(chunk.text, 100))
+                            box.append(DisplayLatex(chunk.text, 100, self.controller.cache_dir))
                         except Exception as e:
                             print(e)
                             box.append(CopyBox(chunk.text, code_language, parent=self))
@@ -1851,7 +1870,7 @@ class MainWindow(Gtk.ApplicationWindow):
                                          use_markup=True))
                 elif chunk.type == "latex" or chunk.type == "latex_inline":
                     try:
-                        box.append(DisplayLatex(chunk.text, 100))
+                        box.append(DisplayLatex(chunk.text, 100, self.controller.cache_dir))
                     except Exception:
                         print(chunk.text)
                         box.append(CopyBox(chunk.text, "latex", parent=self))
@@ -1892,7 +1911,7 @@ class MainWindow(Gtk.ApplicationWindow):
                     threading.Thread(target=wait_threads_sm).start()
         GLib.idle_add(self.scrolled_chat)
         self.save_chat()
-
+ 
     def create_table(self, table):
         """Create a table
 

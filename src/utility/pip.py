@@ -36,11 +36,12 @@ def find_module(full_module_name):
     Exception is raised if (existing) module raises exception during its import.
     """
     return is_module_available(full_module_name) if is_module_available(full_module_name) else None
+
+def runtime_find_module(full_module_name):
     try:
         return importlib.import_module(full_module_name)
     except Exception as _:
         return None
-
 
 def install_module(module, path):
     print(path)

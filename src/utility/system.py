@@ -1,6 +1,17 @@
 import subprocess
 import os 
 
+def is_wayland() -> bool:
+    """
+    Check if we are in a Wayland environment
+
+    Returns:
+        bool: True if we are in a Wayland environment
+    """
+    if os.getenv("WAYLAND_DISPLAY"):
+        return True
+    return False
+
 def is_flatpak() -> bool:
     """
     Check if we are in a flatpak
