@@ -156,6 +156,9 @@ class MainWindow(Gtk.ApplicationWindow):
         drop_target = Gtk.DropTarget.new(GObject.TYPE_STRING, Gdk.DragAction.COPY)
         drop_target.connect('drop', self.handle_file_drag)
         self.chat_scroll.add_controller(drop_target)
+        drop_target = Gtk.DropTarget.new(Gdk.FileList, Gdk.DragAction.COPY)
+        drop_target.connect('drop', self.handle_file_drag)
+        self.chat_scroll.add_controller(drop_target)
         self.chat_scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
         self.chat_scroll_window.append(self.chat_list_block)
         self.notification_block = Adw.ToastOverlay()
@@ -957,6 +960,11 @@ class MainWindow(Gtk.ApplicationWindow):
             self.notification_block.add_toast(
                 Adw.Toast(title=_('The file cannot be sent until the program is finished'), timeout=2))
             return False
+        if type(data) is Gdk.FileList: 
+            paths = []
+            for file in data.get_files():
+                paths += [file.get_path()]
+            data = "\n".join(paths)
         for path in data.split("\n"):
             if os.path.exists(path):
                 message_label = self.get_file_button(path)
