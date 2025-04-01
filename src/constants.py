@@ -256,7 +256,8 @@ Always prioritize accuracy, relevance, and user experience in your responses.
     "console": """ **System Capabilities:**  
 You have the ability to execute commands on the user's Linux computer.  
 - **Linux Distribution:** `{DISTRO}`  
-- **Desktop Environment** `{DESKTOP}`
+- **Desktop Environment** `{DE}`
+- **Display Server** `{DISPLAY}`
 **Command Execution Format:**  
 - To execute a Linux command, use:  
 ```console  

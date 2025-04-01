@@ -2,6 +2,7 @@ import os
 import subprocess
 from .system import get_spawn_command
 import time
+from .system import is_wayland 
 
 class ReplaceHelper:
     DISTRO = None
@@ -27,7 +28,18 @@ class ReplaceHelper:
                 ReplaceHelper.DISTRO = "Unknown"
         
         return ReplaceHelper.DISTRO
-    
+
+    @staticmethod
+    def gisplay_server() -> str:
+        """
+        Get the server
+
+        Returns:
+            str: server name
+            
+        """ 
+        return "Wayland" if is_wayland() else "X11"
+
     @staticmethod
     def get_desktop_environment() -> str:
         desktop = os.getenv("XDG_CURRENT_DESKTOP")
