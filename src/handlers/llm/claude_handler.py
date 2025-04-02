@@ -25,6 +25,9 @@ class ClaudeHandler(LLMHandler):
     def supports_vision(self) -> bool:
         return True 
 
+    def get_models_list(self):
+        return self.models
+
     def convert_history(self, history) -> list:
         base_history = convert_history_openai(history, [], False)
         if self.supports_vision():
