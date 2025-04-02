@@ -150,14 +150,15 @@ class NewelleController:
         install_module("pip-install-test", self.pip_path)
         self.python_path.append(self.pip_path)
 
-    def update_settings(self):
+    def update_settings(self, apply=True):
         """Update settings"""
         newsettings = NewelleSettings()
         newsettings.load_settings(self.settings)
         reload = self.newelle_settings.compare_settings(newsettings)
-        self.newelle_settings = newsettings
-        for r in reload:
-            self.reload(r)
+        if apply:
+            self.newelle_settings = newsettings
+            for r in reload:
+                self.reload(r)
         return reload
 
     def reload(self, reload_type: ReloadType):

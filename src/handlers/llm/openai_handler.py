@@ -19,6 +19,9 @@ class OpenAIHandler(LLMHandler):
         else:
             self.models = json.loads(self.get_setting("models", False))
 
+    def get_models_list(self):
+        return self.models
+
     def get_models(self):
         if self.is_installed():
             try:

@@ -39,7 +39,9 @@ class OllamaHandler(LLMHandler):
         else:
             self.models_info = {}
             threading.Thread(target=self.get_models_infomation, args=()).start()
-   
+
+    def get_models_list(self):
+        return self.models
     def get_models_infomation(self):
         """Get information about models on ollama.com"""
         if self.is_installed(): 

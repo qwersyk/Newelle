@@ -16,6 +16,12 @@ class LLMHandler(Handler):
         self.settings = settings
         self.path = path
 
+    def get_models_list(self):
+        return tuple()
+
+    def get_selected_model(self):
+        return self.get_setting("model")
+
     def set_secondary_settings(self, secondary: bool):
         """Set the secondary settings for the LLM"""
         if secondary:

@@ -32,8 +32,12 @@ class GeminiHandler(LLMHandler):
             self.models = json.loads(self.get_setting("models", False))
             self.fix_models_format()
 
+    def get_models_list(self):
+        return self.models
+
     def stream_enabled(self) -> bool:
         return True
+    
     def fix_models_format(self):
         m = tuple()
         for model in self.models:
