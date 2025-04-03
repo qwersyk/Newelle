@@ -39,7 +39,7 @@ from .utility.profile_settings import get_settings_dict, restore_settings_from_d
 from .utility.audio_recorder import AudioRecorder
 from .utility.media import extract_supported_files
 from .ui.screenrecorder import ScreenRecorder
-
+from .handlers import ErrorSeverity
 from .controller import NewelleController, ReloadType
 
 
@@ -444,6 +444,17 @@ class MainWindow(Gtk.ApplicationWindow):
         if not self.settings.get_boolean("welcome-screen-shown"):
             GLib.idle_add(self.show_presentation_window)
         GLib.timeout_add(10, build_model_popup)
+        self.controller.handlers.set_error_func(self.handle_error)
+
+    def handle_error(self,message: str, error: ErrorSeverity):
+        if error == ErrorSeverity.ERROR:
+            dialog = Adw.AlertDialog(title=_("Provider Errror"), body=message)        
+            dialog.add_response("close", "Close")
+            dialog.set_response_appearance("close", Adw.ResponseAppearance.DESTRUCTIVE)
+            dialog.connect("response", lambda d, r: d.close())
+            dialog.present()
+        elif error == ErrorSeverity.WARNING:
+            self.notification_block.add_toast(Adw.Toast.new(message))
 
     def set_zoom(self, zoom):
         settings = Gtk.Settings.get_default()
@@ -557,7 +568,7 @@ class MainWindow(Gtk.ApplicationWindow):
         if ReloadType.RELOAD_CHAT in reloads:
             self.show_chat()
         if ReloadType.RELOAD_CHAT_LIST in reloads:
-            self.update_history()
+            self.update_history() 
         # Setup TTS
         self.tts.connect(
             "start", lambda: GLib.idle_add(self.mute_tts_button.set_visible, True)
@@ -943,9 +954,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.recorder.stop_recording(
             os.path.join(self.controller.cache_dir, "recording.wav")
         )
-        self.stop_recording_ui(self.recording_button)
-        t = threading.Thread(target=self.stop_recording_async)
-        t.start()
+        #self.auto_stop_recording()
 
     def stop_recording_ui(self, button):
         """Update the UI to show that the recording has been stopped"""
@@ -962,7 +971,7 @@ class MainWindow(Gtk.ApplicationWindow):
         result = recognizer.recognize_file(
             os.path.join(self.controller.cache_dir, "recording.wav")
         )
-
+        print("Result: ", result)
         def idle_record():
             if (
                 result is not None

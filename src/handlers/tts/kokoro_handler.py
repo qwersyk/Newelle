@@ -1,12 +1,14 @@
 from .tts import TTSHandler
 from ...utility.pip import install_module, find_module
-
+from ..handler import ErrorSeverity
 
 class KokoroTTSHandler(TTSHandler):
     key = "kokoro"
     def install(self):
         install_module("kokoro>=0.8.4", self.pip_path)
         install_module("soundfile", self.pip_path)
+        if not self.is_installed():
+            self.throw("Kokoro installation failed", ErrorSeverity.ERROR)
 
     def is_installed(self) -> bool:
         return find_module("kokoro") is not None and find_module("soundfile") is not None
