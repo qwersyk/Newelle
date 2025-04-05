@@ -73,12 +73,12 @@ class MainWindow(Gtk.ApplicationWindow):
         self.first_load = True
         self.update_settings()
         self.first_load = False
-
+        
         # Helper vars
         self.streams = []
         self.last_error_box = None
         self.edit_entries = {}
-
+        self.auto_run_times = 0
         # Build Window
         self.set_titlebar(Gtk.Box())
         self.chat_panel = Gtk.Box(hexpand_set=True, hexpand=True)
@@ -523,14 +523,11 @@ class MainWindow(Gtk.ApplicationWindow):
 
     def update_toggles(self, *_):
         """Update the quick toggles"""
-        self.tts_enabled = self.settings.get_boolean("tts-on")
-        self.rag_on = self.settings.get_boolean("rag-on")
-        self.memory_on = self.settings.get_boolean("memory-on")
-        if not self.first_load:
-            if self.rag_on or self.memory_on:
-                self.embeddings.load_model()
-            if self.rag_on:
-                self.rag_handler.load()
+        self.controller.update_settings()
+        self.tts_enabled = self.controller.newelle_settings.tts_enabled
+        self.rag_on = self.controller.newelle_settings.rag_on
+        self.memory_on = self.controller.newelle_settings.memory_on
+        self.virtualization = self.controller.newelle_settings.virtualization
 
     def quick_settings_update(self):
         """Update settings from the quick settings"""
@@ -1928,8 +1925,10 @@ class MainWindow(Gtk.ApplicationWindow):
                 args=(bot_response, self.chat),
             ).start()
 
-    def send_message(self):
+    def send_message(self, manual=True):
         """Send a message in the chat and get bot answer, handle TTS etc"""
+        if manual:
+            self.auto_run_times = 0
         self.stream_number_variable += 1
         stream_number_variable = self.stream_number_variable
         self.status = False
@@ -2360,7 +2359,7 @@ class MainWindow(Gtk.ApplicationWindow):
                         if self.controller.newelle_settings.auto_run and not any(
                             command in chunk.text
                             for command in ["rm ", "apt ", "sudo ", "yum ", "mkfs "]
-                        ):
+                        ) and self.auto_run_times < self.controller.newelle_settings.max_run_times:
                             has_terminal_command = True
                             value = chunk.text
                             text_expander = Gtk.Expander(
@@ -2415,6 +2414,8 @@ class MainWindow(Gtk.ApplicationWindow):
                             t = threading.Thread(target=getresponse, args=(path,))
                             t.start()
                             running_threads.append(t)
+                            if not restore:
+                                self.auto_run_times += 1
                         else:
                             if not restore:
                                 self.chat.append({"User": "Console", "Message": "None"})
@@ -2544,7 +2545,7 @@ class MainWindow(Gtk.ApplicationWindow):
                         for t in running_threads:
                             t.join()
                         if len(running_threads) > 0:
-                            self.send_message()
+                            self.send_message(manual=False)
 
                     self.chats[self.chat_id]["chat"] = self.chat
                     threading.Thread(target=wait_threads_sm).start()
