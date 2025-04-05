@@ -141,9 +141,15 @@ class Settings(Adw.PreferencesWindow):
         self.prompt = Adw.PreferencesGroup(title=_('Prompt control'))
         self.PromptsPage.add(self.prompt)
 
-        row = Adw.ActionRow(title=_("Auto-run commands"), subtitle=_("Commands that the bot will write will automatically run"))
+        row = Adw.ExpanderRow(title=_("Auto-run commands"), subtitle=_("Commands that the bot will write will automatically run"))
         switch = Gtk.Switch(valign=Gtk.Align.CENTER)
         row.add_suffix(switch)
+        spin = Adw.SpinRow(title=_("Max number of commands"), subtitle=_("Maximum number of commands that the bot will write after a single user request"), adjustment=Gtk.Adjustment(lower=0, upper=30,  page_increment=1, value=self.settings.get_int("max-run-times"), step_increment=1))
+        def update_spin(spin, input):
+            self.settings.set_int("max-run-times", int(spin.get_value()))
+            return False
+        spin.connect("input", update_spin)
+        row.add_row(spin)
         self.settings.bind("auto-run", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
         self.prompt.add(row)
 
