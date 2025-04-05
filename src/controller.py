@@ -292,6 +292,7 @@ class NewelleSettings:
         self.extensions_settings = self.settings.get_string("extensions-settings")
         self.username = self.settings.get_string("user-name")
         self.zoom = self.settings.get_int("zoom")
+        self.max_run_times = self.settings.get_int("max-run-times")
         self.load_prompts()
         # Adjust paths
         if os.path.exists(os.path.expanduser(self.main_path)):

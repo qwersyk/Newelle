@@ -101,6 +101,7 @@ stt_sources = [
   'handlers/stt/sphinx_handler.py',
   'handlers/stt/witai_handler.py',
   'handlers/stt/whisper_handler.py',
+  'handlers/stt/whispercpp_handler.py',
   'handlers/stt/custom_handler.py',
   'handlers/stt/vosk_handler.py',
 ]

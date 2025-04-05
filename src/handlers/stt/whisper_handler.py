@@ -1,5 +1,6 @@
 from .stt import STTHandler
 from ...utility.pip import find_module
+from ..handler import ErrorSeverity
 
 class WhisperHandler(STTHandler):
     key = "whisper"
@@ -41,9 +42,13 @@ class WhisperHandler(STTHandler):
     def install(self):
         print("Installing whisper...")
         super().install()
-        import whisper
-        print("Whisper installed, installing tiny model...")
-        whisper.load_model("tiny")
+        try:
+            import whisper
+            print("Whisper installed, installing tiny model...")
+            whisper.load_model("tiny")
+        except Exception as e:
+            return
+            self.throw("Error installing Whisper: " + str(e), ErrorSeverity.ERROR)
 
     def recognize_file(self, path):
         import whisper

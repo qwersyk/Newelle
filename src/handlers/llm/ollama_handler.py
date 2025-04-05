@@ -5,6 +5,8 @@ from subprocess import Popen
 from typing import Any, Callable
 import time
 
+from ..handler import ErrorSeverity
+
 from .llm import LLMHandler
 from ...utility.system import can_escape_sandbox, get_spawn_command
 from ...utility.media import extract_image
@@ -90,7 +92,7 @@ class OllamaHandler(LLMHandler):
         self.model_library = new_library
         self.set_setting("model-library", self.model_library)
 
-    def get_models(self):
+    def get_models(self, manual = False):
         """Get the list of installed models in ollama"""
         if not self.is_installed():
             return
@@ -102,7 +104,8 @@ class OllamaHandler(LLMHandler):
         try:
             models = client.list()["models"]
         except Exception as e:
-            print("Can't get Ollama models: ", e)
+            if manual:
+                self.throw("Can't get Ollama models: " + str(e), ErrorSeverity.WARNING)
             return
         res = tuple()
         for model in models:
@@ -155,7 +158,7 @@ class OllamaHandler(LLMHandler):
                     _("Name of the Ollama Model"),
                     self.models,
                     default,
-                    refresh= lambda x: self.get_models(),
+                    refresh= lambda x: self.get_models(manual=True),
                 )
             )
         else:

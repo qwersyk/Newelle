@@ -137,5 +137,8 @@
         <key name="zoom" type="i">
           <default>100</default>
         </key>
+        <key name="max-run-times" type="i">
+          <default>5</default>
+        </key>
 	</schema>
 </schemalist>

@@ -39,7 +39,7 @@ from .utility.profile_settings import get_settings_dict, restore_settings_from_d
 from .utility.audio_recorder import AudioRecorder
 from .utility.media import extract_supported_files
 from .ui.screenrecorder import ScreenRecorder
-
+from .handlers import ErrorSeverity
 from .controller import NewelleController, ReloadType
 
 
@@ -73,12 +73,12 @@ class MainWindow(Gtk.ApplicationWindow):
         self.first_load = True
         self.update_settings()
         self.first_load = False
-
+        
         # Helper vars
         self.streams = []
         self.last_error_box = None
         self.edit_entries = {}
-
+        self.auto_run_times = 0
         # Build Window
         self.set_titlebar(Gtk.Box())
         self.chat_panel = Gtk.Box(hexpand_set=True, hexpand=True)
@@ -444,6 +444,17 @@ class MainWindow(Gtk.ApplicationWindow):
         if not self.settings.get_boolean("welcome-screen-shown"):
             GLib.idle_add(self.show_presentation_window)
         GLib.timeout_add(10, build_model_popup)
+        self.controller.handlers.set_error_func(self.handle_error)
+
+    def handle_error(self,message: str, error: ErrorSeverity):
+        if error == ErrorSeverity.ERROR:
+            dialog = Adw.AlertDialog(title=_("Provider Errror"), body=message)        
+            dialog.add_response("close", "Close")
+            dialog.set_response_appearance("close", Adw.ResponseAppearance.DESTRUCTIVE)
+            dialog.connect("response", lambda d, r: d.close())
+            dialog.present()
+        elif error == ErrorSeverity.WARNING:
+            self.notification_block.add_toast(Adw.Toast.new(message))
 
     def set_zoom(self, zoom):
         settings = Gtk.Settings.get_default()
@@ -512,14 +523,11 @@ class MainWindow(Gtk.ApplicationWindow):
 
     def update_toggles(self, *_):
         """Update the quick toggles"""
-        self.tts_enabled = self.settings.get_boolean("tts-on")
-        self.rag_on = self.settings.get_boolean("rag-on")
-        self.memory_on = self.settings.get_boolean("memory-on")
-        if not self.first_load:
-            if self.rag_on or self.memory_on:
-                self.embeddings.load_model()
-            if self.rag_on:
-                self.rag_handler.load()
+        self.controller.update_settings()
+        self.tts_enabled = self.controller.newelle_settings.tts_enabled
+        self.rag_on = self.controller.newelle_settings.rag_on
+        self.memory_on = self.controller.newelle_settings.memory_on
+        self.virtualization = self.controller.newelle_settings.virtualization
 
     def quick_settings_update(self):
         """Update settings from the quick settings"""
@@ -557,7 +565,7 @@ class MainWindow(Gtk.ApplicationWindow):
         if ReloadType.RELOAD_CHAT in reloads:
             self.show_chat()
         if ReloadType.RELOAD_CHAT_LIST in reloads:
-            self.update_history()
+            self.update_history() 
         # Setup TTS
         self.tts.connect(
             "start", lambda: GLib.idle_add(self.mute_tts_button.set_visible, True)
@@ -629,13 +637,13 @@ class MainWindow(Gtk.ApplicationWindow):
         # Add the existing pages
         llm_page = self.steal_from_settings(settings.LLM)
         stack.add_titled_with_icon(
-            llm_page,
+            self.scrollable(llm_page),
             title="LLM",
             name="LLM",
             icon_name="brain-augemnted-symbolic",
         )
         stack.add_titled_with_icon(
-            self.steal_from_settings(settings.prompt),
+            self.scrollable(self.steal_from_settings(settings.prompt)),
             title="Prompts",
             name="Prompts",
             icon_name="question-round-outline-symbolic",
@@ -644,9 +652,8 @@ class MainWindow(Gtk.ApplicationWindow):
             stack.set_visible_child(llm_page)
         switcher = Adw.ViewSwitcher()
         switcher.set_stack(stack)
-        scroll.set_child(stack)
         box.append(switcher)
-        box.append(scroll)
+        box.append(stack)
         self.model_menu_button.set_popover(self.model_popup)
         self.model_popup.connect(
             "closed", lambda x: GLib.idle_add(self.quick_settings_update)
@@ -662,9 +669,10 @@ class MainWindow(Gtk.ApplicationWindow):
 
     def build_model_selection(self):
         # Create a vertical box with some spacing & margins
+        provider_title = AVAILABLE_LLMS[self.model.key]["title"]
         if len(self.model.get_models_list()) == 0:
             return Gtk.Label(label=_("This provider does not have a model list"), wrap=True)
-        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0, margin_top=10)
+        vbox = Adw.PreferencesGroup(title=provider_title + _(" Models"))
 
         # Create a ListBox in SINGLE selection mode with activate-on-single-click
         models_list = Gtk.ListBox()
@@ -704,7 +712,7 @@ class MainWindow(Gtk.ApplicationWindow):
             models_list.get_style_context().add_class("transparent")
             models_list.append(listbox_row)
 
-        vbox.append(models_list)
+        vbox.add(models_list)
 
         # "+" button to open the full settings
         plus_button = Gtk.Button(label="+")
@@ -713,7 +721,7 @@ class MainWindow(Gtk.ApplicationWindow):
             "clicked",
             lambda btn: self.get_application().lookup_action("settings").activate(None),
         )
-        vbox.append(plus_button)
+        vbox.add(plus_button)
 
         return vbox 
 
@@ -731,7 +739,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.update_model_popup()
 
 
-    def scrollable(self, widget):
+    def scrollable(self, widget) -> Gtk.ScrolledWindow:
         scroll = Gtk.ScrolledWindow()
         scroll.set_child(widget)
         scroll.set_vexpand(True)
@@ -943,9 +951,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.recorder.stop_recording(
             os.path.join(self.controller.cache_dir, "recording.wav")
         )
-        self.stop_recording_ui(self.recording_button)
-        t = threading.Thread(target=self.stop_recording_async)
-        t.start()
+        #self.auto_stop_recording()
 
     def stop_recording_ui(self, button):
         """Update the UI to show that the recording has been stopped"""
@@ -962,7 +968,7 @@ class MainWindow(Gtk.ApplicationWindow):
         result = recognizer.recognize_file(
             os.path.join(self.controller.cache_dir, "recording.wav")
         )
-
+        print("Result: ", result)
         def idle_record():
             if (
                 result is not None
@@ -1919,8 +1925,10 @@ class MainWindow(Gtk.ApplicationWindow):
                 args=(bot_response, self.chat),
             ).start()
 
-    def send_message(self):
+    def send_message(self, manual=True):
         """Send a message in the chat and get bot answer, handle TTS etc"""
+        if manual:
+            self.auto_run_times = 0
         self.stream_number_variable += 1
         stream_number_variable = self.stream_number_variable
         self.status = False
@@ -2351,7 +2359,7 @@ class MainWindow(Gtk.ApplicationWindow):
                         if self.controller.newelle_settings.auto_run and not any(
                             command in chunk.text
                             for command in ["rm ", "apt ", "sudo ", "yum ", "mkfs "]
-                        ):
+                        ) and self.auto_run_times < self.controller.newelle_settings.max_run_times:
                             has_terminal_command = True
                             value = chunk.text
                             text_expander = Gtk.Expander(
@@ -2406,6 +2414,8 @@ class MainWindow(Gtk.ApplicationWindow):
                             t = threading.Thread(target=getresponse, args=(path,))
                             t.start()
                             running_threads.append(t)
+                            if not restore:
+                                self.auto_run_times += 1
                         else:
                             if not restore:
                                 self.chat.append({"User": "Console", "Message": "None"})
@@ -2535,7 +2545,7 @@ class MainWindow(Gtk.ApplicationWindow):
                         for t in running_threads:
                             t.join()
                         if len(running_threads) > 0:
-                            self.send_message()
+                            self.send_message(manual=False)
 
                     self.chats[self.chat_id]["chat"] = self.chat
                     threading.Thread(target=wait_threads_sm).start()

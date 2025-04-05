@@ -7,6 +7,7 @@ from .vosk_handler import VoskHandler
 from .whisper_handler import WhisperHandler 
 from .groqsr_handler import GroqSRHandler
 from .openaisr_handler import OpenAISRHandler
+from .whispercpp_handler import WhisperCPPHandler
 
 __all__ = [
     "STTHandler",
@@ -17,5 +18,6 @@ __all__ = [
     "VoskHandler",
     "WhisperHandler",
     "GroqSRHandler",
-    "OpenAISRHandler"
+    "OpenAISRHandler",
+    "WhisperCPPHandler"
 ]

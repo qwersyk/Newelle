@@ -1,7 +1,7 @@
 
 from .handlers.llm import ClaudeHandler, DeepseekHandler, GPT4AllHandler, GroqHandler, OllamaHandler, OpenAIHandler, CustomLLMHandler, GPT3AnyHandler, GeminiHandler, MistralHandler, OpenRouterHandler, NewelleAPIHandler
 from .handlers.tts import ElevenLabs, gTTSHandler, EspeakHandler, CustomTTSHandler, KokoroTTSHandler
-from .handlers.stt import GroqSRHandler, OpenAISRHandler, SphinxHandler, GoogleSRHandler, WhisperHandler, WitAIHandler, VoskHandler, CustomSRHandler
+from .handlers.stt import GroqSRHandler, OpenAISRHandler, SphinxHandler, GoogleSRHandler, WhisperCPPHandler, WitAIHandler, VoskHandler, CustomSRHandler
 from .handlers.embeddings import WordLlamaHandler, OpenAIEmbeddingHandler, GeminiEmbeddingHanlder, OllamaEmbeddingHandler
 from .handlers.memory import MemoripyHandler, UserSummaryHandler, SummaryMemoripyHanlder
 from .handlers.rag import LlamaIndexHanlder
@@ -100,11 +100,12 @@ AVAILABLE_STT = {
         "website": "https://cmusphinx.github.io/wiki/",
         "class": SphinxHandler,
     },
-    "whisper": {
-        "key": "whisper",
-        "title": _("Whisper (Local)"),
-        "description": _("OpanAI whisper. Works offline. ~3GB download for dependency install - It is suggested to run Newelle in terminal when you install in order to see the progress"),
-        "class": WhisperHandler,
+    "whispercpp": {
+        "key": "whispercpp",
+        "title": _("Whisper C++"),
+        "description": _("Works offline. Optimized Whisper impelementation written in C++"),
+        "website": "https://github.com/ggerganov/whisper.cpp",
+        "class": WhisperCPPHandler,
     },
     "google_sr": {
         "key": "google_sr",
