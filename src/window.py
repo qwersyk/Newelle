@@ -637,13 +637,13 @@ class MainWindow(Gtk.ApplicationWindow):
         # Add the existing pages
         llm_page = self.steal_from_settings(settings.LLM)
         stack.add_titled_with_icon(
-            llm_page,
+            self.scrollable(llm_page),
             title="LLM",
             name="LLM",
             icon_name="brain-augemnted-symbolic",
         )
         stack.add_titled_with_icon(
-            self.steal_from_settings(settings.prompt),
+            self.scrollable(self.steal_from_settings(settings.prompt)),
             title="Prompts",
             name="Prompts",
             icon_name="question-round-outline-symbolic",
@@ -652,9 +652,8 @@ class MainWindow(Gtk.ApplicationWindow):
             stack.set_visible_child(llm_page)
         switcher = Adw.ViewSwitcher()
         switcher.set_stack(stack)
-        scroll.set_child(stack)
         box.append(switcher)
-        box.append(scroll)
+        box.append(stack)
         self.model_menu_button.set_popover(self.model_popup)
         self.model_popup.connect(
             "closed", lambda x: GLib.idle_add(self.quick_settings_update)
@@ -670,9 +669,10 @@ class MainWindow(Gtk.ApplicationWindow):
 
     def build_model_selection(self):
         # Create a vertical box with some spacing & margins
+        provider_title = AVAILABLE_LLMS[self.model.key]["title"]
         if len(self.model.get_models_list()) == 0:
             return Gtk.Label(label=_("This provider does not have a model list"), wrap=True)
-        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0, margin_top=10)
+        vbox = Adw.PreferencesGroup(title=provider_title + _(" Models"))
 
         # Create a ListBox in SINGLE selection mode with activate-on-single-click
         models_list = Gtk.ListBox()
@@ -712,7 +712,7 @@ class MainWindow(Gtk.ApplicationWindow):
             models_list.get_style_context().add_class("transparent")
             models_list.append(listbox_row)
 
-        vbox.append(models_list)
+        vbox.add(models_list)
 
         # "+" button to open the full settings
         plus_button = Gtk.Button(label="+")
@@ -721,7 +721,7 @@ class MainWindow(Gtk.ApplicationWindow):
             "clicked",
             lambda btn: self.get_application().lookup_action("settings").activate(None),
         )
-        vbox.append(plus_button)
+        vbox.add(plus_button)
 
         return vbox 
 
@@ -739,7 +739,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.update_model_popup()
 
 
-    def scrollable(self, widget):
+    def scrollable(self, widget) -> Gtk.ScrolledWindow:
         scroll = Gtk.ScrolledWindow()
         scroll.set_child(widget)
         scroll.set_vexpand(True)
