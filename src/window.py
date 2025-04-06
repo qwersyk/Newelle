@@ -5,7 +5,6 @@ import re
 import sys
 import os
 import subprocess
-import pickle
 import threading
 import posixpath
 import json
@@ -612,7 +611,7 @@ class MainWindow(Gtk.ApplicationWindow):
         if self.model.get_setting("model") is not None:
             model_name = model_name + " - " + self.model.get_setting("model")
         self.model_menu_button.set_child(
-            Gtk.Label(label=model_name, ellipsize=Pango.EllipsizeMode.MIDDLE)
+            Gtk.Label(label=model_name, ellipsize=Pango.EllipsizeMode.MIDDLE, )
         )
 
     def build_model_popup(self):
@@ -1940,7 +1939,7 @@ class MainWindow(Gtk.ApplicationWindow):
             prompts.append(replace_variables(prompt))
 
         # Append memory
-        if self.memory_on or self.rag_on:
+        if self.memory_on or self.rag_on or self.controller.newelle_settings.rag_on_documents:
             prompts += self.get_memory_prompt()
 
         # Set the history for the model
