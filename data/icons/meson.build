@@ -30,6 +30,7 @@ install_data (
     'vcard-symbolic.svg',
     'settings-symbolic.svg',
     'sidebar-show-right-symbolic.svg',
+    'go-home-symbolic.svg',
     install_dir: symbolic_dir
 )
 install_data (
