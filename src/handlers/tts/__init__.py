@@ -4,6 +4,9 @@ from .espeak_handler import EspeakHandler
 from .gtts_handler import gTTSHandler
 from .elevenlabs_handler import ElevenLabs
 from .kokoro_handler import KokoroTTSHandler
+from .openai_tts_handler import OpenAITTSHandler
+from .custom_openai_tts import CustomOpenAITTSHandler
+from .groq_tts_handler import GroqTTSHandler
 
 __all__ = [
     "TTSHandler",
@@ -11,6 +14,9 @@ __all__ = [
     "EspeakHandler",
     "gTTSHandler",
     "ElevenLabs",
-    "KokoroTTSHandler"
+    "KokoroTTSHandler",
+    "OpenAITTSHandler",
+    "CustomOpenAITTSHandler",
+    "GroqTTSHandler"
 ]
 

@@ -1,6 +1,6 @@
 
 from .handlers.llm import ClaudeHandler, DeepseekHandler, GPT4AllHandler, GroqHandler, OllamaHandler, OpenAIHandler, CustomLLMHandler, GPT3AnyHandler, GeminiHandler, MistralHandler, OpenRouterHandler, NewelleAPIHandler
-from .handlers.tts import ElevenLabs, gTTSHandler, EspeakHandler, CustomTTSHandler, KokoroTTSHandler
+from .handlers.tts import ElevenLabs, gTTSHandler, EspeakHandler, CustomTTSHandler, KokoroTTSHandler, CustomOpenAITTSHandler, OpenAITTSHandler, GroqTTSHandler
 from .handlers.stt import GroqSRHandler, OpenAISRHandler, SphinxHandler, GoogleSRHandler, WhisperCPPHandler, WitAIHandler, VoskHandler, CustomSRHandler
 from .handlers.embeddings import WordLlamaHandler, OpenAIEmbeddingHandler, GeminiEmbeddingHanlder, OllamaEmbeddingHandler
 from .handlers.memory import MemoripyHandler, UserSummaryHandler, SummaryMemoripyHanlder
@@ -150,7 +150,6 @@ AVAILABLE_STT = {
 
 
 AVAILABLE_TTS = {
-
     "gtts": {
         "key": "gtts",
         "title": _("Google TTS"),
@@ -168,6 +167,24 @@ AVAILABLE_TTS = {
         "title": _("ElevenLabs TTS"),
         "description": _("Natural sounding TTS"),
         "class": ElevenLabs,
+    },
+    "openai_tts": {
+        "key": "openai_tts",
+        "title": _("OpenAI TTS"),
+        "description": _("OpenAI TTS"),
+        "class": OpenAITTSHandler,
+    },
+    "groq_tts": {
+        "key": "groq_tts",
+        "title": _("Groq TTS"),
+        "description": _("Groq TTS API"),
+        "class": GroqTTSHandler,
+    },
+    "custom_openai_tts": {
+        "key": "custom_openai_tts",
+        "title": _("Custom OpenAI TTS"),
+        "description": _("Custom OpenAI TTS"),
+        "class": CustomOpenAITTSHandler,
     },
     "espeak": {
         "key": "espeak",

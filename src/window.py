@@ -5,7 +5,6 @@ import re
 import sys
 import os
 import subprocess
-import pickle
 import threading
 import posixpath
 import json
@@ -73,7 +72,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.first_load = True
         self.update_settings()
         self.first_load = False
-        
+
         # Helper vars
         self.streams = []
         self.last_error_box = None
@@ -446,9 +445,9 @@ class MainWindow(Gtk.ApplicationWindow):
         GLib.timeout_add(10, build_model_popup)
         self.controller.handlers.set_error_func(self.handle_error)
 
-    def handle_error(self,message: str, error: ErrorSeverity):
+    def handle_error(self, message: str, error: ErrorSeverity):
         if error == ErrorSeverity.ERROR:
-            dialog = Adw.AlertDialog(title=_("Provider Errror"), body=message)        
+            dialog = Adw.AlertDialog(title=_("Provider Errror"), body=message)
             dialog.add_response("close", "Close")
             dialog.set_response_appearance("close", Adw.ResponseAppearance.DESTRUCTIVE)
             dialog.connect("response", lambda d, r: d.close())
@@ -565,7 +564,7 @@ class MainWindow(Gtk.ApplicationWindow):
         if ReloadType.RELOAD_CHAT in reloads:
             self.show_chat()
         if ReloadType.RELOAD_CHAT_LIST in reloads:
-            self.update_history() 
+            self.update_history()
         # Setup TTS
         self.tts.connect(
             "start", lambda: GLib.idle_add(self.mute_tts_button.set_visible, True)
@@ -612,7 +611,10 @@ class MainWindow(Gtk.ApplicationWindow):
         if self.model.get_setting("model") is not None:
             model_name = model_name + " - " + self.model.get_setting("model")
         self.model_menu_button.set_child(
-            Gtk.Label(label=model_name, ellipsize=Pango.EllipsizeMode.MIDDLE)
+            Gtk.Label(
+                label=model_name,
+                ellipsize=Pango.EllipsizeMode.MIDDLE,
+            )
         )
 
     def build_model_popup(self):
@@ -631,7 +633,10 @@ class MainWindow(Gtk.ApplicationWindow):
         model_page = self.scrollable(self.build_model_selection())
         self.model_page = model_page
         stack.add_titled_with_icon(
-            self.model_page, title="Models", name="Models", icon_name="view-list-symbolic"
+            self.model_page,
+            title="Models",
+            name="Models",
+            icon_name="view-list-symbolic",
         )
 
         # Add the existing pages
@@ -671,14 +676,24 @@ class MainWindow(Gtk.ApplicationWindow):
         # Create a vertical box with some spacing & margins
         provider_title = AVAILABLE_LLMS[self.model.key]["title"]
         if len(self.model.get_models_list()) == 0:
-            return Gtk.Label(label=_("This provider does not have a model list"), wrap=True)
-        vbox = Adw.PreferencesGroup(title=provider_title + _(" Models"))
+            return Gtk.Label(
+                label=_("This provider does not have a model list"), wrap=True
+            )
+        vbox = Gtk.Box(
+            orientation=Gtk.Orientation.VERTICAL, spacing=6, margin_top=12
+        )  # Changed to Gtk.Box for more flexibility
+        group = Adw.PreferencesGroup(title=provider_title + _(" Models"))
+
+        # Add Search Bar
+        self.search_entry = Gtk.SearchEntry(placeholder_text=_("Search Models..."))
+        self.search_entry.connect("search-changed", self._filter_models)
+        vbox.append(self.search_entry)  # Add search entry to the main vbox
 
         # Create a ListBox in SINGLE selection mode with activate-on-single-click
-        models_list = Gtk.ListBox()
-        models_list.set_selection_mode(Gtk.SelectionMode.SINGLE)
-        models_list.set_activate_on_single_click(True)
-        models_list.connect("row-activated", self.on_model_row_activated)
+        self.models_list = Gtk.ListBox()
+        self.models_list.set_selection_mode(Gtk.SelectionMode.SINGLE)
+        self.models_list.set_activate_on_single_click(True)
+        self.models_list.connect("row-activated", self.on_model_row_activated)
 
         # Populate the list with downloaded models.
         provider_title = AVAILABLE_LLMS[self.model.key]["title"]
@@ -702,17 +717,26 @@ class MainWindow(Gtk.ApplicationWindow):
             )
             listbox_row.set_child(action_row)
 
-            # Save attributes for selection handling.
+            # Save attributes for selection handling and searching.
             listbox_row.model = model
+            listbox_row.search_terms = (
+                f"{provider_title} {name} {model_subtitle}".lower()
+            )  # Store searchable text
 
             # Select the correct row on init
             if self.model.get_selected_model() == model:
-                models_list.select_row(listbox_row)
+                self.models_list.select_row(listbox_row)
 
-            models_list.get_style_context().add_class("transparent")
-            models_list.append(listbox_row)
+            self.models_list.get_style_context().add_class("transparent")
+            self.models_list.append(listbox_row)
 
-        vbox.add(models_list)
+        # Add the listbox to a scrolled window for better handling if list is long
+        list_scroll = Gtk.ScrolledWindow(
+            hscrollbar_policy=Gtk.PolicyType.NEVER, vexpand=True
+        )
+        list_scroll.set_child(self.models_list)
+        group.add(list_scroll)  # Add scrolled list to the group
+        vbox.append(group)  # Add the group to the main vbox
 
         # "+" button to open the full settings
         plus_button = Gtk.Button(label="+")
@@ -721,16 +745,29 @@ class MainWindow(Gtk.ApplicationWindow):
             "clicked",
             lambda btn: self.get_application().lookup_action("settings").activate(None),
         )
-        vbox.add(plus_button)
+        group.add(plus_button)  # Add plus button inside the group
 
-        return vbox 
+        # Initial filter call
+        self._filter_models(self.search_entry)
+
+        return vbox
+
+    def _filter_models(self, search_entry):
+        """Filters the models list based on the search entry text."""
+        search_text = search_entry.get_text().lower()
+        current_row = self.models_list.get_row_at_index(0)
+        while current_row is not None:
+            if hasattr(current_row, "search_terms"):
+                is_visible = search_text in current_row.search_terms
+                current_row.set_visible(is_visible)
+            current_row = current_row.get_next_sibling()
 
     def on_model_row_activated(self, listbox, row):
         # Retrieve the stored provider key and internal model.
         internal_model = row.model
 
         # Set the active LLM
-        #self.settings.set_string("language-model", provider_key)
+        # self.settings.set_string("language-model", provider_key)
         self.model.set_setting("model", internal_model)
         # Dismiss the popover.
         self.model_popup.popdown()
@@ -738,9 +775,8 @@ class MainWindow(Gtk.ApplicationWindow):
         # Update the header label to reflect the new choice.
         self.update_model_popup()
 
-
     def scrollable(self, widget) -> Gtk.ScrolledWindow:
-        scroll = Gtk.ScrolledWindow()
+        scroll = Gtk.ScrolledWindow(hscrollbar_policy=Gtk.PolicyType.NEVER)
         scroll.set_child(widget)
         scroll.set_vexpand(True)
         scroll.set_hexpand(True)
@@ -951,7 +987,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.recorder.stop_recording(
             os.path.join(self.controller.cache_dir, "recording.wav")
         )
-        #self.auto_stop_recording()
+        # self.auto_stop_recording()
 
     def stop_recording_ui(self, button):
         """Update the UI to show that the recording has been stopped"""
@@ -969,6 +1005,7 @@ class MainWindow(Gtk.ApplicationWindow):
             os.path.join(self.controller.cache_dir, "recording.wav")
         )
         print("Result: ", result)
+
         def idle_record():
             if (
                 result is not None
@@ -1592,7 +1629,7 @@ class MainWindow(Gtk.ApplicationWindow):
                 css_classes=["flat", "success"], valign=Gtk.Align.CENTER
             )
             create_chat_clone_button.connect("clicked", self.copy_chat)
-            icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="view-paged-symbolic"))
+            icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="edit-copy-symbolic"))
             icon.set_icon_size(Gtk.IconSize.INHERIT)
             create_chat_clone_button.set_child(icon)
             create_chat_clone_button.set_name(str(i))
@@ -1940,7 +1977,11 @@ class MainWindow(Gtk.ApplicationWindow):
             prompts.append(replace_variables(prompt))
 
         # Append memory
-        if self.memory_on or self.rag_on:
+        if (
+            self.memory_on
+            or self.rag_on
+            or self.controller.newelle_settings.rag_on_documents
+        ):
             prompts += self.get_memory_prompt()
 
         # Set the history for the model
@@ -2356,10 +2397,15 @@ class MainWindow(Gtk.ApplicationWindow):
                         if id_message == -1:
                             id_message = len(self.chat) - 1
                         id_message += 1
-                        if self.controller.newelle_settings.auto_run and not any(
-                            command in chunk.text
-                            for command in ["rm ", "apt ", "sudo ", "yum ", "mkfs "]
-                        ) and self.auto_run_times < self.controller.newelle_settings.max_run_times:
+                        if (
+                            self.controller.newelle_settings.auto_run
+                            and not any(
+                                command in chunk.text
+                                for command in ["rm ", "apt ", "sudo ", "yum ", "mkfs "]
+                            )
+                            and self.auto_run_times
+                            < self.controller.newelle_settings.max_run_times
+                        ):
                             has_terminal_command = True
                             value = chunk.text
                             text_expander = Gtk.Expander(

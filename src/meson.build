@@ -90,6 +90,9 @@ tts_sources = [
   'handlers/tts/elevenlabs_handler.py',
   'handlers/tts/custom_handler.py',
   'handlers/tts/kokoro_handler.py',
+  'handlers/tts/openai_tts_handler.py',
+  'handlers/tts/custom_openai_tts.py',
+  'handlers/tts/groq_tts_handler.py',
 ]
 
 stt_sources = [  
