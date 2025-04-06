@@ -393,6 +393,10 @@ class HandlersManager:
             newelle_settings.memory_model = list(AVAILABLE_MEMORIES.keys())[0]
         if newelle_settings.rag_model not in AVAILABLE_RAGS:
             newelle_settings.rag_model = list(AVAILABLE_RAGS.keys())[0]
+        if newelle_settings.tts_program not in AVAILABLE_TTS:
+            newelle_settings.tts_program = list(AVAILABLE_TTS.keys())[0]
+        if newelle_settings.stt_engine not in AVAILABLE_STT:
+            newelle_settings.stt_engine = list(AVAILABLE_STT.keys())[0]
        
     def select_handlers(self, newelle_settings: NewelleSettings):
         """Assign the selected handlers
