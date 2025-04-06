@@ -1629,7 +1629,7 @@ class MainWindow(Gtk.ApplicationWindow):
                 css_classes=["flat", "success"], valign=Gtk.Align.CENTER
             )
             create_chat_clone_button.connect("clicked", self.copy_chat)
-            icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="view-paged-symbolic"))
+            icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="edit-copy-symbolic"))
             icon.set_icon_size(Gtk.IconSize.INHERIT)
             create_chat_clone_button.set_child(icon)
             create_chat_clone_button.set_name(str(i))
