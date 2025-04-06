@@ -739,7 +739,7 @@ class MainWindow(Gtk.ApplicationWindow):
 
 
     def scrollable(self, widget) -> Gtk.ScrolledWindow:
-        scroll = Gtk.ScrolledWindow()
+        scroll = Gtk.ScrolledWindow(hscrollbar_policy=Gtk.PolicyType.NEVER)
         scroll.set_child(widget)
         scroll.set_vexpand(True)
         scroll.set_hexpand(True)
