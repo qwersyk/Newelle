@@ -1426,18 +1426,14 @@ class MainWindow(Gtk.ApplicationWindow):
 
                     flow_box = Gtk.FlowBox(vexpand=True)
                     flow_box.set_valign(Gtk.Align.START)
-
-                    if os.path.normpath(self.main_path) == "~":
+                    if os.path.normpath(self.main_path) == "~" or os.path.normpath(self.main_path) == os.path.expanduser("~"):
                         os.chdir(os.path.expanduser("~"))
-                        path = "./.var/app/io.github.qwersyk.Newelle/Newelle"
-                        if not os.path.exists(path):
-                            os.makedirs(path)
+                        fname = "/".join(self.controller.newelle_dir.split("/")[3:])
                         button = Gtk.Button(css_classes=["flat"])
-                        button.set_name(".var/app/io.github.qwersyk.Newelle/Newelle")
+                        button.set_name(fname)
                         button.connect("clicked", self.open_folder)
-
                         icon = File(
-                            self.main_path, ".var/app/io.github.qwersyk.Newelle/Newelle"
+                            self.main_path, fname 
                         )
                         icon.set_css_classes(["large"])
                         icon.set_valign(Gtk.Align.END)
