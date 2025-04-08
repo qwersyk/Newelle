@@ -1,51 +1,65 @@
 from gi.repository import Gtk, Gio, GLib, Gdk
 import matplotlib.pyplot as plt
-import uuid
-import os 
+import os
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_gtk4agg import FigureCanvasGTK4Agg
+
+
+from matplotlib.figure import Figure
+
+
+class LatexCanvas(FigureCanvasGTK4Agg):
+    def __init__(self, latex: str, size: int, color):
+        fig = Figure()
+        fig.patch.set_alpha(0)
+        ax = fig.add_subplot()
+        txt = ax.text(0.5, 0.5, r'$' + latex + r'$', fontsize=size, ha='center', va='center', color=(color.red, color.blue, color.green))  
+        ax.axis('off')
+        fig.tight_layout(pad=0)
+        fig.canvas.draw()
+        fig_size = txt.get_window_extent()
+        h = int(fig_size.height)
+        w = int(fig_size.width)
+        super().__init__(fig)
+        self.set_hexpand(True)
+        self.set_vexpand(True)
+        self.set_size_request(w, h + int(h * (0.1)))
+        self.set_css_classes(['latex_renderer'])
 
 class DisplayLatex(Gtk.Box): 
+
     def __init__(self, latex:str, size:int, cache_dir: str) -> None:
         super().__init__()
         self.cachedir = cache_dir
-        self.size = size
+        self.size = size 
+
         overlay = Gtk.Overlay() 
-        color = self.get_style_context().lookup_color("window_fg_color")[1]
-        id = latex + str(size) + str(color.red) + str(color.green) + str(color.blue)
 
         self.latex = latex 
-        # Create equation image
-        fig = plt.figure()
-        fig.patch.set_alpha(0)
-        plt.text(0.5, 0.5, r'$' + latex + r'$', fontsize=size, ha='center', va='center', color=(color.red, color.blue, color.green))  
-        plt.axis('off')
-        # Get file name and save it in the cache
-        fname = os.path.join(self.cachedir, "latex" + '-symbolic.svg')
-
-        plt.tight_layout(pad=0)
-        plt.savefig(fname, transparent=True, bbox_inches='tight', pad_inches=0)
+        self.color = self.get_style_context().lookup_color("window_fg_color")[1]
         # Create Gtk.Picture
-        self.picture = Gtk.Picture()
-        self.picture.set_file(Gio.File.new_for_path(fname)) 
-        self.picture.set_size_request(-1, size)
-        self.picture.set_content_fit(Gtk.ContentFit.CONTAIN)
-        plt.close()
-
+        self.scroll = Gtk.ScrolledWindow(vscrollbar_policy=Gtk.PolicyType.NEVER, propagate_natural_height=True, hscrollbar_policy=Gtk.PolicyType.AUTOMATIC, propagate_natural_width=True)
+        self.picture = LatexCanvas(latex, self.size, self.color)
+        self.scroll.set_child(self.picture)
         self.create_control_box()
         self.controller()
-        overlay.set_child(self.picture)
+        overlay.set_child(self.scroll)
         overlay.add_overlay(self.control_box)
+        self.overlay = overlay
         self.append(overlay)
 
 
     def zoom_in(self, *_):
         self.size += 10
-        self.picture.set_size_request(-1, self.size)
+        self.picture = LatexCanvas(self.latex, self.size, self.color)
+        self.scroll.set_child(self.picture) 
     
     def zoom_out(self, *_):
-        if self.size < 20:
+        if self.size < 10:
             return
         self.size -= 10
-        self.picture.set_size_request(-1, self.size)
+        self.picture = LatexCanvas(self.latex, self.size, self.color)
+        self.scroll.set_child(self.picture)
 
     def create_control_box(self):
         self.control_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, halign=Gtk.Align.END, css_classes=["flat"], visible=False)
