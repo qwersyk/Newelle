@@ -94,7 +94,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.chat_block = Gtk.Box(
             orientation=Gtk.Orientation.VERTICAL, hexpand=True, css_classes=["view"]
         )
-        self.chat_header = Adw.HeaderBar(css_classes=["flat", "view"])
+        self.chat_header = Adw.HeaderBar(css_classes=["flat", "view"], show_start_title_buttons=False, show_end_title_buttons=True)
         self.chat_header.set_title_widget(
             Gtk.Label(label=_("Chat"), css_classes=["title"])
         )
@@ -140,7 +140,7 @@ class MainWindow(Gtk.ApplicationWindow):
             orientation=Gtk.Orientation.VERTICAL, hexpand=True
         )
         self.chat_panel_header = Adw.HeaderBar(
-            css_classes=["flat"], show_end_title_buttons=False
+            css_classes=["flat"], show_end_title_buttons=False, show_start_title_buttons=True
         )
         self.chat_panel_header.set_title_widget(
             Gtk.Label(label=_("History"), css_classes=["title"])
@@ -176,7 +176,7 @@ class MainWindow(Gtk.ApplicationWindow):
             orientation=Gtk.Orientation.VERTICAL, css_classes=["background", "view"]
         )
         self.explorer_panel.set_size_request(420, -1)
-        self.explorer_panel_header = Adw.HeaderBar(css_classes=["flat"])
+        self.explorer_panel_header = Adw.HeaderBar(css_classes=["flat"], show_start_title_buttons=False)
         self.explorer_panel.append(self.explorer_panel_header)
         self.folder_blocks_panel = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.explorer_panel.append(self.folder_blocks_panel)
@@ -1543,9 +1543,11 @@ class MainWindow(Gtk.ApplicationWindow):
                 not self.main_program_block.get_reveal_flap()
             )
             self.left_panel_back_button.set_visible(True)
+            self.chat_header.set_show_start_title_buttons(True)
         else:
             self.chat_panel_header.set_show_end_title_buttons(False)
             self.left_panel_back_button.set_visible(False)
+            self.chat_header.set_show_start_title_buttons(False)
 
     # Chat management
     def continue_message(self, button):
