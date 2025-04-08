@@ -2494,7 +2494,7 @@ class MainWindow(Gtk.ApplicationWindow):
                     elif code_language == "latex":
                         try:
                             box.append(
-                                DisplayLatex(chunk.text, 100, self.controller.cache_dir)
+                                DisplayLatex(chunk.text, 16, self.controller.cache_dir)
                             )
                         except Exception as e:
                             print(e)
@@ -2533,7 +2533,7 @@ class MainWindow(Gtk.ApplicationWindow):
                 elif chunk.type == "latex" or chunk.type == "latex_inline":
                     try:
                         box.append(
-                            DisplayLatex(chunk.text, 100, self.controller.cache_dir)
+                            DisplayLatex(chunk.text, 16, self.controller.cache_dir)
                         )
                     except Exception:
                         print(chunk.text)
