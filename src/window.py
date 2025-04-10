@@ -45,7 +45,6 @@ from .controller import NewelleController, ReloadType
 class MainWindow(Gtk.ApplicationWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.set_default_size(1400, 800)  # (1500, 800) to show everything
         self.app = self.get_application()
         self.main_program_block = Adw.Flap(
             flap_position=Gtk.PackType.END,
@@ -63,6 +62,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.chats = self.controller.chats
         self.chat = self.controller.chat
         self.settings = self.controller.settings
+        self.set_default_size(self.settings.get_int("window-width"), self.settings.get_int("window-height"))
         self.extensionloader = self.controller.extensionloader
         self.chat_id = self.controller.newelle_settings.chat_id
         self.main_path = self.controller.newelle_settings.main_path

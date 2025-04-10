@@ -173,6 +173,9 @@ class MyApp(Adw.Application):
         if hasattr(self,"mini_win"):
             self.mini_win.close()
         if all(element.poll() is not None for element in self.win.streams):
+            settings = Gio.Settings.new('io.github.qwersyk.Newelle')
+            settings.set_int("window-width", self.win.get_width())
+            settings.set_int("window-height", self.win.get_height())
             return False
         else:
             dialog = Adw.MessageDialog(

@@ -27,13 +27,6 @@
     </a>
     <br>
 </p>
-<p align="center">
-<a href="https://stopthemingmy.app">
-    <img width="180" alt="Please Don't Theme" src="https://stopthemingmy.app/badge.svg"/>
-  </a>
-  <br>
-</p>
-
 <picture>
   <source srcset="https://raw.githubusercontent.com/qwersyk/Newelle/master/screenshots/1w.png" media="(prefers-color-scheme: light)">
   <source srcset="https://raw.githubusercontent.com/qwersyk/Newelle/master/screenshots/1b.png" media="(prefers-color-scheme: dark)">

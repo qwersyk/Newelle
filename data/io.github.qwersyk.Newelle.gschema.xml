@@ -140,5 +140,11 @@
         <key name="max-run-times" type="i">
           <default>5</default>
         </key>
+	      <key name="window-width" type="i">
+          <default>1400</default>
+        </key>
+	      <key name="window-height" type="i">
+          <default>800</default>
+        </key>
 	</schema>
 </schemalist>
