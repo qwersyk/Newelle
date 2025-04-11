@@ -59,6 +59,8 @@ class GeminiHandler(LLMHandler):
                 models = client.models.list()
                 result = tuple()
                 for model in models:
+                    print(model.supported_actions)
+                    print(model)
                     if "embedding" in model.display_name.lower() or "legacy" in model.display_name.lower():
                         continue
                     result += ((model.display_name, model.name,),)
@@ -130,7 +132,7 @@ class GeminiHandler(LLMHandler):
             r += [
                 ExtraSettings.ScaleSetting("temperature", "Temperature", "Creativity allowed in the responses", 1, 0, 2, 2),
                 ExtraSettings.ScaleSetting("top_p", "Top P", "Probability of the top tokens to keep", 1, 0, 1, 2),
-                ExtraSettings.ScaleSetting("max_tokens", "Max Tokens", "Maximum number of tokens to generate", 8192, 0, 65536, 1),
+                ExtraSettings.ScaleSetting("max_tokens", "Max Tokens", "Maximum number of tokens to generate", 8192, 0, 65536, 0),
             ]
         return r
     def __convert_history(self, history: list):
@@ -237,7 +239,7 @@ class GeminiHandler(LLMHandler):
         if not self.get_setting("system_prompt"): 
             instructions = None
             if self.get_setting("force_system_prompt"):
-                append_instructions = "\n".join(system_prompt)
+                append_instructions = "\n".join([p.replace("```", "\\\\\\```") for p in system_prompt])
         if not self.get_setting("advanced_params"):
             generate_content_config = GenerateContentConfig( system_instruction=instructions, 
                                                             safety_settings=safety, response_modalities=["text"] + ["image"] if self.get_setting("img_output") else ["text"])
