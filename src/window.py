@@ -12,6 +12,7 @@ import copy
 
 from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject, GLib, GdkPixbuf
 
+
 from .ui.settings import Settings
 
 from .utility.message_chunk import get_message_chunks
@@ -20,7 +21,7 @@ from .ui.profile import ProfileDialog
 from .ui.presentation import PresentationWindow
 from .ui.widgets import File, CopyBox, BarChartBox, MarkupTextView
 from .ui import apply_css_to_widget
-from .ui.widgets import MultilineEntry, ProfileRow, DisplayLatex, LatexCanvas
+from .ui.widgets import MultilineEntry, ProfileRow, DisplayLatex, InlineLatex
 from .constants import AVAILABLE_LLMS
 
 from .utility.system import get_spawn_command
@@ -461,6 +462,7 @@ class MainWindow(Gtk.ApplicationWindow):
             settings.set_property(
                 "gtk-xft-dpi", settings.get_property("gtk-xft-dpi") + (zoom - 100) * 400
             )
+            self.controller.newelle_settings.zoom = zoom
 
     def build_quick_toggles(self):
         self.quick_toggles = Gtk.MenuButton(
@@ -2509,12 +2511,14 @@ class MainWindow(Gtk.ApplicationWindow):
                 elif chunk.type == "inline_chunks":
                     if chunk.subchunks is None:
                         continue
-                    # Create a label to guess the size
+                    # Create a label to guess the size of the chunk
                     overlay = Gtk.Overlay()
                     label = Gtk.Label(label=" ".join(ch.text for ch in chunk.subchunks), wrap=True)
                     label.set_opacity(0)
                     overlay.set_child(label)
+                    # Create the textview
                     textview = MarkupTextView(None)
+                    textview.set_valign(Gtk.Align.START)
                     textview.set_hexpand(True)
                     overlay.add_overlay(textview)
                     overlay.set_measure_overlay(textview, True)
@@ -2528,12 +2532,21 @@ class MainWindow(Gtk.ApplicationWindow):
                         elif chunk.type == "latex_inline":
                             txt += chunk.text
                             try:
-                                self.color = self.get_style_context().lookup_color("window_fg_color")[1]
+                                # Create the anchor for the widget
                                 anchor = buffer.create_child_anchor(iter)
-                                latex = LatexCanvas(chunk.text, 13, self.color, inline=True)
-                                textview.add_child_at_anchor(latex, anchor)
+                                # Calculate the current font size according to the current zoom
+                                font_size = 5 + ((self.controller.newelle_settings.zoom)/100 * 4)
+                                # Create the LaTeX widget
+                                latex = InlineLatex(chunk.text, int(font_size))
+                                # Embed the Widget in an overlay in order to avoid disalignment
+                                overlay1 = Gtk.Overlay()
+                                overlay1.add_overlay(latex)
+                                box2 = Gtk.Box()
+                                box2.set_size_request(latex.picture.dims[0], latex.picture.dims[1] + 1)
+                                overlay1.set_child(box2)
+                                latex.set_margin_top(5)
+                                textview.add_child_at_anchor(overlay1, anchor)
                             except Exception as e:
-                                print(e)
                                 buffer.insert(iter, LatexNodes2Text().latex_to_text(chunk.text))
                     box.append(overlay)
                 elif chunk.type == "latex" or chunk.type == "latex_inline":
@@ -2542,7 +2555,6 @@ class MainWindow(Gtk.ApplicationWindow):
                             DisplayLatex(chunk.text, 16, self.controller.cache_dir)
                         )
                     except Exception:
-                        print(chunk.text)
                         box.append(CopyBox(chunk.text, "latex", parent=self))
                 elif chunk.type == "thinking":
                     box.append(

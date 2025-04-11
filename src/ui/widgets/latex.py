@@ -15,23 +15,38 @@ class LatexCanvas(FigureCanvasGTK4Agg):
         ax = fig.add_subplot()
         txt = ax.text(0.5, 0.5, r'$' + latex + r'$', fontsize=size, ha='center', va='center', color=(color.red, color.blue, color.green))  
         ax.axis('off')
-        fig.tight_layout(pad=0)
+        fig.tight_layout()
         fig.canvas.draw()
         fig_size = txt.get_window_extent()
         h = int(fig_size.height)
         w = int(fig_size.width)
+        self.dims = (w, h)
         super().__init__(fig)
         self.set_hexpand(True)
         self.set_vexpand(True)
         if inline:
-            self.set_size_request(w, h + int(h * (0.1)))
-            self.set_hexpand(False)
-            self.set_vexpand(False)
             self.set_halign(Gtk.Align.START)
-            self.set_valign(Gtk.Align.CENTER)
+            self.set_valign(Gtk.Align.END)
+            self.set_size_request(w, h)
         else:
             self.set_size_request(w, h + int(h * (0.1)))
         self.set_css_classes(['latex_renderer'])
+
+class InlineLatex(Gtk.Box):
+
+    def __init__(self, latex: str, size: int) -> None:
+        super().__init__()
+        self.color = self.get_style_context().lookup_color("window_fg_color")[1]
+        self.latex = latex
+        self.size = size
+        self.picture = LatexCanvas(latex, self.size, self.color, inline=True)
+        if self.picture.dims[0] > 300:
+            scroll = Gtk.ScrolledWindow(vscrollbar_policy=Gtk.PolicyType.NEVER, propagate_natural_height=True, hscrollbar_policy=Gtk.PolicyType.AUTOMATIC, propagate_natural_width=True, hexpand=True)
+            scroll.set_child(self.picture)
+            scroll.set_size_request(300, -1)
+            self.append(scroll)
+        else:
+            self.append(self.picture)
 
 
 class DisplayLatex(Gtk.Box): 

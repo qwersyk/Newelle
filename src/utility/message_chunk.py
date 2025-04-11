@@ -217,7 +217,11 @@ def process_inline_elements(text: str, allow_latex: bool) -> List[MessageChunk]:
         # Add the inline latex chunk
         content = m.group(1) or m.group(2) # Group 1 for $..$, Group 2 for \(..\)
         if content is not None:
-            chunks.append(MessageChunk(type="latex_inline", text=content.strip()))
+            equation = content.strip()
+            if len(content) < 40:
+                chunks.append(MessageChunk(type="latex_inline", text=content.strip()))
+            else:
+                chunks.append(MessageChunk(type="latex", text=content.strip()))
         last_index = end
 
     # Add any remaining text after the last match
@@ -337,11 +341,22 @@ def get_message_chunks(message: str, allow_latex: bool = True) -> List[MessageCh
     # Filter truly empty text chunks that might remain after merging
     merged_flat_chunks = [c for c in merged_flat_chunks if c.type != "text" or c.text != ""]
 
-
     # Now group the merged flat list
     for chunk in merged_flat_chunks:
+        append_next = None
         is_inline_constituent = chunk.type in ("text", "latex_inline")
 
+        # Check if the next block is a latex_inline
+        if chunk.type == "text":
+            current_index = merged_flat_chunks.index(chunk)
+            if current_index < len(merged_flat_chunks) - 2:
+                next_chunk = merged_flat_chunks[current_index + 1]
+                if next_chunk.type == "latex_inline":
+                    lines = chunk.text.split("\n")
+                    if len([line for line in lines if line != "" ]) > 1:
+                        chunk.text = "\n".join(lines[:-1])
+                        append_next = MessageChunk(type="text", text=lines[-1])
+                        is_inline_constituent = False
         if is_inline_constituent:
             current_inline_sequence.append(chunk)
         else:
@@ -357,7 +372,9 @@ def get_message_chunks(message: str, allow_latex: bool = True) -> List[MessageCh
                     # Only a single text chunk, add it directly
                     grouped_chunks.append(current_inline_sequence[0])
                 current_inline_sequence = [] # Reset sequence
-
+            if append_next is not None:
+                current_inline_sequence.append(append_next)
+                
             # Add the non-inline chunk
             grouped_chunks.append(chunk)
 
