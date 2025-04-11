@@ -296,9 +296,10 @@ Ensure that commands are safe, relevant, and do not cause unintended system modi
 | - | 1 | 2 | 3 | 4 |\n| - | - | - | - | - |\n| 1 | 1 | 2 | 3 | 4 |\n| 2 | 2 | 4 | 6 | 8 |\n| 3 | 3 | 6 | 9 | 12 |\n| 4 | 4 | 8 | 12 | 16 |
 
 You can write codeblocks:
-```cpp\n#include<iostream>\nusing namespace std;\nint main(){\n    cout<<"Hello world!";\n    return 0;\n}\n```
+```python\nprint("hello")\n```
 
-You can also use **bold**, *italic*, ~strikethrough~, `monospace`, [linkname](https://link.com) and ## headers in markdown
+You can also use **bold**, *italic*, ~strikethrough~, `monospace`, [linkname](https://link.com) and ## headers in markdown.
+You can display $inline equations$ and $$equations$$.
 """,
     "show_image": """You can show the user an image, if needed, using \n```image\npath\n```\n\nYou can show the user a video, if needed, using\n```video\npath\n```""",
     "graphic": """System: You can display the graph using this structure: ```chart\n name - value\n ... \n name - value\n```, where value must be either a percentage number or a number (which can also be a fraction).
