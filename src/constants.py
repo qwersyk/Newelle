@@ -136,7 +136,7 @@ AVAILABLE_STT = {
     "openai_sr": {
         "key": "openai_sr",
         "title": _("Whisper API"),
-        "description": _("Uses openai whisper api"),
+        "description": _("Uses OpenAI Whisper API"),
         "website": "https://platform.openai.com/docs/guides/speech-to-text",
         "class": OpenAISRHandler,
     },
