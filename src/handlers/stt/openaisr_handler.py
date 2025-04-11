@@ -8,14 +8,14 @@ class OpenAISRHandler(STTHandler):
             {
                 "key": "endpoint",
                 "title": _("API Endpoint"),
-                "description": _("Endpoint for openai requests"),
+                "description": _("Endpoint for OpenAI requests"),
                 "type": "entry",
                 "default": "https://api.openai.com/v1/"
             },
             {
                 "key": "api",
                 "title": _("API Key"),
-                "description": _("API Key for OpanAI"),
+                "description": _("API Key for OpenAI"),
                 "type": "entry",
                 "default": ""
             },
@@ -50,4 +50,3 @@ class OpenAISRHandler(STTHandler):
                 language=language
             )
         return transcription.text
-

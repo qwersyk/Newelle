@@ -196,7 +196,7 @@ class Settings(Adw.PreferencesWindow):
         self.settings.bind("remove-thinking", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
         self.interface.add(row)
         
-        row = Adw.ActionRow(title=_("Display LaTex"), subtitle=_("Display LaTex formulas in chat"))
+        row = Adw.ActionRow(title=_("Display LaTeX"), subtitle=_("Display LaTeX formulas in chat"))
         switch = Gtk.Switch(valign=Gtk.Align.CENTER)
         row.add_suffix(switch)
         self.settings.bind("display-latex", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
