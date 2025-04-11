@@ -35,11 +35,17 @@
 
 # Features
 
-- **Terminal Command Execution**: Execute terminal commands directly through the AI.
-
-- **Advanced Customization**: Tailor the application with a wide range of settings.
-
-- **Flexible Model Support**: Choose from multiple AI models to fit your specific needs.
+- 🎨 **Advanced Customization**: Tailor the application with a wide range of settings
+- 🚀 **Flexible Model Support**: Choose from mutliple AI models and providers to fit your specific needs.
+- 💻 **Terminal Command Exection**: Execute commands suggested by the AI on the fly
+- 🧩 **Extensions**: Add your own functionalities and models to Newelle
+- 🗣 **Voice support**: Chat hands free with Newelle, supporting many Speech To Text and TTS models
+- 🧠 **Long Term Memory**: Remember conversations from previous chats
+- 💼 **Chat with documents**: Chat with your own documents
+- 👤 **Profile Manager**: Create settings profiles and switch between them on the go
+- 📁 **Builtin File Manager**: Manage your files with the help of AI
+- 📝 **Rich Formatting**: Support for Markdown and LaTeX 
+- ✏️ **Chat editing**: Edit or remove any message and manage your prompts easily.
 
 <picture>
   <source srcset="https://raw.githubusercontent.com/qwersyk/Newelle/master/screenshots/3w.png" media="(prefers-color-scheme: light)">
@@ -78,6 +84,12 @@ For GNOME desktop environment users, you may need to enable automatic window cen
 ```bash
 gsettings set org.gnome.mutter center-new-windows true
 ```
+
+<picture>
+  <source srcset="https://raw.githubusercontent.com/qwersyk/Newelle/master/screenshots/4w.png" media="(prefers-color-scheme: light)">
+  <source srcset="https://raw.githubusercontent.com/qwersyk/Newelle/master/screenshots/4b.png" media="(prefers-color-scheme: dark)">
+  <img src="https://raw.githubusercontent.com/qwersyk/Newelle/master/screenshots/4w.png" alt="screenshot">
+</picture>
 
 # Installation
 
