@@ -1,4 +1,3 @@
-import cairo
 from pylatexenc.latex2text import LatexNodes2Text
 import time
 import re
@@ -19,9 +18,9 @@ from .utility.message_chunk import get_message_chunks
 
 from .ui.profile import ProfileDialog
 from .ui.presentation import PresentationWindow
-from .ui.widgets import File, CopyBox, BarChartBox
+from .ui.widgets import File, CopyBox, BarChartBox, MarkupTextView
 from .ui import apply_css_to_widget
-from .ui.widgets import MultilineEntry, ProfileRow, DisplayLatex
+from .ui.widgets import MultilineEntry, ProfileRow, DisplayLatex, LatexCanvas
 from .constants import AVAILABLE_LLMS
 
 from .utility.system import get_spawn_command
@@ -2510,26 +2509,33 @@ class MainWindow(Gtk.ApplicationWindow):
                 elif chunk.type == "inline_chunks":
                     if chunk.subchunks is None:
                         continue
+                    # Create a label to guess the size
+                    overlay = Gtk.Overlay()
+                    label = Gtk.Label(label=" ".join(ch.text for ch in chunk.subchunks), wrap=True)
+                    label.set_opacity(0)
+                    overlay.set_child(label)
+                    textview = MarkupTextView(None)
+                    textview.set_hexpand(True)
+                    overlay.add_overlay(textview)
+                    overlay.set_measure_overlay(textview, True)
+                    buffer = textview.get_buffer()
+                    iter = buffer.get_start_iter()
                     txt = ""
-                    for chunk in chunk.subchunks:
+                    for chunk in chunk.subchunks: 
                         if chunk.type == "text":
-                            txt += chunk.text
+                            textview.add_markup_text(iter, markwon_to_pango(chunk.text))
+                            txt += chunk.text 
                         elif chunk.type == "latex_inline":
-                            txt += LatexNodes2Text().latex_to_text(chunk.text)
-                            print(chunk.text)
-                            print(txt)
-                    label = markwon_to_pango(txt)
-                    box.append(
-                        Gtk.Label(
-                            label=label,
-                            wrap=True,
-                            halign=Gtk.Align.START,
-                            wrap_mode=Pango.WrapMode.WORD_CHAR,
-                            width_chars=1,
-                            selectable=True,
-                            use_markup=True,
-                        )
-                    )
+                            txt += chunk.text
+                            try:
+                                self.color = self.get_style_context().lookup_color("window_fg_color")[1]
+                                anchor = buffer.create_child_anchor(iter)
+                                latex = LatexCanvas(chunk.text, 13, self.color, inline=True)
+                                textview.add_child_at_anchor(latex, anchor)
+                            except Exception as e:
+                                print(e)
+                                buffer.insert(iter, LatexNodes2Text().latex_to_text(chunk.text))
+                    box.append(overlay)
                 elif chunk.type == "latex" or chunk.type == "latex_inline":
                     try:
                         box.append(
