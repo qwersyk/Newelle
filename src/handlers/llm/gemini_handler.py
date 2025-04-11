@@ -128,10 +128,9 @@ class GeminiHandler(LLMHandler):
         ]
         if self.get_setting("advanced_params", False):
             r += [
-                ExtraSettings.ScaleSetting("temperature", "Temperature", "Creativity allowed in the responses", 1, 0, 2, 1),
-                ExtraSettings.ScaleSetting("top_p", "Top P", "Probability of the top tokens to keep", 1, 0, 1, 1),
-                ExtraSettings.ScaleSetting("max_tokens", "Max Tokens", "Maximum number of tokens to generate", 8192, 0, 8192, 1),
-                ExtraSettings.ScaleSetting("frequency-penalty", "Frequency Penalty", "Frequency penalty", 1, 0, 2, 1),
+                ExtraSettings.ScaleSetting("temperature", "Temperature", "Creativity allowed in the responses", 1, 0, 2, 2),
+                ExtraSettings.ScaleSetting("top_p", "Top P", "Probability of the top tokens to keep", 1, 0, 1, 2),
+                ExtraSettings.ScaleSetting("max_tokens", "Max Tokens", "Maximum number of tokens to generate", 8192, 0, 65536, 1),
             ]
         return r
     def __convert_history(self, history: list):
