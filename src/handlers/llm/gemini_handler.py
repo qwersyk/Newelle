@@ -59,6 +59,8 @@ class GeminiHandler(LLMHandler):
                 models = client.models.list()
                 result = tuple()
                 for model in models:
+                    print(model.supported_actions)
+                    print(model)
                     if "embedding" in model.display_name.lower() or "legacy" in model.display_name.lower():
                         continue
                     result += ((model.display_name, model.name,),)
@@ -128,10 +130,9 @@ class GeminiHandler(LLMHandler):
         ]
         if self.get_setting("advanced_params", False):
             r += [
-                ExtraSettings.ScaleSetting("temperature", "Temperature", "Creativity allowed in the responses", 1, 0, 2, 1),
-                ExtraSettings.ScaleSetting("top_p", "Top P", "Probability of the top tokens to keep", 1, 0, 1, 1),
-                ExtraSettings.ScaleSetting("max_tokens", "Max Tokens", "Maximum number of tokens to generate", 8192, 0, 8192, 1),
-                ExtraSettings.ScaleSetting("frequency-penalty", "Frequency Penalty", "Frequency penalty", 1, 0, 2, 1),
+                ExtraSettings.ScaleSetting("temperature", "Temperature", "Creativity allowed in the responses", 1, 0, 2, 2),
+                ExtraSettings.ScaleSetting("top_p", "Top P", "Probability of the top tokens to keep", 1, 0, 1, 2),
+                ExtraSettings.ScaleSetting("max_tokens", "Max Tokens", "Maximum number of tokens to generate", 8192, 0, 65536, 0),
             ]
         return r
     def __convert_history(self, history: list):
@@ -220,23 +221,25 @@ class GeminiHandler(LLMHandler):
     
     def generate_text_stream(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = [], on_update: Callable[[str], Any] = lambda _: None , extra_args: list = []) -> str:
         from google import genai
-        from google.genai.types import HarmCategory, HarmBlockThreshold, GenerateContentConfig, Part
+        from google.genai.types import HarmCategory, HarmBlockThreshold, GenerateContentConfig, Part 
+        from google.genai import types
         if self.get_setting("safety"):
             safety = None
         else:
-            safety = { 
-                HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
-                HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
-                HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
-            }
-
+            safety = [
+                types.SafetySetting(category=types.HarmCategory.HARM_CATEGORY_HARASSMENT, threshold=HarmBlockThreshold.BLOCK_NONE),
+                types.SafetySetting(category=types.HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold=HarmBlockThreshold.BLOCK_NONE),
+                types.SafetySetting(category=types.HarmCategory.HARM_CATEGORY_CIVIC_INTEGRITY, threshold=HarmBlockThreshold.BLOCK_NONE),
+                types.SafetySetting(category=types.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold=HarmBlockThreshold.BLOCK_NONE),
+                types.SafetySetting(category=types.HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold=HarmBlockThreshold.BLOCK_NONE),
+            ] 
         client = genai.Client(api_key=self.get_setting("apikey"))
         instructions = "\n".join(system_prompt)
         append_instructions = None
         if not self.get_setting("system_prompt"): 
             instructions = None
             if self.get_setting("force_system_prompt"):
-                append_instructions = "\n".join(system_prompt)
+                append_instructions = "\n".join([p.replace("```", "\\\\\\```") for p in system_prompt])
         if not self.get_setting("advanced_params"):
             generate_content_config = GenerateContentConfig( system_instruction=instructions, 
                                                             safety_settings=safety, response_modalities=["text"] + ["image"] if self.get_setting("img_output") else ["text"])

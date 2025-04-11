@@ -30,6 +30,11 @@ def markwon_to_pango(markdown_text):
     # Escape potential Pango/XML characters first to avoid issues
     # with user input containing <, >, &
     escaped_text = GLib.markup_escape_text(markdown_text)
+    escaped_text = escaped_text.replace("&lt;sub&gt;", "<sub>" )
+    escaped_text = escaped_text.replace("&lt;/sub&gt;", "</sub>" )
+
+    escaped_text = escaped_text.replace("&lt;sup&gt;", "<sup>" )
+    escaped_text = escaped_text.replace("&lt;/sup&gt;", "</sup>" )
     initial_string = escaped_text # Keep the escaped version as fallback
 
     processed_text = escaped_text

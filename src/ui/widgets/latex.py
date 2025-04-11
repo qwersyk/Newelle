@@ -9,44 +9,70 @@ from matplotlib.figure import Figure
 
 
 class LatexCanvas(FigureCanvasGTK4Agg):
-    def __init__(self, latex: str, size: int, color):
+    def __init__(self, latex: str, size: int, color, inline: bool = False) -> None:
         fig = Figure()
         fig.patch.set_alpha(0)
         ax = fig.add_subplot()
         txt = ax.text(0.5, 0.5, r'$' + latex + r'$', fontsize=size, ha='center', va='center', color=(color.red, color.blue, color.green))  
         ax.axis('off')
-        fig.tight_layout(pad=0)
+        fig.tight_layout()
         fig.canvas.draw()
         fig_size = txt.get_window_extent()
         h = int(fig_size.height)
         w = int(fig_size.width)
+        self.dims = (w, h)
         super().__init__(fig)
         self.set_hexpand(True)
         self.set_vexpand(True)
-        self.set_size_request(w, h + int(h * (0.1)))
+        if inline:
+            self.set_halign(Gtk.Align.START)
+            self.set_valign(Gtk.Align.END)
+            self.set_size_request(w, h)
+        else:
+            self.set_size_request(w, h + int(h * (0.1)))
         self.set_css_classes(['latex_renderer'])
+
+class InlineLatex(Gtk.Box):
+
+    def __init__(self, latex: str, size: int) -> None:
+        super().__init__()
+        self.color = self.get_style_context().lookup_color("window_fg_color")[1]
+        self.latex = latex
+        self.size = size
+        self.picture = LatexCanvas(latex, self.size, self.color, inline=True)
+        if self.picture.dims[0] > 300:
+            scroll = Gtk.ScrolledWindow(vscrollbar_policy=Gtk.PolicyType.NEVER, propagate_natural_height=True, hscrollbar_policy=Gtk.PolicyType.AUTOMATIC, propagate_natural_width=True, hexpand=True)
+            scroll.set_child(self.picture)
+            scroll.set_size_request(300, -1)
+            self.append(scroll)
+        else:
+            self.append(self.picture)
+
 
 class DisplayLatex(Gtk.Box): 
 
-    def __init__(self, latex:str, size:int, cache_dir: str) -> None:
+    def __init__(self, latex:str, size:int, cache_dir: str, inline: bool = False) -> None:
         super().__init__()
         self.cachedir = cache_dir
         self.size = size 
 
-        overlay = Gtk.Overlay() 
 
         self.latex = latex 
         self.color = self.get_style_context().lookup_color("window_fg_color")[1]
         # Create Gtk.Picture
-        self.scroll = Gtk.ScrolledWindow(vscrollbar_policy=Gtk.PolicyType.NEVER, propagate_natural_height=True, hscrollbar_policy=Gtk.PolicyType.AUTOMATIC, propagate_natural_width=True)
-        self.picture = LatexCanvas(latex, self.size, self.color)
-        self.scroll.set_child(self.picture)
-        self.create_control_box()
-        self.controller()
-        overlay.set_child(self.scroll)
-        overlay.add_overlay(self.control_box)
-        self.overlay = overlay
-        self.append(overlay)
+        self.picture = LatexCanvas(latex, self.size, self.color, inline)
+        if not inline:
+            self.scroll = Gtk.ScrolledWindow(vscrollbar_policy=Gtk.PolicyType.NEVER, propagate_natural_height=True, hscrollbar_policy=Gtk.PolicyType.AUTOMATIC, propagate_natural_width=True)
+            self.scroll.set_child(self.picture)
+            self.create_control_box()
+            self.controller()
+            overlay = Gtk.Overlay() 
+            overlay.set_child(self.scroll)
+            overlay.add_overlay(self.control_box)
+            self.overlay = overlay
+            self.append(overlay)
+        else:
+            self.append(self.picture)
 
 
     def zoom_in(self, *_):
