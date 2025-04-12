@@ -135,9 +135,9 @@ class MyApp(Adw.Application):
                         website='https://github.com/qwersyk/Newelle',
                         developers=['Yehor Hliebov  https://github.com/qwersyk',"Francesco Caracciolo https://github.com/FrancescoCaracciolo"],
                         documenters=["Francesco Caracciolo https://github.com/FrancescoCaracciolo"],
-                        designers=["Nokse22 https://github.com/Nokse22"],
-                        translator_credits="\n".join(["Amine Saoud (Arabic) https://github.com/amiensa","Heimen Stoffels (Dutch) https://github.com/Vistaus","Albano Battistella (Italian) https://github.com/albanobattistella"]),
-                        copyright='© 2024 qwersyk').present()
+                        designers=["Nokse22 https://github.com/Nokse22", "Jared Tweed https://github.com/JaredTweed"],
+                        translator_credits="\n".join(["Amine Saoud (Arabic) https://github.com/amiensa","Heimen Stoffels (Dutch) https://github.com/Vistaus","Albano Battistella (Italian) https://github.com/albanobattistella","Oliver Tzeng (Traditional Chinese, all languages) https://github.com/olivertzeng","Aritra Saha (Bengali, Hindi) https://github.com/olumolu"]),
+                        copyright='© 2025 qwersyk').present()
 
     def thread_editing_action(self, *a):
         threadediting = ThreadEditing(self)
