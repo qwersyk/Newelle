@@ -34,6 +34,11 @@ newelle_sources = [
   'controller.py'
 ]
 
+integrations_sources = [
+  'integrations/__init__.py',
+  'integrations/website_reader.py'
+]
+
 ui_sources = [
   'ui/__init__.py',
   'ui/profile.py',
@@ -57,6 +62,7 @@ widgets_sources = [
   'ui/widgets/latex.py',
   'ui/widgets/terminal_dialog.py',
   'ui/widgets/markuptextview.py',
+  'ui/widgets/website.py',
 ]
 
 handler_sources = [
@@ -157,4 +163,5 @@ install_data(memory_sources, install_dir: moduledir / 'handlers' / 'memory')
 install_data(rag_sources, install_dir: moduledir / 'handlers' / 'rag')
 install_data(embedding_sources, install_dir: moduledir / 'handlers' / 'embeddings')
 install_data(utility_sources, install_dir: moduledir / 'utility')
+install_data(integrations_sources, install_dir: moduledir / 'integrations')
 

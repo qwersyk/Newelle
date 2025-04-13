@@ -1995,7 +1995,7 @@ class MainWindow(Gtk.ApplicationWindow):
         # Let extensions preprocess the history
         old_history = copy.deepcopy(history)
         old_user_prompt = self.chat[-1]["Message"]
-
+        self.chat, prompts = self.controller.integrationsloader.preprocess_history(self.chat, prompts)
         self.chat, prompts = self.extensionloader.preprocess_history(self.chat, prompts)
         if len(self.chat) == 0:
             GLib.idle_add(self.remove_send_button_spinner)
@@ -2038,6 +2038,7 @@ class MainWindow(Gtk.ApplicationWindow):
             GLib.timeout_add(250, remove_streaming_box)
             return
         if self.stream_number_variable == stream_number_variable:
+            history, message_label = self.controller.integrationsloader.postprocess_history(self.chat, message_label)
             history, message_label = self.extensionloader.postprocess_history(
                 self.chat, message_label
             )
@@ -2287,9 +2288,10 @@ class MainWindow(Gtk.ApplicationWindow):
             for chunk in chunks:
                 if chunk.type == "codeblock":
                     code_language = chunk.lang
-                    if code_language in self.extensionloader.codeblocks and not is_user:
+                    codeblocks = {**self.extensionloader.codeblocks, **self.controller.integrationsloader.codeblocks}
+                    if code_language in codeblocks:
                         value = chunk.text
-                        extension = self.extensionloader.codeblocks[code_language]
+                        extension = codeblocks[code_language]
                         try:
                             widget = extension.get_gtk_widget(value, code_language)
                             if widget is not None:
