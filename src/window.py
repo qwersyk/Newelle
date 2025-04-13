@@ -441,7 +441,7 @@ class MainWindow(Gtk.ApplicationWindow):
         GLib.idle_add(self.update_history)
         GLib.idle_add(self.show_chat)
         if not self.settings.get_boolean("welcome-screen-shown"):
-            GLib.idle_add(self.show_presentation_window)
+            threading.Thread(target=self.show_presentation_window).start()
         GLib.timeout_add(10, build_model_popup)
         self.controller.handlers.set_error_func(self.handle_error)
 
@@ -545,7 +545,10 @@ class MainWindow(Gtk.ApplicationWindow):
         """Update settings, run every time the program is started or settings dialog closed"""
         reloads = self.controller.update_settings()
         if self.first_load:
-            threading.Thread(target=self.controller.handlers.load_handlers).start()
+            # Load handlers with a timeout in order to not freeze the program
+            def load_handlers_async():
+                threading.Thread(target=self.controller.handlers.load_handlers).start()
+            GLib.timeout_add(1000, load_handlers_async)
         # Basic settings
         self.offers = self.controller.newelle_settings.offers
         self.current_profile = self.controller.newelle_settings.current_profile
@@ -794,10 +797,14 @@ class MainWindow(Gtk.ApplicationWindow):
     # UI Functions
     def show_presentation_window(self):
         """Show the window for the initial program presentation on first start"""
-        self.presentation_dialog = PresentationWindow(
-            "presentation", self.settings, self
-        )
-        self.presentation_dialog.show()
+        def show_presentation():
+            self.presentation_dialog = PresentationWindow(
+                "presentation", self.settings, self
+            )
+            self.presentation_dialog.show()
+        self.controller.handlers.handlers_cached.acquire()
+        self.controller.handlers.handlers_cached.release()
+        GLib.idle_add(show_presentation)
 
     def mute_tts(self, button: Gtk.Button):
         """Mute the TTS"""
@@ -1988,7 +1995,7 @@ class MainWindow(Gtk.ApplicationWindow):
         # Let extensions preprocess the history
         old_history = copy.deepcopy(history)
         old_user_prompt = self.chat[-1]["Message"]
-
+        self.chat, prompts = self.controller.integrationsloader.preprocess_history(self.chat, prompts)
         self.chat, prompts = self.extensionloader.preprocess_history(self.chat, prompts)
         if len(self.chat) == 0:
             GLib.idle_add(self.remove_send_button_spinner)
@@ -2031,6 +2038,7 @@ class MainWindow(Gtk.ApplicationWindow):
             GLib.timeout_add(250, remove_streaming_box)
             return
         if self.stream_number_variable == stream_number_variable:
+            history, message_label = self.controller.integrationsloader.postprocess_history(self.chat, message_label)
             history, message_label = self.extensionloader.postprocess_history(
                 self.chat, message_label
             )
@@ -2280,9 +2288,10 @@ class MainWindow(Gtk.ApplicationWindow):
             for chunk in chunks:
                 if chunk.type == "codeblock":
                     code_language = chunk.lang
-                    if code_language in self.extensionloader.codeblocks and not is_user:
+                    codeblocks = {**self.extensionloader.codeblocks, **self.controller.integrationsloader.codeblocks}
+                    if code_language in codeblocks:
                         value = chunk.text
-                        extension = self.extensionloader.codeblocks[code_language]
+                        extension = codeblocks[code_language]
                         try:
                             widget = extension.get_gtk_widget(value, code_language)
                             if widget is not None:

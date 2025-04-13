@@ -15,7 +15,7 @@ from .handlers.embeddings import EmbeddingHandler
 import time
 from .utility.system import is_flatpak
 from .utility.pip import install_module
-from .constants import DIR_NAME, SCHEMA_ID, PROMPTS, AVAILABLE_STT, AVAILABLE_TTS, AVAILABLE_LLMS, AVAILABLE_RAGS, AVAILABLE_PROMPTS, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS
+from .constants import AVAILABLE_INTEGRATIONS, DIR_NAME, SCHEMA_ID, PROMPTS, AVAILABLE_STT, AVAILABLE_TTS, AVAILABLE_LLMS, AVAILABLE_RAGS, AVAILABLE_PROMPTS, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS
 import threading
 import pickle
 import json
@@ -86,11 +86,12 @@ class NewelleController:
         """Init necessary variables for the UI and load models and handlers"""
         self.init_paths()
         self.check_path_integrity()
+        self.load_integrations()
         self.load_extensions()
         self.newelle_settings = NewelleSettings()
         self.newelle_settings.load_settings(self.settings)
         self.load_chats(self.newelle_settings.chat_id)
-        self.handlers = HandlersManager(self.settings, self.extensionloader, self.models_dir)
+        self.handlers = HandlersManager(self.settings, self.extensionloader, self.models_dir, self.integrationsloader)
         self.handlers.select_handlers(self.newelle_settings)
         threading.Thread(target=self.handlers.cache_handlers).start()
 
@@ -205,6 +206,10 @@ class NewelleController:
         self.extensionloader = extensionloader
         self.handlers.extensionloader = extensionloader
 
+    def set_integrationsloader(self, integrationsloader):
+        self.integrationsloader = integrationsloader
+        self.handlers.integrationsloader = integrationsloader
+
     def load_extensions(self):
         """Load extensions"""
         # Load extensions
@@ -214,6 +219,11 @@ class NewelleController:
         self.extensionloader.add_handlers(AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS, AVAILABLE_RAGS)
         self.extensionloader.add_prompts(PROMPTS, AVAILABLE_PROMPTS)
 
+    def load_integrations(self):
+        """Load integrations"""
+        self.integrationsloader = ExtensionLoader(self.extension_path, pip_path=self.pip_path, settings=self.settings)
+        self.integrationsloader.load_integrations(AVAILABLE_INTEGRATIONS)
+        
     def create_profile(self, profile_name, picture=None, settings={}):
         """Create a profile
 
@@ -374,11 +384,14 @@ class HandlersManager:
         memory: Memory Handler
         rag: RAG Handler 
     """
-    def __init__(self, settings: Gio.Settings, extensionloader : ExtensionLoader, models_path):
+    def __init__(self, settings: Gio.Settings, extensionloader : ExtensionLoader, models_path, integrations: ExtensionLoader):
         self.settings = settings
         self.extensionloader = extensionloader
         self.directory = models_path
-        self.handlers =  {} 
+        self.handlers =  {}
+        self.handlers_cached = threading.Semaphore()
+        self.handlers_cached.acquire()
+        self.integrationsloader = integrations
 
     def fix_handlers_integrity(self, newelle_settings: NewelleSettings):
         """Select available handlers if not available handlers in settings
@@ -472,7 +485,7 @@ class HandlersManager:
             self.handlers[(key, self.convert_constants(AVAILABLE_RAGS), False)] = self.get_object(AVAILABLE_RAGS, key)
         for key in AVAILABLE_EMBEDDINGS:
             self.handlers[(key, self.convert_constants(AVAILABLE_EMBEDDINGS), False)] = self.get_object(AVAILABLE_EMBEDDINGS, key)
-
+        self.handlers_cached.release()
     def convert_constants(self, constants: str | dict[str, Any]) -> (str | dict):
         """Get an handler instance for the specified handler key
 

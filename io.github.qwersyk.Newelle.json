@@ -39,6 +39,8 @@
     "modules/python3-pillow.json",
     "modules/python3-matplotlib.json",
     "modules/python3-pylatexenc.json",
+    "modules/python3-lxml_html_clean.json",
+    "modules/python3-newspaper3k.json",
     {
       "name": "newelle",
       "builddir": true,

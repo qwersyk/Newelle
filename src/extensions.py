@@ -257,6 +257,18 @@ class ExtensionLoader:
     def get_enabled_extensions(self) -> list[NewelleExtension]:
         return [x for x in self.get_extensions() if x not in self.disabled_extensions]
 
+    def load_integrations(self, AVAILABLE_INTEGRATIONS):
+        for integration in AVAILABLE_INTEGRATIONS:
+            integration_class = integration(self.pip, self.extension_cache, self.settings)
+            self.extensions_settings[integration_class.id] = {}
+            self.save_settings()
+            for lang in integration_class.get_replace_codeblocks_langs():
+                if lang not in self.codeblocks:
+                    self.codeblocks[lang] = integration_class
+            self.extensions.append(integration_class)
+            self.extensionsmap[integration_class.id] = integration_class
+
+            
     def load_extensions(self):
         """Load extensions from the extension directory"""
         sys.path.insert(0, self.project_dir)
