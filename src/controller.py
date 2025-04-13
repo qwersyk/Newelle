@@ -378,7 +378,9 @@ class HandlersManager:
         self.settings = settings
         self.extensionloader = extensionloader
         self.directory = models_path
-        self.handlers =  {} 
+        self.handlers =  {}
+        self.handlers_cached = threading.Semaphore()
+        self.handlers_cached.acquire()
 
     def fix_handlers_integrity(self, newelle_settings: NewelleSettings):
         """Select available handlers if not available handlers in settings
@@ -472,7 +474,7 @@ class HandlersManager:
             self.handlers[(key, self.convert_constants(AVAILABLE_RAGS), False)] = self.get_object(AVAILABLE_RAGS, key)
         for key in AVAILABLE_EMBEDDINGS:
             self.handlers[(key, self.convert_constants(AVAILABLE_EMBEDDINGS), False)] = self.get_object(AVAILABLE_EMBEDDINGS, key)
-
+        self.handlers_cached.release()
     def convert_constants(self, constants: str | dict[str, Any]) -> (str | dict):
         """Get an handler instance for the specified handler key
 

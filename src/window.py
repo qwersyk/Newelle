@@ -441,7 +441,7 @@ class MainWindow(Gtk.ApplicationWindow):
         GLib.idle_add(self.update_history)
         GLib.idle_add(self.show_chat)
         if not self.settings.get_boolean("welcome-screen-shown"):
-            GLib.idle_add(self.show_presentation_window)
+            threading.Thread(target=self.show_presentation_window).start()
         GLib.timeout_add(10, build_model_popup)
         self.controller.handlers.set_error_func(self.handle_error)
 
@@ -545,7 +545,10 @@ class MainWindow(Gtk.ApplicationWindow):
         """Update settings, run every time the program is started or settings dialog closed"""
         reloads = self.controller.update_settings()
         if self.first_load:
-            threading.Thread(target=self.controller.handlers.load_handlers).start()
+            # Load handlers with a timeout in order to not freeze the program
+            def load_handlers_async():
+                threading.Thread(target=self.controller.handlers.load_handlers).start()
+            GLib.timeout_add(1000, load_handlers_async)
         # Basic settings
         self.offers = self.controller.newelle_settings.offers
         self.current_profile = self.controller.newelle_settings.current_profile
@@ -794,10 +797,14 @@ class MainWindow(Gtk.ApplicationWindow):
     # UI Functions
     def show_presentation_window(self):
         """Show the window for the initial program presentation on first start"""
-        self.presentation_dialog = PresentationWindow(
-            "presentation", self.settings, self
-        )
-        self.presentation_dialog.show()
+        def show_presentation():
+            self.presentation_dialog = PresentationWindow(
+                "presentation", self.settings, self
+            )
+            self.presentation_dialog.show()
+        self.controller.handlers.handlers_cached.acquire()
+        self.controller.handlers.handlers_cached.release()
+        GLib.idle_add(show_presentation)
 
     def mute_tts(self, button: Gtk.Button):
         """Mute the TTS"""
