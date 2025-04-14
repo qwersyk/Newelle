@@ -36,7 +36,8 @@ newelle_sources = [
 
 integrations_sources = [
   'integrations/__init__.py',
-  'integrations/website_reader.py'
+  'integrations/website_reader.py',
+  'integrations/websearch.py',
 ]
 
 ui_sources = [
@@ -139,6 +140,12 @@ rag_sources = [
   'handlers/rag/llamaindex_handler.py',
 ]
 
+websearch_sources = [  
+  'handlers/websearch/__init__.py',
+  'handlers/websearch/websearch.py',
+  'handlers/websearch/searxng.py',
+]
+
 utility_sources = [
   'utility/__init__.py',
   'utility/media.py',
@@ -162,6 +169,7 @@ install_data(stt_sources, install_dir: moduledir / 'handlers' / 'stt')
 install_data(memory_sources, install_dir: moduledir / 'handlers' / 'memory')
 install_data(rag_sources, install_dir: moduledir / 'handlers' / 'rag')
 install_data(embedding_sources, install_dir: moduledir / 'handlers' / 'embeddings')
+install_data(websearch_sources, install_dir: moduledir / 'handlers' / 'websearch')
 install_data(utility_sources, install_dir: moduledir / 'utility')
 install_data(integrations_sources, install_dir: moduledir / 'integrations')
 

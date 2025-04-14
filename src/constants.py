@@ -5,12 +5,14 @@ from .handlers.stt import GroqSRHandler, OpenAISRHandler, SphinxHandler, GoogleS
 from .handlers.embeddings import WordLlamaHandler, OpenAIEmbeddingHandler, GeminiEmbeddingHanlder, OllamaEmbeddingHandler
 from .handlers.memory import MemoripyHandler, UserSummaryHandler, SummaryMemoripyHanlder
 from .handlers.rag import LlamaIndexHanlder
+from .handlers.websearch import SearXNGHandler
 from .integrations.website_reader import WebsiteReader
+from .integrations.websearch import WebsearchIntegration
 
 DIR_NAME = "Newelle"
 SCHEMA_ID = 'io.github.qwersyk.Newelle'
 
-AVAILABLE_INTEGRATIONS = [WebsiteReader]
+AVAILABLE_INTEGRATIONS = [WebsiteReader, WebsearchIntegration]
 
 AVAILABLE_LLMS = {
     "newelle": {
@@ -260,6 +262,15 @@ AVAILABLE_RAGS = {
     },
 }
 
+AVAILABLE_WEBSEARCH = {
+    "searxng": {
+        "key": "searxng",
+        "title": _("SearXNG"),
+        "description": _("SearXNG - Private and selfhostable search engine"),
+        "class": SearXNGHandler,
+    }
+}
+
 PROMPTS = {
     "generate_name_prompt": """Write a short title for the dialog, summarizing the theme in 5 words. No additional text.""",
     "assistant": """**Date:** {DATE}  
@@ -342,6 +353,7 @@ Example output:
 
 Chat History:
 """,
+    "websearch": "Use \n```search\nquery\n```\n to perform a web search.",
     "custom_prompt": "",
 
 }
@@ -381,6 +393,15 @@ AVAILABLE_PROMPTS = [
         "editable": False,
         "show_in_settings": False,
         "default": True
+    },
+    {
+        "key": "websearch",
+        "title": _("Web Search"),
+        "description": _("Allow the LLM to search on the internet"),
+        "setting_name": "websearch",
+        "editable": True,
+        "show_in_settings": True,
+        "default": False
     },
     {
         "key": "basic_functionality",

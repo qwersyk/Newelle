@@ -469,11 +469,12 @@ class MainWindow(Gtk.ApplicationWindow):
             css_classes=["flat"], icon_name="controls-big"
         )
         self.quick_toggles_popover = Gtk.Popover()
-        entries = [  # Your provided list
-            {"setting_name": "rag-on", "title": "Local Documents"},
-            {"setting_name": "memory-on", "title": "Long Term Memory"},
-            {"setting_name": "tts-on", "title": "TTS"},
-            {"setting_name": "virtualization", "title": "Command virutalization"},
+        entries = [  
+            {"setting_name": "rag-on", "title": _("Local Documents")},
+            {"setting_name": "memory-on", "title": _("Long Term Memory")},
+            {"setting_name": "tts-on", "title": _("TTS")},
+            {"setting_name": "virtualization", "title": _("Command virutalization")},
+            {"setting_name": "websearch-on", "title": _("Web search")},
         ]
 
         container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
@@ -523,11 +524,13 @@ class MainWindow(Gtk.ApplicationWindow):
 
     def update_toggles(self, *_):
         """Update the quick toggles"""
-        self.controller.update_settings()
+        reloads = self.controller.update_settings()
         self.tts_enabled = self.controller.newelle_settings.tts_enabled
         self.rag_on = self.controller.newelle_settings.rag_on
         self.memory_on = self.controller.newelle_settings.memory_on
         self.virtualization = self.controller.newelle_settings.virtualization
+        if ReloadType.WEBSEARCH in reloads:
+            self.model_popup_settings.build_prompts_settings()
 
     def quick_settings_update(self):
         """Update settings from the quick settings"""
@@ -632,7 +635,7 @@ class MainWindow(Gtk.ApplicationWindow):
         settings = Settings(self.app, self.controller, headless=True)
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         stack = Adw.ViewStack()
-
+        self.model_popup_settings = settings
         # Add the model selection page
         model_page = self.scrollable(self.build_model_selection())
         self.model_page = model_page

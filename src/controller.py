@@ -12,10 +12,12 @@ from .handlers.stt import STTHandler
 from .handlers.rag import RAGHandler
 from .handlers.memory import MemoryHandler
 from .handlers.embeddings import EmbeddingHandler
+from .handlers.websearch import WebSearchHandler
+
 import time
 from .utility.system import is_flatpak
 from .utility.pip import install_module
-from .constants import AVAILABLE_INTEGRATIONS, DIR_NAME, SCHEMA_ID, PROMPTS, AVAILABLE_STT, AVAILABLE_TTS, AVAILABLE_LLMS, AVAILABLE_RAGS, AVAILABLE_PROMPTS, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS
+from .constants import AVAILABLE_INTEGRATIONS, AVAILABLE_WEBSEARCH, DIR_NAME, SCHEMA_ID, PROMPTS, AVAILABLE_STT, AVAILABLE_TTS, AVAILABLE_LLMS, AVAILABLE_RAGS, AVAILABLE_PROMPTS, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS
 import threading
 import pickle
 import json
@@ -58,6 +60,8 @@ class ReloadType(Enum):
     SECONDARY_LLM = 9
     RELOAD_CHAT = 10
     RELOAD_CHAT_LIST = 11
+    WEBSEARCH = 12
+
 
 class NewelleController:
     """Main controller, manages the application
@@ -175,7 +179,7 @@ class NewelleController:
             self.extensionloader = ExtensionLoader(self.extension_path, pip_path=self.pip_path,
                                                    extension_cache=self.extensions_cache, settings=self.settings)
             self.extensionloader.load_extensions()
-            self.extensionloader.add_handlers(AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS, AVAILABLE_RAGS)
+            self.extensionloader.add_handlers(AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS, AVAILABLE_RAGS, AVAILABLE_WEBSEARCH)
             self.extensionloader.add_prompts(PROMPTS, AVAILABLE_PROMPTS)
             self.newelle_settings.load_prompts()
             self.handlers.select_handlers(self.newelle_settings)
@@ -196,6 +200,12 @@ class NewelleController:
             threading.Thread(target=self.handlers.embedding.load_model).start()
         elif reload_type == ReloadType.PROMPTS:
             return
+        elif reload_type == ReloadType.WEBSEARCH:
+            self.handlers.select_handlers(self.newelle_settings)
+            self.newelle_settings.prompts_settings["websearch"] = self.newelle_settings.websearch_on
+            self.newelle_settings.save_prompts()
+            self.newelle_settings.load_prompts()
+            
 
     def set_extensionsloader(self, extensionloader):
         """Change extension loader
@@ -216,7 +226,7 @@ class NewelleController:
         self.extensionloader = ExtensionLoader(self.extension_path, pip_path=self.pip_path,
                                                extension_cache=self.extensions_cache, settings=self.settings)
         self.extensionloader.load_extensions()
-        self.extensionloader.add_handlers(AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS, AVAILABLE_RAGS)
+        self.extensionloader.add_handlers(AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS, AVAILABLE_RAGS, AVAILABLE_WEBSEARCH)
         self.extensionloader.add_prompts(PROMPTS, AVAILABLE_PROMPTS)
 
     def load_integrations(self):
@@ -306,6 +316,9 @@ class NewelleSettings:
         self.username = self.settings.get_string("user-name")
         self.zoom = self.settings.get_int("zoom")
         self.max_run_times = self.settings.get_int("max-run-times")
+        self.websearch_on = self.settings.get_boolean("websearch-on")
+        self.websearch_model = self.settings.get_string("websearch-model")
+        self.websearch_settings = self.settings.get_string("websearch-settings")
         self.load_prompts()
         # Adjust paths
         if os.path.exists(os.path.expanduser(self.main_path)):
@@ -362,11 +375,17 @@ class NewelleSettings:
             reloads.append(ReloadType.RELOAD_CHAT)
         if self.reverse_order != new_settings.reverse_order:
             reloads.append(ReloadType.RELOAD_CHAT_LIST)
+
+        if self.websearch_on != new_settings.websearch_on or self.websearch_model != new_settings.websearch_model or self.websearch_settings != new_settings.websearch_settings:
+            reloads.append(ReloadType.WEBSEARCH)
         # Check prompts
         if len(self.prompts) != len(new_settings.prompts):
             reloads.append(ReloadType.PROMPTS)
 
         return reloads
+
+    def save_prompts(self):
+        self.settings.set_string("prompts-settings", json.dumps(self.prompts_settings))
 
 
 class HandlersManager:
@@ -413,6 +432,8 @@ class HandlersManager:
             newelle_settings.tts_program = list(AVAILABLE_TTS.keys())[0]
         if newelle_settings.stt_engine not in AVAILABLE_STT:
             newelle_settings.stt_engine = list(AVAILABLE_STT.keys())[0]
+        if newelle_settings.websearch_model not in AVAILABLE_WEBSEARCH:
+            newelle_settings.websearch_model = list(AVAILABLE_WEBSEARCH.keys())[0]
        
     def select_handlers(self, newelle_settings: NewelleSettings):
         """Assign the selected handlers
@@ -433,9 +454,12 @@ class HandlersManager:
         self.memory : MemoryHandler = self.get_object(AVAILABLE_MEMORIES, newelle_settings.memory_model)
         self.memory.set_memory_size(newelle_settings.memory)
         self.rag : RAGHandler = self.get_object(AVAILABLE_RAGS, newelle_settings.rag_model)
+        self.websearch : WebSearchHandler = self.get_object(AVAILABLE_WEBSEARCH, newelle_settings.websearch_model)
         # Assign handlers 
-        self.extensionloader.set_handlers(self.llm, self.stt, self.tts, self.secondary_llm, self.embedding, self.rag, self.memory)
+        self.integrationsloader.set_handlers(self.llm, self.stt, self.tts, self.secondary_llm, self.embedding, self.rag, self.memory, self.websearch)
+        self.extensionloader.set_handlers(self.llm, self.stt, self.tts, self.secondary_llm, self.embedding, self.rag, self.memory, self.websearch)
         self.memory.set_handlers(self.secondary_llm, self.embedding)
+        
         self.rag.set_handlers(self.llm, self.embedding)
         threading.Thread(target=self.install_missing_handlers).start()
 
@@ -485,6 +509,8 @@ class HandlersManager:
             self.handlers[(key, self.convert_constants(AVAILABLE_RAGS), False)] = self.get_object(AVAILABLE_RAGS, key)
         for key in AVAILABLE_EMBEDDINGS:
             self.handlers[(key, self.convert_constants(AVAILABLE_EMBEDDINGS), False)] = self.get_object(AVAILABLE_EMBEDDINGS, key)
+        for key in AVAILABLE_WEBSEARCH:
+            self.handlers[(key, self.convert_constants(AVAILABLE_WEBSEARCH), False)] = self.get_object(AVAILABLE_WEBSEARCH, key)
         self.handlers_cached.release()
     def convert_constants(self, constants: str | dict[str, Any]) -> (str | dict):
         """Get an handler instance for the specified handler key
@@ -513,6 +539,8 @@ class HandlersManager:
                     return AVAILABLE_EMBEDDINGS
                 case "rag":
                     return AVAILABLE_RAGS
+                case "websearch":
+                    return AVAILABLE_WEBSEARCH
                 case "extension":
                     return self.extensionloader.extensionsmap
                 case _:
@@ -530,6 +558,8 @@ class HandlersManager:
                 return "embedding"
             elif constants == AVAILABLE_RAGS:
                 return "rag"
+            elif constants == AVAILABLE_WEBSEARCH:
+                return "websearch"
             elif constants == self.extensionloader.extensionsmap:
                 return "extension"
             else:
@@ -565,6 +595,8 @@ class HandlersManager:
             model = constants[key]["class"](self.settings, self.directory)
         elif constants == AVAILABLE_RAGS:
             model = constants[key]["class"](self.settings, self.directory)
+        elif constants == AVAILABLE_WEBSEARCH:
+            model = constants[key]["class"](self.settings, self.directory)
         elif constants == self.extensionloader.extensionsmap:
             model = self.extensionloader.extensionsmap[key]
             if model is None:
@@ -598,6 +630,8 @@ class HandlersManager:
             return AVAILABLE_EMBEDDINGS
         elif issubclass(type(handler), RAGHandler):
             return AVAILABLE_RAGS
+        elif issubclass(type(handler), WebSearchHandler):
+            return AVAILABLE_WEBSEARCH
         else:
             raise Exception("Unknown handler")
 

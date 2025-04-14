@@ -13,6 +13,7 @@ from .handlers.tts import TTSHandler
 from .handlers.rag import RAGHandler
 from .handlers.memory import MemoryHandler
 from .handlers.embeddings import EmbeddingHandler
+from .handlers.websearch import WebSearchHandler
 
 class NewelleExtension(Handler):
     """The base class for all extensions"""
@@ -39,7 +40,7 @@ class NewelleExtension(Handler):
         self.schema_key = "extensions-settings"
         pass
 
-    def set_handlers(self, llm: LLMHandler, stt: STTHandler, tts:TTSHandler|None, secondary_llm: LLMHandler, embedding: EmbeddingHandler, rag: RAGHandler|None, memory: MemoryHandler|None):
+    def set_handlers(self, llm: LLMHandler, stt: STTHandler, tts:TTSHandler|None, secondary_llm: LLMHandler, embedding: EmbeddingHandler, rag: RAGHandler|None, memory: MemoryHandler|None, websearch: WebSearchHandler):
         """Set the handlers for the extension
 
         Args:
@@ -58,6 +59,7 @@ class NewelleExtension(Handler):
         self.embedding = embedding
         self.rag = rag
         self.memory = memory
+        self.websearch = websearch
 
     def get_llm_handlers(self) -> list[dict]:
         """
@@ -150,6 +152,20 @@ class NewelleExtension(Handler):
         """
         return []
 
+    def get_websearch_handlers(self) -> list[dict]:
+        """
+        Returns the list of websearch handlers
+
+        Returns:
+            list: list of websearch handlers in this format
+            {
+                "key": "key of the handler",
+                "title": "title of the handler",
+                "description": "description of the handler",
+                "class": WebSearchHandler - The class of the handler,
+            }
+        """
+        return []
     def get_additional_prompts(self) -> list:
         """
         Returns the list of additional prompts
@@ -303,11 +319,11 @@ class ExtensionLoader:
             
         sys.path.remove(self.project_dir)
 
-    def set_handlers(self, llm: LLMHandler, stt: STTHandler, tts:TTSHandler|None, secondary_llm: LLMHandler, embedding: EmbeddingHandler, rag: RAGHandler|None, memory: MemoryHandler|None):
+    def set_handlers(self, llm: LLMHandler, stt: STTHandler, tts:TTSHandler|None, secondary_llm: LLMHandler, embedding: EmbeddingHandler, rag: RAGHandler|None, memory: MemoryHandler|None, websearch: WebSearchHandler | None):
         for extension in self.extensions:
-            extension.set_handlers(llm, stt, tts, secondary_llm, embedding, rag, memory)
+            extension.set_handlers(llm, stt, tts, secondary_llm, embedding, rag, memory, websearch)
 
-    def add_handlers(self, AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS, AVAILABLE_RAG):
+    def add_handlers(self, AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS, AVAILABLE_RAG, AVAILABLE_WEBSEARCH):
         """Add the handlers of each extension to the available handlers
 
         Args:
@@ -336,6 +352,9 @@ class ExtensionLoader:
             handlers = extension.get_rag_handlers()
             for handler in handlers:
                 AVAILABLE_RAG[handler["key"]] = handler
+            handlers = extension.get_websearch_handlers()
+            for handler in handlers:
+                AVAILABLE_WEBSEARCH[handler["key"]] = handler
 
     def add_prompts(self, PROMPTS, AVAILABLE_PROMPTS):
         """Add the prompts of each extension to the available prompts
@@ -379,6 +398,9 @@ class ExtensionLoader:
         handlers = extension.get_rag_handlers()
         for handler in handlers:
             AVAILABLE_RAG.pop(handler["key"])
+        handlers = extension.get_websearch_handlers()
+        for handler in handlers:
+            AVAILABLE_WEBSEARCH.pop(handler["key"])
 
     def remove_prompts(self, extension, PROMPTS, AVAILABLE_PROMPTS):
         """Remove prompts of an extension
