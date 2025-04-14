@@ -86,6 +86,15 @@
 	      <key name="memory-settings" type="s">
             <default>"{}"</default>
         </key>
+        <key name="websearch-on" type="b">
+          <default>false</default>
+        </key>
+        <key name="websearch-settings" type="s">
+          <default>"{}"</default>
+        </key>
+        <key name="websearch-model" type="s">
+          <default>"searxng"</default>
+        </key>
         <key name="rag-on" type="b">
           <default>false</default>
         </key>

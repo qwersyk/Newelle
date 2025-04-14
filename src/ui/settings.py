@@ -11,7 +11,7 @@ from gi.repository import Gtk, Adw, Gio, GLib
 
 from ..handlers import Handler
 
-from ..constants import AVAILABLE_EMBEDDINGS, AVAILABLE_LLMS, AVAILABLE_MEMORIES, AVAILABLE_PROMPTS, AVAILABLE_TTS, AVAILABLE_STT, PROMPTS, AVAILABLE_RAGS
+from ..constants import AVAILABLE_EMBEDDINGS, AVAILABLE_LLMS, AVAILABLE_MEMORIES, AVAILABLE_PROMPTS, AVAILABLE_TTS, AVAILABLE_STT, PROMPTS, AVAILABLE_RAGS, AVAILABLE_WEBSEARCH
 
 from .widgets import ComboRowHelper, CopyBox 
 from .widgets import MultilineEntry
@@ -25,6 +25,7 @@ class Settings(Adw.PreferencesWindow):
         self.app = app
         self.controller = controller
         self.settings = controller.settings
+        self.headless = headless
         if not headless:
             self.set_transient_for(app.win)
         self.set_modal(True)
@@ -45,7 +46,7 @@ class Settings(Adw.PreferencesWindow):
         self.general_page = Adw.PreferencesPage(icon_name="settings-symbolic", title=_("General"))
         self.LLMPage = Adw.PreferencesPage(icon_name="brain-augemnted-symbolic", title=_("LLM")) 
         self.PromptsPage = Adw.PreferencesPage(icon_name="question-round-outline-symbolic", title=_("Prompts"))
-        self.MemoryPage = Adw.PreferencesPage(icon_name="vcard-symbolic", title=_("Memory"))
+        self.MemoryPage = Adw.PreferencesPage(icon_name="vcard-symbolic", title=_("Knowledge"))
         # Dictionary containing all the rows for settings update
         self.settingsrows = {}
         # Build the LLMs settings
@@ -109,6 +110,17 @@ class Settings(Adw.PreferencesWindow):
            row = self.build_row(AVAILABLE_MEMORIES, key, selected, group) 
            tts_program.add_row(row)
         
+        # Build the Web Search settings
+        web_enabled = Gtk.Switch(valign=Gtk.Align.CENTER)
+        self.settings.bind("websearch-on", web_enabled, 'active', Gio.SettingsBindFlags.DEFAULT)
+        tts_program = Adw.ExpanderRow(title=_('Web Search'), subtitle=_("Search information on the Web"))
+        tts_program.add_action(web_enabled)
+        self.SECONDARY_LLM.add(tts_program)
+        group = Gtk.CheckButton()
+        selected = self.settings.get_string("websearch-model")
+        for key in AVAILABLE_WEBSEARCH:
+           row = self.build_row(AVAILABLE_WEBSEARCH, key, selected, group) 
+           tts_program.add_row(row)
         # Build the RAG settings
         self.build_rag_settings()
 
@@ -137,40 +149,11 @@ class Settings(Adw.PreferencesWindow):
         self.auto_stt = Adw.ExpanderRow(title=_('Automatic Speech To Text'), subtitle=_("Automatically restart speech to text at the end of a text/TTS"))
         self.build_auto_stt()
         self.Voicegroup.add(self.auto_stt)
-        # Prompts settings
+        # Build prompts settings 
         self.prompt = Adw.PreferencesGroup(title=_('Prompt control'))
         self.PromptsPage.add(self.prompt)
-
-        row = Adw.ExpanderRow(title=_("Auto-run commands"), subtitle=_("Commands that the bot will write will automatically run"))
-        switch = Gtk.Switch(valign=Gtk.Align.CENTER)
-        row.add_suffix(switch)
-        spin = Adw.SpinRow(title=_("Max number of commands"), subtitle=_("Maximum number of commands that the bot will write after a single user request"), adjustment=Gtk.Adjustment(lower=0, upper=30,  page_increment=1, value=self.settings.get_int("max-run-times"), step_increment=1))
-        def update_spin(spin, input):
-            self.settings.set_int("max-run-times", int(spin.get_value()))
-            return False
-        spin.connect("input", update_spin)
-        row.add_row(spin)
-        self.settings.bind("auto-run", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
-        self.prompt.add(row)
-
-        self.__prompts_entries = {}
-        for prompt in AVAILABLE_PROMPTS:
-            is_active = False
-            if prompt["setting_name"] in self.prompts_settings:
-                is_active = self.prompts_settings[prompt["setting_name"]]
-            else:
-                is_active = prompt["default"]
-            if not prompt["show_in_settings"]:
-                continue
-            row = Adw.ExpanderRow(title=prompt["title"], subtitle=prompt["description"])
-            if prompt["editable"]:
-                self.add_customize_prompt_content(row, prompt["key"])
-            switch = Gtk.Switch(valign=Gtk.Align.CENTER)
-            switch.set_active(is_active)
-            switch.connect("notify::active", self.update_prompt, prompt["setting_name"])
-            row.add_suffix(switch)
-            self.prompt.add(row)
-
+        self.prompts_rows = []
+        self.build_prompts_settings()
         # Interface settings
         self.interface = Adw.PreferencesGroup(title=_('Interface'))
         self.general_page.add(self.interface)
@@ -265,6 +248,44 @@ class Settings(Adw.PreferencesWindow):
         self.add(self.MemoryPage)
         self.add(self.general_page)
  
+    def build_prompts_settings(self):
+        # Prompts settings
+        self.prompts_settings = self.controller.newelle_settings.prompts_settings 
+        for prompt in self.prompts_rows:
+            self.prompt.remove(prompt)
+        self.prompts_rows = []
+        row = Adw.ExpanderRow(title=_("Auto-run commands"), subtitle=_("Commands that the bot will write will automatically run"))
+        switch = Gtk.Switch(valign=Gtk.Align.CENTER)
+        row.add_suffix(switch)
+        spin = Adw.SpinRow(title=_("Max number of commands"), subtitle=_("Maximum number of commands that the bot will write after a single user request"), adjustment=Gtk.Adjustment(lower=0, upper=30,  page_increment=1, value=self.settings.get_int("max-run-times"), step_increment=1))
+        def update_spin(spin, input):
+            self.settings.set_int("max-run-times", int(spin.get_value()))
+            return False
+        spin.connect("input", update_spin)
+        row.add_row(spin)
+        self.settings.bind("auto-run", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
+        self.prompt.add(row)
+        self.prompts_rows.append(row)
+
+        self.__prompts_entries = {}
+        for prompt in AVAILABLE_PROMPTS:
+            is_active = False
+            if prompt["setting_name"] in self.prompts_settings:
+                is_active = self.prompts_settings[prompt["setting_name"]]
+            else:
+                is_active = prompt["default"]
+            if not prompt["show_in_settings"]:
+                continue
+            row = Adw.ExpanderRow(title=prompt["title"], subtitle=prompt["description"])
+            if prompt["editable"]:
+                self.add_customize_prompt_content(row, prompt["key"])
+            switch = Gtk.Switch(valign=Gtk.Align.CENTER)
+            switch.set_active(is_active)
+            switch.connect("notify::active", self.update_prompt, prompt["setting_name"])
+            row.add_suffix(switch)
+            self.prompt.add(row)
+            self.prompts_rows.append(row)
+
     def build_rag_settings(self):
         self.RAG = Adw.PreferencesGroup(title=_('Document Sources (RAG)'), description=_("Include content from your documents in the responses"))
         tts_program = Adw.ExpanderRow(title=_('Document Analyzer'), subtitle=_("The document analyzer uses multiple techniques to extract relevant information about your documents"))
@@ -453,7 +474,7 @@ class Settings(Adw.PreferencesWindow):
         else:
             return
         self.settings.set_string(setting_name, button.get_name())
-        if constants == AVAILABLE_LLMS:
+        if constants == AVAILABLE_LLMS and self.headless:
             self.app.win.update_available_models()
         if constants == AVAILABLE_RAGS or constants == AVAILABLE_EMBEDDINGS:
             self.app.win.update_settings()
