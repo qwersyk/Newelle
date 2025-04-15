@@ -464,8 +464,12 @@ class HandlersManager:
         threading.Thread(target=self.install_missing_handlers).start()
 
     def set_error_func(self, func):
-        for handler in self.handlers.values():
-            handler.set_error_func(func)
+        def async_set():
+            self.handlers_cached.acquire()
+            self.handlers_cached.release()
+            for handler in self.handlers.values():
+                handler.set_error_func(func)
+        threading.Thread(target=async_set).start()
 
     def load_handlers(self):
         """Load handlers"""
