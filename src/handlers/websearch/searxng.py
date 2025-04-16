@@ -10,10 +10,17 @@ class SearXNGHandler(WebSearchHandler):
             ExtraSettings.EntrySetting("endpoint", "SearXNG Instance", "URL of the instance of SearXNG to query.\nIt is strongly suggested to selfhost your own instance with json mode enabled", "https://search.hbubli.cc"),
             ExtraSettings.EntrySetting("lang", "Language", "Language for the search results", "en"),
             ExtraSettings.ScaleSetting("results", "Results", "Number of results to consider", 2, 1, 10, 0),
-            ExtraSettings.ToggleSetting("scrape", "Instance scraping", "Scrape SearXNG instance if JSON format is not enabled", True)
+            ExtraSettings.ToggleSetting("scrape", "Instance scraping", "Scrape SearXNG instance if JSON format is not enabled", True),
+            ExtraSettings.ToggleSetting("streaming", "Show search progress", "Show search progress", True)
         ]
 
-    def query(self, keywords: str) -> str:
+    def supports_streaming_query(self) -> bool:
+        return self.get_setting("streaming")
+
+    def query(self, keywords: str) -> tuple[str, list]:
+        return self.query_streaming(keywords, lambda title, link, favicon: None)
+
+    def query_streaming(self, keywords: str, add_website) -> tuple[str, list]:
         try:
            results = self.get_links(keywords)
         except Exception as e:
@@ -22,13 +29,13 @@ class SearXNGHandler(WebSearchHandler):
                 results = self.scrape_searxng_results(keywords)
             if len(results) == 0:
                 self.throw("Failed to query SearXNG: " + str(e), ErrorSeverity.WARNING)
-                return "No results found"
-        content = self.scrape_websites(results)
+                return "No results found", []
+        content, urls = self.scrape_websites(results, add_website)
         text = ""
         for result in content:
             text += f"## {result['title']}\n{result['text']}\n\n"
         text = text[:5000]
-        return text
+        return text, urls
 
 
     def extract_links_from_html(self,response):
@@ -114,23 +121,23 @@ class SearXNGHandler(WebSearchHandler):
             print(f"An unexpected error occurred during the search request: {e}")
             return []
 
-        # Extract links from the HTML response
-        print(response.text)
+
         result_links = self.extract_links_from_html(response.text)
         return result_links
 
-    def scrape_websites(self, result_links):
+    def scrape_websites(self, result_links, update):
         from newspaper import Article, ArticleException
         max_results = self.get_setting("results")
         lang = self.get_setting("lang")
         if not result_links:
             print("No result links found on the SearXNG page.")
-            return []
-
+            return [],[]
+        urls = []
         extracted_content = []
         processed_count = 0
 
         for url, initial_title in result_links:
+            urls.append(url)
             if processed_count >= max_results:
                 print(f"Reached maximum results limit ({max_results}).")
                 break
@@ -145,7 +152,7 @@ class SearXNGHandler(WebSearchHandler):
                 # Download and parse
                 article.download()
                 article.parse()
-
+                update(article.title, url, article.meta_favicon)
                 # Check if parsing was successful and text was extracted
                 if article.text:
                     article_data['title'] = article.title or initial_title # Prefer newspaper's title if available
@@ -161,6 +168,6 @@ class SearXNGHandler(WebSearchHandler):
             except Exception as e:
                 # Catch other potential errors during download/parse
                 print(f"  An unexpected error occurred processing {url}: {e}")
-
+        
         print(f"\nFinished processing. Successfully extracted content from {len(extracted_content)} URLs.")
-        return extracted_content
+        return extracted_content, urls

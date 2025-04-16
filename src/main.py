@@ -87,6 +87,18 @@ class MyApp(Adw.Application):
             box-shadow: 0 2px 4px alpha(black, 0.1);
             margin: 4px;
         }
+        @keyframes pulse_opacity {
+          0% { opacity: 1.0; }
+          50% { opacity: 0.5; }
+          100% { opacity: 1.0; }
+        }
+
+        .pulsing-label {
+          animation-name: pulse_opacity;
+          animation-duration: 1.8s;
+          animation-timing-function: ease-in-out;
+          animation-iteration-count: infinite;
+        }
         '''
         css_provider = Gtk.CssProvider()
         css_provider.load_from_data(css, -1)

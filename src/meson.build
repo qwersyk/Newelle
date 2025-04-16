@@ -64,6 +64,7 @@ widgets_sources = [
   'ui/widgets/terminal_dialog.py',
   'ui/widgets/markuptextview.py',
   'ui/widgets/website.py',
+  'ui/widgets/websearch.py',
 ]
 
 handler_sources = [
