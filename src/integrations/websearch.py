@@ -1,3 +1,4 @@
+from ..utility.message_chunk import get_message_chunks
 from ..extensions import NewelleExtension
 from ..ui.widgets import WebSearchWidget
 from gi.repository import Gtk, GLib
@@ -65,6 +66,14 @@ class WebsearchIntegration(NewelleExtension):
         self.widget_cache[codeblock]["websites"] = []
         self.widget_cache[codeblock]["result"] = "No result found"
         return search_widget
+
+    def postprocess_history(self, history: list, bot_response: str) -> tuple[list, str]:
+        chunks = get_message_chunks(bot_response)
+        for chunk in chunks:
+            if chunk.type == "codeblock" and chunk.lang == "search":
+                bot_response = "```search\n" + chunk.text + "\n```"
+                break
+        return history, bot_response
 
     def save_widget_cache(self):
         self.set_setting("widget_cache", self.widget_cache)
