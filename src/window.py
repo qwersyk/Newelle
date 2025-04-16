@@ -2508,7 +2508,10 @@ class MainWindow(Gtk.ApplicationWindow):
                                 value = "".join(
                                     filter(lambda x: x.isdigit() or x == ".", parts[1])
                                 )
-                                result[key] = float(value)
+                                try:
+                                    result[key] = float(value)
+                                except Exception as e:
+                                    result[key] = 0
                             else:
                                 box.append(
                                     CopyBox(chunk.text, code_language, parent=self)
