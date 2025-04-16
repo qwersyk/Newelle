@@ -1709,7 +1709,6 @@ class MainWindow(Gtk.ApplicationWindow):
             self.secondary_model.set_history(
                 [], self.get_history(self.chats[int(button.get_name())]["chat"])
             )
-            print("Generating")
             name = self.secondary_model.generate_chat_name(
                 self.prompts["generate_name_prompt"]
             )
@@ -2313,7 +2312,7 @@ class MainWindow(Gtk.ApplicationWindow):
                                     # The widget must be edited by the extension
                                     def apply_sync(code):    
                                         if not code[0]:
-                                            self.add_message("Error", text_expander)
+                                            self.add_message("Error", code[1])
                                 else:
                                     # In case only the answer is provided, the apply_async function
                                     # Also return a text expander with the code
@@ -2326,6 +2325,7 @@ class MainWindow(Gtk.ApplicationWindow):
                                         margin_end=10,
                                     )
                                     text_expander.set_expanded(False)
+                                    box.append(text_expander)
                                     def apply_sync(code):
                                         text_expander.set_child(
                                             Gtk.Label(
@@ -2356,7 +2356,7 @@ class MainWindow(Gtk.ApplicationWindow):
                                 ]["Message"]
                             
                             # Get the response async
-                            def get_response(apply_async):
+                            def get_response(apply_sync):
                                 if not restore:
                                     response = extension.get_answer(
                                         value, code_language
@@ -2375,8 +2375,7 @@ class MainWindow(Gtk.ApplicationWindow):
                                 )
                                 GLib.idle_add(apply_sync, code)
 
-                            box.append(text_expander)
-                            t = threading.Thread(target=get_response)
+                            t = threading.Thread(target=get_response, args=(apply_sync,))
                             t.start()
                             running_threads.append(t)
                         except Exception as e:
