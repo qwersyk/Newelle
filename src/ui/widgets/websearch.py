@@ -56,7 +56,6 @@ class WebSearchWidget(Gtk.Box):
         self._expander.set_visible(False)
         self.append(self._expander)
 
-    # _create_website_row remains the same
     def _create_website_row(self, title, link, favicon):
         if not favicon.startswith("http") and not favicon.startswith("https"):
             from urllib.parse import urlparse, urljoin
@@ -100,7 +99,7 @@ class WebSearchWidget(Gtk.Box):
     
     # add_website remains the same
     def add_website(self, title, link, favicon_path=None):
-        if self._current_spinner_revealer:
+        if self._current_spinner_revealer and self._current_spinner:
             self._current_spinner.stop()
         if self._is_first_website:
             self._is_first_website = False
@@ -120,7 +119,7 @@ class WebSearchWidget(Gtk.Box):
         self._status_label.remove_css_class("pulsing-label")
         if self._is_first_website:
             self._is_first_website = False
-        if self._current_spinner_revealer:
+        if self._current_spinner_revealer and self._current_spinner:
             self._current_spinner.stop()
             self._current_spinner_revealer.set_reveal_child(False)
             self._current_spinner = None
