@@ -6,7 +6,7 @@ class GroqHandler(OpenAIHandler):
     default_models = (("llama-3.3-70B-versatile", "llama-3.3-70B-versatile" ), ) 
     
     def supports_vision(self) -> bool:
-        return "vision" in self.get_setting("model")
+        return any(x in self.get_setting("model") for x in ["llama-4", "vision"])
 
     def __init__(self, settings, path):
         super().__init__(settings, path)
