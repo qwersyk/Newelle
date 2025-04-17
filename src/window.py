@@ -2346,7 +2346,7 @@ class MainWindow(Gtk.ApplicationWindow):
                             if widget is not None:
                                 # Add the widget to the message
                                 box.append(widget)
-                            if widget is not None or extension.provides_both_widget_and_anser(value, code_language):
+                            if widget is None or extension.provides_both_widget_and_anser(value, code_language):
                                 if widget is not None:
                                     # If the answer is provided, the apply_async function 
                                     # Should only do something on error\
@@ -2375,50 +2375,47 @@ class MainWindow(Gtk.ApplicationWindow):
                                                 label=chunk.text + "\n" + str(code[1]),
                                                 selectable=True,
                                             )
+                                        ) 
+                                # Add message to history
+                                editable = False
+                                if id_message == -1:
+                                    id_message = len(self.chat) - 1
+                                id_message += 1
+                                has_terminal_command = True
+                                reply_from_the_console = None
+                                if (
+                                    self.chat[min(id_message, len(self.chat) - 1)][
+                                        "User"
+                                    ]
+                                    == "Console"
+                                ):
+                                    reply_from_the_console = self.chat[
+                                        min(id_message, len(self.chat) - 1)
+                                    ]["Message"]
+                                
+                                # Get the response async
+                                def get_response(apply_sync):
+                                    if not restore:
+                                        response = extension.get_answer(
+                                            value, code_language
                                         )
-                                if not extension.provides_both_widget_and_anser(value, code_language):
-                                    return
-                            
-                            # Add message to history
-                            editable = False
-                            if id_message == -1:
-                                id_message = len(self.chat) - 1
-                            id_message += 1
-                            has_terminal_command = True
-                            reply_from_the_console = None
-                            if (
-                                self.chat[min(id_message, len(self.chat) - 1)][
-                                    "User"
-                                ]
-                                == "Console"
-                            ):
-                                reply_from_the_console = self.chat[
-                                    min(id_message, len(self.chat) - 1)
-                                ]["Message"]
-                            
-                            # Get the response async
-                            def get_response(apply_sync):
-                                if not restore:
-                                    response = extension.get_answer(
-                                        value, code_language
-                                    )
-                                    if response is not None:
-                                        code = (True, response)
+                                        if response is not None:
+                                            code = (True, response)
+                                        else:
+                                            code = (False, "Error:")
                                     else:
-                                        code = (False, "Error:")
-                                else:
-                                    code = (True, reply_from_the_console)
-                                self.chat.append(
-                                    {
-                                        "User": "Console",
-                                        "Message": " " + str(code[1]),
-                                    }
-                                )
-                                GLib.idle_add(apply_sync, code)
+                                        code = (True, reply_from_the_console)
+                                    self.chat.append(
+                                        {
+                                            "User": "Console",
+                                            "Message": " " + str(code[1]),
+                                        }
+                                    )
+                                    GLib.idle_add(apply_sync, code)
 
-                            t = threading.Thread(target=get_response, args=(apply_sync,))
-                            t.start()
-                            running_threads.append(t)
+                                t = threading.Thread(target=get_response, args=(apply_sync,))
+                                t.start()
+                                running_threads.append(t)
                         except Exception as e:
                             print("Extension error " + extension.id + ": " + str(e))
                             box.append(CopyBox(chunk.text, code_language, parent=self))
