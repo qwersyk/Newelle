@@ -3,8 +3,8 @@ import xml.etree.ElementTree as ET
 from .. import apply_css_to_widget
 
 class MarkupTextView(Gtk.TextView):
-    def __init__(self, parent):
-        super().__init__()
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.set_wrap_mode(Gtk.WrapMode.WORD)
         self.set_editable(False)
         self.set_cursor_visible(False)

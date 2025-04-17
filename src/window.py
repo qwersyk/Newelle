@@ -13,6 +13,7 @@ import copy
 from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject, GLib, GdkPixbuf
 
 
+
 from .ui.settings import Settings
 
 from .utility.message_chunk import get_message_chunks
@@ -21,7 +22,7 @@ from .ui.profile import ProfileDialog
 from .ui.presentation import PresentationWindow
 from .ui.widgets import File, CopyBox, BarChartBox, MarkupTextView
 from .ui import apply_css_to_widget
-from .ui.widgets import MultilineEntry, ProfileRow, DisplayLatex, InlineLatex
+from .ui.widgets import MultilineEntry, ProfileRow, DisplayLatex, InlineLatex, ThinkingWidget
 from .constants import AVAILABLE_LLMS
 
 from .utility.system import get_spawn_command
@@ -2017,6 +2018,7 @@ class MainWindow(Gtk.ApplicationWindow):
                 GLib.idle_add(self.create_streaming_message_label)
                 self.streaming_label = None
                 self.last_update = time.time()
+                self.stream_thinking = False
                 message_label = self.model.send_message_stream(
                     self,
                     self.chat[-1]["Message"],
@@ -2099,6 +2101,7 @@ class MainWindow(Gtk.ApplicationWindow):
     def create_streaming_message_label(self):
         """Create a label for message streaming"""
         # Create a scrolledwindow for the text view
+        self.streaming_message_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         scrolled_window = Gtk.ScrolledWindow(
             margin_top=10, margin_start=10, margin_bottom=10, margin_end=10
         )
@@ -2130,7 +2133,8 @@ class MainWindow(Gtk.ApplicationWindow):
                 tag, text_buffer.get_start_iter(), text_buffer.get_end_iter()
             )
         # Create the message label
-        self.streaming_box = self.add_message("Assistant", scrolled_window)
+        self.streaming_message_box.append(scrolled_window)
+        self.streaming_box = self.add_message("Assistant", self.streaming_message_box)
         self.streaming_box.set_overflow(Gtk.Overflow.VISIBLE)
 
     def update_message(self, message, stream_number_variable):
@@ -2143,6 +2147,30 @@ class MainWindow(Gtk.ApplicationWindow):
         if self.stream_number_variable != stream_number_variable:
             return
         self.streamed_message = message
+        if self.streamed_message.startswith("<think>") and not self.stream_thinking:
+            self.stream_thinking = True
+            text = self.streamed_message.split("</think>")
+            thinking = text[0].replace("<think>", "")
+            message = text[1] if len(text) > 1 else ""
+            self.streaming_thought = thinking
+            print("th:" + thinking)
+            print(self.streaming_label)
+            def idle():
+                self.thinking_box = ThinkingWidget() 
+                self.streaming_message_box.prepend(self.thinking_box)
+                self.thinking_box.start_thinking(thinking)
+            GLib.idle_add(idle)
+        elif self.stream_thinking:
+
+            t = time.time()
+            if t - self.last_update < 0.05:
+                return
+            self.last_update = t
+            text = self.streamed_message.split("</think>")
+            thinking = text[0].replace("<think>", "")
+            message = text[1] if len(text) > 1 else ""
+            added_thinking = message[len(self.streaming_thought) :]
+            self.thinking_box.append_thinking(added_thinking)
         if self.streaming_label is not None:
             # Find the differences between the messages
             added_message = message[len(self.curr_label) :]
@@ -2385,16 +2413,10 @@ class MainWindow(Gtk.ApplicationWindow):
                             print("Extension error " + extension.id + ": " + str(e))
                             box.append(CopyBox(chunk.text, code_language, parent=self))
                     elif code_language == "think":
+                        think = ThinkingWidget()
+                        think.set_thinking(chunk.text)
                         box.append(
-                            Gtk.Expander(
-                                label="think",
-                                child=Gtk.Label(label=chunk.text, wrap=True),
-                                css_classes=["toolbar", "osd"],
-                                margin_top=10,
-                                margin_start=10,
-                                margin_bottom=10,
-                                margin_end=10,
-                            )
+                            think
                         )
                     elif code_language == "image":
                         for i in chunk.text.split("\n"):
@@ -2588,16 +2610,10 @@ class MainWindow(Gtk.ApplicationWindow):
                     except Exception:
                         box.append(CopyBox(chunk.text, "latex", parent=self))
                 elif chunk.type == "thinking":
+                    think = ThinkingWidget()
+                    think.set_thinking(chunk.text)
                     box.append(
-                        Gtk.Expander(
-                            label="think",
-                            child=Gtk.Label(label=chunk.text, wrap=True),
-                            css_classes=["toolbar", "osd"],
-                            margin_top=10,
-                            margin_start=10,
-                            margin_bottom=10,
-                            margin_end=10,
-                        )
+                        think
                     )
                 elif chunk.type == "text":
                     label = markwon_to_pango(chunk.text)
