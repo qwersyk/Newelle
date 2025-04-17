@@ -2580,7 +2580,7 @@ class MainWindow(Gtk.ApplicationWindow):
                     label.set_opacity(0)
                     overlay.set_child(label)
                     # Create the textview
-                    textview = MarkupTextView(None)
+                    textview = MarkupTextView()
                     textview.set_valign(Gtk.Align.START)
                     textview.set_hexpand(True)
                     overlay.add_overlay(textview)
