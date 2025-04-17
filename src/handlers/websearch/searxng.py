@@ -7,7 +7,7 @@ class SearXNGHandler(WebSearchHandler):
 
     def get_extra_settings(self) -> list:
         return [
-            ExtraSettings.EntrySetting("endpoint", "SearXNG Instance", "URL of the instance of SearXNG to query.\nIt is strongly suggested to selfhost your own instance with json mode enabled", "https://search.hbubli.cc"),
+            ExtraSettings.EntrySetting("endpoint", "SearXNG Instance", "URL of the instance of SearXNG to query.\nIt is strongly suggested to selfhost your own instance with json mode enabled", "https://search.nyarchlinux.moe"),
             ExtraSettings.EntrySetting("lang", "Language", "Language for the search results", "en"),
             ExtraSettings.ScaleSetting("results", "Results", "Number of results to consider", 2, 1, 10, 0),
             ExtraSettings.ToggleSetting("scrape", "Instance scraping", "Scrape SearXNG instance if JSON format is not enabled", True),
