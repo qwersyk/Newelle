@@ -1935,6 +1935,9 @@ class MainWindow(Gtk.ApplicationWindow):
                 continue
             if self.controller.newelle_settings.remove_thinking:
                 msg["Message"] = remove_thinking_blocks(msg["Message"])
+            if msg["User"] == "File" or msg["User"] == "Folder":
+                msg["Message"] = f"```{msg['User'].lower()}\n{msg['Message'].strip()}\n```"
+                msg["User"] = "User"
             history.append(msg)
             count -= 1
         return history
