@@ -1058,13 +1058,18 @@ class MainWindow(Gtk.ApplicationWindow):
     def attach_file(self, button):
         """Show attach file dialog to add a file"""
         filters = Gio.ListStore.new(Gtk.FileFilter)
-
+        image_patterns = ["*.png", "*.jpg", "*.jpeg", "*.webp"]
+        video_patterns = ["*.mp4"]
+        file_patterns = self.model.get_supported_files()
+        rag_patterns = self.rag_handler.get_supported_files() if self.rag_handler is not None else []
+        supported_patterns = []
+            
         image_filter = Gtk.FileFilter(
-            name="Images", patterns=["*.png", "*.jpg", "*.jpeg", "*.webp"]
+            name=_("Images"), patterns=image_patterns
         )
-        video_filter = Gtk.FileFilter(name="Video", patterns=["*.mp4"])
+        video_filter = Gtk.FileFilter(name="Video", patterns=video_patterns)
         file_filter = Gtk.FileFilter(
-            name="Supported Files", patterns=self.model.get_supported_files()
+            name=_("LLM Supported Files"), patterns=file_patterns
         )
         second_file_filter = None
         if (
@@ -1072,23 +1077,28 @@ class MainWindow(Gtk.ApplicationWindow):
             and self.controller.newelle_settings.rag_on_documents
         ):
             second_file_filter = Gtk.FileFilter(
-                name="RAG Supported files",
+                name=_("RAG Supported files"),
                 patterns=self.rag_handler.get_supported_files(),
             )
+            supported_patterns += rag_patterns
         default_filter = None
+        
         if second_file_filter is not None:
             filters.append(second_file_filter)
-            default_filter = video_filter
         if self.model.supports_video_vision():
             filters.append(video_filter)
-            default_filter = video_filter
+            supported_patterns += video_patterns
         if len(self.model.get_supported_files()) > 0:
             filters.append(file_filter)
-            default_filter = file_filter
+            supported_patterns += file_patterns
         if self.model.supports_vision():
+            supported_patterns += image_patterns
             filters.append(image_filter)
-            default_filter = image_filter
-
+        default_filter = Gtk.FileFilter(
+            name=_("Supported Files"),
+            patterns=supported_patterns
+        )
+        filters.append(default_filter)
         dialog = Gtk.FileDialog(
             title=_("Attach file"),
             modal=True,
