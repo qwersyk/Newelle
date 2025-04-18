@@ -114,13 +114,14 @@ def extract_file(message: str) -> tuple[str | None, str]:
         text = message
     return file, text
 
-def extract_supported_files(history: list, supported_extensions: list) -> list[str]:
+def extract_supported_files(history: list, supported_extensions: list, blacklist_formats: list = []) -> list[str]:
     """
-    Extract supported files from message history
+    Extract supported files from message history, excluding blacklisted formats
 
     Args:
         history: message history
-        extensions: list of supported file extensions
+        supported_extensions: list of supported file extensions
+        blacklist_formats: list of file formats to exclude (optional)
 
     Returns:
         list[str]: list of supported files
@@ -134,7 +135,10 @@ def extract_supported_files(history: list, supported_extensions: list) -> list[s
                 for file in files:
                     if file.startswith("#"):
                         continue
-                    # Check if any pattern in supported_extensions matches the file name (case-insensitive)
+                    # Check if any supported extension matches
                     if any(fnmatch.fnmatch(file.lower(), pattern.lower()) for pattern in supported_extensions):
+                        # Check if file is in blacklist
+                        if any(fnmatch.fnmatch(file.lower(), pattern.lower()) for pattern in blacklist_formats):
+                            continue  # Skip if blacklisted
                         documents.append("file:" + file)
     return documents

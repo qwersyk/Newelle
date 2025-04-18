@@ -1970,6 +1970,7 @@ class MainWindow(Gtk.ApplicationWindow):
             documents = extract_supported_files(
                 self.get_history(include_last_message=True),
                 self.rag_handler.get_supported_files(),
+                self.model.get_supported_files()
             )
             if len(documents) > 0:
                 r += self.rag_handler.query_document(
