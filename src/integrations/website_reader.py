@@ -24,7 +24,11 @@ class WebsiteReader(NewelleExtension):
         lines = []
         for line in user_message.split("\n"):
             if line.startswith("#https://") or line.startswith("#http://"):
-                lines += ["```website", "" + line.lstrip("#"), "```"]
+                # Extract just the URL without the hashtag
+                urlline = line.split("#")[1].split()
+                url = urlline[0]
+                lines += ["```website", url, "```"]
+                lines += [" ".join(urlline[1:])]
             else:
                 lines += [line]
         history[-1]["Message"] = "\n".join(lines)
