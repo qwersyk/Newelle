@@ -18,6 +18,8 @@ class ThinkingWidget(Gtk.Box):
         self.add_css_class("card")
         self.set_margin_top(10)
         self.set_margin_end(10)
+        self.set_margin_bottom(5)
+        self.set_margin_start(5)
         self._is_thinking = False
 
         # --- UI Elements ---
