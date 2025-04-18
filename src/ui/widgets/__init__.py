@@ -8,5 +8,6 @@ from .latex import DisplayLatex, LatexCanvas, InlineLatex
 from .markuptextview import MarkupTextView
 from .website import WebsiteButton
 from .websearch import WebSearchWidget
+from .thinking import ThinkingWidget
 
-__all__ = ["ProfileRow", "MultilineEntry", "BarChartBox", "ComboRowHelper", "CopyBox", "File", "DisplayLatex", "LatexCanvas", "MarkupTextView", "InlineLatex",  "WebsiteButton", "WebSearchWidget"]
+__all__ = ["ProfileRow", "MultilineEntry", "BarChartBox", "ComboRowHelper", "CopyBox", "File", "DisplayLatex", "LatexCanvas", "MarkupTextView", "InlineLatex",  "WebsiteButton", "WebSearchWidget", "ThinkingWidget"]

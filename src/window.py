@@ -13,6 +13,7 @@ import copy
 from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject, GLib, GdkPixbuf
 
 
+
 from .ui.settings import Settings
 
 from .utility.message_chunk import get_message_chunks
@@ -21,7 +22,7 @@ from .ui.profile import ProfileDialog
 from .ui.presentation import PresentationWindow
 from .ui.widgets import File, CopyBox, BarChartBox, MarkupTextView
 from .ui import apply_css_to_widget
-from .ui.widgets import MultilineEntry, ProfileRow, DisplayLatex, InlineLatex
+from .ui.widgets import MultilineEntry, ProfileRow, DisplayLatex, InlineLatex, ThinkingWidget
 from .constants import AVAILABLE_LLMS
 
 from .utility.system import get_spawn_command
@@ -1057,13 +1058,18 @@ class MainWindow(Gtk.ApplicationWindow):
     def attach_file(self, button):
         """Show attach file dialog to add a file"""
         filters = Gio.ListStore.new(Gtk.FileFilter)
-
+        image_patterns = ["*.png", "*.jpg", "*.jpeg", "*.webp"]
+        video_patterns = ["*.mp4"]
+        file_patterns = self.model.get_supported_files()
+        rag_patterns = self.rag_handler.get_supported_files() if self.rag_handler is not None else []
+        supported_patterns = []
+            
         image_filter = Gtk.FileFilter(
-            name="Images", patterns=["*.png", "*.jpg", "*.jpeg", "*.webp"]
+            name=_("Images"), patterns=image_patterns
         )
-        video_filter = Gtk.FileFilter(name="Video", patterns=["*.mp4"])
+        video_filter = Gtk.FileFilter(name="Video", patterns=video_patterns)
         file_filter = Gtk.FileFilter(
-            name="Supported Files", patterns=self.model.get_supported_files()
+            name=_("LLM Supported Files"), patterns=file_patterns
         )
         second_file_filter = None
         if (
@@ -1071,23 +1077,28 @@ class MainWindow(Gtk.ApplicationWindow):
             and self.controller.newelle_settings.rag_on_documents
         ):
             second_file_filter = Gtk.FileFilter(
-                name="RAG Supported files",
+                name=_("RAG Supported files"),
                 patterns=self.rag_handler.get_supported_files(),
             )
+            supported_patterns += rag_patterns
         default_filter = None
+        
         if second_file_filter is not None:
             filters.append(second_file_filter)
-            default_filter = video_filter
         if self.model.supports_video_vision():
             filters.append(video_filter)
-            default_filter = video_filter
+            supported_patterns += video_patterns
         if len(self.model.get_supported_files()) > 0:
             filters.append(file_filter)
-            default_filter = file_filter
+            supported_patterns += file_patterns
         if self.model.supports_vision():
+            supported_patterns += image_patterns
             filters.append(image_filter)
-            default_filter = image_filter
-
+        default_filter = Gtk.FileFilter(
+            name=_("Supported Files"),
+            patterns=supported_patterns
+        )
+        filters.append(default_filter)
         dialog = Gtk.FileDialog(
             title=_("Attach file"),
             modal=True,
@@ -1935,6 +1946,9 @@ class MainWindow(Gtk.ApplicationWindow):
                 continue
             if self.controller.newelle_settings.remove_thinking:
                 msg["Message"] = remove_thinking_blocks(msg["Message"])
+            if msg["User"] == "File" or msg["User"] == "Folder":
+                msg["Message"] = f"```{msg['User'].lower()}\n{msg['Message'].strip()}\n```"
+                msg["User"] = "User"
             history.append(msg)
             count -= 1
         return history
@@ -1956,6 +1970,7 @@ class MainWindow(Gtk.ApplicationWindow):
             documents = extract_supported_files(
                 self.get_history(include_last_message=True),
                 self.rag_handler.get_supported_files(),
+                self.model.get_supported_files()
             )
             if len(documents) > 0:
                 r += self.rag_handler.query_document(
@@ -2014,6 +2029,7 @@ class MainWindow(Gtk.ApplicationWindow):
                 GLib.idle_add(self.create_streaming_message_label)
                 self.streaming_label = None
                 self.last_update = time.time()
+                self.stream_thinking = False
                 message_label = self.model.send_message_stream(
                     self,
                     self.chat[-1]["Message"],
@@ -2096,6 +2112,7 @@ class MainWindow(Gtk.ApplicationWindow):
     def create_streaming_message_label(self):
         """Create a label for message streaming"""
         # Create a scrolledwindow for the text view
+        self.streaming_message_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         scrolled_window = Gtk.ScrolledWindow(
             margin_top=10, margin_start=10, margin_bottom=10, margin_end=10
         )
@@ -2127,7 +2144,8 @@ class MainWindow(Gtk.ApplicationWindow):
                 tag, text_buffer.get_start_iter(), text_buffer.get_end_iter()
             )
         # Create the message label
-        self.streaming_box = self.add_message("Assistant", scrolled_window)
+        self.streaming_message_box.append(scrolled_window)
+        self.streaming_box = self.add_message("Assistant", self.streaming_message_box)
         self.streaming_box.set_overflow(Gtk.Overflow.VISIBLE)
 
     def update_message(self, message, stream_number_variable):
@@ -2140,6 +2158,30 @@ class MainWindow(Gtk.ApplicationWindow):
         if self.stream_number_variable != stream_number_variable:
             return
         self.streamed_message = message
+        if self.streamed_message.startswith("<think>") and not self.stream_thinking:
+            self.stream_thinking = True
+            text = self.streamed_message.split("</think>")
+            thinking = text[0].replace("<think>", "")
+            message = text[1] if len(text) > 1 else ""
+            self.streaming_thought = thinking
+            print("th:" + thinking)
+            print(self.streaming_label)
+            def idle():
+                self.thinking_box = ThinkingWidget() 
+                self.streaming_message_box.prepend(self.thinking_box)
+                self.thinking_box.start_thinking(thinking)
+            GLib.idle_add(idle)
+        elif self.stream_thinking:
+
+            t = time.time()
+            if t - self.last_update < 0.05:
+                return
+            self.last_update = t
+            text = self.streamed_message.split("</think>")
+            thinking = text[0].replace("<think>", "")
+            message = text[1] if len(text) > 1 else ""
+            added_thinking = message[len(self.streaming_thought) :]
+            self.thinking_box.append_thinking(added_thinking)
         if self.streaming_label is not None:
             # Find the differences between the messages
             added_message = message[len(self.curr_label) :]
@@ -2305,7 +2347,7 @@ class MainWindow(Gtk.ApplicationWindow):
                             if widget is not None:
                                 # Add the widget to the message
                                 box.append(widget)
-                            if widget is not None or extension.provides_both_widget_and_anser(value, code_language):
+                            if widget is None or extension.provides_both_widget_and_anser(value, code_language):
                                 if widget is not None:
                                     # If the answer is provided, the apply_async function 
                                     # Should only do something on error\
@@ -2334,64 +2376,55 @@ class MainWindow(Gtk.ApplicationWindow):
                                                 label=chunk.text + "\n" + str(code[1]),
                                                 selectable=True,
                                             )
+                                        ) 
+                                # Add message to history
+                                editable = False
+                                if id_message == -1:
+                                    id_message = len(self.chat) - 1
+                                id_message += 1
+                                has_terminal_command = True
+                                reply_from_the_console = None
+                                if (
+                                    self.chat[min(id_message, len(self.chat) - 1)][
+                                        "User"
+                                    ]
+                                    == "Console"
+                                ):
+                                    reply_from_the_console = self.chat[
+                                        min(id_message, len(self.chat) - 1)
+                                    ]["Message"]
+                                
+                                # Get the response async
+                                def get_response(apply_sync):
+                                    if not restore:
+                                        response = extension.get_answer(
+                                            value, code_language
                                         )
-                                if not extension.provides_both_widget_and_anser(value, code_language):
-                                    return
-                            
-                            # Add message to history
-                            editable = False
-                            if id_message == -1:
-                                id_message = len(self.chat) - 1
-                            id_message += 1
-                            has_terminal_command = True
-                            reply_from_the_console = None
-                            if (
-                                self.chat[min(id_message, len(self.chat) - 1)][
-                                    "User"
-                                ]
-                                == "Console"
-                            ):
-                                reply_from_the_console = self.chat[
-                                    min(id_message, len(self.chat) - 1)
-                                ]["Message"]
-                            
-                            # Get the response async
-                            def get_response(apply_sync):
-                                if not restore:
-                                    response = extension.get_answer(
-                                        value, code_language
-                                    )
-                                    if response is not None:
-                                        code = (True, response)
+                                        if response is not None:
+                                            code = (True, response)
+                                        else:
+                                            code = (False, "Error:")
                                     else:
-                                        code = (False, "Error:")
-                                else:
-                                    code = (True, reply_from_the_console)
-                                self.chat.append(
-                                    {
-                                        "User": "Console",
-                                        "Message": " " + str(code[1]),
-                                    }
-                                )
-                                GLib.idle_add(apply_sync, code)
+                                        code = (True, reply_from_the_console)
+                                    self.chat.append(
+                                        {
+                                            "User": "Console",
+                                            "Message": " " + str(code[1]),
+                                        }
+                                    )
+                                    GLib.idle_add(apply_sync, code)
 
-                            t = threading.Thread(target=get_response, args=(apply_sync,))
-                            t.start()
-                            running_threads.append(t)
+                                t = threading.Thread(target=get_response, args=(apply_sync,))
+                                t.start()
+                                running_threads.append(t)
                         except Exception as e:
                             print("Extension error " + extension.id + ": " + str(e))
                             box.append(CopyBox(chunk.text, code_language, parent=self))
                     elif code_language == "think":
+                        think = ThinkingWidget()
+                        think.set_thinking(chunk.text)
                         box.append(
-                            Gtk.Expander(
-                                label="think",
-                                child=Gtk.Label(label=chunk.text, wrap=True),
-                                css_classes=["toolbar", "osd"],
-                                margin_top=10,
-                                margin_start=10,
-                                margin_bottom=10,
-                                margin_end=10,
-                            )
+                            think
                         )
                     elif code_language == "image":
                         for i in chunk.text.split("\n"):
@@ -2545,7 +2578,7 @@ class MainWindow(Gtk.ApplicationWindow):
                     label.set_opacity(0)
                     overlay.set_child(label)
                     # Create the textview
-                    textview = MarkupTextView(None)
+                    textview = MarkupTextView()
                     textview.set_valign(Gtk.Align.START)
                     textview.set_hexpand(True)
                     overlay.add_overlay(textview)
@@ -2585,16 +2618,10 @@ class MainWindow(Gtk.ApplicationWindow):
                     except Exception:
                         box.append(CopyBox(chunk.text, "latex", parent=self))
                 elif chunk.type == "thinking":
+                    think = ThinkingWidget()
+                    think.set_thinking(chunk.text)
                     box.append(
-                        Gtk.Expander(
-                            label="think",
-                            child=Gtk.Label(label=chunk.text, wrap=True),
-                            css_classes=["toolbar", "osd"],
-                            margin_top=10,
-                            margin_start=10,
-                            margin_bottom=10,
-                            margin_end=10,
-                        )
+                        think
                     )
                 elif chunk.type == "text":
                     label = markwon_to_pango(chunk.text)

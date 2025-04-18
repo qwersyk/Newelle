@@ -28,7 +28,7 @@ class LlamaIndexHanlder(RAGHandler):
         r = [
             ExtraSettings.ScaleSetting("chunk_size", "Chunk Size", "Split text in chunks of the given size (in tokens). Requires a reindex", 512, 64, 2048, 0), 
             ExtraSettings.ScaleSetting("return_documents", "Documents to return", "Maximum number of documents to return", 3,1,5, 0), 
-            ExtraSettings.ScaleSetting("similarity_threshold", "Similarity of the document to be returned", "Set the percentage similarity of a document to get returned", 0.65,0,1, 2), 
+            ExtraSettings.ScaleSetting("similarity_threshold", "Similarity of the document to be returned", "Set the percentage similarity of a document to get returned", 0.2,0,1, 2), 
             ExtraSettings.ToggleSetting("use_llm", "Secondary LLM", "Use the secondary LLM to improve retrivial", False),
             ExtraSettings.ToggleSetting("subdirectory_on", "Index Only a subdirectory", "Choose only a subdirectory to index. If you already have indexed it, you don't need to re-index", False, update_settings=True), 
         ]
