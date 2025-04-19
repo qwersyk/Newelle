@@ -7,7 +7,7 @@ import os
 
 class RAGIndex:
     def __init__(self):
-        pass
+        self.documents = []
 
     @abstractmethod 
     def query(self, query:str) -> list[str]:
@@ -15,7 +15,29 @@ class RAGIndex:
 
     @abstractmethod
     def insert(self, documents: list[str]):
-        pass
+        self.documents += documents
+
+    @abstractmethod
+    def remove(self, documents: list[str]):
+        self.documents = list(set(self.documents) - set(documents))
+
+    def get_documents(self) -> list[str]:
+        return self.documents 
+
+    @abstractmethod
+    def update_index(self, documents: list[str]):
+        """Remove documents not in the list from the index and add new documents
+
+        Args:
+            documents: List of documents to add 
+        """
+        for document in self.documents:
+            if document not in documents:
+                self.remove([document])
+        for document in documents:
+            if document not in self.documents:
+                self.insert([document])
+
 
 class RAGHandler(Handler):
     key = ""

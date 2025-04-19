@@ -62,6 +62,7 @@ class MainWindow(Gtk.ApplicationWindow):
         # Set basic vars
         self.chats = self.controller.chats
         self.chat = self.controller.chat
+        self.chat_documents_index = {}
         self.settings = self.controller.settings
         self.set_default_size(self.settings.get_int("window-width"), self.settings.get_int("window-height"))
         self.extensionloader = self.controller.extensionloader
@@ -1973,8 +1974,14 @@ class MainWindow(Gtk.ApplicationWindow):
                 self.model.get_supported_files()
             )
             if len(documents) > 0:
-                r += self.rag_handler.query_document(
-                    self.chat[-1]["Message"], documents
+                existing_index = self.chat_documents_index.get(self.controller.newelle_settings.chat_id, None)
+                if existing_index is None:
+                    existing_index = self.rag_handler.build_index(documents)
+                else:
+                    existing_index.update_index(documents)
+                print("Index built")
+                r += existing_index.query(
+                    self.chat[-1]["Message"]
                 )
         return r
 
