@@ -562,6 +562,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.rag_on = self.controller.newelle_settings.rag_on
         self.tts_enabled = self.controller.newelle_settings.tts_enabled
         self.virtualization = self.controller.newelle_settings.virtualization
+        self.prompts = self.controller.newelle_settings.prompts
         # Handlers
         self.tts = self.controller.handlers.tts
         self.stt = self.controller.handlers.stt
@@ -1976,10 +1977,11 @@ class MainWindow(Gtk.ApplicationWindow):
             if len(documents) > 0:
                 existing_index = self.chat_documents_index.get(self.controller.newelle_settings.chat_id, None)
                 if existing_index is None:
+                    print("Building a new index")
                     existing_index = self.rag_handler.build_index(documents)
+                    self.chat_documents_index[self.controller.newelle_settings.chat_id] = existing_index
                 else:
                     existing_index.update_index(documents)
-                print("Index built")
                 r += existing_index.query(
                     self.chat[-1]["Message"]
                 )
