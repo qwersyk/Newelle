@@ -146,6 +146,7 @@ websearch_sources = [
   'handlers/websearch/__init__.py',
   'handlers/websearch/websearch.py',
   'handlers/websearch/searxng.py',
+  'handlers/websearch/duckduckgo_handler.py',
 ]
 
 utility_sources = [

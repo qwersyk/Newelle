@@ -5,7 +5,7 @@ from .handlers.stt import GroqSRHandler, OpenAISRHandler, SphinxHandler, GoogleS
 from .handlers.embeddings import WordLlamaHandler, OpenAIEmbeddingHandler, GeminiEmbeddingHanlder, OllamaEmbeddingHandler
 from .handlers.memory import MemoripyHandler, UserSummaryHandler, SummaryMemoripyHanlder
 from .handlers.rag import LlamaIndexHanlder
-from .handlers.websearch import SearXNGHandler
+from .handlers.websearch import SearXNGHandler, DDGSeachHandler
 from .integrations.website_reader import WebsiteReader
 from .integrations.websearch import WebsearchIntegration
 
@@ -268,6 +268,12 @@ AVAILABLE_WEBSEARCH = {
         "title": _("SearXNG"),
         "description": _("SearXNG - Private and selfhostable search engine"),
         "class": SearXNGHandler,
+    },
+    "ddgsearch": {
+        "key": "ddgsearch",
+        "title": _("DuckDuckGo"),
+        "description": _("DuckDuckGo search"),
+        "class": DDGSeachHandler,
     }
 }
 

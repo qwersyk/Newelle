@@ -471,6 +471,8 @@ class Settings(Adw.PreferencesWindow):
             setting_name = "embedding-model"
         elif constants == AVAILABLE_RAGS:
             setting_name = "rag-model"
+        elif constants == AVAILABLE_WEBSEARCH:
+            setting_name = "websearch-model"
         else:
             return
         self.settings.set_string(setting_name, button.get_name())
