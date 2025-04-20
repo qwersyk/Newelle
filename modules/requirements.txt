@@ -2,9 +2,15 @@ requests
 expandvars
 curl_cffi
 pillow
-g4f==0.3.3.4
 gtts
 pyaudio
 speechrecognition
 openai
 pygame
+tiktoken
+newspaper3k
+lxml
+lxml_html_clean
+pylatexenc
+matplotlib
+gpt4all # Optional
