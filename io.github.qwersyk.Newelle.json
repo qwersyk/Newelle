@@ -42,7 +42,6 @@
     "modules/python3-lxml.json",
     "modules/python3-lxml_html_clean.json",
     "modules/python3-newspaper3k.json",
-    "modules/python3-tiktoken.json",
     {
       "name": "newelle",
       "builddir": true,

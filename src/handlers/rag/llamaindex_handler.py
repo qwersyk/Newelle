@@ -83,9 +83,10 @@ class LlamaIndexHanlder(RAGHandler):
     def install(self):
        install_module("llama-index-core", os.path.join(os.path.abspath(os.path.join(self.path, os.pardir)), "pip"))
        install_module("llama-index-readers-file", os.path.join(os.path.abspath(os.path.join(self.path, os.pardir)), "pip"))
+       install_module("tiktoken", os.path.join(os.path.abspath(os.path.join(self.path, os.pardir)), "pip"))
 
     def is_installed(self) -> bool:
-        return find_module("llama_index") is not None
+        return find_module("llama_index") is not None and find_module("tiktoken") is not None
 
     def load_index(self):
         from llama_index.core import StorageContext, load_index_from_storage
