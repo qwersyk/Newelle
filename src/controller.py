@@ -305,6 +305,7 @@ class NewelleSettings:
         self.rag_on_documents = self.settings.get_boolean("rag-on-documents")
         self.rag_model = self.settings.get_string("rag-model")
         self.rag_settings = self.settings.get_string("rag-settings")
+        self.rag_limit = self.settings.get_int("documents-context-limit")
         self.language_model = self.settings.get_string("language-model")
         self.llm_settings = self.settings.get_string("llm-settings")
         self.secondary_language_model = self.settings.get_string("secondary-language-model")
@@ -319,6 +320,7 @@ class NewelleSettings:
         self.websearch_on = self.settings.get_boolean("websearch-on")
         self.websearch_model = self.settings.get_string("websearch-model")
         self.websearch_settings = self.settings.get_string("websearch-settings")
+
         self.load_prompts()
         # Adjust paths
         if os.path.exists(os.path.expanduser(self.main_path)):

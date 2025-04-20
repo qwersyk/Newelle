@@ -66,6 +66,7 @@ widgets_sources = [
   'ui/widgets/website.py',
   'ui/widgets/websearch.py',
   'ui/widgets/thinking.py',
+  'ui/widgets/documents_reader.py'
 ]
 
 handler_sources = [
@@ -146,6 +147,7 @@ websearch_sources = [
   'handlers/websearch/__init__.py',
   'handlers/websearch/websearch.py',
   'handlers/websearch/searxng.py',
+  'handlers/websearch/duckduckgo_handler.py',
 ]
 
 utility_sources = [

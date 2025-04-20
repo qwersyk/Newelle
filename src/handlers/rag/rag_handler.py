@@ -7,15 +7,78 @@ import os
 
 class RAGIndex:
     def __init__(self):
+        self.documents = []
+
+    @abstractmethod
+    def get_all_contexts(self) -> list[str]:
+        """Return all the contexts in the index
+
+        Returns:
+            List of contexts
+        """
         pass
 
     @abstractmethod 
     def query(self, query:str) -> list[str]:
+        """Query the index
+
+        Args:
+            query: query string 
+
+        Returns:
+            List of context 
+        """
         pass
 
     @abstractmethod
     def insert(self, documents: list[str]):
-        pass
+        """Add a document in the index
+
+        Args:
+            documents: list of documents to add to the index 
+        """
+        self.documents += documents
+
+    @abstractmethod
+    def remove(self, documents: list[str]):
+        """Remove a document from the index
+
+        Args:
+            documents: List of documents to remove 
+        """
+        self.documents = list(set(self.documents) - set(documents))
+
+    def get_documents(self) -> list[str]:
+        """Return the documents in the index
+
+        Returns:
+            List of documents 
+        """
+        return self.documents
+
+    @abstractmethod
+    def get_index_size(self):
+        """Return the size of the index in tokens
+
+        Returns:
+            Size of the index 
+        """
+        return len(self.documents)
+
+    @abstractmethod
+    def update_index(self, documents: list[str]):
+        """Remove documents not in the list from the index and add new documents
+
+        Args:
+            documents: List of documents to add 
+        """
+        for document in self.documents:
+            if document not in documents:
+                self.remove([document])
+        for document in documents:
+            if document not in self.documents:
+                self.insert([document])
+
 
 class RAGHandler(Handler):
     key = ""
@@ -42,9 +105,20 @@ class RAGHandler(Handler):
                                              _("Index all the documents in your document folder. You have to run this operation every time you edit/create a document, change document analyzer or change embedding model"), 
                                              self.index_exists(), 
                                              self.index_button_pressed, lambda _: self.indexing_status, download_icon="text-x-generic")
-    
+    @abstractmethod
     def get_supported_files(self) -> list:
+        """Get the list of supported files to run RAG on
+
+        Returns: 
+            List of supported files
+            
+        """
         return []
+    
+    @abstractmethod
+    def get_supported_files_reading(self) -> list:
+        """Get the list of supported files that can be read for context extraction"""
+        return self.get_supported_files()
 
     @abstractmethod 
     def load(self):

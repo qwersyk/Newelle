@@ -1,5 +1,6 @@
 from typing import Any, List
-import threading 
+import threading
+
 from ...handlers.llm import LLMHandler 
 from ...handlers.embeddings.embedding import EmbeddingHandler 
 from ...handlers import ExtraSettings 
@@ -28,7 +29,7 @@ class LlamaIndexHanlder(RAGHandler):
         r = [
             ExtraSettings.ScaleSetting("chunk_size", "Chunk Size", "Split text in chunks of the given size (in tokens). Requires a reindex", 512, 64, 2048, 0), 
             ExtraSettings.ScaleSetting("return_documents", "Documents to return", "Maximum number of documents to return", 3,1,5, 0), 
-            ExtraSettings.ScaleSetting("similarity_threshold", "Similarity of the document to be returned", "Set the percentage similarity of a document to get returned", 0.2,0,1, 2), 
+            ExtraSettings.ScaleSetting("similarity_threshold", "Similarity of the document to be returned", "Set the percentage similarity of a document to get returned", 0.1,0,1, 2), 
             ExtraSettings.ToggleSetting("use_llm", "Secondary LLM", "Use the secondary LLM to improve retrivial", False),
             ExtraSettings.ToggleSetting("subdirectory_on", "Index Only a subdirectory", "Choose only a subdirectory to index. If you already have indexed it, you don't need to re-index", False, update_settings=True), 
         ]
@@ -71,7 +72,9 @@ class LlamaIndexHanlder(RAGHandler):
         if self.get_setting("csv"):
             r.append(".csv")
         return r
-
+    def get_supported_files_reading(self) -> list:
+        return self.get_supported_files() + ["plaintext"]
+    
     def load(self):
         if self.index_exists() and self.index is None and self.loading_thread is None:
             self.loading_thread = threading.Thread(target=self.load_index)
@@ -80,9 +83,10 @@ class LlamaIndexHanlder(RAGHandler):
     def install(self):
        install_module("llama-index-core", os.path.join(os.path.abspath(os.path.join(self.path, os.pardir)), "pip"))
        install_module("llama-index-readers-file", os.path.join(os.path.abspath(os.path.join(self.path, os.pardir)), "pip"))
+       install_module("tiktoken", os.path.join(os.path.abspath(os.path.join(self.path, os.pardir)), "pip"))
 
     def is_installed(self) -> bool:
-        return find_module("llama_index") is not None
+        return find_module("llama_index") is not None and find_module("tiktoken") is not None
 
     def load_index(self):
         from llama_index.core import StorageContext, load_index_from_storage
@@ -200,16 +204,20 @@ class LlamaIndexHanlder(RAGHandler):
     
     def build_index(self, documents: list[str], chunk_size: int | None = None) -> RAGIndex: 
         from llama_index.core.settings import Settings
-        from llama_index.core import VectorStoreIndex, SimpleDirectoryReader, Document
-        from llama_index.core.retrievers import VectorIndexRetriever
-        import requests
+        from llama_index.core import VectorStoreIndex 
+        from llama_index.core.callbacks import TokenCountingHandler, CallbackManager
+        import tiktoken 
+        counter = TokenCountingHandler(
+            tokenizer=tiktoken.encoding_for_model("gpt-4o").encode
+        )
         self.llm.load_model(None)
         self.embedding.load_model()
         Settings.embed_model = self.get_embedding_adapter(self.embedding)
+        Settings.callback_manager = CallbackManager([counter]) 
         chunk_size = int(self.get_setting("chunk_size")) if chunk_size is None else chunk_size
         document_list = self.parse_document_list(documents)
         index = VectorStoreIndex.from_documents(document_list)
-        return LlamaIndexIndex(index, int(self.get_setting("return_documents")), float(self.get_setting("similarity_threshold"))) 
+        return LlamaIndexIndex(index, int(self.get_setting("return_documents")), float(self.get_setting("similarity_threshold")), counter, document_list) 
 
     def get_embedding_adapter(self, embedding: EmbeddingHandler):
         from llama_index.core.embeddings import BaseEmbedding
@@ -278,11 +286,17 @@ class LlamaIndexHanlder(RAGHandler):
 
 
 class LlamaIndexIndex(RAGIndex):
-    def __init__(self, index, return_documents, similarity_threshold):
+    def __init__(self, index, return_documents, similarity_threshold, counter, docs):
+        super().__init__()
         self.index = index
         self.retriever = None
         self.return_documents = return_documents
         self.similarity_threshold = similarity_threshold
+        self.counter = counter
+        self.docs = docs
+       
+    def get_index_size(self):
+        return self.counter.total_embedding_token_count
 
     def query(self, query: str) -> list[str]:
         from llama_index.core.retrievers import VectorIndexRetriever
@@ -300,7 +314,25 @@ class LlamaIndexIndex(RAGIndex):
             r.append(node.node.get_content())
         return r
 
+    def get_all_contexts(self) -> list[str]:
+        r = []
+        last_document = ""
+        for document in self.docs:
+            file = document.metadata.get("file_path", None)
+            if file != last_document:
+                r.append("-- File name: " + file)
+                last_document = file
+            r.append(document.text)
+        return r
+
     def insert(self, documents: list[str]):
+        self.documents += documents
         documents_list = LlamaIndexHanlder.parse_document_list(documents)
+        self.docs += documents_list
         for document in documents_list:
             self.index.insert(document)
+
+    def remove(self, documents: list[str]):
+        for document in documents:
+            self.index.delete(document)
+        return super().remove(documents)

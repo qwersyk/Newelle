@@ -12,15 +12,13 @@ import copy
 
 from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject, GLib, GdkPixbuf
 
-
-
 from .ui.settings import Settings
 
 from .utility.message_chunk import get_message_chunks
 
 from .ui.profile import ProfileDialog
 from .ui.presentation import PresentationWindow
-from .ui.widgets import File, CopyBox, BarChartBox, MarkupTextView
+from .ui.widgets import File, CopyBox, BarChartBox, MarkupTextView, DocumentReaderWidget
 from .ui import apply_css_to_widget
 from .ui.widgets import MultilineEntry, ProfileRow, DisplayLatex, InlineLatex, ThinkingWidget
 from .constants import AVAILABLE_LLMS
@@ -62,6 +60,7 @@ class MainWindow(Gtk.ApplicationWindow):
         # Set basic vars
         self.chats = self.controller.chats
         self.chat = self.controller.chat
+        self.chat_documents_index = {}
         self.settings = self.controller.settings
         self.set_default_size(self.settings.get_int("window-width"), self.settings.get_int("window-height"))
         self.extensionloader = self.controller.extensionloader
@@ -561,6 +560,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.rag_on = self.controller.newelle_settings.rag_on
         self.tts_enabled = self.controller.newelle_settings.tts_enabled
         self.virtualization = self.controller.newelle_settings.virtualization
+        self.prompts = self.controller.newelle_settings.prompts
         # Handlers
         self.tts = self.controller.handlers.tts
         self.stt = self.controller.handlers.stt
@@ -1098,7 +1098,12 @@ class MainWindow(Gtk.ApplicationWindow):
             name=_("Supported Files"),
             patterns=supported_patterns
         )
+        all_files_filter = Gtk.FileFilter(
+            name=_("All Files"),
+            patterns=["*"],
+        )
         filters.append(default_filter)
+        filters.append(all_files_filter)
         dialog = Gtk.FileDialog(
             title=_("Attach file"),
             modal=True,
@@ -1969,13 +1974,25 @@ class MainWindow(Gtk.ApplicationWindow):
         ):
             documents = extract_supported_files(
                 self.get_history(include_last_message=True),
-                self.rag_handler.get_supported_files(),
+                self.rag_handler.get_supported_files_reading(),
                 self.model.get_supported_files()
             )
             if len(documents) > 0:
-                r += self.rag_handler.query_document(
-                    self.chat[-1]["Message"], documents
-                )
+                existing_index = self.chat_documents_index.get(self.chat_id, None)
+                if existing_index is None:
+                    GLib.idle_add(self.add_reading_widget, documents)
+                    existing_index = self.rag_handler.build_index(documents)
+                    self.chat_documents_index[self.chat_id] = existing_index
+                else:
+                    GLib.idle_add(self.add_reading_widget,documents)
+                    existing_index.update_index(documents)
+                if existing_index.get_index_size() > self.controller.newelle_settings.rag_limit: 
+                    r += existing_index.query(
+                        self.chat[-1]["Message"]
+                    )
+                else:
+                    r += existing_index.get_all_contexts()
+                GLib.idle_add(self.remove_reading_widget)
         return r
 
     def update_memory(self, bot_response):
@@ -1999,6 +2016,14 @@ class MainWindow(Gtk.ApplicationWindow):
         for prompt in self.controller.newelle_settings.bot_prompts:
             prompts.append(replace_variables(prompt))
 
+        # Start creating the message
+        if self.model.stream_enabled():
+            self.streamed_message = ""
+            self.curr_label = ""
+            self.streaming_label = None
+            self.last_update = time.time()
+            self.stream_thinking = False
+            GLib.idle_add(self.create_streaming_message_label)
         # Append memory
         if (
             self.memory_on
@@ -2024,12 +2049,6 @@ class MainWindow(Gtk.ApplicationWindow):
         self.model.set_history(prompts, history)
         try:
             if self.model.stream_enabled():
-                self.streamed_message = ""
-                self.curr_label = ""
-                GLib.idle_add(self.create_streaming_message_label)
-                self.streaming_label = None
-                self.last_update = time.time()
-                self.stream_thinking = False
                 message_label = self.model.send_message_stream(
                     self,
                     self.chat[-1]["Message"],
@@ -2108,6 +2127,19 @@ class MainWindow(Gtk.ApplicationWindow):
 
         if self.controller.newelle_settings.automatic_stt:
             threading.Thread(target=restart_recording).start()
+
+    def add_reading_widget(self, documents):
+        d = [document.replace("file:", "") for document in documents if document.startswith("file:")]
+        documents = d
+        if self.model.stream_enabled():
+            self.reading = DocumentReaderWidget()
+            for document in documents:
+                self.reading.add_document(document)
+            self.streaming_box.append(self.reading)
+
+    def remove_reading_widget(self):
+        if hasattr(self, "reading"):
+            self.streaming_box.remove(self.reading)
 
     def create_streaming_message_label(self):
         """Create a label for message streaming"""
