@@ -107,6 +107,9 @@
 	      <key name="rag-on-documents" type="b">
             <default>false</default>
         </key>
+        <key name="documents-context-limit" type="i">
+          <default>5000</default>
+        </key>
         <key name="automatic-stt" type="b">
           <default>false</default>
         </key>

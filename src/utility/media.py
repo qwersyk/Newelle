@@ -2,6 +2,7 @@ import os
 import base64
 from .message_chunk import get_message_chunks
 import fnmatch
+import mimetypes
 
 def encode_image_base64(file_path):
     mime_types = {
@@ -116,29 +117,46 @@ def extract_file(message: str) -> tuple[str | None, str]:
 
 def extract_supported_files(history: list, supported_extensions: list, blacklist_formats: list = []) -> list[str]:
     """
-    Extract supported files from message history, excluding blacklisted formats
+    Extract supported files from message history, excluding blacklisted formats.
+    If 'plaintext' is in supported_extensions, files identified as text/* MIME type are also included.
 
     Args:
         history: message history
-        supported_extensions: list of supported file extensions
+        supported_extensions: list of supported file extensions (can include 'plaintext')
         blacklist_formats: list of file formats to exclude (optional)
 
     Returns:
         list[str]: list of supported files
     """
     documents = []
+    plaintext_supported = "plaintext" in supported_extensions
+    if plaintext_supported:
+        supported_extensions.append(".conf")
+
     for message in history:
-        chunks = get_message_chunks(message["Message"])
+        chunks = get_message_chunks(message.get("Message", "")) # Use .get for safety
+
         for chunk in chunks:
             if chunk.type == "codeblock" and chunk.lang == "file":
                 files = chunk.text.split("\n")
                 for file in files:
-                    if file.startswith("#"):
+                    file = file.strip()
+                    if not file or file.startswith("#"):
                         continue
-                    # Check if any supported extension matches
-                    if any(fnmatch.fnmatch(file.lower(), pattern.lower()) for pattern in supported_extensions):
-                        # Check if file is in blacklist
+
+                    is_supported = False
+
+                    if any(fnmatch.fnmatch(file.lower(), pattern.lower()) for pattern in supported_extensions if pattern != "plaintext"):
+                         is_supported = True
+
+                    if not is_supported and plaintext_supported:
+                        mime_type, _ = mimetypes.guess_type(file)
+                        if mime_type and mime_type.startswith('text/'):
+                            is_supported = True 
+
+                    if is_supported:
                         if any(fnmatch.fnmatch(file.lower(), pattern.lower()) for pattern in blacklist_formats):
-                            continue  # Skip if blacklisted
-                        documents.append("file:" + file)
+                            continue 
+                        documents.append("file:" + file) 
+
     return documents

@@ -1971,20 +1971,22 @@ class MainWindow(Gtk.ApplicationWindow):
         ):
             documents = extract_supported_files(
                 self.get_history(include_last_message=True),
-                self.rag_handler.get_supported_files(),
+                self.rag_handler.get_supported_files_reading(),
                 self.model.get_supported_files()
             )
             if len(documents) > 0:
                 existing_index = self.chat_documents_index.get(self.controller.newelle_settings.chat_id, None)
                 if existing_index is None:
-                    print("Building a new index")
                     existing_index = self.rag_handler.build_index(documents)
                     self.chat_documents_index[self.controller.newelle_settings.chat_id] = existing_index
                 else:
                     existing_index.update_index(documents)
-                r += existing_index.query(
-                    self.chat[-1]["Message"]
-                )
+                if existing_index.get_index_size() > self.controller.newelle_settings.rag_limit: 
+                    r += existing_index.query(
+                        self.chat[-1]["Message"]
+                    )
+                else:
+                    r += existing_index.get_all_contexts()
         return r
 
     def update_memory(self, bot_response):

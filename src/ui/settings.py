@@ -287,6 +287,15 @@ class Settings(Adw.PreferencesWindow):
             self.prompts_rows.append(row)
 
     def build_rag_settings(self):
+        def update_scale(scale, label, setting_value, type):
+            value = scale.get_value()
+            if type is float:
+                self.settings.set_double(setting_value, value)
+            elif type is int:
+                value = int(value)
+                self.settings.set_int(setting_value, value)
+            label.set_text(str(value))
+
         self.RAG = Adw.PreferencesGroup(title=_('Document Sources (RAG)'), description=_("Include content from your documents in the responses"))
         tts_program = Adw.ExpanderRow(title=_('Document Analyzer'), subtitle=_("The document analyzer uses multiple techniques to extract relevant information about your documents"))
         #tts_program.add_action(memory_enabled)
@@ -299,9 +308,24 @@ class Settings(Adw.PreferencesWindow):
        
         rag_on_docuements = Gtk.Switch(valign=Gtk.Align.CENTER)
         self.settings.bind("rag-on-documents", rag_on_docuements, 'active', Gio.SettingsBindFlags.DEFAULT)
-        rag_row = Adw.ActionRow(title=_("Read documents if unsupported"), subtitle=_("If the LLM does not support reading documents, relevant information about documents sent in the chat will be given to the LLM using your Document Analyzer."))
+        rag_row = Adw.ExpanderRow(title=_("Read documents if unsupported"), subtitle=_("If the LLM does not support reading documents, relevant information about documents sent in the chat will be given to the LLM using your Document Analyzer."))
         rag_row.add_suffix(rag_on_docuements)
         self.RAG.add(rag_row)
+         
+        rag_limit = Adw.ActionRow(title=_("Manimum Context for RAG"), subtitle=_("If the documents to not exceed this token count,\ndump all of them in the context"))
+        time_scale = Gtk.Scale(digits=0, round_digits=0)
+        time_scale.set_range(0, 50000)
+        time_scale.set_size_request(120, -1)
+        value = self.settings.get_int("documents-context-limit")
+        time_scale.set_value(value)
+        label = Gtk.Label(label=str(value))
+        time_scale.connect("value-changed", update_scale, label, "documents-context-limit", int)
+        box = Gtk.Box()
+        box.append(time_scale)
+        box.append(label)
+        rag_limit.add_suffix(box)
+        rag_row.add_row(rag_limit)
+
         # Document folder 
         rag_enabled = Gtk.Switch(valign=Gtk.Align.CENTER)
         self.settings.bind("rag-on", rag_enabled, 'active', Gio.SettingsBindFlags.DEFAULT)
