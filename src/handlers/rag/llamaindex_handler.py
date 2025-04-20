@@ -1,5 +1,6 @@
 from typing import Any, List
-import threading 
+import threading
+
 from ...handlers.llm import LLMHandler 
 from ...handlers.embeddings.embedding import EmbeddingHandler 
 from ...handlers import ExtraSettings 
@@ -215,7 +216,7 @@ class LlamaIndexHanlder(RAGHandler):
         chunk_size = int(self.get_setting("chunk_size")) if chunk_size is None else chunk_size
         document_list = self.parse_document_list(documents)
         index = VectorStoreIndex.from_documents(document_list)
-        return LlamaIndexIndex(index, int(self.get_setting("return_documents")), float(self.get_setting("similarity_threshold")), counter) 
+        return LlamaIndexIndex(index, int(self.get_setting("return_documents")), float(self.get_setting("similarity_threshold")), counter, document_list) 
 
     def get_embedding_adapter(self, embedding: EmbeddingHandler):
         from llama_index.core.embeddings import BaseEmbedding
@@ -284,13 +285,14 @@ class LlamaIndexHanlder(RAGHandler):
 
 
 class LlamaIndexIndex(RAGIndex):
-    def __init__(self, index, return_documents, similarity_threshold, counter):
+    def __init__(self, index, return_documents, similarity_threshold, counter, docs):
         super().__init__()
         self.index = index
         self.retriever = None
         self.return_documents = return_documents
         self.similarity_threshold = similarity_threshold
         self.counter = counter
+        self.docs = docs
        
     def get_index_size(self):
         return self.counter.total_embedding_token_count
@@ -312,20 +314,20 @@ class LlamaIndexIndex(RAGIndex):
         return r
 
     def get_all_contexts(self) -> list[str]:
-        from llama_index.core.retrievers import VectorIndexRetriever
-        retriever = VectorIndexRetriever(
-            index=self.index,
-            similarity_top_k=4000,
-        )
-        nodes = retriever.retrieve("test")
         r = []
-        for node in nodes:
-            r.append(node.node.get_content())
+        last_document = ""
+        for document in self.docs:
+            file = document.metadata.get("file_path", None)
+            if file != last_document:
+                r.append("-- File name: " + file)
+                last_document = file
+            r.append(document.text)
         return r
 
     def insert(self, documents: list[str]):
         self.documents += documents
         documents_list = LlamaIndexHanlder.parse_document_list(documents)
+        self.docs += documents_list
         for document in documents_list:
             self.index.insert(document)
 
