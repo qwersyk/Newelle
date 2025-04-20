@@ -1100,7 +1100,12 @@ class MainWindow(Gtk.ApplicationWindow):
             name=_("Supported Files"),
             patterns=supported_patterns
         )
+        all_files_filter = Gtk.FileFilter(
+            name=_("All Files"),
+            patterns=["*"],
+        )
         filters.append(default_filter)
+        filters.append(all_files_filter)
         dialog = Gtk.FileDialog(
             title=_("Attach file"),
             modal=True,
@@ -1975,7 +1980,7 @@ class MainWindow(Gtk.ApplicationWindow):
                 self.model.get_supported_files()
             )
             if len(documents) > 0:
-                existing_index = self.chat_documents_index.get(self.controller.newelle_settings.chat_id, None)
+                existing_index = self.chat_documents_index.get(self.chat_id, None)
                 if existing_index is None:
                     existing_index = self.rag_handler.build_index(documents)
                     self.chat_documents_index[self.controller.newelle_settings.chat_id] = existing_index
