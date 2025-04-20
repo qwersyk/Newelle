@@ -66,6 +66,7 @@ widgets_sources = [
   'ui/widgets/website.py',
   'ui/widgets/websearch.py',
   'ui/widgets/thinking.py',
+  'ui/widgets/documents_reader.py'
 ]
 
 handler_sources = [
