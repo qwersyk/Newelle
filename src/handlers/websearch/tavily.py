@@ -8,6 +8,13 @@ class TavilyHandler(WebSearchHandler):
     def get_extra_requirements() -> list:
         return ["tavily_python"]
 
+    def is_installed(self) -> bool:
+        try:
+            from tavily import TavilyClient
+        except Exception as e:
+            return False
+        return True
+
     def get_extra_settings(self) -> list:
         return [
             ExtraSettings.EntrySetting("token", _("Token"), _("Tavily API key"), ""),
