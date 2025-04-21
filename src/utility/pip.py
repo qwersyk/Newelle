@@ -4,8 +4,9 @@ import sys
 import os 
 import threading
 
+LOCK_SEMAPHORE = threading.Semaphore(1)
 LOCKS = {}
-
+PIP_INSTALLED = False
 
 def is_module_available(module_name: str) -> bool:
     """
@@ -49,19 +50,24 @@ def runtime_find_module(full_module_name):
 
 def install_module(module, path):
     # Manage pip path locking
-    lock = LOCKS.get(module, None)
+    global PIP_INSTALLED 
+    LOCK_SEMAPHORE.acquire()
+    lock = LOCKS.get(path, None)
     if lock is None:
         lock = threading.Semaphore(1)
-        LOCKS[module] = lock
+        LOCKS[path] = lock
+    LOCK_SEMAPHORE.release()
     lock.acquire()
     try:
-        if find_module("pip") is None:
+        if find_module("pip") is None and not PIP_INSTALLED:
             print("Downloading pip...")
             subprocess.check_output(["bash", "-c", "cd " + os.path.dirname(path) + " && wget https://bootstrap.pypa.io/get-pip.py && python get-pip.py"])
             subprocess.check_output(["bash", "-c", "cd " + os.path.dirname(path) + " && rm get-pip.py || true"])
+            PIP_INSTALLED = True
         r = subprocess.run([sys.executable, "-m", "pip", "install","--target", path, "--upgrade", module], capture_output=False) 
         print(module + " installed")
     except Exception as e:
+        PIP_INSTALLED = False
         print("Error installing " + module + " " + str(e))
         r = None
     lock.release()
