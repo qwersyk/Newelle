@@ -5,7 +5,7 @@ from .handlers.stt import GroqSRHandler, OpenAISRHandler, SphinxHandler, GoogleS
 from .handlers.embeddings import WordLlamaHandler, OpenAIEmbeddingHandler, GeminiEmbeddingHanlder, OllamaEmbeddingHandler
 from .handlers.memory import MemoripyHandler, UserSummaryHandler, SummaryMemoripyHanlder
 from .handlers.rag import LlamaIndexHanlder
-from .handlers.websearch import SearXNGHandler, DDGSeachHandler
+from .handlers.websearch import SearXNGHandler, DDGSeachHandler, TavilyHandler
 from .integrations.website_reader import WebsiteReader
 from .integrations.websearch import WebsearchIntegration
 
@@ -274,6 +274,13 @@ AVAILABLE_WEBSEARCH = {
         "title": _("DuckDuckGo"),
         "description": _("DuckDuckGo search"),
         "class": DDGSeachHandler,
+    },
+    "tavily": {
+        "key": "tavily",
+        "title": _("Tavily"),
+        "description": _("Tavily search"),
+        "website": "https://tavily.com/",
+        "class": TavilyHandler,
     }
 }
 
