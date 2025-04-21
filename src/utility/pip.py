@@ -2,6 +2,10 @@ import importlib
 import subprocess
 import sys
 import os 
+import threading
+
+LOCKS = {}
+
 
 def is_module_available(module_name: str) -> bool:
     """
@@ -44,10 +48,21 @@ def runtime_find_module(full_module_name):
         return None
 
 def install_module(module, path):
-    print(path)
-    if find_module("pip") is None:
-        print("Downloading pip...")
-        subprocess.check_output(["bash", "-c", "cd " + os.path.dirname(path) + " && wget https://bootstrap.pypa.io/get-pip.py && python get-pip.py"])
-        subprocess.check_output(["bash", "-c", "cd " + os.path.dirname(path) + " && rm get-pip.py"])
-    r = subprocess.run([sys.executable, "-m", "pip", "install","--target", path, "--upgrade", module], capture_output=False) 
+    # Manage pip path locking
+    lock = LOCKS.get(module, None)
+    if lock is None:
+        lock = threading.Semaphore(1)
+        LOCKS[module] = lock
+    lock.acquire()
+    try:
+        if find_module("pip") is None:
+            print("Downloading pip...")
+            subprocess.check_output(["bash", "-c", "cd " + os.path.dirname(path) + " && wget https://bootstrap.pypa.io/get-pip.py && python get-pip.py"])
+            subprocess.check_output(["bash", "-c", "cd " + os.path.dirname(path) + " && rm get-pip.py || true"])
+        r = subprocess.run([sys.executable, "-m", "pip", "install","--target", path, "--upgrade", module], capture_output=False) 
+        print(module + " installed")
+    except Exception as e:
+        print("Error installing " + module + " " + str(e))
+        r = None
+    lock.release()
     return r
