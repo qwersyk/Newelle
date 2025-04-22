@@ -573,6 +573,9 @@ class MainWindow(Gtk.ApplicationWindow):
             self.show_chat()
         if ReloadType.RELOAD_CHAT_LIST in reloads:
             self.update_history()
+        if ReloadType.OFFERS in reloads:
+            self.build_offers()
+
         # Setup TTS
         self.tts.connect(
             "start", lambda: GLib.idle_add(self.mute_tts_button.set_visible, True)
@@ -586,7 +589,6 @@ class MainWindow(Gtk.ApplicationWindow):
     def reload_buttons(self):
         """Reload offers and buttons on LLM change"""
         if not self.first_load:
-            self.build_offers()
             if (
                 not self.model.supports_vision()
                 and not self.model.supports_video_vision()
