@@ -61,7 +61,7 @@ class ReloadType(Enum):
     RELOAD_CHAT = 10
     RELOAD_CHAT_LIST = 11
     WEBSEARCH = 12
-
+    OFFERS = 13
 
 class NewelleController:
     """Main controller, manages the application
@@ -383,6 +383,8 @@ class NewelleSettings:
         # Check prompts
         if len(self.prompts) != len(new_settings.prompts):
             reloads.append(ReloadType.PROMPTS)
+        if self.offers != new_settings.offers:
+            reloads.append(ReloadType.OFFERS)
 
         return reloads
 

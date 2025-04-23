@@ -159,6 +159,8 @@ class LLMHandler(Handler):
                         i+=1
                         if i >= amount:
                             break
+            if i >= amount:
+                break
         return result
 
     def generate_chat_name(self, request_prompt:str = "") -> str | None:
