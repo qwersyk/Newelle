@@ -9,6 +9,7 @@ import posixpath
 import json
 import base64
 import copy
+import random
 
 from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject, GLib, GdkPixbuf
 
@@ -18,12 +19,12 @@ from .utility.message_chunk import get_message_chunks
 
 from .ui.profile import ProfileDialog
 from .ui.presentation import PresentationWindow
-from .ui.widgets import File, CopyBox, BarChartBox, MarkupTextView, DocumentReaderWidget
+from .ui.widgets import File, CopyBox, BarChartBox, MarkupTextView, DocumentReaderWidget, TipsCarousel
 from .ui import apply_css_to_widget
 from .ui.widgets import MultilineEntry, ProfileRow, DisplayLatex, InlineLatex, ThinkingWidget
-from .constants import AVAILABLE_LLMS
+from .constants import AVAILABLE_LLMS, SCHEMA_ID
 
-from .utility.system import get_spawn_command
+from .utility.system import get_spawn_command, open_website
 from .utility.strings import (
     convert_think_codeblocks,
     get_edited_messages,
@@ -205,11 +206,8 @@ class MainWindow(Gtk.ApplicationWindow):
         self.chat_scroll.add_controller(drop_target)
         self.chat_scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
         self.chat_scroll_window.append(self.chat_list_block)
-        self.notification_block = Adw.ToastOverlay()
-        self.notification_block.set_child(self.chat_scroll)
-
-        self.secondary_message_chat_block.append(self.notification_block)
-
+        self.history_block = Gtk.Stack(transition_type=Gtk.StackTransitionType.SLIDE_UP, transition_duration=500)
+        # Chat Offers
         self.offers_entry_block = Gtk.Box(
             orientation=Gtk.Orientation.VERTICAL,
             spacing=6,
@@ -228,9 +226,16 @@ class MainWindow(Gtk.ApplicationWindow):
             margin_bottom=6,
         )
         self.chat_scroll_window.append(self.chat_controls_entry_block)
-
         self.message_suggestion_buttons_array = []
-
+        self.message_suggestion_buttons_array_placeholder = []
+        self.notification_block = Adw.ToastOverlay() 
+        self.history_block.add_named(self.chat_scroll, "history")
+        self.build_placeholder()
+        self.history_block.add_named(self.empty_chat_placeholder, "placeholder")
+        self.notification_block.set_child(self.history_block)
+        self.history_block.set_visible_child_name("history")
+        self.secondary_message_chat_block.append(self.notification_block)
+        
         # Stop chat button
         self.chat_stop_button = Gtk.Button(css_classes=["flat"])
         icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="media-playback-stop"))
@@ -445,6 +450,44 @@ class MainWindow(Gtk.ApplicationWindow):
         GLib.timeout_add(10, build_model_popup)
         self.controller.handlers.set_error_func(self.handle_error)
 
+    def show_placeholder(self):
+        self.history_block.set_visible_child_name("placeholder")
+        self.tips_section.shuffle_tips()
+
+    def hide_placeholder(self):
+        self.history_block.set_visible_child_name("history")
+    
+    def build_placeholder(self):
+        tips = [
+            {"title": _("Ask about a website"), "subtitle": _("Write #https://website.com in chat to ask information about a website"), "on_click": lambda : self.send_bot_response(Gtk.Button(label="#https://github.com/qwersyk/Newelle\nWhat is Newelle?"))},
+            {"title": _("Check out our Extensions!"), "subtitle": _("We have a lot of extensions for different things. Check it out!"), "on_click": lambda: self.app.extension_action()},
+            {"title": _("Chat with documents!"), "subtitle": _("Add your documents to your documents folder and chat using the information contained in them!"), "on_click": lambda : self.app.settings_action()},
+            {"title": _("Surf the web!"), "subtitle": _("Enable web search to allow the LLM to surf the web and provide up to date answers"), "on_click": lambda : self.app.settings_action()},
+            {"title": _("Mini Window"), "subtitle": _("Ask questions on the fly using the mini window mode"), "on_click": lambda : open_website("https://github.com/qwersyk/Newelle/?tab=readme-ov-file#mini-window-mode")},
+            {"title": _("Text to Speech"), "subtitle": _("Newelle supports text-to-speech! Enable it in the settings"), "on_click": lambda : self.app.settings_action()},
+            {"title": _("Keyboard Shortcuts"), "subtitle": _("Control Newelle using Keyboard Shortcuts"), "on_click": lambda : self.app.on_shortcuts_action()},
+        ]
+        self.empty_chat_placeholder = Gtk.Box(hexpand=True, vexpand=True, orientation=Gtk.Orientation.VERTICAL)
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, halign=Gtk.Align.CENTER, valign=Gtk.Align.CENTER, spacing=20, vexpand=True)    
+        application_logo = Gtk.Image(icon_name=SCHEMA_ID)
+        application_logo.set_pixel_size(128)
+        box.append(application_logo)
+        title_label = Gtk.Label(label=_("New Chat"), css_classes=["title-1"])
+        box.append(title_label)
+        self.tips_section = TipsCarousel(tips, 5)
+        box.append(self.tips_section)
+        self.empty_chat_placeholder.append(box)
+        # Placeholder offers 
+        self.offers_entry_block_placeholder = Gtk.Box(
+            orientation=Gtk.Orientation.VERTICAL,
+            spacing=6,
+            valign=Gtk.Align.END,
+            halign=Gtk.Align.CENTER,
+            margin_bottom=6,
+        )
+        self.offers_entry_block_placeholder.set_size_request(-1, 36*self.offers)
+        self.empty_chat_placeholder.append(self.offers_entry_block_placeholder)
+
     def handle_error(self, message: str, error: ErrorSeverity):
         if error == ErrorSeverity.ERROR:
             dialog = Adw.AlertDialog(title=_("Provider Errror"), body=message)
@@ -514,13 +557,19 @@ class MainWindow(Gtk.ApplicationWindow):
     def build_offers(self):
         """Build offers buttons, called by update_settings to update the number of buttons"""
         for text in range(self.offers):
-            button = Gtk.Button(css_classes=["flat"], margin_start=6, margin_end=6)
-            label = Gtk.Label(label=str(text), wrap=True, wrap_mode=Pango.WrapMode.CHAR)
-            button.set_child(label)
-            button.connect("clicked", self.send_bot_response)
-            button.set_visible(False)
+            def create_button():
+                button = Gtk.Button(css_classes=["flat"], margin_start=6, margin_end=6)
+                label = Gtk.Label(label=str(text), wrap=True, wrap_mode=Pango.WrapMode.CHAR, ellipsize=Pango.EllipsizeMode.END)
+                button.set_child(label)
+                button.connect("clicked", self.send_bot_response)
+                button.set_visible(False)
+                return button
+            button = create_button()
+            button_placeholder = create_button()
             self.offers_entry_block.append(button)
             self.message_suggestion_buttons_array.append(button)
+            self.offers_entry_block_placeholder.append(button_placeholder)
+            self.message_suggestion_buttons_array_placeholder.append(button_placeholder)
 
     def update_toggles(self, *_):
         """Update the quick toggles"""
@@ -1818,7 +1867,7 @@ class MainWindow(Gtk.ApplicationWindow):
 
     def update_button_text(self):
         """Update clear chat, regenerate message and continue buttons, add offers"""
-        for btn in self.message_suggestion_buttons_array:
+        for btn in self.message_suggestion_buttons_array + self.message_suggestion_buttons_array_placeholder:
             btn.set_visible(False)
         self.button_clear.set_visible(False)
         self.button_continue.set_visible(False)
@@ -1837,7 +1886,7 @@ class MainWindow(Gtk.ApplicationWindow):
             # Generate suggestions in another thread and then add them to the UI
             threading.Thread(target=self.generate_suggestions).start()
         else:
-            for btn in self.message_suggestion_buttons_array:
+            for btn in self.message_suggestion_buttons_array + self.message_suggestion_buttons_array_placeholder:
                 btn.set_visible(False)
             self.button_clear.set_visible(False)
             self.button_continue.set_visible(False)
@@ -1900,7 +1949,7 @@ class MainWindow(Gtk.ApplicationWindow):
         """
         self.send_button_start_spinner()
         text = button.get_child().get_label()
-        self.chat.append({"User": "User", "Message": " " + text})
+        self.chat.append({"User": "User", "Message": text})
         self.show_message(text, id_message=len(self.chat) - 1, is_user=True)
         threading.Thread(target=self.send_message).start()
 
@@ -1925,6 +1974,11 @@ class MainWindow(Gtk.ApplicationWindow):
                 btn = self.message_suggestion_buttons_array[i]
                 btn.get_child().set_label(message)
                 btn.set_visible(True)
+                # Placeholder buttons 
+                btn_placeholder = self.message_suggestion_buttons_array_placeholder[i]
+                btn_placeholder.get_child().set_label(message)
+                btn_placeholder.set_visible(True)
+
                 GLib.idle_add(self.scrolled_chat)
             i += 1
         self.chat_stop_button.set_visible(False)
@@ -2006,6 +2060,7 @@ class MainWindow(Gtk.ApplicationWindow):
 
     def send_message(self, manual=True):
         """Send a message in the chat and get bot answer, handle TTS etc"""
+        GLib.idle_add(self.hide_placeholder)
         if manual:
             self.auto_run_times = 0
         self.stream_number_variable += 1
@@ -2289,6 +2344,10 @@ class MainWindow(Gtk.ApplicationWindow):
                         ),
                     )
             self.check_streams["chat"] = False
+        if len(self.chat) == 0:
+            self.show_placeholder()
+        else:
+            self.hide_placeholder()
         GLib.idle_add(self.scrolled_chat)
         GLib.idle_add(self.update_button_text)
 

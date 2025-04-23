@@ -1,10 +1,8 @@
 from typing import Any
-import re 
 import threading 
 import os 
 import json 
 import time 
-import ctypes
 from subprocess import Popen 
 
 from gi.repository import Gtk, Adw, Gio, GLib

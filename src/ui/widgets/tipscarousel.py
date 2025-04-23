@@ -93,9 +93,7 @@ class TipsCarousel(Gtk.Box):
 
         on_click = tip_data.get("on_click", None)
         if on_click is not None:
-            tip_button.connect("clicked", lambda x : on_click(), tip_data)
-        else:
-            tip_button.set_sensitive(False)
+            tip_button.connect("clicked", lambda x : on_click())
         return tip_button
 
     def shuffle_tips(self):
