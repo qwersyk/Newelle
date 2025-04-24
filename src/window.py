@@ -59,6 +59,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.controller.ui_init()
         ReplaceHelper.set_controller(self.controller)
         # Set basic vars
+        self.path = self.controller.config_dir
         self.chats = self.controller.chats
         self.chat = self.controller.chat
         self.chat_documents_index = {}
