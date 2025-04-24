@@ -63,7 +63,6 @@ class WebsiteReader(NewelleExtension):
         return button
 
     def restore_gtk_widget(self, codeblock: str, lang: str) -> Gtk.Widget | None:
-        print("restore")
         return super().restore_gtk_widget(codeblock, lang)
 
     def get_article_content(self, url: str):
@@ -102,6 +101,7 @@ class WebsiteReader(NewelleExtension):
             response.raise_for_status()
             for chunk in response.iter_content(chunk_size=1024): #Load in chunks to avoid consuming too much memory for large files
                 pixbuf_loader.write(chunk)
+            pixbuf_loader.close()
         except Exception as e:
             print("Exception generating the image: " + str(e))
 

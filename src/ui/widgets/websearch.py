@@ -61,6 +61,7 @@ class WebSearchWidget(Gtk.Box):
             from urllib.parse import urlparse, urljoin
             base_url = urlparse(link).scheme + "://" + urlparse(link).netloc
             favicon = urljoin(base_url, favicon)
+            print(favicon)
         button = Gtk.Button()
         button.connect("clicked", lambda x, link=link: open_website(link))
         row_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
@@ -94,6 +95,7 @@ class WebSearchWidget(Gtk.Box):
             response.raise_for_status()
             for chunk in response.iter_content(chunk_size=8192): #Load in chunks to avoid consuming too much memory for large files
                 pixbuf_loader.write(chunk)
+            pixbuf_loader.close()
         except Exception as e:
             print("Exception generating the image: " + str(e))
     
