@@ -18,7 +18,7 @@ from ..utility.system import can_escape_sandbox, get_spawn_command, open_website
 from ..controller import NewelleController
 
 class Settings(Adw.PreferencesWindow):
-    def __init__(self,app, controller: NewelleController,headless=False, *args, **kwargs):
+    def __init__(self,app, controller: NewelleController,headless=False, startup_page=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.app = app
         self.controller = controller
@@ -240,12 +240,14 @@ class Settings(Adw.PreferencesWindow):
         row.add_suffix(int_spin)
         self.settings.bind("memory", int_spin, 'value', Gio.SettingsBindFlags.DEFAULT)
         self.neural_network.add(row)
-
         self.add(self.LLMPage)
         self.add(self.PromptsPage)
         self.add(self.MemoryPage)
-        self.add(self.general_page)
- 
+        self.add(self.general_page) 
+        if startup_page is not None:
+            pages = {"LLM": self.LLMPage, "Prompts": self.PromptsPage, "Memory": self.MemoryPage, "General": self.general_page}
+            self.set_visible_page(pages[startup_page])
+    
     def build_prompts_settings(self):
         # Prompts settings
         self.prompts_settings = self.controller.newelle_settings.prompts_settings 
