@@ -154,12 +154,18 @@ class MyApp(Adw.Application):
         threadediting = ThreadEditing(self)
         threadediting.present()
 
-    def settings_action(self, *a):
+    def settings_action(self, *a): 
         settings = Settings(self, self.win.controller)
         settings.present()
         settings.connect("close-request", self.close_settings)
         self.settingswindow = settings
 
+    def settings_action_paged(self, page=None, *a): 
+        settings = Settings(self, self.win.controller, False, page)
+        settings.present()
+        settings.connect("close-request", self.close_settings)
+        self.settingswindow = settings
+    
     def close_settings(self, *a):
         settings = Gio.Settings.new('io.github.qwersyk.Newelle')
         settings.set_int("chat", self.win.chat_id)

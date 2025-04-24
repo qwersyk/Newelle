@@ -204,7 +204,9 @@ class OpenAIHandler(LLMHandler):
                 temperature=temperature,
                 presence_penalty=presence_penalty,
                 frequency_penalty=frequency_penalty, 
-                stream=True
+                stream=True,
+                extra_headers=self.get_extra_headers(),
+                extra_body=self.get_extra_body(),
             )
             full_message = ""
             prev_message = ""
@@ -219,3 +221,8 @@ class OpenAIHandler(LLMHandler):
         except Exception as e:
             raise e
 
+    def get_extra_body(self):
+        return {}
+
+    def get_extra_headers(self):
+        return {}
