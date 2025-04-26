@@ -31,6 +31,17 @@
 	<url type="bugtracker">https://github.com/qwersyk/Newelle/issues</url>
 	<content_rating type="oars-1.0" />
 	<releases>
+	    <release version="0.9.5" date="2025-04-26">
+            <description>
+                <ul>
+                  <li>Website reading and web search with SearXNG, DuckDuckGo, and Tavily</li>
+                  <li>Improved LaTeX rendering and document management</li>
+                  <li>New Thinking Widget and OpenRouter handler</li>
+                  <li>Vision support for Llama4 on Groq</li>
+                  <li>New translations (Traditional Chinese, Bengali, Hindi)</li>
+                </ul>
+            </description>
+        </release>
 	    <release version="0.9.0" date="2025-04-10">
             <description>
                 <p>Fixed many bugs, added some features!</p>
