@@ -519,7 +519,7 @@ class MainWindow(Gtk.ApplicationWindow):
             {"setting_name": "rag-on", "title": _("Local Documents")},
             {"setting_name": "memory-on", "title": _("Long Term Memory")},
             {"setting_name": "tts-on", "title": _("TTS")},
-            {"setting_name": "virtualization", "title": _("Command virutalization")},
+            {"setting_name": "virtualization", "title": _("Command virtualization")},
             {"setting_name": "websearch-on", "title": _("Web search")},
         ]
 
