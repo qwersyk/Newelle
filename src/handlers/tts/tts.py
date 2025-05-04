@@ -6,9 +6,10 @@ import threading
 import time
 import os
 from ...utility.system import can_escape_sandbox, get_spawn_command 
-os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
-from pygame import mixer
 from ..handler import Handler
+from pydub import AudioSegment
+from pydub.playback import play
+import multiprocessing
 
 class TTSHandler(Handler):
     """Every TTS handler should extend this class."""
@@ -18,13 +19,12 @@ class TTSHandler(Handler):
     _play_lock : threading.Semaphore = threading.Semaphore(1)
     def __init__(self, settings, path):
         super().__init__(settings, path)
-        mixer.init()
         self.settings = settings
         self.path = path
         self.voices = tuple()
         self.on_start = lambda : None
         self.on_stop  = lambda : None
-        pass
+        self.play_process = None
 
     def get_extra_settings(self) -> list:
         """Get extra settings for the TTS"""
@@ -66,7 +66,10 @@ class TTSHandler(Handler):
         path = os.path.join(self.path, file_name)
         self.save_audio(message, path)
         self.playsound(path)
-        os.remove(path)
+        try:
+            os.remove(path)
+        except Exception as e:
+            print("Could not delete file: " + str(e))
 
     def connect(self, signal: str, callback: Callable):
         if signal == "start":
@@ -79,16 +82,25 @@ class TTSHandler(Handler):
         self.stop()
         self._play_lock.acquire()
         self.on_start()
-        mixer.music.load(path)
-        mixer.music.play()
-        while mixer.music.get_busy():
-            time.sleep(0.1)
+        try:
+            if path.endswith("mp3"):
+                segment = AudioSegment.from_mp3(path)
+            else:
+                segment = AudioSegment.from_wav(path)
+            p = multiprocessing.Process(target=play, args=(segment,))
+            p.start()
+            self.play_process = p
+            p.join()
+        except Exception as e:
+            print("Error playing the audio: " + str(e))
+            pass
         self.on_stop()
+        self.play_process = None
         self._play_lock.release()
 
     def stop(self):
-        if mixer.music.get_busy():
-            mixer.music.stop()
+        if self.play_process is not None:
+            self.play_process.terminate()
 
     def get_current_voice(self):
         """Get the current selected voice"""

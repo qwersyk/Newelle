@@ -26,6 +26,7 @@
     "*.la",
     "*.a"
   ],
+
   "modules": [
     "modules/vte.json",
     "modules/python3-requests.json",
@@ -35,7 +36,7 @@
     "modules/portaudio.json",
     "modules/python3-pyaudio.json",
     "modules/python3-speechrecognition.json",
-    "modules/python3-pygame.json",
+    "modules/python3-pydub.json",
     "modules/python3-pillow.json",
     "modules/python3-matplotlib.json",
     "modules/python3-pylatexenc.json",
