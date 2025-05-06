@@ -448,3 +448,51 @@ AVAILABLE_PROMPTS = [
         "default": False
     }, 
 ]
+
+SETTINGS_GROUPS = {
+        "LLM": {
+            "title": _("LLM"),
+            "settings": ["secondary-llm-on", "secondary-language-model", "language-model", "llm-settings", "llm-secondary-settings"],
+        },
+        "TTS": {
+            "title": _("TTS"),
+            "settings": ["tts-on", "tts", "tts-voice"],
+        },
+        "STT": {
+            "title": _("STT"),
+            "settings": ["stt-engine", "stt-settings","automatic-stt", "stt-silence-detection-threshold", "stt-silence-detection-duration"],
+        },
+        "Embedding": {
+            "title": _("Embedding"),
+            "settings": ["embedding-model", "embedding-settings"],
+        },
+        "Memory": {
+            "title": _("Memory"),
+            "settings": ["memory-on", "memory-settings", "memory-model"],
+        },
+        "websearch": {
+            "title": _("Websearch"),
+            "settings": ["websearch-on", "websearch-settings", "websearch-model"],
+        },
+        "rag": {
+            "title": _("RAG"),
+            "settings": ["rag-on", "rag-model", "rag-settings", "rag-on-documents", "documents-context-limit"]
+        },
+        "extensions": {
+            "title": _("Extensions"),
+            "settings": ["extensions-settings", ""]
+        },
+        "interface": {
+            "title": _("Inteface"),
+            "settings": ["hidden-files", "reverse-order", "display-latex", "external-terminal-on", "external-terminal", "zoom"]
+        },
+        "general": {
+            "title": _("General"),
+            "settings": ["virtualization", "offers", "memory", "remove-thinking", "auto-generate-name", "path", "auto-run", "max-run-times"]
+        },
+        "prompts": {
+                "title": _("Prompts"),
+                "settings": ["prompts-settings", "custom-extra-prompt", "custom-prompts"],
+        }
+
+}
