@@ -31,4 +31,5 @@ class OpenRouterHandler(OpenAIHandler):
             p["order"] = self.get_setting("order").split(",")
             p["allow_fallbacks"] = self.get_setting("fallback")
         r["provider"] = p
+        r["include_reasoning"] = True
         return r

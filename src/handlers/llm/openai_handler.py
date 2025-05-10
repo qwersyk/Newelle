@@ -210,13 +210,22 @@ class OpenAIHandler(LLMHandler):
             )
             full_message = ""
             prev_message = ""
+            is_reasoning = False
             for chunk in response:
                 if chunk.choices[0].delta.content:
+                    if is_reasoning:
+                        full_message += "</think>"
+                        is_reasoning = False
                     full_message += chunk.choices[0].delta.content
                     args = (full_message.strip(), ) + tuple(extra_args)
                     if len(full_message) - len(prev_message) > 1:
                         on_update(*args)
                         prev_message = full_message
+                elif hasattr(chunk.choices[0].delta, "reasoning") and chunk.choices[0].delta.reasoning is not None:
+                    if not is_reasoning:
+                        full_message += "<think>"
+                    is_reasoning = True
+                    full_message += chunk.choices[0].delta.reasoning
             return full_message.strip()
         except Exception as e:
             raise e
