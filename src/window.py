@@ -1015,6 +1015,7 @@ class MainWindow(Gtk.ApplicationWindow):
         restore_settings_from_dict_by_groups(self.settings, new_settings, groups, SETTINGS_GROUPS)
         self.settings.set_string("profiles", json.dumps(self.profile_settings))
         self.settings.set_string("current-profile", profile)
+        self.focus_input()
         self.update_settings()
 
         self.refresh_profiles_box()
