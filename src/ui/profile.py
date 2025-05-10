@@ -1,7 +1,8 @@
 
+from pydoc import describe
 import shutil
 import os
-
+from ..constants import SETTINGS_GROUPS
 from gi.repository import Gdk, Gtk, Adw, Gio, GLib
 
 class ProfileDialog(Adw.PreferencesDialog):
@@ -22,6 +23,8 @@ class ProfileDialog(Adw.PreferencesDialog):
         self.page.add(self.avatar_group)
         self.group = Adw.PreferencesGroup()
         self.page.add(self.group)
+        self.settings_group = Adw.PreferencesGroup(title=_("Settings"))
+        self.page.add(self.settings_group) 
         self.button_group = Adw.PreferencesGroup()
         self.page.add(self.button_group)
 
@@ -45,6 +48,10 @@ class ProfileDialog(Adw.PreferencesDialog):
         self.entry = row
         self.group.add(row)
 
+        self.settings_row = Adw.ExpanderRow(title=_("Copied Settings"), subtitle=_("Settings that will be copied to the new profile"))
+        self.build_settings_group()
+        self.settings_group.add(self.settings_row)
+
         # Create Button
         self.create_button = Gtk.Button(label="Create")
         self.create_button.add_css_class("suggested-action")
@@ -60,6 +67,16 @@ class ProfileDialog(Adw.PreferencesDialog):
         warning = Gtk.Label(label=_("The settings of the current profile will be copied into the new one"), wrap=True)
         g.add(warning)
         self.page.add(g)
+
+    def build_settings_group(self):
+        self.settings_switches = {}
+        for setting, group in SETTINGS_GROUPS.items():
+            toggle = Gtk.Switch(valign=Gtk.Align.CENTER)
+            toggle.set_active(True)
+            row = Adw.ActionRow(title=group["title"], subtitle=group["description"], vexpand=False)
+            row.add_suffix(toggle)
+            self.settings_row.add_row(row)
+            self.settings_switches[setting] = toggle
 
     def on_profile_name_changed(self, entry):
         """Updates the avatar text when the profile name changes."""
@@ -124,7 +141,9 @@ class ProfileDialog(Adw.PreferencesDialog):
             self.parent.add_toast(toast)
             return
         
-        # Get the custom image from the avatar (if any) 
-        self.parent.create_profile(self.profile_name, self.pic_path, {})
+        # Get the custom image from the avatar (if any)
+        copied_settings = [setting for setting in self.settings_switches if self.settings_switches[setting].get_active()] 
+        print(copied_settings)
+        self.parent.create_profile(self.profile_name, self.pic_path, {}, copied_settings)
         GLib.idle_add(self.parent.switch_profile, self.profile_name)
         self.close()

@@ -22,7 +22,7 @@ from .ui.presentation import PresentationWindow
 from .ui.widgets import File, CopyBox, BarChartBox, MarkupTextView, DocumentReaderWidget, TipsCarousel
 from .ui import apply_css_to_widget
 from .ui.widgets import MultilineEntry, ProfileRow, DisplayLatex, InlineLatex, ThinkingWidget
-from .constants import AVAILABLE_LLMS, SCHEMA_ID
+from .constants import AVAILABLE_LLMS, SCHEMA_ID, SETTINGS_GROUPS
 
 from .utility.system import get_spawn_command, open_website
 from .utility.strings import (
@@ -34,7 +34,7 @@ from .utility.strings import (
     simple_markdown_to_pango,
 )
 from .utility.replacehelper import replace_variables, ReplaceHelper
-from .utility.profile_settings import get_settings_dict, restore_settings_from_dict
+from .utility.profile_settings import get_settings_dict, get_settings_dict_by_groups, restore_settings_from_dict, restore_settings_from_dict_by_groups
 from .utility.audio_recorder import AudioRecorder
 from .utility.media import extract_supported_files
 from .ui.screenrecorder import ScreenRecorder
@@ -883,7 +883,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.profiles_box = self.get_profiles_box()
         self.chat_header.pack_start(self.profiles_box)
 
-    def create_profile(self, profile_name, picture=None, settings={}):
+    def create_profile(self, profile_name, picture=None, settings={}, settings_groups=[]):
         """Create a profile
 
         Args:
@@ -891,7 +891,7 @@ class MainWindow(Gtk.ApplicationWindow):
             picture (): path to the profile picture
             settings (): settings to override for that profile
         """
-        self.controller.create_profile(profile_name, picture, settings)
+        self.controller.create_profile(profile_name, picture, settings, settings_groups)
 
     def delete_profile(self, profile_name):
         """Delete a profile
@@ -1004,15 +1004,18 @@ class MainWindow(Gtk.ApplicationWindow):
         if self.current_profile == profile:
             return
         print(f"Switching profile to {profile}")
-
-        old_settings = get_settings_dict(self.settings, ["current-profile", "profiles"])
+        groups = self.profile_settings[self.current_profile].get("settings_groups", [])
+        print(groups)
+        old_settings = get_settings_dict_by_groups(self.settings, groups, SETTINGS_GROUPS, ["current-profile", "profiles"] )
         self.profile_settings = json.loads(self.settings.get_string("profiles"))
         self.profile_settings[self.current_profile]["settings"] = old_settings
 
         new_settings = self.profile_settings[profile]["settings"]
-        restore_settings_from_dict(self.settings, new_settings)
+        groups = self.profile_settings[profile].get("settings_groups", [])
+        restore_settings_from_dict_by_groups(self.settings, new_settings, groups, SETTINGS_GROUPS)
         self.settings.set_string("profiles", json.dumps(self.profile_settings))
         self.settings.set_string("current-profile", profile)
+        self.focus_input()
         self.update_settings()
 
         self.refresh_profiles_box()
