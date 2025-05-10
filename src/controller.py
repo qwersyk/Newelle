@@ -234,7 +234,7 @@ class NewelleController:
         self.integrationsloader = ExtensionLoader(self.extension_path, pip_path=self.pip_path, settings=self.settings)
         self.integrationsloader.load_integrations(AVAILABLE_INTEGRATIONS)
         
-    def create_profile(self, profile_name, picture=None, settings={}):
+    def create_profile(self, profile_name, picture=None, settings={}, settings_groups=[]):
         """Create a profile
 
         Args:
@@ -242,7 +242,7 @@ class NewelleController:
             picture (): path to the profile picture 
             settings (): settings to override for that profile 
         """
-        self.newelle_settings.profile_settings[profile_name] = {"picture": picture, "settings": settings}
+        self.newelle_settings.profile_settings[profile_name] = {"picture": picture, "settings": settings, "settings_groups": settings_groups}
         self.settings.set_string("profiles", json.dumps(self.newelle_settings.profile_settings))
 
     def delete_profile(self, profile_name):
@@ -269,7 +269,7 @@ class NewelleSettings:
         self.profile_settings = json.loads(self.settings.get_string("profiles"))
         self.current_profile = self.settings.get_string("current-profile")
         if len(self.profile_settings) == 0 or self.current_profile not in self.profile_settings:
-            self.profile_settings[self.current_profile] = {"settings": {}, "picture": None}
+            self.profile_settings[self.current_profile] = {"settings": {}, "picture": None, "settings_groups": []}
 
         # Init variables
         self.automatic_stt_status = False
@@ -589,7 +589,6 @@ class HandlersManager:
         """
         if (key, self.convert_constants(constants), secondary) in self.handlers:
             return self.handlers[(key, self.convert_constants(constants), secondary)]
-
         if constants == AVAILABLE_LLMS:
             model = constants[key]["class"](self.settings, self.directory)
             model.set_secondary_settings(secondary)

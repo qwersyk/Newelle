@@ -453,46 +453,57 @@ SETTINGS_GROUPS = {
         "LLM": {
             "title": _("LLM"),
             "settings": ["secondary-llm-on", "secondary-language-model", "language-model", "llm-settings", "llm-secondary-settings"],
+            "description": _("LLM and Secondary LLM settings"),
         },
         "TTS": {
             "title": _("TTS"),
             "settings": ["tts-on", "tts", "tts-voice"],
+            "description": _("Text to Speech settings"),
         },
         "STT": {
             "title": _("STT"),
             "settings": ["stt-engine", "stt-settings","automatic-stt", "stt-silence-detection-threshold", "stt-silence-detection-duration"],
+            "description": _("Speech to Text settings"),
         },
         "Embedding": {
             "title": _("Embedding"),
             "settings": ["embedding-model", "embedding-settings"],
+            "description": _("Embedding settings"),
         },
-        "Memory": {
+        "memory": {
             "title": _("Memory"),
             "settings": ["memory-on", "memory-settings", "memory-model"],
+            "description": _("Memory settings"),
         },
         "websearch": {
             "title": _("Websearch"),
             "settings": ["websearch-on", "websearch-settings", "websearch-model"],
+            "description": _("Websearch settings"),
         },
         "rag": {
             "title": _("RAG"),
-            "settings": ["rag-on", "rag-model", "rag-settings", "rag-on-documents", "documents-context-limit"]
+            "settings": ["rag-on", "rag-model", "rag-settings", "rag-on-documents", "documents-context-limit"],
+            "description": _("Document analyzer settings"),
         },
         "extensions": {
             "title": _("Extensions"),
-            "settings": ["extensions-settings", ""]
+            "settings": ["extensions-settings"],
+            "description": _("Extensions settings"),
         },
         "interface": {
             "title": _("Inteface"),
-            "settings": ["hidden-files", "reverse-order", "display-latex", "external-terminal-on", "external-terminal", "zoom"]
+            "settings": ["hidden-files", "reverse-order", "display-latex", "external-terminal-on", "external-terminal", "zoom"],
+            "description": _("Interface settings, hidden files, reverse order, zoom..."),
         },
         "general": {
             "title": _("General"),
-            "settings": ["virtualization", "offers", "memory", "remove-thinking", "auto-generate-name", "path", "auto-run", "max-run-times"]
+            "settings": ["virtualization", "offers", "memory", "remove-thinking", "auto-generate-name", "path", "auto-run", "max-run-times"],
+            "description": _("General settings, virtualization, offers, memory length, automatically generate chat name, current folder..."),
         },
         "prompts": {
                 "title": _("Prompts"),
                 "settings": ["prompts-settings", "custom-extra-prompt", "custom-prompts"],
+                "description": _("Prompts settings, custom extra prompt, custom prompts..."),
         }
 
 }
