@@ -212,6 +212,8 @@ class OpenAIHandler(LLMHandler):
             prev_message = ""
             is_reasoning = False
             for chunk in response:
+                if len(chunk.choices) == 0:
+                    continue
                 if chunk.choices[0].delta.content:
                     if is_reasoning:
                         full_message += "</think>"
