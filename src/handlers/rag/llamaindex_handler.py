@@ -132,7 +132,8 @@ class LlamaIndexHanlder(RAGHandler):
         return os.path.exists(os.path.join(data_path, "docstore.json")) and (not self.indexing) 
     
     def delete_index(self):
-        os.remove(os.path.join(self.data_path, "docstore.json"))
+        documents_path, data_path = self.get_paths()
+        os.remove(os.path.join(data_path, "docstore.json"))
 
     def get_paths(self):
         if self.get_setting("subdirectory_on"):
