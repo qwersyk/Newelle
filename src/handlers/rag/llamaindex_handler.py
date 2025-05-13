@@ -18,6 +18,7 @@ class LlamaIndexHanlder(RAGHandler):
         self.indexing = False
         self.loading_thread = None
         self.index = None
+        self.loaded_index = ""
    
     def get_subdirectories(self):
         r = []
@@ -77,7 +78,7 @@ class LlamaIndexHanlder(RAGHandler):
         return self.get_supported_files() + ["plaintext"]
     
     def load(self):
-        if self.index_exists() and self.index is None and self.loading_thread is None:
+        if self.index_exists() and ((self.index is None and self.loading_thread is None) or self.loaded_index != self.get_paths()[1]):
             self.loading_thread = threading.Thread(target=self.load_index)
             self.loading_thread.start()
 
@@ -108,6 +109,7 @@ class LlamaIndexHanlder(RAGHandler):
         self.embedding.load_model()
         retriever.retrieve("test")
         self.loading_thread = None
+        self.loaded_index = data_path
 
     def get_context(self, prompt: str, history: list[dict[str, str]]) -> list[str]:
         self.wait_for_loading()
