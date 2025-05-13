@@ -1,5 +1,6 @@
 from typing import Any, List
 import threading
+from time import time
 
 from ...handlers.llm import LLMHandler 
 from ...handlers.embeddings.embedding import EmbeddingHandler 
@@ -81,21 +82,22 @@ class LlamaIndexHanlder(RAGHandler):
             self.loading_thread.start()
 
     def install(self):
-       install_module("llama-index-core", os.path.join(os.path.abspath(os.path.join(self.path, os.pardir)), "pip"))
-       install_module("llama-index-readers-file", os.path.join(os.path.abspath(os.path.join(self.path, os.pardir)), "pip"))
-       install_module("tiktoken", os.path.join(os.path.abspath(os.path.join(self.path, os.pardir)), "pip"))
+       dependencies = "tiktoken faiss-cpu llama-index-core llama-index-readers-file llama-index-vector-stores-faiss"
+       install_module(dependencies, self.pip_path)
 
     def is_installed(self) -> bool:
-        return find_module("llama_index") is not None and find_module("tiktoken") is not None
+        return find_module("llama_index") is not None and find_module("tiktoken") is not None and find_module("faiss") is not None and find_module("llama_index.vector_stores") is not None
 
     def load_index(self):
         from llama_index.core import StorageContext, load_index_from_storage
         from llama_index.core.settings import Settings
-        from llama_index.core.indices.vector_store import VectorIndexRetriever 
+        from llama_index.core.indices.vector_store import VectorIndexRetriever
+        from llama_index.vector_stores.faiss import FaissVectorStore
         documents_path, data_path = self.get_paths()
         Settings.embed_model = self.get_embedding_adapter(self.embedding)
         Settings.llm = self.get_llm_adapter()
-        storage_context = StorageContext.from_defaults(persist_dir=data_path)
+        vector_store = FaissVectorStore.from_persist_dir(data_path)
+        storage_context = StorageContext.from_defaults(persist_dir=data_path, vector_store=vector_store)
         index = load_index_from_storage(storage_context) 
         retriever = VectorIndexRetriever(
             index=index,
@@ -103,6 +105,7 @@ class LlamaIndexHanlder(RAGHandler):
         )
         self.index = index
         self.retriever = retriever
+        self.embedding.load_model()
         retriever.retrieve("test")
         self.loading_thread = None
 
@@ -122,7 +125,7 @@ class LlamaIndexHanlder(RAGHandler):
                 for node in nodes:
                     if node.score < float(self.get_setting("similarity_threshold")):
                         continue
-                    r.append("--")
+                    r.append("---")
                     r.append("- Source: " + node.metadata.get("file_name"))
                     r.append(node.node.get_content())
         return r
@@ -151,7 +154,9 @@ class LlamaIndexHanlder(RAGHandler):
         if not self.is_installed():
             return
         from llama_index.core.settings import Settings
-        from llama_index.core import VectorStoreIndex, SimpleDirectoryReader
+        from llama_index.core import VectorStoreIndex, SimpleDirectoryReader, StorageContext
+        from llama_index.vector_stores.faiss import FaissVectorStore
+        import faiss
         # Ensure llm and embedding load 
         documents_path, data_path = self.get_paths()
         try:
@@ -163,9 +168,13 @@ class LlamaIndexHanlder(RAGHandler):
             Settings.chunk_size = chunk_size 
             documents = SimpleDirectoryReader(documents_path, recursive=True, required_exts=self.get_supported_formats(), exclude_hidden=False).load_data() 
             self.indexing_status = 0
-            index = VectorStoreIndex.from_documents(documents[:1])
+            faiss_index = faiss.IndexFlatL2(self.embedding.get_embedding_size())
+            vector_store = FaissVectorStore(faiss_index=faiss_index)
+            storage_context = StorageContext.from_defaults(vector_store=vector_store)
+            index = VectorStoreIndex.from_documents(documents[:1], storage_context=storage_context)
             i = 1
             for document in documents[1:]:
+                print("Indexing document " + str(i) + " of " + str(len(documents)) + ": " + document.metadata["file_name"])
                 index.insert(document)
                 i += 1
                 self.indexing_status = (i / len(documents))
@@ -176,6 +185,7 @@ class LlamaIndexHanlder(RAGHandler):
             print(e)
             self.indexing = False
             self.indexing_status = 1
+        self.set_setting("last_index_created", time())
   
     @staticmethod 
     def parse_document_list(documents: list[str]):
@@ -205,9 +215,11 @@ class LlamaIndexHanlder(RAGHandler):
     
     def build_index(self, documents: list[str], chunk_size: int | None = None) -> RAGIndex: 
         from llama_index.core.settings import Settings
-        from llama_index.core import VectorStoreIndex 
+        from llama_index.core import VectorStoreIndex, StorageContext 
         from llama_index.core.callbacks import TokenCountingHandler, CallbackManager
+        from llama_index.vector_stores.faiss import FaissVectorStore
         import tiktoken 
+        import faiss
         counter = TokenCountingHandler(
             tokenizer=tiktoken.encoding_for_model("gpt-4o").encode
         )
@@ -217,7 +229,10 @@ class LlamaIndexHanlder(RAGHandler):
         Settings.callback_manager = CallbackManager([counter]) 
         chunk_size = int(self.get_setting("chunk_size")) if chunk_size is None else chunk_size
         document_list = self.parse_document_list(documents)
-        index = VectorStoreIndex.from_documents(document_list)
+        faiss_index = faiss.IndexFlatL2(self.embedding.get_embedding_size())
+        vector_store = FaissVectorStore(faiss_index=faiss_index)
+        storage_context = StorageContext.from_defaults(vector_store=vector_store)
+        index = VectorStoreIndex.from_documents(document_list, storage_context=storage_context)
         return LlamaIndexIndex(index, int(self.get_setting("return_documents")), float(self.get_setting("similarity_threshold")), counter, document_list) 
 
     def get_embedding_adapter(self, embedding: EmbeddingHandler):
@@ -311,7 +326,7 @@ class LlamaIndexIndex(RAGIndex):
         for node in nodes:
             if node.score < float(self.similarity_threshold):
                 continue
-            r.append("--")
+            r.append("---")
             r.append(node.node.get_content())
         return r
 
@@ -335,5 +350,9 @@ class LlamaIndexIndex(RAGIndex):
 
     def remove(self, documents: list[str]):
         for document in documents:
-            self.index.delete(document)
+            try:
+                self.index.delete(document)
+            except Exception as e:
+                print("Error deleting document:" + str(e))
         return super().remove(documents)
+
