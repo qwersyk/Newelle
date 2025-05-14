@@ -149,6 +149,9 @@
         <key name="zoom" type="i">
           <default>100</default>
         </key>
+        <key name="send-on-enter" type="b">
+          <default>true</default>
+        </key>
         <key name="max-run-times" type="i">
           <default>5</default>
         </key>

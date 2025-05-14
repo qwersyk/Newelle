@@ -316,6 +316,7 @@ class NewelleSettings:
         self.extensions_settings = self.settings.get_string("extensions-settings")
         self.username = self.settings.get_string("user-name")
         self.zoom = self.settings.get_int("zoom")
+        self.send_on_enter = self.settings.get_boolean("send-on-enter")
         self.max_run_times = self.settings.get_int("max-run-times")
         self.websearch_on = self.settings.get_boolean("websearch-on")
         self.websearch_model = self.settings.get_string("websearch-model")

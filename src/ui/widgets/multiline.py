@@ -3,19 +3,20 @@ from .. import apply_css_to_widget
 
 class MultilineEntry(Gtk.Box):
 
-    def __init__(self):
+    def __init__(self, enter_on_ctrl=False):
         Gtk.Box.__init__(self)
         self.placeholding = True
         self.placeholder = ""
         self.enter_func = None
         self.on_change_func = None
         self.on_image_pasted = lambda *a: None
+        self.enter_on_ctrl = enter_on_ctrl
         # Handle enter key
         # Call handle_enter_key only when shift is not pressed
         # shift + enter = new line
         key_controller = Gtk.EventControllerKey.new()
         key_controller.connect("key-pressed", lambda controller, keyval, keycode, state:
-            self.handle_enter_key() if keyval == Gdk.KEY_Return and not (state & Gdk.ModifierType.SHIFT_MASK) 
+            self.handle_enter_key() if keyval == Gdk.KEY_Return and (not self.enter_on_ctrl and not (state & (Gdk.ModifierType.SHIFT_MASK | Gdk.ModifierType.CONTROL_MASK)) or self.enter_on_ctrl and (state & (Gdk.ModifierType.SHIFT_MASK | Gdk.ModifierType.CONTROL_MASK))) 
             else self.handle_paste() if keyval == Gdk.KEY_v and (state & Gdk.ModifierType.CONTROL_MASK) else None
         )
 
@@ -51,6 +52,9 @@ class MultilineEntry(Gtk.Box):
 
         # Add TextView to the ScrolledWindow
         scroll.set_child(self.input_panel)
+
+    def set_enter_on_ctrl(self, enter_on_ctrl):
+        self.enter_on_ctrl = enter_on_ctrl
 
     def handle_paste(self):
         clipboard = Gdk.Display.get_default().get_clipboard()
