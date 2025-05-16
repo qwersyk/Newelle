@@ -85,7 +85,7 @@ class NewelleController:
     def __init__(self, python_path) -> None:
         self.settings = Gio.Settings.new(SCHEMA_ID)
         self.python_path = python_path
-    
+
     def ui_init(self):
         """Init necessary variables for the UI and load models and handlers"""
         self.init_paths()
