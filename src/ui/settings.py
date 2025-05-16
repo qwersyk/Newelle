@@ -318,7 +318,7 @@ class Settings(Adw.PreferencesWindow):
         rag_row.add_suffix(rag_on_docuements)
         self.RAG.add(rag_row)
          
-        rag_limit = Adw.ActionRow(title=_("Manimum Context for RAG"), subtitle=_("If the documents to not exceed this token count,\ndump all of them in the context"))
+        rag_limit = Adw.ActionRow(title=_("Maximum tokens for RAG"), subtitle=_("The maximum amount of tokens to be used for RAG. If the documents do not exceed this token count,\ndump all of them in the context"))
         time_scale = Gtk.Scale(digits=0, round_digits=0)
         time_scale.set_range(0, 50000)
         time_scale.set_size_request(120, -1)

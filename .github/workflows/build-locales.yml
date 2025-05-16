@@ -1,0 +1,36 @@
+name: Rebuild Locales
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+
+      - name: Rebuild locales
+        run: |
+          fd -e py >po/POTFILES
+          xgettext -o po/newelle.pot $(fd -e py)
+          cd po
+          for file in $(fd -e po); do
+              msgmerge -U "$file" newelle.pot
+          done
+          rm -f *~
+
+      - name: Commit changes
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            git config --local user.name "github-actions[bot]"
+            git config --local user.email "github-actions[bot]@users.noreply.github.com"
+            git add .
+            git commit -m "Automated changes by github actions"
+            git push origin ${GITHUB_REF##*/}
+          fi
