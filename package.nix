@@ -1,21 +1,22 @@
 {
-  stdenv,
-  lib,
-  python3,
-  meson,
-  ninja,
-  pkg-config,
-  wrapGAppsHook4,
-  docutils,
-  desktopToDarwinBundle,
-  vte-gtk4,
-  dconf,
-  gobject-introspection,
-  gsettings-desktop-schemas,
-  adwaita-icon-theme,
-  gtksourceview5,
-  desktop-file-utils,
-  lsb-release
+stdenv,
+libadwaita,
+lib,
+python3,
+meson,
+ninja,
+pkg-config,
+wrapGAppsHook4,
+docutils,
+desktopToDarwinBundle,
+vte-gtk4,
+dconf,
+gobject-introspection,
+gsettings-desktop-schemas,
+adwaita-icon-theme,
+gtksourceview5,
+desktop-file-utils,
+lsb-release
 }:
 
 let
@@ -41,50 +42,52 @@ let
     pip-install-test
   ];
 in
-stdenv.mkDerivation rec {
-  pname = "newelle";
-  version = "0.9.6";
+  stdenv.mkDerivation rec {
+    pname = "newelle";
+    version = "0.9.6";
 
-  format = "other";
+    format = "other";
 
-  src = ./.;
+    src = ./.;
 
-  strictDeps = true;
+    strictDeps = true;
 
-  nativeBuildInputs = [
-    meson
-    ninja
-    gobject-introspection # for setup hook populating GI_TYPELIB_PATH
-    docutils
-    wrapGAppsHook4
-    desktop-file-utils
-    pkg-config
-  ] ++ lib.optional stdenv.hostPlatform.isDarwin desktopToDarwinBundle;
-
-  buildInputs =
-    [
-      python3
-      vte-gtk4
-      dconf
-      adwaita-icon-theme
-      gsettings-desktop-schemas
-      gtksourceview5
+    nativeBuildInputs = [
+      meson
+      ninja
+      gobject-introspection # for setup hook populating GI_TYPELIB_PATH
+      docutils
+      wrapGAppsHook4
       desktop-file-utils
-      lsb-release
-    ];
+      pkg-config
+    ] ++ lib.optional stdenv.hostPlatform.isDarwin desktopToDarwinBundle;
+
+    buildInputs =
+      [
+        libadwaita
+        python3
+        gobject-introspection
+        vte-gtk4
+        dconf
+        adwaita-icon-theme
+        gsettings-desktop-schemas
+        gtksourceview5
+        desktop-file-utils
+        lsb-release
+      ];
 
     preFixup = ''
      glib-compile-schemas $out/share/gsettings-schemas/${pname}-${version}/glib-2.0/schemas
      gappsWrapperArgs+=(--set PYTHONPATH "${python3.pkgs.makePythonPath pythonDependencies}")
      patchShebangs $out/bin
-   '';
+     '';
 
-  meta = with lib; {
-    homepage = "https://github.com/qwersyk/Newelle";
-    description = "Newelle - Your Ultimate Virtual Assistant ";
-    mainProgram = "newelle";
-    license = licenses.gpl3;
-    platforms = platforms.unix;
-  };
+    meta = with lib; {
+      homepage = "https://github.com/qwersyk/Newelle";
+      description = "Newelle - Your Ultimate Virtual Assistant ";
+      mainProgram = "newelle";
+      license = licenses.gpl3;
+      platforms = platforms.unix;
+    };
 
-}
+  }
