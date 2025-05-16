@@ -492,7 +492,7 @@ SETTINGS_GROUPS = {
         },
         "interface": {
             "title": _("Inteface"),
-            "settings": ["hidden-files", "reverse-order", "display-latex", "external-terminal-on", "external-terminal", "zoom"],
+            "settings": ["hidden-files", "reverse-order", "display-latex", "external-terminal-on", "external-terminal", "zoom","send-on-enter" ],
             "description": _("Interface settings, hidden files, reverse order, zoom..."),
         },
         "general": {

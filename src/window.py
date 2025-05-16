@@ -397,7 +397,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.video_recorder = None
 
         # Text Entry
-        self.input_panel = MultilineEntry()
+        self.input_panel = MultilineEntry(not self.controller.newelle_settings.send_on_enter)
         self.input_panel.set_on_image_pasted(self.image_pasted)
         self.input_box.append(self.input_panel)
         self.input_panel.set_placeholder(_("Send a message..."))
@@ -604,6 +604,9 @@ class MainWindow(Gtk.ApplicationWindow):
             def load_handlers_async():
                 threading.Thread(target=self.controller.handlers.load_handlers).start()
             GLib.timeout_add(1000, load_handlers_async)
+        else:
+            # Update the send on enter setting
+            self.input_panel.set_enter_on_ctrl(not self.controller.newelle_settings.send_on_enter)
         # Basic settings
         self.offers = self.controller.newelle_settings.offers
         self.current_profile = self.controller.newelle_settings.current_profile
@@ -627,7 +630,6 @@ class MainWindow(Gtk.ApplicationWindow):
             self.update_history()
         if ReloadType.OFFERS in reloads:
             self.build_offers()
-
         # Setup TTS
         self.tts.connect(
             "start", lambda: GLib.idle_add(self.mute_tts_button.set_visible, True)

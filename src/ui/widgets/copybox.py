@@ -11,6 +11,7 @@ class CopyBox(Gtk.Box):
         Gtk.Box.__init__(self, orientation=Gtk.Orientation.VERTICAL, spacing=10, margin_top=10, margin_start=10,
                          margin_bottom=10, margin_end=10, css_classes=["osd", "toolbar", "code"])
         self.txt = txt
+        longest_line = max(txt.splitlines(), key=len)
         self.id_message = id_message
         box = Gtk.Box(halign=Gtk.Align.END)
 
@@ -20,24 +21,36 @@ class CopyBox(Gtk.Box):
         self.copy_button.set_child(icon)
         self.copy_button.connect("clicked", self.copy_button_clicked)
 
-        self.sourceview = GtkSource.View()
+        self.sourceview = GtkSource.View(width_request=10*len(longest_line))
+        self.scroll = Gtk.ScrolledWindow(propagate_natural_width=True, hscrollbar_policy=Gtk.PolicyType.AUTOMATIC, vscrollbar_policy=Gtk.PolicyType.NEVER, hexpand=True)
 
         self.buffer = GtkSource.Buffer()
         self.buffer.set_text(txt, -1)
         
         lang.replace(" ", "")
+        display_lang = lang
+        replace_lang = [
+            (["py", "py3"], "python"),
+            (["bash", "shell", "console"], "sh"),
+            (["javascript"], "js")
+        ]
+        for rep in replace_lang:
+            if display_lang in rep[0]:
+                display_lang = rep[1]
+
         manager = GtkSource.LanguageManager.new()
-        language = manager.get_language(lang)
+        language = manager.get_language(display_lang)
         self.buffer.set_language(language)
 
         style_scheme_manager = GtkSource.StyleSchemeManager.new()
-        style_scheme = style_scheme_manager.get_scheme('classic')
+        style_scheme = style_scheme_manager.get_scheme('Adwaita-dark')
         self.buffer.set_style_scheme(style_scheme)
 
         self.sourceview.set_buffer(self.buffer)
         self.sourceview.set_vexpand(True)
+        self.sourceview.set_vexpand(True)
         self.sourceview.set_show_line_numbers(True)
-        self.sourceview.set_background_pattern(GtkSource.BackgroundPatternType.GRID)
+        #self.sourceview.set_background_pattern(GtkSource.BackgroundPatternType.GRID)
         self.sourceview.set_editable(False)
         style = "success"
         if lang in ["python", "python3", "cpp", "php", "objc", "go", "typescript", "lua", "perl", "r", "dart", "sql", "latex"]:
@@ -48,12 +61,14 @@ class CopyBox(Gtk.Box):
             style = "error"
         if lang in ["console"]:
             style = ""
+        
         main = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         main.set_homogeneous(True)
-        label = Gtk.Label(label=lang, halign=Gtk.Align.START, margin_start=10, css_classes=[style, "heading"],wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR)
+        label = Gtk.Label(label=lang, halign=Gtk.Align.START, margin_start=10, css_classes=[style, "heading"],wrap=False, ellipsize=Pango.EllipsizeMode.END)
         main.append(label)
         self.append(main)
-        self.append(self.sourceview)
+        self.scroll.set_child(self.sourceview)
+        self.append(self.scroll)
         main.append(box)
         if lang == "python" or lang == "python3" and parent is not None:
             icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="media-playback-start-symbolic"))
