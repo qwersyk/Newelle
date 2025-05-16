@@ -31,13 +31,13 @@ class CopyBox(Gtk.Box):
         self.buffer.set_language(language)
 
         style_scheme_manager = GtkSource.StyleSchemeManager.new()
-        style_scheme = style_scheme_manager.get_scheme('classic')
+        style_scheme = style_scheme_manager.get_scheme('Adwaita-dark')
         self.buffer.set_style_scheme(style_scheme)
 
         self.sourceview.set_buffer(self.buffer)
         self.sourceview.set_vexpand(True)
         self.sourceview.set_show_line_numbers(True)
-        self.sourceview.set_background_pattern(GtkSource.BackgroundPatternType.GRID)
+        #self.sourceview.set_background_pattern(GtkSource.BackgroundPatternType.GRID)
         self.sourceview.set_editable(False)
         style = "success"
         if lang in ["python", "python3", "cpp", "php", "objc", "go", "typescript", "lua", "perl", "r", "dart", "sql", "latex"]:
@@ -48,9 +48,10 @@ class CopyBox(Gtk.Box):
             style = "error"
         if lang in ["console"]:
             style = ""
+        
         main = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         main.set_homogeneous(True)
-        label = Gtk.Label(label=lang, halign=Gtk.Align.START, margin_start=10, css_classes=[style, "heading"],wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR)
+        label = Gtk.Label(label=lang, halign=Gtk.Align.START, margin_start=10, css_classes=[style, "heading"],wrap=False, ellipsize=Pango.EllipsizeMode.END)
         main.append(label)
         self.append(main)
         self.append(self.sourceview)
