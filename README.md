@@ -108,6 +108,19 @@ gsettings set org.gnome.mutter center-new-windows true
 3. Open the project in GNOME Builder and compile it.
 4. Once compiled, you can run the program from the compiled executable.
 
+<a href="https://nixos.org">
+  <picture>
+    <source srcset="https://raw.githubusercontent.com/mipmip/newelle-Assets/refs/heads/main/nix.svg" media="(prefers-color-scheme: light)">
+    <source srcset="https://raw.githubusercontent.com/mipmip/newelle-Assets/refs/heads/main/nix-dark.svg" media="(prefers-color-scheme: dark)">
+    <img src="https://raw.githubusercontent.com/mipmip/newelle-Assets/refs/heads/main/nix.svg" alt="builder">
+  </picture>
+</a>
+
+1. Install Nix on your system.
+2. Clone the Newelle repository from GitHub.
+3. In terminal change dir to repository
+4. run `nix run .` to start the program or run `nix develop .` to start a developer shell;
+
 <a href="https://github.com/qwersyk/Newelle/actions">
   <picture>
     <source srcset="https://raw.githubusercontent.com/qwersyk/Assets/main/beta.svg" media="(prefers-color-scheme: light)">
