@@ -28,8 +28,18 @@ class CopyBox(Gtk.Box):
         self.buffer.set_text(txt, -1)
         
         lang.replace(" ", "")
+        display_lang = lang
+        replace_lang = [
+            (["py", "py3"], "python"),
+            (["bash", "shell", "console"], "sh"),
+            (["javascript"], "js")
+        ]
+        for rep in replace_lang:
+            if display_lang in rep[0]:
+                display_lang = rep[1]
+
         manager = GtkSource.LanguageManager.new()
-        language = manager.get_language(lang)
+        language = manager.get_language(display_lang)
         self.buffer.set_language(language)
 
         style_scheme_manager = GtkSource.StyleSchemeManager.new()
