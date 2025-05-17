@@ -116,7 +116,12 @@ gsettings set org.gnome.mutter center-new-windows true
   </picture>
 </a>
 
-1. Install Nix on your system.
+Run without installing:
+
+1. run `nix run github:qwersyk/Newelle`
+ 
+For development:
+
 2. Clone the Newelle repository from GitHub.
 3. In terminal change dir to repository
 4. run `nix run .` to start the program or run `nix develop .` to start a developer shell;
