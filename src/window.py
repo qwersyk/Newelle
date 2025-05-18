@@ -32,6 +32,7 @@ from .utility.strings import (
     remove_markdown,
     remove_thinking_blocks,
     simple_markdown_to_pango,
+    remove_emoji,
 )
 from .utility.replacehelper import replace_variables, ReplaceHelper
 from .utility.profile_settings import get_settings_dict, get_settings_dict_by_groups, restore_settings_from_dict, restore_settings_from_dict_by_groups
@@ -2172,6 +2173,7 @@ class MainWindow(Gtk.ApplicationWindow):
             message_label = convert_think_codeblocks(message_label)
             message = re.sub(r"```.*?```", "", message_label, flags=re.DOTALL)
             message = remove_markdown(message)
+            message = remove_emoji(message)
             if not (
                 not message.strip()
                 or message.isspace()
