@@ -755,15 +755,17 @@ msgstr "提示文字"
 msgid "Prompts settings, custom extra prompt, custom prompts..."
 msgstr "提示文字設定、自訂提示文字等..."
 
-#: src/utility/util.py:136 src/handlers/llm/gemini_handler.py:113
+#: src/utility/util.py:136 src/handlers/llm/newelle_handler.py:27
+#: src/handlers/llm/custom_handler.py:20
 #: src/handlers/llm/gpt4all_handler.py:153
-#: src/handlers/llm/newelle_handler.py:27 src/handlers/llm/custom_handler.py:20
+#: src/handlers/llm/gemini_handler.py:113
 msgid "Message Streaming"
 msgstr "訊息串流"
 
-#: src/utility/util.py:137 src/handlers/llm/gemini_handler.py:114
+#: src/utility/util.py:137 src/handlers/llm/newelle_handler.py:28
+#: src/handlers/llm/custom_handler.py:20
 #: src/handlers/llm/gpt4all_handler.py:153
-#: src/handlers/llm/newelle_handler.py:28 src/handlers/llm/custom_handler.py:20
+#: src/handlers/llm/gemini_handler.py:114
 msgid "Gradually stream message output"
 msgstr "逐漸的將訊息輸出串流"
 
@@ -886,6 +888,181 @@ msgstr "排除網域"
 msgid "A list of domains to specifically exclude from the search results."
 msgstr "在搜尋結果內排除這些網域"
 
+#: src/handlers/websearch/duckduckgo_handler.py:14
+msgid "Region"
+msgstr "區間"
+
+#: src/handlers/websearch/duckduckgo_handler.py:14
+msgid "Region for the search results"
+msgstr "搜尋的區間"
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Provider Sorting"
+msgstr "供給者排序"
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Choose providers based on pricing/throughput or latency"
+msgstr "根據最佳價格、流量或最低延遲選擇供給者"
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Price"
+msgstr "價格"
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Throughput"
+msgstr "流量"
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Latency"
+msgstr "延遲"
+
+#: src/handlers/llm/openrouter_handler.py:15
+msgid "Providers Order"
+msgstr "供給者排序"
+
+#: src/handlers/llm/openrouter_handler.py:15
+msgid ""
+"Add order of providers to use, names separated by a comma.\n"
+"Empty to not specify"
+msgstr "新增自訂供給者，將不同供給者名稱以逗號隔開。留空以不使用"
+
+#: src/handlers/llm/openrouter_handler.py:16
+msgid "Allow Fallbacks"
+msgstr "允許後備供給者"
+
+#: src/handlers/llm/openrouter_handler.py:16
+msgid "Allow fallbacks to other providers"
+msgstr "允許在無法使用主要供給者時使用其他供給者"
+
+#: src/handlers/llm/openai_handler.py:72 src/handlers/stt/witai_handler.py:12
+#: src/handlers/tts/openai_tts_handler.py:18
+#: src/handlers/tts/groq_tts_handler.py:32
+#: src/handlers/tts/elevenlabs_handler.py:9
+#: src/handlers/stt/openaisr_handler.py:17
+#: src/handlers/stt/googlesr_handler.py:13
+#: src/handlers/llm/claude_handler.py:84 src/handlers/stt/groqsr_handler.py:13
+#: src/handlers/tts/custom_openai_tts.py:18
+#: src/handlers/embeddings/openai_handler.py:35
+msgid "API Key"
+msgstr "API 金鑰"
+
+#: src/handlers/llm/openai_handler.py:72
+#: src/handlers/embeddings/openai_handler.py:35
+msgid "API Key for "
+msgstr "API 金鑰："
+
+#: src/handlers/llm/openai_handler.py:75 src/handlers/llm/ollama_handler.py:149
+#: src/handlers/stt/openaisr_handler.py:10
+#: src/handlers/embeddings/openai_handler.py:38
+#: src/handlers/embeddings/ollama_handler.py:32
+msgid "API Endpoint"
+msgstr "API 端點"
+
+#: src/handlers/llm/openai_handler.py:75 src/handlers/llm/ollama_handler.py:149
+#: src/handlers/embeddings/ollama_handler.py:32
+msgid "API base url, change this to use interference APIs"
+msgstr "API 擷取的網址"
+
+#: src/handlers/llm/openai_handler.py:78
+#: src/handlers/embeddings/openai_handler.py:41
+msgid "Use Custom Model"
+msgstr "使用自訂模型"
+
+#: src/handlers/llm/openai_handler.py:78 src/handlers/llm/ollama_handler.py:151
+#: src/handlers/llm/claude_handler.py:85
+#: src/handlers/embeddings/openai_handler.py:41
+#: src/handlers/embeddings/ollama_handler.py:34
+msgid "Use a custom model"
+msgstr "使用自訂模型"
+
+#: src/handlers/llm/openai_handler.py:81 src/handlers/llm/gemini_handler.py:129
+msgid "Advanced Parameters"
+msgstr "更多設定"
+
+#: src/handlers/llm/openai_handler.py:81
+msgid "Include parameters like Max Tokens, Top-P, Temperature, etc."
+msgstr "包含 Token 限制、Top-P、溫度等參數"
+
+#: src/handlers/llm/openai_handler.py:84
+#: src/handlers/stt/whispercpp_handler.py:39
+#: src/handlers/stt/whisper_handler.py:15
+#: src/handlers/tts/openai_tts_handler.py:20
+#: src/handlers/tts/groq_tts_handler.py:34
+#: src/handlers/llm/gemini_handler.py:97
+#: src/handlers/tts/elevenlabs_handler.py:23
+#: src/handlers/llm/claude_handler.py:89 src/handlers/llm/claude_handler.py:93
+#: src/handlers/tts/custom_openai_tts.py:20
+#: src/handlers/embeddings/openai_handler.py:44
+msgid "Model"
+msgstr "模型"
+
+#: src/handlers/llm/openai_handler.py:84
+msgid "Name of the LLM Model to use"
+msgstr "使用的大型語言模型"
+
+#: src/handlers/llm/openai_handler.py:91
+#: src/handlers/embeddings/openai_handler.py:51
+msgid " Model"
+msgstr " 模型"
+
+#: src/handlers/llm/openai_handler.py:103
+msgid "max Tokens"
+msgstr "Token 限制"
+
+#: src/handlers/llm/openai_handler.py:103
+msgid "Max tokens of the generated text"
+msgstr "使用的最多 Token 數量"
+
+#: src/handlers/llm/openai_handler.py:104
+msgid "Top-P"
+msgstr "Top-P"
+
+#: src/handlers/llm/openai_handler.py:104
+msgid "An alternative to sampling with temperature, called nucleus sampling"
+msgstr "一種調整隨機性的替代的技術"
+
+#: src/handlers/llm/openai_handler.py:105
+msgid "Temperature"
+msgstr "溫度"
+
+#: src/handlers/llm/openai_handler.py:105
+msgid ""
+"What sampling temperature to use. Higher values will make the output more "
+"random"
+msgstr "溫度越高隨機性越高"
+
+#: src/handlers/llm/openai_handler.py:106
+msgid "Frequency Penalty"
+msgstr "重複懲罰"
+
+#: src/handlers/llm/openai_handler.py:106
+msgid ""
+"Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
+"to repeat the same line verbatim"
+msgstr "數值介於±2.0。數值越大將減少輸出重複率"
+
+#: src/handlers/llm/openai_handler.py:107
+msgid "Presence Penalty"
+msgstr "存在懲罰"
+
+#: src/handlers/llm/openai_handler.py:107
+msgid ""
+"Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
+"to talk about new topics"
+msgstr "數值介於±2.0。數值越大將讓模型搬出新話題的機率"
+
+#: src/handlers/llm/openai_handler.py:112
+#: src/handlers/llm/newelle_handler.py:18
+#: src/handlers/llm/gemini_handler.py:125
+msgid "Privacy Policy"
+msgstr "隱私政策"
+
+#: src/handlers/llm/openai_handler.py:112
+#: src/handlers/llm/newelle_handler.py:19
+#: src/handlers/llm/gemini_handler.py:126
+msgid "Open privacy policy website"
+msgstr "開啟隱私政策網站"
+
 #: src/ui/settings.py:47
 msgid "Knowledge"
 msgstr "認知"
@@ -936,10 +1113,10 @@ msgid "Search information on the Web"
 msgstr "在網路上搜尋更多資訊"
 
 #: src/ui/settings.py:126 src/handlers/tts/tts.py:37
-#: src/handlers/tts/elevenlabs_handler.py:16
-#: src/handlers/tts/custom_openai_tts.py:19
 #: src/handlers/tts/openai_tts_handler.py:19
 #: src/handlers/tts/groq_tts_handler.py:33
+#: src/handlers/tts/elevenlabs_handler.py:16
+#: src/handlers/tts/custom_openai_tts.py:19
 msgid "Voice"
 msgstr "聲音"
 
@@ -1188,52 +1365,6 @@ msgstr "Newelle 沒有足夠權限在系統內執行指令，請執行以下指�
 msgid "Understood"
 msgstr "確認"
 
-#: src/handlers/websearch/duckduckgo_handler.py:14
-msgid "Region"
-msgstr "區間"
-
-#: src/handlers/websearch/duckduckgo_handler.py:14
-msgid "Region for the search results"
-msgstr "搜尋的區間"
-
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Provider Sorting"
-msgstr "供給者排序"
-
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Choose providers based on pricing/throughput or latency"
-msgstr "根據最佳價格、流量或最低延遲選擇供給者"
-
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Price"
-msgstr "價格"
-
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Throughput"
-msgstr "流量"
-
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Latency"
-msgstr "延遲"
-
-#: src/handlers/llm/openrouter_handler.py:15
-msgid "Providers Order"
-msgstr "供給者排序"
-
-#: src/handlers/llm/openrouter_handler.py:15
-msgid ""
-"Add order of providers to use, names separated by a comma.\n"
-"Empty to not specify"
-msgstr "新增自訂供給者，將不同供給者名稱以逗號隔開。留空以不使用"
-
-#: src/handlers/llm/openrouter_handler.py:16
-msgid "Allow Fallbacks"
-msgstr "允許後備供給者"
-
-#: src/handlers/llm/openrouter_handler.py:16
-msgid "Allow fallbacks to other providers"
-msgstr "允許在無法使用主要供給者時使用其他供給者"
-
 #: src/ui/presentation.py:93
 msgid "Welcome to Newelle"
 msgstr "歡迎來到 Newelle"
@@ -1310,6 +1441,208 @@ msgstr "開始使用應用程式"
 msgid "Start chatting"
 msgstr "開始聊天"
 
+#: src/handlers/stt/witai_handler.py:13
+msgid "Server Access Token for wit.ai"
+msgstr "wit.ai 的伺服器存取權杖"
+
+#: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.appdata.xml.in:7
+#: data/io.github.qwersyk.Newelle.desktop.in:2
+msgid "Newelle"
+msgstr "Newelle"
+
+#: src/ui/mini_window.py:20
+msgid "Chat is opened in mini window"
+msgstr "已在新視窗開啟聊天室"
+
+#: src/handlers/tts/tts.py:38
+msgid "Choose the preferred voice"
+msgstr "選擇聲音"
+
+#: src/ui/extension.py:85
+msgid "User guide to Extensions"
+msgstr "擴充功能的使用說明"
+
+#: src/ui/extension.py:88
+msgid "Download new Extensions"
+msgstr "下載擴充功能"
+
+#: src/ui/extension.py:91
+msgid "Choose an extension"
+msgstr "選擇擴充功能"
+
+#: src/handlers/stt/whispercpp_handler.py:40
+#: src/handlers/stt/whisper_handler.py:16
+msgid "Name of the Whisper model"
+msgstr "Whisper 模型的名稱"
+
+#: src/handlers/llm/ollama_handler.py:150
+#: src/handlers/embeddings/ollama_handler.py:33
+msgid "Automatically Serve"
+msgstr "自動開啟 Ollama"
+
+#: src/handlers/llm/ollama_handler.py:150
+#: src/handlers/embeddings/ollama_handler.py:33
+msgid ""
+"Automatically run ollama serve in background when needed if it's not "
+"running. You can kill it with killall ollama"
+msgstr ""
+"若尚未執行將自動啟動 Ollama（ollama serve）。執行 killall ollama 以停止"
+
+#: src/handlers/llm/ollama_handler.py:151
+#: src/handlers/embeddings/ollama_handler.py:34
+msgid "Custom Model"
+msgstr "自訂模型"
+
+#: src/handlers/llm/ollama_handler.py:157
+#: src/handlers/llm/ollama_handler.py:166
+#: src/handlers/embeddings/ollama_handler.py:40
+#: src/handlers/embeddings/ollama_handler.py:49
+msgid "Ollama Model"
+msgstr "Ollama 模型"
+
+#: src/handlers/llm/ollama_handler.py:158
+#: src/handlers/llm/ollama_handler.py:166
+#: src/handlers/embeddings/ollama_handler.py:41
+#: src/handlers/embeddings/ollama_handler.py:49
+msgid "Name of the Ollama Model"
+msgstr "Ollama 模型名稱"
+
+#: src/handlers/llm/ollama_handler.py:170
+#: src/handlers/llm/gpt4all_handler.py:155
+msgid "Model Manager"
+msgstr "模型管理器"
+
+#: src/handlers/llm/ollama_handler.py:170
+#: src/handlers/llm/gpt4all_handler.py:155
+msgid "List of models available"
+msgstr "可使用的模型列表"
+
+#: src/handlers/llm/ollama_handler.py:174
+msgid "Add custom model"
+msgstr "新增自訂模型"
+
+#: src/handlers/llm/ollama_handler.py:175
+msgid ""
+"Add any model to this list by putting name:size\n"
+"Or any gguf from hf with hf.co/username/model"
+msgstr ""
+"在此以「模型名稱:大小」的格式新增其他模型\n"
+"或是從 HuggingFace（hf.co/username/model）的任何 gguf"
+
+#: src/handlers/tts/openai_tts_handler.py:18
+#: src/handlers/tts/groq_tts_handler.py:32
+#: src/handlers/llm/claude_handler.py:84
+#: src/handlers/tts/custom_openai_tts.py:18
+msgid "The API key to use"
+msgstr "使用的 API 金鑰"
+
+#: src/handlers/tts/openai_tts_handler.py:19
+#: src/handlers/tts/groq_tts_handler.py:33
+#: src/handlers/tts/custom_openai_tts.py:19
+msgid "The voice to use"
+msgstr "使用的聲音"
+
+#: src/handlers/tts/openai_tts_handler.py:20
+#: src/handlers/tts/groq_tts_handler.py:34
+#: src/handlers/llm/claude_handler.py:89 src/handlers/llm/claude_handler.py:93
+#: src/handlers/tts/custom_openai_tts.py:20
+msgid "The model to use"
+msgstr "使用的模型"
+
+#: src/handlers/tts/openai_tts_handler.py:21
+#: src/handlers/tts/custom_openai_tts.py:21
+msgid "Instructions"
+msgstr "使用說明"
+
+#: src/handlers/tts/openai_tts_handler.py:21
+#: src/handlers/tts/custom_openai_tts.py:21
+msgid ""
+"Instructions for the voice generation. Leave it blank to avoid this field"
+msgstr "聲音生成的步驟，留空以忽略此欄。"
+
+#: src/handlers/stt/vosk_handler.py:17
+msgid "Model Path"
+msgstr "模型路徑"
+
+#: src/handlers/stt/vosk_handler.py:18
+msgid "Absolute path to the VOSK model (unzipped)"
+msgstr "VOSK 模型的絕對路徑（已解壓縮）"
+
+#: src/ui/widgets/tipscarousel.py:41
+msgid "Newelle Tips"
+msgstr "Newelle 小秘訣"
+
+#: src/handlers/llm/custom_handler.py:21
+msgid "Command to execute to get bot output"
+msgstr "取得輸出的指令"
+
+#: src/handlers/llm/custom_handler.py:21
+#, python-brace-format
+msgid ""
+"Command to execute to get bot response, {0} will be replaced with a JSON "
+"file containing the chat, {1} with the system prompt"
+msgstr "{0} 參數會被以 JSON 格式儲存的聊天紀錄取代，而 {1} 則是包含系統提示"
+
+#: src/handlers/llm/custom_handler.py:22
+msgid "Command to execute to get bot's suggestions"
+msgstr "取得建議的指令"
+
+#: src/handlers/llm/custom_handler.py:22
+#, python-brace-format
+msgid ""
+"Command to execute to get chat suggestions, {0} will be replaced with a JSON "
+"file containing the chat, {1} with the extra prompts, {2} with the numer of "
+"suggestions to generate. Must return a JSON array containing the suggestions "
+"as strings"
+msgstr ""
+"{0} 參數會被以 JSON 格式儲存的聊天紀錄取代，{1} 包含系統提示，{2}則包含需要生"
+"成的數量。必須傳回以建議（字串）組成的 JSON 陣列"
+
+#: src/handlers/llm/gpt4all_handler.py:67
+msgid "RAM Required: "
+msgstr "記憶體要求："
+
+#: src/handlers/llm/gpt4all_handler.py:68
+msgid "Parameters: "
+msgstr "參數："
+
+#: src/handlers/llm/gpt4all_handler.py:69
+msgid "Size: "
+msgstr "大小："
+
+#: src/handlers/llm/gpt4all_handler.py:154
+msgid "Model to use"
+msgstr "使用的模型"
+
+#: src/handlers/llm/gpt4all_handler.py:154
+#: src/handlers/tts/elevenlabs_handler.py:24
+msgid "Name of the model to use"
+msgstr "使用的模型名稱"
+
+#: src/handlers/stt/sphinx_handler.py:19
+msgid "Could not understand the audio"
+msgstr "無法理解語音"
+
+#: src/ui/widgets/thinking.py:27
+msgid "Thoughts"
+msgstr "思考過程"
+
+#: src/ui/widgets/thinking.py:28 src/ui/widgets/thinking.py:127
+msgid "Expand to see details"
+msgstr "點開以顯示完整內容"
+
+#: src/ui/widgets/thinking.py:116
+msgid "Thinking..."
+msgstr "思考中..."
+
+#: src/ui/widgets/thinking.py:117
+msgid "The LLM is thinking... Expand to see thought process"
+msgstr "思考中...點開以顯示完整內容"
+
+#: src/ui/widgets/thinking.py:129
+msgid "No thought process recorded"
+msgstr "沒有思考過程"
+
 #: src/handlers/llm/gemini_handler.py:94
 msgid "API Key (required)"
 msgstr "API 金鑰（必填）"
@@ -1317,18 +1650,6 @@ msgstr "API 金鑰（必填）"
 #: src/handlers/llm/gemini_handler.py:94
 msgid "API key got from ai.google.dev"
 msgstr "從 ai.google.dev 取得的 API 金鑰"
-
-#: src/handlers/llm/gemini_handler.py:97 src/handlers/llm/openai_handler.py:84
-#: src/handlers/tts/elevenlabs_handler.py:23
-#: src/handlers/tts/custom_openai_tts.py:20
-#: src/handlers/tts/openai_tts_handler.py:20
-#: src/handlers/llm/claude_handler.py:89 src/handlers/llm/claude_handler.py:93
-#: src/handlers/tts/groq_tts_handler.py:34
-#: src/handlers/stt/whispercpp_handler.py:39
-#: src/handlers/stt/whisper_handler.py:15
-#: src/handlers/embeddings/openai_handler.py:44
-msgid "Model"
-msgstr "模型"
 
 #: src/handlers/llm/gemini_handler.py:98
 msgid "AI Model to use"
@@ -1370,181 +1691,9 @@ msgstr "啟用安全設定"
 msgid "Enable google safety settings to avoid generating harmful content"
 msgstr "啟用 Google 的安全設定以排除不當內容"
 
-#: src/handlers/llm/gemini_handler.py:125
-#: src/handlers/llm/openai_handler.py:112
-#: src/handlers/llm/newelle_handler.py:18
-msgid "Privacy Policy"
-msgstr "隱私政策"
-
-#: src/handlers/llm/gemini_handler.py:126
-#: src/handlers/llm/openai_handler.py:112
-#: src/handlers/llm/newelle_handler.py:19
-msgid "Open privacy policy website"
-msgstr "開啟隱私政策網站"
-
-#: src/handlers/llm/gemini_handler.py:129 src/handlers/llm/openai_handler.py:81
-msgid "Advanced Parameters"
-msgstr "更多設定"
-
 #: src/handlers/llm/gemini_handler.py:129
 msgid "Enable advanced parameters"
 msgstr "調整更多參數"
-
-#: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.appdata.xml.in:7
-msgid "Newelle"
-msgstr "Newelle"
-
-#: src/ui/mini_window.py:20
-msgid "Chat is opened in mini window"
-msgstr "已在新視窗開啟聊天室"
-
-#: src/handlers/llm/openai_handler.py:72
-#: src/handlers/tts/elevenlabs_handler.py:9
-#: src/handlers/tts/custom_openai_tts.py:18
-#: src/handlers/tts/openai_tts_handler.py:18
-#: src/handlers/llm/claude_handler.py:84
-#: src/handlers/tts/groq_tts_handler.py:32 src/handlers/stt/witai_handler.py:12
-#: src/handlers/embeddings/openai_handler.py:35
-#: src/handlers/stt/openaisr_handler.py:17
-#: src/handlers/stt/googlesr_handler.py:13
-#: src/handlers/stt/groqsr_handler.py:13
-msgid "API Key"
-msgstr "API 金鑰"
-
-#: src/handlers/llm/openai_handler.py:72
-#: src/handlers/embeddings/openai_handler.py:35
-msgid "API Key for "
-msgstr "API 金鑰："
-
-#: src/handlers/llm/openai_handler.py:75 src/handlers/llm/ollama_handler.py:149
-#: src/handlers/embeddings/ollama_handler.py:32
-#: src/handlers/embeddings/openai_handler.py:38
-#: src/handlers/stt/openaisr_handler.py:10
-msgid "API Endpoint"
-msgstr "API 端點"
-
-#: src/handlers/llm/openai_handler.py:75 src/handlers/llm/ollama_handler.py:149
-#: src/handlers/embeddings/ollama_handler.py:32
-msgid "API base url, change this to use interference APIs"
-msgstr "API 擷取的網址"
-
-#: src/handlers/llm/openai_handler.py:78
-#: src/handlers/embeddings/openai_handler.py:41
-msgid "Use Custom Model"
-msgstr "使用自訂模型"
-
-#: src/handlers/llm/openai_handler.py:78 src/handlers/llm/ollama_handler.py:151
-#: src/handlers/llm/claude_handler.py:85
-#: src/handlers/embeddings/ollama_handler.py:34
-#: src/handlers/embeddings/openai_handler.py:41
-msgid "Use a custom model"
-msgstr "使用自訂模型"
-
-#: src/handlers/llm/openai_handler.py:81
-msgid "Include parameters like Max Tokens, Top-P, Temperature, etc."
-msgstr "包含 Token 限制、Top-P、溫度等參數"
-
-#: src/handlers/llm/openai_handler.py:84
-msgid "Name of the LLM Model to use"
-msgstr "使用的大型語言模型"
-
-#: src/handlers/llm/openai_handler.py:91
-#: src/handlers/embeddings/openai_handler.py:51
-msgid " Model"
-msgstr " 模型"
-
-#: src/handlers/llm/openai_handler.py:103
-msgid "max Tokens"
-msgstr "Token 限制"
-
-#: src/handlers/llm/openai_handler.py:103
-msgid "Max tokens of the generated text"
-msgstr "使用的最多 Token 數量"
-
-#: src/handlers/llm/openai_handler.py:104
-msgid "Top-P"
-msgstr "Top-P"
-
-#: src/handlers/llm/openai_handler.py:104
-msgid "An alternative to sampling with temperature, called nucleus sampling"
-msgstr "一種調整隨機性的替代的技術"
-
-#: src/handlers/llm/openai_handler.py:105
-msgid "Temperature"
-msgstr "溫度"
-
-#: src/handlers/llm/openai_handler.py:105
-msgid ""
-"What sampling temperature to use. Higher values will make the output more "
-"random"
-msgstr "溫度越高隨機性越高"
-
-#: src/handlers/llm/openai_handler.py:106
-msgid "Frequency Penalty"
-msgstr "重複懲罰"
-
-#: src/handlers/llm/openai_handler.py:106
-msgid ""
-"Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
-"to repeat the same line verbatim"
-msgstr "數值介於±2.0。數值越大將減少輸出重複率"
-
-#: src/handlers/llm/openai_handler.py:107
-msgid "Presence Penalty"
-msgstr "存在懲罰"
-
-#: src/handlers/llm/openai_handler.py:107
-msgid ""
-"Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
-"to talk about new topics"
-msgstr "數值介於±2.0。數值越大將讓模型搬出新話題的機率"
-
-#: src/handlers/llm/gpt4all_handler.py:67
-msgid "RAM Required: "
-msgstr "記憶體要求："
-
-#: src/handlers/llm/gpt4all_handler.py:68
-msgid "Parameters: "
-msgstr "參數："
-
-#: src/handlers/llm/gpt4all_handler.py:69
-msgid "Size: "
-msgstr "大小："
-
-#: src/handlers/llm/gpt4all_handler.py:154
-msgid "Model to use"
-msgstr "使用的模型"
-
-#: src/handlers/llm/gpt4all_handler.py:154
-#: src/handlers/tts/elevenlabs_handler.py:24
-msgid "Name of the model to use"
-msgstr "使用的模型名稱"
-
-#: src/handlers/llm/gpt4all_handler.py:155
-#: src/handlers/llm/ollama_handler.py:170
-msgid "Model Manager"
-msgstr "模型管理器"
-
-#: src/handlers/llm/gpt4all_handler.py:155
-#: src/handlers/llm/ollama_handler.py:170
-msgid "List of models available"
-msgstr "可使用的模型列表"
-
-#: src/ui/extension.py:85
-msgid "User guide to Extensions"
-msgstr "擴充功能的使用說明"
-
-#: src/ui/extension.py:88
-msgid "Download new Extensions"
-msgstr "下載擴充功能"
-
-#: src/ui/extension.py:91
-msgid "Choose an extension"
-msgstr "選擇擴充功能"
-
-#: src/handlers/tts/tts.py:38
-msgid "Choose the preferred voice"
-msgstr "選擇聲音"
 
 #: src/handlers/tts/elevenlabs_handler.py:10
 msgid "API Key for ElevenLabs"
@@ -1579,91 +1728,60 @@ msgid ""
 "High values are reccomended if the style of the speech must be exaggerated"
 msgstr "數值越高將越加強語調"
 
-#: src/handlers/tts/custom_openai_tts.py:17
-msgid "Endpoint"
-msgstr "端點"
+#: src/ui/thread_editing.py:36
+msgid "No threads are running"
+msgstr "沒有正在執行的執行緒"
 
-#: src/handlers/tts/custom_openai_tts.py:17
-msgid "Custom endpoint of the service to use"
-msgstr "使用的自訂端點"
+#: src/ui/thread_editing.py:42
+msgid "Thread number: "
+msgstr "執行緒序號："
 
-#: src/handlers/tts/custom_openai_tts.py:18
-#: src/handlers/tts/openai_tts_handler.py:18
-#: src/handlers/llm/claude_handler.py:84
-#: src/handlers/tts/groq_tts_handler.py:32
-msgid "The API key to use"
-msgstr "使用的 API 金鑰"
+#: src/handlers/stt/openaisr_handler.py:11
+msgid "Endpoint for OpenAI requests"
+msgstr "OpenAI 的端點網址"
 
-#: src/handlers/tts/custom_openai_tts.py:19
-#: src/handlers/tts/openai_tts_handler.py:19
-#: src/handlers/tts/groq_tts_handler.py:33
-msgid "The voice to use"
-msgstr "使用的聲音"
+#: src/handlers/stt/openaisr_handler.py:18
+msgid "API Key for OpenAI"
+msgstr "OpenAI 的 API 金鑰"
 
-#: src/handlers/tts/custom_openai_tts.py:20
-#: src/handlers/tts/openai_tts_handler.py:20
-#: src/handlers/llm/claude_handler.py:89 src/handlers/llm/claude_handler.py:93
-#: src/handlers/tts/groq_tts_handler.py:34
-msgid "The model to use"
-msgstr "使用的模型"
+#: src/handlers/stt/openaisr_handler.py:24
+msgid "Whisper Model"
+msgstr "Whisper 模型"
 
-#: src/handlers/tts/custom_openai_tts.py:21
-#: src/handlers/tts/openai_tts_handler.py:21
-msgid "Instructions"
-msgstr "使用說明"
+#: src/handlers/stt/openaisr_handler.py:25
+msgid "Name of the OpenAI model"
+msgstr "OpenAI 的模型名稱"
 
-#: src/handlers/tts/custom_openai_tts.py:21
-#: src/handlers/tts/openai_tts_handler.py:21
+#: src/handlers/stt/openaisr_handler.py:31
+#: src/handlers/stt/googlesr_handler.py:20
+#: src/handlers/stt/groqsr_handler.py:28
+msgid "Language"
+msgstr "語言"
+
+#: src/handlers/stt/openaisr_handler.py:32
 msgid ""
-"Instructions for the voice generation. Leave it blank to avoid this field"
-msgstr "聲音生成的步驟，留空以忽略此欄。"
-
-#: src/handlers/llm/ollama_handler.py:150
-#: src/handlers/embeddings/ollama_handler.py:33
-msgid "Automatically Serve"
-msgstr "自動開啟 Ollama"
-
-#: src/handlers/llm/ollama_handler.py:150
-#: src/handlers/embeddings/ollama_handler.py:33
-msgid ""
-"Automatically run ollama serve in background when needed if it's not "
-"running. You can kill it with killall ollama"
-msgstr "若尚未執行將自動啟動 Ollama（ollama serve）。執行 killall ollama 以停止"
-
-#: src/handlers/llm/ollama_handler.py:151
-#: src/handlers/embeddings/ollama_handler.py:34
-msgid "Custom Model"
-msgstr "自訂模型"
-
-#: src/handlers/llm/ollama_handler.py:157
-#: src/handlers/llm/ollama_handler.py:166
-#: src/handlers/embeddings/ollama_handler.py:40
-#: src/handlers/embeddings/ollama_handler.py:49
-msgid "Ollama Model"
-msgstr "Ollama 模型"
-
-#: src/handlers/llm/ollama_handler.py:158
-#: src/handlers/llm/ollama_handler.py:166
-#: src/handlers/embeddings/ollama_handler.py:41
-#: src/handlers/embeddings/ollama_handler.py:49
-msgid "Name of the Ollama Model"
-msgstr "Ollama 模型名稱"
-
-#: src/handlers/llm/ollama_handler.py:174
-msgid "Add custom model"
-msgstr "新增自訂模型"
-
-#: src/handlers/llm/ollama_handler.py:175
-msgid ""
-"Add any model to this list by putting name:size\n"
-"Or any gguf from hf with hf.co/username/model"
+"Optional: Specify the language for transcription. Use ISO 639-1 language "
+"codes (e.g. \"en\" for English, \"fr\" for French, etc.). "
 msgstr ""
-"在此以「模型名稱:大小」的格式新增其他模型\n"
-"或是從 HuggingFace（hf.co/username/model）的任何 gguf"
+"可選：自訂文字紀錄的語言。使用 ISO 639-1 語言碼（例如「en」為英文，「fr」為法"
+"文等）"
 
-#: src/ui/widgets/tipscarousel.py:41
-msgid "Newelle Tips"
-msgstr "Newelle 小秘訣"
+#: src/handlers/stt/googlesr_handler.py:14
+msgid "API Key for Google SR, write 'default' to use the default one"
+msgstr "Google SR 的 API 金鑰，設定「default」將使用預設金鑰"
+
+#: src/handlers/stt/googlesr_handler.py:21
+msgid "The language of the text to recgnize in IETF"
+msgstr "IETF 的辨識語言"
+
+#: src/handlers/stt/custom_handler.py:13 src/handlers/tts/custom_handler.py:22
+msgid "Command to execute"
+msgstr "執行的指令"
+
+#: src/handlers/stt/custom_handler.py:14 src/handlers/tts/custom_handler.py:23
+#, python-brace-format
+msgid "{0} will be replaced with the model fullpath"
+msgstr "{0} 參數會被模型的絕對路徑取代"
 
 #: src/handlers/llm/claude_handler.py:96
 msgid "Max Tokens"
@@ -1672,6 +1790,40 @@ msgstr "Token 限制"
 #: src/handlers/llm/claude_handler.py:96
 msgid "The maximum number of tokens to generate"
 msgstr "使用的最多 Token 數量"
+
+#: src/ui/profile.py:51
+msgid "Copied Settings"
+msgstr "已複製設定"
+
+#: src/ui/profile.py:51
+msgid "Settings that will be copied to the new profile"
+msgstr "新設定檔將複製的設定"
+
+#: src/ui/profile.py:67
+msgid "The settings of the current profile will be copied into the new one"
+msgstr "目前的設定將複製到新的設定檔"
+
+#: src/ui/profile.py:105
+msgid "Set profile picture"
+msgstr "設定頭像"
+
+#: src/handlers/stt/groqsr_handler.py:14
+msgid "API Key for Groq SR, write 'default' to use the default one"
+msgstr "Groq SR 的 API 金鑰，設定「default」將使用預設金鑰"
+
+#: src/handlers/stt/groqsr_handler.py:20
+msgid "Groq Model"
+msgstr "Groq 模型"
+
+#: src/handlers/stt/groqsr_handler.py:21
+msgid "Name of the Groq Model"
+msgstr "Groq 模型名稱"
+
+#: src/handlers/stt/groqsr_handler.py:29
+msgid ""
+"Specify the language for transcription. Use ISO 639-1 language codes (e.g. "
+"\"en\" for English, \"fr\" for French, etc.). "
+msgstr "選擇紀錄的語言。使用 ISO 639-1 語言碼（例如「en」英文，「fr」法文等）"
 
 #: src/handlers/rag/rag_handler.py:104
 msgid "Index your documents"
@@ -1683,7 +1835,24 @@ msgid ""
 "operation every time you edit/create a document, change document analyzer or "
 "change embedding model"
 msgstr ""
-"將文件資料夾內的所有檔案編入索引。您必須於每次有檔案變更、改變文件分析緝或嵌入模行時使用"
+"將文件資料夾內的所有檔案編入索引。您必須於每次有檔案變更、改變文件分析緝或嵌"
+"入模行時使用"
+
+#: src/handlers/tts/custom_openai_tts.py:17
+msgid "Endpoint"
+msgstr "端點"
+
+#: src/handlers/tts/custom_openai_tts.py:17
+msgid "Custom endpoint of the service to use"
+msgstr "使用的自訂端點"
+
+#: src/handlers/embeddings/openai_handler.py:38
+msgid "API base url, change this to use different APIs"
+msgstr "API 擷取的網址"
+
+#: src/handlers/embeddings/openai_handler.py:44
+msgid "Name of the Embedding Model to use"
+msgstr "嵌入模型的名稱"
 
 #: src/ui/shortcuts.py:6
 msgid "Help"
@@ -1729,172 +1898,9 @@ msgstr "放大"
 msgid "Zoom out"
 msgstr "縮小"
 
-#: src/handlers/stt/witai_handler.py:13
-msgid "Server Access Token for wit.ai"
-msgstr "wit.ai 的伺服器存取權杖"
-
-#: src/ui/thread_editing.py:36
-msgid "No threads are running"
-msgstr "沒有正在執行的執行緒"
-
-#: src/ui/thread_editing.py:42
-msgid "Thread number: "
-msgstr "執行緒序號："
-
-#: src/handlers/stt/whispercpp_handler.py:40
-#: src/handlers/stt/whisper_handler.py:16
-msgid "Name of the Whisper model"
-msgstr "Whisper 模型的名稱"
-
-#: src/handlers/llm/custom_handler.py:21
-msgid "Command to execute to get bot output"
-msgstr "取得輸出的指令"
-
-#: src/handlers/llm/custom_handler.py:21
-#, python-brace-format
-msgid ""
-"Command to execute to get bot response, {0} will be replaced with a JSON "
-"file containing the chat, {1} with the system prompt"
-msgstr "{0} 參數會被以 JSON 格式儲存的聊天紀錄取代，而 {1} 則是包含系統提示"
-
-#: src/handlers/llm/custom_handler.py:22
-msgid "Command to execute to get bot's suggestions"
-msgstr "取得建議的指令"
-
-#: src/handlers/llm/custom_handler.py:22
-#, python-brace-format
-msgid ""
-"Command to execute to get chat suggestions, {0} will be replaced with a JSON "
-"file containing the chat, {1} with the extra prompts, {2} with the numer of "
-"suggestions to generate. Must return a JSON array containing the suggestions "
-"as strings"
-msgstr ""
-"{0} 參數會被以 JSON 格式儲存的聊天紀錄取代，{1} 包含系統提示，{2}則包含需要生"
-"成的數量。必須傳回以建議（字串）組成的 JSON 陣列"
-
-#: src/handlers/stt/sphinx_handler.py:19
-msgid "Could not understand the audio"
-msgstr "無法理解語音"
-
 #: src/ui/widgets/profilerow.py:25
 msgid "Select profile"
 msgstr "選擇設定檔"
-
-#: src/handlers/stt/vosk_handler.py:17
-msgid "Model Path"
-msgstr "模型路徑"
-
-#: src/handlers/stt/vosk_handler.py:18
-msgid "Absolute path to the VOSK model (unzipped)"
-msgstr "VOSK 模型的絕對路徑（已解壓縮）"
-
-#: src/ui/profile.py:51
-msgid "Copied Settings"
-msgstr "已複製設定"
-
-#: src/ui/profile.py:51
-msgid "Settings that will be copied to the new profile"
-msgstr "新設定檔將複製的設定"
-
-#: src/ui/profile.py:67
-msgid "The settings of the current profile will be copied into the new one"
-msgstr "目前的設定將複製到新的設定檔"
-
-#: src/ui/profile.py:105
-msgid "Set profile picture"
-msgstr "設定頭像"
-
-#: src/handlers/tts/custom_handler.py:22 src/handlers/stt/custom_handler.py:13
-msgid "Command to execute"
-msgstr "執行的指令"
-
-#: src/handlers/tts/custom_handler.py:23 src/handlers/stt/custom_handler.py:14
-#, python-brace-format
-msgid "{0} will be replaced with the model fullpath"
-msgstr "{0} 參數會被模型的絕對路徑取代"
-
-#: src/ui/widgets/thinking.py:27
-msgid "Thoughts"
-msgstr "思考過程"
-
-#: src/ui/widgets/thinking.py:28 src/ui/widgets/thinking.py:127
-msgid "Expand to see details"
-msgstr "點開以顯示完整內容"
-
-#: src/ui/widgets/thinking.py:116
-msgid "Thinking..."
-msgstr "思考中..."
-
-#: src/ui/widgets/thinking.py:117
-msgid "The LLM is thinking... Expand to see thought process"
-msgstr "思考中...點開以顯示完整內容"
-
-#: src/ui/widgets/thinking.py:129
-msgid "No thought process recorded"
-msgstr "沒有思考過程"
-
-#: src/handlers/embeddings/openai_handler.py:38
-msgid "API base url, change this to use different APIs"
-msgstr "API 擷取的網址"
-
-#: src/handlers/embeddings/openai_handler.py:44
-msgid "Name of the Embedding Model to use"
-msgstr "嵌入模型的名稱"
-
-#: src/handlers/stt/openaisr_handler.py:11
-msgid "Endpoint for OpenAI requests"
-msgstr "OpenAI 的端點網址"
-
-#: src/handlers/stt/openaisr_handler.py:18
-msgid "API Key for OpenAI"
-msgstr "OpenAI 的 API 金鑰"
-
-#: src/handlers/stt/openaisr_handler.py:24
-msgid "Whisper Model"
-msgstr "Whisper 模型"
-
-#: src/handlers/stt/openaisr_handler.py:25
-msgid "Name of the OpenAI model"
-msgstr "OpenAI 的模型名稱"
-
-#: src/handlers/stt/openaisr_handler.py:31
-#: src/handlers/stt/googlesr_handler.py:20
-#: src/handlers/stt/groqsr_handler.py:28
-msgid "Language"
-msgstr "語言"
-
-#: src/handlers/stt/openaisr_handler.py:32
-msgid ""
-"Optional: Specify the language for transcription. Use ISO 639-1 language "
-"codes (e.g. \"en\" for English, \"fr\" for French, etc.). "
-msgstr ""
-"可選：自訂文字紀錄的語言。使用 ISO 639-1 語言碼（例如「en」為英文，「fr」為法文等）"
-
-#: src/handlers/stt/googlesr_handler.py:14
-msgid "API Key for Google SR, write 'default' to use the default one"
-msgstr "Google SR 的 API 金鑰，設定「default」將使用預設金鑰"
-
-#: src/handlers/stt/googlesr_handler.py:21
-msgid "The language of the text to recgnize in IETF"
-msgstr "IETF 的辨識語言"
-
-#: src/handlers/stt/groqsr_handler.py:14
-msgid "API Key for Groq SR, write 'default' to use the default one"
-msgstr "Groq SR 的 API 金鑰，設定「default」將使用預設金鑰"
-
-#: src/handlers/stt/groqsr_handler.py:20
-msgid "Groq Model"
-msgstr "Groq 模型"
-
-#: src/handlers/stt/groqsr_handler.py:21
-msgid "Name of the Groq Model"
-msgstr "Groq 模型名稱"
-
-#: src/handlers/stt/groqsr_handler.py:29
-msgid ""
-"Specify the language for transcription. Use ISO 639-1 language codes (e.g. "
-"\"en\" for English, \"fr\" for French, etc.). "
-msgstr "選擇紀錄的語言。使用 ISO 639-1 語言碼（例如「en」英文，「fr」法文等）"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:9
 msgid ""
@@ -1981,7 +1987,9 @@ msgid ""
 "Bug fixes and new features have been implemented. We've modified the "
 "extension architecture, added new models, and introduced vision support, "
 "along with more capabilities."
-msgstr "新增更多新功能以及修正錯誤。我們不但更改了擴充功能架構、新增新模型、以及新增圖片上傳功能等。"
+msgstr ""
+"新增更多新功能以及修正錯誤。我們不但更改了擴充功能架構、新增新模型、以及新增"
+"圖片上傳功能等。"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:126
 msgid "Stable version"
@@ -2006,6 +2014,14 @@ msgstr "重新設計"
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:150
 msgid "Qwersyk"
 msgstr "Qwersyk"
+
+#: data/io.github.qwersyk.Newelle.desktop.in:3
+msgid "Newelle: Your advanced chat bot"
+msgstr "Newelle：您強大的聊天機器人"
+
+#: data/io.github.qwersyk.Newelle.desktop.in:10
+msgid "chat;ai;gpt;chatgpt;assistant;"
+msgstr "chat;ai;gpt;chatgpt;assistant;"
 
 #~ msgid " has been removed"
 #~ msgstr " 已經被移除"
