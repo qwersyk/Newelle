@@ -47,7 +47,7 @@ class Extension(Gtk.Window):
         self.main = Gtk.Box(margin_top=10,margin_start=10,margin_bottom=10,margin_end=10,valign=Gtk.Align.FILL,halign=Gtk.Align.CENTER,orientation=Gtk.Orientation.VERTICAL)
         self.main.set_size_request(300, -1)
         self.scrolled_window.set_child(self.main)
-        self.extensiongroup = Adw.PreferencesGroup(title=_("Extensions"))
+        self.extensiongroup = Adw.PreferencesGroup(title=_("Installed Extensions"))
         self.main.append(self.extensiongroup)
         for extension in self.extensionloader.get_extensions():
             
@@ -88,7 +88,7 @@ class Extension(Gtk.Window):
         download_button = Gtk.Button(label=_("Download new Extensions"), margin_top=10)
         download_button.connect("clicked", lambda x : subprocess.Popen(get_spawn_command() + ["xdg-open", "https://github.com/topics/newelle-extension"]))
         self.main.append(download_button)
-        folder_button = Gtk.Button(label=_("Choose an extension"), css_classes=["suggested-action"], margin_top=10)
+        folder_button = Gtk.Button(label=_("Install extension from file..."), css_classes=["suggested-action"], margin_top=10)
         folder_button.connect("clicked", self.on_folder_button_clicked)
         self.main.append(folder_button)
     
