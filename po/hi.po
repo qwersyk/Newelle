@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-16 22:29+0800\n"
+"POT-Creation-Date: 2025-05-20 18:25+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Hindi\n"
@@ -17,17 +17,12 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/ui/widgets/tipscarousel.py:41
-#, fuzzy
-msgid "Newelle Tips"
-msgstr "न्युएल"
-
 #: src/window.py:90 src/ui/thread_editing.py:6
 msgid "Thread editing"
 msgstr "थ्रेड संपादन"
 
-#: src/window.py:91 src/ui/presentation.py:131 src/ui/extension.py:17
-#: src/ui/extension.py:50 src/constants.py:489
+#: src/window.py:91 src/constants.py:489 src/ui/presentation.py:131
+#: src/ui/extension.py:17
 msgid "Extensions"
 msgstr "एक्सटेंशन"
 
@@ -316,14 +311,33 @@ msgstr "थ्रेड पूरा नहीं हुआ है, थ्रे
 msgid "Failed to open the folder"
 msgstr "फ़ोल्डर खोलने में विफल"
 
-#: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.appdata.xml.in:7
-#: data/io.github.qwersyk.Newelle.desktop.in:2
-msgid "Newelle"
-msgstr "न्युएल"
+#: src/main.py:200
+msgid "Terminal threads are still running in the background"
+msgstr "टर्मिनल थ्रेड अभी भी पृष्ठभूमि में चल रहे हैं"
 
-#: src/ui/mini_window.py:20
-msgid "Chat is opened in mini window"
-msgstr "चैट मिनी विंडो में खोला गया है"
+#: src/main.py:201
+msgid "When you close the window, they will be automatically terminated"
+msgstr "जब आप विंडो बंद करते हैं, तो वे स्वचालित रूप से समाप्त हो जाएंगे"
+
+#: src/main.py:204
+msgid "Cancel"
+msgstr "रद्द करें"
+
+#: src/main.py:205
+msgid "Close"
+msgstr "बंद करें"
+
+#: src/main.py:239
+msgid "Chat is rebooted"
+msgstr "चैट रीबूट हो गया है"
+
+#: src/main.py:244
+msgid "Folder is rebooted"
+msgstr "फ़ोल्डर रीबूट हो गया है"
+
+#: src/main.py:249
+msgid "Chat is created"
+msgstr "चैट बन गया है"
 
 #: src/ui/settings.py:44 src/constants.py:499
 msgid "General"
@@ -394,9 +408,9 @@ msgstr ""
 
 #: src/ui/settings.py:126 src/handlers/tts/tts.py:37
 #: src/handlers/tts/openai_tts_handler.py:19
-#: src/handlers/tts/groq_tts_handler.py:33
-#: src/handlers/tts/elevenlabs_handler.py:16
 #: src/handlers/tts/custom_openai_tts.py:19
+#: src/handlers/tts/elevenlabs_handler.py:16
+#: src/handlers/tts/groq_tts_handler.py:33
 msgid "Voice"
 msgstr "आवाज़"
 
@@ -651,157 +665,6 @@ msgstr ""
 #: src/ui/settings.py:960
 msgid "Understood"
 msgstr "समझ गया"
-
-#: src/ui/presentation.py:93
-msgid "Welcome to Newelle"
-msgstr "न्युएल में आपका स्वागत है"
-
-#: src/ui/presentation.py:94
-msgid "Your ultimate virtual assistant."
-msgstr "आपका परम वर्चुअल असिस्टेंट।"
-
-#: src/ui/presentation.py:98
-msgid "Github Page"
-msgstr "गिटहब पेज"
-
-#: src/ui/presentation.py:105
-msgid "Choose your favourite AI Language Model"
-msgstr "अपना पसंदीदा AI भाषा मॉडल चुनें"
-
-#: src/ui/presentation.py:106
-msgid ""
-"Newelle can be used with mutiple models and providers!\n"
-"<b>Note: It is strongly suggested to read the Guide to LLM page</b>"
-msgstr ""
-"न्युएल का उपयोग कई मॉडलों और प्रदाताओं के साथ किया जा सकता है!\n"
-"<b>ध्यान दें: LLM के लिए गाइड पेज पढ़ने का पुरजोर सुझाव दिया जाता है</b>"
-
-#: src/ui/presentation.py:110
-msgid "Guide to LLM"
-msgstr "LLM के लिए गाइड"
-
-#: src/ui/presentation.py:117
-msgid "Chat with your documents"
-msgstr "अपने दस्तावेज़ों के साथ चैट करें"
-
-#: src/ui/presentation.py:118
-msgid ""
-"Newelle can retrieve relevant information from documents you send in the "
-"chat or from your own files! Information relevant to your query will be sent "
-"to the LLM."
-msgstr ""
-"न्युएल चैट में आपके द्वारा भेजे गए दस्तावेज़ों से या आपकी अपनी फ़ाइलों से प्रासंगिक जानकारी "
-"प्राप्त कर सकता है! आपकी क्वेरी से संबंधित जानकारी LLM को भेजी जाएगी।"
-
-#: src/ui/presentation.py:125
-msgid ""
-"Newelle can be used to run commands on your system, but pay attention at "
-"what you run! <b>The LLM is not under our control, so it might generate "
-"malicious code!</b>\n"
-"By default, your commands will be <b>virtualized in the Flatpak environment</"
-"b>, but pay attention!"
-msgstr ""
-"न्युएल का उपयोग आपके सिस्टम पर कमांड चलाने के लिए किया जा सकता है, लेकिन ध्यान दें कि आप "
-"क्या चलाते हैं! <b>LLM हमारे नियंत्रण में नहीं है, इसलिए यह दुर्भावनापूर्ण कोड उत्पन्न कर "
-"सकता है!</b>\n"
-"डिफ़ॉल्ट रूप से, आपके कमांड <b>फ्लैटपैक वातावरण में वर्चुअलाइज्ड</b> होंगे, लेकिन ध्यान दें!"
-
-#: src/ui/presentation.py:132
-msgid "You can extend Newelle's functionalities using extensions!"
-msgstr "आप एक्सटेंशन का उपयोग करके न्युएल की कार्यात्मकताओं का विस्तार कर सकते हैं!"
-
-#: src/ui/presentation.py:136
-msgid "Download extensions"
-msgstr "एक्सटेंशन डाउनलोड करें"
-
-#: src/ui/presentation.py:146
-msgid "Permission Error"
-msgstr "अनुमति त्रुटि"
-
-#: src/ui/presentation.py:147
-msgid ""
-"Newelle does not have enough permissions to run commands on your system."
-msgstr "न्युएल के पास आपके सिस्टम पर कमांड चलाने के लिए पर्याप्त अनुमतियाँ नहीं हैं।"
-
-#: src/ui/presentation.py:158
-msgid "Begin using the app"
-msgstr "ऐप का उपयोग शुरू करें"
-
-#: src/ui/presentation.py:163
-msgid "Start chatting"
-msgstr "चैटिंग शुरू करें"
-
-#: src/ui/profile.py:51
-#, fuzzy
-msgid "Copied Settings"
-msgstr "सेटिंग्स"
-
-#: src/ui/profile.py:51
-#, fuzzy
-msgid "Settings that will be copied to the new profile"
-msgstr "वर्तमान प्रोफ़ाइल की सेटिंग्स को नए में कॉपी किया जाएगा"
-
-#: src/ui/profile.py:67
-msgid "The settings of the current profile will be copied into the new one"
-msgstr "वर्तमान प्रोफ़ाइल की सेटिंग्स को नए में कॉपी किया जाएगा"
-
-#: src/ui/profile.py:105
-msgid "Set profile picture"
-msgstr "प्रोफ़ाइल चित्र सेट करें"
-
-#: src/ui/extension.py:85
-msgid "User guide to Extensions"
-msgstr "एक्सटेंशन के लिए उपयोगकर्ता मार्गदर्शिका"
-
-#: src/ui/extension.py:88
-msgid "Download new Extensions"
-msgstr "नए एक्सटेंशन डाउनलोड करें"
-
-#: src/ui/extension.py:91
-msgid "Choose an extension"
-msgstr "एक एक्सटेंशन चुनें"
-
-#: src/main.py:200
-msgid "Terminal threads are still running in the background"
-msgstr "टर्मिनल थ्रेड अभी भी पृष्ठभूमि में चल रहे हैं"
-
-#: src/main.py:201
-msgid "When you close the window, they will be automatically terminated"
-msgstr "जब आप विंडो बंद करते हैं, तो वे स्वचालित रूप से समाप्त हो जाएंगे"
-
-#: src/main.py:204
-msgid "Cancel"
-msgstr "रद्द करें"
-
-#: src/main.py:205
-msgid "Close"
-msgstr "बंद करें"
-
-#: src/main.py:239
-msgid "Chat is rebooted"
-msgstr "चैट रीबूट हो गया है"
-
-#: src/main.py:244
-msgid "Folder is rebooted"
-msgstr "फ़ोल्डर रीबूट हो गया है"
-
-#: src/main.py:249
-msgid "Chat is created"
-msgstr "चैट बन गया है"
-
-#: src/utility/util.py:136 src/handlers/llm/custom_handler.py:20
-#: src/handlers/llm/gpt4all_handler.py:153
-#: src/handlers/llm/gemini_handler.py:113
-#: src/handlers/llm/newelle_handler.py:27
-msgid "Message Streaming"
-msgstr "संदेश स्ट्रीमिंग"
-
-#: src/utility/util.py:137 src/handlers/llm/custom_handler.py:20
-#: src/handlers/llm/gpt4all_handler.py:153
-#: src/handlers/llm/gemini_handler.py:114
-#: src/handlers/llm/newelle_handler.py:28
-msgid "Gradually stream message output"
-msgstr "धीरे-धीरे संदेश आउटपुट स्ट्रीम करें"
 
 #: src/constants.py:20
 msgid "Newelle Demo API"
@@ -1236,6 +1099,198 @@ msgstr ""
 msgid "Prompts settings, custom extra prompt, custom prompts..."
 msgstr ""
 
+#: src/ui/thread_editing.py:36
+msgid "No threads are running"
+msgstr "कोई थ्रेड नहीं चल रहा है"
+
+#: src/ui/thread_editing.py:42
+msgid "Thread number: "
+msgstr "थ्रेड संख्या: "
+
+#: src/ui/presentation.py:93
+msgid "Welcome to Newelle"
+msgstr "न्युएल में आपका स्वागत है"
+
+#: src/ui/presentation.py:94
+msgid "Your ultimate virtual assistant."
+msgstr "आपका परम वर्चुअल असिस्टेंट।"
+
+#: src/ui/presentation.py:98
+msgid "Github Page"
+msgstr "गिटहब पेज"
+
+#: src/ui/presentation.py:105
+msgid "Choose your favourite AI Language Model"
+msgstr "अपना पसंदीदा AI भाषा मॉडल चुनें"
+
+#: src/ui/presentation.py:106
+msgid ""
+"Newelle can be used with mutiple models and providers!\n"
+"<b>Note: It is strongly suggested to read the Guide to LLM page</b>"
+msgstr ""
+"न्युएल का उपयोग कई मॉडलों और प्रदाताओं के साथ किया जा सकता है!\n"
+"<b>ध्यान दें: LLM के लिए गाइड पेज पढ़ने का पुरजोर सुझाव दिया जाता है</b>"
+
+#: src/ui/presentation.py:110
+msgid "Guide to LLM"
+msgstr "LLM के लिए गाइड"
+
+#: src/ui/presentation.py:117
+msgid "Chat with your documents"
+msgstr "अपने दस्तावेज़ों के साथ चैट करें"
+
+#: src/ui/presentation.py:118
+msgid ""
+"Newelle can retrieve relevant information from documents you send in the "
+"chat or from your own files! Information relevant to your query will be sent "
+"to the LLM."
+msgstr ""
+"न्युएल चैट में आपके द्वारा भेजे गए दस्तावेज़ों से या आपकी अपनी फ़ाइलों से प्रासंगिक जानकारी "
+"प्राप्त कर सकता है! आपकी क्वेरी से संबंधित जानकारी LLM को भेजी जाएगी।"
+
+#: src/ui/presentation.py:125
+msgid ""
+"Newelle can be used to run commands on your system, but pay attention at "
+"what you run! <b>The LLM is not under our control, so it might generate "
+"malicious code!</b>\n"
+"By default, your commands will be <b>virtualized in the Flatpak environment</"
+"b>, but pay attention!"
+msgstr ""
+"न्युएल का उपयोग आपके सिस्टम पर कमांड चलाने के लिए किया जा सकता है, लेकिन ध्यान दें कि आप "
+"क्या चलाते हैं! <b>LLM हमारे नियंत्रण में नहीं है, इसलिए यह दुर्भावनापूर्ण कोड उत्पन्न कर "
+"सकता है!</b>\n"
+"डिफ़ॉल्ट रूप से, आपके कमांड <b>फ्लैटपैक वातावरण में वर्चुअलाइज्ड</b> होंगे, लेकिन ध्यान दें!"
+
+#: src/ui/presentation.py:132
+msgid "You can extend Newelle's functionalities using extensions!"
+msgstr "आप एक्सटेंशन का उपयोग करके न्युएल की कार्यात्मकताओं का विस्तार कर सकते हैं!"
+
+#: src/ui/presentation.py:136
+msgid "Download extensions"
+msgstr "एक्सटेंशन डाउनलोड करें"
+
+#: src/ui/presentation.py:146
+msgid "Permission Error"
+msgstr "अनुमति त्रुटि"
+
+#: src/ui/presentation.py:147
+msgid ""
+"Newelle does not have enough permissions to run commands on your system."
+msgstr "न्युएल के पास आपके सिस्टम पर कमांड चलाने के लिए पर्याप्त अनुमतियाँ नहीं हैं।"
+
+#: src/ui/presentation.py:158
+msgid "Begin using the app"
+msgstr "ऐप का उपयोग शुरू करें"
+
+#: src/ui/presentation.py:163
+msgid "Start chatting"
+msgstr "चैटिंग शुरू करें"
+
+#: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.appdata.xml.in:7
+#: data/io.github.qwersyk.Newelle.desktop.in:2
+msgid "Newelle"
+msgstr "न्युएल"
+
+#: src/ui/mini_window.py:20
+msgid "Chat is opened in mini window"
+msgstr "चैट मिनी विंडो में खोला गया है"
+
+#: src/ui/shortcuts.py:6
+msgid "Help"
+msgstr "मदद"
+
+#: src/ui/shortcuts.py:12
+msgid "Shortcuts"
+msgstr "शॉर्टकट"
+
+#: src/ui/shortcuts.py:13
+msgid "Reload chat"
+msgstr "चैट रीलोड करें"
+
+#: src/ui/shortcuts.py:14
+msgid "Reload folder"
+msgstr "फ़ोल्डर रीलोड करें"
+
+#: src/ui/shortcuts.py:15
+msgid "New tab"
+msgstr "नया टैब"
+
+#: src/ui/shortcuts.py:16
+msgid "Paste Image"
+msgstr "छवि पेस्ट करें"
+
+#: src/ui/shortcuts.py:17
+msgid "Focus message box"
+msgstr "संदेश बॉक्स फोकस करें"
+
+#: src/ui/shortcuts.py:18
+msgid "Start recording"
+msgstr "रिकॉर्डिंग शुरू करें"
+
+#: src/ui/shortcuts.py:19
+msgid "Stop TTS"
+msgstr "TTS रोकें"
+
+#: src/ui/shortcuts.py:20
+msgid "Zoom in"
+msgstr "ज़ूम इन करें"
+
+#: src/ui/shortcuts.py:21
+msgid "Zoom out"
+msgstr "ज़ूम आउट करें"
+
+#: src/ui/profile.py:51
+#, fuzzy
+msgid "Copied Settings"
+msgstr "सेटिंग्स"
+
+#: src/ui/profile.py:51
+#, fuzzy
+msgid "Settings that will be copied to the new profile"
+msgstr "वर्तमान प्रोफ़ाइल की सेटिंग्स को नए में कॉपी किया जाएगा"
+
+#: src/ui/profile.py:67
+msgid "The settings of the current profile will be copied into the new one"
+msgstr "वर्तमान प्रोफ़ाइल की सेटिंग्स को नए में कॉपी किया जाएगा"
+
+#: src/ui/profile.py:105
+msgid "Set profile picture"
+msgstr "प्रोफ़ाइल चित्र सेट करें"
+
+#: src/ui/extension.py:50
+#, fuzzy
+msgid "Installed Extensions"
+msgstr "एक्सटेंशन"
+
+#: src/ui/extension.py:85
+msgid "User guide to Extensions"
+msgstr "एक्सटेंशन के लिए उपयोगकर्ता मार्गदर्शिका"
+
+#: src/ui/extension.py:88
+msgid "Download new Extensions"
+msgstr "नए एक्सटेंशन डाउनलोड करें"
+
+#: src/ui/extension.py:91
+msgid "Install extension from file..."
+msgstr ""
+
+#: src/utility/util.py:136 src/handlers/llm/newelle_handler.py:27
+#: src/handlers/llm/gpt4all_handler.py:153
+#: src/handlers/llm/gemini_handler.py:113 src/handlers/llm/custom_handler.py:20
+msgid "Message Streaming"
+msgstr "संदेश स्ट्रीमिंग"
+
+#: src/utility/util.py:137 src/handlers/llm/newelle_handler.py:28
+#: src/handlers/llm/gpt4all_handler.py:153
+#: src/handlers/llm/gemini_handler.py:114 src/handlers/llm/custom_handler.py:20
+msgid "Gradually stream message output"
+msgstr "धीरे-धीरे संदेश आउटपुट स्ट्रीम करें"
+
+#: src/ui/widgets/tipscarousel.py:41
+#, fuzzy
+msgid "Newelle Tips"
+msgstr "न्युएल"
+
 #: src/ui/widgets/thinking.py:27
 msgid "Thoughts"
 msgstr ""
@@ -1255,10 +1310,6 @@ msgstr ""
 #: src/ui/widgets/thinking.py:129
 msgid "No thought process recorded"
 msgstr ""
-
-#: src/handlers/tts/tts.py:38
-msgid "Choose the preferred voice"
-msgstr "पसंदीदा आवाज़ चुनें"
 
 #: src/ui/widgets/profilerow.py:25
 msgid "Select profile"
@@ -1377,48 +1428,68 @@ msgstr ""
 msgid "A list of domains to specifically exclude from the search results."
 msgstr ""
 
+#: src/handlers/websearch/duckduckgo_handler.py:14
+msgid "Region"
+msgstr ""
+
+#: src/handlers/websearch/duckduckgo_handler.py:14
+msgid "Region for the search results"
+msgstr ""
+
+#: src/handlers/tts/tts.py:38
+msgid "Choose the preferred voice"
+msgstr "पसंदीदा आवाज़ चुनें"
+
+#: src/handlers/tts/custom_handler.py:22 src/handlers/stt/custom_handler.py:13
+msgid "Command to execute"
+msgstr "निष्पादित करने के लिए कमांड"
+
+#: src/handlers/tts/custom_handler.py:23 src/handlers/stt/custom_handler.py:14
+#, python-brace-format
+msgid "{0} will be replaced with the model fullpath"
+msgstr "{0} को मॉडल के पूर्ण पथ से बदल दिया जाएगा"
+
 #: src/handlers/tts/openai_tts_handler.py:18
-#: src/handlers/tts/groq_tts_handler.py:32
-#: src/handlers/embeddings/openai_handler.py:35
-#: src/handlers/stt/witai_handler.py:12
-#: src/handlers/tts/elevenlabs_handler.py:9
-#: src/handlers/tts/custom_openai_tts.py:18
-#: src/handlers/llm/openai_handler.py:72
-#: src/handlers/stt/openaisr_handler.py:17
+#: src/handlers/stt/witai_handler.py:12 src/handlers/stt/openaisr_handler.py:17
 #: src/handlers/stt/groqsr_handler.py:13
 #: src/handlers/stt/googlesr_handler.py:13
+#: src/handlers/llm/openai_handler.py:72
+#: src/handlers/tts/custom_openai_tts.py:18
+#: src/handlers/tts/elevenlabs_handler.py:9
+#: src/handlers/tts/groq_tts_handler.py:32
 #: src/handlers/llm/claude_handler.py:84
+#: src/handlers/embeddings/openai_handler.py:35
 msgid "API Key"
 msgstr "API कुंजी"
 
 #: src/handlers/tts/openai_tts_handler.py:18
-#: src/handlers/tts/groq_tts_handler.py:32
 #: src/handlers/tts/custom_openai_tts.py:18
+#: src/handlers/tts/groq_tts_handler.py:32
 #: src/handlers/llm/claude_handler.py:84
 msgid "The API key to use"
 msgstr "उपयोग करने के लिए API कुंजी"
 
 #: src/handlers/tts/openai_tts_handler.py:19
-#: src/handlers/tts/groq_tts_handler.py:33
 #: src/handlers/tts/custom_openai_tts.py:19
+#: src/handlers/tts/groq_tts_handler.py:33
 msgid "The voice to use"
 msgstr "उपयोग करने के लिए आवाज़"
 
 #: src/handlers/tts/openai_tts_handler.py:20
-#: src/handlers/tts/groq_tts_handler.py:34
-#: src/handlers/embeddings/openai_handler.py:44
-#: src/handlers/tts/elevenlabs_handler.py:23
-#: src/handlers/tts/custom_openai_tts.py:20
-#: src/handlers/llm/openai_handler.py:84
 #: src/handlers/stt/whispercpp_handler.py:39
-#: src/handlers/stt/whisper_handler.py:15 src/handlers/llm/claude_handler.py:89
-#: src/handlers/llm/claude_handler.py:93 src/handlers/llm/gemini_handler.py:97
+#: src/handlers/stt/whisper_handler.py:15 src/handlers/llm/openai_handler.py:84
+#: src/handlers/tts/custom_openai_tts.py:20
+#: src/handlers/tts/elevenlabs_handler.py:23
+#: src/handlers/tts/groq_tts_handler.py:34
+#: src/handlers/llm/gemini_handler.py:97 src/handlers/llm/claude_handler.py:89
+#: src/handlers/llm/claude_handler.py:93
+#: src/handlers/embeddings/openai_handler.py:44
 msgid "Model"
 msgstr "मॉडल"
 
 #: src/handlers/tts/openai_tts_handler.py:20
-#: src/handlers/tts/groq_tts_handler.py:34
 #: src/handlers/tts/custom_openai_tts.py:20
+#: src/handlers/tts/groq_tts_handler.py:34
 #: src/handlers/llm/claude_handler.py:89 src/handlers/llm/claude_handler.py:93
 msgid "The model to use"
 msgstr "उपयोग करने के लिए मॉडल"
@@ -1434,22 +1505,87 @@ msgid ""
 "Instructions for the voice generation. Leave it blank to avoid this field"
 msgstr "आवाज़ पीढ़ी के लिए निर्देश। इस फ़ील्ड से बचने के लिए इसे खाली छोड़ दें"
 
-#: src/handlers/websearch/duckduckgo_handler.py:14
-msgid "Region"
+#: src/handlers/stt/witai_handler.py:13
+msgid "Server Access Token for wit.ai"
+msgstr "wit.ai के लिए सर्वर एक्सेस टोकन"
+
+#: src/handlers/stt/whispercpp_handler.py:40
+#: src/handlers/stt/whisper_handler.py:16
+msgid "Name of the Whisper model"
+msgstr "व्हिस्पर मॉडल का नाम"
+
+#: src/handlers/stt/openaisr_handler.py:10
+#: src/handlers/llm/openai_handler.py:75 src/handlers/llm/ollama_handler.py:149
+#: src/handlers/embeddings/openai_handler.py:38
+#: src/handlers/embeddings/ollama_handler.py:32
+msgid "API Endpoint"
+msgstr "API एंडपॉइंट"
+
+#: src/handlers/stt/openaisr_handler.py:11
+msgid "Endpoint for OpenAI requests"
+msgstr "OpenAI अनुरोधों के लिए एंडपॉइंट"
+
+#: src/handlers/stt/openaisr_handler.py:18
+msgid "API Key for OpenAI"
+msgstr "OpenAI के लिए API कुंजी"
+
+#: src/handlers/stt/openaisr_handler.py:24
+msgid "Whisper Model"
+msgstr "व्हिस्पर मॉडल"
+
+#: src/handlers/stt/openaisr_handler.py:25
+msgid "Name of the OpenAI model"
+msgstr "OpenAI मॉडल का नाम"
+
+#: src/handlers/stt/openaisr_handler.py:31
+#: src/handlers/stt/groqsr_handler.py:28
+#: src/handlers/stt/googlesr_handler.py:20
+msgid "Language"
+msgstr "भाषा"
+
+#: src/handlers/stt/openaisr_handler.py:32
+msgid ""
+"Optional: Specify the language for transcription. Use ISO 639-1 language "
+"codes (e.g. \"en\" for English, \"fr\" for French, etc.). "
 msgstr ""
+"वैकल्पिक: ट्रांसक्रिप्शन के लिए भाषा निर्दिष्ट करें। ISO 639-1 भाषा कोड का उपयोग करें (जैसे "
+"अंग्रेजी के लिए \"en\", फ्रेंच के लिए \"fr\", आदि)। "
 
-#: src/handlers/websearch/duckduckgo_handler.py:14
-msgid "Region for the search results"
+#: src/handlers/stt/groqsr_handler.py:14
+msgid "API Key for Groq SR, write 'default' to use the default one"
+msgstr "Groq SR के लिए API कुंजी, डिफ़ॉल्ट वाली का उपयोग करने के लिए 'default' लिखें"
+
+#: src/handlers/stt/groqsr_handler.py:20
+msgid "Groq Model"
+msgstr "Groq मॉडल"
+
+#: src/handlers/stt/groqsr_handler.py:21
+msgid "Name of the Groq Model"
+msgstr "Groq मॉडल का नाम"
+
+#: src/handlers/stt/groqsr_handler.py:29
+msgid ""
+"Specify the language for transcription. Use ISO 639-1 language codes (e.g. "
+"\"en\" for English, \"fr\" for French, etc.). "
 msgstr ""
+"ट्रांसक्रिप्शन के लिए भाषा निर्दिष्ट करें। ISO 639-1 भाषा कोड का उपयोग करें (जैसे अंग्रेजी के "
+"लिए \"en\", फ्रेंच के लिए \"fr\", आदि)। "
 
-#: src/handlers/tts/custom_handler.py:22 src/handlers/stt/custom_handler.py:13
-msgid "Command to execute"
-msgstr "निष्पादित करने के लिए कमांड"
+#: src/handlers/stt/vosk_handler.py:17
+msgid "Model Path"
+msgstr "मॉडल पथ"
 
-#: src/handlers/tts/custom_handler.py:23 src/handlers/stt/custom_handler.py:14
-#, python-brace-format
-msgid "{0} will be replaced with the model fullpath"
-msgstr "{0} को मॉडल के पूर्ण पथ से बदल दिया जाएगा"
+#: src/handlers/stt/vosk_handler.py:18
+msgid "Absolute path to the VOSK model (unzipped)"
+msgstr "VOSK मॉडल का पूर्ण पथ (अनज़िप किया हुआ)"
+
+#: src/handlers/stt/googlesr_handler.py:14
+msgid "API Key for Google SR, write 'default' to use the default one"
+msgstr "गूगल SR के लिए API कुंजी, डिफ़ॉल्ट वाली का उपयोग करने के लिए 'default' लिखें"
+
+#: src/handlers/stt/googlesr_handler.py:21
+msgid "The language of the text to recgnize in IETF"
+msgstr "IETF में पहचानने के लिए टेक्स्ट की भाषा"
 
 #: src/handlers/llm/openrouter_handler.py:14
 #, fuzzy
@@ -1491,184 +1627,31 @@ msgstr ""
 msgid "Allow fallbacks to other providers"
 msgstr ""
 
-#: src/ui/thread_editing.py:36
-msgid "No threads are running"
-msgstr "कोई थ्रेड नहीं चल रहा है"
+#: src/handlers/stt/sphinx_handler.py:19
+msgid "Could not understand the audio"
+msgstr "ऑडियो समझ नहीं आया"
 
-#: src/ui/thread_editing.py:42
-msgid "Thread number: "
-msgstr "थ्रेड संख्या: "
-
-#: src/ui/shortcuts.py:6
-msgid "Help"
-msgstr "मदद"
-
-#: src/ui/shortcuts.py:12
-msgid "Shortcuts"
-msgstr "शॉर्टकट"
-
-#: src/ui/shortcuts.py:13
-msgid "Reload chat"
-msgstr "चैट रीलोड करें"
-
-#: src/ui/shortcuts.py:14
-msgid "Reload folder"
-msgstr "फ़ोल्डर रीलोड करें"
-
-#: src/ui/shortcuts.py:15
-msgid "New tab"
-msgstr "नया टैब"
-
-#: src/ui/shortcuts.py:16
-msgid "Paste Image"
-msgstr "छवि पेस्ट करें"
-
-#: src/ui/shortcuts.py:17
-msgid "Focus message box"
-msgstr "संदेश बॉक्स फोकस करें"
-
-#: src/ui/shortcuts.py:18
-msgid "Start recording"
-msgstr "रिकॉर्डिंग शुरू करें"
-
-#: src/ui/shortcuts.py:19
-msgid "Stop TTS"
-msgstr "TTS रोकें"
-
-#: src/ui/shortcuts.py:20
-msgid "Zoom in"
-msgstr "ज़ूम इन करें"
-
-#: src/ui/shortcuts.py:21
-msgid "Zoom out"
-msgstr "ज़ूम आउट करें"
-
-#: src/handlers/embeddings/openai_handler.py:35
 #: src/handlers/llm/openai_handler.py:72
+#: src/handlers/embeddings/openai_handler.py:35
 msgid "API Key for "
 msgstr "के लिए API कुंजी "
 
-#: src/handlers/embeddings/openai_handler.py:38
-#: src/handlers/embeddings/ollama_handler.py:32
-#: src/handlers/llm/openai_handler.py:75
-#: src/handlers/stt/openaisr_handler.py:10
-#: src/handlers/llm/ollama_handler.py:149
-msgid "API Endpoint"
-msgstr "API एंडपॉइंट"
-
-#: src/handlers/embeddings/openai_handler.py:38
-msgid "API base url, change this to use different APIs"
-msgstr "API बेस यूआरएल, विभिन्न API का उपयोग करने के लिए इसे बदलें"
-
-#: src/handlers/embeddings/openai_handler.py:41
-#: src/handlers/llm/openai_handler.py:78
-msgid "Use Custom Model"
-msgstr "कस्टम मॉडल का उपयोग करें"
-
-#: src/handlers/embeddings/openai_handler.py:41
-#: src/handlers/embeddings/ollama_handler.py:34
-#: src/handlers/llm/openai_handler.py:78 src/handlers/llm/claude_handler.py:85
-#: src/handlers/llm/ollama_handler.py:151
-msgid "Use a custom model"
-msgstr "एक कस्टम मॉडल का उपयोग करें"
-
-#: src/handlers/embeddings/openai_handler.py:44
-msgid "Name of the Embedding Model to use"
-msgstr "उपयोग करने के लिए एम्बेडिंग मॉडल का नाम"
-
-#: src/handlers/embeddings/openai_handler.py:51
-#: src/handlers/llm/openai_handler.py:91
-msgid " Model"
-msgstr " मॉडल"
-
-#: src/handlers/stt/witai_handler.py:13
-msgid "Server Access Token for wit.ai"
-msgstr "wit.ai के लिए सर्वर एक्सेस टोकन"
-
-#: src/handlers/tts/elevenlabs_handler.py:10
-msgid "API Key for ElevenLabs"
-msgstr "इलेवनलैब्स के लिए API कुंजी"
-
-#: src/handlers/tts/elevenlabs_handler.py:17
-msgid "Voice ID to use"
-msgstr "उपयोग करने के लिए आवाज़ आईडी"
-
-#: src/handlers/tts/elevenlabs_handler.py:24
-#: src/handlers/llm/gpt4all_handler.py:154
-msgid "Name of the model to use"
-msgstr "उपयोग करने के लिए मॉडल का नाम"
-
-#: src/handlers/tts/elevenlabs_handler.py:31
-msgid "Stability"
-msgstr "स्थिरता"
-
-#: src/handlers/tts/elevenlabs_handler.py:32
-msgid "stability of the voice"
-msgstr "आवाज़ की स्थिरता"
-
-#: src/handlers/tts/elevenlabs_handler.py:41
-msgid "Similarity boost"
-msgstr "समानता बूस्ट"
-
-#: src/handlers/tts/elevenlabs_handler.py:42
-msgid "Boosts overall voice clarity and speaker similarity"
-msgstr "समग्र आवाज़ स्पष्टता और स्पीकर समानता को बढ़ाता है"
-
-#: src/handlers/tts/elevenlabs_handler.py:51
-msgid "Style exaggeration"
-msgstr "शैली अतिशयोक्ति"
-
-#: src/handlers/tts/elevenlabs_handler.py:52
-msgid ""
-"High values are reccomended if the style of the speech must be exaggerated"
-msgstr ""
-"यदि भाषण की शैली को अतिरंजित किया जाना चाहिए तो उच्च मानों की सिफारिश की जाती है"
-
-#: src/handlers/embeddings/ollama_handler.py:32
 #: src/handlers/llm/openai_handler.py:75 src/handlers/llm/ollama_handler.py:149
+#: src/handlers/embeddings/ollama_handler.py:32
 msgid "API base url, change this to use interference APIs"
 msgstr "API बेस यूआरएल, इंटरफेरेंस API का उपयोग करने के लिए इसे बदलें"
 
-#: src/handlers/embeddings/ollama_handler.py:33
-#: src/handlers/llm/ollama_handler.py:150
-msgid "Automatically Serve"
-msgstr "स्वचालित रूप से सर्व करें"
+#: src/handlers/llm/openai_handler.py:78
+#: src/handlers/embeddings/openai_handler.py:41
+msgid "Use Custom Model"
+msgstr "कस्टम मॉडल का उपयोग करें"
 
-#: src/handlers/embeddings/ollama_handler.py:33
-#: src/handlers/llm/ollama_handler.py:150
-msgid ""
-"Automatically run ollama serve in background when needed if it's not "
-"running. You can kill it with killall ollama"
-msgstr ""
-"जब आवश्यकता हो तो पृष्ठभूमि में स्वचालित रूप से ollama serve चलाएं यदि यह नहीं चल रहा "
-"है। आप इसे killall ollama से समाप्त कर सकते हैं"
-
+#: src/handlers/llm/openai_handler.py:78 src/handlers/llm/ollama_handler.py:151
+#: src/handlers/llm/claude_handler.py:85
+#: src/handlers/embeddings/openai_handler.py:41
 #: src/handlers/embeddings/ollama_handler.py:34
-#: src/handlers/llm/ollama_handler.py:151
-msgid "Custom Model"
-msgstr "कस्टम मॉडल"
-
-#: src/handlers/embeddings/ollama_handler.py:40
-#: src/handlers/embeddings/ollama_handler.py:49
-#: src/handlers/llm/ollama_handler.py:157
-#: src/handlers/llm/ollama_handler.py:166
-msgid "Ollama Model"
-msgstr "Ollama मॉडल"
-
-#: src/handlers/embeddings/ollama_handler.py:41
-#: src/handlers/embeddings/ollama_handler.py:49
-#: src/handlers/llm/ollama_handler.py:158
-#: src/handlers/llm/ollama_handler.py:166
-msgid "Name of the Ollama Model"
-msgstr "Ollama मॉडल का नाम"
-
-#: src/handlers/tts/custom_openai_tts.py:17
-msgid "Endpoint"
-msgstr "एंडपॉइंट"
-
-#: src/handlers/tts/custom_openai_tts.py:17
-msgid "Custom endpoint of the service to use"
-msgstr "उपयोग करने के लिए सेवा का कस्टम एंडपॉइंट"
+msgid "Use a custom model"
+msgstr "एक कस्टम मॉडल का उपयोग करें"
 
 #: src/handlers/llm/openai_handler.py:81 src/handlers/llm/gemini_handler.py:129
 msgid "Advanced Parameters"
@@ -1681,6 +1664,11 @@ msgstr "अधिकतम टोकन, टॉप-पी, तापमान, �
 #: src/handlers/llm/openai_handler.py:84
 msgid "Name of the LLM Model to use"
 msgstr "उपयोग करने के लिए LLM मॉडल का नाम"
+
+#: src/handlers/llm/openai_handler.py:91
+#: src/handlers/embeddings/openai_handler.py:51
+msgid " Model"
+msgstr " मॉडल"
 
 #: src/handlers/llm/openai_handler.py:103
 msgid "max Tokens"
@@ -1734,120 +1722,132 @@ msgstr ""
 "संभावना को कम करते हैं"
 
 #: src/handlers/llm/openai_handler.py:112
-#: src/handlers/llm/gemini_handler.py:125
 #: src/handlers/llm/newelle_handler.py:18
+#: src/handlers/llm/gemini_handler.py:125
 msgid "Privacy Policy"
 msgstr "गोपनीयता नीति"
 
 #: src/handlers/llm/openai_handler.py:112
-#: src/handlers/llm/gemini_handler.py:126
 #: src/handlers/llm/newelle_handler.py:19
+#: src/handlers/llm/gemini_handler.py:126
 msgid "Open privacy policy website"
 msgstr "गोपनीयता नीति वेबसाइट खोलें"
 
-#: src/handlers/stt/whispercpp_handler.py:40
-#: src/handlers/stt/whisper_handler.py:16
-msgid "Name of the Whisper model"
-msgstr "व्हिस्पर मॉडल का नाम"
+#: src/handlers/tts/custom_openai_tts.py:17
+msgid "Endpoint"
+msgstr "एंडपॉइंट"
 
-#: src/handlers/stt/vosk_handler.py:17
-msgid "Model Path"
-msgstr "मॉडल पथ"
+#: src/handlers/tts/custom_openai_tts.py:17
+msgid "Custom endpoint of the service to use"
+msgstr "उपयोग करने के लिए सेवा का कस्टम एंडपॉइंट"
 
-#: src/handlers/stt/vosk_handler.py:18
-msgid "Absolute path to the VOSK model (unzipped)"
-msgstr "VOSK मॉडल का पूर्ण पथ (अनज़िप किया हुआ)"
+#: src/handlers/rag/rag_handler.py:104
+msgid "Index your documents"
+msgstr "अपने दस्तावेज़ों को इंडेक्स करें"
 
-#: src/handlers/stt/sphinx_handler.py:19
-msgid "Could not understand the audio"
-msgstr "ऑडियो समझ नहीं आया"
-
-#: src/handlers/stt/openaisr_handler.py:11
-msgid "Endpoint for OpenAI requests"
-msgstr "OpenAI अनुरोधों के लिए एंडपॉइंट"
-
-#: src/handlers/stt/openaisr_handler.py:18
-msgid "API Key for OpenAI"
-msgstr "OpenAI के लिए API कुंजी"
-
-#: src/handlers/stt/openaisr_handler.py:24
-msgid "Whisper Model"
-msgstr "व्हिस्पर मॉडल"
-
-#: src/handlers/stt/openaisr_handler.py:25
-msgid "Name of the OpenAI model"
-msgstr "OpenAI मॉडल का नाम"
-
-#: src/handlers/stt/openaisr_handler.py:31
-#: src/handlers/stt/groqsr_handler.py:28
-#: src/handlers/stt/googlesr_handler.py:20
-msgid "Language"
-msgstr "भाषा"
-
-#: src/handlers/stt/openaisr_handler.py:32
+#: src/handlers/rag/rag_handler.py:105
 msgid ""
-"Optional: Specify the language for transcription. Use ISO 639-1 language "
-"codes (e.g. \"en\" for English, \"fr\" for French, etc.). "
+"Index all the documents in your document folder. You have to run this "
+"operation every time you edit/create a document, change document analyzer or "
+"change embedding model"
 msgstr ""
-"वैकल्पिक: ट्रांसक्रिप्शन के लिए भाषा निर्दिष्ट करें। ISO 639-1 भाषा कोड का उपयोग करें (जैसे "
-"अंग्रेजी के लिए \"en\", फ्रेंच के लिए \"fr\", आदि)। "
+"अपने दस्तावेज़ फ़ोल्डर में सभी दस्तावेज़ों को इंडेक्स करें। आपको यह ऑपरेशन हर बार चलाना होगा "
+"जब आप किसी दस्तावेज़ को संपादित/बनाते हैं, दस्तावेज़ विश्लेषक बदलते हैं या एम्बेडिंग मॉडल बदलते "
+"हैं"
 
-#: src/handlers/stt/groqsr_handler.py:14
-msgid "API Key for Groq SR, write 'default' to use the default one"
-msgstr "Groq SR के लिए API कुंजी, डिफ़ॉल्ट वाली का उपयोग करने के लिए 'default' लिखें"
+#: src/handlers/tts/elevenlabs_handler.py:10
+msgid "API Key for ElevenLabs"
+msgstr "इलेवनलैब्स के लिए API कुंजी"
 
-#: src/handlers/stt/groqsr_handler.py:20
-msgid "Groq Model"
-msgstr "Groq मॉडल"
+#: src/handlers/tts/elevenlabs_handler.py:17
+msgid "Voice ID to use"
+msgstr "उपयोग करने के लिए आवाज़ आईडी"
 
-#: src/handlers/stt/groqsr_handler.py:21
-msgid "Name of the Groq Model"
-msgstr "Groq मॉडल का नाम"
+#: src/handlers/tts/elevenlabs_handler.py:24
+#: src/handlers/llm/gpt4all_handler.py:154
+msgid "Name of the model to use"
+msgstr "उपयोग करने के लिए मॉडल का नाम"
 
-#: src/handlers/stt/groqsr_handler.py:29
+#: src/handlers/tts/elevenlabs_handler.py:31
+msgid "Stability"
+msgstr "स्थिरता"
+
+#: src/handlers/tts/elevenlabs_handler.py:32
+msgid "stability of the voice"
+msgstr "आवाज़ की स्थिरता"
+
+#: src/handlers/tts/elevenlabs_handler.py:41
+msgid "Similarity boost"
+msgstr "समानता बूस्ट"
+
+#: src/handlers/tts/elevenlabs_handler.py:42
+msgid "Boosts overall voice clarity and speaker similarity"
+msgstr "समग्र आवाज़ स्पष्टता और स्पीकर समानता को बढ़ाता है"
+
+#: src/handlers/tts/elevenlabs_handler.py:51
+msgid "Style exaggeration"
+msgstr "शैली अतिशयोक्ति"
+
+#: src/handlers/tts/elevenlabs_handler.py:52
 msgid ""
-"Specify the language for transcription. Use ISO 639-1 language codes (e.g. "
-"\"en\" for English, \"fr\" for French, etc.). "
+"High values are reccomended if the style of the speech must be exaggerated"
 msgstr ""
-"ट्रांसक्रिप्शन के लिए भाषा निर्दिष्ट करें। ISO 639-1 भाषा कोड का उपयोग करें (जैसे अंग्रेजी के "
-"लिए \"en\", फ्रेंच के लिए \"fr\", आदि)। "
+"यदि भाषण की शैली को अतिरंजित किया जाना चाहिए तो उच्च मानों की सिफारिश की जाती है"
 
-#: src/handlers/stt/googlesr_handler.py:14
-msgid "API Key for Google SR, write 'default' to use the default one"
-msgstr "गूगल SR के लिए API कुंजी, डिफ़ॉल्ट वाली का उपयोग करने के लिए 'default' लिखें"
+#: src/handlers/llm/ollama_handler.py:150
+#: src/handlers/embeddings/ollama_handler.py:33
+msgid "Automatically Serve"
+msgstr "स्वचालित रूप से सर्व करें"
 
-#: src/handlers/stt/googlesr_handler.py:21
-msgid "The language of the text to recgnize in IETF"
-msgstr "IETF में पहचानने के लिए टेक्स्ट की भाषा"
-
-#: src/handlers/llm/custom_handler.py:21
-msgid "Command to execute to get bot output"
-msgstr "बॉट आउटपुट प्राप्त करने के लिए निष्पादित करने हेतु कमांड"
-
-#: src/handlers/llm/custom_handler.py:21
-#, python-brace-format
+#: src/handlers/llm/ollama_handler.py:150
+#: src/handlers/embeddings/ollama_handler.py:33
 msgid ""
-"Command to execute to get bot response, {0} will be replaced with a JSON "
-"file containing the chat, {1} with the system prompt"
+"Automatically run ollama serve in background when needed if it's not "
+"running. You can kill it with killall ollama"
 msgstr ""
-"बॉट प्रतिक्रिया प्राप्त करने के लिए निष्पादित करने हेतु कमांड, {0} को चैट वाली JSON फ़ाइल "
-"से, {1} को सिस्टम प्रॉम्प्ट से बदल दिया जाएगा"
+"जब आवश्यकता हो तो पृष्ठभूमि में स्वचालित रूप से ollama serve चलाएं यदि यह नहीं चल रहा "
+"है। आप इसे killall ollama से समाप्त कर सकते हैं"
 
-#: src/handlers/llm/custom_handler.py:22
-msgid "Command to execute to get bot's suggestions"
-msgstr "बॉट के सुझाव प्राप्त करने के लिए निष्पादित करने हेतु कमांड"
+#: src/handlers/llm/ollama_handler.py:151
+#: src/handlers/embeddings/ollama_handler.py:34
+msgid "Custom Model"
+msgstr "कस्टम मॉडल"
 
-#: src/handlers/llm/custom_handler.py:22
-#, python-brace-format
+#: src/handlers/llm/ollama_handler.py:157
+#: src/handlers/llm/ollama_handler.py:166
+#: src/handlers/embeddings/ollama_handler.py:40
+#: src/handlers/embeddings/ollama_handler.py:49
+msgid "Ollama Model"
+msgstr "Ollama मॉडल"
+
+#: src/handlers/llm/ollama_handler.py:158
+#: src/handlers/llm/ollama_handler.py:166
+#: src/handlers/embeddings/ollama_handler.py:41
+#: src/handlers/embeddings/ollama_handler.py:49
+msgid "Name of the Ollama Model"
+msgstr "Ollama मॉडल का नाम"
+
+#: src/handlers/llm/ollama_handler.py:170
+#: src/handlers/llm/gpt4all_handler.py:155
+msgid "Model Manager"
+msgstr "मॉडल प्रबंधक"
+
+#: src/handlers/llm/ollama_handler.py:170
+#: src/handlers/llm/gpt4all_handler.py:155
+msgid "List of models available"
+msgstr "उपलब्ध मॉडलों की सूची"
+
+#: src/handlers/llm/ollama_handler.py:174
+msgid "Add custom model"
+msgstr "कस्टम मॉडल जोड़ें"
+
+#: src/handlers/llm/ollama_handler.py:175
 msgid ""
-"Command to execute to get chat suggestions, {0} will be replaced with a JSON "
-"file containing the chat, {1} with the extra prompts, {2} with the numer of "
-"suggestions to generate. Must return a JSON array containing the suggestions "
-"as strings"
+"Add any model to this list by putting name:size\n"
+"Or any gguf from hf with hf.co/username/model"
 msgstr ""
-"चैट सुझाव प्राप्त करने के लिए निष्पादित करने हेतु कमांड, {0} को चैट वाली JSON फ़ाइल से, "
-"{1} को अतिरिक्त प्रॉम्प्ट से, {2} को उत्पन्न करने के लिए सुझावों की संख्या से बदल दिया "
-"जाएगा। स्ट्रिंग्स के रूप में सुझावों वाली JSON सरणी लौटानी होगी"
+"नाम:आकार डालकर इस सूची में कोई भी मॉडल जोड़ें\n"
+"या hf.co/उपयोगकर्ता नाम/मॉडल के साथ hf से कोई भी gguf"
 
 #: src/handlers/llm/gpt4all_handler.py:67
 msgid "RAM Required: "
@@ -1864,38 +1864,6 @@ msgstr "आकार: "
 #: src/handlers/llm/gpt4all_handler.py:154
 msgid "Model to use"
 msgstr "उपयोग करने के लिए मॉडल"
-
-#: src/handlers/llm/gpt4all_handler.py:155
-#: src/handlers/llm/ollama_handler.py:170
-msgid "Model Manager"
-msgstr "मॉडल प्रबंधक"
-
-#: src/handlers/llm/gpt4all_handler.py:155
-#: src/handlers/llm/ollama_handler.py:170
-msgid "List of models available"
-msgstr "उपलब्ध मॉडलों की सूची"
-
-#: src/handlers/llm/claude_handler.py:96
-msgid "Max Tokens"
-msgstr "अधिकतम टोकन"
-
-#: src/handlers/llm/claude_handler.py:96
-msgid "The maximum number of tokens to generate"
-msgstr "उत्पन्न करने के लिए टोकन की अधिकतम संख्या"
-
-#: src/handlers/rag/rag_handler.py:104
-msgid "Index your documents"
-msgstr "अपने दस्तावेज़ों को इंडेक्स करें"
-
-#: src/handlers/rag/rag_handler.py:105
-msgid ""
-"Index all the documents in your document folder. You have to run this "
-"operation every time you edit/create a document, change document analyzer or "
-"change embedding model"
-msgstr ""
-"अपने दस्तावेज़ फ़ोल्डर में सभी दस्तावेज़ों को इंडेक्स करें। आपको यह ऑपरेशन हर बार चलाना होगा "
-"जब आप किसी दस्तावेज़ को संपादित/बनाते हैं, दस्तावेज़ विश्लेषक बदलते हैं या एम्बेडिंग मॉडल बदलते "
-"हैं"
 
 #: src/handlers/llm/gemini_handler.py:94
 msgid "API Key (required)"
@@ -1953,17 +1921,50 @@ msgstr "हानिकारक सामग्री उत्पन्न क
 msgid "Enable advanced parameters"
 msgstr "उन्नत पैरामीटर सक्षम करें"
 
-#: src/handlers/llm/ollama_handler.py:174
-msgid "Add custom model"
-msgstr "कस्टम मॉडल जोड़ें"
+#: src/handlers/llm/custom_handler.py:21
+msgid "Command to execute to get bot output"
+msgstr "बॉट आउटपुट प्राप्त करने के लिए निष्पादित करने हेतु कमांड"
 
-#: src/handlers/llm/ollama_handler.py:175
+#: src/handlers/llm/custom_handler.py:21
+#, python-brace-format
 msgid ""
-"Add any model to this list by putting name:size\n"
-"Or any gguf from hf with hf.co/username/model"
+"Command to execute to get bot response, {0} will be replaced with a JSON "
+"file containing the chat, {1} with the system prompt"
 msgstr ""
-"नाम:आकार डालकर इस सूची में कोई भी मॉडल जोड़ें\n"
-"या hf.co/उपयोगकर्ता नाम/मॉडल के साथ hf से कोई भी gguf"
+"बॉट प्रतिक्रिया प्राप्त करने के लिए निष्पादित करने हेतु कमांड, {0} को चैट वाली JSON फ़ाइल "
+"से, {1} को सिस्टम प्रॉम्प्ट से बदल दिया जाएगा"
+
+#: src/handlers/llm/custom_handler.py:22
+msgid "Command to execute to get bot's suggestions"
+msgstr "बॉट के सुझाव प्राप्त करने के लिए निष्पादित करने हेतु कमांड"
+
+#: src/handlers/llm/custom_handler.py:22
+#, python-brace-format
+msgid ""
+"Command to execute to get chat suggestions, {0} will be replaced with a JSON "
+"file containing the chat, {1} with the extra prompts, {2} with the numer of "
+"suggestions to generate. Must return a JSON array containing the suggestions "
+"as strings"
+msgstr ""
+"चैट सुझाव प्राप्त करने के लिए निष्पादित करने हेतु कमांड, {0} को चैट वाली JSON फ़ाइल से, "
+"{1} को अतिरिक्त प्रॉम्प्ट से, {2} को उत्पन्न करने के लिए सुझावों की संख्या से बदल दिया "
+"जाएगा। स्ट्रिंग्स के रूप में सुझावों वाली JSON सरणी लौटानी होगी"
+
+#: src/handlers/llm/claude_handler.py:96
+msgid "Max Tokens"
+msgstr "अधिकतम टोकन"
+
+#: src/handlers/llm/claude_handler.py:96
+msgid "The maximum number of tokens to generate"
+msgstr "उत्पन्न करने के लिए टोकन की अधिकतम संख्या"
+
+#: src/handlers/embeddings/openai_handler.py:38
+msgid "API base url, change this to use different APIs"
+msgstr "API बेस यूआरएल, विभिन्न API का उपयोग करने के लिए इसे बदलें"
+
+#: src/handlers/embeddings/openai_handler.py:44
+msgid "Name of the Embedding Model to use"
+msgstr "उपयोग करने के लिए एम्बेडिंग मॉडल का नाम"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:9
 msgid ""
@@ -2086,3 +2087,6 @@ msgstr ""
 #: data/io.github.qwersyk.Newelle.desktop.in:10
 msgid "chat;ai;gpt;chatgpt;assistant;"
 msgstr ""
+
+#~ msgid "Choose an extension"
+#~ msgstr "एक एक्सटेंशन चुनें"
