@@ -29,7 +29,7 @@ class GroqTTSHandler(CustomOpenAITTSHandler):
     
     def get_extra_settings(self) -> list:
         return [
-            ExtraSettings.EntrySetting("api_key", _("API Key"), _("The API key to use"), ""),
+            ExtraSettings.EntrySetting("api_key", _("API Key"), _("The API key to use"), "", password=True),
             ExtraSettings.ComboSetting("voice", _("Voice"), _("The voice to use"), self.get_voices(), "Arista-PlayAI"),
             ExtraSettings.ComboSetting("model", _("Model"), _("The model to use"), self.get_models(), "playai-tts", update_settings=True),
         ]

@@ -41,7 +41,7 @@ class ExtraSettings:
     
     @staticmethod
     def EntrySetting(key:str, title: str, description: str, default: str, 
-                     folder: str|None = None, website: str|None = None, update_settings: bool = False, refresh: Callable|None = None, refresh_icon: str|None = None) -> dict:
+                     folder: str|None = None, website: str|None = None, update_settings: bool = False, refresh: Callable|None = None, refresh_icon: str|None = None, password: bool = False) -> dict:
         """
         Create a new entry setting, which can be used to enter a string
 
@@ -54,13 +54,15 @@ class ExtraSettings:
             website: if not None, near the setting it will be shown a button to open the specified website 
             update_settings: if True, when the setting is changed, the settings will be automatically updated 
             refresh: if not None, near the setting it will be shown a button to refresh the specified function. When clicked the function is executed 
-            refresh_icon: if not None, the icon of the refresh button 
+            refresh_icon: if not None, the icon of the refresh button
+            password: if True, the entry will be shown as a password
 
         Returns:
             dict: the setting in this format 
         """
         r = ExtraSettings.Setting(key, title, description, default, folder, website, update_settings, refresh, refresh_icon)
         r["type"] = "entry"
+        r["password"] = password
         return r
 
     @staticmethod

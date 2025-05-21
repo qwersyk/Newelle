@@ -81,7 +81,7 @@ class ClaudeHandler(LLMHandler):
 
     def get_extra_settings(self) -> list:
         settings = [
-            ExtraSettings.EntrySetting("api", _("API Key"), _("The API key to use"), ""),
+            ExtraSettings.EntrySetting("api", _("API Key"), _("The API key to use"), "", password=True),
             ExtraSettings.ToggleSetting("custom_model", _("Use a custom model"), _("Use a custom model"), False, update_settings=True),
         ]
         if self.get_setting("custom_model", False):

@@ -555,9 +555,14 @@ class Settings(Adw.PreferencesWindow):
             r = Adw.ActionRow(title=setting["title"], subtitle=setting["description"])
             value = handler.get_setting(setting["key"])
             value = str(value)
-            entry = Gtk.Entry(valign=Gtk.Align.CENTER, text=value, name=setting["key"])
+            password = setting.get("password", False)
+            entry = Gtk.Entry(valign=Gtk.Align.CENTER, text=value, name=setting["key"], visibility= (not password))
             entry.connect("changed", self.setting_change_entry, constants, handler)
             r.add_suffix(entry)
+            if password:
+                button = Gtk.Button(valign=Gtk.Align.CENTER, name=setting["key"], css_classes=["flat"], icon_name="view-show")
+                button.connect("clicked", lambda button, entry: entry.set_visibility(not entry.get_visibility()), entry)
+                r.add_suffix(button)
         elif setting["type"] == "multilineentry":
             r = Adw.ExpanderRow(title=setting["title"], subtitle=setting["description"])
             value = handler.get_setting(setting["key"])
