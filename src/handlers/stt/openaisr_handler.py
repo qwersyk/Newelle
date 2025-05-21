@@ -17,7 +17,8 @@ class OpenAISRHandler(STTHandler):
                 "title": _("API Key"),
                 "description": _("API Key for OpenAI"),
                 "type": "entry",
-                "default": ""
+                "default": "",
+                "password": True,
             },
             {
                 "key": "model",

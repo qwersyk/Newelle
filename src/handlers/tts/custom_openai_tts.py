@@ -15,7 +15,7 @@ class CustomOpenAITTSHandler(TTSHandler):
     def get_extra_settings(self) -> list:
         return [
             ExtraSettings.EntrySetting("endpoint", _("Endpoint"), _("Custom endpoint of the service to use"), "https://api.openai.com/v1/"),
-            ExtraSettings.EntrySetting("api_key", _("API Key"), _("The API key to use"), ""),
+            ExtraSettings.EntrySetting("api_key", _("API Key"), _("The API key to use"), "", password=True),
             ExtraSettings.EntrySetting("voice", _("Voice"), _("The voice to use"), "alloy"),
             ExtraSettings.EntrySetting("model", _("Model"), _("The model to use"), "tts-1"),
             ExtraSettings.EntrySetting("instructions", _("Instructions"), _("Instructions for the voice generation. Leave it blank to avoid this field"), "")

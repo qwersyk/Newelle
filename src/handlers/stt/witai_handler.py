@@ -12,7 +12,8 @@ class WitAIHandler(STTHandler):
                 "title": _("API Key"),
                 "description": _("Server Access Token for wit.ai"),
                 "type": "entry",
-                "default": ""
+                "default": "",
+                "password": True,
             },
         ]
  

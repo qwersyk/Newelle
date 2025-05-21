@@ -17,7 +17,7 @@ class TavilyHandler(WebSearchHandler):
 
     def get_extra_settings(self) -> list:
         return [
-            ExtraSettings.EntrySetting("token", _("Token"), _("Tavily API key"), ""),
+            ExtraSettings.EntrySetting("token", _("Token"), _("Tavily API key"), "", password=True),
             ExtraSettings.ScaleSetting("results", _("Max Results"), _("Number of results to consider"), 2, 1, 20, 0),
             ExtraSettings.ComboSetting("search_depth", _("The depth of the search"), _("The depth of the search. Advanced search is tailored to retrieve the most relevant sources and content snippets for your query, while basic search provides generic content snippets from each source. A basic search costs 1 API Credit, while an advanced search costs 2 API Credits."), {"Advanced":"advanced","Basic":"basic"}, "basic"),
             ExtraSettings.ComboSetting("topic", _("The category of the search"), _("The category of the search. News is useful for retrieving real-time updates, particularly about politics, sports, and major current events covered by mainstream media sources. General is for broader, more general-purpose searches that may include a wide range of sources."), {"General":"general","News":"news"}, "general"),
