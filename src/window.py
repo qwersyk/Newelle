@@ -200,15 +200,15 @@ class MainWindow(Gtk.ApplicationWindow):
             orientation=Gtk.Orientation.VERTICAL, css_classes=["background", "view"]
         )
         self.chat_scroll.set_child(self.chat_scroll_window)
-        drop_target = Gtk.DropTarget.new(GObject.TYPE_STRING, Gdk.DragAction.COPY)
-        drop_target.connect("drop", self.handle_file_drag)
-        self.chat_scroll.add_controller(drop_target)
-        drop_target = Gtk.DropTarget.new(Gdk.FileList, Gdk.DragAction.COPY)
-        drop_target.connect("drop", self.handle_file_drag)
-        self.chat_scroll.add_controller(drop_target)
         self.chat_scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
         self.chat_scroll_window.append(self.chat_list_block)
         self.history_block = Gtk.Stack(transition_type=Gtk.StackTransitionType.SLIDE_UP, transition_duration=500)
+        drop_target = Gtk.DropTarget.new(GObject.TYPE_STRING, Gdk.DragAction.COPY)
+        drop_target.connect("drop", self.handle_file_drag)
+        self.history_block.add_controller(drop_target)
+        drop_target = Gtk.DropTarget.new(Gdk.FileList, Gdk.DragAction.COPY)
+        drop_target.connect("drop", self.handle_file_drag)
+        self.history_block.add_controller(drop_target)
         # Chat Offers
         self.offers_entry_block = Gtk.Box(
             orientation=Gtk.Orientation.VERTICAL,
@@ -1432,6 +1432,7 @@ class MainWindow(Gtk.ApplicationWindow):
                 self.notification_block.add_toast(
                     Adw.Toast(title=_("The file is not recognized"), timeout=2)
                 )
+        self.hide_placeholder()
 
     def go_back_in_explorer_panel(self, *a):
         self.main_path += "/.."
