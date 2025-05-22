@@ -5,14 +5,14 @@ name: Flatpak Build
 jobs:
   flatpak:
     name: "Flatpak"
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     container:
-      image: bilelmoussaoui/flatpak-github-actions:gnome-47
+      image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-48
       options: --privileged
     steps:
-      - uses: actions/checkout@v4
-      - uses: flatpak/flatpak-github-actions/flatpak-builder@master
-        with:
-          bundle: io.github.qwersyk.Newelle.flatpak
+    - uses: actions/checkout@v4
+    - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+      with:
+          bundle: newelle.flatpak
           manifest-path: io.github.qwersyk.Newelle.json
           cache-key: flatpak-builder-${{ github.sha }}
