@@ -1,5 +1,5 @@
 # Arabic translation for PACKAGE package.
-# Copyright (C) 2024 
+# Copyright (C) 2024
 # This file is distributed under the same license as the PACKAGE package.
 # amine saoud <amiensa@proton.me>, 2024.
 #
@@ -10,7 +10,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-05-21 16:08+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: Amine Saoud <amiensa@proton.me\n"
+"Last-Translator: Amine Saoud <amiensa@proton.me>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: Arabic\n"
 "MIME-Version: 1.0\n"

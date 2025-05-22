@@ -46,7 +46,7 @@
 - 🌐 **Website Reading**: Ask any information about any website by writing #https://.. question
 - 👤 **Profile Manager**: Create settings profiles and switch between them on the go
 - 📁 **Builtin File Manager**: Manage your files with the help of AI
-- 📝 **Rich Formatting**: Support for Markdown and LaTeX 
+- 📝 **Rich Formatting**: Support for Markdown and LaTeX
 - ✏️ **Chat editing**: Edit or remove any message and manage your prompts easily
 
 <picture>
@@ -102,11 +102,16 @@ gsettings set org.gnome.mutter center-new-windows true
     <img src="https://raw.githubusercontent.com/qwersyk/Assets/main/builder.svg" alt="builder">
   </picture>
 </a>
-
-1. Install GNOME Builder on your system.
-2. Clone the Newelle repository from GitHub.
-3. Open the project in GNOME Builder and compile it.
-4. Once compiled, you can run the program from the compiled executable.
+There are two ways of doing this
+  * `install.sh`
+    1. Install the latest Gnome SDK
+    2. Run `sh install.sh`
+    3. Profit!
+  * Gnome Builder
+    1. Install GNOME Builder on your system.
+    2. Clone the Newelle repository from GitHub.
+    3. Open the project in GNOME Builder and compile it.
+    4. Once compiled, you can run the program from the compiled executable.
 
 <a href="https://nixos.org">
   <picture>
@@ -119,7 +124,7 @@ gsettings set org.gnome.mutter center-new-windows true
 Run without installing:
 
 1. run `nix run github:qwersyk/Newelle`
- 
+
 For development:
 
 2. Clone the Newelle repository from GitHub.
@@ -134,6 +139,9 @@ For development:
   </picture>
 </a>
 
+> [!WARNING]
+> Localizations will not work on these builds! If you want your language to work, refer to the
+> "Builder" section
 1. Download the latest release from the [Github Actions](https://github.com/qwersyk/Newelle/actions)
 2. Extract the downloaded package.
 3. Install a flatpak package.
