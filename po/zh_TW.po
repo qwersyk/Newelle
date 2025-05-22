@@ -132,11 +132,11 @@ msgstr "使用快捷鍵以更便捷地使用 Newelle"
 
 #: src/window.py:471
 msgid "Prompt Control"
-msgstr "提示文字控制"
+msgstr "提示語控制"
 
 #: src/window.py:471
 msgid "Newelle gives you 100% prompt control. Tune your prompts for your use."
-msgstr "Newelle 讓您能夠完全控制提示文字。"
+msgstr "Newelle 讓您能夠完全控制提示語。"
 
 #: src/window.py:472
 msgid "Thread Editing"
@@ -677,7 +677,7 @@ msgstr "自訂提示語"
 
 #: src/constants.py:443
 msgid "Add your own custom prompt"
-msgstr "在此新增自訂的提示文字"
+msgstr "在此新增自訂的提示語"
 
 #: src/constants.py:454 src/ui/settings.py:45
 msgid "LLM"
@@ -755,11 +755,11 @@ msgstr "一般設定、指令虛擬化、記憶長度、自動生成聊天室名
 
 #: src/constants.py:504 src/ui/settings.py:46
 msgid "Prompts"
-msgstr "提示文字"
+msgstr "提示語"
 
 #: src/constants.py:506
 msgid "Prompts settings, custom extra prompt, custom prompts..."
-msgstr "提示文字設定、自訂提示文字等..."
+msgstr "提示語設定、自訂提示語等..."
 
 #: src/utility/util.py:136 src/handlers/llm/gemini_handler.py:113
 #: src/handlers/llm/newelle_handler.py:27 src/handlers/llm/custom_handler.py:20
