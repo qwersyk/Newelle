@@ -105,7 +105,7 @@ class GeminiHandler(LLMHandler):
 
         if not (self.get_setting("system_prompt", False) is None or self.get_setting("system_prompt", False)):
             r+= [ExtraSettings.ToggleSetting("force_system_prompt", _("Inject system prompt"), _("Even if the model doesn't support system prompts, put the prompts on top of the user message"), True)]
-        
+        r += [ExtraSettings.ToggleSetting("thinking", _("Enable Thinking"), _("Show thinking, disable it if your model does not support it"), True)] 
         r += [
             ExtraSettings.ToggleSetting("img_output", _("Image Output"), _("Enable image output, only supported by gemini-2.0-flash-exp"), False), 
             ExtraSettings.ToggleSetting(
@@ -250,6 +250,10 @@ class GeminiHandler(LLMHandler):
                 frequency_penalty=self.get_setting("frequency-penalty"),
                 max_output_tokens=int(self.get_setting("max_tokens")),
             )
+        if self.get_setting("thinking"):
+            generate_content_config.thinking_config = types.ThinkingConfig(
+                  include_thoughts=True
+                )
 
         history.append({"User": "User", "Message": prompt}) 
         if append_instructions is not None:
@@ -262,21 +266,35 @@ class GeminiHandler(LLMHandler):
                 model=self.get_setting("model"),
             )
             full_message = ""
+            thoughts = ""
+            thinking = False
             for chunk in response:
-                if not chunk.candidates or not chunk.candidates[0].content or not chunk.candidates[0].content.parts:
-                    continue
-                if chunk.candidates[0].content.parts[0].inline_data:
-                    args = (full_message.strip(), ) + tuple(extra_args)
-                    on_update(*args)
-                    file_name = self.generate_file_name(".png") 
-                    self.save_binary_file(
-                        file_name, chunk.candidates[0].content.parts[0].inline_data.data
-                    )
-                    full_message += "\n```image\n" + file_name + "\n```\n"
-                elif chunk.text is not None:
-                    full_message += chunk.text
-                    args = (full_message.strip(), ) + tuple(extra_args)
-                    on_update(*args)
+                for part in chunk.candidates[0].content.parts:
+                    if part.inline_data:
+                        args = (full_message.strip(), ) + tuple(extra_args)
+                        on_update(*args)
+                        file_name = self.generate_file_name(".png") 
+                        self.save_binary_file(
+                            file_name, part.inline_data.data
+                        )
+                        full_message += "\n```image\n" + file_name + "\n```\n"
+                    elif not part.text:
+                        continue
+                    elif part.thought:
+                        thoughts += part.text
+                        if not thinking:
+                            full_message += "<think> " + thoughts
+                        thinking = True
+                        full_message += part.text
+                        args = (full_message.strip(), ) + tuple(extra_args)
+                        on_update(*args)
+                    else:
+                        if thinking:
+                            thinking = False 
+                            full_message += "</think>\n"
+                        full_message += part.text
+                        args = (full_message.strip(), ) + tuple(extra_args)
+                        on_update(*args)
             return full_message.strip()
         except Exception as e:
             raise Exception("Message blocked: " + str(e))
