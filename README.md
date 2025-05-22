@@ -103,6 +103,7 @@ gsettings set org.gnome.mutter center-new-windows true
   </picture>
 </a>
 There are two ways of doing this
+
   * `install.sh`
     1. Install the latest Gnome SDK
     2. Run `sh install.sh`
@@ -140,8 +141,8 @@ For development:
 </a>
 
 > [!WARNING]
-> Localizations will not work on these builds! If you want your language to work, refer to the
-> "Builder" section
+> Localizations will not work on these builds! If you want your language to work, go to the
+> "Builder" section instead
 1. Download the latest release from the [Github Actions](https://github.com/qwersyk/Newelle/actions)
 2. Extract the downloaded package.
 3. Install a flatpak package.

@@ -19,8 +19,10 @@ jobs:
         run: |
           sudo apt update
           sudo apt install gettext
-          find src -type f -name "*.py" -exec grep -lE '_\(|N\(_' {} \; > po/POTFILES
-          find data -type f \( -name "*.xml" -o -name "*.in" \) >> po/POTFILES
+          (
+            find src -type f -name "*.py" -exec grep -lE '_\(|N\(_' {} \;
+            find data -type f \( -name "*.xml" -o -name "*.in" \)
+          ) >po/POTFILES
           xgettext -o po/newelle.pot $(cat po/POTFILES)
           cd po
           for file in $(ls *.po); do

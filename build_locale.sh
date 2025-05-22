@@ -1,5 +1,7 @@
-fd -t f -e py src | xargs rg -l "_\(|N\(_" >po/POTFILES
-fd -t f '.*\.xml$|.*\.in$' data >>po/POTFILES
+(
+	find src -type f -name "*.py" -exec grep -lE '_\(|N\(_' {} \;
+	find data -type f \( -name "*.xml" -o -name "*.in" \)
+) >po/POTFILES
 xgettext -o po/newelle.pot $(cat po/POTFILES)
 cd po
 for file in $(fd -e po); do
