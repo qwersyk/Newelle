@@ -15,7 +15,7 @@ class OpenAITTSHandler(TTSHandler):
 
     def get_extra_settings(self) -> list:
         return [
-            ExtraSettings.EntrySetting("api_key", _("API Key"), _("The API key to use"), ""),
+            ExtraSettings.EntrySetting("api_key", _("API Key"), _("The API key to use"), "", password=True),
             ExtraSettings.ComboSetting("voice", _("Voice"), _("The voice to use"), self.get_voices(), "alloy"),
             ExtraSettings.ComboSetting("model", _("Model"), _("The model to use"), self.get_models(), "tts-1"),
             ExtraSettings.EntrySetting("instructions", _("Instructions"), _("Instructions for the voice generation. Leave it blank to avoid this field"), "")

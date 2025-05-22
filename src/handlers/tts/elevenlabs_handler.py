@@ -9,7 +9,8 @@ class ElevenLabs(TTSHandler):
                 "title": _("API Key"),
                 "description": _("API Key for ElevenLabs"),
                 "type": "entry",
-                "default": ""
+                "default": "",
+                "password": True,
             },
             {
                 "key": "voice",

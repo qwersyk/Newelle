@@ -13,7 +13,8 @@ class GoogleSRHandler(STTHandler):
                 "title": _("API Key"),
                 "description": _("API Key for Google SR, write 'default' to use the default one"),
                 "type": "entry",
-                "default": "default"
+                "default": "default",
+                "password": True,
             },
             {
                 "key": "language",

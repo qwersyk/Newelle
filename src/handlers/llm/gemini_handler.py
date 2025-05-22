@@ -91,7 +91,7 @@ class GeminiHandler(LLMHandler):
 
     def get_extra_settings(self) -> list:
         r = [
-            ExtraSettings.EntrySetting("apikey", _("API Key (required)"), _("API key got from ai.google.dev"), ""), 
+            ExtraSettings.EntrySetting("apikey", _("API Key (required)"), _("API key got from ai.google.dev"), "", password=True), 
             ExtraSettings.ComboSetting(
                 "model",
                 _("Model"),
