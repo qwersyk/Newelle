@@ -1,9 +1,7 @@
 name: Rebuild Locales
 
 on:
-  push:
-    branches:
-      - master
+  workflow_dispatch:
 
 jobs:
   run-script:
