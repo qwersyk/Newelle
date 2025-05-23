@@ -116,7 +116,7 @@ msgstr "প্রম্পট"
 
 #: src/ui/settings.py:47
 msgid "Knowledge"
-msgstr ""
+msgstr "জ্ঞান"
 
 #: src/ui/settings.py:51
 msgid "Language Model"
@@ -166,11 +166,11 @@ msgstr "পুরানো কথোপকথনের স্মৃতি রা
 
 #: src/ui/settings.py:114 src/constants.py:406
 msgid "Web Search"
-msgstr ""
+msgstr "ওয়েব অনুসন্ধান"
 
 #: src/ui/settings.py:114
 msgid "Search information on the Web"
-msgstr ""
+msgstr "ওয়েবে তথ্য অনুসন্ধান করুন"
 
 #: src/ui/settings.py:126 src/handlers/tts/custom_openai_tts.py:19
 #: src/handlers/tts/groq_tts_handler.py:33 src/handlers/tts/tts.py:37
@@ -229,7 +229,7 @@ msgstr "লুকানো ফাইল দেখান"
 
 #: src/ui/settings.py:174
 msgid "Send with ENTER"
-msgstr ""
+msgstr "এন্টার দিয়ে পাঠান"
 
 #: src/ui/settings.py:174
 msgid ""
@@ -237,6 +237,9 @@ msgid ""
 "CTRL+ENTER. If disabled, messages will be sent with SHIFT+ENTER, and newline "
 "with enter"
 msgstr ""
+"সক্রিয় করা হলে, এন্টার দিয়ে বার্তা পাঠানো হবে, নতুন লাইনে যেতে CTRL+এন্টার "
+"ব্যবহার করুন। নিষ্ক্রিয় করা হলে, SHIFT+এন্টার দিয়ে বার্তা পাঠানো হবে, এবং "
+"এন্টার দিয়ে নতুন লাইন হবে।"
 
 #: src/ui/settings.py:180
 msgid "Remove thinking from history"
@@ -262,8 +265,7 @@ msgstr "চ্যাটের ক্রম উল্টান"
 
 #: src/ui/settings.py:192
 msgid "Show most recent chats on top in chat list (change chat to apply)"
-msgstr ""
-"চ্যাট তালিকায় সাম্প্রতিকতম চ্যাটগুলি উপরে দেখান (প্রয়োগ করতে চ্যাট পরিবর্তন করুন)"
+msgstr "চ্যাট তালিকায় সাম্প্রতিকতম চ্যাটগুলি উপরে দেখান (প্রয়োগ করতে চ্যাট পরিবর্তন করুন)"
 
 #: src/ui/settings.py:198
 msgid "Automatically Generate Chat Names"
@@ -377,7 +379,7 @@ msgstr ""
 
 #: src/ui/settings.py:321
 msgid "Maximum tokens for RAG"
-msgstr ""
+msgstr "RAG-এর জন্য সর্বোচ্চ টোকেন"
 
 #: src/ui/settings.py:321
 msgid ""
@@ -385,6 +387,8 @@ msgid ""
 "exceed this token count,\n"
 "dump all of them in the context"
 msgstr ""
+"RAG-এর জন্য ব্যবহার করা সর্বোচ্চ টোকেন সংখ্যা। যদি ডকুমেন্টগুলি এই টোকেন সংখ্যা "
+"অতিক্রম না করে, তাহলে তাদের সবগুলিকে প্রসঙ্গে ডাম্প করুন।"
 
 #: src/ui/settings.py:338
 msgid "Document Folder"
@@ -951,19 +955,19 @@ msgstr "প্রদানকারী ত্রুটি"
 
 #: src/handlers/llm/openrouter_handler.py:14
 msgid "Choose providers based on pricing/throughput or latency"
-msgstr ""
+msgstr "মূল্য/থ্রুপুট বা লেটেন্সির উপর ভিত্তি করে প্রদানকারী নির্বাচন করুন"
 
 #: src/handlers/llm/openrouter_handler.py:14
 msgid "Price"
-msgstr ""
+msgstr "মূল্য"
 
 #: src/handlers/llm/openrouter_handler.py:14
 msgid "Throughput"
-msgstr ""
+msgstr "থ্রুপুট"
 
 #: src/handlers/llm/openrouter_handler.py:14
 msgid "Latency"
-msgstr ""
+msgstr "লেটেন্সি"
 
 #: src/handlers/llm/openrouter_handler.py:15
 #, fuzzy
@@ -975,14 +979,16 @@ msgid ""
 "Add order of providers to use, names separated by a comma.\n"
 "Empty to not specify"
 msgstr ""
+"ব্যবহার করার জন্য প্রদানকারীদের ক্রম যোগ করুন, নামগুলি কমা দ্বারা পৃথক করা।\n"
+"নির্দিষ্ট না করতে খালি রাখুন।"
 
 #: src/handlers/llm/openrouter_handler.py:16
 msgid "Allow Fallbacks"
-msgstr ""
+msgstr "ফলব্যাক অনুমোদন করুন"
 
 #: src/handlers/llm/openrouter_handler.py:16
 msgid "Allow fallbacks to other providers"
-msgstr ""
+msgstr "অন্যান্য প্রদানকারীদের ফলব্যাক অনুমোদন করুন"
 
 #: src/handlers/llm/ollama_handler.py:150
 #: src/handlers/embeddings/ollama_handler.py:33
@@ -1125,33 +1131,32 @@ msgstr ""
 #: src/handlers/websearch/duckduckgo_handler.py:13
 #: src/handlers/websearch/tavily.py:21
 msgid "Max Results"
-msgstr ""
+msgstr "সর্বোচ্চ ফলাফল"
 
 #: src/handlers/websearch/duckduckgo_handler.py:13
 #: src/handlers/websearch/tavily.py:21
 msgid "Number of results to consider"
-msgstr ""
+msgstr "বিবেচনা করার জন্য ফলাফলের সংখ্যা"
 
 #: src/handlers/websearch/duckduckgo_handler.py:14
 msgid "Region"
-msgstr ""
+msgstr "অঞ্চল"
 
 #: src/handlers/websearch/duckduckgo_handler.py:14
 msgid "Region for the search results"
-msgstr ""
+msgstr "অনুসন্ধান ফলাফলের জন্য অঞ্চল"
 
 #: src/handlers/websearch/tavily.py:20
-#, fuzzy
 msgid "Token"
-msgstr "সর্বোচ্চ টোকেন"
+msgstr "Token"
 
 #: src/handlers/websearch/tavily.py:20
 msgid "Tavily API key"
-msgstr ""
+msgstr "Tavily API কী"
 
 #: src/handlers/websearch/tavily.py:22
 msgid "The depth of the search"
-msgstr ""
+msgstr "অনুসন্ধানের গভীরতা"
 
 #: src/handlers/websearch/tavily.py:22
 msgid ""
@@ -1160,10 +1165,15 @@ msgid ""
 "provides generic content snippets from each source. A basic search costs 1 "
 "API Credit, while an advanced search costs 2 API Credits."
 msgstr ""
+"অনুসন্ধানের গভীরতা। উন্নত অনুসন্ধান আপনার প্রশ্নের জন্য সবচেয়ে প্রাসঙ্গিক উৎস "
+"এবং বিষয়বস্তুর অংশগুলি পুনরুদ্ধার করার জন্য তৈরি করা হয়েছে, যখন মৌলিক "
+"অনুসন্ধান প্রতিটি উৎস থেকে সাধারণ বিষয়বস্তুর অংশ সরবরাহ করে। একটি মৌলিক "
+"অনুসন্ধানের জন্য ১টি এপিআই ক্রেডিট খরচ হয়, যখন একটি উন্নত অনুসন্ধানের জন্য "
+"২টি এপিআই ক্রেডিট খরচ হয়।"
 
 #: src/handlers/websearch/tavily.py:23
 msgid "The category of the search"
-msgstr ""
+msgstr "অনুসন্ধানের শ্রেণী"
 
 #: src/handlers/websearch/tavily.py:23
 msgid ""
@@ -1172,10 +1182,14 @@ msgid ""
 "mainstream media sources. General is for broader, more general-purpose "
 "searches that may include a wide range of sources."
 msgstr ""
+"অনুসন্ধানের শ্রেণী। সংবাদ রিয়েল-টাইম আপডেট পেতে উপযোগী, বিশেষ করে রাজনীতি, "
+"খেলাধুলা এবং মূলধারার মিডিয়া সূত্র দ্বারা আচ্ছাদিত বড় বর্তমান ঘটনা সম্পর্কে।"
+" সাধারণ অনুসন্ধান হল ব্যাপক, আরও সাধারণ-উদ্দেশ্যমূলক অনুসন্ধানের জন্য যা "
+"বিস্তৃত উৎস অন্তর্ভুক্ত করতে পারে।"
 
 #: src/handlers/websearch/tavily.py:24
 msgid "Chunks per source"
-msgstr ""
+msgstr "প্রতি উৎস থেকে খণ্ড"
 
 #: src/handlers/websearch/tavily.py:24
 msgid ""
@@ -1183,65 +1197,73 @@ msgid ""
 "length is maximum 500 characters. Available only when search depth is "
 "advanced."
 msgstr ""
+"প্রতিটি উৎস থেকে পুনরুদ্ধার করার জন্য বিষয়বস্তুর খণ্ডের সংখ্যা। প্রতিটি খণ্ডের "
+"দৈর্ঘ্য সর্বোচ্চ ৫০০ অক্ষর। শুধুমাত্র যখন অনুসন্ধানের গভীরতা উন্নত (advanced) "
+"থাকে তখনই উপলব্ধ।"
 
 #: src/handlers/websearch/tavily.py:25
 msgid "Number of days back from the current date to include"
-msgstr ""
+msgstr "বর্তমান তারিখ থেকে কত দিন পিছনের তথ্য অন্তর্ভুক্ত করা হবে তার সংখ্যা"
 
 #: src/handlers/websearch/tavily.py:25
 msgid "Available only if topic is news."
-msgstr ""
+msgstr "শুধুমাত্র যদি বিষয় (topic) সংবাদ হয় তাহলে উপলব্ধ।"
 
 #: src/handlers/websearch/tavily.py:26
 msgid "Include answer"
-msgstr ""
+msgstr "উত্তর অন্তর্ভুক্ত করুন"
 
 #: src/handlers/websearch/tavily.py:26
 msgid ""
 "Include an LLM-generated answer to the provided query. Basic search returns "
 "a quick answer. Advanced returns a more detailed answer."
 msgstr ""
+"প্রদত্ত প্রশ্নের জন্য একটি এলএলএম-জেনারেটেড উত্তর অন্তর্ভুক্ত করুন। মৌলিক "
+"অনুসন্ধান একটি দ্রুত উত্তর প্রদান করে। উন্নত অনুসন্ধান আরও বিস্তারিত উত্তর "
+"প্রদান করে।"
 
 #: src/handlers/websearch/tavily.py:27
 msgid "Include raw content"
-msgstr ""
+msgstr "কাঁচা বিষয়বস্তু অন্তর্ভুক্ত করুন"
 
 #: src/handlers/websearch/tavily.py:27
 msgid "Include the cleaned and parsed HTML content of each search result."
-msgstr ""
+msgstr "প্রতিটি অনুসন্ধান ফলাফলের পরিষ্কার এবং পার্স করা HTML বিষয়বস্তু অন্তর্ভুক্ত করুন।"
 
 #: src/handlers/websearch/tavily.py:28
 msgid "Include images"
-msgstr ""
+msgstr "ছবি অন্তর্ভুক্ত করুন"
 
 #: src/handlers/websearch/tavily.py:28
 msgid "Perform an image search and include the results in the response."
-msgstr ""
+msgstr "একটি চিত্র অনুসন্ধান করুন এবং ফলাফলগুলি প্রতিক্রিয়ায় অন্তর্ভুক্ত করুন।"
 
 #: src/handlers/websearch/tavily.py:29
 msgid "Include image descriptions"
-msgstr ""
+msgstr "ছবির বিবরণ অন্তর্ভুক্ত করুন"
 
 #: src/handlers/websearch/tavily.py:29
 msgid ""
 "When Include images is enabled, also add a descriptive text for each image."
 msgstr ""
+"যখন 'ছবি অন্তর্ভুক্ত করুন' সক্ষম করা হয়, তখন প্রতিটি ছবির জন্য একটি বর্ণনামূলক "
+"পাঠ্যও যোগ করুন।"
 
 #: src/handlers/websearch/tavily.py:30
 msgid "Include domains"
-msgstr ""
+msgstr "ডোমেইন অন্তর্ভুক্ত করুন"
 
 #: src/handlers/websearch/tavily.py:30
 msgid "A list of domains to specifically include in the search results."
-msgstr ""
+msgstr "অনুসন্ধান ফলাফলে বিশেষভাবে অন্তর্ভুক্ত করার জন্য ডোমেইনগুলির একটি তালিকা।"
 
 #: src/handlers/websearch/tavily.py:31
 msgid "Exclude domains"
-msgstr ""
+msgstr "ডোমেইন বাদ দিন"
 
 #: src/handlers/websearch/tavily.py:31
 msgid "A list of domains to specifically exclude from the search results."
-msgstr ""
+msgstr "অনুসন্ধান ফলাফল থেকে বিশেষভাবে বাদ দেওয়ার জন্য ডোমেইনগুলির একটি তালিকা।"
 
 #: src/handlers/embeddings/openai_handler.py:38
 msgid "API base url, change this to use different APIs"
@@ -1293,8 +1315,7 @@ msgstr "OpenAI API"
 
 #: src/constants.py:60
 msgid "OpenAI API. Custom endpoints supported. Use this for custom providers"
-msgstr ""
-"OpenAI API। কাস্টম এন্ডপয়েন্ট সমর্থিত। কাস্টম প্রদানকারীদের জন্য এটি ব্যবহার করুন"
+msgstr "OpenAI API। কাস্টম এন্ডপয়েন্ট সমর্থিত। কাস্টম প্রদানকারীদের জন্য এটি ব্যবহার করুন"
 
 #: src/constants.py:65
 msgid "Anthropic Claude"
@@ -1523,27 +1544,27 @@ msgstr ""
 
 #: src/constants.py:268
 msgid "SearXNG"
-msgstr ""
+msgstr "SearXNG"
 
 #: src/constants.py:269
 msgid "SearXNG - Private and selfhostable search engine"
-msgstr ""
+msgstr "SearXNG - ব্যক্তিগত এবং স্ব-হোস্টযোগ্য অনুসন্ধান ইঞ্জিন"
 
 #: src/constants.py:274
 msgid "DuckDuckGo"
-msgstr ""
+msgstr "DuckDuckGo"
 
 #: src/constants.py:275
 msgid "DuckDuckGo search"
-msgstr ""
+msgstr "DuckDuckGo অনুসন্ধান"
 
 #: src/constants.py:280
 msgid "Tavily"
-msgstr ""
+msgstr "Tavily"
 
 #: src/constants.py:281
 msgid "Tavily search"
-msgstr ""
+msgstr "Tavily অনুসন্ধান"
 
 #: src/constants.py:380
 msgid "Helpful assistant"
@@ -1571,7 +1592,7 @@ msgstr "বর্তমান ডিরেক্টরি কী"
 
 #: src/constants.py:407
 msgid "Allow the LLM to search on the internet"
-msgstr ""
+msgstr "এলএলএম-কে ইন্টারনেটে অনুসন্ধান করার অনুমতি দিন"
 
 #: src/constants.py:415
 msgid "Basic functionality"
@@ -1612,16 +1633,16 @@ msgstr "উন্নত LLM সেটিংস"
 
 #: src/constants.py:459 src/window.py:522
 msgid "TTS"
-msgstr ""
+msgstr "টিটিএস"
 
 #: src/constants.py:461
 #, fuzzy
 msgid "Text to Speech settings"
-msgstr "টেক্সট টু স্পিচ প্রোগ্রাম"
+msgstr "টেক্সট টু স্পিচ সেটিংস"
 
 #: src/constants.py:464
 msgid "STT"
-msgstr ""
+msgstr "এসটিটি"
 
 #: src/constants.py:466
 #, fuzzy
@@ -1659,7 +1680,7 @@ msgstr "নিরাপত্তা সেটিংস সক্ষম করু
 
 #: src/constants.py:484
 msgid "RAG"
-msgstr ""
+msgstr "RAG"
 
 #: src/constants.py:486
 #, fuzzy
@@ -1678,17 +1699,19 @@ msgstr "ইন্টারফেস"
 
 #: src/constants.py:496
 msgid "Interface settings, hidden files, reverse order, zoom..."
-msgstr ""
+msgstr "ইন্টারফেস সেটিংস, লুকানো ফাইল, বিপরীত ক্রম, জুম..."
 
 #: src/constants.py:501
 msgid ""
 "General settings, virtualization, offers, memory length, automatically "
 "generate chat name, current folder..."
 msgstr ""
+"সাধারণ সেটিংস, ভার্চুয়ালাইজেশন, অফার, মেমরির দৈর্ঘ্য, স্বয়ংক্রিয়ভাবে চ্যাটের "
+"নাম তৈরি করুন, বর্তমান ফোল্ডার..."
 
 #: src/constants.py:506
 msgid "Prompts settings, custom extra prompt, custom prompts..."
-msgstr ""
+msgstr "প্রম্পট সেটিংস, কাস্টম অতিরিক্ত প্রম্পট, কাস্টম প্রম্পট..."
 
 #: src/window.py:94
 msgid "Keyboard shorcuts"
@@ -1732,20 +1755,20 @@ msgstr "একটি বার্তা পাঠান..."
 
 #: src/window.py:464
 msgid "Ask about a website"
-msgstr ""
+msgstr "একটি ওয়েবসাইট সম্পর্কে জিজ্ঞাসা করুন"
 
 #: src/window.py:464
 msgid "Write #https://website.com in chat to ask information about a website"
-msgstr ""
+msgstr "একটি ওয়েবসাইট সম্পর্কে তথ্য জানতে চ্যাটে #https://website.com লিখুন"
 
 #: src/window.py:465
 #, fuzzy
 msgid "Check out our Extensions!"
-msgstr "এক্সটেনশনগুলির জন্য ব্যবহারকারী নির্দেশিকা"
+msgstr "আমাদের এক্সটেনশনগুলি দেখুন!"
 
 #: src/window.py:465
 msgid "We have a lot of extensions for different things. Check it out!"
-msgstr ""
+msgstr "আমাদের কাছে বিভিন্ন কাজের জন্য অনেক এক্সটেনশন আছে। দেখে নিন!"
 
 #: src/window.py:466
 #, fuzzy
@@ -1757,24 +1780,28 @@ msgid ""
 "Add your documents to your documents folder and chat using the information "
 "contained in them!"
 msgstr ""
+"আপনার নথিগুলি আপনার নথি ফোল্ডারে যোগ করুন এবং সেগুলিতে থাকা তথ্য ব্যবহার করে "
+"চ্যাট করুন!"
 
 #: src/window.py:467
 msgid "Surf the web!"
-msgstr ""
+msgstr "ওয়েব সার্ফ করুন!"
 
 #: src/window.py:467
 msgid ""
 "Enable web search to allow the LLM to surf the web and provide up to date "
 "answers"
 msgstr ""
+"এলএলএম-কে ওয়েব সার্ফ করতে এবং হালনাগাদ উত্তর প্রদান করতে সক্ষম করতে ওয়েব "
+"অনুসন্ধান চালু করুন।"
 
 #: src/window.py:468
 msgid "Mini Window"
-msgstr ""
+msgstr "মিনি উইন্ডো"
 
 #: src/window.py:468
 msgid "Ask questions on the fly using the mini window mode"
-msgstr ""
+msgstr "মিনি উইন্ডো মোড ব্যবহার করে দ্রুত প্রশ্ন জিজ্ঞাসা করুন"
 
 #: src/window.py:469
 #, fuzzy
@@ -1802,7 +1829,7 @@ msgstr "প্রম্পট নিয়ন্ত্রণ"
 
 #: src/window.py:471
 msgid "Newelle gives you 100% prompt control. Tune your prompts for your use."
-msgstr ""
+msgstr "নিউয়েল আপনাকে 100% প্রম্পট নিয়ন্ত্রণ দেয়। আপনার ব্যবহারের জন্য আপনার প্রম্পটগুলি টিউন করুন।"
 
 #: src/window.py:472
 #, fuzzy
@@ -1811,7 +1838,7 @@ msgstr "থ্রেড সম্পাদনা"
 
 #: src/window.py:472
 msgid "Check the programs and processes you run from Newelle"
-msgstr ""
+msgstr "নিউয়েল থেকে আপনি যে প্রোগ্রাম এবং প্রক্রিয়াগুলি চালান তা পরীক্ষা করুন"
 
 #: src/window.py:479
 #, fuzzy
@@ -1854,23 +1881,23 @@ msgstr "আপনার ভয়েস চিনতে পারিনি"
 
 #: src/window.py:1128
 msgid "Images"
-msgstr ""
+msgstr "ছবি"
 
 #: src/window.py:1132
 msgid "LLM Supported Files"
-msgstr ""
+msgstr "এলএলএম সমর্থিত ফাইল"
 
 #: src/window.py:1140
 msgid "RAG Supported files"
-msgstr ""
+msgstr "RAG সমর্থিত ফাইল"
 
 #: src/window.py:1158
 msgid "Supported Files"
-msgstr ""
+msgstr "সমর্থিত ফাইল"
 
 #: src/window.py:1162
 msgid "All Files"
-msgstr ""
+msgstr "সকল ফাইল"
 
 #: src/window.py:1168
 msgid "Attach file"
@@ -1985,25 +2012,27 @@ msgstr "চ্যাট তৈরি করা হয়েছে"
 
 #: data/io.github.qwersyk.Newelle.desktop.in:4
 msgid "Newelle: Your advanced chat bot"
-msgstr ""
+msgstr "নিউয়েল: আপনার উন্নত চ্যাট বট"
 
 #: data/io.github.qwersyk.Newelle.desktop.in:11
 msgid "chat;ai;gpt;chatgpt;assistant;"
-msgstr ""
+msgstr "চ্যাট;এআই;জিপিটি;চ্যাটজিপিটি;সহকারী;"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:9
 msgid ""
 "Train Newelle to do more with custom extensions and new AI modules, giving "
 "your chatbot endless possibilities."
 msgstr ""
+"কাস্টম এক্সটেনশন এবং নতুন এআই মডিউল ব্যবহার করে নিউয়েলকে আরও বেশি কিছু "
+"করার জন্য প্রশিক্ষণ দিন, যা আপনার চ্যাটবটকে অফুরন্ত সম্ভাবনা এনে দেবে।"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:11
 msgid "AI chatbot"
-msgstr ""
+msgstr "এআই চ্যাটবট"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:15
 msgid "Quick profile selection"
-msgstr ""
+msgstr "দ্রুত প্রোফাইল নির্বাচন"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:19
 #, fuzzy
@@ -2012,11 +2041,11 @@ msgstr "বার্তা স্ট্রিমিং"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:23
 msgid "More than 10 standard AI providers"
-msgstr ""
+msgstr "১০টির বেশি স্ট্যান্ডার্ড এআই প্রদানকারী"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:38
 msgid "Added new features"
-msgstr ""
+msgstr "নতুন বৈশিষ্ট্য যুক্ত করা হয়েছে"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:39
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:101
@@ -2025,52 +2054,54 @@ msgstr ""
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:116
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:121
 msgid "Bug fixes"
-msgstr ""
+msgstr "বাগ সংশোধন"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:46
 msgid "Website reading and web search with SearXNG, DuckDuckGo, and Tavily"
-msgstr ""
+msgstr "SearXNG, DuckDuckGo, এবং Tavily সহ ওয়েবসাইট পড়া এবং ওয়েব অনুসন্ধান"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:47
 msgid "Improved LaTeX rendering and document management"
-msgstr ""
+msgstr "উন্নত ল্যাটেক্স রেন্ডারিং এবং নথি ব্যবস্থাপনা"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:48
 msgid "New Thinking Widget and OpenRouter handler"
-msgstr ""
+msgstr "নতুন থিংকিং উইজেট এবং ওপেনরাউটার হ্যান্ডলার"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:49
 msgid "Vision support for Llama4 on Groq"
-msgstr ""
+msgstr "গ্রোকে Llama4-এর জন্য ভিশন সমর্থন"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:50
 msgid "New translations (Traditional Chinese, Bengali, Hindi)"
-msgstr ""
+msgstr "নতুন অনুবাদ (ঐতিহ্যবাহী চীনা, বাংলা, হিন্দি)"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:56
 msgid "Fixed many bugs, added some features!"
-msgstr ""
+msgstr "অনেক বাগ ঠিক করা হয়েছে, কিছু বৈশিষ্ট্য যুক্ত করা হয়েছে!"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:61
 msgid "Support for new features and bug fixes"
-msgstr ""
+msgstr "নতুন বৈশিষ্ট্য এবং বাগ সংশোধনের জন্য সমর্থন"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:66
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:71
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:76
 msgid "Added many new features and bug fixes"
-msgstr ""
+msgstr "অনেক নতুন বৈশিষ্ট্য এবং বাগ সংশোধন যুক্ত করা হয়েছে"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:81
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:86
 msgid "Added new features and bug fixes"
-msgstr ""
+msgstr "নতুন বৈশিষ্ট্য এবং বাগ সংশোধন যুক্ত করা হয়েছে"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:91
 msgid ""
 "Updated the g4f library with versioning, added user guides, improved "
 "extension browsing, and enhanced model handling."
 msgstr ""
+"g4f লাইব্রেরিকে সংস্করণ সহ আপডেট করা হয়েছে, ব্যবহারকারী নির্দেশিকা যোগ করা "
+"হয়েছে, এক্সটেনশন ব্রাউজিং উন্নত করা হয়েছে এবং মডেল হ্যান্ডলিং উন্নত করা হয়েছে।"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:96
 msgid ""
@@ -2078,32 +2109,35 @@ msgid ""
 "extension architecture, added new models, and introduced vision support, "
 "along with more capabilities."
 msgstr ""
+"বাগ সংশোধন এবং নতুন বৈশিষ্ট্য প্রয়োগ করা হয়েছে। আমরা এক্সটেনশন আর্কিটেকচার "
+"পরিবর্তন করেছি, নতুন মডেল যোগ করেছি এবং আরও অনেক ক্ষমতার সাথে ভিশন সমর্থন "
+"চালু করেছি।"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:126
 msgid "Stable version"
-msgstr ""
+msgstr "স্থিতিশীল সংস্করণ"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:131
 #, fuzzy
 msgid "Added extension"
-msgstr "এক্সটেনশন ডাউনলোড করুন"
+msgstr "এক্সটেনশন যুক্ত করা হয়েছে"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:136
 #, fuzzy
 msgid "Blacklist of commands"
-msgstr "কাস্টম কমান্ড"
+msgstr "কমান্ডের কালো তালিকা"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:141
 msgid "Localization"
-msgstr ""
+msgstr "স্থানীয়করণ"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:146
 msgid "Redesign"
-msgstr ""
+msgstr "পুনরায় নকশা"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:150
 msgid "Qwersyk"
-msgstr ""
+msgstr "Qwersyk"
 
 #~ msgid "Choose an extension"
 #~ msgstr "একটি এক্সটেনশন নির্বাচন করুন"
