@@ -28,23 +28,23 @@ msgstr "নিউয়েল"
 
 #: src/ui/widgets/thinking.py:27
 msgid "Thoughts"
-msgstr ""
+msgstr "চিন্তা"
 
 #: src/ui/widgets/thinking.py:28 src/ui/widgets/thinking.py:127
 msgid "Expand to see details"
-msgstr ""
+msgstr "বিস্তারিত দেখতে প্রসারিত করুন"
 
 #: src/ui/widgets/thinking.py:116
 msgid "Thinking..."
-msgstr ""
+msgstr "ভাবছে..."
 
 #: src/ui/widgets/thinking.py:117
 msgid "The LLM is thinking... Expand to see thought process"
-msgstr ""
+msgstr "এলএলএম ভাবছে... চিন্তার প্রক্রিয়া দেখতে প্রসারিত করুন"
 
 #: src/ui/widgets/thinking.py:129
 msgid "No thought process recorded"
-msgstr ""
+msgstr "কোনো চিন্তার প্রক্রিয়া রেকর্ড করা হয়নি"
 
 #: src/ui/extension.py:17 src/ui/presentation.py:131 src/constants.py:489
 #: src/window.py:92
@@ -54,7 +54,7 @@ msgstr "এক্সটেনশন"
 #: src/ui/extension.py:50
 #, fuzzy
 msgid "Installed Extensions"
-msgstr "এক্সটেনশন"
+msgstr "ইনস্টল করা এক্সটেনশন"
 
 #: src/ui/extension.py:85
 msgid "User guide to Extensions"
@@ -66,7 +66,7 @@ msgstr "নতুন এক্সটেনশন ডাউনলোড করু
 
 #: src/ui/extension.py:91
 msgid "Install extension from file..."
-msgstr ""
+msgstr "ফাইল থেকে এক্সটেনশন ইনস্টল করুন..."
 
 #: src/ui/thread_editing.py:6 src/window.py:91
 msgid "Thread editing"
