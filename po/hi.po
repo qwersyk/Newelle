@@ -28,23 +28,23 @@ msgstr "न्युएल"
 
 #: src/ui/widgets/thinking.py:27
 msgid "Thoughts"
-msgstr ""
+msgstr "विचार"
 
 #: src/ui/widgets/thinking.py:28 src/ui/widgets/thinking.py:127
 msgid "Expand to see details"
-msgstr ""
+msgstr "विवरण देखने के लिए विस्तार करें"
 
 #: src/ui/widgets/thinking.py:116
 msgid "Thinking..."
-msgstr ""
+msgstr "सोच रहा है..."
 
 #: src/ui/widgets/thinking.py:117
 msgid "The LLM is thinking... Expand to see thought process"
-msgstr ""
+msgstr "एलएलएम सोच रहा है... विचार प्रक्रिया देखने के लिए विस्तार करें"
 
 #: src/ui/widgets/thinking.py:129
 msgid "No thought process recorded"
-msgstr ""
+msgstr "कोई विचार प्रक्रिया दर्ज नहीं की गई है"
 
 #: src/ui/extension.py:17 src/ui/presentation.py:131 src/constants.py:489
 #: src/window.py:92
