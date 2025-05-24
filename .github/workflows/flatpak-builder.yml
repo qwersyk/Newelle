@@ -14,7 +14,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Install git
-        run: sudo apt-get update && sudo apt-get install -y git
+        run: apt-get update && apt-get install -y git
       - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
         with:
           bundle: newelle.flatpak
