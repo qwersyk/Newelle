@@ -32,6 +32,20 @@
 	<url type="bugtracker">https://github.com/qwersyk/Newelle/issues</url>
 	<content_rating type="oars-1.0" />
 	<releases>
+	    <release version="0.9.7" date="2025-05-24">
+            <description>
+                <ul>
+                  <li>Improve local documents reading and loading performances</li>
+                  <li>Add option to send with CTRL+Enter</li>
+                  <li>Improve codeblocks</li>
+                  <li>Fix Kokoro TTS</li>
+                  <li>Remove emoji from TTS</li>
+                  <li>Set API keys as password fields</li>
+                  <li>Add thinking support for Gemini</li>
+                  <li>Updated translations</li>
+                </ul>
+            </description>
+        </release>
 	    <release version="0.9.6" date="2025-05-10">
             <description>
                 <ul>

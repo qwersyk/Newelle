@@ -116,9 +116,9 @@ There are two ways of doing this
 
 <a href="https://nixos.org">
   <picture>
-    <source srcset="https://raw.githubusercontent.com/mipmip/newelle-Assets/refs/heads/main/nix.svg" media="(prefers-color-scheme: light)">
-    <source srcset="https://raw.githubusercontent.com/mipmip/newelle-Assets/refs/heads/main/nix-dark.svg" media="(prefers-color-scheme: dark)">
-    <img src="https://raw.githubusercontent.com/mipmip/newelle-Assets/refs/heads/main/nix.svg" alt="builder">
+    <source srcset="https://raw.githubusercontent.com/qwersyk/Assets/main/nix.svg" media="(prefers-color-scheme: light)">
+    <source srcset="https://raw.githubusercontent.com/qwersyk/Assets/main/nix-dark.svg" media="(prefers-color-scheme: dark)">
+    <img src="https://raw.githubusercontent.com/qwersyk/Assets/main/nix.svg" alt="builder">
   </picture>
 </a>
 
