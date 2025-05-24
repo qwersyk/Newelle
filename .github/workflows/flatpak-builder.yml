@@ -13,10 +13,6 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Generate version.txt from Git
-        run: |
-          git describe --tags --always 2>/dev/null > version.txt || echo "0.9.7" > version.txt
-
       - name: Flatpak build
         uses: flatpak/flatpak-github-actions/flatpak-builder@v6
         with:
