@@ -9,10 +9,33 @@ gnome.compile_resources('newelle',
   install_dir: pkgdatadir,
 )
 
+gitver_file = meson.project_source_root() / 'version.txt'
+
+version_from_file = run_command('cat', gitver_file, check: false).stdout().strip()
+
+version_from_git = run_command(
+  'bash', '-c',
+  'git -C @0@ describe --tags 2>/dev/null || echo ""'.format(meson.project_source_root()),
+  check: false
+).stdout().strip()
+
+full_version = ''
+
+if version_from_file != ''
+  full_version = version_from_file
+else
+  if version_from_git != ''
+    full_version = version_from_git
+  else
+    full_version = meson.project_version()
+  endif
+endif
+
+
 python = import('python')
 conf = configuration_data() 
 conf.set('PYTHON', python.find_installation('python3').path())
-conf.set('VERSION', meson.project_version())
+conf.set('VERSION', full_version)
 conf.set('localedir', join_paths(get_option('prefix'), get_option('localedir')))
 conf.set('pkgdatadir', pkgdatadir)
 
