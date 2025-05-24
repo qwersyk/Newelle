@@ -105,7 +105,13 @@ class GeminiHandler(LLMHandler):
 
         if not (self.get_setting("system_prompt", False) is None or self.get_setting("system_prompt", False)):
             r+= [ExtraSettings.ToggleSetting("force_system_prompt", _("Inject system prompt"), _("Even if the model doesn't support system prompts, put the prompts on top of the user message"), True)]
-        r += [ExtraSettings.ToggleSetting("thinking", _("Enable Thinking"), _("Show thinking, disable it if your model does not support it"), True)] 
+        r += [
+            ExtraSettings.NestedSetting("think", _("Thinking Settings"), _("Settings about thinking models"), [
+                ExtraSettings.ToggleSetting("thinking", _("Enable Thinking"), _("Show thinking, disable it if your model does not support it"), True),
+                ExtraSettings.ToggleSetting("enable_thinking_budget", _("Enable Thinking Budget"), _("If to enable thinking budget"), False),
+                ExtraSettings.ScaleSetting("thinking_budget", _("Thinking Budget"), _("How much time to spend thinking"), 8000, 0, 24576, 0),
+            ])
+        ]
         r += [
             ExtraSettings.ToggleSetting("img_output", _("Image Output"), _("Enable image output, only supported by gemini-2.0-flash-exp"), False), 
             ExtraSettings.ToggleSetting(
@@ -254,7 +260,11 @@ class GeminiHandler(LLMHandler):
             generate_content_config.thinking_config = types.ThinkingConfig(
                   include_thoughts=True
                 )
-
+        if self.get_setting("enable_thinking_budget"):
+            generate_content_config.thinking_config = types.ThinkingConfig(
+                thinking_budget=int(self.get_setting("thinking_budget")),
+                include_thoughts=self.get_setting("thinking")
+            )
         history.append({"User": "User", "Message": prompt}) 
         if append_instructions is not None:
             history.insert(0,{"User": "User", "Message": append_instructions})
@@ -269,6 +279,8 @@ class GeminiHandler(LLMHandler):
             thoughts = ""
             thinking = False
             for chunk in response:
+                if chunk.candidates[0].content.parts is None:
+                    continue
                 for part in chunk.candidates[0].content.parts:
                     if part.inline_data:
                         args = (full_message.strip(), ) + tuple(extra_args)
