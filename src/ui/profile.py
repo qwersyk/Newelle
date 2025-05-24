@@ -6,19 +6,25 @@ from ..constants import SETTINGS_GROUPS
 from gi.repository import Gdk, Gtk, Adw, Gio, GLib
 
 class ProfileDialog(Adw.PreferencesDialog):
-    def __init__(self, parent, profile_settings):
+    def __init__(self, parent, profile_settings, profile_name=None):
         super().__init__()
         self.pic_path = None
         self.profile_settings = profile_settings
         self.parent = parent
-        self.profile_name = "Assistant " + str(len(self.profile_settings) + 1)
+        
+        editing = False
+        if profile_name is None:
+            self.profile_name = "Assistant " + str(len(self.profile_settings) + 1)
+        else:
+            editing = True
+            self.original_name = profile_name
+            self.profile_name = profile_name
 
-        self.set_title("Create Profile")
+        self.editing = editing
         self.set_search_enabled(False)
-
         self.page = Adw.PreferencesPage()
         self.add(self.page)
-
+        
         self.avatar_group = Adw.PreferencesGroup()
         self.page.add(self.avatar_group)
         self.group = Adw.PreferencesGroup()
@@ -27,7 +33,7 @@ class ProfileDialog(Adw.PreferencesDialog):
         self.page.add(self.settings_group) 
         self.button_group = Adw.PreferencesGroup()
         self.page.add(self.button_group)
-
+        
         # Avatar
         self.avatar = Adw.Avatar(
             text=self.profile_name,
@@ -43,36 +49,59 @@ class ProfileDialog(Adw.PreferencesDialog):
 
         self.avatar_group.add(self.avatar)
 
-        row = Adw.EntryRow(title="Profile Name", text=self.profile_name)
+        row = Adw.EntryRow(title=_("Profile Name"), text=self.profile_name)
         row.connect("changed", self.on_profile_name_changed)
         self.entry = row
         self.group.add(row)
 
         self.settings_row = Adw.ExpanderRow(title=_("Copied Settings"), subtitle=_("Settings that will be copied to the new profile"))
-        self.build_settings_group()
+        self.build_settings_group(editing)
         self.settings_group.add(self.settings_row)
 
-        # Create Button
-        self.create_button = Gtk.Button(label="Create")
-        self.create_button.add_css_class("suggested-action")
-        self.create_button.connect("clicked", self.on_create_clicked)
-        self.button_group.add(self.create_button)
 
         # File Filter for image selection
         self.image_filter = Gtk.FileFilter()
         self.image_filter.set_name("Images")
         self.image_filter.add_mime_type("image/*")
         
-        g = Adw.PreferencesGroup()
-        warning = Gtk.Label(label=_("The settings of the current profile will be copied into the new one"), wrap=True)
-        g.add(warning)
-        self.page.add(g)
+        if not editing:
+            # Creating a profile
+            self.set_title(_("Create Profile"))
+            image = None
+        else:
+            # Editing a profile
+            self.set_title(_("Edit Profile"))
+            self.profile_name = profile_name
+            image = self.profile_settings[self.profile_name]["picture"]
+            editing = True
+       
+        if image is not None:
+            texture = Gdk.Texture.new_from_filename(image)
+            self.avatar.set_custom_image(
+               texture 
+            )
+            self.avatar.set_size(70)
 
-    def build_settings_group(self):
+        # Create Button
+        self.create_button = Gtk.Button(label=_("Create") if not editing else _("Apply"))
+        self.create_button.add_css_class("suggested-action")
+        self.create_button.connect("clicked", self.on_create_clicked)
+        self.button_group.add(self.create_button)
+
+        if not editing:
+            g = Adw.PreferencesGroup()
+            warning = Gtk.Label(label=_("The settings of the current profile will be copied into the new one"), wrap=True)
+            g.add(warning)
+            self.page.add(g)
+    
+    def build_settings_group(self, edit=False):
         self.settings_switches = {}
         for setting, group in SETTINGS_GROUPS.items():
             toggle = Gtk.Switch(valign=Gtk.Align.CENTER)
-            toggle.set_active(True)
+            if edit:
+                toggle.set_active(setting in self.profile_settings[self.profile_name]["settings_groups"])     
+            else:
+                toggle.set_active(True)
             row = Adw.ActionRow(title=group["title"], subtitle=group["description"], vexpand=False)
             row.add_suffix(toggle)
             self.settings_row.add_row(row)
@@ -143,7 +172,10 @@ class ProfileDialog(Adw.PreferencesDialog):
         
         # Get the custom image from the avatar (if any)
         copied_settings = [setting for setting in self.settings_switches if self.settings_switches[setting].get_active()] 
-        print(copied_settings)
+        if self.editing:
+            self.parent.switch_profile(self.original_name)
         self.parent.create_profile(self.profile_name, self.pic_path, {}, copied_settings)
         GLib.idle_add(self.parent.switch_profile, self.profile_name)
+        if self.editing and self.original_name != self.profile_name:
+            GLib.idle_add(self.parent.delete_profile, self.original_name)
         self.close()

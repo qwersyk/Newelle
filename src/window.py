@@ -906,6 +906,17 @@ class MainWindow(Gtk.ApplicationWindow):
         self.refresh_profiles_box()
         self.update_settings()
 
+    def edit_profile(self, profile_name):
+        """Edit a profile
+
+        Args:
+            profile_name (): name of the profile to edit
+        """
+        dialog = ProfileDialog(self, self.profile_settings, profile_name=profile_name)
+        dialog.present()
+        self.refresh_profiles_box()
+        self.update_settings()
+
     def get_profiles_box(self):
         """Create and build the profile selection dialog"""
         box = Gtk.Box()
@@ -945,9 +956,11 @@ class MainWindow(Gtk.ApplicationWindow):
                 self.profile_settings[profile]["picture"],
                 self.current_profile == profile,
                 allow_delete=profile != "Assistant" and profile != self.current_profile,
+                allow_edit=profile != "Assistant"
             )
             profiles.append(account_row)
             account_row.set_on_forget(self.delete_profile)
+            account_row.set_on_edit(self.edit_profile)
         # Separator
         separator = Gtk.Separator(
             sensitive=False, can_focus=False, can_target=False, focus_on_click=False
