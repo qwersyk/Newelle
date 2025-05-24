@@ -2963,7 +2963,7 @@ class MainWindow(Gtk.ApplicationWindow):
         scroll.set_child(label)
         content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         content.append(
-            Adw.HeaderBar(css_classes=["flat"], show_start_title_buttons=False)
+            Adw.HeaderBar(css_classes=["flat"], show_start_title_buttons=True)
         )
         content.append(scroll)
         dialog.set_child(content)
