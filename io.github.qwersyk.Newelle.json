@@ -26,7 +26,6 @@
     "*.la",
     "*.a"
   ],
-
   "modules": [
     "modules/vte.json",
     "modules/python3-requests.json",
@@ -47,6 +46,9 @@
       "name": "newelle",
       "builddir": true,
       "buildsystem": "meson",
+      "config-opts": [
+        "-Dprofile=development"
+      ],
       "sources": [
         {
           "type": "git",

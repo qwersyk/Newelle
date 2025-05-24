@@ -12,7 +12,12 @@ gnome.compile_resources('newelle',
 python = import('python')
 conf = configuration_data() 
 conf.set('PYTHON', python.find_installation('python3').path())
-conf.set('VERSION', meson.project_version())
+profile = get_option('profile')
+version_full = meson.project_version()
+if profile == 'development'
+  version_full += '-' + run_command('git', 'rev-parse', '--short', 'HEAD').stdout().strip()
+endif
+conf.set('VERSION', version_full)
 conf.set('localedir', join_paths(get_option('prefix'), get_option('localedir')))
 conf.set('pkgdatadir', pkgdatadir)
 
