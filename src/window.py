@@ -2741,6 +2741,8 @@ class MainWindow(Gtk.ApplicationWindow):
                         think
                     )
                 elif chunk.type == "text":
+                    if chunk.text == ".":
+                        continue
                     label = markwon_to_pango(chunk.text)
                     box.append(
                         Gtk.Label(
