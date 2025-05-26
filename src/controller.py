@@ -5,6 +5,8 @@ import os
 
 from gi.repository.GObject import new
 
+from .utility.media import get_image_base64
+
 from .extensions import NewelleExtension
 from .handlers.llm import LLMHandler
 from .handlers.tts import TTSHandler
@@ -256,6 +258,25 @@ class NewelleController:
         del self.newelle_settings.profile_settings[profile_name]
         self.settings.set_string("profiles", json.dumps(self.newelle_settings.profile_settings))
         self.update_settings()
+
+    def export_profile(self, profile_name, remove_passwords=False, export_propic=False):
+        """Export a profile
+
+        Args:
+            profile_name (): name of the profile to export
+        """
+        profiles = json.loads(self.settings.get_string("profiles"))
+        profile = profiles.get(profile_name, None)
+        if profile is None:
+            return {}
+        else:
+            if remove_passwords:
+                profile["settings"] = self.handlers.remove_passwords(profile["settings"])
+            if export_propic and profile["picture"] is not None:
+                profile["picture"] = get_image_base64(profile["picture"])
+            else:
+                profile["picture"] = None
+            return profile
 
 class NewelleSettings:
 
@@ -521,6 +542,7 @@ class HandlersManager:
         for key in AVAILABLE_WEBSEARCH:
             self.handlers[(key, self.convert_constants(AVAILABLE_WEBSEARCH), False)] = self.get_object(AVAILABLE_WEBSEARCH, key)
         self.handlers_cached.release()
+    
     def convert_constants(self, constants: str | dict[str, Any]) -> (str | dict):
         """Get an handler instance for the specified handler key
 
@@ -642,4 +664,19 @@ class HandlersManager:
             return AVAILABLE_WEBSEARCH
         else:
             raise Exception("Unknown handler")
-
+    
+    def remove_passwords(self, settings_dict):
+        for key, handler in self.handlers.items():
+            h : Handler = handler
+            settings = h.get_extra_settings_list()
+            if h.schema_key not in settings_dict:
+                continue
+            schema_settings = json.loads(settings_dict[h.schema_key])
+            if h.key not in schema_settings:
+                continue
+            for setting in settings:
+                key = setting.get("key", "")
+                if setting.get("password", False) or key in ["api", "token"]:
+                     schema_settings[h.key][setting["key"]] = setting["default"]
+            settings_dict[h.schema_key] = json.dumps(schema_settings)
+        return settings_dict
