@@ -2,6 +2,7 @@
 from pydoc import describe
 import shutil
 import os
+import json
 from ..constants import SETTINGS_GROUPS
 from gi.repository import Gdk, Gtk, Adw, Gio, GLib
 
@@ -74,14 +75,31 @@ class ProfileDialog(Adw.PreferencesDialog):
             self.profile_name = profile_name
             image = self.profile_settings[self.profile_name]["picture"]
             editing = True
+
+            self.export_group = Adw.PreferencesGroup(title=_("Export Profile"))
+            self.page.add(self.export_group)
+            
+            self.password_row = Adw.ActionRow(title=_("Export Passwords"), subtitle=_("Also export password-like fields"))
+            self.export_password = Gtk.Switch(active=False, valign=Gtk.Align.CENTER)
+            self.propic_row = Adw.ActionRow(title=_("Export Propic"), subtitle=_("Also export the profile picture"))
+            self.export_propic = Gtk.Switch(active=True, valign=Gtk.Align.CENTER)
+
+            self.propic_row.add_suffix(self.export_propic)
+            self.password_row.add_suffix(self.export_password)
+            self.export_group.add(self.password_row)
+            self.export_group.add(self.propic_row)
+
+            self.export_button_group = Adw.PreferencesGroup()
+            self.page.add(self.export_button_group)
+            self.export_button = Gtk.Button(label=_("Export Profile"))
+            self.export_button.connect("clicked", self.export_profile)
+            self.export_button_group.add(self.export_button)
        
         if image is not None:
             texture = Gdk.Texture.new_from_filename(image)
-            self.avatar.set_custom_image(
-               texture 
-            )
-            self.avatar.set_size(70)
-
+            self.avatar.set_show_initials(False)
+            self.avatar.set_custom_image(texture)
+            self.avatar.get_last_child().get_last_child().set_icon_size(Gtk.IconSize.LARGE)
         # Create Button
         self.create_button = Gtk.Button(label=_("Create") if not editing else _("Apply"))
         self.create_button.add_css_class("suggested-action")
@@ -93,13 +111,33 @@ class ProfileDialog(Adw.PreferencesDialog):
             warning = Gtk.Label(label=_("The settings of the current profile will be copied into the new one"), wrap=True)
             g.add(warning)
             self.page.add(g)
-    
+
+
+    def export_profile(self, button):
+        filter = Gtk.FileFilter(name=_("Newelle Profiles"), patterns=["*.np", "*.json"]) 
+        dialog = Gtk.FileDialog(accept_label=_("Export"), title=_("Export Profile"), default_filter=filter)
+        dialog.set_initial_name(self.original_name + ".np")
+        dialog.save(self.parent, None, self.export_profile_file)
+
+    def export_profile_file(self, dialog, result):
+        try:
+            file = dialog.save_finish(result)
+        except Exception as e:
+            print(e)
+            return
+
+        if file is not None:
+            path = file.get_path()
+            with open(path, "w") as f:
+                
+                json.dump(self.parent.controller.export_profile(self.original_name, self.export_password.get_active(), self.export_propic.get_active()), f)
+        
     def build_settings_group(self, edit=False):
         self.settings_switches = {}
         for setting, group in SETTINGS_GROUPS.items():
             toggle = Gtk.Switch(valign=Gtk.Align.CENTER)
             if edit:
-                toggle.set_active(setting in self.profile_settings[self.profile_name]["settings_groups"])     
+                toggle.set_active(setting in self.profile_settings[self.profile_name].get("settings_groups",[]))     
             else:
                 toggle.set_active(True)
             row = Adw.ActionRow(title=group["title"], subtitle=group["description"], vexpand=False)
