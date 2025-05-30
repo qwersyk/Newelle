@@ -69,6 +69,11 @@ class ProfileDialog(Adw.PreferencesDialog):
             # Creating a profile
             self.set_title(_("Create Profile"))
             image = None
+            self.import_group = Adw.PreferencesGroup(title=_("Import Profile"))
+            self.page.add(self.import_group)
+            self.import_button = Gtk.Button(label=_("Import Profile"))
+            self.import_button.connect("clicked", self.import_profile)
+            self.import_group.add(self.import_button)
         else:
             # Editing a profile
             self.set_title(_("Edit Profile"))
@@ -118,6 +123,26 @@ class ProfileDialog(Adw.PreferencesDialog):
         dialog = Gtk.FileDialog(accept_label=_("Export"), title=_("Export Profile"), default_filter=filter)
         dialog.set_initial_name(self.original_name + ".np")
         dialog.save(self.parent, None, self.export_profile_file)
+
+    def import_profile(self, button):
+        filter = Gtk.FileFilter(name=_("Newelle Profiles"), patterns=["*.np", "*.json"])
+        dialog = Gtk.FileDialog(accept_label=_("Import"), title=_("Import Profile"), default_filter=filter)
+        dialog.open(self.parent, None, self.import_profile_file)
+
+    def import_profile_file(self, dialog, result):
+        try:
+            file = dialog.open_finish(result)
+        except Exception as e:
+            print(e)
+            return
+
+        if file is not None:
+            path = file.get_path()
+            js = json.loads(open(path).read())
+            self.parent.controller.import_profile(js)
+            self.parent.reload_profiles()
+            self.close()
+            
 
     def export_profile_file(self, dialog, result):
         try:

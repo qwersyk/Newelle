@@ -1021,7 +1021,6 @@ class MainWindow(Gtk.ApplicationWindow):
             return
         print(f"Switching profile to {profile}")
         groups = self.profile_settings[self.current_profile].get("settings_groups", [])
-        print(groups)
         old_settings = get_settings_dict_by_groups(self.settings, groups, SETTINGS_GROUPS, ["current-profile", "profiles"] )
         self.profile_settings = json.loads(self.settings.get_string("profiles"))
         self.profile_settings[self.current_profile]["settings"] = old_settings
@@ -1034,6 +1033,11 @@ class MainWindow(Gtk.ApplicationWindow):
         self.focus_input()
         self.update_settings()
 
+        self.refresh_profiles_box()
+
+    def reload_profiles(self):
+        """Reload the profiles"""
+        self.focus_input()
         self.refresh_profiles_box()
 
     # Voice Recording
