@@ -91,6 +91,7 @@ class TTSHandler(Handler):
             p.start()
             self.play_process = p
             p.join()
+            p.terminate()
         except Exception as e:
             print("Error playing the audio: " + str(e))
             pass

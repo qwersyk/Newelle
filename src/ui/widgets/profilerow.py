@@ -2,12 +2,13 @@ from collections.abc import Callable
 from gi.repository import Adw, Gtk, Gdk
 
 class ProfileRow(Adw.ActionRow):
-    def __init__(self, profile, picture, selected, add=False, allow_delete=False):
+    def __init__(self, profile, picture, selected, add=False, allow_delete=False, allow_edit=False):
         super().__init__(height_request=50, width_request=250, use_markup=False, activatable=False)
         self.profile = profile
         self.add = add
         # Set properties
         self.on_forget_f = lambda _: None
+        self.on_edit_f = lambda _: None
         self.set_name(profile)
         self.set_title(profile)
         # Create prefix widget (GtkOverlay)
@@ -35,20 +36,36 @@ class ProfileRow(Adw.ActionRow):
             checkmark.add_css_class("blue-checkmark")
             overlay.add_overlay(checkmark)
 
+        if allow_edit:
+            edit_button = Gtk.Button()
+            edit_button.set_icon_name("document-edit-symbolic")
+            edit_button.set_valign(Gtk.Align.CENTER)
+            edit_button.set_tooltip_text(_("Edit Profile"))
+            edit_button.connect("clicked", self.on_edit)
+            edit_button.add_css_class("circular")
+            self.add_suffix(edit_button)
+        
         if allow_delete:
             # Create suffix widget (GtkButton)
             forget_button = Gtk.Button()
             forget_button.set_icon_name("user-trash-symbolic")
             forget_button.set_valign(Gtk.Align.CENTER)
-            forget_button.set_tooltip_text("Delete Profile")
+            forget_button.set_tooltip_text(_("Delete Profile"))
             # Signal handler for forget button clicked
             forget_button.connect("clicked", self.on_forget)
             # Apply style to forget button
             forget_button.add_css_class("circular")
             self.add_suffix(forget_button)
 
+
     def set_on_forget(self, f : Callable):
         self.on_forget_f = f
 
+    def set_on_edit(self, f: Callable):
+        self.on_edit_f = f
+
     def on_forget(self, widget):
         self.on_forget_f(self.profile)
+
+    def on_edit(self, widget):
+        self.on_edit_f(self.profile)

@@ -2,8 +2,10 @@ from dataclasses import dataclass
 from typing import Any
 from gi.repository import GLib, Gio
 import os
-
+import base64
 from gi.repository.GObject import new
+
+from .utility.media import get_image_base64, get_image_path
 
 from .extensions import NewelleExtension
 from .handlers.llm import LLMHandler
@@ -17,7 +19,8 @@ from .handlers.websearch import WebSearchHandler
 import time
 from .utility.system import is_flatpak
 from .utility.pip import install_module
-from .constants import AVAILABLE_INTEGRATIONS, AVAILABLE_WEBSEARCH, DIR_NAME, SCHEMA_ID, PROMPTS, AVAILABLE_STT, AVAILABLE_TTS, AVAILABLE_LLMS, AVAILABLE_RAGS, AVAILABLE_PROMPTS, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS
+from .utility.profile_settings import get_settings_dict_by_groups
+from .constants import AVAILABLE_INTEGRATIONS, AVAILABLE_WEBSEARCH, DIR_NAME, SCHEMA_ID, PROMPTS, AVAILABLE_STT, AVAILABLE_TTS, AVAILABLE_LLMS, AVAILABLE_RAGS, AVAILABLE_PROMPTS, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS, SETTINGS_GROUPS
 import threading
 import pickle
 import json
@@ -256,6 +259,56 @@ class NewelleController:
         del self.newelle_settings.profile_settings[profile_name]
         self.settings.set_string("profiles", json.dumps(self.newelle_settings.profile_settings))
         self.update_settings()
+
+    def update_current_profile(self):
+        """Update the current profile"""
+        self.current_profile = self.settings.get_string("current-profile")
+        self.profile_settings = self.newelle_settings.profile_settings
+        groups = self.profile_settings[self.current_profile].get("settings_groups", [])
+        old_settings = get_settings_dict_by_groups(self.settings, groups, SETTINGS_GROUPS, ["current-profile", "profiles"] )
+        self.profile_settings = json.loads(self.settings.get_string("profiles"))
+        self.profile_settings[self.current_profile]["settings"] = old_settings
+        self.settings.set_string("profiles", json.dumps(self.profile_settings))
+    
+    def export_profile(self, profile_name, remove_passwords=False, export_propic=False):
+        """Export a profile
+
+        Args:
+            profile_name (): name of the profile to export
+        """
+        self.update_current_profile()
+        profiles = json.loads(self.settings.get_string("profiles"))
+        profile = profiles.get(profile_name, None)
+        if profile is None:
+            return {}
+        else:
+            if remove_passwords:
+                profile["settings"] = self.handlers.remove_passwords(profile["settings"])
+            if export_propic and profile["picture"] is not None:
+                profile["picture"] = get_image_base64(profile["picture"])
+            else:
+                profile["picture"] = None
+            profile["name"] = profile_name
+            return profile
+
+    def import_profile(self, js):
+        """Import a profile
+
+        Args:
+            json (): json to import
+        """
+        self.newelle_settings.profile_settings[js["name"]] = js
+        if self.newelle_settings.profile_settings[js["name"]]["picture"] is not None:
+            image_str = self.newelle_settings.profile_settings[js["name"]]["picture"]
+            path = os.path.join(self.config_dir, "profiles")
+            raw_data = base64.b64decode(image_str[len("data:image/png;base64,"):])
+            img_path = os.path.join(path, js["name"] + ".png")
+            with open(img_path, "wb") as f:
+                f.write(raw_data)
+            self.newelle_settings.profile_settings[js["name"]]["picture"] = img_path
+
+        self.settings.set_string("profiles", json.dumps(self.newelle_settings.profile_settings))
+
 
 class NewelleSettings:
 
@@ -521,6 +574,7 @@ class HandlersManager:
         for key in AVAILABLE_WEBSEARCH:
             self.handlers[(key, self.convert_constants(AVAILABLE_WEBSEARCH), False)] = self.get_object(AVAILABLE_WEBSEARCH, key)
         self.handlers_cached.release()
+    
     def convert_constants(self, constants: str | dict[str, Any]) -> (str | dict):
         """Get an handler instance for the specified handler key
 
@@ -642,4 +696,19 @@ class HandlersManager:
             return AVAILABLE_WEBSEARCH
         else:
             raise Exception("Unknown handler")
-
+    
+    def remove_passwords(self, settings_dict):
+        for key, handler in self.handlers.items():
+            h : Handler = handler
+            settings = h.get_extra_settings_list()
+            if h.schema_key not in settings_dict:
+                continue
+            schema_settings = json.loads(settings_dict[h.schema_key])
+            if h.key not in schema_settings:
+                continue
+            for setting in settings:
+                key = setting.get("key", "")
+                if setting.get("password", False) or key in ["api", "token"]:
+                     schema_settings[h.key][setting["key"]] = setting["default"]
+            settings_dict[h.schema_key] = json.dumps(schema_settings)
+        return settings_dict
