@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-24 17:03+0800\n"
+"POT-Creation-Date: 2025-05-30 16:13+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: aritra saha<EMAIL@ADDRESS>\n"
 "Language-Team: Bengali\n"
@@ -97,7 +97,7 @@ msgstr "কাস্টম মডেল ব্যবহার করুন"
 
 #: src/handlers/embeddings/openai_handler.py:44
 #: src/handlers/llm/claude_handler.py:89 src/handlers/llm/claude_handler.py:93
-#: src/handlers/llm/openai_handler.py:84 src/handlers/llm/gemini_handler.py:97
+#: src/handlers/llm/gemini_handler.py:97 src/handlers/llm/openai_handler.py:84
 #: src/handlers/stt/whisper_handler.py:15
 #: src/handlers/stt/whispercpp_handler.py:39
 #: src/handlers/tts/custom_openai_tts.py:20
@@ -191,14 +191,14 @@ msgid "List of models available"
 msgstr "উপলব্ধ মডেলগুলির তালিকা"
 
 #: src/handlers/llm/newelle_handler.py:18
-#: src/handlers/llm/openai_handler.py:112
 #: src/handlers/llm/gemini_handler.py:131
+#: src/handlers/llm/openai_handler.py:112
 msgid "Privacy Policy"
 msgstr "গোপনীয়তা নীতি"
 
 #: src/handlers/llm/newelle_handler.py:19
-#: src/handlers/llm/openai_handler.py:112
 #: src/handlers/llm/gemini_handler.py:132
+#: src/handlers/llm/openai_handler.py:112
 msgid "Open privacy policy website"
 msgstr "গোপনীয়তা নীতি ওয়েবসাইট খুলুন"
 
@@ -235,69 +235,6 @@ msgstr "সর্বোচ্চ টোকেন"
 #: src/handlers/llm/claude_handler.py:96
 msgid "The maximum number of tokens to generate"
 msgstr "তৈরি করার জন্য টোকেনের সর্বোচ্চ সংখ্যা"
-
-#: src/handlers/llm/openai_handler.py:81 src/handlers/llm/gemini_handler.py:135
-msgid "Advanced Parameters"
-msgstr "উন্নত প্যারামিটার"
-
-#: src/handlers/llm/openai_handler.py:81
-msgid "Include parameters like Max Tokens, Top-P, Temperature, etc."
-msgstr "সর্বোচ্চ টোকেন, টপ-পি, তাপমাত্রা ইত্যাদি প্যারামিটার অন্তর্ভুক্ত করুন।"
-
-#: src/handlers/llm/openai_handler.py:84
-msgid "Name of the LLM Model to use"
-msgstr "ব্যবহার করার জন্য LLM মডেলের নাম"
-
-#: src/handlers/llm/openai_handler.py:103
-msgid "max Tokens"
-msgstr "সর্বোচ্চ টোকেন"
-
-#: src/handlers/llm/openai_handler.py:103
-msgid "Max tokens of the generated text"
-msgstr "তৈরি করা টেক্সটের সর্বোচ্চ টোকেন"
-
-#: src/handlers/llm/openai_handler.py:104
-msgid "Top-P"
-msgstr "টপ-পি"
-
-#: src/handlers/llm/openai_handler.py:104
-msgid "An alternative to sampling with temperature, called nucleus sampling"
-msgstr "তাপমাত্রার সাথে স্যাম্পলিংয়ের একটি বিকল্প, যাকে নিউক্লিয়াস স্যাম্পলিং বলা হয়"
-
-#: src/handlers/llm/openai_handler.py:105
-msgid "Temperature"
-msgstr "তাপমাত্রা"
-
-#: src/handlers/llm/openai_handler.py:105
-msgid ""
-"What sampling temperature to use. Higher values will make the output more "
-"random"
-msgstr ""
-"কোন স্যাম্পলিং তাপমাত্রা ব্যবহার করতে হবে। উচ্চতর মান আউটপুটকে আরও এলোমেলো করে তুলবে"
-
-#: src/handlers/llm/openai_handler.py:106
-msgid "Frequency Penalty"
-msgstr "ফ্রিকোয়েন্সি পেনাল্টি"
-
-#: src/handlers/llm/openai_handler.py:106
-msgid ""
-"Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
-"to repeat the same line verbatim"
-msgstr ""
-"সংখ্যা -2.0 এবং 2.0 এর মধ্যে। পজিটিভ মান মডেলের একই লাইন হুবহু পুনরাবৃত্তি করার "
-"সম্ভাবনা হ্রাস করে"
-
-#: src/handlers/llm/openai_handler.py:107
-msgid "Presence Penalty"
-msgstr "প্রেজেন্স পেনাল্টি"
-
-#: src/handlers/llm/openai_handler.py:107
-msgid ""
-"Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
-"to talk about new topics"
-msgstr ""
-"সংখ্যা -2.0 এবং 2.0 এর মধ্যে। পজিটিভ মান মডেলের নতুন বিষয় নিয়ে কথা বলার সম্ভাবনা "
-"হ্রাস করে"
 
 #: src/handlers/llm/openrouter_handler.py:14
 #, fuzzy
@@ -427,9 +364,72 @@ msgstr "নিরাপত্তা সেটিংস সক্ষম করু
 msgid "Enable google safety settings to avoid generating harmful content"
 msgstr "ক্ষতিকারক সামগ্রী তৈরি এড়াতে Google নিরাপত্তা সেটিংস সক্ষম করুন"
 
+#: src/handlers/llm/gemini_handler.py:135 src/handlers/llm/openai_handler.py:81
+msgid "Advanced Parameters"
+msgstr "উন্নত প্যারামিটার"
+
 #: src/handlers/llm/gemini_handler.py:135
 msgid "Enable advanced parameters"
 msgstr "উন্নত প্যারামিটার সক্ষম করুন"
+
+#: src/handlers/llm/openai_handler.py:81
+msgid "Include parameters like Max Tokens, Top-P, Temperature, etc."
+msgstr "সর্বোচ্চ টোকেন, টপ-পি, তাপমাত্রা ইত্যাদি প্যারামিটার অন্তর্ভুক্ত করুন।"
+
+#: src/handlers/llm/openai_handler.py:84
+msgid "Name of the LLM Model to use"
+msgstr "ব্যবহার করার জন্য LLM মডেলের নাম"
+
+#: src/handlers/llm/openai_handler.py:103
+msgid "max Tokens"
+msgstr "সর্বোচ্চ টোকেন"
+
+#: src/handlers/llm/openai_handler.py:103
+msgid "Max tokens of the generated text"
+msgstr "তৈরি করা টেক্সটের সর্বোচ্চ টোকেন"
+
+#: src/handlers/llm/openai_handler.py:104
+msgid "Top-P"
+msgstr "টপ-পি"
+
+#: src/handlers/llm/openai_handler.py:104
+msgid "An alternative to sampling with temperature, called nucleus sampling"
+msgstr "তাপমাত্রার সাথে স্যাম্পলিংয়ের একটি বিকল্প, যাকে নিউক্লিয়াস স্যাম্পলিং বলা হয়"
+
+#: src/handlers/llm/openai_handler.py:105
+msgid "Temperature"
+msgstr "তাপমাত্রা"
+
+#: src/handlers/llm/openai_handler.py:105
+msgid ""
+"What sampling temperature to use. Higher values will make the output more "
+"random"
+msgstr ""
+"কোন স্যাম্পলিং তাপমাত্রা ব্যবহার করতে হবে। উচ্চতর মান আউটপুটকে আরও এলোমেলো করে তুলবে"
+
+#: src/handlers/llm/openai_handler.py:106
+msgid "Frequency Penalty"
+msgstr "ফ্রিকোয়েন্সি পেনাল্টি"
+
+#: src/handlers/llm/openai_handler.py:106
+msgid ""
+"Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
+"to repeat the same line verbatim"
+msgstr ""
+"সংখ্যা -2.0 এবং 2.0 এর মধ্যে। পজিটিভ মান মডেলের একই লাইন হুবহু পুনরাবৃত্তি করার "
+"সম্ভাবনা হ্রাস করে"
+
+#: src/handlers/llm/openai_handler.py:107
+msgid "Presence Penalty"
+msgstr "প্রেজেন্স পেনাল্টি"
+
+#: src/handlers/llm/openai_handler.py:107
+msgid ""
+"Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
+"to talk about new topics"
+msgstr ""
+"সংখ্যা -2.0 এবং 2.0 এর মধ্যে। পজিটিভ মান মডেলের নতুন বিষয় নিয়ে কথা বলার সম্ভাবনা "
+"হ্রাস করে"
 
 #: src/handlers/rag/rag_handler.py:104
 msgid "Index your documents"
@@ -737,28 +737,6 @@ msgstr "ডোমেইন বাদ দিন"
 msgid "A list of domains to specifically exclude from the search results."
 msgstr "অনুসন্ধান ফলাফল থেকে বিশেষভাবে বাদ দেওয়ার জন্য ডোমেইনগুলির একটি তালিকা।"
 
-#: src/ui/profile.py:26 src/window.py:93
-msgid "Settings"
-msgstr "সেটিংস"
-
-#: src/ui/profile.py:51
-#, fuzzy
-msgid "Copied Settings"
-msgstr "সেটিংস"
-
-#: src/ui/profile.py:51
-#, fuzzy
-msgid "Settings that will be copied to the new profile"
-msgstr "বর্তমান প্রোফাইলের সেটিংস নতুনটিতে কপি করা হবে"
-
-#: src/ui/profile.py:67
-msgid "The settings of the current profile will be copied into the new one"
-msgstr "বর্তমান প্রোফাইলের সেটিংস নতুনটিতে কপি করা হবে"
-
-#: src/ui/profile.py:105
-msgid "Set profile picture"
-msgstr "প্রোফাইল ছবি সেট করুন"
-
 #: src/ui/shortcuts.py:6
 msgid "Help"
 msgstr "সাহায্য"
@@ -815,10 +793,6 @@ msgstr "কোনও থ্রেড চলছে না"
 msgid "Thread number: "
 msgstr "থ্রেড নম্বর: "
 
-#: src/ui/widgets/profilerow.py:25
-msgid "Select profile"
-msgstr "প্রোফাইল নির্বাচন করুন"
-
 #: src/ui/widgets/thinking.py:27
 msgid "Thoughts"
 msgstr "চিন্তা"
@@ -843,6 +817,20 @@ msgstr "কোনো চিন্তার প্রক্রিয়া রে
 #, fuzzy
 msgid "Newelle Tips"
 msgstr "নিউয়েল"
+
+#: src/ui/widgets/profilerow.py:26
+msgid "Select profile"
+msgstr "প্রোফাইল নির্বাচন করুন"
+
+#: src/ui/widgets/profilerow.py:43 src/ui/profile.py:79
+#, fuzzy
+msgid "Edit Profile"
+msgstr "প্রোফাইল নির্বাচন করুন"
+
+#: src/ui/widgets/profilerow.py:53
+#, fuzzy
+msgid "Delete Profile"
+msgstr "প্রোফাইল নির্বাচন করুন"
 
 #: src/ui/extension.py:17 src/ui/presentation.py:131 src/constants.py:489
 #: src/window.py:92
@@ -1288,6 +1276,84 @@ msgstr ""
 msgid "Understood"
 msgstr "বুঝেছি"
 
+#: src/ui/profile.py:33 src/window.py:93
+msgid "Settings"
+msgstr "সেটিংস"
+
+#: src/ui/profile.py:53
+msgid "Profile Name"
+msgstr ""
+
+#: src/ui/profile.py:58
+#, fuzzy
+msgid "Copied Settings"
+msgstr "সেটিংস"
+
+#: src/ui/profile.py:58
+#, fuzzy
+msgid "Settings that will be copied to the new profile"
+msgstr "বর্তমান প্রোফাইলের সেটিংস নতুনটিতে কপি করা হবে"
+
+#: src/ui/profile.py:70
+#, fuzzy
+msgid "Create Profile"
+msgstr "নতুন প্রোফাইল তৈরি করুন"
+
+#: src/ui/profile.py:72 src/ui/profile.py:74 src/ui/profile.py:129
+msgid "Import Profile"
+msgstr ""
+
+#: src/ui/profile.py:84 src/ui/profile.py:99 src/ui/profile.py:123
+msgid "Export Profile"
+msgstr ""
+
+#: src/ui/profile.py:87
+msgid "Export Passwords"
+msgstr ""
+
+#: src/ui/profile.py:87
+msgid "Also export password-like fields"
+msgstr ""
+
+#: src/ui/profile.py:89
+msgid "Export Propic"
+msgstr ""
+
+#: src/ui/profile.py:89
+#, fuzzy
+msgid "Also export the profile picture"
+msgstr "প্রোফাইল ছবি সেট করুন"
+
+#: src/ui/profile.py:109
+#, fuzzy
+msgid "Create"
+msgstr "একটি চ্যাট তৈরি করুন"
+
+#: src/ui/profile.py:109
+msgid "Apply"
+msgstr ""
+
+#: src/ui/profile.py:116
+msgid "The settings of the current profile will be copied into the new one"
+msgstr "বর্তমান প্রোফাইলের সেটিংস নতুনটিতে কপি করা হবে"
+
+#: src/ui/profile.py:122 src/ui/profile.py:128
+#, fuzzy
+msgid "Newelle Profiles"
+msgstr "নিউয়েল"
+
+#: src/ui/profile.py:123
+msgid "Export"
+msgstr ""
+
+#: src/ui/profile.py:129
+msgid "Import"
+msgstr ""
+
+#: src/ui/profile.py:197
+msgid "Set profile picture"
+msgstr "প্রোফাইল ছবি সেট করুন"
+
 #: src/constants.py:20
 msgid "Newelle Demo API"
 msgstr "নিউয়েল ডেমো API"
@@ -1729,10 +1795,6 @@ msgstr ""
 msgid "Prompts settings, custom extra prompt, custom prompts..."
 msgstr "প্রম্পট সেটিংস, কাস্টম অতিরিক্ত প্রম্পট, কাস্টম প্রম্পট..."
 
-#: src/controller.py:129 src/window.py:1807
-msgid "Chat "
-msgstr "চ্যাট "
-
 #: src/main.py:200
 msgid "Terminal threads are still running in the background"
 msgstr "টার্মিনাল থ্রেডগুলি এখনও ব্যাকগ্রাউন্ডে চলছে"
@@ -1760,6 +1822,10 @@ msgstr "ফোল্ডার রিবুট করা হয়েছে"
 #: src/main.py:249
 msgid "Chat is created"
 msgstr "চ্যাট তৈরি করা হয়েছে"
+
+#: src/controller.py:132 src/window.py:1824
+msgid "Chat "
+msgstr "চ্যাট "
 
 #: src/window.py:94
 msgid "Keyboard shorcuts"
@@ -1921,87 +1987,87 @@ msgstr " মডেল"
 msgid "Search Models..."
 msgstr "মডেল অনুসন্ধান করুন..."
 
-#: src/window.py:962
+#: src/window.py:975
 msgid "Create new profile"
 msgstr "নতুন প্রোফাইল তৈরি করুন"
 
-#: src/window.py:1091
+#: src/window.py:1108
 msgid "Could not recognize your voice"
 msgstr "আপনার ভয়েস চিনতে পারিনি"
 
-#: src/window.py:1128
+#: src/window.py:1145
 msgid "Images"
 msgstr "ছবি"
 
-#: src/window.py:1132
+#: src/window.py:1149
 msgid "LLM Supported Files"
 msgstr "এলএলএম সমর্থিত ফাইল"
 
-#: src/window.py:1140
+#: src/window.py:1157
 msgid "RAG Supported files"
 msgstr "RAG সমর্থিত ফাইল"
 
-#: src/window.py:1158
+#: src/window.py:1175
 msgid "Supported Files"
 msgstr "সমর্থিত ফাইল"
 
-#: src/window.py:1162
+#: src/window.py:1179
 msgid "All Files"
 msgstr "সকল ফাইল"
 
-#: src/window.py:1168
+#: src/window.py:1185
 msgid "Attach file"
 msgstr "ফাইল সংযুক্ত করুন"
 
-#: src/window.py:1393 src/window.py:1625
+#: src/window.py:1410 src/window.py:1642
 msgid "File not found"
 msgstr "ফাইল পাওয়া যায়নি"
 
-#: src/window.py:1411
+#: src/window.py:1428
 msgid "The file cannot be sent until the program is finished"
 msgstr "প্রোগ্রাম শেষ না হওয়া পর্যন্ত ফাইলটি পাঠানো যাবে না"
 
-#: src/window.py:1433
+#: src/window.py:1450
 msgid "The file is not recognized"
 msgstr "ফাইলটি স্বীকৃত নয়"
 
-#: src/window.py:1500
+#: src/window.py:1517
 msgid "Folder is Empty"
 msgstr "ফোল্ডারটি খালি"
 
-#: src/window.py:1645
+#: src/window.py:1662
 msgid "You can no longer continue the message."
 msgstr "আপনি আর বার্তাটি চালিয়ে যেতে পারবেন না।"
 
-#: src/window.py:1670
+#: src/window.py:1687
 msgid "You can no longer regenerate the message."
 msgstr "আপনি আর বার্তাটি পুনরায় তৈরি করতে পারবেন না।"
 
-#: src/window.py:1778
+#: src/window.py:1795
 msgid "Chat is empty"
 msgstr "চ্যাট খালি"
 
-#: src/window.py:1847
+#: src/window.py:1864
 msgid "Chat is cleared"
 msgstr "চ্যাট পরিষ্কার করা হয়েছে"
 
-#: src/window.py:1872
+#: src/window.py:1889
 msgid "The message was canceled and deleted from history"
 msgstr "বার্তাটি বাতিল করা হয়েছে এবং ইতিহাস থেকে মুছে ফেলা হয়েছে"
 
-#: src/window.py:1916
+#: src/window.py:1933
 msgid "The message cannot be sent until the program is finished"
 msgstr "প্রোগ্রাম শেষ না হওয়া পর্যন্ত বার্তাটি পাঠানো যাবে না"
 
-#: src/window.py:2829
+#: src/window.py:2848
 msgid "You can't edit a message while the program is running."
 msgstr "প্রোগ্রাম চলার সময় আপনি একটি বার্তা সম্পাদনা করতে পারবেন না।"
 
-#: src/window.py:2953
+#: src/window.py:2972
 msgid "Prompt content"
 msgstr "প্রম্পট বিষয়বস্তু"
 
-#: src/window.py:3209
+#: src/window.py:3228
 msgid ""
 "The neural network has access to your computer and any data in this chat and "
 "can run commands, be careful, we are not responsible for the neural network. "
@@ -2011,7 +2077,7 @@ msgstr ""
 "এবং এটি কমান্ড চালাতে পারে, সতর্ক থাকুন, আমরা নিউরাল নেটওয়ার্কের জন্য দায়ী নই। "
 "কোনো সংবেদনশীল তথ্য শেয়ার করবেন না।"
 
-#: src/window.py:3238
+#: src/window.py:3257
 msgid ""
 "The neural network has access to any data in this chat, be careful, we are "
 "not responsible for the neural network. Do not share any sensitive "
@@ -2020,15 +2086,15 @@ msgstr ""
 "নিউরাল নেটওয়ার্কের এই চ্যাটের যেকোনো ডেটাতে অ্যাক্সেস রয়েছে, সতর্ক থাকুন, আমরা "
 "নিউরাল নেটওয়ার্কের জন্য দায়ী নই। কোনো সংবেদনশীল তথ্য শেয়ার করবেন না।"
 
-#: src/window.py:3285
+#: src/window.py:3304
 msgid "Wrong folder path"
 msgstr "ভুল ফোল্ডার পাথ"
 
-#: src/window.py:3318
+#: src/window.py:3337
 msgid "Thread has not been completed, thread number: "
 msgstr "থ্রেড সম্পন্ন হয়নি, থ্রেড নম্বর: "
 
-#: src/window.py:3327
+#: src/window.py:3346
 msgid "Failed to open the folder"
 msgstr "ফোল্ডার খুলতে ব্যর্থ"
 
