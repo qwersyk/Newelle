@@ -55,6 +55,7 @@ ui_sources = [
   'ui/screenrecorder.py',
   'ui/shortcuts.py',
   'ui/mini_window.py',
+  'ui/explorer.py',
 ]
 
 widgets_sources = [
