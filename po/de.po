@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Newelle 0.2.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-24 17:03+0800\n"
+"POT-Creation-Date: 2025-05-30 16:13+0800\n"
 "PO-Revision-Date: 2023-07-10 09:54+0200\n"
 "Last-Translator: Yehor Qwersyk <qsk@gmx.at>\n"
 "Language-Team: German\n"
@@ -97,7 +97,7 @@ msgstr "Befehle automatisch ausführen"
 
 #: src/handlers/embeddings/openai_handler.py:44
 #: src/handlers/llm/claude_handler.py:89 src/handlers/llm/claude_handler.py:93
-#: src/handlers/llm/openai_handler.py:84 src/handlers/llm/gemini_handler.py:97
+#: src/handlers/llm/gemini_handler.py:97 src/handlers/llm/openai_handler.py:84
 #: src/handlers/stt/whisper_handler.py:15
 #: src/handlers/stt/whispercpp_handler.py:39
 #: src/handlers/tts/custom_openai_tts.py:20
@@ -187,14 +187,14 @@ msgid "List of models available"
 msgstr ""
 
 #: src/handlers/llm/newelle_handler.py:18
-#: src/handlers/llm/openai_handler.py:112
 #: src/handlers/llm/gemini_handler.py:131
+#: src/handlers/llm/openai_handler.py:112
 msgid "Privacy Policy"
 msgstr ""
 
 #: src/handlers/llm/newelle_handler.py:19
-#: src/handlers/llm/openai_handler.py:112
 #: src/handlers/llm/gemini_handler.py:132
+#: src/handlers/llm/openai_handler.py:112
 msgid "Open privacy policy website"
 msgstr ""
 
@@ -228,64 +228,6 @@ msgstr ""
 
 #: src/handlers/llm/claude_handler.py:96
 msgid "The maximum number of tokens to generate"
-msgstr ""
-
-#: src/handlers/llm/openai_handler.py:81 src/handlers/llm/gemini_handler.py:135
-msgid "Advanced Parameters"
-msgstr ""
-
-#: src/handlers/llm/openai_handler.py:81
-msgid "Include parameters like Max Tokens, Top-P, Temperature, etc."
-msgstr ""
-
-#: src/handlers/llm/openai_handler.py:84
-msgid "Name of the LLM Model to use"
-msgstr ""
-
-#: src/handlers/llm/openai_handler.py:103
-msgid "max Tokens"
-msgstr ""
-
-#: src/handlers/llm/openai_handler.py:103
-msgid "Max tokens of the generated text"
-msgstr ""
-
-#: src/handlers/llm/openai_handler.py:104
-msgid "Top-P"
-msgstr ""
-
-#: src/handlers/llm/openai_handler.py:104
-msgid "An alternative to sampling with temperature, called nucleus sampling"
-msgstr ""
-
-#: src/handlers/llm/openai_handler.py:105
-msgid "Temperature"
-msgstr ""
-
-#: src/handlers/llm/openai_handler.py:105
-msgid ""
-"What sampling temperature to use. Higher values will make the output more "
-"random"
-msgstr ""
-
-#: src/handlers/llm/openai_handler.py:106
-msgid "Frequency Penalty"
-msgstr ""
-
-#: src/handlers/llm/openai_handler.py:106
-msgid ""
-"Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
-"to repeat the same line verbatim"
-msgstr ""
-
-#: src/handlers/llm/openai_handler.py:107
-msgid "Presence Penalty"
-msgstr ""
-
-#: src/handlers/llm/openai_handler.py:107
-msgid ""
-"Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
-"to talk about new topics"
 msgstr ""
 
 #: src/handlers/llm/openrouter_handler.py:14
@@ -407,8 +349,66 @@ msgstr ""
 msgid "Enable google safety settings to avoid generating harmful content"
 msgstr ""
 
+#: src/handlers/llm/gemini_handler.py:135 src/handlers/llm/openai_handler.py:81
+msgid "Advanced Parameters"
+msgstr ""
+
 #: src/handlers/llm/gemini_handler.py:135
 msgid "Enable advanced parameters"
+msgstr ""
+
+#: src/handlers/llm/openai_handler.py:81
+msgid "Include parameters like Max Tokens, Top-P, Temperature, etc."
+msgstr ""
+
+#: src/handlers/llm/openai_handler.py:84
+msgid "Name of the LLM Model to use"
+msgstr ""
+
+#: src/handlers/llm/openai_handler.py:103
+msgid "max Tokens"
+msgstr ""
+
+#: src/handlers/llm/openai_handler.py:103
+msgid "Max tokens of the generated text"
+msgstr ""
+
+#: src/handlers/llm/openai_handler.py:104
+msgid "Top-P"
+msgstr ""
+
+#: src/handlers/llm/openai_handler.py:104
+msgid "An alternative to sampling with temperature, called nucleus sampling"
+msgstr ""
+
+#: src/handlers/llm/openai_handler.py:105
+msgid "Temperature"
+msgstr ""
+
+#: src/handlers/llm/openai_handler.py:105
+msgid ""
+"What sampling temperature to use. Higher values will make the output more "
+"random"
+msgstr ""
+
+#: src/handlers/llm/openai_handler.py:106
+msgid "Frequency Penalty"
+msgstr ""
+
+#: src/handlers/llm/openai_handler.py:106
+msgid ""
+"Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
+"to repeat the same line verbatim"
+msgstr ""
+
+#: src/handlers/llm/openai_handler.py:107
+msgid "Presence Penalty"
+msgstr ""
+
+#: src/handlers/llm/openai_handler.py:107
+msgid ""
+"Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
+"to talk about new topics"
 msgstr ""
 
 #: src/handlers/rag/rag_handler.py:104
@@ -696,27 +696,6 @@ msgstr ""
 msgid "A list of domains to specifically exclude from the search results."
 msgstr ""
 
-#: src/ui/profile.py:26 src/window.py:93
-msgid "Settings"
-msgstr "Einstellungen"
-
-#: src/ui/profile.py:51
-#, fuzzy
-msgid "Copied Settings"
-msgstr "Einstellungen"
-
-#: src/ui/profile.py:51
-msgid "Settings that will be copied to the new profile"
-msgstr ""
-
-#: src/ui/profile.py:67
-msgid "The settings of the current profile will be copied into the new one"
-msgstr ""
-
-#: src/ui/profile.py:105
-msgid "Set profile picture"
-msgstr ""
-
 #: src/ui/shortcuts.py:6
 msgid "Help"
 msgstr "Hilfe"
@@ -774,10 +753,6 @@ msgstr "Es laufen keine Threads"
 msgid "Thread number: "
 msgstr "Thread-Nummer: "
 
-#: src/ui/widgets/profilerow.py:25
-msgid "Select profile"
-msgstr ""
-
 #: src/ui/widgets/thinking.py:27
 msgid "Thoughts"
 msgstr ""
@@ -800,6 +775,18 @@ msgstr ""
 
 #: src/ui/widgets/tipscarousel.py:41
 msgid "Newelle Tips"
+msgstr ""
+
+#: src/ui/widgets/profilerow.py:26
+msgid "Select profile"
+msgstr ""
+
+#: src/ui/widgets/profilerow.py:43 src/ui/profile.py:79
+msgid "Edit Profile"
+msgstr ""
+
+#: src/ui/widgets/profilerow.py:53
+msgid "Delete Profile"
 msgstr ""
 
 #: src/ui/extension.py:17 src/ui/presentation.py:131 src/constants.py:489
@@ -1222,6 +1209,80 @@ msgstr ""
 
 #: src/ui/settings.py:965
 msgid "Understood"
+msgstr ""
+
+#: src/ui/profile.py:33 src/window.py:93
+msgid "Settings"
+msgstr "Einstellungen"
+
+#: src/ui/profile.py:53
+msgid "Profile Name"
+msgstr ""
+
+#: src/ui/profile.py:58
+#, fuzzy
+msgid "Copied Settings"
+msgstr "Einstellungen"
+
+#: src/ui/profile.py:58
+msgid "Settings that will be copied to the new profile"
+msgstr ""
+
+#: src/ui/profile.py:70
+msgid "Create Profile"
+msgstr ""
+
+#: src/ui/profile.py:72 src/ui/profile.py:74 src/ui/profile.py:129
+msgid "Import Profile"
+msgstr ""
+
+#: src/ui/profile.py:84 src/ui/profile.py:99 src/ui/profile.py:123
+msgid "Export Profile"
+msgstr ""
+
+#: src/ui/profile.py:87
+msgid "Export Passwords"
+msgstr ""
+
+#: src/ui/profile.py:87
+msgid "Also export password-like fields"
+msgstr ""
+
+#: src/ui/profile.py:89
+msgid "Export Propic"
+msgstr ""
+
+#: src/ui/profile.py:89
+msgid "Also export the profile picture"
+msgstr ""
+
+#: src/ui/profile.py:109
+#, fuzzy
+msgid "Create"
+msgstr "Einen Chat erstellen"
+
+#: src/ui/profile.py:109
+msgid "Apply"
+msgstr ""
+
+#: src/ui/profile.py:116
+msgid "The settings of the current profile will be copied into the new one"
+msgstr ""
+
+#: src/ui/profile.py:122 src/ui/profile.py:128
+msgid "Newelle Profiles"
+msgstr ""
+
+#: src/ui/profile.py:123
+msgid "Export"
+msgstr ""
+
+#: src/ui/profile.py:129
+msgid "Import"
+msgstr ""
+
+#: src/ui/profile.py:197
+msgid "Set profile picture"
 msgstr ""
 
 #: src/constants.py:20
@@ -1651,10 +1712,6 @@ msgstr ""
 msgid "Prompts settings, custom extra prompt, custom prompts..."
 msgstr ""
 
-#: src/controller.py:129 src/window.py:1807
-msgid "Chat "
-msgstr "Chat "
-
 #: src/main.py:200
 msgid "Terminal threads are still running in the background"
 msgstr "Terminal-Threads laufen noch im Hintergrund"
@@ -1682,6 +1739,10 @@ msgstr "Ordner wird neu gestartet"
 #: src/main.py:249
 msgid "Chat is created"
 msgstr "Chat wurde erstellt"
+
+#: src/controller.py:132 src/window.py:1824
+msgid "Chat "
+msgstr "Chat "
 
 #: src/window.py:94
 #, fuzzy
@@ -1833,88 +1894,88 @@ msgstr ""
 msgid "Search Models..."
 msgstr ""
 
-#: src/window.py:962
+#: src/window.py:975
 msgid "Create new profile"
 msgstr ""
 
-#: src/window.py:1091
+#: src/window.py:1108
 msgid "Could not recognize your voice"
 msgstr ""
 
-#: src/window.py:1128
+#: src/window.py:1145
 msgid "Images"
 msgstr ""
 
-#: src/window.py:1132
+#: src/window.py:1149
 msgid "LLM Supported Files"
 msgstr ""
 
-#: src/window.py:1140
+#: src/window.py:1157
 msgid "RAG Supported files"
 msgstr ""
 
-#: src/window.py:1158
+#: src/window.py:1175
 msgid "Supported Files"
 msgstr ""
 
-#: src/window.py:1162
+#: src/window.py:1179
 msgid "All Files"
 msgstr ""
 
-#: src/window.py:1168
+#: src/window.py:1185
 msgid "Attach file"
 msgstr ""
 
-#: src/window.py:1393 src/window.py:1625
+#: src/window.py:1410 src/window.py:1642
 msgid "File not found"
 msgstr "Datei nicht gefunden"
 
-#: src/window.py:1411
+#: src/window.py:1428
 msgid "The file cannot be sent until the program is finished"
 msgstr "Die Datei kann erst gesendet werden, wenn das Programm beendet ist"
 
-#: src/window.py:1433
+#: src/window.py:1450
 msgid "The file is not recognized"
 msgstr "Die Datei wird nicht erkannt"
 
-#: src/window.py:1500
+#: src/window.py:1517
 msgid "Folder is Empty"
 msgstr "Der Ordner ist leer"
 
-#: src/window.py:1645
+#: src/window.py:1662
 msgid "You can no longer continue the message."
 msgstr "Sie können die Nachricht nicht mehr fortsetzen."
 
-#: src/window.py:1670
+#: src/window.py:1687
 msgid "You can no longer regenerate the message."
 msgstr "Sie können die Nachricht nicht mehr neu generieren."
 
-#: src/window.py:1778
+#: src/window.py:1795
 msgid "Chat is empty"
 msgstr "Der Chat ist leer"
 
-#: src/window.py:1847
+#: src/window.py:1864
 msgid "Chat is cleared"
 msgstr "Chat wurde gelöscht"
 
-#: src/window.py:1872
+#: src/window.py:1889
 msgid "The message was canceled and deleted from history"
 msgstr "Die Nachricht wurde abgebrochen und aus dem Verlauf gelöscht"
 
-#: src/window.py:1916
+#: src/window.py:1933
 msgid "The message cannot be sent until the program is finished"
 msgstr "Die Nachricht kann erst gesendet werden, wenn das Programm beendet ist"
 
-#: src/window.py:2829
+#: src/window.py:2848
 msgid "You can't edit a message while the program is running."
 msgstr "Sie können keine Nachricht bearbeiten, während das Programm läuft."
 
-#: src/window.py:2953
+#: src/window.py:2972
 #, fuzzy
 msgid "Prompt content"
 msgstr "Prompt-Steuerung"
 
-#: src/window.py:3209
+#: src/window.py:3228
 #, fuzzy
 msgid ""
 "The neural network has access to your computer and any data in this chat and "
@@ -1924,7 +1985,7 @@ msgstr ""
 "Achtung: Das neuronale Netzwerk hat Zugriff auf Ihren Computer.Seien Sie "
 "vorsichtig, wir übernehmen keine Verantwortung für das neuronale Netzwerk."
 
-#: src/window.py:3238
+#: src/window.py:3257
 #, fuzzy
 msgid ""
 "The neural network has access to any data in this chat, be careful, we are "
@@ -1934,15 +1995,15 @@ msgstr ""
 "Achtung: Das neuronale Netzwerk hat Zugriff auf Ihren Computer.Seien Sie "
 "vorsichtig, wir übernehmen keine Verantwortung für das neuronale Netzwerk."
 
-#: src/window.py:3285
+#: src/window.py:3304
 msgid "Wrong folder path"
 msgstr "Falscher Ordnerpfad"
 
-#: src/window.py:3318
+#: src/window.py:3337
 msgid "Thread has not been completed, thread number: "
 msgstr "Thread wurde nicht abgeschlossen, Thread-Nummer: "
 
-#: src/window.py:3327
+#: src/window.py:3346
 msgid "Failed to open the folder"
 msgstr "Fehler beim Öffnen des Ordners"
 

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Newelle 0.3.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-24 17:03+0800\n"
+"POT-Creation-Date: 2025-05-30 16:13+0800\n"
 "PO-Revision-Date: 2025-03-26 19:30\n"
 "Last-Translator: Oliver Tzeng（曾嘉禾）<olivertzeng@proton.me>\n"
 "Language-Team: l10n-tw\n"
@@ -96,7 +96,7 @@ msgstr "使用自訂模型"
 
 #: src/handlers/embeddings/openai_handler.py:44
 #: src/handlers/llm/claude_handler.py:89 src/handlers/llm/claude_handler.py:93
-#: src/handlers/llm/openai_handler.py:84 src/handlers/llm/gemini_handler.py:97
+#: src/handlers/llm/gemini_handler.py:97 src/handlers/llm/openai_handler.py:84
 #: src/handlers/stt/whisper_handler.py:15
 #: src/handlers/stt/whispercpp_handler.py:39
 #: src/handlers/tts/custom_openai_tts.py:20
@@ -187,14 +187,14 @@ msgid "List of models available"
 msgstr "可使用的模型列表"
 
 #: src/handlers/llm/newelle_handler.py:18
-#: src/handlers/llm/openai_handler.py:112
 #: src/handlers/llm/gemini_handler.py:131
+#: src/handlers/llm/openai_handler.py:112
 msgid "Privacy Policy"
 msgstr "隱私政策"
 
 #: src/handlers/llm/newelle_handler.py:19
-#: src/handlers/llm/openai_handler.py:112
 #: src/handlers/llm/gemini_handler.py:132
+#: src/handlers/llm/openai_handler.py:112
 msgid "Open privacy policy website"
 msgstr "開啟隱私政策網站"
 
@@ -231,64 +231,6 @@ msgstr "Token 限制"
 #: src/handlers/llm/claude_handler.py:96
 msgid "The maximum number of tokens to generate"
 msgstr "使用的最多 Token 數量"
-
-#: src/handlers/llm/openai_handler.py:81 src/handlers/llm/gemini_handler.py:135
-msgid "Advanced Parameters"
-msgstr "更多設定"
-
-#: src/handlers/llm/openai_handler.py:81
-msgid "Include parameters like Max Tokens, Top-P, Temperature, etc."
-msgstr "包含 Token 限制、Top-P、溫度等參數"
-
-#: src/handlers/llm/openai_handler.py:84
-msgid "Name of the LLM Model to use"
-msgstr "使用的大型語言模型"
-
-#: src/handlers/llm/openai_handler.py:103
-msgid "max Tokens"
-msgstr "Token 限制"
-
-#: src/handlers/llm/openai_handler.py:103
-msgid "Max tokens of the generated text"
-msgstr "使用的最多 Token 數量"
-
-#: src/handlers/llm/openai_handler.py:104
-msgid "Top-P"
-msgstr "Top-P"
-
-#: src/handlers/llm/openai_handler.py:104
-msgid "An alternative to sampling with temperature, called nucleus sampling"
-msgstr "一種調整隨機性的替代的技術"
-
-#: src/handlers/llm/openai_handler.py:105
-msgid "Temperature"
-msgstr "溫度"
-
-#: src/handlers/llm/openai_handler.py:105
-msgid ""
-"What sampling temperature to use. Higher values will make the output more "
-"random"
-msgstr "溫度越高隨機性越高"
-
-#: src/handlers/llm/openai_handler.py:106
-msgid "Frequency Penalty"
-msgstr "重複懲罰"
-
-#: src/handlers/llm/openai_handler.py:106
-msgid ""
-"Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
-"to repeat the same line verbatim"
-msgstr "數值介於±2.0。數值越大將減少輸出重複率"
-
-#: src/handlers/llm/openai_handler.py:107
-msgid "Presence Penalty"
-msgstr "存在懲罰"
-
-#: src/handlers/llm/openai_handler.py:107
-msgid ""
-"Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
-"to talk about new topics"
-msgstr "數值介於±2.0。數值越大將讓模型搬出新話題的機率"
 
 #: src/handlers/llm/openrouter_handler.py:14
 msgid "Provider Sorting"
@@ -408,9 +350,67 @@ msgstr "啟用安全設定"
 msgid "Enable google safety settings to avoid generating harmful content"
 msgstr "啟用 Google 的安全設定以排除不當內容"
 
+#: src/handlers/llm/gemini_handler.py:135 src/handlers/llm/openai_handler.py:81
+msgid "Advanced Parameters"
+msgstr "更多設定"
+
 #: src/handlers/llm/gemini_handler.py:135
 msgid "Enable advanced parameters"
 msgstr "調整更多參數"
+
+#: src/handlers/llm/openai_handler.py:81
+msgid "Include parameters like Max Tokens, Top-P, Temperature, etc."
+msgstr "包含 Token 限制、Top-P、溫度等參數"
+
+#: src/handlers/llm/openai_handler.py:84
+msgid "Name of the LLM Model to use"
+msgstr "使用的大型語言模型"
+
+#: src/handlers/llm/openai_handler.py:103
+msgid "max Tokens"
+msgstr "Token 限制"
+
+#: src/handlers/llm/openai_handler.py:103
+msgid "Max tokens of the generated text"
+msgstr "使用的最多 Token 數量"
+
+#: src/handlers/llm/openai_handler.py:104
+msgid "Top-P"
+msgstr "Top-P"
+
+#: src/handlers/llm/openai_handler.py:104
+msgid "An alternative to sampling with temperature, called nucleus sampling"
+msgstr "一種調整隨機性的替代的技術"
+
+#: src/handlers/llm/openai_handler.py:105
+msgid "Temperature"
+msgstr "溫度"
+
+#: src/handlers/llm/openai_handler.py:105
+msgid ""
+"What sampling temperature to use. Higher values will make the output more "
+"random"
+msgstr "溫度越高隨機性越高"
+
+#: src/handlers/llm/openai_handler.py:106
+msgid "Frequency Penalty"
+msgstr "重複懲罰"
+
+#: src/handlers/llm/openai_handler.py:106
+msgid ""
+"Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
+"to repeat the same line verbatim"
+msgstr "數值介於±2.0。數值越大將減少輸出重複率"
+
+#: src/handlers/llm/openai_handler.py:107
+msgid "Presence Penalty"
+msgstr "存在懲罰"
+
+#: src/handlers/llm/openai_handler.py:107
+msgid ""
+"Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
+"to talk about new topics"
+msgstr "數值介於±2.0。數值越大將讓模型搬出新話題的機率"
 
 #: src/handlers/rag/rag_handler.py:104
 msgid "Index your documents"
@@ -708,26 +708,6 @@ msgstr "排除網域"
 msgid "A list of domains to specifically exclude from the search results."
 msgstr "在搜尋結果內排除這些網域"
 
-#: src/ui/profile.py:26 src/window.py:93
-msgid "Settings"
-msgstr "設定"
-
-#: src/ui/profile.py:51
-msgid "Copied Settings"
-msgstr "已複製設定"
-
-#: src/ui/profile.py:51
-msgid "Settings that will be copied to the new profile"
-msgstr "新設定檔將複製的設定"
-
-#: src/ui/profile.py:67
-msgid "The settings of the current profile will be copied into the new one"
-msgstr "目前的設定將複製到新的設定檔"
-
-#: src/ui/profile.py:105
-msgid "Set profile picture"
-msgstr "設定頭像"
-
 #: src/ui/shortcuts.py:6
 msgid "Help"
 msgstr "幫助"
@@ -784,10 +764,6 @@ msgstr "沒有正在執行的執行緒"
 msgid "Thread number: "
 msgstr "執行緒序號："
 
-#: src/ui/widgets/profilerow.py:25
-msgid "Select profile"
-msgstr "選擇設定檔"
-
 #: src/ui/widgets/thinking.py:27
 msgid "Thoughts"
 msgstr "思考過程"
@@ -811,6 +787,18 @@ msgstr "沒有思考過程"
 #: src/ui/widgets/tipscarousel.py:41
 msgid "Newelle Tips"
 msgstr "Newelle 小秘訣"
+
+#: src/ui/widgets/profilerow.py:26
+msgid "Select profile"
+msgstr "選擇設定檔"
+
+#: src/ui/widgets/profilerow.py:43 src/ui/profile.py:79
+msgid "Edit Profile"
+msgstr "編輯設定檔"
+
+#: src/ui/widgets/profilerow.py:53
+msgid "Delete Profile"
+msgstr "刪除設定檔"
 
 #: src/ui/extension.py:17 src/ui/presentation.py:131 src/constants.py:489
 #: src/window.py:92
@@ -1236,6 +1224,78 @@ msgstr "Newelle 沒有足夠權限在系統內執行指令，請執行以下指�
 msgid "Understood"
 msgstr "確認"
 
+#: src/ui/profile.py:33 src/window.py:93
+msgid "Settings"
+msgstr "設定"
+
+#: src/ui/profile.py:53
+msgid "Profile Name"
+msgstr "設定檔名稱"
+
+#: src/ui/profile.py:58
+msgid "Copied Settings"
+msgstr "已複製設定"
+
+#: src/ui/profile.py:58
+msgid "Settings that will be copied to the new profile"
+msgstr "新設定檔將複製的設定"
+
+#: src/ui/profile.py:70
+msgid "Create Profile"
+msgstr "建立新設定檔"
+
+#: src/ui/profile.py:72 src/ui/profile.py:74 src/ui/profile.py:129
+msgid "Import Profile"
+msgstr "導入設定檔"
+
+#: src/ui/profile.py:84 src/ui/profile.py:99 src/ui/profile.py:123
+msgid "Export Profile"
+msgstr "導出設定檔"
+
+#: src/ui/profile.py:87
+msgid "Export Passwords"
+msgstr "導出密碼"
+
+#: src/ui/profile.py:87
+msgid "Also export password-like fields"
+msgstr "並且導出密鑰內容"
+
+#: src/ui/profile.py:89
+msgid "Export Propic"
+msgstr "導出頭像"
+
+#: src/ui/profile.py:89
+msgid "Also export the profile picture"
+msgstr "並且導出頭像"
+
+#: src/ui/profile.py:109
+msgid "Create"
+msgstr "新增聊天室"
+
+#: src/ui/profile.py:109
+msgid "Apply"
+msgstr "套用"
+
+#: src/ui/profile.py:116
+msgid "The settings of the current profile will be copied into the new one"
+msgstr "目前的設定將複製到新的設定檔"
+
+#: src/ui/profile.py:122 src/ui/profile.py:128
+msgid "Newelle Profiles"
+msgstr "Newelle 設定檔"
+
+#: src/ui/profile.py:123
+msgid "Export"
+msgstr "導出"
+
+#: src/ui/profile.py:129
+msgid "Import"
+msgstr "導入"
+
+#: src/ui/profile.py:197
+msgid "Set profile picture"
+msgstr "設定頭像"
+
 #: src/constants.py:20
 msgid "Newelle Demo API"
 msgstr "Newelle 預覽 API"
@@ -1655,10 +1715,6 @@ msgstr "一般設定、指令虛擬化、記憶長度、自動生成聊天室名
 msgid "Prompts settings, custom extra prompt, custom prompts..."
 msgstr "提示語設定、自訂提示語等..."
 
-#: src/controller.py:129 src/window.py:1807
-msgid "Chat "
-msgstr "聊天室 "
-
 #: src/main.py:200
 msgid "Terminal threads are still running in the background"
 msgstr "終端機執行緒正在背景中執行"
@@ -1686,6 +1742,10 @@ msgstr "重新整理資料夾完成"
 #: src/main.py:249
 msgid "Chat is created"
 msgstr "已建立新的聊天室"
+
+#: src/controller.py:132 src/window.py:1824
+msgid "Chat "
+msgstr "聊天室 "
 
 #: src/window.py:94
 msgid "Keyboard shorcuts"
@@ -1831,87 +1891,87 @@ msgstr " 個模型"
 msgid "Search Models..."
 msgstr "搜尋模型......"
 
-#: src/window.py:962
+#: src/window.py:975
 msgid "Create new profile"
 msgstr "建立新設定檔"
 
-#: src/window.py:1091
+#: src/window.py:1108
 msgid "Could not recognize your voice"
 msgstr "無法辨識聲音"
 
-#: src/window.py:1128
+#: src/window.py:1145
 msgid "Images"
 msgstr "圖片"
 
-#: src/window.py:1132
+#: src/window.py:1149
 msgid "LLM Supported Files"
 msgstr "大型語言模型支援的檔案"
 
-#: src/window.py:1140
+#: src/window.py:1157
 msgid "RAG Supported files"
 msgstr "RAG 支援的檔案"
 
-#: src/window.py:1158
+#: src/window.py:1175
 msgid "Supported Files"
 msgstr "支援的檔案"
 
-#: src/window.py:1162
+#: src/window.py:1179
 msgid "All Files"
 msgstr "所有檔案"
 
-#: src/window.py:1168
+#: src/window.py:1185
 msgid "Attach file"
 msgstr "嵌入檔案"
 
-#: src/window.py:1393 src/window.py:1625
+#: src/window.py:1410 src/window.py:1642
 msgid "File not found"
 msgstr "找不到檔案"
 
-#: src/window.py:1411
+#: src/window.py:1428
 msgid "The file cannot be sent until the program is finished"
 msgstr "在執行完成前無法上傳檔案"
 
-#: src/window.py:1433
+#: src/window.py:1450
 msgid "The file is not recognized"
 msgstr "檔案無法辨識"
 
-#: src/window.py:1500
+#: src/window.py:1517
 msgid "Folder is Empty"
 msgstr "資料夾為空"
 
-#: src/window.py:1645
+#: src/window.py:1662
 msgid "You can no longer continue the message."
 msgstr "您無法繼續此訊息。"
 
-#: src/window.py:1670
+#: src/window.py:1687
 msgid "You can no longer regenerate the message."
 msgstr "您無法重新生成此訊息。"
 
-#: src/window.py:1778
+#: src/window.py:1795
 msgid "Chat is empty"
 msgstr "聊天室為空"
 
-#: src/window.py:1847
+#: src/window.py:1864
 msgid "Chat is cleared"
 msgstr "已清除聊天紀錄"
 
-#: src/window.py:1872
+#: src/window.py:1889
 msgid "The message was canceled and deleted from history"
 msgstr "此訊息已從聊天紀錄中取消並且刪除"
 
-#: src/window.py:1916
+#: src/window.py:1933
 msgid "The message cannot be sent until the program is finished"
 msgstr "在執行完成前無法傳送訊息"
 
-#: src/window.py:2829
+#: src/window.py:2848
 msgid "You can't edit a message while the program is running."
 msgstr "在執行完成前無法編輯訊息"
 
-#: src/window.py:2953
+#: src/window.py:2972
 msgid "Prompt content"
 msgstr "提示內容"
 
-#: src/window.py:3209
+#: src/window.py:3228
 msgid ""
 "The neural network has access to your computer and any data in this chat and "
 "can run commands, be careful, we are not responsible for the neural network. "
@@ -1921,7 +1981,7 @@ msgstr ""
 "我們對這些模型不承擔任何責任\n"
 "請勿分享機密資訊"
 
-#: src/window.py:3238
+#: src/window.py:3257
 msgid ""
 "The neural network has access to any data in this chat, be careful, we are "
 "not responsible for the neural network. Do not share any sensitive "
@@ -1931,15 +1991,15 @@ msgstr ""
 "我們對這些模型不承擔任何責任\n"
 "請勿分享機密資訊"
 
-#: src/window.py:3285
+#: src/window.py:3304
 msgid "Wrong folder path"
 msgstr "錯誤資料夾路徑"
 
-#: src/window.py:3318
+#: src/window.py:3337
 msgid "Thread has not been completed, thread number: "
 msgstr "執行緒尚未完成，執行緒序號："
 
-#: src/window.py:3327
+#: src/window.py:3346
 msgid "Failed to open the folder"
 msgstr "無法開啟資料夾"
 
