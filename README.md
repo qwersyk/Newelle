@@ -40,13 +40,13 @@
 - 🚀 **Flexible Model Support**: Choose from mutliple AI models and providers to fit your specific needs
 - 💻 **Terminal Command Exection**: Execute commands suggested by the AI on the fly
 - 🧩 **Extensions**: Add your own functionalities and models to Newelle
-- 🗣 **Voice support**: Chat hands free with your waifu, supporting many Speech To Text and TTS models, with translation options
+- 🗣 **Voice support**: Chat hands free with Newelle, supporting many Speech To Text and TTS models, with translation options
 - 🧠 **Long Term Memory**: Remember conversations from previous chats
 - 💼 **Chat with documents**: Chat with your own documents
 - 🔎 **Web Search**: Provide reliable answers using Web Search
 - 🌐 **Website Reading**: Scrap informations from websites by appending the prefix #https://.. in the prompt
 - 👤 **Profile Manager**: Create settings profiles and switch between them
-- 📁 **Builtin File Manager**: Select the files you need to submit with the help of the builtin file manager
+- 📁 **Builtin File Manager**: Manage you files with the help of AI
 - 📝 **Rich Formatting**: Supports both Markdown and LaTeX
 - ✏️ **Chat editing**: Edit or remove any message and manage your prompts easily
 
@@ -79,6 +79,7 @@ As an example, to set the mini window launch's hotkey to Ctrl+Space, execute thi
 ```bash
 /bin/bash -c 'flatpak run --command=gsettings io.github.qwersyk.Newelle set io.github.qwersyk.Newelle startup-mode "mini" && flatpak run io.github.qwersyk.Newelle'
 ```
+After that, enable the hotkey in settings.
 
 #### 2. Enable Window Centering
 For GNOME desktop environment users, you may need to enable automatic window centering:
