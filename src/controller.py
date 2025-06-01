@@ -1,9 +1,7 @@
-from dataclasses import dataclass
 from typing import Any
 from gi.repository import GLib, Gio
 import os
 import base64
-from gi.repository.GObject import new
 
 from .utility.media import get_image_base64, get_image_path
 
@@ -16,7 +14,6 @@ from .handlers.memory import MemoryHandler
 from .handlers.embeddings import EmbeddingHandler
 from .handlers.websearch import WebSearchHandler
 
-import time
 from .utility.system import is_flatpak
 from .utility.pip import install_module
 from .utility.profile_settings import get_settings_dict_by_groups
