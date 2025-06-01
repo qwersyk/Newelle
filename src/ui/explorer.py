@@ -1,4 +1,4 @@
-from gi.repository import Gtk, Adw, GLib, Gio, Pango 
+from gi.repository import Gtk, Adw, GLib, Gio, Pango, Gdk 
 from .widgets import File
 import os 
 import posixpath
@@ -18,17 +18,24 @@ class ExplorerPanel(Gtk.Box):
         # Extra vars 
         self.check_streams = {"folder": False, "chat": False}
         self.main_path = "~" 
+        self.context_menu_target = None  # Store the target file/folder for context menu
+        
+        # Create main content container
+        self.main_content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        
         # Headerbar
         self.explorer_panel_header = Adw.HeaderBar(css_classes=["flat"], show_start_title_buttons=False, show_end_title_buttons=False) 
-        self.append(self.explorer_panel_header)
+        self.main_content.append(self.explorer_panel_header)
 
-        
         # Folders
         self.folder_blocks_panel = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        # Notification block 
+        self.main_content.append(self.folder_blocks_panel)
+        
+        # Notification block with main content as child
         self.notification_block = Adw.ToastOverlay()
+        self.notification_block.set_child(self.main_content)
         self.append(self.notification_block)
-        self.notification_block.set_child(self.folder_blocks_panel)
+        
         self.build_explorer_panel_buttons()
 
     def build_explorer_panel_buttons(self):
@@ -124,11 +131,11 @@ class ExplorerPanel(Gtk.Box):
                     )
                     and os.path.normpath(self.main_path) != "~"
                 ):
-                    self.remove(self.folder_blocks_panel)
+                    self.main_content.remove(self.folder_blocks_panel)
                     self.folder_blocks_panel = Gtk.Box(
                         orientation=Gtk.Orientation.VERTICAL, spacing=20, opacity=0.25
                     )
-                    self.append(self.folder_blocks_panel)
+                    self.main_content.append(self.folder_blocks_panel)
                     icon = Gtk.Image.new_from_gicon(
                         Gio.ThemedIcon(name="folder-symbolic")
                     )
@@ -147,11 +154,11 @@ class ExplorerPanel(Gtk.Box):
                         )
                     )
                 else:
-                    self.remove(self.folder_blocks_panel)
+                    self.main_content.remove(self.folder_blocks_panel)
                     self.folder_blocks_panel = Gtk.Box(
                         orientation=Gtk.Orientation.VERTICAL
                     )
-                    self.append(self.folder_blocks_panel)
+                    self.main_content.append(self.folder_blocks_panel)
 
                     flow_box = Gtk.FlowBox(vexpand=True)
                     flow_box.set_valign(Gtk.Align.START)
@@ -161,6 +168,13 @@ class ExplorerPanel(Gtk.Box):
                         button = Gtk.Button(css_classes=["flat"])
                         button.set_name(fname)
                         button.connect("clicked", self.open_folder)
+                        
+                        # Add right-click gesture for Newelle folder
+                        right_click = Gtk.GestureClick()
+                        right_click.set_button(3)  # Right mouse button
+                        right_click.connect("pressed", self.on_right_click, button, fname)
+                        button.add_controller(right_click)
+                        
                         icon = File(
                             self.main_path, fname 
                         )
@@ -194,6 +208,12 @@ class ExplorerPanel(Gtk.Box):
                         button = Gtk.Button(css_classes=["flat"])
                         button.set_name(file_info)
                         button.connect("clicked", self.open_folder)
+
+                        # Add right-click gesture
+                        right_click = Gtk.GestureClick()
+                        right_click.set_button(3)  # Right mouse button
+                        right_click.connect("pressed", self.on_right_click, button, file_info)
+                        button.add_controller(right_click)
 
                         icon = File(self.main_path, file_info)
                         icon.set_css_classes(["large"])
@@ -265,4 +285,221 @@ class ExplorerPanel(Gtk.Box):
             self.notification_block.add_toast(
                 Adw.Toast(title=_("File not found"), timeout=2)
             )
+
+    def create_context_menu(self, file_path, is_directory, button):
+        """Create and return a context menu for files and folders"""
+        menu = Gtk.PopoverMenu()
+        menu_model = Gio.Menu()
+        
+        # Open in new tab
+        menu_model.append(_("Open in new tab"), "explorer.open_new_tab")
+        
+        # Open in file manager
+        menu_model.append(_("Open in file manager"), "explorer.open_file_manager")
+        
+        # Rename
+        menu_model.append(_("Rename"), "explorer.rename")
+        
+        # Delete
+        menu_model.append(_("Delete"), "explorer.delete")
+        
+        # Copy full path
+        menu_model.append(_("Copy full path"), "explorer.copy_path")
+        
+        menu.set_menu_model(menu_model)
+        
+        # Create action group
+        action_group = Gio.SimpleActionGroup()
+        
+        # Open in new tab action
+        action = Gio.SimpleAction.new("open_new_tab", None)
+        action.connect("activate", self.on_open_new_tab, file_path)
+        action_group.add_action(action)
+        
+        # Open in file manager action
+        action = Gio.SimpleAction.new("open_file_manager", None)
+        action.connect("activate", self.on_open_file_manager, file_path, is_directory)
+        action_group.add_action(action)
+        
+        # Rename action
+        action = Gio.SimpleAction.new("rename", None)
+        action.connect("activate", self.on_rename, file_path, button)
+        action_group.add_action(action)
+        
+        # Delete action
+        action = Gio.SimpleAction.new("delete", None)
+        action.connect("activate", self.on_delete, file_path)
+        action_group.add_action(action)
+        
+        # Copy path action
+        action = Gio.SimpleAction.new("copy_path", None)
+        action.connect("activate", self.on_copy_path, file_path)
+        action_group.add_action(action)
+        
+        menu.insert_action_group("explorer", action_group)
+        return menu
+
+    def on_open_new_tab(self, action, parameter, file_path):
+        """Handler for 'Open in new tab' - to be implemented by user"""
+        # This function should be implemented by the user
+        # For now, just show a notification
+        self.notification_block.add_toast(
+            Adw.Toast(title=_("Open in new tab: {}").format(os.path.basename(file_path)), timeout=3)
+        )
+        print(f"TODO: Implement open_new_tab for: {file_path}")
+
+    def on_open_file_manager(self, action, parameter, file_path, is_directory):
+        """Handler for 'Open in file manager'"""
+        try:
+            if is_directory:
+                # Open the directory itself
+                subprocess.run(["xdg-open", file_path])
+            else:
+                # Open the directory containing the file
+                subprocess.run(["xdg-open", os.path.dirname(file_path)])
+        except Exception as e:
+            self.notification_block.add_toast(
+                Adw.Toast(title=_("Failed to open file manager"), timeout=3)
+            )
+
+    def on_rename(self, action, parameter, file_path, button):
+        """Handler for 'Rename'"""
+        popover = Gtk.Popover()
+        popover.set_parent(button)
+        
+        # Create the content box
+        content_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
+        content_box.set_margin_top(12)
+        content_box.set_margin_bottom(12)
+        content_box.set_margin_start(12)
+        content_box.set_margin_end(12)
+        
+        # Label and entry
+        label = Gtk.Label(label=_("New name:"))
+        label.set_halign(Gtk.Align.START)
+        
+        entry = Gtk.Entry()
+        entry.set_text(os.path.basename(file_path))
+        entry.select_region(0, -1)
+        entry.set_width_chars(25)
+        
+        # Button box
+        button_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+        button_box.set_halign(Gtk.Align.END)
+        
+        cancel_button = Gtk.Button(label=_("Cancel"))
+        cancel_button.add_css_class("flat")
+        
+        rename_button = Gtk.Button(label=_("Rename"))
+        rename_button.add_css_class("suggested-action")
+        
+        button_box.append(cancel_button)
+        button_box.append(rename_button)
+        
+        # Add widgets to content box
+        content_box.append(label)
+        content_box.append(entry)
+        content_box.append(button_box)
+        
+        popover.set_child(content_box)
+        
+        def on_rename_clicked(button):
+            new_name = entry.get_text().strip()
+            if new_name and new_name != os.path.basename(file_path):
+                try:
+                    new_path = os.path.join(os.path.dirname(file_path), new_name)
+                    os.rename(file_path, new_path)
+                    self.notification_block.add_toast(
+                        Adw.Toast(title=_("Renamed successfully"), timeout=2)
+                    )
+                    GLib.idle_add(self.update_folder)
+                except Exception as e:
+                    self.notification_block.add_toast(
+                        Adw.Toast(title=_("Failed to rename: {}").format(str(e)), timeout=3)
+                    )
+            popover.popdown()
+        
+        def on_cancel_clicked(button):
+            popover.popdown()
+        
+        def on_entry_activate(entry):
+            on_rename_clicked(None)
+        
+        # Connect signals
+        rename_button.connect("clicked", on_rename_clicked)
+        cancel_button.connect("clicked", on_cancel_clicked)
+        entry.connect("activate", on_entry_activate)
+        
+        # Show the popover
+        popover.popup()
+        entry.grab_focus()
+
+    def on_delete(self, action, parameter, file_path):
+        """Handler for 'Delete'"""
+        dialog = Adw.AlertDialog.new(_("Delete File?"), None)
+        
+        dialog.set_body(_("Are you sure you want to delete \"{}\"?").format(os.path.basename(file_path)))
+        
+        dialog.add_response("cancel", _("_Cancel"))
+        dialog.add_response("delete", _("_Delete"))
+        
+        dialog.set_response_appearance("delete", Adw.ResponseAppearance.DESTRUCTIVE)
+        dialog.set_default_response("cancel")
+        dialog.set_close_response("cancel")
+        
+        def on_response(dialog, response):
+            if response == "delete":
+                try:
+                    if os.path.isdir(file_path):
+                        # For directories, use rmdir (only works if empty)
+                        # For recursive deletion, you might want to use shutil.rmtree
+                        import shutil
+                        shutil.rmtree(file_path)
+                    else:
+                        os.remove(file_path)
+                    
+                    self.notification_block.add_toast(
+                        Adw.Toast(title=_("Deleted successfully"), timeout=2)
+                    )
+                    GLib.idle_add(self.update_folder)
+                except Exception as e:
+                    self.notification_block.add_toast(
+                        Adw.Toast(title=_("Failed to delete: {}").format(str(e)), timeout=3)
+                    )
+        
+        dialog.connect("response", on_response)
+        dialog.present(self.get_root())
+
+    def on_copy_path(self, action, parameter, file_path):
+        """Handler for 'Copy full path'"""
+        try:
+            clipboard = Gdk.Display.get_default().get_clipboard()
+            clipboard.set_content(Gdk.ContentProvider.new_for_value(file_path))
+
+            self.notification_block.add_toast(
+                Adw.Toast(title=_("Path copied to clipboard"), timeout=2)
+            )
+        except Exception as e:
+            self.notification_block.add_toast(
+                Adw.Toast(title=_("Failed to copy path"), timeout=3)
+            )
+
+    def on_right_click(self, gesture, n_press, x, y, button, file_name):
+        """Handler for right-click on files/folders"""
+        if n_press == 1:  # Single right-click
+            file_path = os.path.join(os.path.expanduser(self.main_path), file_name)
+            is_directory = os.path.isdir(file_path)
+            
+            menu = self.create_context_menu(file_path, is_directory, button)
+            menu.set_parent(button)
+            
+            # Position the menu at the click location
+            rect = Gdk.Rectangle()
+            rect.x = int(x)
+            rect.y = int(y)
+            rect.width = 1
+            rect.height = 1
+            menu.set_pointing_to(rect)
+            
+            menu.popup()
 
