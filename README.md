@@ -35,18 +35,19 @@
 
 # Features
 
+
 - 🎨 **Advanced Customization**: Tailor the application with a wide range of settings
 - 🚀 **Flexible Model Support**: Choose from mutliple AI models and providers to fit your specific needs
 - 💻 **Terminal Command Exection**: Execute commands suggested by the AI on the fly
 - 🧩 **Extensions**: Add your own functionalities and models to Newelle
-- 🗣 **Voice support**: Chat hands free with Newelle, supporting many Speech To Text and TTS models
+- 🗣 **Voice support**: Chat hands free with Newelle, supporting many Speech To Text and TTS models, with translation options
 - 🧠 **Long Term Memory**: Remember conversations from previous chats
 - 💼 **Chat with documents**: Chat with your own documents
 - 🔎 **Web Search**: Provide reliable answers using Web Search
-- 🌐 **Website Reading**: Ask any information about any website by writing #https://.. question
-- 👤 **Profile Manager**: Create settings profiles and switch between them on the go
-- 📁 **Builtin File Manager**: Manage your files with the help of AI
-- 📝 **Rich Formatting**: Support for Markdown and LaTeX
+- 🌐 **Website Reading**: Scrap informations from websites by appending the prefix #https://.. in the prompt
+- 👤 **Profile Manager**: Create settings profiles and switch between them
+- 📁 **Builtin File Manager**: Manage you files with the help of AI
+- 📝 **Rich Formatting**: Supports both Markdown and LaTeX
 - ✏️ **Chat editing**: Edit or remove any message and manage your prompts easily
 
 <picture>
@@ -57,7 +58,7 @@
 
 # Extensions
 
-Newelle supports extensions to enhance its functionality. You can either
+Newelle supports extensions to extend its functionality. You can either
 use [existing extensions](https://github.com/topics/newelle-extension) or create your own to add new features to the
 application.
 
@@ -73,12 +74,12 @@ A lightweight version of Newelle that can be triggered via keyboard shortcuts.
 
 ### Configuration
 
-#### 1. Set Global Keyboard Shortcut
-To configure the mini window launch (example using Ctrl+Space), set the following command in your system keyboard settings:
-
+#### 1. Setup Hotkeys
+As an example, to set the mini window launch's hotkey to Ctrl+Space, execute this command:
 ```bash
 /bin/bash -c 'flatpak run --command=gsettings io.github.qwersyk.Newelle set io.github.qwersyk.Newelle startup-mode "mini" && flatpak run io.github.qwersyk.Newelle'
 ```
+After that, enable the hotkey in settings.
 
 #### 2. Enable Window Centering
 For GNOME desktop environment users, you may need to enable automatic window centering:
@@ -122,15 +123,11 @@ There are two ways of doing this
   </picture>
 </a>
 
-Run without installing:
-
-1. run `nix run github:qwersyk/Newelle`
-
-For development:
-
-2. Clone the Newelle repository from GitHub.
-3. In terminal change dir to repository
-4. run `nix run .` to start the program or run `nix develop .` to start a developer shell;
+With nix, you can run the app without installing by executing this command:
+```sh
+nix run github:qwersyk/Newelle
+```
+If you want the latest commit version, you can clone this repository and execute `nix run .` to start the program or `nix develop .` to start a developer shell
 
 <a href="https://github.com/qwersyk/Newelle/actions">
   <picture>
@@ -155,7 +152,7 @@ For development:
   </picture>
 </a>
 
-1. Ensure you have Flatpak installed on your system.
+1. Ensure you have set up both flatpak and flathub
 2. Install Newelle by executing: `flatpak install flathub io.github.qwersyk.Newelle`
 
 # Permission
@@ -164,19 +161,19 @@ For development:
 > The Flathub version of Newelle is restricted to the `.var/app/io.github.qwersyk.Newelle` folder and operates within a
 > Flatpak virtualized environment, limiting its capabilities.
 
-To extend functionality, you can either temporarily grant access with:
-```flatpak run --talk-name=org.freedesktop.Flatpak --filesystem=home io.github.qwersyk.Newelle```
-or adjust settings permanently using Flatseal:
-
-- Open Flatseal, find "Newelle," enable "All user files" and "Session Bus," and add `org.freedesktop.Flatpak` to run
-  outside the sandbox.
-
+To extend Newelle's permissions, either execute this command to temporarily grant its access:
+```sh
+flatpak run --talk-name=org.freedesktop.Flatpak --filesystem=home io.github.qwersyk.Newelle
+```
+or adjust the permissions permanently using [Flatseal](https://flathub.org/apps/details/com.github.tchx84.Flatseal):
+  - Open Flatseal, find "newelle" and enable both "All user files" and "Session Bus"
+	- Add `org.freedesktop.Flatpak` to run outside the sandbox.
 > [!WARNING]
 > Be cautious when enabling these options. They reduce security by exposing your data and terminal. Avoid sharing
 > personal information, and understand that we can't guarantee the privacy of your chat data or prevent potential risks
 > from proprietary models.
 
-# Alternative Versions
+# Honorable Mentions of Newelle's forks
 
 <a href="https://github.com/qwersyk/Newelle/tree/aarch64">
   <picture>
