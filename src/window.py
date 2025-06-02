@@ -19,7 +19,7 @@ from .utility.message_chunk import get_message_chunks
 
 from .ui.profile import ProfileDialog
 from .ui.presentation import PresentationWindow
-from .ui.widgets import File, CopyBox, BarChartBox, MarkupTextView, DocumentReaderWidget, TipsCarousel
+from .ui.widgets import File, CopyBox, BarChartBox, MarkupTextView, DocumentReaderWidget, TipsCarousel, BrowserWidget
 from .ui import apply_css_to_widget
 from .ui.explorer import ExplorerPanel
 from .ui.widgets import MultilineEntry, ProfileRow, DisplayLatex, InlineLatex, ThinkingWidget
@@ -183,6 +183,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.canvas_header.pack_start(self.canvas_headerbox)
         
         self.canvas_tabs = Adw.TabView()
+        self.canvas_tabs.connect("notify::selected-page", self.on_tab_switched)
         self.canvas_button = Adw.TabButton(view=self.canvas_tabs)
         self.canvas_tab_bar = Adw.TabBar(autohide=True, view=self.canvas_tabs, css_classes=["inline"])
         self.canvas_overview = Adw.TabOverview(view=self.canvas_tabs, child=self.canvas_tabs, show_end_title_buttons=False, show_start_title_buttons=False)
@@ -190,14 +191,11 @@ class MainWindow(Gtk.ApplicationWindow):
         self.canvas_header.pack_end(self.canvas_button)         
 
 
-        self.explorer_panel = ExplorerPanel(self.controller)
         self.canvas_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.canvas_box.append(self.canvas_header)
         self.canvas_box.append(self.canvas_tab_bar)
         self.canvas_box.append(self.canvas_overview)
-        self.explorer_tab = self.canvas_tabs.add_page(self.explorer_panel)
-        self.explorer_tab.set_title(_("Explorer"))
-        self.canvas_tabs.add_page(ExplorerPanel(self.controller)).set_title("Explorer2")
+        self.add_explorer_tab(None, self.main_path)
         self.set_child(self.main_program_block)
         self.main_program_block.set_content(self.main)
         self.main_program_block.set_flap(self.canvas_box)
@@ -413,13 +411,22 @@ class MainWindow(Gtk.ApplicationWindow):
             self.chat_header.set_title_widget(self.build_model_popup())
 
         self.stream_number_variable = 0
-        GLib.idle_add(self.explorer_panel.update_folder)
         GLib.idle_add(self.update_history)
         GLib.idle_add(self.show_chat)
         if not self.settings.get_boolean("welcome-screen-shown"):
             threading.Thread(target=self.show_presentation_window).start()
         GLib.timeout_add(10, build_model_popup)
         self.controller.handlers.set_error_func(self.handle_error)
+
+    def on_tab_switched(self, tab_view, tab):
+        current_tab = self.canvas_tabs.get_selected_page()
+        if current_tab is None:
+            return
+        child = current_tab.get_child() 
+        if child is not None:
+            if hasattr(child, "main_path"):
+                self.main_path = child.main_path 
+                os.chdir(os.path.expanduser(child.main_path))
 
     def show_placeholder(self):
         self.history_block.set_visible_child_name("placeholder")
@@ -3061,6 +3068,18 @@ class MainWindow(Gtk.ApplicationWindow):
         """Save the chat to a file"""
         self.controller.save_chats()
 
+    def add_explorer_tab(self, tab, path):
+        """Add an explorer tab
+
+        Args:
+            path (): path of the tab
+        """
+        panel = ExplorerPanel(self.controller, path)
+        tab = self.canvas_tabs.append(panel)
+        panel.set_tab(tab)
+        panel.connect("new-tab-requested", self.add_explorer_tab)
+
+
     def execute_terminal_command(self, command):
         """Run console commands
 
@@ -3125,7 +3144,7 @@ class MainWindow(Gtk.ApplicationWindow):
         if os.path.exists(os.path.expanduser(path)):
             os.chdir(os.path.expanduser(path))
             self.main_path = path
-            GLib.idle_add(self.update_folder)
+            GLib.idle_add(self.explorer_panel.update_folder)
         else:
             Adw.Toast(title=_("Failed to open the folder"), timeout=2)
         if len(outputs[0][1]) > 1000:

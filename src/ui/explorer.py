@@ -1,4 +1,4 @@
-from gi.repository import Gtk, Adw, GLib, Gio, Pango, Gdk 
+from gi.repository import Gtk, Adw, GLib, Gio, Pango, Gdk, GObject
 from .widgets import File
 import os 
 import posixpath
@@ -6,9 +6,14 @@ import subprocess
 
 
 class ExplorerPanel(Gtk.Box):
-    def __init__(self, controller, *args, **kwargs):
+    __gsignals__ = {
+        'new-tab-requested': (GObject.SignalFlags.RUN_FIRST, None, (str,))
+    }
+
+    def __init__(self, controller, starting_path="~", *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        self.tab = None
         self.controller = controller
         self.set_orientation(Gtk.Orientation.VERTICAL)
         self.add_css_class("view")
@@ -17,7 +22,8 @@ class ExplorerPanel(Gtk.Box):
 
         # Extra vars 
         self.check_streams = {"folder": False, "chat": False}
-        self.main_path = "~" 
+        self.main_path = starting_path
+        self.get_current_path()
         self.context_menu_target = None  # Store the target file/folder for context menu
         
         # Create main content container
@@ -37,6 +43,7 @@ class ExplorerPanel(Gtk.Box):
         self.append(self.notification_block)
         
         self.build_explorer_panel_buttons()
+        self.update_folder()
 
     def build_explorer_panel_buttons(self):
         box = Gtk.Box(halign=Gtk.Align.CENTER)
@@ -87,9 +94,32 @@ class ExplorerPanel(Gtk.Box):
         self.explorer_panel_headerbox = box
         self.explorer_panel_header.pack_end(box)
 
+    def get_current_path(self): 
+        home_dir = os.path.expanduser("~")
+        if self.main_path.startswith(home_dir):
+            if self.main_path == home_dir:
+                self.main_path = "~"
+            else:
+                self.main_path = "~" + self.main_path[len(home_dir):]
+        else:
+            self.main_path = self.main_path
+        return self.main_path
 
     def go_back_in_explorer_panel(self, *a):
-        self.main_path += "/.."
+        path = os.path.expanduser(self.main_path)
+        if os.path.exists(path) and os.path.isdir(path):
+            new_path = os.path.dirname(path)
+            # Replace home directory with ~ if the path starts with home directory
+            home_dir = os.path.expanduser("~")
+            if new_path.startswith(home_dir):
+                if new_path == home_dir:
+                    self.main_path = "~"
+                else:
+                    self.main_path = "~" + new_path[len(home_dir):]
+            else:
+                self.main_path = new_path
+        if self.main_path == "/".join(self.controller.newelle_dir.split("/")[3:]):
+            self.main_path = "~"
         GLib.idle_add(self.update_folder)
 
     def go_home_in_explorer_panel(self, *a):
@@ -104,6 +134,8 @@ class ExplorerPanel(Gtk.Box):
     def update_folder(self, *a):
         if not self.check_streams["folder"]:
             self.check_streams["folder"] = True
+            if self.tab is not None:
+                self.tab.set_title(self.main_path)
             if os.path.exists(os.path.expanduser(self.main_path)):
                 self.explorer_panel_header.set_title_widget(
                     Gtk.Label(
@@ -340,13 +372,9 @@ class ExplorerPanel(Gtk.Box):
         return menu
 
     def on_open_new_tab(self, action, parameter, file_path):
-        """Handler for 'Open in new tab' - to be implemented by user"""
-        # This function should be implemented by the user
-        # For now, just show a notification
-        self.notification_block.add_toast(
-            Adw.Toast(title=_("Open in new tab: {}").format(os.path.basename(file_path)), timeout=3)
-        )
-        print(f"TODO: Implement open_new_tab for: {file_path}")
+        """Handler for 'Open in new tab' - emits signal for new tab creation"""
+        # Emit the signal with the file path
+        self.emit('new-tab-requested', file_path)
 
     def on_open_file_manager(self, action, parameter, file_path, is_directory):
         """Handler for 'Open in file manager'"""
@@ -503,3 +531,7 @@ class ExplorerPanel(Gtk.Box):
             
             menu.popup()
 
+    def set_tab(self, tab):
+        self.tab = tab
+        if self.tab is not None:
+            self.tab.set_title(self.get_current_path())
