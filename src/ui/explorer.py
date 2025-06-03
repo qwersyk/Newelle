@@ -134,8 +134,7 @@ class ExplorerPanel(Gtk.Box):
     def update_folder(self, *a):
         if not self.check_streams["folder"]:
             self.check_streams["folder"] = True
-            if self.tab is not None:
-                self.tab.set_title(self.main_path)
+            self.update_tab()
             if os.path.exists(os.path.expanduser(self.main_path)):
                 self.explorer_panel_header.set_title_widget(
                     Gtk.Label(
@@ -531,7 +530,11 @@ class ExplorerPanel(Gtk.Box):
             
             menu.popup()
 
+    def update_tab(self):
+        if self.tab is not None:
+            self.tab.set_title(self.get_current_path())
+            self.tab.set_icon(Gio.ThemedIcon(name=File(self.main_path, ".").get_icon_name()))
     def set_tab(self, tab):
         self.tab = tab
         if self.tab is not None:
-            self.tab.set_title(self.get_current_path())
+            self.update_tab()

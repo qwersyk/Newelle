@@ -19,7 +19,7 @@ from .utility.message_chunk import get_message_chunks
 
 from .ui.profile import ProfileDialog
 from .ui.presentation import PresentationWindow
-from .ui.widgets import File, CopyBox, BarChartBox, MarkupTextView, DocumentReaderWidget, TipsCarousel, BrowserWidget
+from .ui.widgets import File, CopyBox, BarChartBox, MarkupTextView, DocumentReaderWidget, TipsCarousel, BrowserWidget, Terminal
 from .ui import apply_css_to_widget
 from .ui.explorer import ExplorerPanel
 from .ui.widgets import MultilineEntry, ProfileRow, DisplayLatex, InlineLatex, ThinkingWidget
@@ -177,28 +177,8 @@ class MainWindow(Gtk.ApplicationWindow):
         self.main.append(self.chat_panel)
         self.main.set_visible_child(self.chat_panel)
         # Canvas panel
-        self.canvas_header = Adw.HeaderBar(css_classes=["flat"], show_start_title_buttons=False)
-        self.canvas_header.set_title_widget(Gtk.Label())
-        self.canvas_headerbox = Gtk.Box(halign=Gtk.Align.CENTER)
-        self.canvas_header.pack_start(self.canvas_headerbox)
-        
-        self.canvas_tabs = Adw.TabView()
-        self.canvas_tabs.connect("notify::selected-page", self.on_tab_switched)
-        self.canvas_button = Adw.TabButton(view=self.canvas_tabs)
-        self.canvas_tab_bar = Adw.TabBar(autohide=True, view=self.canvas_tabs, css_classes=["inline"])
-        self.canvas_overview = Adw.TabOverview(view=self.canvas_tabs, child=self.canvas_tabs, show_end_title_buttons=False, show_start_title_buttons=False)
-        self.canvas_button.connect("clicked", lambda x : self.canvas_overview.set_open(not self.canvas_overview.get_open()))
-        self.canvas_header.pack_end(self.canvas_button)         
-
-
-        self.canvas_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        self.canvas_box.append(self.canvas_header)
-        self.canvas_box.append(self.canvas_tab_bar)
-        self.canvas_box.append(self.canvas_overview)
-        self.add_explorer_tab(None, self.main_path)
-        self.set_child(self.main_program_block)
-        self.main_program_block.set_content(self.main)
-        self.main_program_block.set_flap(self.canvas_box)
+        self.build_canvas()
+        # Secondary message block
         self.secondary_message_chat_block = Gtk.Box(
             orientation=Gtk.Orientation.VERTICAL, spacing=2
         )
@@ -418,6 +398,64 @@ class MainWindow(Gtk.ApplicationWindow):
         GLib.timeout_add(10, build_model_popup)
         self.controller.handlers.set_error_func(self.handle_error)
 
+    def build_canvas(self):
+
+        self.canvas_header = Adw.HeaderBar(css_classes=["flat"], show_start_title_buttons=False)
+        self.canvas_header.set_title_widget(Gtk.Label())
+        self.canvas_headerbox = Gtk.Box(halign=Gtk.Align.CENTER)
+        self.canvas_header.pack_start(self.canvas_headerbox)
+        
+        self.canvas_tabs = Adw.TabView()
+        self.canvas_tabs.connect("notify::selected-page", self.on_tab_switched)
+        self.canvas_button = Adw.TabButton(view=self.canvas_tabs)
+        self.canvas_tab_bar = Adw.TabBar(autohide=True, view=self.canvas_tabs, css_classes=["inline"])
+        self.canvas_overview = Adw.TabOverview(view=self.canvas_tabs, child=self.canvas_tabs, show_end_title_buttons=False, show_start_title_buttons=False, enable_new_tab=True)
+        self.canvas_overview.connect("create-tab", self.add_explorer_tab)
+        
+        # Add new tab menu button
+        self.new_tab_button = Gtk.MenuButton(css_classes=["flat"])
+        box = Gtk.Box(spacing=6)
+        icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="list-add-symbolic"))
+        icon.set_icon_size(Gtk.IconSize.INHERIT)
+        box.append(icon)
+        icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="pan-down-symbolic"))
+        icon.set_icon_size(Gtk.IconSize.INHERIT)
+        box.append(icon)
+        self.new_tab_button.set_child(box)
+        
+        # Create menu model
+        menu = Gio.Menu()
+        menu.append(_("Explorer Tab"), "win.new_explorer_tab")
+        menu.append(_("Terminal Tab"), "win.new_terminal_tab") 
+        menu.append(_("Browser Tab"), "win.new_browser_tab")
+        self.new_tab_button.set_menu_model(menu)
+        # Add actions
+        action = Gio.SimpleAction.new("new_explorer_tab", None)
+        action.connect("activate", self.add_explorer_tab)
+        self.add_action(action)
+        
+        action = Gio.SimpleAction.new("new_terminal_tab", None)
+        action.connect("activate", self.add_terminal_tab)
+        self.add_action(action)
+        
+        action = Gio.SimpleAction.new("new_browser_tab", None)
+        action.connect("activate", self.add_browser_tab)
+        self.add_action(action)
+        
+        self.canvas_button.connect("clicked", lambda x : self.canvas_overview.set_open(not self.canvas_overview.get_open()))
+        self.canvas_header.pack_end(self.canvas_button)
+        self.canvas_header.pack_end(self.new_tab_button)
+
+
+        self.canvas_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        self.canvas_box.append(self.canvas_header)
+        self.canvas_box.append(self.canvas_tab_bar)
+        self.canvas_box.append(self.canvas_overview)
+        self.add_explorer_tab(None, self.main_path)
+        self.set_child(self.main_program_block)
+        self.main_program_block.set_content(self.main)
+        self.main_program_block.set_flap(self.canvas_box)
+    
     def on_tab_switched(self, tab_view, tab):
         current_tab = self.canvas_tabs.get_selected_page()
         if current_tab is None:
@@ -3068,16 +3106,19 @@ class MainWindow(Gtk.ApplicationWindow):
         """Save the chat to a file"""
         self.controller.save_chats()
 
-    def add_explorer_tab(self, tab, path):
+    def add_explorer_tab(self, tab, path=None):
         """Add an explorer tab
 
         Args:
             path (): path of the tab
         """
+        if path is None:
+            path = self.main_path
         panel = ExplorerPanel(self.controller, path)
         tab = self.canvas_tabs.append(panel)
         panel.set_tab(tab)
         panel.connect("new-tab-requested", self.add_explorer_tab)
+        return tab
 
 
     def execute_terminal_command(self, command):
@@ -3151,3 +3192,39 @@ class MainWindow(Gtk.ApplicationWindow):
             new_value = outputs[0][1][0:1000] + "..."
             outputs = ((outputs[0][0], new_value),)
         return outputs[0]
+
+    def add_terminal_tab(self, action=None, param=None):
+        """Add a terminal tab"""
+        terminal = Terminal(get_spawn_command() + ["bash", "-c", "export TERM=xterm-256color; exec bash"])
+        terminal.set_vexpand(True)
+        terminal.set_hexpand(True)
+        
+        # Create a box to hold the terminal
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        box.append(terminal)
+        
+        # Add the tab
+        tab = self.canvas_tabs.append(box)
+        tab.set_title("Terminal")
+        tab.set_icon(Gio.ThemedIcon(name="gnome-terminal-symbolic"))
+        return tab
+
+    def add_browser_tab(self, action=None, param=None):
+        """Add a browser tab"""
+        browser = BrowserWidget()
+        browser.set_size_request(420, -1)
+        
+        # Add the tab
+        tab = self.canvas_tabs.append(browser)
+        tab.set_title("Browser")
+        tab.set_icon(Gio.ThemedIcon(name="internet-symbolic"))
+        
+        # Update tab title when page changes
+        def on_page_changed(browser, url, title, favicon):
+            if title:
+                tab.set_title(title)
+            if favicon:
+                tab.set_icon(favicon)
+        browser.connect("page-changed", on_page_changed)
+        
+        return tab

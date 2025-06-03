@@ -74,6 +74,7 @@ widgets_sources = [
   'ui/widgets/thinking.py',
   'ui/widgets/documents_reader.py',
   'ui/widgets/tipscarousel.py',
+  'ui/widgets/browser.py',
 ]
 
 handler_sources = [
