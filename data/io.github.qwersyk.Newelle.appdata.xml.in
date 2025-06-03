@@ -32,6 +32,14 @@
 	<url type="bugtracker">https://github.com/qwersyk/Newelle/issues</url>
 	<content_rating type="oars-1.0" />
 	<releases>
+	    <release version="0.9.8" date="2025-06-03">
+            <description>
+                <ul>
+                  <li>Bug fixes</li>
+                  <li>Small improvements</li>
+                </ul>
+            </description>
+        </release>
 	    <release version="0.9.7" date="2025-05-24">
             <description>
                 <ul>
