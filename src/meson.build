@@ -75,6 +75,7 @@ widgets_sources = [
   'ui/widgets/documents_reader.py',
   'ui/widgets/tipscarousel.py',
   'ui/widgets/browser.py',
+  'ui/widgets/code_editor.py',
 ]
 
 handler_sources = [

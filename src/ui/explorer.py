@@ -3,7 +3,9 @@ from .widgets import File
 import os 
 import posixpath
 import subprocess
+import gettext
 
+_ = gettext.gettext
 
 class ExplorerPanel(Gtk.Box):
     __gsignals__ = {
@@ -317,13 +319,21 @@ class ExplorerPanel(Gtk.Box):
                 Adw.Toast(title=_("File not found"), timeout=2)
             )
 
+    def is_excluded_format(self, file_path):
+        """Check if a file is of an excluded format based on its extension."""
+        excluded_extensions = ['.mp4', '.mp3', '.wav', '.avi', '.mov', '.mkv', '.docx', '.pptx', '.pdf', '.jpeg', '.jpg', '.png', '.gif', '.bmp', '.tiff', '.ico', '.webp', '.heic', '.heif']
+        return any(file_path.endswith(ext) for ext in excluded_extensions)
+
     def create_context_menu(self, file_path, is_directory, button):
         """Create and return a context menu for files and folders"""
         menu = Gtk.PopoverMenu()
         menu_model = Gio.Menu()
         
         # Open in new tab
-        menu_model.append(_("Open in new tab"), "explorer.open_new_tab")
+        if os.path.isdir(os.path.expanduser(file_path)):
+            menu_model.append(_("Open in new tab"), "explorer.open_new_tab")
+        elif not self.is_excluded_format(file_path):
+            menu_model.append(_("Open in integrated editor"), "explorer.open_new_tab")
         
         # Open in file manager
         menu_model.append(_("Open in file manager"), "explorer.open_file_manager")
@@ -534,6 +544,7 @@ class ExplorerPanel(Gtk.Box):
         if self.tab is not None:
             self.tab.set_title(self.get_current_path())
             self.tab.set_icon(Gio.ThemedIcon(name=File(self.main_path, ".").get_icon_name()))
+    
     def set_tab(self, tab):
         self.tab = tab
         if self.tab is not None:

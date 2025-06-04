@@ -10,6 +10,7 @@ import json
 import base64
 import copy
 import random
+import gettext
 
 from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject, GLib, GdkPixbuf
 
@@ -19,7 +20,7 @@ from .utility.message_chunk import get_message_chunks
 
 from .ui.profile import ProfileDialog
 from .ui.presentation import PresentationWindow
-from .ui.widgets import File, CopyBox, BarChartBox, MarkupTextView, DocumentReaderWidget, TipsCarousel, BrowserWidget, Terminal
+from .ui.widgets import File, CopyBox, BarChartBox, MarkupTextView, DocumentReaderWidget, TipsCarousel, BrowserWidget, Terminal, CodeEditorWidget
 from .ui import apply_css_to_widget
 from .ui.explorer import ExplorerPanel
 from .ui.widgets import MultilineEntry, ProfileRow, DisplayLatex, InlineLatex, ThinkingWidget
@@ -42,6 +43,8 @@ from .utility.media import extract_supported_files
 from .ui.screenrecorder import ScreenRecorder
 from .handlers import ErrorSeverity
 from .controller import NewelleController, ReloadType
+
+_ = gettext.gettext
 
 
 class MainWindow(Gtk.ApplicationWindow):
@@ -3106,21 +3109,6 @@ class MainWindow(Gtk.ApplicationWindow):
         """Save the chat to a file"""
         self.controller.save_chats()
 
-    def add_explorer_tab(self, tab, path=None):
-        """Add an explorer tab
-
-        Args:
-            path (): path of the tab
-        """
-        if path is None:
-            path = self.main_path
-        panel = ExplorerPanel(self.controller, path)
-        tab = self.canvas_tabs.append(panel)
-        panel.set_tab(tab)
-        panel.connect("new-tab-requested", self.add_explorer_tab)
-        return tab
-
-
     def execute_terminal_command(self, command):
         """Run console commands
 
@@ -3212,13 +3200,11 @@ class MainWindow(Gtk.ApplicationWindow):
     def add_browser_tab(self, action=None, param=None):
         """Add a browser tab"""
         browser = BrowserWidget()
-        browser.set_size_request(420, -1)
         
         # Add the tab
         tab = self.canvas_tabs.append(browser)
         tab.set_title("Browser")
         tab.set_icon(Gio.ThemedIcon(name="internet-symbolic"))
-        
         # Update tab title when page changes
         def on_page_changed(browser, url, title, favicon):
             if title:
@@ -3228,3 +3214,45 @@ class MainWindow(Gtk.ApplicationWindow):
         browser.connect("page-changed", on_page_changed)
         
         return tab
+
+    def add_explorer_tab(self, tab, path=None):
+        """Add an explorer tab
+
+        Args:
+            path (): path of the tab
+        """
+        if path is None:
+            path = self.main_path
+        if not os.path.isdir(os.path.expanduser(path)):
+            return self.add_editor_tab(tab, path)
+        panel = ExplorerPanel(self.controller, path)
+        tab = self.canvas_tabs.append(panel)
+        panel.set_tab(tab)
+        panel.connect("new-tab-requested", self.add_explorer_tab)
+        return tab
+    
+    def add_editor_tab(self, tab, file=None):
+        if file is not None:
+            editor = CodeEditorWidget()
+            editor.load_from_file(file)
+            editor.connect("add-to-chat", self.add_file_to_chat, file)
+            tab = self.canvas_tabs.append(editor)
+            editor.connect("edit_state_changed", self._on_editor_modified, tab)
+            tab.set_title(os.path.basename(file))
+            tab.set_icon(Gio.ThemedIcon(name=File(self.main_path, file).get_icon_name()))
+            return tab
+    
+    def add_file_to_chat(self, widget, path):
+        message_label = self.get_file_button(path)
+        self.chat.append({"User": "File", "Message": " " + path})
+        self.add_message("File", message_label)
+        self.chats[self.chat_id]["chat"] = self.chat
+
+    def _on_editor_modified(self, editor, param, tab):
+        """Update the tab icon and title when the editor's modified state changes."""
+        if editor.is_modified:
+            #tab.set_icon_name("document-save-symbolic")  # Example icon for modified state
+            tab.set_title(os.path.basename(editor.current_file_path) + " •")  # Add indicator
+        else:
+            #tab.set_icon_name("document-open-symbolic")  # Example icon for unmodified state
+            tab.set_title(os.path.basename(editor.current_file_path))  # Remove indicator
