@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-30 16:13+0800\n"
+"POT-Creation-Date: 2025-06-03 21:04+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Hindi\n"
@@ -50,7 +50,7 @@ msgstr "कस्टम मॉडल"
 
 #: src/handlers/embeddings/ollama_handler.py:34
 #: src/handlers/embeddings/openai_handler.py:41
-#: src/handlers/llm/ollama_handler.py:151 src/handlers/llm/claude_handler.py:85
+#: src/handlers/llm/claude_handler.py:85 src/handlers/llm/ollama_handler.py:151
 #: src/handlers/llm/openai_handler.py:78
 msgid "Use a custom model"
 msgstr "एक कस्टम मॉडल का उपयोग करें"
@@ -116,17 +116,37 @@ msgstr "उपयोग करने के लिए एम्बेडिं�
 msgid " Model"
 msgstr " मॉडल"
 
-#: src/handlers/llm/custom_handler.py:20
+#: src/handlers/llm/claude_handler.py:84
+#: src/handlers/tts/custom_openai_tts.py:18
+#: src/handlers/tts/groq_tts_handler.py:32
+#: src/handlers/tts/openai_tts_handler.py:18
+msgid "The API key to use"
+msgstr "उपयोग करने के लिए API कुंजी"
+
+#: src/handlers/llm/claude_handler.py:89 src/handlers/llm/claude_handler.py:93
+#: src/handlers/tts/custom_openai_tts.py:20
+#: src/handlers/tts/groq_tts_handler.py:34
+#: src/handlers/tts/openai_tts_handler.py:20
+msgid "The model to use"
+msgstr "उपयोग करने के लिए मॉडल"
+
+#: src/handlers/llm/claude_handler.py:96
+msgid "Max Tokens"
+msgstr "अधिकतम टोकन"
+
+#: src/handlers/llm/claude_handler.py:96
+msgid "The maximum number of tokens to generate"
+msgstr "उत्पन्न करने के लिए टोकन की अधिकतम संख्या"
+
+#: src/handlers/llm/custom_handler.py:20 src/handlers/llm/gemini_handler.py:119
 #: src/handlers/llm/gpt4all_handler.py:153
-#: src/handlers/llm/newelle_handler.py:27
-#: src/handlers/llm/gemini_handler.py:119 src/utility/util.py:136
+#: src/handlers/llm/newelle_handler.py:27 src/utility/util.py:136
 msgid "Message Streaming"
 msgstr "संदेश स्ट्रीमिंग"
 
-#: src/handlers/llm/custom_handler.py:20
+#: src/handlers/llm/custom_handler.py:20 src/handlers/llm/gemini_handler.py:120
 #: src/handlers/llm/gpt4all_handler.py:153
-#: src/handlers/llm/newelle_handler.py:28
-#: src/handlers/llm/gemini_handler.py:120 src/utility/util.py:137
+#: src/handlers/llm/newelle_handler.py:28 src/utility/util.py:137
 msgid "Gradually stream message output"
 msgstr "धीरे-धीरे संदेश आउटपुट स्ट्रीम करें"
 
@@ -158,125 +178,6 @@ msgstr ""
 "चैट सुझाव प्राप्त करने के लिए निष्पादित करने हेतु कमांड, {0} को चैट वाली JSON फ़ाइल से, "
 "{1} को अतिरिक्त प्रॉम्प्ट से, {2} को उत्पन्न करने के लिए सुझावों की संख्या से बदल दिया "
 "जाएगा। स्ट्रिंग्स के रूप में सुझावों वाली JSON सरणी लौटानी होगी"
-
-#: src/handlers/llm/gpt4all_handler.py:67
-msgid "RAM Required: "
-msgstr "RAM आवश्यक: "
-
-#: src/handlers/llm/gpt4all_handler.py:68
-msgid "Parameters: "
-msgstr "पैरामीटर: "
-
-#: src/handlers/llm/gpt4all_handler.py:69
-msgid "Size: "
-msgstr "आकार: "
-
-#: src/handlers/llm/gpt4all_handler.py:154
-msgid "Model to use"
-msgstr "उपयोग करने के लिए मॉडल"
-
-#: src/handlers/llm/gpt4all_handler.py:154
-#: src/handlers/tts/elevenlabs_handler.py:25
-msgid "Name of the model to use"
-msgstr "उपयोग करने के लिए मॉडल का नाम"
-
-#: src/handlers/llm/gpt4all_handler.py:155
-#: src/handlers/llm/ollama_handler.py:170
-msgid "Model Manager"
-msgstr "मॉडल प्रबंधक"
-
-#: src/handlers/llm/gpt4all_handler.py:155
-#: src/handlers/llm/ollama_handler.py:170
-msgid "List of models available"
-msgstr "उपलब्ध मॉडलों की सूची"
-
-#: src/handlers/llm/newelle_handler.py:18
-#: src/handlers/llm/gemini_handler.py:131
-#: src/handlers/llm/openai_handler.py:112
-msgid "Privacy Policy"
-msgstr "गोपनीयता नीति"
-
-#: src/handlers/llm/newelle_handler.py:19
-#: src/handlers/llm/gemini_handler.py:132
-#: src/handlers/llm/openai_handler.py:112
-msgid "Open privacy policy website"
-msgstr "गोपनीयता नीति वेबसाइट खोलें"
-
-#: src/handlers/llm/ollama_handler.py:174
-msgid "Add custom model"
-msgstr "कस्टम मॉडल जोड़ें"
-
-#: src/handlers/llm/ollama_handler.py:175
-msgid ""
-"Add any model to this list by putting name:size\n"
-"Or any gguf from hf with hf.co/username/model"
-msgstr ""
-"नाम:आकार डालकर इस सूची में कोई भी मॉडल जोड़ें\n"
-"या hf.co/उपयोगकर्ता नाम/मॉडल के साथ hf से कोई भी gguf"
-
-#: src/handlers/llm/claude_handler.py:84
-#: src/handlers/tts/custom_openai_tts.py:18
-#: src/handlers/tts/groq_tts_handler.py:32
-#: src/handlers/tts/openai_tts_handler.py:18
-msgid "The API key to use"
-msgstr "उपयोग करने के लिए API कुंजी"
-
-#: src/handlers/llm/claude_handler.py:89 src/handlers/llm/claude_handler.py:93
-#: src/handlers/tts/custom_openai_tts.py:20
-#: src/handlers/tts/groq_tts_handler.py:34
-#: src/handlers/tts/openai_tts_handler.py:20
-msgid "The model to use"
-msgstr "उपयोग करने के लिए मॉडल"
-
-#: src/handlers/llm/claude_handler.py:96
-msgid "Max Tokens"
-msgstr "अधिकतम टोकन"
-
-#: src/handlers/llm/claude_handler.py:96
-msgid "The maximum number of tokens to generate"
-msgstr "उत्पन्न करने के लिए टोकन की अधिकतम संख्या"
-
-#: src/handlers/llm/openrouter_handler.py:14
-#, fuzzy
-msgid "Provider Sorting"
-msgstr "प्रदाता त्रुटि"
-
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Choose providers based on pricing/throughput or latency"
-msgstr "कीमत/थ्रूपुट या विलंबता के आधार पर प्रदाताओं को चुनें"
-
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Price"
-msgstr "कीमत"
-
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Throughput"
-msgstr "थ्रूपुट"
-
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Latency"
-msgstr "विलंबता"
-
-#: src/handlers/llm/openrouter_handler.py:15
-#, fuzzy
-msgid "Providers Order"
-msgstr "प्रदाताओं का क्रम"
-
-#: src/handlers/llm/openrouter_handler.py:15
-msgid ""
-"Add order of providers to use, names separated by a comma.\n"
-"Empty to not specify"
-msgstr ""
-"उपयोग किए जाने वाले प्रदाताओं का क्रम जोड़ें, नामों को कॉमा से अलग करें।\n"
-"निर्दिष्ट न करने के लिए खाली छोड़ें"
-
-#: src/handlers/llm/openrouter_handler.py:16
-msgid "Allow Fallbacks"
-msgstr "फॉलबैक की अनुमति दें"
-
-#: src/handlers/llm/openrouter_handler.py:16
-msgid "Allow fallbacks to other providers"
-msgstr "अन्य प्रदाताओं पर फॉलबैक की अनुमति दें"
 
 #: src/handlers/llm/gemini_handler.py:94
 msgid "API Key (required)"
@@ -367,6 +268,18 @@ msgstr "सुरक्षा सेटिंग्स सक्षम करे
 msgid "Enable google safety settings to avoid generating harmful content"
 msgstr "हानिकारक सामग्री उत्पन्न करने से बचने के लिए गूगल सुरक्षा सेटिंग्स सक्षम करें"
 
+#: src/handlers/llm/gemini_handler.py:131
+#: src/handlers/llm/newelle_handler.py:18
+#: src/handlers/llm/openai_handler.py:112
+msgid "Privacy Policy"
+msgstr "गोपनीयता नीति"
+
+#: src/handlers/llm/gemini_handler.py:132
+#: src/handlers/llm/newelle_handler.py:19
+#: src/handlers/llm/openai_handler.py:112
+msgid "Open privacy policy website"
+msgstr "गोपनीयता नीति वेबसाइट खोलें"
+
 #: src/handlers/llm/gemini_handler.py:135 src/handlers/llm/openai_handler.py:81
 msgid "Advanced Parameters"
 msgstr "उन्नत पैरामीटर"
@@ -374,6 +287,49 @@ msgstr "उन्नत पैरामीटर"
 #: src/handlers/llm/gemini_handler.py:135
 msgid "Enable advanced parameters"
 msgstr "उन्नत पैरामीटर सक्षम करें"
+
+#: src/handlers/llm/gpt4all_handler.py:67
+msgid "RAM Required: "
+msgstr "RAM आवश्यक: "
+
+#: src/handlers/llm/gpt4all_handler.py:68
+msgid "Parameters: "
+msgstr "पैरामीटर: "
+
+#: src/handlers/llm/gpt4all_handler.py:69
+msgid "Size: "
+msgstr "आकार: "
+
+#: src/handlers/llm/gpt4all_handler.py:154
+msgid "Model to use"
+msgstr "उपयोग करने के लिए मॉडल"
+
+#: src/handlers/llm/gpt4all_handler.py:154
+#: src/handlers/tts/elevenlabs_handler.py:25
+msgid "Name of the model to use"
+msgstr "उपयोग करने के लिए मॉडल का नाम"
+
+#: src/handlers/llm/gpt4all_handler.py:155
+#: src/handlers/llm/ollama_handler.py:170
+msgid "Model Manager"
+msgstr "मॉडल प्रबंधक"
+
+#: src/handlers/llm/gpt4all_handler.py:155
+#: src/handlers/llm/ollama_handler.py:170
+msgid "List of models available"
+msgstr "उपलब्ध मॉडलों की सूची"
+
+#: src/handlers/llm/ollama_handler.py:174
+msgid "Add custom model"
+msgstr "कस्टम मॉडल जोड़ें"
+
+#: src/handlers/llm/ollama_handler.py:175
+msgid ""
+"Add any model to this list by putting name:size\n"
+"Or any gguf from hf with hf.co/username/model"
+msgstr ""
+"नाम:आकार डालकर इस सूची में कोई भी मॉडल जोड़ें\n"
+"या hf.co/उपयोगकर्ता नाम/मॉडल के साथ hf से कोई भी gguf"
 
 #: src/handlers/llm/openai_handler.py:81
 msgid "Include parameters like Max Tokens, Top-P, Temperature, etc."
@@ -434,6 +390,48 @@ msgstr ""
 "संख्या -2.0 और 2.0 के बीच। सकारात्मक मान मॉडल की नए विषयों के बारे में बात करने की "
 "संभावना को कम करते हैं"
 
+#: src/handlers/llm/openrouter_handler.py:14
+#, fuzzy
+msgid "Provider Sorting"
+msgstr "प्रदाता त्रुटि"
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Choose providers based on pricing/throughput or latency"
+msgstr "कीमत/थ्रूपुट या विलंबता के आधार पर प्रदाताओं को चुनें"
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Price"
+msgstr "कीमत"
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Throughput"
+msgstr "थ्रूपुट"
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Latency"
+msgstr "विलंबता"
+
+#: src/handlers/llm/openrouter_handler.py:15
+#, fuzzy
+msgid "Providers Order"
+msgstr "प्रदाताओं का क्रम"
+
+#: src/handlers/llm/openrouter_handler.py:15
+msgid ""
+"Add order of providers to use, names separated by a comma.\n"
+"Empty to not specify"
+msgstr ""
+"उपयोग किए जाने वाले प्रदाताओं का क्रम जोड़ें, नामों को कॉमा से अलग करें।\n"
+"निर्दिष्ट न करने के लिए खाली छोड़ें"
+
+#: src/handlers/llm/openrouter_handler.py:16
+msgid "Allow Fallbacks"
+msgstr "फॉलबैक की अनुमति दें"
+
+#: src/handlers/llm/openrouter_handler.py:16
+msgid "Allow fallbacks to other providers"
+msgstr "अन्य प्रदाताओं पर फॉलबैक की अनुमति दें"
+
 #: src/handlers/rag/rag_handler.py:104
 msgid "Index your documents"
 msgstr "अपने दस्तावेज़ों को इंडेक्स करें"
@@ -456,23 +454,6 @@ msgstr "निष्पादित करने के लिए कमां�
 #, python-brace-format
 msgid "{0} will be replaced with the model fullpath"
 msgstr "{0} को मॉडल के पूर्ण पथ से बदल दिया जाएगा"
-
-#: src/handlers/stt/sphinx_handler.py:19
-msgid "Could not understand the audio"
-msgstr "ऑडियो समझ नहीं आया"
-
-#: src/handlers/stt/vosk_handler.py:17
-msgid "Model Path"
-msgstr "मॉडल पथ"
-
-#: src/handlers/stt/vosk_handler.py:18
-msgid "Absolute path to the VOSK model (unzipped)"
-msgstr "VOSK मॉडल का पूर्ण पथ (अनज़िप किया हुआ)"
-
-#: src/handlers/stt/whisper_handler.py:16
-#: src/handlers/stt/whispercpp_handler.py:40
-msgid "Name of the Whisper model"
-msgstr "व्हिस्पर मॉडल का नाम"
 
 #: src/handlers/stt/googlesr_handler.py:14
 msgid "API Key for Google SR, write 'default' to use the default one"
@@ -531,6 +512,23 @@ msgid ""
 msgstr ""
 "वैकल्पिक: ट्रांसक्रिप्शन के लिए भाषा निर्दिष्ट करें। ISO 639-1 भाषा कोड का उपयोग करें (जैसे "
 "अंग्रेजी के लिए \"en\", फ्रेंच के लिए \"fr\", आदि)। "
+
+#: src/handlers/stt/sphinx_handler.py:19
+msgid "Could not understand the audio"
+msgstr "ऑडियो समझ नहीं आया"
+
+#: src/handlers/stt/vosk_handler.py:17
+msgid "Model Path"
+msgstr "मॉडल पथ"
+
+#: src/handlers/stt/vosk_handler.py:18
+msgid "Absolute path to the VOSK model (unzipped)"
+msgstr "VOSK मॉडल का पूर्ण पथ (अनज़िप किया हुआ)"
+
+#: src/handlers/stt/whisper_handler.py:16
+#: src/handlers/stt/whispercpp_handler.py:40
+msgid "Name of the Whisper model"
+msgstr "व्हिस्पर मॉडल का नाम"
 
 #: src/handlers/stt/witai_handler.py:13
 msgid "Server Access Token for wit.ai"
@@ -741,6 +739,89 @@ msgstr "डोमेन को बाहर करें"
 msgid "A list of domains to specifically exclude from the search results."
 msgstr "खोज परिणामों से विशेष रूप से बाहर करने के लिए डोमेन की एक सूची।"
 
+#: src/ui/profile.py:33 src/window.py:93
+msgid "Settings"
+msgstr "सेटिंग्स"
+
+#: src/ui/profile.py:53
+msgid "Profile Name"
+msgstr ""
+
+#: src/ui/profile.py:58
+#, fuzzy
+msgid "Copied Settings"
+msgstr "सेटिंग्स"
+
+#: src/ui/profile.py:58
+#, fuzzy
+msgid "Settings that will be copied to the new profile"
+msgstr "वर्तमान प्रोफ़ाइल की सेटिंग्स को नए में कॉपी किया जाएगा"
+
+#: src/ui/profile.py:70
+#, fuzzy
+msgid "Create Profile"
+msgstr "नया प्रोफ़ाइल बनाएं"
+
+#: src/ui/profile.py:72 src/ui/profile.py:74 src/ui/profile.py:129
+msgid "Import Profile"
+msgstr ""
+
+#: src/ui/profile.py:79 src/ui/widgets/profilerow.py:43
+#, fuzzy
+msgid "Edit Profile"
+msgstr "प्रोफ़ाइल चुनें"
+
+#: src/ui/profile.py:84 src/ui/profile.py:99 src/ui/profile.py:123
+msgid "Export Profile"
+msgstr ""
+
+#: src/ui/profile.py:87
+msgid "Export Passwords"
+msgstr ""
+
+#: src/ui/profile.py:87
+msgid "Also export password-like fields"
+msgstr ""
+
+#: src/ui/profile.py:89
+msgid "Export Propic"
+msgstr ""
+
+#: src/ui/profile.py:89
+#, fuzzy
+msgid "Also export the profile picture"
+msgstr "प्रोफ़ाइल चित्र सेट करें"
+
+#: src/ui/profile.py:109
+#, fuzzy
+msgid "Create"
+msgstr "एक चैट बनाएं"
+
+#: src/ui/profile.py:109
+msgid "Apply"
+msgstr ""
+
+#: src/ui/profile.py:116
+msgid "The settings of the current profile will be copied into the new one"
+msgstr "वर्तमान प्रोफ़ाइल की सेटिंग्स को नए में कॉपी किया जाएगा"
+
+#: src/ui/profile.py:122 src/ui/profile.py:128
+#, fuzzy
+msgid "Newelle Profiles"
+msgstr "न्युएल"
+
+#: src/ui/profile.py:123
+msgid "Export"
+msgstr ""
+
+#: src/ui/profile.py:129
+msgid "Import"
+msgstr ""
+
+#: src/ui/profile.py:197
+msgid "Set profile picture"
+msgstr "प्रोफ़ाइल चित्र सेट करें"
+
 #: src/ui/shortcuts.py:6
 msgid "Help"
 msgstr "मदद"
@@ -797,6 +878,15 @@ msgstr "कोई थ्रेड नहीं चल रहा है"
 msgid "Thread number: "
 msgstr "थ्रेड संख्या: "
 
+#: src/ui/widgets/profilerow.py:26
+msgid "Select profile"
+msgstr "प्रोफ़ाइल चुनें"
+
+#: src/ui/widgets/profilerow.py:53
+#, fuzzy
+msgid "Delete Profile"
+msgstr "प्रोफ़ाइल चुनें"
+
 #: src/ui/widgets/thinking.py:27
 msgid "Thoughts"
 msgstr "विचार"
@@ -821,20 +911,6 @@ msgstr "कोई विचार प्रक्रिया दर्ज न�
 #, fuzzy
 msgid "Newelle Tips"
 msgstr "न्युएल"
-
-#: src/ui/widgets/profilerow.py:26
-msgid "Select profile"
-msgstr "प्रोफ़ाइल चुनें"
-
-#: src/ui/widgets/profilerow.py:43 src/ui/profile.py:79
-#, fuzzy
-msgid "Edit Profile"
-msgstr "प्रोफ़ाइल चुनें"
-
-#: src/ui/widgets/profilerow.py:53
-#, fuzzy
-msgid "Delete Profile"
-msgstr "प्रोफ़ाइल चुनें"
 
 #: src/ui/extension.py:17 src/ui/presentation.py:131 src/constants.py:489
 #: src/window.py:92
@@ -1278,84 +1354,6 @@ msgstr ""
 msgid "Understood"
 msgstr "समझ गया"
 
-#: src/ui/profile.py:33 src/window.py:93
-msgid "Settings"
-msgstr "सेटिंग्स"
-
-#: src/ui/profile.py:53
-msgid "Profile Name"
-msgstr ""
-
-#: src/ui/profile.py:58
-#, fuzzy
-msgid "Copied Settings"
-msgstr "सेटिंग्स"
-
-#: src/ui/profile.py:58
-#, fuzzy
-msgid "Settings that will be copied to the new profile"
-msgstr "वर्तमान प्रोफ़ाइल की सेटिंग्स को नए में कॉपी किया जाएगा"
-
-#: src/ui/profile.py:70
-#, fuzzy
-msgid "Create Profile"
-msgstr "नया प्रोफ़ाइल बनाएं"
-
-#: src/ui/profile.py:72 src/ui/profile.py:74 src/ui/profile.py:129
-msgid "Import Profile"
-msgstr ""
-
-#: src/ui/profile.py:84 src/ui/profile.py:99 src/ui/profile.py:123
-msgid "Export Profile"
-msgstr ""
-
-#: src/ui/profile.py:87
-msgid "Export Passwords"
-msgstr ""
-
-#: src/ui/profile.py:87
-msgid "Also export password-like fields"
-msgstr ""
-
-#: src/ui/profile.py:89
-msgid "Export Propic"
-msgstr ""
-
-#: src/ui/profile.py:89
-#, fuzzy
-msgid "Also export the profile picture"
-msgstr "प्रोफ़ाइल चित्र सेट करें"
-
-#: src/ui/profile.py:109
-#, fuzzy
-msgid "Create"
-msgstr "एक चैट बनाएं"
-
-#: src/ui/profile.py:109
-msgid "Apply"
-msgstr ""
-
-#: src/ui/profile.py:116
-msgid "The settings of the current profile will be copied into the new one"
-msgstr "वर्तमान प्रोफ़ाइल की सेटिंग्स को नए में कॉपी किया जाएगा"
-
-#: src/ui/profile.py:122 src/ui/profile.py:128
-#, fuzzy
-msgid "Newelle Profiles"
-msgstr "न्युएल"
-
-#: src/ui/profile.py:123
-msgid "Export"
-msgstr ""
-
-#: src/ui/profile.py:129
-msgid "Import"
-msgstr ""
-
-#: src/ui/profile.py:197
-msgid "Set profile picture"
-msgstr "प्रोफ़ाइल चित्र सेट करें"
-
 #: src/constants.py:20
 msgid "Newelle Demo API"
 msgstr "न्युएल डेमो API"
@@ -1795,34 +1793,6 @@ msgstr ""
 msgid "Prompts settings, custom extra prompt, custom prompts..."
 msgstr "प्रॉम्प्ट सेटिंग्स, कस्टम अतिरिक्त प्रॉम्प्ट, कस्टम प्रॉम्प्ट..."
 
-#: src/main.py:200
-msgid "Terminal threads are still running in the background"
-msgstr "टर्मिनल थ्रेड अभी भी पृष्ठभूमि में चल रहे हैं"
-
-#: src/main.py:201
-msgid "When you close the window, they will be automatically terminated"
-msgstr "जब आप विंडो बंद करते हैं, तो वे स्वचालित रूप से समाप्त हो जाएंगे"
-
-#: src/main.py:204
-msgid "Cancel"
-msgstr "रद्द करें"
-
-#: src/main.py:205
-msgid "Close"
-msgstr "बंद करें"
-
-#: src/main.py:239
-msgid "Chat is rebooted"
-msgstr "चैट रीबूट हो गया है"
-
-#: src/main.py:244
-msgid "Folder is rebooted"
-msgstr "फ़ोल्डर रीबूट हो गया है"
-
-#: src/main.py:249
-msgid "Chat is created"
-msgstr "चैट बन गया है"
-
 #: src/controller.py:132 src/window.py:1824
 msgid "Chat "
 msgstr "चैट "
@@ -2096,6 +2066,34 @@ msgstr "थ्रेड पूरा नहीं हुआ है, थ्रे
 msgid "Failed to open the folder"
 msgstr "फ़ोल्डर खोलने में विफल"
 
+#: src/main.py:200
+msgid "Terminal threads are still running in the background"
+msgstr "टर्मिनल थ्रेड अभी भी पृष्ठभूमि में चल रहे हैं"
+
+#: src/main.py:201
+msgid "When you close the window, they will be automatically terminated"
+msgstr "जब आप विंडो बंद करते हैं, तो वे स्वचालित रूप से समाप्त हो जाएंगे"
+
+#: src/main.py:204
+msgid "Cancel"
+msgstr "रद्द करें"
+
+#: src/main.py:205
+msgid "Close"
+msgstr "बंद करें"
+
+#: src/main.py:239
+msgid "Chat is rebooted"
+msgstr "चैट रीबूट हो गया है"
+
+#: src/main.py:244
+msgid "Folder is rebooted"
+msgstr "फ़ोल्डर रीबूट हो गया है"
+
+#: src/main.py:249
+msgid "Chat is created"
+msgstr "चैट बन गया है"
+
 #: data/io.github.qwersyk.Newelle.desktop.in:3
 msgid "Newelle: Your advanced chat bot"
 msgstr "न्यूएले: आपका उन्नत चैट बॉट"
@@ -2130,91 +2128,96 @@ msgid "More than 10 standard AI providers"
 msgstr "10 से अधिक मानक एआई प्रदाता"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:38
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:61
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:123
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:128
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:133
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:138
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:143
+msgid "Bug fixes"
+msgstr "बग फिक्स"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:39
+msgid "Small improvements"
+msgstr ""
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:46
 msgid "Improve local documents reading and loading performances"
 msgstr ""
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:39
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:47
 msgid "Add option to send with CTRL+Enter"
 msgstr ""
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:40
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:48
 msgid "Improve codeblocks"
 msgstr ""
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:41
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:49
 #, fuzzy
 msgid "Fix Kokoro TTS"
 msgstr "कोकोरो TTS"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:42
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:50
 msgid "Remove emoji from TTS"
 msgstr ""
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:43
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:51
 msgid "Set API keys as password fields"
 msgstr ""
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:44
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:52
 msgid "Add thinking support for Gemini"
 msgstr ""
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:45
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:53
 msgid "Updated translations"
 msgstr ""
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:52
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:60
 msgid "Added new features"
 msgstr "नई सुविधाएँ जोड़ी गईं"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:53
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:115
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:120
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:125
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:130
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:135
-msgid "Bug fixes"
-msgstr "बग फिक्स"
-
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:60
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:68
 msgid "Website reading and web search with SearXNG, DuckDuckGo, and Tavily"
 msgstr "SearXNG, DuckDuckGo, और Tavily के साथ वेबसाइट पढ़ना और वेब खोज"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:61
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:69
 msgid "Improved LaTeX rendering and document management"
 msgstr "बेहतर LaTeX रेंडरिंग और दस्तावेज़ प्रबंधन"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:62
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:70
 msgid "New Thinking Widget and OpenRouter handler"
 msgstr "नया थिंकिंग विजेट और OpenRouter हैंडलर"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:63
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:71
 msgid "Vision support for Llama4 on Groq"
 msgstr "Groq पर Llama4 के लिए विज़न सपोर्ट"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:64
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:72
 msgid "New translations (Traditional Chinese, Bengali, Hindi)"
 msgstr "नए अनुवाद (पारंपरिक चीनी, बंगाली, हिंदी)"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:70
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:78
 msgid "Fixed many bugs, added some features!"
 msgstr "कई बग फिक्स किए गए, कुछ सुविधाएँ जोड़ी गईं!"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:75
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:83
 msgid "Support for new features and bug fixes"
 msgstr "नई सुविधाओं और बग फिक्स के लिए समर्थन"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:80
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:85
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:90
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:88
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:93
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:98
 msgid "Added many new features and bug fixes"
 msgstr "कई नई सुविधाएँ और बग फिक्स जोड़े गए"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:95
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:100
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:103
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:108
 msgid "Added new features and bug fixes"
 msgstr "नई सुविधाएँ और बग फिक्स जोड़े गए"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:105
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:113
 msgid ""
 "Updated the g4f library with versioning, added user guides, improved "
 "extension browsing, and enhanced model handling."
@@ -2222,7 +2225,7 @@ msgstr ""
 "g4f लाइब्रेरी को वर्ज़निंग के साथ अपडेट किया गया, उपयोगकर्ता गाइड जोड़े गए, एक्सटेंशन "
 "ब्राउज़िंग में सुधार किया गया, और मॉडल हैंडलिंग को बढ़ाया गया।"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:110
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:118
 msgid ""
 "Bug fixes and new features have been implemented. We've modified the "
 "extension architecture, added new models, and introduced vision support, "
@@ -2231,29 +2234,29 @@ msgstr ""
 "बग फिक्स और नई सुविधाएँ लागू की गई हैं। हमने एक्सटेंशन आर्किटेक्चर को संशोधित किया है, नए "
 "मॉडल जोड़े हैं, और दृष्टि समर्थन के साथ-साथ अधिक क्षमताएँ भी पेश की हैं।"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:140
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:148
 msgid "Stable version"
 msgstr "स्थिर संस्करण"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:145
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:153
 #, fuzzy
 msgid "Added extension"
 msgstr "एक्सटेंशन डाउनलोड करें"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:150
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:158
 #, fuzzy
 msgid "Blacklist of commands"
 msgstr "कस्टम कमांड"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:155
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:163
 msgid "Localization"
 msgstr "स्थानीयकरण"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:160
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:168
 msgid "Redesign"
 msgstr "पुनर्निमाण"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:164
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:172
 msgid "Qwersyk"
 msgstr "क्वेर्सीक"
 

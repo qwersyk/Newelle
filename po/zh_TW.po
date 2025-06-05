@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Newelle 0.3.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-30 16:13+0800\n"
+"POT-Creation-Date: 2025-06-03 21:04+0800\n"
 "PO-Revision-Date: 2025-03-26 19:30\n"
 "Last-Translator: Oliver Tzeng（曾嘉禾）<olivertzeng@proton.me>\n"
 "Language-Team: l10n-tw\n"
@@ -49,7 +49,7 @@ msgstr "自訂模型"
 
 #: src/handlers/embeddings/ollama_handler.py:34
 #: src/handlers/embeddings/openai_handler.py:41
-#: src/handlers/llm/ollama_handler.py:151 src/handlers/llm/claude_handler.py:85
+#: src/handlers/llm/claude_handler.py:85 src/handlers/llm/ollama_handler.py:151
 #: src/handlers/llm/openai_handler.py:78
 msgid "Use a custom model"
 msgstr "使用自訂的模型"
@@ -115,17 +115,37 @@ msgstr "嵌入模型的名稱"
 msgid " Model"
 msgstr " 模型"
 
-#: src/handlers/llm/custom_handler.py:20
+#: src/handlers/llm/claude_handler.py:84
+#: src/handlers/tts/custom_openai_tts.py:18
+#: src/handlers/tts/groq_tts_handler.py:32
+#: src/handlers/tts/openai_tts_handler.py:18
+msgid "The API key to use"
+msgstr "使用的 API 金鑰"
+
+#: src/handlers/llm/claude_handler.py:89 src/handlers/llm/claude_handler.py:93
+#: src/handlers/tts/custom_openai_tts.py:20
+#: src/handlers/tts/groq_tts_handler.py:34
+#: src/handlers/tts/openai_tts_handler.py:20
+msgid "The model to use"
+msgstr "使用的模型"
+
+#: src/handlers/llm/claude_handler.py:96
+msgid "Max Tokens"
+msgstr "Token 限制"
+
+#: src/handlers/llm/claude_handler.py:96
+msgid "The maximum number of tokens to generate"
+msgstr "使用的最多 Token 數量"
+
+#: src/handlers/llm/custom_handler.py:20 src/handlers/llm/gemini_handler.py:119
 #: src/handlers/llm/gpt4all_handler.py:153
-#: src/handlers/llm/newelle_handler.py:27
-#: src/handlers/llm/gemini_handler.py:119 src/utility/util.py:136
+#: src/handlers/llm/newelle_handler.py:27 src/utility/util.py:136
 msgid "Message Streaming"
 msgstr "訊息串流"
 
-#: src/handlers/llm/custom_handler.py:20
+#: src/handlers/llm/custom_handler.py:20 src/handlers/llm/gemini_handler.py:120
 #: src/handlers/llm/gpt4all_handler.py:153
-#: src/handlers/llm/newelle_handler.py:28
-#: src/handlers/llm/gemini_handler.py:120 src/utility/util.py:137
+#: src/handlers/llm/newelle_handler.py:28 src/utility/util.py:137
 msgid "Gradually stream message output"
 msgstr "逐漸的將訊息輸出串流"
 
@@ -154,121 +174,6 @@ msgid ""
 msgstr ""
 "{0} 參數會被以 JSON 格式儲存的聊天紀錄取代，{1} 包含系統提示，{2}則包含需要生"
 "成的數量。必須傳回以建議（字串）組成的 JSON 陣列"
-
-#: src/handlers/llm/gpt4all_handler.py:67
-msgid "RAM Required: "
-msgstr "記憶體要求："
-
-#: src/handlers/llm/gpt4all_handler.py:68
-msgid "Parameters: "
-msgstr "參數："
-
-#: src/handlers/llm/gpt4all_handler.py:69
-msgid "Size: "
-msgstr "大小："
-
-#: src/handlers/llm/gpt4all_handler.py:154
-msgid "Model to use"
-msgstr "使用的模型"
-
-#: src/handlers/llm/gpt4all_handler.py:154
-#: src/handlers/tts/elevenlabs_handler.py:25
-msgid "Name of the model to use"
-msgstr "使用的模型名稱"
-
-#: src/handlers/llm/gpt4all_handler.py:155
-#: src/handlers/llm/ollama_handler.py:170
-msgid "Model Manager"
-msgstr "模型管理器"
-
-#: src/handlers/llm/gpt4all_handler.py:155
-#: src/handlers/llm/ollama_handler.py:170
-msgid "List of models available"
-msgstr "可使用的模型列表"
-
-#: src/handlers/llm/newelle_handler.py:18
-#: src/handlers/llm/gemini_handler.py:131
-#: src/handlers/llm/openai_handler.py:112
-msgid "Privacy Policy"
-msgstr "隱私政策"
-
-#: src/handlers/llm/newelle_handler.py:19
-#: src/handlers/llm/gemini_handler.py:132
-#: src/handlers/llm/openai_handler.py:112
-msgid "Open privacy policy website"
-msgstr "開啟隱私政策網站"
-
-#: src/handlers/llm/ollama_handler.py:174
-msgid "Add custom model"
-msgstr "新增自訂模型"
-
-#: src/handlers/llm/ollama_handler.py:175
-msgid ""
-"Add any model to this list by putting name:size\n"
-"Or any gguf from hf with hf.co/username/model"
-msgstr ""
-"在此以「模型名稱:大小」的格式新增其他模型\n"
-"或是從 HuggingFace（hf.co/username/model）的任何 gguf"
-
-#: src/handlers/llm/claude_handler.py:84
-#: src/handlers/tts/custom_openai_tts.py:18
-#: src/handlers/tts/groq_tts_handler.py:32
-#: src/handlers/tts/openai_tts_handler.py:18
-msgid "The API key to use"
-msgstr "使用的 API 金鑰"
-
-#: src/handlers/llm/claude_handler.py:89 src/handlers/llm/claude_handler.py:93
-#: src/handlers/tts/custom_openai_tts.py:20
-#: src/handlers/tts/groq_tts_handler.py:34
-#: src/handlers/tts/openai_tts_handler.py:20
-msgid "The model to use"
-msgstr "使用的模型"
-
-#: src/handlers/llm/claude_handler.py:96
-msgid "Max Tokens"
-msgstr "Token 限制"
-
-#: src/handlers/llm/claude_handler.py:96
-msgid "The maximum number of tokens to generate"
-msgstr "使用的最多 Token 數量"
-
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Provider Sorting"
-msgstr "供給者排序"
-
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Choose providers based on pricing/throughput or latency"
-msgstr "根據最佳價格、流量或最低延遲選擇供給者"
-
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Price"
-msgstr "價格"
-
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Throughput"
-msgstr "流量"
-
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Latency"
-msgstr "延遲"
-
-#: src/handlers/llm/openrouter_handler.py:15
-msgid "Providers Order"
-msgstr "供給者排序"
-
-#: src/handlers/llm/openrouter_handler.py:15
-msgid ""
-"Add order of providers to use, names separated by a comma.\n"
-"Empty to not specify"
-msgstr "新增自訂供給者，將不同供給者名稱以逗號隔開。留空以不使用"
-
-#: src/handlers/llm/openrouter_handler.py:16
-msgid "Allow Fallbacks"
-msgstr "允許後備供給者"
-
-#: src/handlers/llm/openrouter_handler.py:16
-msgid "Allow fallbacks to other providers"
-msgstr "允許在無法使用主要供給者時使用其他供給者"
 
 #: src/handlers/llm/gemini_handler.py:94
 msgid "API Key (required)"
@@ -350,6 +255,18 @@ msgstr "啟用安全設定"
 msgid "Enable google safety settings to avoid generating harmful content"
 msgstr "啟用 Google 的安全設定以排除不當內容"
 
+#: src/handlers/llm/gemini_handler.py:131
+#: src/handlers/llm/newelle_handler.py:18
+#: src/handlers/llm/openai_handler.py:112
+msgid "Privacy Policy"
+msgstr "隱私政策"
+
+#: src/handlers/llm/gemini_handler.py:132
+#: src/handlers/llm/newelle_handler.py:19
+#: src/handlers/llm/openai_handler.py:112
+msgid "Open privacy policy website"
+msgstr "開啟隱私政策網站"
+
 #: src/handlers/llm/gemini_handler.py:135 src/handlers/llm/openai_handler.py:81
 msgid "Advanced Parameters"
 msgstr "更多設定"
@@ -357,6 +274,49 @@ msgstr "更多設定"
 #: src/handlers/llm/gemini_handler.py:135
 msgid "Enable advanced parameters"
 msgstr "調整更多參數"
+
+#: src/handlers/llm/gpt4all_handler.py:67
+msgid "RAM Required: "
+msgstr "記憶體要求："
+
+#: src/handlers/llm/gpt4all_handler.py:68
+msgid "Parameters: "
+msgstr "參數："
+
+#: src/handlers/llm/gpt4all_handler.py:69
+msgid "Size: "
+msgstr "大小："
+
+#: src/handlers/llm/gpt4all_handler.py:154
+msgid "Model to use"
+msgstr "使用的模型"
+
+#: src/handlers/llm/gpt4all_handler.py:154
+#: src/handlers/tts/elevenlabs_handler.py:25
+msgid "Name of the model to use"
+msgstr "使用的模型名稱"
+
+#: src/handlers/llm/gpt4all_handler.py:155
+#: src/handlers/llm/ollama_handler.py:170
+msgid "Model Manager"
+msgstr "模型管理器"
+
+#: src/handlers/llm/gpt4all_handler.py:155
+#: src/handlers/llm/ollama_handler.py:170
+msgid "List of models available"
+msgstr "可使用的模型列表"
+
+#: src/handlers/llm/ollama_handler.py:174
+msgid "Add custom model"
+msgstr "新增自訂模型"
+
+#: src/handlers/llm/ollama_handler.py:175
+msgid ""
+"Add any model to this list by putting name:size\n"
+"Or any gguf from hf with hf.co/username/model"
+msgstr ""
+"在此以「模型名稱:大小」的格式新增其他模型\n"
+"或是從 HuggingFace（hf.co/username/model）的任何 gguf"
 
 #: src/handlers/llm/openai_handler.py:81
 msgid "Include parameters like Max Tokens, Top-P, Temperature, etc."
@@ -412,6 +372,44 @@ msgid ""
 "to talk about new topics"
 msgstr "數值介於±2.0。數值越大將讓模型搬出新話題的機率"
 
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Provider Sorting"
+msgstr "供給者排序"
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Choose providers based on pricing/throughput or latency"
+msgstr "根據最佳價格、流量或最低延遲選擇供給者"
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Price"
+msgstr "價格"
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Throughput"
+msgstr "流量"
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Latency"
+msgstr "延遲"
+
+#: src/handlers/llm/openrouter_handler.py:15
+msgid "Providers Order"
+msgstr "供給者排序"
+
+#: src/handlers/llm/openrouter_handler.py:15
+msgid ""
+"Add order of providers to use, names separated by a comma.\n"
+"Empty to not specify"
+msgstr "新增自訂供給者，將不同供給者名稱以逗號隔開。留空以不使用"
+
+#: src/handlers/llm/openrouter_handler.py:16
+msgid "Allow Fallbacks"
+msgstr "允許後備供給者"
+
+#: src/handlers/llm/openrouter_handler.py:16
+msgid "Allow fallbacks to other providers"
+msgstr "允許在無法使用主要供給者時使用其他供給者"
+
 #: src/handlers/rag/rag_handler.py:104
 msgid "Index your documents"
 msgstr "將檔案編入索引"
@@ -433,23 +431,6 @@ msgstr "執行的指令"
 #, python-brace-format
 msgid "{0} will be replaced with the model fullpath"
 msgstr "{0} 參數會被模型的絕對路徑取代"
-
-#: src/handlers/stt/sphinx_handler.py:19
-msgid "Could not understand the audio"
-msgstr "無法理解語音"
-
-#: src/handlers/stt/vosk_handler.py:17
-msgid "Model Path"
-msgstr "模型路徑"
-
-#: src/handlers/stt/vosk_handler.py:18
-msgid "Absolute path to the VOSK model (unzipped)"
-msgstr "VOSK 模型的絕對路徑（已解壓縮）"
-
-#: src/handlers/stt/whisper_handler.py:16
-#: src/handlers/stt/whispercpp_handler.py:40
-msgid "Name of the Whisper model"
-msgstr "Whisper 模型的名稱"
 
 #: src/handlers/stt/googlesr_handler.py:14
 msgid "API Key for Google SR, write 'default' to use the default one"
@@ -506,6 +487,23 @@ msgid ""
 msgstr ""
 "可選：自訂文字紀錄的語言。使用 ISO 639-1 語言碼（例如「en」為英文，「fr」為法"
 "文等）"
+
+#: src/handlers/stt/sphinx_handler.py:19
+msgid "Could not understand the audio"
+msgstr "無法理解語音"
+
+#: src/handlers/stt/vosk_handler.py:17
+msgid "Model Path"
+msgstr "模型路徑"
+
+#: src/handlers/stt/vosk_handler.py:18
+msgid "Absolute path to the VOSK model (unzipped)"
+msgstr "VOSK 模型的絕對路徑（已解壓縮）"
+
+#: src/handlers/stt/whisper_handler.py:16
+#: src/handlers/stt/whispercpp_handler.py:40
+msgid "Name of the Whisper model"
+msgstr "Whisper 模型的名稱"
 
 #: src/handlers/stt/witai_handler.py:13
 msgid "Server Access Token for wit.ai"
@@ -708,6 +706,82 @@ msgstr "排除網域"
 msgid "A list of domains to specifically exclude from the search results."
 msgstr "在搜尋結果內排除這些網域"
 
+#: src/ui/profile.py:33 src/window.py:93
+msgid "Settings"
+msgstr "設定"
+
+#: src/ui/profile.py:53
+msgid "Profile Name"
+msgstr "設定檔名稱"
+
+#: src/ui/profile.py:58
+msgid "Copied Settings"
+msgstr "已複製設定"
+
+#: src/ui/profile.py:58
+msgid "Settings that will be copied to the new profile"
+msgstr "新設定檔將複製的設定"
+
+#: src/ui/profile.py:70
+msgid "Create Profile"
+msgstr "建立新設定檔"
+
+#: src/ui/profile.py:72 src/ui/profile.py:74 src/ui/profile.py:129
+msgid "Import Profile"
+msgstr "導入設定檔"
+
+#: src/ui/profile.py:79 src/ui/widgets/profilerow.py:43
+msgid "Edit Profile"
+msgstr "編輯設定檔"
+
+#: src/ui/profile.py:84 src/ui/profile.py:99 src/ui/profile.py:123
+msgid "Export Profile"
+msgstr "導出設定檔"
+
+#: src/ui/profile.py:87
+msgid "Export Passwords"
+msgstr "導出密碼"
+
+#: src/ui/profile.py:87
+msgid "Also export password-like fields"
+msgstr "並且導出密鑰內容"
+
+#: src/ui/profile.py:89
+msgid "Export Propic"
+msgstr "導出頭像"
+
+#: src/ui/profile.py:89
+msgid "Also export the profile picture"
+msgstr "並且導出頭像"
+
+#: src/ui/profile.py:109
+msgid "Create"
+msgstr "新增聊天室"
+
+#: src/ui/profile.py:109
+msgid "Apply"
+msgstr "套用"
+
+#: src/ui/profile.py:116
+msgid "The settings of the current profile will be copied into the new one"
+msgstr "目前的設定將複製到新的設定檔"
+
+#: src/ui/profile.py:122 src/ui/profile.py:128
+msgid "Newelle Profiles"
+msgstr "Newelle 設定檔"
+
+#: src/ui/profile.py:123
+msgid "Export"
+msgstr "導出"
+
+#: src/ui/profile.py:129
+msgid "Import"
+msgstr "導入"
+
+#: src/ui/profile.py:197
+msgid "Set profile picture"
+msgstr "設定頭像"
+
 #: src/ui/shortcuts.py:6
 msgid "Help"
 msgstr "幫助"
@@ -764,6 +838,14 @@ msgstr "沒有正在執行的執行緒"
 msgid "Thread number: "
 msgstr "執行緒序號："
 
+#: src/ui/widgets/profilerow.py:26
+msgid "Select profile"
+msgstr "選擇設定檔"
+
+#: src/ui/widgets/profilerow.py:53
+msgid "Delete Profile"
+msgstr "刪除設定檔"
+
 #: src/ui/widgets/thinking.py:27
 msgid "Thoughts"
 msgstr "思考過程"
@@ -787,18 +869,6 @@ msgstr "沒有思考過程"
 #: src/ui/widgets/tipscarousel.py:41
 msgid "Newelle Tips"
 msgstr "Newelle 小秘訣"
-
-#: src/ui/widgets/profilerow.py:26
-msgid "Select profile"
-msgstr "選擇設定檔"
-
-#: src/ui/widgets/profilerow.py:43 src/ui/profile.py:79
-msgid "Edit Profile"
-msgstr "編輯設定檔"
-
-#: src/ui/widgets/profilerow.py:53
-msgid "Delete Profile"
-msgstr "刪除設定檔"
 
 #: src/ui/extension.py:17 src/ui/presentation.py:131 src/constants.py:489
 #: src/window.py:92
@@ -1224,78 +1294,6 @@ msgstr "Newelle 沒有足夠權限在系統內執行指令，請執行以下指�
 msgid "Understood"
 msgstr "確認"
 
-#: src/ui/profile.py:33 src/window.py:93
-msgid "Settings"
-msgstr "設定"
-
-#: src/ui/profile.py:53
-msgid "Profile Name"
-msgstr "設定檔名稱"
-
-#: src/ui/profile.py:58
-msgid "Copied Settings"
-msgstr "已複製設定"
-
-#: src/ui/profile.py:58
-msgid "Settings that will be copied to the new profile"
-msgstr "新設定檔將複製的設定"
-
-#: src/ui/profile.py:70
-msgid "Create Profile"
-msgstr "建立新設定檔"
-
-#: src/ui/profile.py:72 src/ui/profile.py:74 src/ui/profile.py:129
-msgid "Import Profile"
-msgstr "導入設定檔"
-
-#: src/ui/profile.py:84 src/ui/profile.py:99 src/ui/profile.py:123
-msgid "Export Profile"
-msgstr "導出設定檔"
-
-#: src/ui/profile.py:87
-msgid "Export Passwords"
-msgstr "導出密碼"
-
-#: src/ui/profile.py:87
-msgid "Also export password-like fields"
-msgstr "並且導出密鑰內容"
-
-#: src/ui/profile.py:89
-msgid "Export Propic"
-msgstr "導出頭像"
-
-#: src/ui/profile.py:89
-msgid "Also export the profile picture"
-msgstr "並且導出頭像"
-
-#: src/ui/profile.py:109
-msgid "Create"
-msgstr "新增聊天室"
-
-#: src/ui/profile.py:109
-msgid "Apply"
-msgstr "套用"
-
-#: src/ui/profile.py:116
-msgid "The settings of the current profile will be copied into the new one"
-msgstr "目前的設定將複製到新的設定檔"
-
-#: src/ui/profile.py:122 src/ui/profile.py:128
-msgid "Newelle Profiles"
-msgstr "Newelle 設定檔"
-
-#: src/ui/profile.py:123
-msgid "Export"
-msgstr "導出"
-
-#: src/ui/profile.py:129
-msgid "Import"
-msgstr "導入"
-
-#: src/ui/profile.py:197
-msgid "Set profile picture"
-msgstr "設定頭像"
-
 #: src/constants.py:20
 msgid "Newelle Demo API"
 msgstr "Newelle 預覽 API"
@@ -1715,34 +1713,6 @@ msgstr "一般設定、指令虛擬化、記憶長度、自動生成聊天室名
 msgid "Prompts settings, custom extra prompt, custom prompts..."
 msgstr "提示語設定、自訂提示語等..."
 
-#: src/main.py:200
-msgid "Terminal threads are still running in the background"
-msgstr "終端機執行緒正在背景中執行"
-
-#: src/main.py:201
-msgid "When you close the window, they will be automatically terminated"
-msgstr "關閉視窗後將自動停止執行"
-
-#: src/main.py:204
-msgid "Cancel"
-msgstr "取消"
-
-#: src/main.py:205
-msgid "Close"
-msgstr "關閉"
-
-#: src/main.py:239
-msgid "Chat is rebooted"
-msgstr "重新整理聊天紀錄完成"
-
-#: src/main.py:244
-msgid "Folder is rebooted"
-msgstr "重新整理資料夾完成"
-
-#: src/main.py:249
-msgid "Chat is created"
-msgstr "已建立新的聊天室"
-
 #: src/controller.py:132 src/window.py:1824
 msgid "Chat "
 msgstr "聊天室 "
@@ -2003,6 +1973,34 @@ msgstr "執行緒尚未完成，執行緒序號："
 msgid "Failed to open the folder"
 msgstr "無法開啟資料夾"
 
+#: src/main.py:200
+msgid "Terminal threads are still running in the background"
+msgstr "終端機執行緒正在背景中執行"
+
+#: src/main.py:201
+msgid "When you close the window, they will be automatically terminated"
+msgstr "關閉視窗後將自動停止執行"
+
+#: src/main.py:204
+msgid "Cancel"
+msgstr "取消"
+
+#: src/main.py:205
+msgid "Close"
+msgstr "關閉"
+
+#: src/main.py:239
+msgid "Chat is rebooted"
+msgstr "重新整理聊天紀錄完成"
+
+#: src/main.py:244
+msgid "Folder is rebooted"
+msgstr "重新整理資料夾完成"
+
+#: src/main.py:249
+msgid "Chat is created"
+msgstr "已建立新的聊天室"
+
 #: data/io.github.qwersyk.Newelle.desktop.in:3
 msgid "Newelle: Your advanced chat bot"
 msgstr "Newelle：您強大的聊天機器人"
@@ -2034,96 +2032,101 @@ msgid "More than 10 standard AI providers"
 msgstr "多過 10 種 AI 服務"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:38
-msgid "Improve local documents reading and loading performances"
-msgstr "改善檔案閱讀理解速度"
-
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:39
-msgid "Add option to send with CTRL+Enter"
-msgstr "新增 CTRL＋Enter 快捷鍵"
-
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:40
-msgid "Improve codeblocks"
-msgstr "改善程式碼區塊顯示"
-
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:41
-msgid "Fix Kokoro TTS"
-msgstr "修復 Kokoro 文本轉語音"
-
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:42
-msgid "Remove emoji from TTS"
-msgstr "從文本轉語音移除表情符號"
-
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:43
-msgid "Set API keys as password fields"
-msgstr "設定 API 金鑰為「密碼」型輸入框"
-
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:44
-msgid "Add thinking support for Gemini"
-msgstr "新增 Gemini 思考支援"
-
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:45
-msgid "Updated translations"
-msgstr "更新翻譯"
-
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:52
-msgid "Added new features"
-msgstr "新增更多新功能"
-
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:53
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:115
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:120
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:125
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:130
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:135
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:61
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:123
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:128
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:133
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:138
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:143
 msgid "Bug fixes"
 msgstr "修正各種錯誤"
 
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:39
+msgid "Small improvements"
+msgstr "小小改進"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:46
+msgid "Improve local documents reading and loading performances"
+msgstr "改善檔案閱讀理解速度"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:47
+msgid "Add option to send with CTRL+Enter"
+msgstr "新增 CTRL＋Enter 快捷鍵"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:48
+msgid "Improve codeblocks"
+msgstr "改善程式碼區塊顯示"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:49
+msgid "Fix Kokoro TTS"
+msgstr "修復 Kokoro 文本轉語音"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:50
+msgid "Remove emoji from TTS"
+msgstr "從文本轉語音移除表情符號"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:51
+msgid "Set API keys as password fields"
+msgstr "設定 API 金鑰為「密碼」型輸入框"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:52
+msgid "Add thinking support for Gemini"
+msgstr "新增 Gemini 思考支援"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:53
+msgid "Updated translations"
+msgstr "更新翻譯"
+
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:60
+msgid "Added new features"
+msgstr "新增更多新功能"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:68
 msgid "Website reading and web search with SearXNG, DuckDuckGo, and Tavily"
 msgstr "網站閱讀與支援 SearXNG、DuckDuckGo、與 Tavily 等搜尋引擎"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:61
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:69
 msgid "Improved LaTeX rendering and document management"
 msgstr "改良 LaTeX 處理以及文件管理"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:62
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:70
 msgid "New Thinking Widget and OpenRouter handler"
 msgstr "新增推理模型的「思考過程」以及 OpenRouter 管理"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:63
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:71
 msgid "Vision support for Llama4 on Groq"
 msgstr "新增 Groq Llama4 圖片辨識支援"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:64
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:72
 msgid "New translations (Traditional Chinese, Bengali, Hindi)"
 msgstr "新翻譯（繁體中文、孟加拉文、印度文）"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:70
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:78
 msgid "Fixed many bugs, added some features!"
 msgstr "新增更多新功能以及修正錯誤"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:75
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:83
 msgid "Support for new features and bug fixes"
 msgstr "新增更多新功能以及修正錯誤"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:80
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:85
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:90
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:88
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:93
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:98
 msgid "Added many new features and bug fixes"
 msgstr "新增更多新功能以及修正錯誤"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:95
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:100
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:103
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:108
 msgid "Added new features and bug fixes"
 msgstr "新增更多新功能以及修正錯誤"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:105
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:113
 msgid ""
 "Updated the g4f library with versioning, added user guides, improved "
 "extension browsing, and enhanced model handling."
 msgstr "改良 g4f 資料庫的版本管理、使用者說明、擴充功能瀏覽、以及模型處理。"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:110
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:118
 msgid ""
 "Bug fixes and new features have been implemented. We've modified the "
 "extension architecture, added new models, and introduced vision support, "
@@ -2132,27 +2135,27 @@ msgstr ""
 "新增更多新功能以及修正錯誤。我們不但更改了擴充功能架構、新增新模型、以及新增"
 "圖片上傳功能等。"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:140
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:148
 msgid "Stable version"
 msgstr "穩定版本"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:145
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:153
 msgid "Added extension"
 msgstr "已新增擴充功能"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:150
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:158
 msgid "Blacklist of commands"
 msgstr "指令黑名單"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:155
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:163
 msgid "Localization"
 msgstr "翻譯"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:160
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:168
 msgid "Redesign"
 msgstr "重新設計"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:164
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:172
 msgid "Qwersyk"
 msgstr "Qwersyk"
 
