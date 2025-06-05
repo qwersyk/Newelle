@@ -51,11 +51,11 @@ class MainWindow(Gtk.ApplicationWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.app = self.get_application()
-        self.main_program_block = Adw.Flap(
-            flap_position=Gtk.PackType.END,
-            modal=False,
-            swipe_to_close=False,
-            swipe_to_open=False,
+        self.main_program_block = Adw.OverlaySplitView(
+            enable_hide_gesture=False,
+            sidebar_position=Gtk.PackType.END,
+            min_sidebar_width=420,
+            max_sidebar_width=650
         )
         self.main_program_block.set_name("hide")
         self.check_streams = {"folder": False, "chat": False}
@@ -235,7 +235,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.secondary_message_chat_block.append(self.notification_block)
 
         # Explorer panel 
-        self.main_program_block.set_reveal_flap(False)
+        self.main_program_block.set_show_sidebar(False)
         # Stop chat button
         self.chat_stop_button = Gtk.Button(css_classes=["flat"])
         icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="media-playback-stop"))
@@ -387,7 +387,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.send_button.connect("clicked", self.on_entry_button_clicked)
         self.main.connect("notify::folded", self.handle_main_block_change)
         self.main_program_block.connect(
-            "notify::reveal-flap", self.handle_second_block_change
+            "notify::show-sidebar", self.handle_second_block_change
         )
 
         def build_model_popup():
@@ -457,7 +457,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.add_explorer_tab(None, self.main_path)
         self.set_child(self.main_program_block)
         self.main_program_block.set_content(self.main)
-        self.main_program_block.set_flap(self.canvas_box)
+        self.main_program_block.set_sidebar(self.canvas_box)
     
     def on_tab_switched(self, tab_view, tab):
         current_tab = self.canvas_tabs.get_selected_page()
@@ -1302,14 +1302,14 @@ class MainWindow(Gtk.ApplicationWindow):
     
     def handle_second_block_change(self, *a):
         """Handle flaps reveal/hide"""
-        status = self.main_program_block.get_reveal_flap()
+        status = self.main_program_block.get_show_sidebar()
         if self.main_program_block.get_name() == "hide" and status:
-            self.main_program_block.set_reveal_flap(False)
+            self.main_program_block.set_show_sidebar(False)
             return True
         elif (self.main_program_block.get_name() == "visible") and (not status):
-            self.main_program_block.set_reveal_flap(True)
+            self.main_program_block.set_show_sidebar(True)
             return True
-        status = self.main_program_block.get_reveal_flap()
+        status = self.main_program_block.get_show_sidebar()
         if status:
             self.chat_panel_header.set_show_end_title_buttons(False)
             self.chat_header.set_show_end_title_buttons(False)
@@ -1332,10 +1332,10 @@ class MainWindow(Gtk.ApplicationWindow):
         self.flap_button_left.set_active(True)
         if self.main_program_block.get_name() == "visible":
             self.main_program_block.set_name("hide")
-            self.main_program_block.set_reveal_flap(False)
+            self.main_program_block.set_show_sidebar(False)
         else:
             self.main_program_block.set_name("visible")
-            self.main_program_block.set_reveal_flap(True)
+            self.main_program_block.set_show_sidebar(True)
 
     # UI Functions for chat management
     def send_button_start_spinner(self):
@@ -1477,7 +1477,7 @@ class MainWindow(Gtk.ApplicationWindow):
     def handle_main_block_change(self, *data):
         if self.main.get_folded():
             self.chat_panel_header.set_show_end_title_buttons(
-                not self.main_program_block.get_reveal_flap()
+                not self.main_program_block.get_show_sidebar()
             )
             self.left_panel_back_button.set_visible(True)
             self.chat_header.set_show_start_title_buttons(True)
