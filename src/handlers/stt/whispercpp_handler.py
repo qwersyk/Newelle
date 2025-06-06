@@ -1,3 +1,4 @@
+from ...utility.strings import quote_string
 from ...utility.system import get_spawn_command
 from .stt import STTHandler
 from ...handlers import ErrorSeverity, ExtraSettings
@@ -43,7 +44,12 @@ class WhisperCPPHandler(STTHandler):
                 "default": "tiny",
                 "website": "https://github.com/openai/whisper/blob/main/model-card.md#model-details",
             },
-            ExtraSettings.NestedSetting("model_library", "Model Library", "Manage Whisper models", self.get_model_library()),
+            ExtraSettings.EntrySetting("language", _("Language"), _("Language of the recognition."), "auto"),
+            ExtraSettings.NestedSetting("model_library", _("Model Library"), _("Manage Whisper models"), self.get_model_library()),
+            ExtraSettings.NestedSetting("advanced_settings", _("Advanced Settings"), _("More advanced settings"), [
+                ExtraSettings.ScaleSetting("temperature", _("Temperature"), _("Temperature to use"), 0.0, 0.0, 1.0, 2),
+                ExtraSettings.MultilineEntrySetting("prompt", _("Prompt for the recognition"), _("Prompt to use for the recognition"), "")
+            ])
         ]
   
     def get_model_library(self):
@@ -101,7 +107,7 @@ class WhisperCPPHandler(STTHandler):
         recpath = path
         path = os.path.join(self.path, "whisper")
         exec_path = os.path.join(path, "whisper.cpp/build/bin/whisper-cli")
-        recognize_script = exec_path + " -f " + recpath + " -m " + os.path.join(self.path, "whisper", "whisper.cpp/models/ggml-" + self.get_setting("model") + ".bin" + " --no-prints -nt")
+        recognize_script = exec_path + " -f " + recpath + " -m " + os.path.join(self.path, "whisper", "whisper.cpp/models/ggml-" + self.get_setting("model") + ".bin" + " --no-prints -nt -l " + self.get_setting("language") + " -tp " + str(self.get_setting("temperature")) + "--prompt" + quote_string(self.get_setting("prompt")) )
         try:
             out = subprocess.check_output(get_spawn_command() + ["bash", "-c", recognize_script])
             print(out)
