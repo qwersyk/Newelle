@@ -3181,13 +3181,21 @@ class MainWindow(Adw.ApplicationWindow):
         if os.path.exists(os.path.expanduser(path)):
             os.chdir(os.path.expanduser(path))
             self.main_path = path
-            GLib.idle_add(self.explorer_panel.update_folder)
+            GLib.idle_add(self.update_explorer_panels)
         else:
             Adw.Toast(title=_("Failed to open the folder"), timeout=2)
         if len(outputs[0][1]) > 1000:
             new_value = outputs[0][1][0:1000] + "..."
             outputs = ((outputs[0][0], new_value),)
         return outputs[0]
+
+    def update_explorer_panels(self):
+        tabs = self.canvas_tabs.get_n_pages()
+        for i in range(tabs):
+            page = self.canvas_tabs.get_nth_page(i)
+            child = page.get_child()
+            if child is not None and hasattr(child, "main_path"):
+                child.update_folder()
 
     def show_sidebar(self):
         self.main_program_block.set_name("visible")
