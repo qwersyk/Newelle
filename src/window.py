@@ -3189,6 +3189,10 @@ class MainWindow(Adw.ApplicationWindow):
             outputs = ((outputs[0][0], new_value),)
         return outputs[0]
 
+    def show_sidebar(self):
+        self.main_program_block.set_name("visible")
+        self.main_program_block.set_show_sidebar(True)
+        
     def add_terminal_tab(self, action=None, param=None):
         """Add a terminal tab"""
         terminal = Terminal(get_spawn_command() + ["bash", "-c", "export TERM=xterm-256color; exec bash"])
@@ -3203,6 +3207,7 @@ class MainWindow(Adw.ApplicationWindow):
         tab = self.canvas_tabs.append(box)
         tab.set_title("Terminal")
         tab.set_icon(Gio.ThemedIcon(name="gnome-terminal-symbolic"))
+        self.show_sidebar()
         return tab
 
     def add_browser_tab(self, action=None, param=None):
@@ -3220,7 +3225,8 @@ class MainWindow(Adw.ApplicationWindow):
             if favicon:
                 tab.set_icon(favicon)
         browser.connect("page-changed", on_page_changed)
-        
+        self.show_sidebar()
+        self.canvas_tabs.set_selected_page(tab)
         return tab
 
     def add_explorer_tab(self, tab, path=None):
@@ -3237,6 +3243,8 @@ class MainWindow(Adw.ApplicationWindow):
         tab = self.canvas_tabs.append(panel)
         panel.set_tab(tab)
         panel.connect("new-tab-requested", self.add_explorer_tab)
+        self.show_sidebar()
+        self.canvas_tabs.set_selected_page(tab)
         return tab
     
     def add_editor_tab(self, tab, file=None):
@@ -3249,6 +3257,8 @@ class MainWindow(Adw.ApplicationWindow):
             editor.connect("edit_state_changed", self._on_editor_modified, tab, base_title)
             tab.set_title(base_title)
             tab.set_icon(Gio.ThemedIcon(name=File(self.main_path, file).get_icon_name()))
+            self.show_sidebar()
+            self.canvas_tabs.set_selected_page(tab)
             return tab
 
     def add_editor_tab_inline(self, id_message, id_codeblock, content, lang):
@@ -3259,6 +3269,8 @@ class MainWindow(Adw.ApplicationWindow):
         tab.set_title(base_title)
         editor.connect("edit_state_changed", self._on_editor_modified, tab, base_title)
         editor.connect("content-saved", lambda editor, _: self.edit_copybox(id_message, id_codeblock, editor.get_text(), editor))
+        self.canvas_tabs.set_selected_page(tab)
+        self.show_sidebar()
 
     def edit_copybox(self, id_message, id_codeblock, new_content, editor=None):
         message_content = self.chat[id_message]["Message"]
