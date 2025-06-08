@@ -23,15 +23,16 @@ class CopyBox(Gtk.Box):
         self.copy_button.set_child(icon)
         self.copy_button.connect("clicked", self.copy_button_clicked)
 
-        self.sourceview = GtkSource.View(width_request=10*len(longest_line))
+        self.sourceview = GtkSource.View(width_request=12*len(longest_line), monospace=True)
         self.scroll = Gtk.ScrolledWindow(propagate_natural_width=True, hscrollbar_policy=Gtk.PolicyType.AUTOMATIC, vscrollbar_policy=Gtk.PolicyType.NEVER, hexpand=True)
 
         if allow_edit:
             self.edit_button = Gtk.Button(halign=Gtk.Align.END, margin_end=10, css_classes=["flat"])
-            icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="edit-symbolic"))
+            icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="document-edit-symbolic"))
             icon.set_icon_size(Gtk.IconSize.INHERIT)
             self.edit_button.set_child(icon)
             self.edit_button.connect("clicked", self.edit_button_clicked)
+            box.append(self.edit_button)
 
         self.buffer = GtkSource.Buffer()
         self.buffer.set_text(txt, -1)
@@ -127,8 +128,6 @@ class CopyBox(Gtk.Box):
             self.append(self.text_expander)
 
         box.append(self.copy_button)
-        if allow_edit:
-            box.append(self.edit_button)
 
     def copy_button_clicked(self, widget):
         display = Gdk.Display.get_default()
