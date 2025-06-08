@@ -33,6 +33,7 @@ from .utility.strings import (
     markwon_to_pango,
     remove_markdown,
     remove_thinking_blocks,
+    replace_codeblock,
     simple_markdown_to_pango,
     remove_emoji,
 )
@@ -2239,6 +2240,9 @@ class MainWindow(Gtk.ApplicationWindow):
         Returns:
             Gtk.Widget | None
         """
+        codeblock_id = -1
+        if id_message == -1:
+            id_message = len(self.chat) 
         editable = True
         if message_label == " " * len(message_label) and not is_user:
             if not restore:
@@ -2284,6 +2288,7 @@ class MainWindow(Gtk.ApplicationWindow):
             running_threads = []
             for chunk in chunks:
                 if chunk.type == "codeblock":
+                    codeblock_id += 1
                     code_language = chunk.lang
                     # Join extensions and integrations codeblocks
                     codeblocks = {**self.extensionloader.codeblocks, **self.controller.integrationsloader.codeblocks}
@@ -2372,7 +2377,7 @@ class MainWindow(Gtk.ApplicationWindow):
                                 running_threads.append(t)
                         except Exception as e:
                             print("Extension error " + extension.id + ": " + str(e))
-                            box.append(CopyBox(chunk.text, code_language, parent=self))
+                            box.append(CopyBox(chunk.text, code_language, parent=self, id_message=id_message, id_codeblock=codeblock_id, allow_edit=editable))
                     elif code_language == "think":
                         think = ThinkingWidget()
                         think.set_thinking(chunk.text)
@@ -2476,7 +2481,7 @@ class MainWindow(Gtk.ApplicationWindow):
                             if not restore:
                                 self.chat.append({"User": "Console", "Message": "None"})
                             box.append(
-                                CopyBox(chunk.text, code_language, self, id_message)
+                                CopyBox(chunk.text, code_language, self, id_message, id_codeblock=codeblock_id, allow_edit=editable)
                             )
                         result = {}
                     elif code_language in ["file", "folder"]:
@@ -2515,7 +2520,7 @@ class MainWindow(Gtk.ApplicationWindow):
                             print(e)
                             box.append(CopyBox(chunk.text, code_language, parent=self))
                     else:
-                        box.append(CopyBox(chunk.text, code_language, parent=self))
+                        box.append(CopyBox(chunk.text, code_language, parent=self, id_message=id_message, id_codeblock=codeblock_id, allow_edit=editable))
                 elif chunk.type == "table":
                     try:
                         box.append(self.create_table(chunk.text.split("\n")))
@@ -2727,6 +2732,7 @@ class MainWindow(Gtk.ApplicationWindow):
                     id_message=message_id,
                     is_user=self.chat[message_id]["User"] == "User",
                     return_widget=True,
+                    restore=True
                 )
             )
 
@@ -3233,26 +3239,42 @@ class MainWindow(Gtk.ApplicationWindow):
     
     def add_editor_tab(self, tab, file=None):
         if file is not None:
+            base_title = os.path.basename(file)
             editor = CodeEditorWidget()
             editor.load_from_file(file)
             editor.connect("add-to-chat", self.add_file_to_chat, file)
             tab = self.canvas_tabs.append(editor)
-            editor.connect("edit_state_changed", self._on_editor_modified, tab)
-            tab.set_title(os.path.basename(file))
+            editor.connect("edit_state_changed", self._on_editor_modified, tab, base_title)
+            tab.set_title(base_title)
             tab.set_icon(Gio.ThemedIcon(name=File(self.main_path, file).get_icon_name()))
             return tab
-    
+
+    def add_editor_tab_inline(self, id_message, id_codeblock, content, lang):
+        editor = CodeEditorWidget()
+        editor.load_from_string(content, lang)
+        tab = self.canvas_tabs.append(editor)
+        base_title = "Message " + str(id_message) + " " + str(id_codeblock)
+        tab.set_title(base_title)
+        editor.connect("edit_state_changed", self._on_editor_modified, tab, base_title)
+        editor.connect("content-saved", lambda editor, _: self.edit_copybox(id_message, id_codeblock, editor.get_text(), editor))
+
+    def edit_copybox(self, id_message, id_codeblock, new_content, editor=None):
+        message_content = self.chat[id_message]["Message"]
+        replace = replace_codeblock(message_content, id_codeblock, new_content)
+        self.chat[id_message]["Message"] = replace
+        self.reload_message(id_message)
+        if editor is not None:
+            editor.saved()
+        
     def add_file_to_chat(self, widget, path):
         message_label = self.get_file_button(path)
         self.chat.append({"User": "File", "Message": " " + path})
         self.add_message("File", message_label)
         self.chats[self.chat_id]["chat"] = self.chat
 
-    def _on_editor_modified(self, editor, param, tab):
+    def _on_editor_modified(self, editor, param, tab, base_title):
         """Update the tab icon and title when the editor's modified state changes."""
         if editor.is_modified:
-            #tab.set_icon_name("document-save-symbolic")  # Example icon for modified state
-            tab.set_title(os.path.basename(editor.current_file_path) + " •")  # Add indicator
+            tab.set_title(base_title + " •")  # Add indicator
         else:
-            #tab.set_icon_name("document-open-symbolic")  # Example icon for unmodified state
-            tab.set_title(os.path.basename(editor.current_file_path))  # Remove indicator
+            tab.set_title(base_title)  # Remove indicator

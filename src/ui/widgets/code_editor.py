@@ -260,7 +260,11 @@ class CodeEditorWidget(Gtk.Box):
         else:
             # Emit signal if no file path
             self.emit('content-saved', None)
-
+    
+    def saved(self):
+        self.is_modified = False
+        self.emit('edit_state_changed', self.is_modified)
+    
     def _on_open_clicked(self, button):
         """Handle open button click."""
         if self.current_file_path:
