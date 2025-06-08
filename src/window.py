@@ -48,7 +48,7 @@ from .controller import NewelleController, ReloadType
 _ = gettext.gettext
 
 
-class MainWindow(Gtk.ApplicationWindow):
+class MainWindow(Adw.ApplicationWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.app = self.get_application()
@@ -56,9 +56,12 @@ class MainWindow(Gtk.ApplicationWindow):
             enable_hide_gesture=False,
             sidebar_position=Gtk.PackType.END,
             min_sidebar_width=420,
-            max_sidebar_width=650
         )
         self.main_program_block.set_name("hide")
+        breakpoint = Adw.Breakpoint(condition=Adw.BreakpointCondition.new_length(Adw.BreakpointConditionLengthType.MAX_WIDTH, 1000, Adw.LengthUnit.PX))
+        breakpoint.add_setter(self.main_program_block, "collapsed", True)
+        self.add_breakpoint(breakpoint)
+        
         self.check_streams = {"folder": False, "chat": False}
         # Init controller
         self.controller = NewelleController(sys.path)
@@ -87,7 +90,6 @@ class MainWindow(Gtk.ApplicationWindow):
         self.edit_entries = {}
         self.auto_run_times = 0
         # Build Window
-        self.set_titlebar(Gtk.Box())
         self.chat_panel = Gtk.Box(hexpand_set=True, hexpand=True)
         self.chat_panel.set_size_request(450, -1)
         menu_button = Gtk.MenuButton()
@@ -456,7 +458,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.canvas_box.append(self.canvas_tab_bar)
         self.canvas_box.append(self.canvas_overview)
         self.add_explorer_tab(None, self.main_path)
-        self.set_child(self.main_program_block)
+        self.set_content(self.main_program_block)
         self.main_program_block.set_content(self.main)
         self.main_program_block.set_sidebar(self.canvas_box)
     
