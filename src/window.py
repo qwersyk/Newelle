@@ -56,6 +56,7 @@ class MainWindow(Adw.ApplicationWindow):
             enable_hide_gesture=False,
             sidebar_position=Gtk.PackType.END,
             min_sidebar_width=420,
+            max_sidebar_width=10000
         )
         self.main_program_block.set_name("hide")
         breakpoint = Adw.Breakpoint(condition=Adw.BreakpointCondition.new_length(Adw.BreakpointConditionLengthType.MAX_WIDTH, 1000, Adw.LengthUnit.PX))
@@ -3139,11 +3140,13 @@ class MainWindow(Adw.ApplicationWindow):
             if "cd " in t:
                 txt += t
                 p = (t.split("cd "))[min(len(t.split("cd ")), 1)]
-                v = self.get_target_directory(path, p)
-                if not v[0]:
-                    Adw.Toast(title=_("Wrong folder path"), timeout=2)
-                else:
-                    path = v[1]
+                explorer = self.get_current_explorer_panel()
+                if explorer is not None:
+                    v = explorer.get_target_directory(path, p)
+                    if not v[0]:
+                        Adw.Toast(title=_("Wrong folder path"), timeout=2)
+                    else:
+                        path = v[1]
             else:
                 txt += console_permissions + " " + t
         process = subprocess.Popen(
@@ -3181,6 +3184,9 @@ class MainWindow(Adw.ApplicationWindow):
         if os.path.exists(os.path.expanduser(path)):
             os.chdir(os.path.expanduser(path))
             self.main_path = path
+            explorer = self.get_current_explorer_panel()
+            if explorer is not None:
+                explorer.main_path = path
             GLib.idle_add(self.update_explorer_panels)
         else:
             Adw.Toast(title=_("Failed to open the folder"), timeout=2)
@@ -3196,6 +3202,11 @@ class MainWindow(Adw.ApplicationWindow):
             child = page.get_child()
             if child is not None and hasattr(child, "main_path"):
                 child.update_folder()
+    
+    def get_current_explorer_panel(self) -> ExplorerPanel | None:
+        tab = self.canvas_tabs.get_selected_page()
+        if tab is not None and hasattr(tab.get_child(), "main_path"):
+            return tab.get_child()
 
     def show_sidebar(self):
         self.main_program_block.set_name("visible")

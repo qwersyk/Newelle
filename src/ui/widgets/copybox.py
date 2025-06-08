@@ -204,7 +204,7 @@ class CopyBox(Gtk.Box):
     def run_code(self, widget, language, mutlithreading=False):
         if mutlithreading:
             if language.lower() in ["python", "python3", "py"]:
-                code = self.parent.execute_terminal_command(["python3 -c {}".format(quote_string(self.txt))])
+                code = self.parent.execute_terminal_command("python3 -c {}".format(quote_string(self.txt)))
 
             else:
                 code = "ae"
