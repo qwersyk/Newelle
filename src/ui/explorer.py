@@ -9,7 +9,8 @@ _ = gettext.gettext
 
 class ExplorerPanel(Gtk.Box):
     __gsignals__ = {
-        'new-tab-requested': (GObject.SignalFlags.RUN_FIRST, None, (str,))
+        'new-tab-requested': (GObject.SignalFlags.RUN_FIRST, None, (str,)),
+        'path-changed': (GObject.SignalFlags.RUN_FIRST, None, (str,))
     }
 
     def __init__(self, controller, starting_path="~", *args, **kwargs):
@@ -107,6 +108,11 @@ class ExplorerPanel(Gtk.Box):
             self.main_path = self.main_path
         return self.main_path
 
+    def set_main_path(self, new_path):
+        if self.main_path != new_path:
+            self.main_path = new_path
+            self.emit('path-changed', self.main_path)
+
     def go_back_in_explorer_panel(self, *a):
         path = os.path.expanduser(self.main_path)
         if os.path.exists(path) and os.path.isdir(path):
@@ -115,22 +121,21 @@ class ExplorerPanel(Gtk.Box):
             home_dir = os.path.expanduser("~")
             if new_path.startswith(home_dir):
                 if new_path == home_dir:
-                    self.main_path = "~"
+                    new_path = "~"
                 else:
-                    self.main_path = "~" + new_path[len(home_dir):]
-            else:
-                self.main_path = new_path
+                    new_path = "~" + new_path[len(home_dir):]
+            self.set_main_path(new_path)
         if self.main_path == "/".join(self.controller.newelle_dir.split("/")[3:]):
-            self.main_path = "~"
+            self.set_main_path("~")
         GLib.idle_add(self.update_folder)
 
     def go_home_in_explorer_panel(self, *a):
-        self.main_path = "~"
+        self.set_main_path("~")
         GLib.idle_add(self.update_folder)
 
     def go_forward_in_explorer_panel(self, *a):
         if self.main_path[len(self.main_path) - 3 : len(self.main_path)] == "/..":
-            self.main_path = self.main_path[0 : len(self.main_path) - 3]
+            self.set_main_path(self.main_path[0 : len(self.main_path) - 3])
             GLib.idle_add(self.update_folder)
 
     def update_folder(self, *a):
@@ -277,7 +282,7 @@ class ExplorerPanel(Gtk.Box):
                     scrolled_window.set_child(flow_box)
                     self.folder_blocks_panel.append(scrolled_window)
             else:
-                self.main_path = "~"
+                self.set_main_path("~")
                 self.update_folder()
             self.check_streams["folder"] = False
 
@@ -304,7 +309,7 @@ class ExplorerPanel(Gtk.Box):
             if os.path.isdir(
                 os.path.join(os.path.expanduser(self.main_path), button.get_name())
             ):
-                self.main_path += "/" + button.get_name()
+                self.set_main_path(self.main_path + "/" + button.get_name())
                 os.chdir(os.path.expanduser(self.main_path))
                 GLib.idle_add(self.update_folder)
             else:

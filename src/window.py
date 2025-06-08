@@ -3262,10 +3262,14 @@ class MainWindow(Adw.ApplicationWindow):
         tab = self.canvas_tabs.append(panel)
         panel.set_tab(tab)
         panel.connect("new-tab-requested", self.add_explorer_tab)
+        panel.connect("path-changed", self.update_path)
         self.show_sidebar()
         self.canvas_tabs.set_selected_page(tab)
         return tab
-    
+
+    def update_path(self, panel, path):
+        self.main_path = path
+
     def add_editor_tab(self, tab, file=None):
         if file is not None:
             base_title = os.path.basename(file)
