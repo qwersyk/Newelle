@@ -7,12 +7,14 @@ from ...utility.strings import add_S_to_sudo, quote_string
 from .terminal_dialog import TerminalDialog
 
 class CopyBox(Gtk.Box):
-    def __init__(self, txt, lang, parent = None,id_message=-1):
+    def __init__(self, txt, lang, parent = None,id_message=-1, id_codeblock=-1, allow_edit=False):
         Gtk.Box.__init__(self, orientation=Gtk.Orientation.VERTICAL, spacing=10, margin_top=10, margin_start=10,
                          margin_bottom=10, margin_end=10, css_classes=["osd", "toolbar", "code"])
         self.txt = txt
+        self.parent = parent
         longest_line = max(txt.splitlines(), key=len)
         self.id_message = id_message
+        self.id_codeblock = id_codeblock
         box = Gtk.Box(halign=Gtk.Align.END)
 
         icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="edit-copy-symbolic"))
@@ -21,8 +23,16 @@ class CopyBox(Gtk.Box):
         self.copy_button.set_child(icon)
         self.copy_button.connect("clicked", self.copy_button_clicked)
 
-        self.sourceview = GtkSource.View(width_request=10*len(longest_line))
+        self.sourceview = GtkSource.View(width_request=12*len(longest_line), monospace=True)
         self.scroll = Gtk.ScrolledWindow(propagate_natural_width=True, hscrollbar_policy=Gtk.PolicyType.AUTOMATIC, vscrollbar_policy=Gtk.PolicyType.NEVER, hexpand=True)
+
+        if allow_edit:
+            self.edit_button = Gtk.Button(halign=Gtk.Align.END, margin_end=10, css_classes=["flat"])
+            icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="document-edit-symbolic"))
+            icon.set_icon_size(Gtk.IconSize.INHERIT)
+            self.edit_button.set_child(icon)
+            self.edit_button.connect("clicked", self.edit_button_clicked)
+            box.append(self.edit_button)
 
         self.buffer = GtkSource.Buffer()
         self.buffer.set_text(txt, -1)
@@ -37,7 +47,7 @@ class CopyBox(Gtk.Box):
         for rep in replace_lang:
             if display_lang in rep[0]:
                 display_lang = rep[1]
-
+        self.lang = display_lang
         manager = GtkSource.LanguageManager.new()
         language = manager.get_language(display_lang)
         self.buffer.set_language(language)
@@ -194,7 +204,7 @@ class CopyBox(Gtk.Box):
     def run_code(self, widget, language, mutlithreading=False):
         if mutlithreading:
             if language.lower() in ["python", "python3", "py"]:
-                code = self.parent.execute_terminal_command(["python3 -c {}".format(quote_string(self.txt))])
+                code = self.parent.execute_terminal_command("python3 -c {}".format(quote_string(self.txt)))
 
             else:
                 code = "ae"
@@ -212,4 +222,7 @@ class CopyBox(Gtk.Box):
             widget.set_child(icon)
             widget.set_sensitive(False)
             threading.Thread(target=self.run_code, args=[widget,language, True]).start()
-             
+            
+    def edit_button_clicked(self, button):
+        if self.parent is not None:
+            self.parent.add_editor_tab_inline(self.id_message, self.id_codeblock, self.txt, self.lang)

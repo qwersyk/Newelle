@@ -55,6 +55,7 @@ ui_sources = [
   'ui/screenrecorder.py',
   'ui/shortcuts.py',
   'ui/mini_window.py',
+  'ui/explorer.py',
 ]
 
 widgets_sources = [
@@ -73,6 +74,8 @@ widgets_sources = [
   'ui/widgets/thinking.py',
   'ui/widgets/documents_reader.py',
   'ui/widgets/tipscarousel.py',
+  'ui/widgets/browser.py',
+  'ui/widgets/code_editor.py',
 ]
 
 handler_sources = [

@@ -11,7 +11,6 @@ def quote_string(s):
     else:
         return "'" + s + "'"
 
-
 def markwon_to_pango(markdown_text):
     """
     Converts a subset of Markdown text to Pango markup.
@@ -310,3 +309,30 @@ def remove_emoji(text):
             u"\U0001F1E0-\U0001F1FF"  # flags (iOS)
             "]+", flags=re.UNICODE)
     return emoji_pattern.sub(r'', text)
+
+
+def replace_codeblock(markdown_text, block_id, new_code):
+    """
+    Replaces the code block at the given ID (starting from 0) with new_code.
+    
+    Args:
+        markdown_text (str): The full markdown text.
+        block_id (int): The index of the code block to replace.
+        new_code (str): The new content to put inside the code block.
+    
+    Returns:
+        str: Modified markdown text with the code block replaced.
+    """
+    pattern = re.compile(r'```.*?\n.*?```', re.DOTALL)
+    matches = list(pattern.finditer(markdown_text))
+    
+    if block_id < 0 or block_id >= len(matches):
+        raise IndexError("Code block ID out of range.")
+    
+    match = matches[block_id]
+    # Preserve the language tag from the opening line
+    opening_line = match.group(0).split('\n', 1)[0]
+    new_block = f"{opening_line}\n{new_code}\n```"
+
+    # Replace the matched code block with the new one
+    return markdown_text[:match.start()] + new_block + markdown_text[match.end():]
