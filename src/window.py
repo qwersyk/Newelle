@@ -67,6 +67,7 @@ class MainWindow(Adw.ApplicationWindow):
         # Init controller
         self.controller = NewelleController(sys.path)
         self.controller.ui_init()
+        self.controller.set_add_tab_function(self.add_tab)
         ReplaceHelper.set_controller(self.controller)
         # Set basic vars
         self.path = self.controller.config_dir
@@ -3247,7 +3248,7 @@ class MainWindow(Adw.ApplicationWindow):
         self.show_sidebar()
         self.canvas_tabs.set_selected_page(tab)
         return tab
-
+ 
     def add_explorer_tab(self, tab, path=None):
         """Add an explorer tab
 
@@ -3315,3 +3316,6 @@ class MainWindow(Adw.ApplicationWindow):
             tab.set_title(base_title + " •")  # Add indicator
         else:
             tab.set_title(base_title)  # Remove indicator
+
+    def add_tab(self, tab):
+        self.canvas_tabs.add_page(tab.get_child(), tab)

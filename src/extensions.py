@@ -1,9 +1,10 @@
+from collections.abc import Callable
 import importlib 
 import os 
 import json 
 import shutil
 import sys
-from gi.repository import Gtk
+from gi.repository import Gtk, Adw
 
 from .handlers import Handler
 
@@ -258,6 +259,12 @@ class NewelleExtension(Handler):
         """
         return history, bot_response
 
+    def set_add_tab_function(self, add_tab : Callable[[Adw.TabPage], None]):
+        self.add_tab_func = add_tab
+
+    def add_tab(self, tab : Adw.TabPage):
+        self.add_tab(tab)        
+
 
 class ExtensionLoader:
     """
@@ -311,6 +318,9 @@ class ExtensionLoader:
             self.extensions.append(integration_class)
             self.extensionsmap[integration_class.id] = integration_class
 
+    def set_tab_func(self, add_tab):
+        for extension in self.get_enabled_extensions():
+            extension.set_add_tab_function(add_tab)
             
     def load_extensions(self):
         """Load extensions from the extension directory"""

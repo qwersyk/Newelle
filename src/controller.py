@@ -85,6 +85,7 @@ class NewelleController:
     def __init__(self, python_path) -> None:
         self.settings = Gio.Settings.new(SCHEMA_ID)
         self.python_path = python_path
+        self.add_tab_func = None
 
     def ui_init(self):
         """Init necessary variables for the UI and load models and handlers"""
@@ -116,8 +117,13 @@ class NewelleController:
         self.extension_path = os.path.join(self.config_dir, "extensions")
         self.extensions_cache = os.path.join(self.cache_dir, "extensions_cache")
         self.newelle_dir = os.path.join(self.config_dir, DIR_NAME)
-        print(self.pip_path, self.models_dir)
 
+    def set_add_tab_function(self, add_tab):
+        """Set add tab function"""
+        if add_tab is not None:
+            self.add_tab_func = add_tab
+            self.extensionloader.set_tab_func(add_tab)
+            self.integrationsloader.set_tab_func(add_tab)
 
     def load_chats(self, chat_id):
         """Load chats"""
@@ -228,12 +234,14 @@ class NewelleController:
         self.extensionloader.load_extensions()
         self.extensionloader.add_handlers(AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS, AVAILABLE_RAGS, AVAILABLE_WEBSEARCH)
         self.extensionloader.add_prompts(PROMPTS, AVAILABLE_PROMPTS)
+        self.set_add_tab_function(self.add_tab_func)
 
     def load_integrations(self):
         """Load integrations"""
         self.integrationsloader = ExtensionLoader(self.extension_path, pip_path=self.pip_path, settings=self.settings)
         self.integrationsloader.load_integrations(AVAILABLE_INTEGRATIONS)
-        
+        self.set_add_tab_function(self.add_tab_func)
+
     def create_profile(self, profile_name, picture=None, settings={}, settings_groups=[]):
         """Create a profile
 
