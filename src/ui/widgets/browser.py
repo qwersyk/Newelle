@@ -11,7 +11,8 @@ class BrowserWidget(Gtk.Box):
     
     # Define signals
     __gsignals__ = {
-        'page-changed': (GObject.SignalFlags.RUN_FIRST, None, (str, str, object))
+        'page-changed': (GObject.SignalFlags.RUN_FIRST, None, (str, str, object)),
+        'attach-clicked': (GObject.SignalFlags.RUN_FIRST, None, ())
     }
     
     def __init__(self, starting_url="https://www.google.com", search_string="https://www.google.com/search?q=%s", **kwargs):
@@ -78,6 +79,13 @@ class BrowserWidget(Gtk.Box):
         self.home_button.set_tooltip_text("Home")
         self.home_button.connect("clicked", self._on_home_clicked)
         self.toolbar.pack_end(self.home_button)
+        
+        # Attach button
+        self.attach_button = Gtk.Button()
+        self.attach_button.set_icon_name("attach-symbolic")
+        self.attach_button.set_tooltip_text("Attach")
+        self.attach_button.connect("clicked", self._on_attach_clicked)
+        self.toolbar.pack_end(self.attach_button)
         
         self.append(self.toolbar)
         
@@ -303,3 +311,7 @@ class BrowserWidget(Gtk.Box):
             return None
         
         return result['html']
+
+    def _on_attach_clicked(self, button):
+        """Handle attach button click."""
+        self.emit('attach-clicked')

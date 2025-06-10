@@ -3245,10 +3245,16 @@ class MainWindow(Adw.ApplicationWindow):
             if favicon:
                 tab.set_icon(favicon)
         browser.connect("page-changed", on_page_changed)
+        browser.connect("attach-clicked", self._on_attach_clicked)
         self.show_sidebar()
         self.canvas_tabs.set_selected_page(tab)
         return tab
- 
+
+    def _on_attach_clicked(self, browser):
+        text = "```website\n" + browser.get_current_url() + "\n```"
+        self.chat.append({"User": "User", "Message": text})
+        self.show_message(text, False, is_user=True)
+    
     def add_explorer_tab(self, tab, path=None):
         """Add an explorer tab
 
