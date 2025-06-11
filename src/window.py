@@ -52,6 +52,8 @@ class MainWindow(Adw.ApplicationWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.app = self.get_application()
+        
+        # Main program block - On the right Canvas tabs, Chat as content
         self.main_program_block = Adw.OverlaySplitView(
             enable_hide_gesture=False,
             sidebar_position=Gtk.PackType.END,
@@ -59,15 +61,20 @@ class MainWindow(Adw.ApplicationWindow):
             max_sidebar_width=10000
         )
         self.main_program_block.set_name("hide")
+        # Breakpoint - Collapse the sidebar when the window is too narrow
         breakpoint = Adw.Breakpoint(condition=Adw.BreakpointCondition.new_length(Adw.BreakpointConditionLengthType.MAX_WIDTH, 1000, Adw.LengthUnit.PX))
         breakpoint.add_setter(self.main_program_block, "collapsed", True)
         self.add_breakpoint(breakpoint)
-        
+       
+        # Streams
         self.check_streams = {"folder": False, "chat": False}
+        # if it is recording
+        self.recording = False
         # Init controller
         self.controller = NewelleController(sys.path)
         self.controller.ui_init()
         self.controller.set_add_tab_function(self.add_tab)
+        # Replace helper - set variables in the prompt
         ReplaceHelper.set_controller(self.controller)
         # Set basic vars
         self.path = self.controller.config_dir
@@ -1068,6 +1075,7 @@ class MainWindow(Adw.ApplicationWindow):
         path = os.path.join(self.controller.cache_dir, "recording.wav")
         if os.path.exists(path):
             os.remove(path)
+        self.recording = True
         if self.controller.newelle_settings.automatic_stt:
             self.automatic_stt_status = True
         # button.set_child(Gtk.Spinner(spinning=True))
@@ -1094,6 +1102,7 @@ class MainWindow(Adw.ApplicationWindow):
 
     def stop_recording(self, button=False):
         """Stop a recording manually"""
+        self.recording = False
         self.automatic_stt_status = False
         self.recorder.stop_recording(
             os.path.join(self.controller.cache_dir, "recording.wav")
