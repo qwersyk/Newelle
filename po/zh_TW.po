@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Newelle 0.3.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-03 21:04+0800\n"
+"POT-Creation-Date: 2025-06-08 23:05+0800\n"
 "PO-Revision-Date: 2025-03-26 19:30\n"
 "Last-Translator: Oliver Tzeng（曾嘉禾）<olivertzeng@proton.me>\n"
 "Language-Team: l10n-tw\n"
@@ -98,7 +98,7 @@ msgstr "使用自訂模型"
 #: src/handlers/llm/claude_handler.py:89 src/handlers/llm/claude_handler.py:93
 #: src/handlers/llm/gemini_handler.py:97 src/handlers/llm/openai_handler.py:84
 #: src/handlers/stt/whisper_handler.py:15
-#: src/handlers/stt/whispercpp_handler.py:39
+#: src/handlers/stt/whispercpp_handler.py:40
 #: src/handlers/tts/custom_openai_tts.py:20
 #: src/handlers/tts/elevenlabs_handler.py:24
 #: src/handlers/tts/groq_tts_handler.py:34
@@ -343,6 +343,7 @@ msgid "An alternative to sampling with temperature, called nucleus sampling"
 msgstr "一種調整隨機性的替代的技術"
 
 #: src/handlers/llm/openai_handler.py:105
+#: src/handlers/stt/whispercpp_handler.py:50
 msgid "Temperature"
 msgstr "溫度"
 
@@ -439,6 +440,7 @@ msgstr "Google SR 的 API 金鑰，設定「default」將使用預設金鑰"
 #: src/handlers/stt/googlesr_handler.py:21
 #: src/handlers/stt/groqsr_handler.py:29
 #: src/handlers/stt/openaisr_handler.py:32
+#: src/handlers/stt/whispercpp_handler.py:47
 msgid "Language"
 msgstr "語言"
 
@@ -501,13 +503,45 @@ msgid "Absolute path to the VOSK model (unzipped)"
 msgstr "VOSK 模型的絕對路徑（已解壓縮）"
 
 #: src/handlers/stt/whisper_handler.py:16
-#: src/handlers/stt/whispercpp_handler.py:40
+#: src/handlers/stt/whispercpp_handler.py:41
 msgid "Name of the Whisper model"
 msgstr "Whisper 模型的名稱"
 
 #: src/handlers/stt/witai_handler.py:13
 msgid "Server Access Token for wit.ai"
 msgstr "wit.ai 的伺服器存取權杖"
+
+#: src/handlers/stt/whispercpp_handler.py:47
+msgid "Language of the recognition."
+msgstr "辨識的語言"
+
+#: src/handlers/stt/whispercpp_handler.py:48
+msgid "Model Library"
+msgstr "模型資料庫"
+
+#: src/handlers/stt/whispercpp_handler.py:48
+msgid "Manage Whisper models"
+msgstr "管理 Whisper 模型"
+
+#: src/handlers/stt/whispercpp_handler.py:49
+msgid "Advanced Settings"
+msgstr "更多設定"
+
+#: src/handlers/stt/whispercpp_handler.py:49
+msgid "More advanced settings"
+msgstr "更多設定"
+
+#: src/handlers/stt/whispercpp_handler.py:50
+msgid "Temperature to use"
+msgstr "使用的溫度"
+
+#: src/handlers/stt/whispercpp_handler.py:51
+msgid "Prompt for the recognition"
+msgstr "語音辨識提示語"
+
+#: src/handlers/stt/whispercpp_handler.py:51
+msgid "Prompt to use for the recognition"
+msgstr "使用語音辨識時傳入的提示語"
 
 #: src/handlers/tts/custom_openai_tts.py:17
 msgid "Endpoint"
@@ -706,7 +740,7 @@ msgstr "排除網域"
 msgid "A list of domains to specifically exclude from the search results."
 msgstr "在搜尋結果內排除這些網域"
 
-#: src/ui/profile.py:33 src/window.py:93
+#: src/ui/profile.py:33 src/window.py:101
 msgid "Settings"
 msgstr "設定"
 
@@ -826,7 +860,7 @@ msgstr "放大"
 msgid "Zoom out"
 msgstr "縮小"
 
-#: src/ui/thread_editing.py:6 src/window.py:91
+#: src/ui/thread_editing.py:6 src/window.py:99
 msgid "Thread editing"
 msgstr "執行緒編輯"
 
@@ -871,7 +905,7 @@ msgid "Newelle Tips"
 msgstr "Newelle 小秘訣"
 
 #: src/ui/extension.py:17 src/ui/presentation.py:131 src/constants.py:489
-#: src/window.py:92
+#: src/window.py:100
 msgid "Extensions"
 msgstr "擴充功能"
 
@@ -891,8 +925,8 @@ msgstr "下載擴充功能"
 msgid "Install extension from file..."
 msgstr "從檔案安裝檔案..."
 
-#: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.desktop.in:2
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:7
+#: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.appdata.xml.in:7
+#: data/io.github.qwersyk.Newelle.desktop.in:2
 msgid "Newelle"
 msgstr "Newelle"
 
@@ -939,7 +973,7 @@ msgid ""
 "to the LLM."
 msgstr "Newelle 能擷取檔案的相關資訊並且傳送給模型以給予更精確的回覆！"
 
-#: src/ui/presentation.py:124 src/ui/settings.py:221 src/window.py:523
+#: src/ui/presentation.py:124 src/ui/settings.py:221 src/window.py:544
 msgid "Command virtualization"
 msgstr "指令虛擬化"
 
@@ -1033,7 +1067,7 @@ msgstr ""
 "專門將文字轉成向量以提供給 RAG 與長期記憶所使用的模型。改變此設定後請重整索引"
 "與清除記憶。"
 
-#: src/ui/settings.py:102 src/window.py:521
+#: src/ui/settings.py:102 src/window.py:542
 msgid "Long Term Memory"
 msgstr "長期記憶"
 
@@ -1293,6 +1327,90 @@ msgstr "Newelle 沒有足夠權限在系統內執行指令，請執行以下指�
 #: src/ui/settings.py:965
 msgid "Understood"
 msgstr "確認"
+
+#: src/ui/explorer.py:186
+msgid "Folder is Empty"
+msgstr "資料夾為空"
+
+#: src/ui/explorer.py:324 src/window.py:1437
+msgid "File not found"
+msgstr "找不到檔案"
+
+#: src/ui/explorer.py:339
+msgid "Open in new tab"
+msgstr "於新分頁開啟"
+
+#: src/ui/explorer.py:341
+msgid "Open in integrated editor"
+msgstr "於編輯器開啟"
+
+#: src/ui/explorer.py:344
+msgid "Open in file manager"
+msgstr "於檔案管理員開啟"
+
+#: src/ui/explorer.py:347 src/ui/explorer.py:435
+msgid "Rename"
+msgstr "重新命名"
+
+#: src/ui/explorer.py:350
+msgid "Delete"
+msgstr "刪除"
+
+#: src/ui/explorer.py:353
+msgid "Copy full path"
+msgstr "複製絕對路徑"
+
+#: src/ui/explorer.py:404
+msgid "Failed to open file manager"
+msgstr "無法開啟檔案管理員"
+
+#: src/ui/explorer.py:420
+msgid "New name:"
+msgstr "新名稱："
+
+#: src/ui/explorer.py:432 src/main.py:204
+msgid "Cancel"
+msgstr "取消"
+
+#: src/ui/explorer.py:455
+msgid "Renamed successfully"
+msgstr "重新命名成功"
+
+#: src/ui/explorer.py:460
+msgid "Failed to rename: {}"
+msgstr "重新命名 {} 失敗"
+
+#: src/ui/explorer.py:481
+msgid "Delete File?"
+msgstr "是否刪除檔案？"
+
+#: src/ui/explorer.py:483
+msgid "Are you sure you want to delete \"{}\"?"
+msgstr "是否刪除「{}」？"
+
+#: src/ui/explorer.py:485
+msgid "_Cancel"
+msgstr "取消"
+
+#: src/ui/explorer.py:486
+msgid "_Delete"
+msgstr "刪除"
+
+#: src/ui/explorer.py:504
+msgid "Deleted successfully"
+msgstr "刪除成功"
+
+#: src/ui/explorer.py:509
+msgid "Failed to delete: {}"
+msgstr "無法刪除 {}"
+
+#: src/ui/explorer.py:522
+msgid "Path copied to clipboard"
+msgstr "已複製路徑"
+
+#: src/ui/explorer.py:526
+msgid "Failed to copy path"
+msgstr "複製路徑失敗"
 
 #: src/constants.py:20
 msgid "Newelle Demo API"
@@ -1643,7 +1761,7 @@ msgstr "在此新增自訂的提示語"
 msgid "LLM and Secondary LLM settings"
 msgstr "大型語言模型與輔助模型設定"
 
-#: src/constants.py:459 src/window.py:522
+#: src/constants.py:459 src/window.py:543
 msgid "TTS"
 msgstr "文本轉語音"
 
@@ -1713,266 +1831,6 @@ msgstr "一般設定、指令虛擬化、記憶長度、自動生成聊天室名
 msgid "Prompts settings, custom extra prompt, custom prompts..."
 msgstr "提示語設定、自訂提示語等..."
 
-#: src/controller.py:132 src/window.py:1824
-msgid "Chat "
-msgstr "聊天室 "
-
-#: src/window.py:94
-msgid "Keyboard shorcuts"
-msgstr "快捷鍵"
-
-#: src/window.py:95
-msgid "About"
-msgstr "關於"
-
-#: src/window.py:102
-msgid "Chat"
-msgstr "聊天"
-
-#: src/window.py:149
-msgid "History"
-msgstr "最近的聊天紀錄"
-
-#: src/window.py:170
-msgid "Create a chat"
-msgstr "新增聊天室"
-
-#: src/window.py:247
-msgid " Stop"
-msgstr " 停止"
-
-#: src/window.py:310
-msgid " Clear"
-msgstr " 清除"
-
-#: src/window.py:325
-msgid " Continue"
-msgstr " 繼續"
-
-#: src/window.py:338
-msgid " Regenerate"
-msgstr " 重新生成"
-
-#: src/window.py:404
-msgid "Send a message..."
-msgstr "傳送訊息......"
-
-#: src/window.py:464
-msgid "Ask about a website"
-msgstr "詢問有關一個網站的資訊"
-
-#: src/window.py:464
-msgid "Write #https://website.com in chat to ask information about a website"
-msgstr "在聊天室內以 #https://網站.名稱 的格式以詢問一個網站的資訊"
-
-#: src/window.py:465
-msgid "Check out our Extensions!"
-msgstr "看看我們的擴充功能"
-
-#: src/window.py:465
-msgid "We have a lot of extensions for different things. Check it out!"
-msgstr "我們有五花八門的擴充功能可供使用！"
-
-#: src/window.py:466
-msgid "Chat with documents!"
-msgstr "與檔案互動！"
-
-#: src/window.py:466
-msgid ""
-"Add your documents to your documents folder and chat using the information "
-"contained in them!"
-msgstr "在「文件」資料夾內放置檔案以讓人工智慧讀取，提供更精確的回覆"
-
-#: src/window.py:467
-msgid "Surf the web!"
-msgstr "支援網路搜尋！"
-
-#: src/window.py:467
-msgid ""
-"Enable web search to allow the LLM to surf the web and provide up to date "
-"answers"
-msgstr "提供網路搜尋的功能以提供更新的資訊"
-
-#: src/window.py:468
-msgid "Mini Window"
-msgstr "迷你視窗"
-
-#: src/window.py:468
-msgid "Ask questions on the fly using the mini window mode"
-msgstr "啟用迷你視窗模式以更方便地問問題"
-
-#: src/window.py:469
-msgid "Text to Speech"
-msgstr "文本轉語音"
-
-#: src/window.py:469
-msgid "Newelle supports text-to-speech! Enable it in the settings"
-msgstr "Newelle 提供文本轉語音功能"
-
-#: src/window.py:470
-msgid "Keyboard Shortcuts"
-msgstr "快捷鍵"
-
-#: src/window.py:470
-msgid "Control Newelle using Keyboard Shortcuts"
-msgstr "使用快捷鍵以更便捷地使用 Newelle"
-
-#: src/window.py:471
-msgid "Prompt Control"
-msgstr "提示語控制"
-
-#: src/window.py:471
-msgid "Newelle gives you 100% prompt control. Tune your prompts for your use."
-msgstr "Newelle 讓您能夠完全控制提示語。"
-
-#: src/window.py:472
-msgid "Thread Editing"
-msgstr "執行緒編輯"
-
-#: src/window.py:472
-msgid "Check the programs and processes you run from Newelle"
-msgstr "檢視從 Newelle 執行的各種行程"
-
-#: src/window.py:479
-msgid "New Chat"
-msgstr "新聊天室"
-
-#: src/window.py:497
-msgid "Provider Errror"
-msgstr "供給者錯誤"
-
-#: src/window.py:520
-msgid "Local Documents"
-msgstr "本地檔案"
-
-#: src/window.py:524
-msgid "Web search"
-msgstr "網路搜尋"
-
-#: src/window.py:745
-msgid "This provider does not have a model list"
-msgstr "此供給者沒有模型清單"
-
-#: src/window.py:750
-msgid " Models"
-msgstr " 個模型"
-
-#: src/window.py:753
-msgid "Search Models..."
-msgstr "搜尋模型......"
-
-#: src/window.py:975
-msgid "Create new profile"
-msgstr "建立新設定檔"
-
-#: src/window.py:1108
-msgid "Could not recognize your voice"
-msgstr "無法辨識聲音"
-
-#: src/window.py:1145
-msgid "Images"
-msgstr "圖片"
-
-#: src/window.py:1149
-msgid "LLM Supported Files"
-msgstr "大型語言模型支援的檔案"
-
-#: src/window.py:1157
-msgid "RAG Supported files"
-msgstr "RAG 支援的檔案"
-
-#: src/window.py:1175
-msgid "Supported Files"
-msgstr "支援的檔案"
-
-#: src/window.py:1179
-msgid "All Files"
-msgstr "所有檔案"
-
-#: src/window.py:1185
-msgid "Attach file"
-msgstr "嵌入檔案"
-
-#: src/window.py:1410 src/window.py:1642
-msgid "File not found"
-msgstr "找不到檔案"
-
-#: src/window.py:1428
-msgid "The file cannot be sent until the program is finished"
-msgstr "在執行完成前無法上傳檔案"
-
-#: src/window.py:1450
-msgid "The file is not recognized"
-msgstr "檔案無法辨識"
-
-#: src/window.py:1517
-msgid "Folder is Empty"
-msgstr "資料夾為空"
-
-#: src/window.py:1662
-msgid "You can no longer continue the message."
-msgstr "您無法繼續此訊息。"
-
-#: src/window.py:1687
-msgid "You can no longer regenerate the message."
-msgstr "您無法重新生成此訊息。"
-
-#: src/window.py:1795
-msgid "Chat is empty"
-msgstr "聊天室為空"
-
-#: src/window.py:1864
-msgid "Chat is cleared"
-msgstr "已清除聊天紀錄"
-
-#: src/window.py:1889
-msgid "The message was canceled and deleted from history"
-msgstr "此訊息已從聊天紀錄中取消並且刪除"
-
-#: src/window.py:1933
-msgid "The message cannot be sent until the program is finished"
-msgstr "在執行完成前無法傳送訊息"
-
-#: src/window.py:2848
-msgid "You can't edit a message while the program is running."
-msgstr "在執行完成前無法編輯訊息"
-
-#: src/window.py:2972
-msgid "Prompt content"
-msgstr "提示內容"
-
-#: src/window.py:3228
-msgid ""
-"The neural network has access to your computer and any data in this chat and "
-"can run commands, be careful, we are not responsible for the neural network. "
-"Do not share any sensitive information."
-msgstr ""
-"注意：此人工智慧模型有權取用電腦中的資料\n"
-"我們對這些模型不承擔任何責任\n"
-"請勿分享機密資訊"
-
-#: src/window.py:3257
-msgid ""
-"The neural network has access to any data in this chat, be careful, we are "
-"not responsible for the neural network. Do not share any sensitive "
-"information."
-msgstr ""
-"注意：此人工智慧模型有權取用電腦中的資料\n"
-"我們對這些模型不承擔任何責任\n"
-"請勿分享機密資訊"
-
-#: src/window.py:3304
-msgid "Wrong folder path"
-msgstr "錯誤資料夾路徑"
-
-#: src/window.py:3337
-msgid "Thread has not been completed, thread number: "
-msgstr "執行緒尚未完成，執行緒序號："
-
-#: src/window.py:3346
-msgid "Failed to open the folder"
-msgstr "無法開啟資料夾"
-
 #: src/main.py:200
 msgid "Terminal threads are still running in the background"
 msgstr "終端機執行緒正在背景中執行"
@@ -1980,10 +1838,6 @@ msgstr "終端機執行緒正在背景中執行"
 #: src/main.py:201
 msgid "When you close the window, they will be automatically terminated"
 msgstr "關閉視窗後將自動停止執行"
-
-#: src/main.py:204
-msgid "Cancel"
-msgstr "取消"
 
 #: src/main.py:205
 msgid "Close"
@@ -2001,13 +1855,269 @@ msgstr "重新整理資料夾完成"
 msgid "Chat is created"
 msgstr "已建立新的聊天室"
 
-#: data/io.github.qwersyk.Newelle.desktop.in:3
-msgid "Newelle: Your advanced chat bot"
-msgstr "Newelle：您強大的聊天機器人"
+#: src/controller.py:129 src/window.py:1660
+msgid "Chat "
+msgstr "聊天室 "
 
-#: data/io.github.qwersyk.Newelle.desktop.in:10
-msgid "chat;ai;gpt;chatgpt;assistant;"
-msgstr "chat;ai;gpt;chatgpt;assistant;"
+#: src/window.py:102
+msgid "Keyboard shorcuts"
+msgstr "快捷鍵"
+
+#: src/window.py:103
+msgid "About"
+msgstr "關於"
+
+#: src/window.py:110
+msgid "Chat"
+msgstr "聊天"
+
+#: src/window.py:157
+msgid "History"
+msgstr "最近的聊天紀錄"
+
+#: src/window.py:178
+msgid "Create a chat"
+msgstr "新增聊天室"
+
+#: src/window.py:249
+msgid " Stop"
+msgstr " 停止"
+
+#: src/window.py:264
+msgid " Clear"
+msgstr " 清除"
+
+#: src/window.py:279
+msgid " Continue"
+msgstr " 繼續"
+
+#: src/window.py:292
+msgid " Regenerate"
+msgstr " 重新生成"
+
+#: src/window.py:358
+msgid "Send a message..."
+msgstr "傳送訊息......"
+
+#: src/window.py:435
+msgid "Explorer Tab"
+msgstr "探索分頁"
+
+#: src/window.py:436
+msgid "Terminal Tab"
+msgstr "終端機監分頁"
+
+#: src/window.py:437
+msgid "Browser Tab"
+msgstr "瀏覽器分頁"
+
+#: src/window.py:485
+msgid "Ask about a website"
+msgstr "詢問有關一個網站的資訊"
+
+#: src/window.py:485
+msgid "Write #https://website.com in chat to ask information about a website"
+msgstr "在聊天室內以 #https://網站.名稱 的格式以詢問一個網站的資訊"
+
+#: src/window.py:486
+msgid "Check out our Extensions!"
+msgstr "看看我們的擴充功能"
+
+#: src/window.py:486
+msgid "We have a lot of extensions for different things. Check it out!"
+msgstr "我們有五花八門的擴充功能可供使用！"
+
+#: src/window.py:487
+msgid "Chat with documents!"
+msgstr "與檔案互動！"
+
+#: src/window.py:487
+msgid ""
+"Add your documents to your documents folder and chat using the information "
+"contained in them!"
+msgstr "在「文件」資料夾內放置檔案以讓人工智慧讀取，提供更精確的回覆"
+
+#: src/window.py:488
+msgid "Surf the web!"
+msgstr "支援網路搜尋！"
+
+#: src/window.py:488
+msgid ""
+"Enable web search to allow the LLM to surf the web and provide up to date "
+"answers"
+msgstr "提供網路搜尋的功能以提供更新的資訊"
+
+#: src/window.py:489
+msgid "Mini Window"
+msgstr "迷你視窗"
+
+#: src/window.py:489
+msgid "Ask questions on the fly using the mini window mode"
+msgstr "啟用迷你視窗模式以更方便地問問題"
+
+#: src/window.py:490
+msgid "Text to Speech"
+msgstr "文本轉語音"
+
+#: src/window.py:490
+msgid "Newelle supports text-to-speech! Enable it in the settings"
+msgstr "Newelle 提供文本轉語音功能"
+
+#: src/window.py:491
+msgid "Keyboard Shortcuts"
+msgstr "快捷鍵"
+
+#: src/window.py:491
+msgid "Control Newelle using Keyboard Shortcuts"
+msgstr "使用快捷鍵以更便捷地使用 Newelle"
+
+#: src/window.py:492
+msgid "Prompt Control"
+msgstr "提示語控制"
+
+#: src/window.py:492
+msgid "Newelle gives you 100% prompt control. Tune your prompts for your use."
+msgstr "Newelle 讓您能夠完全控制提示語。"
+
+#: src/window.py:493
+msgid "Thread Editing"
+msgstr "執行緒編輯"
+
+#: src/window.py:493
+msgid "Check the programs and processes you run from Newelle"
+msgstr "檢視從 Newelle 執行的各種行程"
+
+#: src/window.py:500
+msgid "New Chat"
+msgstr "新聊天室"
+
+#: src/window.py:518
+msgid "Provider Errror"
+msgstr "供給者錯誤"
+
+#: src/window.py:541
+msgid "Local Documents"
+msgstr "本地檔案"
+
+#: src/window.py:545
+msgid "Web search"
+msgstr "網路搜尋"
+
+#: src/window.py:766
+msgid "This provider does not have a model list"
+msgstr "此供給者沒有模型清單"
+
+#: src/window.py:771
+msgid " Models"
+msgstr " 個模型"
+
+#: src/window.py:774
+msgid "Search Models..."
+msgstr "搜尋模型......"
+
+#: src/window.py:996
+msgid "Create new profile"
+msgstr "建立新設定檔"
+
+#: src/window.py:1129
+msgid "Could not recognize your voice"
+msgstr "無法辨識聲音"
+
+#: src/window.py:1166
+msgid "Images"
+msgstr "圖片"
+
+#: src/window.py:1170
+msgid "LLM Supported Files"
+msgstr "大型語言模型支援的檔案"
+
+#: src/window.py:1178
+msgid "RAG Supported files"
+msgstr "RAG 支援的檔案"
+
+#: src/window.py:1196
+msgid "Supported Files"
+msgstr "支援的檔案"
+
+#: src/window.py:1200
+msgid "All Files"
+msgstr "所有檔案"
+
+#: src/window.py:1206
+msgid "Attach file"
+msgstr "嵌入檔案"
+
+#: src/window.py:1455
+msgid "The file cannot be sent until the program is finished"
+msgstr "在執行完成前無法上傳檔案"
+
+#: src/window.py:1477
+msgid "The file is not recognized"
+msgstr "檔案無法辨識"
+
+#: src/window.py:1498
+msgid "You can no longer continue the message."
+msgstr "您無法繼續此訊息。"
+
+#: src/window.py:1523
+msgid "You can no longer regenerate the message."
+msgstr "您無法重新生成此訊息。"
+
+#: src/window.py:1631
+msgid "Chat is empty"
+msgstr "聊天室為空"
+
+#: src/window.py:1700
+msgid "Chat is cleared"
+msgstr "已清除聊天紀錄"
+
+#: src/window.py:1725
+msgid "The message was canceled and deleted from history"
+msgstr "此訊息已從聊天紀錄中取消並且刪除"
+
+#: src/window.py:1769
+msgid "The message cannot be sent until the program is finished"
+msgstr "在執行完成前無法傳送訊息"
+
+#: src/window.py:2688
+msgid "You can't edit a message while the program is running."
+msgstr "在執行完成前無法編輯訊息"
+
+#: src/window.py:2813
+msgid "Prompt content"
+msgstr "提示內容"
+
+#: src/window.py:3069
+msgid ""
+"The neural network has access to your computer and any data in this chat and "
+"can run commands, be careful, we are not responsible for the neural network. "
+"Do not share any sensitive information."
+msgstr ""
+"注意：此人工智慧模型有權取用電腦中的資料\n"
+"我們對這些模型不承擔任何責任\n"
+"請勿分享機密資訊"
+
+#: src/window.py:3098
+msgid ""
+"The neural network has access to any data in this chat, be careful, we are "
+"not responsible for the neural network. Do not share any sensitive "
+"information."
+msgstr ""
+"注意：此人工智慧模型有權取用電腦中的資料\n"
+"我們對這些模型不承擔任何責任\n"
+"請勿分享機密資訊"
+
+#: src/window.py:3147
+msgid "Wrong folder path"
+msgstr "錯誤資料夾路徑"
+
+#: src/window.py:3180
+msgid "Thread has not been completed, thread number: "
+msgstr "執行緒尚未完成，執行緒序號："
+
+#: src/window.py:3192
+msgid "Failed to open the folder"
+msgstr "無法開啟資料夾"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:9
 msgid ""
@@ -2159,6 +2269,14 @@ msgstr "重新設計"
 msgid "Qwersyk"
 msgstr "Qwersyk"
 
+#: data/io.github.qwersyk.Newelle.desktop.in:3
+msgid "Newelle: Your advanced chat bot"
+msgstr "Newelle：您強大的聊天機器人"
+
+#: data/io.github.qwersyk.Newelle.desktop.in:10
+msgid "chat;ai;gpt;chatgpt;assistant;"
+msgstr "chat;ai;gpt;chatgpt;assistant;"
+
 #, fuzzy, python-brace-format
 #~ msgid "Name of the {provider_name} Model"
 #~ msgstr "Groq 模型名稱"
@@ -2177,9 +2295,6 @@ msgstr "Qwersyk"
 
 #~ msgid "This is not an extension"
 #~ msgstr "此非擴充功能"
-
-#~ msgid "Failed to send bot a message"
-#~ msgstr "訊息傳送失敗"
 
 #~ msgid "Chat has been stopped"
 #~ msgstr "已停止聊天室"

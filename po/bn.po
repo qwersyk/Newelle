@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-03 21:04+0800\n"
+"POT-Creation-Date: 2025-06-08 23:05+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: aritra saha<EMAIL@ADDRESS>\n"
 "Language-Team: Bengali\n"
@@ -99,7 +99,7 @@ msgstr "কাস্টম মডেল ব্যবহার করুন"
 #: src/handlers/llm/claude_handler.py:89 src/handlers/llm/claude_handler.py:93
 #: src/handlers/llm/gemini_handler.py:97 src/handlers/llm/openai_handler.py:84
 #: src/handlers/stt/whisper_handler.py:15
-#: src/handlers/stt/whispercpp_handler.py:39
+#: src/handlers/stt/whispercpp_handler.py:40
 #: src/handlers/tts/custom_openai_tts.py:20
 #: src/handlers/tts/elevenlabs_handler.py:24
 #: src/handlers/tts/groq_tts_handler.py:34
@@ -353,6 +353,7 @@ msgid "An alternative to sampling with temperature, called nucleus sampling"
 msgstr "তাপমাত্রার সাথে স্যাম্পলিংয়ের একটি বিকল্প, যাকে নিউক্লিয়াস স্যাম্পলিং বলা হয়"
 
 #: src/handlers/llm/openai_handler.py:105
+#: src/handlers/stt/whispercpp_handler.py:50
 msgid "Temperature"
 msgstr "তাপমাত্রা"
 
@@ -459,6 +460,7 @@ msgstr "Google SR-এর জন্য API কী, ডিফল্টটি ব�
 #: src/handlers/stt/googlesr_handler.py:21
 #: src/handlers/stt/groqsr_handler.py:29
 #: src/handlers/stt/openaisr_handler.py:32
+#: src/handlers/stt/whispercpp_handler.py:47
 msgid "Language"
 msgstr "ভাষা"
 
@@ -523,13 +525,52 @@ msgid "Absolute path to the VOSK model (unzipped)"
 msgstr "VOSK মডেলের অ্যাবসোলিউট পাথ (আনজিপ করা)"
 
 #: src/handlers/stt/whisper_handler.py:16
-#: src/handlers/stt/whispercpp_handler.py:40
+#: src/handlers/stt/whispercpp_handler.py:41
 msgid "Name of the Whisper model"
 msgstr "Whisper মডেলের নাম"
 
 #: src/handlers/stt/witai_handler.py:13
 msgid "Server Access Token for wit.ai"
 msgstr "wit.ai-এর জন্য সার্ভার অ্যাক্সেস টোকেন"
+
+#: src/handlers/stt/whispercpp_handler.py:47
+#, fuzzy
+msgid "Language of the recognition."
+msgstr "IETF-এ চেনার জন্য টেক্সটের ভাষা"
+
+#: src/handlers/stt/whispercpp_handler.py:48
+#, fuzzy
+msgid "Model Library"
+msgstr "মডেল ম্যানেজার"
+
+#: src/handlers/stt/whispercpp_handler.py:48
+#, fuzzy
+msgid "Manage Whisper models"
+msgstr "Whisper মডেল"
+
+#: src/handlers/stt/whispercpp_handler.py:49
+#, fuzzy
+msgid "Advanced Settings"
+msgstr "উন্নত LLM সেটিংস"
+
+#: src/handlers/stt/whispercpp_handler.py:49
+#, fuzzy
+msgid "More advanced settings"
+msgstr "উন্নত LLM সেটিংস"
+
+#: src/handlers/stt/whispercpp_handler.py:50
+#, fuzzy
+msgid "Temperature to use"
+msgstr "তাপমাত্রা"
+
+#: src/handlers/stt/whispercpp_handler.py:51
+#, fuzzy
+msgid "Prompt for the recognition"
+msgstr "Groq Speech Recognition"
+
+#: src/handlers/stt/whispercpp_handler.py:51
+msgid "Prompt to use for the recognition"
+msgstr ""
 
 #: src/handlers/tts/custom_openai_tts.py:17
 msgid "Endpoint"
@@ -735,7 +776,7 @@ msgstr "ডোমেইন বাদ দিন"
 msgid "A list of domains to specifically exclude from the search results."
 msgstr "অনুসন্ধান ফলাফল থেকে বিশেষভাবে বাদ দেওয়ার জন্য ডোমেইনগুলির একটি তালিকা।"
 
-#: src/ui/profile.py:33 src/window.py:93
+#: src/ui/profile.py:33 src/window.py:101
 msgid "Settings"
 msgstr "সেটিংস"
 
@@ -862,7 +903,7 @@ msgstr "জুম ইন করুন"
 msgid "Zoom out"
 msgstr "জুম আউট করুন"
 
-#: src/ui/thread_editing.py:6 src/window.py:91
+#: src/ui/thread_editing.py:6 src/window.py:99
 msgid "Thread editing"
 msgstr "থ্রেড সম্পাদনা"
 
@@ -909,7 +950,7 @@ msgid "Newelle Tips"
 msgstr "নিউয়েল"
 
 #: src/ui/extension.py:17 src/ui/presentation.py:131 src/constants.py:489
-#: src/window.py:92
+#: src/window.py:100
 msgid "Extensions"
 msgstr "এক্সটেনশন"
 
@@ -930,8 +971,8 @@ msgstr "নতুন এক্সটেনশন ডাউনলোড করু
 msgid "Install extension from file..."
 msgstr "ফাইল থেকে এক্সটেনশন ইনস্টল করুন..."
 
-#: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.desktop.in:2
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:7
+#: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.appdata.xml.in:7
+#: data/io.github.qwersyk.Newelle.desktop.in:2
 msgid "Newelle"
 msgstr "নিউয়েল"
 
@@ -980,7 +1021,7 @@ msgstr ""
 "নিউয়েল চ্যাটে পাঠানো ডকুমেন্ট বা আপনার নিজস্ব ফাইল থেকে প্রাসঙ্গিক তথ্য পুনরুদ্ধার "
 "করতে পারে! আপনার কোয়েরির সাথে প্রাসঙ্গিক তথ্য LLM-এ পাঠানো হবে।"
 
-#: src/ui/presentation.py:124 src/ui/settings.py:221 src/window.py:523
+#: src/ui/presentation.py:124 src/ui/settings.py:221 src/window.py:544
 msgid "Command virtualization"
 msgstr "কমান্ড ভার্চুয়ালাইজেশন"
 
@@ -1077,7 +1118,7 @@ msgstr ""
 "ব্যবহৃত। এটি পরিবর্তন করলে ডকুমেন্টগুলি পুনরায় ইন্ডেক্স করতে বা মেমরি রিসেট করার "
 "প্রয়োজন হতে পারে।"
 
-#: src/ui/settings.py:102 src/window.py:521
+#: src/ui/settings.py:102 src/window.py:542
 msgid "Long Term Memory"
 msgstr "দীর্ঘমেয়াদী মেমরি"
 
@@ -1351,6 +1392,99 @@ msgstr ""
 #: src/ui/settings.py:965
 msgid "Understood"
 msgstr "বুঝেছি"
+
+#: src/ui/explorer.py:186
+msgid "Folder is Empty"
+msgstr "ফোল্ডারটি খালি"
+
+#: src/ui/explorer.py:324 src/window.py:1437
+msgid "File not found"
+msgstr "ফাইল পাওয়া যায়নি"
+
+#: src/ui/explorer.py:339
+msgid "Open in new tab"
+msgstr ""
+
+#: src/ui/explorer.py:341
+msgid "Open in integrated editor"
+msgstr ""
+
+#: src/ui/explorer.py:344
+msgid "Open in file manager"
+msgstr ""
+
+#: src/ui/explorer.py:347 src/ui/explorer.py:435
+#, fuzzy
+msgid "Rename"
+msgstr "ব্যবহারকারীর নাম"
+
+#: src/ui/explorer.py:350
+#, fuzzy
+msgid "Delete"
+msgstr "প্রোফাইল নির্বাচন করুন"
+
+#: src/ui/explorer.py:353
+msgid "Copy full path"
+msgstr ""
+
+#: src/ui/explorer.py:404
+#, fuzzy
+msgid "Failed to open file manager"
+msgstr "ফোল্ডার খুলতে ব্যর্থ"
+
+#: src/ui/explorer.py:420
+#, fuzzy
+msgid "New name:"
+msgstr "নতুন ট্যাব"
+
+#: src/ui/explorer.py:432 src/main.py:204
+msgid "Cancel"
+msgstr "বাতিল করুন"
+
+#: src/ui/explorer.py:455
+msgid "Renamed successfully"
+msgstr ""
+
+#: src/ui/explorer.py:460
+#, fuzzy
+msgid "Failed to rename: {}"
+msgstr "ফোল্ডার খুলতে ব্যর্থ"
+
+#: src/ui/explorer.py:481
+#, fuzzy
+msgid "Delete File?"
+msgstr "প্রোফাইল নির্বাচন করুন"
+
+#: src/ui/explorer.py:483
+msgid "Are you sure you want to delete \"{}\"?"
+msgstr ""
+
+#: src/ui/explorer.py:485
+#, fuzzy
+msgid "_Cancel"
+msgstr "বাতিল করুন"
+
+#: src/ui/explorer.py:486
+msgid "_Delete"
+msgstr ""
+
+#: src/ui/explorer.py:504
+msgid "Deleted successfully"
+msgstr ""
+
+#: src/ui/explorer.py:509
+#, fuzzy
+msgid "Failed to delete: {}"
+msgstr "ফোল্ডার খুলতে ব্যর্থ"
+
+#: src/ui/explorer.py:522
+msgid "Path copied to clipboard"
+msgstr ""
+
+#: src/ui/explorer.py:526
+#, fuzzy
+msgid "Failed to copy path"
+msgstr "ফোল্ডার খুলতে ব্যর্থ"
 
 #: src/constants.py:20
 msgid "Newelle Demo API"
@@ -1711,7 +1845,7 @@ msgstr "আপনার নিজস্ব কাস্টম প্রম্প
 msgid "LLM and Secondary LLM settings"
 msgstr "উন্নত LLM সেটিংস"
 
-#: src/constants.py:459 src/window.py:522
+#: src/constants.py:459 src/window.py:543
 msgid "TTS"
 msgstr "টিটিএস"
 
@@ -1793,281 +1927,6 @@ msgstr ""
 msgid "Prompts settings, custom extra prompt, custom prompts..."
 msgstr "প্রম্পট সেটিংস, কাস্টম অতিরিক্ত প্রম্পট, কাস্টম প্রম্পট..."
 
-#: src/controller.py:132 src/window.py:1824
-msgid "Chat "
-msgstr "চ্যাট "
-
-#: src/window.py:94
-msgid "Keyboard shorcuts"
-msgstr "কিবোর্ড শর্টকাট"
-
-#: src/window.py:95
-msgid "About"
-msgstr "সম্পর্কে"
-
-#: src/window.py:102
-msgid "Chat"
-msgstr "চ্যাট"
-
-#: src/window.py:149
-msgid "History"
-msgstr "ইতিহাস"
-
-#: src/window.py:170
-msgid "Create a chat"
-msgstr "একটি চ্যাট তৈরি করুন"
-
-#: src/window.py:247
-msgid " Stop"
-msgstr " থামুন"
-
-#: src/window.py:310
-msgid " Clear"
-msgstr " পরিষ্কার করুন"
-
-#: src/window.py:325
-msgid " Continue"
-msgstr " চালিয়ে যান"
-
-#: src/window.py:338
-msgid " Regenerate"
-msgstr " পুনরায় তৈরি করুন"
-
-#: src/window.py:404
-msgid "Send a message..."
-msgstr "একটি বার্তা পাঠান..."
-
-#: src/window.py:464
-msgid "Ask about a website"
-msgstr "একটি ওয়েবসাইট সম্পর্কে জিজ্ঞাসা করুন"
-
-#: src/window.py:464
-msgid "Write #https://website.com in chat to ask information about a website"
-msgstr "একটি ওয়েবসাইট সম্পর্কে তথ্য জানতে চ্যাটে #https://website.com লিখুন"
-
-#: src/window.py:465
-#, fuzzy
-msgid "Check out our Extensions!"
-msgstr "আমাদের এক্সটেনশনগুলি দেখুন!"
-
-#: src/window.py:465
-msgid "We have a lot of extensions for different things. Check it out!"
-msgstr "আমাদের কাছে বিভিন্ন কাজের জন্য অনেক এক্সটেনশন আছে। দেখে নিন!"
-
-#: src/window.py:466
-#, fuzzy
-msgid "Chat with documents!"
-msgstr "আপনার ডকুমেন্টগুলির সাথে চ্যাট করুন"
-
-#: src/window.py:466
-msgid ""
-"Add your documents to your documents folder and chat using the information "
-"contained in them!"
-msgstr ""
-"আপনার নথিগুলি আপনার নথি ফোল্ডারে যোগ করুন এবং সেগুলিতে থাকা তথ্য ব্যবহার করে চ্যাট "
-"করুন!"
-
-#: src/window.py:467
-msgid "Surf the web!"
-msgstr "ওয়েব সার্ফ করুন!"
-
-#: src/window.py:467
-msgid ""
-"Enable web search to allow the LLM to surf the web and provide up to date "
-"answers"
-msgstr ""
-"এলএলএম-কে ওয়েব সার্ফ করতে এবং হালনাগাদ উত্তর প্রদান করতে সক্ষম করতে ওয়েব অনুসন্ধান "
-"চালু করুন।"
-
-#: src/window.py:468
-msgid "Mini Window"
-msgstr "মিনি উইন্ডো"
-
-#: src/window.py:468
-msgid "Ask questions on the fly using the mini window mode"
-msgstr "মিনি উইন্ডো মোড ব্যবহার করে দ্রুত প্রশ্ন জিজ্ঞাসা করুন"
-
-#: src/window.py:469
-#, fuzzy
-msgid "Text to Speech"
-msgstr "টেক্সট টু স্পিচ প্রোগ্রাম"
-
-#: src/window.py:469
-msgid "Newelle supports text-to-speech! Enable it in the settings"
-msgstr ""
-
-#: src/window.py:470
-#, fuzzy
-msgid "Keyboard Shortcuts"
-msgstr "কিবোর্ড শর্টকাট"
-
-#: src/window.py:470
-#, fuzzy
-msgid "Control Newelle using Keyboard Shortcuts"
-msgstr "কিবোর্ড শর্টকাট"
-
-#: src/window.py:471
-#, fuzzy
-msgid "Prompt Control"
-msgstr "প্রম্পট নিয়ন্ত্রণ"
-
-#: src/window.py:471
-msgid "Newelle gives you 100% prompt control. Tune your prompts for your use."
-msgstr ""
-"নিউয়েল আপনাকে 100% প্রম্পট নিয়ন্ত্রণ দেয়। আপনার ব্যবহারের জন্য আপনার প্রম্পটগুলি টিউন "
-"করুন।"
-
-#: src/window.py:472
-#, fuzzy
-msgid "Thread Editing"
-msgstr "থ্রেড সম্পাদনা"
-
-#: src/window.py:472
-msgid "Check the programs and processes you run from Newelle"
-msgstr "নিউয়েল থেকে আপনি যে প্রোগ্রাম এবং প্রক্রিয়াগুলি চালান তা পরীক্ষা করুন"
-
-#: src/window.py:479
-#, fuzzy
-msgid "New Chat"
-msgstr "নতুন ট্যাব"
-
-#: src/window.py:497
-msgid "Provider Errror"
-msgstr "প্রদানকারী ত্রুটি"
-
-#: src/window.py:520
-#, fuzzy
-msgid "Local Documents"
-msgstr "স্থানীয় মডেল"
-
-#: src/window.py:524
-#, fuzzy
-msgid "Web search"
-msgstr "নিরাপত্তা সেটিংস সক্ষম করুন"
-
-#: src/window.py:745
-msgid "This provider does not have a model list"
-msgstr "এই প্রদানকারীর কোনও মডেল তালিকা নেই"
-
-#: src/window.py:750
-msgid " Models"
-msgstr " মডেল"
-
-#: src/window.py:753
-msgid "Search Models..."
-msgstr "মডেল অনুসন্ধান করুন..."
-
-#: src/window.py:975
-msgid "Create new profile"
-msgstr "নতুন প্রোফাইল তৈরি করুন"
-
-#: src/window.py:1108
-msgid "Could not recognize your voice"
-msgstr "আপনার ভয়েস চিনতে পারিনি"
-
-#: src/window.py:1145
-msgid "Images"
-msgstr "ছবি"
-
-#: src/window.py:1149
-msgid "LLM Supported Files"
-msgstr "এলএলএম সমর্থিত ফাইল"
-
-#: src/window.py:1157
-msgid "RAG Supported files"
-msgstr "RAG সমর্থিত ফাইল"
-
-#: src/window.py:1175
-msgid "Supported Files"
-msgstr "সমর্থিত ফাইল"
-
-#: src/window.py:1179
-msgid "All Files"
-msgstr "সকল ফাইল"
-
-#: src/window.py:1185
-msgid "Attach file"
-msgstr "ফাইল সংযুক্ত করুন"
-
-#: src/window.py:1410 src/window.py:1642
-msgid "File not found"
-msgstr "ফাইল পাওয়া যায়নি"
-
-#: src/window.py:1428
-msgid "The file cannot be sent until the program is finished"
-msgstr "প্রোগ্রাম শেষ না হওয়া পর্যন্ত ফাইলটি পাঠানো যাবে না"
-
-#: src/window.py:1450
-msgid "The file is not recognized"
-msgstr "ফাইলটি স্বীকৃত নয়"
-
-#: src/window.py:1517
-msgid "Folder is Empty"
-msgstr "ফোল্ডারটি খালি"
-
-#: src/window.py:1662
-msgid "You can no longer continue the message."
-msgstr "আপনি আর বার্তাটি চালিয়ে যেতে পারবেন না।"
-
-#: src/window.py:1687
-msgid "You can no longer regenerate the message."
-msgstr "আপনি আর বার্তাটি পুনরায় তৈরি করতে পারবেন না।"
-
-#: src/window.py:1795
-msgid "Chat is empty"
-msgstr "চ্যাট খালি"
-
-#: src/window.py:1864
-msgid "Chat is cleared"
-msgstr "চ্যাট পরিষ্কার করা হয়েছে"
-
-#: src/window.py:1889
-msgid "The message was canceled and deleted from history"
-msgstr "বার্তাটি বাতিল করা হয়েছে এবং ইতিহাস থেকে মুছে ফেলা হয়েছে"
-
-#: src/window.py:1933
-msgid "The message cannot be sent until the program is finished"
-msgstr "প্রোগ্রাম শেষ না হওয়া পর্যন্ত বার্তাটি পাঠানো যাবে না"
-
-#: src/window.py:2848
-msgid "You can't edit a message while the program is running."
-msgstr "প্রোগ্রাম চলার সময় আপনি একটি বার্তা সম্পাদনা করতে পারবেন না।"
-
-#: src/window.py:2972
-msgid "Prompt content"
-msgstr "প্রম্পট বিষয়বস্তু"
-
-#: src/window.py:3228
-msgid ""
-"The neural network has access to your computer and any data in this chat and "
-"can run commands, be careful, we are not responsible for the neural network. "
-"Do not share any sensitive information."
-msgstr ""
-"নিউরাল নেটওয়ার্কের আপনার কম্পিউটার এবং এই চ্যাটের যেকোনো ডেটাতে অ্যাক্সেস রয়েছে "
-"এবং এটি কমান্ড চালাতে পারে, সতর্ক থাকুন, আমরা নিউরাল নেটওয়ার্কের জন্য দায়ী নই। "
-"কোনো সংবেদনশীল তথ্য শেয়ার করবেন না।"
-
-#: src/window.py:3257
-msgid ""
-"The neural network has access to any data in this chat, be careful, we are "
-"not responsible for the neural network. Do not share any sensitive "
-"information."
-msgstr ""
-"নিউরাল নেটওয়ার্কের এই চ্যাটের যেকোনো ডেটাতে অ্যাক্সেস রয়েছে, সতর্ক থাকুন, আমরা "
-"নিউরাল নেটওয়ার্কের জন্য দায়ী নই। কোনো সংবেদনশীল তথ্য শেয়ার করবেন না।"
-
-#: src/window.py:3304
-msgid "Wrong folder path"
-msgstr "ভুল ফোল্ডার পাথ"
-
-#: src/window.py:3337
-msgid "Thread has not been completed, thread number: "
-msgstr "থ্রেড সম্পন্ন হয়নি, থ্রেড নম্বর: "
-
-#: src/window.py:3346
-msgid "Failed to open the folder"
-msgstr "ফোল্ডার খুলতে ব্যর্থ"
-
 #: src/main.py:200
 msgid "Terminal threads are still running in the background"
 msgstr "টার্মিনাল থ্রেডগুলি এখনও ব্যাকগ্রাউন্ডে চলছে"
@@ -2075,10 +1934,6 @@ msgstr "টার্মিনাল থ্রেডগুলি এখনও ব
 #: src/main.py:201
 msgid "When you close the window, they will be automatically terminated"
 msgstr "আপনি যখন উইন্ডোটি বন্ধ করবেন, তখন সেগুলি স্বয়ংক্রিয়ভাবে বন্ধ হয়ে যাবে"
-
-#: src/main.py:204
-msgid "Cancel"
-msgstr "বাতিল করুন"
 
 #: src/main.py:205
 msgid "Close"
@@ -2096,13 +1951,284 @@ msgstr "ফোল্ডার রিবুট করা হয়েছে"
 msgid "Chat is created"
 msgstr "চ্যাট তৈরি করা হয়েছে"
 
-#: data/io.github.qwersyk.Newelle.desktop.in:3
-msgid "Newelle: Your advanced chat bot"
-msgstr "নিউয়েল: আপনার উন্নত চ্যাট বট"
+#: src/controller.py:129 src/window.py:1660
+msgid "Chat "
+msgstr "চ্যাট "
 
-#: data/io.github.qwersyk.Newelle.desktop.in:10
-msgid "chat;ai;gpt;chatgpt;assistant;"
-msgstr "চ্যাট;এআই;জিপিটি;চ্যাটজিপিটি;সহকারী;"
+#: src/window.py:102
+msgid "Keyboard shorcuts"
+msgstr "কিবোর্ড শর্টকাট"
+
+#: src/window.py:103
+msgid "About"
+msgstr "সম্পর্কে"
+
+#: src/window.py:110
+msgid "Chat"
+msgstr "চ্যাট"
+
+#: src/window.py:157
+msgid "History"
+msgstr "ইতিহাস"
+
+#: src/window.py:178
+msgid "Create a chat"
+msgstr "একটি চ্যাট তৈরি করুন"
+
+#: src/window.py:249
+msgid " Stop"
+msgstr " থামুন"
+
+#: src/window.py:264
+msgid " Clear"
+msgstr " পরিষ্কার করুন"
+
+#: src/window.py:279
+msgid " Continue"
+msgstr " চালিয়ে যান"
+
+#: src/window.py:292
+msgid " Regenerate"
+msgstr " পুনরায় তৈরি করুন"
+
+#: src/window.py:358
+msgid "Send a message..."
+msgstr "একটি বার্তা পাঠান..."
+
+#: src/window.py:435
+msgid "Explorer Tab"
+msgstr ""
+
+#: src/window.py:436
+msgid "Terminal Tab"
+msgstr ""
+
+#: src/window.py:437
+msgid "Browser Tab"
+msgstr ""
+
+#: src/window.py:485
+msgid "Ask about a website"
+msgstr "একটি ওয়েবসাইট সম্পর্কে জিজ্ঞাসা করুন"
+
+#: src/window.py:485
+msgid "Write #https://website.com in chat to ask information about a website"
+msgstr "একটি ওয়েবসাইট সম্পর্কে তথ্য জানতে চ্যাটে #https://website.com লিখুন"
+
+#: src/window.py:486
+#, fuzzy
+msgid "Check out our Extensions!"
+msgstr "আমাদের এক্সটেনশনগুলি দেখুন!"
+
+#: src/window.py:486
+msgid "We have a lot of extensions for different things. Check it out!"
+msgstr "আমাদের কাছে বিভিন্ন কাজের জন্য অনেক এক্সটেনশন আছে। দেখে নিন!"
+
+#: src/window.py:487
+#, fuzzy
+msgid "Chat with documents!"
+msgstr "আপনার ডকুমেন্টগুলির সাথে চ্যাট করুন"
+
+#: src/window.py:487
+msgid ""
+"Add your documents to your documents folder and chat using the information "
+"contained in them!"
+msgstr ""
+"আপনার নথিগুলি আপনার নথি ফোল্ডারে যোগ করুন এবং সেগুলিতে থাকা তথ্য ব্যবহার করে চ্যাট "
+"করুন!"
+
+#: src/window.py:488
+msgid "Surf the web!"
+msgstr "ওয়েব সার্ফ করুন!"
+
+#: src/window.py:488
+msgid ""
+"Enable web search to allow the LLM to surf the web and provide up to date "
+"answers"
+msgstr ""
+"এলএলএম-কে ওয়েব সার্ফ করতে এবং হালনাগাদ উত্তর প্রদান করতে সক্ষম করতে ওয়েব অনুসন্ধান "
+"চালু করুন।"
+
+#: src/window.py:489
+msgid "Mini Window"
+msgstr "মিনি উইন্ডো"
+
+#: src/window.py:489
+msgid "Ask questions on the fly using the mini window mode"
+msgstr "মিনি উইন্ডো মোড ব্যবহার করে দ্রুত প্রশ্ন জিজ্ঞাসা করুন"
+
+#: src/window.py:490
+#, fuzzy
+msgid "Text to Speech"
+msgstr "টেক্সট টু স্পিচ প্রোগ্রাম"
+
+#: src/window.py:490
+msgid "Newelle supports text-to-speech! Enable it in the settings"
+msgstr ""
+
+#: src/window.py:491
+#, fuzzy
+msgid "Keyboard Shortcuts"
+msgstr "কিবোর্ড শর্টকাট"
+
+#: src/window.py:491
+#, fuzzy
+msgid "Control Newelle using Keyboard Shortcuts"
+msgstr "কিবোর্ড শর্টকাট"
+
+#: src/window.py:492
+#, fuzzy
+msgid "Prompt Control"
+msgstr "প্রম্পট নিয়ন্ত্রণ"
+
+#: src/window.py:492
+msgid "Newelle gives you 100% prompt control. Tune your prompts for your use."
+msgstr ""
+"নিউয়েল আপনাকে 100% প্রম্পট নিয়ন্ত্রণ দেয়। আপনার ব্যবহারের জন্য আপনার প্রম্পটগুলি টিউন "
+"করুন।"
+
+#: src/window.py:493
+#, fuzzy
+msgid "Thread Editing"
+msgstr "থ্রেড সম্পাদনা"
+
+#: src/window.py:493
+msgid "Check the programs and processes you run from Newelle"
+msgstr "নিউয়েল থেকে আপনি যে প্রোগ্রাম এবং প্রক্রিয়াগুলি চালান তা পরীক্ষা করুন"
+
+#: src/window.py:500
+#, fuzzy
+msgid "New Chat"
+msgstr "নতুন ট্যাব"
+
+#: src/window.py:518
+msgid "Provider Errror"
+msgstr "প্রদানকারী ত্রুটি"
+
+#: src/window.py:541
+#, fuzzy
+msgid "Local Documents"
+msgstr "স্থানীয় মডেল"
+
+#: src/window.py:545
+#, fuzzy
+msgid "Web search"
+msgstr "নিরাপত্তা সেটিংস সক্ষম করুন"
+
+#: src/window.py:766
+msgid "This provider does not have a model list"
+msgstr "এই প্রদানকারীর কোনও মডেল তালিকা নেই"
+
+#: src/window.py:771
+msgid " Models"
+msgstr " মডেল"
+
+#: src/window.py:774
+msgid "Search Models..."
+msgstr "মডেল অনুসন্ধান করুন..."
+
+#: src/window.py:996
+msgid "Create new profile"
+msgstr "নতুন প্রোফাইল তৈরি করুন"
+
+#: src/window.py:1129
+msgid "Could not recognize your voice"
+msgstr "আপনার ভয়েস চিনতে পারিনি"
+
+#: src/window.py:1166
+msgid "Images"
+msgstr "ছবি"
+
+#: src/window.py:1170
+msgid "LLM Supported Files"
+msgstr "এলএলএম সমর্থিত ফাইল"
+
+#: src/window.py:1178
+msgid "RAG Supported files"
+msgstr "RAG সমর্থিত ফাইল"
+
+#: src/window.py:1196
+msgid "Supported Files"
+msgstr "সমর্থিত ফাইল"
+
+#: src/window.py:1200
+msgid "All Files"
+msgstr "সকল ফাইল"
+
+#: src/window.py:1206
+msgid "Attach file"
+msgstr "ফাইল সংযুক্ত করুন"
+
+#: src/window.py:1455
+msgid "The file cannot be sent until the program is finished"
+msgstr "প্রোগ্রাম শেষ না হওয়া পর্যন্ত ফাইলটি পাঠানো যাবে না"
+
+#: src/window.py:1477
+msgid "The file is not recognized"
+msgstr "ফাইলটি স্বীকৃত নয়"
+
+#: src/window.py:1498
+msgid "You can no longer continue the message."
+msgstr "আপনি আর বার্তাটি চালিয়ে যেতে পারবেন না।"
+
+#: src/window.py:1523
+msgid "You can no longer regenerate the message."
+msgstr "আপনি আর বার্তাটি পুনরায় তৈরি করতে পারবেন না।"
+
+#: src/window.py:1631
+msgid "Chat is empty"
+msgstr "চ্যাট খালি"
+
+#: src/window.py:1700
+msgid "Chat is cleared"
+msgstr "চ্যাট পরিষ্কার করা হয়েছে"
+
+#: src/window.py:1725
+msgid "The message was canceled and deleted from history"
+msgstr "বার্তাটি বাতিল করা হয়েছে এবং ইতিহাস থেকে মুছে ফেলা হয়েছে"
+
+#: src/window.py:1769
+msgid "The message cannot be sent until the program is finished"
+msgstr "প্রোগ্রাম শেষ না হওয়া পর্যন্ত বার্তাটি পাঠানো যাবে না"
+
+#: src/window.py:2688
+msgid "You can't edit a message while the program is running."
+msgstr "প্রোগ্রাম চলার সময় আপনি একটি বার্তা সম্পাদনা করতে পারবেন না।"
+
+#: src/window.py:2813
+msgid "Prompt content"
+msgstr "প্রম্পট বিষয়বস্তু"
+
+#: src/window.py:3069
+msgid ""
+"The neural network has access to your computer and any data in this chat and "
+"can run commands, be careful, we are not responsible for the neural network. "
+"Do not share any sensitive information."
+msgstr ""
+"নিউরাল নেটওয়ার্কের আপনার কম্পিউটার এবং এই চ্যাটের যেকোনো ডেটাতে অ্যাক্সেস রয়েছে "
+"এবং এটি কমান্ড চালাতে পারে, সতর্ক থাকুন, আমরা নিউরাল নেটওয়ার্কের জন্য দায়ী নই। "
+"কোনো সংবেদনশীল তথ্য শেয়ার করবেন না।"
+
+#: src/window.py:3098
+msgid ""
+"The neural network has access to any data in this chat, be careful, we are "
+"not responsible for the neural network. Do not share any sensitive "
+"information."
+msgstr ""
+"নিউরাল নেটওয়ার্কের এই চ্যাটের যেকোনো ডেটাতে অ্যাক্সেস রয়েছে, সতর্ক থাকুন, আমরা "
+"নিউরাল নেটওয়ার্কের জন্য দায়ী নই। কোনো সংবেদনশীল তথ্য শেয়ার করবেন না।"
+
+#: src/window.py:3147
+msgid "Wrong folder path"
+msgstr "ভুল ফোল্ডার পাথ"
+
+#: src/window.py:3180
+msgid "Thread has not been completed, thread number: "
+msgstr "থ্রেড সম্পন্ন হয়নি, থ্রেড নম্বর: "
+
+#: src/window.py:3192
+msgid "Failed to open the folder"
+msgstr "ফোল্ডার খুলতে ব্যর্থ"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:9
 msgid ""
@@ -2261,6 +2387,14 @@ msgstr "পুনরায় নকশা"
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:172
 msgid "Qwersyk"
 msgstr "Qwersyk"
+
+#: data/io.github.qwersyk.Newelle.desktop.in:3
+msgid "Newelle: Your advanced chat bot"
+msgstr "নিউয়েল: আপনার উন্নত চ্যাট বট"
+
+#: data/io.github.qwersyk.Newelle.desktop.in:10
+msgid "chat;ai;gpt;chatgpt;assistant;"
+msgstr "চ্যাট;এআই;জিপিটি;চ্যাটজিপিটি;সহকারী;"
 
 #, fuzzy, python-brace-format
 #~ msgid "Name of the {provider_name} Model"
