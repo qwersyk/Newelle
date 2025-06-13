@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-03 21:04+0800\n"
+"POT-Creation-Date: 2025-06-08 23:05+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Amine Saoud <amiensa@proton.me>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -99,7 +99,7 @@ msgstr "تشغيل الأوامر تلقائيا"
 #: src/handlers/llm/claude_handler.py:89 src/handlers/llm/claude_handler.py:93
 #: src/handlers/llm/gemini_handler.py:97 src/handlers/llm/openai_handler.py:84
 #: src/handlers/stt/whisper_handler.py:15
-#: src/handlers/stt/whispercpp_handler.py:39
+#: src/handlers/stt/whispercpp_handler.py:40
 #: src/handlers/tts/custom_openai_tts.py:20
 #: src/handlers/tts/elevenlabs_handler.py:24
 #: src/handlers/tts/groq_tts_handler.py:34
@@ -342,6 +342,7 @@ msgid "An alternative to sampling with temperature, called nucleus sampling"
 msgstr ""
 
 #: src/handlers/llm/openai_handler.py:105
+#: src/handlers/stt/whispercpp_handler.py:50
 msgid "Temperature"
 msgstr ""
 
@@ -436,6 +437,7 @@ msgstr ""
 #: src/handlers/stt/googlesr_handler.py:21
 #: src/handlers/stt/groqsr_handler.py:29
 #: src/handlers/stt/openaisr_handler.py:32
+#: src/handlers/stt/whispercpp_handler.py:47
 msgid "Language"
 msgstr ""
 
@@ -496,12 +498,47 @@ msgid "Absolute path to the VOSK model (unzipped)"
 msgstr ""
 
 #: src/handlers/stt/whisper_handler.py:16
-#: src/handlers/stt/whispercpp_handler.py:40
+#: src/handlers/stt/whispercpp_handler.py:41
 msgid "Name of the Whisper model"
 msgstr ""
 
 #: src/handlers/stt/witai_handler.py:13
 msgid "Server Access Token for wit.ai"
+msgstr ""
+
+#: src/handlers/stt/whispercpp_handler.py:47
+msgid "Language of the recognition."
+msgstr ""
+
+#: src/handlers/stt/whispercpp_handler.py:48
+msgid "Model Library"
+msgstr ""
+
+#: src/handlers/stt/whispercpp_handler.py:48
+msgid "Manage Whisper models"
+msgstr ""
+
+#: src/handlers/stt/whispercpp_handler.py:49
+#, fuzzy
+msgid "Advanced Settings"
+msgstr "الإعدادات"
+
+#: src/handlers/stt/whispercpp_handler.py:49
+#, fuzzy
+msgid "More advanced settings"
+msgstr "الإعدادات"
+
+#: src/handlers/stt/whispercpp_handler.py:50
+msgid "Temperature to use"
+msgstr ""
+
+#: src/handlers/stt/whispercpp_handler.py:51
+#, fuzzy
+msgid "Prompt for the recognition"
+msgstr "التحكم بالردود"
+
+#: src/handlers/stt/whispercpp_handler.py:51
+msgid "Prompt to use for the recognition"
 msgstr ""
 
 #: src/handlers/tts/custom_openai_tts.py:17
@@ -694,7 +731,7 @@ msgstr ""
 msgid "A list of domains to specifically exclude from the search results."
 msgstr ""
 
-#: src/ui/profile.py:33 src/window.py:93
+#: src/ui/profile.py:33 src/window.py:101
 msgid "Settings"
 msgstr "الإعدادات"
 
@@ -817,7 +854,7 @@ msgstr ""
 msgid "Zoom out"
 msgstr ""
 
-#: src/ui/thread_editing.py:6 src/window.py:91
+#: src/ui/thread_editing.py:6 src/window.py:99
 msgid "Thread editing"
 msgstr "تعديل الخيوط"
 
@@ -862,7 +899,7 @@ msgid "Newelle Tips"
 msgstr ""
 
 #: src/ui/extension.py:17 src/ui/presentation.py:131 src/constants.py:489
-#: src/window.py:92
+#: src/window.py:100
 msgid "Extensions"
 msgstr "إضافات"
 
@@ -884,8 +921,8 @@ msgstr "إختر إضافة"
 msgid "Install extension from file..."
 msgstr ""
 
-#: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.desktop.in:2
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:7
+#: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.appdata.xml.in:7
+#: data/io.github.qwersyk.Newelle.desktop.in:2
 msgid "Newelle"
 msgstr ""
 
@@ -930,7 +967,7 @@ msgid ""
 "to the LLM."
 msgstr ""
 
-#: src/ui/presentation.py:124 src/ui/settings.py:221 src/window.py:523
+#: src/ui/presentation.py:124 src/ui/settings.py:221 src/window.py:544
 msgid "Command virtualization"
 msgstr "أوامر افتراضية"
 
@@ -1021,7 +1058,7 @@ msgid ""
 "and RAG. Changing it might require you to re-index documents or reset memory."
 msgstr ""
 
-#: src/ui/settings.py:102 src/window.py:521
+#: src/ui/settings.py:102 src/window.py:542
 #, fuzzy
 msgid "Long Term Memory"
 msgstr "ذاكرة البرنامج"
@@ -1281,6 +1318,96 @@ msgstr ""
 #: src/ui/settings.py:965
 msgid "Understood"
 msgstr ""
+
+#: src/ui/explorer.py:186
+msgid "Folder is Empty"
+msgstr "المجلد فارغ"
+
+#: src/ui/explorer.py:324 src/window.py:1437
+msgid "File not found"
+msgstr "الملف غير موجود"
+
+#: src/ui/explorer.py:339
+msgid "Open in new tab"
+msgstr ""
+
+#: src/ui/explorer.py:341
+msgid "Open in integrated editor"
+msgstr ""
+
+#: src/ui/explorer.py:344
+msgid "Open in file manager"
+msgstr ""
+
+#: src/ui/explorer.py:347 src/ui/explorer.py:435
+msgid "Rename"
+msgstr ""
+
+#: src/ui/explorer.py:350
+msgid "Delete"
+msgstr ""
+
+#: src/ui/explorer.py:353
+msgid "Copy full path"
+msgstr ""
+
+#: src/ui/explorer.py:404
+#, fuzzy
+msgid "Failed to open file manager"
+msgstr "تعذر فتح المجلد"
+
+#: src/ui/explorer.py:420
+#, fuzzy
+msgid "New name:"
+msgstr "علامة تبويب جديدة"
+
+#: src/ui/explorer.py:432 src/main.py:204
+msgid "Cancel"
+msgstr "إلغاء"
+
+#: src/ui/explorer.py:455
+msgid "Renamed successfully"
+msgstr ""
+
+#: src/ui/explorer.py:460
+#, fuzzy
+msgid "Failed to rename: {}"
+msgstr "فشل إرسال الرسالة الى الآلة"
+
+#: src/ui/explorer.py:481
+msgid "Delete File?"
+msgstr ""
+
+#: src/ui/explorer.py:483
+msgid "Are you sure you want to delete \"{}\"?"
+msgstr ""
+
+#: src/ui/explorer.py:485
+#, fuzzy
+msgid "_Cancel"
+msgstr "إلغاء"
+
+#: src/ui/explorer.py:486
+msgid "_Delete"
+msgstr ""
+
+#: src/ui/explorer.py:504
+msgid "Deleted successfully"
+msgstr ""
+
+#: src/ui/explorer.py:509
+#, fuzzy
+msgid "Failed to delete: {}"
+msgstr "تعذر فتح المجلد"
+
+#: src/ui/explorer.py:522
+msgid "Path copied to clipboard"
+msgstr ""
+
+#: src/ui/explorer.py:526
+#, fuzzy
+msgid "Failed to copy path"
+msgstr "تعذر فتح المجلد"
 
 #: src/constants.py:20
 msgid "Newelle Demo API"
@@ -1634,7 +1761,7 @@ msgstr ""
 msgid "LLM and Secondary LLM settings"
 msgstr "الإعدادات"
 
-#: src/constants.py:459 src/window.py:522
+#: src/constants.py:459 src/window.py:543
 msgid "TTS"
 msgstr ""
 
@@ -1709,272 +1836,6 @@ msgstr ""
 msgid "Prompts settings, custom extra prompt, custom prompts..."
 msgstr ""
 
-#: src/controller.py:132 src/window.py:1824
-msgid "Chat "
-msgstr "دردشة"
-
-#: src/window.py:94
-msgid "Keyboard shorcuts"
-msgstr "إختصارات لوحة المفاتيح"
-
-#: src/window.py:95
-msgid "About"
-msgstr "عن"
-
-#: src/window.py:102
-msgid "Chat"
-msgstr "دردشة"
-
-#: src/window.py:149
-msgid "History"
-msgstr "سجل"
-
-#: src/window.py:170
-msgid "Create a chat"
-msgstr "إبدأ محادثة"
-
-#: src/window.py:247
-msgid " Stop"
-msgstr " توقف"
-
-#: src/window.py:310
-msgid " Clear"
-msgstr "حذف "
-
-#: src/window.py:325
-msgid " Continue"
-msgstr "تابع "
-
-#: src/window.py:338
-msgid " Regenerate"
-msgstr "إعادة الصياغة"
-
-#: src/window.py:404
-msgid "Send a message..."
-msgstr ""
-
-#: src/window.py:464
-msgid "Ask about a website"
-msgstr ""
-
-#: src/window.py:464
-msgid "Write #https://website.com in chat to ask information about a website"
-msgstr ""
-
-#: src/window.py:465
-msgid "Check out our Extensions!"
-msgstr ""
-
-#: src/window.py:465
-msgid "We have a lot of extensions for different things. Check it out!"
-msgstr ""
-
-#: src/window.py:466
-msgid "Chat with documents!"
-msgstr ""
-
-#: src/window.py:466
-msgid ""
-"Add your documents to your documents folder and chat using the information "
-"contained in them!"
-msgstr ""
-
-#: src/window.py:467
-msgid "Surf the web!"
-msgstr ""
-
-#: src/window.py:467
-msgid ""
-"Enable web search to allow the LLM to surf the web and provide up to date "
-"answers"
-msgstr ""
-
-#: src/window.py:468
-msgid "Mini Window"
-msgstr ""
-
-#: src/window.py:468
-msgid "Ask questions on the fly using the mini window mode"
-msgstr ""
-
-#: src/window.py:469
-msgid "Text to Speech"
-msgstr ""
-
-#: src/window.py:469
-msgid "Newelle supports text-to-speech! Enable it in the settings"
-msgstr ""
-
-#: src/window.py:470
-#, fuzzy
-msgid "Keyboard Shortcuts"
-msgstr "إختصارات لوحة المفاتيح"
-
-#: src/window.py:470
-#, fuzzy
-msgid "Control Newelle using Keyboard Shortcuts"
-msgstr "إختصارات لوحة المفاتيح"
-
-#: src/window.py:471
-#, fuzzy
-msgid "Prompt Control"
-msgstr "التحكم بالردود"
-
-#: src/window.py:471
-msgid "Newelle gives you 100% prompt control. Tune your prompts for your use."
-msgstr ""
-
-#: src/window.py:472
-#, fuzzy
-msgid "Thread Editing"
-msgstr "تعديل الخيوط"
-
-#: src/window.py:472
-msgid "Check the programs and processes you run from Newelle"
-msgstr ""
-
-#: src/window.py:479
-#, fuzzy
-msgid "New Chat"
-msgstr "علامة تبويب جديدة"
-
-#: src/window.py:497
-msgid "Provider Errror"
-msgstr ""
-
-#: src/window.py:520
-msgid "Local Documents"
-msgstr ""
-
-#: src/window.py:524
-msgid "Web search"
-msgstr ""
-
-#: src/window.py:745
-msgid "This provider does not have a model list"
-msgstr ""
-
-#: src/window.py:750
-msgid " Models"
-msgstr ""
-
-#: src/window.py:753
-msgid "Search Models..."
-msgstr ""
-
-#: src/window.py:975
-msgid "Create new profile"
-msgstr ""
-
-#: src/window.py:1108
-msgid "Could not recognize your voice"
-msgstr ""
-
-#: src/window.py:1145
-msgid "Images"
-msgstr ""
-
-#: src/window.py:1149
-msgid "LLM Supported Files"
-msgstr ""
-
-#: src/window.py:1157
-msgid "RAG Supported files"
-msgstr ""
-
-#: src/window.py:1175
-msgid "Supported Files"
-msgstr ""
-
-#: src/window.py:1179
-msgid "All Files"
-msgstr ""
-
-#: src/window.py:1185
-msgid "Attach file"
-msgstr ""
-
-#: src/window.py:1410 src/window.py:1642
-msgid "File not found"
-msgstr "الملف غير موجود"
-
-#: src/window.py:1428
-msgid "The file cannot be sent until the program is finished"
-msgstr "لا يمكن إرسال الملف الى أن ينتهي البرنامج"
-
-#: src/window.py:1450
-msgid "The file is not recognized"
-msgstr "الملف غير معرف"
-
-#: src/window.py:1517
-msgid "Folder is Empty"
-msgstr "المجلد فارغ"
-
-#: src/window.py:1662
-msgid "You can no longer continue the message."
-msgstr "لا يمكنك إكمال الرسالة"
-
-#: src/window.py:1687
-msgid "You can no longer regenerate the message."
-msgstr "لا يمكنك إعادة صياغة الرسالة"
-
-#: src/window.py:1795
-msgid "Chat is empty"
-msgstr "المحادثة فارغة"
-
-#: src/window.py:1864
-msgid "Chat is cleared"
-msgstr "تم حذف المحادثة"
-
-#: src/window.py:1889
-msgid "The message was canceled and deleted from history"
-msgstr "تم إلغاء الرسالة وحذفها من السجل"
-
-#: src/window.py:1933
-msgid "The message cannot be sent until the program is finished"
-msgstr "لا يمكن إرسال الرسالة الى أن ينتهي البرنامج"
-
-#: src/window.py:2848
-msgid "You can't edit a message while the program is running."
-msgstr "لا يمكنك تعديل الرسالة أثناء تشغيل البرنامج"
-
-#: src/window.py:2972
-#, fuzzy
-msgid "Prompt content"
-msgstr "التحكم بالردود"
-
-#: src/window.py:3228
-#, fuzzy
-msgid ""
-"The neural network has access to your computer and any data in this chat and "
-"can run commands, be careful, we are not responsible for the neural network. "
-"Do not share any sensitive information."
-msgstr ""
-"تحذير! للشبكة العصبونية الإصطناعية قابلية للوصول إلى جهازك, كن حذرا, نحن "
-"لسنامسؤولين عن الشبكة العصبونية الإصطناعية"
-
-#: src/window.py:3257
-#, fuzzy
-msgid ""
-"The neural network has access to any data in this chat, be careful, we are "
-"not responsible for the neural network. Do not share any sensitive "
-"information."
-msgstr ""
-"تحذير! للشبكة العصبونية الإصطناعية قابلية للوصول إلى جهازك, كن حذرا, نحن "
-"لسنامسؤولين عن الشبكة العصبونية الإصطناعية"
-
-#: src/window.py:3304
-msgid "Wrong folder path"
-msgstr "مسار الملف خاطئ"
-
-#: src/window.py:3337
-msgid "Thread has not been completed, thread number: "
-msgstr "لم يتم إكمال الخيط, الخيط رقم: "
-
-#: src/window.py:3346
-msgid "Failed to open the folder"
-msgstr "تعذر فتح المجلد"
-
 #: src/main.py:200
 msgid "Terminal threads are still running in the background"
 msgstr "لا تزال العمليات جارية في الخلفية"
@@ -1982,10 +1843,6 @@ msgstr "لا تزال العمليات جارية في الخلفية"
 #: src/main.py:201
 msgid "When you close the window, they will be automatically terminated"
 msgstr "عندما تغلق النافذة, سيتم إقفالهم تلقائيا"
-
-#: src/main.py:204
-msgid "Cancel"
-msgstr "إلغاء"
 
 #: src/main.py:205
 msgid "Close"
@@ -2003,13 +1860,275 @@ msgstr "تم إعادة تشغيل المجلد"
 msgid "Chat is created"
 msgstr "تم إنشاء دردشة"
 
-#: data/io.github.qwersyk.Newelle.desktop.in:3
-msgid "Newelle: Your advanced chat bot"
+#: src/controller.py:129 src/window.py:1660
+msgid "Chat "
+msgstr "دردشة"
+
+#: src/window.py:102
+msgid "Keyboard shorcuts"
+msgstr "إختصارات لوحة المفاتيح"
+
+#: src/window.py:103
+msgid "About"
+msgstr "عن"
+
+#: src/window.py:110
+msgid "Chat"
+msgstr "دردشة"
+
+#: src/window.py:157
+msgid "History"
+msgstr "سجل"
+
+#: src/window.py:178
+msgid "Create a chat"
+msgstr "إبدأ محادثة"
+
+#: src/window.py:249
+msgid " Stop"
+msgstr " توقف"
+
+#: src/window.py:264
+msgid " Clear"
+msgstr "حذف "
+
+#: src/window.py:279
+msgid " Continue"
+msgstr "تابع "
+
+#: src/window.py:292
+msgid " Regenerate"
+msgstr "إعادة الصياغة"
+
+#: src/window.py:358
+msgid "Send a message..."
 msgstr ""
 
-#: data/io.github.qwersyk.Newelle.desktop.in:10
-msgid "chat;ai;gpt;chatgpt;assistant;"
+#: src/window.py:435
+msgid "Explorer Tab"
 msgstr ""
+
+#: src/window.py:436
+msgid "Terminal Tab"
+msgstr ""
+
+#: src/window.py:437
+msgid "Browser Tab"
+msgstr ""
+
+#: src/window.py:485
+msgid "Ask about a website"
+msgstr ""
+
+#: src/window.py:485
+msgid "Write #https://website.com in chat to ask information about a website"
+msgstr ""
+
+#: src/window.py:486
+msgid "Check out our Extensions!"
+msgstr ""
+
+#: src/window.py:486
+msgid "We have a lot of extensions for different things. Check it out!"
+msgstr ""
+
+#: src/window.py:487
+msgid "Chat with documents!"
+msgstr ""
+
+#: src/window.py:487
+msgid ""
+"Add your documents to your documents folder and chat using the information "
+"contained in them!"
+msgstr ""
+
+#: src/window.py:488
+msgid "Surf the web!"
+msgstr ""
+
+#: src/window.py:488
+msgid ""
+"Enable web search to allow the LLM to surf the web and provide up to date "
+"answers"
+msgstr ""
+
+#: src/window.py:489
+msgid "Mini Window"
+msgstr ""
+
+#: src/window.py:489
+msgid "Ask questions on the fly using the mini window mode"
+msgstr ""
+
+#: src/window.py:490
+msgid "Text to Speech"
+msgstr ""
+
+#: src/window.py:490
+msgid "Newelle supports text-to-speech! Enable it in the settings"
+msgstr ""
+
+#: src/window.py:491
+#, fuzzy
+msgid "Keyboard Shortcuts"
+msgstr "إختصارات لوحة المفاتيح"
+
+#: src/window.py:491
+#, fuzzy
+msgid "Control Newelle using Keyboard Shortcuts"
+msgstr "إختصارات لوحة المفاتيح"
+
+#: src/window.py:492
+#, fuzzy
+msgid "Prompt Control"
+msgstr "التحكم بالردود"
+
+#: src/window.py:492
+msgid "Newelle gives you 100% prompt control. Tune your prompts for your use."
+msgstr ""
+
+#: src/window.py:493
+#, fuzzy
+msgid "Thread Editing"
+msgstr "تعديل الخيوط"
+
+#: src/window.py:493
+msgid "Check the programs and processes you run from Newelle"
+msgstr ""
+
+#: src/window.py:500
+#, fuzzy
+msgid "New Chat"
+msgstr "علامة تبويب جديدة"
+
+#: src/window.py:518
+msgid "Provider Errror"
+msgstr ""
+
+#: src/window.py:541
+msgid "Local Documents"
+msgstr ""
+
+#: src/window.py:545
+msgid "Web search"
+msgstr ""
+
+#: src/window.py:766
+msgid "This provider does not have a model list"
+msgstr ""
+
+#: src/window.py:771
+msgid " Models"
+msgstr ""
+
+#: src/window.py:774
+msgid "Search Models..."
+msgstr ""
+
+#: src/window.py:996
+msgid "Create new profile"
+msgstr ""
+
+#: src/window.py:1129
+msgid "Could not recognize your voice"
+msgstr ""
+
+#: src/window.py:1166
+msgid "Images"
+msgstr ""
+
+#: src/window.py:1170
+msgid "LLM Supported Files"
+msgstr ""
+
+#: src/window.py:1178
+msgid "RAG Supported files"
+msgstr ""
+
+#: src/window.py:1196
+msgid "Supported Files"
+msgstr ""
+
+#: src/window.py:1200
+msgid "All Files"
+msgstr ""
+
+#: src/window.py:1206
+msgid "Attach file"
+msgstr ""
+
+#: src/window.py:1455
+msgid "The file cannot be sent until the program is finished"
+msgstr "لا يمكن إرسال الملف الى أن ينتهي البرنامج"
+
+#: src/window.py:1477
+msgid "The file is not recognized"
+msgstr "الملف غير معرف"
+
+#: src/window.py:1498
+msgid "You can no longer continue the message."
+msgstr "لا يمكنك إكمال الرسالة"
+
+#: src/window.py:1523
+msgid "You can no longer regenerate the message."
+msgstr "لا يمكنك إعادة صياغة الرسالة"
+
+#: src/window.py:1631
+msgid "Chat is empty"
+msgstr "المحادثة فارغة"
+
+#: src/window.py:1700
+msgid "Chat is cleared"
+msgstr "تم حذف المحادثة"
+
+#: src/window.py:1725
+msgid "The message was canceled and deleted from history"
+msgstr "تم إلغاء الرسالة وحذفها من السجل"
+
+#: src/window.py:1769
+msgid "The message cannot be sent until the program is finished"
+msgstr "لا يمكن إرسال الرسالة الى أن ينتهي البرنامج"
+
+#: src/window.py:2688
+msgid "You can't edit a message while the program is running."
+msgstr "لا يمكنك تعديل الرسالة أثناء تشغيل البرنامج"
+
+#: src/window.py:2813
+#, fuzzy
+msgid "Prompt content"
+msgstr "التحكم بالردود"
+
+#: src/window.py:3069
+#, fuzzy
+msgid ""
+"The neural network has access to your computer and any data in this chat and "
+"can run commands, be careful, we are not responsible for the neural network. "
+"Do not share any sensitive information."
+msgstr ""
+"تحذير! للشبكة العصبونية الإصطناعية قابلية للوصول إلى جهازك, كن حذرا, نحن "
+"لسنامسؤولين عن الشبكة العصبونية الإصطناعية"
+
+#: src/window.py:3098
+#, fuzzy
+msgid ""
+"The neural network has access to any data in this chat, be careful, we are "
+"not responsible for the neural network. Do not share any sensitive "
+"information."
+msgstr ""
+"تحذير! للشبكة العصبونية الإصطناعية قابلية للوصول إلى جهازك, كن حذرا, نحن "
+"لسنامسؤولين عن الشبكة العصبونية الإصطناعية"
+
+#: src/window.py:3147
+msgid "Wrong folder path"
+msgstr "مسار الملف خاطئ"
+
+#: src/window.py:3180
+msgid "Thread has not been completed, thread number: "
+msgstr "لم يتم إكمال الخيط, الخيط رقم: "
+
+#: src/window.py:3192
+msgid "Failed to open the folder"
+msgstr "تعذر فتح المجلد"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:9
 msgid ""
@@ -2162,6 +2281,14 @@ msgstr ""
 msgid "Qwersyk"
 msgstr ""
 
+#: data/io.github.qwersyk.Newelle.desktop.in:3
+msgid "Newelle: Your advanced chat bot"
+msgstr ""
+
+#: data/io.github.qwersyk.Newelle.desktop.in:10
+msgid "chat;ai;gpt;chatgpt;assistant;"
+msgstr ""
+
 #~ msgid "Choose an extension"
 #~ msgstr "إختر إضافة"
 
@@ -2177,9 +2304,6 @@ msgstr ""
 
 #~ msgid "This is not an extension"
 #~ msgstr "هذا ليس إضافة"
-
-#~ msgid "Failed to send bot a message"
-#~ msgstr "فشل إرسال الرسالة الى الآلة"
 
 #~ msgid "Chat has been stopped"
 #~ msgstr "تم توقيف المحادثة"
