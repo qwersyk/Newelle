@@ -1,3 +1,4 @@
+from tldextract.tldextract import update
 from pylatexenc.latex2text import LatexNodes2Text
 import time
 import re
@@ -3253,8 +3254,12 @@ class MainWindow(Adw.ApplicationWindow):
                 tab.set_title(title)
             if favicon:
                 tab.set_icon(favicon)
+        
         browser.connect("page-changed", on_page_changed)
         browser.connect("attach-clicked", self._on_attach_clicked)
+        def update_favicon():
+            tab.set_icon(browser.favicon_pixbuf)
+        browser.connect("favicon-changed", lambda b,s: update_favicon())
         self.show_sidebar()
         self.canvas_tabs.set_selected_page(tab)
         return tab

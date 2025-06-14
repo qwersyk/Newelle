@@ -1,18 +1,20 @@
 import gi
 import urllib.parse
-
+from newspaper import Article
+import threading
 gi.require_version('WebKit', '6.0')
-from gi.repository import Gtk, WebKit, GLib, GObject, Gio, Adw
+from gi.repository import Gtk, WebKit, GLib, GObject, Gio, Adw, GdkPixbuf
 
 class BrowserWidget(Gtk.Box):
     """
     A simple web browser widget using WebKit 6.0
     """
-    
+    last_favicon = ""
     # Define signals
     __gsignals__ = {
         'page-changed': (GObject.SignalFlags.RUN_FIRST, None, (str, str, object)),
-        'attach-clicked': (GObject.SignalFlags.RUN_FIRST, None, ())
+        'attach-clicked': (GObject.SignalFlags.RUN_FIRST, None, ()),
+        'favicon-changed': (GObject.SignalFlags.RUN_FIRST, None, (object,))
     }
     
     def __init__(self, starting_url="https://www.google.com", search_string="https://www.google.com/search?q=%s", **kwargs):
@@ -32,6 +34,7 @@ class BrowserWidget(Gtk.Box):
         self.current_title = ""
         self.current_favicon = None
         
+        self.favicon_pixbuf : GdkPixbuf | None = None
         self._build_ui()
         self._setup_webview()
         
@@ -107,7 +110,6 @@ class BrowserWidget(Gtk.Box):
         self.settings.set_enable_html5_local_storage(True)
         self.settings.set_enable_developer_extras(False)
         self.settings.set_enable_page_cache(True)
-        self.settings.set_load_icons_ignoring_image_load_setting(True)
         
         # Create user content manager for potential script injection
         self.user_content_manager = WebKit.UserContentManager()
@@ -122,7 +124,6 @@ class BrowserWidget(Gtk.Box):
         self.webview.connect("load-changed", self._on_load_changed)
         self.webview.connect("notify::uri", self._on_uri_changed)
         self.webview.connect("notify::title", self._on_title_changed)
-        self.webview.connect("notify::favicon", self._on_favicon_changed)
         
         # Add webview to scrolled window
         self.scrolled_window.set_child(self.webview)
@@ -187,6 +188,9 @@ class BrowserWidget(Gtk.Box):
             self.refresh_button.set_child(None)
             self.refresh_button.set_icon_name("view-refresh-symbolic")
             self.refresh_button.set_tooltip_text("Refresh")
+            uri = self.webview.get_uri()
+            self.article = Article(uri)
+            threading.Thread(target=self.download_favicon).start()
             
         # Update navigation buttons
         self.back_button.set_sensitive(webview.can_go_back())
@@ -200,19 +204,47 @@ class BrowserWidget(Gtk.Box):
             self.url_entry.set_text(uri)
             self._emit_page_changed()
     
+    def download_favicon(self):
+        """Download the page's favicon."""
+        html = self.get_page_html_sync()
+        self.article.set_html(html)
+        self.article.parse()
+        favicon = self.article.meta_favicon
+        if not favicon.startswith("http") and not favicon.startswith("https"):
+            from urllib.parse import urlparse, urljoin
+            base_url = urlparse(self.article.url).scheme + "://" + urlparse(self.article.url).netloc
+            favicon = urljoin(base_url, favicon)
+        if self.last_favicon != favicon:
+            self.load_image(favicon)
+            self.last_favicon = favicon
+
+    def load_image(self, url):
+        print(url)
+        import requests
+        # Create a pixbuf loader that will load the image
+        pixbuf_loader = GdkPixbuf.PixbufLoader()
+        pixbuf_loader.connect("area-prepared", self.on_area_prepared)
+        try:
+            response = requests.get(url, stream=True) #stream = True prevent download the whole file into RAM
+            response.raise_for_status()
+            for chunk in response.iter_content(chunk_size=1024): #Load in chunks to avoid consuming too much memory for large files
+                pixbuf_loader.write(chunk)
+            pixbuf_loader.close()
+        except Exception as e:
+            print("Exception generating the image: " + str(e))
+
+    def on_area_prepared(self, loader: GdkPixbuf.PixbufLoader):
+        # Function runs when the image loaded. Remove the spinner and open the image
+        self.favicon_pixbuf = loader.get_pixbuf()
+        self.emit('favicon-changed', self.favicon_pixbuf)
+ 
     def _on_title_changed(self, webview, param):
         """Handle title change."""
         title = webview.get_title()
         if title:
             self.current_title = title
             self._emit_page_changed()
-    
-    def _on_favicon_changed(self, webview, param):
-        """Handle favicon change."""
-        favicon = webview.get_favicon()
-        self.current_favicon = favicon
-        self._emit_page_changed()
-    
+     
     def _emit_page_changed(self):
         """Emit the page-changed signal with current page information."""
         self.emit('page-changed', self.current_url, self.current_title, self.current_favicon)
@@ -257,7 +289,7 @@ class BrowserWidget(Gtk.Box):
                 # Get the JavaScript result
                 js_result = webview.evaluate_javascript_finish(result)
                 if js_result:
-                    html_content = js_result.get_string_value()
+                    html_content = js_result.to_string()
                     callback(html_content, None)
                 else:
                     callback(None, "Failed to get HTML content")
@@ -285,7 +317,6 @@ class BrowserWidget(Gtk.Box):
             
         Note: This is a blocking operation and should be used carefully.
         """
-        import threading
         import time
         
         result = {'html': None, 'error': None, 'done': False}
@@ -302,8 +333,6 @@ class BrowserWidget(Gtk.Box):
         start_time = time.time()
         while not result['done'] and (time.time() - start_time) < timeout:
             # Process pending GTK events
-            while Gtk.Main.iteration_do(False):
-                pass
             time.sleep(0.01)
         
         if result['error']:
