@@ -61,7 +61,6 @@ class MainWindow(Adw.ApplicationWindow):
             min_sidebar_width=420,
             max_sidebar_width=10000
         )
-        self.main_program_block.set_name("hide")
         # Breakpoint - Collapse the sidebar when the window is too narrow
         breakpoint = Adw.Breakpoint(condition=Adw.BreakpointCondition.new_length(Adw.BreakpointConditionLengthType.MAX_WIDTH, 1000, Adw.LengthUnit.PX))
         breakpoint.add_setter(self.main_program_block, "collapsed", True)
@@ -471,6 +470,7 @@ class MainWindow(Adw.ApplicationWindow):
         self.set_content(self.main_program_block)
         self.main_program_block.set_content(self.main)
         self.main_program_block.set_sidebar(self.canvas_box)
+        self.main_program_block.set_name("hide")
     
     def on_tab_switched(self, tab_view, tab):
         current_tab = self.canvas_tabs.get_selected_page()
@@ -1125,7 +1125,6 @@ class MainWindow(Adw.ApplicationWindow):
         result = recognizer.recognize_file(
             os.path.join(self.controller.cache_dir, "recording.wav")
         )
-        print("Result: ", result)
 
         def idle_record():
             if (
@@ -1341,16 +1340,19 @@ class MainWindow(Adw.ApplicationWindow):
         elif type(header_widget) is Gtk.Box:
             self.canvas_headerbox.append(self.headerbox)
 
-    def on_flap_button_toggled(self, toggle_button):
+    def on_flap_button_toggled(self, toggle_button: Gtk.ToggleButton):
         """Handle flap button toggle"""
         self.focus_input()
         self.flap_button_left.set_active(True)
         if self.main_program_block.get_name() == "visible":
             self.main_program_block.set_name("hide")
             self.main_program_block.set_show_sidebar(False)
+            toggle_button.set_active(False)
         else:
             self.main_program_block.set_name("visible")
             self.main_program_block.set_show_sidebar(True)
+            print("Show sidebar")
+            toggle_button.set_active(True)
 
     # UI Functions for chat management
     def send_button_start_spinner(self):
@@ -2128,8 +2130,6 @@ class MainWindow(Adw.ApplicationWindow):
             thinking = text[0].replace("<think>", "")
             message = text[1] if len(text) > 1 else ""
             self.streaming_thought = thinking
-            print("th:" + thinking)
-            print(self.streaming_label)
             def idle():
                 self.thinking_box = ThinkingWidget() 
                 self.streaming_message_box.prepend(self.thinking_box)
