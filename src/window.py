@@ -3332,5 +3332,13 @@ class MainWindow(Adw.ApplicationWindow):
         else:
             tab.set_title(base_title)  # Remove indicator
 
+    def save(self):
+        tab = self.canvas_tabs.get_selected_page()
+        if tab is None:
+            return
+        editor = tab.get_child()
+        if editor is not None and hasattr(editor, "save"):
+            editor.save()
+    
     def add_tab(self, tab):
         self.canvas_tabs.add_page(tab.get_child(), tab)

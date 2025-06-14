@@ -274,6 +274,9 @@ class MyApp(Adw.Application):
         zoom = max(100, self.settings.get_int("zoom") - 10)
         self.win.set_zoom(zoom)
         self.settings.set_int("zoom", zoom)
+    
+    def save(self, *a):
+        self.win.save()
 
 def main(version):
     app = MyApp(application_id="io.github.qwersyk.Newelle", version = version)
@@ -283,6 +286,7 @@ def main(version):
     app.create_action('focus_message', app.focus_message, ['<primary>l'])
     app.create_action('start_recording', app.start_recording, ['<primary>g'])
     app.create_action('stop_tts', app.stop_tts, ['<primary>k'])
+    app.create_action('save', app.save, ['<primary>s'])
     app.create_action('zoom', app.zoom, ['<primary>plus'])
     app.create_action('zoom', app.zoom, ['<primary>equal'])
     app.create_action('zoom_out', app.zoom_out, ['<primary>minus'])

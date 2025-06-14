@@ -255,12 +255,14 @@ class CodeEditorWidget(Gtk.Box):
 
     def _on_save_clicked(self, button):
         """Handle save button click."""
+        self.save() 
+    
+    def save(self):
         if self.current_file_path:
             self.save_to_file()
         else:
             # Emit signal if no file path
             self.emit('content-saved', None)
-    
     def saved(self):
         self.is_modified = False
         self.emit('edit_state_changed', self.is_modified)
