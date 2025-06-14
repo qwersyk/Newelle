@@ -15,7 +15,6 @@ class WebsiteReader(NewelleExtension):
     def __init__(self, pip_path: str, extension_path: str, settings):
         super().__init__(pip_path, extension_path, settings)
         self.caches = {}
-
     def get_replace_codeblocks_langs(self) -> list:
         return ["website"]
    
@@ -59,8 +58,12 @@ class WebsiteReader(NewelleExtension):
         website_url = codeblock
          
         button = WebsiteButton(website_url)
+        button.connect("clicked", self.open_website)
         threading.Thread(target=self.get_article, args=(button,)).start()
         return button
+
+    def open_website(self, button: WebsiteButton):
+        self.ui_controller.new_browser_tab(button.url, False)
 
     def restore_gtk_widget(self, codeblock: str, lang: str) -> Gtk.Widget | None:
         return super().restore_gtk_widget(codeblock, lang)
