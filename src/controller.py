@@ -1,5 +1,5 @@
 from typing import Any
-from gi.repository import GLib, Gio
+from gi.repository import GLib, Gio, Adw
 import os
 import base64
 
@@ -25,9 +25,8 @@ from .extensions import ExtensionLoader
 from .utility import override_prompts
 from enum import Enum 
 from .handlers import Handler
-
+from .ui_controller import UIController
 """
-Not yet used in the code.
 Manage Newelle Application, create handlers, check integrity, manage settings...
 """
 
@@ -44,7 +43,7 @@ class ReloadType(Enum):
         RAG: Reload RAG 
         MEMORIES: Reload MEMORIES 
         EMBEDDINGS: Reload EMBEDDINGS 
-        EXTENSIONS: Reload EXTENSIONS 
+EXTENSIONS: Reload EXTENSIONS 
         SECONDARY_LLM: Reload SECONDARY_LLM
         RELOAD_CHAT: Reload RELOAD_CHAT
     """
@@ -85,7 +84,7 @@ class NewelleController:
     def __init__(self, python_path) -> None:
         self.settings = Gio.Settings.new(SCHEMA_ID)
         self.python_path = python_path
-        self.add_tab_func = None
+        self.ui_controller : UIController | None = None
 
     def ui_init(self):
         """Init necessary variables for the UI and load models and handlers"""
@@ -118,12 +117,12 @@ class NewelleController:
         self.extensions_cache = os.path.join(self.cache_dir, "extensions_cache")
         self.newelle_dir = os.path.join(self.config_dir, DIR_NAME)
 
-    def set_add_tab_function(self, add_tab):
+    def set_ui_controller(self, ui_controller):
         """Set add tab function"""
-        if add_tab is not None:
-            self.add_tab_func = add_tab
-            self.extensionloader.set_tab_func(add_tab)
-            self.integrationsloader.set_tab_func(add_tab)
+        if ui_controller is not None:
+            self.ui_controller = ui_controller
+            self.extensionloader.set_ui_controller(ui_controller)
+            self.integrationsloader.set_ui_controller(ui_controller)
 
     def load_chats(self, chat_id):
         """Load chats"""
@@ -234,13 +233,13 @@ class NewelleController:
         self.extensionloader.load_extensions()
         self.extensionloader.add_handlers(AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS, AVAILABLE_RAGS, AVAILABLE_WEBSEARCH)
         self.extensionloader.add_prompts(PROMPTS, AVAILABLE_PROMPTS)
-        self.set_add_tab_function(self.add_tab_func)
+        self.set_ui_controller(self.ui_controller)
 
     def load_integrations(self):
         """Load integrations"""
         self.integrationsloader = ExtensionLoader(self.extension_path, pip_path=self.pip_path, settings=self.settings)
         self.integrationsloader.load_integrations(AVAILABLE_INTEGRATIONS)
-        self.set_add_tab_function(self.add_tab_func)
+        self.set_ui_controller(self.ui_controller)
 
     def create_profile(self, profile_name, picture=None, settings={}, settings_groups=[]):
         """Create a profile
@@ -497,7 +496,10 @@ class HandlersManager:
             newelle_settings.stt_engine = list(AVAILABLE_STT.keys())[0]
         if newelle_settings.websearch_model not in AVAILABLE_WEBSEARCH:
             newelle_settings.websearch_model = list(AVAILABLE_WEBSEARCH.keys())[0]
-       
+      
+    def set_ui_controller(self, ui_controller):
+        self.ui_controller = ui_controller
+
     def select_handlers(self, newelle_settings: NewelleSettings):
         """Assign the selected handlers
 

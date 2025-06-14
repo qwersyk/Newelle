@@ -45,8 +45,7 @@ from .utility.media import extract_supported_files
 from .ui.screenrecorder import ScreenRecorder
 from .handlers import ErrorSeverity
 from .controller import NewelleController, ReloadType
-
-_ = gettext.gettext
+from .ui_controller import UIController
 
 
 class MainWindow(Adw.ApplicationWindow):
@@ -73,19 +72,23 @@ class MainWindow(Adw.ApplicationWindow):
         # Init controller
         self.controller = NewelleController(sys.path)
         self.controller.ui_init()
-        self.controller.set_add_tab_function(self.add_tab)
+        # Init UI controller
+        self.ui_controller = UIController(self)
+        self.controller.set_ui_controller(self.ui_controller)
         # Replace helper - set variables in the prompt
         ReplaceHelper.set_controller(self.controller)
         # Set basic vars
         self.path = self.controller.config_dir
         self.chats = self.controller.chats
         self.chat = self.controller.chat
+        # RAG Indexes to documents for each chat
         self.chat_documents_index = {}
         self.settings = self.controller.settings
-        self.set_default_size(self.settings.get_int("window-width"), self.settings.get_int("window-height"))
         self.extensionloader = self.controller.extensionloader
         self.chat_id = self.controller.newelle_settings.chat_id
         self.main_path = self.controller.newelle_settings.main_path
+        # Set window default size
+        self.set_default_size(self.settings.get_int("window-width"), self.settings.get_int("window-height"))
         # Set zoom
         self.set_zoom(self.controller.newelle_settings.zoom)
         # Update the settings
@@ -1351,7 +1354,6 @@ class MainWindow(Adw.ApplicationWindow):
         else:
             self.main_program_block.set_name("visible")
             self.main_program_block.set_show_sidebar(True)
-            print("Show sidebar")
             toggle_button.set_active(True)
 
     # UI Functions for chat management
@@ -3215,17 +3217,34 @@ class MainWindow(Adw.ApplicationWindow):
                 child.update_folder()
     
     def get_current_explorer_panel(self) -> ExplorerPanel | None:
+        """Get the current explorer panel if focused
+
+        Returns:
+            the current explorer panel 
+        """
         tab = self.canvas_tabs.get_selected_page()
         if tab is not None and hasattr(tab.get_child(), "main_path"):
+            return tab.get_child()
+
+    def get_current_browser_panel(self) -> BrowserWidget | None:
+        """Get the current browser panel if focused
+
+        Returns: the current browser panel 
+        """
+        tab = self.canvas_tabs.get_selected_page()
+        if tab is not None and hasattr(tab.get_child(), "webview"):
             return tab.get_child()
 
     def show_sidebar(self):
         self.main_program_block.set_name("visible")
         self.main_program_block.set_show_sidebar(True)
         
-    def add_terminal_tab(self, action=None, param=None):
+    def add_terminal_tab(self, action=None, param=None, command=None):
         """Add a terminal tab"""
-        terminal = Terminal(get_spawn_command() + ["bash", "-c", "export TERM=xterm-256color; exec bash"])
+        if command is None:
+            command = ""
+        cmd = get_spawn_command() + ["bash", "-c", "export TERM=xterm-256color;" + command + "; exec bash"]
+        terminal = Terminal(cmd)
         terminal.set_vexpand(True)
         terminal.set_hexpand(True)
         
@@ -3240,9 +3259,11 @@ class MainWindow(Adw.ApplicationWindow):
         self.show_sidebar()
         return tab
 
-    def add_browser_tab(self, action=None, param=None):
+    def add_browser_tab(self, action=None, param=None, url=None):
         """Add a browser tab"""
-        browser = BrowserWidget()
+        if url is None:
+            url = "https://duckduckgo.com"
+        browser = BrowserWidget(url)
         
         # Add the tab
         tab = self.canvas_tabs.append(browser)
@@ -3269,7 +3290,7 @@ class MainWindow(Adw.ApplicationWindow):
         self.chat.append({"User": "User", "Message": text})
         self.show_message(text, False, is_user=True)
     
-    def add_explorer_tab(self, tab, path=None):
+    def add_explorer_tab(self, tabview=None, path=None):
         """Add an explorer tab
 
         Args:
@@ -3291,7 +3312,7 @@ class MainWindow(Adw.ApplicationWindow):
     def update_path(self, panel, path):
         self.main_path = path
 
-    def add_editor_tab(self, tab, file=None):
+    def add_editor_tab(self, tabview=None, file=None):
         if file is not None:
             base_title = os.path.basename(file)
             editor = CodeEditorWidget()

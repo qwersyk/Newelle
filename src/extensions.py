@@ -15,6 +15,7 @@ from .handlers.rag import RAGHandler
 from .handlers.memory import MemoryHandler
 from .handlers.embeddings import EmbeddingHandler
 from .handlers.websearch import WebSearchHandler
+from .ui_controller import UIController
 
 class NewelleExtension(Handler):
     """The base class for all extensions"""
@@ -259,12 +260,8 @@ class NewelleExtension(Handler):
         """
         return history, bot_response
 
-    def set_add_tab_function(self, add_tab : Callable[[Adw.TabPage], None]):
-        self.add_tab_func = add_tab
-
-    def add_tab(self, tab : Adw.TabPage):
-        self.add_tab(tab)        
-
+    def set_ui_controller(self, ui_controller: UIController):
+        self.ui_controller = ui_controller
 
 class ExtensionLoader:
     """
@@ -318,9 +315,9 @@ class ExtensionLoader:
             self.extensions.append(integration_class)
             self.extensionsmap[integration_class.id] = integration_class
 
-    def set_tab_func(self, add_tab):
+    def set_ui_controller(self, ui_controller):
         for extension in self.get_enabled_extensions():
-            extension.set_add_tab_function(add_tab)
+            extension.set_ui_controller(ui_controller)
             
     def load_extensions(self):
         """Load extensions from the extension directory"""
