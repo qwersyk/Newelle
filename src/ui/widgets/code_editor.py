@@ -30,9 +30,17 @@ class CodeEditorWidget(Gtk.Box):
         self._source_view = None
         self._language_manager = GtkSource.LanguageManager.get_default()
         self.is_modified = False  # Track if the file is edited
+        
+        # Search and replace functionality
+        self._search_context = None
+        self._search_settings = None
+        self._search_bar = None
+        self._search_entry = None
+        self._replace_entry = None
 
         self._build_ui()
         self._setup_editor()
+        self._setup_search()
         self._source_buffer.connect('changed', self._on_buffer_changed)
         self._add_keyboard_shortcuts()
 
@@ -51,6 +59,11 @@ class CodeEditorWidget(Gtk.Box):
         open_button.connect('clicked', self._on_open_clicked)
         header_bar.pack_start(open_button)
 
+        # Create search button
+        search_button = Gtk.Button.new_from_icon_name('edit-find-symbolic')
+        search_button.connect('clicked', self._on_search_clicked)
+        header_bar.pack_start(search_button)
+
         # Create add to chat button
         add_to_chat_button = Gtk.Button(icon_name="attach-symbolic")
         add_to_chat_button.connect('clicked', self._on_add_to_chat_clicked)
@@ -58,6 +71,9 @@ class CodeEditorWidget(Gtk.Box):
 
         # Add header bar to the top of the box
         self.append(header_bar)
+
+        # Create search bar
+        self._create_search_bar()
 
         scrolled_window = Gtk.ScrolledWindow()
         scrolled_window.set_hexpand(True)
@@ -83,6 +99,90 @@ class CodeEditorWidget(Gtk.Box):
 
         scrolled_window.set_child(self._source_view)
 
+    def _create_search_bar(self):
+        """Create the search and replace bar."""
+        self._search_bar = Gtk.SearchBar()
+        self._search_bar.set_key_capture_widget(self)
+        self._search_bar.set_show_close_button(True)
+        
+        # Main container for search/replace
+        search_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        search_box.set_margin_start(12)
+        search_box.set_margin_end(12)
+        search_box.set_margin_top(6)
+        search_box.set_margin_bottom(6)
+        
+        # First row: Search entry and navigation buttons
+        search_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+        
+        # Search entry
+        self._search_entry = Gtk.SearchEntry()
+        self._search_entry.set_placeholder_text("Search...")
+        self._search_entry.set_hexpand(True)
+        self._search_entry.connect('search-changed', self._on_search_changed)
+        self._search_entry.connect('activate', self._on_search_next)
+        search_row.append(self._search_entry)
+        
+        # Search navigation buttons
+        prev_button = Gtk.Button.new_from_icon_name('go-up-symbolic')
+        prev_button.set_tooltip_text("Previous match")
+        prev_button.connect('clicked', self._on_search_previous)
+        search_row.append(prev_button)
+        
+        next_button = Gtk.Button.new_from_icon_name('go-down-symbolic')
+        next_button.set_tooltip_text("Next match")
+        next_button.connect('clicked', self._on_search_next)
+        search_row.append(next_button)
+        
+        # Case sensitive toggle
+        case_button = Gtk.ToggleButton()
+        case_button.set_label("Aa")
+        case_button.set_tooltip_text("Match case")
+        case_button.connect('toggled', self._on_case_sensitive_toggled)
+        search_row.append(case_button)
+        
+        # Whole word toggle
+        word_button = Gtk.ToggleButton()
+        word_button.set_label("W")
+        word_button.set_tooltip_text("Whole words only")
+        word_button.connect('toggled', self._on_whole_word_toggled)
+        search_row.append(word_button)
+        
+        # Replace toggle button
+        replace_toggle = Gtk.ToggleButton()
+        replace_toggle.set_label("Replace")
+        replace_toggle.connect('toggled', self._on_replace_toggled)
+        search_row.append(replace_toggle)
+        
+        search_box.append(search_row)
+        
+        # Second row: Replace entry and buttons (initially hidden)
+        self._replace_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+        self._replace_row.set_visible(False)
+        
+        # Replace entry
+        self._replace_entry = Gtk.Entry()
+        self._replace_entry.set_placeholder_text("Replace with...")
+        self._replace_entry.set_hexpand(True)
+        self._replace_entry.connect('activate', self._on_replace_next)
+        self._replace_row.append(self._replace_entry)
+        
+        # Replace buttons
+        replace_button = Gtk.Button.new_with_label("Replace")
+        replace_button.connect('clicked', self._on_replace_next)
+        self._replace_row.append(replace_button)
+        
+        replace_all_button = Gtk.Button.new_with_label("Replace All")
+        replace_all_button.connect('clicked', self._on_replace_all)
+        self._replace_row.append(replace_all_button)
+        
+        search_box.append(self._replace_row)
+        
+        self._search_bar.set_child(search_box)
+        # Connect the search entry to the search bar to fix GTK warning
+        self._search_bar.connect_entry(self._search_entry)
+        self.append(self._search_bar)
+
     def _setup_editor(self):
         """Set up the GtkSource.Buffer."""
         self._source_buffer = GtkSource.Buffer.new(None) # No Gtk.TextTagTable initially
@@ -91,6 +191,19 @@ class CodeEditorWidget(Gtk.Box):
         style_scheme = style_scheme_manager.get_scheme('Adwaita-dark')
         self._source_buffer.set_style_scheme(style_scheme)
         self._source_view.set_buffer(self._source_buffer)
+
+    def _setup_search(self):
+        """Set up search functionality."""
+        self._search_settings = GtkSource.SearchSettings()
+        self._search_settings.set_case_sensitive(False)
+        self._search_settings.set_at_word_boundaries(False)
+        self._search_settings.set_wrap_around(True)
+        
+    def _update_search_context(self):
+        """Update the search context when buffer changes."""
+        if self._source_buffer and self._search_settings:
+            self._search_context = GtkSource.SearchContext.new(self._source_buffer, self._search_settings)
+            self._search_context.set_highlight(True)
 
     def _guess_language(self, file_path: str):
         """Guess GtkSource.Language from file_path."""
@@ -157,6 +270,8 @@ class CodeEditorWidget(Gtk.Box):
             else:
                 # Clear any existing language if none is provided
                 self._source_buffer.set_language(None)
+            # Update search context for new buffer
+            self._update_search_context()
 
     def load_from_file(self, file_path: str):
         """
@@ -187,6 +302,9 @@ class CodeEditorWidget(Gtk.Box):
                     # Clear language if none could be guessed
                     self._source_buffer.set_language(None)
                     print(f"Could not guess language for {file_path}")
+                
+                # Update search context for new buffer
+                self._update_search_context()
                 return True
         except Exception as e:
             print(f"Error loading file '{file_path}': {e}")
@@ -195,6 +313,7 @@ class CodeEditorWidget(Gtk.Box):
             if self._source_buffer:
                 self._source_buffer.set_text(f"# Error loading file: {file_path}\n# {e}")
                 self._source_buffer.set_language(None) # No language for error message
+                self._update_search_context()
             return False
 
     def get_text(self) -> str:
@@ -291,7 +410,146 @@ class CodeEditorWidget(Gtk.Box):
 
     def _on_key_pressed(self, controller, keyval, keycode, state):
         """Handle key press events."""
-        if state & Gdk.ModifierType.CONTROL_MASK and keyval == Gdk.KEY_s:
-            self._on_save_clicked(None)
+        if state & Gdk.ModifierType.CONTROL_MASK:
+            if keyval == Gdk.KEY_s:
+                self._on_save_clicked(None)
+                return Gdk.EVENT_STOP
+            elif keyval == Gdk.KEY_f:
+                self._on_search_clicked(None)
+                return Gdk.EVENT_STOP
+            elif keyval == Gdk.KEY_h:
+                self._on_search_clicked(None)
+                # Also show replace row
+                replace_toggle = None
+                search_box = self._search_bar.get_child()
+                if search_box:
+                    search_row = search_box.get_first_child()
+                    if search_row:
+                        # Find the replace toggle button
+                        child = search_row.get_first_child()
+                        while child:
+                            if isinstance(child, Gtk.ToggleButton) and child.get_label() == "Replace":
+                                replace_toggle = child
+                                break
+                            child = child.get_next_sibling()
+                        if replace_toggle:
+                            replace_toggle.set_active(True)
+                return Gdk.EVENT_STOP
+            elif keyval == Gdk.KEY_g:
+                self._on_search_next()
+                return Gdk.EVENT_STOP
+        elif keyval == Gdk.KEY_F3:
+            self._on_search_next()
             return Gdk.EVENT_STOP
+        elif keyval == Gdk.KEY_Escape:
+            if self._search_bar.get_search_mode():
+                self._search_bar.set_search_mode(False)
+                return Gdk.EVENT_STOP
+        
         return Gdk.EVENT_PROPAGATE
+
+    def _on_search_clicked(self, button):
+        """Handle search button click."""
+        self._search_bar.set_search_mode(True)
+        self._search_entry.grab_focus()
+
+    def _on_search_changed(self, entry):
+        """Handle search text changes."""
+        search_text = entry.get_text()
+        if self._search_settings:
+            self._search_settings.set_search_text(search_text)
+        
+        if search_text and self._search_context:
+            # Start search from current cursor position
+            cursor_iter = self._source_buffer.get_iter_at_mark(self._source_buffer.get_insert())
+            found, start_iter, end_iter, wrapped = self._search_context.forward(cursor_iter)
+            if found:
+                self._source_buffer.select_range(start_iter, end_iter)
+                self._source_view.scroll_to_iter(start_iter, 0.0, False, 0.0, 0.0)
+
+    def _on_search_next(self, widget=None):
+        """Search for next occurrence."""
+        if not self._search_context or not self._search_entry.get_text():
+            return
+        
+        # Get current selection or cursor position
+        bounds = self._source_buffer.get_selection_bounds()
+        if bounds:
+            start_iter = bounds[1]  # Start from end of current selection
+        else:
+            start_iter = self._source_buffer.get_iter_at_mark(self._source_buffer.get_insert())
+        
+        found, match_start, match_end, wrapped = self._search_context.forward(start_iter)
+        if found:
+            self._source_buffer.select_range(match_start, match_end)
+            self._source_view.scroll_to_iter(match_start, 0.0, False, 0.0, 0.0)
+
+    def _on_search_previous(self, widget):
+        """Search for previous occurrence."""
+        if not self._search_context or not self._search_entry.get_text():
+            return
+        
+        # Get current selection or cursor position
+        bounds = self._source_buffer.get_selection_bounds()
+        if bounds:
+            start_iter = bounds[0]  # Start from beginning of current selection
+        else:
+            start_iter = self._source_buffer.get_iter_at_mark(self._source_buffer.get_insert())
+        
+        found, match_start, match_end, wrapped = self._search_context.backward(start_iter)
+        if found:
+            self._source_buffer.select_range(match_start, match_end)
+            self._source_view.scroll_to_iter(match_start, 0.0, False, 0.0, 0.0)
+
+    def _on_case_sensitive_toggled(self, button):
+        """Toggle case sensitive search."""
+        if self._search_settings:
+            self._search_settings.set_case_sensitive(button.get_active())
+
+    def _on_whole_word_toggled(self, button):
+        """Toggle whole word search."""
+        if self._search_settings:
+            self._search_settings.set_at_word_boundaries(button.get_active())
+
+    def _on_replace_toggled(self, button):
+        """Toggle replace row visibility."""
+        self._replace_row.set_visible(button.get_active())
+        if button.get_active():
+            self._replace_entry.grab_focus()
+
+    def _on_replace_next(self, widget):
+        """Replace current match and find next."""
+        if not self._search_context or not self._search_entry.get_text():
+            return
+        
+        replace_text = self._replace_entry.get_text()
+        bounds = self._source_buffer.get_selection_bounds()
+        
+        if bounds:
+            # Check if current selection matches search
+            start_iter, end_iter = bounds
+            selected_text = self._source_buffer.get_text(start_iter, end_iter, False)
+            search_text = self._search_entry.get_text()
+            
+            # Simple case-insensitive comparison if case insensitive search
+            if (self._search_settings.get_case_sensitive() and selected_text == search_text) or \
+               (not self._search_settings.get_case_sensitive() and selected_text.lower() == search_text.lower()):
+                try:
+                    self._search_context.replace(start_iter, end_iter, replace_text, len(replace_text))
+                except GLib.Error as e:
+                    print(f"Replace error: {e}")
+        
+        # Find next occurrence
+        self._on_search_next()
+
+    def _on_replace_all(self, widget):
+        """Replace all occurrences."""
+        if not self._search_context or not self._search_entry.get_text():
+            return
+        
+        replace_text = self._replace_entry.get_text()
+        try:
+            count = self._search_context.replace_all(replace_text, len(replace_text))
+            print(f"Replaced {count} occurrences")
+        except GLib.Error as e:
+            print(f"Replace all error: {e}")
