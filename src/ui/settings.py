@@ -5,7 +5,7 @@ import json
 import time 
 from subprocess import Popen 
 
-from gi.repository import Gtk, Adw, Gio, GLib
+from gi.repository import Gtk, Adw, Gio, GLib, GtkSource
 
 from ..handlers import Handler
 
@@ -165,6 +165,16 @@ class Settings(Adw.PreferencesWindow):
         spin.connect("input", update_zoom)
         self.interface.add(row)
 
+        style_scheme_manager = GtkSource.StyleSchemeManager.new()
+        options = style_scheme_manager.get_scheme_ids()
+        if options is not None:
+            row = Adw.ComboRow(title=_("Editor color scheme"), subtitle=_("Change the color scheme of the editor and codeblocks"), )
+            opts = tuple()
+            for option in options:
+                opts += ((option, option),)
+            helper = ComboRowHelper(row, opts, self.settings.get_string("editor-color-scheme"))
+            helper.connect("changed", lambda x,y: self.settings.set_string("editor-color-scheme", y))
+            self.interface.add(row)
         row = Adw.ActionRow(title=_("Hidden files"), subtitle=_("Show hidden files"))
         switch = Gtk.Switch(valign=Gtk.Align.CENTER)
         row.add_suffix(switch)

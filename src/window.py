@@ -2445,7 +2445,7 @@ class MainWindow(Adw.ApplicationWindow):
                                 running_threads.append(t)
                         except Exception as e:
                             print("Extension error " + extension.id + ": " + str(e))
-                            box.append(CopyBox(chunk.text, code_language, parent=self, id_message=id_message, id_codeblock=codeblock_id, allow_edit=editable))
+                            box.append(CopyBox(chunk.text, code_language, parent=self, id_message=id_message, id_codeblock=codeblock_id, allow_edit=editable, ))
                     elif code_language == "think":
                         think = ThinkingWidget()
                         think.set_thinking(chunk.text)
@@ -3371,7 +3371,7 @@ class MainWindow(Adw.ApplicationWindow):
     def add_editor_tab(self, tabview=None, file=None):
         if file is not None:
             base_title = os.path.basename(file)
-            editor = CodeEditorWidget()
+            editor = CodeEditorWidget(scheme=self.controller.newelle_settings.editor_color_scheme)
             editor.load_from_file(file)
             editor.connect("add-to-chat", self.add_file_to_chat, file)
             tab = self.canvas_tabs.append(editor)
@@ -3383,7 +3383,7 @@ class MainWindow(Adw.ApplicationWindow):
             return tab
 
     def add_editor_tab_inline(self, id_message, id_codeblock, content, lang):
-        editor = CodeEditorWidget()
+        editor = CodeEditorWidget(scheme=self.controller.newelle_settings.editor_color_scheme)
         editor.load_from_string(content, lang)
         tab = self.canvas_tabs.append(editor)
         base_title = "Message " + str(id_message) + " " + str(id_codeblock)

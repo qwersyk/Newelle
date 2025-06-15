@@ -19,12 +19,13 @@ class CodeEditorWidget(Gtk.Box):
         'edit_state_changed': (GObject.SignalFlags.RUN_FIRST, None, (bool,))  # Emits when the modified state changes
     }
 
-    def __init__(self, **kwargs):
+    def __init__(self, scheme="Adwaita-dark", **kwargs):
         """
         Initialize the CodeEditorWidget.
         """
         super().__init__(orientation=Gtk.Orientation.VERTICAL, **kwargs)
 
+        self.scheme = scheme
         self.current_file_path = None
         self._source_buffer = None
         self._source_view = None
@@ -188,7 +189,7 @@ class CodeEditorWidget(Gtk.Box):
         self._source_buffer = GtkSource.Buffer.new(None) # No Gtk.TextTagTable initially
         self._source_buffer.set_highlight_syntax(True)
         style_scheme_manager = GtkSource.StyleSchemeManager.new()
-        style_scheme = style_scheme_manager.get_scheme('Adwaita-dark')
+        style_scheme = style_scheme_manager.get_scheme(self.scheme)
         self._source_buffer.set_style_scheme(style_scheme)
         self._source_view.set_buffer(self._source_buffer)
 
