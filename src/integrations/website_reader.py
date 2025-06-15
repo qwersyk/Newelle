@@ -4,6 +4,7 @@ from ..ui.widgets import WebsiteButton
 import threading
 from ..utility.message_chunk import get_message_chunks
 from newspaper import Article
+from ..ui import load_image_with_callback
 
 CHUNK_SIZE = 512 
 MAX_CONTEXT = 5000
@@ -15,7 +16,6 @@ class WebsiteReader(NewelleExtension):
     def __init__(self, pip_path: str, extension_path: str, settings):
         super().__init__(pip_path, extension_path, settings)
         self.caches = {}
-
     def get_replace_codeblocks_langs(self) -> list:
         return ["website"]
    
@@ -59,8 +59,12 @@ class WebsiteReader(NewelleExtension):
         website_url = codeblock
          
         button = WebsiteButton(website_url)
+        button.connect("clicked", self.open_website)
         threading.Thread(target=self.get_article, args=(button,)).start()
         return button
+
+    def open_website(self, button: WebsiteButton):
+        self.ui_controller.open_link(button.url, False, not self.settings.get_boolean("external-browser"))
 
     def restore_gtk_widget(self, codeblock: str, lang: str) -> Gtk.Widget | None:
         return super().restore_gtk_widget(codeblock, lang)
@@ -88,23 +92,6 @@ class WebsiteReader(NewelleExtension):
             button.title.set_text(title)
             button.description.set_text(description) 
         GLib.idle_add(update_button)
-        threading.Thread(target=self.load_image, args=(favicon, button.icon)).start()
+        load_image_with_callback(favicon, lambda pixbuf_loader : button.icon.set_from_pixbuf(pixbuf_loader.get_pixbuf()))
 
 
-    def load_image(self, url, image: Gtk.Image):
-        import requests
-        # Create a pixbuf loader that will load the image
-        pixbuf_loader = GdkPixbuf.PixbufLoader()
-        pixbuf_loader.connect("area-prepared", self.on_area_prepared, image)
-        try:
-            response = requests.get(url, stream=True) #stream = True prevent download the whole file into RAM
-            response.raise_for_status()
-            for chunk in response.iter_content(chunk_size=1024): #Load in chunks to avoid consuming too much memory for large files
-                pixbuf_loader.write(chunk)
-            pixbuf_loader.close()
-        except Exception as e:
-            print("Exception generating the image: " + str(e))
-
-    def on_area_prepared(self, loader: GdkPixbuf.PixbufLoader, image: Gtk.Image):
-        # Function runs when the image loaded. Remove the spinner and open the image
-        image.set_from_pixbuf(loader.get_pixbuf())

@@ -1,9 +1,10 @@
+from collections.abc import Callable
 import importlib 
 import os 
 import json 
 import shutil
 import sys
-from gi.repository import Gtk
+from gi.repository import Gtk, Adw
 
 from .handlers import Handler
 
@@ -14,6 +15,7 @@ from .handlers.rag import RAGHandler
 from .handlers.memory import MemoryHandler
 from .handlers.embeddings import EmbeddingHandler
 from .handlers.websearch import WebSearchHandler
+from .ui_controller import UIController
 
 class NewelleExtension(Handler):
     """The base class for all extensions"""
@@ -258,6 +260,8 @@ class NewelleExtension(Handler):
         """
         return history, bot_response
 
+    def set_ui_controller(self, ui_controller: UIController):
+        self.ui_controller = ui_controller
 
 class ExtensionLoader:
     """
@@ -311,6 +315,9 @@ class ExtensionLoader:
             self.extensions.append(integration_class)
             self.extensionsmap[integration_class.id] = integration_class
 
+    def set_ui_controller(self, ui_controller):
+        for extension in self.get_enabled_extensions():
+            extension.set_ui_controller(ui_controller)
             
     def load_extensions(self):
         """Load extensions from the extension directory"""

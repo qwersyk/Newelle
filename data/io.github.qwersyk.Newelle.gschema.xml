@@ -161,5 +161,20 @@
 	      <key name="window-height" type="i">
           <default>800</default>
         </key>
+        <key name="external-browser" type="b">
+          <default>false</default>
+        </key>
+        <key name="initial-browser-page" type="s">
+          <default>"https://duckduckgo.com"</default>
+        </key>
+        <key name="browser-search-string" type="s">
+          <default>"https://duckduckgo.com/?q=%s"</default>
+        </key>
+        <key name="browser-session-persist" type="b">
+          <default>true</default>
+        </key>
+        <key name="editor-color-scheme" type="s">
+          <default>"Adwaita-dark"</default>
+        </key>
 	</schema>
 </schemalist>

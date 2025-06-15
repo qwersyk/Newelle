@@ -1,8 +1,4 @@
-import gi
-import os
-
-from gi.repository import Gtk, Gio, Pango
-from ...utility.system import open_website
+from gi.repository import Gtk, Pango
 
 class WebsiteButton(Gtk.Button):
     """
@@ -28,7 +24,6 @@ class WebsiteButton(Gtk.Button):
 
         # Normalize and expand the path
         self.set_name(self.url)  # Set the path as the button's name
-        self.connect("clicked", self.on_button_clicked)
         self._build_ui()
 
     def _build_ui(self):
@@ -80,12 +75,3 @@ class WebsiteButton(Gtk.Button):
         )
         vbox.append(self.url_text)
         self.set_child(box)
-
-    def on_button_clicked(self, button):
-        """
-        Placeholder for the button click event.  Connect your file-running logic here.
-
-        Args:
-            button (Gtk.Button): The button that was clicked.
-        """
-        open_website(self.url)

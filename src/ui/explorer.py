@@ -48,6 +48,11 @@ class ExplorerPanel(Gtk.Box):
         self.build_explorer_panel_buttons()
         self.update_folder()
 
+    def go_to_path(self, path):
+        self.main_path = path
+        self.get_current_path()
+        self.update_folder()
+
     def build_explorer_panel_buttons(self):
         box = Gtk.Box(halign=Gtk.Align.CENTER)
         # Back explorer panel button

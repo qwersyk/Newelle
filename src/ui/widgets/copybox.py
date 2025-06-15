@@ -7,9 +7,13 @@ from ...utility.strings import add_S_to_sudo, quote_string
 from .terminal_dialog import TerminalDialog
 
 class CopyBox(Gtk.Box):
-    def __init__(self, txt, lang, parent = None,id_message=-1, id_codeblock=-1, allow_edit=False):
+    def __init__(self, txt, lang, parent = None,id_message=-1, id_codeblock=-1, allow_edit=False, color_scheme=None):
         Gtk.Box.__init__(self, orientation=Gtk.Orientation.VERTICAL, spacing=10, margin_top=10, margin_start=10,
                          margin_bottom=10, margin_end=10, css_classes=["osd", "toolbar", "code"])
+        if color_scheme is None and hasattr(parent, "controller"):
+            self.color_scheme = parent.controller.newelle_settings.editor_color_scheme
+        else:
+            self.color_scheme = color_scheme if color_scheme is not None else "Adwaita-dark"
         self.txt = txt
         self.parent = parent
         longest_line = max(txt.splitlines(), key=len)
@@ -53,7 +57,7 @@ class CopyBox(Gtk.Box):
         self.buffer.set_language(language)
 
         style_scheme_manager = GtkSource.StyleSchemeManager.new()
-        style_scheme = style_scheme_manager.get_scheme('Adwaita-dark')
+        style_scheme = style_scheme_manager.get_scheme(self.color_scheme)
         self.buffer.set_style_scheme(style_scheme)
 
         self.sourceview.set_buffer(self.buffer)

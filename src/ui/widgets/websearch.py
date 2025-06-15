@@ -1,8 +1,12 @@
-import threading 
+from ...ui import load_image_with_callback 
 from ...utility.system import open_website
-from gi.repository import Gtk, GdkPixbuf, Pango
+from gi.repository import Gtk, Pango, GObject
 
 class WebSearchWidget(Gtk.Box):
+    __gsignals__ = {
+        'website-clicked': (GObject.SignalFlags.RUN_LAST, None, (str,))
+    }
+
     def __init__(self, search_term, **kwargs):
         super().__init__(orientation=Gtk.Orientation.VERTICAL, spacing=10, **kwargs)
         # Add some padding inside the widget itself, so content isn't
@@ -63,10 +67,10 @@ class WebSearchWidget(Gtk.Box):
             favicon = urljoin(base_url, favicon)
             print(favicon)
         button = Gtk.Button()
-        button.connect("clicked", lambda x, link=link: open_website(link))
+        button.connect("clicked", lambda x, link=link: self.emit('website-clicked', link))
         row_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         icon = Gtk.Image(icon_name="internet-symbolic")
-        threading.Thread(target=self.load_image, args=(favicon, icon)).start()
+        load_image_with_callback(favicon, lambda pixbuf_loader: icon.set_from_pixbuf(pixbuf_loader.get_pixbuf()))
         row_box.append(icon)
         label = Gtk.Label(label=title, halign=Gtk.Align.START, tooltip_text=link, hexpand=True, ellipsize=Pango.EllipsizeMode.END)
         row_box.append(label)
@@ -76,29 +80,7 @@ class WebSearchWidget(Gtk.Box):
         row_box.append(spinner_revealer)
         button.set_child(row_box)
         return button, spinner, spinner_revealer
-
-
-    def on_area_prepared(self, loader: GdkPixbuf.PixbufLoader, image: Gtk.Image):
-        # Function runs when the image loaded. Remove the spinner and open the image
-        try:
-            image.set_from_pixbuf(loader.get_pixbuf())
-        except Exception as e:
-            return
-    
-    def load_image(self, url, image: Gtk.Image):
-        import requests
-        # Create a pixbuf loader that will load the image
-        pixbuf_loader = GdkPixbuf.PixbufLoader()
-        pixbuf_loader.connect("area-prepared", self.on_area_prepared, image)
-        try:
-            response = requests.get(url, stream=True) #stream = True prevent download the whole file into RAM
-            response.raise_for_status()
-            for chunk in response.iter_content(chunk_size=8192): #Load in chunks to avoid consuming too much memory for large files
-                pixbuf_loader.write(chunk)
-            pixbuf_loader.close()
-        except Exception as e:
-            print("Exception generating the image: " + str(e))
-    
+ 
     # add_website remains the same
     def add_website(self, title, link, favicon_path=None):
         if self._current_spinner_revealer and self._current_spinner:
