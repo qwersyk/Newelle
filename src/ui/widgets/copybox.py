@@ -13,7 +13,7 @@ class CopyBox(Gtk.Box):
         if color_scheme is None and hasattr(parent, "controller"):
             self.color_scheme = parent.controller.newelle_settings.editor_color_scheme
         else:
-            self.color_scheme = color_scheme
+            self.color_scheme = color_scheme if color_scheme is not None else "Adwaita-dark"
         self.txt = txt
         self.parent = parent
         longest_line = max(txt.splitlines(), key=len)
