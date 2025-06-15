@@ -1487,7 +1487,7 @@ class MainWindow(Adw.ApplicationWindow):
             ):
                 self.main_path = button.get_name()
                 os.chdir(os.path.expanduser(self.main_path))
-                GLib.idle_add(self.update_folder)
+                GLib.idle_add(self.ui_controller.new_explorer_tab, self.main_path, False)
             else:
                 subprocess.run(["xdg-open", os.path.expanduser(button.get_name())])
         else:
@@ -3346,7 +3346,7 @@ class MainWindow(Adw.ApplicationWindow):
         if path is None:
             path = self.main_path
         if not os.path.isdir(os.path.expanduser(path)):
-            return self.add_editor_tab(tab, path)
+            return self.add_editor_tab(None, path)
         panel = ExplorerPanel(self.controller, path)
         tab = self.canvas_tabs.append(panel)
         panel.set_tab(tab)
