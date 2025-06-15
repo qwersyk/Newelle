@@ -71,3 +71,11 @@ class UIController:
             command (): command to execute
         """
         self.window.add_terminal_tab(command=command)
+
+    def add_text_to_input(self, text:str, focus_input:bool=False):
+        """Add text to the input
+
+        Args:
+            text (): text to add
+        """
+        self.window.add_text_to_input(text, focus_input)

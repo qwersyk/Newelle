@@ -954,7 +954,13 @@ class MainWindow(Adw.ApplicationWindow):
     def focus_input(self):
         """Focus the input box. Often used to avoid removing focues objects"""
         self.input_panel.input_panel.grab_focus()
-
+    
+    def add_text_to_input(self, text, focus_input=False):
+        txt = self.input_panel.get_text()
+        txt += "\n" + text 
+        self.input_panel.set_text(txt)
+        if focus_input:
+            self.focus_input()
     # Profiles
     def refresh_profiles_box(self):
         """Changes the profile switch button on the header"""
