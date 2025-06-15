@@ -186,8 +186,8 @@ class MainWindow(Adw.ApplicationWindow):
         self.chats_secondary_box.append(button)
         self.chats_main_box.append(self.chats_secondary_box)
         self.chats_main_box.append(Gtk.Separator())
-        self.main.set_sidebar(Adw.NavigationPage(child=self.chats_main_box))
-        self.main.set_content(Adw.NavigationPage(child=self.chat_panel))
+        self.main.set_sidebar(Adw.NavigationPage(child=self.chats_main_box, title=_("Chats")))
+        self.main.set_content(Adw.NavigationPage(child=self.chat_panel, title=_("Chat")))
         self.main.set_show_sidebar(True)
         self.main.connect("notify::show-sidebar", lambda x, _ : self.left_panel_toggle_button.set_active(self.main.get_show_sidebar()))
         # Canvas panel
