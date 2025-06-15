@@ -32,6 +32,7 @@ install_data (
     'settings-symbolic.svg',
     'sidebar-show-right-symbolic.svg',
     'go-home-symbolic.svg',
+    'detach-symbolic.svg',
     install_dir: symbolic_dir
 )
 install_data (

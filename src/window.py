@@ -440,7 +440,10 @@ class MainWindow(Adw.ApplicationWindow):
         icon.set_icon_size(Gtk.IconSize.INHERIT)
         box.append(icon)
         self.new_tab_button.set_child(box)
-        
+       
+        # Detach tab button 
+        self.detach_tab_button = Gtk.Button(css_classes=["flat"], icon_name="detach-symbolic")
+        self.detach_tab_button.connect("clicked", self.detach_tab) 
         # Create menu model
         menu = Gio.Menu()
         menu.append(_("Explorer Tab"), "win.new_explorer_tab")
@@ -463,7 +466,7 @@ class MainWindow(Adw.ApplicationWindow):
         self.canvas_button.connect("clicked", lambda x : self.canvas_overview.set_open(not self.canvas_overview.get_open()))
         self.canvas_header.pack_end(self.canvas_button)
         self.canvas_header.pack_end(self.new_tab_button)
-
+        self.canvas_header.pack_end(self.detach_tab_button)
 
         self.canvas_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.canvas_box.append(self.canvas_header)
@@ -474,7 +477,47 @@ class MainWindow(Adw.ApplicationWindow):
         self.main_program_block.set_content(self.main)
         self.main_program_block.set_sidebar(self.canvas_box)
         self.main_program_block.set_name("hide")
-    
+   
+    def detach_tab(self, button):
+        """Method to move a tab to another window
+
+        Args:
+            button (): button - unused (given in callbacks) 
+        """
+        tab = self.canvas_tabs.get_selected_page()
+        if tab is not None:
+            widget = tab.get_child()
+            if widget is not None:
+                # Create another view to transfer the page
+                otherview = Adw.TabView()
+                self.canvas_tabs.transfer_page(tab, otherview, 0)
+                # Set tab title as window title
+                tab_title = tab.get_title()
+                title_label = Gtk.Label(label=tab_title)
+                # Create window
+                headerbar = Adw.HeaderBar(css_classes=["flat"], title_widget=title_label)
+                content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+                content.append(headerbar)
+                content.append(otherview)
+                window = Gtk.Window(child=content)
+                tab.connect("notify::title", lambda x, title: title_label.set_label(x.get_title()))
+                window.show()
+                window.connect("close-request", self.reattach_tab, tab, otherview)
+
+    def reattach_tab(self, window, tab: Adw.TabPage, otherview: Adw.TabView):
+        """Reattach tab after window closing
+
+        Args:
+            window (): 
+            tab: tab to reattach 
+            otherview: other view from which to transfer the page 
+
+        Returns:
+           False in order for the window to close 
+        """
+        otherview.transfer_page(tab, self.canvas_tabs, self.canvas_tabs.get_n_pages())
+        return False 
+
     def on_tab_switched(self, tab_view, tab):
         current_tab = self.canvas_tabs.get_selected_page()
         if current_tab is None:
