@@ -136,25 +136,19 @@ class MainWindow(Adw.ApplicationWindow):
         self.headerbox.append(child=self.flap_button_left)
         # Add headerbox to default parent
         self.chat_header.pack_end(self.headerbox)
-
-        self.left_panel_back_button = Gtk.Button(css_classes=["flat"], visible=False)
-        icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="go-previous-symbolic"))
-        icon.set_icon_size(Gtk.IconSize.INHERIT)
-        box = Gtk.Box(halign=Gtk.Align.CENTER)
-        box.append(icon)
-        self.left_panel_back_button.set_child(box)
-        self.left_panel_back_button.connect("clicked", self.go_back_to_chats_panel)
-        self.chat_header.pack_start(self.left_panel_back_button)
+    
+        self.left_panel_toggle_button = Gtk.ToggleButton(css_classes=["flat"], active=True, icon_name="sidebar-show-left-symbolic")
+        self.chat_header.pack_start(self.left_panel_toggle_button)
+        self.left_panel_toggle_button.connect("clicked", self.on_chat_panel_toggled)
         self.chat_block.append(self.chat_header)
         self.chat_block.append(Gtk.Separator())
         self.chat_panel.append(self.chat_block)
         self.chat_panel.append(Gtk.Separator())
 
         # Setup main program block
-        self.main = Adw.Leaflet(
-            fold_threshold_policy=Adw.FoldThresholdPolicy.NATURAL,
-            can_navigate_back=True,
-            can_navigate_forward=True,
+        self.main = Adw.OverlaySplitView(
+            collapsed=False,
+            min_sidebar_width=300
         )
         self.chats_main_box = Gtk.Box(hexpand_set=True)
         self.chats_main_box.set_size_request(300, -1)
@@ -191,9 +185,9 @@ class MainWindow(Adw.ApplicationWindow):
         self.chats_secondary_box.append(button)
         self.chats_main_box.append(self.chats_secondary_box)
         self.chats_main_box.append(Gtk.Separator())
-        self.main.append(self.chats_main_box)
-        self.main.append(self.chat_panel)
-        self.main.set_visible_child(self.chat_panel)
+        self.main.set_sidebar(Adw.NavigationPage(child=self.chats_main_box))
+        self.main.set_content(Adw.NavigationPage(child=self.chat_panel))
+        self.main.set_show_sidebar(True)
         # Canvas panel
         self.build_canvas()
         # Secondary message block
@@ -400,7 +394,7 @@ class MainWindow(Adw.ApplicationWindow):
         self.input_box.append(box)
         self.input_panel.set_on_enter(self.on_entry_activate)
         self.send_button.connect("clicked", self.on_entry_button_clicked)
-        self.main.connect("notify::folded", self.handle_main_block_change)
+        self.main.connect("notify::show-sidebar", self.handle_main_block_change)
         self.main_program_block.connect(
             "notify::show-sidebar", self.handle_second_block_change
         )
@@ -474,7 +468,15 @@ class MainWindow(Adw.ApplicationWindow):
         self.canvas_box.append(self.canvas_overview)
         self.add_explorer_tab(None, self.main_path)
         self.set_content(self.main_program_block)
-        self.main_program_block.set_content(self.main)
+        bin = Adw.BreakpointBin(child=self.main, width_request=300, height_request=300)
+        breakpoint = Adw.Breakpoint(condition=Adw.BreakpointCondition.new_length(Adw.BreakpointConditionLengthType.MAX_WIDTH, 820, Adw.LengthUnit.PX))
+        def breakpoint_change(apply:bool):
+            self.main.set_show_sidebar(not apply)
+            GLib.timeout_add(100, self.main.set_collapsed, apply)
+        breakpoint.connect("apply", lambda breakpoint: GLib.timeout_add(20, breakpoint_change, True))
+        breakpoint.connect("unapply", lambda breakpoint: GLib.timeout_add(20,breakpoint_change, False))
+        bin.add_breakpoint(breakpoint)
+        self.main_program_block.set_content(bin)
         self.main_program_block.set_sidebar(self.canvas_box)
         self.main_program_block.set_name("hide")
    
@@ -1354,12 +1356,16 @@ class MainWindow(Adw.ApplicationWindow):
         self.screen_record_button.set_visible(False)
 
     # Flap management
-    def go_back_to_chats_panel(self, button):
-        self.main.set_visible_child(self.chats_main_box)
-
+    def on_chat_panel_toggled(self, button: Gtk.ToggleButton):
+        if button.get_active():
+            self.main.set_show_sidebar(False)
+        else:
+            self.main.set_show_sidebar(True)
+   
     def return_to_chat_panel(self, button):
-        self.main.set_visible_child(self.chat_panel)
-    
+        if self.main.get_collapsed():
+            self.main.set_show_sidebar(False)
+
     def handle_second_block_change(self, *a):
         """Handle flaps reveal/hide"""
         status = self.main_program_block.get_show_sidebar()
@@ -1375,7 +1381,7 @@ class MainWindow(Adw.ApplicationWindow):
             self.chat_header.set_show_end_title_buttons(False)
             header_widget = self.canvas_headerbox
         else:
-            self.chat_panel_header.set_show_end_title_buttons(self.main.get_folded())
+            self.chat_panel_header.set_show_end_title_buttons(not self.main.get_show_sidebar())
             self.chat_header.set_show_end_title_buttons(True)
             header_widget = self.chat_header
         # Unparent the headerbox
@@ -1537,15 +1543,13 @@ class MainWindow(Adw.ApplicationWindow):
         self.hide_placeholder()
 
     def handle_main_block_change(self, *data):
-        if self.main.get_folded():
+        if self.main.get_show_sidebar():
             self.chat_panel_header.set_show_end_title_buttons(
                 not self.main_program_block.get_show_sidebar()
             )
-            self.left_panel_back_button.set_visible(True)
             self.chat_header.set_show_start_title_buttons(True)
         else:
             self.chat_panel_header.set_show_end_title_buttons(False)
-            self.left_panel_back_button.set_visible(False)
             self.chat_header.set_show_start_title_buttons(False)
 
     # Chat management
@@ -1737,7 +1741,7 @@ class MainWindow(Adw.ApplicationWindow):
 
     def chose_chat(self, button, *a):
         """Switch to another chat"""
-        self.main.set_visible_child(self.chat_panel)
+        self.main.set_show_sidebar(False)
         if not self.status:
             self.stop_chat()
         self.stream_number_variable += 1
