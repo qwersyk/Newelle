@@ -15,7 +15,7 @@ class UIController:
         """
         self.window.add_tab(tab)
 
-    def new_browser_tab(self, url:str|None = None, new:bool=True):
+    def new_browser_tab(self, url:str|None = None, new:bool=True) -> Adw.TabPage:
         """Add a new browser tab
 
         Args:
@@ -26,8 +26,8 @@ class UIController:
             browser = self.window.get_current_browser_panel()
             if browser is not None:
                 browser.navigate_to(url)
-                return
-        self.window.add_browser_tab(url=url)
+                return browser.get_parent()
+        return self.window.add_browser_tab(url=url)
 
     def open_link(self, url:str|None, new:bool=False, use_integrated_browser : bool = True):
         """Open a link
@@ -38,11 +38,11 @@ class UIController:
             use_integrated_browser (bool): if true, use the integrated browser, otherwise open the link in the default browser
         """
         if use_integrated_browser:
-            self.new_browser_tab(url=url, new=new)
+            return self.new_browser_tab(url=url, new=new)
         else:
             open_website(url)
 
-    def new_explorer_tab(self, path:str, new:bool=True):
+    def new_explorer_tab(self, path:str, new:bool=True) -> Adw.TabPage:
         """Add a new explorer tab
 
         Args:
@@ -53,24 +53,24 @@ class UIController:
             explorer = self.window.get_current_explorer_panel()
             if explorer is not None:
                 explorer.go_to_path(path)
-                return
-        self.window.add_explorer_tab(path=path)
+                return explorer.get_parent()
+        return self.window.add_explorer_tab(path=path)
 
-    def new_editor_tab(self, file:str):
+    def new_editor_tab(self, file:str) -> Adw.TabPage:
         """Add a new editor tab
 
         Args:
             file (): path to open (full), None if editing some custom text
         """
-        self.window.add_editor_tab(file=file)
+        return self.window.add_editor_tab(file=file)
 
-    def new_terminal_tab(self, command:str|None=None):
+    def new_terminal_tab(self, command:str|None=None) -> Adw.TabPage:
         """Add a new terminal tab
 
         Args:
             command (): command to execute
         """
-        self.window.add_terminal_tab(command=command)
+        return self.window.add_terminal_tab(command=command)
 
     def add_text_to_input(self, text:str, focus_input:bool=False):
         """Add text to the input
