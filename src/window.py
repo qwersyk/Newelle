@@ -203,12 +203,16 @@ class MainWindow(Adw.ApplicationWindow):
         )
         self.chat_list_block.set_selection_mode(Gtk.SelectionMode.NONE)
         self.chat_scroll = Gtk.ScrolledWindow(vexpand=True)
+        # Chat stack - In order to create animation on chat switch
+        self.chat_stack = Gtk.Stack(transition_type=Gtk.StackTransitionType.SLIDE_UP, transition_duration=500)
         self.chat_scroll_window = Gtk.Box(
             orientation=Gtk.Orientation.VERTICAL, css_classes=["background", "view"]
         )
         self.chat_scroll.set_child(self.chat_scroll_window)
         self.chat_scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
-        self.chat_scroll_window.append(self.chat_list_block)
+        self.chat_stack.add_child(self.chat_list_block)
+        self.chat_stack.set_visible_child(self.chat_list_block)
+        self.chat_scroll_window.append(self.chat_stack)
         self.history_block = Gtk.Stack(transition_type=Gtk.StackTransitionType.SLIDE_UP, transition_duration=500)
         drop_target = Gtk.DropTarget.new(GObject.TYPE_STRING, Gdk.DragAction.COPY)
         drop_target.connect("drop", self.handle_file_drag)
@@ -2240,13 +2244,15 @@ class MainWindow(Adw.ApplicationWindow):
         if not self.check_streams["chat"]:
             self.check_streams["chat"] = True
             try:
-                self.chat_scroll_window.remove(self.chat_list_block)
+                self.old_chat_list_block = self.chat_list_block
                 self.chat_list_block = Gtk.ListBox(
                     css_classes=["separators", "background", "view"]
                 )
                 self.chat_list_block.set_selection_mode(Gtk.SelectionMode.NONE)
 
-                self.chat_scroll_window.append(self.chat_list_block)
+                self.chat_stack.add_child(self.chat_list_block)
+                self.chat_stack.set_visible_child(self.chat_list_block)
+                GLib.idle_add(self.chat_stack.remove,self.old_chat_list_block)
             except Exception as e:
                 self.notification_block.add_toast(Adw.Toast(title=str(e)))
 
@@ -3396,6 +3402,7 @@ class MainWindow(Adw.ApplicationWindow):
         editor.connect("content-saved", lambda editor, _: self.edit_copybox(id_message, id_codeblock, editor.get_text(), editor))
         self.canvas_tabs.set_selected_page(tab)
         self.show_sidebar()
+        return tab
 
     def edit_copybox(self, id_message, id_codeblock, new_content, editor=None):
         message_content = self.chat[id_message]["Message"]
