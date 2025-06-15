@@ -213,7 +213,7 @@ class MainWindow(Adw.ApplicationWindow):
         self.chat_stack.add_child(self.chat_list_block)
         self.chat_stack.set_visible_child(self.chat_list_block)
         self.chat_scroll_window.append(self.chat_stack)
-        self.history_block = Gtk.Stack(transition_type=Gtk.StackTransitionType.SLIDE_UP, transition_duration=500)
+        self.history_block = Gtk.Stack(transition_type=Gtk.StackTransitionType.SLIDE_DOWN, transition_duration=300)
         drop_target = Gtk.DropTarget.new(GObject.TYPE_STRING, Gdk.DragAction.COPY)
         drop_target.connect("drop", self.handle_file_drag)
         self.history_block.add_controller(drop_target)
@@ -1754,10 +1754,14 @@ class MainWindow(Adw.ApplicationWindow):
         if not self.status:
             self.stop_chat()
         self.stream_number_variable += 1
+        old_chat_id = self.chat_id
         self.chat_id = int(button.get_name())
         self.chat = self.chats[self.chat_id]["chat"]
         self.update_history()
+        if old_chat_id > self.chat_id:
+            self.chat_stack.set_transition_type(Gtk.StackTransitionType.SLIDE_UP)
         self.show_chat()
+        self.chat_stack.set_transition_type(Gtk.StackTransitionType.SLIDE_DOWN)
         GLib.idle_add(self.update_button_text)
 
     def scrolled_chat(self):
