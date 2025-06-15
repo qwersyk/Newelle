@@ -50,6 +50,7 @@ class WebsearchIntegration(NewelleExtension):
             cache = self.widget_cache.get(codeblock, None)
             if cache is not None:
                 search_widget = WebSearchWidget(codeblock)
+                search_widget.connect("website-clicked", lambda widget,link : self.ui_controller.new_browser_tab(link, False))
                 if "websites" in cache:
                     for title, link, favicon in cache["websites"]:
                         search_widget.add_website(title, link, favicon)
@@ -61,6 +62,7 @@ class WebsearchIntegration(NewelleExtension):
 
     def get_gtk_widget(self, codeblock: str, lang: str) -> Gtk.Widget | None:
         search_widget = WebSearchWidget(search_term=codeblock)
+        search_widget.connect("website-clicked", lambda widget,link : self.ui_controller.new_browser_tab(link, False))
         self.widgets[codeblock] = search_widget 
         self.widget_cache[codeblock] = {}
         self.widget_cache[codeblock]["websites"] = []

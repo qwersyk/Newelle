@@ -22,7 +22,7 @@ from .utility.message_chunk import get_message_chunks
 from .ui.profile import ProfileDialog
 from .ui.presentation import PresentationWindow
 from .ui.widgets import File, CopyBox, BarChartBox, MarkupTextView, DocumentReaderWidget, TipsCarousel, BrowserWidget, Terminal, CodeEditorWidget
-from .ui import apply_css_to_widget
+from .ui import apply_css_to_widget, load_image_with_callback
 from .ui.explorer import ExplorerPanel
 from .ui.widgets import MultilineEntry, ProfileRow, DisplayLatex, InlineLatex, ThinkingWidget
 from .constants import AVAILABLE_LLMS, SCHEMA_ID, SETTINGS_GROUPS
@@ -2411,6 +2411,10 @@ class MainWindow(Adw.ApplicationWindow):
                                 image = Gtk.Image(css_classes=["image"])
                                 image.set_from_pixbuf(loader.get_pixbuf())
                                 box.append(image)
+                            elif i.startswith("https://") or i.startswith("http://"):
+                                image = Gtk.Image(css_classes=["image"])
+                                load_image_with_callback(i, lambda pixbuf_loader : image.set_from_pixbuf(pixbuf_loader.get_pixbuf()))
+                                box.append(image)
                             else:
                                 image = Gtk.Image(css_classes=["image"])
                                 image.set_from_file(i)
@@ -3241,9 +3245,9 @@ class MainWindow(Adw.ApplicationWindow):
         
     def add_terminal_tab(self, action=None, param=None, command=None):
         """Add a terminal tab"""
-        if command is None:
-            command = ""
-        cmd = get_spawn_command() + ["bash", "-c", "export TERM=xterm-256color;" + command + "; exec bash"]
+        command = "" if command is None else command + ";"
+
+        cmd = get_spawn_command() + ["bash", "-c", "export TERM=xterm-256color;" + command + " exec bash"]
         terminal = Terminal(cmd)
         terminal.set_vexpand(True)
         terminal.set_hexpand(True)

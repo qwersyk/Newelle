@@ -4,6 +4,7 @@ from newspaper import Article
 import threading
 gi.require_version('WebKit', '6.0')
 from gi.repository import Gtk, WebKit, GLib, GObject, Gio, Adw, GdkPixbuf
+from ...ui import load_image_with_callback
 
 class BrowserWidget(Gtk.Box):
     """
@@ -215,25 +216,10 @@ class BrowserWidget(Gtk.Box):
             base_url = urlparse(self.article.url).scheme + "://" + urlparse(self.article.url).netloc
             favicon = urljoin(base_url, favicon)
         if self.last_favicon != favicon:
-            self.load_image(favicon)
+            load_image_with_callback(favicon, lambda pixbuf_loader : self.on_favicon_loaded(pixbuf_loader))
             self.last_favicon = favicon
 
-    def load_image(self, url):
-        print(url)
-        import requests
-        # Create a pixbuf loader that will load the image
-        pixbuf_loader = GdkPixbuf.PixbufLoader()
-        pixbuf_loader.connect("area-prepared", self.on_area_prepared)
-        try:
-            response = requests.get(url, stream=True) #stream = True prevent download the whole file into RAM
-            response.raise_for_status()
-            for chunk in response.iter_content(chunk_size=1024): #Load in chunks to avoid consuming too much memory for large files
-                pixbuf_loader.write(chunk)
-            pixbuf_loader.close()
-        except Exception as e:
-            print("Exception generating the image: " + str(e))
-
-    def on_area_prepared(self, loader: GdkPixbuf.PixbufLoader):
+    def on_favicon_loaded(self, loader: GdkPixbuf.PixbufLoader):
         # Function runs when the image loaded. Remove the spinner and open the image
         self.favicon_pixbuf = loader.get_pixbuf()
         self.emit('favicon-changed', self.favicon_pixbuf)
