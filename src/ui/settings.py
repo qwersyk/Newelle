@@ -316,6 +316,20 @@ class Settings(Adw.PreferencesWindow):
         row.add_suffix(external_browser_toggle)
         self.browser_group.add(row)
 
+        # Persist browser session toggle 
+        persist_browser_toggle = Gtk.Switch(valign=Gtk.Align.CENTER)
+        self.settings.bind("browser-session-persist", persist_browser_toggle, 'active', Gio.SettingsBindFlags.DEFAULT)
+        row = Adw.ActionRow(title=_("Persist browser session"), subtitle=_("Persist browser session between restarts. Turning this off requires restarting the program"))
+        row.add_suffix(persist_browser_toggle)
+        self.browser_group.add(row)
+
+        # Delete browser session row 
+        row = Adw.ActionRow(title=_("Delete browser data"), subtitle=_("Delete browser session and data"))
+        delete_button = Gtk.Button(label=_("Delete"), valign=Gtk.Align.CENTER)
+        delete_button.connect("clicked", self.delete_browser_session)
+        row.add_suffix(delete_button)
+        self.browser_group.add(row)
+        
         # Starting page 
         row = Adw.ActionRow(title=_("Initial browser page"), subtitle=_("The page where the browser will start"))
         entry = Gtk.Entry(valign=Gtk.Align.CENTER)
@@ -329,6 +343,11 @@ class Settings(Adw.PreferencesWindow):
         self.settings.bind("browser-search-string", entry, 'text', Gio.SettingsBindFlags.DEFAULT)
         row.add_suffix(entry)
         self.browser_group.add(row)
+
+    def delete_browser_session(self, button:Gtk.Button):
+        os.remove(self.controller.config_dir + "/bsession.json")
+        os.remove(self.controller.config_dir + "/bsession.json.cookies")
+        button.set_sensitive(False) 
 
     def build_rag_settings(self):
         def update_scale(scale, label, setting_value, type):

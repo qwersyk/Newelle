@@ -2,6 +2,8 @@ import gi
 import urllib.parse
 from newspaper import Article
 import threading
+import json
+import os
 gi.require_version('WebKit', '6.0')
 from gi.repository import Gtk, WebKit, GLib, GObject, Gio, Adw, GdkPixbuf
 from ...ui import load_image_with_callback
@@ -18,7 +20,7 @@ class BrowserWidget(Gtk.Box):
         'favicon-changed': (GObject.SignalFlags.RUN_FIRST, None, (object,))
     }
     
-    def __init__(self, starting_url="https://www.google.com", search_string="https://www.google.com/search?q=%s", **kwargs):
+    def __init__(self, starting_url="https://www.google.com", search_string="https://www.google.com/search?q=%s", session_file=None, **kwargs):
         """
         Initialize the browser widget.
         
@@ -28,18 +30,20 @@ class BrowserWidget(Gtk.Box):
             **kwargs: Additional keyword arguments passed to Gtk.Box
         """
         super().__init__(orientation=Gtk.Orientation.VERTICAL, **kwargs)
-        
+        self.session_file = session_file
         self.starting_url = starting_url
         self.search_string = search_string
         self.current_url = ""
         self.current_title = ""
         self.current_favicon = None
         
-        self.favicon_pixbuf : GdkPixbuf | None = None
+        self.favicon_pixbuf : GdkPixbuf.Pixbuf | None = None
         self._build_ui()
         self._setup_webview()
         
         # Load the starting URL
+        if self.session_file:
+            self.load_session(self.session_file)
         self.webview.load_uri(self.starting_url)
     
     def _build_ui(self):
@@ -234,7 +238,9 @@ class BrowserWidget(Gtk.Box):
     def _emit_page_changed(self):
         """Emit the page-changed signal with current page information."""
         self.emit('page-changed', self.current_url, self.current_title, self.current_favicon)
-    
+        if self.session_file:
+            self.save_session(self.session_file)
+
     def navigate_to(self, url):
         """Navigate to a specific URL."""
         self.webview.load_uri(url)
@@ -330,3 +336,81 @@ class BrowserWidget(Gtk.Box):
     def _on_attach_clicked(self, button):
         """Handle attach button click."""
         self.emit('attach-clicked')
+
+    def save_session(self, file_path):
+        """
+        Save current session information and cookies to a file.
+        
+        Args:
+            file_path (str): Path where to save the session data
+        """
+        try:
+            # Create directory if it doesn't exist
+            os.makedirs(os.path.dirname(file_path), exist_ok=True)
+            
+            # Get cookie manager
+            cookie_manager = self.webview.get_network_session().get_cookie_manager()
+            
+            # Create session data dictionary
+            session_data = {
+                'current_url': self.current_url,
+                'current_title': self.current_title,
+                'starting_url': self.starting_url,
+                'search_string': self.search_string
+            }
+            
+            # Save session data to JSON file
+            with open(file_path, 'w', encoding='utf-8') as f:
+                json.dump(session_data, f, indent=2, ensure_ascii=False)
+            
+            # Save cookies to a separate file
+            cookie_file = file_path + '.cookies'
+            cookie_manager.set_persistent_storage(
+                cookie_file,
+                WebKit.CookiePersistentStorage.SQLITE
+            )
+            
+            
+        except Exception as e:
+            print(f"Error saving session: {e}")
+
+    def load_session(self, file_path):
+        """
+        Load session information and cookies from a file.
+        
+        Args:
+            file_path (str): Path to the session data file
+        """
+        try:
+            # Check if session file exists
+            if not os.path.exists(file_path):
+                print(f"Session file not found: {file_path}")
+                return
+            
+            # Load session data from JSON file
+            with open(file_path, 'r', encoding='utf-8') as f:
+                session_data = json.load(f)
+            
+            # Restore session settings
+            if 'starting_url' in session_data:
+                self.starting_url = session_data['starting_url']
+            if 'search_string' in session_data:
+                self.search_string = session_data['search_string']
+            
+            # Load cookies from file
+            cookie_file = file_path + '.cookies'
+            if os.path.exists(cookie_file):
+                cookie_manager = self.webview.get_network_session().get_cookie_manager()
+                cookie_manager.set_persistent_storage(
+                    cookie_file,
+                    WebKit.CookiePersistentStorage.SQLITE
+                )
+            
+            # Navigate to the saved URL if available
+            if 'current_url' in session_data and session_data['current_url']:
+                self.webview.load_uri(session_data['current_url'])
+                self.url_entry.set_text(session_data['current_url'])
+            
+            
+        except Exception as e:
+            print(f"Error loading session: {e}")

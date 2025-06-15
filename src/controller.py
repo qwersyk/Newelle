@@ -382,7 +382,7 @@ class NewelleSettings:
         self.external_browser = settings.get_boolean("external-browser")
         self.initial_browser_page = settings.get_string("initial-browser-page")
         self.browser_search_string = settings.get_string("browser-search-string")
-
+        self.browser_session_persist = settings.get_boolean("browser-session-persist")
         self.editor_color_scheme = settings.get_string("editor-color-scheme")
         self.load_prompts()
         # Adjust paths

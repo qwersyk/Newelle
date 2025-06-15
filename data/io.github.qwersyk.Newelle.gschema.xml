@@ -170,6 +170,9 @@
         <key name="browser-search-string" type="s">
           <default>"https://duckduckgo.com/?q=%s"</default>
         </key>
+        <key name="browser-session-persist" type="b">
+          <default>true</default>
+        </key>
         <key name="editor-color-scheme" type="s">
           <default>"Adwaita-dark"</default>
         </key>

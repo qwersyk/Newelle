@@ -3319,7 +3319,11 @@ class MainWindow(Adw.ApplicationWindow):
         """Add a browser tab"""
         if url is None:
             url = self.controller.newelle_settings.initial_browser_page
-        browser = BrowserWidget(url,self.controller.newelle_settings.browser_search_string)
+        if self.controller.newelle_settings.browser_session_persist:
+            session = self.controller.config_dir + "/bsession.json"
+        else:
+            session = None
+        browser = BrowserWidget(url,self.controller.newelle_settings.browser_search_string, session)
         
         # Add the tab
         tab = self.canvas_tabs.append(browser)
