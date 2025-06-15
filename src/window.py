@@ -471,7 +471,7 @@ class MainWindow(Adw.ApplicationWindow):
         self.add_explorer_tab(None, self.main_path)
         self.set_content(self.main_program_block)
         bin = Adw.BreakpointBin(child=self.main, width_request=300, height_request=300)
-        breakpoint = Adw.Breakpoint(condition=Adw.BreakpointCondition.new_length(Adw.BreakpointConditionLengthType.MAX_WIDTH, 860, Adw.LengthUnit.PX))
+        breakpoint = Adw.Breakpoint(condition=Adw.BreakpointCondition.new_length(Adw.BreakpointConditionLengthType.MAX_WIDTH, 900, Adw.LengthUnit.PX))
         breakpoint.add_setter(self.main, "collapsed", True)
         bin.add_breakpoint(breakpoint)
 
@@ -1740,7 +1740,7 @@ class MainWindow(Adw.ApplicationWindow):
 
     def chose_chat(self, button, *a):
         """Switch to another chat"""
-        self.main.set_show_sidebar(False)
+        self.return_to_chat_panel(None)
         if not self.status:
             self.stop_chat()
         self.stream_number_variable += 1
