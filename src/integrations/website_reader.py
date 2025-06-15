@@ -64,7 +64,7 @@ class WebsiteReader(NewelleExtension):
         return button
 
     def open_website(self, button: WebsiteButton):
-        self.ui_controller.new_browser_tab(button.url, False)
+        self.ui_controller.open_link(button.url, False, not self.settings.get_boolean("external-browser"))
 
     def restore_gtk_widget(self, codeblock: str, lang: str) -> Gtk.Widget | None:
         return super().restore_gtk_widget(codeblock, lang)

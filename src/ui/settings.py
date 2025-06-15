@@ -214,6 +214,9 @@ class Settings(Adw.PreferencesWindow):
         row.add_suffix(entry)
         self.settings.bind("offers", int_spin, 'value', Gio.SettingsBindFlags.DEFAULT)
         self.interface.add(row)
+        # Browser
+        self.build_browser_settings()
+        self.general_page.add(self.browser_group)
         # Neural Network Control
         self.neural_network = Adw.PreferencesGroup(title=_('Neural Network Control'))
         self.general_page.add(self.neural_network) 
@@ -291,6 +294,31 @@ class Settings(Adw.PreferencesWindow):
             row.add_suffix(switch)
             self.prompt.add(row)
             self.prompts_rows.append(row)
+
+    def build_browser_settings(self):
+        # Browser settings
+        self.browser_group = Adw.PreferencesGroup(title=_('Browser'), description=_(_("Settings for the browser")))
+        
+        # External Browser toggle 
+        external_browser_toggle = Gtk.Switch(valign=Gtk.Align.CENTER)
+        self.settings.bind("external-browser", external_browser_toggle, 'active', Gio.SettingsBindFlags.DEFAULT)
+        row = Adw.ActionRow(title=_("Use external browser"), subtitle=_("Use an external browser to open links instead of integrated one"))
+        row.add_suffix(external_browser_toggle)
+        self.browser_group.add(row)
+
+        # Starting page 
+        row = Adw.ActionRow(title=_("Initial browser page"), subtitle=_("The page where the browser will start"))
+        entry = Gtk.Entry(valign=Gtk.Align.CENTER)
+        self.settings.bind("initial-browser-page", entry, 'text', Gio.SettingsBindFlags.DEFAULT)
+        row.add_suffix(entry)
+        self.browser_group.add(row)
+        
+        # Search string 
+        row = Adw.ActionRow(title=_("Search string"), subtitle=_("The search string used in the browser, %s is replaced with the query"))
+        entry = Gtk.Entry(valign=Gtk.Align.CENTER)
+        self.settings.bind("browser-search-string", entry, 'text', Gio.SettingsBindFlags.DEFAULT)
+        row.add_suffix(entry)
+        self.browser_group.add(row)
 
     def build_rag_settings(self):
         def update_scale(scale, label, setting_value, type):

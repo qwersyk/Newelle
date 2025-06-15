@@ -3312,8 +3312,8 @@ class MainWindow(Adw.ApplicationWindow):
     def add_browser_tab(self, action=None, param=None, url=None):
         """Add a browser tab"""
         if url is None:
-            url = "https://duckduckgo.com"
-        browser = BrowserWidget(url)
+            url = self.controller.newelle_settings.initial_browser_page
+        browser = BrowserWidget(url,self.controller.newelle_settings.browser_search_string)
         
         # Add the tab
         tab = self.canvas_tabs.append(browser)

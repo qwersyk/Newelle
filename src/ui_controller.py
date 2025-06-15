@@ -1,5 +1,7 @@
 from gi.repository import Adw, Gtk
 
+from .utility.system import open_website
+
 class UIController:
     """Interface exposed to Extensions in order to modify the UI"""
     def __init__(self, window): 
@@ -26,7 +28,20 @@ class UIController:
                 browser.navigate_to(url)
                 return
         self.window.add_browser_tab(url=url)
-    
+
+    def open_link(self, url:str|None, new:bool=False, use_integrated_browser : bool = True):
+        """Open a link
+
+        Args:
+            url (): url to open
+            new (bool): if false an browser tab is focused, open in that tab, otherwise create a new one
+            use_integrated_browser (bool): if true, use the integrated browser, otherwise open the link in the default browser
+        """
+        if use_integrated_browser:
+            self.new_browser_tab(url=url, new=new)
+        else:
+            open_website(url)
+
     def new_explorer_tab(self, path:str, new:bool=True):
         """Add a new explorer tab
 
