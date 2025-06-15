@@ -150,6 +150,7 @@ class MainWindow(Adw.ApplicationWindow):
             collapsed=False,
             min_sidebar_width=300
         )
+        # Connect toggle button
         self.chats_main_box = Gtk.Box(hexpand_set=True)
         self.chats_main_box.set_size_request(300, -1)
         self.chats_secondary_box = Gtk.Box(
@@ -188,6 +189,7 @@ class MainWindow(Adw.ApplicationWindow):
         self.main.set_sidebar(Adw.NavigationPage(child=self.chats_main_box))
         self.main.set_content(Adw.NavigationPage(child=self.chat_panel))
         self.main.set_show_sidebar(True)
+        self.main.connect("notify::show-sidebar", lambda x, _ : self.left_panel_toggle_button.set_active(self.main.get_show_sidebar()))
         # Canvas panel
         self.build_canvas()
         # Secondary message block
@@ -469,13 +471,10 @@ class MainWindow(Adw.ApplicationWindow):
         self.add_explorer_tab(None, self.main_path)
         self.set_content(self.main_program_block)
         bin = Adw.BreakpointBin(child=self.main, width_request=300, height_request=300)
-        breakpoint = Adw.Breakpoint(condition=Adw.BreakpointCondition.new_length(Adw.BreakpointConditionLengthType.MAX_WIDTH, 820, Adw.LengthUnit.PX))
-        def breakpoint_change(apply:bool):
-            self.main.set_show_sidebar(not apply)
-            GLib.timeout_add(100, self.main.set_collapsed, apply)
-        breakpoint.connect("apply", lambda breakpoint: GLib.timeout_add(20, breakpoint_change, True))
-        breakpoint.connect("unapply", lambda breakpoint: GLib.timeout_add(20,breakpoint_change, False))
+        breakpoint = Adw.Breakpoint(condition=Adw.BreakpointCondition.new_length(Adw.BreakpointConditionLengthType.MAX_WIDTH, 860, Adw.LengthUnit.PX))
+        breakpoint.add_setter(self.main, "collapsed", True)
         bin.add_breakpoint(breakpoint)
+
         self.main_program_block.set_content(bin)
         self.main_program_block.set_sidebar(self.canvas_box)
         self.main_program_block.set_name("hide")
@@ -1358,9 +1357,9 @@ class MainWindow(Adw.ApplicationWindow):
     # Flap management
     def on_chat_panel_toggled(self, button: Gtk.ToggleButton):
         if button.get_active():
-            self.main.set_show_sidebar(False)
-        else:
             self.main.set_show_sidebar(True)
+        else:
+            self.main.set_show_sidebar(False)
    
     def return_to_chat_panel(self, button):
         if self.main.get_collapsed():
