@@ -504,7 +504,7 @@ class MainWindow(Adw.ApplicationWindow):
                 content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
                 content.append(headerbar)
                 content.append(otherview)
-                window = Gtk.Window(child=content)
+                window = Gtk.Window(child=content, decorated=False)
                 tab.connect("notify::title", lambda x, title: title_label.set_label(x.get_title()))
                 window.show()
                 window.connect("close-request", self.reattach_tab, tab, otherview)
