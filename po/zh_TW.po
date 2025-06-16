@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Newelle 0.3.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-08 23:05+0800\n"
+"POT-Creation-Date: 2025-06-16 12:38+0800\n"
 "PO-Revision-Date: 2025-03-26 19:30\n"
 "Last-Translator: Oliver Tzeng（曾嘉禾）<olivertzeng@proton.me>\n"
 "Language-Team: l10n-tw\n"
@@ -740,7 +740,7 @@ msgstr "排除網域"
 msgid "A list of domains to specifically exclude from the search results."
 msgstr "在搜尋結果內排除這些網域"
 
-#: src/ui/profile.py:33 src/window.py:101
+#: src/ui/profile.py:33 src/window.py:112
 msgid "Settings"
 msgstr "設定"
 
@@ -816,51 +816,7 @@ msgstr "導入"
 msgid "Set profile picture"
 msgstr "設定頭像"
 
-#: src/ui/shortcuts.py:6
-msgid "Help"
-msgstr "幫助"
-
-#: src/ui/shortcuts.py:12
-msgid "Shortcuts"
-msgstr "捷徑"
-
-#: src/ui/shortcuts.py:13
-msgid "Reload chat"
-msgstr "重新整理聊天室"
-
-#: src/ui/shortcuts.py:14
-msgid "Reload folder"
-msgstr "重新整理資料夾"
-
-#: src/ui/shortcuts.py:15
-msgid "New tab"
-msgstr "新分頁"
-
-#: src/ui/shortcuts.py:16
-msgid "Paste Image"
-msgstr "貼上圖片"
-
-#: src/ui/shortcuts.py:17
-msgid "Focus message box"
-msgstr "將焦點移動到訊息輸入框上"
-
-#: src/ui/shortcuts.py:18
-msgid "Start recording"
-msgstr "開始錄影"
-
-#: src/ui/shortcuts.py:19
-msgid "Stop TTS"
-msgstr "停止文本轉語音"
-
-#: src/ui/shortcuts.py:20
-msgid "Zoom in"
-msgstr "放大"
-
-#: src/ui/shortcuts.py:21
-msgid "Zoom out"
-msgstr "縮小"
-
-#: src/ui/thread_editing.py:6 src/window.py:99
+#: src/ui/thread_editing.py:6 src/window.py:110
 msgid "Thread editing"
 msgstr "執行緒編輯"
 
@@ -905,7 +861,7 @@ msgid "Newelle Tips"
 msgstr "Newelle 小秘訣"
 
 #: src/ui/extension.py:17 src/ui/presentation.py:131 src/constants.py:489
-#: src/window.py:100
+#: src/window.py:111
 msgid "Extensions"
 msgstr "擴充功能"
 
@@ -973,7 +929,7 @@ msgid ""
 "to the LLM."
 msgstr "Newelle 能擷取檔案的相關資訊並且傳送給模型以給予更精確的回覆！"
 
-#: src/ui/presentation.py:124 src/ui/settings.py:221 src/window.py:544
+#: src/ui/presentation.py:124 src/ui/settings.py:234 src/window.py:604
 msgid "Command virtualization"
 msgstr "指令虛擬化"
 
@@ -1067,7 +1023,7 @@ msgstr ""
 "專門將文字轉成向量以提供給 RAG 與長期記憶所使用的模型。改變此設定後請重整索引"
 "與清除記憶。"
 
-#: src/ui/settings.py:102 src/window.py:542
+#: src/ui/settings.py:102 src/window.py:602
 msgid "Long Term Memory"
 msgstr "長期記憶"
 
@@ -1123,19 +1079,27 @@ msgstr "界面大小"
 msgid "Adjust the size of the interface"
 msgstr "調整界面的大小"
 
-#: src/ui/settings.py:168
+#: src/ui/settings.py:171
+msgid "Editor color scheme"
+msgstr "編輯器顏色主題"
+
+#: src/ui/settings.py:171
+msgid "Change the color scheme of the editor and codeblocks"
+msgstr "更改編輯器顏色主題"
+
+#: src/ui/settings.py:178
 msgid "Hidden files"
 msgstr "隱藏檔"
 
-#: src/ui/settings.py:168
+#: src/ui/settings.py:178
 msgid "Show hidden files"
 msgstr "顯示隱藏檔"
 
-#: src/ui/settings.py:174
+#: src/ui/settings.py:184
 msgid "Send with ENTER"
 msgstr "使用 Enter 輸入"
 
-#: src/ui/settings.py:174
+#: src/ui/settings.py:184
 msgid ""
 "If enabled, messages will be sent with ENTER, to go to a new line use "
 "CTRL+ENTER. If disabled, messages will be sent with SHIFT+ENTER, and newline "
@@ -1144,53 +1108,53 @@ msgstr ""
 "若啟用此功能將會讓 Enter 鍵傳送訊息，否則將文字換行，並使用 Shift＋Enter 傳送"
 "訊息。"
 
-#: src/ui/settings.py:180
+#: src/ui/settings.py:190
 msgid "Remove thinking from history"
 msgstr "將思考過程從歷史移除"
 
-#: src/ui/settings.py:180
+#: src/ui/settings.py:190
 msgid ""
 "Do not send old thinking blocks for reasoning models in order to reduce "
 "token usage"
 msgstr "將推論模型的思考內容從歷史中移除以節省 Token 消耗"
 
-#: src/ui/settings.py:186
+#: src/ui/settings.py:196
 msgid "Display LaTeX"
 msgstr "顯示 LaTeX"
 
-#: src/ui/settings.py:186
+#: src/ui/settings.py:196
 msgid "Display LaTeX formulas in chat"
 msgstr "在聊天室顯示 LaTeX 數學式"
 
-#: src/ui/settings.py:192
+#: src/ui/settings.py:202
 msgid "Reverse Chat Order"
 msgstr "反向聊天室"
 
-#: src/ui/settings.py:192
+#: src/ui/settings.py:202
 msgid "Show most recent chats on top in chat list (change chat to apply)"
 msgstr "將最新的訊息至頂"
 
-#: src/ui/settings.py:198
+#: src/ui/settings.py:208
 msgid "Automatically Generate Chat Names"
 msgstr "自動生成聊天室名稱"
 
-#: src/ui/settings.py:198
+#: src/ui/settings.py:208
 msgid "Generate chat names automatically after the first two messages"
 msgstr "生成第一則訊息後自動生成聊天室名稱"
 
-#: src/ui/settings.py:204
+#: src/ui/settings.py:214
 msgid "Number of offers"
 msgstr "建議訊息數量"
 
-#: src/ui/settings.py:204
+#: src/ui/settings.py:214
 msgid "Number of message suggestions to send to chat "
 msgstr "建議訊息的顯示數量"
 
-#: src/ui/settings.py:211
+#: src/ui/settings.py:221
 msgid "Username"
 msgstr "使用者名稱"
 
-#: src/ui/settings.py:211
+#: src/ui/settings.py:221
 #, python-brace-format
 msgid ""
 "Change the label that appears before your message\n"
@@ -1198,82 +1162,137 @@ msgid ""
 "You can add it to a prompt using the {USER} variable"
 msgstr "更改聊天室內的使用者名稱，預設將不會將此資訊傳送給模型"
 
-#: src/ui/settings.py:218
+#: src/ui/settings.py:231
 msgid "Neural Network Control"
 msgstr "類神經網路控制"
 
-#: src/ui/settings.py:221
+#: src/ui/settings.py:234
 msgid "Run commands in a virtual machine"
 msgstr "在模擬器中執行指令"
 
-#: src/ui/settings.py:234
+#: src/ui/settings.py:247
 msgid "External Terminal"
 msgstr "外部終端機"
 
-#: src/ui/settings.py:234
+#: src/ui/settings.py:247
 msgid "Choose the external terminal where to run the console commands"
 msgstr "選擇執行指令的外部終端機"
 
-#: src/ui/settings.py:243
+#: src/ui/settings.py:256
 msgid "Program memory"
 msgstr "模型記憶"
 
-#: src/ui/settings.py:243
+#: src/ui/settings.py:256
 msgid "How long the program remembers the chat "
 msgstr "模型將會記得多久的聊天紀錄"
 
-#: src/ui/settings.py:263
+#: src/ui/settings.py:276
 msgid "Auto-run commands"
 msgstr "自訂自動執行指令"
 
-#: src/ui/settings.py:263
+#: src/ui/settings.py:276
 msgid "Commands that the bot will write will automatically run"
 msgstr "將會在終端機內自動執行指令"
 
-#: src/ui/settings.py:266
+#: src/ui/settings.py:279
 msgid "Max number of commands"
 msgstr "最多指令數量"
 
-#: src/ui/settings.py:266
+#: src/ui/settings.py:279
 msgid ""
 "Maximum number of commands that the bot will write after a single user "
 "request"
 msgstr "一次訊息的最多指令數量"
 
-#: src/ui/settings.py:305
+#: src/ui/settings.py:310
+msgid "Browser"
+msgstr "瀏覽器"
+
+#: src/ui/settings.py:310
+msgid "Settings for the browser"
+msgstr "瀏覽器設定"
+
+#: src/ui/settings.py:315
+msgid "Use external browser"
+msgstr "使用外部瀏覽器"
+
+#: src/ui/settings.py:315
+msgid "Use an external browser to open links instead of integrated one"
+msgstr "使用外部瀏覽棄取代內部瀏覽器開啟連結"
+
+#: src/ui/settings.py:322
+msgid "Persist browser session"
+msgstr "保留當前瀏覽器分頁"
+
+#: src/ui/settings.py:322
+msgid ""
+"Persist browser session between restarts. Turning this off requires "
+"restarting the program"
+msgstr "在重新啟動時開啟關閉前的分頁狀態。請重新啟動應用程式以套用此變更"
+
+#: src/ui/settings.py:327
+msgid "Delete browser data"
+msgstr "刪除瀏覽器資料"
+
+#: src/ui/settings.py:327
+msgid "Delete browser session and data"
+msgstr "刪除瀏覽器的所有資料"
+
+#: src/ui/settings.py:328 src/ui/explorer.py:355 src/ui/explorer.py:491
+msgid "Delete"
+msgstr "刪除"
+
+#: src/ui/settings.py:334
+msgid "Initial browser page"
+msgstr "初始瀏覽頁面"
+
+#: src/ui/settings.py:334
+msgid "The page where the browser will start"
+msgstr "瀏覽器開啟後將開啟的頁面"
+
+#: src/ui/settings.py:341
+msgid "Search string"
+msgstr "搜尋字串"
+
+#: src/ui/settings.py:341
+#, python-format
+msgid "The search string used in the browser, %s is replaced with the query"
+msgstr "將在瀏覽器搜尋的字串，%s 將以搜尋序列取代"
+
+#: src/ui/settings.py:362
 msgid "Document Sources (RAG)"
 msgstr "檔案來源（RAG）"
 
-#: src/ui/settings.py:305
+#: src/ui/settings.py:362
 msgid "Include content from your documents in the responses"
 msgstr "在回應中包含檔案內容"
 
-#: src/ui/settings.py:306
+#: src/ui/settings.py:363
 msgid "Document Analyzer"
 msgstr "檔案分析器"
 
-#: src/ui/settings.py:306
+#: src/ui/settings.py:363
 msgid ""
 "The document analyzer uses multiple techniques to extract relevant "
 "information about your documents"
 msgstr "使用不同技術提取各個檔案的相關內容"
 
-#: src/ui/settings.py:317
+#: src/ui/settings.py:374
 msgid "Read documents if unsupported"
 msgstr "不支援時閱讀檔案"
 
-#: src/ui/settings.py:317
+#: src/ui/settings.py:374
 msgid ""
 "If the LLM does not support reading documents, relevant information about "
 "documents sent in the chat will be given to the LLM using your Document "
 "Analyzer."
 msgstr "如果模型不支援閱讀文件將會利用檔案分析器傳送檔案相關資訊給模型"
 
-#: src/ui/settings.py:321
+#: src/ui/settings.py:378
 msgid "Maximum tokens for RAG"
 msgstr "RAG 使用 Tokens 的最大值"
 
-#: src/ui/settings.py:321
+#: src/ui/settings.py:378
 msgid ""
 "The maximum amount of tokens to be used for RAG. If the documents do not "
 "exceed this token count,\n"
@@ -1282,133 +1301,169 @@ msgstr ""
 "此將限制每次呼叫 RAG 時使用的 Tokens 的數量。如果需要使用的 Tokens 多過於此數"
 "值，將僅傳送檔案的大致內容"
 
-#: src/ui/settings.py:338
+#: src/ui/settings.py:395
 msgid "Document Folder"
 msgstr "文件資料夾"
 
-#: src/ui/settings.py:338
+#: src/ui/settings.py:395
 msgid ""
 "Put the documents you want to query in your document folder. The document "
 "analyzer will find relevant information in them if this option is enabled"
 msgstr "檔案分析器將從資料夾內提取資訊"
 
-#: src/ui/settings.py:341
+#: src/ui/settings.py:398
 msgid "Put all the documents you want to index in this folder"
 msgstr "將欲索引的檔案放置此資料夾內。"
 
-#: src/ui/settings.py:377
+#: src/ui/settings.py:434
 msgid "Silence threshold"
 msgstr "靜音門檻"
 
-#: src/ui/settings.py:377
+#: src/ui/settings.py:434
 msgid ""
 "Silence threshold in seconds, percentage of the volume to be considered "
 "silence"
 msgstr "靜音門檻以秒為單位，當音量為 0 時也視為靜音"
 
-#: src/ui/settings.py:390
+#: src/ui/settings.py:447
 msgid "Silence time"
 msgstr "靜音時間"
 
-#: src/ui/settings.py:390
+#: src/ui/settings.py:447
 msgid "Silence time in seconds before recording stops automatically"
 msgstr "靜音時間以秒為單位，當靜音時間達到此秒數將自動停止錄音"
 
-#: src/ui/settings.py:960
+#: src/ui/settings.py:1017
 msgid "Not enough permissions"
 msgstr "權限不足"
 
-#: src/ui/settings.py:964
+#: src/ui/settings.py:1021
 msgid ""
 "Newelle does not have enough permissions to run commands on your system, "
 "please run the following command"
 msgstr "Newelle 沒有足夠權限在系統內執行指令，請執行以下指令"
 
-#: src/ui/settings.py:965
+#: src/ui/settings.py:1022
 msgid "Understood"
 msgstr "確認"
 
-#: src/ui/explorer.py:186
+#: src/ui/shortcuts.py:6
+msgid "Help"
+msgstr "幫助"
+
+#: src/ui/shortcuts.py:12
+msgid "Shortcuts"
+msgstr "捷徑"
+
+#: src/ui/shortcuts.py:13
+msgid "Reload chat"
+msgstr "重新整理聊天室"
+
+#: src/ui/shortcuts.py:14
+msgid "Reload folder"
+msgstr "重新整理資料夾"
+
+#: src/ui/shortcuts.py:15
+msgid "New tab"
+msgstr "新分頁"
+
+#: src/ui/shortcuts.py:16
+msgid "Paste Image"
+msgstr "貼上圖片"
+
+#: src/ui/shortcuts.py:17
+msgid "Focus message box"
+msgstr "將焦點移動到訊息輸入框上"
+
+#: src/ui/shortcuts.py:18
+msgid "Start/stop recording"
+msgstr "開始/停止錄影"
+
+#: src/ui/shortcuts.py:19
+msgid "Save"
+msgstr "儲存"
+
+#: src/ui/shortcuts.py:20
+msgid "Stop TTS"
+msgstr "停止文本轉語音"
+
+#: src/ui/shortcuts.py:21
+msgid "Zoom in"
+msgstr "放大"
+
+#: src/ui/shortcuts.py:22
+msgid "Zoom out"
+msgstr "縮小"
+
+#: src/ui/explorer.py:191
 msgid "Folder is Empty"
 msgstr "資料夾為空"
 
-#: src/ui/explorer.py:324 src/window.py:1437
+#: src/ui/explorer.py:329 src/window.py:1510
 msgid "File not found"
 msgstr "找不到檔案"
 
-#: src/ui/explorer.py:339
+#: src/ui/explorer.py:344
 msgid "Open in new tab"
 msgstr "於新分頁開啟"
 
-#: src/ui/explorer.py:341
+#: src/ui/explorer.py:346
 msgid "Open in integrated editor"
 msgstr "於編輯器開啟"
 
-#: src/ui/explorer.py:344
+#: src/ui/explorer.py:349
 msgid "Open in file manager"
 msgstr "於檔案管理員開啟"
 
-#: src/ui/explorer.py:347 src/ui/explorer.py:435
+#: src/ui/explorer.py:352 src/ui/explorer.py:440
 msgid "Rename"
 msgstr "重新命名"
 
-#: src/ui/explorer.py:350
-msgid "Delete"
-msgstr "刪除"
-
-#: src/ui/explorer.py:353
+#: src/ui/explorer.py:358
 msgid "Copy full path"
 msgstr "複製絕對路徑"
 
-#: src/ui/explorer.py:404
+#: src/ui/explorer.py:409
 msgid "Failed to open file manager"
 msgstr "無法開啟檔案管理員"
 
-#: src/ui/explorer.py:420
+#: src/ui/explorer.py:425
 msgid "New name:"
 msgstr "新名稱："
 
-#: src/ui/explorer.py:432 src/main.py:204
+#: src/ui/explorer.py:437 src/ui/explorer.py:490 src/main.py:204
 msgid "Cancel"
 msgstr "取消"
 
-#: src/ui/explorer.py:455
+#: src/ui/explorer.py:460
 msgid "Renamed successfully"
 msgstr "重新命名成功"
 
-#: src/ui/explorer.py:460
+#: src/ui/explorer.py:465
 msgid "Failed to rename: {}"
 msgstr "重新命名 {} 失敗"
 
-#: src/ui/explorer.py:481
+#: src/ui/explorer.py:486
 msgid "Delete File?"
 msgstr "是否刪除檔案？"
 
-#: src/ui/explorer.py:483
+#: src/ui/explorer.py:488
 msgid "Are you sure you want to delete \"{}\"?"
 msgstr "是否刪除「{}」？"
 
-#: src/ui/explorer.py:485
-msgid "_Cancel"
-msgstr "取消"
-
-#: src/ui/explorer.py:486
-msgid "_Delete"
-msgstr "刪除"
-
-#: src/ui/explorer.py:504
+#: src/ui/explorer.py:509
 msgid "Deleted successfully"
 msgstr "刪除成功"
 
-#: src/ui/explorer.py:509
+#: src/ui/explorer.py:514
 msgid "Failed to delete: {}"
 msgstr "無法刪除 {}"
 
-#: src/ui/explorer.py:522
+#: src/ui/explorer.py:527
 msgid "Path copied to clipboard"
 msgstr "已複製路徑"
 
-#: src/ui/explorer.py:526
+#: src/ui/explorer.py:531
 msgid "Failed to copy path"
 msgstr "複製路徑失敗"
 
@@ -1761,7 +1816,7 @@ msgstr "在此新增自訂的提示語"
 msgid "LLM and Secondary LLM settings"
 msgstr "大型語言模型與輔助模型設定"
 
-#: src/constants.py:459 src/window.py:543
+#: src/constants.py:459 src/window.py:603
 msgid "TTS"
 msgstr "文本轉語音"
 
@@ -1831,6 +1886,10 @@ msgstr "一般設定、指令虛擬化、記憶長度、自動生成聊天室名
 msgid "Prompts settings, custom extra prompt, custom prompts..."
 msgstr "提示語設定、自訂提示語等..."
 
+#: src/controller.py:134 src/window.py:1731
+msgid "Chat "
+msgstr "聊天室 "
+
 #: src/main.py:200
 msgid "Terminal threads are still running in the background"
 msgstr "終端機執行緒正在背景中執行"
@@ -1855,239 +1914,239 @@ msgstr "重新整理資料夾完成"
 msgid "Chat is created"
 msgstr "已建立新的聊天室"
 
-#: src/controller.py:129 src/window.py:1660
-msgid "Chat "
-msgstr "聊天室 "
-
-#: src/window.py:102
+#: src/window.py:113
 msgid "Keyboard shorcuts"
 msgstr "快捷鍵"
 
-#: src/window.py:103
+#: src/window.py:114
 msgid "About"
 msgstr "關於"
 
-#: src/window.py:110
+#: src/window.py:121 src/window.py:190
 msgid "Chat"
 msgstr "聊天"
 
-#: src/window.py:157
+#: src/window.py:163
 msgid "History"
 msgstr "最近的聊天紀錄"
 
-#: src/window.py:178
+#: src/window.py:184
 msgid "Create a chat"
 msgstr "新增聊天室"
 
-#: src/window.py:249
+#: src/window.py:189
+msgid "Chats"
+msgstr "聊天室"
+
+#: src/window.py:260
 msgid " Stop"
 msgstr " 停止"
 
-#: src/window.py:264
+#: src/window.py:275
 msgid " Clear"
 msgstr " 清除"
 
-#: src/window.py:279
+#: src/window.py:290
 msgid " Continue"
 msgstr " 繼續"
 
-#: src/window.py:292
+#: src/window.py:303
 msgid " Regenerate"
 msgstr " 重新生成"
 
-#: src/window.py:358
+#: src/window.py:369
 msgid "Send a message..."
 msgstr "傳送訊息......"
 
-#: src/window.py:435
+#: src/window.py:449
 msgid "Explorer Tab"
 msgstr "探索分頁"
 
-#: src/window.py:436
+#: src/window.py:450
 msgid "Terminal Tab"
 msgstr "終端機監分頁"
 
-#: src/window.py:437
+#: src/window.py:451
 msgid "Browser Tab"
 msgstr "瀏覽器分頁"
 
-#: src/window.py:485
+#: src/window.py:545
 msgid "Ask about a website"
 msgstr "詢問有關一個網站的資訊"
 
-#: src/window.py:485
+#: src/window.py:545
 msgid "Write #https://website.com in chat to ask information about a website"
 msgstr "在聊天室內以 #https://網站.名稱 的格式以詢問一個網站的資訊"
 
-#: src/window.py:486
+#: src/window.py:546
 msgid "Check out our Extensions!"
 msgstr "看看我們的擴充功能"
 
-#: src/window.py:486
+#: src/window.py:546
 msgid "We have a lot of extensions for different things. Check it out!"
 msgstr "我們有五花八門的擴充功能可供使用！"
 
-#: src/window.py:487
+#: src/window.py:547
 msgid "Chat with documents!"
 msgstr "與檔案互動！"
 
-#: src/window.py:487
+#: src/window.py:547
 msgid ""
 "Add your documents to your documents folder and chat using the information "
 "contained in them!"
 msgstr "在「文件」資料夾內放置檔案以讓人工智慧讀取，提供更精確的回覆"
 
-#: src/window.py:488
+#: src/window.py:548
 msgid "Surf the web!"
 msgstr "支援網路搜尋！"
 
-#: src/window.py:488
+#: src/window.py:548
 msgid ""
 "Enable web search to allow the LLM to surf the web and provide up to date "
 "answers"
 msgstr "提供網路搜尋的功能以提供更新的資訊"
 
-#: src/window.py:489
+#: src/window.py:549
 msgid "Mini Window"
 msgstr "迷你視窗"
 
-#: src/window.py:489
+#: src/window.py:549
 msgid "Ask questions on the fly using the mini window mode"
 msgstr "啟用迷你視窗模式以更方便地問問題"
 
-#: src/window.py:490
+#: src/window.py:550
 msgid "Text to Speech"
 msgstr "文本轉語音"
 
-#: src/window.py:490
+#: src/window.py:550
 msgid "Newelle supports text-to-speech! Enable it in the settings"
 msgstr "Newelle 提供文本轉語音功能"
 
-#: src/window.py:491
+#: src/window.py:551
 msgid "Keyboard Shortcuts"
 msgstr "快捷鍵"
 
-#: src/window.py:491
+#: src/window.py:551
 msgid "Control Newelle using Keyboard Shortcuts"
 msgstr "使用快捷鍵以更便捷地使用 Newelle"
 
-#: src/window.py:492
+#: src/window.py:552
 msgid "Prompt Control"
 msgstr "提示語控制"
 
-#: src/window.py:492
+#: src/window.py:552
 msgid "Newelle gives you 100% prompt control. Tune your prompts for your use."
 msgstr "Newelle 讓您能夠完全控制提示語。"
 
-#: src/window.py:493
+#: src/window.py:553
 msgid "Thread Editing"
 msgstr "執行緒編輯"
 
-#: src/window.py:493
+#: src/window.py:553
 msgid "Check the programs and processes you run from Newelle"
 msgstr "檢視從 Newelle 執行的各種行程"
 
-#: src/window.py:500
+#: src/window.py:560
 msgid "New Chat"
 msgstr "新聊天室"
 
-#: src/window.py:518
+#: src/window.py:578
 msgid "Provider Errror"
 msgstr "供給者錯誤"
 
-#: src/window.py:541
+#: src/window.py:601
 msgid "Local Documents"
 msgstr "本地檔案"
 
-#: src/window.py:545
+#: src/window.py:605
 msgid "Web search"
 msgstr "網路搜尋"
 
-#: src/window.py:766
+#: src/window.py:826
 msgid "This provider does not have a model list"
 msgstr "此供給者沒有模型清單"
 
-#: src/window.py:771
+#: src/window.py:831
 msgid " Models"
 msgstr " 個模型"
 
-#: src/window.py:774
+#: src/window.py:834
 msgid "Search Models..."
 msgstr "搜尋模型......"
 
-#: src/window.py:996
+#: src/window.py:1062
 msgid "Create new profile"
 msgstr "建立新設定檔"
 
-#: src/window.py:1129
+#: src/window.py:1196
 msgid "Could not recognize your voice"
 msgstr "無法辨識聲音"
 
-#: src/window.py:1166
+#: src/window.py:1233
 msgid "Images"
 msgstr "圖片"
 
-#: src/window.py:1170
+#: src/window.py:1237
 msgid "LLM Supported Files"
 msgstr "大型語言模型支援的檔案"
 
-#: src/window.py:1178
+#: src/window.py:1245
 msgid "RAG Supported files"
 msgstr "RAG 支援的檔案"
 
-#: src/window.py:1196
+#: src/window.py:1263
 msgid "Supported Files"
 msgstr "支援的檔案"
 
-#: src/window.py:1200
+#: src/window.py:1267
 msgid "All Files"
 msgstr "所有檔案"
 
-#: src/window.py:1206
+#: src/window.py:1273
 msgid "Attach file"
 msgstr "嵌入檔案"
 
-#: src/window.py:1455
+#: src/window.py:1528
 msgid "The file cannot be sent until the program is finished"
 msgstr "在執行完成前無法上傳檔案"
 
-#: src/window.py:1477
+#: src/window.py:1550
 msgid "The file is not recognized"
 msgstr "檔案無法辨識"
 
-#: src/window.py:1498
+#: src/window.py:1569
 msgid "You can no longer continue the message."
 msgstr "您無法繼續此訊息。"
 
-#: src/window.py:1523
+#: src/window.py:1594
 msgid "You can no longer regenerate the message."
 msgstr "您無法重新生成此訊息。"
 
-#: src/window.py:1631
+#: src/window.py:1702
 msgid "Chat is empty"
 msgstr "聊天室為空"
 
-#: src/window.py:1700
+#: src/window.py:1775
 msgid "Chat is cleared"
 msgstr "已清除聊天紀錄"
 
-#: src/window.py:1725
+#: src/window.py:1800
 msgid "The message was canceled and deleted from history"
 msgstr "此訊息已從聊天紀錄中取消並且刪除"
 
-#: src/window.py:1769
+#: src/window.py:1844
 msgid "The message cannot be sent until the program is finished"
 msgstr "在執行完成前無法傳送訊息"
 
-#: src/window.py:2688
+#: src/window.py:2767
 msgid "You can't edit a message while the program is running."
 msgstr "在執行完成前無法編輯訊息"
 
-#: src/window.py:2813
+#: src/window.py:2892
 msgid "Prompt content"
 msgstr "提示內容"
 
-#: src/window.py:3069
+#: src/window.py:3148
 msgid ""
 "The neural network has access to your computer and any data in this chat and "
 "can run commands, be careful, we are not responsible for the neural network. "
@@ -2097,7 +2156,7 @@ msgstr ""
 "我們對這些模型不承擔任何責任\n"
 "請勿分享機密資訊"
 
-#: src/window.py:3098
+#: src/window.py:3177
 msgid ""
 "The neural network has access to any data in this chat, be careful, we are "
 "not responsible for the neural network. Do not share any sensitive "
@@ -2107,15 +2166,15 @@ msgstr ""
 "我們對這些模型不承擔任何責任\n"
 "請勿分享機密資訊"
 
-#: src/window.py:3147
+#: src/window.py:3226
 msgid "Wrong folder path"
 msgstr "錯誤資料夾路徑"
 
-#: src/window.py:3180
+#: src/window.py:3259
 msgid "Thread has not been completed, thread number: "
 msgstr "執行緒尚未完成，執行緒序號："
 
-#: src/window.py:3192
+#: src/window.py:3271
 msgid "Failed to open the folder"
 msgstr "無法開啟資料夾"
 
@@ -2276,6 +2335,12 @@ msgstr "Newelle：您強大的聊天機器人"
 #: data/io.github.qwersyk.Newelle.desktop.in:10
 msgid "chat;ai;gpt;chatgpt;assistant;"
 msgstr "chat;ai;gpt;chatgpt;assistant;"
+
+#~ msgid "_Cancel"
+#~ msgstr "取消"
+
+#~ msgid "_Delete"
+#~ msgstr "刪除"
 
 #, fuzzy, python-brace-format
 #~ msgid "Name of the {provider_name} Model"
