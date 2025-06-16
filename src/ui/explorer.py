@@ -10,7 +10,8 @@ _ = gettext.gettext
 class ExplorerPanel(Gtk.Box):
     __gsignals__ = {
         'new-tab-requested': (GObject.SignalFlags.RUN_FIRST, None, (str,)),
-        'path-changed': (GObject.SignalFlags.RUN_FIRST, None, (str,))
+        'path-changed': (GObject.SignalFlags.RUN_FIRST, None, (str,)),
+        'open-terminal-requested': (GObject.SignalFlags.RUN_FIRST, None, (str,))
     }
 
     def __init__(self, controller, starting_path="~", *args, **kwargs):
@@ -205,6 +206,12 @@ class ExplorerPanel(Gtk.Box):
 
                     flow_box = Gtk.FlowBox(vexpand=True)
                     flow_box.set_valign(Gtk.Align.START)
+                    
+                    # Add right-click gesture for empty space
+                    empty_space_right_click = Gtk.GestureClick()
+                    empty_space_right_click.set_button(3)  # Right mouse button
+                    empty_space_right_click.connect("pressed", self.on_empty_space_right_click)
+                    
                     if os.path.normpath(self.main_path) == "~" or os.path.normpath(self.main_path) == os.path.expanduser("~"):
                         os.chdir(os.path.expanduser("~"))
                         fname = "/".join(self.controller.newelle_dir.split("/")[3:])
@@ -285,6 +292,10 @@ class ExplorerPanel(Gtk.Box):
                         Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC
                     )
                     scrolled_window.set_child(flow_box)
+                    
+                    # Add the right-click gesture to the scrolled window for empty space clicks
+                    scrolled_window.add_controller(empty_space_right_click)
+                    
                     self.folder_blocks_panel.append(scrolled_window)
             else:
                 self.set_main_path("~")
@@ -559,3 +570,184 @@ class ExplorerPanel(Gtk.Box):
         self.tab = tab
         if self.tab is not None:
             self.update_tab()
+
+    def create_empty_space_context_menu(self):
+        """Create and return a context menu for empty spaces"""
+        menu = Gtk.PopoverMenu()
+        menu_model = Gio.Menu()
+
+        # Create new folder
+        menu_model.append(_("Create new folder"), "explorer.create_folder")
+
+        # Create new file
+        menu_model.append(_("Create new file"), "explorer.create_file")
+
+        # Open terminal here
+        menu_model.append(_("Open Terminal Here"), "explorer.open_terminal")
+
+        # Open in file manager
+        menu_model.append(_("Open in file manager"), "explorer.open_file_manager_here")
+
+        menu.set_menu_model(menu_model)
+
+        # Create action group
+        action_group = Gio.SimpleActionGroup()
+
+        # Create folder action
+        action = Gio.SimpleAction.new("create_folder", None)
+        action.connect("activate", self.on_create_folder)
+        action_group.add_action(action)
+
+        # Create file action
+        action = Gio.SimpleAction.new("create_file", None)
+        action.connect("activate", self.on_create_file)
+        action_group.add_action(action)
+
+        # Open terminal action
+        action = Gio.SimpleAction.new("open_terminal", None)
+        action.connect("activate", self.on_open_terminal_here)
+        action_group.add_action(action)
+
+        # Open file manager action
+        action = Gio.SimpleAction.new("open_file_manager_here", None)
+        action.connect("activate", self.on_open_file_manager_here)
+        action_group.add_action(action)
+
+        menu.insert_action_group("explorer", action_group)
+        return menu
+
+    def on_empty_space_right_click(self, gesture, n_press, x, y):
+        """Handler for right-click on empty spaces"""
+        if n_press == 1:  # Single right-click
+            # Check if the click is on the flow_box background (not on a button)
+            widget = gesture.get_widget()
+            
+            menu = self.create_empty_space_context_menu()
+            menu.set_parent(widget)
+
+            # Position the menu at the click location
+            rect = Gdk.Rectangle()
+            rect.x = int(x)
+            rect.y = int(y)
+            rect.width = 1
+            rect.height = 1
+            menu.set_pointing_to(rect)
+
+            menu.popup()
+
+    def on_create_folder(self, action, parameter):
+        """Handler for 'Create new folder'"""
+        self.show_create_dialog(_("Create New Folder"), _("Folder name:"), "untitled", True)
+
+    def on_create_file(self, action, parameter):
+        """Handler for 'Create new file'"""
+        self.show_create_dialog(_("Create New File"), _("File name:"), "untitled.txt", False)
+
+    def on_open_terminal_here(self, action, parameter):
+        """Handler for 'Open Terminal Here' - emits signal"""
+        current_path = os.path.expanduser(self.main_path)
+        self.emit('open-terminal-requested', current_path)
+
+    def on_open_file_manager_here(self, action, parameter):
+        """Handler for 'Open in file manager' for current directory"""
+        try:
+            subprocess.run(["xdg-open", os.path.expanduser(self.main_path)])
+        except Exception as e:
+            self.notification_block.add_toast(
+                Adw.Toast(title=_("Failed to open file manager"), timeout=3)
+            )
+
+    def show_create_dialog(self, title, label_text, default_name, is_folder):
+        """Show a popover dialog for creating new files or folders"""
+        # Create a temporary button to parent the popover to
+        temp_button = Gtk.Button()
+        temp_button.set_parent(self.folder_blocks_panel)
+        
+        popover = Gtk.Popover()
+        popover.set_parent(temp_button)
+
+        # Create the content box
+        content_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
+        content_box.set_margin_top(12)
+        content_box.set_margin_bottom(12)
+        content_box.set_margin_start(12)
+        content_box.set_margin_end(12)
+
+        # Label and entry
+        label = Gtk.Label(label=label_text)
+        label.set_halign(Gtk.Align.START)
+
+        entry = Gtk.Entry()
+        entry.set_text(default_name)
+        entry.select_region(0, -1)
+        entry.set_width_chars(25)
+
+        # Button box
+        button_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+        button_box.set_halign(Gtk.Align.END)
+
+        cancel_button = Gtk.Button(label=_("Cancel"))
+        cancel_button.add_css_class("flat")
+
+        create_button = Gtk.Button(label=_("Create"))
+        create_button.add_css_class("suggested-action")
+
+        button_box.append(cancel_button)
+        button_box.append(create_button)
+
+        # Add widgets to content box
+        content_box.append(label)
+        content_box.append(entry)
+        content_box.append(button_box)
+
+        popover.set_child(content_box)
+
+        def on_create_clicked(button):
+            name = entry.get_text().strip()
+            if name:
+                try:
+                    new_path = os.path.join(os.path.expanduser(self.main_path), name)
+                    if is_folder:
+                        os.makedirs(new_path, exist_ok=False)
+                        self.notification_block.add_toast(
+                            Adw.Toast(title=_("Folder created successfully"), timeout=2)
+                        )
+                    else:
+                        # Create an empty file
+                        with open(new_path, 'w') as f:
+                            pass
+                        self.notification_block.add_toast(
+                            Adw.Toast(title=_("File created successfully"), timeout=2)
+                        )
+                    GLib.idle_add(self.update_folder)
+                except FileExistsError:
+                    self.notification_block.add_toast(
+                        Adw.Toast(title=_("A file or folder with that name already exists"), timeout=3)
+                    )
+                except Exception as e:
+                    action_type = _("folder") if is_folder else _("file")
+                    self.notification_block.add_toast(
+                        Adw.Toast(title=_("Failed to create {}: {}").format(action_type, str(e)), timeout=3)
+                    )
+            popover.popdown()
+            temp_button.unparent()
+
+        def on_cancel_clicked(button):
+            popover.popdown()
+            temp_button.unparent()
+
+        def on_entry_activate(entry):
+            on_create_clicked(None)
+
+        def on_popover_closed(popover):
+            temp_button.unparent()
+
+        # Connect signals
+        create_button.connect("clicked", on_create_clicked)
+        cancel_button.connect("clicked", on_cancel_clicked)
+        entry.connect("activate", on_entry_activate)
+        popover.connect("closed", on_popover_closed)
+
+        # Show the popover
+        popover.popup()
+        entry.grab_focus()
