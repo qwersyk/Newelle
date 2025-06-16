@@ -3378,6 +3378,7 @@ class MainWindow(Adw.ApplicationWindow):
         panel.set_tab(tab)
         panel.connect("new-tab-requested", self.add_explorer_tab)
         panel.connect("path-changed", self.update_path)
+        panel.connect("open-terminal-requested", lambda panel, path: self.add_terminal_tab(None, None, path))
         self.show_sidebar()
         self.canvas_tabs.set_selected_page(tab)
         return tab
