@@ -1760,7 +1760,7 @@ class MainWindow(Adw.ApplicationWindow):
         self.update_history()
         if old_chat_id > self.chat_id:
             self.chat_stack.set_transition_type(Gtk.StackTransitionType.SLIDE_UP)
-        self.show_chat()
+        self.show_chat(animate=True)
         self.chat_stack.set_transition_type(Gtk.StackTransitionType.SLIDE_DOWN)
         GLib.idle_add(self.update_button_text)
 
@@ -2241,13 +2241,15 @@ class MainWindow(Adw.ApplicationWindow):
             GLib.idle_add(idle_edit)
 
     # Show messages in chat
-    def show_chat(self):
+    def show_chat(self, animate=False):
         """Show a chat"""
         self.messages_box = []
         self.last_error_box = None
         if not self.check_streams["chat"]:
             self.check_streams["chat"] = True
             try:
+                if not animate:
+                    self.chat_stack.set_transition_duration(0)
                 self.old_chat_list_block = self.chat_list_block
                 self.chat_list_block = Gtk.ListBox(
                     css_classes=["separators", "background", "view"]
@@ -2257,6 +2259,7 @@ class MainWindow(Adw.ApplicationWindow):
                 self.chat_stack.add_child(self.chat_list_block)
                 self.chat_stack.set_visible_child(self.chat_list_block)
                 GLib.idle_add(self.chat_stack.remove,self.old_chat_list_block)
+                GLib.idle_add(self.chat_stack.set_transition_duration, 300)
             except Exception as e:
                 self.notification_block.add_toast(Adw.Toast(title=str(e)))
 
