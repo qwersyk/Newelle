@@ -171,7 +171,8 @@ utility_sources = [
   'utility/util.py',
   'utility/profile_settings.py',
   'utility/audio_recorder.py',
-  'utility/message_chunk.py'
+  'utility/message_chunk.py',
+  'utility/website_scraper.py'
 ]
 
 install_data(newelle_sources, install_dir: moduledir)
