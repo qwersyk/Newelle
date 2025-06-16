@@ -34,7 +34,6 @@ class DDGSeachHandler(WebSearchHandler):
         text = ""
         for result in content:
             text += f"## {result['title']}\n{result['text']}\n\n"
-        text = text[:5000]
         return text, urls
     
     def scrape_websites(self, result_links, update):

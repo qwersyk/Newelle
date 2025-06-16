@@ -34,7 +34,7 @@ class SearXNGHandler(WebSearchHandler):
         text = ""
         for result in content:
             text += f"## {result['title']}\n{result['text']}\n\n"
-        text = text[:5000]
+        #text = text[:5000]
         return text, urls
 
 

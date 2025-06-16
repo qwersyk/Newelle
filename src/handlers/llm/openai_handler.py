@@ -216,7 +216,7 @@ class OpenAIHandler(LLMHandler):
                     continue
                 if chunk.choices[0].delta.content:
                     if is_reasoning:
-                        full_message += "</think>"
+                        full_message += "</think>\n"
                         is_reasoning = False
                     full_message += chunk.choices[0].delta.content
                     args = (full_message.strip(), ) + tuple(extra_args)
