@@ -16,7 +16,7 @@ class WebsearchIntegration(NewelleExtension):
     def get_replace_codeblocks_langs(self) -> list:
         return ["search"]
 
-    def provides_both_widget_and_anser(self, codeblock: str, lang: str) -> bool:
+    def provides_both_widget_and_answer(self, codeblock: str, lang: str) -> bool:
         return True 
 
     def get_answer(self, codeblock: str, lang: str) -> str | None:

@@ -6,13 +6,11 @@ import sys
 import os
 import subprocess
 import threading
-import posixpath
 import json
 import base64
 import copy
-import random
-import gettext
-
+import uuid 
+import inspect 
 from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject, GLib, GdkPixbuf
 
 from .ui.settings import Settings
@@ -682,7 +680,6 @@ class MainWindow(Adw.ApplicationWindow):
     def update_settings(self):
         """Update settings, run every time the program is started or settings dialog closed"""
         reloads = self.controller.update_settings()
-        print(reloads)
         if self.first_load:
             # Load handlers with a timeout in order to not freeze the program
             def load_handlers_async():
@@ -2355,8 +2352,11 @@ class MainWindow(Adw.ApplicationWindow):
             )
         else:
             if not restore and not is_user:
-                self.chat.append({"User": "Assistant", "Message": message_label})
+                msg_uuid = int(uuid.uuid4())
+                self.chat.append({"User": "Assistant", "Message": message_label, "UUID": msg_uuid})
                 self.add_prompt(prompt)
+            else:
+                msg_uuid = self.chat[id_message].get("UUID", 0)
             chunks = get_message_chunks(
                 message_label, self.controller.newelle_settings.display_latex
             )
@@ -2382,14 +2382,22 @@ class MainWindow(Adw.ApplicationWindow):
 
                         try:
                             # Check if the extension widget is available
-                            if restore:
-                                widget = extension.restore_gtk_widget(value, code_language)
+                            # Retrocompatibility: check if the extension supports uuid 
+                            if len(inspect.signature(extension.get_gtk_widget).parameters) == 3:
+                                if restore:
+                                    widget = extension.restore_gtk_widget(value, code_language, msg_uuid)
+                                else:
+                                    widget = extension.get_gtk_widget(value, code_language, msg_uuid)
                             else:
-                                widget = extension.get_gtk_widget(value, code_language)
+                                if restore:
+                                    widget = extension.restore_gtk_widget(value, code_language)
+                                else:
+                                    widget = extension.get_gtk_widget(value, code_language)
+
                             if widget is not None:
                                 # Add the widget to the message
                                 box.append(widget)
-                            if widget is None or extension.provides_both_widget_and_anser(value, code_language):
+                            if widget is None or extension.provides_both_widget_and_answer(value, code_language):
                                 if widget is not None:
                                     # If the answer is provided, the apply_async function 
                                     # Should only do something on error\
