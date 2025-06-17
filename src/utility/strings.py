@@ -336,3 +336,12 @@ def replace_codeblock(markdown_text, block_id, new_code):
 
     # Replace the matched code block with the new one
     return markdown_text[:match.start()] + new_block + markdown_text[match.end():]
+
+def clean_bot_response(message_label):
+    """Fix the bot response
+
+    Args:
+        message_label (): text of the message 
+    """
+    message_label = message_label.replace('\\\\\\```', "```")
+    return message_label 

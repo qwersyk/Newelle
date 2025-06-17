@@ -29,6 +29,7 @@ from .constants import AVAILABLE_LLMS, SCHEMA_ID, SETTINGS_GROUPS
 
 from .utility.system import get_spawn_command, open_website
 from .utility.strings import (
+    clean_bot_response,
     convert_think_codeblocks,
     get_edited_messages,
     markwon_to_pango,
@@ -2058,6 +2059,7 @@ class MainWindow(Adw.ApplicationWindow):
                     pass
             else:
                 message_label = self.send_message_to_bot(self.chat[-1]["Message"])
+            message_label = clean_bot_response(message_label) 
         except Exception as e:
             # Show error messsage
             GLib.idle_add(self.show_message, str(e), False, -1, False, False, True)
