@@ -435,7 +435,7 @@ class NewelleSettings:
         if self.rag_on != new_settings.rag_on or self.rag_model != new_settings.rag_model or self.rag_settings != new_settings.rag_settings:
             reloads.append(ReloadType.RAG)
         if self.extensions_settings != new_settings.extensions_settings:
-            reloads.append(ReloadType.EXTENSIONS)
+            reloads += [ReloadType.EXTENSIONS, ReloadType.LLM, ReloadType.SECONDARY_LLM, ReloadType.EMBEDDINGS, ReloadType.EMBEDDINGS, ReloadType.MEMORIES, ReloadType.RAG, ReloadType.WEBSEARCH]
         if self.username != new_settings.username:
             reloads.append(ReloadType.RELOAD_CHAT)
         if self.reverse_order != new_settings.reverse_order:

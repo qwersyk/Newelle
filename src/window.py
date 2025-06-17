@@ -682,6 +682,7 @@ class MainWindow(Adw.ApplicationWindow):
     def update_settings(self):
         """Update settings, run every time the program is started or settings dialog closed"""
         reloads = self.controller.update_settings()
+        print(reloads)
         if self.first_load:
             # Load handlers with a timeout in order to not freeze the program
             def load_handlers_async():
