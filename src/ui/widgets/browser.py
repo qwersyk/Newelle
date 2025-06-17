@@ -36,7 +36,8 @@ class BrowserWidget(Gtk.Box):
         self.current_url = ""
         self.current_title = ""
         self.current_favicon = None
-        
+        self.loading = threading.Semaphore(1)
+
         self.favicon_pixbuf : GdkPixbuf.Pixbuf | None = None
         self._build_ui()
         self._setup_webview()
@@ -184,6 +185,9 @@ class BrowserWidget(Gtk.Box):
         """Handle load changed event."""
         if load_event == WebKit.LoadEvent.STARTED:
             # Replace button content with spinner
+            self.loading.release()
+            self.loading = threading.Semaphore()
+            self.loading.acquire()
             self.refresh_button.set_child(self.loading_spinner)
             self.loading_spinner.start()
             self.refresh_button.set_tooltip_text("Stop Loading")
@@ -196,7 +200,7 @@ class BrowserWidget(Gtk.Box):
             uri = self.webview.get_uri()
             self.article = WebsiteScraper(uri)
             threading.Thread(target=self.download_favicon).start()
-            
+            self.loading.release() 
         # Update navigation buttons
         self.back_button.set_sensitive(webview.can_go_back())
         self.forward_button.set_sensitive(webview.can_go_forward())
@@ -309,20 +313,17 @@ class BrowserWidget(Gtk.Box):
         
         result = {'html': None, 'error': None, 'done': False}
         
+        sem = threading.Semaphore()
         def callback(html_content, error):
             result['html'] = html_content
             result['error'] = error
             result['done'] = True
-        
+            sem.release()
+        sem.acquire() 
         self.get_page_html(callback)
-        
         # Wait for the result (with timeout)
-        timeout = 5  # 5 seconds timeout
-        start_time = time.time()
-        while not result['done'] and (time.time() - start_time) < timeout:
-            # Process pending GTK events
-            time.sleep(0.01)
-        
+        sem.acquire()
+        sem.release()  
         if result['error']:
             print(f"Error getting HTML: {result['error']}")
             return None
