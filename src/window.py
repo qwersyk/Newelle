@@ -2207,7 +2207,8 @@ class MainWindow(Adw.ApplicationWindow):
             text = self.streamed_message.split("</think>")
             thinking = text[0].replace("<think>", "")
             message = text[1] if len(text) > 1 else ""
-            added_thinking = message[len(self.streaming_thought) :]
+            added_thinking = thinking[len(self.streaming_thought) :]
+            self.streaming_thought += added_thinking
             self.thinking_box.append_thinking(added_thinking)
         if self.streaming_label is not None:
             # Find the differences between the messages
