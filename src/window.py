@@ -2357,7 +2357,7 @@ class MainWindow(Adw.ApplicationWindow):
                 msg_uuid = int(uuid.uuid4())
                 self.chat.append({"User": "Assistant", "Message": message_label, "UUID": msg_uuid})
                 self.add_prompt(prompt)
-            else:
+            elif not is_user:
                 msg_uuid = self.chat[id_message].get("UUID", 0)
             chunks = get_message_chunks(
                 message_label, self.controller.newelle_settings.display_latex
@@ -3374,6 +3374,7 @@ class MainWindow(Adw.ApplicationWindow):
     def _on_attach_clicked(self, browser):
         text = "```website\n" + browser.get_current_url() + "\n```"
         self.chat.append({"User": "User", "Message": text})
+        self.hide_placeholder()
         self.show_message(text, False, is_user=True)
     
     def add_explorer_tab(self, tabview=None, path=None):
