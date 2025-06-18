@@ -187,7 +187,9 @@ class NewelleController:
             self.extensionloader.add_handlers(AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS, AVAILABLE_RAGS, AVAILABLE_WEBSEARCH)
             self.extensionloader.add_prompts(PROMPTS, AVAILABLE_PROMPTS)
             self.newelle_settings.load_prompts()
+            self.handlers.extensionloader = self.extensionloader
             self.handlers.select_handlers(self.newelle_settings)
+            self.extensionloader.set_ui_controller(self.ui_controller)
             print("Extensions reload")
         elif reload_type == ReloadType.LLM:
             self.handlers.select_handlers(self.newelle_settings)
@@ -199,7 +201,8 @@ class NewelleController:
             self.handlers.select_handlers(self.newelle_settings)
         elif reload_type == ReloadType.RAG:
             self.handlers.select_handlers(self.newelle_settings)
-            threading.Thread(target=self.handlers.rag.load).start()
+            if self.newelle_settings.rag_on_documents:
+                threading.Thread(target=self.handlers.rag.load).start()
         elif reload_type == ReloadType.EMBEDDINGS:
             self.handlers.select_handlers(self.newelle_settings)
             threading.Thread(target=self.handlers.embedding.load_model).start()

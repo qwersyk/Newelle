@@ -705,6 +705,7 @@ class MainWindow(Adw.ApplicationWindow):
         self.embeddings = self.controller.handlers.embedding
         self.memory_handler = self.controller.handlers.memory
         self.rag_handler = self.controller.handlers.rag
+        self.extensionloader = self.controller.extensionloader
         if ReloadType.RELOAD_CHAT in reloads:
             self.show_chat()
         if ReloadType.RELOAD_CHAT_LIST in reloads:
