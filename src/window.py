@@ -6,13 +6,11 @@ import sys
 import os
 import subprocess
 import threading
-import posixpath
 import json
 import base64
 import copy
-import random
-import gettext
-
+import uuid 
+import inspect 
 from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject, GLib, GdkPixbuf
 
 from .ui.settings import Settings
@@ -29,6 +27,7 @@ from .constants import AVAILABLE_LLMS, SCHEMA_ID, SETTINGS_GROUPS
 
 from .utility.system import get_spawn_command, open_website
 from .utility.strings import (
+    clean_bot_response,
     convert_think_codeblocks,
     get_edited_messages,
     markwon_to_pango,
@@ -504,7 +503,7 @@ class MainWindow(Adw.ApplicationWindow):
                 content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
                 content.append(headerbar)
                 content.append(otherview)
-                window = Gtk.Window(child=content)
+                window = Gtk.Window(child=content, decorated=False)
                 tab.connect("notify::title", lambda x, title: title_label.set_label(x.get_title()))
                 window.show()
                 window.connect("close-request", self.reattach_tab, tab, otherview)
@@ -706,6 +705,7 @@ class MainWindow(Adw.ApplicationWindow):
         self.embeddings = self.controller.handlers.embedding
         self.memory_handler = self.controller.handlers.memory
         self.rag_handler = self.controller.handlers.rag
+        self.extensionloader = self.controller.extensionloader
         if ReloadType.RELOAD_CHAT in reloads:
             self.show_chat()
         if ReloadType.RELOAD_CHAT_LIST in reloads:
@@ -1760,7 +1760,7 @@ class MainWindow(Adw.ApplicationWindow):
         self.update_history()
         if old_chat_id > self.chat_id:
             self.chat_stack.set_transition_type(Gtk.StackTransitionType.SLIDE_UP)
-        self.show_chat()
+        self.show_chat(animate=True)
         self.chat_stack.set_transition_type(Gtk.StackTransitionType.SLIDE_DOWN)
         GLib.idle_add(self.update_button_text)
 
@@ -2058,6 +2058,7 @@ class MainWindow(Adw.ApplicationWindow):
                     pass
             else:
                 message_label = self.send_message_to_bot(self.chat[-1]["Message"])
+            message_label = clean_bot_response(message_label) 
         except Exception as e:
             # Show error messsage
             GLib.idle_add(self.show_message, str(e), False, -1, False, False, True)
@@ -2186,6 +2187,7 @@ class MainWindow(Adw.ApplicationWindow):
         if self.stream_number_variable != stream_number_variable:
             return
         self.streamed_message = message
+        last_update_checked = False
         if self.streamed_message.startswith("<think>") and not self.stream_thinking:
             self.stream_thinking = True
             text = self.streamed_message.split("</think>")
@@ -2202,17 +2204,19 @@ class MainWindow(Adw.ApplicationWindow):
             t = time.time()
             if t - self.last_update < 0.05:
                 return
+            last_update_checked = True
             self.last_update = t
             text = self.streamed_message.split("</think>")
             thinking = text[0].replace("<think>", "")
             message = text[1] if len(text) > 1 else ""
-            added_thinking = message[len(self.streaming_thought) :]
+            added_thinking = thinking[len(self.streaming_thought) :]
+            self.streaming_thought += added_thinking
             self.thinking_box.append_thinking(added_thinking)
         if self.streaming_label is not None:
             # Find the differences between the messages
             added_message = message[len(self.curr_label) :]
             t = time.time()
-            if t - self.last_update < 0.05:
+            if t - self.last_update < 0.05 and not last_update_checked:
                 return
             self.last_update = t
             self.curr_label = message
@@ -2241,13 +2245,15 @@ class MainWindow(Adw.ApplicationWindow):
             GLib.idle_add(idle_edit)
 
     # Show messages in chat
-    def show_chat(self):
+    def show_chat(self, animate=False):
         """Show a chat"""
         self.messages_box = []
         self.last_error_box = None
         if not self.check_streams["chat"]:
             self.check_streams["chat"] = True
             try:
+                if not animate:
+                    self.chat_stack.set_transition_duration(0)
                 self.old_chat_list_block = self.chat_list_block
                 self.chat_list_block = Gtk.ListBox(
                     css_classes=["separators", "background", "view"]
@@ -2257,6 +2263,7 @@ class MainWindow(Adw.ApplicationWindow):
                 self.chat_stack.add_child(self.chat_list_block)
                 self.chat_stack.set_visible_child(self.chat_list_block)
                 GLib.idle_add(self.chat_stack.remove,self.old_chat_list_block)
+                GLib.idle_add(self.chat_stack.set_transition_duration, 300)
             except Exception as e:
                 self.notification_block.add_toast(Adw.Toast(title=str(e)))
 
@@ -2349,8 +2356,11 @@ class MainWindow(Adw.ApplicationWindow):
             )
         else:
             if not restore and not is_user:
-                self.chat.append({"User": "Assistant", "Message": message_label})
+                msg_uuid = int(uuid.uuid4())
+                self.chat.append({"User": "Assistant", "Message": message_label, "UUID": msg_uuid})
                 self.add_prompt(prompt)
+            elif not is_user:
+                msg_uuid = self.chat[id_message].get("UUID", 0)
             chunks = get_message_chunks(
                 message_label, self.controller.newelle_settings.display_latex
             )
@@ -2376,14 +2386,22 @@ class MainWindow(Adw.ApplicationWindow):
 
                         try:
                             # Check if the extension widget is available
-                            if restore:
-                                widget = extension.restore_gtk_widget(value, code_language)
+                            # Retrocompatibility: check if the extension supports uuid 
+                            if len(inspect.signature(extension.get_gtk_widget).parameters) == 3:
+                                if restore:
+                                    widget = extension.restore_gtk_widget(value, code_language, msg_uuid)
+                                else:
+                                    widget = extension.get_gtk_widget(value, code_language, msg_uuid)
                             else:
-                                widget = extension.get_gtk_widget(value, code_language)
+                                if restore:
+                                    widget = extension.restore_gtk_widget(value, code_language)
+                                else:
+                                    widget = extension.get_gtk_widget(value, code_language)
+
                             if widget is not None:
                                 # Add the widget to the message
                                 box.append(widget)
-                            if widget is None or extension.provides_both_widget_and_anser(value, code_language):
+                            if widget is None or extension.provides_both_widget_and_answer(value, code_language):
                                 if widget is not None:
                                     # If the answer is provided, the apply_async function 
                                     # Should only do something on error\
@@ -3358,6 +3376,7 @@ class MainWindow(Adw.ApplicationWindow):
     def _on_attach_clicked(self, browser):
         text = "```website\n" + browser.get_current_url() + "\n```"
         self.chat.append({"User": "User", "Message": text})
+        self.hide_placeholder()
         self.show_message(text, False, is_user=True)
     
     def add_explorer_tab(self, tabview=None, path=None):
@@ -3375,6 +3394,7 @@ class MainWindow(Adw.ApplicationWindow):
         panel.set_tab(tab)
         panel.connect("new-tab-requested", self.add_explorer_tab)
         panel.connect("path-changed", self.update_path)
+        panel.connect("open-terminal-requested", lambda panel, path: self.add_terminal_tab(None, None, path))
         self.show_sidebar()
         self.canvas_tabs.set_selected_page(tab)
         return tab

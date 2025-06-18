@@ -131,6 +131,10 @@ class Extension(Gtk.Window):
         if os.path.basename(file_path) in self.extensionloader.filemap.values():
             self.notification_block.add_toast(Adw.Toast(title="Extension added. New extensions will run"))
             self.extensionloader.load_extensions()
+            # Edit extension settings in order to reload on update
+            ext = self.extensionloader.get_enabled_extensions()[0] if len(self.extensionloader.get_enabled_extensions()) > 0 else None
+            if ext is not None:
+                ext.set_setting("reload_requested", ext.get_setting("reload_requested", False, 0) + 1)
             self.update()
         else:
             self.notification_block.add_toast(Adw.Toast(title="This is not an extension or it is not correct"))

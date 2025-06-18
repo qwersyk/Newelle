@@ -7,13 +7,18 @@ class UIController:
     def __init__(self, window): 
         self.window = window
 
-    def add_tab(self, tab: Adw.TabPage):
+    def add_tab(self, child: Gtk.Widget, focus=True) -> Adw.TabPage:
         """Add a custom Adw.TabPage
 
         Args:
-            tab (): Adw.TabPage with already the widget 
+            child (): Widget
+            focus: if true, set the tab as the current one
         """
-        self.window.add_tab(tab)
+        tab = self.window.canvas_tabs.append(child)
+        if focus:
+            self.window.show_sidebar()
+            self.window.canvas_tabs.set_selected_page(tab)
+        return tab
 
     def new_browser_tab(self, url:str|None = None, new:bool=True) -> Adw.TabPage:
         """Add a new browser tab

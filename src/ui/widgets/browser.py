@@ -1,12 +1,12 @@
 import gi
 import urllib.parse
-from newspaper import Article
 import threading
 import json
 import os
 gi.require_version('WebKit', '6.0')
 from gi.repository import Gtk, WebKit, GLib, GObject, Gio, Adw, GdkPixbuf
 from ...ui import load_image_with_callback
+from ...utility.website_scraper import WebsiteScraper
 
 class BrowserWidget(Gtk.Box):
     """
@@ -36,7 +36,8 @@ class BrowserWidget(Gtk.Box):
         self.current_url = ""
         self.current_title = ""
         self.current_favicon = None
-        
+        self.loading = threading.Semaphore(1)
+
         self.favicon_pixbuf : GdkPixbuf.Pixbuf | None = None
         self._build_ui()
         self._setup_webview()
@@ -184,6 +185,9 @@ class BrowserWidget(Gtk.Box):
         """Handle load changed event."""
         if load_event == WebKit.LoadEvent.STARTED:
             # Replace button content with spinner
+            self.loading.release()
+            self.loading = threading.Semaphore()
+            self.loading.acquire()
             self.refresh_button.set_child(self.loading_spinner)
             self.loading_spinner.start()
             self.refresh_button.set_tooltip_text("Stop Loading")
@@ -194,9 +198,9 @@ class BrowserWidget(Gtk.Box):
             self.refresh_button.set_icon_name("view-refresh-symbolic")
             self.refresh_button.set_tooltip_text("Refresh")
             uri = self.webview.get_uri()
-            self.article = Article(uri)
+            self.article = WebsiteScraper(uri)
             threading.Thread(target=self.download_favicon).start()
-            
+            self.loading.release() 
         # Update navigation buttons
         self.back_button.set_sensitive(webview.can_go_back())
         self.forward_button.set_sensitive(webview.can_go_forward())
@@ -213,12 +217,8 @@ class BrowserWidget(Gtk.Box):
         """Download the page's favicon."""
         html = self.get_page_html_sync()
         self.article.set_html(html)
-        self.article.parse()
-        favicon = self.article.meta_favicon
-        if not favicon.startswith("http") and not favicon.startswith("https"):
-            from urllib.parse import urlparse, urljoin
-            base_url = urlparse(self.article.url).scheme + "://" + urlparse(self.article.url).netloc
-            favicon = urljoin(base_url, favicon)
+        self.article.parse_article()
+        favicon = self.article.get_favicon()
         if self.last_favicon != favicon:
             load_image_with_callback(favicon, lambda pixbuf_loader : self.on_favicon_loaded(pixbuf_loader))
             self.last_favicon = favicon
@@ -313,20 +313,17 @@ class BrowserWidget(Gtk.Box):
         
         result = {'html': None, 'error': None, 'done': False}
         
+        sem = threading.Semaphore()
         def callback(html_content, error):
             result['html'] = html_content
             result['error'] = error
             result['done'] = True
-        
+            sem.release()
+        sem.acquire() 
         self.get_page_html(callback)
-        
         # Wait for the result (with timeout)
-        timeout = 5  # 5 seconds timeout
-        start_time = time.time()
-        while not result['done'] and (time.time() - start_time) < timeout:
-            # Process pending GTK events
-            time.sleep(0.01)
-        
+        sem.acquire()
+        sem.release()  
         if result['error']:
             print(f"Error getting HTML: {result['error']}")
             return None
@@ -392,8 +389,6 @@ class BrowserWidget(Gtk.Box):
                 session_data = json.load(f)
             
             # Restore session settings
-            if 'starting_url' in session_data:
-                self.starting_url = session_data['starting_url']
             if 'search_string' in session_data:
                 self.search_string = session_data['search_string']
             
@@ -404,13 +399,7 @@ class BrowserWidget(Gtk.Box):
                 cookie_manager.set_persistent_storage(
                     cookie_file,
                     WebKit.CookiePersistentStorage.SQLITE
-                )
-            
-            # Navigate to the saved URL if available
-            if 'current_url' in session_data and session_data['current_url']:
-                self.webview.load_uri(session_data['current_url'])
-                self.url_entry.set_text(session_data['current_url'])
-            
+                )  
             
         except Exception as e:
             print(f"Error loading session: {e}")

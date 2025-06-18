@@ -3,8 +3,8 @@ from ..extensions import NewelleExtension
 from ..ui.widgets import WebsiteButton
 import threading
 from ..utility.message_chunk import get_message_chunks
-from newspaper import Article
 from ..ui import load_image_with_callback
+from ..utility.website_scraper import WebsiteScraper
 
 CHUNK_SIZE = 512 
 MAX_CONTEXT = 5000
@@ -42,7 +42,7 @@ class WebsiteReader(NewelleExtension):
         docs = []
         for website in websites:
             article = self.get_article_content(website)
-            docs.append("-----\nSource: " + website + "\n" + article.text)
+            docs.append("-----\nSource: " + website + "\n" + article.get_text())
         if sum(len(doc) for doc in docs) < MAX_CONTEXT:
             prompts += docs
         elif self.rag is not None:
@@ -73,21 +73,16 @@ class WebsiteReader(NewelleExtension):
         if url in self.caches:
             return self.caches[url]
         else:
-            article = Article(url)
-            article.download()
-            article.parse()
-            self.caches[url] = article
-            return article
+            scraper = WebsiteScraper(url)
+            scraper.parse_article()
+            self.caches[url] = scraper
+            return scraper
 
     def get_article(self, button: WebsiteButton):
         article = self.get_article_content(button.url)
-        title = article.title
-        favicon = article.meta_favicon
-        if not favicon.startswith("http") and not favicon.startswith("https"):
-            from urllib.parse import urlparse, urljoin
-            base_url = urlparse(button.url).scheme + "://" + urlparse(button.url).netloc
-            favicon = urljoin(base_url, favicon)
-        description = article.meta_description[:100]
+        title = article.get_title()
+        favicon = article.get_favicon()
+        description = article.get_description()[:100]
         def update_button():
             button.title.set_text(title)
             button.description.set_text(description) 

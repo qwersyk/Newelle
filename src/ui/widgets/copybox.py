@@ -1,7 +1,11 @@
 import threading
 import subprocess
 import os
+import tempfile
+import socket
 from gi.repository import GLib, Gtk, GtkSource, Gio, Pango, Gdk
+
+from ...utility.message_chunk import get_message_chunks
 from ...utility.system import get_spawn_command 
 from ...utility.strings import add_S_to_sudo, quote_string
 from .terminal_dialog import TerminalDialog
@@ -60,6 +64,7 @@ class CopyBox(Gtk.Box):
         style_scheme = style_scheme_manager.get_scheme(self.color_scheme)
         self.buffer.set_style_scheme(style_scheme)
 
+        runnable_languages = ["python", "python3", "html", "css", "js", "javascript"]
         self.sourceview.set_buffer(self.buffer)
         self.sourceview.set_vexpand(True)
         self.sourceview.set_vexpand(True)
@@ -84,12 +89,12 @@ class CopyBox(Gtk.Box):
         self.scroll.set_child(self.sourceview)
         self.append(self.scroll)
         main.append(box)
-        if lang == "python" or lang == "python3" and parent is not None:
+        if lang in runnable_languages and parent is not None:
             icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="media-playback-start-symbolic"))
             icon.set_icon_size(Gtk.IconSize.INHERIT)
             self.run_button = Gtk.Button(halign=Gtk.Align.END, margin_end=10, css_classes=["flat"])
             self.run_button.set_child(icon)
-            self.run_button.connect("clicked", self.run_code, "python")
+            self.run_button.connect("clicked", self.run_code, lang)
             self.parent = parent
 
             self.text_expander = Gtk.Expander(
@@ -209,7 +214,45 @@ class CopyBox(Gtk.Box):
         if mutlithreading:
             if language.lower() in ["python", "python3", "py"]:
                 code = self.parent.execute_terminal_command("python3 -c {}".format(quote_string(self.txt)))
+            elif language.lower() in ["html", "css", "js", "javascript"]:
+                codeblocks = self.get_codeblocks()
+                files = {
+                    "html": None,
+                    "css": None,
+                    "js": None
+                }
+                for codeblock in codeblocks:
+                    if codeblock.lang.lower() == "html":
+                        files["html"] = codeblock.text
+                    elif codeblock.lang.lower() == "css":
+                        files["css"] = codeblock.text
+                    elif codeblock.lang.lower() in ["js", "javascript"]:
+                        files["js"] = codeblock.text
 
+                # Create a random directory in the cache directory
+                cache_dir = self.parent.controller.cache_dir
+                temp_dir = tempfile.mkdtemp(dir=cache_dir)
+
+                # Write the code to temporary files in the random directory
+                with open(os.path.join(temp_dir, "index.html"), "w") as f:
+                    f.write(files["html"] or "")
+                with open(os.path.join(temp_dir, "style.css"), "w") as f:
+                    f.write(files["css"] or "")
+                with open(os.path.join(temp_dir, "script.js"), "w") as f:
+                    f.write(files["js"] or "")
+
+                # Start a simple HTTP server in the random directory on a random available port
+                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                    s.bind(("", 0))
+                    _, port = s.getsockname()
+
+                command = "cd {} && python3 -m http.server {}".format(quote_string(temp_dir), port)
+                def open_browser_later():
+                    if self.parent is not None:
+                        self.parent.ui_controller.new_browser_tab("http://localhost:{}".format(port), new=False)
+                        return GLib.SOURCE_REMOVE
+                GLib.timeout_add(100, open_browser_later)
+                code = self.parent.execute_terminal_command(command)
             else:
                 code = "ae"
             self.set_output(code[1])
@@ -230,3 +273,9 @@ class CopyBox(Gtk.Box):
     def edit_button_clicked(self, button):
         if self.parent is not None:
             self.parent.add_editor_tab_inline(self.id_message, self.id_codeblock, self.txt, self.lang)
+    
+    def get_codeblocks(self):
+        chunks = get_message_chunks(self.parent.chat[self.id_message]["Message"])
+        codeblocks = [chunk for chunk in chunks if chunk.type == "codeblock"]
+        return codeblocks
+

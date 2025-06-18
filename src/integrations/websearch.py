@@ -16,7 +16,7 @@ class WebsearchIntegration(NewelleExtension):
     def get_replace_codeblocks_langs(self) -> list:
         return ["search"]
 
-    def provides_both_widget_and_anser(self, codeblock: str, lang: str) -> bool:
+    def provides_both_widget_and_answer(self, codeblock: str, lang: str) -> bool:
         return True 
 
     def get_answer(self, codeblock: str, lang: str) -> str | None:
@@ -27,7 +27,7 @@ class WebsearchIntegration(NewelleExtension):
             for source in sources:
                 self.add_website(codeblock, source, source, "")
         self.finish(codeblock, text)
-        return text
+        return "Here is the web search result for query '"+ codeblock + "':\n" + text
 
     def finish(self, codeblock: str, result: str):
         self.widget_cache[codeblock]["result"] = result
@@ -44,7 +44,7 @@ class WebsearchIntegration(NewelleExtension):
 
     def restore_gtk_widget(self, codeblock: str, lang: str) -> Gtk.Widget | None:
         search_widget = self.widgets.get(codeblock, None)
-        if search_widget is not None:
+        if search_widget is not None and False:
             return search_widget
         else:
             cache = self.widget_cache.get(codeblock, None)

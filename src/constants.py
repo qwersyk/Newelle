@@ -296,8 +296,7 @@ You are an advanced AI assistant designed to provide clear, accurate, and helpfu
 4. **Creativity & Adaptability** – Generate engaging content and adapt to various user needs.  
 5. **User-Friendly Language** – Maintain a friendly and professional tone.  
 
-Always prioritize accuracy, relevance, and user experience in your responses.  
-    """,
+Always prioritize accuracy, relevance, and user experience in your responses.""",
     "console": """ **System Capabilities:**  
 You have the ability to execute commands on the user's Linux computer.  
 - **Linux Distribution:** `{DISTRO}`  
@@ -316,20 +315,15 @@ command
 ```file  
 /path/to/file  
 ```  
-Ensure that commands are safe, relevant, and do not cause unintended system modifications unless explicitly requested by the user.  
-""",
+Ensure that commands are safe, relevant, and do not cause unintended system modifications unless explicitly requested by the user.  """,
 
-    "basic_functionality": """You can write a multiplication table:
-| - | 1 | 2 | 3 | 4 |\n| - | - | - | - | - |\n| 1 | 1 | 2 | 3 | 4 |\n| 2 | 2 | 4 | 6 | 8 |\n| 3 | 3 | 6 | 9 | 12 |\n| 4 | 4 | 8 | 12 | 16 |
-
-You can write codeblocks:
-```python\nprint("hello")\n```
-
-You can also use **bold**, *italic*, ~strikethrough~, `monospace`, [linkname](https://link.com) and ## headers in markdown.
+    "basic_functionality": """You can write markdown tables, use **bold**, *italic*, ~strikethrough~, `monospace`, [linkname](https://link.com) and ## headers in markdown.
 You can display $inline equations$ and $$equations$$.
 """,
-    "show_image": """You can show the user an image, if needed, using \n```image\npath\n```\n\nYou can show the user a video, if needed, using\n```video\npath\n```""",
-    "graphic": """System: You can display the graph using this structure: ```chart\n name - value\n ... \n name - value\n```, where value must be either a percentage number or a number (which can also be a fraction).
+    "show_image": """- To show an image\n```image\n/path/to/image\n```\n\n- To show a video using\n```video\n/path/to/video\n```""",
+    "graphic": """To show a chart: 
+- ```chart\n name - value\n ... \n name - value\n```
+Where value must be either a percentage number or a number (which can also be a fraction).
 """,
     # Unused
     "new_chat_prompt": """System: New chat
@@ -360,7 +354,7 @@ Example output:
 
 Chat History:
 """,
-    "websearch": "Use the following format to perform a web search:\n```search\nyour query here\n```\nReplace `your query here` with the actual search terms you want to use. Do not say anything else before or after issuing the search. Simply execute the search silently.",
+    "websearch": "- Use the following format to perform a web search:\n```search\nyour query here\n```\nReplace `your query here` with the actual search terms you want to use. Do not say anything else before or after issuing the search. Simply execute the search silently. If the last search did not provide the needed answer, change your search query.",
     "custom_prompt": "",
 
 }
@@ -492,12 +486,12 @@ SETTINGS_GROUPS = {
         },
         "interface": {
             "title": _("Inteface"),
-            "settings": ["hidden-files", "reverse-order", "display-latex", "external-terminal-on", "external-terminal", "zoom","send-on-enter" ],
+            "settings": ["hidden-files", "reverse-order", "display-latex", "external-terminal-on", "external-terminal", "zoom","send-on-enter", "initial-browser-page", "external-browser", "browser-search-string", "browser-session-persist", "edit-color-scheme"],
             "description": _("Interface settings, hidden files, reverse order, zoom..."),
         },
         "general": {
             "title": _("General"),
-            "settings": ["virtualization", "offers", "memory", "remove-thinking", "auto-generate-name", "path", "auto-run", "max-run-times"],
+            "settings": ["virtualization", "offers", "memory", "remove-thinking", "auto-generate-name", "path", "auto-run", "max-run-times",],
             "description": _("General settings, virtualization, offers, memory length, automatically generate chat name, current folder..."),
         },
         "prompts": {
