@@ -2187,6 +2187,7 @@ class MainWindow(Adw.ApplicationWindow):
         if self.stream_number_variable != stream_number_variable:
             return
         self.streamed_message = message
+        last_update_checked = False
         if self.streamed_message.startswith("<think>") and not self.stream_thinking:
             self.stream_thinking = True
             text = self.streamed_message.split("</think>")
@@ -2203,6 +2204,7 @@ class MainWindow(Adw.ApplicationWindow):
             t = time.time()
             if t - self.last_update < 0.05:
                 return
+            last_update_checked = True
             self.last_update = t
             text = self.streamed_message.split("</think>")
             thinking = text[0].replace("<think>", "")
@@ -2214,7 +2216,7 @@ class MainWindow(Adw.ApplicationWindow):
             # Find the differences between the messages
             added_message = message[len(self.curr_label) :]
             t = time.time()
-            if t - self.last_update < 0.05:
+            if t - self.last_update < 0.05 and not last_update_checked:
                 return
             self.last_update = t
             self.curr_label = message
