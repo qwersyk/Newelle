@@ -2818,7 +2818,7 @@ class MainWindow(Adw.ApplicationWindow):
         Args:
             message_id (int): the id of the message to reload
         """
-        if len(self.messages_box) <= message_id:
+        if len(self.messages_box) < message_id:
             return
         if self.chat[message_id]["User"] == "Console":
             return

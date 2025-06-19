@@ -1,15 +1,11 @@
 from subprocess import check_output
-
+from ...handlers import ExtraSettings
 from .tts import TTSHandler
 from ...utility.system import get_spawn_command 
 
 
 class CustomTTSHandler(TTSHandler):
-    def __init__(self, settings, path):
-        self.settings = settings
-        self.path = path
-        self.key = "custom_command"
-        self.voices = tuple()
+    key = "custom_command"
 
     @staticmethod
     def requires_sandbox_escape() -> bool:
@@ -17,21 +13,16 @@ class CustomTTSHandler(TTSHandler):
         return True
 
     def get_extra_settings(self) -> list:
-        return [{
-            "key": "command",
-            "title": _("Command to execute"),
-            "description": _("{0} will be replaced with the model fullpath"),
-            "type": "entry",
-            "default": ""
-        }]
-
+        return [
+            ExtraSettings.EntrySetting("command", _("Command to execute"), _("{0} will be replaced with the file fullpath, {1} with the text"), "")
+        ]
 
     def is_installed(self):
         return True
 
-    def play_audio(self, message):
+    def save_audio(self, message, file):
         command = self.get_setting("command")
         if command is not None:
-            self._play_lock.acquire()
-            check_output(get_spawn_command() + ["bash", "-c", command.replace("{0}", message)])
-            self._play_lock.release()
+            print(["bash", "-c", command.replace("{0}", file).replace("{1}", message)])
+            check_output(get_spawn_command() + ["bash", "-c", command.replace("{0}", file).replace("{1}", message)])
+        return 
