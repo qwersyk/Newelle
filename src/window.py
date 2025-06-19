@@ -810,7 +810,27 @@ class MainWindow(Adw.ApplicationWindow):
             "closed", lambda x: GLib.idle_add(self.quick_settings_update)
         )
         self.model_popup.set_child(box)
-        return self.model_menu_button
+        
+        # Create a horizontal box to contain both the model button and settings button
+        title_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=0)
+        title_box.set_css_classes(["linked"])
+        title_box.append(self.model_menu_button)
+        
+        # Add a subtle separator
+        separator = Gtk.Separator(orientation=Gtk.Orientation.VERTICAL)
+        separator.set_margin_top(6)
+        separator.set_margin_bottom(6)
+        title_box.append(separator)
+        
+        # Add settings button
+        settings_button = Gtk.Button(
+            css_classes=["flat"],
+            icon_name="settings-symbolic"
+        )
+        settings_button.connect("clicked", lambda btn: self.get_application().lookup_action("settings").activate(None))
+        title_box.append(settings_button)
+        
+        return title_box
 
     def update_available_models(self):
         self.controller.update_settings()
