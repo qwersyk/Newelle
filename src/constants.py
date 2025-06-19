@@ -1,5 +1,5 @@
 
-from .handlers.llm import ClaudeHandler, DeepseekHandler, GPT4AllHandler, GroqHandler, OllamaHandler, OpenAIHandler, CustomLLMHandler, GPT3AnyHandler, GeminiHandler, MistralHandler, OpenRouterHandler, NewelleAPIHandler
+from .handlers.llm import ClaudeHandler, DeepseekHandler, GPT4AllHandler, GroqHandler, OllamaHandler, OpenAIHandler, CustomLLMHandler, GPT3AnyHandler, GeminiHandler, MistralHandler, OpenRouterHandler, NewelleAPIHandler, G4FHandler
 from .handlers.tts import ElevenLabs, gTTSHandler, EspeakHandler, CustomTTSHandler, KokoroTTSHandler, CustomOpenAITTSHandler, OpenAITTSHandler, GroqTTSHandler
 from .handlers.stt import GroqSRHandler, OpenAISRHandler, SphinxHandler, GoogleSRHandler, WhisperCPPHandler, WitAIHandler, VoskHandler, CustomSRHandler
 from .handlers.embeddings import WordLlamaHandler, OpenAIEmbeddingHandler, GeminiEmbeddingHanlder, OllamaEmbeddingHandler
@@ -21,11 +21,12 @@ AVAILABLE_LLMS = {
         "description": "Newelle Demo API, limited to 10 requests per day, demo purposes only",
         "class": NewelleAPIHandler,
     },
-    "GPT3Any": {
-        "key": "GPT3Any",
-        "title": _("Any free Provider"),
-        "description": "Automatically chooses a free provider using a GPT3.5-Turbo or better model",
-        "class": GPT3AnyHandler,
+    "g4f": {
+        "key": "g4f",
+        "title": _("GPT4Free"),
+        "description": "Python library that automatically searches for available free endpoints to use",
+        "website": "https://github.com/gpt4free/g4f.dev/blob/main/docs%2Fproviders-and-models.md",
+        "class": G4FHandler,
         "secondary": True,
     },
    "local": {
