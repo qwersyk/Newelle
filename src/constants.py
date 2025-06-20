@@ -1,4 +1,4 @@
-
+from copy import deepcopy
 from .handlers.llm import ClaudeHandler, DeepseekHandler, GPT4AllHandler, GroqHandler, OllamaHandler, OpenAIHandler, CustomLLMHandler, GPT3AnyHandler, GeminiHandler, MistralHandler, OpenRouterHandler, NewelleAPIHandler, G4FHandler
 from .handlers.tts import ElevenLabs, gTTSHandler, EspeakHandler, CustomTTSHandler, KokoroTTSHandler, CustomOpenAITTSHandler, OpenAITTSHandler, GroqTTSHandler
 from .handlers.stt import GroqSRHandler, OpenAISRHandler, SphinxHandler, GoogleSRHandler, WhisperCPPHandler, WitAIHandler, VoskHandler, CustomSRHandler
@@ -443,6 +443,35 @@ AVAILABLE_PROMPTS = [
         "default": False
     }, 
 ]
+
+# Available handlers without extensions
+DEFAULT_AVAILABLE_LLM = AVAILABLE_LLMS.copy()
+DEFAULT_AVAILABLE_TTS = AVAILABLE_TTS.copy()
+DEFAULT_AVAILABLE_STT = AVAILABLE_STT.copy()
+DEFAULT_AVAILABLE_EMBEDDING = AVAILABLE_EMBEDDINGS.copy()
+DEFAULT_AVAILABLE_MEMORIES = AVAILABLE_MEMORIES.copy()
+DEFAULT_AVAILABLE_RAG = AVAILABLE_RAGS.copy()
+DEFAULT_AVAILABLE_WEBSEARCH = AVAILABLE_WEBSEARCH.copy()
+DEFAULT_AVAILABLE_PROMPTS = AVAILABLE_PROMPTS.copy()
+
+def restore_handlers():
+    global AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_EMBEDDINGS, AVAILABLE_MEMORIES, AVAILABLE_RAGS, AVAILABLE_WEBSEARCH, AVAILABLE_PROMPTS
+    AVAILABLE_PROMPTS.clear()
+    AVAILABLE_LLMS.clear()
+    AVAILABLE_TTS.clear()
+    AVAILABLE_STT.clear()
+    AVAILABLE_EMBEDDINGS.clear()
+    AVAILABLE_MEMORIES.clear()
+    AVAILABLE_RAGS.clear()
+    AVAILABLE_WEBSEARCH.clear()
+    AVAILABLE_PROMPTS += deepcopy(DEFAULT_AVAILABLE_PROMPTS)
+    AVAILABLE_LLMS.update(deepcopy(DEFAULT_AVAILABLE_LLM))
+    AVAILABLE_TTS.update(deepcopy(DEFAULT_AVAILABLE_TTS))
+    AVAILABLE_STT.update(deepcopy(DEFAULT_AVAILABLE_STT))
+    AVAILABLE_EMBEDDINGS.update(deepcopy(DEFAULT_AVAILABLE_EMBEDDING))
+    AVAILABLE_MEMORIES.update(deepcopy(DEFAULT_AVAILABLE_MEMORIES))
+    AVAILABLE_RAGS.update(deepcopy(DEFAULT_AVAILABLE_RAG))
+    AVAILABLE_WEBSEARCH.update(deepcopy(DEFAULT_AVAILABLE_WEBSEARCH))
 
 SETTINGS_GROUPS = {
         "LLM": {

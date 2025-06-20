@@ -372,6 +372,10 @@ class ExtensionLoader:
             AVAILABLE_LLMS (): list of available llms 
             AVAILABLE_TTS (): list of available tts
             AVAILABLE_STT (): list of available stt
+            AVAILABLE_MEMORIES (): list of available memories
+            AVAILABLE_EMBEDDINGS (): list of available embeddings
+            AVAILABLE_RAG (): list of available rags
+            AVAILABLE_WEBSEARCH (): list of available websearch
         """
         for extension in self.extensions:
             if extension in self.disabled_extensions:
@@ -414,7 +418,7 @@ class ExtensionLoader:
                     AVAILABLE_PROMPTS.append(prompt)
                 PROMPTS[prompt["key"]] = prompt["text"]
 
-    def remove_handlers(self, extension, AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS, AVAILABLE_RAG):
+    def remove_handlers(self, extension, AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS, AVAILABLE_RAG, AVAILABLE_WEBSEARCH):
         """Remove handlers of an extension
 
         Args:
