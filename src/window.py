@@ -443,26 +443,47 @@ class MainWindow(Adw.ApplicationWindow):
         # Detach tab button 
         self.detach_tab_button = Gtk.Button(css_classes=["flat"], icon_name="detach-symbolic")
         self.detach_tab_button.connect("clicked", self.detach_tab) 
-        # Create menu model
-        menu = Gio.Menu()
-        menu.append(_("Explorer Tab"), "win.new_explorer_tab")
-        menu.append(_("Terminal Tab"), "win.new_terminal_tab") 
-        menu.append(_("Browser Tab"), "win.new_browser_tab")
-        self.new_tab_button.set_menu_model(menu)
-        # Add actions
-        action = Gio.SimpleAction.new("new_explorer_tab", None)
-        action.connect("activate", self.add_explorer_tab)
-        self.add_action(action)
         
-        action = Gio.SimpleAction.new("new_terminal_tab", None)
-        action.connect("activate", self.add_terminal_tab)
-        self.add_action(action)
+        # Create custom menu entries: Title, Icon, Callable
+        menu_entries = [
+            (_("Explorer Tab"), "folder-symbolic", self.add_explorer_tab),
+            (_("Terminal Tab"), "gnome-terminal-symbolic", self.add_terminal_tab),
+            (_("Browser Tab"), "internet-symbolic", self.add_browser_tab)
+        ]
         
-        action = Gio.SimpleAction.new("new_browser_tab", None)
-        action.connect("activate", self.add_browser_tab)
-        self.add_action(action)
+        # Create custom popover with ListBox
+        popover = Gtk.Popover()
+        listbox = Gtk.ListBox(css_classes=["menu"])
+        listbox.set_selection_mode(Gtk.SelectionMode.NONE)
         
-        self.canvas_button.connect("clicked", lambda x : self.canvas_overview.set_open(not self.canvas_overview.get_open()))
+        for title, icon_name, callback in menu_entries:
+            row = Gtk.ListBoxRow()
+            row_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
+            row_box.set_margin_start(12)
+            row_box.set_margin_end(12)
+            row_box.set_margin_top(6)
+            row_box.set_margin_bottom(6)
+            
+            # Add icon
+            icon = Gtk.Image.new_from_icon_name(icon_name)
+            icon.set_icon_size(Gtk.IconSize.INHERIT)
+            row_box.append(icon)
+            
+            # Add label
+            label = Gtk.Label(label=title, xalign=0)
+            row_box.append(label)
+            
+            row.set_child(row_box)
+            row.callback = callback
+            listbox.append(row)
+        
+        def on_row_activated(listbox, row):
+            row.callback(None, None)
+            popover.popdown()
+        
+        listbox.connect("row-activated", on_row_activated)
+        popover.set_child(listbox)
+        self.new_tab_button.set_popover(popover)
         self.canvas_header.pack_end(self.canvas_button)
         self.canvas_header.pack_end(self.new_tab_button)
         self.canvas_header.pack_end(self.detach_tab_button)
