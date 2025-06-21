@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-16 12:38+0800\n"
+"POT-Creation-Date: 2025-06-18 21:59+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Hindi\n"
@@ -331,6 +331,48 @@ msgstr ""
 "नाम:आकार डालकर इस सूची में कोई भी मॉडल जोड़ें\n"
 "या hf.co/उपयोगकर्ता नाम/मॉडल के साथ hf से कोई भी gguf"
 
+#: src/handlers/llm/openrouter_handler.py:14
+#, fuzzy
+msgid "Provider Sorting"
+msgstr "प्रदाता त्रुटि"
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Choose providers based on pricing/throughput or latency"
+msgstr "कीमत/थ्रूपुट या विलंबता के आधार पर प्रदाताओं को चुनें"
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Price"
+msgstr "कीमत"
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Throughput"
+msgstr "थ्रूपुट"
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Latency"
+msgstr "विलंबता"
+
+#: src/handlers/llm/openrouter_handler.py:15
+#, fuzzy
+msgid "Providers Order"
+msgstr "प्रदाताओं का क्रम"
+
+#: src/handlers/llm/openrouter_handler.py:15
+msgid ""
+"Add order of providers to use, names separated by a comma.\n"
+"Empty to not specify"
+msgstr ""
+"उपयोग किए जाने वाले प्रदाताओं का क्रम जोड़ें, नामों को कॉमा से अलग करें।\n"
+"निर्दिष्ट न करने के लिए खाली छोड़ें"
+
+#: src/handlers/llm/openrouter_handler.py:16
+msgid "Allow Fallbacks"
+msgstr "फॉलबैक की अनुमति दें"
+
+#: src/handlers/llm/openrouter_handler.py:16
+msgid "Allow fallbacks to other providers"
+msgstr "अन्य प्रदाताओं पर फॉलबैक की अनुमति दें"
+
 #: src/handlers/llm/openai_handler.py:81
 msgid "Include parameters like Max Tokens, Top-P, Temperature, etc."
 msgstr "अधिकतम टोकन, टॉप-पी, तापमान, आदि जैसे पैरामीटर शामिल करें।"
@@ -390,48 +432,6 @@ msgid ""
 msgstr ""
 "संख्या -2.0 और 2.0 के बीच। सकारात्मक मान मॉडल की नए विषयों के बारे में बात करने की "
 "संभावना को कम करते हैं"
-
-#: src/handlers/llm/openrouter_handler.py:14
-#, fuzzy
-msgid "Provider Sorting"
-msgstr "प्रदाता त्रुटि"
-
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Choose providers based on pricing/throughput or latency"
-msgstr "कीमत/थ्रूपुट या विलंबता के आधार पर प्रदाताओं को चुनें"
-
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Price"
-msgstr "कीमत"
-
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Throughput"
-msgstr "थ्रूपुट"
-
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Latency"
-msgstr "विलंबता"
-
-#: src/handlers/llm/openrouter_handler.py:15
-#, fuzzy
-msgid "Providers Order"
-msgstr "प्रदाताओं का क्रम"
-
-#: src/handlers/llm/openrouter_handler.py:15
-msgid ""
-"Add order of providers to use, names separated by a comma.\n"
-"Empty to not specify"
-msgstr ""
-"उपयोग किए जाने वाले प्रदाताओं का क्रम जोड़ें, नामों को कॉमा से अलग करें।\n"
-"निर्दिष्ट न करने के लिए खाली छोड़ें"
-
-#: src/handlers/llm/openrouter_handler.py:16
-msgid "Allow Fallbacks"
-msgstr "फॉलबैक की अनुमति दें"
-
-#: src/handlers/llm/openrouter_handler.py:16
-msgid "Allow fallbacks to other providers"
-msgstr "अन्य प्रदाताओं पर फॉलबैक की अनुमति दें"
 
 #: src/handlers/rag/rag_handler.py:104
 msgid "Index your documents"
@@ -646,24 +646,6 @@ msgstr ""
 msgid "Choose the preferred voice"
 msgstr "पसंदीदा आवाज़ चुनें"
 
-#: src/handlers/websearch/duckduckgo_handler.py:13
-#: src/handlers/websearch/tavily.py:21
-msgid "Max Results"
-msgstr "अधिकतम परिणाम"
-
-#: src/handlers/websearch/duckduckgo_handler.py:13
-#: src/handlers/websearch/tavily.py:21
-msgid "Number of results to consider"
-msgstr "विचार करने के लिए परिणामों की संख्या"
-
-#: src/handlers/websearch/duckduckgo_handler.py:14
-msgid "Region"
-msgstr "क्षेत्र"
-
-#: src/handlers/websearch/duckduckgo_handler.py:14
-msgid "Region for the search results"
-msgstr "खोज परिणामों के लिए क्षेत्र"
-
 #: src/handlers/websearch/tavily.py:20
 #, fuzzy
 msgid "Token"
@@ -672,6 +654,16 @@ msgstr "टोकन"
 #: src/handlers/websearch/tavily.py:20
 msgid "Tavily API key"
 msgstr "टैविली एपीआई कुंजी"
+
+#: src/handlers/websearch/tavily.py:21
+#: src/handlers/websearch/duckduckgo_handler.py:14
+msgid "Max Results"
+msgstr "अधिकतम परिणाम"
+
+#: src/handlers/websearch/tavily.py:21
+#: src/handlers/websearch/duckduckgo_handler.py:14
+msgid "Number of results to consider"
+msgstr "विचार करने के लिए परिणामों की संख्या"
 
 #: src/handlers/websearch/tavily.py:22
 msgid "The depth of the search"
@@ -780,7 +772,15 @@ msgstr "डोमेन को बाहर करें"
 msgid "A list of domains to specifically exclude from the search results."
 msgstr "खोज परिणामों से विशेष रूप से बाहर करने के लिए डोमेन की एक सूची।"
 
-#: src/ui/profile.py:33 src/window.py:112
+#: src/handlers/websearch/duckduckgo_handler.py:15
+msgid "Region"
+msgstr "क्षेत्र"
+
+#: src/handlers/websearch/duckduckgo_handler.py:15
+msgid "Region for the search results"
+msgstr "खोज परिणामों के लिए क्षेत्र"
+
+#: src/ui/profile.py:33 src/window.py:111
 msgid "Settings"
 msgstr "सेटिंग्स"
 
@@ -833,7 +833,7 @@ msgstr ""
 msgid "Also export the profile picture"
 msgstr "प्रोफ़ाइल चित्र सेट करें"
 
-#: src/ui/profile.py:109
+#: src/ui/profile.py:109 src/ui/explorer.py:692
 #, fuzzy
 msgid "Create"
 msgstr "एक चैट बनाएं"
@@ -863,7 +863,7 @@ msgstr ""
 msgid "Set profile picture"
 msgstr "प्रोफ़ाइल चित्र सेट करें"
 
-#: src/ui/thread_editing.py:6 src/window.py:110
+#: src/ui/thread_editing.py:6 src/window.py:109
 msgid "Thread editing"
 msgstr "थ्रेड संपादन"
 
@@ -908,28 +908,6 @@ msgstr "कोई विचार प्रक्रिया दर्ज न�
 #, fuzzy
 msgid "Newelle Tips"
 msgstr "न्युएल"
-
-#: src/ui/extension.py:17 src/ui/presentation.py:131 src/constants.py:489
-#: src/window.py:111
-msgid "Extensions"
-msgstr "एक्सटेंशन"
-
-#: src/ui/extension.py:50
-#, fuzzy
-msgid "Installed Extensions"
-msgstr "एक्सटेंशन"
-
-#: src/ui/extension.py:85
-msgid "User guide to Extensions"
-msgstr "एक्सटेंशन के लिए उपयोगकर्ता मार्गदर्शिका"
-
-#: src/ui/extension.py:88
-msgid "Download new Extensions"
-msgstr "नए एक्सटेंशन डाउनलोड करें"
-
-#: src/ui/extension.py:91
-msgid "Install extension from file..."
-msgstr "फ़ाइल से एक्सटेंशन स्थापित करें..."
 
 #: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.appdata.xml.in:7
 #: data/io.github.qwersyk.Newelle.desktop.in:2
@@ -981,7 +959,7 @@ msgstr ""
 "न्युएल चैट में आपके द्वारा भेजे गए दस्तावेज़ों से या आपकी अपनी फ़ाइलों से प्रासंगिक जानकारी "
 "प्राप्त कर सकता है! आपकी क्वेरी से संबंधित जानकारी LLM को भेजी जाएगी।"
 
-#: src/ui/presentation.py:124 src/ui/settings.py:234 src/window.py:604
+#: src/ui/presentation.py:124 src/ui/settings.py:234 src/window.py:603
 msgid "Command virtualization"
 msgstr "कमांड वर्चुअलाइजेशन"
 
@@ -997,6 +975,11 @@ msgstr ""
 "क्या चलाते हैं! <b>LLM हमारे नियंत्रण में नहीं है, इसलिए यह दुर्भावनापूर्ण कोड उत्पन्न कर "
 "सकता है!</b>\n"
 "डिफ़ॉल्ट रूप से, आपके कमांड <b>फ्लैटपैक वातावरण में वर्चुअलाइज्ड</b> होंगे, लेकिन ध्यान दें!"
+
+#: src/ui/presentation.py:131 src/ui/extension.py:17 src/constants.py:483
+#: src/window.py:110
+msgid "Extensions"
+msgstr "एक्सटेंशन"
 
 #: src/ui/presentation.py:132
 msgid "You can extend Newelle's functionalities using extensions!"
@@ -1023,15 +1006,15 @@ msgstr "ऐप का उपयोग शुरू करें"
 msgid "Start chatting"
 msgstr "चैटिंग शुरू करें"
 
-#: src/ui/settings.py:44 src/constants.py:499
+#: src/ui/settings.py:44 src/constants.py:493
 msgid "General"
 msgstr "सामान्य"
 
-#: src/ui/settings.py:45 src/constants.py:454
+#: src/ui/settings.py:45 src/constants.py:448
 msgid "LLM"
 msgstr "LLM"
 
-#: src/ui/settings.py:46 src/constants.py:504
+#: src/ui/settings.py:46 src/constants.py:498
 msgid "Prompts"
 msgstr "प्रॉम्प्ट"
 
@@ -1078,7 +1061,7 @@ msgstr ""
 "RAG द्वारा उपयोग किया जाता है। इसे बदलने पर आपको दस्तावेज़ों को फिर से इंडेक्स करने या "
 "मेमोरी रीसेट करने की आवश्यकता हो सकती है।"
 
-#: src/ui/settings.py:102 src/window.py:602
+#: src/ui/settings.py:102 src/window.py:601
 msgid "Long Term Memory"
 msgstr "दीर्घकालिक मेमोरी"
 
@@ -1086,7 +1069,7 @@ msgstr "दीर्घकालिक मेमोरी"
 msgid "Keep memory of old conversations"
 msgstr "पुरानी बातचीत की मेमोरी रखें"
 
-#: src/ui/settings.py:114 src/constants.py:406
+#: src/ui/settings.py:114 src/constants.py:400
 msgid "Web Search"
 msgstr "वेब खोज"
 
@@ -1298,7 +1281,7 @@ msgstr "प्रोफ़ाइल चुनें"
 msgid "Delete browser session and data"
 msgstr ""
 
-#: src/ui/settings.py:328 src/ui/explorer.py:355 src/ui/explorer.py:491
+#: src/ui/settings.py:328 src/ui/explorer.py:366 src/ui/explorer.py:502
 #, fuzzy
 msgid "Delete"
 msgstr "प्रोफ़ाइल चुनें"
@@ -1466,84 +1449,187 @@ msgstr "ज़ूम इन करें"
 msgid "Zoom out"
 msgstr "ज़ूम आउट करें"
 
-#: src/ui/explorer.py:191
+#: src/ui/explorer.py:192
 msgid "Folder is Empty"
 msgstr "फ़ोल्डर खाली है"
 
-#: src/ui/explorer.py:329 src/window.py:1510
+#: src/ui/explorer.py:340 src/window.py:1510
 msgid "File not found"
 msgstr "फ़ाइल नहीं मिली"
 
-#: src/ui/explorer.py:344
+#: src/ui/explorer.py:355
 msgid "Open in new tab"
 msgstr ""
 
-#: src/ui/explorer.py:346
+#: src/ui/explorer.py:357
 msgid "Open in integrated editor"
 msgstr ""
 
-#: src/ui/explorer.py:349
+#: src/ui/explorer.py:360 src/ui/explorer.py:589
 msgid "Open in file manager"
 msgstr ""
 
-#: src/ui/explorer.py:352 src/ui/explorer.py:440
+#: src/ui/explorer.py:363 src/ui/explorer.py:451
 #, fuzzy
 msgid "Rename"
 msgstr "उपयोगकर्ता नाम"
 
-#: src/ui/explorer.py:358
+#: src/ui/explorer.py:369
 msgid "Copy full path"
 msgstr ""
 
-#: src/ui/explorer.py:409
+#: src/ui/explorer.py:420 src/ui/explorer.py:657
 #, fuzzy
 msgid "Failed to open file manager"
 msgstr "फ़ोल्डर खोलने में विफल"
 
-#: src/ui/explorer.py:425
+#: src/ui/explorer.py:436
 #, fuzzy
 msgid "New name:"
 msgstr "नया टैब"
 
-#: src/ui/explorer.py:437 src/ui/explorer.py:490 src/main.py:204
+#: src/ui/explorer.py:448 src/ui/explorer.py:501 src/ui/explorer.py:689
+#: src/main.py:204
 msgid "Cancel"
 msgstr "रद्द करें"
 
-#: src/ui/explorer.py:460
+#: src/ui/explorer.py:471
 msgid "Renamed successfully"
 msgstr ""
 
-#: src/ui/explorer.py:465
+#: src/ui/explorer.py:476
 #, fuzzy
 msgid "Failed to rename: {}"
 msgstr "फ़ोल्डर खोलने में विफल"
 
-#: src/ui/explorer.py:486
+#: src/ui/explorer.py:497
 #, fuzzy
 msgid "Delete File?"
 msgstr "प्रोफ़ाइल चुनें"
 
-#: src/ui/explorer.py:488
+#: src/ui/explorer.py:499
 msgid "Are you sure you want to delete \"{}\"?"
 msgstr ""
 
-#: src/ui/explorer.py:509
+#: src/ui/explorer.py:520
 msgid "Deleted successfully"
 msgstr ""
 
-#: src/ui/explorer.py:514
+#: src/ui/explorer.py:525
 #, fuzzy
 msgid "Failed to delete: {}"
 msgstr "फ़ोल्डर खोलने में विफल"
 
-#: src/ui/explorer.py:527
+#: src/ui/explorer.py:538
 msgid "Path copied to clipboard"
 msgstr ""
 
-#: src/ui/explorer.py:531
+#: src/ui/explorer.py:542
 #, fuzzy
 msgid "Failed to copy path"
 msgstr "फ़ोल्डर खोलने में विफल"
+
+#: src/ui/explorer.py:580
+#, fuzzy
+msgid "Create new folder"
+msgstr "नया प्रोफ़ाइल बनाएं"
+
+#: src/ui/explorer.py:583
+#, fuzzy
+msgid "Create new file"
+msgstr "नया प्रोफ़ाइल बनाएं"
+
+#: src/ui/explorer.py:586
+#, fuzzy
+msgid "Open Terminal Here"
+msgstr "बाहरी टर्मिनल"
+
+#: src/ui/explorer.py:640
+#, fuzzy
+msgid "Create New Folder"
+msgstr "नया प्रोफ़ाइल बनाएं"
+
+#: src/ui/explorer.py:640
+#, fuzzy
+msgid "Folder name:"
+msgstr "नया टैब"
+
+#: src/ui/explorer.py:644
+#, fuzzy
+msgid "Create New File"
+msgstr "नया प्रोफ़ाइल बनाएं"
+
+#: src/ui/explorer.py:644
+#, fuzzy
+msgid "File name:"
+msgstr "नया टैब"
+
+#: src/ui/explorer.py:713
+msgid "Folder created successfully"
+msgstr ""
+
+#: src/ui/explorer.py:720
+msgid "File created successfully"
+msgstr ""
+
+#: src/ui/explorer.py:725
+msgid "A file or folder with that name already exists"
+msgstr ""
+
+#: src/ui/explorer.py:728
+#, fuzzy
+msgid "folder"
+msgstr "फ़ोल्डर रीलोड करें"
+
+#: src/ui/explorer.py:728
+msgid "file"
+msgstr ""
+
+#: src/ui/explorer.py:730
+#, fuzzy
+msgid "Failed to create {}: {}"
+msgstr "फ़ोल्डर खोलने में विफल"
+
+#: src/ui/extension.py:50
+#, fuzzy
+msgid "Installed Extensions"
+msgstr "एक्सटेंशन"
+
+#: src/ui/extension.py:85
+msgid "User guide to Extensions"
+msgstr "एक्सटेंशन के लिए उपयोगकर्ता मार्गदर्शिका"
+
+#: src/ui/extension.py:88
+msgid "Download new Extensions"
+msgstr "नए एक्सटेंशन डाउनलोड करें"
+
+#: src/ui/extension.py:91
+msgid "Install extension from file..."
+msgstr "फ़ाइल से एक्सटेंशन स्थापित करें..."
+
+#: src/main.py:200
+msgid "Terminal threads are still running in the background"
+msgstr "टर्मिनल थ्रेड अभी भी पृष्ठभूमि में चल रहे हैं"
+
+#: src/main.py:201
+msgid "When you close the window, they will be automatically terminated"
+msgstr "जब आप विंडो बंद करते हैं, तो वे स्वचालित रूप से समाप्त हो जाएंगे"
+
+#: src/main.py:205
+msgid "Close"
+msgstr "बंद करें"
+
+#: src/main.py:239
+msgid "Chat is rebooted"
+msgstr "चैट रीबूट हो गया है"
+
+#: src/main.py:244
+msgid "Folder is rebooted"
+msgstr "फ़ोल्डर रीबूट हो गया है"
+
+#: src/main.py:249
+msgid "Chat is created"
+msgstr "चैट बन गया है"
 
 #: src/constants.py:20
 msgid "Newelle Demo API"
@@ -1837,142 +1923,142 @@ msgstr "टैविली"
 msgid "Tavily search"
 msgstr "टैविली खोज"
 
-#: src/constants.py:380
+#: src/constants.py:374
 msgid "Helpful assistant"
 msgstr "सहायक असिस्टेंट"
 
-#: src/constants.py:381
+#: src/constants.py:375
 msgid "General purpose prompt to enhance the LLM answers and give more context"
 msgstr "LLM उत्तरों को बढ़ाने और अधिक संदर्भ देने के लिए सामान्य प्रयोजन प्रॉम्प्ट"
 
-#: src/constants.py:389
+#: src/constants.py:383
 msgid "Console access"
 msgstr "कंसोल एक्सेस"
 
-#: src/constants.py:390
+#: src/constants.py:384
 msgid "Can the program run terminal commands on the computer"
 msgstr "क्या प्रोग्राम कंप्यूटर पर टर्मिनल कमांड चला सकता है"
 
-#: src/constants.py:397
+#: src/constants.py:391
 msgid "Current directory"
 msgstr "वर्तमान डायरेक्टरी"
 
-#: src/constants.py:398
+#: src/constants.py:392
 msgid "What is the current directory"
 msgstr "वर्तमान डायरेक्टरी क्या है"
 
-#: src/constants.py:407
+#: src/constants.py:401
 msgid "Allow the LLM to search on the internet"
 msgstr "LLM को इंटरनेट पर खोजने की अनुमति दें"
 
-#: src/constants.py:415
+#: src/constants.py:409
 msgid "Basic functionality"
 msgstr "बुनियादी कार्यक्षमता"
 
-#: src/constants.py:416
+#: src/constants.py:410
 msgid "Showing tables and code (*can work without it)"
 msgstr "तालिकाएँ और कोड दिखाना (*इसके बिना काम कर सकता है)"
 
-#: src/constants.py:424
+#: src/constants.py:418
 msgid "Graphs access"
 msgstr "ग्राफ़ एक्सेस"
 
-#: src/constants.py:425
+#: src/constants.py:419
 msgid "Can the program display graphs"
 msgstr "क्या प्रोग्राम ग्राफ़ प्रदर्शित कर सकता है"
 
-#: src/constants.py:433
+#: src/constants.py:427
 msgid "Show image"
 msgstr "छवि दिखाएं"
 
-#: src/constants.py:434
+#: src/constants.py:428
 msgid "Show image in chat"
 msgstr "चैट में छवि दिखाएं"
 
-#: src/constants.py:442
+#: src/constants.py:436
 msgid "Custom Prompt"
 msgstr "कस्टम प्रॉम्प्ट"
 
-#: src/constants.py:443
+#: src/constants.py:437
 msgid "Add your own custom prompt"
 msgstr "अपना स्वयं का कस्टम प्रॉम्प्ट जोड़ें"
 
-#: src/constants.py:456
+#: src/constants.py:450
 #, fuzzy
 msgid "LLM and Secondary LLM settings"
 msgstr "उन्नत LLM सेटिंग्स"
 
-#: src/constants.py:459 src/window.py:603
+#: src/constants.py:453 src/window.py:602
 msgid "TTS"
 msgstr "TTS"
 
-#: src/constants.py:461
+#: src/constants.py:455
 #, fuzzy
 msgid "Text to Speech settings"
 msgstr "टेक्स्ट टू स्पीच प्रोग्राम"
 
-#: src/constants.py:464
+#: src/constants.py:458
 msgid "STT"
 msgstr "STT"
 
-#: src/constants.py:466
+#: src/constants.py:460
 #, fuzzy
 msgid "Speech to Text settings"
 msgstr "स्पीच टू टेक्स्ट इंजन"
 
-#: src/constants.py:469
+#: src/constants.py:463
 #, fuzzy
 msgid "Embedding"
 msgstr "एम्बेडिंग मॉडल"
 
-#: src/constants.py:471
+#: src/constants.py:465
 #, fuzzy
 msgid "Embedding settings"
 msgstr "एम्बेडिंग मॉडल"
 
-#: src/constants.py:474
+#: src/constants.py:468
 msgid "Memory"
 msgstr "मेमोरी"
 
-#: src/constants.py:476
+#: src/constants.py:470
 #, fuzzy
 msgid "Memory settings"
 msgstr "सेटिंग्स"
 
-#: src/constants.py:479
+#: src/constants.py:473
 #, fuzzy
 msgid "Websearch"
 msgstr "सुरक्षा सेटिंग्स सक्षम करें"
 
-#: src/constants.py:481
+#: src/constants.py:475
 #, fuzzy
 msgid "Websearch settings"
 msgstr "सुरक्षा सेटिंग्स सक्षम करें"
 
-#: src/constants.py:484
+#: src/constants.py:478
 msgid "RAG"
 msgstr "RAG"
 
-#: src/constants.py:486
+#: src/constants.py:480
 #, fuzzy
 msgid "Document analyzer settings"
 msgstr "दस्तावेज़ विश्लेषक"
 
-#: src/constants.py:491
+#: src/constants.py:485
 #, fuzzy
 msgid "Extensions settings"
 msgstr "एक्सटेंशन"
 
-#: src/constants.py:494
+#: src/constants.py:488
 #, fuzzy
 msgid "Inteface"
 msgstr "इंटरफ़ेस"
 
-#: src/constants.py:496
+#: src/constants.py:490
 msgid "Interface settings, hidden files, reverse order, zoom..."
 msgstr "इंटरफ़ेस सेटिंग्स, छिपी हुई फ़ाइलें, उलटा क्रम, ज़ूम..."
 
-#: src/constants.py:501
+#: src/constants.py:495
 msgid ""
 "General settings, virtualization, offers, memory length, automatically "
 "generate chat name, current folder..."
@@ -1980,7 +2066,7 @@ msgstr ""
 "सामान्य सेटिंग्स, वर्चुअलाइज़ेशन, ऑफ़र, मेमोरी की लंबाई, चैट नाम स्वचालित रूप से जनरेट करें, "
 "वर्तमान फ़ोल्डर..."
 
-#: src/constants.py:506
+#: src/constants.py:500
 msgid "Prompts settings, custom extra prompt, custom prompts..."
 msgstr "प्रॉम्प्ट सेटिंग्स, कस्टम अतिरिक्त प्रॉम्प्ट, कस्टम प्रॉम्प्ट..."
 
@@ -1988,110 +2074,86 @@ msgstr "प्रॉम्प्ट सेटिंग्स, कस्टम �
 msgid "Chat "
 msgstr "चैट "
 
-#: src/main.py:200
-msgid "Terminal threads are still running in the background"
-msgstr "टर्मिनल थ्रेड अभी भी पृष्ठभूमि में चल रहे हैं"
-
-#: src/main.py:201
-msgid "When you close the window, they will be automatically terminated"
-msgstr "जब आप विंडो बंद करते हैं, तो वे स्वचालित रूप से समाप्त हो जाएंगे"
-
-#: src/main.py:205
-msgid "Close"
-msgstr "बंद करें"
-
-#: src/main.py:239
-msgid "Chat is rebooted"
-msgstr "चैट रीबूट हो गया है"
-
-#: src/main.py:244
-msgid "Folder is rebooted"
-msgstr "फ़ोल्डर रीबूट हो गया है"
-
-#: src/main.py:249
-msgid "Chat is created"
-msgstr "चैट बन गया है"
-
-#: src/window.py:113
+#: src/window.py:112
 msgid "Keyboard shorcuts"
 msgstr "कीबोर्ड शॉर्टकट"
 
-#: src/window.py:114
+#: src/window.py:113
 msgid "About"
 msgstr "बारे में"
 
-#: src/window.py:121 src/window.py:190
+#: src/window.py:120 src/window.py:189
 msgid "Chat"
 msgstr "चैट"
 
-#: src/window.py:163
+#: src/window.py:162
 msgid "History"
 msgstr "इतिहास"
 
-#: src/window.py:184
+#: src/window.py:183
 msgid "Create a chat"
 msgstr "एक चैट बनाएं"
 
-#: src/window.py:189
+#: src/window.py:188
 #, fuzzy
 msgid "Chats"
 msgstr "चैट"
 
-#: src/window.py:260
+#: src/window.py:259
 msgid " Stop"
 msgstr " रोकें"
 
-#: src/window.py:275
+#: src/window.py:274
 msgid " Clear"
 msgstr " साफ़ करें"
 
-#: src/window.py:290
+#: src/window.py:289
 msgid " Continue"
 msgstr " जारी रखें"
 
-#: src/window.py:303
+#: src/window.py:302
 msgid " Regenerate"
 msgstr " फिर से उत्पन्न करें"
 
-#: src/window.py:369
+#: src/window.py:368
 msgid "Send a message..."
 msgstr "एक संदेश भेजें..."
 
-#: src/window.py:449
+#: src/window.py:448
 msgid "Explorer Tab"
 msgstr ""
 
-#: src/window.py:450
+#: src/window.py:449
 msgid "Terminal Tab"
 msgstr ""
 
-#: src/window.py:451
+#: src/window.py:450
 msgid "Browser Tab"
 msgstr ""
 
-#: src/window.py:545
+#: src/window.py:544
 msgid "Ask about a website"
 msgstr "एक वेबसाइट के बारे में पूछें"
 
-#: src/window.py:545
+#: src/window.py:544
 msgid "Write #https://website.com in chat to ask information about a website"
 msgstr "किसी वेबसाइट के बारे में जानकारी पूछने के लिए चैट में #https://website.com लिखें"
 
-#: src/window.py:546
+#: src/window.py:545
 #, fuzzy
 msgid "Check out our Extensions!"
 msgstr "हमारे एक्सटेंशन देखें!"
 
-#: src/window.py:546
+#: src/window.py:545
 msgid "We have a lot of extensions for different things. Check it out!"
 msgstr "हमारे पास विभिन्न चीज़ों के लिए बहुत सारे एक्सटेंशन हैं। उन्हें देखें!"
 
-#: src/window.py:547
+#: src/window.py:546
 #, fuzzy
 msgid "Chat with documents!"
 msgstr "अपने दस्तावेज़ों के साथ चैट करें"
 
-#: src/window.py:547
+#: src/window.py:546
 msgid ""
 "Add your documents to your documents folder and chat using the information "
 "contained in them!"
@@ -2099,78 +2161,78 @@ msgstr ""
 "अपने दस्तावेज़ों को अपने दस्तावेज़ फ़ोल्डर में जोड़ें और उनमें निहित जानकारी का उपयोग करके चैट "
 "करें!"
 
-#: src/window.py:548
+#: src/window.py:547
 msgid "Surf the web!"
 msgstr "वेब सर्फ करें!"
 
-#: src/window.py:548
+#: src/window.py:547
 msgid ""
 "Enable web search to allow the LLM to surf the web and provide up to date "
 "answers"
 msgstr ""
 "LLM को वेब सर्फ करने और अद्यतित उत्तर प्रदान करने की अनुमति देने के लिए वेब खोज सक्षम करें"
 
-#: src/window.py:549
+#: src/window.py:548
 msgid "Mini Window"
 msgstr "मिनी विंडो"
 
-#: src/window.py:549
+#: src/window.py:548
 msgid "Ask questions on the fly using the mini window mode"
 msgstr "मिनी विंडो मोड का उपयोग करके तुरंत प्रश्न पूछें"
 
-#: src/window.py:550
+#: src/window.py:549
 #, fuzzy
 msgid "Text to Speech"
 msgstr "टेक्स्ट टू स्पीच"
 
-#: src/window.py:550
+#: src/window.py:549
 msgid "Newelle supports text-to-speech! Enable it in the settings"
 msgstr "न्यूएले टेक्स्ट-टू-स्पीच का समर्थन करता है! इसे सेटिंग्स में सक्षम करें"
 
-#: src/window.py:551
+#: src/window.py:550
 #, fuzzy
 msgid "Keyboard Shortcuts"
 msgstr "कीबोर्ड शॉर्टकट"
 
-#: src/window.py:551
+#: src/window.py:550
 #, fuzzy
 msgid "Control Newelle using Keyboard Shortcuts"
 msgstr "कीबोर्ड शॉर्टकट"
 
-#: src/window.py:552
+#: src/window.py:551
 #, fuzzy
 msgid "Prompt Control"
 msgstr "प्रॉम्प्ट नियंत्रण"
 
-#: src/window.py:552
+#: src/window.py:551
 msgid "Newelle gives you 100% prompt control. Tune your prompts for your use."
 msgstr ""
 "न्यूएले आपको 100% प्रॉम्प्ट नियंत्रण देता है। अपनी उपयोग के लिए अपने प्रॉम्प्ट को ट्यून करें।"
 
-#: src/window.py:553
+#: src/window.py:552
 #, fuzzy
 msgid "Thread Editing"
 msgstr "थ्रेड संपादन"
 
-#: src/window.py:553
+#: src/window.py:552
 msgid "Check the programs and processes you run from Newelle"
 msgstr "न्यूएले से आपके द्वारा चलाए जा रहे प्रोग्राम और प्रक्रियाओं की जाँच करें"
 
-#: src/window.py:560
+#: src/window.py:559
 #, fuzzy
 msgid "New Chat"
 msgstr "नया टैब"
 
-#: src/window.py:578
+#: src/window.py:577
 msgid "Provider Errror"
 msgstr "प्रदाता त्रुटि"
 
-#: src/window.py:601
+#: src/window.py:600
 #, fuzzy
 msgid "Local Documents"
 msgstr "स्थानीय मॉडल"
 
-#: src/window.py:605
+#: src/window.py:604
 #, fuzzy
 msgid "Web search"
 msgstr "सुरक्षा सेटिंग्स सक्षम करें"
@@ -2251,15 +2313,15 @@ msgstr "संदेश रद्द कर दिया गया और इत
 msgid "The message cannot be sent until the program is finished"
 msgstr "प्रोग्राम समाप्त होने तक संदेश नहीं भेजा जा सकता"
 
-#: src/window.py:2767
+#: src/window.py:2785
 msgid "You can't edit a message while the program is running."
 msgstr "प्रोग्राम चलते समय आप संदेश संपादित नहीं कर सकते।"
 
-#: src/window.py:2892
+#: src/window.py:2910
 msgid "Prompt content"
 msgstr "प्रॉम्प्ट सामग्री"
 
-#: src/window.py:3148
+#: src/window.py:3166
 msgid ""
 "The neural network has access to your computer and any data in this chat and "
 "can run commands, be careful, we are not responsible for the neural network. "
@@ -2269,7 +2331,7 @@ msgstr ""
 "सकता है, सावधान रहें, हम न्यूरल नेटवर्क के लिए जिम्मेदार नहीं हैं। कोई भी संवेदनशील जानकारी "
 "साझा न करें।"
 
-#: src/window.py:3177
+#: src/window.py:3195
 msgid ""
 "The neural network has access to any data in this chat, be careful, we are "
 "not responsible for the neural network. Do not share any sensitive "
@@ -2278,15 +2340,15 @@ msgstr ""
 "न्यूरल नेटवर्क के पास इस चैट में किसी भी डेटा तक पहुंच है, सावधान रहें, हम न्यूरल नेटवर्क के "
 "लिए जिम्मेदार नहीं हैं। कोई भी संवेदनशील जानकारी साझा न करें।"
 
-#: src/window.py:3226
+#: src/window.py:3244
 msgid "Wrong folder path"
 msgstr "गलत फ़ोल्डर पथ"
 
-#: src/window.py:3259
+#: src/window.py:3277
 msgid "Thread has not been completed, thread number: "
 msgstr "थ्रेड पूरा नहीं हुआ है, थ्रेड संख्या: "
 
-#: src/window.py:3271
+#: src/window.py:3289
 msgid "Failed to open the folder"
 msgstr "फ़ोल्डर खोलने में विफल"
 

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Newelle 0.2.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-16 12:38+0800\n"
+"POT-Creation-Date: 2025-06-18 21:59+0800\n"
 "PO-Revision-Date: 2023-07-10 09:54+0200\n"
 "Last-Translator: Yehor Qwersyk <qsk@gmx.at>\n"
 "Language-Team: German\n"
@@ -317,6 +317,44 @@ msgid ""
 "Or any gguf from hf with hf.co/username/model"
 msgstr ""
 
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Provider Sorting"
+msgstr ""
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Choose providers based on pricing/throughput or latency"
+msgstr ""
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Price"
+msgstr ""
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Throughput"
+msgstr ""
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Latency"
+msgstr ""
+
+#: src/handlers/llm/openrouter_handler.py:15
+msgid "Providers Order"
+msgstr ""
+
+#: src/handlers/llm/openrouter_handler.py:15
+msgid ""
+"Add order of providers to use, names separated by a comma.\n"
+"Empty to not specify"
+msgstr ""
+
+#: src/handlers/llm/openrouter_handler.py:16
+msgid "Allow Fallbacks"
+msgstr ""
+
+#: src/handlers/llm/openrouter_handler.py:16
+msgid "Allow fallbacks to other providers"
+msgstr ""
+
 #: src/handlers/llm/openai_handler.py:81
 msgid "Include parameters like Max Tokens, Top-P, Temperature, etc."
 msgstr ""
@@ -370,44 +408,6 @@ msgstr ""
 msgid ""
 "Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
 "to talk about new topics"
-msgstr ""
-
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Provider Sorting"
-msgstr ""
-
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Choose providers based on pricing/throughput or latency"
-msgstr ""
-
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Price"
-msgstr ""
-
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Throughput"
-msgstr ""
-
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Latency"
-msgstr ""
-
-#: src/handlers/llm/openrouter_handler.py:15
-msgid "Providers Order"
-msgstr ""
-
-#: src/handlers/llm/openrouter_handler.py:15
-msgid ""
-"Add order of providers to use, names separated by a comma.\n"
-"Empty to not specify"
-msgstr ""
-
-#: src/handlers/llm/openrouter_handler.py:16
-msgid "Allow Fallbacks"
-msgstr ""
-
-#: src/handlers/llm/openrouter_handler.py:16
-msgid "Allow fallbacks to other providers"
 msgstr ""
 
 #: src/handlers/rag/rag_handler.py:104
@@ -611,30 +611,22 @@ msgstr ""
 msgid "Choose the preferred voice"
 msgstr ""
 
-#: src/handlers/websearch/duckduckgo_handler.py:13
-#: src/handlers/websearch/tavily.py:21
-msgid "Max Results"
-msgstr ""
-
-#: src/handlers/websearch/duckduckgo_handler.py:13
-#: src/handlers/websearch/tavily.py:21
-msgid "Number of results to consider"
-msgstr ""
-
-#: src/handlers/websearch/duckduckgo_handler.py:14
-msgid "Region"
-msgstr ""
-
-#: src/handlers/websearch/duckduckgo_handler.py:14
-msgid "Region for the search results"
-msgstr ""
-
 #: src/handlers/websearch/tavily.py:20
 msgid "Token"
 msgstr ""
 
 #: src/handlers/websearch/tavily.py:20
 msgid "Tavily API key"
+msgstr ""
+
+#: src/handlers/websearch/tavily.py:21
+#: src/handlers/websearch/duckduckgo_handler.py:14
+msgid "Max Results"
+msgstr ""
+
+#: src/handlers/websearch/tavily.py:21
+#: src/handlers/websearch/duckduckgo_handler.py:14
+msgid "Number of results to consider"
 msgstr ""
 
 #: src/handlers/websearch/tavily.py:22
@@ -731,7 +723,15 @@ msgstr ""
 msgid "A list of domains to specifically exclude from the search results."
 msgstr ""
 
-#: src/ui/profile.py:33 src/window.py:112
+#: src/handlers/websearch/duckduckgo_handler.py:15
+msgid "Region"
+msgstr ""
+
+#: src/handlers/websearch/duckduckgo_handler.py:15
+msgid "Region for the search results"
+msgstr ""
+
+#: src/ui/profile.py:33 src/window.py:111
 msgid "Settings"
 msgstr "Einstellungen"
 
@@ -780,7 +780,7 @@ msgstr ""
 msgid "Also export the profile picture"
 msgstr ""
 
-#: src/ui/profile.py:109
+#: src/ui/profile.py:109 src/ui/explorer.py:692
 #, fuzzy
 msgid "Create"
 msgstr "Einen Chat erstellen"
@@ -809,7 +809,7 @@ msgstr ""
 msgid "Set profile picture"
 msgstr ""
 
-#: src/ui/thread_editing.py:6 src/window.py:110
+#: src/ui/thread_editing.py:6 src/window.py:109
 msgid "Thread editing"
 msgstr "Thread-Bearbeitung"
 
@@ -851,29 +851,6 @@ msgstr ""
 
 #: src/ui/widgets/tipscarousel.py:41
 msgid "Newelle Tips"
-msgstr ""
-
-#: src/ui/extension.py:17 src/ui/presentation.py:131 src/constants.py:489
-#: src/window.py:111
-msgid "Extensions"
-msgstr "Erweiterungen"
-
-#: src/ui/extension.py:50
-#, fuzzy
-msgid "Installed Extensions"
-msgstr "Erweiterungen"
-
-#: src/ui/extension.py:85
-msgid "User guide to Extensions"
-msgstr ""
-
-#: src/ui/extension.py:88
-#, fuzzy
-msgid "Download new Extensions"
-msgstr "Wählen Sie eine Erweiterung"
-
-#: src/ui/extension.py:91
-msgid "Install extension from file..."
 msgstr ""
 
 #: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.appdata.xml.in:7
@@ -922,7 +899,7 @@ msgid ""
 "to the LLM."
 msgstr ""
 
-#: src/ui/presentation.py:124 src/ui/settings.py:234 src/window.py:604
+#: src/ui/presentation.py:124 src/ui/settings.py:234 src/window.py:603
 msgid "Command virtualization"
 msgstr "Befehlsvirtualisierung"
 
@@ -934,6 +911,11 @@ msgid ""
 "By default, your commands will be <b>virtualized in the Flatpak environment</"
 "b>, but pay attention!"
 msgstr ""
+
+#: src/ui/presentation.py:131 src/ui/extension.py:17 src/constants.py:483
+#: src/window.py:110
+msgid "Extensions"
+msgstr "Erweiterungen"
 
 #: src/ui/presentation.py:132
 msgid "You can extend Newelle's functionalities using extensions!"
@@ -961,15 +943,15 @@ msgstr ""
 msgid "Start chatting"
 msgstr ""
 
-#: src/ui/settings.py:44 src/constants.py:499
+#: src/ui/settings.py:44 src/constants.py:493
 msgid "General"
 msgstr ""
 
-#: src/ui/settings.py:45 src/constants.py:454
+#: src/ui/settings.py:45 src/constants.py:448
 msgid "LLM"
 msgstr ""
 
-#: src/ui/settings.py:46 src/constants.py:504
+#: src/ui/settings.py:46 src/constants.py:498
 msgid "Prompts"
 msgstr ""
 
@@ -1013,7 +995,7 @@ msgid ""
 "and RAG. Changing it might require you to re-index documents or reset memory."
 msgstr ""
 
-#: src/ui/settings.py:102 src/window.py:602
+#: src/ui/settings.py:102 src/window.py:601
 #, fuzzy
 msgid "Long Term Memory"
 msgstr "Programmspeicher"
@@ -1022,7 +1004,7 @@ msgstr "Programmspeicher"
 msgid "Keep memory of old conversations"
 msgstr ""
 
-#: src/ui/settings.py:114 src/constants.py:406
+#: src/ui/settings.py:114 src/constants.py:400
 msgid "Web Search"
 msgstr ""
 
@@ -1231,7 +1213,7 @@ msgstr ""
 msgid "Delete browser session and data"
 msgstr ""
 
-#: src/ui/settings.py:328 src/ui/explorer.py:355 src/ui/explorer.py:491
+#: src/ui/settings.py:328 src/ui/explorer.py:366 src/ui/explorer.py:502
 msgid "Delete"
 msgstr ""
 
@@ -1388,82 +1370,182 @@ msgstr ""
 msgid "Zoom out"
 msgstr ""
 
-#: src/ui/explorer.py:191
+#: src/ui/explorer.py:192
 msgid "Folder is Empty"
 msgstr "Der Ordner ist leer"
 
-#: src/ui/explorer.py:329 src/window.py:1510
+#: src/ui/explorer.py:340 src/window.py:1510
 msgid "File not found"
 msgstr "Datei nicht gefunden"
 
-#: src/ui/explorer.py:344
+#: src/ui/explorer.py:355
 msgid "Open in new tab"
 msgstr ""
 
-#: src/ui/explorer.py:346
+#: src/ui/explorer.py:357
 msgid "Open in integrated editor"
 msgstr ""
 
-#: src/ui/explorer.py:349
+#: src/ui/explorer.py:360 src/ui/explorer.py:589
 msgid "Open in file manager"
 msgstr ""
 
-#: src/ui/explorer.py:352 src/ui/explorer.py:440
+#: src/ui/explorer.py:363 src/ui/explorer.py:451
 msgid "Rename"
 msgstr ""
 
-#: src/ui/explorer.py:358
+#: src/ui/explorer.py:369
 msgid "Copy full path"
 msgstr ""
 
-#: src/ui/explorer.py:409
+#: src/ui/explorer.py:420 src/ui/explorer.py:657
 #, fuzzy
 msgid "Failed to open file manager"
 msgstr "Fehler beim Öffnen des Ordners"
 
-#: src/ui/explorer.py:425
+#: src/ui/explorer.py:436
 #, fuzzy
 msgid "New name:"
 msgstr "Neuer Tab"
 
-#: src/ui/explorer.py:437 src/ui/explorer.py:490 src/main.py:204
+#: src/ui/explorer.py:448 src/ui/explorer.py:501 src/ui/explorer.py:689
+#: src/main.py:204
 msgid "Cancel"
 msgstr "Abbrechen"
 
-#: src/ui/explorer.py:460
+#: src/ui/explorer.py:471
 msgid "Renamed successfully"
 msgstr ""
 
-#: src/ui/explorer.py:465
+#: src/ui/explorer.py:476
 #, fuzzy
 msgid "Failed to rename: {}"
 msgstr "Senden der Nachricht an den Bot fehlgeschlagen"
 
-#: src/ui/explorer.py:486
+#: src/ui/explorer.py:497
 msgid "Delete File?"
 msgstr ""
 
-#: src/ui/explorer.py:488
+#: src/ui/explorer.py:499
 msgid "Are you sure you want to delete \"{}\"?"
 msgstr ""
 
-#: src/ui/explorer.py:509
+#: src/ui/explorer.py:520
 msgid "Deleted successfully"
 msgstr ""
 
-#: src/ui/explorer.py:514
+#: src/ui/explorer.py:525
 #, fuzzy
 msgid "Failed to delete: {}"
 msgstr "Fehler beim Öffnen des Ordners"
 
-#: src/ui/explorer.py:527
+#: src/ui/explorer.py:538
 msgid "Path copied to clipboard"
 msgstr ""
 
-#: src/ui/explorer.py:531
+#: src/ui/explorer.py:542
 #, fuzzy
 msgid "Failed to copy path"
 msgstr "Fehler beim Öffnen des Ordners"
+
+#: src/ui/explorer.py:580
+#, fuzzy
+msgid "Create new folder"
+msgstr "Ordner neu laden"
+
+#: src/ui/explorer.py:583
+msgid "Create new file"
+msgstr ""
+
+#: src/ui/explorer.py:586
+msgid "Open Terminal Here"
+msgstr ""
+
+#: src/ui/explorer.py:640
+msgid "Create New Folder"
+msgstr ""
+
+#: src/ui/explorer.py:640
+#, fuzzy
+msgid "Folder name:"
+msgstr "Neuer Tab"
+
+#: src/ui/explorer.py:644
+msgid "Create New File"
+msgstr ""
+
+#: src/ui/explorer.py:644
+#, fuzzy
+msgid "File name:"
+msgstr "Neuer Tab"
+
+#: src/ui/explorer.py:713
+msgid "Folder created successfully"
+msgstr ""
+
+#: src/ui/explorer.py:720
+msgid "File created successfully"
+msgstr ""
+
+#: src/ui/explorer.py:725
+msgid "A file or folder with that name already exists"
+msgstr ""
+
+#: src/ui/explorer.py:728
+#, fuzzy
+msgid "folder"
+msgstr "Ordner neu laden"
+
+#: src/ui/explorer.py:728
+msgid "file"
+msgstr ""
+
+#: src/ui/explorer.py:730
+#, fuzzy
+msgid "Failed to create {}: {}"
+msgstr "Senden der Nachricht an den Bot fehlgeschlagen"
+
+#: src/ui/extension.py:50
+#, fuzzy
+msgid "Installed Extensions"
+msgstr "Erweiterungen"
+
+#: src/ui/extension.py:85
+msgid "User guide to Extensions"
+msgstr ""
+
+#: src/ui/extension.py:88
+#, fuzzy
+msgid "Download new Extensions"
+msgstr "Wählen Sie eine Erweiterung"
+
+#: src/ui/extension.py:91
+msgid "Install extension from file..."
+msgstr ""
+
+#: src/main.py:200
+msgid "Terminal threads are still running in the background"
+msgstr "Terminal-Threads laufen noch im Hintergrund"
+
+#: src/main.py:201
+msgid "When you close the window, they will be automatically terminated"
+msgstr "Wenn Sie das Fenster schließen, werden sie automatisch beendet"
+
+#: src/main.py:205
+msgid "Close"
+msgstr "Schließen"
+
+#: src/main.py:239
+msgid "Chat is rebooted"
+msgstr "Chat wird neu gestartet"
+
+#: src/main.py:244
+msgid "Folder is rebooted"
+msgstr "Ordner wird neu gestartet"
+
+#: src/main.py:249
+msgid "Chat is created"
+msgstr "Chat wurde erstellt"
 
 #: src/constants.py:20
 msgid "Newelle Demo API"
@@ -1751,144 +1833,144 @@ msgstr ""
 msgid "Tavily search"
 msgstr ""
 
-#: src/constants.py:380
+#: src/constants.py:374
 msgid "Helpful assistant"
 msgstr ""
 
-#: src/constants.py:381
+#: src/constants.py:375
 msgid "General purpose prompt to enhance the LLM answers and give more context"
 msgstr ""
 
-#: src/constants.py:389
+#: src/constants.py:383
 msgid "Console access"
 msgstr "Konsolenzugriff"
 
-#: src/constants.py:390
+#: src/constants.py:384
 msgid "Can the program run terminal commands on the computer"
 msgstr "Kann das Programm Terminalbefehle auf dem Computer ausführen"
 
-#: src/constants.py:397
+#: src/constants.py:391
 msgid "Current directory"
 msgstr ""
 
-#: src/constants.py:398
+#: src/constants.py:392
 msgid "What is the current directory"
 msgstr ""
 
-#: src/constants.py:407
+#: src/constants.py:401
 msgid "Allow the LLM to search on the internet"
 msgstr ""
 
-#: src/constants.py:415
+#: src/constants.py:409
 msgid "Basic functionality"
 msgstr "Grundlegende Funktionalität"
 
-#: src/constants.py:416
+#: src/constants.py:410
 msgid "Showing tables and code (*can work without it)"
 msgstr "Tabellen und Code anzeigen (*kann auch ohne funktionieren)"
 
-#: src/constants.py:424
+#: src/constants.py:418
 msgid "Graphs access"
 msgstr "Zugriff auf Diagramme"
 
-#: src/constants.py:425
+#: src/constants.py:419
 msgid "Can the program display graphs"
 msgstr "Kann das Programm Diagramme anzeigen"
 
-#: src/constants.py:433
+#: src/constants.py:427
 msgid "Show image"
 msgstr "Bild anzeigen"
 
-#: src/constants.py:434
+#: src/constants.py:428
 msgid "Show image in chat"
 msgstr "Bild im Chat anzeigen"
 
-#: src/constants.py:442
+#: src/constants.py:436
 #, fuzzy
 msgid "Custom Prompt"
 msgstr "Befehle automatisch ausführen"
 
-#: src/constants.py:443
+#: src/constants.py:437
 msgid "Add your own custom prompt"
 msgstr ""
 
-#: src/constants.py:456
+#: src/constants.py:450
 #, fuzzy
 msgid "LLM and Secondary LLM settings"
 msgstr "Einstellungen"
 
-#: src/constants.py:459 src/window.py:603
+#: src/constants.py:453 src/window.py:602
 msgid "TTS"
 msgstr ""
 
-#: src/constants.py:461
+#: src/constants.py:455
 msgid "Text to Speech settings"
 msgstr ""
 
-#: src/constants.py:464
+#: src/constants.py:458
 msgid "STT"
 msgstr ""
 
-#: src/constants.py:466
+#: src/constants.py:460
 msgid "Speech to Text settings"
 msgstr ""
 
-#: src/constants.py:469
+#: src/constants.py:463
 msgid "Embedding"
 msgstr ""
 
-#: src/constants.py:471
+#: src/constants.py:465
 #, fuzzy
 msgid "Embedding settings"
 msgstr "Erweiterungen"
 
-#: src/constants.py:474
+#: src/constants.py:468
 msgid "Memory"
 msgstr ""
 
-#: src/constants.py:476
+#: src/constants.py:470
 #, fuzzy
 msgid "Memory settings"
 msgstr "Einstellungen"
 
-#: src/constants.py:479
+#: src/constants.py:473
 msgid "Websearch"
 msgstr ""
 
-#: src/constants.py:481
+#: src/constants.py:475
 #, fuzzy
 msgid "Websearch settings"
 msgstr "Einstellungen"
 
-#: src/constants.py:484
+#: src/constants.py:478
 msgid "RAG"
 msgstr ""
 
-#: src/constants.py:486
+#: src/constants.py:480
 msgid "Document analyzer settings"
 msgstr ""
 
-#: src/constants.py:491
+#: src/constants.py:485
 #, fuzzy
 msgid "Extensions settings"
 msgstr "Erweiterungen"
 
-#: src/constants.py:494
+#: src/constants.py:488
 #, fuzzy
 msgid "Inteface"
 msgstr "Benutzeroberfläche"
 
-#: src/constants.py:496
+#: src/constants.py:490
 msgid "Interface settings, hidden files, reverse order, zoom..."
 msgstr ""
 
-#: src/constants.py:501
+#: src/constants.py:495
 msgid ""
 "General settings, virtualization, offers, memory length, automatically "
 "generate chat name, current folder..."
 msgstr ""
 
-#: src/constants.py:506
+#: src/constants.py:500
 msgid "Prompts settings, custom extra prompt, custom prompts..."
 msgstr ""
 
@@ -1896,182 +1978,158 @@ msgstr ""
 msgid "Chat "
 msgstr "Chat "
 
-#: src/main.py:200
-msgid "Terminal threads are still running in the background"
-msgstr "Terminal-Threads laufen noch im Hintergrund"
-
-#: src/main.py:201
-msgid "When you close the window, they will be automatically terminated"
-msgstr "Wenn Sie das Fenster schließen, werden sie automatisch beendet"
-
-#: src/main.py:205
-msgid "Close"
-msgstr "Schließen"
-
-#: src/main.py:239
-msgid "Chat is rebooted"
-msgstr "Chat wird neu gestartet"
-
-#: src/main.py:244
-msgid "Folder is rebooted"
-msgstr "Ordner wird neu gestartet"
-
-#: src/main.py:249
-msgid "Chat is created"
-msgstr "Chat wurde erstellt"
-
-#: src/window.py:113
+#: src/window.py:112
 #, fuzzy
 msgid "Keyboard shorcuts"
 msgstr "Tastenkürzel"
 
-#: src/window.py:114
+#: src/window.py:113
 msgid "About"
 msgstr "Über"
 
-#: src/window.py:121 src/window.py:190
+#: src/window.py:120 src/window.py:189
 msgid "Chat"
 msgstr "Chat"
 
-#: src/window.py:163
+#: src/window.py:162
 msgid "History"
 msgstr "Verlauf"
 
-#: src/window.py:184
+#: src/window.py:183
 msgid "Create a chat"
 msgstr "Einen Chat erstellen"
 
-#: src/window.py:189
+#: src/window.py:188
 #, fuzzy
 msgid "Chats"
 msgstr "Chat"
 
-#: src/window.py:260
+#: src/window.py:259
 msgid " Stop"
 msgstr " Stopp"
 
-#: src/window.py:275
+#: src/window.py:274
 msgid " Clear"
 msgstr " Löschen"
 
-#: src/window.py:290
+#: src/window.py:289
 msgid " Continue"
 msgstr " Fortsetzen"
 
-#: src/window.py:303
+#: src/window.py:302
 msgid " Regenerate"
 msgstr " Neu generieren"
 
-#: src/window.py:369
+#: src/window.py:368
 msgid "Send a message..."
 msgstr ""
 
-#: src/window.py:449
+#: src/window.py:448
 msgid "Explorer Tab"
 msgstr ""
 
-#: src/window.py:450
+#: src/window.py:449
 msgid "Terminal Tab"
 msgstr ""
 
-#: src/window.py:451
+#: src/window.py:450
 msgid "Browser Tab"
 msgstr ""
 
-#: src/window.py:545
+#: src/window.py:544
 msgid "Ask about a website"
 msgstr ""
 
-#: src/window.py:545
+#: src/window.py:544
 msgid "Write #https://website.com in chat to ask information about a website"
 msgstr ""
 
-#: src/window.py:546
+#: src/window.py:545
 msgid "Check out our Extensions!"
 msgstr ""
 
-#: src/window.py:546
+#: src/window.py:545
 msgid "We have a lot of extensions for different things. Check it out!"
 msgstr ""
 
-#: src/window.py:547
+#: src/window.py:546
 msgid "Chat with documents!"
 msgstr ""
 
-#: src/window.py:547
+#: src/window.py:546
 msgid ""
 "Add your documents to your documents folder and chat using the information "
 "contained in them!"
 msgstr ""
 
-#: src/window.py:548
+#: src/window.py:547
 msgid "Surf the web!"
 msgstr ""
 
-#: src/window.py:548
+#: src/window.py:547
 msgid ""
 "Enable web search to allow the LLM to surf the web and provide up to date "
 "answers"
 msgstr ""
 
-#: src/window.py:549
+#: src/window.py:548
 msgid "Mini Window"
 msgstr ""
 
-#: src/window.py:549
+#: src/window.py:548
 msgid "Ask questions on the fly using the mini window mode"
 msgstr ""
 
-#: src/window.py:550
+#: src/window.py:549
 msgid "Text to Speech"
 msgstr ""
 
-#: src/window.py:550
+#: src/window.py:549
 msgid "Newelle supports text-to-speech! Enable it in the settings"
 msgstr ""
 
-#: src/window.py:551
+#: src/window.py:550
 #, fuzzy
 msgid "Keyboard Shortcuts"
 msgstr "Tastenkürzel"
 
-#: src/window.py:551
+#: src/window.py:550
 #, fuzzy
 msgid "Control Newelle using Keyboard Shortcuts"
 msgstr "Tastenkürzel"
 
-#: src/window.py:552
+#: src/window.py:551
 #, fuzzy
 msgid "Prompt Control"
 msgstr "Prompt-Steuerung"
 
-#: src/window.py:552
+#: src/window.py:551
 msgid "Newelle gives you 100% prompt control. Tune your prompts for your use."
 msgstr ""
 
-#: src/window.py:553
+#: src/window.py:552
 #, fuzzy
 msgid "Thread Editing"
 msgstr "Thread-Bearbeitung"
 
-#: src/window.py:553
+#: src/window.py:552
 msgid "Check the programs and processes you run from Newelle"
 msgstr ""
 
-#: src/window.py:560
+#: src/window.py:559
 #, fuzzy
 msgid "New Chat"
 msgstr "Neuer Tab"
 
-#: src/window.py:578
+#: src/window.py:577
 msgid "Provider Errror"
 msgstr ""
 
-#: src/window.py:601
+#: src/window.py:600
 msgid "Local Documents"
 msgstr ""
 
-#: src/window.py:605
+#: src/window.py:604
 msgid "Web search"
 msgstr ""
 
@@ -2151,16 +2209,16 @@ msgstr "Die Nachricht wurde abgebrochen und aus dem Verlauf gelöscht"
 msgid "The message cannot be sent until the program is finished"
 msgstr "Die Nachricht kann erst gesendet werden, wenn das Programm beendet ist"
 
-#: src/window.py:2767
+#: src/window.py:2785
 msgid "You can't edit a message while the program is running."
 msgstr "Sie können keine Nachricht bearbeiten, während das Programm läuft."
 
-#: src/window.py:2892
+#: src/window.py:2910
 #, fuzzy
 msgid "Prompt content"
 msgstr "Prompt-Steuerung"
 
-#: src/window.py:3148
+#: src/window.py:3166
 #, fuzzy
 msgid ""
 "The neural network has access to your computer and any data in this chat and "
@@ -2170,7 +2228,7 @@ msgstr ""
 "Achtung: Das neuronale Netzwerk hat Zugriff auf Ihren Computer.Seien Sie "
 "vorsichtig, wir übernehmen keine Verantwortung für das neuronale Netzwerk."
 
-#: src/window.py:3177
+#: src/window.py:3195
 #, fuzzy
 msgid ""
 "The neural network has access to any data in this chat, be careful, we are "
@@ -2180,15 +2238,15 @@ msgstr ""
 "Achtung: Das neuronale Netzwerk hat Zugriff auf Ihren Computer.Seien Sie "
 "vorsichtig, wir übernehmen keine Verantwortung für das neuronale Netzwerk."
 
-#: src/window.py:3226
+#: src/window.py:3244
 msgid "Wrong folder path"
 msgstr "Falscher Ordnerpfad"
 
-#: src/window.py:3259
+#: src/window.py:3277
 msgid "Thread has not been completed, thread number: "
 msgstr "Thread wurde nicht abgeschlossen, Thread-Nummer: "
 
-#: src/window.py:3271
+#: src/window.py:3289
 msgid "Failed to open the folder"
 msgstr "Fehler beim Öffnen des Ordners"
 
