@@ -7,22 +7,27 @@ from ...utility import convert_history_openai
 from ...utility.pip import find_module, install_module
 from ...utility.media import extract_image, get_image_path
 from ...utility.util import get_streaming_extra_setting
+from ...handlers import ErrorSeverity, ExtraSettings
 
 class G4FHandler(LLMHandler):
     """Common methods for g4f models"""
     key = "g4f"
-    version = "0.3.5.8" 
-    
+   
+    def __init__(self, settings, path):
+        super().__init__(settings, path)
+        self.client = None 
+
+    def get_client(self):
+        if self.is_installed():
+            from g4f.client import Client
+            self.client = Client()
+
     @staticmethod
     def get_extra_requirements() -> list:
         return ["g4f"]
     
     def is_installed(self) -> bool:
         if find_module("g4f") is not None:
-           from g4f.version import utils       
-           if utils.current_version != self.version:
-                print(f"Newelle requires g4f=={self.version}, found {utils.current_version}")
-                return False
            return True
         return False
 
@@ -30,11 +35,26 @@ class G4FHandler(LLMHandler):
         pip_path = os.path.join(os.path.abspath(os.path.join(self.path, os.pardir)), "pip") 
         # Remove old versions
         check_output(["bash", "-c", "rm -rf " + os.path.join(pip_path, "*g4f*")])
-        install_module("g4f==" + self.version, pip_path)
-        print("g4f==" + self.version + " installed")
+        install_module("g4f nodriver platformdirs", pip_path)
+        if not self.is_installed():
+            self.throw("g4f installation failed", ErrorSeverity.ERROR)
 
     def get_extra_settings(self) -> list:
-        return [get_streaming_extra_setting()]
+        return [
+            ExtraSettings.ComboSetting("model", _("Model"), _("Model to use"), self.get_models_list(), "gpt-4o"),
+            ExtraSettings.ButtonSetting("update", _("Update G4F"), _("Update G4F"), lambda x: self.install(), "Update G4F"),
+            get_streaming_extra_setting()
+        ]
+    
+    def get_models_list(self):
+        if not self.is_installed():
+            return tuple()
+        from g4f.models import ModelRegistry
+        models = ModelRegistry.all_models()
+        self.models = tuple()
+        for key, model in models.items():
+            self.models += ((key, model.name), )
+        return self.models
 
     def convert_history(self, history: list, prompts: list | None = None) -> list:
         if prompts is None:
@@ -42,6 +62,7 @@ class G4FHandler(LLMHandler):
         return convert_history_openai(history, prompts, False)
     
     def generate_text(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = []) -> str:
+        self.get_client()
         model = self.get_setting("model")
         img = None
         if self.supports_vision():
@@ -64,6 +85,7 @@ class G4FHandler(LLMHandler):
             raise e
     
     def generate_text_stream(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = [], on_update: Callable[[str], Any] = lambda _: None, extra_args: list = []) -> str:
+        self.get_client()
         model = self.get_setting("model")
         img = None
         if self.supports_vision():

@@ -83,6 +83,7 @@ handler_sources = [
   'handlers/__init__.py',
   'handlers/handler.py',
   'handlers/extra_settings.py',
+  'handlers/descriptors.py',
 ]
 
 llm_sources = [

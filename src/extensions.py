@@ -270,6 +270,14 @@ class NewelleExtension(Handler):
 
     def set_ui_controller(self, ui_controller: UIController):
         self.ui_controller = ui_controller
+        
+    def add_tab_menu_entries(self) -> list:
+        """List of TabButtonDescriptions 
+
+        Returns:
+            list: List of TabButtonDescriptions to add to the add tab menu 
+        """
+        return []
 
 class ExtensionLoader:
     """
@@ -372,6 +380,10 @@ class ExtensionLoader:
             AVAILABLE_LLMS (): list of available llms 
             AVAILABLE_TTS (): list of available tts
             AVAILABLE_STT (): list of available stt
+            AVAILABLE_MEMORIES (): list of available memories
+            AVAILABLE_EMBEDDINGS (): list of available embeddings
+            AVAILABLE_RAG (): list of available rags
+            AVAILABLE_WEBSEARCH (): list of available websearch
         """
         for extension in self.extensions:
             if extension in self.disabled_extensions:
@@ -414,7 +426,7 @@ class ExtensionLoader:
                     AVAILABLE_PROMPTS.append(prompt)
                 PROMPTS[prompt["key"]] = prompt["text"]
 
-    def remove_handlers(self, extension, AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS, AVAILABLE_RAG):
+    def remove_handlers(self, extension, AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS, AVAILABLE_RAG, AVAILABLE_WEBSEARCH):
         """Remove handlers of an extension
 
         Args:
@@ -587,3 +599,12 @@ class ExtensionLoader:
             except Exception as e:
                 print(e)
         return history, bot_response
+
+    def get_add_tab_buttons(self) -> list:
+        buttons = []
+        for extension in self.get_enabled_extensions():
+            try:
+                buttons += extension.add_tab_menu_entries()
+            except Exception as e:
+                print(e)
+        return buttons

@@ -427,6 +427,7 @@ class MainWindow(Adw.ApplicationWindow):
         self.canvas_button = Adw.TabButton(view=self.canvas_tabs)
         self.canvas_tab_bar = Adw.TabBar(autohide=True, view=self.canvas_tabs, css_classes=["inline"])
         self.canvas_overview = Adw.TabOverview(view=self.canvas_tabs, child=self.canvas_tabs, show_end_title_buttons=False, show_start_title_buttons=False, enable_new_tab=True)
+        self.canvas_button.connect("clicked", lambda x:  self.canvas_overview.set_open(not self.canvas_overview.get_open()))
         self.canvas_overview.connect("create-tab", self.add_explorer_tab)
         
         # Add new tab menu button
@@ -443,26 +444,51 @@ class MainWindow(Adw.ApplicationWindow):
         # Detach tab button 
         self.detach_tab_button = Gtk.Button(css_classes=["flat"], icon_name="detach-symbolic")
         self.detach_tab_button.connect("clicked", self.detach_tab) 
-        # Create menu model
-        menu = Gio.Menu()
-        menu.append(_("Explorer Tab"), "win.new_explorer_tab")
-        menu.append(_("Terminal Tab"), "win.new_terminal_tab") 
-        menu.append(_("Browser Tab"), "win.new_browser_tab")
-        self.new_tab_button.set_menu_model(menu)
-        # Add actions
-        action = Gio.SimpleAction.new("new_explorer_tab", None)
-        action.connect("activate", self.add_explorer_tab)
-        self.add_action(action)
         
-        action = Gio.SimpleAction.new("new_terminal_tab", None)
-        action.connect("activate", self.add_terminal_tab)
-        self.add_action(action)
+        # Create custom menu entries: Title, Icon, Callable
+        menu_entries = [
+            (_("Explorer Tab"), "folder-symbolic", self.add_explorer_tab),
+            (_("Terminal Tab"), "gnome-terminal-symbolic", self.add_terminal_tab),
+            (_("Browser Tab"), "internet-symbolic", self.add_browser_tab)
+        ]
+        menu_entries += self.extensionloader.get_add_tab_buttons()
         
-        action = Gio.SimpleAction.new("new_browser_tab", None)
-        action.connect("activate", self.add_browser_tab)
-        self.add_action(action)
+        # Create custom popover with ListBox
+        popover = Gtk.Popover()
+        listbox = Gtk.ListBox(css_classes=["menu"])
+        listbox.set_selection_mode(Gtk.SelectionMode.NONE)
         
-        self.canvas_button.connect("clicked", lambda x : self.canvas_overview.set_open(not self.canvas_overview.get_open()))
+        for title, icon_name, callback in menu_entries:
+            row = Gtk.ListBoxRow()
+            row_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
+            row_box.set_margin_start(12)
+            row_box.set_margin_end(12)
+            row_box.set_margin_top(6)
+            row_box.set_margin_bottom(6)
+            
+            # Add icon
+            if type(icon_name) is str:
+                icon = Gtk.Image.new_from_icon_name(icon_name)
+            elif type(icon_name) is GdkPixbuf.Pixbuf:
+                icon = Gtk.Image.new_from_pixbuf(icon_name)
+            icon.set_icon_size(Gtk.IconSize.INHERIT)
+            row_box.append(icon)
+            
+            # Add label
+            label = Gtk.Label(label=title, xalign=0)
+            row_box.append(label)
+            
+            row.set_child(row_box)
+            row.callback = callback
+            listbox.append(row)
+        
+        def on_row_activated(listbox, row):
+            row.callback(None, None)
+            popover.popdown()
+        
+        listbox.connect("row-activated", on_row_activated)
+        popover.set_child(listbox)
+        self.new_tab_button.set_popover(popover)
         self.canvas_header.pack_end(self.canvas_button)
         self.canvas_header.pack_end(self.new_tab_button)
         self.canvas_header.pack_end(self.detach_tab_button)
@@ -810,7 +836,27 @@ class MainWindow(Adw.ApplicationWindow):
             "closed", lambda x: GLib.idle_add(self.quick_settings_update)
         )
         self.model_popup.set_child(box)
-        return self.model_menu_button
+        
+        # Create a horizontal box to contain both the model button and settings button
+        title_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=0)
+        title_box.set_css_classes(["linked"])
+        title_box.append(self.model_menu_button)
+        
+        # Add a subtle separator
+        separator = Gtk.Separator(orientation=Gtk.Orientation.VERTICAL)
+        separator.set_margin_top(6)
+        separator.set_margin_bottom(6)
+        title_box.append(separator)
+        
+        # Add settings button
+        settings_button = Gtk.Button(
+            css_classes=["flat"],
+            icon_name="settings-symbolic"
+        )
+        settings_button.connect("clicked", lambda btn: self.get_application().lookup_action("settings").activate(None))
+        title_box.append(settings_button)
+        
+        return title_box
 
     def update_available_models(self):
         self.controller.update_settings()
@@ -2818,7 +2864,7 @@ class MainWindow(Adw.ApplicationWindow):
         Args:
             message_id (int): the id of the message to reload
         """
-        if len(self.messages_box) <= message_id:
+        if len(self.messages_box) < message_id:
             return
         if self.chat[message_id]["User"] == "Console":
             return
