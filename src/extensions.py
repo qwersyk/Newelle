@@ -270,6 +270,14 @@ class NewelleExtension(Handler):
 
     def set_ui_controller(self, ui_controller: UIController):
         self.ui_controller = ui_controller
+        
+    def add_tab_menu_entries(self) -> list:
+        """List of TabButtonDescriptions 
+
+        Returns:
+            list: List of TabButtonDescriptions to add to the add tab menu 
+        """
+        return []
 
 class ExtensionLoader:
     """
@@ -591,3 +599,12 @@ class ExtensionLoader:
             except Exception as e:
                 print(e)
         return history, bot_response
+
+    def get_add_tab_buttons(self) -> list:
+        buttons = []
+        for extension in self.get_enabled_extensions():
+            try:
+                buttons += extension.add_tab_menu_entries()
+            except Exception as e:
+                print(e)
+        return buttons

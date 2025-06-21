@@ -427,6 +427,7 @@ class MainWindow(Adw.ApplicationWindow):
         self.canvas_button = Adw.TabButton(view=self.canvas_tabs)
         self.canvas_tab_bar = Adw.TabBar(autohide=True, view=self.canvas_tabs, css_classes=["inline"])
         self.canvas_overview = Adw.TabOverview(view=self.canvas_tabs, child=self.canvas_tabs, show_end_title_buttons=False, show_start_title_buttons=False, enable_new_tab=True)
+        self.canvas_button.connect("clicked", lambda x:  self.canvas_overview.set_open(not self.canvas_overview.get_open()))
         self.canvas_overview.connect("create-tab", self.add_explorer_tab)
         
         # Add new tab menu button
@@ -450,6 +451,7 @@ class MainWindow(Adw.ApplicationWindow):
             (_("Terminal Tab"), "gnome-terminal-symbolic", self.add_terminal_tab),
             (_("Browser Tab"), "internet-symbolic", self.add_browser_tab)
         ]
+        menu_entries += self.extensionloader.get_add_tab_buttons()
         
         # Create custom popover with ListBox
         popover = Gtk.Popover()
@@ -465,7 +467,10 @@ class MainWindow(Adw.ApplicationWindow):
             row_box.set_margin_bottom(6)
             
             # Add icon
-            icon = Gtk.Image.new_from_icon_name(icon_name)
+            if type(icon_name) is str:
+                icon = Gtk.Image.new_from_icon_name(icon_name)
+            elif type(icon_name) is GdkPixbuf.Pixbuf:
+                icon = Gtk.Image.new_from_pixbuf(icon_name)
             icon.set_icon_size(Gtk.IconSize.INHERIT)
             row_box.append(icon)
             

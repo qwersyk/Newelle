@@ -1,3 +1,4 @@
+from gi.repository import GdkPixbuf
 from .handler import Handler
 
 
@@ -48,4 +49,14 @@ def PromptDescription(key: str, title: str, description: str, text:str, setting_
         "editable": editable,
         "default": default,
         "show_in_settings": show_in_settings
-    } 
+    }
+
+def TabButtonDescription(title: str, icon: GdkPixbuf.Pixbuf | str, callback):
+    """Generate a "new tab button"
+
+    Args:
+        title: Title of the button
+        icon: Icon of the button
+        callback: Callback of the button
+    """
+    return title, icon, callback
