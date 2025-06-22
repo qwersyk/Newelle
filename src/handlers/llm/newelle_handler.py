@@ -36,11 +36,15 @@ class NewelleAPIHandler(LLMHandler):
 
     def generate_text(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = []) -> str:
         return self.generate_text_stream(prompt, history, system_prompt)
+
     def generate_text_stream(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = [], on_update: Callable[[str], Any] = lambda _: None, extra_args : list = []) -> str:
         import requests
         
         if prompt.startswith("```image") or any(message.get("Message", "").startswith("```image") and message["User"] == "User" for message in history):
             url = self.url + "/vision"
+        elif prompt.startswith("/chatname"):
+            prompt = prompt.replace("/chatname", "")
+            url = self.url + "/small"
         else:
             url = self.url
         history.append({"User": "User", "Message": prompt})  
@@ -79,3 +83,15 @@ class NewelleAPIHandler(LLMHandler):
         except Exception as e:
             raise Exception(self.error_message + " " + str(e))
 
+
+    def generate_chat_name(self, request_prompt:str = "") -> str | None:
+        """Generate name of the current chat
+
+        Args:
+            request_prompt (str, optional): Extra prompt to generate the name. Defaults to None.
+
+        Returns:
+            str: name of the chat
+        """
+        request_prompt = "/chatname" + request_prompt
+        return super().generate_chat_name(request_prompt)
