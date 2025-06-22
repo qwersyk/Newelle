@@ -11,6 +11,7 @@ import base64
 import copy
 import uuid 
 import inspect 
+import gettext
 from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject, GLib, GdkPixbuf
 
 from .ui.settings import Settings
@@ -46,6 +47,8 @@ from .handlers import ErrorSeverity
 from .controller import NewelleController, ReloadType
 from .ui_controller import UIController
 
+# Add gettext function
+_ = gettext.gettext
 
 class MainWindow(Adw.ApplicationWindow):
     def __init__(self, *args, **kwargs):
@@ -1662,6 +1665,7 @@ class MainWindow(Adw.ApplicationWindow):
         # Update UI
         list_box = Gtk.ListBox(css_classes=["separators", "background"])
         list_box.set_selection_mode(Gtk.SelectionMode.NONE)
+        self.chats_list_box = list_box
         self.chats_buttons_scroll_block.set_child(list_box)
         chat_range = (
             range(len(self.chats)).__reversed__()
@@ -1672,14 +1676,28 @@ class MainWindow(Adw.ApplicationWindow):
             box = Gtk.Box(
                 spacing=6, margin_top=3, margin_bottom=3, margin_start=3, margin_end=3
             )
+            stack = Gtk.Stack(transition_type=Gtk.StackTransitionType.SLIDE_UP, transition_duration=100)
             generate_chat_name_button = Gtk.Button(
+                css_classes=["flat", "accent"],
+                valign=Gtk.Align.CENTER,
+                icon_name="magic-wand-symbolic",
+                width_request=36,
+            )
+            generate_chat_name_button.set_name(str(i))
+            generate_chat_name_button.connect("clicked", self.generate_chat_name)
+            stack.add_named(generate_chat_name_button, "generate")
+
+            edit_chat_name_button = Gtk.Button(
                 css_classes=["flat", "accent"],
                 valign=Gtk.Align.CENTER,
                 icon_name="document-edit-symbolic",
                 width_request=36,
-            )  # wanted to use: tag-outline-symbolic
-            generate_chat_name_button.connect("clicked", self.generate_chat_name)
-            generate_chat_name_button.set_name(str(i))
+            )
+            edit_chat_name_button.connect("clicked", self.edit_chat_name, stack)
+            edit_chat_name_button.set_name(str(i))
+            stack.add_named(edit_chat_name_button, "edit")
+            stack.set_visible_child_name("edit")
+
 
             create_chat_clone_button = Gtk.Button(
                 css_classes=["flat", "success"], valign=Gtk.Align.CENTER
@@ -1727,7 +1745,7 @@ class MainWindow(Adw.ApplicationWindow):
                 button.connect("clicked", self.chose_chat)
             box.append(button)
             box.append(create_chat_clone_button)
-            box.append(generate_chat_name_button)
+            box.append(stack)
             box.append(delete_chat_button)
             list_box.append(box)
 
@@ -1740,38 +1758,71 @@ class MainWindow(Adw.ApplicationWindow):
         self.chats.pop(int(button.get_name()))
         self.update_history()
 
-    def generate_chat_name(self, button, multithreading=False):
-        """Generate the name of the chat using llm. Reloaunches on another thread if not already in one"""
-        if multithreading:
-            if len(self.chats[int(button.get_name())]["chat"]) < 2:
-                self.notification_block.add_toast(
-                    Adw.Toast(title=_("Chat is empty"), timeout=2)
-                )
-                return False
-            spinner = Gtk.Spinner(spinning=True)
-            button.set_child(spinner)
-            button.set_can_target(False)
-            button.set_has_frame(True)
-
-            self.secondary_model.set_history(
-                [], self.get_history(self.chats[int(button.get_name())]["chat"])
-            )
-            name = self.secondary_model.generate_chat_name(
-                self.prompts["generate_name_prompt"]
-            )
-            name = remove_thinking_blocks(name)
-            if name is None:
-                self.update_history()
-                return
-            name = remove_markdown(name)
-            if name != "Chat has been stopped":
-                self.chats[int(button.get_name())]["name"] = name
+    def edit_chat_name(self, button, stack, multithreading=False):
+        """Allow manual editing of chat name by replacing the title with an entry"""
+        chat_index = int(button.get_name())
+        # Show the generate chat name button
+        stack.set_visible_child_name("generate")
+        # Find the chat name button in the current list box
+        list_box = self.chats_list_box
+        if list_box is None:
+            return
+            
+        # Find the correct row
+        row_index = 0
+        chat_range = (
+            range(len(self.chats)).__reversed__()
+            if self.controller.newelle_settings.reverse_order
+            else range(len(self.chats))
+        )
+        
+        for i in chat_range:
+            if i == chat_index:
+                break
+            row_index += 1
+            
+        row = list_box.get_row_at_index(row_index)
+        if row is None:
+            return
+            
+        # Get the box containing the buttons
+        box = row.get_child()
+        if box is None:
+            return
+            
+        # Get the chat name button (first child)
+        name_button = box.get_first_child()
+        if name_button is None:
+            return
+            
+        # Create an entry to replace the label
+        entry = Gtk.Entry()
+        entry.set_text(self.chats[chat_index]["name"])
+        entry.set_hexpand(True)
+        entry.set_margin_top(3)
+        entry.set_margin_bottom(3)
+        
+        # Store original button for restoration
+        original_button = name_button
+        
+        # Replace the button with the entry
+        box.remove(name_button)
+        box.prepend(entry)
+        
+        # Focus the entry
+        entry.grab_focus()
+        entry.select_region(0, -1)  # Select all text
+        
+        # Handle entry activation (Enter key)
+        def on_entry_activate(entry):
+            new_name = entry.get_text().strip()
+            if new_name:
+                self.chats[chat_index]["name"] = new_name
+                self.save_chat()
             self.update_history()
-        else:
-            threading.Thread(
-                target=self.generate_chat_name, args=[button, True]
-            ).start()
-
+             
+        entry.connect("activate", on_entry_activate)
+        
     def new_chat(self, button, *a):
         """Create a new chat and switch to it"""
         self.chats.append({"name": _("Chat ") + str(len(self.chats) + 1), "chat": []})
@@ -3505,3 +3556,35 @@ class MainWindow(Adw.ApplicationWindow):
     
     def add_tab(self, tab):
         self.canvas_tabs.add_page(tab.get_child(), tab)
+
+    def generate_chat_name(self, button, multithreading=False):
+        """Generate the name of the chat using llm. Reloaunches on another thread if not already in one"""
+        if multithreading:
+            if len(self.chats[int(button.get_name())]["chat"]) < 2:
+                self.notification_block.add_toast(
+                    Adw.Toast(title=_("Chat is empty"), timeout=2)
+                )
+                return False
+            spinner = Gtk.Spinner(spinning=True)
+            button.set_child(spinner)
+            button.set_can_target(False)
+            button.set_has_frame(True)
+
+            self.secondary_model.set_history(
+                [], self.get_history(self.chats[int(button.get_name())]["chat"])
+            )
+            name = self.secondary_model.generate_chat_name(
+                self.prompts["generate_name_prompt"]
+            )
+            name = remove_thinking_blocks(name)
+            if name is None:
+                self.update_history()
+                return
+            name = remove_markdown(name)
+            if name != "Chat has been stopped":
+                self.chats[int(button.get_name())]["name"] = name
+            self.update_history()
+        else:
+            threading.Thread(
+                target=self.generate_chat_name, args=[button, True]
+            ).start()

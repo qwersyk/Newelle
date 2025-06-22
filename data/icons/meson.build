@@ -34,6 +34,7 @@ install_data (
     'go-home-symbolic.svg',
     'detach-symbolic.svg',
     'sidebar-show-left-symbolic.svg',
+    'magic-wand-symbolic.svg',
     install_dir: symbolic_dir
 )
 install_data (
