@@ -2720,6 +2720,7 @@ class MainWindow(Adw.ApplicationWindow):
                         box.append(CopyBox(chunk.text, code_language, parent=self, id_message=id_message, id_codeblock=codeblock_id, allow_edit=editable))
                 elif chunk.type == "table":
                     try:
+                         
                         box.append(self.create_table(chunk.text.split("\n")))
                     except Exception as e:
                         print(e)
@@ -2847,8 +2848,8 @@ class MainWindow(Adw.ApplicationWindow):
                 for element in row
             ):
                 r = []
-                for element in row:
-                    r.append(simple_markdown_to_pango(element))
+                for element in row: 
+                    r.append(simple_markdown_to_pango(LatexNodes2Text().latex_to_text(element)))
                 model.append(r)
         self.treeview = Gtk.TreeView(
             model=model, css_classes=["toolbar", "view", "transparent"]
@@ -2858,7 +2859,8 @@ class MainWindow(Adw.ApplicationWindow):
             renderer = Gtk.CellRendererText()
             column = Gtk.TreeViewColumn(title, renderer, markup=i)
             self.treeview.append_column(column)
-        return self.treeview
+        scroll = Gtk.ScrolledWindow(child=self.treeview, propagate_natural_height=True, propagate_natural_width=True, vscrollbar_policy=Gtk.PolicyType.NEVER,)
+        return scroll
 
     def edit_message(
         self, gesture, data, x, y, box: Gtk.Box, apply_edit_stack: Gtk.Stack
