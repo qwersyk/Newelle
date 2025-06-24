@@ -278,7 +278,7 @@ def process_text_segment(text: str, allow_latex: bool) -> List[MessageChunk]:
 
     # Process text after the last think block
     if last_index < len(text):
-        remainder = text[last_index:]
+        remainder = text[last_index:].lstrip("\n")
         processed_post_chunks = process_text_segment_no_think(remainder, allow_latex)
         flat_chunks.extend(processed_post_chunks)
 

@@ -34,16 +34,24 @@ class ThinkingWidget(Gtk.Box):
             spinning=False,
             visible=False # Hide initially
         )
-        # Add spinner to the start of the expander row header
+        
+        # Icon to show when thinking is finished
+        self.finished_icon = Gtk.Image(
+            icon_name="brain-augmented-symbolic",
+            visible=True
+        )
+        
+        # Add both spinner and icon to the start of the expander row header
         self.expander.add_prefix(self.spinner)
+        self.expander.add_prefix(self.finished_icon)
 
         self.textview = MarkupTextView(
-            editable=False, # Read-only for the user
+            editable=False, 
             cursor_visible=False,
             wrap_mode=Gtk.WrapMode.WORD_CHAR,
             vexpand=True,
             hexpand=True,
-            pixels_below_lines=5, # Add some spacing
+            pixels_below_lines=5,
             left_margin=6,
             right_margin=6,
             top_margin=6,
@@ -52,18 +60,16 @@ class ThinkingWidget(Gtk.Box):
         self.textbuffer = self.textview.get_buffer()
 
         scrolled_window = Gtk.ScrolledWindow(
-            hscrollbar_policy=Gtk.PolicyType.NEVER, # Hide horizontal scrollbar
+            hscrollbar_policy=Gtk.PolicyType.NEVER,
             vscrollbar_policy=Gtk.PolicyType.AUTOMATIC,
-            min_content_height=150, # Give it some minimum height when expanded
-            max_content_height=400, # And a maximum height
+            min_content_height=150,
+            max_content_height=400,
             child=self.textview
         )
-        scrolled_window.add_css_class("expander-inset-content") # Style hint
+        scrolled_window.add_css_class("expander-inset-content")
 
-        # Add the scrolled text view as the content of the expander row
         self.expander.add_row(scrolled_window)
 
-        # Add the expander row to this Box widget
         self.append(self.expander)
 
 
@@ -113,6 +119,7 @@ class ThinkingWidget(Gtk.Box):
     def _update_ui_start_thinking(self, initial_message):
         self.spinner.set_visible(True)
         self.spinner.start()
+        self.finished_icon.set_visible(False)  # Hide the finished icon
         self.expander.set_title(_("Thinking..."))
         self.expander.set_subtitle(_("The LLM is thinking... Expand to see thought process"))
         self.textbuffer.set_text(initial_message, -1) # Clear and set initial text
@@ -122,6 +129,7 @@ class ThinkingWidget(Gtk.Box):
     def _update_ui_stop_thinking(self, final_title):
         self.spinner.stop()
         self.spinner.set_visible(False)
+        self.finished_icon.set_visible(True)  # Show the finished icon
         self.expander.set_title(final_title)
         if self.textbuffer.get_char_count() > 0:
              self.expander.set_subtitle(_("Expand to see details"))
