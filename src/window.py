@@ -2020,7 +2020,7 @@ class MainWindow(Adw.ApplicationWindow):
         GLib.idle_add(self.scrolled_chat)
 
     def get_history(
-        self, chat=None, include_last_message=False
+        self, chat=None, include_last_message=False, copy_chat=True
     ) -> list[dict[str, str]]:
         """Format the history excluding none messages and picking the right context size
 
@@ -2032,6 +2032,8 @@ class MainWindow(Adw.ApplicationWindow):
         """
         if chat is None:
             chat = self.chat
+        if copy_chat:
+            chat = copy.deepcopy(chat)
         history = []
         count = self.controller.newelle_settings.memory
         msgs = chat[:-1] if not include_last_message else chat
