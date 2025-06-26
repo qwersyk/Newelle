@@ -33,8 +33,8 @@ class SearXNGHandler(WebSearchHandler):
         content, urls = self.scrape_websites(results, add_website)
         text = ""
         for result in content:
-            text += f"## {result['title']}\n{result['text']}\n\n"
-        #text = text[:5000]
+            text += "\nSource: " + result["url"] + "\n"
+            text += f"## {result['title']}\n{result['text'][:3000]}\n\n"
         return text, urls
 
 

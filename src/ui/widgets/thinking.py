@@ -37,7 +37,7 @@ class ThinkingWidget(Gtk.Box):
         
         # Icon to show when thinking is finished
         self.finished_icon = Gtk.Image(
-            icon_name="brain-augmented-symbolic",
+            icon_name="brain-augemnted-symbolic",
             visible=True
         )
         

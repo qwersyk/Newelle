@@ -21,11 +21,9 @@ class WebsearchIntegration(NewelleExtension):
 
     def get_answer(self, codeblock: str, lang: str) -> str | None:
         if self.websearch.supports_streaming_query():
-            text, sources = self.websearch.query_streaming(codeblock, lambda title, link, favicon, codeblock=codeblock: self.add_website(codeblock, title, link, favicon))   
-            text = text[:5000]
+            text, sources = self.websearch.query_streaming(codeblock, lambda title, link, favicon, codeblock=codeblock: self.add_website(codeblock, title, link, favicon))  
         else:
             text, sources = self.websearch.query(codeblock)
-            text = text[:5000]
             for source in sources:
                 self.add_website(codeblock, source, source, "")
         self.finish(codeblock, text)
