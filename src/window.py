@@ -38,7 +38,7 @@ from .utility.strings import (
     simple_markdown_to_pango,
     remove_emoji,
 )
-from .utility.replacehelper import replace_variables, ReplaceHelper
+from .utility.replacehelper import PromptFormatter, replace_variables, ReplaceHelper, replace_variables_dict
 from .utility.profile_settings import get_settings_dict, get_settings_dict_by_groups, restore_settings_from_dict, restore_settings_from_dict_by_groups
 from .utility.audio_recorder import AudioRecorder
 from .utility.media import extract_supported_files
@@ -2095,6 +2095,37 @@ class MainWindow(Adw.ApplicationWindow):
                 args=(bot_response, self.chat),
             ).start()
 
+    def get_variable(self, name:str):
+        if name == "tts_on":
+            return self.tts_enabled
+        elif name == "virtualization_on":
+            return self.virtualization
+        elif name == "auto_run":
+            return self.controller.newelle_settings.auto_run
+        elif name == "websearch_on":
+            return self.controller.newelle_settings.websearch_on
+        elif name == "rag_on":
+            return self.rag_on_documents
+        elif name == "local_folder":
+            return self.rag_on
+        elif name == "automatic_stt":
+            return self.controller.newelle_settings.automatic_stt
+        elif name == "profile_name":
+            return self.controller.newelle_settings.current_profile
+        elif name == "external_browser":
+            return self.controller.newelle_settings.external_browser
+        elif name == "history":
+            return "\n".join([f"{msg['User']}: {msg['Message']}" for msg in self.get_history()])
+        elif name == "message":
+            return self.chat[-1]["Message"]
+        else:
+            rep = replace_variables_dict()
+            var = "{" + name.upper() + "}"
+            if var in rep:
+                return rep[var]
+            else:
+                return None
+
     def send_message(self, manual=True):
         """Send a message in the chat and get bot answer, handle TTS etc"""
         GLib.idle_add(self.hide_placeholder)
@@ -2107,8 +2138,9 @@ class MainWindow(Adw.ApplicationWindow):
 
         # Append extensions prompts
         prompts = []
+        formatter = PromptFormatter(replace_variables_dict(), self.get_variable)
         for prompt in self.controller.newelle_settings.bot_prompts:
-            prompts.append(replace_variables(prompt))
+            prompts.append(formatter.format(prompt))
 
         # Start creating the message
         if self.model.stream_enabled():

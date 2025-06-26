@@ -211,7 +211,6 @@ class NewelleController:
             return
         elif reload_type == ReloadType.WEBSEARCH:
             self.handlers.select_handlers(self.newelle_settings)
-            self.newelle_settings.prompts_settings["websearch"] = self.newelle_settings.websearch_on
             self.newelle_settings.save_prompts()
             self.newelle_settings.load_prompts()
             
