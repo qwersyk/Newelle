@@ -222,32 +222,32 @@ msgstr "সেটিংস"
 
 #: src/handlers/llm/gemini_handler.py:109
 msgid "Settings about thinking models"
-msgstr ""
+msgstr "ভাবনা মডেল সম্পর্কিত সেটিংস"
 
 #: src/handlers/llm/gemini_handler.py:110
 msgid "Enable Thinking"
-msgstr ""
+msgstr "ভাবনা সক্রিয় করুন"
 
 #: src/handlers/llm/gemini_handler.py:110
 msgid "Show thinking, disable it if your model does not support it"
-msgstr ""
+msgstr "ভাবনা দেখান, আপনার মডেল যদি এটি সমর্থন না করে তবে এটি নিষ্ক্রিয় করুন"
 
 #: src/handlers/llm/gemini_handler.py:111
 msgid "Enable Thinking Budget"
-msgstr ""
+msgstr "ভাবনা বাজেট সক্রিয় করুন"
 
 #: src/handlers/llm/gemini_handler.py:111
 msgid "If to enable thinking budget"
-msgstr ""
+msgstr "ভাবনা বাজেট সক্রিয় করতে হবে কিনা"
 
 #: src/handlers/llm/gemini_handler.py:112
 #, fuzzy
 msgid "Thinking Budget"
-msgstr "ভাবছে..."
+msgstr "ভাবনা বাজেট"
 
 #: src/handlers/llm/gemini_handler.py:112
 msgid "How much time to spend thinking"
-msgstr ""
+msgstr "ভাবনা করতে কত সময় ব্যয় করবেন"
 
 #: src/handlers/llm/gemini_handler.py:116
 msgid "Image Output"
@@ -782,78 +782,78 @@ msgstr "সেটিংস"
 
 #: src/ui/profile.py:53
 msgid "Profile Name"
-msgstr ""
+msgstr "প্রোফাইল নাম"
 
 #: src/ui/profile.py:58
 #, fuzzy
 msgid "Copied Settings"
-msgstr "সেটিংস"
+msgstr "কপি করা সেটিংস"
 
 #: src/ui/profile.py:58
 #, fuzzy
 msgid "Settings that will be copied to the new profile"
-msgstr "বর্তমান প্রোফাইলের সেটিংস নতুনটিতে কপি করা হবে"
+msgstr "নতুন প্রোফাইলে কপি করা হবে এমন সেটিংস"
 
 #: src/ui/profile.py:70
 #, fuzzy
 msgid "Create Profile"
-msgstr "নতুন প্রোফাইল তৈরি করুন"
+msgstr "প্রোফাইল তৈরি করুন"
 
 #: src/ui/profile.py:72 src/ui/profile.py:74 src/ui/profile.py:129
 msgid "Import Profile"
-msgstr ""
+msgstr "প্রোফাইল আমদানি করুন"
 
 #: src/ui/profile.py:79 src/ui/widgets/profilerow.py:43
 #, fuzzy
 msgid "Edit Profile"
-msgstr "প্রোফাইল নির্বাচন করুন"
+msgstr "প্রোফাইল সম্পাদনা করুন"
 
 #: src/ui/profile.py:84 src/ui/profile.py:99 src/ui/profile.py:123
 msgid "Export Profile"
-msgstr ""
+msgstr "প্রোফাইল রপ্তানি করুন"
 
 #: src/ui/profile.py:87
 msgid "Export Passwords"
-msgstr ""
+msgstr "পাসওয়ার্ড রপ্তানি করুন"
 
 #: src/ui/profile.py:87
 msgid "Also export password-like fields"
-msgstr ""
+msgstr "পাসওয়ার্ড সদৃশ ক্ষেত্রও রপ্তানি করুন"
 
 #: src/ui/profile.py:89
 msgid "Export Propic"
-msgstr ""
+msgstr "প্রোফাইল ছবি রপ্তানি করুন"
 
 #: src/ui/profile.py:89
 #, fuzzy
 msgid "Also export the profile picture"
-msgstr "প্রোফাইল ছবি সেট করুন"
+msgstr "প্রোফাইল ছবিটিও রপ্তানি করুন"
 
 #: src/ui/profile.py:109 src/ui/explorer.py:692
 #, fuzzy
 msgid "Create"
-msgstr "একটি চ্যাট তৈরি করুন"
+msgstr "তৈরি করুন"
 
 #: src/ui/profile.py:109
 msgid "Apply"
-msgstr ""
+msgstr "প্রয়োগ করুন"
 
 #: src/ui/profile.py:116
 msgid "The settings of the current profile will be copied into the new one"
-msgstr "বর্তমান প্রোফাইলের সেটিংস নতুনটিতে কপি করা হবে"
+msgstr "বর্তমান প্রোফাইলের সেটিংস নতুন প্রোফাইলে কপি করা হবে"
 
 #: src/ui/profile.py:122 src/ui/profile.py:128
 #, fuzzy
 msgid "Newelle Profiles"
-msgstr "নিউয়েল"
+msgstr "নিউয়েল প্রোফাইলসমূহ"
 
 #: src/ui/profile.py:123
 msgid "Export"
-msgstr ""
+msgstr "রপ্তানি করুন"
 
 #: src/ui/profile.py:129
 msgid "Import"
-msgstr ""
+msgstr "আমদানি করুন"
 
 #: src/ui/profile.py:197
 msgid "Set profile picture"
@@ -1115,11 +1115,11 @@ msgstr "ইন্টারফেসের আকার সামঞ্জস্�
 
 #: src/ui/settings.py:171
 msgid "Editor color scheme"
-msgstr ""
+msgstr "সম্পাদকের রঙের থিম"
 
 #: src/ui/settings.py:171
 msgid "Change the color scheme of the editor and codeblocks"
-msgstr ""
+msgstr "সম্পাদকের ও কোডব্লকের রঙের থিম পরিবর্তন করুন"
 
 #: src/ui/settings.py:178
 msgid "Hidden files"
@@ -1245,61 +1245,52 @@ msgstr "একটি একক ব্যবহারকারীর অনুর
 
 #: src/ui/settings.py:310
 msgid "Browser"
-msgstr ""
+msgstr "ব্রাউজার"
 
 #: src/ui/settings.py:310
 msgid "Settings for the browser"
-msgstr ""
+msgstr "ব্রাউজারের জন্য সেটিংস"
 
 #: src/ui/settings.py:315
 msgid "Use external browser"
-msgstr ""
+msgstr "বাহ্যিক ব্রাউজার ব্যবহার করুন"
 
 #: src/ui/settings.py:315
 msgid "Use an external browser to open links instead of integrated one"
-msgstr ""
+msgstr "লিঙ্কগুলি খোলার জন্য ইন্টিগ্রেটেড ব্রাউজারের বদলে বাহ্যিক ব্রাউজার ব্যবহার করুন"
 
 #: src/ui/settings.py:322
 msgid "Persist browser session"
-msgstr ""
+msgstr "ব্রাউজার সেশন বজায় রাখুন"
 
 #: src/ui/settings.py:322
-msgid ""
-"Persist browser session between restarts. Turning this off requires "
-"restarting the program"
-msgstr ""
-
-#: src/ui/settings.py:327
-#, fuzzy
-msgid "Delete browser data"
-msgstr "প্রোফাইল নির্বাচন করুন"
+msgid "Persist browser session between restarts. Turning this off requires restarting the program"
+msgstr "রিস্টার্টের মধ্যে ব্রাউজার সেশন বজায় রাখুন। এটি বন্ধ করলে প্রোগ্রাম রিস্টার্ট করতে হবে"
 
 #: src/ui/settings.py:327
 msgid "Delete browser session and data"
-msgstr ""
+msgstr "ব্রাউজার সেশন এবং ডেটা মুছে ফেলুন"
 
 #: src/ui/settings.py:328 src/ui/explorer.py:366 src/ui/explorer.py:502
-#, fuzzy
 msgid "Delete"
-msgstr "প্রোফাইল নির্বাচন করুন"
+msgstr "মুছে ফেলুন"
 
 #: src/ui/settings.py:334
 msgid "Initial browser page"
-msgstr ""
+msgstr "প্রাথমিক ব্রাউজার পাতা"
 
 #: src/ui/settings.py:334
 msgid "The page where the browser will start"
-msgstr ""
+msgstr "যে পাতা থেকে ব্রাউজার শুরু হবে"
 
 #: src/ui/settings.py:341
-#, fuzzy
 msgid "Search string"
-msgstr "নিরাপত্তা সেটিংস সক্ষম করুন"
+msgstr "সার্চ স্ট্রিং"
 
 #: src/ui/settings.py:341
 #, python-format
 msgid "The search string used in the browser, %s is replaced with the query"
-msgstr ""
+msgstr "ব্রাউজারে ব্যবহৃত সার্চ স্ট্রিং, %s প্রশ্নের সাথে প্রতিস্থাপিত হবে"
 
 #: src/ui/settings.py:362
 msgid "Document Sources (RAG)"
@@ -1433,48 +1424,28 @@ msgstr "রেকর্ডিং শুরু করুন"
 
 #: src/ui/shortcuts.py:19
 msgid "Save"
-msgstr ""
-
-#: src/ui/shortcuts.py:20
-msgid "Stop TTS"
-msgstr "TTS বন্ধ করুন"
-
-#: src/ui/shortcuts.py:21
-msgid "Zoom in"
-msgstr "জুম ইন করুন"
-
-#: src/ui/shortcuts.py:22
-msgid "Zoom out"
-msgstr "জুম আউট করুন"
-
-#: src/ui/explorer.py:192
-msgid "Folder is Empty"
-msgstr "ফোল্ডারটি খালি"
-
-#: src/ui/explorer.py:340 src/window.py:1510
-msgid "File not found"
-msgstr "ফাইল পাওয়া যায়নি"
+msgstr "সেভ করুন"
 
 #: src/ui/explorer.py:355
 msgid "Open in new tab"
-msgstr ""
+msgstr "নতুন ট্যাবে খুলুন"
 
 #: src/ui/explorer.py:357
 msgid "Open in integrated editor"
-msgstr ""
+msgstr "ইন্টিগ্রেটেড সম্পাদক খুলুন"
 
 #: src/ui/explorer.py:360 src/ui/explorer.py:589
 msgid "Open in file manager"
-msgstr ""
+msgstr "ফাইল ম্যানেজারে খুলুন"
 
 #: src/ui/explorer.py:363 src/ui/explorer.py:451
 #, fuzzy
 msgid "Rename"
-msgstr "ব্যবহারকারীর নাম"
+msgstr "নাম পরিবর্তন করুন"
 
 #: src/ui/explorer.py:369
 msgid "Copy full path"
-msgstr ""
+msgstr "সম্পূর্ণ পথ কপি করুন"
 
 #: src/ui/explorer.py:420 src/ui/explorer.py:657
 #, fuzzy
@@ -1493,95 +1464,95 @@ msgstr "বাতিল করুন"
 
 #: src/ui/explorer.py:471
 msgid "Renamed successfully"
-msgstr ""
+msgstr "সফলভাবে নাম পরিবর্তন হয়েছে"
 
 #: src/ui/explorer.py:476
 #, fuzzy
 msgid "Failed to rename: {}"
-msgstr "ফোল্ডার খুলতে ব্যর্থ"
+msgstr "নাম পরিবর্তন করতে ব্যর্থ: {}"
 
 #: src/ui/explorer.py:497
 #, fuzzy
 msgid "Delete File?"
-msgstr "প্রোফাইল নির্বাচন করুন"
+msgstr "ফাইল মুছে ফেলবেন?"
 
 #: src/ui/explorer.py:499
 msgid "Are you sure you want to delete \"{}\"?"
-msgstr ""
+msgstr "আপনি কি নিশ্চিত যে আপনি \"{}\" মুছে ফেলতে চান?"
 
 #: src/ui/explorer.py:520
 msgid "Deleted successfully"
-msgstr ""
+msgstr "সফলভাবে মুছে ফেলা হয়েছে"
 
 #: src/ui/explorer.py:525
 #, fuzzy
 msgid "Failed to delete: {}"
-msgstr "ফোল্ডার খুলতে ব্যর্থ"
+msgstr "মুছে ফেলতে ব্যর্থ: {}"
 
 #: src/ui/explorer.py:538
 msgid "Path copied to clipboard"
-msgstr ""
+msgstr "পথ ক্লিপবোর্ডে কপি করা হয়েছে"
 
 #: src/ui/explorer.py:542
 #, fuzzy
 msgid "Failed to copy path"
-msgstr "ফোল্ডার খুলতে ব্যর্থ"
+msgstr "পথ কপি করতে ব্যর্থ"
 
 #: src/ui/explorer.py:580
 #, fuzzy
 msgid "Create new folder"
-msgstr "নতুন প্রোফাইল তৈরি করুন"
+msgstr "নতুন ফোল্ডার তৈরি করুন"
 
 #: src/ui/explorer.py:583
 #, fuzzy
 msgid "Create new file"
-msgstr "নতুন প্রোফাইল তৈরি করুন"
+msgstr "নতুন ফাইল তৈরি করুন"
 
 #: src/ui/explorer.py:586
 #, fuzzy
 msgid "Open Terminal Here"
-msgstr "বাহ্যিক টার্মিনাল"
+msgstr "এখানে টার্মিনাল খুলুন"
 
 #: src/ui/explorer.py:640
 #, fuzzy
 msgid "Create New Folder"
-msgstr "নতুন প্রোফাইল তৈরি করুন"
+msgstr "নতুন ফোল্ডার তৈরি করুন"
 
 #: src/ui/explorer.py:640
 #, fuzzy
 msgid "Folder name:"
-msgstr "নতুন ট্যাব"
+msgstr "ফোল্ডারের নাম:"
 
 #: src/ui/explorer.py:644
 #, fuzzy
 msgid "Create New File"
-msgstr "নতুন প্রোফাইল তৈরি করুন"
+msgstr "নতুন ফাইল তৈরি করুন"
 
 #: src/ui/explorer.py:644
 #, fuzzy
 msgid "File name:"
-msgstr "নতুন ট্যাব"
+msgstr "ফাইলের নাম:"
 
 #: src/ui/explorer.py:713
 msgid "Folder created successfully"
-msgstr ""
+msgstr "ফোল্ডার সফলভাবে তৈরি হয়েছে"
 
 #: src/ui/explorer.py:720
 msgid "File created successfully"
-msgstr ""
+msgstr "ফাইল সফলভাবে তৈরি হয়েছে"
 
 #: src/ui/explorer.py:725
 msgid "A file or folder with that name already exists"
-msgstr ""
+msgstr "সেই নামে একটি ফাইল বা ফোল্ডার ইতিমধ্যে আছে"
 
 #: src/ui/explorer.py:728
 #, fuzzy
 msgid "folder"
-msgstr "ফোল্ডার রিলোড করুন"
+msgstr "ফোল্ডার"
 
 #: src/ui/explorer.py:728
 msgid "file"
-msgstr ""
+msgstr "ফাইল"
 
 #: src/ui/explorer.py:730
 #, fuzzy
@@ -1793,7 +1764,8 @@ msgstr "Kokoro TTS"
 #: src/constants.py:167
 msgid ""
 "Lightweight and fast open source TTS engine. ~3GB dependencies, 400MB model"
-msgstr "হালকা এবং দ্রুত ওপেন সোর্স TTS ইঞ্জিন। ~3GB ডিপেন্ডেন্সি, 400MB মডেল"
+msgstr ""
+"হালকা এবং দ্রুত ওপেন সোর্স TTS ইঞ্জিন। ~3GB ডিপেন্ডেন্সি, 400MB মডেল"
 
 #: src/constants.py:172
 msgid "ElevenLabs TTS"
@@ -2121,15 +2093,15 @@ msgstr "একটি বার্তা পাঠান..."
 
 #: src/window.py:448
 msgid "Explorer Tab"
-msgstr ""
+msgstr "এক্সপ্লোরার ট্যাব"
 
 #: src/window.py:449
 msgid "Terminal Tab"
-msgstr ""
+msgstr "টার্মিনাল ট্যাব"
 
 #: src/window.py:450
 msgid "Browser Tab"
-msgstr ""
+msgstr "ব্রাউজার ট্যাব"
 
 #: src/window.py:544
 msgid "Ask about a website"
@@ -2188,7 +2160,7 @@ msgstr "টেক্সট টু স্পিচ প্রোগ্রাম"
 
 #: src/window.py:549
 msgid "Newelle supports text-to-speech! Enable it in the settings"
-msgstr ""
+msgstr "নিউয়েল টেক্সট-টু-স্পিচ সমর্থন করে! সেটিংসে এটি সক্রিয় করুন"
 
 #: src/window.py:550
 #, fuzzy
@@ -2391,40 +2363,40 @@ msgstr "বাগ সংশোধন"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:39
 msgid "Small improvements"
-msgstr ""
+msgstr "ছোটখাট কিছু উন্নতি"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:46
 msgid "Improve local documents reading and loading performances"
-msgstr ""
+msgstr "লোকাল ডকুমেন্ট পড়া এবং লোড করার কর্মক্ষমতা উন্নত করুন"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:47
 msgid "Add option to send with CTRL+Enter"
-msgstr ""
+msgstr "CTRL+Enter দিয়ে পাঠানোর বিকল্প যোগ করুন"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:48
 msgid "Improve codeblocks"
-msgstr ""
+msgstr "কোডব্লক উন্নত করুন"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:49
 #, fuzzy
 msgid "Fix Kokoro TTS"
-msgstr "Kokoro TTS"
+msgstr "Kokoro TTS সংশোধন করুন"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:50
 msgid "Remove emoji from TTS"
-msgstr ""
+msgstr "TTS থেকে ইমোজি সরান"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:51
 msgid "Set API keys as password fields"
-msgstr ""
+msgstr "API কীকে পাসওয়ার্ড ক্ষেত্র হিসেবে সেট করুন"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:52
 msgid "Add thinking support for Gemini"
-msgstr ""
+msgstr "Gemini এর জন্য ভাবনার সমর্থন যোগ করুন"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:53
 msgid "Updated translations"
-msgstr ""
+msgstr "আপডেট করা অনুবাদ"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:60
 msgid "Added new features"
