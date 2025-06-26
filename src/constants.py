@@ -99,19 +99,19 @@ AVAILABLE_LLMS = {
 }
 
 AVAILABLE_STT = {
-    "sphinx": {
-        "key": "sphinx",
-        "title": _("CMU Sphinx"),
-        "description": _("Works offline. Only English supported"),
-        "website": "https://cmusphinx.github.io/wiki/",
-        "class": SphinxHandler,
-    },
     "whispercpp": {
         "key": "whispercpp",
         "title": _("Whisper C++"),
         "description": _("Works offline. Optimized Whisper impelementation written in C++"),
         "website": "https://github.com/ggerganov/whisper.cpp",
         "class": WhisperCPPHandler,
+    },
+    "sphinx": {
+        "key": "sphinx",
+        "title": _("CMU Sphinx"),
+        "description": _("Works offline. Only English supported"),
+        "website": "https://cmusphinx.github.io/wiki/",
+        "class": SphinxHandler,
     },
     "google_sr": {
         "key": "google_sr",
