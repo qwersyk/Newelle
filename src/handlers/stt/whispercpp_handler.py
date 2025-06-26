@@ -66,6 +66,7 @@ class WhisperCPPHandler(STTHandler):
                 )
             )
         return res
+
     def get_percentage(self, model: str):
         file_size = os.path.getsize(os.path.join(self.path, "whisper", "whisper.cpp/models/ggml-" + model + ".bin")) 
         model_info = [x for x in WHISPER_MODELS if x["model_name"] == model][0]
@@ -77,10 +78,12 @@ class WhisperCPPHandler(STTHandler):
         else:
             path = os.path.join(self.path, "whisper/whisper.cpp/models/download-ggml-model.sh")
             f = subprocess.check_output(get_spawn_command() + ["bash", "-c", f"sh {path} " + model_name])
-            print(f) 
-    
+            print(f)
+            self.settings_update()
+
     def is_model_installed(self, model_name):
         return os.path.exists(os.path.join(self.path, "whisper", "whisper.cpp/models/ggml-" + model_name + ".bin"))
+    
     def get_models(self):
         return tuple((model["display_name"], model["model_name"]) for model in WHISPER_MODELS if self.is_model_installed(model["model_name"]))
 

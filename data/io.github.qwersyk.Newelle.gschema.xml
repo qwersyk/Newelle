@@ -20,7 +20,7 @@
             <default>true</default>
         </key>
         <key name="auto-generate-name" type="b">
-            <default>false</default>
+            <default>true</default>
         </key>
 
         <key name="display-latex" type="b">

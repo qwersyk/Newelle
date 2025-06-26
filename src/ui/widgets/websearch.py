@@ -9,8 +9,6 @@ class WebSearchWidget(Gtk.Box):
 
     def __init__(self, search_term, **kwargs):
         super().__init__(orientation=Gtk.Orientation.VERTICAL, spacing=10, **kwargs)
-        # Add some padding inside the widget itself, so content isn't
-        # right up against the frame border
         self.add_css_class("osd")
         self.add_css_class("toolbar")
         self.add_css_class("code")
