@@ -222,7 +222,7 @@ msgstr "सेटिंग्स"
 
 #: src/handlers/llm/gemini_handler.py:109
 msgid "Settings about thinking models"
-msgstr ""
+msgstr "सोचने वाले मॉडलों के बारे में सेटिंग्स"
 
 #: src/handlers/llm/gemini_handler.py:110
 msgid "Enable Thinking"
@@ -230,27 +230,23 @@ msgstr "सोचने की क्षमता सक्षम करें"
 
 #: src/handlers/llm/gemini_handler.py:110
 msgid "Show thinking, disable it if your model does not support it"
-msgstr ""
-"सोचने की प्रक्रिया दिखाएँ, यदि आपका मॉडल इसका समर्थन नहीं करता है तो इसे अक्षम करें"
+msgstr "सोचने की प्रक्रिया दिखाएँ, यदि आपका मॉडल इसका समर्थन नहीं करता है तो इसे अक्षम करें"
 
 #: src/handlers/llm/gemini_handler.py:111
-#, fuzzy
 msgid "Enable Thinking Budget"
-msgstr "सोचने की क्षमता सक्षम करें"
+msgstr "सोचने का बजट सक्षम करें"
 
 #: src/handlers/llm/gemini_handler.py:111
-#, fuzzy
 msgid "If to enable thinking budget"
-msgstr "सोचने की क्षमता सक्षम करें"
+msgstr "क्या सोचने का बजट सक्षम करना है"
 
 #: src/handlers/llm/gemini_handler.py:112
-#, fuzzy
 msgid "Thinking Budget"
-msgstr "सोच रहा है..."
+msgstr "सोचने का बजट"
 
 #: src/handlers/llm/gemini_handler.py:112
 msgid "How much time to spend thinking"
-msgstr ""
+msgstr "सोचने में कितना समय बिताना है"
 
 #: src/handlers/llm/gemini_handler.py:116
 msgid "Image Output"
@@ -786,78 +782,71 @@ msgstr "सेटिंग्स"
 
 #: src/ui/profile.py:53
 msgid "Profile Name"
-msgstr ""
+msgstr "प्रोफ़ाइल का नाम"
 
 #: src/ui/profile.py:58
-#, fuzzy
 msgid "Copied Settings"
-msgstr "सेटिंग्स"
+msgstr "कॉपी की गई सेटिंग्स"
 
 #: src/ui/profile.py:58
-#, fuzzy
 msgid "Settings that will be copied to the new profile"
-msgstr "वर्तमान प्रोफ़ाइल की सेटिंग्स को नए में कॉपी किया जाएगा"
+msgstr "वे सेटिंग्स जो नए प्रोफ़ाइल में कॉपी की जाएंगी"
 
 #: src/ui/profile.py:70
-#, fuzzy
 msgid "Create Profile"
-msgstr "नया प्रोफ़ाइल बनाएं"
+msgstr "प्रोफ़ाइल बनाएं"
 
 #: src/ui/profile.py:72 src/ui/profile.py:74 src/ui/profile.py:129
 msgid "Import Profile"
-msgstr ""
+msgstr "प्रोफ़ाइल आयात करें"
 
 #: src/ui/profile.py:79 src/ui/widgets/profilerow.py:43
-#, fuzzy
 msgid "Edit Profile"
-msgstr "प्रोफ़ाइल चुनें"
+msgstr "प्रोफ़ाइल संपादित करें"
 
 #: src/ui/profile.py:84 src/ui/profile.py:99 src/ui/profile.py:123
 msgid "Export Profile"
-msgstr ""
+msgstr "प्रोफ़ाइल निर्यात करें"
 
 #: src/ui/profile.py:87
 msgid "Export Passwords"
-msgstr ""
+msgstr "पासवर्ड निर्यात करें"
 
 #: src/ui/profile.py:87
 msgid "Also export password-like fields"
-msgstr ""
+msgstr "पासवर्ड जैसे फ़ील्ड भी निर्यात करें"
 
 #: src/ui/profile.py:89
 msgid "Export Propic"
-msgstr ""
+msgstr "प्रोफ़ाइल चित्र निर्यात करें"
 
 #: src/ui/profile.py:89
-#, fuzzy
 msgid "Also export the profile picture"
-msgstr "प्रोफ़ाइल चित्र सेट करें"
+msgstr "प्रोफ़ाइल चित्र भी निर्यात करें"
 
 #: src/ui/profile.py:109 src/ui/explorer.py:692
-#, fuzzy
 msgid "Create"
-msgstr "एक चैट बनाएं"
+msgstr "बनाएं"
 
 #: src/ui/profile.py:109
 msgid "Apply"
-msgstr ""
+msgstr "लागू करें"
 
 #: src/ui/profile.py:116
 msgid "The settings of the current profile will be copied into the new one"
-msgstr "वर्तमान प्रोफ़ाइल की सेटिंग्स को नए में कॉपी किया जाएगा"
+msgstr "वर्तमान प्रोफ़ाइल की सेटिंग्स नए प्रोफ़ाइल में कॉपी की जाएंगी"
 
 #: src/ui/profile.py:122 src/ui/profile.py:128
-#, fuzzy
 msgid "Newelle Profiles"
-msgstr "न्युएल"
+msgstr "न्यूवेल प्रोफ़ाइल"
 
 #: src/ui/profile.py:123
 msgid "Export"
-msgstr ""
+msgstr "निर्यात करें"
 
 #: src/ui/profile.py:129
 msgid "Import"
-msgstr ""
+msgstr "आयात करें"
 
 #: src/ui/profile.py:197
 msgid "Set profile picture"
@@ -1119,11 +1108,11 @@ msgstr "इंटरफ़ेस के आकार को समायोज�
 
 #: src/ui/settings.py:171
 msgid "Editor color scheme"
-msgstr ""
+msgstr "संपादक रंग योजना"
 
 #: src/ui/settings.py:171
 msgid "Change the color scheme of the editor and codeblocks"
-msgstr ""
+msgstr "संपादक और कोडब्लॉक की रंग योजना बदलें"
 
 #: src/ui/settings.py:178
 msgid "Hidden files"
@@ -1248,61 +1237,53 @@ msgstr "एकल उपयोगकर्ता अनुरोध के ब�
 
 #: src/ui/settings.py:310
 msgid "Browser"
-msgstr ""
+msgstr "ब्राउज़र"
 
 #: src/ui/settings.py:310
 msgid "Settings for the browser"
-msgstr ""
+msgstr "ब्राउज़र के लिए सेटिंग्स"
 
 #: src/ui/settings.py:315
 msgid "Use external browser"
-msgstr ""
+msgstr "बाहरी ब्राउज़र का उपयोग करें"
 
 #: src/ui/settings.py:315
 msgid "Use an external browser to open links instead of integrated one"
-msgstr ""
+msgstr "लिंक खोलने के लिए एकीकृत ब्राउज़र के बजाय बाहरी ब्राउज़र का उपयोग करें"
 
 #: src/ui/settings.py:322
 msgid "Persist browser session"
-msgstr ""
+msgstr "ब्राउज़र सत्र को बनाए रखें"
 
 #: src/ui/settings.py:322
 msgid ""
 "Persist browser session between restarts. Turning this off requires "
 "restarting the program"
-msgstr ""
-
-#: src/ui/settings.py:327
-#, fuzzy
-msgid "Delete browser data"
-msgstr "प्रोफ़ाइल चुनें"
+msgstr "पुनः आरंभ के बीच ब्राउज़र सत्र को बनाए रखें। इसे बंद करने पर प्रोग्राम को पुनः आरंभ करना होगा"
 
 #: src/ui/settings.py:327
 msgid "Delete browser session and data"
-msgstr ""
+msgstr "ब्राउज़र सत्र और डेटा हटाएं"
 
 #: src/ui/settings.py:328 src/ui/explorer.py:366 src/ui/explorer.py:502
-#, fuzzy
 msgid "Delete"
-msgstr "प्रोफ़ाइल चुनें"
+msgstr "हटाएं"
 
 #: src/ui/settings.py:334
 msgid "Initial browser page"
-msgstr ""
+msgstr "प्रारंभिक ब्राउज़र पृष्ठ"
 
 #: src/ui/settings.py:334
 msgid "The page where the browser will start"
-msgstr ""
+msgstr "पृष्ठ जहाँ से ब्राउज़र शुरू होगा"
 
 #: src/ui/settings.py:341
-#, fuzzy
 msgid "Search string"
-msgstr "सुरक्षा सेटिंग्स सक्षम करें"
+msgstr "खोज स्ट्रिंग"
 
 #: src/ui/settings.py:341
-#, python-format
 msgid "The search string used in the browser, %s is replaced with the query"
-msgstr ""
+msgstr "ब्राउज़र में उपयोग की जाने वाली खोज स्ट्रिंग, %s को क्वेरी से बदला जाएगा"
 
 #: src/ui/settings.py:362
 msgid "Document Sources (RAG)"
@@ -1435,7 +1416,7 @@ msgstr "रिकॉर्डिंग शुरू करें"
 
 #: src/ui/shortcuts.py:19
 msgid "Save"
-msgstr ""
+msgstr "सहेजें"
 
 #: src/ui/shortcuts.py:20
 msgid "Stop TTS"
@@ -1459,34 +1440,31 @@ msgstr "फ़ाइल नहीं मिली"
 
 #: src/ui/explorer.py:355
 msgid "Open in new tab"
-msgstr ""
+msgstr "नई टैब में खोलें"
 
 #: src/ui/explorer.py:357
 msgid "Open in integrated editor"
-msgstr ""
+msgstr "एकीकृत संपादक में खोलें"
 
 #: src/ui/explorer.py:360 src/ui/explorer.py:589
 msgid "Open in file manager"
-msgstr ""
+msgstr "फ़ाइल प्रबंधक में खोलें"
 
 #: src/ui/explorer.py:363 src/ui/explorer.py:451
-#, fuzzy
 msgid "Rename"
-msgstr "उपयोगकर्ता नाम"
+msgstr "नाम बदलें"
 
 #: src/ui/explorer.py:369
 msgid "Copy full path"
-msgstr ""
+msgstr "पूरा पथ कॉपी करें"
 
 #: src/ui/explorer.py:420 src/ui/explorer.py:657
-#, fuzzy
 msgid "Failed to open file manager"
-msgstr "फ़ोल्डर खोलने में विफल"
+msgstr "फ़ाइल प्रबंधक खोलने में विफल"
 
 #: src/ui/explorer.py:436
-#, fuzzy
 msgid "New name:"
-msgstr "नया टैब"
+msgstr "नया नाम:"
 
 #: src/ui/explorer.py:448 src/ui/explorer.py:501 src/ui/explorer.py:689
 #: src/main.py:204
@@ -1495,34 +1473,31 @@ msgstr "रद्द करें"
 
 #: src/ui/explorer.py:471
 msgid "Renamed successfully"
-msgstr ""
+msgstr "नाम सफलतापूर्वक बदला गया"
 
 #: src/ui/explorer.py:476
-#, fuzzy
 msgid "Failed to rename: {}"
-msgstr "फ़ोल्डर खोलने में विफल"
+msgstr "नाम बदलने में विफल: {}"
 
 #: src/ui/explorer.py:497
-#, fuzzy
 msgid "Delete File?"
-msgstr "प्रोफ़ाइल चुनें"
+msgstr "फ़ाइल हटाएं?"
 
 #: src/ui/explorer.py:499
 msgid "Are you sure you want to delete \"{}\"?"
-msgstr ""
+msgstr "क्या आप वाकई \"{}\" को हटाना चाहते हैं?"
 
 #: src/ui/explorer.py:520
 msgid "Deleted successfully"
-msgstr ""
+msgstr "सफलतापूर्वक हटाया गया"
 
 #: src/ui/explorer.py:525
-#, fuzzy
 msgid "Failed to delete: {}"
-msgstr "फ़ोल्डर खोलने में विफल"
+msgstr "हटाने में विफल: {}"
 
 #: src/ui/explorer.py:538
 msgid "Path copied to clipboard"
-msgstr ""
+msgstr "पथ क्लिपबोर्ड पर कॉपी किया गया"
 
 #: src/ui/explorer.py:542
 #, fuzzy
@@ -1566,24 +1541,23 @@ msgstr "नया टैब"
 
 #: src/ui/explorer.py:713
 msgid "Folder created successfully"
-msgstr ""
+msgstr "फ़ोल्डर सफलतापूर्वक बनाया गया"
 
 #: src/ui/explorer.py:720
 msgid "File created successfully"
-msgstr ""
+msgstr "फ़ाइल सफलतापूर्वक बनाई गई"
 
 #: src/ui/explorer.py:725
 msgid "A file or folder with that name already exists"
-msgstr ""
+msgstr "उस नाम की एक फ़ाइल या फ़ोल्डर पहले से मौजूद है"
 
 #: src/ui/explorer.py:728
-#, fuzzy
 msgid "folder"
-msgstr "फ़ोल्डर रीलोड करें"
+msgstr "फ़ोल्डर"
 
 #: src/ui/explorer.py:728
 msgid "file"
-msgstr ""
+msgstr "फ़ाइल"
 
 #: src/ui/explorer.py:730
 #, fuzzy
@@ -2121,15 +2095,15 @@ msgstr "एक संदेश भेजें..."
 
 #: src/window.py:448
 msgid "Explorer Tab"
-msgstr ""
+msgstr "एक्सप्लोरर टैब"
 
 #: src/window.py:449
 msgid "Terminal Tab"
-msgstr ""
+msgstr "टर्मिनल टैब"
 
 #: src/window.py:450
 msgid "Browser Tab"
-msgstr ""
+msgstr "ब्राउज़र टैब"
 
 #: src/window.py:544
 msgid "Ask about a website"
@@ -2206,8 +2180,7 @@ msgstr "प्रॉम्प्ट नियंत्रण"
 
 #: src/window.py:551
 msgid "Newelle gives you 100% prompt control. Tune your prompts for your use."
-msgstr ""
-"न्यूएले आपको 100% प्रॉम्प्ट नियंत्रण देता है। अपनी उपयोग के लिए अपने प्रॉम्प्ट को ट्यून करें।"
+msgstr "न्यूएले आपको 100% प्रॉम्प्ट नियंत्रण देता है। अपनी उपयोग के लिए अपने प्रॉम्प्ट को ट्यून करें।"
 
 #: src/window.py:552
 #, fuzzy
@@ -2389,40 +2362,39 @@ msgstr "बग फिक्स"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:39
 msgid "Small improvements"
-msgstr ""
+msgstr "छोटे सुधार"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:46
 msgid "Improve local documents reading and loading performances"
-msgstr ""
+msgstr "स्थानीय दस्तावेज़ पढ़ने और लोडिंग प्रदर्शन में सुधार"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:47
 msgid "Add option to send with CTRL+Enter"
-msgstr ""
+msgstr "CTRL+Enter से भेजने का विकल्प जोड़ें"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:48
 msgid "Improve codeblocks"
-msgstr ""
+msgstr "कोडब्लॉक्स में सुधार करें"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:49
-#, fuzzy
 msgid "Fix Kokoro TTS"
-msgstr "कोकोरो TTS"
+msgstr "कोकोरो TTS ठीक करें"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:50
 msgid "Remove emoji from TTS"
-msgstr ""
+msgstr "TTS से इमोजी हटाएं"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:51
 msgid "Set API keys as password fields"
-msgstr ""
+msgstr "API कुंजी को पासवर्ड फ़ील्ड के रूप में सेट करें"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:52
 msgid "Add thinking support for Gemini"
-msgstr ""
+msgstr "जेमिनी के लिए सोचने का समर्थन जोड़ें"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:53
 msgid "Updated translations"
-msgstr ""
+msgstr "अनुवाद अपडेट किए गए"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:60
 msgid "Added new features"
