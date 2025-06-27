@@ -2389,7 +2389,7 @@ class MainWindow(Adw.ApplicationWindow):
             try:
                 if not animate:
                     self.chat_stack.set_transition_duration(0)
-                self.old_chat_list_block = self.chat_list_block
+                old_chat_list_block = self.chat_list_block
                 self.chat_list_block = Gtk.ListBox(
                     css_classes=["separators", "background", "view"]
                 )
@@ -2397,7 +2397,7 @@ class MainWindow(Adw.ApplicationWindow):
 
                 self.chat_stack.add_child(self.chat_list_block)
                 self.chat_stack.set_visible_child(self.chat_list_block)
-                GLib.idle_add(self.chat_stack.remove,self.old_chat_list_block)
+                GLib.idle_add(self.chat_stack.remove,old_chat_list_block)
                 GLib.idle_add(self.chat_stack.set_transition_duration, 300)
             except Exception as e:
                 self.notification_block.add_toast(Adw.Toast(title=str(e)))
@@ -3619,14 +3619,21 @@ class MainWindow(Adw.ApplicationWindow):
             name = self.secondary_model.generate_chat_name(
                 self.prompts["generate_name_prompt"]
             )
-            name = remove_thinking_blocks(name)
             if name is None:
+                button.set_icon_name("warning-outline-symbolic")
+                button.can_target = True
+                button.remove_css_class("suggested-action")
+                button.add_css_class("error")
+                GLib.timeout_add(2000, self.update_history)
+            else:
+                name = remove_thinking_blocks(name)
+                if name is None:
+                    self.update_history()
+                    return
+                name = remove_markdown(name)
+                if name != "Chat has been stopped":
+                    self.chats[int(button.get_name())]["name"] = name
                 self.update_history()
-                return
-            name = remove_markdown(name)
-            if name != "Chat has been stopped":
-                self.chats[int(button.get_name())]["name"] = name
-            self.update_history()
         else:
             threading.Thread(
                 target=self.generate_chat_name, args=[button, True]
