@@ -195,9 +195,10 @@ class NewelleController:
         elif reload_type == ReloadType.LLM:
             self.handlers.select_handlers(self.newelle_settings)
             threading.Thread(target=self.handlers.llm.load_model, args=(None,)).start()
-        elif reload_type == ReloadType.SECONDARY_LLM and self.newelle_settings.use_secondary_language_model:
+        elif reload_type == ReloadType.SECONDARY_LLM:
             self.handlers.select_handlers(self.newelle_settings)
-            threading.Thread(target=self.handlers.secondary_llm.load_model, args=(None,)).start()
+            if self.newelle_settings.use_secondary_language_model:
+                threading.Thread(target=self.handlers.secondary_llm.load_model, args=(None,)).start()
         elif reload_type in [ReloadType.TTS, ReloadType.STT, ReloadType.MEMORIES]:
             self.handlers.select_handlers(self.newelle_settings)
         elif reload_type == ReloadType.RAG:

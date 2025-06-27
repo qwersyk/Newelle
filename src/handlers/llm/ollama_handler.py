@@ -44,6 +44,7 @@ class OllamaHandler(LLMHandler):
 
     def get_models_list(self):
         return self.models
+
     def get_models_infomation(self):
         """Get information about models on ollama.com"""
         if self.is_installed(): 
@@ -178,7 +179,7 @@ class OllamaHandler(LLMHandler):
                             refresh_icon="plus-symbolic",
                             website="https://ollama.com/library"
                         )
-                    ] + self.get_model_library(), refresh=self.get_models_infomation
+                    ] + self.get_model_library(), refresh=lambda x : self.get_models_infomation
                 )
             )
         settings.append(get_streaming_extra_setting())
