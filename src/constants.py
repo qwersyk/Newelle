@@ -403,7 +403,7 @@ AVAILABLE_PROMPTS = [
         "setting_name": "websearch",
         "editable": True,
         "show_in_settings": True,
-        "default": False
+        "default": True
     },
     {
         "key": "basic_functionality",
