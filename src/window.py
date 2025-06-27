@@ -3048,6 +3048,9 @@ class MainWindow(Adw.ApplicationWindow):
             wrap_mode=Pango.WrapMode.WORD,
             selectable=True,
             halign=Gtk.Align.START,
+            hexpand=True,
+            vexpand=True,
+            width_request=400
         )
         scroll = Gtk.ScrolledWindow(propagate_natural_width=True, height_request=600)
         scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
