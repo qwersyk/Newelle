@@ -1635,7 +1635,7 @@ class MainWindow(Adw.ApplicationWindow):
             self.send_button_start_spinner()
         elif self.last_error_box is not None:
             self.remove_error(True)
-            self.show_chat()
+            #self.show_chat()
             threading.Thread(target=self.send_message).start()
             self.send_button_start_spinner()
         else:
@@ -1654,7 +1654,10 @@ class MainWindow(Adw.ApplicationWindow):
         if not idle:
             GLib.idle_add(self.remove_error, True)
         if self.last_error_box is not None:
-            self.chat_list_block.remove(self.last_error_box)
+            error_row = self.chat_list_block.get_last_child()
+            if error_row is None:
+                return
+            self.chat_list_block.remove(error_row)
             self.last_error_box = None
 
     def update_history(self):
