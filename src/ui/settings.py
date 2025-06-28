@@ -684,7 +684,7 @@ class Settings(Adw.PreferencesWindow):
             return
         if "website" in setting:
             wbbutton = self.create_web_button(setting["website"])
-            r.add_prefix(wbbutton)
+            r.add_suffix(wbbutton)
         if "folder" in setting:
             wbbutton = self.create_web_button(setting["folder"], folder=True)
             r.add_suffix(wbbutton)
