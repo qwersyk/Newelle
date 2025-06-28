@@ -100,6 +100,8 @@ class StdoutMonitor:
                 if ready:
                     # Read data from our pipe
                     try:
+                        if self.original_stdout_fd is None:
+                            return
                         data = os.read(self.stdout_read_fd, 4096)
                         if data:
                             text = data.decode('utf-8', errors='replace')
@@ -115,7 +117,7 @@ class StdoutMonitor:
                         # Pipe was closed
                         break
         except Exception as e:
-            print(f"Stdout monitoring error: {e}", file=sys.stderr)
+            print("Error in stdout monitor: " + str(e))
     
     def is_active(self):
         """Check if monitoring is currently active"""

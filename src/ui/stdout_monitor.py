@@ -125,8 +125,7 @@ class StdoutMonitorDialog:
         self.dialog.set_child(content_box)
         
         # Connect dialog close event
-        self.dialog.connect("closed", self._on_dialog_closed)
-        
+        self.dialog.connect("closed", self._on_dialog_closed) 
         # If monitoring is already active, start the display update timer
         if is_already_monitoring:
             GLib.timeout_add(100, self._update_stdout_display)
@@ -275,7 +274,10 @@ class StdoutMonitorDialog:
         """Handle dialog close event"""
         # Don't stop monitoring when dialog is closed - let it continue in background
         # Only reset the dialog reference
-        self.dialog = None
+        if self.dialog is not None:
+            self.dialog.close()
+            self.dialog = None
+        return False
     
     def close(self):
         """Close the dialog"""

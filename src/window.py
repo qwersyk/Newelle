@@ -3663,23 +3663,10 @@ class MainWindow(Adw.ApplicationWindow):
         self.stdout_monitor_dialog.stdout_monitor = StdoutMonitor(self.stdout_monitor_dialog._on_stdout_received)
         self.stdout_monitor_dialog.stdout_monitor.start_monitoring()
         
-        # Start the update timer for the background monitoring
-        GLib.timeout_add(10000, self._update_background_stdout)
-
-    def _update_background_stdout(self):
-        """Update stdout buffer in background even when dialog is not shown"""
-        if (self.stdout_monitor_dialog and 
-            self.stdout_monitor_dialog.stdout_monitor and 
-            self.stdout_monitor_dialog.stdout_monitor.is_active()):
-            # The buffer is automatically updated via the callback
-            return True
-        return False
-
     def show_stdout_monitor_dialog(self):
         """Create and show a dialog to monitor stdout in real-time with terminal interface"""
         if self.stdout_monitor_dialog is None:
             self._init_stdout_monitoring()
-        
         # Show the dialog and populate it with existing captured data
         self.stdout_monitor_dialog.show_dialog()
         

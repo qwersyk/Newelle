@@ -17,6 +17,7 @@ from ..utility.system import can_escape_sandbox, get_spawn_command, open_website
 
 from ..controller import NewelleController
 
+
 class Settings(Adw.PreferencesWindow):
     def __init__(self,app, controller: NewelleController,headless=False, startup_page=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -858,10 +859,16 @@ class Settings(Adw.PreferencesWindow):
         """
         actionbutton = Gtk.Button(css_classes=["flat"], valign=Gtk.Align.CENTER)
         if not handler.is_installed():
-            icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="folder-download-symbolic"))
-            actionbutton.connect("clicked", self.install_model, handler)
-            actionbutton.add_css_class("accent")
-            actionbutton.set_child(icon)
+            if (handler.key, handler.schema_key) in self.controller.installing_handlers:
+                spinner = Gtk.Spinner(spinning=True)
+                actionbutton.set_child(spinner)
+                actionbutton.add_css_class("accent")
+                actionbutton.connect("clicked", lambda _ : self.app.win.show_stdout_monitor_dialog())
+            else:
+                icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="folder-download-symbolic"))
+                actionbutton.connect("clicked", self.install_model, handler)
+                actionbutton.add_css_class("accent")
+                actionbutton.set_child(icon)
             if type(row) is Adw.ActionRow:
                 row.add_suffix(actionbutton)
             elif type(row) is Adw.ExpanderRow:
@@ -888,7 +895,7 @@ class Settings(Adw.PreferencesWindow):
             elif type(row) is Adw.ComboRow:
                 row.add_suffix(actionbutton)
 
-    def install_model(self, button, handler):
+    def install_model(self, button: Gtk.Button, handler):
         """Display a spinner and trigger the dependency download on another thread
 
         Args:
@@ -897,9 +904,10 @@ class Settings(Adw.PreferencesWindow):
         """
         spinner = Gtk.Spinner(spinning=True)
         button.set_child(spinner)
-        button.set_sensitive(False)
+        button.disconnect_by_func(self.install_model)
+        button.connect("clicked", lambda x : self.app.win.show_stdout_monitor_dialog())
         t = threading.Thread(target=self.install_model_async, args= (button, handler))
-        t.start()
+        t.start() 
 
     def install_model_async(self, button, model):
         """Install the model dependencies, called on another thread
@@ -908,7 +916,9 @@ class Settings(Adw.PreferencesWindow):
             button (): button  
             model (): a handler instance
         """
+        self.controller.installing_handlers[(model.key, model.schema_key)] = True 
         model.install()
+        self.controller.installing_handlers[(model.key, model.schema_key)] = False 
         GLib.idle_add(self.update_ui_after_install, button, model)
 
     def update_ui_after_install(self, button, model):
