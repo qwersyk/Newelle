@@ -106,7 +106,7 @@ AVAILABLE_STT = {
         "website": "https://github.com/ggerganov/whisper.cpp",
         "class": WhisperCPPHandler,
     },
-    "sphinx": {
+    "Sphinx": {
         "key": "sphinx",
         "title": _("CMU Sphinx"),
         "description": _("Works offline. Only English supported"),

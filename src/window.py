@@ -24,6 +24,8 @@ from .ui.widgets import File, CopyBox, BarChartBox, MarkupTextView, DocumentRead
 from .ui import apply_css_to_widget, load_image_with_callback
 from .ui.explorer import ExplorerPanel
 from .ui.widgets import MultilineEntry, ProfileRow, DisplayLatex, InlineLatex, ThinkingWidget
+from .ui.stdout_monitor import StdoutMonitorDialog
+from .utility.stdout_capture import StdoutMonitor
 from .constants import AVAILABLE_LLMS, SCHEMA_ID, SETTINGS_GROUPS
 
 from .utility.system import get_spawn_command, open_website
@@ -71,6 +73,9 @@ class MainWindow(Adw.ApplicationWindow):
         self.check_streams = {"folder": False, "chat": False}
         # if it is recording
         self.recording = False
+        # Stdout monitoring - Initialize and start from program start
+        self.stdout_monitor_dialog = None
+        self._init_stdout_monitoring()
         # Init controller
         self.controller = NewelleController(sys.path)
         self.controller.ui_init()
@@ -111,6 +116,7 @@ class MainWindow(Adw.ApplicationWindow):
         menu = Gio.Menu()
         menu.append(_("Thread editing"), "app.thread_editing")
         menu.append(_("Extensions"), "app.extension")
+        menu.append(_("Stdout Monitor"), "app.stdout_monitor")
         menu.append(_("Settings"), "app.settings")
         menu.append(_("Keyboard shorcuts"), "app.shortcuts")
         menu.append(_("About"), "app.about")
@@ -417,6 +423,15 @@ class MainWindow(Adw.ApplicationWindow):
             threading.Thread(target=self.show_presentation_window).start()
         GLib.timeout_add(10, build_model_popup)
         self.controller.handlers.set_error_func(self.handle_error)
+        
+        # Connect cleanup on window destroy
+        self.connect("destroy", self._cleanup_on_destroy)
+
+    def _cleanup_on_destroy(self, window):
+        """Clean up resources when window is destroyed"""
+        # Stop stdout monitoring
+        if self.stdout_monitor_dialog:
+            self.stdout_monitor_dialog.stop_monitoring_external()
 
     def build_canvas(self):
 
@@ -3638,3 +3653,51 @@ class MainWindow(Adw.ApplicationWindow):
             threading.Thread(
                 target=self.generate_chat_name, args=[button, True]
             ).start()
+
+    def _init_stdout_monitoring(self):
+        """Initialize stdout monitoring from program start""" 
+        # Create the dialog but don't show it yet
+        self.stdout_monitor_dialog = StdoutMonitorDialog(self) 
+        # Start monitoring immediately with capturing enabled by default
+        # We need to initialize the monitor without showing the dialog
+        self.stdout_monitor_dialog.stdout_monitor = StdoutMonitor(self.stdout_monitor_dialog._on_stdout_received)
+        self.stdout_monitor_dialog.stdout_monitor.start_monitoring()
+        
+        # Start the update timer for the background monitoring
+        GLib.timeout_add(10000, self._update_background_stdout)
+
+    def _update_background_stdout(self):
+        """Update stdout buffer in background even when dialog is not shown"""
+        if (self.stdout_monitor_dialog and 
+            self.stdout_monitor_dialog.stdout_monitor and 
+            self.stdout_monitor_dialog.stdout_monitor.is_active()):
+            # The buffer is automatically updated via the callback
+            return True
+        return False
+
+    def show_stdout_monitor_dialog(self):
+        """Create and show a dialog to monitor stdout in real-time with terminal interface"""
+        if self.stdout_monitor_dialog is None:
+            self._init_stdout_monitoring()
+        
+        # Show the dialog and populate it with existing captured data
+        self.stdout_monitor_dialog.show_dialog()
+        
+        # If monitoring was already active, update the dialog's UI state
+        if (self.stdout_monitor_dialog.stdout_monitor and 
+            self.stdout_monitor_dialog.stdout_monitor.is_active()):
+            # Set the toggle button to active state
+            if self.stdout_monitor_dialog.stdout_toggle_button:
+                self.stdout_monitor_dialog.stdout_toggle_button.set_active(True)
+                # Update status labels
+                if self.stdout_monitor_dialog.stdout_status_label:
+                    self.stdout_monitor_dialog.stdout_status_label.set_label(_("Monitoring: Active"))
+                # Update button appearance
+                self.stdout_monitor_dialog.stdout_toggle_button.set_icon_name("media-playback-stop-symbolic")
+                self.stdout_monitor_dialog.stdout_toggle_button.remove_css_class("suggested-action")
+                self.stdout_monitor_dialog.stdout_toggle_button.add_css_class("destructive-action")
+                
+            # Start the display update timer for the dialog
+            GLib.timeout_add(100, self.stdout_monitor_dialog._update_stdout_display)
+
+

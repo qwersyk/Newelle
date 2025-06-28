@@ -2,7 +2,7 @@ import speech_recognition as sr
 from .stt import STTHandler
 
 class SphinxHandler(STTHandler):
-    key = "Sphinx"
+    key = "sphinx"
     
     @staticmethod
     def get_extra_requirements() -> list:
