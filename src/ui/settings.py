@@ -1,6 +1,7 @@
 from typing import Any
 import threading 
 import os 
+import shutil
 import json 
 import time 
 from subprocess import Popen 
@@ -259,7 +260,23 @@ class Settings(Adw.PreferencesWindow):
         int_spin.set_adjustment(Gtk.Adjustment(lower=0, upper=90, step_increment=1, page_increment=10, page_size=0))
         row.add_suffix(int_spin)
         self.settings.bind("memory", int_spin, 'value', Gio.SettingsBindFlags.DEFAULT)
-        self.neural_network.add(row)
+        
+        # Developer settings
+        self.developer = Adw.PreferencesGroup(title=_('Developer'))
+        self.general_page.add(self.developer)
+        # Program Output Monitor
+        row = Adw.ActionRow(title=_("Program Output Monitor"), subtitle=_("Monitor the program output in real-time, useful for debugging and seeing downloads progress"))
+        button = Gtk.Button(label=_("Open"), valign=Gtk.Align.CENTER)
+        row.add_suffix(button)
+        button.connect("clicked", lambda _ : self.app.win.show_stdout_monitor_dialog(self))
+        self.developer.add(row)
+        # Delete pip path
+        row = Adw.ActionRow(title=_("Delete pip path"), subtitle=_("Remove the extra dependencies installed"))
+        button = Gtk.Button(label=_("Delete"), valign=Gtk.Align.CENTER, css_classes=["destructive-action"])
+        row.add_suffix(button)
+        button.connect("clicked", lambda _ : self.delete_pip_path())
+        self.developer.add(row)
+        
         self.add(self.LLMPage)
         self.add(self.PromptsPage)
         self.add(self.MemoryPage)
@@ -1038,3 +1055,13 @@ class Settings(Adw.PreferencesWindow):
         # Show the window
         dialog.present()
 
+    def delete_pip_path(self):
+        """Delete the pip path folder"""
+        shutil.rmtree(self.controller.pip_path)
+        dialog = Adw.MessageDialog(title=_("Pip path deleted"), body=_("The pip path has been deleted, you can now reinstall the dependencies. This operation requires a restart of the application."))
+        dialog.add_response("close", _("Understood"))
+        dialog.set_default_response("close")
+        dialog.set_close_response("close")
+        dialog.set_response_appearance("close", Adw.ResponseAppearance.DESTRUCTIVE)
+        dialog.connect('response', lambda dialog, response_id: dialog.destroy())
+        dialog.present()
