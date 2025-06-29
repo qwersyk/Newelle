@@ -7,11 +7,11 @@ _ = gettext.gettext
 
 
 class StdoutMonitorDialog:
-    """Dialog for monitoring stdout output in real-time with terminal interface"""
+    """Window for monitoring stdout output in real-time with terminal interface"""
     
     def __init__(self, parent_window):
         self.parent_window = parent_window
-        self.dialog = None
+        self.window = None
         self.stdout_monitor = None
         self.stdout_buffer = ""
         self.stdout_textview = None
@@ -20,18 +20,18 @@ class StdoutMonitorDialog:
         self.stdout_line_count_label = None
         self.stdout_toggle_button = None
         
-    def show_dialog(self):
-        """Create and show the stdout monitor dialog"""
-        if self.dialog is not None:
-            self.dialog.present()
+    def show_window(self):
+        """Create and show the stdout monitor window"""
+        if self.window is not None:
+            self.window.present()
             return
             
-        # Create the dialog
-        self.dialog = Adw.Dialog()
-        self.dialog.set_title(_("Program Output Monitor"))
-        self.dialog.set_content_width(800)
-        self.dialog.set_content_height(600)
-        self.dialog.set_can_close(True)
+        # Create the window
+        self.window = Gtk.Window()
+        self.window.set_title(_("Program Output Monitor"))
+        self.window.set_default_size(800, 600)
+        self.window.set_transient_for(self.parent_window)
+        self.window.set_modal(False)
         
         # Create main content box
         content_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -122,10 +122,10 @@ class StdoutMonitorDialog:
         
         content_box.append(status_box)
         
-        self.dialog.set_child(content_box)
+        self.window.set_child(content_box)
         
-        # Connect dialog close event
-        self.dialog.connect("closed", self._on_dialog_closed) 
+        # Connect window close event
+        self.window.connect("close-request", self._on_window_close_request) 
         # If monitoring is already active, start the display update timer
         if is_already_monitoring:
             GLib.timeout_add(100, self._update_stdout_display)
@@ -134,8 +134,8 @@ class StdoutMonitorDialog:
         if hasattr(self, '_accumulated_buffer') and self._accumulated_buffer:
             GLib.idle_add(self._scroll_to_bottom)
         
-        # Present the dialog
-        self.dialog.present()
+        # Present the window
+        self.window.present()
     
     def _apply_terminal_styling(self):
         """Apply terminal-like styling to the text view"""
@@ -270,23 +270,23 @@ class StdoutMonitorDialog:
         if hasattr(self, '_accumulated_buffer'):
             self._accumulated_buffer = ""
     
-    def _on_dialog_closed(self, dialog):
-        """Handle dialog close event"""
-        # Don't stop monitoring when dialog is closed - let it continue in background
-        # Only reset the dialog reference
-        if self.dialog is not None:
-            self.dialog.close()
-            self.dialog = None
+    def _on_window_close_request(self, window):
+        """Handle window close event"""
+        # Don't stop monitoring when window is closed - let it continue in background
+        # Only reset the window reference
+        if self.window is not None:
+            self.window.close()
+            self.window = None
         return False
     
     def close(self):
-        """Close the dialog"""
-        if self.dialog:
-            self.dialog.close()
+        """Close the window"""
+        if self.window:
+            self.window.close()
     
     def is_open(self):
-        """Check if the dialog is currently open"""
-        return self.dialog is not None
+        """Check if the window is currently open"""
+        return self.window is not None
     
     def stop_monitoring_external(self):
         """Stop monitoring when called externally (e.g., on app shutdown)"""

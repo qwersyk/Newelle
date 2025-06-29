@@ -3663,12 +3663,15 @@ class MainWindow(Adw.ApplicationWindow):
         self.stdout_monitor_dialog.stdout_monitor = StdoutMonitor(self.stdout_monitor_dialog._on_stdout_received)
         self.stdout_monitor_dialog.stdout_monitor.start_monitoring()
         
-    def show_stdout_monitor_dialog(self):
+    def show_stdout_monitor_dialog(self, parent=None):
         """Create and show a dialog to monitor stdout in real-time with terminal interface"""
+        if parent is None:
+            parent = self
         if self.stdout_monitor_dialog is None:
             self._init_stdout_monitoring()
+        self.stdout_monitor_dialog.parent_window = parent
         # Show the dialog and populate it with existing captured data
-        self.stdout_monitor_dialog.show_dialog()
+        self.stdout_monitor_dialog.show_window()
         
         # If monitoring was already active, update the dialog's UI state
         if (self.stdout_monitor_dialog.stdout_monitor and 

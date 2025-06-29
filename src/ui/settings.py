@@ -863,7 +863,7 @@ class Settings(Adw.PreferencesWindow):
                 spinner = Gtk.Spinner(spinning=True)
                 actionbutton.set_child(spinner)
                 actionbutton.add_css_class("accent")
-                actionbutton.connect("clicked", lambda _ : self.app.win.show_stdout_monitor_dialog())
+                actionbutton.connect("clicked", lambda _ : self.app.win.show_stdout_monitor_dialog(self))
             else:
                 icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="folder-download-symbolic"))
                 actionbutton.connect("clicked", self.install_model, handler)
@@ -905,7 +905,7 @@ class Settings(Adw.PreferencesWindow):
         spinner = Gtk.Spinner(spinning=True)
         button.set_child(spinner)
         button.disconnect_by_func(self.install_model)
-        button.connect("clicked", lambda x : self.app.win.show_stdout_monitor_dialog())
+        button.connect("clicked", lambda x : self.app.win.show_stdout_monitor_dialog(self))
         t = threading.Thread(target=self.install_model_async, args= (button, handler))
         t.start() 
 
