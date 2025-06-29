@@ -125,10 +125,7 @@ class MyApp(Adw.Application):
         action = Gio.SimpleAction.new("extension", None)
         action.connect('activate', self.extension_action)
         self.add_action(action)
-        action = Gio.SimpleAction.new("stdout_monitor", None)
-        action.connect('activate', self.stdout_monitor_action)
-        self.add_action(action)
-
+    
     def create_action(self, name, callback, shortcuts=None):
         action = Gio.SimpleAction.new(name, None)
         action.connect("activate", callback)

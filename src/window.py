@@ -116,7 +116,6 @@ class MainWindow(Adw.ApplicationWindow):
         menu = Gio.Menu()
         menu.append(_("Thread editing"), "app.thread_editing")
         menu.append(_("Extensions"), "app.extension")
-        menu.append(_("Stdout Monitor"), "app.stdout_monitor")
         menu.append(_("Settings"), "app.settings")
         menu.append(_("Keyboard shorcuts"), "app.shortcuts")
         menu.append(_("About"), "app.about")
