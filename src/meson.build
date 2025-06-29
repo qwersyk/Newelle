@@ -57,6 +57,7 @@ ui_sources = [
   'ui/shortcuts.py',
   'ui/mini_window.py',
   'ui/explorer.py',
+  'ui/stdout_monitor.py',
 ]
 
 widgets_sources = [
@@ -173,7 +174,8 @@ utility_sources = [
   'utility/profile_settings.py',
   'utility/audio_recorder.py',
   'utility/message_chunk.py',
-  'utility/website_scraper.py'
+  'utility/website_scraper.py',
+  'utility/stdout_capture.py',
 ]
 
 install_data(newelle_sources, install_dir: moduledir)

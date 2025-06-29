@@ -1,15 +1,11 @@
 from abc import abstractmethod
 from typing import Callable
 
-from subprocess import check_output
+from subprocess import Popen
 import threading 
 import time
 import os
-from ...utility.system import can_escape_sandbox, get_spawn_command 
 from ..handler import Handler
-from pydub import AudioSegment
-from pydub.playback import play
-import multiprocessing
 
 class TTSHandler(Handler):
     """Every TTS handler should extend this class."""
@@ -83,14 +79,9 @@ class TTSHandler(Handler):
         self._play_lock.acquire()
         self.on_start()
         try:
-            if path.endswith("mp3"):
-                segment = AudioSegment.from_mp3(path)
-            else:
-                segment = AudioSegment.from_wav(path)
-            p = multiprocessing.Process(target=play, args=(segment,))
-            p.start()
+            p = Popen(["ffplay", "-nodisp", "-autoexit", "-hide_banner", path])
             self.play_process = p
-            p.join()
+            p.wait()
             p.terminate()
         except Exception as e:
             print("Error playing the audio: " + str(e))
@@ -98,7 +89,7 @@ class TTSHandler(Handler):
         self.on_stop()
         self.play_process = None
         self._play_lock.release()
-
+     
     def stop(self):
         if self.play_process is not None:
             self.play_process.terminate()

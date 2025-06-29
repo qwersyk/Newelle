@@ -1,5 +1,6 @@
 import sys
 import os
+import gettext
 import gi 
 gi.require_version('Gtk', '4.0')
 gi.require_version('GtkSource', '5')
@@ -124,7 +125,7 @@ class MyApp(Adw.Application):
         action = Gio.SimpleAction.new("extension", None)
         action.connect('activate', self.extension_action)
         self.add_action(action)
-
+    
     def create_action(self, name, callback, shortcuts=None):
         action = Gio.SimpleAction.new(name, None)
         action.connect("activate", callback)
@@ -185,6 +186,10 @@ class MyApp(Adw.Application):
             return True
         extension.connect("close-request", close) 
         extension.present()
+    
+    def stdout_monitor_action(self, *a):
+        """Show the stdout monitor dialog"""
+        self.win.show_stdout_monitor_dialog()
     
     def close_window(self, *a):
         if hasattr(self,"mini_win"):

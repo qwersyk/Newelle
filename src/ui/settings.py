@@ -1,6 +1,7 @@
 from typing import Any
 import threading 
 import os 
+import shutil
 import json 
 import time 
 from subprocess import Popen 
@@ -16,6 +17,7 @@ from .widgets import MultilineEntry
 from ..utility.system import can_escape_sandbox, get_spawn_command, open_website, open_folder 
 
 from ..controller import NewelleController
+
 
 class Settings(Adw.PreferencesWindow):
     def __init__(self,app, controller: NewelleController,headless=False, startup_page=None, *args, **kwargs):
@@ -258,7 +260,23 @@ class Settings(Adw.PreferencesWindow):
         int_spin.set_adjustment(Gtk.Adjustment(lower=0, upper=90, step_increment=1, page_increment=10, page_size=0))
         row.add_suffix(int_spin)
         self.settings.bind("memory", int_spin, 'value', Gio.SettingsBindFlags.DEFAULT)
-        self.neural_network.add(row)
+        
+        # Developer settings
+        self.developer = Adw.PreferencesGroup(title=_('Developer'))
+        self.general_page.add(self.developer)
+        # Program Output Monitor
+        row = Adw.ActionRow(title=_("Program Output Monitor"), subtitle=_("Monitor the program output in real-time, useful for debugging and seeing downloads progress"))
+        button = Gtk.Button(label=_("Open"), valign=Gtk.Align.CENTER)
+        row.add_suffix(button)
+        button.connect("clicked", lambda _ : self.app.win.show_stdout_monitor_dialog(self))
+        self.developer.add(row)
+        # Delete pip path
+        row = Adw.ActionRow(title=_("Delete pip path"), subtitle=_("Remove the extra dependencies installed"))
+        button = Gtk.Button(label=_("Delete"), valign=Gtk.Align.CENTER, css_classes=["destructive-action"])
+        row.add_suffix(button)
+        button.connect("clicked", lambda _ : self.delete_pip_path())
+        self.developer.add(row)
+        
         self.add(self.LLMPage)
         self.add(self.PromptsPage)
         self.add(self.MemoryPage)
@@ -684,7 +702,7 @@ class Settings(Adw.PreferencesWindow):
             return
         if "website" in setting:
             wbbutton = self.create_web_button(setting["website"])
-            r.add_prefix(wbbutton)
+            r.add_suffix(wbbutton)
         if "folder" in setting:
             wbbutton = self.create_web_button(setting["folder"], folder=True)
             r.add_suffix(wbbutton)
@@ -858,10 +876,16 @@ class Settings(Adw.PreferencesWindow):
         """
         actionbutton = Gtk.Button(css_classes=["flat"], valign=Gtk.Align.CENTER)
         if not handler.is_installed():
-            icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="folder-download-symbolic"))
-            actionbutton.connect("clicked", self.install_model, handler)
-            actionbutton.add_css_class("accent")
-            actionbutton.set_child(icon)
+            if (handler.key, handler.schema_key) in self.controller.installing_handlers:
+                spinner = Gtk.Spinner(spinning=True)
+                actionbutton.set_child(spinner)
+                actionbutton.add_css_class("accent")
+                actionbutton.connect("clicked", lambda _ : self.app.win.show_stdout_monitor_dialog(self))
+            else:
+                icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="folder-download-symbolic"))
+                actionbutton.connect("clicked", self.install_model, handler)
+                actionbutton.add_css_class("accent")
+                actionbutton.set_child(icon)
             if type(row) is Adw.ActionRow:
                 row.add_suffix(actionbutton)
             elif type(row) is Adw.ExpanderRow:
@@ -888,7 +912,7 @@ class Settings(Adw.PreferencesWindow):
             elif type(row) is Adw.ComboRow:
                 row.add_suffix(actionbutton)
 
-    def install_model(self, button, handler):
+    def install_model(self, button: Gtk.Button, handler):
         """Display a spinner and trigger the dependency download on another thread
 
         Args:
@@ -897,9 +921,10 @@ class Settings(Adw.PreferencesWindow):
         """
         spinner = Gtk.Spinner(spinning=True)
         button.set_child(spinner)
-        button.set_sensitive(False)
+        button.disconnect_by_func(self.install_model)
+        button.connect("clicked", lambda x : self.app.win.show_stdout_monitor_dialog(self))
         t = threading.Thread(target=self.install_model_async, args= (button, handler))
-        t.start()
+        t.start() 
 
     def install_model_async(self, button, model):
         """Install the model dependencies, called on another thread
@@ -908,7 +933,9 @@ class Settings(Adw.PreferencesWindow):
             button (): button  
             model (): a handler instance
         """
+        self.controller.installing_handlers[(model.key, model.schema_key)] = True 
         model.install()
+        self.controller.installing_handlers[(model.key, model.schema_key)] = False 
         GLib.idle_add(self.update_ui_after_install, button, model)
 
     def update_ui_after_install(self, button, model):
@@ -1028,3 +1055,13 @@ class Settings(Adw.PreferencesWindow):
         # Show the window
         dialog.present()
 
+    def delete_pip_path(self):
+        """Delete the pip path folder"""
+        shutil.rmtree(self.controller.pip_path)
+        dialog = Adw.MessageDialog(title=_("Pip path deleted"), body=_("The pip path has been deleted, you can now reinstall the dependencies. This operation requires a restart of the application."))
+        dialog.add_response("close", _("Understood"))
+        dialog.set_default_response("close")
+        dialog.set_close_response("close")
+        dialog.set_response_appearance("close", Adw.ResponseAppearance.DESTRUCTIVE)
+        dialog.connect('response', lambda dialog, response_id: dialog.destroy())
+        dialog.present()

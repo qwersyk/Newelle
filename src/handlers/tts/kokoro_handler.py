@@ -1,11 +1,15 @@
+from os import walk
+import subprocess
 from .tts import TTSHandler
 from ...utility.pip import install_module, find_module
 from ..handler import ErrorSeverity
+from ...handlers import ExtraSettings
 
 class KokoroTTSHandler(TTSHandler):
     key = "kokoro"
     def install(self):
-        install_module("kokoro==0.8.4 soundfile", self.pip_path)
+        extra_deps = "pyopenjtalk fugashi jaconv mojimoji mecab-python3 unidic-lite"
+        install_module("kokoro==0.9.4 soundfile espeakng-loader " + extra_deps, self.pip_path)
         if not self.is_installed():
             self.throw("Kokoro installation failed", ErrorSeverity.ERROR)
 
@@ -17,11 +21,14 @@ class KokoroTTSHandler(TTSHandler):
         voices += "am_adam, am_echo, am_eric, am_fenrir, am_liam, am_michael, am_onyx, am_puck".split(", ")
         voices += "bf_alice, bf_emma, bf_isabella, bf_lily, bm_daniel, bm_fable, bm_george, bm_lewis".split(", ")
         # Espeak required for non english to work
-        #voices += ["ff_siwis"]
-        #voices += "if_sara, im_nicola".split(", ")
-        #voices += "jf_alpha, jf_gongitsune, jf_nezumi, jf_tebukuro, jm_kumo".split(", ")
-        #voices += "zf_xiaobei, zf_xiaoni, zf_xiaoxiao, zf_xiaoyi, zm_yunjian, zm_yunxi, zm_yunxia, zm_yunyang".split(", ")
-        flags = {"a": "🇺🇸", "b": "🇬🇧", "f": "🇫🇷", "i": "🇮🇹", "j": "🇯🇵", "z": "🇨🇳"}
+        voices += ["ef_dora", "em_alex", "em_santa"]
+        voices += ["hf_alpha", "hf_beta", "hm_omega", "hm_psi"]
+        voices += ["ff_siwis"]
+        voices += "if_sara, im_nicola".split(", ")
+        voices += ["pf_dora", "pm_alex", "pm_santa"]
+        voices += "jf_alpha, jf_gongitsune, jf_nezumi, jf_tebukuro, jm_kumo".split(", ")
+        voices += "zf_xiaobei, zf_xiaoni, zf_xiaoxiao, zf_xiaoyi, zm_yunjian, zm_yunxi, zm_yunxia, zm_yunyang".split(", ")
+        flags = {"a": "🇺🇸", "b": "🇬🇧","e": "🇪🇸", "f": "🇫🇷", "h": "🇮🇳", "p": "🇧🇷", "i": "🇮🇹", "j": "🇯🇵", "z": "🇨🇳"}
         genders = {"m": "🚹", "f": "🚺"}
         v = tuple()
         for voice in voices:

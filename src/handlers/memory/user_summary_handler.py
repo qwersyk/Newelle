@@ -2,6 +2,7 @@ from ...handlers.llm import LLMHandler
 from ...handlers.embeddings import EmbeddingHandler
 from .memory_handler import MemoryHandler
 from ...handlers import ExtraSettings
+from ...utility.strings import remove_thinking_blocks
 
 class UserSummaryHandler(MemoryHandler):
     key = "user-summary"
@@ -58,5 +59,6 @@ Only output the summary with no other details.
         if len(self.seen_messages) % update_frequency == 0:
             prompt = PROMPT.format(history="\n".join([i["User"] + ": " + i["Message"] for i in history[-update_frequency-2:]]), summary=self.get_setting("user_summary"))
             upd = self.llm.generate_text(prompt)
+            upd = remove_thinking_blocks(upd)
             self.set_setting("user_summary", upd)
         self.set_setting("seen_messages", self.seen_messages)

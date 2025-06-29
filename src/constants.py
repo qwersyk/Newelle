@@ -106,7 +106,7 @@ AVAILABLE_STT = {
         "website": "https://github.com/ggerganov/whisper.cpp",
         "class": WhisperCPPHandler,
     },
-    "sphinx": {
+    "Sphinx": {
         "key": "sphinx",
         "title": _("CMU Sphinx"),
         "description": _("Works offline. Only English supported"),
@@ -403,7 +403,7 @@ AVAILABLE_PROMPTS = [
         "setting_name": "websearch",
         "editable": True,
         "show_in_settings": True,
-        "default": False
+        "default": True
     },
     {
         "key": "basic_functionality",

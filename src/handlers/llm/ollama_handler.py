@@ -20,7 +20,7 @@ class OllamaHandler(LLMHandler):
     # Url where to get the available models info
     library_url = "https://nyarchlinux.moe/available_models.json"
     # List of models to be included in the library by default
-    listed_models = ["llama3.2-vision:11b", "deepseek-r1:1.5b", "deepseek-r1:7b", "deepseek-r1:14b", "llama3.2:3b", "llama3.1:8b", "qwq:32b", "qwen2.5:1.5b", "qwen2.5:3b", "qwen2.5:7b", "qwen2.5:14b", "gemma2:2b", "gemma2:9b", "qwen2.5-coder:3b", "qwen2.5-coder:7b", "qwen2.5-coder:14b", "llama3.3:70b", "phi4:14b"]
+    listed_models = ["qwen3:4b", "qwen3:8b", "deepseek-r1:8b", "qwen3:14b", "llama3.2-vision:11b", "deepseek-r1:1.5b", "deepseek-r1:7b", "deepseek-r1:14b", "llama3.2:3b", "llama3.1:8b", "qwq:32b", "qwen2.5:1.5b", "qwen2.5:3b", "qwen2.5:7b", "qwen2.5:14b", "gemma2:2b", "gemma2:9b", "qwen2.5-coder:3b", "qwen2.5-coder:7b", "qwen2.5-coder:14b", "llama3.3:70b", "phi4:14b"]
 
     def __init__(self, settings, path):
         super().__init__(settings, path)
@@ -44,6 +44,7 @@ class OllamaHandler(LLMHandler):
 
     def get_models_list(self):
         return self.models
+
     def get_models_infomation(self):
         """Get information about models on ollama.com"""
         if self.is_installed(): 
@@ -148,6 +149,7 @@ class OllamaHandler(LLMHandler):
         settings = [
             ExtraSettings.EntrySetting("endpoint", _("API Endpoint"), _("API base url, change this to use interference APIs"), "http://localhost:11434"),
             ExtraSettings.ToggleSetting("serve", _("Automatically Serve"), _("Automatically run ollama serve in background when needed if it's not running. You can kill it with killall ollama"), False),
+            ExtraSettings.ToggleSetting("thinking", _("Enable Thinking"), _("Allow thinking in the model, only some models are supported"), True, website="https://ollama.com/search?c=thinking"),
             ExtraSettings.ToggleSetting("custom_model", _("Custom Model"), _("Use a custom model"), False, update_settings=True),
         ]
         if not self.get_setting("custom_model", False):
@@ -178,10 +180,11 @@ class OllamaHandler(LLMHandler):
                             refresh_icon="plus-symbolic",
                             website="https://ollama.com/library"
                         )
-                    ] + self.get_model_library(), refresh=self.get_models_infomation
+                    ] + self.get_model_library(), refresh=lambda x : self.get_models_infomation
                 )
             )
         settings.append(get_streaming_extra_setting())
+        settings.append(ExtraSettings.ButtonSetting("update", _("Update Ollama"), _("Update Ollama"), lambda x: self.install(), _("Update Ollama")))
         return settings
 
     def pull_model(self, model: str):
@@ -327,6 +330,8 @@ class OllamaHandler(LLMHandler):
     
     def generate_text(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = []) -> str:
         from ollama import Client
+        if self.get_setting("thinking") is False:
+            prompt = "/no_think\n" + prompt
         history.append({"User": "User", "Message": prompt})
         messages = self.convert_history(history, system_prompt)
 
@@ -346,6 +351,8 @@ class OllamaHandler(LLMHandler):
     
     def generate_text_stream(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = [], on_update: Callable[[str], Any] = lambda _: None, extra_args: list = []) -> str:
         from ollama import Client
+        if self.get_setting("thinking") is False:
+            prompt = "/no_think\n" + prompt
         history.append({"User": "User", "Message": prompt})
         messages = self.convert_history(history, system_prompt)
         client = Client(
@@ -357,7 +364,7 @@ class OllamaHandler(LLMHandler):
             response = client.chat(
                 model=self.get_setting("model"),
                 messages=messages,
-                stream=True
+                stream=True,
             )
             full_message = ""
             prev_message = ""

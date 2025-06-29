@@ -85,6 +85,7 @@ class NewelleController:
         self.settings = Gio.Settings.new(SCHEMA_ID)
         self.python_path = python_path
         self.ui_controller : UIController | None = None
+        self.installing_handlers = {}
 
     def ui_init(self):
         """Init necessary variables for the UI and load models and handlers"""
@@ -95,7 +96,7 @@ class NewelleController:
         self.newelle_settings = NewelleSettings()
         self.newelle_settings.load_settings(self.settings)
         self.load_chats(self.newelle_settings.chat_id)
-        self.handlers = HandlersManager(self.settings, self.extensionloader, self.models_dir, self.integrationsloader)
+        self.handlers = HandlersManager(self.settings, self.extensionloader, self.models_dir, self.integrationsloader, self.installing_handlers)
         self.handlers.select_handlers(self.newelle_settings)
         threading.Thread(target=self.handlers.cache_handlers).start()
 
@@ -195,9 +196,10 @@ class NewelleController:
         elif reload_type == ReloadType.LLM:
             self.handlers.select_handlers(self.newelle_settings)
             threading.Thread(target=self.handlers.llm.load_model, args=(None,)).start()
-        elif reload_type == ReloadType.SECONDARY_LLM and self.newelle_settings.use_secondary_language_model:
+        elif reload_type == ReloadType.SECONDARY_LLM:
             self.handlers.select_handlers(self.newelle_settings)
-            threading.Thread(target=self.handlers.secondary_llm.load_model, args=(None,)).start()
+            if self.newelle_settings.use_secondary_language_model:
+                threading.Thread(target=self.handlers.secondary_llm.load_model, args=(None,)).start()
         elif reload_type in [ReloadType.TTS, ReloadType.STT, ReloadType.MEMORIES]:
             self.handlers.select_handlers(self.newelle_settings)
         elif reload_type == ReloadType.RAG:
@@ -473,7 +475,7 @@ class HandlersManager:
         memory: Memory Handler
         rag: RAG Handler 
     """
-    def __init__(self, settings: Gio.Settings, extensionloader : ExtensionLoader, models_path, integrations: ExtensionLoader):
+    def __init__(self, settings: Gio.Settings, extensionloader : ExtensionLoader, models_path, integrations: ExtensionLoader, installing_handlers: dict):
         self.settings = settings
         self.extensionloader = extensionloader
         self.directory = models_path
@@ -481,6 +483,7 @@ class HandlersManager:
         self.handlers_cached = threading.Semaphore()
         self.handlers_cached.acquire()
         self.integrationsloader = integrations
+        self.installing_handlers = installing_handlers
 
     def fix_handlers_integrity(self, newelle_settings: NewelleSettings):
         """Select available handlers if not available handlers in settings
@@ -532,7 +535,7 @@ class HandlersManager:
         self.integrationsloader.set_handlers(self.llm, self.stt, self.tts, self.secondary_llm, self.embedding, self.rag, self.memory, self.websearch)
         self.extensionloader.set_handlers(self.llm, self.stt, self.tts, self.secondary_llm, self.embedding, self.rag, self.memory, self.websearch)
         self.memory.set_handlers(self.secondary_llm, self.embedding)
-        
+
         self.rag.set_handlers(self.llm, self.embedding)
         threading.Thread(target=self.install_missing_handlers).start()
 
@@ -554,19 +557,18 @@ class HandlersManager:
             self.rag.load()
 
     def install_missing_handlers(self):
-        """Install selected handlers that are not installed. Assumes that select_handlers has been called"""
-        if not self.llm.is_installed():
-            self.llm.install()
-        if not self.stt.is_installed():
-            self.stt.install()
-        if not self.tts.is_installed():
-            self.tts.install()
-        if not self.embedding.is_installed():
-            self.embedding.install()
-        if not self.memory.is_installed():
-            self.memory.install()
-        if not self.rag.is_installed():
-            self.rag.install()
+        """Install selected handlers that are not installed. Assumes that select_handlers has been called""" 
+        handlers = [self.llm, self.stt, self.tts, self.memory, 
+                    self.embedding, self.rag, self.websearch]
+        for handler in handlers:
+            if not handler.is_installed():
+                self.set_installing(handler, True)
+                handler.install()
+                self.set_installing(handler, False)
+
+    def set_installing(self, handler: Handler, status: bool):
+        """Set installing status"""
+        self.installing_handlers[(handler.key, handler.schema_key)] = status
 
     def cache_handlers(self):
         """Cache handlers"""
