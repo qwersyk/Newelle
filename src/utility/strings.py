@@ -65,7 +65,7 @@ def markwon_to_pango(markdown_text):
     processed_text = re.sub(r'~(.*?)~', r'<span strikethrough="true">\1</span>', processed_text)
 
     # Convert exponents and subscripts (handle digits or parenthesized text)
-    processed_text = re.sub(r'_(\d+|\([^)]+\))', lambda m: f'<sub>{m.group(1).strip("()")}</sub>', processed_text)
+    processed_text = re.sub(r'_(\d+|\([^)]+\))\b', lambda m: f'<sub>{m.group(1).strip("()")}</sub>', processed_text)
     processed_text = re.sub(r'\^(\d+|\([^)]+\))', lambda m: f'<sup>{m.group(1).strip("()")}</sup>', processed_text)
     
     # Convert links
