@@ -7,4 +7,4 @@ Terminal=false
 Type=Application
 Categories=Utility;
 StartupNotify=true
-Keywords=chat;ai;gpt;chatgpt;assistant;
+Keywords=ai;assistant;chat;chatgpt;gpt;llm;ollama;
