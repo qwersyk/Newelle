@@ -27,7 +27,7 @@
     		<color type="primary" scheme_preference="light">#99c1f1</color>
     		<color type="primary" scheme_preference="dark">#003d81</color>
   	</branding>
-	<url type="homepage">https://github.com/qwersyk/Newelle/wiki</url>
+	<url type="homepage">https://newelle.qsk.me</url>
   	<url type="vcs-browser">https://github.com/qwersyk/Newelle</url>
 	<url type="bugtracker">https://github.com/qwersyk/Newelle/issues</url>
 	<content_rating type="oars-1.0" />
