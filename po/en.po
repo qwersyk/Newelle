@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Newelle 0.3.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-18 21:59+0800\n"
+"POT-Creation-Date: 2025-07-02 02:15+0800\n"
 "PO-Revision-Date: 2023-07-10 09:51+0200\n"
 "Last-Translator: Yehor Qwersyk <qsk@gmx.at>\n"
 "Language-Team: English\n"
@@ -19,52 +19,52 @@ msgstr ""
 
 #: src/handlers/embeddings/ollama_handler.py:32
 #: src/handlers/embeddings/openai_handler.py:38
-#: src/handlers/llm/ollama_handler.py:149 src/handlers/llm/openai_handler.py:75
+#: src/handlers/llm/openai_handler.py:75 src/handlers/llm/ollama_handler.py:150
 #: src/handlers/stt/openaisr_handler.py:10
 msgid "API Endpoint"
 msgstr ""
 
 #: src/handlers/embeddings/ollama_handler.py:32
-#: src/handlers/llm/ollama_handler.py:149 src/handlers/llm/openai_handler.py:75
+#: src/handlers/llm/openai_handler.py:75 src/handlers/llm/ollama_handler.py:150
 msgid "API base url, change this to use interference APIs"
 msgstr ""
 
 #: src/handlers/embeddings/ollama_handler.py:33
-#: src/handlers/llm/ollama_handler.py:150
+#: src/handlers/llm/ollama_handler.py:151
 msgid "Automatically Serve"
 msgstr ""
 
 #: src/handlers/embeddings/ollama_handler.py:33
-#: src/handlers/llm/ollama_handler.py:150
+#: src/handlers/llm/ollama_handler.py:151
 msgid ""
 "Automatically run ollama serve in background when needed if it's not "
 "running. You can kill it with killall ollama"
 msgstr ""
 
 #: src/handlers/embeddings/ollama_handler.py:34
-#: src/handlers/llm/ollama_handler.py:151
+#: src/handlers/llm/ollama_handler.py:153
 #, fuzzy
 msgid "Custom Model"
 msgstr "Auto-run commands"
 
 #: src/handlers/embeddings/ollama_handler.py:34
 #: src/handlers/embeddings/openai_handler.py:41
-#: src/handlers/llm/claude_handler.py:85 src/handlers/llm/ollama_handler.py:151
-#: src/handlers/llm/openai_handler.py:78
+#: src/handlers/llm/claude_handler.py:85 src/handlers/llm/openai_handler.py:78
+#: src/handlers/llm/ollama_handler.py:153
 msgid "Use a custom model"
 msgstr ""
 
 #: src/handlers/embeddings/ollama_handler.py:40
 #: src/handlers/embeddings/ollama_handler.py:49
-#: src/handlers/llm/ollama_handler.py:157
-#: src/handlers/llm/ollama_handler.py:166
+#: src/handlers/llm/ollama_handler.py:159
+#: src/handlers/llm/ollama_handler.py:168
 msgid "Ollama Model"
 msgstr ""
 
 #: src/handlers/embeddings/ollama_handler.py:41
 #: src/handlers/embeddings/ollama_handler.py:49
-#: src/handlers/llm/ollama_handler.py:158
-#: src/handlers/llm/ollama_handler.py:166
+#: src/handlers/llm/ollama_handler.py:160
+#: src/handlers/llm/ollama_handler.py:168
 msgid "Name of the Ollama Model"
 msgstr ""
 
@@ -98,7 +98,7 @@ msgstr "Auto-run commands"
 #: src/handlers/embeddings/openai_handler.py:44
 #: src/handlers/llm/claude_handler.py:89 src/handlers/llm/claude_handler.py:93
 #: src/handlers/llm/gemini_handler.py:97 src/handlers/llm/openai_handler.py:84
-#: src/handlers/stt/whisper_handler.py:15
+#: src/handlers/llm/g4f_handler.py:44 src/handlers/stt/whisper_handler.py:15
 #: src/handlers/stt/whispercpp_handler.py:40
 #: src/handlers/tts/custom_openai_tts.py:20
 #: src/handlers/tts/elevenlabs_handler.py:24
@@ -217,6 +217,7 @@ msgid "Settings about thinking models"
 msgstr ""
 
 #: src/handlers/llm/gemini_handler.py:110
+#: src/handlers/llm/ollama_handler.py:152
 msgid "Enable Thinking"
 msgstr ""
 
@@ -257,14 +258,14 @@ msgid "Enable google safety settings to avoid generating harmful content"
 msgstr ""
 
 #: src/handlers/llm/gemini_handler.py:131
-#: src/handlers/llm/newelle_handler.py:18
 #: src/handlers/llm/openai_handler.py:112
+#: src/handlers/llm/newelle_handler.py:18
 msgid "Privacy Policy"
 msgstr ""
 
 #: src/handlers/llm/gemini_handler.py:132
-#: src/handlers/llm/newelle_handler.py:19
 #: src/handlers/llm/openai_handler.py:112
+#: src/handlers/llm/newelle_handler.py:19
 msgid "Open privacy policy website"
 msgstr ""
 
@@ -288,7 +289,7 @@ msgstr ""
 msgid "Size: "
 msgstr ""
 
-#: src/handlers/llm/gpt4all_handler.py:154
+#: src/handlers/llm/gpt4all_handler.py:154 src/handlers/llm/g4f_handler.py:44
 msgid "Model to use"
 msgstr ""
 
@@ -298,61 +299,13 @@ msgid "Name of the model to use"
 msgstr ""
 
 #: src/handlers/llm/gpt4all_handler.py:155
-#: src/handlers/llm/ollama_handler.py:170
+#: src/handlers/llm/ollama_handler.py:172
 msgid "Model Manager"
 msgstr ""
 
 #: src/handlers/llm/gpt4all_handler.py:155
-#: src/handlers/llm/ollama_handler.py:170
+#: src/handlers/llm/ollama_handler.py:172
 msgid "List of models available"
-msgstr ""
-
-#: src/handlers/llm/ollama_handler.py:174
-msgid "Add custom model"
-msgstr ""
-
-#: src/handlers/llm/ollama_handler.py:175
-msgid ""
-"Add any model to this list by putting name:size\n"
-"Or any gguf from hf with hf.co/username/model"
-msgstr ""
-
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Provider Sorting"
-msgstr ""
-
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Choose providers based on pricing/throughput or latency"
-msgstr ""
-
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Price"
-msgstr ""
-
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Throughput"
-msgstr ""
-
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Latency"
-msgstr ""
-
-#: src/handlers/llm/openrouter_handler.py:15
-msgid "Providers Order"
-msgstr ""
-
-#: src/handlers/llm/openrouter_handler.py:15
-msgid ""
-"Add order of providers to use, names separated by a comma.\n"
-"Empty to not specify"
-msgstr ""
-
-#: src/handlers/llm/openrouter_handler.py:16
-msgid "Allow Fallbacks"
-msgstr ""
-
-#: src/handlers/llm/openrouter_handler.py:16
-msgid "Allow fallbacks to other providers"
 msgstr ""
 
 #: src/handlers/llm/openai_handler.py:81
@@ -410,6 +363,66 @@ msgid ""
 "to talk about new topics"
 msgstr ""
 
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Provider Sorting"
+msgstr ""
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Choose providers based on pricing/throughput or latency"
+msgstr ""
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Price"
+msgstr ""
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Throughput"
+msgstr ""
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Latency"
+msgstr ""
+
+#: src/handlers/llm/openrouter_handler.py:15
+msgid "Providers Order"
+msgstr ""
+
+#: src/handlers/llm/openrouter_handler.py:15
+msgid ""
+"Add order of providers to use, names separated by a comma.\n"
+"Empty to not specify"
+msgstr ""
+
+#: src/handlers/llm/openrouter_handler.py:16
+msgid "Allow Fallbacks"
+msgstr ""
+
+#: src/handlers/llm/openrouter_handler.py:16
+msgid "Allow fallbacks to other providers"
+msgstr ""
+
+#: src/handlers/llm/g4f_handler.py:45
+msgid "Update G4F"
+msgstr ""
+
+#: src/handlers/llm/ollama_handler.py:152
+msgid "Allow thinking in the model, only some models are supported"
+msgstr ""
+
+#: src/handlers/llm/ollama_handler.py:176
+msgid "Add custom model"
+msgstr ""
+
+#: src/handlers/llm/ollama_handler.py:177
+msgid ""
+"Add any model to this list by putting name:size\n"
+"Or any gguf from hf with hf.co/username/model"
+msgstr ""
+
+#: src/handlers/llm/ollama_handler.py:187
+msgid "Update Ollama"
+msgstr ""
+
 #: src/handlers/rag/rag_handler.py:104
 msgid "Index your documents"
 msgstr ""
@@ -421,11 +434,11 @@ msgid ""
 "change embedding model"
 msgstr ""
 
-#: src/handlers/stt/custom_handler.py:13 src/handlers/tts/custom_handler.py:22
+#: src/handlers/stt/custom_handler.py:13 src/handlers/tts/custom_handler.py:17
 msgid "Command to execute"
 msgstr ""
 
-#: src/handlers/stt/custom_handler.py:14 src/handlers/tts/custom_handler.py:23
+#: src/handlers/stt/custom_handler.py:14
 #, python-brace-format
 msgid "{0} will be replaced with the model fullpath"
 msgstr ""
@@ -485,10 +498,6 @@ msgid ""
 "codes (e.g. \"en\" for English, \"fr\" for French, etc.). "
 msgstr ""
 
-#: src/handlers/stt/sphinx_handler.py:19
-msgid "Could not understand the audio"
-msgstr ""
-
 #: src/handlers/stt/vosk_handler.py:17
 msgid "Model Path"
 msgstr ""
@@ -504,6 +513,10 @@ msgstr ""
 
 #: src/handlers/stt/witai_handler.py:13
 msgid "Server Access Token for wit.ai"
+msgstr ""
+
+#: src/handlers/stt/sphinx_handler.py:19
+msgid "Could not understand the audio"
 msgstr ""
 
 #: src/handlers/stt/whispercpp_handler.py:47
@@ -552,8 +565,8 @@ msgstr ""
 #: src/handlers/tts/custom_openai_tts.py:19
 #: src/handlers/tts/elevenlabs_handler.py:17
 #: src/handlers/tts/groq_tts_handler.py:33
-#: src/handlers/tts/openai_tts_handler.py:19 src/handlers/tts/tts.py:37
-#: src/ui/settings.py:126
+#: src/handlers/tts/openai_tts_handler.py:19 src/handlers/tts/tts.py:33
+#: src/ui/settings.py:128
 msgid "Voice"
 msgstr ""
 
@@ -607,7 +620,12 @@ msgid ""
 "High values are reccomended if the style of the speech must be exaggerated"
 msgstr ""
 
-#: src/handlers/tts/tts.py:38
+#: src/handlers/tts/custom_handler.py:17
+#, python-brace-format
+msgid "{0} will be replaced with the file fullpath, {1} with the text"
+msgstr ""
+
+#: src/handlers/tts/tts.py:34
 msgid "Choose the preferred voice"
 msgstr ""
 
@@ -731,7 +749,7 @@ msgstr ""
 msgid "Region for the search results"
 msgstr ""
 
-#: src/ui/profile.py:33 src/window.py:111
+#: src/ui/profile.py:33 src/window.py:119
 msgid "Settings"
 msgstr "Settings"
 
@@ -809,7 +827,7 @@ msgstr ""
 msgid "Set profile picture"
 msgstr ""
 
-#: src/ui/thread_editing.py:6 src/window.py:109
+#: src/ui/thread_editing.py:6 src/window.py:117
 msgid "Thread editing"
 msgstr "Thread editing"
 
@@ -829,551 +847,35 @@ msgstr ""
 msgid "Delete Profile"
 msgstr ""
 
-#: src/ui/widgets/thinking.py:27
-msgid "Thoughts"
-msgstr ""
-
-#: src/ui/widgets/thinking.py:28 src/ui/widgets/thinking.py:127
-msgid "Expand to see details"
-msgstr ""
-
-#: src/ui/widgets/thinking.py:116
-msgid "Thinking..."
-msgstr ""
-
-#: src/ui/widgets/thinking.py:117
-msgid "The LLM is thinking... Expand to see thought process"
-msgstr ""
-
-#: src/ui/widgets/thinking.py:129
-msgid "No thought process recorded"
-msgstr ""
-
 #: src/ui/widgets/tipscarousel.py:41
 msgid "Newelle Tips"
 msgstr ""
 
-#: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.appdata.xml.in:7
-#: data/io.github.qwersyk.Newelle.desktop.in:2
-msgid "Newelle"
+#: src/ui/widgets/thinking.py:27
+msgid "Thoughts"
 msgstr ""
 
-#: src/ui/mini_window.py:20
-msgid "Chat is opened in mini window"
+#: src/ui/widgets/thinking.py:28 src/ui/widgets/thinking.py:135
+msgid "Expand to see details"
 msgstr ""
 
-#: src/ui/presentation.py:93
-msgid "Welcome to Newelle"
+#: src/ui/widgets/thinking.py:123
+msgid "Thinking..."
 msgstr ""
 
-#: src/ui/presentation.py:94
-msgid "Your ultimate virtual assistant."
+#: src/ui/widgets/thinking.py:124
+msgid "The LLM is thinking... Expand to see thought process"
 msgstr ""
 
-#: src/ui/presentation.py:98
-msgid "Github Page"
-msgstr ""
-
-#: src/ui/presentation.py:105
-msgid "Choose your favourite AI Language Model"
-msgstr ""
-
-#: src/ui/presentation.py:106
-msgid ""
-"Newelle can be used with mutiple models and providers!\n"
-"<b>Note: It is strongly suggested to read the Guide to LLM page</b>"
-msgstr ""
-
-#: src/ui/presentation.py:110
-msgid "Guide to LLM"
-msgstr ""
-
-#: src/ui/presentation.py:117
-msgid "Chat with your documents"
-msgstr ""
-
-#: src/ui/presentation.py:118
-msgid ""
-"Newelle can retrieve relevant information from documents you send in the "
-"chat or from your own files! Information relevant to your query will be sent "
-"to the LLM."
-msgstr ""
-
-#: src/ui/presentation.py:124 src/ui/settings.py:234 src/window.py:603
-msgid "Command virtualization"
-msgstr "Command virtualization"
-
-#: src/ui/presentation.py:125
-msgid ""
-"Newelle can be used to run commands on your system, but pay attention at "
-"what you run! <b>The LLM is not under our control, so it might generate "
-"malicious code!</b>\n"
-"By default, your commands will be <b>virtualized in the Flatpak environment</"
-"b>, but pay attention!"
-msgstr ""
-
-#: src/ui/presentation.py:131 src/ui/extension.py:17 src/constants.py:483
-#: src/window.py:110
-msgid "Extensions"
-msgstr "Extensions"
-
-#: src/ui/presentation.py:132
-msgid "You can extend Newelle's functionalities using extensions!"
-msgstr ""
-
-#: src/ui/presentation.py:136
-#, fuzzy
-msgid "Download extensions"
-msgstr "Add extension"
-
-#: src/ui/presentation.py:146
-msgid "Permission Error"
-msgstr ""
-
-#: src/ui/presentation.py:147
-msgid ""
-"Newelle does not have enough permissions to run commands on your system."
-msgstr ""
-
-#: src/ui/presentation.py:158
-msgid "Begin using the app"
-msgstr ""
-
-#: src/ui/presentation.py:163
-msgid "Start chatting"
-msgstr ""
-
-#: src/ui/settings.py:44 src/constants.py:493
-msgid "General"
-msgstr ""
-
-#: src/ui/settings.py:45 src/constants.py:448
-msgid "LLM"
-msgstr ""
-
-#: src/ui/settings.py:46 src/constants.py:498
-msgid "Prompts"
-msgstr ""
-
-#: src/ui/settings.py:47
-msgid "Knowledge"
-msgstr ""
-
-#: src/ui/settings.py:51
-msgid "Language Model"
-msgstr ""
-
-#: src/ui/settings.py:60 src/ui/settings.py:80
-msgid "Other LLMs"
-msgstr ""
-
-#: src/ui/settings.py:60 src/ui/settings.py:80
-msgid "Other available LLM providers"
-msgstr ""
-
-#: src/ui/settings.py:70
-#, fuzzy
-msgid "Advanced LLM Settings"
-msgstr "Settings"
-
-#: src/ui/settings.py:74
-msgid "Secondary Language Model"
-msgstr ""
-
-#: src/ui/settings.py:74
-msgid ""
-"Model used for secondary tasks, like offer, chat name and memory generation"
-msgstr ""
-
-#: src/ui/settings.py:91
-msgid "Embedding Model"
-msgstr ""
-
-#: src/ui/settings.py:91
-msgid ""
-"Embedding is used to trasform text into vectors. Used by Long Term Memory "
-"and RAG. Changing it might require you to re-index documents or reset memory."
-msgstr ""
-
-#: src/ui/settings.py:102 src/window.py:601
-#, fuzzy
-msgid "Long Term Memory"
-msgstr "Program memory"
-
-#: src/ui/settings.py:102
-msgid "Keep memory of old conversations"
-msgstr ""
-
-#: src/ui/settings.py:114 src/constants.py:400
-msgid "Web Search"
-msgstr ""
-
-#: src/ui/settings.py:114
-msgid "Search information on the Web"
-msgstr ""
-
-#: src/ui/settings.py:130
-msgid "Text To Speech Program"
-msgstr ""
-
-#: src/ui/settings.py:130
-msgid "Choose which text to speech to use"
-msgstr ""
-
-#: src/ui/settings.py:139
-msgid "Speech To Text Engine"
-msgstr ""
-
-#: src/ui/settings.py:139
-msgid "Choose which speech recognition engine you want"
-msgstr ""
-
-#: src/ui/settings.py:147
-msgid "Automatic Speech To Text"
-msgstr ""
-
-#: src/ui/settings.py:147
-msgid "Automatically restart speech to text at the end of a text/TTS"
-msgstr ""
-
-#: src/ui/settings.py:151
-msgid "Prompt control"
-msgstr "Prompt control"
-
-#: src/ui/settings.py:156
-msgid "Interface"
-msgstr "Interface"
-
-#: src/ui/settings.py:159
-#, fuzzy
-msgid "Interface Size"
-msgstr "Interface"
-
-#: src/ui/settings.py:159
-msgid "Adjust the size of the interface"
-msgstr ""
-
-#: src/ui/settings.py:171
-msgid "Editor color scheme"
-msgstr ""
-
-#: src/ui/settings.py:171
-msgid "Change the color scheme of the editor and codeblocks"
-msgstr ""
-
-#: src/ui/settings.py:178
-msgid "Hidden files"
-msgstr "Hidden files"
-
-#: src/ui/settings.py:178
-msgid "Show hidden files"
-msgstr "Show hidden files"
-
-#: src/ui/settings.py:184
-msgid "Send with ENTER"
-msgstr ""
-
-#: src/ui/settings.py:184
-msgid ""
-"If enabled, messages will be sent with ENTER, to go to a new line use "
-"CTRL+ENTER. If disabled, messages will be sent with SHIFT+ENTER, and newline "
-"with enter"
-msgstr ""
-
-#: src/ui/settings.py:190
-msgid "Remove thinking from history"
-msgstr ""
-
-#: src/ui/settings.py:190
-msgid ""
-"Do not send old thinking blocks for reasoning models in order to reduce "
-"token usage"
-msgstr ""
-
-#: src/ui/settings.py:196
-msgid "Display LaTeX"
-msgstr ""
-
-#: src/ui/settings.py:196
-msgid "Display LaTeX formulas in chat"
-msgstr ""
-
-#: src/ui/settings.py:202
-msgid "Reverse Chat Order"
-msgstr ""
-
-#: src/ui/settings.py:202
-msgid "Show most recent chats on top in chat list (change chat to apply)"
-msgstr ""
-
-#: src/ui/settings.py:208
-msgid "Automatically Generate Chat Names"
-msgstr ""
-
-#: src/ui/settings.py:208
-msgid "Generate chat names automatically after the first two messages"
-msgstr ""
-
-#: src/ui/settings.py:214
-msgid "Number of offers"
-msgstr "Number of offers"
-
-#: src/ui/settings.py:214
-msgid "Number of message suggestions to send to chat "
-msgstr "Number of message suggestions to send to chat "
-
-#: src/ui/settings.py:221
-msgid "Username"
-msgstr ""
-
-#: src/ui/settings.py:221
-#, python-brace-format
-msgid ""
-"Change the label that appears before your message\n"
-"This information is not sent to the LLM by default\n"
-"You can add it to a prompt using the {USER} variable"
-msgstr ""
-
-#: src/ui/settings.py:231
-msgid "Neural Network Control"
-msgstr "Neural Network Control"
-
-#: src/ui/settings.py:234
-msgid "Run commands in a virtual machine"
-msgstr "Run commands in a virtual machine"
-
-#: src/ui/settings.py:247
-msgid "External Terminal"
-msgstr ""
-
-#: src/ui/settings.py:247
-msgid "Choose the external terminal where to run the console commands"
-msgstr ""
-
-#: src/ui/settings.py:256
-msgid "Program memory"
-msgstr "Program memory"
-
-#: src/ui/settings.py:256
-msgid "How long the program remembers the chat "
-msgstr "How long the program remembers the chat "
-
-#: src/ui/settings.py:276
-msgid "Auto-run commands"
-msgstr "Auto-run commands"
-
-#: src/ui/settings.py:276
-msgid "Commands that the bot will write will automatically run"
-msgstr "Commands that the bot will write will automatically run"
-
-#: src/ui/settings.py:279
-#, fuzzy
-msgid "Max number of commands"
-msgstr "Auto-run commands"
-
-#: src/ui/settings.py:279
-#, fuzzy
-msgid ""
-"Maximum number of commands that the bot will write after a single user "
-"request"
-msgstr "Commands that the bot will write will automatically run"
-
-#: src/ui/settings.py:310
-msgid "Browser"
-msgstr ""
-
-#: src/ui/settings.py:310
-msgid "Settings for the browser"
-msgstr ""
-
-#: src/ui/settings.py:315
-msgid "Use external browser"
-msgstr ""
-
-#: src/ui/settings.py:315
-msgid "Use an external browser to open links instead of integrated one"
-msgstr ""
-
-#: src/ui/settings.py:322
-msgid "Persist browser session"
-msgstr ""
-
-#: src/ui/settings.py:322
-msgid ""
-"Persist browser session between restarts. Turning this off requires "
-"restarting the program"
-msgstr ""
-
-#: src/ui/settings.py:327
-msgid "Delete browser data"
-msgstr ""
-
-#: src/ui/settings.py:327
-msgid "Delete browser session and data"
-msgstr ""
-
-#: src/ui/settings.py:328 src/ui/explorer.py:366 src/ui/explorer.py:502
-msgid "Delete"
-msgstr ""
-
-#: src/ui/settings.py:334
-msgid "Initial browser page"
-msgstr ""
-
-#: src/ui/settings.py:334
-msgid "The page where the browser will start"
-msgstr ""
-
-#: src/ui/settings.py:341
-#, fuzzy
-msgid "Search string"
-msgstr "Settings"
-
-#: src/ui/settings.py:341
-#, python-format
-msgid "The search string used in the browser, %s is replaced with the query"
-msgstr ""
-
-#: src/ui/settings.py:362
-msgid "Document Sources (RAG)"
-msgstr ""
-
-#: src/ui/settings.py:362
-msgid "Include content from your documents in the responses"
-msgstr ""
-
-#: src/ui/settings.py:363
-msgid "Document Analyzer"
-msgstr ""
-
-#: src/ui/settings.py:363
-msgid ""
-"The document analyzer uses multiple techniques to extract relevant "
-"information about your documents"
-msgstr ""
-
-#: src/ui/settings.py:374
-msgid "Read documents if unsupported"
-msgstr ""
-
-#: src/ui/settings.py:374
-msgid ""
-"If the LLM does not support reading documents, relevant information about "
-"documents sent in the chat will be given to the LLM using your Document "
-"Analyzer."
-msgstr ""
-
-#: src/ui/settings.py:378
-msgid "Maximum tokens for RAG"
-msgstr ""
-
-#: src/ui/settings.py:378
-msgid ""
-"The maximum amount of tokens to be used for RAG. If the documents do not "
-"exceed this token count,\n"
-"dump all of them in the context"
-msgstr ""
-
-#: src/ui/settings.py:395
-msgid "Document Folder"
-msgstr ""
-
-#: src/ui/settings.py:395
-msgid ""
-"Put the documents you want to query in your document folder. The document "
-"analyzer will find relevant information in them if this option is enabled"
-msgstr ""
-
-#: src/ui/settings.py:398
-msgid "Put all the documents you want to index in this folder"
-msgstr ""
-
-#: src/ui/settings.py:434
-msgid "Silence threshold"
-msgstr ""
-
-#: src/ui/settings.py:434
-msgid ""
-"Silence threshold in seconds, percentage of the volume to be considered "
-"silence"
-msgstr ""
-
-#: src/ui/settings.py:447
-msgid "Silence time"
-msgstr ""
-
-#: src/ui/settings.py:447
-msgid "Silence time in seconds before recording stops automatically"
-msgstr ""
-
-#: src/ui/settings.py:1017
-msgid "Not enough permissions"
-msgstr ""
-
-#: src/ui/settings.py:1021
-msgid ""
-"Newelle does not have enough permissions to run commands on your system, "
-"please run the following command"
-msgstr ""
-
-#: src/ui/settings.py:1022
-msgid "Understood"
-msgstr ""
-
-#: src/ui/shortcuts.py:6
-msgid "Help"
-msgstr "Help"
-
-#: src/ui/shortcuts.py:12
-msgid "Shortcuts"
-msgstr "Shortcuts"
-
-#: src/ui/shortcuts.py:13
-msgid "Reload chat"
-msgstr "Reload chat"
-
-#: src/ui/shortcuts.py:14
-msgid "Reload folder"
-msgstr "Reload folder"
-
-#: src/ui/shortcuts.py:15
-msgid "New tab"
-msgstr "New tab"
-
-#: src/ui/shortcuts.py:16
-msgid "Paste Image"
-msgstr ""
-
-#: src/ui/shortcuts.py:17
-msgid "Focus message box"
-msgstr ""
-
-#: src/ui/shortcuts.py:18
-msgid "Start/stop recording"
-msgstr ""
-
-#: src/ui/shortcuts.py:19
-msgid "Save"
-msgstr ""
-
-#: src/ui/shortcuts.py:20
-#, fuzzy
-msgid "Stop TTS"
-msgstr " Stop"
-
-#: src/ui/shortcuts.py:21
-msgid "Zoom in"
-msgstr ""
-
-#: src/ui/shortcuts.py:22
-msgid "Zoom out"
+#: src/ui/widgets/thinking.py:137
+msgid "No thought process recorded"
 msgstr ""
 
 #: src/ui/explorer.py:192
 msgid "Folder is Empty"
 msgstr "Folder is Empty"
 
-#: src/ui/explorer.py:340 src/window.py:1510
+#: src/ui/explorer.py:340 src/window.py:1574
 msgid "File not found"
 msgstr "File not found"
 
@@ -1393,6 +895,11 @@ msgstr ""
 msgid "Rename"
 msgstr ""
 
+#: src/ui/explorer.py:366 src/ui/explorer.py:502 src/ui/settings.py:275
+#: src/ui/settings.py:346
+msgid "Delete"
+msgstr ""
+
 #: src/ui/explorer.py:369
 msgid "Copy full path"
 msgstr ""
@@ -1408,7 +915,7 @@ msgid "New name:"
 msgstr "New tab"
 
 #: src/ui/explorer.py:448 src/ui/explorer.py:501 src/ui/explorer.py:689
-#: src/main.py:204
+#: src/main.py:209
 msgid "Cancel"
 msgstr "Cancel"
 
@@ -1504,6 +1011,145 @@ msgstr ""
 msgid "Failed to create {}: {}"
 msgstr "Failed to send bot a message"
 
+#: src/ui/shortcuts.py:6
+msgid "Help"
+msgstr "Help"
+
+#: src/ui/shortcuts.py:12
+msgid "Shortcuts"
+msgstr "Shortcuts"
+
+#: src/ui/shortcuts.py:13
+msgid "Reload chat"
+msgstr "Reload chat"
+
+#: src/ui/shortcuts.py:14
+msgid "Reload folder"
+msgstr "Reload folder"
+
+#: src/ui/shortcuts.py:15
+msgid "New tab"
+msgstr "New tab"
+
+#: src/ui/shortcuts.py:16
+msgid "Paste Image"
+msgstr ""
+
+#: src/ui/shortcuts.py:17
+msgid "Focus message box"
+msgstr ""
+
+#: src/ui/shortcuts.py:18
+msgid "Start/stop recording"
+msgstr ""
+
+#: src/ui/shortcuts.py:19
+msgid "Save"
+msgstr ""
+
+#: src/ui/shortcuts.py:20
+#, fuzzy
+msgid "Stop TTS"
+msgstr " Stop"
+
+#: src/ui/shortcuts.py:21
+msgid "Zoom in"
+msgstr ""
+
+#: src/ui/shortcuts.py:22
+msgid "Zoom out"
+msgstr ""
+
+#: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.appdata.xml.in:7
+#: data/io.github.qwersyk.Newelle.desktop.in:2
+msgid "Newelle"
+msgstr ""
+
+#: src/ui/mini_window.py:20
+msgid "Chat is opened in mini window"
+msgstr ""
+
+#: src/ui/presentation.py:93
+msgid "Welcome to Newelle"
+msgstr ""
+
+#: src/ui/presentation.py:94
+msgid "Your ultimate virtual assistant."
+msgstr ""
+
+#: src/ui/presentation.py:98
+msgid "Github Page"
+msgstr ""
+
+#: src/ui/presentation.py:105
+msgid "Choose your favourite AI Language Model"
+msgstr ""
+
+#: src/ui/presentation.py:106
+msgid ""
+"Newelle can be used with mutiple models and providers!\n"
+"<b>Note: It is strongly suggested to read the Guide to LLM page</b>"
+msgstr ""
+
+#: src/ui/presentation.py:110
+msgid "Guide to LLM"
+msgstr ""
+
+#: src/ui/presentation.py:117
+msgid "Chat with your documents"
+msgstr ""
+
+#: src/ui/presentation.py:118
+msgid ""
+"Newelle can retrieve relevant information from documents you send in the "
+"chat or from your own files! Information relevant to your query will be sent "
+"to the LLM."
+msgstr ""
+
+#: src/ui/presentation.py:124 src/ui/settings.py:236 src/window.py:647
+msgid "Command virtualization"
+msgstr "Command virtualization"
+
+#: src/ui/presentation.py:125
+msgid ""
+"Newelle can be used to run commands on your system, but pay attention at "
+"what you run! <b>The LLM is not under our control, so it might generate "
+"malicious code!</b>\n"
+"By default, your commands will be <b>virtualized in the Flatpak environment</"
+"b>, but pay attention!"
+msgstr ""
+
+#: src/ui/presentation.py:131 src/ui/extension.py:17 src/constants.py:513
+#: src/window.py:118
+msgid "Extensions"
+msgstr "Extensions"
+
+#: src/ui/presentation.py:132
+msgid "You can extend Newelle's functionalities using extensions!"
+msgstr ""
+
+#: src/ui/presentation.py:136
+#, fuzzy
+msgid "Download extensions"
+msgstr "Add extension"
+
+#: src/ui/presentation.py:146
+msgid "Permission Error"
+msgstr ""
+
+#: src/ui/presentation.py:147
+msgid ""
+"Newelle does not have enough permissions to run commands on your system."
+msgstr ""
+
+#: src/ui/presentation.py:158
+msgid "Begin using the app"
+msgstr ""
+
+#: src/ui/presentation.py:163
+msgid "Start chatting"
+msgstr ""
+
 #: src/ui/extension.py:50
 #, fuzzy
 msgid "Installed Extensions"
@@ -1522,701 +1168,1141 @@ msgstr "Choose an extension"
 msgid "Install extension from file..."
 msgstr ""
 
-#: src/main.py:200
-msgid "Terminal threads are still running in the background"
-msgstr "Terminal threads are still running in the background"
+#: src/ui/settings.py:46 src/constants.py:523
+msgid "General"
+msgstr ""
 
-#: src/main.py:201
-msgid "When you close the window, they will be automatically terminated"
-msgstr "When you close the window, they will be automatically terminated"
+#: src/ui/settings.py:47 src/constants.py:478
+msgid "LLM"
+msgstr ""
 
-#: src/main.py:205
-msgid "Close"
-msgstr "Close"
+#: src/ui/settings.py:48 src/constants.py:528
+msgid "Prompts"
+msgstr ""
 
-#: src/main.py:239
-msgid "Chat is rebooted"
-msgstr "Chat is rebooted"
+#: src/ui/settings.py:49
+msgid "Knowledge"
+msgstr ""
 
-#: src/main.py:244
-msgid "Folder is rebooted"
-msgstr "Folder is rebooted"
+#: src/ui/settings.py:53
+msgid "Language Model"
+msgstr ""
 
-#: src/main.py:249
-msgid "Chat is created"
-msgstr "Chat is created"
+#: src/ui/settings.py:62 src/ui/settings.py:82
+msgid "Other LLMs"
+msgstr ""
+
+#: src/ui/settings.py:62 src/ui/settings.py:82
+msgid "Other available LLM providers"
+msgstr ""
+
+#: src/ui/settings.py:72
+#, fuzzy
+msgid "Advanced LLM Settings"
+msgstr "Settings"
+
+#: src/ui/settings.py:76
+msgid "Secondary Language Model"
+msgstr ""
+
+#: src/ui/settings.py:76
+msgid ""
+"Model used for secondary tasks, like offer, chat name and memory generation"
+msgstr ""
+
+#: src/ui/settings.py:93
+msgid "Embedding Model"
+msgstr ""
+
+#: src/ui/settings.py:93
+msgid ""
+"Embedding is used to trasform text into vectors. Used by Long Term Memory "
+"and RAG. Changing it might require you to re-index documents or reset memory."
+msgstr ""
+
+#: src/ui/settings.py:104 src/window.py:645
+#, fuzzy
+msgid "Long Term Memory"
+msgstr "Program memory"
+
+#: src/ui/settings.py:104
+msgid "Keep memory of old conversations"
+msgstr ""
+
+#: src/ui/settings.py:116 src/constants.py:401
+msgid "Web Search"
+msgstr ""
+
+#: src/ui/settings.py:116
+msgid "Search information on the Web"
+msgstr ""
+
+#: src/ui/settings.py:132
+msgid "Text To Speech Program"
+msgstr ""
+
+#: src/ui/settings.py:132
+msgid "Choose which text to speech to use"
+msgstr ""
+
+#: src/ui/settings.py:141
+msgid "Speech To Text Engine"
+msgstr ""
+
+#: src/ui/settings.py:141
+msgid "Choose which speech recognition engine you want"
+msgstr ""
+
+#: src/ui/settings.py:149
+msgid "Automatic Speech To Text"
+msgstr ""
+
+#: src/ui/settings.py:149
+msgid "Automatically restart speech to text at the end of a text/TTS"
+msgstr ""
+
+#: src/ui/settings.py:153
+msgid "Prompt control"
+msgstr "Prompt control"
+
+#: src/ui/settings.py:158
+msgid "Interface"
+msgstr "Interface"
+
+#: src/ui/settings.py:161
+#, fuzzy
+msgid "Interface Size"
+msgstr "Interface"
+
+#: src/ui/settings.py:161
+msgid "Adjust the size of the interface"
+msgstr ""
+
+#: src/ui/settings.py:173
+msgid "Editor color scheme"
+msgstr ""
+
+#: src/ui/settings.py:173
+msgid "Change the color scheme of the editor and codeblocks"
+msgstr ""
+
+#: src/ui/settings.py:180
+msgid "Hidden files"
+msgstr "Hidden files"
+
+#: src/ui/settings.py:180
+msgid "Show hidden files"
+msgstr "Show hidden files"
+
+#: src/ui/settings.py:186
+msgid "Send with ENTER"
+msgstr ""
+
+#: src/ui/settings.py:186
+msgid ""
+"If enabled, messages will be sent with ENTER, to go to a new line use "
+"CTRL+ENTER. If disabled, messages will be sent with SHIFT+ENTER, and newline "
+"with enter"
+msgstr ""
+
+#: src/ui/settings.py:192
+msgid "Remove thinking from history"
+msgstr ""
+
+#: src/ui/settings.py:192
+msgid ""
+"Do not send old thinking blocks for reasoning models in order to reduce "
+"token usage"
+msgstr ""
+
+#: src/ui/settings.py:198
+msgid "Display LaTeX"
+msgstr ""
+
+#: src/ui/settings.py:198
+msgid "Display LaTeX formulas in chat"
+msgstr ""
+
+#: src/ui/settings.py:204
+msgid "Reverse Chat Order"
+msgstr ""
+
+#: src/ui/settings.py:204
+msgid "Show most recent chats on top in chat list (change chat to apply)"
+msgstr ""
+
+#: src/ui/settings.py:210
+msgid "Automatically Generate Chat Names"
+msgstr ""
+
+#: src/ui/settings.py:210
+msgid "Generate chat names automatically after the first two messages"
+msgstr ""
+
+#: src/ui/settings.py:216
+msgid "Number of offers"
+msgstr "Number of offers"
+
+#: src/ui/settings.py:216
+msgid "Number of message suggestions to send to chat "
+msgstr "Number of message suggestions to send to chat "
+
+#: src/ui/settings.py:223
+msgid "Username"
+msgstr ""
+
+#: src/ui/settings.py:223
+#, python-brace-format
+msgid ""
+"Change the label that appears before your message\n"
+"This information is not sent to the LLM by default\n"
+"You can add it to a prompt using the {USER} variable"
+msgstr ""
+
+#: src/ui/settings.py:233
+msgid "Neural Network Control"
+msgstr "Neural Network Control"
+
+#: src/ui/settings.py:236
+msgid "Run commands in a virtual machine"
+msgstr "Run commands in a virtual machine"
+
+#: src/ui/settings.py:249
+msgid "External Terminal"
+msgstr ""
+
+#: src/ui/settings.py:249
+msgid "Choose the external terminal where to run the console commands"
+msgstr ""
+
+#: src/ui/settings.py:258
+msgid "Program memory"
+msgstr "Program memory"
+
+#: src/ui/settings.py:258
+msgid "How long the program remembers the chat "
+msgstr "How long the program remembers the chat "
+
+#: src/ui/settings.py:265
+msgid "Developer"
+msgstr ""
+
+#: src/ui/settings.py:268 src/ui/stdout_monitor.py:31
+#: src/ui/stdout_monitor.py:41
+msgid "Program Output Monitor"
+msgstr ""
+
+#: src/ui/settings.py:268
+msgid ""
+"Monitor the program output in real-time, useful for debugging and seeing "
+"downloads progress"
+msgstr ""
+
+#: src/ui/settings.py:269
+msgid "Open"
+msgstr ""
+
+#: src/ui/settings.py:274
+msgid "Delete pip path"
+msgstr ""
+
+#: src/ui/settings.py:274
+msgid "Remove the extra dependencies installed"
+msgstr ""
+
+#: src/ui/settings.py:294
+msgid "Auto-run commands"
+msgstr "Auto-run commands"
+
+#: src/ui/settings.py:294
+msgid "Commands that the bot will write will automatically run"
+msgstr "Commands that the bot will write will automatically run"
+
+#: src/ui/settings.py:297
+#, fuzzy
+msgid "Max number of commands"
+msgstr "Auto-run commands"
+
+#: src/ui/settings.py:297
+#, fuzzy
+msgid ""
+"Maximum number of commands that the bot will write after a single user "
+"request"
+msgstr "Commands that the bot will write will automatically run"
+
+#: src/ui/settings.py:328
+msgid "Browser"
+msgstr ""
+
+#: src/ui/settings.py:328
+msgid "Settings for the browser"
+msgstr ""
+
+#: src/ui/settings.py:333
+msgid "Use external browser"
+msgstr ""
+
+#: src/ui/settings.py:333
+msgid "Use an external browser to open links instead of integrated one"
+msgstr ""
+
+#: src/ui/settings.py:340
+msgid "Persist browser session"
+msgstr ""
+
+#: src/ui/settings.py:340
+msgid ""
+"Persist browser session between restarts. Turning this off requires "
+"restarting the program"
+msgstr ""
+
+#: src/ui/settings.py:345
+msgid "Delete browser data"
+msgstr ""
+
+#: src/ui/settings.py:345
+msgid "Delete browser session and data"
+msgstr ""
+
+#: src/ui/settings.py:352
+msgid "Initial browser page"
+msgstr ""
+
+#: src/ui/settings.py:352
+msgid "The page where the browser will start"
+msgstr ""
+
+#: src/ui/settings.py:359
+#, fuzzy
+msgid "Search string"
+msgstr "Settings"
+
+#: src/ui/settings.py:359
+#, python-format
+msgid "The search string used in the browser, %s is replaced with the query"
+msgstr ""
+
+#: src/ui/settings.py:380
+msgid "Document Sources (RAG)"
+msgstr ""
+
+#: src/ui/settings.py:380
+msgid "Include content from your documents in the responses"
+msgstr ""
+
+#: src/ui/settings.py:381
+msgid "Document Analyzer"
+msgstr ""
+
+#: src/ui/settings.py:381
+msgid ""
+"The document analyzer uses multiple techniques to extract relevant "
+"information about your documents"
+msgstr ""
+
+#: src/ui/settings.py:392
+msgid "Read documents if unsupported"
+msgstr ""
+
+#: src/ui/settings.py:392
+msgid ""
+"If the LLM does not support reading documents, relevant information about "
+"documents sent in the chat will be given to the LLM using your Document "
+"Analyzer."
+msgstr ""
+
+#: src/ui/settings.py:396
+msgid "Maximum tokens for RAG"
+msgstr ""
+
+#: src/ui/settings.py:396
+msgid ""
+"The maximum amount of tokens to be used for RAG. If the documents do not "
+"exceed this token count,\n"
+"dump all of them in the context"
+msgstr ""
+
+#: src/ui/settings.py:413
+msgid "Document Folder"
+msgstr ""
+
+#: src/ui/settings.py:413
+msgid ""
+"Put the documents you want to query in your document folder. The document "
+"analyzer will find relevant information in them if this option is enabled"
+msgstr ""
+
+#: src/ui/settings.py:416
+msgid "Put all the documents you want to index in this folder"
+msgstr ""
+
+#: src/ui/settings.py:452
+msgid "Silence threshold"
+msgstr ""
+
+#: src/ui/settings.py:452
+msgid ""
+"Silence threshold in seconds, percentage of the volume to be considered "
+"silence"
+msgstr ""
+
+#: src/ui/settings.py:465
+msgid "Silence time"
+msgstr ""
+
+#: src/ui/settings.py:465
+msgid "Silence time in seconds before recording stops automatically"
+msgstr ""
+
+#: src/ui/settings.py:1044
+msgid "Not enough permissions"
+msgstr ""
+
+#: src/ui/settings.py:1048
+msgid ""
+"Newelle does not have enough permissions to run commands on your system, "
+"please run the following command"
+msgstr ""
+
+#: src/ui/settings.py:1049 src/ui/settings.py:1062
+msgid "Understood"
+msgstr ""
+
+#: src/ui/settings.py:1061
+msgid "Pip path deleted"
+msgstr ""
+
+#: src/ui/settings.py:1061
+msgid ""
+"The pip path has been deleted, you can now reinstall the dependencies. This "
+"operation requires a restart of the application."
+msgstr ""
+
+#: src/ui/stdout_monitor.py:48
+msgid "Clear output"
+msgstr ""
+
+#: src/ui/stdout_monitor.py:61
+msgid "Start/Stop monitoring"
+msgstr ""
+
+#: src/ui/stdout_monitor.py:109 src/ui/stdout_monitor.py:182
+#: src/ui/stdout_monitor.py:191 src/window.py:3683
+msgid "Monitoring: Active"
+msgstr ""
+
+#: src/ui/stdout_monitor.py:109 src/ui/stdout_monitor.py:208
+msgid "Monitoring: Stopped"
+msgstr ""
+
+#: src/ui/stdout_monitor.py:116 src/ui/stdout_monitor.py:252
+msgid "Lines: {}"
+msgstr ""
+
+#: src/ui/stdout_monitor.py:267
+msgid "Lines: 0"
+msgstr ""
 
 #: src/constants.py:20
 msgid "Newelle Demo API"
 msgstr ""
 
 #: src/constants.py:26
-msgid "Any free Provider"
-msgstr ""
-
-#: src/constants.py:33
-msgid "Local Model"
+msgid "GPT4Free"
 msgstr ""
 
 #: src/constants.py:34
+msgid "Local Model"
+msgstr ""
+
+#: src/constants.py:35
 msgid ""
 "NO GPU SUPPORT, USE OLLAMA INSTEAD. Run a LLM model locally, more privacy "
 "but slower"
 msgstr ""
 
-#: src/constants.py:39
+#: src/constants.py:40
 msgid "Ollama Instance"
 msgstr ""
 
-#: src/constants.py:40
+#: src/constants.py:41
 msgid "Easily run multiple LLM models on your own hardware"
 msgstr ""
 
-#: src/constants.py:46
+#: src/constants.py:47
 msgid "Groq"
 msgstr ""
 
-#: src/constants.py:53 src/constants.py:229
+#: src/constants.py:54 src/constants.py:230
 msgid "Google Gemini API"
 msgstr ""
 
-#: src/constants.py:59 src/constants.py:223 src/constants.py:224
+#: src/constants.py:60 src/constants.py:224 src/constants.py:225
 msgid "OpenAI API"
 msgstr ""
 
-#: src/constants.py:60
+#: src/constants.py:61
 msgid "OpenAI API. Custom endpoints supported. Use this for custom providers"
 msgstr ""
 
-#: src/constants.py:65
+#: src/constants.py:66
 msgid "Anthropic Claude"
 msgstr ""
 
-#: src/constants.py:66
+#: src/constants.py:67
 msgid ""
 "Official APIs for Anthropic Claude's models, with image and file support, "
 "requires an API key"
 msgstr ""
 
-#: src/constants.py:72
+#: src/constants.py:73
 msgid "Mistral"
 msgstr ""
 
-#: src/constants.py:73
+#: src/constants.py:74
 msgid "Mistral API"
 msgstr ""
 
-#: src/constants.py:79
+#: src/constants.py:80
 msgid "OpenRouter"
 msgstr ""
 
-#: src/constants.py:80
+#: src/constants.py:81
 msgid "Openrouter.ai API, supports lots of models"
 msgstr ""
 
-#: src/constants.py:86
+#: src/constants.py:87
 msgid "Deepseek"
 msgstr ""
 
-#: src/constants.py:87
+#: src/constants.py:88
 msgid "Deepseek API, strongest open source models"
 msgstr ""
 
-#: src/constants.py:93 src/constants.py:202
+#: src/constants.py:94 src/constants.py:203
 #, fuzzy
 msgid "Custom Command"
 msgstr "Auto-run commands"
 
-#: src/constants.py:94
+#: src/constants.py:95
 msgid "Use the output of a custom command"
 msgstr ""
 
-#: src/constants.py:103
-msgid "CMU Sphinx"
-msgstr ""
-
 #: src/constants.py:104
-msgid "Works offline. Only English supported"
-msgstr ""
-
-#: src/constants.py:110
 msgid "Whisper C++"
 msgstr ""
 
-#: src/constants.py:111
+#: src/constants.py:105
 msgid "Works offline. Optimized Whisper impelementation written in C++"
 msgstr ""
 
-#: src/constants.py:117
+#: src/constants.py:111
+msgid "CMU Sphinx"
+msgstr ""
+
+#: src/constants.py:112
+msgid "Works offline. Only English supported"
+msgstr ""
+
+#: src/constants.py:118
 msgid "Google Speech Recognition"
 msgstr ""
 
-#: src/constants.py:118 src/constants.py:124
+#: src/constants.py:119 src/constants.py:125
 msgid "Google Speech Recognition online"
 msgstr ""
 
-#: src/constants.py:123
+#: src/constants.py:124
 msgid "Groq Speech Recognition"
 msgstr ""
 
-#: src/constants.py:129
+#: src/constants.py:130
 msgid "Wit AI"
 msgstr ""
 
-#: src/constants.py:130
+#: src/constants.py:131
 msgid "wit.ai speech recognition free API (language chosen on the website)"
 msgstr ""
 
-#: src/constants.py:136
+#: src/constants.py:137
 msgid "Vosk API"
 msgstr ""
 
-#: src/constants.py:137
+#: src/constants.py:138
 msgid "Works Offline"
 msgstr ""
 
-#: src/constants.py:143
+#: src/constants.py:144
 msgid "Whisper API"
 msgstr ""
 
-#: src/constants.py:144
+#: src/constants.py:145
 msgid "Uses OpenAI Whisper API"
 msgstr ""
 
-#: src/constants.py:150
+#: src/constants.py:151
 #, fuzzy
 msgid "Custom command"
 msgstr "Auto-run commands"
 
-#: src/constants.py:151
+#: src/constants.py:152
 #, fuzzy
 msgid "Runs a custom command"
 msgstr "Auto-run commands"
 
-#: src/constants.py:160
+#: src/constants.py:161
 msgid "Google TTS"
 msgstr ""
 
-#: src/constants.py:161
+#: src/constants.py:162
 msgid "Google's text to speech"
 msgstr ""
 
-#: src/constants.py:166
+#: src/constants.py:167
 msgid "Kokoro TTS"
 msgstr ""
 
-#: src/constants.py:167
+#: src/constants.py:168
 msgid ""
 "Lightweight and fast open source TTS engine. ~3GB dependencies, 400MB model"
 msgstr ""
 
-#: src/constants.py:172
+#: src/constants.py:173
 msgid "ElevenLabs TTS"
 msgstr ""
 
-#: src/constants.py:173
+#: src/constants.py:174
 msgid "Natural sounding TTS"
 msgstr ""
 
-#: src/constants.py:178 src/constants.py:179
+#: src/constants.py:179 src/constants.py:180
 msgid "OpenAI TTS"
 msgstr ""
 
-#: src/constants.py:184
+#: src/constants.py:185
 #, fuzzy
 msgid "Groq TTS"
 msgstr " Stop"
 
-#: src/constants.py:185
+#: src/constants.py:186
 msgid "Groq TTS API"
 msgstr ""
 
-#: src/constants.py:190 src/constants.py:191
+#: src/constants.py:191 src/constants.py:192
 msgid "Custom OpenAI TTS"
 msgstr ""
 
-#: src/constants.py:196
+#: src/constants.py:197
 msgid "Espeak TTS"
 msgstr ""
 
-#: src/constants.py:197
+#: src/constants.py:198
 msgid "Offline TTS"
 msgstr ""
 
-#: src/constants.py:203
+#: src/constants.py:204
 #, python-brace-format
 msgid "Use a custom command as TTS, {0} will be replaced with the text"
 msgstr ""
 
-#: src/constants.py:211
+#: src/constants.py:212
 msgid "WordLlama"
 msgstr ""
 
-#: src/constants.py:212
+#: src/constants.py:213
 msgid ""
 "Light local embedding model based on llama. Works offline, very low "
 "resources usage"
 msgstr ""
 
-#: src/constants.py:217
+#: src/constants.py:218
 msgid "Ollama Embedding"
 msgstr ""
 
-#: src/constants.py:218
+#: src/constants.py:219
 msgid ""
 "Use Ollama models for Embedding. Works offline, very low resources usage"
 msgstr ""
 
-#: src/constants.py:230
+#: src/constants.py:231
 msgid "Use Google Gemini API to get embeddings"
 msgstr ""
 
-#: src/constants.py:238
+#: src/constants.py:239
 msgid "User Summary"
 msgstr ""
 
-#: src/constants.py:239
+#: src/constants.py:240
 msgid "Generate a summary of the user's conversation"
 msgstr ""
 
-#: src/constants.py:244
+#: src/constants.py:245
 msgid "Memoripy"
 msgstr ""
 
-#: src/constants.py:245
+#: src/constants.py:246
 msgid ""
 "Extract messages from previous conversations using contextual memory "
 "retrivial, memory decay, concept extraction and other advanced techniques. "
 "Does 1 llm call per message."
 msgstr ""
 
-#: src/constants.py:250
+#: src/constants.py:251
 msgid "User Summary + Memoripy"
 msgstr ""
 
-#: src/constants.py:251
+#: src/constants.py:252
 msgid "Use both technologies for long term memory"
 msgstr ""
 
-#: src/constants.py:259
+#: src/constants.py:260
 msgid "Document reader"
 msgstr ""
 
-#: src/constants.py:260
+#: src/constants.py:261
 msgid ""
 "Classic RAG approach - chunk documents and embed them, then compare them to "
 "the query and return the most relevant documents"
 msgstr ""
 
-#: src/constants.py:268
+#: src/constants.py:269
 msgid "SearXNG"
 msgstr ""
 
-#: src/constants.py:269
+#: src/constants.py:270
 msgid "SearXNG - Private and selfhostable search engine"
 msgstr ""
 
-#: src/constants.py:274
+#: src/constants.py:275
 msgid "DuckDuckGo"
 msgstr ""
 
-#: src/constants.py:275
+#: src/constants.py:276
 msgid "DuckDuckGo search"
 msgstr ""
 
-#: src/constants.py:280
+#: src/constants.py:281
 msgid "Tavily"
 msgstr ""
 
-#: src/constants.py:281
+#: src/constants.py:282
 msgid "Tavily search"
 msgstr ""
 
-#: src/constants.py:374
+#: src/constants.py:375
 msgid "Helpful assistant"
 msgstr ""
 
-#: src/constants.py:375
+#: src/constants.py:376
 msgid "General purpose prompt to enhance the LLM answers and give more context"
 msgstr ""
 
-#: src/constants.py:383
+#: src/constants.py:384
 msgid "Console access"
 msgstr "Console access"
 
-#: src/constants.py:384
+#: src/constants.py:385
 msgid "Can the program run terminal commands on the computer"
 msgstr "Can the program run terminal commands on the computer"
 
-#: src/constants.py:391
+#: src/constants.py:392
 msgid "Current directory"
 msgstr ""
 
-#: src/constants.py:392
+#: src/constants.py:393
 msgid "What is the current directory"
 msgstr ""
 
-#: src/constants.py:401
+#: src/constants.py:402
 msgid "Allow the LLM to search on the internet"
 msgstr ""
 
-#: src/constants.py:409
+#: src/constants.py:410
 msgid "Basic functionality"
 msgstr "Basic functionality"
 
-#: src/constants.py:410
+#: src/constants.py:411
 msgid "Showing tables and code (*can work without it)"
 msgstr "Showing tables and code (*can work without it)"
 
-#: src/constants.py:418
+#: src/constants.py:419
 msgid "Graphs access"
 msgstr "Graphs access"
 
-#: src/constants.py:419
+#: src/constants.py:420
 msgid "Can the program display graphs"
 msgstr "Can the program display graphs"
 
-#: src/constants.py:427
+#: src/constants.py:428
 msgid "Show image"
 msgstr "Show image"
 
-#: src/constants.py:428
+#: src/constants.py:429
 msgid "Show image in chat"
 msgstr "Show image in chat"
 
-#: src/constants.py:436
+#: src/constants.py:437
 #, fuzzy
 msgid "Custom Prompt"
 msgstr "Auto-run commands"
 
-#: src/constants.py:437
+#: src/constants.py:438
 msgid "Add your own custom prompt"
 msgstr ""
 
-#: src/constants.py:450
+#: src/constants.py:480
 #, fuzzy
 msgid "LLM and Secondary LLM settings"
 msgstr "Settings"
 
-#: src/constants.py:453 src/window.py:602
+#: src/constants.py:483 src/window.py:646
 msgid "TTS"
 msgstr ""
 
-#: src/constants.py:455
+#: src/constants.py:485
 msgid "Text to Speech settings"
 msgstr ""
 
-#: src/constants.py:458
+#: src/constants.py:488
 msgid "STT"
 msgstr ""
 
-#: src/constants.py:460
+#: src/constants.py:490
 msgid "Speech to Text settings"
 msgstr ""
 
-#: src/constants.py:463
+#: src/constants.py:493
 msgid "Embedding"
 msgstr ""
 
-#: src/constants.py:465
+#: src/constants.py:495
 #, fuzzy
 msgid "Embedding settings"
 msgstr "Extensions"
 
-#: src/constants.py:468
+#: src/constants.py:498
 msgid "Memory"
 msgstr ""
 
-#: src/constants.py:470
+#: src/constants.py:500
 #, fuzzy
 msgid "Memory settings"
 msgstr "Settings"
 
-#: src/constants.py:473
+#: src/constants.py:503
 msgid "Websearch"
 msgstr ""
 
-#: src/constants.py:475
+#: src/constants.py:505
 #, fuzzy
 msgid "Websearch settings"
 msgstr "Settings"
 
-#: src/constants.py:478
+#: src/constants.py:508
 msgid "RAG"
 msgstr ""
 
-#: src/constants.py:480
+#: src/constants.py:510
 msgid "Document analyzer settings"
 msgstr ""
 
-#: src/constants.py:485
+#: src/constants.py:515
 #, fuzzy
 msgid "Extensions settings"
 msgstr "Extensions"
 
-#: src/constants.py:488
+#: src/constants.py:518
 #, fuzzy
 msgid "Inteface"
 msgstr "Interface"
 
-#: src/constants.py:490
+#: src/constants.py:520
 msgid "Interface settings, hidden files, reverse order, zoom..."
 msgstr ""
 
-#: src/constants.py:495
+#: src/constants.py:525
 msgid ""
 "General settings, virtualization, offers, memory length, automatically "
 "generate chat name, current folder..."
 msgstr ""
 
-#: src/constants.py:500
+#: src/constants.py:530
 msgid "Prompts settings, custom extra prompt, custom prompts..."
 msgstr ""
 
-#: src/controller.py:134 src/window.py:1731
+#: src/controller.py:135 src/window.py:1846
 msgid "Chat "
 msgstr "Chat "
 
-#: src/window.py:112
+#: src/main.py:205
+msgid "Terminal threads are still running in the background"
+msgstr "Terminal threads are still running in the background"
+
+#: src/main.py:206
+msgid "When you close the window, they will be automatically terminated"
+msgstr "When you close the window, they will be automatically terminated"
+
+#: src/main.py:210
+msgid "Close"
+msgstr "Close"
+
+#: src/main.py:244
+msgid "Chat is rebooted"
+msgstr "Chat is rebooted"
+
+#: src/main.py:249
+msgid "Folder is rebooted"
+msgstr "Folder is rebooted"
+
+#: src/main.py:254
+msgid "Chat is created"
+msgstr "Chat is created"
+
+#: src/window.py:120
 msgid "Keyboard shorcuts"
 msgstr "Keyboard shorcuts"
 
-#: src/window.py:113
+#: src/window.py:121
 msgid "About"
 msgstr "About"
 
-#: src/window.py:120 src/window.py:189
+#: src/window.py:128 src/window.py:197
 msgid "Chat"
 msgstr "Chat"
 
-#: src/window.py:162
+#: src/window.py:170
 msgid "History"
 msgstr "History"
 
-#: src/window.py:183
+#: src/window.py:191
 msgid "Create a chat"
 msgstr "Create a chat"
 
-#: src/window.py:188
+#: src/window.py:196
 #, fuzzy
 msgid "Chats"
 msgstr "Chat"
 
-#: src/window.py:259
+#: src/window.py:267
 msgid " Stop"
 msgstr " Stop"
 
-#: src/window.py:274
+#: src/window.py:282
 msgid " Clear"
 msgstr " Clear"
 
-#: src/window.py:289
+#: src/window.py:297
 msgid " Continue"
 msgstr " Continue"
 
-#: src/window.py:302
+#: src/window.py:310
 msgid " Regenerate"
 msgstr " Regenerate"
 
-#: src/window.py:368
+#: src/window.py:376
 msgid "Send a message..."
 msgstr ""
 
-#: src/window.py:448
+#: src/window.py:467
 msgid "Explorer Tab"
 msgstr ""
 
-#: src/window.py:449
+#: src/window.py:468
 msgid "Terminal Tab"
 msgstr ""
 
-#: src/window.py:450
+#: src/window.py:469
 msgid "Browser Tab"
 msgstr ""
 
-#: src/window.py:544
+#: src/window.py:587
 msgid "Ask about a website"
 msgstr ""
 
-#: src/window.py:544
+#: src/window.py:587
 msgid "Write #https://website.com in chat to ask information about a website"
 msgstr ""
 
-#: src/window.py:545
+#: src/window.py:588
 msgid "Check out our Extensions!"
 msgstr ""
 
-#: src/window.py:545
+#: src/window.py:588
 msgid "We have a lot of extensions for different things. Check it out!"
 msgstr ""
 
-#: src/window.py:546
+#: src/window.py:589
 msgid "Chat with documents!"
 msgstr ""
 
-#: src/window.py:546
+#: src/window.py:589
 msgid ""
 "Add your documents to your documents folder and chat using the information "
 "contained in them!"
 msgstr ""
 
-#: src/window.py:547
+#: src/window.py:590
 msgid "Surf the web!"
 msgstr ""
 
-#: src/window.py:547
+#: src/window.py:590
 msgid ""
 "Enable web search to allow the LLM to surf the web and provide up to date "
 "answers"
 msgstr ""
 
-#: src/window.py:548
+#: src/window.py:591
 msgid "Mini Window"
 msgstr ""
 
-#: src/window.py:548
+#: src/window.py:591
 msgid "Ask questions on the fly using the mini window mode"
 msgstr ""
 
-#: src/window.py:549
+#: src/window.py:592
 msgid "Text to Speech"
 msgstr ""
 
-#: src/window.py:549
+#: src/window.py:592
 msgid "Newelle supports text-to-speech! Enable it in the settings"
 msgstr ""
 
-#: src/window.py:550
+#: src/window.py:593
 #, fuzzy
 msgid "Keyboard Shortcuts"
 msgstr "Keyboard shorcuts"
 
-#: src/window.py:550
+#: src/window.py:593
 #, fuzzy
 msgid "Control Newelle using Keyboard Shortcuts"
 msgstr "Keyboard shorcuts"
 
-#: src/window.py:551
+#: src/window.py:594
 #, fuzzy
 msgid "Prompt Control"
 msgstr "Prompt control"
 
-#: src/window.py:551
+#: src/window.py:594
 msgid "Newelle gives you 100% prompt control. Tune your prompts for your use."
 msgstr ""
 
-#: src/window.py:552
+#: src/window.py:595
 #, fuzzy
 msgid "Thread Editing"
 msgstr "Thread editing"
 
-#: src/window.py:552
+#: src/window.py:595
 msgid "Check the programs and processes you run from Newelle"
 msgstr ""
 
-#: src/window.py:559
+#: src/window.py:596
+msgid "Programmable Prompts"
+msgstr ""
+
+#: src/window.py:596
+msgid ""
+"You can add dynamic prompts to Newelle, with conditions and probabilities"
+msgstr ""
+
+#: src/window.py:603
 #, fuzzy
 msgid "New Chat"
 msgstr "New tab"
 
-#: src/window.py:577
+#: src/window.py:621
 msgid "Provider Errror"
 msgstr ""
 
-#: src/window.py:600
+#: src/window.py:644
 msgid "Local Documents"
 msgstr ""
 
-#: src/window.py:604
+#: src/window.py:648
 msgid "Web search"
 msgstr ""
 
-#: src/window.py:826
+#: src/window.py:890
 msgid "This provider does not have a model list"
 msgstr ""
 
-#: src/window.py:831
+#: src/window.py:895
 msgid " Models"
 msgstr ""
 
-#: src/window.py:834
+#: src/window.py:898
 msgid "Search Models..."
 msgstr ""
 
-#: src/window.py:1062
+#: src/window.py:1126
 msgid "Create new profile"
 msgstr ""
 
-#: src/window.py:1196
+#: src/window.py:1260
 msgid "Could not recognize your voice"
 msgstr ""
 
-#: src/window.py:1233
+#: src/window.py:1297
 msgid "Images"
 msgstr ""
 
-#: src/window.py:1237
+#: src/window.py:1301
 msgid "LLM Supported Files"
 msgstr ""
 
-#: src/window.py:1245
+#: src/window.py:1309
 msgid "RAG Supported files"
 msgstr ""
 
-#: src/window.py:1263
+#: src/window.py:1327
 msgid "Supported Files"
 msgstr ""
 
-#: src/window.py:1267
+#: src/window.py:1331
 msgid "All Files"
 msgstr ""
 
-#: src/window.py:1273
+#: src/window.py:1337
 msgid "Attach file"
 msgstr ""
 
-#: src/window.py:1528
+#: src/window.py:1592
 msgid "The file cannot be sent until the program is finished"
 msgstr "The file cannot be sent until the program is finished"
 
-#: src/window.py:1550
+#: src/window.py:1614
 msgid "The file is not recognized"
 msgstr "The file is not recognized"
 
-#: src/window.py:1569
+#: src/window.py:1633
 msgid "You can no longer continue the message."
 msgstr "You can no longer continue the message."
 
-#: src/window.py:1594
+#: src/window.py:1658
 msgid "You can no longer regenerate the message."
 msgstr "You can no longer regenerate the message."
 
-#: src/window.py:1702
-msgid "Chat is empty"
-msgstr "Chat is empty"
-
-#: src/window.py:1775
+#: src/window.py:1890
 msgid "Chat is cleared"
 msgstr "Chat is cleared"
 
-#: src/window.py:1800
+#: src/window.py:1915
 msgid "The message was canceled and deleted from history"
 msgstr "The message was canceled and deleted from history"
 
-#: src/window.py:1844
+#: src/window.py:1959
 msgid "The message cannot be sent until the program is finished"
 msgstr "The message cannot be sent until the program is finished"
 
-#: src/window.py:2785
+#: src/window.py:2936
 msgid "You can't edit a message while the program is running."
 msgstr "You can't edit a message while the program is running."
 
-#: src/window.py:2910
+#: src/window.py:3061
 #, fuzzy
 msgid "Prompt content"
 msgstr "Prompt control"
 
-#: src/window.py:3166
+#: src/window.py:3320
 #, fuzzy
 msgid ""
 "The neural network has access to your computer and any data in this chat and "
@@ -2226,7 +2312,7 @@ msgstr ""
 "Attention the neural network has access to your computer, be careful, we are "
 "not responsible for the neural network."
 
-#: src/window.py:3195
+#: src/window.py:3349
 #, fuzzy
 msgid ""
 "The neural network has access to any data in this chat, be careful, we are "
@@ -2236,17 +2322,21 @@ msgstr ""
 "Attention the neural network has access to your computer, be careful, we are "
 "not responsible for the neural network."
 
-#: src/window.py:3244
+#: src/window.py:3398
 msgid "Wrong folder path"
 msgstr "Wrong folder path"
 
-#: src/window.py:3277
+#: src/window.py:3431
 msgid "Thread has not been completed, thread number: "
 msgstr "Thread has not been completed, thread number: "
 
-#: src/window.py:3289
+#: src/window.py:3443
 msgid "Failed to open the folder"
 msgstr "Failed to open the folder"
+
+#: src/window.py:3622
+msgid "Chat is empty"
+msgstr "Chat is empty"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:9
 msgid ""
@@ -2404,7 +2494,7 @@ msgid "Newelle: Your advanced chat bot"
 msgstr ""
 
 #: data/io.github.qwersyk.Newelle.desktop.in:10
-msgid "chat;ai;gpt;chatgpt;assistant;"
+msgid "ai;assistant;chat;chatgpt;gpt;llm;ollama;"
 msgstr ""
 
 #, fuzzy
