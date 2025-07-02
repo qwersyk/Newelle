@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-18 21:59+0800\n"
+"POT-Creation-Date: 2025-07-02 02:15+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Hindi\n"
@@ -19,23 +19,23 @@ msgstr ""
 
 #: src/handlers/embeddings/ollama_handler.py:32
 #: src/handlers/embeddings/openai_handler.py:38
-#: src/handlers/llm/ollama_handler.py:149 src/handlers/llm/openai_handler.py:75
+#: src/handlers/llm/openai_handler.py:75 src/handlers/llm/ollama_handler.py:150
 #: src/handlers/stt/openaisr_handler.py:10
 msgid "API Endpoint"
 msgstr "API एंडपॉइंट"
 
 #: src/handlers/embeddings/ollama_handler.py:32
-#: src/handlers/llm/ollama_handler.py:149 src/handlers/llm/openai_handler.py:75
+#: src/handlers/llm/openai_handler.py:75 src/handlers/llm/ollama_handler.py:150
 msgid "API base url, change this to use interference APIs"
 msgstr "API बेस यूआरएल, इंटरफेरेंस API का उपयोग करने के लिए इसे बदलें"
 
 #: src/handlers/embeddings/ollama_handler.py:33
-#: src/handlers/llm/ollama_handler.py:150
+#: src/handlers/llm/ollama_handler.py:151
 msgid "Automatically Serve"
 msgstr "स्वचालित रूप से सर्व करें"
 
 #: src/handlers/embeddings/ollama_handler.py:33
-#: src/handlers/llm/ollama_handler.py:150
+#: src/handlers/llm/ollama_handler.py:151
 msgid ""
 "Automatically run ollama serve in background when needed if it's not "
 "running. You can kill it with killall ollama"
@@ -44,28 +44,28 @@ msgstr ""
 "है। आप इसे killall ollama से समाप्त कर सकते हैं"
 
 #: src/handlers/embeddings/ollama_handler.py:34
-#: src/handlers/llm/ollama_handler.py:151
+#: src/handlers/llm/ollama_handler.py:153
 msgid "Custom Model"
 msgstr "कस्टम मॉडल"
 
 #: src/handlers/embeddings/ollama_handler.py:34
 #: src/handlers/embeddings/openai_handler.py:41
-#: src/handlers/llm/claude_handler.py:85 src/handlers/llm/ollama_handler.py:151
-#: src/handlers/llm/openai_handler.py:78
+#: src/handlers/llm/claude_handler.py:85 src/handlers/llm/openai_handler.py:78
+#: src/handlers/llm/ollama_handler.py:153
 msgid "Use a custom model"
 msgstr "एक कस्टम मॉडल का उपयोग करें"
 
 #: src/handlers/embeddings/ollama_handler.py:40
 #: src/handlers/embeddings/ollama_handler.py:49
-#: src/handlers/llm/ollama_handler.py:157
-#: src/handlers/llm/ollama_handler.py:166
+#: src/handlers/llm/ollama_handler.py:159
+#: src/handlers/llm/ollama_handler.py:168
 msgid "Ollama Model"
 msgstr "Ollama मॉडल"
 
 #: src/handlers/embeddings/ollama_handler.py:41
 #: src/handlers/embeddings/ollama_handler.py:49
-#: src/handlers/llm/ollama_handler.py:158
-#: src/handlers/llm/ollama_handler.py:166
+#: src/handlers/llm/ollama_handler.py:160
+#: src/handlers/llm/ollama_handler.py:168
 msgid "Name of the Ollama Model"
 msgstr "Ollama मॉडल का नाम"
 
@@ -98,7 +98,7 @@ msgstr "कस्टम मॉडल का उपयोग करें"
 #: src/handlers/embeddings/openai_handler.py:44
 #: src/handlers/llm/claude_handler.py:89 src/handlers/llm/claude_handler.py:93
 #: src/handlers/llm/gemini_handler.py:97 src/handlers/llm/openai_handler.py:84
-#: src/handlers/stt/whisper_handler.py:15
+#: src/handlers/llm/g4f_handler.py:44 src/handlers/stt/whisper_handler.py:15
 #: src/handlers/stt/whispercpp_handler.py:40
 #: src/handlers/tts/custom_openai_tts.py:20
 #: src/handlers/tts/elevenlabs_handler.py:24
@@ -225,12 +225,14 @@ msgid "Settings about thinking models"
 msgstr "सोचने वाले मॉडलों के बारे में सेटिंग्स"
 
 #: src/handlers/llm/gemini_handler.py:110
+#: src/handlers/llm/ollama_handler.py:152
 msgid "Enable Thinking"
 msgstr "सोचने की क्षमता सक्षम करें"
 
 #: src/handlers/llm/gemini_handler.py:110
 msgid "Show thinking, disable it if your model does not support it"
-msgstr "सोचने की प्रक्रिया दिखाएँ, यदि आपका मॉडल इसका समर्थन नहीं करता है तो इसे अक्षम करें"
+msgstr ""
+"सोचने की प्रक्रिया दिखाएँ, यदि आपका मॉडल इसका समर्थन नहीं करता है तो इसे अक्षम करें"
 
 #: src/handlers/llm/gemini_handler.py:111
 msgid "Enable Thinking Budget"
@@ -265,14 +267,14 @@ msgid "Enable google safety settings to avoid generating harmful content"
 msgstr "हानिकारक सामग्री उत्पन्न करने से बचने के लिए गूगल सुरक्षा सेटिंग्स सक्षम करें"
 
 #: src/handlers/llm/gemini_handler.py:131
-#: src/handlers/llm/newelle_handler.py:18
 #: src/handlers/llm/openai_handler.py:112
+#: src/handlers/llm/newelle_handler.py:18
 msgid "Privacy Policy"
 msgstr "गोपनीयता नीति"
 
 #: src/handlers/llm/gemini_handler.py:132
-#: src/handlers/llm/newelle_handler.py:19
 #: src/handlers/llm/openai_handler.py:112
+#: src/handlers/llm/newelle_handler.py:19
 msgid "Open privacy policy website"
 msgstr "गोपनीयता नीति वेबसाइट खोलें"
 
@@ -296,7 +298,7 @@ msgstr "पैरामीटर: "
 msgid "Size: "
 msgstr "आकार: "
 
-#: src/handlers/llm/gpt4all_handler.py:154
+#: src/handlers/llm/gpt4all_handler.py:154 src/handlers/llm/g4f_handler.py:44
 msgid "Model to use"
 msgstr "उपयोग करने के लिए मॉडल"
 
@@ -306,68 +308,14 @@ msgid "Name of the model to use"
 msgstr "उपयोग करने के लिए मॉडल का नाम"
 
 #: src/handlers/llm/gpt4all_handler.py:155
-#: src/handlers/llm/ollama_handler.py:170
+#: src/handlers/llm/ollama_handler.py:172
 msgid "Model Manager"
 msgstr "मॉडल प्रबंधक"
 
 #: src/handlers/llm/gpt4all_handler.py:155
-#: src/handlers/llm/ollama_handler.py:170
+#: src/handlers/llm/ollama_handler.py:172
 msgid "List of models available"
 msgstr "उपलब्ध मॉडलों की सूची"
-
-#: src/handlers/llm/ollama_handler.py:174
-msgid "Add custom model"
-msgstr "कस्टम मॉडल जोड़ें"
-
-#: src/handlers/llm/ollama_handler.py:175
-msgid ""
-"Add any model to this list by putting name:size\n"
-"Or any gguf from hf with hf.co/username/model"
-msgstr ""
-"नाम:आकार डालकर इस सूची में कोई भी मॉडल जोड़ें\n"
-"या hf.co/उपयोगकर्ता नाम/मॉडल के साथ hf से कोई भी gguf"
-
-#: src/handlers/llm/openrouter_handler.py:14
-#, fuzzy
-msgid "Provider Sorting"
-msgstr "प्रदाता त्रुटि"
-
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Choose providers based on pricing/throughput or latency"
-msgstr "कीमत/थ्रूपुट या विलंबता के आधार पर प्रदाताओं को चुनें"
-
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Price"
-msgstr "कीमत"
-
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Throughput"
-msgstr "थ्रूपुट"
-
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Latency"
-msgstr "विलंबता"
-
-#: src/handlers/llm/openrouter_handler.py:15
-#, fuzzy
-msgid "Providers Order"
-msgstr "प्रदाताओं का क्रम"
-
-#: src/handlers/llm/openrouter_handler.py:15
-msgid ""
-"Add order of providers to use, names separated by a comma.\n"
-"Empty to not specify"
-msgstr ""
-"उपयोग किए जाने वाले प्रदाताओं का क्रम जोड़ें, नामों को कॉमा से अलग करें।\n"
-"निर्दिष्ट न करने के लिए खाली छोड़ें"
-
-#: src/handlers/llm/openrouter_handler.py:16
-msgid "Allow Fallbacks"
-msgstr "फॉलबैक की अनुमति दें"
-
-#: src/handlers/llm/openrouter_handler.py:16
-msgid "Allow fallbacks to other providers"
-msgstr "अन्य प्रदाताओं पर फॉलबैक की अनुमति दें"
 
 #: src/handlers/llm/openai_handler.py:81
 msgid "Include parameters like Max Tokens, Top-P, Temperature, etc."
@@ -429,6 +377,72 @@ msgstr ""
 "संख्या -2.0 और 2.0 के बीच। सकारात्मक मान मॉडल की नए विषयों के बारे में बात करने की "
 "संभावना को कम करते हैं"
 
+#: src/handlers/llm/openrouter_handler.py:14
+#, fuzzy
+msgid "Provider Sorting"
+msgstr "प्रदाता त्रुटि"
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Choose providers based on pricing/throughput or latency"
+msgstr "कीमत/थ्रूपुट या विलंबता के आधार पर प्रदाताओं को चुनें"
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Price"
+msgstr "कीमत"
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Throughput"
+msgstr "थ्रूपुट"
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Latency"
+msgstr "विलंबता"
+
+#: src/handlers/llm/openrouter_handler.py:15
+#, fuzzy
+msgid "Providers Order"
+msgstr "प्रदाताओं का क्रम"
+
+#: src/handlers/llm/openrouter_handler.py:15
+msgid ""
+"Add order of providers to use, names separated by a comma.\n"
+"Empty to not specify"
+msgstr ""
+"उपयोग किए जाने वाले प्रदाताओं का क्रम जोड़ें, नामों को कॉमा से अलग करें।\n"
+"निर्दिष्ट न करने के लिए खाली छोड़ें"
+
+#: src/handlers/llm/openrouter_handler.py:16
+msgid "Allow Fallbacks"
+msgstr "फॉलबैक की अनुमति दें"
+
+#: src/handlers/llm/openrouter_handler.py:16
+msgid "Allow fallbacks to other providers"
+msgstr "अन्य प्रदाताओं पर फॉलबैक की अनुमति दें"
+
+#: src/handlers/llm/g4f_handler.py:45
+msgid "Update G4F"
+msgstr ""
+
+#: src/handlers/llm/ollama_handler.py:152
+msgid "Allow thinking in the model, only some models are supported"
+msgstr ""
+
+#: src/handlers/llm/ollama_handler.py:176
+msgid "Add custom model"
+msgstr "कस्टम मॉडल जोड़ें"
+
+#: src/handlers/llm/ollama_handler.py:177
+msgid ""
+"Add any model to this list by putting name:size\n"
+"Or any gguf from hf with hf.co/username/model"
+msgstr ""
+"नाम:आकार डालकर इस सूची में कोई भी मॉडल जोड़ें\n"
+"या hf.co/उपयोगकर्ता नाम/मॉडल के साथ hf से कोई भी gguf"
+
+#: src/handlers/llm/ollama_handler.py:187
+msgid "Update Ollama"
+msgstr ""
+
 #: src/handlers/rag/rag_handler.py:104
 msgid "Index your documents"
 msgstr "अपने दस्तावेज़ों को इंडेक्स करें"
@@ -443,11 +457,11 @@ msgstr ""
 "जब आप किसी दस्तावेज़ को संपादित/बनाते हैं, दस्तावेज़ विश्लेषक बदलते हैं या एम्बेडिंग मॉडल बदलते "
 "हैं"
 
-#: src/handlers/stt/custom_handler.py:13 src/handlers/tts/custom_handler.py:22
+#: src/handlers/stt/custom_handler.py:13 src/handlers/tts/custom_handler.py:17
 msgid "Command to execute"
 msgstr "निष्पादित करने के लिए कमांड"
 
-#: src/handlers/stt/custom_handler.py:14 src/handlers/tts/custom_handler.py:23
+#: src/handlers/stt/custom_handler.py:14
 #, python-brace-format
 msgid "{0} will be replaced with the model fullpath"
 msgstr "{0} को मॉडल के पूर्ण पथ से बदल दिया जाएगा"
@@ -511,10 +525,6 @@ msgstr ""
 "वैकल्पिक: ट्रांसक्रिप्शन के लिए भाषा निर्दिष्ट करें। ISO 639-1 भाषा कोड का उपयोग करें (जैसे "
 "अंग्रेजी के लिए \"en\", फ्रेंच के लिए \"fr\", आदि)। "
 
-#: src/handlers/stt/sphinx_handler.py:19
-msgid "Could not understand the audio"
-msgstr "ऑडियो समझ नहीं आया"
-
 #: src/handlers/stt/vosk_handler.py:17
 msgid "Model Path"
 msgstr "मॉडल पथ"
@@ -531,6 +541,10 @@ msgstr "व्हिस्पर मॉडल का नाम"
 #: src/handlers/stt/witai_handler.py:13
 msgid "Server Access Token for wit.ai"
 msgstr "wit.ai के लिए सर्वर एक्सेस टोकन"
+
+#: src/handlers/stt/sphinx_handler.py:19
+msgid "Could not understand the audio"
+msgstr "ऑडियो समझ नहीं आया"
 
 #: src/handlers/stt/whispercpp_handler.py:47
 #, fuzzy
@@ -582,8 +596,8 @@ msgstr "उपयोग करने के लिए सेवा का कस
 #: src/handlers/tts/custom_openai_tts.py:19
 #: src/handlers/tts/elevenlabs_handler.py:17
 #: src/handlers/tts/groq_tts_handler.py:33
-#: src/handlers/tts/openai_tts_handler.py:19 src/handlers/tts/tts.py:37
-#: src/ui/settings.py:126
+#: src/handlers/tts/openai_tts_handler.py:19 src/handlers/tts/tts.py:33
+#: src/ui/settings.py:128
 msgid "Voice"
 msgstr "आवाज़"
 
@@ -638,7 +652,12 @@ msgid ""
 msgstr ""
 "यदि भाषण की शैली को अतिरंजित किया जाना चाहिए तो उच्च मानों की सिफारिश की जाती है"
 
-#: src/handlers/tts/tts.py:38
+#: src/handlers/tts/custom_handler.py:17
+#, fuzzy, python-brace-format
+msgid "{0} will be replaced with the file fullpath, {1} with the text"
+msgstr "{0} को मॉडल के पूर्ण पथ से बदल दिया जाएगा"
+
+#: src/handlers/tts/tts.py:34
 msgid "Choose the preferred voice"
 msgstr "पसंदीदा आवाज़ चुनें"
 
@@ -776,7 +795,7 @@ msgstr "क्षेत्र"
 msgid "Region for the search results"
 msgstr "खोज परिणामों के लिए क्षेत्र"
 
-#: src/ui/profile.py:33 src/window.py:111
+#: src/ui/profile.py:33 src/window.py:119
 msgid "Settings"
 msgstr "सेटिंग्स"
 
@@ -852,7 +871,7 @@ msgstr "आयात करें"
 msgid "Set profile picture"
 msgstr "प्रोफ़ाइल चित्र सेट करें"
 
-#: src/ui/thread_editing.py:6 src/window.py:109
+#: src/ui/thread_editing.py:6 src/window.py:117
 msgid "Thread editing"
 msgstr "थ्रेड संपादन"
 
@@ -873,568 +892,36 @@ msgstr "प्रोफ़ाइल चुनें"
 msgid "Delete Profile"
 msgstr "प्रोफ़ाइल चुनें"
 
-#: src/ui/widgets/thinking.py:27
-msgid "Thoughts"
-msgstr "विचार"
-
-#: src/ui/widgets/thinking.py:28 src/ui/widgets/thinking.py:127
-msgid "Expand to see details"
-msgstr "विवरण देखने के लिए विस्तार करें"
-
-#: src/ui/widgets/thinking.py:116
-msgid "Thinking..."
-msgstr "सोच रहा है..."
-
-#: src/ui/widgets/thinking.py:117
-msgid "The LLM is thinking... Expand to see thought process"
-msgstr "एलएलएम सोच रहा है... विचार प्रक्रिया देखने के लिए विस्तार करें"
-
-#: src/ui/widgets/thinking.py:129
-msgid "No thought process recorded"
-msgstr "कोई विचार प्रक्रिया दर्ज नहीं की गई है"
-
 #: src/ui/widgets/tipscarousel.py:41
 #, fuzzy
 msgid "Newelle Tips"
 msgstr "न्युएल"
 
-#: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.appdata.xml.in:7
-#: data/io.github.qwersyk.Newelle.desktop.in:2
-msgid "Newelle"
-msgstr "न्युएल"
-
-#: src/ui/mini_window.py:20
-msgid "Chat is opened in mini window"
-msgstr "चैट मिनी विंडो में खोला गया है"
-
-#: src/ui/presentation.py:93
-msgid "Welcome to Newelle"
-msgstr "न्युएल में आपका स्वागत है"
-
-#: src/ui/presentation.py:94
-msgid "Your ultimate virtual assistant."
-msgstr "आपका परम वर्चुअल असिस्टेंट।"
-
-#: src/ui/presentation.py:98
-msgid "Github Page"
-msgstr "गिटहब पेज"
-
-#: src/ui/presentation.py:105
-msgid "Choose your favourite AI Language Model"
-msgstr "अपना पसंदीदा AI भाषा मॉडल चुनें"
-
-#: src/ui/presentation.py:106
-msgid ""
-"Newelle can be used with mutiple models and providers!\n"
-"<b>Note: It is strongly suggested to read the Guide to LLM page</b>"
-msgstr ""
-"न्युएल का उपयोग कई मॉडलों और प्रदाताओं के साथ किया जा सकता है!\n"
-"<b>ध्यान दें: LLM के लिए गाइड पेज पढ़ने का पुरजोर सुझाव दिया जाता है</b>"
-
-#: src/ui/presentation.py:110
-msgid "Guide to LLM"
-msgstr "LLM के लिए गाइड"
-
-#: src/ui/presentation.py:117
-msgid "Chat with your documents"
-msgstr "अपने दस्तावेज़ों के साथ चैट करें"
-
-#: src/ui/presentation.py:118
-msgid ""
-"Newelle can retrieve relevant information from documents you send in the "
-"chat or from your own files! Information relevant to your query will be sent "
-"to the LLM."
-msgstr ""
-"न्युएल चैट में आपके द्वारा भेजे गए दस्तावेज़ों से या आपकी अपनी फ़ाइलों से प्रासंगिक जानकारी "
-"प्राप्त कर सकता है! आपकी क्वेरी से संबंधित जानकारी LLM को भेजी जाएगी।"
-
-#: src/ui/presentation.py:124 src/ui/settings.py:234 src/window.py:603
-msgid "Command virtualization"
-msgstr "कमांड वर्चुअलाइजेशन"
-
-#: src/ui/presentation.py:125
-msgid ""
-"Newelle can be used to run commands on your system, but pay attention at "
-"what you run! <b>The LLM is not under our control, so it might generate "
-"malicious code!</b>\n"
-"By default, your commands will be <b>virtualized in the Flatpak environment</"
-"b>, but pay attention!"
-msgstr ""
-"न्युएल का उपयोग आपके सिस्टम पर कमांड चलाने के लिए किया जा सकता है, लेकिन ध्यान दें कि आप "
-"क्या चलाते हैं! <b>LLM हमारे नियंत्रण में नहीं है, इसलिए यह दुर्भावनापूर्ण कोड उत्पन्न कर "
-"सकता है!</b>\n"
-"डिफ़ॉल्ट रूप से, आपके कमांड <b>फ्लैटपैक वातावरण में वर्चुअलाइज्ड</b> होंगे, लेकिन ध्यान दें!"
-
-#: src/ui/presentation.py:131 src/ui/extension.py:17 src/constants.py:483
-#: src/window.py:110
-msgid "Extensions"
-msgstr "एक्सटेंशन"
-
-#: src/ui/presentation.py:132
-msgid "You can extend Newelle's functionalities using extensions!"
-msgstr "आप एक्सटेंशन का उपयोग करके न्युएल की कार्यात्मकताओं का विस्तार कर सकते हैं!"
-
-#: src/ui/presentation.py:136
-msgid "Download extensions"
-msgstr "एक्सटेंशन डाउनलोड करें"
-
-#: src/ui/presentation.py:146
-msgid "Permission Error"
-msgstr "अनुमति त्रुटि"
-
-#: src/ui/presentation.py:147
-msgid ""
-"Newelle does not have enough permissions to run commands on your system."
-msgstr "न्युएल के पास आपके सिस्टम पर कमांड चलाने के लिए पर्याप्त अनुमतियाँ नहीं हैं।"
-
-#: src/ui/presentation.py:158
-msgid "Begin using the app"
-msgstr "ऐप का उपयोग शुरू करें"
-
-#: src/ui/presentation.py:163
-msgid "Start chatting"
-msgstr "चैटिंग शुरू करें"
-
-#: src/ui/settings.py:44 src/constants.py:493
-msgid "General"
-msgstr "सामान्य"
-
-#: src/ui/settings.py:45 src/constants.py:448
-msgid "LLM"
-msgstr "LLM"
-
-#: src/ui/settings.py:46 src/constants.py:498
-msgid "Prompts"
-msgstr "प्रॉम्प्ट"
-
-#: src/ui/settings.py:47
-msgid "Knowledge"
-msgstr "ज्ञान"
-
-#: src/ui/settings.py:51
-msgid "Language Model"
-msgstr "भाषा मॉडल"
-
-#: src/ui/settings.py:60 src/ui/settings.py:80
-msgid "Other LLMs"
-msgstr "अन्य LLMs"
-
-#: src/ui/settings.py:60 src/ui/settings.py:80
-msgid "Other available LLM providers"
-msgstr "अन्य उपलब्ध LLM प्रदाता"
-
-#: src/ui/settings.py:70
-msgid "Advanced LLM Settings"
-msgstr "उन्नत LLM सेटिंग्स"
-
-#: src/ui/settings.py:74
-msgid "Secondary Language Model"
-msgstr "द्वितीयक भाषा मॉडल"
-
-#: src/ui/settings.py:74
-msgid ""
-"Model used for secondary tasks, like offer, chat name and memory generation"
-msgstr ""
-"ऑफ़र, चैट नाम और मेमोरी जनरेशन जैसे द्वितीयक कार्यों के लिए उपयोग किया जाने वाला मॉडल"
-
-#: src/ui/settings.py:91
-msgid "Embedding Model"
-msgstr "एम्बेडिंग मॉडल"
-
-#: src/ui/settings.py:91
-msgid ""
-"Embedding is used to trasform text into vectors. Used by Long Term Memory "
-"and RAG. Changing it might require you to re-index documents or reset memory."
-msgstr ""
-"एम्बेडिंग का उपयोग टेक्स्ट को वेक्टर में बदलने के लिए किया जाता है। दीर्घकालिक मेमोरी और "
-"RAG द्वारा उपयोग किया जाता है। इसे बदलने पर आपको दस्तावेज़ों को फिर से इंडेक्स करने या "
-"मेमोरी रीसेट करने की आवश्यकता हो सकती है।"
-
-#: src/ui/settings.py:102 src/window.py:601
-msgid "Long Term Memory"
-msgstr "दीर्घकालिक मेमोरी"
-
-#: src/ui/settings.py:102
-msgid "Keep memory of old conversations"
-msgstr "पुरानी बातचीत की मेमोरी रखें"
-
-#: src/ui/settings.py:114 src/constants.py:400
-msgid "Web Search"
-msgstr "वेब खोज"
-
-#: src/ui/settings.py:114
-msgid "Search information on the Web"
-msgstr "वेब पर जानकारी खोजें"
-
-#: src/ui/settings.py:130
-msgid "Text To Speech Program"
-msgstr "टेक्स्ट टू स्पीच प्रोग्राम"
-
-#: src/ui/settings.py:130
-msgid "Choose which text to speech to use"
-msgstr "चुनें कि किस टेक्स्ट टू स्पीच का उपयोग करना है"
-
-#: src/ui/settings.py:139
-msgid "Speech To Text Engine"
-msgstr "स्पीच टू टेक्स्ट इंजन"
-
-#: src/ui/settings.py:139
-msgid "Choose which speech recognition engine you want"
-msgstr "चुनें कि आप कौन सा स्पीच रिकग्निशन इंजन चाहते हैं"
-
-#: src/ui/settings.py:147
-msgid "Automatic Speech To Text"
-msgstr "स्वचालित स्पीच टू टेक्स्ट"
-
-#: src/ui/settings.py:147
-msgid "Automatically restart speech to text at the end of a text/TTS"
-msgstr "टेक्स्ट/TTS के अंत में स्वचालित रूप से स्पीच टू टेक्स्ट पुनरारंभ करें"
-
-#: src/ui/settings.py:151
-msgid "Prompt control"
-msgstr "प्रॉम्प्ट नियंत्रण"
-
-#: src/ui/settings.py:156
-msgid "Interface"
-msgstr "इंटरफ़ेस"
-
-#: src/ui/settings.py:159
-msgid "Interface Size"
-msgstr "इंटरफ़ेस आकार"
-
-#: src/ui/settings.py:159
-msgid "Adjust the size of the interface"
-msgstr "इंटरफ़ेस के आकार को समायोजित करें"
-
-#: src/ui/settings.py:171
-msgid "Editor color scheme"
-msgstr "संपादक रंग योजना"
-
-#: src/ui/settings.py:171
-msgid "Change the color scheme of the editor and codeblocks"
-msgstr "संपादक और कोडब्लॉक की रंग योजना बदलें"
-
-#: src/ui/settings.py:178
-msgid "Hidden files"
-msgstr "छिपी हुई फ़ाइलें"
-
-#: src/ui/settings.py:178
-msgid "Show hidden files"
-msgstr "छिपी हुई फ़ाइलें दिखाएं"
-
-#: src/ui/settings.py:184
-msgid "Send with ENTER"
-msgstr "ENTER के साथ भेजें"
-
-#: src/ui/settings.py:184
-msgid ""
-"If enabled, messages will be sent with ENTER, to go to a new line use "
-"CTRL+ENTER. If disabled, messages will be sent with SHIFT+ENTER, and newline "
-"with enter"
-msgstr ""
-"यदि सक्षम है, तो संदेश ENTER के साथ भेजे जाएंगे, नई पंक्ति पर जाने के लिए CTRL+ENTER का "
-"उपयोग करें। यदि अक्षम है, तो संदेश SHIFT+ENTER के साथ भेजे जाएंगे, और ENTER के साथ नई "
-"पंक्ति।"
-
-#: src/ui/settings.py:190
-msgid "Remove thinking from history"
-msgstr "इतिहास से सोच हटा दें"
-
-#: src/ui/settings.py:190
-msgid ""
-"Do not send old thinking blocks for reasoning models in order to reduce "
-"token usage"
-msgstr "टोकन उपयोग को कम करने के लिए तर्क मॉडल के लिए पुराने सोच ब्लॉक न भेजें"
-
-#: src/ui/settings.py:196
-msgid "Display LaTeX"
-msgstr "LaTeX प्रदर्शित करें"
-
-#: src/ui/settings.py:196
-msgid "Display LaTeX formulas in chat"
-msgstr "चैट में LaTeX सूत्र प्रदर्शित करें"
-
-#: src/ui/settings.py:202
-msgid "Reverse Chat Order"
-msgstr "चैट क्रम उलटें"
-
-#: src/ui/settings.py:202
-msgid "Show most recent chats on top in chat list (change chat to apply)"
-msgstr "चैट सूची में सबसे हालिया चैट शीर्ष पर दिखाएं (लागू करने के लिए चैट बदलें)"
-
-#: src/ui/settings.py:208
-msgid "Automatically Generate Chat Names"
-msgstr "स्वचालित रूप से चैट नाम उत्पन्न करें"
-
-#: src/ui/settings.py:208
-msgid "Generate chat names automatically after the first two messages"
-msgstr "पहले दो संदेशों के बाद स्वचालित रूप से चैट नाम उत्पन्न करें"
-
-#: src/ui/settings.py:214
-msgid "Number of offers"
-msgstr "ऑफ़र की संख्या"
-
-#: src/ui/settings.py:214
-msgid "Number of message suggestions to send to chat "
-msgstr "चैट पर भेजने के लिए संदेश सुझावों की संख्या "
-
-#: src/ui/settings.py:221
-msgid "Username"
-msgstr "उपयोगकर्ता नाम"
-
-#: src/ui/settings.py:221
-#, python-brace-format
-msgid ""
-"Change the label that appears before your message\n"
-"This information is not sent to the LLM by default\n"
-"You can add it to a prompt using the {USER} variable"
-msgstr ""
-"आपके संदेश से पहले दिखाई देने वाला लेबल बदलें\n"
-"यह जानकारी डिफ़ॉल्ट रूप से LLM को नहीं भेजी जाती है\n"
-"आप इसे {USER} वेरिएबल का उपयोग करके प्रॉम्प्ट में जोड़ सकते हैं"
-
-#: src/ui/settings.py:231
-msgid "Neural Network Control"
-msgstr "न्यूरल नेटवर्क नियंत्रण"
-
-#: src/ui/settings.py:234
-msgid "Run commands in a virtual machine"
-msgstr "वर्चुअल मशीन में कमांड चलाएं"
-
-#: src/ui/settings.py:247
-msgid "External Terminal"
-msgstr "बाहरी टर्मिनल"
-
-#: src/ui/settings.py:247
-msgid "Choose the external terminal where to run the console commands"
-msgstr "वह बाहरी टर्मिनल चुनें जहां कंसोल कमांड चलाना है"
-
-#: src/ui/settings.py:256
-msgid "Program memory"
-msgstr "प्रोग्राम मेमोरी"
-
-#: src/ui/settings.py:256
-msgid "How long the program remembers the chat "
-msgstr "प्रोग्राम चैट को कितनी देर तक याद रखता है "
-
-#: src/ui/settings.py:276
-msgid "Auto-run commands"
-msgstr "स्वतः-रन कमांड"
-
-#: src/ui/settings.py:276
-msgid "Commands that the bot will write will automatically run"
-msgstr "बॉट द्वारा लिखे जाने वाले कमांड स्वचालित रूप से चलेंगे"
-
-#: src/ui/settings.py:279
-msgid "Max number of commands"
-msgstr "कमांड की अधिकतम संख्या"
-
-#: src/ui/settings.py:279
-msgid ""
-"Maximum number of commands that the bot will write after a single user "
-"request"
-msgstr "एकल उपयोगकर्ता अनुरोध के बाद बॉट द्वारा लिखे जाने वाले कमांड की अधिकतम संख्या"
-
-#: src/ui/settings.py:310
-msgid "Browser"
-msgstr "ब्राउज़र"
-
-#: src/ui/settings.py:310
-msgid "Settings for the browser"
-msgstr "ब्राउज़र के लिए सेटिंग्स"
-
-#: src/ui/settings.py:315
-msgid "Use external browser"
-msgstr "बाहरी ब्राउज़र का उपयोग करें"
-
-#: src/ui/settings.py:315
-msgid "Use an external browser to open links instead of integrated one"
-msgstr "लिंक खोलने के लिए एकीकृत ब्राउज़र के बजाय बाहरी ब्राउज़र का उपयोग करें"
-
-#: src/ui/settings.py:322
-msgid "Persist browser session"
-msgstr "ब्राउज़र सत्र को बनाए रखें"
-
-#: src/ui/settings.py:322
-msgid ""
-"Persist browser session between restarts. Turning this off requires "
-"restarting the program"
-msgstr "पुनः आरंभ के बीच ब्राउज़र सत्र को बनाए रखें। इसे बंद करने पर प्रोग्राम को पुनः आरंभ करना होगा"
-
-#: src/ui/settings.py:327
-msgid "Delete browser session and data"
-msgstr "ब्राउज़र सत्र और डेटा हटाएं"
-
-#: src/ui/settings.py:328 src/ui/explorer.py:366 src/ui/explorer.py:502
-msgid "Delete"
-msgstr "हटाएं"
-
-#: src/ui/settings.py:334
-msgid "Initial browser page"
-msgstr "प्रारंभिक ब्राउज़र पृष्ठ"
-
-#: src/ui/settings.py:334
-msgid "The page where the browser will start"
-msgstr "पृष्ठ जहाँ से ब्राउज़र शुरू होगा"
-
-#: src/ui/settings.py:341
-msgid "Search string"
-msgstr "खोज स्ट्रिंग"
-
-#: src/ui/settings.py:341
-msgid "The search string used in the browser, %s is replaced with the query"
-msgstr "ब्राउज़र में उपयोग की जाने वाली खोज स्ट्रिंग, %s को क्वेरी से बदला जाएगा"
-
-#: src/ui/settings.py:362
-msgid "Document Sources (RAG)"
-msgstr "दस्तावेज़ स्रोत (RAG)"
-
-#: src/ui/settings.py:362
-msgid "Include content from your documents in the responses"
-msgstr "प्रतिक्रियाओं में अपने दस्तावेज़ों से सामग्री शामिल करें"
-
-#: src/ui/settings.py:363
-msgid "Document Analyzer"
-msgstr "दस्तावेज़ विश्लेषक"
-
-#: src/ui/settings.py:363
-msgid ""
-"The document analyzer uses multiple techniques to extract relevant "
-"information about your documents"
-msgstr ""
-"दस्तावेज़ विश्लेषक आपके दस्तावेज़ों के बारे में प्रासंगिक जानकारी निकालने के लिए कई तकनीकों का "
-"उपयोग करता है"
-
-#: src/ui/settings.py:374
-msgid "Read documents if unsupported"
-msgstr "यदि असमर्थित हो तो दस्तावेज़ पढ़ें"
-
-#: src/ui/settings.py:374
-msgid ""
-"If the LLM does not support reading documents, relevant information about "
-"documents sent in the chat will be given to the LLM using your Document "
-"Analyzer."
-msgstr ""
-"यदि LLM दस्तावेज़ पढ़ने का समर्थन नहीं करता है, तो चैट में भेजे गए दस्तावेज़ों के बारे में "
-"प्रासंगिक जानकारी आपके दस्तावेज़ विश्लेषक का उपयोग करके LLM को दी जाएगी।"
-
-#: src/ui/settings.py:378
-msgid "Maximum tokens for RAG"
-msgstr "RAG के लिए अधिकतम टोकन"
-
-#: src/ui/settings.py:378
-msgid ""
-"The maximum amount of tokens to be used for RAG. If the documents do not "
-"exceed this token count,\n"
-"dump all of them in the context"
-msgstr ""
-"RAG के लिए उपयोग किए जाने वाले टोकन की अधिकतम मात्रा। यदि दस्तावेज़ इस टोकन संख्या से "
-"अधिक नहीं हैं, तो उन सभी को संदर्भ में डंप करें।"
-
-#: src/ui/settings.py:395
-msgid "Document Folder"
-msgstr "दस्तावेज़ फ़ोल्डर"
-
-#: src/ui/settings.py:395
-msgid ""
-"Put the documents you want to query in your document folder. The document "
-"analyzer will find relevant information in them if this option is enabled"
-msgstr ""
-"जिन दस्तावेज़ों से आप क्वेरी करना चाहते हैं उन्हें अपने दस्तावेज़ फ़ोल्डर में डालें। यदि यह विकल्प "
-"सक्षम है तो दस्तावेज़ विश्लेषक उनमें प्रासंगिक जानकारी ढूंढेगा"
-
-#: src/ui/settings.py:398
-msgid "Put all the documents you want to index in this folder"
-msgstr "उन सभी दस्तावेज़ों को जिन्हें आप इंडेक्स करना चाहते हैं, इस फ़ोल्डर में डालें"
-
-#: src/ui/settings.py:434
-msgid "Silence threshold"
-msgstr "मौन सीमा"
-
-#: src/ui/settings.py:434
-msgid ""
-"Silence threshold in seconds, percentage of the volume to be considered "
-"silence"
-msgstr "सेकंड में मौन सीमा, मौन माने जाने वाले वॉल्यूम का प्रतिशत"
-
-#: src/ui/settings.py:447
-msgid "Silence time"
-msgstr "मौन समय"
-
-#: src/ui/settings.py:447
-msgid "Silence time in seconds before recording stops automatically"
-msgstr "रिकॉर्डिंग स्वचालित रूप से बंद होने से पहले सेकंड में मौन समय"
-
-#: src/ui/settings.py:1017
-msgid "Not enough permissions"
-msgstr "पर्याप्त अनुमतियाँ नहीं"
-
-#: src/ui/settings.py:1021
-msgid ""
-"Newelle does not have enough permissions to run commands on your system, "
-"please run the following command"
-msgstr ""
-"न्युएल के पास आपके सिस्टम पर कमांड चलाने के लिए पर्याप्त अनुमतियाँ नहीं हैं, कृपया निम्न कमांड "
-"चलाएँ"
-
-#: src/ui/settings.py:1022
-msgid "Understood"
-msgstr "समझ गया"
-
-#: src/ui/shortcuts.py:6
-msgid "Help"
-msgstr "मदद"
-
-#: src/ui/shortcuts.py:12
-msgid "Shortcuts"
-msgstr "शॉर्टकट"
-
-#: src/ui/shortcuts.py:13
-msgid "Reload chat"
-msgstr "चैट रीलोड करें"
-
-#: src/ui/shortcuts.py:14
-msgid "Reload folder"
-msgstr "फ़ोल्डर रीलोड करें"
-
-#: src/ui/shortcuts.py:15
-msgid "New tab"
-msgstr "नया टैब"
-
-#: src/ui/shortcuts.py:16
-msgid "Paste Image"
-msgstr "छवि पेस्ट करें"
-
-#: src/ui/shortcuts.py:17
-msgid "Focus message box"
-msgstr "संदेश बॉक्स फोकस करें"
-
-#: src/ui/shortcuts.py:18
-#, fuzzy
-msgid "Start/stop recording"
-msgstr "रिकॉर्डिंग शुरू करें"
-
-#: src/ui/shortcuts.py:19
-msgid "Save"
-msgstr "सहेजें"
-
-#: src/ui/shortcuts.py:20
-msgid "Stop TTS"
-msgstr "TTS रोकें"
-
-#: src/ui/shortcuts.py:21
-msgid "Zoom in"
-msgstr "ज़ूम इन करें"
-
-#: src/ui/shortcuts.py:22
-msgid "Zoom out"
-msgstr "ज़ूम आउट करें"
+#: src/ui/widgets/thinking.py:27
+msgid "Thoughts"
+msgstr "विचार"
+
+#: src/ui/widgets/thinking.py:28 src/ui/widgets/thinking.py:135
+msgid "Expand to see details"
+msgstr "विवरण देखने के लिए विस्तार करें"
+
+#: src/ui/widgets/thinking.py:123
+msgid "Thinking..."
+msgstr "सोच रहा है..."
+
+#: src/ui/widgets/thinking.py:124
+msgid "The LLM is thinking... Expand to see thought process"
+msgstr "एलएलएम सोच रहा है... विचार प्रक्रिया देखने के लिए विस्तार करें"
+
+#: src/ui/widgets/thinking.py:137
+msgid "No thought process recorded"
+msgstr "कोई विचार प्रक्रिया दर्ज नहीं की गई है"
 
 #: src/ui/explorer.py:192
 msgid "Folder is Empty"
 msgstr "फ़ोल्डर खाली है"
 
-#: src/ui/explorer.py:340 src/window.py:1510
+#: src/ui/explorer.py:340 src/window.py:1574
 msgid "File not found"
 msgstr "फ़ाइल नहीं मिली"
 
@@ -1454,6 +941,11 @@ msgstr "फ़ाइल प्रबंधक में खोलें"
 msgid "Rename"
 msgstr "नाम बदलें"
 
+#: src/ui/explorer.py:366 src/ui/explorer.py:502 src/ui/settings.py:275
+#: src/ui/settings.py:346
+msgid "Delete"
+msgstr "हटाएं"
+
 #: src/ui/explorer.py:369
 msgid "Copy full path"
 msgstr "पूरा पथ कॉपी करें"
@@ -1467,7 +959,7 @@ msgid "New name:"
 msgstr "नया नाम:"
 
 #: src/ui/explorer.py:448 src/ui/explorer.py:501 src/ui/explorer.py:689
-#: src/main.py:204
+#: src/main.py:209
 msgid "Cancel"
 msgstr "रद्द करें"
 
@@ -1564,6 +1056,152 @@ msgstr "फ़ाइल"
 msgid "Failed to create {}: {}"
 msgstr "फ़ोल्डर खोलने में विफल"
 
+#: src/ui/shortcuts.py:6
+msgid "Help"
+msgstr "मदद"
+
+#: src/ui/shortcuts.py:12
+msgid "Shortcuts"
+msgstr "शॉर्टकट"
+
+#: src/ui/shortcuts.py:13
+msgid "Reload chat"
+msgstr "चैट रीलोड करें"
+
+#: src/ui/shortcuts.py:14
+msgid "Reload folder"
+msgstr "फ़ोल्डर रीलोड करें"
+
+#: src/ui/shortcuts.py:15
+msgid "New tab"
+msgstr "नया टैब"
+
+#: src/ui/shortcuts.py:16
+msgid "Paste Image"
+msgstr "छवि पेस्ट करें"
+
+#: src/ui/shortcuts.py:17
+msgid "Focus message box"
+msgstr "संदेश बॉक्स फोकस करें"
+
+#: src/ui/shortcuts.py:18
+#, fuzzy
+msgid "Start/stop recording"
+msgstr "रिकॉर्डिंग शुरू करें"
+
+#: src/ui/shortcuts.py:19
+msgid "Save"
+msgstr "सहेजें"
+
+#: src/ui/shortcuts.py:20
+msgid "Stop TTS"
+msgstr "TTS रोकें"
+
+#: src/ui/shortcuts.py:21
+msgid "Zoom in"
+msgstr "ज़ूम इन करें"
+
+#: src/ui/shortcuts.py:22
+msgid "Zoom out"
+msgstr "ज़ूम आउट करें"
+
+#: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.appdata.xml.in:7
+#: data/io.github.qwersyk.Newelle.desktop.in:2
+msgid "Newelle"
+msgstr "न्युएल"
+
+#: src/ui/mini_window.py:20
+msgid "Chat is opened in mini window"
+msgstr "चैट मिनी विंडो में खोला गया है"
+
+#: src/ui/presentation.py:93
+msgid "Welcome to Newelle"
+msgstr "न्युएल में आपका स्वागत है"
+
+#: src/ui/presentation.py:94
+msgid "Your ultimate virtual assistant."
+msgstr "आपका परम वर्चुअल असिस्टेंट।"
+
+#: src/ui/presentation.py:98
+msgid "Github Page"
+msgstr "गिटहब पेज"
+
+#: src/ui/presentation.py:105
+msgid "Choose your favourite AI Language Model"
+msgstr "अपना पसंदीदा AI भाषा मॉडल चुनें"
+
+#: src/ui/presentation.py:106
+msgid ""
+"Newelle can be used with mutiple models and providers!\n"
+"<b>Note: It is strongly suggested to read the Guide to LLM page</b>"
+msgstr ""
+"न्युएल का उपयोग कई मॉडलों और प्रदाताओं के साथ किया जा सकता है!\n"
+"<b>ध्यान दें: LLM के लिए गाइड पेज पढ़ने का पुरजोर सुझाव दिया जाता है</b>"
+
+#: src/ui/presentation.py:110
+msgid "Guide to LLM"
+msgstr "LLM के लिए गाइड"
+
+#: src/ui/presentation.py:117
+msgid "Chat with your documents"
+msgstr "अपने दस्तावेज़ों के साथ चैट करें"
+
+#: src/ui/presentation.py:118
+msgid ""
+"Newelle can retrieve relevant information from documents you send in the "
+"chat or from your own files! Information relevant to your query will be sent "
+"to the LLM."
+msgstr ""
+"न्युएल चैट में आपके द्वारा भेजे गए दस्तावेज़ों से या आपकी अपनी फ़ाइलों से प्रासंगिक जानकारी "
+"प्राप्त कर सकता है! आपकी क्वेरी से संबंधित जानकारी LLM को भेजी जाएगी।"
+
+#: src/ui/presentation.py:124 src/ui/settings.py:236 src/window.py:647
+msgid "Command virtualization"
+msgstr "कमांड वर्चुअलाइजेशन"
+
+#: src/ui/presentation.py:125
+msgid ""
+"Newelle can be used to run commands on your system, but pay attention at "
+"what you run! <b>The LLM is not under our control, so it might generate "
+"malicious code!</b>\n"
+"By default, your commands will be <b>virtualized in the Flatpak environment</"
+"b>, but pay attention!"
+msgstr ""
+"न्युएल का उपयोग आपके सिस्टम पर कमांड चलाने के लिए किया जा सकता है, लेकिन ध्यान दें कि आप "
+"क्या चलाते हैं! <b>LLM हमारे नियंत्रण में नहीं है, इसलिए यह दुर्भावनापूर्ण कोड उत्पन्न कर "
+"सकता है!</b>\n"
+"डिफ़ॉल्ट रूप से, आपके कमांड <b>फ्लैटपैक वातावरण में वर्चुअलाइज्ड</b> होंगे, लेकिन ध्यान दें!"
+
+#: src/ui/presentation.py:131 src/ui/extension.py:17 src/constants.py:513
+#: src/window.py:118
+msgid "Extensions"
+msgstr "एक्सटेंशन"
+
+#: src/ui/presentation.py:132
+msgid "You can extend Newelle's functionalities using extensions!"
+msgstr "आप एक्सटेंशन का उपयोग करके न्युएल की कार्यात्मकताओं का विस्तार कर सकते हैं!"
+
+#: src/ui/presentation.py:136
+msgid "Download extensions"
+msgstr "एक्सटेंशन डाउनलोड करें"
+
+#: src/ui/presentation.py:146
+msgid "Permission Error"
+msgstr "अनुमति त्रुटि"
+
+#: src/ui/presentation.py:147
+msgid ""
+"Newelle does not have enough permissions to run commands on your system."
+msgstr "न्युएल के पास आपके सिस्टम पर कमांड चलाने के लिए पर्याप्त अनुमतियाँ नहीं हैं।"
+
+#: src/ui/presentation.py:158
+msgid "Begin using the app"
+msgstr "ऐप का उपयोग शुरू करें"
+
+#: src/ui/presentation.py:163
+msgid "Start chatting"
+msgstr "चैटिंग शुरू करें"
+
 #: src/ui/extension.py:50
 #, fuzzy
 msgid "Installed Extensions"
@@ -1581,43 +1219,472 @@ msgstr "नए एक्सटेंशन डाउनलोड करें"
 msgid "Install extension from file..."
 msgstr "फ़ाइल से एक्सटेंशन स्थापित करें..."
 
-#: src/main.py:200
-msgid "Terminal threads are still running in the background"
-msgstr "टर्मिनल थ्रेड अभी भी पृष्ठभूमि में चल रहे हैं"
+#: src/ui/settings.py:46 src/constants.py:523
+msgid "General"
+msgstr "सामान्य"
 
-#: src/main.py:201
-msgid "When you close the window, they will be automatically terminated"
-msgstr "जब आप विंडो बंद करते हैं, तो वे स्वचालित रूप से समाप्त हो जाएंगे"
+#: src/ui/settings.py:47 src/constants.py:478
+msgid "LLM"
+msgstr "LLM"
 
-#: src/main.py:205
-msgid "Close"
-msgstr "बंद करें"
+#: src/ui/settings.py:48 src/constants.py:528
+msgid "Prompts"
+msgstr "प्रॉम्प्ट"
 
-#: src/main.py:239
-msgid "Chat is rebooted"
-msgstr "चैट रीबूट हो गया है"
+#: src/ui/settings.py:49
+msgid "Knowledge"
+msgstr "ज्ञान"
 
-#: src/main.py:244
-msgid "Folder is rebooted"
-msgstr "फ़ोल्डर रीबूट हो गया है"
+#: src/ui/settings.py:53
+msgid "Language Model"
+msgstr "भाषा मॉडल"
 
-#: src/main.py:249
-msgid "Chat is created"
-msgstr "चैट बन गया है"
+#: src/ui/settings.py:62 src/ui/settings.py:82
+msgid "Other LLMs"
+msgstr "अन्य LLMs"
+
+#: src/ui/settings.py:62 src/ui/settings.py:82
+msgid "Other available LLM providers"
+msgstr "अन्य उपलब्ध LLM प्रदाता"
+
+#: src/ui/settings.py:72
+msgid "Advanced LLM Settings"
+msgstr "उन्नत LLM सेटिंग्स"
+
+#: src/ui/settings.py:76
+msgid "Secondary Language Model"
+msgstr "द्वितीयक भाषा मॉडल"
+
+#: src/ui/settings.py:76
+msgid ""
+"Model used for secondary tasks, like offer, chat name and memory generation"
+msgstr ""
+"ऑफ़र, चैट नाम और मेमोरी जनरेशन जैसे द्वितीयक कार्यों के लिए उपयोग किया जाने वाला मॉडल"
+
+#: src/ui/settings.py:93
+msgid "Embedding Model"
+msgstr "एम्बेडिंग मॉडल"
+
+#: src/ui/settings.py:93
+msgid ""
+"Embedding is used to trasform text into vectors. Used by Long Term Memory "
+"and RAG. Changing it might require you to re-index documents or reset memory."
+msgstr ""
+"एम्बेडिंग का उपयोग टेक्स्ट को वेक्टर में बदलने के लिए किया जाता है। दीर्घकालिक मेमोरी और "
+"RAG द्वारा उपयोग किया जाता है। इसे बदलने पर आपको दस्तावेज़ों को फिर से इंडेक्स करने या "
+"मेमोरी रीसेट करने की आवश्यकता हो सकती है।"
+
+#: src/ui/settings.py:104 src/window.py:645
+msgid "Long Term Memory"
+msgstr "दीर्घकालिक मेमोरी"
+
+#: src/ui/settings.py:104
+msgid "Keep memory of old conversations"
+msgstr "पुरानी बातचीत की मेमोरी रखें"
+
+#: src/ui/settings.py:116 src/constants.py:401
+msgid "Web Search"
+msgstr "वेब खोज"
+
+#: src/ui/settings.py:116
+msgid "Search information on the Web"
+msgstr "वेब पर जानकारी खोजें"
+
+#: src/ui/settings.py:132
+msgid "Text To Speech Program"
+msgstr "टेक्स्ट टू स्पीच प्रोग्राम"
+
+#: src/ui/settings.py:132
+msgid "Choose which text to speech to use"
+msgstr "चुनें कि किस टेक्स्ट टू स्पीच का उपयोग करना है"
+
+#: src/ui/settings.py:141
+msgid "Speech To Text Engine"
+msgstr "स्पीच टू टेक्स्ट इंजन"
+
+#: src/ui/settings.py:141
+msgid "Choose which speech recognition engine you want"
+msgstr "चुनें कि आप कौन सा स्पीच रिकग्निशन इंजन चाहते हैं"
+
+#: src/ui/settings.py:149
+msgid "Automatic Speech To Text"
+msgstr "स्वचालित स्पीच टू टेक्स्ट"
+
+#: src/ui/settings.py:149
+msgid "Automatically restart speech to text at the end of a text/TTS"
+msgstr "टेक्स्ट/TTS के अंत में स्वचालित रूप से स्पीच टू टेक्स्ट पुनरारंभ करें"
+
+#: src/ui/settings.py:153
+msgid "Prompt control"
+msgstr "प्रॉम्प्ट नियंत्रण"
+
+#: src/ui/settings.py:158
+msgid "Interface"
+msgstr "इंटरफ़ेस"
+
+#: src/ui/settings.py:161
+msgid "Interface Size"
+msgstr "इंटरफ़ेस आकार"
+
+#: src/ui/settings.py:161
+msgid "Adjust the size of the interface"
+msgstr "इंटरफ़ेस के आकार को समायोजित करें"
+
+#: src/ui/settings.py:173
+msgid "Editor color scheme"
+msgstr "संपादक रंग योजना"
+
+#: src/ui/settings.py:173
+msgid "Change the color scheme of the editor and codeblocks"
+msgstr "संपादक और कोडब्लॉक की रंग योजना बदलें"
+
+#: src/ui/settings.py:180
+msgid "Hidden files"
+msgstr "छिपी हुई फ़ाइलें"
+
+#: src/ui/settings.py:180
+msgid "Show hidden files"
+msgstr "छिपी हुई फ़ाइलें दिखाएं"
+
+#: src/ui/settings.py:186
+msgid "Send with ENTER"
+msgstr "ENTER के साथ भेजें"
+
+#: src/ui/settings.py:186
+msgid ""
+"If enabled, messages will be sent with ENTER, to go to a new line use "
+"CTRL+ENTER. If disabled, messages will be sent with SHIFT+ENTER, and newline "
+"with enter"
+msgstr ""
+"यदि सक्षम है, तो संदेश ENTER के साथ भेजे जाएंगे, नई पंक्ति पर जाने के लिए CTRL+ENTER का "
+"उपयोग करें। यदि अक्षम है, तो संदेश SHIFT+ENTER के साथ भेजे जाएंगे, और ENTER के साथ नई "
+"पंक्ति।"
+
+#: src/ui/settings.py:192
+msgid "Remove thinking from history"
+msgstr "इतिहास से सोच हटा दें"
+
+#: src/ui/settings.py:192
+msgid ""
+"Do not send old thinking blocks for reasoning models in order to reduce "
+"token usage"
+msgstr "टोकन उपयोग को कम करने के लिए तर्क मॉडल के लिए पुराने सोच ब्लॉक न भेजें"
+
+#: src/ui/settings.py:198
+msgid "Display LaTeX"
+msgstr "LaTeX प्रदर्शित करें"
+
+#: src/ui/settings.py:198
+msgid "Display LaTeX formulas in chat"
+msgstr "चैट में LaTeX सूत्र प्रदर्शित करें"
+
+#: src/ui/settings.py:204
+msgid "Reverse Chat Order"
+msgstr "चैट क्रम उलटें"
+
+#: src/ui/settings.py:204
+msgid "Show most recent chats on top in chat list (change chat to apply)"
+msgstr "चैट सूची में सबसे हालिया चैट शीर्ष पर दिखाएं (लागू करने के लिए चैट बदलें)"
+
+#: src/ui/settings.py:210
+msgid "Automatically Generate Chat Names"
+msgstr "स्वचालित रूप से चैट नाम उत्पन्न करें"
+
+#: src/ui/settings.py:210
+msgid "Generate chat names automatically after the first two messages"
+msgstr "पहले दो संदेशों के बाद स्वचालित रूप से चैट नाम उत्पन्न करें"
+
+#: src/ui/settings.py:216
+msgid "Number of offers"
+msgstr "ऑफ़र की संख्या"
+
+#: src/ui/settings.py:216
+msgid "Number of message suggestions to send to chat "
+msgstr "चैट पर भेजने के लिए संदेश सुझावों की संख्या "
+
+#: src/ui/settings.py:223
+msgid "Username"
+msgstr "उपयोगकर्ता नाम"
+
+#: src/ui/settings.py:223
+#, python-brace-format
+msgid ""
+"Change the label that appears before your message\n"
+"This information is not sent to the LLM by default\n"
+"You can add it to a prompt using the {USER} variable"
+msgstr ""
+"आपके संदेश से पहले दिखाई देने वाला लेबल बदलें\n"
+"यह जानकारी डिफ़ॉल्ट रूप से LLM को नहीं भेजी जाती है\n"
+"आप इसे {USER} वेरिएबल का उपयोग करके प्रॉम्प्ट में जोड़ सकते हैं"
+
+#: src/ui/settings.py:233
+msgid "Neural Network Control"
+msgstr "न्यूरल नेटवर्क नियंत्रण"
+
+#: src/ui/settings.py:236
+msgid "Run commands in a virtual machine"
+msgstr "वर्चुअल मशीन में कमांड चलाएं"
+
+#: src/ui/settings.py:249
+msgid "External Terminal"
+msgstr "बाहरी टर्मिनल"
+
+#: src/ui/settings.py:249
+msgid "Choose the external terminal where to run the console commands"
+msgstr "वह बाहरी टर्मिनल चुनें जहां कंसोल कमांड चलाना है"
+
+#: src/ui/settings.py:258
+msgid "Program memory"
+msgstr "प्रोग्राम मेमोरी"
+
+#: src/ui/settings.py:258
+msgid "How long the program remembers the chat "
+msgstr "प्रोग्राम चैट को कितनी देर तक याद रखता है "
+
+#: src/ui/settings.py:265
+msgid "Developer"
+msgstr ""
+
+#: src/ui/settings.py:268 src/ui/stdout_monitor.py:31
+#: src/ui/stdout_monitor.py:41
+msgid "Program Output Monitor"
+msgstr ""
+
+#: src/ui/settings.py:268
+msgid ""
+"Monitor the program output in real-time, useful for debugging and seeing "
+"downloads progress"
+msgstr ""
+
+#: src/ui/settings.py:269
+msgid "Open"
+msgstr ""
+
+#: src/ui/settings.py:274
+msgid "Delete pip path"
+msgstr ""
+
+#: src/ui/settings.py:274
+msgid "Remove the extra dependencies installed"
+msgstr ""
+
+#: src/ui/settings.py:294
+msgid "Auto-run commands"
+msgstr "स्वतः-रन कमांड"
+
+#: src/ui/settings.py:294
+msgid "Commands that the bot will write will automatically run"
+msgstr "बॉट द्वारा लिखे जाने वाले कमांड स्वचालित रूप से चलेंगे"
+
+#: src/ui/settings.py:297
+msgid "Max number of commands"
+msgstr "कमांड की अधिकतम संख्या"
+
+#: src/ui/settings.py:297
+msgid ""
+"Maximum number of commands that the bot will write after a single user "
+"request"
+msgstr "एकल उपयोगकर्ता अनुरोध के बाद बॉट द्वारा लिखे जाने वाले कमांड की अधिकतम संख्या"
+
+#: src/ui/settings.py:328
+msgid "Browser"
+msgstr "ब्राउज़र"
+
+#: src/ui/settings.py:328
+msgid "Settings for the browser"
+msgstr "ब्राउज़र के लिए सेटिंग्स"
+
+#: src/ui/settings.py:333
+msgid "Use external browser"
+msgstr "बाहरी ब्राउज़र का उपयोग करें"
+
+#: src/ui/settings.py:333
+msgid "Use an external browser to open links instead of integrated one"
+msgstr "लिंक खोलने के लिए एकीकृत ब्राउज़र के बजाय बाहरी ब्राउज़र का उपयोग करें"
+
+#: src/ui/settings.py:340
+msgid "Persist browser session"
+msgstr "ब्राउज़र सत्र को बनाए रखें"
+
+#: src/ui/settings.py:340
+msgid ""
+"Persist browser session between restarts. Turning this off requires "
+"restarting the program"
+msgstr ""
+"पुनः आरंभ के बीच ब्राउज़र सत्र को बनाए रखें। इसे बंद करने पर प्रोग्राम को पुनः आरंभ करना "
+"होगा"
+
+#: src/ui/settings.py:345
+#, fuzzy
+msgid "Delete browser data"
+msgstr "ब्राउज़र सत्र और डेटा हटाएं"
+
+#: src/ui/settings.py:345
+msgid "Delete browser session and data"
+msgstr "ब्राउज़र सत्र और डेटा हटाएं"
+
+#: src/ui/settings.py:352
+msgid "Initial browser page"
+msgstr "प्रारंभिक ब्राउज़र पृष्ठ"
+
+#: src/ui/settings.py:352
+msgid "The page where the browser will start"
+msgstr "पृष्ठ जहाँ से ब्राउज़र शुरू होगा"
+
+#: src/ui/settings.py:359
+msgid "Search string"
+msgstr "खोज स्ट्रिंग"
+
+#: src/ui/settings.py:359
+#, python-format
+msgid "The search string used in the browser, %s is replaced with the query"
+msgstr "ब्राउज़र में उपयोग की जाने वाली खोज स्ट्रिंग, %s को क्वेरी से बदला जाएगा"
+
+#: src/ui/settings.py:380
+msgid "Document Sources (RAG)"
+msgstr "दस्तावेज़ स्रोत (RAG)"
+
+#: src/ui/settings.py:380
+msgid "Include content from your documents in the responses"
+msgstr "प्रतिक्रियाओं में अपने दस्तावेज़ों से सामग्री शामिल करें"
+
+#: src/ui/settings.py:381
+msgid "Document Analyzer"
+msgstr "दस्तावेज़ विश्लेषक"
+
+#: src/ui/settings.py:381
+msgid ""
+"The document analyzer uses multiple techniques to extract relevant "
+"information about your documents"
+msgstr ""
+"दस्तावेज़ विश्लेषक आपके दस्तावेज़ों के बारे में प्रासंगिक जानकारी निकालने के लिए कई तकनीकों का "
+"उपयोग करता है"
+
+#: src/ui/settings.py:392
+msgid "Read documents if unsupported"
+msgstr "यदि असमर्थित हो तो दस्तावेज़ पढ़ें"
+
+#: src/ui/settings.py:392
+msgid ""
+"If the LLM does not support reading documents, relevant information about "
+"documents sent in the chat will be given to the LLM using your Document "
+"Analyzer."
+msgstr ""
+"यदि LLM दस्तावेज़ पढ़ने का समर्थन नहीं करता है, तो चैट में भेजे गए दस्तावेज़ों के बारे में "
+"प्रासंगिक जानकारी आपके दस्तावेज़ विश्लेषक का उपयोग करके LLM को दी जाएगी।"
+
+#: src/ui/settings.py:396
+msgid "Maximum tokens for RAG"
+msgstr "RAG के लिए अधिकतम टोकन"
+
+#: src/ui/settings.py:396
+msgid ""
+"The maximum amount of tokens to be used for RAG. If the documents do not "
+"exceed this token count,\n"
+"dump all of them in the context"
+msgstr ""
+"RAG के लिए उपयोग किए जाने वाले टोकन की अधिकतम मात्रा। यदि दस्तावेज़ इस टोकन संख्या से "
+"अधिक नहीं हैं, तो उन सभी को संदर्भ में डंप करें।"
+
+#: src/ui/settings.py:413
+msgid "Document Folder"
+msgstr "दस्तावेज़ फ़ोल्डर"
+
+#: src/ui/settings.py:413
+msgid ""
+"Put the documents you want to query in your document folder. The document "
+"analyzer will find relevant information in them if this option is enabled"
+msgstr ""
+"जिन दस्तावेज़ों से आप क्वेरी करना चाहते हैं उन्हें अपने दस्तावेज़ फ़ोल्डर में डालें। यदि यह विकल्प "
+"सक्षम है तो दस्तावेज़ विश्लेषक उनमें प्रासंगिक जानकारी ढूंढेगा"
+
+#: src/ui/settings.py:416
+msgid "Put all the documents you want to index in this folder"
+msgstr "उन सभी दस्तावेज़ों को जिन्हें आप इंडेक्स करना चाहते हैं, इस फ़ोल्डर में डालें"
+
+#: src/ui/settings.py:452
+msgid "Silence threshold"
+msgstr "मौन सीमा"
+
+#: src/ui/settings.py:452
+msgid ""
+"Silence threshold in seconds, percentage of the volume to be considered "
+"silence"
+msgstr "सेकंड में मौन सीमा, मौन माने जाने वाले वॉल्यूम का प्रतिशत"
+
+#: src/ui/settings.py:465
+msgid "Silence time"
+msgstr "मौन समय"
+
+#: src/ui/settings.py:465
+msgid "Silence time in seconds before recording stops automatically"
+msgstr "रिकॉर्डिंग स्वचालित रूप से बंद होने से पहले सेकंड में मौन समय"
+
+#: src/ui/settings.py:1044
+msgid "Not enough permissions"
+msgstr "पर्याप्त अनुमतियाँ नहीं"
+
+#: src/ui/settings.py:1048
+msgid ""
+"Newelle does not have enough permissions to run commands on your system, "
+"please run the following command"
+msgstr ""
+"न्युएल के पास आपके सिस्टम पर कमांड चलाने के लिए पर्याप्त अनुमतियाँ नहीं हैं, कृपया निम्न कमांड "
+"चलाएँ"
+
+#: src/ui/settings.py:1049 src/ui/settings.py:1062
+msgid "Understood"
+msgstr "समझ गया"
+
+#: src/ui/settings.py:1061
+msgid "Pip path deleted"
+msgstr ""
+
+#: src/ui/settings.py:1061
+msgid ""
+"The pip path has been deleted, you can now reinstall the dependencies. This "
+"operation requires a restart of the application."
+msgstr ""
+
+#: src/ui/stdout_monitor.py:48
+msgid "Clear output"
+msgstr ""
+
+#: src/ui/stdout_monitor.py:61
+#, fuzzy
+msgid "Start/Stop monitoring"
+msgstr "रिकॉर्डिंग शुरू करें"
+
+#: src/ui/stdout_monitor.py:109 src/ui/stdout_monitor.py:182
+#: src/ui/stdout_monitor.py:191 src/window.py:3683
+msgid "Monitoring: Active"
+msgstr ""
+
+#: src/ui/stdout_monitor.py:109 src/ui/stdout_monitor.py:208
+msgid "Monitoring: Stopped"
+msgstr ""
+
+#: src/ui/stdout_monitor.py:116 src/ui/stdout_monitor.py:252
+msgid "Lines: {}"
+msgstr ""
+
+#: src/ui/stdout_monitor.py:267
+msgid "Lines: 0"
+msgstr ""
 
 #: src/constants.py:20
 msgid "Newelle Demo API"
 msgstr "न्युएल डेमो API"
 
 #: src/constants.py:26
-msgid "Any free Provider"
-msgstr "कोई भी मुफ्त प्रदाता"
+msgid "GPT4Free"
+msgstr ""
 
-#: src/constants.py:33
+#: src/constants.py:34
 msgid "Local Model"
 msgstr "स्थानीय मॉडल"
 
-#: src/constants.py:34
+#: src/constants.py:35
 msgid ""
 "NO GPU SUPPORT, USE OLLAMA INSTEAD. Run a LLM model locally, more privacy "
 "but slower"
@@ -1625,35 +1692,35 @@ msgstr ""
 "GPU समर्थन नहीं, इसके बजाय OLLAMA का उपयोग करें। LLM मॉडल को स्थानीय रूप से चलाएं, "
 "अधिक गोपनीयता लेकिन धीमा"
 
-#: src/constants.py:39
+#: src/constants.py:40
 msgid "Ollama Instance"
 msgstr "Ollama इंस्टेंस"
 
-#: src/constants.py:40
+#: src/constants.py:41
 msgid "Easily run multiple LLM models on your own hardware"
 msgstr "अपने स्वयं के हार्डवेयर पर आसानी से कई LLM मॉडल चलाएं"
 
-#: src/constants.py:46
+#: src/constants.py:47
 msgid "Groq"
 msgstr "Groq"
 
-#: src/constants.py:53 src/constants.py:229
+#: src/constants.py:54 src/constants.py:230
 msgid "Google Gemini API"
 msgstr "गूगल जेमिनी API"
 
-#: src/constants.py:59 src/constants.py:223 src/constants.py:224
+#: src/constants.py:60 src/constants.py:224 src/constants.py:225
 msgid "OpenAI API"
 msgstr "OpenAI API"
 
-#: src/constants.py:60
+#: src/constants.py:61
 msgid "OpenAI API. Custom endpoints supported. Use this for custom providers"
 msgstr "OpenAI API। कस्टम एंडपॉइंट समर्थित। कस्टम प्रदाताओं के लिए इसका उपयोग करें"
 
-#: src/constants.py:65
+#: src/constants.py:66
 msgid "Anthropic Claude"
 msgstr "एंथ्रोपिक क्लॉड"
 
-#: src/constants.py:66
+#: src/constants.py:67
 msgid ""
 "Official APIs for Anthropic Claude's models, with image and file support, "
 "requires an API key"
@@ -1661,190 +1728,190 @@ msgstr ""
 "एंथ्रोपिक क्लॉड के मॉडल के लिए आधिकारिक API, इमेज और फ़ाइल समर्थन के साथ, API कुंजी की "
 "आवश्यकता है"
 
-#: src/constants.py:72
+#: src/constants.py:73
 msgid "Mistral"
 msgstr "मिस्ट्रल"
 
-#: src/constants.py:73
+#: src/constants.py:74
 msgid "Mistral API"
 msgstr "मिस्ट्रल API"
 
-#: src/constants.py:79
+#: src/constants.py:80
 msgid "OpenRouter"
 msgstr "ओपनराउटर"
 
-#: src/constants.py:80
+#: src/constants.py:81
 msgid "Openrouter.ai API, supports lots of models"
 msgstr "Openrouter.ai API, बहुत सारे मॉडल का समर्थन करता है"
 
-#: src/constants.py:86
+#: src/constants.py:87
 msgid "Deepseek"
 msgstr "डीपसीक"
 
-#: src/constants.py:87
+#: src/constants.py:88
 msgid "Deepseek API, strongest open source models"
 msgstr "डीपसीक API, सबसे शक्तिशाली ओपन सोर्स मॉडल"
 
-#: src/constants.py:93 src/constants.py:202
+#: src/constants.py:94 src/constants.py:203
 msgid "Custom Command"
 msgstr "कस्टम कमांड"
 
-#: src/constants.py:94
+#: src/constants.py:95
 msgid "Use the output of a custom command"
 msgstr "एक कस्टम कमांड के आउटपुट का उपयोग करें"
 
-#: src/constants.py:103
-msgid "CMU Sphinx"
-msgstr "CMU स्फिंक्स"
-
 #: src/constants.py:104
-msgid "Works offline. Only English supported"
-msgstr "ऑफ़लाइन काम करता है। केवल अंग्रेज़ी समर्थित"
-
-#: src/constants.py:110
 msgid "Whisper C++"
 msgstr "व्हिस्पर C++"
 
-#: src/constants.py:111
+#: src/constants.py:105
 msgid "Works offline. Optimized Whisper impelementation written in C++"
 msgstr "ऑफ़लाइन काम करता है। C++ में लिखा गया अनुकूलित व्हिस्पर कार्यान्वयन"
 
-#: src/constants.py:117
+#: src/constants.py:111
+msgid "CMU Sphinx"
+msgstr "CMU स्फिंक्स"
+
+#: src/constants.py:112
+msgid "Works offline. Only English supported"
+msgstr "ऑफ़लाइन काम करता है। केवल अंग्रेज़ी समर्थित"
+
+#: src/constants.py:118
 msgid "Google Speech Recognition"
 msgstr "गूगल स्पीच रिकग्निशन"
 
-#: src/constants.py:118 src/constants.py:124
+#: src/constants.py:119 src/constants.py:125
 msgid "Google Speech Recognition online"
 msgstr "गूगल स्पीच रिकग्निशन ऑनलाइन"
 
-#: src/constants.py:123
+#: src/constants.py:124
 msgid "Groq Speech Recognition"
 msgstr "Groq स्पीच रिकग्निशन"
 
-#: src/constants.py:129
+#: src/constants.py:130
 msgid "Wit AI"
 msgstr "Wit AI"
 
-#: src/constants.py:130
+#: src/constants.py:131
 msgid "wit.ai speech recognition free API (language chosen on the website)"
 msgstr "wit.ai स्पीच रिकग्निशन मुफ्त API (भाषा वेबसाइट पर चुनी गई)"
 
-#: src/constants.py:136
+#: src/constants.py:137
 msgid "Vosk API"
 msgstr "Vosk API"
 
-#: src/constants.py:137
+#: src/constants.py:138
 msgid "Works Offline"
 msgstr "ऑफ़लाइन काम करता है"
 
-#: src/constants.py:143
+#: src/constants.py:144
 msgid "Whisper API"
 msgstr "व्हिस्पर API"
 
-#: src/constants.py:144
+#: src/constants.py:145
 msgid "Uses OpenAI Whisper API"
 msgstr "OpenAI व्हिस्पर API का उपयोग करता है"
 
-#: src/constants.py:150
+#: src/constants.py:151
 msgid "Custom command"
 msgstr "कस्टम कमांड"
 
-#: src/constants.py:151
+#: src/constants.py:152
 msgid "Runs a custom command"
 msgstr "एक कस्टम कमांड चलाता है"
 
-#: src/constants.py:160
+#: src/constants.py:161
 msgid "Google TTS"
 msgstr "गूगल TTS"
 
-#: src/constants.py:161
+#: src/constants.py:162
 msgid "Google's text to speech"
 msgstr "गूगल का टेक्स्ट-टू-स्पीच"
 
-#: src/constants.py:166
+#: src/constants.py:167
 msgid "Kokoro TTS"
 msgstr "कोकोरो TTS"
 
-#: src/constants.py:167
+#: src/constants.py:168
 msgid ""
 "Lightweight and fast open source TTS engine. ~3GB dependencies, 400MB model"
 msgstr "हल्का और तेज़ ओपन सोर्स TTS इंजन। ~3GB निर्भरताएँ, 400MB मॉडल"
 
-#: src/constants.py:172
+#: src/constants.py:173
 msgid "ElevenLabs TTS"
 msgstr "इलेवनलैब्स TTS"
 
-#: src/constants.py:173
+#: src/constants.py:174
 msgid "Natural sounding TTS"
 msgstr "प्राकृतिक लगने वाला TTS"
 
-#: src/constants.py:178 src/constants.py:179
+#: src/constants.py:179 src/constants.py:180
 msgid "OpenAI TTS"
 msgstr "OpenAI TTS"
 
-#: src/constants.py:184
+#: src/constants.py:185
 msgid "Groq TTS"
 msgstr "Groq TTS"
 
-#: src/constants.py:185
+#: src/constants.py:186
 msgid "Groq TTS API"
 msgstr "Groq TTS API"
 
-#: src/constants.py:190 src/constants.py:191
+#: src/constants.py:191 src/constants.py:192
 msgid "Custom OpenAI TTS"
 msgstr "कस्टम OpenAI TTS"
 
-#: src/constants.py:196
+#: src/constants.py:197
 msgid "Espeak TTS"
 msgstr "ईस्पीक TTS"
 
-#: src/constants.py:197
+#: src/constants.py:198
 msgid "Offline TTS"
 msgstr "ऑफ़लाइन TTS"
 
-#: src/constants.py:203
+#: src/constants.py:204
 #, python-brace-format
 msgid "Use a custom command as TTS, {0} will be replaced with the text"
 msgstr "TTS के रूप में एक कस्टम कमांड का उपयोग करें, {0} को टेक्स्ट से बदल दिया जाएगा"
 
-#: src/constants.py:211
+#: src/constants.py:212
 msgid "WordLlama"
 msgstr "वर्डलामा"
 
-#: src/constants.py:212
+#: src/constants.py:213
 msgid ""
 "Light local embedding model based on llama. Works offline, very low "
 "resources usage"
 msgstr ""
 "लामा पर आधारित हल्का स्थानीय एम्बेडिंग मॉडल। ऑफ़लाइन काम करता है, बहुत कम संसाधन उपयोग"
 
-#: src/constants.py:217
+#: src/constants.py:218
 msgid "Ollama Embedding"
 msgstr "Ollama एम्बेडिंग"
 
-#: src/constants.py:218
+#: src/constants.py:219
 msgid ""
 "Use Ollama models for Embedding. Works offline, very low resources usage"
 msgstr ""
 "एम्बेडिंग के लिए Ollama मॉडल का उपयोग करें। ऑफ़लाइन काम करता है, बहुत कम संसाधन उपयोग"
 
-#: src/constants.py:230
+#: src/constants.py:231
 msgid "Use Google Gemini API to get embeddings"
 msgstr "एम्बेडिंग प्राप्त करने के लिए गूगल जेमिनी API का उपयोग करें"
 
-#: src/constants.py:238
+#: src/constants.py:239
 msgid "User Summary"
 msgstr "उपयोगकर्ता सारांश"
 
-#: src/constants.py:239
+#: src/constants.py:240
 msgid "Generate a summary of the user's conversation"
 msgstr "उपयोगकर्ता की बातचीत का सारांश उत्पन्न करें"
 
-#: src/constants.py:244
+#: src/constants.py:245
 msgid "Memoripy"
 msgstr "मेमोरीपाई"
 
-#: src/constants.py:245
+#: src/constants.py:246
 msgid ""
 "Extract messages from previous conversations using contextual memory "
 "retrivial, memory decay, concept extraction and other advanced techniques. "
@@ -1853,19 +1920,19 @@ msgstr ""
 "प्रासंगिक मेमोरी रिट्रीवल, मेमोरी डेके, अवधारणा निष्कर्षण और अन्य उन्नत तकनीकों का उपयोग "
 "करके पिछली बातचीत से संदेश निकालें। प्रति संदेश 1 एलएलएम कॉल करता है।"
 
-#: src/constants.py:250
+#: src/constants.py:251
 msgid "User Summary + Memoripy"
 msgstr "उपयोगकर्ता सारांश + मेमोरीपाई"
 
-#: src/constants.py:251
+#: src/constants.py:252
 msgid "Use both technologies for long term memory"
 msgstr "दीर्घकालिक मेमोरी के लिए दोनों तकनीकों का उपयोग करें"
 
-#: src/constants.py:259
+#: src/constants.py:260
 msgid "Document reader"
 msgstr "दस्तावेज़ रीडर"
 
-#: src/constants.py:260
+#: src/constants.py:261
 msgid ""
 "Classic RAG approach - chunk documents and embed them, then compare them to "
 "the query and return the most relevant documents"
@@ -1873,166 +1940,166 @@ msgstr ""
 "क्लासिक RAG दृष्टिकोण - दस्तावेज़ों को खंडित करें और उन्हें एम्बेड करें, फिर उनकी क्वेरी से तुलना "
 "करें और सबसे प्रासंगिक दस्तावेज़ लौटाएं"
 
-#: src/constants.py:268
+#: src/constants.py:269
 msgid "SearXNG"
 msgstr "SearXNG"
 
-#: src/constants.py:269
+#: src/constants.py:270
 msgid "SearXNG - Private and selfhostable search engine"
 msgstr "SearXNG - निजी और स्व-होस्ट करने योग्य सर्च इंजन"
 
-#: src/constants.py:274
+#: src/constants.py:275
 msgid "DuckDuckGo"
 msgstr "डकडकगो"
 
-#: src/constants.py:275
+#: src/constants.py:276
 msgid "DuckDuckGo search"
 msgstr "डकडकगो खोज"
 
-#: src/constants.py:280
+#: src/constants.py:281
 msgid "Tavily"
 msgstr "टैविली"
 
-#: src/constants.py:281
+#: src/constants.py:282
 msgid "Tavily search"
 msgstr "टैविली खोज"
 
-#: src/constants.py:374
+#: src/constants.py:375
 msgid "Helpful assistant"
 msgstr "सहायक असिस्टेंट"
 
-#: src/constants.py:375
+#: src/constants.py:376
 msgid "General purpose prompt to enhance the LLM answers and give more context"
 msgstr "LLM उत्तरों को बढ़ाने और अधिक संदर्भ देने के लिए सामान्य प्रयोजन प्रॉम्प्ट"
 
-#: src/constants.py:383
+#: src/constants.py:384
 msgid "Console access"
 msgstr "कंसोल एक्सेस"
 
-#: src/constants.py:384
+#: src/constants.py:385
 msgid "Can the program run terminal commands on the computer"
 msgstr "क्या प्रोग्राम कंप्यूटर पर टर्मिनल कमांड चला सकता है"
 
-#: src/constants.py:391
+#: src/constants.py:392
 msgid "Current directory"
 msgstr "वर्तमान डायरेक्टरी"
 
-#: src/constants.py:392
+#: src/constants.py:393
 msgid "What is the current directory"
 msgstr "वर्तमान डायरेक्टरी क्या है"
 
-#: src/constants.py:401
+#: src/constants.py:402
 msgid "Allow the LLM to search on the internet"
 msgstr "LLM को इंटरनेट पर खोजने की अनुमति दें"
 
-#: src/constants.py:409
+#: src/constants.py:410
 msgid "Basic functionality"
 msgstr "बुनियादी कार्यक्षमता"
 
-#: src/constants.py:410
+#: src/constants.py:411
 msgid "Showing tables and code (*can work without it)"
 msgstr "तालिकाएँ और कोड दिखाना (*इसके बिना काम कर सकता है)"
 
-#: src/constants.py:418
+#: src/constants.py:419
 msgid "Graphs access"
 msgstr "ग्राफ़ एक्सेस"
 
-#: src/constants.py:419
+#: src/constants.py:420
 msgid "Can the program display graphs"
 msgstr "क्या प्रोग्राम ग्राफ़ प्रदर्शित कर सकता है"
 
-#: src/constants.py:427
+#: src/constants.py:428
 msgid "Show image"
 msgstr "छवि दिखाएं"
 
-#: src/constants.py:428
+#: src/constants.py:429
 msgid "Show image in chat"
 msgstr "चैट में छवि दिखाएं"
 
-#: src/constants.py:436
+#: src/constants.py:437
 msgid "Custom Prompt"
 msgstr "कस्टम प्रॉम्प्ट"
 
-#: src/constants.py:437
+#: src/constants.py:438
 msgid "Add your own custom prompt"
 msgstr "अपना स्वयं का कस्टम प्रॉम्प्ट जोड़ें"
 
-#: src/constants.py:450
+#: src/constants.py:480
 #, fuzzy
 msgid "LLM and Secondary LLM settings"
 msgstr "उन्नत LLM सेटिंग्स"
 
-#: src/constants.py:453 src/window.py:602
+#: src/constants.py:483 src/window.py:646
 msgid "TTS"
 msgstr "TTS"
 
-#: src/constants.py:455
+#: src/constants.py:485
 #, fuzzy
 msgid "Text to Speech settings"
 msgstr "टेक्स्ट टू स्पीच प्रोग्राम"
 
-#: src/constants.py:458
+#: src/constants.py:488
 msgid "STT"
 msgstr "STT"
 
-#: src/constants.py:460
+#: src/constants.py:490
 #, fuzzy
 msgid "Speech to Text settings"
 msgstr "स्पीच टू टेक्स्ट इंजन"
 
-#: src/constants.py:463
+#: src/constants.py:493
 #, fuzzy
 msgid "Embedding"
 msgstr "एम्बेडिंग मॉडल"
 
-#: src/constants.py:465
+#: src/constants.py:495
 #, fuzzy
 msgid "Embedding settings"
 msgstr "एम्बेडिंग मॉडल"
 
-#: src/constants.py:468
+#: src/constants.py:498
 msgid "Memory"
 msgstr "मेमोरी"
 
-#: src/constants.py:470
+#: src/constants.py:500
 #, fuzzy
 msgid "Memory settings"
 msgstr "सेटिंग्स"
 
-#: src/constants.py:473
+#: src/constants.py:503
 #, fuzzy
 msgid "Websearch"
 msgstr "सुरक्षा सेटिंग्स सक्षम करें"
 
-#: src/constants.py:475
+#: src/constants.py:505
 #, fuzzy
 msgid "Websearch settings"
 msgstr "सुरक्षा सेटिंग्स सक्षम करें"
 
-#: src/constants.py:478
+#: src/constants.py:508
 msgid "RAG"
 msgstr "RAG"
 
-#: src/constants.py:480
+#: src/constants.py:510
 #, fuzzy
 msgid "Document analyzer settings"
 msgstr "दस्तावेज़ विश्लेषक"
 
-#: src/constants.py:485
+#: src/constants.py:515
 #, fuzzy
 msgid "Extensions settings"
 msgstr "एक्सटेंशन"
 
-#: src/constants.py:488
+#: src/constants.py:518
 #, fuzzy
 msgid "Inteface"
 msgstr "इंटरफ़ेस"
 
-#: src/constants.py:490
+#: src/constants.py:520
 msgid "Interface settings, hidden files, reverse order, zoom..."
 msgstr "इंटरफ़ेस सेटिंग्स, छिपी हुई फ़ाइलें, उलटा क्रम, ज़ूम..."
 
-#: src/constants.py:495
+#: src/constants.py:525
 msgid ""
 "General settings, virtualization, offers, memory length, automatically "
 "generate chat name, current folder..."
@@ -2040,94 +2107,118 @@ msgstr ""
 "सामान्य सेटिंग्स, वर्चुअलाइज़ेशन, ऑफ़र, मेमोरी की लंबाई, चैट नाम स्वचालित रूप से जनरेट करें, "
 "वर्तमान फ़ोल्डर..."
 
-#: src/constants.py:500
+#: src/constants.py:530
 msgid "Prompts settings, custom extra prompt, custom prompts..."
 msgstr "प्रॉम्प्ट सेटिंग्स, कस्टम अतिरिक्त प्रॉम्प्ट, कस्टम प्रॉम्प्ट..."
 
-#: src/controller.py:134 src/window.py:1731
+#: src/controller.py:135 src/window.py:1846
 msgid "Chat "
 msgstr "चैट "
 
-#: src/window.py:112
+#: src/main.py:205
+msgid "Terminal threads are still running in the background"
+msgstr "टर्मिनल थ्रेड अभी भी पृष्ठभूमि में चल रहे हैं"
+
+#: src/main.py:206
+msgid "When you close the window, they will be automatically terminated"
+msgstr "जब आप विंडो बंद करते हैं, तो वे स्वचालित रूप से समाप्त हो जाएंगे"
+
+#: src/main.py:210
+msgid "Close"
+msgstr "बंद करें"
+
+#: src/main.py:244
+msgid "Chat is rebooted"
+msgstr "चैट रीबूट हो गया है"
+
+#: src/main.py:249
+msgid "Folder is rebooted"
+msgstr "फ़ोल्डर रीबूट हो गया है"
+
+#: src/main.py:254
+msgid "Chat is created"
+msgstr "चैट बन गया है"
+
+#: src/window.py:120
 msgid "Keyboard shorcuts"
 msgstr "कीबोर्ड शॉर्टकट"
 
-#: src/window.py:113
+#: src/window.py:121
 msgid "About"
 msgstr "बारे में"
 
-#: src/window.py:120 src/window.py:189
+#: src/window.py:128 src/window.py:197
 msgid "Chat"
 msgstr "चैट"
 
-#: src/window.py:162
+#: src/window.py:170
 msgid "History"
 msgstr "इतिहास"
 
-#: src/window.py:183
+#: src/window.py:191
 msgid "Create a chat"
 msgstr "एक चैट बनाएं"
 
-#: src/window.py:188
+#: src/window.py:196
 #, fuzzy
 msgid "Chats"
 msgstr "चैट"
 
-#: src/window.py:259
+#: src/window.py:267
 msgid " Stop"
 msgstr " रोकें"
 
-#: src/window.py:274
+#: src/window.py:282
 msgid " Clear"
 msgstr " साफ़ करें"
 
-#: src/window.py:289
+#: src/window.py:297
 msgid " Continue"
 msgstr " जारी रखें"
 
-#: src/window.py:302
+#: src/window.py:310
 msgid " Regenerate"
 msgstr " फिर से उत्पन्न करें"
 
-#: src/window.py:368
+#: src/window.py:376
 msgid "Send a message..."
 msgstr "एक संदेश भेजें..."
 
-#: src/window.py:448
+#: src/window.py:467
 msgid "Explorer Tab"
 msgstr "एक्सप्लोरर टैब"
 
-#: src/window.py:449
+#: src/window.py:468
 msgid "Terminal Tab"
 msgstr "टर्मिनल टैब"
 
-#: src/window.py:450
+#: src/window.py:469
 msgid "Browser Tab"
 msgstr "ब्राउज़र टैब"
 
-#: src/window.py:544
+#: src/window.py:587
 msgid "Ask about a website"
 msgstr "एक वेबसाइट के बारे में पूछें"
 
-#: src/window.py:544
+#: src/window.py:587
 msgid "Write #https://website.com in chat to ask information about a website"
 msgstr "किसी वेबसाइट के बारे में जानकारी पूछने के लिए चैट में #https://website.com लिखें"
 
-#: src/window.py:545
+#: src/window.py:588
 #, fuzzy
 msgid "Check out our Extensions!"
 msgstr "हमारे एक्सटेंशन देखें!"
 
-#: src/window.py:545
+#: src/window.py:588
 msgid "We have a lot of extensions for different things. Check it out!"
 msgstr "हमारे पास विभिन्न चीज़ों के लिए बहुत सारे एक्सटेंशन हैं। उन्हें देखें!"
 
-#: src/window.py:546
+#: src/window.py:589
 #, fuzzy
 msgid "Chat with documents!"
 msgstr "अपने दस्तावेज़ों के साथ चैट करें"
 
-#: src/window.py:546
+#: src/window.py:589
 msgid ""
 "Add your documents to your documents folder and chat using the information "
 "contained in them!"
@@ -2135,166 +2226,172 @@ msgstr ""
 "अपने दस्तावेज़ों को अपने दस्तावेज़ फ़ोल्डर में जोड़ें और उनमें निहित जानकारी का उपयोग करके चैट "
 "करें!"
 
-#: src/window.py:547
+#: src/window.py:590
 msgid "Surf the web!"
 msgstr "वेब सर्फ करें!"
 
-#: src/window.py:547
+#: src/window.py:590
 msgid ""
 "Enable web search to allow the LLM to surf the web and provide up to date "
 "answers"
 msgstr ""
 "LLM को वेब सर्फ करने और अद्यतित उत्तर प्रदान करने की अनुमति देने के लिए वेब खोज सक्षम करें"
 
-#: src/window.py:548
+#: src/window.py:591
 msgid "Mini Window"
 msgstr "मिनी विंडो"
 
-#: src/window.py:548
+#: src/window.py:591
 msgid "Ask questions on the fly using the mini window mode"
 msgstr "मिनी विंडो मोड का उपयोग करके तुरंत प्रश्न पूछें"
 
-#: src/window.py:549
+#: src/window.py:592
 #, fuzzy
 msgid "Text to Speech"
 msgstr "टेक्स्ट टू स्पीच"
 
-#: src/window.py:549
+#: src/window.py:592
 msgid "Newelle supports text-to-speech! Enable it in the settings"
 msgstr "न्यूएले टेक्स्ट-टू-स्पीच का समर्थन करता है! इसे सेटिंग्स में सक्षम करें"
 
-#: src/window.py:550
+#: src/window.py:593
 #, fuzzy
 msgid "Keyboard Shortcuts"
 msgstr "कीबोर्ड शॉर्टकट"
 
-#: src/window.py:550
+#: src/window.py:593
 #, fuzzy
 msgid "Control Newelle using Keyboard Shortcuts"
 msgstr "कीबोर्ड शॉर्टकट"
 
-#: src/window.py:551
+#: src/window.py:594
 #, fuzzy
 msgid "Prompt Control"
 msgstr "प्रॉम्प्ट नियंत्रण"
 
-#: src/window.py:551
+#: src/window.py:594
 msgid "Newelle gives you 100% prompt control. Tune your prompts for your use."
-msgstr "न्यूएले आपको 100% प्रॉम्प्ट नियंत्रण देता है। अपनी उपयोग के लिए अपने प्रॉम्प्ट को ट्यून करें।"
+msgstr ""
+"न्यूएले आपको 100% प्रॉम्प्ट नियंत्रण देता है। अपनी उपयोग के लिए अपने प्रॉम्प्ट को ट्यून करें।"
 
-#: src/window.py:552
+#: src/window.py:595
 #, fuzzy
 msgid "Thread Editing"
 msgstr "थ्रेड संपादन"
 
-#: src/window.py:552
+#: src/window.py:595
 msgid "Check the programs and processes you run from Newelle"
 msgstr "न्यूएले से आपके द्वारा चलाए जा रहे प्रोग्राम और प्रक्रियाओं की जाँच करें"
 
-#: src/window.py:559
+#: src/window.py:596
+msgid "Programmable Prompts"
+msgstr ""
+
+#: src/window.py:596
+msgid ""
+"You can add dynamic prompts to Newelle, with conditions and probabilities"
+msgstr ""
+
+#: src/window.py:603
 #, fuzzy
 msgid "New Chat"
 msgstr "नया टैब"
 
-#: src/window.py:577
+#: src/window.py:621
 msgid "Provider Errror"
 msgstr "प्रदाता त्रुटि"
 
-#: src/window.py:600
+#: src/window.py:644
 #, fuzzy
 msgid "Local Documents"
 msgstr "स्थानीय मॉडल"
 
-#: src/window.py:604
+#: src/window.py:648
 #, fuzzy
 msgid "Web search"
 msgstr "सुरक्षा सेटिंग्स सक्षम करें"
 
-#: src/window.py:826
+#: src/window.py:890
 msgid "This provider does not have a model list"
 msgstr "इस प्रदाता के पास मॉडल सूची नहीं है"
 
-#: src/window.py:831
+#: src/window.py:895
 msgid " Models"
 msgstr " मॉडल"
 
-#: src/window.py:834
+#: src/window.py:898
 msgid "Search Models..."
 msgstr "मॉडल खोजें..."
 
-#: src/window.py:1062
+#: src/window.py:1126
 msgid "Create new profile"
 msgstr "नया प्रोफ़ाइल बनाएं"
 
-#: src/window.py:1196
+#: src/window.py:1260
 msgid "Could not recognize your voice"
 msgstr "आपकी आवाज़ पहचानी नहीं जा सकी"
 
-#: src/window.py:1233
+#: src/window.py:1297
 msgid "Images"
 msgstr "छवियाँ"
 
-#: src/window.py:1237
+#: src/window.py:1301
 msgid "LLM Supported Files"
 msgstr "LLM समर्थित फ़ाइलें"
 
-#: src/window.py:1245
+#: src/window.py:1309
 msgid "RAG Supported files"
 msgstr "RAG समर्थित फ़ाइलें"
 
-#: src/window.py:1263
+#: src/window.py:1327
 msgid "Supported Files"
 msgstr "समर्थित फ़ाइलें"
 
-#: src/window.py:1267
+#: src/window.py:1331
 msgid "All Files"
 msgstr "सभी फ़ाइलें"
 
-#: src/window.py:1273
+#: src/window.py:1337
 msgid "Attach file"
 msgstr "फ़ाइल संलग्न करें"
 
-#: src/window.py:1528
+#: src/window.py:1592
 msgid "The file cannot be sent until the program is finished"
 msgstr "प्रोग्राम समाप्त होने तक फ़ाइल नहीं भेजी जा सकती"
 
-#: src/window.py:1550
+#: src/window.py:1614
 msgid "The file is not recognized"
 msgstr "फ़ाइल पहचानी नहीं गई है"
 
-#: src/window.py:1569
+#: src/window.py:1633
 msgid "You can no longer continue the message."
 msgstr "आप अब संदेश जारी नहीं रख सकते।"
 
-#: src/window.py:1594
+#: src/window.py:1658
 msgid "You can no longer regenerate the message."
 msgstr "आप अब संदेश को फिर से उत्पन्न नहीं कर सकते।"
 
-#: src/window.py:1702
-msgid "Chat is empty"
-msgstr "चैट खाली है"
-
-#: src/window.py:1775
+#: src/window.py:1890
 msgid "Chat is cleared"
 msgstr "चैट साफ़ हो गया है"
 
-#: src/window.py:1800
+#: src/window.py:1915
 msgid "The message was canceled and deleted from history"
 msgstr "संदेश रद्द कर दिया गया और इतिहास से हटा दिया गया"
 
-#: src/window.py:1844
+#: src/window.py:1959
 msgid "The message cannot be sent until the program is finished"
 msgstr "प्रोग्राम समाप्त होने तक संदेश नहीं भेजा जा सकता"
 
-#: src/window.py:2785
+#: src/window.py:2936
 msgid "You can't edit a message while the program is running."
 msgstr "प्रोग्राम चलते समय आप संदेश संपादित नहीं कर सकते।"
 
-#: src/window.py:2910
+#: src/window.py:3061
 msgid "Prompt content"
 msgstr "प्रॉम्प्ट सामग्री"
 
-#: src/window.py:3166
+#: src/window.py:3320
 msgid ""
 "The neural network has access to your computer and any data in this chat and "
 "can run commands, be careful, we are not responsible for the neural network. "
@@ -2304,7 +2401,7 @@ msgstr ""
 "सकता है, सावधान रहें, हम न्यूरल नेटवर्क के लिए जिम्मेदार नहीं हैं। कोई भी संवेदनशील जानकारी "
 "साझा न करें।"
 
-#: src/window.py:3195
+#: src/window.py:3349
 msgid ""
 "The neural network has access to any data in this chat, be careful, we are "
 "not responsible for the neural network. Do not share any sensitive "
@@ -2313,17 +2410,21 @@ msgstr ""
 "न्यूरल नेटवर्क के पास इस चैट में किसी भी डेटा तक पहुंच है, सावधान रहें, हम न्यूरल नेटवर्क के "
 "लिए जिम्मेदार नहीं हैं। कोई भी संवेदनशील जानकारी साझा न करें।"
 
-#: src/window.py:3244
+#: src/window.py:3398
 msgid "Wrong folder path"
 msgstr "गलत फ़ोल्डर पथ"
 
-#: src/window.py:3277
+#: src/window.py:3431
 msgid "Thread has not been completed, thread number: "
 msgstr "थ्रेड पूरा नहीं हुआ है, थ्रेड संख्या: "
 
-#: src/window.py:3289
+#: src/window.py:3443
 msgid "Failed to open the folder"
 msgstr "फ़ोल्डर खोलने में विफल"
+
+#: src/window.py:3622
+msgid "Chat is empty"
+msgstr "चैट खाली है"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:9
 msgid ""
@@ -2487,8 +2588,14 @@ msgid "Newelle: Your advanced chat bot"
 msgstr "न्यूएले: आपका उन्नत चैट बॉट"
 
 #: data/io.github.qwersyk.Newelle.desktop.in:10
-msgid "chat;ai;gpt;chatgpt;assistant;"
-msgstr "चैट;एआई;जीपीटी;चैटजीपीटी;सहायक;"
+msgid "ai;assistant;chat;chatgpt;gpt;llm;ollama;"
+msgstr ""
+
+#~ msgid "Any free Provider"
+#~ msgstr "कोई भी मुफ्त प्रदाता"
+
+#~ msgid "chat;ai;gpt;chatgpt;assistant;"
+#~ msgstr "चैट;एआई;जीपीटी;चैटजीपीटी;सहायक;"
 
 #, fuzzy
 #~ msgid "_Cancel"
