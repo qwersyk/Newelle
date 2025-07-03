@@ -1,38 +1,32 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-#
 msgid ""
 msgstr ""
-"Project-Id-Version: \n"
+"Project-Id-Version: 1.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-07-02 02:15+0800\n"
 "PO-Revision-Date: 2025-07-03 09:00+0200\n"
-"Last-Translator: Heimen Stoffels <vistausss@fastmail.com>\n"
-"Language-Team: \n"
-"Language: nl\n"
+"Last-Translator: Yehor Hliebov <qsk@gmx.at>\n"
+"Language-Team: Spanish <qsk@gmx.at>\n"
+"Language: es\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 3.3.2\n"
 
 #: src/handlers/embeddings/ollama_handler.py:32
 #: src/handlers/embeddings/openai_handler.py:38
 #: src/handlers/llm/openai_handler.py:75 src/handlers/llm/ollama_handler.py:150
 #: src/handlers/stt/openaisr_handler.py:10
 msgid "API Endpoint"
-msgstr "API-eindpunt"
+msgstr "Punto de conexión de la API"
 
 #: src/handlers/embeddings/ollama_handler.py:32
 #: src/handlers/llm/openai_handler.py:75 src/handlers/llm/ollama_handler.py:150
 msgid "API base url, change this to use interference APIs"
-msgstr "API-basis-URL, wijzig deze om interferentie-API's te gebruiken"
+msgstr "URL base de la API, cámbiela para usar APIs de inferencia"
 
 #: src/handlers/embeddings/ollama_handler.py:33
 #: src/handlers/llm/ollama_handler.py:151
 msgid "Automatically Serve"
-msgstr "Automatisch serveren"
+msgstr "Servir automáticamente"
 
 #: src/handlers/embeddings/ollama_handler.py:33
 #: src/handlers/llm/ollama_handler.py:151
@@ -40,35 +34,34 @@ msgid ""
 "Automatically run ollama serve in background when needed if it's not "
 "running. You can kill it with killall ollama"
 msgstr ""
-"Voer Ollama automatisch op de achtergrond uit wanneer nodig als het niet "
-"actief is. U kunt het uitschakelen met killall ollama."
+"Ejecuta automáticamente ollama serve en segundo plano cuando sea necesario "
+"si no se está ejecutando. Puedes detenerlo con killall ollama"
 
 #: src/handlers/embeddings/ollama_handler.py:34
 #: src/handlers/llm/ollama_handler.py:153
-#, fuzzy
 msgid "Custom Model"
-msgstr "Aangepast model"
+msgstr "Modelo personalizado"
 
 #: src/handlers/embeddings/ollama_handler.py:34
 #: src/handlers/embeddings/openai_handler.py:41
 #: src/handlers/llm/claude_handler.py:85 src/handlers/llm/openai_handler.py:78
 #: src/handlers/llm/ollama_handler.py:153
 msgid "Use a custom model"
-msgstr "Gebruik een aangepast model"
+msgstr "Usar un modelo personalizado"
 
 #: src/handlers/embeddings/ollama_handler.py:40
 #: src/handlers/embeddings/ollama_handler.py:49
 #: src/handlers/llm/ollama_handler.py:159
 #: src/handlers/llm/ollama_handler.py:168
 msgid "Ollama Model"
-msgstr "Ollama-model"
+msgstr "Modelo Ollama"
 
 #: src/handlers/embeddings/ollama_handler.py:41
 #: src/handlers/embeddings/ollama_handler.py:49
 #: src/handlers/llm/ollama_handler.py:160
 #: src/handlers/llm/ollama_handler.py:168
 msgid "Name of the Ollama Model"
-msgstr "Naam van het Ollama-model"
+msgstr "Nombre del modelo Ollama"
 
 #: src/handlers/embeddings/openai_handler.py:35
 #: src/handlers/llm/claude_handler.py:84 src/handlers/llm/openai_handler.py:72
@@ -80,22 +73,21 @@ msgstr "Naam van het Ollama-model"
 #: src/handlers/tts/groq_tts_handler.py:32
 #: src/handlers/tts/openai_tts_handler.py:18
 msgid "API Key"
-msgstr "API-sleutel"
+msgstr "Clave de API"
 
 #: src/handlers/embeddings/openai_handler.py:35
 #: src/handlers/llm/openai_handler.py:72
 msgid "API Key for "
-msgstr "API-sleutel voor "
+msgstr "Clave de API para "
 
 #: src/handlers/embeddings/openai_handler.py:38
 msgid "API base url, change this to use different APIs"
-msgstr "API-basis-URL, wijzig deze om verschillende API's te gebruiken"
+msgstr "URL base de la API, cámbiela para usar diferentes APIs"
 
 #: src/handlers/embeddings/openai_handler.py:41
 #: src/handlers/llm/openai_handler.py:78
-#, fuzzy
 msgid "Use Custom Model"
-msgstr "Aangepast model gebruiken"
+msgstr "Usar modelo personalizado"
 
 #: src/handlers/embeddings/openai_handler.py:44
 #: src/handlers/llm/claude_handler.py:89 src/handlers/llm/claude_handler.py:93
@@ -107,55 +99,54 @@ msgstr "Aangepast model gebruiken"
 #: src/handlers/tts/groq_tts_handler.py:34
 #: src/handlers/tts/openai_tts_handler.py:20
 msgid "Model"
-msgstr "Model"
+msgstr "Modelo"
 
 #: src/handlers/embeddings/openai_handler.py:44
 msgid "Name of the Embedding Model to use"
-msgstr "Naam van het inbeddingsmodel om te gebruiken"
+msgstr "Nombre del modelo de embedding a usar"
 
 #: src/handlers/embeddings/openai_handler.py:51
 #: src/handlers/llm/openai_handler.py:91
 msgid " Model"
-msgstr " Model"
+msgstr " Modelo"
 
 #: src/handlers/llm/claude_handler.py:84
 #: src/handlers/tts/custom_openai_tts.py:18
 #: src/handlers/tts/groq_tts_handler.py:32
 #: src/handlers/tts/openai_tts_handler.py:18
 msgid "The API key to use"
-msgstr "De API-sleutel om te gebruiken"
+msgstr "La clave de API a usar"
 
 #: src/handlers/llm/claude_handler.py:89 src/handlers/llm/claude_handler.py:93
 #: src/handlers/tts/custom_openai_tts.py:20
 #: src/handlers/tts/groq_tts_handler.py:34
 #: src/handlers/tts/openai_tts_handler.py:20
 msgid "The model to use"
-msgstr "Het te gebruiken model"
+msgstr "El modelo a usar"
 
 #: src/handlers/llm/claude_handler.py:96
 msgid "Max Tokens"
-msgstr "Max. tokens"
+msgstr "Tokens máximos"
 
 #: src/handlers/llm/claude_handler.py:96
 msgid "The maximum number of tokens to generate"
-msgstr "Het maximum aantal te genereren tokens"
+msgstr "El número máximo de tokens a generar"
 
 #: src/handlers/llm/custom_handler.py:20 src/handlers/llm/gemini_handler.py:119
 #: src/handlers/llm/gpt4all_handler.py:153
 #: src/handlers/llm/newelle_handler.py:27 src/utility/util.py:136
-#, fuzzy
 msgid "Message Streaming"
-msgstr "Berichtstreaming"
+msgstr "Transmisión de mensajes"
 
 #: src/handlers/llm/custom_handler.py:20 src/handlers/llm/gemini_handler.py:120
 #: src/handlers/llm/gpt4all_handler.py:153
 #: src/handlers/llm/newelle_handler.py:28 src/utility/util.py:137
 msgid "Gradually stream message output"
-msgstr "Uitvoer van berichten geleidelijk streamen"
+msgstr "Transmite la salida del mensaje gradualmente"
 
 #: src/handlers/llm/custom_handler.py:21
 msgid "Command to execute to get bot output"
-msgstr "Commando om uit te voeren om botoutput te verkrijgen"
+msgstr "Comando a ejecutar para obtener la salida del bot"
 
 #: src/handlers/llm/custom_handler.py:21
 #, python-brace-format
@@ -163,12 +154,12 @@ msgid ""
 "Command to execute to get bot response, {0} will be replaced with a JSON "
 "file containing the chat, {1} with the system prompt"
 msgstr ""
-"Commando om uit te voeren om botreactie te verkrijgen, {0} wordt vervangen "
-"door een JSON-bestand met de chat, {1} door de systeemprompt"
+"Comando a ejecutar para obtener la respuesta del bot, {0} será reemplazado "
+"por un archivo JSON que contiene el chat, {1} por el mensaje del sistema"
 
 #: src/handlers/llm/custom_handler.py:22
 msgid "Command to execute to get bot's suggestions"
-msgstr "Commando om uit te voeren om botsuggesties te verkrijgen"
+msgstr "Comando a ejecutar para obtener sugerencias del bot"
 
 #: src/handlers/llm/custom_handler.py:22
 #, python-brace-format
@@ -178,165 +169,162 @@ msgid ""
 "suggestions to generate. Must return a JSON array containing the suggestions "
 "as strings"
 msgstr ""
-"Commando om uit te voeren om chatsuggesties te verkrijgen, {0} wordt "
-"vervangen door een JSON-bestand met de chat, {1} door de extra prompts, {2} "
-"door het aantal te genereren suggesties. Moet een JSON-array retourneren met "
-"de suggesties als strings"
+"Comando a ejecutar para obtener sugerencias de chat, {0} será reemplazado "
+"por un archivo JSON que contiene el chat, {1} por los prompts adicionales, "
+"{2} por el número de sugerencias a generar. Debe devolver un array JSON "
+"que contenga las sugerencias como cadenas de texto"
 
 #: src/handlers/llm/gemini_handler.py:94
 msgid "API Key (required)"
-msgstr "API-sleutel (vereist)"
+msgstr "Clave de API (requerido)"
 
 #: src/handlers/llm/gemini_handler.py:94
 msgid "API key got from ai.google.dev"
-msgstr "API-sleutel verkregen van ai.google.dev"
+msgstr "Clave de API obtenida de ai.google.dev"
 
 #: src/handlers/llm/gemini_handler.py:98
 msgid "AI Model to use"
-msgstr "AI-model om te gebruiken"
+msgstr "Modelo de IA a usar"
 
 #: src/handlers/llm/gemini_handler.py:103
 msgid "Enable System Prompt"
-msgstr "Systeemprompt inschakelen"
+msgstr "Habilitar prompt del sistema"
 
 #: src/handlers/llm/gemini_handler.py:103
 msgid ""
 "Some models don't support system prompt (or developers instructions), "
 "disable it if you get errors about it"
 msgstr ""
-"Sommige modellen ondersteunen geen systeemprompt (of instructies voor "
-"ontwikkelaars), schakel deze uit als u hierdoor fouten krijgt"
+"Algunos modelos no soportan el prompt del sistema (o instrucciones del "
+"desarrollador), desactívalo si obtienes errores al respecto"
 
 #: src/handlers/llm/gemini_handler.py:107
 msgid "Inject system prompt"
-msgstr "Systeemprompt injecteren"
+msgstr "Inyectar prompt del sistema"
 
 #: src/handlers/llm/gemini_handler.py:107
 msgid ""
 "Even if the model doesn't support system prompts, put the prompts on top of "
 "the user message"
 msgstr ""
-"Zelfs als het model geen systeemprompts ondersteunt, plaats de prompts dan "
-"boven aan het gebruikersbericht"
+"Incluso si el modelo no soporta los prompts del sistema, pon los prompts "
+"encima del mensaje del usuario"
 
 #: src/handlers/llm/gemini_handler.py:109
-#, fuzzy
 msgid "Thinking Settings"
-msgstr "Denkinstellingen"
+msgstr "Configuración de pensamiento"
 
 #: src/handlers/llm/gemini_handler.py:109
 msgid "Settings about thinking models"
-msgstr "Instellingen over denkmodellen"
+msgstr "Configuración sobre los modelos de pensamiento"
 
 #: src/handlers/llm/gemini_handler.py:110
 #: src/handlers/llm/ollama_handler.py:152
 msgid "Enable Thinking"
-msgstr "Denken inschakelen"
+msgstr "Habilitar pensamiento"
 
 #: src/handlers/llm/gemini_handler.py:110
 msgid "Show thinking, disable it if your model does not support it"
-msgstr "Toon denken, schakel dit uit als uw model dit niet ondersteunt"
+msgstr "Mostrar pensamiento, desactívalo si tu modelo no lo soporta"
 
 #: src/handlers/llm/gemini_handler.py:111
 msgid "Enable Thinking Budget"
-msgstr "Denkbudget inschakelen"
+msgstr "Habilitar presupuesto de pensamiento"
 
 #: src/handlers/llm/gemini_handler.py:111
 msgid "If to enable thinking budget"
-msgstr "Als denkbudget ingeschakeld moet worden"
+msgstr "Si habilitar el presupuesto de pensamiento"
 
 #: src/handlers/llm/gemini_handler.py:112
 msgid "Thinking Budget"
-msgstr "Denkbudget"
+msgstr "Presupuesto de pensamiento"
 
 #: src/handlers/llm/gemini_handler.py:112
 msgid "How much time to spend thinking"
-msgstr "Hoeveel tijd te besteden aan denken"
+msgstr "Cuánto tiempo dedicar a pensar"
 
 #: src/handlers/llm/gemini_handler.py:116
 msgid "Image Output"
-msgstr "Afbeeldingsuitvoer"
+msgstr "Salida de imagen"
 
 #: src/handlers/llm/gemini_handler.py:116
 msgid "Enable image output, only supported by gemini-2.0-flash-exp"
-msgstr "Afbeeldingsuitvoer inschakelen, alleen ondersteund door gemini-2.0-flash-exp"
+msgstr "Habilitar salida de imagen, solo soportado por gemini-2.0-flash-exp"
 
 #: src/handlers/llm/gemini_handler.py:125
 msgid "Enable safety settings"
-msgstr "Veiligheidsinstellingen inschakelen"
+msgstr "Habilitar configuración de seguridad"
 
 #: src/handlers/llm/gemini_handler.py:126
 msgid "Enable google safety settings to avoid generating harmful content"
-msgstr ""
-"Schakel Google veiligheidsinstellingen in om te voorkomen dat schadelijke "
-"inhoud wordt gegenereerd"
+msgstr "Habilitar la configuración de seguridad de Google para evitar generar contenido dañino"
 
 #: src/handlers/llm/gemini_handler.py:131
 #: src/handlers/llm/openai_handler.py:112
 #: src/handlers/llm/newelle_handler.py:18
 msgid "Privacy Policy"
-msgstr "Privacybeleid"
+msgstr "Política de privacidad"
 
 #: src/handlers/llm/gemini_handler.py:132
 #: src/handlers/llm/openai_handler.py:112
 #: src/handlers/llm/newelle_handler.py:19
 msgid "Open privacy policy website"
-msgstr "Open website privacybeleid"
+msgstr "Abrir el sitio web de la política de privacidad"
 
 #: src/handlers/llm/gemini_handler.py:135 src/handlers/llm/openai_handler.py:81
 msgid "Advanced Parameters"
-msgstr "Geavanceerde parameters"
+msgstr "Parámetros avanzados"
 
 #: src/handlers/llm/gemini_handler.py:135
 msgid "Enable advanced parameters"
-msgstr "Geavanceerde parameters inschakelen"
+msgstr "Habilitar parámetros avanzados"
 
 #: src/handlers/llm/gpt4all_handler.py:67
 msgid "RAM Required: "
-msgstr "Vereist RAM: "
+msgstr "RAM requerida: "
 
 #: src/handlers/llm/gpt4all_handler.py:68
 msgid "Parameters: "
-msgstr "Parameters: "
+msgstr "Parámetros: "
 
 #: src/handlers/llm/gpt4all_handler.py:69
 msgid "Size: "
-msgstr "Grootte: "
+msgstr "Tamaño: "
 
 #: src/handlers/llm/gpt4all_handler.py:154 src/handlers/llm/g4f_handler.py:44
 msgid "Model to use"
-msgstr "Model om te gebruiken"
+msgstr "Modelo a usar"
 
 #: src/handlers/llm/gpt4all_handler.py:154
 #: src/handlers/tts/elevenlabs_handler.py:25
 msgid "Name of the model to use"
-msgstr "Naam van het te gebruiken model"
+msgstr "Nombre del modelo a usar"
 
 #: src/handlers/llm/gpt4all_handler.py:155
 #: src/handlers/llm/ollama_handler.py:172
 msgid "Model Manager"
-msgstr "Modelbeheerder"
+msgstr "Gestor de modelos"
 
 #: src/handlers/llm/gpt4all_handler.py:155
 #: src/handlers/llm/ollama_handler.py:172
 msgid "List of models available"
-msgstr "Lijst met beschikbare modellen"
+msgstr "Lista de modelos disponibles"
 
 #: src/handlers/llm/openai_handler.py:81
 msgid "Include parameters like Max Tokens, Top-P, Temperature, etc."
-msgstr "Inclusief parameters zoals Max Tokens, Top-P, Temperatuur, enz."
+msgstr "Incluir parámetros como Max Tokens, Top-P, Temperatura, etc."
 
 #: src/handlers/llm/openai_handler.py:84
 msgid "Name of the LLM Model to use"
-msgstr "Naam van het te gebruiken LLM-model"
+msgstr "Nombre del modelo LLM a usar"
 
 #: src/handlers/llm/openai_handler.py:103
 msgid "max Tokens"
-msgstr "Max. tokens"
+msgstr "Tokens máximos"
 
 #: src/handlers/llm/openai_handler.py:103
 msgid "Max tokens of the generated text"
-msgstr "Max. tokens van de gegenereerde tekst"
+msgstr "Tokens máximos del texto generado"
 
 #: src/handlers/llm/openai_handler.py:104
 msgid "Top-P"
@@ -344,114 +332,112 @@ msgstr "Top-P"
 
 #: src/handlers/llm/openai_handler.py:104
 msgid "An alternative to sampling with temperature, called nucleus sampling"
-msgstr ""
-"Een alternatief voor bemonstering met temperatuur, genaamd nucleus-bemonstering"
+msgstr "Una alternativa al muestreo con temperatura, llamado muestreo de núcleo"
 
 #: src/handlers/llm/openai_handler.py:105
 #: src/handlers/stt/whispercpp_handler.py:50
 msgid "Temperature"
-msgstr "Temperatuur"
+msgstr "Temperatura"
 
 #: src/handlers/llm/openai_handler.py:105
 msgid ""
 "What sampling temperature to use. Higher values will make the output more "
 "random"
 msgstr ""
-"Welke bemonsteringstemperatuur te gebruiken. Hogere waarden maken de uitvoer "
-"willekeuriger"
+"Qué temperatura de muestreo usar. Valores más altos harán que la salida sea "
+"más aleatoria"
 
 #: src/handlers/llm/openai_handler.py:106
 msgid "Frequency Penalty"
-msgstr "Frequentieboete"
+msgstr "Penalización de frecuencia"
 
 #: src/handlers/llm/openai_handler.py:106
 msgid ""
 "Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
 "to repeat the same line verbatim"
 msgstr ""
-"Getal tussen -2.0 en 2.0. Positieve waarden verlagen de waarschijnlijkheid "
-"dat het model dezelfde regel letterlijk herhaalt"
+"Número entre -2.0 y 2.0. Los valores positivos disminuyen la probabilidad de "
+"que el modelo repita la misma línea palabra por palabra"
 
 #: src/handlers/llm/openai_handler.py:107
 msgid "Presence Penalty"
-msgstr "Aanwezigheidsboete"
+msgstr "Penalización de presencia"
 
 #: src/handlers/llm/openai_handler.py:107
 msgid ""
 "Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
 "to talk about new topics"
 msgstr ""
-"Getal tussen -2.0 en 2.0. Positieve waarden verlagen de waarschijnlijkheid "
-"dat het model over nieuwe onderwerpen praat"
+"Número entre -2.0 y 2.0. Los valores positivos disminuyen la probabilidad de "
+"que el modelo hable de nuevos temas"
 
 #: src/handlers/llm/openrouter_handler.py:14
 msgid "Provider Sorting"
-msgstr "Sorteervolgorde van providers"
+msgstr "Ordenación de proveedores"
 
 #: src/handlers/llm/openrouter_handler.py:14
 msgid "Choose providers based on pricing/throughput or latency"
-msgstr "Kies providers op basis van prijs/doorvoer of latentie"
+msgstr "Elija proveedores según el precio/rendimiento o la latencia"
 
 #: src/handlers/llm/openrouter_handler.py:14
 msgid "Price"
-msgstr "Prijs"
+msgstr "Precio"
 
 #: src/handlers/llm/openrouter_handler.py:14
 msgid "Throughput"
-msgstr "Doorvoer"
+msgstr "Rendimiento"
 
 #: src/handlers/llm/openrouter_handler.py:14
 msgid "Latency"
-msgstr "Latentie"
+msgstr "Latencia"
 
 #: src/handlers/llm/openrouter_handler.py:15
 msgid "Providers Order"
-msgstr "Volgorde van providers"
+msgstr "Orden de proveedores"
 
 #: src/handlers/llm/openrouter_handler.py:15
 msgid ""
 "Add order of providers to use, names separated by a comma.\n"
 "Empty to not specify"
 msgstr ""
-"Voeg de volgorde van te gebruiken providers toe, namen gescheiden door een "
-"komma.\n"
-"Leeg laten om niet te specificeren"
+"Añada el orden de los proveedores a usar, nombres separados por comas.\n"
+"Deje en blanco para no especificar"
 
 #: src/handlers/llm/openrouter_handler.py:16
 msgid "Allow Fallbacks"
-msgstr "Fallbacks toestaan"
+msgstr "Permitir alternativas"
 
 #: src/handlers/llm/openrouter_handler.py:16
 msgid "Allow fallbacks to other providers"
-msgstr "Fallbacks naar andere providers toestaan"
+msgstr "Permitir alternativas a otros proveedores"
 
 #: src/handlers/llm/g4f_handler.py:45
 msgid "Update G4F"
-msgstr "G4F bijwerken"
+msgstr "Actualizar G4F"
 
 #: src/handlers/llm/ollama_handler.py:152
 msgid "Allow thinking in the model, only some models are supported"
-msgstr "Denken in het model toestaan, slechts enkele modellen worden ondersteund"
+msgstr "Permitir pensar en el modelo, solo algunos modelos son compatibles"
 
 #: src/handlers/llm/ollama_handler.py:176
 msgid "Add custom model"
-msgstr "Aangepast model toevoegen"
+msgstr "Añadir modelo personalizado"
 
 #: src/handlers/llm/ollama_handler.py:177
 msgid ""
 "Add any model to this list by putting name:size\n"
 "Or any gguf from hf with hf.co/username/model"
 msgstr ""
-"Voeg elk model toe aan deze lijst door naam:grootte te plaatsen\n"
-"Of een gguf van hf met hf.co/gebruikersnaam/model"
+"Añada cualquier modelo a esta lista poniendo nombre:tamaño\n"
+"O cualquier gguf de hf con hf.co/username/model"
 
 #: src/handlers/llm/ollama_handler.py:187
 msgid "Update Ollama"
-msgstr "Ollama bijwerken"
+msgstr "Actualizar Ollama"
 
 #: src/handlers/rag/rag_handler.py:104
 msgid "Index your documents"
-msgstr "Uw documenten indexeren"
+msgstr "Indexar sus documentos"
 
 #: src/handlers/rag/rag_handler.py:105
 msgid ""
@@ -459,143 +445,138 @@ msgid ""
 "operation every time you edit/create a document, change document analyzer or "
 "change embedding model"
 msgstr ""
-"Indexeer alle documenten in uw documentmap. U moet deze bewerking uitvoeren "
-"telkens wanneer u een document bewerkt/creëert, de documentanalysator "
-"wijzigt of het inbeddingsmodel wijzigt"
+"Indexa todos los documentos de tu carpeta de documentos. Debes ejecutar esta "
+"operación cada vez que edites/crees un documento, cambies el analizador de "
+"documentos o cambies el modelo de embedding"
 
 #: src/handlers/stt/custom_handler.py:13 src/handlers/tts/custom_handler.py:17
 msgid "Command to execute"
-msgstr "Commando om uit te voeren"
+msgstr "Comando a ejecutar"
 
 #: src/handlers/stt/custom_handler.py:14
 #, python-brace-format
 msgid "{0} will be replaced with the model fullpath"
-msgstr "{0} wordt vervangen door het volledige pad van het model"
+msgstr "{0} será reemplazado por la ruta completa del modelo"
 
 #: src/handlers/stt/googlesr_handler.py:14
 msgid "API Key for Google SR, write 'default' to use the default one"
-msgstr ""
-"API-sleutel voor Google SR, schrijf 'default' om de standaard te gebruiken"
+msgstr "Clave de API para Google SR, escriba 'default' para usar la predeterminada"
 
 #: src/handlers/stt/googlesr_handler.py:21
 #: src/handlers/stt/groqsr_handler.py:29
 #: src/handlers/stt/openaisr_handler.py:32
 #: src/handlers/stt/whispercpp_handler.py:47
 msgid "Language"
-msgstr "Taal"
+msgstr "Idioma"
 
 #: src/handlers/stt/googlesr_handler.py:22
 msgid "The language of the text to recgnize in IETF"
-msgstr "De taal van de tekst die in IETF moet worden herkend"
+msgstr "El idioma del texto a reconocer en IETF"
 
 #: src/handlers/stt/groqsr_handler.py:14
 msgid "API Key for Groq SR, write 'default' to use the default one"
-msgstr ""
-"API-sleutel voor Groq SR, schrijf 'default' om de standaard te gebruiken"
+msgstr "Clave de API para Groq SR, escriba 'default' para usar la predeterminada"
 
 #: src/handlers/stt/groqsr_handler.py:21
 msgid "Groq Model"
-msgstr "Groq Model"
+msgstr "Modelo Groq"
 
 #: src/handlers/stt/groqsr_handler.py:22
 msgid "Name of the Groq Model"
-msgstr "Naam van het Groq Model"
+msgstr "Nombre del modelo Groq"
 
 #: src/handlers/stt/groqsr_handler.py:30
 msgid ""
 "Specify the language for transcription. Use ISO 639-1 language codes (e.g. "
 "\"en\" for English, \"fr\" for French, etc.). "
 msgstr ""
-"Specificeer de taal voor transcriptie. Gebruik ISO 639-1 taalcodes (bijv. "
-"\"en\" voor Engels, \"fr\" voor Frans, enz.)."
+"Especifica el idioma para la transcripción. Usa códigos de idioma ISO 639-1 "
+"(ej. \"es\" para español, \"fr\" para francés, etc.)."
 
 #: src/handlers/stt/openaisr_handler.py:11
 msgid "Endpoint for OpenAI requests"
-msgstr "Eindpunt voor OpenAI-verzoeken"
+msgstr "Punto de conexión para solicitudes de OpenAI"
 
 #: src/handlers/stt/openaisr_handler.py:18
 msgid "API Key for OpenAI"
-msgstr "API-sleutel voor OpenAI"
+msgstr "Clave de API para OpenAI"
 
 #: src/handlers/stt/openaisr_handler.py:25
 msgid "Whisper Model"
-msgstr "Whisper-model"
+msgstr "Modelo Whisper"
 
 #: src/handlers/stt/openaisr_handler.py:26
 msgid "Name of the OpenAI model"
-msgstr "Naam van het OpenAI-model"
+msgstr "Nombre del modelo de OpenAI"
 
 #: src/handlers/stt/openaisr_handler.py:33
 msgid ""
 "Optional: Specify the language for transcription. Use ISO 639-1 language "
 "codes (e.g. \"en\" for English, \"fr\" for French, etc.). "
 msgstr ""
-"Optioneel: Specificeer de taal voor transcriptie. Gebruik ISO 639-1 "
-"taalcodes (bijv. \"en\" voor Engels, \"fr\" voor Frans, enz.)."
+"Opcional: Especifica el idioma para la transcripción. Usa códigos de idioma "
+"ISO 639-1 (ej. \"es\" para español, \"fr\" para francés, etc.)."
 
 #: src/handlers/stt/vosk_handler.py:17
 msgid "Model Path"
-msgstr "Modelpad"
+msgstr "Ruta del modelo"
 
 #: src/handlers/stt/vosk_handler.py:18
 msgid "Absolute path to the VOSK model (unzipped)"
-msgstr "Absoluut pad naar het VOSK-model (uitgepakt)"
+msgstr "Ruta absoluta al modelo VOSK (descomprimido)"
 
 #: src/handlers/stt/whisper_handler.py:16
 #: src/handlers/stt/whispercpp_handler.py:41
 msgid "Name of the Whisper model"
-msgstr "Naam van het Whisper-model"
+msgstr "Nombre del modelo Whisper"
 
 #: src/handlers/stt/witai_handler.py:13
 msgid "Server Access Token for wit.ai"
-msgstr "Server toegangstoken voor wit.ai"
+msgstr "Token de acceso al servidor para wit.ai"
 
 #: src/handlers/stt/sphinx_handler.py:19
 msgid "Could not understand the audio"
-msgstr "Kon de audio niet begrijpen"
+msgstr "No se pudo entender el audio"
 
 #: src/handlers/stt/whispercpp_handler.py:47
 msgid "Language of the recognition."
-msgstr "Taal van de herkenning."
+msgstr "Idioma del reconocimiento."
 
 #: src/handlers/stt/whispercpp_handler.py:48
 msgid "Model Library"
-msgstr "Modellenbibliotheek"
+msgstr "Biblioteca de modelos"
 
 #: src/handlers/stt/whispercpp_handler.py:48
 msgid "Manage Whisper models"
-msgstr "Whisper-modellen beheren"
+msgstr "Gestionar modelos Whisper"
 
 #: src/handlers/stt/whispercpp_handler.py:49
-#, fuzzy
 msgid "Advanced Settings"
-msgstr "Geavanceerde instellingen"
+msgstr "Configuración avanzada"
 
 #: src/handlers/stt/whispercpp_handler.py:49
-#, fuzzy
 msgid "More advanced settings"
-msgstr "Meer geavanceerde instellingen"
+msgstr "Más configuración avanzada"
 
 #: src/handlers/stt/whispercpp_handler.py:50
 msgid "Temperature to use"
-msgstr "Temperatuur om te gebruiken"
+msgstr "Temperatura a usar"
 
 #: src/handlers/stt/whispercpp_handler.py:51
-#, fuzzy
 msgid "Prompt for the recognition"
-msgstr "Prompt voor de herkenning"
+msgstr "Prompt para el reconocimiento"
 
 #: src/handlers/stt/whispercpp_handler.py:51
 msgid "Prompt to use for the recognition"
-msgstr "Prompt om te gebruiken voor de herkenning"
+msgstr "Prompt a usar para el reconocimiento"
 
 #: src/handlers/tts/custom_openai_tts.py:17
 msgid "Endpoint"
-msgstr "Eindpunt"
+msgstr "Punto de conexión"
 
 #: src/handlers/tts/custom_openai_tts.py:17
 msgid "Custom endpoint of the service to use"
-msgstr "Aangepast eindpunt van de te gebruiken service"
+msgstr "Punto de conexión personalizado del servicio a usar"
 
 #: src/handlers/tts/custom_openai_tts.py:19
 #: src/handlers/tts/elevenlabs_handler.py:17
@@ -603,69 +584,69 @@ msgstr "Aangepast eindpunt van de te gebruiken service"
 #: src/handlers/tts/openai_tts_handler.py:19 src/handlers/tts/tts.py:33
 #: src/ui/settings.py:128
 msgid "Voice"
-msgstr "Stem"
+msgstr "Voz"
 
 #: src/handlers/tts/custom_openai_tts.py:19
 #: src/handlers/tts/groq_tts_handler.py:33
 #: src/handlers/tts/openai_tts_handler.py:19
 msgid "The voice to use"
-msgstr "De te gebruiken stem"
+msgstr "La voz a usar"
 
 #: src/handlers/tts/custom_openai_tts.py:21
 #: src/handlers/tts/openai_tts_handler.py:21
 msgid "Instructions"
-msgstr "Instructies"
+msgstr "Instrucciones"
 
 #: src/handlers/tts/custom_openai_tts.py:21
 #: src/handlers/tts/openai_tts_handler.py:21
 msgid ""
 "Instructions for the voice generation. Leave it blank to avoid this field"
 msgstr ""
-"Instructies voor de stemgeneratie. Laat dit veld leeg om het te vermijden"
+"Instrucciones para la generación de voz. Déjelo en blanco para omitir este "
+"campo"
 
 #: src/handlers/tts/elevenlabs_handler.py:10
 msgid "API Key for ElevenLabs"
-msgstr "API-sleutel voor ElevenLabs"
+msgstr "Clave de API para ElevenLabs"
 
 #: src/handlers/tts/elevenlabs_handler.py:18
 msgid "Voice ID to use"
-msgstr "Stem-ID om te gebruiken"
+msgstr "ID de voz a usar"
 
 #: src/handlers/tts/elevenlabs_handler.py:32
 msgid "Stability"
-msgstr "Stabiliteit"
+msgstr "Estabilidad"
 
 #: src/handlers/tts/elevenlabs_handler.py:33
 msgid "stability of the voice"
-msgstr "stabiliteit van de stem"
+msgstr "Estabilidad de la voz"
 
 #: src/handlers/tts/elevenlabs_handler.py:42
 msgid "Similarity boost"
-msgstr "Gelijkenisboost"
+msgstr "Aumento de similitud"
 
 #: src/handlers/tts/elevenlabs_handler.py:43
 msgid "Boosts overall voice clarity and speaker similarity"
-msgstr "Verhoogt de algehele stemhelderheid en sprekergelijkenis"
+msgstr "Aumenta la claridad general de la voz y la similitud del hablante"
 
 #: src/handlers/tts/elevenlabs_handler.py:52
 msgid "Style exaggeration"
-msgstr "Stijl overdreven"
+msgstr "Exageración de estilo"
 
 #: src/handlers/tts/elevenlabs_handler.py:53
 msgid ""
 "High values are reccomended if the style of the speech must be exaggerated"
 msgstr ""
-"Hoge waarden worden aanbevolen als de stijl van de spraak moet worden "
-"overdreven"
+"Se recomiendan valores altos si el estilo del habla debe ser exagerado"
 
 #: src/handlers/tts/custom_handler.py:17
 #, python-brace-format
 msgid "{0} will be replaced with the file fullpath, {1} with the text"
-msgstr "{0} wordt vervangen door het volledige pad van het bestand, {1} door de tekst"
+msgstr "{0} será reemplazado por la ruta completa del archivo, {1} por el texto"
 
 #: src/handlers/tts/tts.py:34
 msgid "Choose the preferred voice"
-msgstr "Kies de gewenste stem"
+msgstr "Elige la voz preferida"
 
 #: src/handlers/websearch/tavily.py:20
 msgid "Token"
@@ -673,21 +654,21 @@ msgstr "Token"
 
 #: src/handlers/websearch/tavily.py:20
 msgid "Tavily API key"
-msgstr "Tavily API-sleutel"
+msgstr "Clave de API de Tavily"
 
 #: src/handlers/websearch/tavily.py:21
 #: src/handlers/websearch/duckduckgo_handler.py:14
 msgid "Max Results"
-msgstr "Max. resultaten"
+msgstr "Resultados máximos"
 
 #: src/handlers/websearch/tavily.py:21
 #: src/handlers/websearch/duckduckgo_handler.py:14
 msgid "Number of results to consider"
-msgstr "Aantal te overwegen resultaten"
+msgstr "Número de resultados a considerar"
 
 #: src/handlers/websearch/tavily.py:22
 msgid "The depth of the search"
-msgstr "De diepte van de zoekopdracht"
+msgstr "La profundidad de la búsqueda"
 
 #: src/handlers/websearch/tavily.py:22
 msgid ""
@@ -696,15 +677,15 @@ msgid ""
 "provides generic content snippets from each source. A basic search costs 1 "
 "API Credit, while an advanced search costs 2 API Credits."
 msgstr ""
-"De diepte van de zoekopdracht. Geavanceerd zoeken is afgestemd op het "
-"ophalen van de meest relevante bronnen en inhoudsfragmenten voor uw "
-"zoekopdracht, terwijl basis zoeken algemene inhoudsfragmenten van elke bron "
-"biedt. Een basis zoekopdracht kost 1 API-tegoed, terwijl een geavanceerde "
-"zoekopdracht 2 API-tegoeden kost."
+"La profundidad de la búsqueda. La búsqueda avanzada está diseñada para "
+"recuperar las fuentes y fragmentos de contenido más relevantes para su "
+"consulta, mientras que la búsqueda básica proporciona fragmentos de "
+"contenido genéricos de cada fuente. Una búsqueda básica cuesta 1 crédito "
+"de API, mientras que una búsqueda avanzada cuesta 2 créditos de API."
 
 #: src/handlers/websearch/tavily.py:23
 msgid "The category of the search"
-msgstr "De categorie van de zoekopdracht"
+msgstr "La categoría de la búsqueda"
 
 #: src/handlers/websearch/tavily.py:23
 msgid ""
@@ -713,15 +694,15 @@ msgid ""
 "mainstream media sources. General is for broader, more general-purpose "
 "searches that may include a wide range of sources."
 msgstr ""
-"De categorie van de zoekopdracht. Nieuws is nuttig voor het ophalen van "
-"realtime updates, met name over politiek, sport en belangrijke actuele "
-"gebeurtenissen die door reguliere mediabronnen worden behandeld. Algemeen is "
-"voor bredere, meer algemene zoekopdrachten die een breed scala aan bronnen "
-"kunnen omvatten."
+"La categoría de la búsqueda. Noticias es útil para recuperar actualizaciones "
+"en tiempo real, particularmente sobre política, deportes y eventos actuales "
+"importantes cubiertos por fuentes de medios de comunicación. General es "
+"para búsquedas más amplias y de propósito general que pueden incluir una "
+"amplia gama de fuentes."
 
 #: src/handlers/websearch/tavily.py:24
 msgid "Chunks per source"
-msgstr "Stukken per bron"
+msgstr "Fragmentos por fuente"
 
 #: src/handlers/websearch/tavily.py:24
 msgid ""
@@ -729,392 +710,379 @@ msgid ""
 "length is maximum 500 characters. Available only when search depth is "
 "advanced."
 msgstr ""
-"Het aantal inhoudsfragmenten dat van elke bron moet worden opgehaald. De "
-"lengte van elk fragment is maximaal 500 tekens. Alleen beschikbaar wanneer de "
-"zoekdiepte geavanceerd is."
+"El número de fragmentos de contenido a recuperar de cada fuente. La longitud "
+"de cada fragmento es de un máximo de 500 caracteres. Disponible solo cuando "
+"la profundidad de búsqueda es avanzada."
 
 #: src/handlers/websearch/tavily.py:25
 msgid "Number of days back from the current date to include"
-msgstr "Aantal dagen terug vanaf de huidige datum om op te nemen"
+msgstr "Número de días hacia atrás desde la fecha actual para incluir"
 
 #: src/handlers/websearch/tavily.py:25
 msgid "Available only if topic is news."
-msgstr "Alleen beschikbaar als het onderwerp nieuws is."
+msgstr "Disponible solo si el tema es noticias."
 
 #: src/handlers/websearch/tavily.py:26
 msgid "Include answer"
-msgstr "Antwoord opnemen"
+msgstr "Incluir respuesta"
 
 #: src/handlers/websearch/tavily.py:26
 msgid ""
 "Include an LLM-generated answer to the provided query. Basic search returns "
 "a quick answer. Advanced returns a more detailed answer."
 msgstr ""
-"Voeg een door LLM gegenereerd antwoord toe aan de opgegeven zoekopdracht. "
-"Basis zoeken retourneert een snel antwoord. Geavanceerd retourneert een "
-"gedetailleerder antwoord."
+"Incluye una respuesta generada por el LLM a la consulta proporcionada. La "
+"búsqueda básica devuelve una respuesta rápida. La avanzada devuelve una "
+"respuesta más detallada."
 
 #: src/handlers/websearch/tavily.py:27
 msgid "Include raw content"
-msgstr "Ruwe inhoud opnemen"
+msgstr "Incluir contenido sin procesar"
 
 #: src/handlers/websearch/tavily.py:27
 msgid "Include the cleaned and parsed HTML content of each search result."
-msgstr "Inclusief de opgeschoonde en geparste HTML-inhoud van elk zoekresultaat."
+msgstr "Incluir el contenido HTML limpio y analizado de cada resultado de búsqueda."
 
 #: src/handlers/websearch/tavily.py:28
 msgid "Include images"
-msgstr "Afbeeldingen opnemen"
+msgstr "Incluir imágenes"
 
 #: src/handlers/websearch/tavily.py:28
 msgid "Perform an image search and include the results in the response."
-msgstr "Voer een afbeeldingenzoekopdracht uit en neem de resultaten op in de reactie."
+msgstr "Realizar una búsqueda de imágenes e incluir los resultados en la respuesta."
 
 #: src/handlers/websearch/tavily.py:29
 msgid "Include image descriptions"
-msgstr "Afbeeldingsbeschrijvingen opnemen"
+msgstr "Incluir descripciones de imágenes"
 
 #: src/handlers/websearch/tavily.py:29
 msgid ""
 "When Include images is enabled, also add a descriptive text for each image."
 msgstr ""
-"Wanneer 'Afbeeldingen opnemen' is ingeschakeld, voeg dan ook een beschrijvende "
-"tekst toe voor elke afbeelding."
+"Cuando la opción Incluir imágenes está habilitada, también añade un texto "
+"descriptivo para cada imagen."
 
 #: src/handlers/websearch/tavily.py:30
 msgid "Include domains"
-msgstr "Domeinen opnemen"
+msgstr "Incluir dominios"
 
 #: src/handlers/websearch/tavily.py:30
 msgid "A list of domains to specifically include in the search results."
-msgstr "Een lijst met domeinen die specifiek moeten worden opgenomen in de zoekresultaten."
+msgstr "Una lista de dominios a incluir específicamente en los resultados de búsqueda."
 
 #: src/handlers/websearch/tavily.py:31
 msgid "Exclude domains"
-msgstr "Domeinen uitsluiten"
+msgstr "Excluir dominios"
 
 #: src/handlers/websearch/tavily.py:31
 msgid "A list of domains to specifically exclude from the search results."
-msgstr "Een lijst met domeinen die specifiek moeten worden uitgesloten van de zoekresultaten."
+msgstr "Una lista de dominios a excluir específicamente de los resultados de búsqueda."
 
 #: src/handlers/websearch/duckduckgo_handler.py:15
 msgid "Region"
-msgstr "Regio"
+msgstr "Región"
 
 #: src/handlers/websearch/duckduckgo_handler.py:15
 msgid "Region for the search results"
-msgstr "Regio voor de zoekresultaten"
+msgstr "Región para los resultados de búsqueda"
 
 #: src/ui/profile.py:33 src/window.py:119
 msgid "Settings"
-msgstr "Instellingen"
+msgstr "Configuración"
 
 #: src/ui/profile.py:53
 msgid "Profile Name"
-msgstr "Profielnaam"
+msgstr "Nombre del perfil"
 
 #: src/ui/profile.py:58
-#, fuzzy
 msgid "Copied Settings"
-msgstr "Gekopieerde instellingen"
+msgstr "Configuración copiada"
 
 #: src/ui/profile.py:58
 msgid "Settings that will be copied to the new profile"
-msgstr "Instellingen die naar het nieuwe profiel worden gekopieerd"
+msgstr "Configuración que se copiará al nuevo perfil"
 
 #: src/ui/profile.py:70
 msgid "Create Profile"
-msgstr "Profiel aanmaken"
+msgstr "Crear perfil"
 
 #: src/ui/profile.py:72 src/ui/profile.py:74 src/ui/profile.py:129
 msgid "Import Profile"
-msgstr "Profiel importeren"
+msgstr "Importar perfil"
 
 #: src/ui/profile.py:79 src/ui/widgets/profilerow.py:43
 msgid "Edit Profile"
-msgstr "Profiel bewerken"
+msgstr "Editar perfil"
 
 #: src/ui/profile.py:84 src/ui/profile.py:99 src/ui/profile.py:123
 msgid "Export Profile"
-msgstr "Profiel exporteren"
+msgstr "Exportar perfil"
 
 #: src/ui/profile.py:87
 msgid "Export Passwords"
-msgstr "Wachtwoorden exporteren"
+msgstr "Exportar contraseñas"
 
 #: src/ui/profile.py:87
 msgid "Also export password-like fields"
-msgstr "Exporteer ook wachtwoordachtige velden"
+msgstr "También exportar campos tipo contraseña"
 
 #: src/ui/profile.py:89
 msgid "Export Propic"
-msgstr "Profielafbeelding exporteren"
+msgstr "Exportar foto de perfil"
 
 #: src/ui/profile.py:89
 msgid "Also export the profile picture"
-msgstr "Exporteer ook de profielfoto"
+msgstr "También exportar la imagen de perfil"
 
 #: src/ui/profile.py:109 src/ui/explorer.py:692
-#, fuzzy
 msgid "Create"
-msgstr "Aanmaken"
+msgstr "Crear"
 
 #: src/ui/profile.py:109
 msgid "Apply"
-msgstr "Toepassen"
+msgstr "Aplicar"
 
 #: src/ui/profile.py:116
 msgid "The settings of the current profile will be copied into the new one"
-msgstr "De instellingen van het huidige profiel worden gekopieerd naar het nieuwe profiel"
+msgstr "La configuración del perfil actual se copiará en el nuevo"
 
 #: src/ui/profile.py:122 src/ui/profile.py:128
 msgid "Newelle Profiles"
-msgstr "Newelle Profielen"
+msgstr "Perfiles de Newelle"
 
 #: src/ui/profile.py:123
 msgid "Export"
-msgstr "Exporteren"
+msgstr "Exportar"
 
 #: src/ui/profile.py:129
 msgid "Import"
-msgstr "Importeren"
+msgstr "Importar"
 
 #: src/ui/profile.py:197
 msgid "Set profile picture"
-msgstr "Profielfoto instellen"
+msgstr "Establecer imagen de perfil"
 
 #: src/ui/thread_editing.py:6 src/window.py:117
 msgid "Thread editing"
-msgstr "Thread bewerken"
+msgstr "Edición de hilos"
 
 #: src/ui/thread_editing.py:36
 msgid "No threads are running"
-msgstr "Geen threads actief"
+msgstr "No hay hilos en ejecución"
 
 #: src/ui/thread_editing.py:42
 msgid "Thread number: "
-msgstr "Threadnummer: "
+msgstr "Número de hilo: "
 
 #: src/ui/widgets/profilerow.py:26
 msgid "Select profile"
-msgstr "Profiel selecteren"
+msgstr "Seleccionar perfil"
 
 #: src/ui/widgets/profilerow.py:53
 msgid "Delete Profile"
-msgstr "Profiel verwijderen"
+msgstr "Eliminar perfil"
 
 #: src/ui/widgets/tipscarousel.py:41
 msgid "Newelle Tips"
-msgstr "Newelle Tips"
+msgstr "Consejos de Newelle"
 
 #: src/ui/widgets/thinking.py:27
 msgid "Thoughts"
-msgstr "Gedachten"
+msgstr "Pensamientos"
 
 #: src/ui/widgets/thinking.py:28 src/ui/widgets/thinking.py:135
 msgid "Expand to see details"
-msgstr "Uitvouwen om details te zien"
+msgstr "Expandir para ver detalles"
 
 #: src/ui/widgets/thinking.py:123
 msgid "Thinking..."
-msgstr "Aan het denken..."
+msgstr "Pensando..."
 
 #: src/ui/widgets/thinking.py:124
 msgid "The LLM is thinking... Expand to see thought process"
-msgstr "De LLM denkt na... Uitvouwen om denkproces te zien"
+msgstr "El LLM está pensando... Expanda para ver el proceso de pensamiento"
 
 #: src/ui/widgets/thinking.py:137
 msgid "No thought process recorded"
-msgstr "Geen denkproces vastgelegd"
+msgstr "No se registró ningún proceso de pensamiento"
 
 #: src/ui/explorer.py:192
 msgid "Folder is Empty"
-msgstr "Map is leeg"
+msgstr "La carpeta está vacía"
 
 #: src/ui/explorer.py:340 src/window.py:1574
 msgid "File not found"
-msgstr "Bestand niet gevonden"
+msgstr "Archivo no encontrado"
 
 #: src/ui/explorer.py:355
 msgid "Open in new tab"
-msgstr "Openen in nieuw tabblad"
+msgstr "Abrir en nueva pestaña"
 
 #: src/ui/explorer.py:357
 msgid "Open in integrated editor"
-msgstr "Openen in geïntegreerde editor"
+msgstr "Abrir en editor integrado"
 
 #: src/ui/explorer.py:360 src/ui/explorer.py:589
 msgid "Open in file manager"
-msgstr "Openen in bestandsbeheerder"
+msgstr "Abrir en el gestor de archivos"
 
 #: src/ui/explorer.py:363 src/ui/explorer.py:451
 msgid "Rename"
-msgstr "Hernoemen"
+msgstr "Renombrar"
 
 #: src/ui/explorer.py:366 src/ui/explorer.py:502 src/ui/settings.py:275
 #: src/ui/settings.py:346
 msgid "Delete"
-msgstr "Verwijderen"
+msgstr "Eliminar"
 
 #: src/ui/explorer.py:369
 msgid "Copy full path"
-msgstr "Volledig pad kopiëren"
+msgstr "Copiar ruta completa"
 
 #: src/ui/explorer.py:420 src/ui/explorer.py:657
-#, fuzzy
 msgid "Failed to open file manager"
-msgstr "Bestandsbeheerder kon niet worden geopend"
+msgstr "Error al abrir el gestor de archivos"
 
 #: src/ui/explorer.py:436
-#, fuzzy
 msgid "New name:"
-msgstr "Nieuwe naam:"
+msgstr "Nuevo nombre:"
 
 #: src/ui/explorer.py:448 src/ui/explorer.py:501 src/ui/explorer.py:689
 #: src/main.py:209
 msgid "Cancel"
-msgstr "Annuleren"
+msgstr "Cancelar"
 
 #: src/ui/explorer.py:471
 msgid "Renamed successfully"
-msgstr "Succesvol hernoemd"
+msgstr "Renombrado con éxito"
 
 #: src/ui/explorer.py:476
-#, fuzzy
 msgid "Failed to rename: {}"
-msgstr "Hernoemen mislukt: {}"
+msgstr "Fallo al renombrar: {}"
 
 #: src/ui/explorer.py:497
 msgid "Delete File?"
-msgstr "Bestand verwijderen?"
+msgstr "¿Eliminar archivo?"
 
 #: src/ui/explorer.py:499
 msgid "Are you sure you want to delete \"{}\"?"
-msgstr "Weet u zeker dat u \"{}\" wilt verwijderen?"
+msgstr "¿Estás seguro de que quieres eliminar \"{}\"?"
 
 #: src/ui/explorer.py:520
 msgid "Deleted successfully"
-msgstr "Succesvol verwijderd"
+msgstr "Eliminado con éxito"
 
 #: src/ui/explorer.py:525
-#, fuzzy
 msgid "Failed to delete: {}"
-msgstr "Verwijderen mislukt: {}"
+msgstr "Fallo al eliminar: {}"
 
 #: src/ui/explorer.py:538
 msgid "Path copied to clipboard"
-msgstr "Pad gekopieerd naar klembord"
+msgstr "Ruta copiada al portapapeles"
 
 #: src/ui/explorer.py:542
-#, fuzzy
 msgid "Failed to copy path"
-msgstr "Pad kopiëren mislukt"
+msgstr "Fallo al copiar ruta"
 
 #: src/ui/explorer.py:580
-#, fuzzy
 msgid "Create new folder"
-msgstr "Nieuwe map aanmaken"
+msgstr "Crear nueva carpeta"
 
 #: src/ui/explorer.py:583
 msgid "Create new file"
-msgstr "Nieuw bestand aanmaken"
+msgstr "Crear nuevo archivo"
 
 #: src/ui/explorer.py:586
 msgid "Open Terminal Here"
-msgstr "Open Terminal hier"
+msgstr "Abrir Terminal Aquí"
 
 #: src/ui/explorer.py:640
 msgid "Create New Folder"
-msgstr "Nieuwe map aanmaken"
+msgstr "Crear nueva carpeta"
 
 #: src/ui/explorer.py:640
-#, fuzzy
 msgid "Folder name:"
-msgstr "Mapnaam:"
+msgstr "Nombre de la carpeta:"
 
 #: src/ui/explorer.py:644
 msgid "Create New File"
-msgstr "Nieuw bestand aanmaken"
+msgstr "Crear nuevo archivo"
 
 #: src/ui/explorer.py:644
-#, fuzzy
 msgid "File name:"
-msgstr "Bestandsnaam:"
+msgstr "Nombre del archivo:"
 
 #: src/ui/explorer.py:713
 msgid "Folder created successfully"
-msgstr "Map succesvol aangemaakt"
+msgstr "Carpeta creada con éxito"
 
 #: src/ui/explorer.py:720
 msgid "File created successfully"
-msgstr "Bestand succesvol aangemaakt"
+msgstr "Archivo creado con éxito"
 
 #: src/ui/explorer.py:725
 msgid "A file or folder with that name already exists"
-msgstr "Een bestand of map met die naam bestaat al"
+msgstr "Ya existe un archivo o carpeta con ese nombre"
 
 #: src/ui/explorer.py:728
-#, fuzzy
 msgid "folder"
-msgstr "map"
+msgstr "carpeta"
 
 #: src/ui/explorer.py:728
 msgid "file"
-msgstr "bestand"
+msgstr "archivo"
 
 #: src/ui/explorer.py:730
-#, fuzzy
 msgid "Failed to create {}: {}"
-msgstr "Maken van {}: {} mislukt"
+msgstr "Fallo al crear {}: {}"
 
 #: src/ui/shortcuts.py:6
 msgid "Help"
-msgstr "Help"
+msgstr "Ayuda"
 
 #: src/ui/shortcuts.py:12
 msgid "Shortcuts"
-msgstr "Sneltoetsen"
+msgstr "Atajos de teclado"
 
 #: src/ui/shortcuts.py:13
 msgid "Reload chat"
-msgstr "Chat opnieuw laden"
+msgstr "Recargar chat"
 
 #: src/ui/shortcuts.py:14
 msgid "Reload folder"
-msgstr "Map opnieuw laden"
+msgstr "Recargar carpeta"
 
 #: src/ui/shortcuts.py:15
 msgid "New tab"
-msgstr "Nieuw tabblad"
+msgstr "Nueva pestaña"
 
 #: src/ui/shortcuts.py:16
 msgid "Paste Image"
-msgstr "Afbeelding plakken"
+msgstr "Pegar imagen"
 
 #: src/ui/shortcuts.py:17
 msgid "Focus message box"
-msgstr "Berichtvak focussen"
+msgstr "Enfocar cuadro de mensaje"
 
 #: src/ui/shortcuts.py:18
 msgid "Start/stop recording"
-msgstr "Opname starten/stoppen"
+msgstr "Iniciar/detener grabación"
 
 #: src/ui/shortcuts.py:19
 msgid "Save"
-msgstr "Opslaan"
+msgstr "Guardar"
 
 #: src/ui/shortcuts.py:20
-#, fuzzy
 msgid "Stop TTS"
-msgstr "TTS stoppen"
+msgstr "Detener TTS"
 
 #: src/ui/shortcuts.py:21
 msgid "Zoom in"
-msgstr "Inzoomen"
+msgstr "Acercar"
 
 #: src/ui/shortcuts.py:22
 msgid "Zoom out"
-msgstr "Uitzoomen"
+msgstr "Alejar"
 
 #: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.appdata.xml.in:7
 #: data/io.github.qwersyk.Newelle.desktop.in:2
@@ -1123,40 +1091,40 @@ msgstr "Newelle"
 
 #: src/ui/mini_window.py:20
 msgid "Chat is opened in mini window"
-msgstr "Chat is geopend in mini-venster"
+msgstr "El chat está abierto en una mini ventana"
 
 #: src/ui/presentation.py:93
 msgid "Welcome to Newelle"
-msgstr "Welkom bij Newelle"
+msgstr "Bienvenido a Newelle"
 
 #: src/ui/presentation.py:94
 msgid "Your ultimate virtual assistant."
-msgstr "Uw ultieme virtuele assistent."
+msgstr "Tu asistente virtual definitivo."
 
 #: src/ui/presentation.py:98
 msgid "Github Page"
-msgstr "Github-pagina"
+msgstr "Página de Github"
 
 #: src/ui/presentation.py:105
 msgid "Choose your favourite AI Language Model"
-msgstr "Kies uw favoriete AI-taalmodel"
+msgstr "Elige tu modelo de lenguaje de IA favorito"
 
 #: src/ui/presentation.py:106
 msgid ""
 "Newelle can be used with mutiple models and providers!\n"
 "<b>Note: It is strongly suggested to read the Guide to LLM page</b>"
 msgstr ""
-"Newelle kan worden gebruikt met meerdere modellen en providers!\n"
-"<b>Opmerking: Het wordt sterk aangeraden om de handleiding voor LLM te "
-"lezen</b>"
+"¡Newelle puede usarse con múltiples modelos y proveedores!\n"
+"<b>Nota: Se recomienda encarecidamente leer la página de la Guía de LLM</b"
+">"
 
 #: src/ui/presentation.py:110
 msgid "Guide to LLM"
-msgstr "Handleiding voor LLM"
+msgstr "Guía de LLM"
 
 #: src/ui/presentation.py:117
 msgid "Chat with your documents"
-msgstr "Chatten met uw documenten"
+msgstr "Chatea con tus documentos"
 
 #: src/ui/presentation.py:118
 msgid ""
@@ -1164,13 +1132,13 @@ msgid ""
 "chat or from your own files! Information relevant to your query will be sent "
 "to the LLM."
 msgstr ""
-"Newelle kan relevante informatie ophalen uit documenten die u in de chat "
-"verstuurt of uit uw eigen bestanden! Informatie die relevant is voor uw "
-"zoekopdracht wordt naar de LLM gestuurd."
+"¡Newelle puede recuperar información relevante de los documentos que envíes "
+"en el chat o de tus propios archivos! La información relevante para tu "
+"consulta se enviará al LLM."
 
 #: src/ui/presentation.py:124 src/ui/settings.py:236 src/window.py:647
 msgid "Command virtualization"
-msgstr "Commando virtualisatie"
+msgstr "Virtualización de comandos"
 
 #: src/ui/presentation.py:125
 msgid ""
@@ -1180,66 +1148,61 @@ msgid ""
 "By default, your commands will be <b>virtualized in the Flatpak environment</"
 "b>, but pay attention!"
 msgstr ""
-"Newelle kan worden gebruikt om commando's uit te voeren op uw systeem, maar "
-"let op wat u uitvoert! <b>De LLM staat niet onder onze controle, dus het kan "
-"kwaadaardige code genereren!</b>\n"
-"Standaard worden uw commando's <b>gevirtualiseerd in de Flatpak-omgeving</"
-"b>, maar let op!"
+"Newelle se puede usar para ejecutar comandos en su sistema, ¡pero preste "
+"atención a lo que ejecuta! <b>El LLM no está bajo nuestro control, ¡así que "
+"podría generar código malicioso!</b>\n"
+"Por defecto, sus comandos serán <b>virtualizados en el entorno Flatpak</b"
+">, ¡pero preste atención!"
 
 #: src/ui/presentation.py:131 src/ui/extension.py:17 src/constants.py:513
 #: src/window.py:118
 msgid "Extensions"
-msgstr "Extensies"
+msgstr "Extensiones"
 
 #: src/ui/presentation.py:132
 msgid "You can extend Newelle's functionalities using extensions!"
-msgstr "U kunt de functionaliteiten van Newelle uitbreiden met extensies!"
+msgstr "¡Puedes ampliar las funcionalidades de Newelle usando extensiones!"
 
 #: src/ui/presentation.py:136
-#, fuzzy
 msgid "Download extensions"
-msgstr "Extensies downloaden"
+msgstr "Descargar extensiones"
 
 #: src/ui/presentation.py:146
 msgid "Permission Error"
-msgstr "Toestemmingsfout"
+msgstr "Error de permiso"
 
 #: src/ui/presentation.py:147
 msgid ""
 "Newelle does not have enough permissions to run commands on your system."
-msgstr ""
-"Newelle heeft onvoldoende machtigingen om commando's op uw systeem uit te "
-"voeren."
+msgstr "Newelle no tiene suficientes permisos para ejecutar comandos en su sistema."
 
 #: src/ui/presentation.py:158
 msgid "Begin using the app"
-msgstr "Begin met het gebruiken van de app"
+msgstr "Empezar a usar la aplicación"
 
 #: src/ui/presentation.py:163
 msgid "Start chatting"
-msgstr "Begin met chatten"
+msgstr "Empezar a chatear"
 
 #: src/ui/extension.py:50
-#, fuzzy
 msgid "Installed Extensions"
-msgstr "Geïnstalleerde extensies"
+msgstr "Extensiones instaladas"
 
 #: src/ui/extension.py:85
 msgid "User guide to Extensions"
-msgstr "Gebruikershandleiding voor extensies"
+msgstr "Guía de usuario de extensiones"
 
 #: src/ui/extension.py:88
-#, fuzzy
 msgid "Download new Extensions"
-msgstr "Nieuwe extensies downloaden"
+msgstr "Descargar nuevas extensiones"
 
 #: src/ui/extension.py:91
 msgid "Install extension from file..."
-msgstr "Extensie installeren vanuit bestand..."
+msgstr "Instalar extensión desde archivo..."
 
 #: src/ui/settings.py:46 src/constants.py:523
 msgid "General"
-msgstr "Algemeen"
+msgstr "General"
 
 #: src/ui/settings.py:47 src/constants.py:478
 msgid "LLM"
@@ -1251,127 +1214,123 @@ msgstr "Prompts"
 
 #: src/ui/settings.py:49
 msgid "Knowledge"
-msgstr "Kennis"
+msgstr "Conocimiento"
 
 #: src/ui/settings.py:53
 msgid "Language Model"
-msgstr "Taalmodel"
+msgstr "Modelo de Lenguaje"
 
 #: src/ui/settings.py:62 src/ui/settings.py:82
 msgid "Other LLMs"
-msgstr "Andere LLM's"
+msgstr "Otros LLM"
 
 #: src/ui/settings.py:62 src/ui/settings.py:82
 msgid "Other available LLM providers"
-msgstr "Andere beschikbare LLM-providers"
+msgstr "Otros proveedores de LLM disponibles"
 
 #: src/ui/settings.py:72
-#, fuzzy
 msgid "Advanced LLM Settings"
-msgstr "Geavanceerde LLM-instellingen"
+msgstr "Configuración avanzada de LLM"
 
 #: src/ui/settings.py:76
 msgid "Secondary Language Model"
-msgstr "Secundair taalmodel"
+msgstr "Modelo de lenguaje secundario"
 
 #: src/ui/settings.py:76
 msgid ""
 "Model used for secondary tasks, like offer, chat name and memory generation"
 msgstr ""
-"Model gebruikt voor secundaire taken, zoals aanbod, chatnaam en geheugen"
-"generatie"
+"Modelo utilizado para tareas secundarias, como ofertas, nombres de chat y "
+"generación de memoria"
 
 #: src/ui/settings.py:93
 msgid "Embedding Model"
-msgstr "Inbeddingsmodel"
+msgstr "Modelo de incrustación (Embedding)"
 
 #: src/ui/settings.py:93
 msgid ""
 "Embedding is used to trasform text into vectors. Used by Long Term Memory "
 "and RAG. Changing it might require you to re-index documents or reset memory."
 msgstr ""
-"Inbedding wordt gebruikt om tekst om te zetten in vectoren. Wordt gebruikt "
-"door Langetermijngeheugen en RAG. Het wijzigen ervan kan vereisen dat u "
-"documenten opnieuw indexeert of het geheugen opnieuw instelt."
+"El embedding se usa para transformar texto en vectores. Usado por la "
+"memoria a largo plazo y RAG. Cambiarlo podría requerir que reindices "
+"documentos o reinicies la memoria."
 
 #: src/ui/settings.py:104 src/window.py:645
-#, fuzzy
 msgid "Long Term Memory"
-msgstr "Langetermijngeheugen"
+msgstr "Memoria a Largo Plazo"
 
 #: src/ui/settings.py:104
 msgid "Keep memory of old conversations"
-msgstr "Geheugen van oude gesprekken bewaren"
+msgstr "Mantener memoria de conversaciones antiguas"
 
 #: src/ui/settings.py:116 src/constants.py:401
 msgid "Web Search"
-msgstr "Webzoekopdracht"
+msgstr "Búsqueda Web"
 
 #: src/ui/settings.py:116
 msgid "Search information on the Web"
-msgstr "Informatie op het web zoeken"
+msgstr "Buscar información en la Web"
 
 #: src/ui/settings.py:132
 msgid "Text To Speech Program"
-msgstr "Tekst naar spraakprogramma"
+msgstr "Programa de Texto a Voz"
 
 #: src/ui/settings.py:132
 msgid "Choose which text to speech to use"
-msgstr "Kies welke tekst naar spraak te gebruiken"
+msgstr "Elige qué texto a voz usar"
 
 #: src/ui/settings.py:141
 msgid "Speech To Text Engine"
-msgstr "Spraak naar tekst-engine"
+msgstr "Motor de Voz a Texto"
 
 #: src/ui/settings.py:141
 msgid "Choose which speech recognition engine you want"
-msgstr "Kies welke spraakherkenningsengine u wilt"
+msgstr "Elige qué motor de reconocimiento de voz quieres"
 
 #: src/ui/settings.py:149
 msgid "Automatic Speech To Text"
-msgstr "Automatische spraak naar tekst"
+msgstr "Voz a Texto Automática"
 
 #: src/ui/settings.py:149
 msgid "Automatically restart speech to text at the end of a text/TTS"
-msgstr ""
-"Automatisch spraak naar tekst opnieuw starten aan het einde van een tekst/TTS"
+msgstr "Reiniciar automáticamente la voz a texto al final de un texto/TTS"
 
 #: src/ui/settings.py:153
 msgid "Prompt control"
-msgstr "Promptbeheer"
+msgstr "Control de prompts"
 
 #: src/ui/settings.py:158
 msgid "Interface"
-msgstr "Interface"
+msgstr "Interfaz"
 
 #: src/ui/settings.py:161
-#, fuzzy
 msgid "Interface Size"
-msgstr "Interfagrootte"
+msgstr "Tamaño de la interfaz"
 
 #: src/ui/settings.py:161
 msgid "Adjust the size of the interface"
-msgstr "Pas de grootte van de interface aan"
+msgstr "Ajustar el tamaño de la interfaz"
 
 #: src/ui/settings.py:173
 msgid "Editor color scheme"
-msgstr "Kleurenschema van editor"
+msgstr "Esquema de color del editor"
 
 #: src/ui/settings.py:173
 msgid "Change the color scheme of the editor and codeblocks"
-msgstr "Wijzig het kleurenschema van de editor en codeblokken"
+msgstr "Cambiar el esquema de color del editor y los bloques de código"
 
 #: src/ui/settings.py:180
 msgid "Hidden files"
-msgstr "Verborgen bestanden"
+msgstr "Archivos ocultos"
 
 #: src/ui/settings.py:180
 msgid "Show hidden files"
-msgstr "Verborgen bestanden tonen"
+msgstr "Mostrar archivos ocultos"
 
 #: src/ui/settings.py:186
 msgid "Send with ENTER"
-msgstr "Verzenden met ENTER"
+msgstr "Enviar con ENTER"
 
 #: src/ui/settings.py:186
 msgid ""
@@ -1379,57 +1338,57 @@ msgid ""
 "CTRL+ENTER. If disabled, messages will be sent with SHIFT+ENTER, and newline "
 "with enter"
 msgstr ""
-"Indien ingeschakeld, worden berichten verzonden met ENTER. Gebruik CTRL+ENTER "
-"voor een nieuwe regel. Indien uitgeschakeld, worden berichten verzonden met "
-"SHIFT+ENTER en een nieuwe regel met enter"
+"Si está habilitado, los mensajes se enviarán con ENTER, para ir a una nueva "
+"línea use CTRL+ENTER. Si está deshabilitado, los mensajes se enviarán con "
+"SHIFT+ENTER, y la nueva línea con ENTER"
 
 #: src/ui/settings.py:192
 msgid "Remove thinking from history"
-msgstr "Denken uit geschiedenis verwijderen"
+msgstr "Eliminar pensamientos del historial"
 
 #: src/ui/settings.py:192
 msgid ""
 "Do not send old thinking blocks for reasoning models in order to reduce "
 "token usage"
 msgstr ""
-"Stuur geen oude denkblokken voor redeneermodellen om het tokengebruik te "
-"verminderen"
+"No enviar bloques de pensamiento antiguos para modelos de razonamiento a fin "
+"de reducir el uso de tokens"
 
 #: src/ui/settings.py:198
 msgid "Display LaTeX"
-msgstr "LaTeX weergeven"
+msgstr "Mostrar LaTeX"
 
 #: src/ui/settings.py:198
 msgid "Display LaTeX formulas in chat"
-msgstr "LaTeX-formules weergeven in chat"
+msgstr "Mostrar fórmulas LaTeX en el chat"
 
 #: src/ui/settings.py:204
 msgid "Reverse Chat Order"
-msgstr "Chatvolgorde omkeren"
+msgstr "Invertir orden del chat"
 
 #: src/ui/settings.py:204
 msgid "Show most recent chats on top in chat list (change chat to apply)"
-msgstr "Toon meest recente chats bovenaan in chatlijst (wijzig chat om toe te passen)"
+msgstr "Mostrar los chats más recientes en la parte superior de la lista de chats (cambiar de chat para aplicar)"
 
 #: src/ui/settings.py:210
 msgid "Automatically Generate Chat Names"
-msgstr "Automatisch chatnamen genereren"
+msgstr "Generar nombres de chat automáticamente"
 
 #: src/ui/settings.py:210
 msgid "Generate chat names automatically after the first two messages"
-msgstr "Chatnamen automatisch genereren na de eerste twee berichten"
+msgstr "Generar nombres de chat automáticamente después de los dos primeros mensajes"
 
 #: src/ui/settings.py:216
 msgid "Number of offers"
-msgstr "Aantal aanbiedingen"
+msgstr "Número de ofertas"
 
 #: src/ui/settings.py:216
 msgid "Number of message suggestions to send to chat "
-msgstr "Aantal berichtsuggesties om naar de chat te sturen"
+msgstr "Número de sugerencias de mensajes para enviar al chat "
 
 #: src/ui/settings.py:223
 msgid "Username"
-msgstr "Gebruikersnaam"
+msgstr "Nombre de usuario"
 
 #: src/ui/settings.py:223
 #, python-brace-format
@@ -1438,162 +1397,159 @@ msgid ""
 "This information is not sent to the LLM by default\n"
 "You can add it to a prompt using the {USER} variable"
 msgstr ""
-"Wijzig het label dat voor uw bericht verschijnt\n"
-"Deze informatie wordt standaard niet naar de LLM gestuurd\n"
-"U kunt het toevoegen aan een prompt met behulp van de variabele {USER}"
+"Cambia la etiqueta que aparece antes de tu mensaje\n"
+"Esta información no se envía al LLM por defecto\n"
+"Puedes añadirla a un prompt usando la variable {USER}"
 
 #: src/ui/settings.py:233
 msgid "Neural Network Control"
-msgstr "Neuraal netwerkbeheer"
+msgstr "Control de red neuronal"
 
 #: src/ui/settings.py:236
 msgid "Run commands in a virtual machine"
-msgstr "Commando's uitvoeren in een virtuele machine"
+msgstr "Ejecutar comandos en una máquina virtual"
 
 #: src/ui/settings.py:249
 msgid "External Terminal"
-msgstr "Externe terminal"
+msgstr "Terminal externo"
 
 #: src/ui/settings.py:249
 msgid "Choose the external terminal where to run the console commands"
-msgstr "Kies de externe terminal om de consolecommando's uit te voeren"
+msgstr "Elige el terminal externo donde ejecutar los comandos de consola"
 
 #: src/ui/settings.py:258
 msgid "Program memory"
-msgstr "Programmgeheugen"
+msgstr "Memoria del programa"
 
 #: src/ui/settings.py:258
 msgid "How long the program remembers the chat "
-msgstr "Hoe lang het programma de chat onthoudt"
+msgstr "Cuánto tiempo el programa recuerda el chat "
 
 #: src/ui/settings.py:265
 msgid "Developer"
-msgstr "Ontwikkelaar"
+msgstr "Desarrollador"
 
 #: src/ui/settings.py:268 src/ui/stdout_monitor.py:31
 #: src/ui/stdout_monitor.py:41
 msgid "Program Output Monitor"
-msgstr "Programma-uitvoer monitor"
+msgstr "Monitor de salida del programa"
 
 #: src/ui/settings.py:268
 msgid ""
 "Monitor the program output in real-time, useful for debugging and seeing "
 "downloads progress"
 msgstr ""
-"Monitor de programma-uitvoer in real-time, nuttig voor debuggen en het zien "
-"van downloadvoortgang"
+"Monitoriza la salida del programa en tiempo real, útil para depurar y ver "
+"el progreso de las descargas"
 
 #: src/ui/settings.py:269
 msgid "Open"
-msgstr "Openen"
+msgstr "Abrir"
 
 #: src/ui/settings.py:274
 msgid "Delete pip path"
-msgstr "Pip-pad verwijderen"
+msgstr "Eliminar ruta pip"
 
 #: src/ui/settings.py:274
 msgid "Remove the extra dependencies installed"
-msgstr "Verwijder de extra geïnstalleerde afhankelijkheden"
+msgstr "Eliminar las dependencias adicionales instaladas"
 
 #: src/ui/settings.py:294
 msgid "Auto-run commands"
-msgstr "Automatisch uitvoeren van commando's"
+msgstr "Ejecutar comandos automáticamente"
 
 #: src/ui/settings.py:294
 msgid "Commands that the bot will write will automatically run"
-msgstr "Commando's die de bot schrijft, worden automatisch uitgevoerd"
+msgstr "Los comandos que el bot escribirá se ejecutarán automáticamente"
 
 #: src/ui/settings.py:297
-#, fuzzy
 msgid "Max number of commands"
-msgstr "Max. aantal commando's"
+msgstr "Número máximo de comandos"
 
 #: src/ui/settings.py:297
-#, fuzzy
 msgid ""
 "Maximum number of commands that the bot will write after a single user "
 "request"
 msgstr ""
-"Maximaal aantal commando's dat de bot zal schrijven na één "
-"gebruikersverzoek"
+"Número máximo de comandos que el bot escribirá después de una sola solicitud "
+"del usuario"
 
 #: src/ui/settings.py:328
 msgid "Browser"
-msgstr "Browser"
+msgstr "Navegador"
 
 #: src/ui/settings.py:328
 msgid "Settings for the browser"
-msgstr "Instellingen voor de browser"
+msgstr "Configuración del navegador"
 
 #: src/ui/settings.py:333
 msgid "Use external browser"
-msgstr "Externe browser gebruiken"
+msgstr "Usar navegador externo"
 
 #: src/ui/settings.py:333
 msgid "Use an external browser to open links instead of integrated one"
-msgstr "Gebruik een externe browser om links te openen in plaats van de geïntegreerde"
+msgstr "Usar un navegador externo para abrir enlaces en lugar del integrado"
 
 #: src/ui/settings.py:340
 msgid "Persist browser session"
-msgstr "Browsersessie behouden"
+msgstr "Persistir sesión del navegador"
 
 #: src/ui/settings.py:340
 msgid ""
 "Persist browser session between restarts. Turning this off requires "
 "restarting the program"
 msgstr ""
-"Browsersessie behouden tussen herstarts. Als u dit uitschakelt, moet het "
-"programma opnieuw worden gestart"
+"Persistir la sesión del navegador entre reinicios. Desactivar esto requiere "
+"reiniciar el programa"
 
 #: src/ui/settings.py:345
 msgid "Delete browser data"
-msgstr "Browsergegevens verwijderen"
+msgstr "Eliminar datos del navegador"
 
 #: src/ui/settings.py:345
 msgid "Delete browser session and data"
-msgstr "Browsersessie en gegevens verwijderen"
+msgstr "Eliminar sesión y datos del navegador"
 
 #: src/ui/settings.py:352
 msgid "Initial browser page"
-msgstr "Startpagina van de browser"
+msgstr "Página inicial del navegador"
 
 #: src/ui/settings.py:352
 msgid "The page where the browser will start"
-msgstr "De pagina waar de browser zal starten"
+msgstr "La página donde se iniciará el navegador"
 
 #: src/ui/settings.py:359
-#, fuzzy
 msgid "Search string"
-msgstr "Zoekreeks"
+msgstr "Cadena de búsqueda"
 
 #: src/ui/settings.py:359
 #, python-format
 msgid "The search string used in the browser, %s is replaced with the query"
-msgstr "De zoekreeks die in de browser wordt gebruikt, %s wordt vervangen door de zoekopdracht"
+msgstr "La cadena de búsqueda utilizada en el navegador, %s se reemplaza con la consulta"
 
 #: src/ui/settings.py:380
 msgid "Document Sources (RAG)"
-msgstr "Documentbronnen (RAG)"
+msgstr "Fuentes de documentos (RAG)"
 
 #: src/ui/settings.py:380
 msgid "Include content from your documents in the responses"
-msgstr "Inhoud van uw documenten opnemen in de antwoorden"
+msgstr "Incluir contenido de sus documentos en las respuestas"
 
 #: src/ui/settings.py:381
 msgid "Document Analyzer"
-msgstr "Documentanalysator"
+msgstr "Analizador de documentos"
 
 #: src/ui/settings.py:381
 msgid ""
 "The document analyzer uses multiple techniques to extract relevant "
 "information about your documents"
 msgstr ""
-"De documentanalysator gebruikt meerdere technieken om relevante informatie "
-"over uw documenten te extraheren"
+"El analizador de documentos utiliza múltiples técnicas para extraer "
+"información relevante sobre sus documentos"
 
 #: src/ui/settings.py:392
 msgid "Read documents if unsupported"
-msgstr "Documenten lezen indien niet ondersteund"
+msgstr "Leer documentos si no es compatible"
 
 #: src/ui/settings.py:392
 msgid ""
@@ -1601,13 +1557,13 @@ msgid ""
 "documents sent in the chat will be given to the LLM using your Document "
 "Analyzer."
 msgstr ""
-"Als de LLM het lezen van documenten niet ondersteunt, wordt relevante "
-"informatie over documenten die in de chat zijn verzonden, aan de LLM gegeven "
-"met behulp van uw documentanalysator."
+"Si el LLM no admite la lectura de documentos, la información relevante sobre "
+"los documentos enviados en el chat se proporcionará al LLM utilizando su "
+"Analizador de Documentos."
 
 #: src/ui/settings.py:396
 msgid "Maximum tokens for RAG"
-msgstr "Maximaal aantal tokens voor RAG"
+msgstr "Tokens máximos para RAG"
 
 #: src/ui/settings.py:396
 msgid ""
@@ -1615,103 +1571,102 @@ msgid ""
 "exceed this token count,\n"
 "dump all of them in the context"
 msgstr ""
-"Het maximale aantal tokens dat voor RAG moet worden gebruikt. Als de "
-"documenten dit tokentelling niet overschrijden,\n"
-"dump ze allemaal in de context"
+"La cantidad máxima de tokens a utilizar para RAG. Si los documentos no "
+"superan este recuento de tokens,\n"
+"vuelca todos ellos en el contexto"
 
 #: src/ui/settings.py:413
 msgid "Document Folder"
-msgstr "Documentmap"
+msgstr "Carpeta de documentos"
 
 #: src/ui/settings.py:413
 msgid ""
 "Put the documents you want to query in your document folder. The document "
 "analyzer will find relevant information in them if this option is enabled"
 msgstr ""
-"Plaats de documenten die u wilt opvragen in uw documentmap. De "
-"documentanalysator vindt er relevante informatie in als deze optie is "
-"ingeschakeld"
+"Coloca los documentos que deseas consultar en tu carpeta de documentos. El "
+"analizador de documentos encontrará información relevante en ellos si esta "
+"opción está habilitada"
 
 #: src/ui/settings.py:416
 msgid "Put all the documents you want to index in this folder"
-msgstr "Plaats alle documenten die u wilt indexeren in deze map"
+msgstr "Ponga todos los documentos que desea indexar en esta carpeta"
 
 #: src/ui/settings.py:452
 msgid "Silence threshold"
-msgstr "Stiltegrens"
+msgstr "Umbral de silencio"
 
 #: src/ui/settings.py:452
 msgid ""
 "Silence threshold in seconds, percentage of the volume to be considered "
 "silence"
 msgstr ""
-"Stiltegrens in seconden, percentage van het volume dat als stilte moet worden "
-"beschouwd"
+"Umbral de silencio en segundos, porcentaje del volumen a considerar silencio"
 
 #: src/ui/settings.py:465
 msgid "Silence time"
-msgstr "Stiltetijd"
+msgstr "Tiempo de silencio"
 
 #: src/ui/settings.py:465
 msgid "Silence time in seconds before recording stops automatically"
-msgstr "Stiltetijd in seconden voordat de opname automatisch stopt"
+msgstr "Tiempo de silencio en segundos antes de que la grabación se detenga automáticamente"
 
 #: src/ui/settings.py:1044
 msgid "Not enough permissions"
-msgstr "Niet genoeg rechten"
+msgstr "Permisos insuficientes"
 
 #: src/ui/settings.py:1048
 msgid ""
 "Newelle does not have enough permissions to run commands on your system, "
 "please run the following command"
 msgstr ""
-"Newelle heeft onvoldoende machtigingen om commando's op uw systeem uit te "
-"voeren, voer het volgende commando uit"
+"Newelle no tiene suficientes permisos para ejecutar comandos en su sistema, "
+"ejecute el siguiente comando"
 
 #: src/ui/settings.py:1049 src/ui/settings.py:1062
 msgid "Understood"
-msgstr "Begrepen"
+msgstr "Entendido"
 
 #: src/ui/settings.py:1061
 msgid "Pip path deleted"
-msgstr "Pip-pad verwijderd"
+msgstr "Ruta de pip eliminada"
 
 #: src/ui/settings.py:1061
 msgid ""
 "The pip path has been deleted, you can now reinstall the dependencies. This "
 "operation requires a restart of the application."
 msgstr ""
-"Het pip-pad is verwijderd, u kunt nu de afhankelijkheden opnieuw installeren. "
-"Deze bewerking vereist een herstart van de applicatie."
+"La ruta de pip ha sido eliminada, ahora puede reinstalar las dependencias. "
+"Esta operación requiere reiniciar la aplicación."
 
 #: src/ui/stdout_monitor.py:48
 msgid "Clear output"
-msgstr "Uitvoer wissen"
+msgstr "Limpiar salida"
 
 #: src/ui/stdout_monitor.py:61
 msgid "Start/Stop monitoring"
-msgstr "Monitoring starten/stoppen"
+msgstr "Iniciar/Detener monitoreo"
 
 #: src/ui/stdout_monitor.py:109 src/ui/stdout_monitor.py:182
 #: src/ui/stdout_monitor.py:191 src/window.py:3683
 msgid "Monitoring: Active"
-msgstr "Monitoring: Actief"
+msgstr "Monitoreo: Activo"
 
 #: src/ui/stdout_monitor.py:109 src/ui/stdout_monitor.py:208
 msgid "Monitoring: Stopped"
-msgstr "Monitoring: Gestopt"
+msgstr "Monitoreo: Detenido"
 
 #: src/ui/stdout_monitor.py:116 src/ui/stdout_monitor.py:252
 msgid "Lines: {}"
-msgstr "Regels: {}"
+msgstr "Líneas: {}"
 
 #: src/ui/stdout_monitor.py:267
 msgid "Lines: 0"
-msgstr "Regels: 0"
+msgstr "Líneas: 0"
 
 #: src/constants.py:20
 msgid "Newelle Demo API"
-msgstr "Newelle Demo API"
+msgstr "API de demostración de Newelle"
 
 #: src/constants.py:26
 msgid "GPT4Free"
@@ -1719,23 +1674,23 @@ msgstr "GPT4Free"
 
 #: src/constants.py:34
 msgid "Local Model"
-msgstr "Lokaal model"
+msgstr "Modelo local"
 
 #: src/constants.py:35
 msgid ""
 "NO GPU SUPPORT, USE OLLAMA INSTEAD. Run a LLM model locally, more privacy "
 "but slower"
 msgstr ""
-"GEEN GPU ONDERSTEUNING, GEBRUIK OLLAMA IN PLAATS. Voer een LLM-model "
-"lokaal uit, meer privacy maar langzamer"
+"SIN SOPORTE DE GPU, USE OLLAMA EN SU LUGAR. Ejecute un modelo LLM "
+"localmente, más privacidad pero más lento"
 
 #: src/constants.py:40
 msgid "Ollama Instance"
-msgstr "Ollama-instantie"
+msgstr "Instancia Ollama"
 
 #: src/constants.py:41
 msgid "Easily run multiple LLM models on your own hardware"
-msgstr "Eenvoudig meerdere LLM-modellen op uw eigen hardware uitvoeren"
+msgstr "Ejecuta fácilmente múltiples modelos LLM en tu propio hardware"
 
 #: src/constants.py:47
 msgid "Groq"
@@ -1743,15 +1698,15 @@ msgstr "Groq"
 
 #: src/constants.py:54 src/constants.py:230
 msgid "Google Gemini API"
-msgstr "Google Gemini API"
+msgstr "API de Google Gemini"
 
 #: src/constants.py:60 src/constants.py:224 src/constants.py:225
 msgid "OpenAI API"
-msgstr "OpenAI API"
+msgstr "API de OpenAI"
 
 #: src/constants.py:61
 msgid "OpenAI API. Custom endpoints supported. Use this for custom providers"
-msgstr "OpenAI API. Aangepaste eindpunten ondersteund. Gebruik dit voor aangepaste providers"
+msgstr "API de OpenAI. Puntos de conexión personalizados compatibles. Úselo para proveedores personalizados"
 
 #: src/constants.py:66
 msgid "Anthropic Claude"
@@ -1762,8 +1717,8 @@ msgid ""
 "Official APIs for Anthropic Claude's models, with image and file support, "
 "requires an API key"
 msgstr ""
-"Officiële API's voor Anthropic Claude's modellen, met afbeeldingen- en "
-"bestandondersteuning, vereist een API-sleutel"
+"APIs oficiales para los modelos de Anthropic Claude, con soporte de imagen "
+"y archivo, requiere una clave de API"
 
 #: src/constants.py:73
 msgid "Mistral"
@@ -1771,7 +1726,7 @@ msgstr "Mistral"
 
 #: src/constants.py:74
 msgid "Mistral API"
-msgstr "Mistral API"
+msgstr "API de Mistral"
 
 #: src/constants.py:80
 msgid "OpenRouter"
@@ -1779,7 +1734,7 @@ msgstr "OpenRouter"
 
 #: src/constants.py:81
 msgid "Openrouter.ai API, supports lots of models"
-msgstr "Openrouter.ai API, ondersteunt veel modellen"
+msgstr "API de Openrouter.ai, soporta muchos modelos"
 
 #: src/constants.py:87
 msgid "Deepseek"
@@ -1787,16 +1742,15 @@ msgstr "Deepseek"
 
 #: src/constants.py:88
 msgid "Deepseek API, strongest open source models"
-msgstr "Deepseek API, sterkste open source modellen"
+msgstr "API de Deepseek, los modelos de código abierto más potentes"
 
 #: src/constants.py:94 src/constants.py:203
-#, fuzzy
 msgid "Custom Command"
-msgstr "Aangepast commando"
+msgstr "Comando personalizado"
 
 #: src/constants.py:95
 msgid "Use the output of a custom command"
-msgstr "Gebruik de uitvoer van een aangepast commando"
+msgstr "Usar la salida de un comando personalizado"
 
 #: src/constants.py:104
 msgid "Whisper C++"
@@ -1804,7 +1758,7 @@ msgstr "Whisper C++"
 
 #: src/constants.py:105
 msgid "Works offline. Optimized Whisper impelementation written in C++"
-msgstr "Werkt offline. Geoptimaliseerde Whisper-implementatie geschreven in C++"
+msgstr "Funciona sin conexión. Implementación optimizada de Whisper escrita en C++"
 
 #: src/constants.py:111
 msgid "CMU Sphinx"
@@ -1812,19 +1766,19 @@ msgstr "CMU Sphinx"
 
 #: src/constants.py:112
 msgid "Works offline. Only English supported"
-msgstr "Werkt offline. Alleen Engels wordt ondersteund"
+msgstr "Funciona sin conexión. Solo se admite el inglés"
 
 #: src/constants.py:118
 msgid "Google Speech Recognition"
-msgstr "Google spraakherkenning"
+msgstr "Reconocimiento de voz de Google"
 
 #: src/constants.py:119 src/constants.py:125
 msgid "Google Speech Recognition online"
-msgstr "Google spraakherkenning online"
+msgstr "Reconocimiento de voz de Google en línea"
 
 #: src/constants.py:124
 msgid "Groq Speech Recognition"
-msgstr "Groq spraakherkenning"
+msgstr "Reconocimiento de voz Groq"
 
 #: src/constants.py:130
 msgid "Wit AI"
@@ -1832,42 +1786,39 @@ msgstr "Wit AI"
 
 #: src/constants.py:131
 msgid "wit.ai speech recognition free API (language chosen on the website)"
-msgstr ""
-"wit.ai spraakherkenning gratis API (taal gekozen op de website)"
+msgstr "API gratuita de reconocimiento de voz de wit.ai (idioma elegido en el sitio web)"
 
 #: src/constants.py:137
 msgid "Vosk API"
-msgstr "Vosk API"
+msgstr "API de Vosk"
 
 #: src/constants.py:138
 msgid "Works Offline"
-msgstr "Werkt offline"
+msgstr "Funciona sin conexión"
 
 #: src/constants.py:144
 msgid "Whisper API"
-msgstr "Whisper API"
+msgstr "API de Whisper"
 
 #: src/constants.py:145
 msgid "Uses OpenAI Whisper API"
-msgstr "Gebruikt OpenAI Whisper API"
+msgstr "Utiliza la API de OpenAI Whisper"
 
 #: src/constants.py:151
-#, fuzzy
 msgid "Custom command"
-msgstr "Aangepast commando"
+msgstr "Comando personalizado"
 
 #: src/constants.py:152
-#, fuzzy
 msgid "Runs a custom command"
-msgstr "Voert een aangepast commando uit"
+msgstr "Ejecuta un comando personalizado"
 
 #: src/constants.py:161
 msgid "Google TTS"
-msgstr "Google TTS"
+msgstr "TTS de Google"
 
 #: src/constants.py:162
 msgid "Google's text to speech"
-msgstr "Google's tekst naar spraak"
+msgstr "Texto a voz de Google"
 
 #: src/constants.py:167
 msgid "Kokoro TTS"
@@ -1877,8 +1828,8 @@ msgstr "Kokoro TTS"
 msgid ""
 "Lightweight and fast open source TTS engine. ~3GB dependencies, 400MB model"
 msgstr ""
-"Lichtgewicht en snelle open source TTS-engine. ~3GB afhankelijkheden, 400MB "
-"model"
+"Motor TTS de código abierto ligero y rápido. ~3 GB de dependencias, modelo "
+"de 400 MB"
 
 #: src/constants.py:173
 msgid "ElevenLabs TTS"
@@ -1886,24 +1837,23 @@ msgstr "ElevenLabs TTS"
 
 #: src/constants.py:174
 msgid "Natural sounding TTS"
-msgstr "Natuurlijk klinkende TTS"
+msgstr "TTS de sonido natural"
 
 #: src/constants.py:179 src/constants.py:180
 msgid "OpenAI TTS"
 msgstr "OpenAI TTS"
 
 #: src/constants.py:185
-#, fuzzy
 msgid "Groq TTS"
 msgstr "Groq TTS"
 
 #: src/constants.py:186
 msgid "Groq TTS API"
-msgstr "Groq TTS API"
+msgstr "API de Groq TTS"
 
 #: src/constants.py:191 src/constants.py:192
 msgid "Custom OpenAI TTS"
-msgstr "Aangepaste OpenAI TTS"
+msgstr "TTS de OpenAI personalizado"
 
 #: src/constants.py:197
 msgid "Espeak TTS"
@@ -1911,12 +1861,12 @@ msgstr "Espeak TTS"
 
 #: src/constants.py:198
 msgid "Offline TTS"
-msgstr "Offline TTS"
+msgstr "TTS sin conexión"
 
 #: src/constants.py:204
 #, python-brace-format
 msgid "Use a custom command as TTS, {0} will be replaced with the text"
-msgstr "Gebruik een aangepast commando als TTS, {0} wordt vervangen door de tekst"
+msgstr "Usa un comando personalizado como TTS, {0} será reemplazado por el texto"
 
 #: src/constants.py:212
 msgid "WordLlama"
@@ -1927,31 +1877,31 @@ msgid ""
 "Light local embedding model based on llama. Works offline, very low "
 "resources usage"
 msgstr ""
-"Licht lokaal inbeddingsmodel gebaseerd op Llama. Werkt offline, zeer laag "
-"resourcegebruik"
+"Modelo de incrustación local ligero basado en llama. Funciona sin conexión, "
+"uso de recursos muy bajo"
 
 #: src/constants.py:218
 msgid "Ollama Embedding"
-msgstr "Ollama-inbedding"
+msgstr "Embedding de Ollama"
 
 #: src/constants.py:219
 msgid ""
 "Use Ollama models for Embedding. Works offline, very low resources usage"
 msgstr ""
-"Gebruik Ollama-modellen voor inbedding. Werkt offline, zeer laag "
-"resourcegebruik"
+"Utiliza los modelos de Ollama para Embedding. Funciona sin conexión, uso de "
+"recursos muy bajo"
 
 #: src/constants.py:231
 msgid "Use Google Gemini API to get embeddings"
-msgstr "Gebruik Google Gemini API om inbeddingen te verkrijgen"
+msgstr "Usar la API de Google Gemini para obtener embeddings"
 
 #: src/constants.py:239
 msgid "User Summary"
-msgstr "Gebruikerssamenvatting"
+msgstr "Resumen de usuario"
 
 #: src/constants.py:240
 msgid "Generate a summary of the user's conversation"
-msgstr "Genereer een samenvatting van het gesprek van de gebruiker"
+msgstr "Generar un resumen de la conversación del usuario"
 
 #: src/constants.py:245
 msgid "Memoripy"
@@ -1963,29 +1913,29 @@ msgid ""
 "retrivial, memory decay, concept extraction and other advanced techniques. "
 "Does 1 llm call per message."
 msgstr ""
-"Haal berichten op uit eerdere gesprekken met behulp van contextuele "
-"geheugenherstel, geheugenverval, conceptextractie en andere geavanceerde "
-"technieken. Voert 1 LLM-oproep per bericht uit."
+"Extrae mensajes de conversaciones anteriores utilizando recuperación de "
+"memoria contextual, decaimiento de memoria, extracción de conceptos y otras "
+"técnicas avanzadas. Realiza 1 llamada llm por mensaje."
 
 #: src/constants.py:251
 msgid "User Summary + Memoripy"
-msgstr "Gebruikerssamenvatting + Memoripy"
+msgstr "Resumen de usuario + Memoripy"
 
 #: src/constants.py:252
 msgid "Use both technologies for long term memory"
-msgstr "Gebruik beide technologieën voor langetermijngeheugen"
+msgstr "Usar ambas tecnologías para la memoria a largo plazo"
 
 #: src/constants.py:260
 msgid "Document reader"
-msgstr "Documentlezer"
+msgstr "Lector de documentos"
 
 #: src/constants.py:261
 msgid ""
 "Classic RAG approach - chunk documents and embed them, then compare them to "
 "the query and return the most relevant documents"
 msgstr ""
-"Klassieke RAG-aanpak - chunk documenten en embed ze, vergelijk ze vervolgens "
-"met de zoekopdracht en retourneer de meest relevante documenten"
+"Enfoque RAG clásico: divide los documentos en fragmentos y los incrusta, "
+"luego los compara con la consulta y devuelve los documentos más relevantes"
 
 #: src/constants.py:269
 msgid "SearXNG"
@@ -1993,7 +1943,7 @@ msgstr "SearXNG"
 
 #: src/constants.py:270
 msgid "SearXNG - Private and selfhostable search engine"
-msgstr "SearXNG - Privé en zelf te hosten zoekmachine"
+msgstr "SearXNG - Motor de búsqueda privado y autoalojable"
 
 #: src/constants.py:275
 msgid "DuckDuckGo"
@@ -2001,7 +1951,7 @@ msgstr "DuckDuckGo"
 
 #: src/constants.py:276
 msgid "DuckDuckGo search"
-msgstr "DuckDuckGo zoeken"
+msgstr "Búsqueda de DuckDuckGo"
 
 #: src/constants.py:281
 msgid "Tavily"
@@ -2009,75 +1959,71 @@ msgstr "Tavily"
 
 #: src/constants.py:282
 msgid "Tavily search"
-msgstr "Tavily zoeken"
+msgstr "Búsqueda de Tavily"
 
 #: src/constants.py:375
 msgid "Helpful assistant"
-msgstr "Behulpzame assistent"
+msgstr "Asistente útil"
 
 #: src/constants.py:376
 msgid "General purpose prompt to enhance the LLM answers and give more context"
-msgstr ""
-"Algemeen doelprompt om de LLM-antwoorden te verbeteren en meer context te "
-"geven"
+msgstr "Prompt de propósito general para mejorar las respuestas del LLM y dar más contexto"
 
 #: src/constants.py:384
 msgid "Console access"
-msgstr "Consoletoegang"
+msgstr "Acceso a la consola"
 
 #: src/constants.py:385
 msgid "Can the program run terminal commands on the computer"
-msgstr "Kan het programma terminalcommando's uitvoeren op de computer"
+msgstr "¿Puede el programa ejecutar comandos de terminal en la computadora?"
 
 #: src/constants.py:392
 msgid "Current directory"
-msgstr "Huidige map"
+msgstr "Directorio actual"
 
 #: src/constants.py:393
 msgid "What is the current directory"
-msgstr "Wat is de huidige map"
+msgstr "¿Cuál es el directorio actual?"
 
 #: src/constants.py:402
 msgid "Allow the LLM to search on the internet"
-msgstr "Sta de LLM toe om op internet te zoeken"
+msgstr "Permitir al LLM buscar en internet"
 
 #: src/constants.py:410
 msgid "Basic functionality"
-msgstr "Basisfunctionaliteit"
+msgstr "Funcionalidad básica"
 
 #: src/constants.py:411
 msgid "Showing tables and code (*can work without it)"
-msgstr "Tabellen en code tonen (*kan ook zonder)"
+msgstr "Mostrar tablas y código (*puede funcionar sin ello)"
 
 #: src/constants.py:419
 msgid "Graphs access"
-msgstr "Grafiektoegang"
+msgstr "Acceso a gráficos"
 
 #: src/constants.py:420
 msgid "Can the program display graphs"
-msgstr "Kan het programma grafieken weergeven"
+msgstr "¿Puede el programa mostrar gráficos?"
 
 #: src/constants.py:428
 msgid "Show image"
-msgstr "Afbeelding tonen"
+msgstr "Mostrar imagen"
 
 #: src/constants.py:429
 msgid "Show image in chat"
-msgstr "Afbeelding tonen in chat"
+msgstr "Mostrar imagen en el chat"
 
 #: src/constants.py:437
-#, fuzzy
 msgid "Custom Prompt"
-msgstr "Aangepaste prompt"
+msgstr "Prompt personalizado"
 
 #: src/constants.py:438
 msgid "Add your own custom prompt"
-msgstr "Voeg uw eigen aangepaste prompt toe"
+msgstr "Añade tu propio prompt personalizado"
 
 #: src/constants.py:480
-#, fuzzy
 msgid "LLM and Secondary LLM settings"
-msgstr "LLM- en secundaire LLM-instellingen"
+msgstr "Configuración de LLM y LLM secundario"
 
 #: src/constants.py:483 src/window.py:646
 msgid "TTS"
@@ -2085,7 +2031,7 @@ msgstr "TTS"
 
 #: src/constants.py:485
 msgid "Text to Speech settings"
-msgstr "Tekst naar spraak instellingen"
+msgstr "Configuración de Texto a Voz"
 
 #: src/constants.py:488
 msgid "STT"
@@ -2093,34 +2039,31 @@ msgstr "STT"
 
 #: src/constants.py:490
 msgid "Speech to Text settings"
-msgstr "Spraak naar tekst instellingen"
+msgstr "Configuración de Voz a Texto"
 
 #: src/constants.py:493
 msgid "Embedding"
-msgstr "Inbedding"
+msgstr "Embedding"
 
 #: src/constants.py:495
-#, fuzzy
 msgid "Embedding settings"
-msgstr "Inbeddingsinstellingen"
+msgstr "Configuración de Embedding"
 
 #: src/constants.py:498
 msgid "Memory"
-msgstr "Geheugen"
+msgstr "Memoria"
 
 #: src/constants.py:500
-#, fuzzy
 msgid "Memory settings"
-msgstr "Geheugeninstellingen"
+msgstr "Configuración de la memoria"
 
 #: src/constants.py:503
 msgid "Websearch"
-msgstr "Webzoekopdracht"
+msgstr "Búsqueda web"
 
 #: src/constants.py:505
-#, fuzzy
 msgid "Websearch settings"
-msgstr "Webzoekinstellingen"
+msgstr "Configuración de búsqueda web"
 
 #: src/constants.py:508
 msgid "RAG"
@@ -2128,69 +2071,67 @@ msgstr "RAG"
 
 #: src/constants.py:510
 msgid "Document analyzer settings"
-msgstr "Instellingen documentanalysator"
+msgstr "Configuración del analizador de documentos"
 
 #: src/constants.py:515
-#, fuzzy
 msgid "Extensions settings"
-msgstr "Extensie-instellingen"
+msgstr "Configuración de extensiones"
 
 #: src/constants.py:518
-#, fuzzy
 msgid "Inteface"
-msgstr "Interface"
+msgstr "Interfaz"
 
 #: src/constants.py:520
 msgid "Interface settings, hidden files, reverse order, zoom..."
-msgstr "Interface-instellingen, verborgen bestanden, omgekeerde volgorde, zoom..."
+msgstr "Configuración de interfaz, archivos ocultos, orden inverso, zoom..."
 
 #: src/constants.py:525
 msgid ""
 "General settings, virtualization, offers, memory length, automatically "
 "generate chat name, current folder..."
 msgstr ""
-"Algemene instellingen, virtualisatie, aanbiedingen, geheugenlengte, "
-"automatisch chatnaam genereren, huidige map..."
+"Configuración general, virtualización, ofertas, duración de la memoria, "
+"generación automática de nombres de chat, carpeta actual..."
 
 #: src/constants.py:530
 msgid "Prompts settings, custom extra prompt, custom prompts..."
-msgstr "Promptinstellingen, aangepaste extra prompt, aangepaste prompts..."
+msgstr "Configuración de prompts, prompt extra personalizado, prompts personalizados..."
 
 #: src/controller.py:135 src/window.py:1846
 msgid "Chat "
-msgstr "Chat"
+msgstr "Chat "
 
 #: src/main.py:205
 msgid "Terminal threads are still running in the background"
-msgstr "Terminal-threads draaien nog steeds op de achtergrond"
+msgstr "Los hilos de terminal siguen ejecutándose en segundo plano"
 
 #: src/main.py:206
 msgid "When you close the window, they will be automatically terminated"
-msgstr "Wanneer u het venster sluit, worden ze automatisch beëindigd"
+msgstr "Cuando cierre la ventana, se terminarán automáticamente"
 
 #: src/main.py:210
 msgid "Close"
-msgstr "Sluiten"
+msgstr "Cerrar"
 
 #: src/main.py:244
 msgid "Chat is rebooted"
-msgstr "Chat is opnieuw opgestart"
+msgstr "El chat se ha reiniciado"
 
 #: src/main.py:249
 msgid "Folder is rebooted"
-msgstr "Map is opnieuw opgestart"
+msgstr "La carpeta ha sido reiniciada"
 
 #: src/main.py:254
 msgid "Chat is created"
-msgstr "Chat is aangemaakt"
+msgstr "El chat ha sido creado"
 
 #: src/window.py:120
 msgid "Keyboard shorcuts"
-msgstr "Sneltoetsen"
+msgstr "Atajos de teclado"
 
 #: src/window.py:121
 msgid "About"
-msgstr "Over"
+msgstr "Acerca de"
 
 #: src/window.py:128 src/window.py:197
 msgid "Chat"
@@ -2198,305 +2139,292 @@ msgstr "Chat"
 
 #: src/window.py:170
 msgid "History"
-msgstr "Geschiedenis"
+msgstr "Historial"
 
 #: src/window.py:191
 msgid "Create a chat"
-msgstr "Een chat aanmaken"
+msgstr "Crear un chat"
 
 #: src/window.py:196
-#, fuzzy
 msgid "Chats"
 msgstr "Chats"
 
 #: src/window.py:267
 msgid " Stop"
-msgstr " Stoppen"
+msgstr " Detener"
 
 #: src/window.py:282
 msgid " Clear"
-msgstr " Wissen"
+msgstr " Limpiar"
 
 #: src/window.py:297
 msgid " Continue"
-msgstr " Doorgaan"
+msgstr " Continuar"
 
 #: src/window.py:310
 msgid " Regenerate"
-msgstr " Hergenereren"
+msgstr " Regenerar"
 
 #: src/window.py:376
 msgid "Send a message..."
-msgstr "Stuur een bericht..."
+msgstr "Enviar un mensaje..."
 
 #: src/window.py:467
 msgid "Explorer Tab"
-msgstr "Verkenner-tabblad"
+msgstr "Pestaña del explorador"
 
 #: src/window.py:468
 msgid "Terminal Tab"
-msgstr "Terminal-tabblad"
+msgstr "Pestaña de terminal"
 
 #: src/window.py:469
 msgid "Browser Tab"
-msgstr "Browser-tabblad"
+msgstr "Pestaña del navegador"
 
 #: src/window.py:587
 msgid "Ask about a website"
-msgstr "Vraag over een website"
+msgstr "Preguntar sobre un sitio web"
 
 #: src/window.py:587
 msgid "Write #https://website.com in chat to ask information about a website"
-msgstr ""
-"Schrijf #https://website.com in de chat om informatie over een website te "
-"vragen"
+msgstr "Escribe #https://website.com en el chat para pedir información sobre un sitio web"
 
 #: src/window.py:588
 msgid "Check out our Extensions!"
-msgstr "Bekijk onze extensies!"
+msgstr "¡Echa un vistazo a nuestras Extensiones!"
 
 #: src/window.py:588
 msgid "We have a lot of extensions for different things. Check it out!"
-msgstr "We hebben veel extensies voor verschillende dingen. Bekijk het!"
+msgstr "Tenemos muchas extensiones para diferentes cosas. ¡Compruébalo!"
 
 #: src/window.py:589
 msgid "Chat with documents!"
-msgstr "Chatten met documenten!"
+msgstr "¡Chatea con documentos!"
 
 #: src/window.py:589
 msgid ""
 "Add your documents to your documents folder and chat using the information "
 "contained in them!"
 msgstr ""
-"Voeg uw documenten toe aan uw documentenmap en chat met behulp van de "
-"informatie die daarin is opgenomen!"
+"¡Añada sus documentos a su carpeta de documentos y chatee utilizando la "
+"información contenida en ellos!"
 
 #: src/window.py:590
 msgid "Surf the web!"
-msgstr "Surf op het web!"
+msgstr "¡Navega por la web!"
 
 #: src/window.py:590
 msgid ""
 "Enable web search to allow the LLM to surf the web and provide up to date "
 "answers"
 msgstr ""
-"Schakel webzoekopdracht in om de LLM toe te staan op het web te surfen en "
-"actuele antwoorden te geven"
+"Habilita la búsqueda web para permitir que el LLM navegue por la web y "
+"proporcione respuestas actualizadas"
 
 #: src/window.py:591
 msgid "Mini Window"
-msgstr "Mini-venster"
+msgstr "Mini ventana"
 
 #: src/window.py:591
 msgid "Ask questions on the fly using the mini window mode"
-msgstr "Stel vragen direct met de mini-venstermodus"
+msgstr "Haz preguntas al instante usando el modo mini ventana"
 
 #: src/window.py:592
 msgid "Text to Speech"
-msgstr "Tekst naar spraak"
+msgstr "Texto a voz"
 
 #: src/window.py:592
 msgid "Newelle supports text-to-speech! Enable it in the settings"
-msgstr "Newelle ondersteunt tekst-naar-spraak! Schakel het in via de instellingen"
+msgstr "¡Newelle soporta texto a voz! Habilítalo en la configuración"
 
 #: src/window.py:593
-#, fuzzy
 msgid "Keyboard Shortcuts"
-msgstr "Sneltoetsen"
+msgstr "Atajos de teclado"
 
 #: src/window.py:593
-#, fuzzy
 msgid "Control Newelle using Keyboard Shortcuts"
-msgstr "Bedien Newelle met sneltoetsen"
+msgstr "Controla Newelle usando atajos de teclado"
 
 #: src/window.py:594
-#, fuzzy
 msgid "Prompt Control"
-msgstr "Promptbeheer"
+msgstr "Control de prompts"
 
 #: src/window.py:594
 msgid "Newelle gives you 100% prompt control. Tune your prompts for your use."
-msgstr ""
-"Newelle geeft u 100% promptbeheer. Stem uw prompts af op uw gebruik."
+msgstr "Newelle le brinda un control del 100% sobre los prompts. Ajuste sus prompts para su uso."
 
 #: src/window.py:595
-#, fuzzy
 msgid "Thread Editing"
-msgstr "Thread bewerken"
+msgstr "Edición de hilos"
 
 #: src/window.py:595
 msgid "Check the programs and processes you run from Newelle"
-msgstr "Controleer de programma's en processen die u vanuit Newelle uitvoert"
+msgstr "Comprueba los programas y procesos que ejecutas desde Newelle"
 
 #: src/window.py:596
 msgid "Programmable Prompts"
-msgstr "Programmeerbare prompts"
+msgstr "Prompts programables"
 
 #: src/window.py:596
 msgid ""
 "You can add dynamic prompts to Newelle, with conditions and probabilities"
-msgstr "U kunt dynamische prompts aan Newelle toevoegen, met voorwaarden en waarschijnlijkheden"
+msgstr ""
+"Puedes añadir prompts dinámicos a Newelle, con condiciones y probabilidades"
 
 #: src/window.py:603
-#, fuzzy
 msgid "New Chat"
-msgstr "Nieuwe chat"
+msgstr "Nuevo chat"
 
 #: src/window.py:621
 msgid "Provider Errror"
-msgstr "Providerfout"
+msgstr "Error del proveedor"
 
 #: src/window.py:644
 msgid "Local Documents"
-msgstr "Lokale documenten"
+msgstr "Documentos Locales"
 
 #: src/window.py:648
 msgid "Web search"
-msgstr "Webzoekopdracht"
+msgstr "Búsqueda web"
 
 #: src/window.py:890
 msgid "This provider does not have a model list"
-msgstr "Deze provider heeft geen modellenlijst"
+msgstr "Este proveedor no tiene una lista de modelos"
 
 #: src/window.py:895
 msgid " Models"
-msgstr " Modellen"
+msgstr " Modelos"
 
 #: src/window.py:898
 msgid "Search Models..."
-msgstr "Modellen zoeken..."
+msgstr "Buscar modelos..."
 
 #: src/window.py:1126
 msgid "Create new profile"
-msgstr "Nieuw profiel aanmaken"
+msgstr "Crear nuevo perfil"
 
 #: src/window.py:1260
 msgid "Could not recognize your voice"
-msgstr "Kon uw stem niet herkennen"
+msgstr "No se pudo reconocer su voz"
 
 #: src/window.py:1297
 msgid "Images"
-msgstr "Afbeeldingen"
+msgstr "Imágenes"
 
 #: src/window.py:1301
 msgid "LLM Supported Files"
-msgstr "LLM ondersteunde bestanden"
+msgstr "Archivos compatibles con LLM"
 
 #: src/window.py:1309
 msgid "RAG Supported files"
-msgstr "RAG ondersteunde bestanden"
+msgstr "Archivos compatibles con RAG"
 
 #: src/window.py:1327
 msgid "Supported Files"
-msgstr "Ondersteunde bestanden"
+msgstr "Archivos compatibles"
 
 #: src/window.py:1331
 msgid "All Files"
-msgstr "Alle bestanden"
+msgstr "Todos los archivos"
 
 #: src/window.py:1337
 msgid "Attach file"
-msgstr "Bestand bijvoegen"
+msgstr "Adjuntar archivo"
 
 #: src/window.py:1592
 msgid "The file cannot be sent until the program is finished"
-msgstr "Het bestand kan pas worden verzonden als het programma is voltooid"
+msgstr "El archivo no se puede enviar hasta que el programa termine"
 
 #: src/window.py:1614
 msgid "The file is not recognized"
-msgstr "Het bestand wordt niet herkend"
+msgstr "El archivo no es reconocido"
 
 #: src/window.py:1633
 msgid "You can no longer continue the message."
-msgstr "U kunt het bericht niet meer voortzetten."
+msgstr "Ya no puedes continuar el mensaje."
 
 #: src/window.py:1658
 msgid "You can no longer regenerate the message."
-msgstr "U kunt het bericht niet meer opnieuw genereren."
+msgstr "Ya no puedes regenerar el mensaje."
 
 #: src/window.py:1890
 msgid "Chat is cleared"
-msgstr "Chat is gewist"
+msgstr "El chat ha sido borrado"
 
 #: src/window.py:1915
 msgid "The message was canceled and deleted from history"
-msgstr "Het bericht is geannuleerd en uit de geschiedenis verwijderd"
+msgstr "El mensaje fue cancelado y eliminado del historial"
 
 #: src/window.py:1959
 msgid "The message cannot be sent until the program is finished"
-msgstr "Het bericht kan pas worden verzonden als het programma is voltooid"
+msgstr "El mensaje no se puede enviar hasta que el programa termine"
 
 #: src/window.py:2936
 msgid "You can't edit a message while the program is running."
-msgstr "U kunt een bericht niet bewerken terwijl het programma actief is."
+msgstr "No puedes editar un mensaje mientras el programa está en ejecución."
 
 #: src/window.py:3061
-#, fuzzy
 msgid "Prompt content"
-msgstr "Promptinhoud"
+msgstr "Contenido del prompt"
 
 #: src/window.py:3320
-#, fuzzy
 msgid ""
 "The neural network has access to your computer and any data in this chat and "
 "can run commands, be careful, we are not responsible for the neural network. "
 "Do not share any sensitive information."
 msgstr ""
-"Het neurale netwerk heeft toegang tot uw computer en alle gegevens in deze "
-"chat en kan commando's uitvoeren. Wees voorzichtig, wij zijn niet "
-"verantwoordelijk voor het neurale netwerk. Deel geen gevoelige informatie."
+"La red neuronal tiene acceso a su computadora y a cualquier dato en este "
+"chat, y puede ejecutar comandos. Tenga cuidado, no somos responsables de la "
+"red neuronal. No comparta información sensible."
 
 #: src/window.py:3349
-#, fuzzy
 msgid ""
 "The neural network has access to any data in this chat, be careful, we are "
 "not responsible for the neural network. Do not share any sensitive "
 "information."
 msgstr ""
-"Het neurale netwerk heeft toegang tot alle gegevens in deze chat. Wees "
-"voorzichtig, wij zijn niet verantwoordelijk voor het neurale netwerk. Deel "
-"geen gevoelige informatie."
+"La red neuronal tiene acceso a cualquier dato en este chat, tenga cuidado, "
+"no somos responsables de la red neuronal. No comparta información sensible."
 
 #: src/window.py:3398
 msgid "Wrong folder path"
-msgstr "Verkeerd map-pad"
+msgstr "Ruta de carpeta incorrecta"
 
 #: src/window.py:3431
 msgid "Thread has not been completed, thread number: "
-msgstr "Thread is niet voltooid, threadnummer: "
+msgstr "El hilo no ha sido completado, número de hilo: "
 
 #: src/window.py:3443
 msgid "Failed to open the folder"
-msgstr "Map kon niet worden geopend"
+msgstr "No se pudo abrir la carpeta"
 
 #: src/window.py:3622
 msgid "Chat is empty"
-msgstr "Chat is leeg"
+msgstr "El chat está vacío"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:9
 msgid ""
 "Train Newelle to do more with custom extensions and new AI modules, giving "
 "your chatbot endless possibilities."
 msgstr ""
-"Train Newelle om meer te doen met aangepaste extensies en nieuwe AI-modules, "
-"waardoor uw chatbot eindeloze mogelijkheden krijgt."
+"Entrena a Newelle para hacer más con extensiones personalizadas y nuevos "
+"módulos de IA, dándole a tu chatbot infinitas posibilidades."
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:11
 msgid "AI chatbot"
-msgstr "AI-chatbot"
+msgstr "Chatbot de IA"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:15
 msgid "Quick profile selection"
-msgstr "Snelle profielselectie"
+msgstr "Selección rápida de perfil"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:19
-#, fuzzy
 msgid "Message Editing"
-msgstr "Bericht bewerken"
+msgstr "Edición de mensajes"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:23
 msgid "More than 10 standard AI providers"
-msgstr "Meer dan 10 standaard AI-providers"
+msgstr "Más de 10 proveedores de IA estándar"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:38
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:61
@@ -2506,94 +2434,95 @@ msgstr "Meer dan 10 standaard AI-providers"
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:138
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:143
 msgid "Bug fixes"
-msgstr "Bugfixes"
+msgstr "Corrección de errores"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:39
 msgid "Small improvements"
-msgstr "Kleine verbeteringen"
+msgstr "Pequeñas mejoras"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:46
 msgid "Improve local documents reading and loading performances"
-msgstr "Verbeterde lees- en laadprestaties van lokale documenten"
+msgstr "Mejorar el rendimiento de lectura y carga de documentos locales"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:47
 msgid "Add option to send with CTRL+Enter"
-msgstr "Optie toevoegen om met CTRL+Enter te verzenden"
+msgstr "Añadir opción para enviar con CTRL+Enter"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:48
 msgid "Improve codeblocks"
-msgstr "Codeblokken verbeteren"
+msgstr "Mejorar bloques de código"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:49
 msgid "Fix Kokoro TTS"
-msgstr "Kokoro TTS repareren"
+msgstr "Arreglar Kokoro TTS"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:50
 msgid "Remove emoji from TTS"
-msgstr "Emoji's verwijderen uit TTS"
+msgstr "Eliminar emojis de TTS"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:51
 msgid "Set API keys as password fields"
-msgstr "API-sleutels instellen als wachtwoordvelden"
+msgstr "Configurar claves API como campos de contraseña"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:52
 msgid "Add thinking support for Gemini"
-msgstr "Denkondersteuning voor Gemini toevoegen"
+msgstr "Añadir soporte de pensamiento para Gemini"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:53
 msgid "Updated translations"
-msgstr "Bijgewerkte vertalingen"
+msgstr "Traducciones actualizadas"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:60
 msgid "Added new features"
-msgstr "Nieuwe functies toegevoegd"
+msgstr "Nuevas características añadidas"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:68
 msgid "Website reading and web search with SearXNG, DuckDuckGo, and Tavily"
-msgstr "Website lezen en web zoeken met SearXNG, DuckDuckGo en Tavily"
+msgstr "Lectura de sitios web y búsqueda web con SearXNG, DuckDuckGo y Tavily"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:69
 msgid "Improved LaTeX rendering and document management"
-msgstr "Verbeterde LaTeX-weergave en documentbeheer"
+msgstr "Renderizado de LaTeX y gestión de documentos mejorados"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:70
 msgid "New Thinking Widget and OpenRouter handler"
-msgstr "Nieuwe Thinking Widget en OpenRouter handler"
+msgstr "Nuevo Widget de Pensamiento y manejador de OpenRouter"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:71
 msgid "Vision support for Llama4 on Groq"
-msgstr "Visieondersteuning voor Llama4 op Groq"
+msgstr "Soporte de visión para Llama4 en Groq"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:72
 msgid "New translations (Traditional Chinese, Bengali, Hindi)"
-msgstr "Nieuwe vertalingen (Traditioneel Chinees, Bengaals, Hindi)"
+msgstr "Nuevas traducciones (chino tradicional, bengalí, hindi)"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:78
 msgid "Fixed many bugs, added some features!"
-msgstr "Veel bugs verholpen, enkele functies toegevoegd!"
+msgstr "¡Muchos errores corregidos, algunas características añadidas!"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:83
 msgid "Support for new features and bug fixes"
-msgstr "Ondersteuning voor nieuwe functies en bugfixes"
+msgstr "Soporte para nuevas funciones y corrección de errores"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:88
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:93
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:98
 msgid "Added many new features and bug fixes"
-msgstr "Veel nieuwe functies en bugfixes toegevoegd"
+msgstr "Se añadieron muchas nuevas funciones y correcciones de errores"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:103
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:108
 msgid "Added new features and bug fixes"
-msgstr "Nieuwe functies en bugfixes toegevoegd"
+msgstr "Se añadieron nuevas características y correcciones de errores"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:113
 msgid ""
 "Updated the g4f library with versioning, added user guides, improved "
 "extension browsing, and enhanced model handling."
 msgstr ""
-"De g4f-bibliotheek bijgewerkt met versiebeheer, gebruikershandleidingen "
-"toegevoegd, browsen van extensies verbeterd en modelbeheer verbeterd."
+"Se actualizó la biblioteca g4f con versionado, se agregaron guías de "
+"usuario, se mejoró la navegación de extensiones y se optimizó el manejo de "
+"modelos."
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:118
 msgid ""
@@ -2601,31 +2530,29 @@ msgid ""
 "extension architecture, added new models, and introduced vision support, "
 "along with more capabilities."
 msgstr ""
-"Bugfixes en nieuwe functies zijn geïmplementeerd. We hebben de extensie "
-"architectuur aangepast, nieuwe modellen toegevoegd en visieondersteuning "
-"geïntroduceerd, samen met meer mogelijkheden."
+"Se han implementado correcciones de errores y nuevas funciones. Hemos "
+"modificado la arquitectura de las extensiones, añadido nuevos modelos e "
+"introducido soporte de visión, junto con más capacidades."
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:148
 msgid "Stable version"
-msgstr "Stabiele versie"
+msgstr "Versión estable"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:153
-#, fuzzy
 msgid "Added extension"
-msgstr "Extensie toegevoegd"
+msgstr "Extensión añadida"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:158
-#, fuzzy
 msgid "Blacklist of commands"
-msgstr "Zwarte lijst van commando's"
+msgstr "Lista negra de comandos"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:163
 msgid "Localization"
-msgstr "Lokalisatie"
+msgstr "Localización"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:168
 msgid "Redesign"
-msgstr "Redesign"
+msgstr "Rediseño"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:172
 msgid "Qwersyk"
@@ -2633,33 +2560,8 @@ msgstr "Qwersyk"
 
 #: data/io.github.qwersyk.Newelle.desktop.in:3
 msgid "Newelle: Your advanced chat bot"
-msgstr "Newelle: Uw geavanceerde chatbot"
+msgstr "Newelle: Tu chatbot avanzado"
 
 #: data/io.github.qwersyk.Newelle.desktop.in:10
 msgid "ai;assistant;chat;chatgpt;gpt;llm;ollama;"
-msgstr "ai;assistent;chat;chatgpt;gpt;llm;ollama;"
-
-#, fuzzy
-#~ msgid "_Cancel"
-#~ msgstr "Annuleren"
-
-#~ msgid "Choose an extension"
-#~ msgstr "Kies een uitbreiding"
-
-#~ msgid " has been removed"
-#~ msgstr " is verwijderd"
-
-#~ msgid "Extension added. New extensions will run from the next launch"
-#~ msgstr "Extensie toegevoegd. Nieuwe extensies worden vanaf de volgende lancering uitgevoerd"
-
-#~ msgid "The extension is wrong"
-#~ msgstr "De extensie is fout"
-
-#~ msgid "This is not an extension"
-#~ msgstr "Dit is geen extensie"
-
-#~ msgid "Chat has been stopped"
-#~ msgstr "De chat is gestopt"
-
-#~ msgid "The change will take effect after you restart the program."
-#~ msgstr "De wijziging wordt van kracht nadat u het programma opnieuw hebt gestart."
+msgstr "ia;asistente;chat;chatgpt;gpt;llm;ollama;"

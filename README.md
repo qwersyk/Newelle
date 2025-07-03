@@ -33,6 +33,20 @@
   <img src="https://raw.githubusercontent.com/qwersyk/Newelle/master/screenshots/1w.png" alt="screenshot">
 </picture>
 
+<div align="center">
+  <br>
+  <a href="https://www.youtube.com/watch?v=XCOnu_M_4HU">
+    <picture>
+      <source srcset="https://newelle.qsk.me/static/thumbnails/github-promo.png" media="(prefers-color-scheme: light)">
+      <source srcset="https://newelle.qsk.me/static/thumbnails/github-promo-dark.png" media="(prefers-color-scheme: dark)">
+      <img src="https://newelle.qsk.me/static/thumbnails/github-promo.png" alt="▶️ Watch Newelle Demo Video" width="600">
+    </picture>
+  </a>
+  <br>
+  <sub><strong>🎬 Watch Newelle in Action</strong> • See how easy it is to get started</sub>
+  <br><br>
+</div>
+
 # Features
 
 

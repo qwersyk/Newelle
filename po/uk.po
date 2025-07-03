@@ -1,14 +1,9 @@
-# Ukrainian translations for Newelle package.
-# Copyright (C) 2024 THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the Newelle package.
-# Yehor Hliebov <qsk@gmx.at>, 2024.
-#
 msgid ""
 msgstr ""
-"Project-Id-Version: Newelle 0.3.0\n"
+"Project-Id-Version: 1.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-07-02 02:15+0800\n"
-"PO-Revision-Date: 2024-08-24 08:21+0200\n"
+"PO-Revision-Date: 2025-07-03 09:00+0200\n"
 "Last-Translator: Yehor Hliebov <qsk@gmx.at>\n"
 "Language-Team: Ukrainian\n"
 "Language: uk\n"
@@ -34,7 +29,7 @@ msgstr "Базова URL-адреса API, змініть це для викор
 #: src/handlers/llm/ollama_handler.py:151
 #, fuzzy
 msgid "Automatically Serve"
-msgstr "Перетворення мовлення на текст"
+msgstr "Автоматично запускати сервер"
 
 #: src/handlers/embeddings/ollama_handler.py:33
 #: src/handlers/llm/ollama_handler.py:151
@@ -42,12 +37,14 @@ msgid ""
 "Automatically run ollama serve in background when needed if it's not "
 "running. You can kill it with killall ollama"
 msgstr ""
+"Автоматично запускати ollama serve у фоновому режимі, якщо це необхідно і він "
+"не запущений. Ви можете припинити його роботу за допомогою killall ollama"
 
 #: src/handlers/embeddings/ollama_handler.py:34
 #: src/handlers/llm/ollama_handler.py:153
 #, fuzzy
 msgid "Custom Model"
-msgstr "Користувацька команда"
+msgstr "Користувацька модель"
 
 #: src/handlers/embeddings/ollama_handler.py:34
 #: src/handlers/embeddings/openai_handler.py:41
@@ -55,7 +52,7 @@ msgstr "Користувацька команда"
 #: src/handlers/llm/ollama_handler.py:153
 #, fuzzy
 msgid "Use a custom model"
-msgstr "Виконує користувацьку команду"
+msgstr "Використовувати користувацьку модель"
 
 #: src/handlers/embeddings/ollama_handler.py:40
 #: src/handlers/embeddings/ollama_handler.py:49
@@ -63,7 +60,7 @@ msgstr "Виконує користувацьку команду"
 #: src/handlers/llm/ollama_handler.py:168
 #, fuzzy
 msgid "Ollama Model"
-msgstr "Мовна модель"
+msgstr "Модель Ollama"
 
 #: src/handlers/embeddings/ollama_handler.py:41
 #: src/handlers/embeddings/ollama_handler.py:49
@@ -71,7 +68,7 @@ msgstr "Мовна модель"
 #: src/handlers/llm/ollama_handler.py:168
 #, fuzzy
 msgid "Name of the Ollama Model"
-msgstr "Назва моделі OpenAI"
+msgstr "Назва моделі Ollama"
 
 #: src/handlers/embeddings/openai_handler.py:35
 #: src/handlers/llm/claude_handler.py:84 src/handlers/llm/openai_handler.py:72
@@ -89,7 +86,7 @@ msgstr "API-ключ"
 #: src/handlers/llm/openai_handler.py:72
 #, fuzzy
 msgid "API Key for "
-msgstr "API-ключ для Groq"
+msgstr "API-ключ для OpenAI"
 
 #: src/handlers/embeddings/openai_handler.py:38
 #, fuzzy
@@ -100,7 +97,7 @@ msgstr "Базова URL-адреса API, змініть це для викор
 #: src/handlers/llm/openai_handler.py:78
 #, fuzzy
 msgid "Use Custom Model"
-msgstr "Користувацька команда"
+msgstr "Використовувати користувацьку модель"
 
 #: src/handlers/embeddings/openai_handler.py:44
 #: src/handlers/llm/claude_handler.py:89 src/handlers/llm/claude_handler.py:93
@@ -117,7 +114,7 @@ msgstr "Модель"
 #: src/handlers/embeddings/openai_handler.py:44
 #, fuzzy
 msgid "Name of the Embedding Model to use"
-msgstr "Назва моделі OpenAI"
+msgstr "Назва моделі вбудовування для використання"
 
 #: src/handlers/embeddings/openai_handler.py:51
 #: src/handlers/llm/openai_handler.py:91
@@ -131,7 +128,7 @@ msgstr "Модель"
 #: src/handlers/tts/openai_tts_handler.py:18
 #, fuzzy
 msgid "The API key to use"
-msgstr "API-ключ для Groq"
+msgstr "API-ключ для використання"
 
 #: src/handlers/llm/claude_handler.py:89 src/handlers/llm/claude_handler.py:93
 #: src/handlers/tts/custom_openai_tts.py:20
@@ -139,7 +136,7 @@ msgstr "API-ключ для Groq"
 #: src/handlers/tts/openai_tts_handler.py:20
 #, fuzzy
 msgid "The model to use"
-msgstr "Шлях до моделі"
+msgstr "Модель для використання"
 
 #: src/handlers/llm/claude_handler.py:96
 msgid "Max Tokens"
@@ -147,7 +144,7 @@ msgstr "Максимальна кількість токенів"
 
 #: src/handlers/llm/claude_handler.py:96
 msgid "The maximum number of tokens to generate"
-msgstr ""
+msgstr "Максимальна кількість токенів для генерації"
 
 #: src/handlers/llm/custom_handler.py:20 src/handlers/llm/gemini_handler.py:119
 #: src/handlers/llm/gpt4all_handler.py:153
@@ -172,7 +169,7 @@ msgid ""
 "file containing the chat, {1} with the system prompt"
 msgstr ""
 "Команда для виконання для отримання відповіді бота, {0} буде замінено JSON-"
-"файлом, що містить чат, {1} - додатковими запитами"
+"файлом, що містить чат, {1} - системним запитом"
 
 #: src/handlers/llm/custom_handler.py:22
 msgid "Command to execute to get bot's suggestions"
@@ -187,7 +184,9 @@ msgid ""
 "as strings"
 msgstr ""
 "Команда для виконання для отримання пропозицій чату, {0} буде замінено JSON-"
-"файлом, що містить чат, {1} - додатковими запитами"
+"файлом, що містить чат, {1} - додатковими запитами, {2} - кількістю "
+"пропозицій для генерації. Повинна повертати JSON-масив, що містить пропозиції "
+"як рядки"
 
 #: src/handlers/llm/gemini_handler.py:94
 msgid "API Key (required)"
@@ -196,152 +195,158 @@ msgstr "API-ключ (обов'язково)"
 #: src/handlers/llm/gemini_handler.py:94
 #, fuzzy
 msgid "API key got from ai.google.dev"
-msgstr "API-ключ отримано з ai.google.dev"
+msgstr "API-ключ, отриманий з ai.google.dev"
 
 #: src/handlers/llm/gemini_handler.py:98
 #, fuzzy
 msgid "AI Model to use"
-msgstr "Шлях до моделі"
+msgstr "Модель ШІ для використання"
 
 #: src/handlers/llm/gemini_handler.py:103
 #, fuzzy
 msgid "Enable System Prompt"
-msgstr "Користувацький запит"
+msgstr "Увімкнути системний запит"
 
 #: src/handlers/llm/gemini_handler.py:103
 msgid ""
 "Some models don't support system prompt (or developers instructions), "
 "disable it if you get errors about it"
 msgstr ""
+"Деякі моделі не підтримують системний запит (або інструкції розробників), "
+"вимкніть його, якщо отримуєте помилки"
 
 #: src/handlers/llm/gemini_handler.py:107
 #, fuzzy
 msgid "Inject system prompt"
-msgstr "Користувацький запит"
+msgstr "Вставити системний запит"
 
 #: src/handlers/llm/gemini_handler.py:107
 msgid ""
 "Even if the model doesn't support system prompts, put the prompts on top of "
 "the user message"
 msgstr ""
+"Навіть якщо модель не підтримує системні підказки, розмістіть підказки над "
+"повідомленням користувача"
 
 #: src/handlers/llm/gemini_handler.py:109
 #, fuzzy
 msgid "Thinking Settings"
-msgstr "Налаштування"
+msgstr "Налаштування мислення"
 
 #: src/handlers/llm/gemini_handler.py:109
 msgid "Settings about thinking models"
-msgstr ""
+msgstr "Налаштування щодо моделей мислення"
 
 #: src/handlers/llm/gemini_handler.py:110
 #: src/handlers/llm/ollama_handler.py:152
 msgid "Enable Thinking"
-msgstr ""
+msgstr "Увімкнути мислення"
 
 #: src/handlers/llm/gemini_handler.py:110
 msgid "Show thinking, disable it if your model does not support it"
-msgstr ""
+msgstr "Показати мислення, вимкніть, якщо ваша модель не підтримує його"
 
 #: src/handlers/llm/gemini_handler.py:111
 msgid "Enable Thinking Budget"
-msgstr ""
+msgstr "Увімкнути бюджет мислення"
 
 #: src/handlers/llm/gemini_handler.py:111
 msgid "If to enable thinking budget"
-msgstr ""
+msgstr "Чи вмикати бюджет мислення"
 
 #: src/handlers/llm/gemini_handler.py:112
 msgid "Thinking Budget"
-msgstr ""
+msgstr "Бюджет мислення"
 
 #: src/handlers/llm/gemini_handler.py:112
 msgid "How much time to spend thinking"
-msgstr ""
+msgstr "Скільки часу приділяти мисленню"
 
 #: src/handlers/llm/gemini_handler.py:116
 msgid "Image Output"
-msgstr ""
+msgstr "Вивід зображень"
 
 #: src/handlers/llm/gemini_handler.py:116
 msgid "Enable image output, only supported by gemini-2.0-flash-exp"
-msgstr ""
+msgstr "Увімкнути вивід зображень, підтримується тільки gemini-2.0-flash-exp"
 
 #: src/handlers/llm/gemini_handler.py:125
 msgid "Enable safety settings"
-msgstr ""
+msgstr "Увімкнути налаштування безпеки"
 
 #: src/handlers/llm/gemini_handler.py:126
 msgid "Enable google safety settings to avoid generating harmful content"
 msgstr ""
+"Увімкнути налаштування безпеки Google, щоб уникнути генерації шкідливого "
+"контенту"
 
 #: src/handlers/llm/gemini_handler.py:131
 #: src/handlers/llm/openai_handler.py:112
 #: src/handlers/llm/newelle_handler.py:18
 msgid "Privacy Policy"
-msgstr ""
+msgstr "Політика конфіденційності"
 
 #: src/handlers/llm/gemini_handler.py:132
 #: src/handlers/llm/openai_handler.py:112
 #: src/handlers/llm/newelle_handler.py:19
 msgid "Open privacy policy website"
-msgstr ""
+msgstr "Відкрити веб-сайт політики конфіденційності"
 
 #: src/handlers/llm/gemini_handler.py:135 src/handlers/llm/openai_handler.py:81
 #, fuzzy
 msgid "Advanced Parameters"
-msgstr " Параметри: "
+msgstr "Додаткові параметри"
 
 #: src/handlers/llm/gemini_handler.py:135
 #, fuzzy
 msgid "Enable advanced parameters"
-msgstr " Параметри: "
+msgstr "Увімкнути додаткові параметри"
 
 #: src/handlers/llm/gpt4all_handler.py:67
 #, fuzzy
 msgid "RAM Required: "
-msgstr " Необхідно оперативної пам'яті: "
+msgstr "Необхідно оперативної пам'яті: "
 
 #: src/handlers/llm/gpt4all_handler.py:68
 #, fuzzy
 msgid "Parameters: "
-msgstr " Параметри: "
+msgstr "Параметри: "
 
 #: src/handlers/llm/gpt4all_handler.py:69
 #, fuzzy
 msgid "Size: "
-msgstr " Розмір: "
+msgstr "Розмір: "
 
 #: src/handlers/llm/gpt4all_handler.py:154 src/handlers/llm/g4f_handler.py:44
 #, fuzzy
 msgid "Model to use"
-msgstr "Шлях до моделі"
+msgstr "Модель для використання"
 
 #: src/handlers/llm/gpt4all_handler.py:154
 #: src/handlers/tts/elevenlabs_handler.py:25
 #, fuzzy
 msgid "Name of the model to use"
-msgstr "Назва моделі Groq"
+msgstr "Назва моделі для використання"
 
 #: src/handlers/llm/gpt4all_handler.py:155
 #: src/handlers/llm/ollama_handler.py:172
 #, fuzzy
 msgid "Model Manager"
-msgstr "Шлях до моделі"
+msgstr "Менеджер моделей"
 
 #: src/handlers/llm/gpt4all_handler.py:155
 #: src/handlers/llm/ollama_handler.py:172
 msgid "List of models available"
-msgstr ""
+msgstr "Список доступних моделей"
 
 #: src/handlers/llm/openai_handler.py:81
 msgid "Include parameters like Max Tokens, Top-P, Temperature, etc."
-msgstr ""
+msgstr "Включити параметри, такі як Макс. токенів, Top-P, Температура тощо."
 
 #: src/handlers/llm/openai_handler.py:84
 #, fuzzy
 msgid "Name of the LLM Model to use"
-msgstr "Назва моделі Groq"
+msgstr "Назва моделі LLM для використання"
 
 #: src/handlers/llm/openai_handler.py:103
 #, fuzzy
@@ -383,6 +388,8 @@ msgid ""
 "Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
 "to repeat the same line verbatim"
 msgstr ""
+"Число від -2.0 до 2.0. Позитивні значення зменшують ймовірність моделі "
+"повторювати той самий рядок дослівно"
 
 #: src/handlers/llm/openai_handler.py:107
 msgid "Presence Penalty"
@@ -393,71 +400,77 @@ msgid ""
 "Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
 "to talk about new topics"
 msgstr ""
+"Число від -2.0 до 2.0. Позитивні значення зменшують ймовірність моделі "
+"говорити про нові теми"
 
 #: src/handlers/llm/openrouter_handler.py:14
 msgid "Provider Sorting"
-msgstr ""
+msgstr "Сортування провайдерів"
 
 #: src/handlers/llm/openrouter_handler.py:14
 msgid "Choose providers based on pricing/throughput or latency"
-msgstr ""
+msgstr "Виберіть провайдерів за ціною/пропускною здатністю або затримкою"
 
 #: src/handlers/llm/openrouter_handler.py:14
 msgid "Price"
-msgstr ""
+msgstr "Ціна"
 
 #: src/handlers/llm/openrouter_handler.py:14
 msgid "Throughput"
-msgstr ""
+msgstr "Пропускна здатність"
 
 #: src/handlers/llm/openrouter_handler.py:14
 msgid "Latency"
-msgstr ""
+msgstr "Затримка"
 
 #: src/handlers/llm/openrouter_handler.py:15
 msgid "Providers Order"
-msgstr ""
+msgstr "Порядок провайдерів"
 
 #: src/handlers/llm/openrouter_handler.py:15
 msgid ""
 "Add order of providers to use, names separated by a comma.\n"
 "Empty to not specify"
 msgstr ""
+"Додайте порядок провайдерів для використання, імена розділені комою.\n"
+"Залиште порожнім, щоб не вказувати"
 
 #: src/handlers/llm/openrouter_handler.py:16
 msgid "Allow Fallbacks"
-msgstr ""
+msgstr "Дозволити резервування"
 
 #: src/handlers/llm/openrouter_handler.py:16
 msgid "Allow fallbacks to other providers"
-msgstr ""
+msgstr "Дозволити резервування на інших провайдерів"
 
 #: src/handlers/llm/g4f_handler.py:45
 msgid "Update G4F"
-msgstr ""
+msgstr "Оновити G4F"
 
 #: src/handlers/llm/ollama_handler.py:152
 msgid "Allow thinking in the model, only some models are supported"
-msgstr ""
+msgstr "Дозволити мислення в моделі, підтримуються лише деякі моделі"
 
 #: src/handlers/llm/ollama_handler.py:176
 #, fuzzy
 msgid "Add custom model"
-msgstr "Виконує користувацьку команду"
+msgstr "Додати користувацьку модель"
 
 #: src/handlers/llm/ollama_handler.py:177
 msgid ""
 "Add any model to this list by putting name:size\n"
 "Or any gguf from hf with hf.co/username/model"
 msgstr ""
+"Додайте будь-яку модель до цього списку, вказавши name:size\n"
+"Або будь-який gguf з hf за допомогою hf.co/username/model"
 
 #: src/handlers/llm/ollama_handler.py:187
 msgid "Update Ollama"
-msgstr ""
+msgstr "Оновити Ollama"
 
 #: src/handlers/rag/rag_handler.py:104
 msgid "Index your documents"
-msgstr ""
+msgstr "Індексувати ваші документи"
 
 #: src/handlers/rag/rag_handler.py:105
 msgid ""
@@ -465,6 +478,9 @@ msgid ""
 "operation every time you edit/create a document, change document analyzer or "
 "change embedding model"
 msgstr ""
+"Індексуйте всі документи у вашій папці документів. Ви повинні виконувати цю "
+"операцію кожного разу, коли редагуєте/створюєте документ, змінюєте аналізатор "
+"документів або модель вбудовування"
 
 #: src/handlers/stt/custom_handler.py:13 src/handlers/tts/custom_handler.py:17
 msgid "Command to execute"
@@ -495,7 +511,7 @@ msgstr "Мова тексту для розпізнавання в формат�
 #, fuzzy
 msgid "API Key for Groq SR, write 'default' to use the default one"
 msgstr ""
-"API-ключ для Google SR, напишіть 'default' для використання стандартного"
+"API-ключ для Groq SR, напишіть 'default' для використання стандартного"
 
 #: src/handlers/stt/groqsr_handler.py:21
 msgid "Groq Model"
@@ -510,10 +526,12 @@ msgid ""
 "Specify the language for transcription. Use ISO 639-1 language codes (e.g. "
 "\"en\" for English, \"fr\" for French, etc.). "
 msgstr ""
+"Вкажіть мову для транскрипції. Використовуйте коди мов ISO 639-1 (наприклад, "
+"\"en\" для англійської, \"fr\" для французької тощо)."
 
 #: src/handlers/stt/openaisr_handler.py:11
 msgid "Endpoint for OpenAI requests"
-msgstr ""
+msgstr "Кінцева точка для запитів OpenAI"
 
 #: src/handlers/stt/openaisr_handler.py:18
 #, fuzzy
@@ -523,7 +541,7 @@ msgstr "API-ключ для OpenAI"
 #: src/handlers/stt/openaisr_handler.py:25
 #, fuzzy
 msgid "Whisper Model"
-msgstr "Модель API Whisper"
+msgstr "Модель Whisper"
 
 #: src/handlers/stt/openaisr_handler.py:26
 #, fuzzy
@@ -535,6 +553,8 @@ msgid ""
 "Optional: Specify the language for transcription. Use ISO 639-1 language "
 "codes (e.g. \"en\" for English, \"fr\" for French, etc.). "
 msgstr ""
+"Необов’язково: Вкажіть мову для транскрипції. Використовуйте коди мов ISO "
+"639-1 (наприклад, \"en\" для англійської, \"fr\" для французької тощо)."
 
 #: src/handlers/stt/vosk_handler.py:17
 msgid "Model Path"
@@ -548,7 +568,7 @@ msgstr "Абсолютний шлях до моделі VOSK (розархіво
 #: src/handlers/stt/whispercpp_handler.py:41
 #, fuzzy
 msgid "Name of the Whisper model"
-msgstr "Назва моделі API Whisper"
+msgstr "Назва моделі Whisper"
 
 #: src/handlers/stt/witai_handler.py:13
 msgid "Server Access Token for wit.ai"
@@ -561,27 +581,27 @@ msgstr "Не вдалося розпізнати аудіо"
 #: src/handlers/stt/whispercpp_handler.py:47
 #, fuzzy
 msgid "Language of the recognition."
-msgstr "Мова тексту для розпізнавання в форматі IETF"
+msgstr "Мова розпізнавання."
 
 #: src/handlers/stt/whispercpp_handler.py:48
 #, fuzzy
 msgid "Model Library"
-msgstr "Шлях до моделі"
+msgstr "Бібліотека моделей"
 
 #: src/handlers/stt/whispercpp_handler.py:48
 #, fuzzy
 msgid "Manage Whisper models"
-msgstr "Модель API Whisper"
+msgstr "Керувати моделями Whisper"
 
 #: src/handlers/stt/whispercpp_handler.py:49
 #, fuzzy
 msgid "Advanced Settings"
-msgstr "Налаштування"
+msgstr "Додаткові налаштування"
 
 #: src/handlers/stt/whispercpp_handler.py:49
 #, fuzzy
 msgid "More advanced settings"
-msgstr "Налаштування"
+msgstr "Додаткові налаштування"
 
 #: src/handlers/stt/whispercpp_handler.py:50
 #, fuzzy
@@ -591,20 +611,20 @@ msgstr "Температура"
 #: src/handlers/stt/whispercpp_handler.py:51
 #, fuzzy
 msgid "Prompt for the recognition"
-msgstr "Розпізнавання мови Google"
+msgstr "Запит для розпізнавання"
 
 #: src/handlers/stt/whispercpp_handler.py:51
 msgid "Prompt to use for the recognition"
-msgstr ""
+msgstr "Запит, який використовуватиметься для розпізнавання"
 
 #: src/handlers/tts/custom_openai_tts.py:17
 #, fuzzy
 msgid "Endpoint"
-msgstr "Кінцева точка API"
+msgstr "Кінцева точка"
 
 #: src/handlers/tts/custom_openai_tts.py:17
 msgid "Custom endpoint of the service to use"
-msgstr ""
+msgstr "Користувацька кінцева точка сервісу для використання"
 
 #: src/handlers/tts/custom_openai_tts.py:19
 #: src/handlers/tts/elevenlabs_handler.py:17
@@ -619,58 +639,61 @@ msgstr "Голос"
 #: src/handlers/tts/openai_tts_handler.py:19
 #, fuzzy
 msgid "The voice to use"
-msgstr "Шлях до моделі"
+msgstr "Голос для використання"
 
 #: src/handlers/tts/custom_openai_tts.py:21
 #: src/handlers/tts/openai_tts_handler.py:21
 msgid "Instructions"
-msgstr ""
+msgstr "Інструкції"
 
 #: src/handlers/tts/custom_openai_tts.py:21
 #: src/handlers/tts/openai_tts_handler.py:21
 msgid ""
 "Instructions for the voice generation. Leave it blank to avoid this field"
 msgstr ""
+"Інструкції для генерації голосу. Залиште порожнім, щоб уникнути цього поля"
 
 #: src/handlers/tts/elevenlabs_handler.py:10
 #, fuzzy
 msgid "API Key for ElevenLabs"
-msgstr "API-ключ для OpenAI"
+msgstr "API-ключ для ElevenLabs"
 
 #: src/handlers/tts/elevenlabs_handler.py:18
 #, fuzzy
 msgid "Voice ID to use"
-msgstr "Шлях до моделі"
+msgstr "Ідентифікатор голосу для використання"
 
 #: src/handlers/tts/elevenlabs_handler.py:32
 msgid "Stability"
-msgstr ""
+msgstr "Стабільність"
 
 #: src/handlers/tts/elevenlabs_handler.py:33
 msgid "stability of the voice"
-msgstr ""
+msgstr "стабільність голосу"
 
 #: src/handlers/tts/elevenlabs_handler.py:42
 msgid "Similarity boost"
-msgstr ""
+msgstr "Підсилення подібності"
 
 #: src/handlers/tts/elevenlabs_handler.py:43
 msgid "Boosts overall voice clarity and speaker similarity"
-msgstr ""
+msgstr "Підвищує загальну чіткість голосу та подібність до мовця"
 
 #: src/handlers/tts/elevenlabs_handler.py:52
 msgid "Style exaggeration"
-msgstr ""
+msgstr "Перебільшення стилю"
 
 #: src/handlers/tts/elevenlabs_handler.py:53
 msgid ""
 "High values are reccomended if the style of the speech must be exaggerated"
 msgstr ""
+"Високі значення рекомендуються, якщо стиль мовлення повинен бути "
+"перебільшений"
 
 #: src/handlers/tts/custom_handler.py:17
 #, fuzzy, python-brace-format
 msgid "{0} will be replaced with the file fullpath, {1} with the text"
-msgstr "{0} буде замінено повним шляхом до моделі"
+msgstr "{0} буде замінено повним шляхом до файлу, {1} – текстом"
 
 #: src/handlers/tts/tts.py:34
 msgid "Choose the preferred voice"
@@ -679,25 +702,25 @@ msgstr "Виберіть бажаний голос"
 #: src/handlers/websearch/tavily.py:20
 #, fuzzy
 msgid "Token"
-msgstr "Максимальна кількість токенів"
+msgstr "Токен"
 
 #: src/handlers/websearch/tavily.py:20
 msgid "Tavily API key"
-msgstr ""
+msgstr "API-ключ Tavily"
 
 #: src/handlers/websearch/tavily.py:21
 #: src/handlers/websearch/duckduckgo_handler.py:14
 msgid "Max Results"
-msgstr ""
+msgstr "Максимум результатів"
 
 #: src/handlers/websearch/tavily.py:21
 #: src/handlers/websearch/duckduckgo_handler.py:14
 msgid "Number of results to consider"
-msgstr ""
+msgstr "Кількість результатів для розгляду"
 
 #: src/handlers/websearch/tavily.py:22
 msgid "The depth of the search"
-msgstr ""
+msgstr "Глибина пошуку"
 
 #: src/handlers/websearch/tavily.py:22
 msgid ""
@@ -706,10 +729,14 @@ msgid ""
 "provides generic content snippets from each source. A basic search costs 1 "
 "API Credit, while an advanced search costs 2 API Credits."
 msgstr ""
+"Глибина пошуку. Розширений пошук призначений для отримання найрелевантніших "
+"джерел та фрагментів контенту для вашого запиту, тоді як базовий пошук "
+"надає загальні фрагменти контенту з кожного джерела. Базовий пошук коштує 1 "
+"API-кредит, тоді як розширений пошук коштує 2 API-кредити."
 
 #: src/handlers/websearch/tavily.py:23
 msgid "The category of the search"
-msgstr ""
+msgstr "Категорія пошуку"
 
 #: src/handlers/websearch/tavily.py:23
 msgid ""
@@ -718,10 +745,14 @@ msgid ""
 "mainstream media sources. General is for broader, more general-purpose "
 "searches that may include a wide range of sources."
 msgstr ""
+"Категорія пошуку. Новини корисні для отримання оновлень у реальному часі, "
+"зокрема щодо політики, спорту та головних поточних подій, які висвітлюються "
+"основними ЗМІ. Загальний пошук призначений для ширших, більш загальних "
+"пошуків, які можуть включати широкий спектр джерел."
 
 #: src/handlers/websearch/tavily.py:24
 msgid "Chunks per source"
-msgstr ""
+msgstr "Фрагменти на джерело"
 
 #: src/handlers/websearch/tavily.py:24
 msgid ""
@@ -729,73 +760,81 @@ msgid ""
 "length is maximum 500 characters. Available only when search depth is "
 "advanced."
 msgstr ""
+"Кількість фрагментів вмісту, що вилучаються з кожного джерела. Довжина "
+"кожного фрагмента становить максимум 500 символів. Доступно лише при "
+"розширеній глибині пошуку."
 
 #: src/handlers/websearch/tavily.py:25
 msgid "Number of days back from the current date to include"
-msgstr ""
+msgstr "Кількість днів назад від поточної дати для включення"
 
 #: src/handlers/websearch/tavily.py:25
 msgid "Available only if topic is news."
-msgstr ""
+msgstr "Доступно лише якщо тема – новини."
 
 #: src/handlers/websearch/tavily.py:26
 msgid "Include answer"
-msgstr ""
+msgstr "Включити відповідь"
 
 #: src/handlers/websearch/tavily.py:26
 msgid ""
 "Include an LLM-generated answer to the provided query. Basic search returns "
 "a quick answer. Advanced returns a more detailed answer."
 msgstr ""
+"Включити LLM-генеровану відповідь на наданий запит. Базовий пошук повертає "
+"швидку відповідь. Розширений повертає більш детальну відповідь."
 
 #: src/handlers/websearch/tavily.py:27
 msgid "Include raw content"
-msgstr ""
+msgstr "Включити необроблений вміст"
 
 #: src/handlers/websearch/tavily.py:27
 msgid "Include the cleaned and parsed HTML content of each search result."
 msgstr ""
+"Включити очищений та розпарсений HTML-вміст кожного результату пошуку."
 
 #: src/handlers/websearch/tavily.py:28
 msgid "Include images"
-msgstr ""
+msgstr "Включити зображення"
 
 #: src/handlers/websearch/tavily.py:28
 msgid "Perform an image search and include the results in the response."
-msgstr ""
+msgstr "Виконати пошук зображень та включити результати у відповідь."
 
 #: src/handlers/websearch/tavily.py:29
 msgid "Include image descriptions"
-msgstr ""
+msgstr "Включити описи зображень"
 
 #: src/handlers/websearch/tavily.py:29
 msgid ""
 "When Include images is enabled, also add a descriptive text for each image."
 msgstr ""
+"Коли увімкнено опцію \"Включити зображення\", також додайте описовий текст "
+"для кожного зображення."
 
 #: src/handlers/websearch/tavily.py:30
 msgid "Include domains"
-msgstr ""
+msgstr "Включити домени"
 
 #: src/handlers/websearch/tavily.py:30
 msgid "A list of domains to specifically include in the search results."
-msgstr ""
+msgstr "Список доменів, які слід явно включити в результати пошуку."
 
 #: src/handlers/websearch/tavily.py:31
 msgid "Exclude domains"
-msgstr ""
+msgstr "Виключити домени"
 
 #: src/handlers/websearch/tavily.py:31
 msgid "A list of domains to specifically exclude from the search results."
-msgstr ""
+msgstr "Список доменів, які слід явно виключити з результатів пошуку."
 
 #: src/handlers/websearch/duckduckgo_handler.py:15
 msgid "Region"
-msgstr ""
+msgstr "Регіон"
 
 #: src/handlers/websearch/duckduckgo_handler.py:15
 msgid "Region for the search results"
-msgstr ""
+msgstr "Регіон для результатів пошуку"
 
 #: src/ui/profile.py:33 src/window.py:119
 msgid "Settings"
@@ -803,77 +842,77 @@ msgstr "Налаштування"
 
 #: src/ui/profile.py:53
 msgid "Profile Name"
-msgstr ""
+msgstr "Назва профілю"
 
 #: src/ui/profile.py:58
 #, fuzzy
 msgid "Copied Settings"
-msgstr "Налаштування"
+msgstr "Скопійовані налаштування"
 
 #: src/ui/profile.py:58
 msgid "Settings that will be copied to the new profile"
-msgstr ""
+msgstr "Налаштування, які будуть скопійовані в новий профіль"
 
 #: src/ui/profile.py:70
 msgid "Create Profile"
-msgstr ""
+msgstr "Створити профіль"
 
 #: src/ui/profile.py:72 src/ui/profile.py:74 src/ui/profile.py:129
 msgid "Import Profile"
-msgstr ""
+msgstr "Імпортувати профіль"
 
 #: src/ui/profile.py:79 src/ui/widgets/profilerow.py:43
 msgid "Edit Profile"
-msgstr ""
+msgstr "Редагувати профіль"
 
 #: src/ui/profile.py:84 src/ui/profile.py:99 src/ui/profile.py:123
 msgid "Export Profile"
-msgstr ""
+msgstr "Експортувати профіль"
 
 #: src/ui/profile.py:87
 msgid "Export Passwords"
-msgstr ""
+msgstr "Експортувати паролі"
 
 #: src/ui/profile.py:87
 msgid "Also export password-like fields"
-msgstr ""
+msgstr "Також експортувати поля, схожі на пароль"
 
 #: src/ui/profile.py:89
 msgid "Export Propic"
-msgstr ""
+msgstr "Експортувати фото профілю"
 
 #: src/ui/profile.py:89
 msgid "Also export the profile picture"
-msgstr ""
+msgstr "Також експортувати фотографію профілю"
 
 #: src/ui/profile.py:109 src/ui/explorer.py:692
 #, fuzzy
 msgid "Create"
-msgstr "Створити чат"
+msgstr "Створити"
 
 #: src/ui/profile.py:109
 msgid "Apply"
-msgstr ""
+msgstr "Застосувати"
 
 #: src/ui/profile.py:116
 msgid "The settings of the current profile will be copied into the new one"
-msgstr ""
+msgstr "Налаштування поточного профілю будуть скопійовані в новий"
 
 #: src/ui/profile.py:122 src/ui/profile.py:128
 msgid "Newelle Profiles"
-msgstr ""
+msgstr "Профілі Newelle"
 
 #: src/ui/profile.py:123
 msgid "Export"
-msgstr ""
+msgstr "Експортувати"
 
 #: src/ui/profile.py:129
 msgid "Import"
-msgstr ""
+msgstr "Імпорт"
 
 #: src/ui/profile.py:197
 msgid "Set profile picture"
-msgstr ""
+msgstr "Встановити фото профілю"
 
 #: src/ui/thread_editing.py:6 src/window.py:117
 msgid "Thread editing"
@@ -889,35 +928,35 @@ msgstr "Номер потоку: "
 
 #: src/ui/widgets/profilerow.py:26
 msgid "Select profile"
-msgstr ""
+msgstr "Вибрати профіль"
 
 #: src/ui/widgets/profilerow.py:53
 msgid "Delete Profile"
-msgstr ""
+msgstr "Видалити профіль"
 
 #: src/ui/widgets/tipscarousel.py:41
 msgid "Newelle Tips"
-msgstr ""
+msgstr "Поради Newelle"
 
 #: src/ui/widgets/thinking.py:27
 msgid "Thoughts"
-msgstr ""
+msgstr "Думки"
 
 #: src/ui/widgets/thinking.py:28 src/ui/widgets/thinking.py:135
 msgid "Expand to see details"
-msgstr ""
+msgstr "Розгорніть, щоб побачити деталі"
 
 #: src/ui/widgets/thinking.py:123
 msgid "Thinking..."
-msgstr ""
+msgstr "Мислення..."
 
 #: src/ui/widgets/thinking.py:124
 msgid "The LLM is thinking... Expand to see thought process"
-msgstr ""
+msgstr "LLM мислить... Розгорніть, щоб побачити процес мислення"
 
 #: src/ui/widgets/thinking.py:137
 msgid "No thought process recorded"
-msgstr ""
+msgstr "Процес мислення не записано"
 
 #: src/ui/explorer.py:192
 msgid "Folder is Empty"
@@ -929,38 +968,38 @@ msgstr "Файл не знайдено"
 
 #: src/ui/explorer.py:355
 msgid "Open in new tab"
-msgstr ""
+msgstr "Відкрити у новій вкладці"
 
 #: src/ui/explorer.py:357
 msgid "Open in integrated editor"
-msgstr ""
+msgstr "Відкрити у вбудованому редакторі"
 
 #: src/ui/explorer.py:360 src/ui/explorer.py:589
 msgid "Open in file manager"
-msgstr ""
+msgstr "Відкрити у файловому менеджері"
 
 #: src/ui/explorer.py:363 src/ui/explorer.py:451
 msgid "Rename"
-msgstr ""
+msgstr "Перейменувати"
 
 #: src/ui/explorer.py:366 src/ui/explorer.py:502 src/ui/settings.py:275
 #: src/ui/settings.py:346
 msgid "Delete"
-msgstr ""
+msgstr "Видалити"
 
 #: src/ui/explorer.py:369
 msgid "Copy full path"
-msgstr ""
+msgstr "Скопіювати повний шлях"
 
 #: src/ui/explorer.py:420 src/ui/explorer.py:657
 #, fuzzy
 msgid "Failed to open file manager"
-msgstr "Не вдалося відкрити папку"
+msgstr "Не вдалося відкрити файловий менеджер"
 
 #: src/ui/explorer.py:436
 #, fuzzy
 msgid "New name:"
-msgstr "Нова вкладка"
+msgstr "Нове ім'я:"
 
 #: src/ui/explorer.py:448 src/ui/explorer.py:501 src/ui/explorer.py:689
 #: src/main.py:209
@@ -969,95 +1008,95 @@ msgstr "Скасувати"
 
 #: src/ui/explorer.py:471
 msgid "Renamed successfully"
-msgstr ""
+msgstr "Успішно перейменовано"
 
 #: src/ui/explorer.py:476
 #, fuzzy
 msgid "Failed to rename: {}"
-msgstr "Не вдалося відкрити папку"
+msgstr "Не вдалося перейменувати: {}"
 
 #: src/ui/explorer.py:497
 msgid "Delete File?"
-msgstr ""
+msgstr "Видалити файл?"
 
 #: src/ui/explorer.py:499
 msgid "Are you sure you want to delete \"{}\"?"
-msgstr ""
+msgstr "Ви впевнені, що хочете видалити \"{}\"?"
 
 #: src/ui/explorer.py:520
 msgid "Deleted successfully"
-msgstr ""
+msgstr "Успішно видалено"
 
 #: src/ui/explorer.py:525
 #, fuzzy
 msgid "Failed to delete: {}"
-msgstr "Не вдалося відкрити папку"
+msgstr "Не вдалося видалити: {}"
 
 #: src/ui/explorer.py:538
 msgid "Path copied to clipboard"
-msgstr ""
+msgstr "Шлях скопійовано в буфер обміну"
 
 #: src/ui/explorer.py:542
 #, fuzzy
 msgid "Failed to copy path"
-msgstr "Не вдалося відкрити папку"
+msgstr "Не вдалося скопіювати шлях"
 
 #: src/ui/explorer.py:580
 #, fuzzy
 msgid "Create new folder"
-msgstr "Перезавантажити папку"
+msgstr "Створити нову папку"
 
 #: src/ui/explorer.py:583
 msgid "Create new file"
-msgstr ""
+msgstr "Створити новий файл"
 
 #: src/ui/explorer.py:586
 msgid "Open Terminal Here"
-msgstr ""
+msgstr "Відкрити термінал тут"
 
 #: src/ui/explorer.py:640
 msgid "Create New Folder"
-msgstr ""
+msgstr "Створити нову папку"
 
 #: src/ui/explorer.py:640
 #, fuzzy
 msgid "Folder name:"
-msgstr "Нова вкладка"
+msgstr "Ім'я папки:"
 
 #: src/ui/explorer.py:644
 msgid "Create New File"
-msgstr ""
+msgstr "Створити новий файл"
 
 #: src/ui/explorer.py:644
 #, fuzzy
 msgid "File name:"
-msgstr "Нова вкладка"
+msgstr "Ім'я файлу:"
 
 #: src/ui/explorer.py:713
 msgid "Folder created successfully"
-msgstr ""
+msgstr "Папку успішно створено"
 
 #: src/ui/explorer.py:720
 msgid "File created successfully"
-msgstr ""
+msgstr "Файл успішно створено"
 
 #: src/ui/explorer.py:725
 msgid "A file or folder with that name already exists"
-msgstr ""
+msgstr "Файл або папка з таким ім'ям вже існує"
 
 #: src/ui/explorer.py:728
 #, fuzzy
 msgid "folder"
-msgstr "Перезавантажити папку"
+msgstr "папку"
 
 #: src/ui/explorer.py:728
 msgid "file"
-msgstr ""
+msgstr "файл"
 
 #: src/ui/explorer.py:730
 #, fuzzy
 msgid "Failed to create {}: {}"
-msgstr "Не вдалося відкрити папку"
+msgstr "Не вдалося створити {}: {}"
 
 #: src/ui/shortcuts.py:6
 msgid "Help"
@@ -1081,42 +1120,42 @@ msgstr "Нова вкладка"
 
 #: src/ui/shortcuts.py:16
 msgid "Paste Image"
-msgstr ""
+msgstr "Вставити зображення"
 
 #: src/ui/shortcuts.py:17
 msgid "Focus message box"
-msgstr ""
+msgstr "Фокусувати вікно повідомлення"
 
 #: src/ui/shortcuts.py:18
 #, fuzzy
 msgid "Start/stop recording"
-msgstr "Почати спілкування"
+msgstr "Почати/зупинити запис"
 
 #: src/ui/shortcuts.py:19
 msgid "Save"
-msgstr ""
+msgstr "Зберегти"
 
 #: src/ui/shortcuts.py:20
 #, fuzzy
 msgid "Stop TTS"
-msgstr " Зупинити"
+msgstr "Зупинити TTS"
 
 #: src/ui/shortcuts.py:21
 msgid "Zoom in"
-msgstr ""
+msgstr "Збільшити"
 
 #: src/ui/shortcuts.py:22
 msgid "Zoom out"
-msgstr ""
+msgstr "Зменшити"
 
 #: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.appdata.xml.in:7
 #: data/io.github.qwersyk.Newelle.desktop.in:2
 msgid "Newelle"
-msgstr ""
+msgstr "Newelle"
 
 #: src/ui/mini_window.py:20
 msgid "Chat is opened in mini window"
-msgstr ""
+msgstr "Чат відкрито в міні-вікні"
 
 #: src/ui/presentation.py:93
 msgid "Welcome to Newelle"
@@ -1149,7 +1188,7 @@ msgstr "Посібник з LLM"
 
 #: src/ui/presentation.py:117
 msgid "Chat with your documents"
-msgstr ""
+msgstr "Спілкуйтеся з вашими документами"
 
 #: src/ui/presentation.py:118
 msgid ""
@@ -1157,6 +1196,9 @@ msgid ""
 "chat or from your own files! Information relevant to your query will be sent "
 "to the LLM."
 msgstr ""
+"Newelle може отримувати відповідну інформацію з документів, які ви надсилаєте "
+"в чат, або з ваших власних файлів! Інформація, що відповідає вашому запиту, "
+"буде надіслана в LLM."
 
 #: src/ui/presentation.py:124 src/ui/settings.py:236 src/window.py:647
 msgid "Command virtualization"
@@ -1170,6 +1212,11 @@ msgid ""
 "By default, your commands will be <b>virtualized in the Flatpak environment</"
 "b>, but pay attention!"
 msgstr ""
+"Newelle може використовуватися для виконання команд у вашій системі, але "
+"звертайте увагу на те, що ви запускаєте! <b>LLM не знаходиться під нашим "
+"контролем, тому він може генерувати шкідливий код!</b>\n"
+"За замовчуванням, ваші команди будуть <b>віртуалізовані в середовищі Flatpak</"
+"b>, але будьте уважні!"
 
 #: src/ui/presentation.py:131 src/ui/extension.py:17 src/constants.py:513
 #: src/window.py:118
@@ -1204,37 +1251,37 @@ msgstr "Почати спілкування"
 #: src/ui/extension.py:50
 #, fuzzy
 msgid "Installed Extensions"
-msgstr "Розширення"
+msgstr "Встановлені розширення"
 
 #: src/ui/extension.py:85
 msgid "User guide to Extensions"
-msgstr ""
+msgstr "Посібник користувача з розширень"
 
 #: src/ui/extension.py:88
 #, fuzzy
 msgid "Download new Extensions"
-msgstr "Завантажити розширення"
+msgstr "Завантажити нові розширення"
 
 #: src/ui/extension.py:91
 msgid "Install extension from file..."
-msgstr ""
+msgstr "Встановити розширення з файлу..."
 
 #: src/ui/settings.py:46 src/constants.py:523
 msgid "General"
-msgstr ""
+msgstr "Загальне"
 
 #: src/ui/settings.py:47 src/constants.py:478
 msgid "LLM"
-msgstr ""
+msgstr "LLM"
 
 #: src/ui/settings.py:48 src/constants.py:528
 #, fuzzy
 msgid "Prompts"
-msgstr "Користувацький запит"
+msgstr "Запити"
 
 #: src/ui/settings.py:49
 msgid "Knowledge"
-msgstr ""
+msgstr "Знання"
 
 #: src/ui/settings.py:53
 msgid "Language Model"
@@ -1242,54 +1289,59 @@ msgstr "Мовна модель"
 
 #: src/ui/settings.py:62 src/ui/settings.py:82
 msgid "Other LLMs"
-msgstr ""
+msgstr "Інші LLM"
 
 #: src/ui/settings.py:62 src/ui/settings.py:82
 msgid "Other available LLM providers"
-msgstr ""
+msgstr "Інші доступні LLM-провайдери"
 
 #: src/ui/settings.py:72
 #, fuzzy
 msgid "Advanced LLM Settings"
-msgstr "Налаштування"
+msgstr "Розширені налаштування LLM"
 
 #: src/ui/settings.py:76
 #, fuzzy
 msgid "Secondary Language Model"
-msgstr "Мовна модель"
+msgstr "Додаткова мовна модель"
 
 #: src/ui/settings.py:76
 msgid ""
 "Model used for secondary tasks, like offer, chat name and memory generation"
 msgstr ""
+"Модель, що використовується для вторинних завдань, таких як пропозиція, "
+"назва чату та генерація пам'яті"
 
 #: src/ui/settings.py:93
 #, fuzzy
 msgid "Embedding Model"
-msgstr "Назва моделі OpenAI"
+msgstr "Модель вбудовування"
 
 #: src/ui/settings.py:93
 msgid ""
 "Embedding is used to trasform text into vectors. Used by Long Term Memory "
 "and RAG. Changing it might require you to re-index documents or reset memory."
 msgstr ""
+"Вбудовування використовується для перетворення тексту на вектори. "
+"Використовується довготривалою пам'яттю та RAG. Зміна може вимагати "
+"переіндексації документів або скидання пам'яті."
 
 #: src/ui/settings.py:104 src/window.py:645
 #, fuzzy
 msgid "Long Term Memory"
-msgstr "Пам'ять програми"
+msgstr "Довготривала пам'ять"
 
 #: src/ui/settings.py:104
 msgid "Keep memory of old conversations"
-msgstr ""
+msgstr "Зберігати пам'ять про старі розмови"
 
 #: src/ui/settings.py:116 src/constants.py:401
 msgid "Web Search"
-msgstr ""
+msgstr "Веб-пошук"
 
 #: src/ui/settings.py:116
 msgid "Search information on the Web"
-msgstr ""
+msgstr "Шукати інформацію в Інтернеті"
 
 #: src/ui/settings.py:132
 msgid "Text To Speech Program"
@@ -1310,11 +1362,11 @@ msgstr "Виберіть, який рушій розпізнавання мов�
 #: src/ui/settings.py:149
 #, fuzzy
 msgid "Automatic Speech To Text"
-msgstr "Перетворення мовлення на текст"
+msgstr "Автоматичне перетворення мовлення на текст"
 
 #: src/ui/settings.py:149
 msgid "Automatically restart speech to text at the end of a text/TTS"
-msgstr ""
+msgstr "Автоматично перезапускати розпізнавання мови після тексту/TTS"
 
 #: src/ui/settings.py:153
 msgid "Prompt control"
@@ -1327,19 +1379,19 @@ msgstr "Інтерфейс"
 #: src/ui/settings.py:161
 #, fuzzy
 msgid "Interface Size"
-msgstr "Інтерфейс"
+msgstr "Розмір інтерфейсу"
 
 #: src/ui/settings.py:161
 msgid "Adjust the size of the interface"
-msgstr ""
+msgstr "Налаштуйте розмір інтерфейсу"
 
 #: src/ui/settings.py:173
 msgid "Editor color scheme"
-msgstr ""
+msgstr "Кольорова схема редактора"
 
 #: src/ui/settings.py:173
 msgid "Change the color scheme of the editor and codeblocks"
-msgstr ""
+msgstr "Змінити кольорову схему редактора та блоків коду"
 
 #: src/ui/settings.py:180
 msgid "Hidden files"
@@ -1351,7 +1403,7 @@ msgstr "Показати приховані файли"
 
 #: src/ui/settings.py:186
 msgid "Send with ENTER"
-msgstr ""
+msgstr "Надіслати за допомогою ENTER"
 
 #: src/ui/settings.py:186
 msgid ""
@@ -1359,40 +1411,47 @@ msgid ""
 "CTRL+ENTER. If disabled, messages will be sent with SHIFT+ENTER, and newline "
 "with enter"
 msgstr ""
+"Якщо увімкнено, повідомлення будуть надсилатися за допомогою ENTER, для "
+"переходу на новий рядок використовуйте CTRL+ENTER. Якщо вимкнено, "
+"повідомлення будуть надсилатися за допомогою SHIFT+ENTER, а новий рядок – за "
+"допомогою ENTER"
 
 #: src/ui/settings.py:192
 msgid "Remove thinking from history"
-msgstr ""
+msgstr "Видалити мислення з історії"
 
 #: src/ui/settings.py:192
 msgid ""
 "Do not send old thinking blocks for reasoning models in order to reduce "
 "token usage"
 msgstr ""
+"Не надсилати старі блоки мислення для моделей міркування, щоб зменшити "
+"використання токенів"
 
 #: src/ui/settings.py:198
 msgid "Display LaTeX"
-msgstr ""
+msgstr "Відображати LaTeX"
 
 #: src/ui/settings.py:198
 msgid "Display LaTeX formulas in chat"
-msgstr ""
+msgstr "Відображати формули LaTeX у чаті"
 
 #: src/ui/settings.py:204
 msgid "Reverse Chat Order"
-msgstr ""
+msgstr "Змінити порядок чатів"
 
 #: src/ui/settings.py:204
 msgid "Show most recent chats on top in chat list (change chat to apply)"
 msgstr ""
+"Показати найновіші чати вгорі списку чатів (змініть чат, щоб застосувати)"
 
 #: src/ui/settings.py:210
 msgid "Automatically Generate Chat Names"
-msgstr ""
+msgstr "Автоматично генерувати назви чатів"
 
 #: src/ui/settings.py:210
 msgid "Generate chat names automatically after the first two messages"
-msgstr ""
+msgstr "Генерувати назви чатів автоматично після перших двох повідомлень"
 
 #: src/ui/settings.py:216
 msgid "Number of offers"
@@ -1404,7 +1463,7 @@ msgstr "Кількість пропозицій повідомлень для в
 
 #: src/ui/settings.py:223
 msgid "Username"
-msgstr ""
+msgstr "Ім'я користувача"
 
 #: src/ui/settings.py:223
 #, python-brace-format
@@ -1413,6 +1472,9 @@ msgid ""
 "This information is not sent to the LLM by default\n"
 "You can add it to a prompt using the {USER} variable"
 msgstr ""
+"Змініть мітку, що з'являється перед вашим повідомленням\n"
+"Ця інформація не надсилається до LLM за замовчуванням\n"
+"Ви можете додати її до запиту за допомогою змінної {USER}"
 
 #: src/ui/settings.py:233
 msgid "Neural Network Control"
@@ -1424,11 +1486,11 @@ msgstr "Запускати команди у віртуальній машині
 
 #: src/ui/settings.py:249
 msgid "External Terminal"
-msgstr ""
+msgstr "Зовнішній термінал"
 
 #: src/ui/settings.py:249
 msgid "Choose the external terminal where to run the console commands"
-msgstr ""
+msgstr "Виберіть зовнішній термінал, де запускатимуться консольні команди"
 
 #: src/ui/settings.py:258
 msgid "Program memory"
@@ -1440,30 +1502,32 @@ msgstr "Як довго програма пам'ятає чат "
 
 #: src/ui/settings.py:265
 msgid "Developer"
-msgstr ""
+msgstr "Розробник"
 
 #: src/ui/settings.py:268 src/ui/stdout_monitor.py:31
 #: src/ui/stdout_monitor.py:41
 msgid "Program Output Monitor"
-msgstr ""
+msgstr "Монітор виведення програми"
 
 #: src/ui/settings.py:268
 msgid ""
 "Monitor the program output in real-time, useful for debugging and seeing "
 "downloads progress"
 msgstr ""
+"Моніторинг виводу програми в реальному часі, корисно для налагодження та "
+"перегляду прогресу завантажень"
 
 #: src/ui/settings.py:269
 msgid "Open"
-msgstr ""
+msgstr "Відкрити"
 
 #: src/ui/settings.py:274
 msgid "Delete pip path"
-msgstr ""
+msgstr "Видалити шлях pip"
 
 #: src/ui/settings.py:274
 msgid "Remove the extra dependencies installed"
-msgstr ""
+msgstr "Видалити встановлені додаткові залежності"
 
 #: src/ui/settings.py:294
 msgid "Auto-run commands"
@@ -1476,88 +1540,94 @@ msgstr "Команди, які напише бот, будуть автомат�
 #: src/ui/settings.py:297
 #, fuzzy
 msgid "Max number of commands"
-msgstr "Користувацька команда"
+msgstr "Максимальна кількість команд"
 
 #: src/ui/settings.py:297
 #, fuzzy
 msgid ""
 "Maximum number of commands that the bot will write after a single user "
 "request"
-msgstr "Команди, які напише бот, будуть автоматично виконуватися"
+msgstr ""
+"Максимальна кількість команд, які бот напише після одного запиту "
+"користувача"
 
 #: src/ui/settings.py:328
 msgid "Browser"
-msgstr ""
+msgstr "Браузер"
 
 #: src/ui/settings.py:328
 msgid "Settings for the browser"
-msgstr ""
+msgstr "Налаштування браузера"
 
 #: src/ui/settings.py:333
 msgid "Use external browser"
-msgstr ""
+msgstr "Використовувати зовнішній браузер"
 
 #: src/ui/settings.py:333
 msgid "Use an external browser to open links instead of integrated one"
-msgstr ""
+msgstr "Використовувати зовнішній браузер для відкриття посилань замість вбудованого"
 
 #: src/ui/settings.py:340
 msgid "Persist browser session"
-msgstr ""
+msgstr "Зберігати сесію браузера"
 
 #: src/ui/settings.py:340
 msgid ""
 "Persist browser session between restarts. Turning this off requires "
 "restarting the program"
 msgstr ""
+"Зберігати сесію браузера між перезапусками. Вимкнення цієї функції "
+"вимагає перезапуску програми"
 
 #: src/ui/settings.py:345
 msgid "Delete browser data"
-msgstr ""
+msgstr "Видалити дані браузера"
 
 #: src/ui/settings.py:345
 msgid "Delete browser session and data"
-msgstr ""
+msgstr "Видалити сесію та дані браузера"
 
 #: src/ui/settings.py:352
 msgid "Initial browser page"
-msgstr ""
+msgstr "Початкова сторінка браузера"
 
 #: src/ui/settings.py:352
 msgid "The page where the browser will start"
-msgstr ""
+msgstr "Сторінка, з якої почнеться браузер"
 
 #: src/ui/settings.py:359
 #, fuzzy
 msgid "Search string"
-msgstr "Налаштування"
+msgstr "Рядок пошуку"
 
 #: src/ui/settings.py:359
 #, python-format
 msgid "The search string used in the browser, %s is replaced with the query"
-msgstr ""
+msgstr "Рядок пошуку, що використовується у браузері, %s замінюється запитом"
 
 #: src/ui/settings.py:380
 msgid "Document Sources (RAG)"
-msgstr ""
+msgstr "Джерела документів (RAG)"
 
 #: src/ui/settings.py:380
 msgid "Include content from your documents in the responses"
-msgstr ""
+msgstr "Включати вміст з ваших документів у відповіді"
 
 #: src/ui/settings.py:381
 msgid "Document Analyzer"
-msgstr ""
+msgstr "Аналізатор документів"
 
 #: src/ui/settings.py:381
 msgid ""
 "The document analyzer uses multiple techniques to extract relevant "
 "information about your documents"
 msgstr ""
+"Аналізатор документів використовує кілька технік для вилучення релевантної "
+"інформації з ваших документів"
 
 #: src/ui/settings.py:392
 msgid "Read documents if unsupported"
-msgstr ""
+msgstr "Читати документи, якщо не підтримується"
 
 #: src/ui/settings.py:392
 msgid ""
@@ -1565,10 +1635,13 @@ msgid ""
 "documents sent in the chat will be given to the LLM using your Document "
 "Analyzer."
 msgstr ""
+"Якщо LLM не підтримує читання документів, відповідна інформація про "
+"документи, надіслані в чат, буде надана LLM за допомогою вашого аналізатора "
+"документів."
 
 #: src/ui/settings.py:396
 msgid "Maximum tokens for RAG"
-msgstr ""
+msgstr "Максимальна кількість токенів для RAG"
 
 #: src/ui/settings.py:396
 msgid ""
@@ -1576,38 +1649,44 @@ msgid ""
 "exceed this token count,\n"
 "dump all of them in the context"
 msgstr ""
+"Максимальна кількість токенів, що будуть використані для RAG. Якщо документи "
+"не перевищують цієї кількості токенів,\n"
+"включіть їх усі в контекст"
 
 #: src/ui/settings.py:413
 msgid "Document Folder"
-msgstr ""
+msgstr "Папка з документами"
 
 #: src/ui/settings.py:413
 msgid ""
 "Put the documents you want to query in your document folder. The document "
 "analyzer will find relevant information in them if this option is enabled"
 msgstr ""
+"Помістіть документи, які ви хочете запитати, у папку документів. Аналізатор "
+"документів знайде в них відповідну інформацію, якщо цю опцію увімкнено"
 
 #: src/ui/settings.py:416
 msgid "Put all the documents you want to index in this folder"
-msgstr ""
+msgstr "Помістіть усі документи, які ви хочете індексувати, у цю папку"
 
 #: src/ui/settings.py:452
 msgid "Silence threshold"
-msgstr ""
+msgstr "Поріг тиші"
 
 #: src/ui/settings.py:452
 msgid ""
 "Silence threshold in seconds, percentage of the volume to be considered "
 "silence"
 msgstr ""
+"Поріг тиші в секундах, відсоток гучності, що вважатиметься тишею"
 
 #: src/ui/settings.py:465
 msgid "Silence time"
-msgstr ""
+msgstr "Час тиші"
 
 #: src/ui/settings.py:465
 msgid "Silence time in seconds before recording stops automatically"
-msgstr ""
+msgstr "Час тиші в секундах, перш ніж запис автоматично зупиниться"
 
 #: src/ui/settings.py:1044
 msgid "Not enough permissions"
@@ -1627,47 +1706,49 @@ msgstr "Зрозуміло"
 
 #: src/ui/settings.py:1061
 msgid "Pip path deleted"
-msgstr ""
+msgstr "Шлях Pip видалено"
 
 #: src/ui/settings.py:1061
 msgid ""
 "The pip path has been deleted, you can now reinstall the dependencies. This "
 "operation requires a restart of the application."
 msgstr ""
+"Шлях pip було видалено, тепер ви можете перевстановити залежності. Ця "
+"операція вимагає перезапуску програми."
 
 #: src/ui/stdout_monitor.py:48
 msgid "Clear output"
-msgstr ""
+msgstr "Очистити вивід"
 
 #: src/ui/stdout_monitor.py:61
 #, fuzzy
 msgid "Start/Stop monitoring"
-msgstr "Почати спілкування"
+msgstr "Почати/зупинити моніторинг"
 
 #: src/ui/stdout_monitor.py:109 src/ui/stdout_monitor.py:182
 #: src/ui/stdout_monitor.py:191 src/window.py:3683
 msgid "Monitoring: Active"
-msgstr ""
+msgstr "Моніторинг: Активний"
 
 #: src/ui/stdout_monitor.py:109 src/ui/stdout_monitor.py:208
 msgid "Monitoring: Stopped"
-msgstr ""
+msgstr "Моніторинг: Зупинено"
 
 #: src/ui/stdout_monitor.py:116 src/ui/stdout_monitor.py:252
 msgid "Lines: {}"
-msgstr ""
+msgstr "Рядків: {}"
 
 #: src/ui/stdout_monitor.py:267
 msgid "Lines: 0"
-msgstr ""
+msgstr "Рядків: 0"
 
 #: src/constants.py:20
 msgid "Newelle Demo API"
-msgstr ""
+msgstr "Демонстраційний API Newelle"
 
 #: src/constants.py:26
 msgid "GPT4Free"
-msgstr ""
+msgstr "GPT4Free"
 
 #: src/constants.py:34
 msgid "Local Model"
@@ -1678,15 +1759,17 @@ msgstr "Локальна модель"
 msgid ""
 "NO GPU SUPPORT, USE OLLAMA INSTEAD. Run a LLM model locally, more privacy "
 "but slower"
-msgstr "Запустити модель LLM локально, більше приватності, але повільніше"
+msgstr ""
+"БЕЗ ПІДТРИМКИ GPU, ВИКОРИСТОВУЙТЕ OLLAMA. Запустіть модель LLM локально, "
+"більше приватності, але повільніше"
 
 #: src/constants.py:40
 msgid "Ollama Instance"
-msgstr ""
+msgstr "Екземпляр Ollama"
 
 #: src/constants.py:41
 msgid "Easily run multiple LLM models on your own hardware"
-msgstr ""
+msgstr "Легко запускайте кілька LLM-моделей на власному обладнанні"
 
 #: src/constants.py:47
 msgid "Groq"
@@ -1703,42 +1786,46 @@ msgstr "API OpenAI"
 #: src/constants.py:61
 msgid "OpenAI API. Custom endpoints supported. Use this for custom providers"
 msgstr ""
+"API OpenAI. Підтримуються користувацькі кінцеві точки. Використовуйте це "
+"для користувацьких провайдерів"
 
 #: src/constants.py:66
 msgid "Anthropic Claude"
-msgstr ""
+msgstr "Anthropic Claude"
 
 #: src/constants.py:67
 msgid ""
 "Official APIs for Anthropic Claude's models, with image and file support, "
 "requires an API key"
 msgstr ""
+"Офіційні API для моделей Anthropic Claude, з підтримкою зображень та файлів, "
+"потребує API-ключ"
 
 #: src/constants.py:73
 #, fuzzy
 msgid "Mistral"
-msgstr "API Whisper"
+msgstr "Містраль"
 
 #: src/constants.py:74
 #, fuzzy
 msgid "Mistral API"
-msgstr "API Whisper"
+msgstr "API Містраля"
 
 #: src/constants.py:80
 msgid "OpenRouter"
-msgstr ""
+msgstr "OpenRouter"
 
 #: src/constants.py:81
 msgid "Openrouter.ai API, supports lots of models"
-msgstr ""
+msgstr "API Openrouter.ai, підтримує багато моделей"
 
 #: src/constants.py:87
 msgid "Deepseek"
-msgstr ""
+msgstr "Deepseek"
 
 #: src/constants.py:88
 msgid "Deepseek API, strongest open source models"
-msgstr ""
+msgstr "API Deepseek, найсильніші моделі з відкритим вихідним кодом"
 
 #: src/constants.py:94 src/constants.py:203
 msgid "Custom Command"
@@ -1751,11 +1838,11 @@ msgstr "Використовувати вивід користувацької �
 #: src/constants.py:104
 #, fuzzy
 msgid "Whisper C++"
-msgstr "API Whisper"
+msgstr "Whisper C++"
 
 #: src/constants.py:105
 msgid "Works offline. Optimized Whisper impelementation written in C++"
-msgstr ""
+msgstr "Працює офлайн. Оптимізована реалізація Whisper, написана на C++"
 
 #: src/constants.py:111
 msgid "CMU Sphinx"
@@ -1776,7 +1863,7 @@ msgstr "Онлайн-розпізнавання мови Google"
 #: src/constants.py:124
 #, fuzzy
 msgid "Groq Speech Recognition"
-msgstr "Розпізнавання мови Google"
+msgstr "Розпізнавання мови Groq"
 
 #: src/constants.py:130
 msgid "Wit AI"
@@ -1802,7 +1889,7 @@ msgstr "API Whisper"
 #: src/constants.py:145
 #, fuzzy
 msgid "Uses OpenAI Whisper API"
-msgstr "Використовує API whisper від openai"
+msgstr "Використовує API OpenAI Whisper"
 
 #: src/constants.py:151
 msgid "Custom command"
@@ -1823,40 +1910,42 @@ msgstr "Перетворення тексту на мовлення від Googl
 #: src/constants.py:167
 #, fuzzy
 msgid "Kokoro TTS"
-msgstr "Google TTS"
+msgstr "Kokoro TTS"
 
 #: src/constants.py:168
 msgid ""
 "Lightweight and fast open source TTS engine. ~3GB dependencies, 400MB model"
 msgstr ""
+"Легкий та швидкий механізм TTS з відкритим вихідним кодом. Залежності ~3 ГБ, "
+"модель 400 МБ"
 
 #: src/constants.py:173
 msgid "ElevenLabs TTS"
-msgstr ""
+msgstr "ElevenLabs TTS"
 
 #: src/constants.py:174
 msgid "Natural sounding TTS"
-msgstr ""
+msgstr "Природне звучання TTS"
 
 #: src/constants.py:179 src/constants.py:180
 #, fuzzy
 msgid "OpenAI TTS"
-msgstr "API OpenAI"
+msgstr "OpenAI TTS"
 
 #: src/constants.py:185
 #, fuzzy
 msgid "Groq TTS"
-msgstr "Groq"
+msgstr "Groq TTS"
 
 #: src/constants.py:186
 #, fuzzy
 msgid "Groq TTS API"
-msgstr "Groq"
+msgstr "API Groq TTS"
 
 #: src/constants.py:191 src/constants.py:192
 #, fuzzy
 msgid "Custom OpenAI TTS"
-msgstr "API OpenAI"
+msgstr "Користувацький OpenAI TTS"
 
 #: src/constants.py:197
 msgid "Espeak TTS"
@@ -1874,39 +1963,43 @@ msgstr ""
 
 #: src/constants.py:212
 msgid "WordLlama"
-msgstr ""
+msgstr "WordLlama"
 
 #: src/constants.py:213
 msgid ""
 "Light local embedding model based on llama. Works offline, very low "
 "resources usage"
 msgstr ""
+"Легка локальна модель вбудовування на основі llama. Працює офлайн, дуже "
+"низьке використання ресурсів"
 
 #: src/constants.py:218
 msgid "Ollama Embedding"
-msgstr ""
+msgstr "Вбудовування Ollama"
 
 #: src/constants.py:219
 msgid ""
 "Use Ollama models for Embedding. Works offline, very low resources usage"
 msgstr ""
+"Використовувати моделі Ollama для вбудовування. Працює офлайн, дуже низьке "
+"використання ресурсів"
 
 #: src/constants.py:231
 #, fuzzy
 msgid "Use Google Gemini API to get embeddings"
-msgstr "API Google Gemini"
+msgstr "Використовувати API Google Gemini для отримання вбудовувань"
 
 #: src/constants.py:239
 msgid "User Summary"
-msgstr ""
+msgstr "Користувацький підсумок"
 
 #: src/constants.py:240
 msgid "Generate a summary of the user's conversation"
-msgstr ""
+msgstr "Створити підсумок розмови користувача"
 
 #: src/constants.py:245
 msgid "Memoripy"
-msgstr ""
+msgstr "Memoripy"
 
 #: src/constants.py:246
 msgid ""
@@ -1914,56 +2007,62 @@ msgid ""
 "retrivial, memory decay, concept extraction and other advanced techniques. "
 "Does 1 llm call per message."
 msgstr ""
+"Витягує повідомлення з попередніх розмов за допомогою контекстного "
+"відновлення пам'яті, згасання пам'яті, вилучення концептів та інших "
+"розширених технік. Виконує 1 виклик llm за повідомлення."
 
 #: src/constants.py:251
 msgid "User Summary + Memoripy"
-msgstr ""
+msgstr "Користувацький підсумок + Memoripy"
 
 #: src/constants.py:252
 msgid "Use both technologies for long term memory"
-msgstr ""
+msgstr "Використовуйте обидві технології для довготривалої пам'яті"
 
 #: src/constants.py:260
 msgid "Document reader"
-msgstr ""
+msgstr "Читач документів"
 
 #: src/constants.py:261
 msgid ""
 "Classic RAG approach - chunk documents and embed them, then compare them to "
 "the query and return the most relevant documents"
 msgstr ""
+"Класичний підхід RAG – розбиття документів на фрагменти та їх вбудовування, "
+"потім порівняння з запитом та повернення найбільш релевантних документів"
 
 #: src/constants.py:269
 msgid "SearXNG"
-msgstr ""
+msgstr "SearXNG"
 
 #: src/constants.py:270
 msgid "SearXNG - Private and selfhostable search engine"
-msgstr ""
+msgstr "SearXNG - Приватний пошуковий двигун з можливістю самостійного розміщення"
 
 #: src/constants.py:275
 msgid "DuckDuckGo"
-msgstr ""
+msgstr "DuckDuckGo"
 
 #: src/constants.py:276
 msgid "DuckDuckGo search"
-msgstr ""
+msgstr "Пошук DuckDuckGo"
 
 #: src/constants.py:281
 msgid "Tavily"
-msgstr ""
+msgstr "Tavily"
 
 #: src/constants.py:282
 msgid "Tavily search"
-msgstr ""
+msgstr "Пошук Tavily"
 
 #: src/constants.py:375
 msgid "Helpful assistant"
-msgstr ""
+msgstr "Корисний помічник"
 
 #: src/constants.py:376
 msgid "General purpose prompt to enhance the LLM answers and give more context"
 msgstr ""
+"Загальний запит для покращення відповідей LLM та надання більшого контексту"
 
 #: src/constants.py:384
 msgid "Console access"
@@ -1983,7 +2082,7 @@ msgstr "Яка поточна директорія"
 
 #: src/constants.py:402
 msgid "Allow the LLM to search on the internet"
-msgstr ""
+msgstr "Дозволити LLM шукати в Інтернеті"
 
 #: src/constants.py:410
 msgid "Basic functionality"
@@ -2020,65 +2119,65 @@ msgstr "Додайте свій власний користувацький за
 #: src/constants.py:480
 #, fuzzy
 msgid "LLM and Secondary LLM settings"
-msgstr "Налаштування"
+msgstr "Налаштування LLM та вторинної LLM"
 
 #: src/constants.py:483 src/window.py:646
 msgid "TTS"
-msgstr ""
+msgstr "TTS"
 
 #: src/constants.py:485
 #, fuzzy
 msgid "Text to Speech settings"
-msgstr "Перетворення тексту на мовлення"
+msgstr "Налаштування Text to Speech"
 
 #: src/constants.py:488
 msgid "STT"
-msgstr ""
+msgstr "STT"
 
 #: src/constants.py:490
 #, fuzzy
 msgid "Speech to Text settings"
-msgstr "Рушій перетворення мовлення на текст"
+msgstr "Налаштування Speech to Text"
 
 #: src/constants.py:493
 msgid "Embedding"
-msgstr ""
+msgstr "Вбудовування"
 
 #: src/constants.py:495
 #, fuzzy
 msgid "Embedding settings"
-msgstr "Розширення"
+msgstr "Налаштування вбудовування"
 
 #: src/constants.py:498
 msgid "Memory"
-msgstr ""
+msgstr "Пам'ять"
 
 #: src/constants.py:500
 #, fuzzy
 msgid "Memory settings"
-msgstr "Налаштування"
+msgstr "Налаштування пам'яті"
 
 #: src/constants.py:503
 msgid "Websearch"
-msgstr ""
+msgstr "Вебпошук"
 
 #: src/constants.py:505
 #, fuzzy
 msgid "Websearch settings"
-msgstr "Налаштування"
+msgstr "Налаштування вебпошуку"
 
 #: src/constants.py:508
 msgid "RAG"
-msgstr ""
+msgstr "RAG"
 
 #: src/constants.py:510
 msgid "Document analyzer settings"
-msgstr ""
+msgstr "Налаштування аналізатора документів"
 
 #: src/constants.py:515
 #, fuzzy
 msgid "Extensions settings"
-msgstr "Розширення"
+msgstr "Налаштування розширень"
 
 #: src/constants.py:518
 #, fuzzy
@@ -2087,17 +2186,19 @@ msgstr "Інтерфейс"
 
 #: src/constants.py:520
 msgid "Interface settings, hidden files, reverse order, zoom..."
-msgstr ""
+msgstr "Налаштування інтерфейсу, приховані файли, зворотний порядок, масштаб..."
 
 #: src/constants.py:525
 msgid ""
 "General settings, virtualization, offers, memory length, automatically "
 "generate chat name, current folder..."
 msgstr ""
+"Загальні налаштування, віртуалізація, пропозиції, довжина пам'яті, "
+"автоматичне генерування назви чату, поточна папка..."
 
 #: src/constants.py:530
 msgid "Prompts settings, custom extra prompt, custom prompts..."
-msgstr ""
+msgstr "Налаштування запитів, користувацькі додаткові запити, користувацькі запити..."
 
 #: src/controller.py:135 src/window.py:1846
 msgid "Chat "
@@ -2150,23 +2251,23 @@ msgstr "Створити чат"
 #: src/window.py:196
 #, fuzzy
 msgid "Chats"
-msgstr "Чат"
+msgstr "Чати"
 
 #: src/window.py:267
 msgid " Stop"
-msgstr " Зупинити"
+msgstr "Зупинити"
 
 #: src/window.py:282
 msgid " Clear"
-msgstr " Очистити"
+msgstr "Очистити"
 
 #: src/window.py:297
 msgid " Continue"
-msgstr " Продовжити"
+msgstr "Продовжити"
 
 #: src/window.py:310
 msgid " Regenerate"
-msgstr " Перегенерувати"
+msgstr "Перегенерувати"
 
 #: src/window.py:376
 msgid "Send a message..."
@@ -2174,59 +2275,63 @@ msgstr "Надіслати повідомлення..."
 
 #: src/window.py:467
 msgid "Explorer Tab"
-msgstr ""
+msgstr "Вкладка \"Провідник\""
 
 #: src/window.py:468
 msgid "Terminal Tab"
-msgstr ""
+msgstr "Вкладка \"Термінал\""
 
 #: src/window.py:469
 msgid "Browser Tab"
-msgstr ""
+msgstr "Вкладка \"Браузер\""
 
 #: src/window.py:587
 msgid "Ask about a website"
-msgstr ""
+msgstr "Запитайте про вебсайт"
 
 #: src/window.py:587
 msgid "Write #https://website.com in chat to ask information about a website"
-msgstr ""
+msgstr "Напишіть #https://website.com в чаті, щоб запитати інформацію про вебсайт"
 
 #: src/window.py:588
 msgid "Check out our Extensions!"
-msgstr ""
+msgstr "Перегляньте наші розширення!"
 
 #: src/window.py:588
 msgid "We have a lot of extensions for different things. Check it out!"
-msgstr ""
+msgstr "У нас є багато розширень для різних цілей. Перегляньте їх!"
 
 #: src/window.py:589
 msgid "Chat with documents!"
-msgstr ""
+msgstr "Спілкуйтеся з документами!"
 
 #: src/window.py:589
 msgid ""
 "Add your documents to your documents folder and chat using the information "
 "contained in them!"
 msgstr ""
+"Додайте свої документи до папки документів та спілкуйтеся, використовуючи "
+"інформацію, що міститься в них!"
 
 #: src/window.py:590
 msgid "Surf the web!"
-msgstr ""
+msgstr "Переглядайте веб!"
 
 #: src/window.py:590
 msgid ""
 "Enable web search to allow the LLM to surf the web and provide up to date "
 "answers"
 msgstr ""
+"Увімкніть веб-пошук, щоб дозволити LLM переглядати веб-сторінки та надавати "
+"актуальні відповіді"
 
 #: src/window.py:591
 msgid "Mini Window"
-msgstr ""
+msgstr "Міні-вікно"
 
 #: src/window.py:591
 msgid "Ask questions on the fly using the mini window mode"
-msgstr ""
+msgstr "Задавайте питання на льоту, використовуючи режим міні-вікна"
 
 #: src/window.py:592
 #, fuzzy
@@ -2235,7 +2340,7 @@ msgstr "Перетворення тексту на мовлення"
 
 #: src/window.py:592
 msgid "Newelle supports text-to-speech! Enable it in the settings"
-msgstr ""
+msgstr "Newelle підтримує синтез мовлення! Увімкніть його в налаштуваннях"
 
 #: src/window.py:593
 #, fuzzy
@@ -2245,7 +2350,7 @@ msgstr "Гарячі клавіші"
 #: src/window.py:593
 #, fuzzy
 msgid "Control Newelle using Keyboard Shortcuts"
-msgstr "Гарячі клавіші"
+msgstr "Керуйте Newelle за допомогою гарячих клавіш"
 
 #: src/window.py:594
 #, fuzzy
@@ -2254,7 +2359,7 @@ msgstr "Управління запитами"
 
 #: src/window.py:594
 msgid "Newelle gives you 100% prompt control. Tune your prompts for your use."
-msgstr ""
+msgstr "Newelle надає вам 100% контроль над запитами. Налаштуйте свої запити для вашого використання."
 
 #: src/window.py:595
 #, fuzzy
@@ -2263,52 +2368,53 @@ msgstr "Редагування потоку"
 
 #: src/window.py:595
 msgid "Check the programs and processes you run from Newelle"
-msgstr ""
+msgstr "Перевірте програми та процеси, які ви запускаєте з Newelle"
 
 #: src/window.py:596
 msgid "Programmable Prompts"
-msgstr ""
+msgstr "Програмовані запити"
 
 #: src/window.py:596
 msgid ""
 "You can add dynamic prompts to Newelle, with conditions and probabilities"
 msgstr ""
+"Ви можете додавати динамічні запити до Newelle, з умовами та ймовірностями"
 
 #: src/window.py:603
 #, fuzzy
 msgid "New Chat"
-msgstr "Нова вкладка"
+msgstr "Новий чат"
 
 #: src/window.py:621
 msgid "Provider Errror"
-msgstr ""
+msgstr "Помилка провайдера"
 
 #: src/window.py:644
 #, fuzzy
 msgid "Local Documents"
-msgstr "Локальна модель"
+msgstr "Локальні документи"
 
 #: src/window.py:648
 msgid "Web search"
-msgstr ""
+msgstr "Веб-пошук"
 
 #: src/window.py:890
 msgid "This provider does not have a model list"
-msgstr ""
+msgstr "Цей провайдер не має списку моделей"
 
 #: src/window.py:895
 #, fuzzy
 msgid " Models"
-msgstr "Модель"
+msgstr "Моделі"
 
 #: src/window.py:898
 #, fuzzy
 msgid "Search Models..."
-msgstr "Модель"
+msgstr "Пошук моделей..."
 
 #: src/window.py:1126
 msgid "Create new profile"
-msgstr ""
+msgstr "Створити новий профіль"
 
 #: src/window.py:1260
 msgid "Could not recognize your voice"
@@ -2316,27 +2422,27 @@ msgstr "Не вдалося розпізнати ваш голос"
 
 #: src/window.py:1297
 msgid "Images"
-msgstr ""
+msgstr "Зображення"
 
 #: src/window.py:1301
 msgid "LLM Supported Files"
-msgstr ""
+msgstr "Файли, підтримувані LLM"
 
 #: src/window.py:1309
 msgid "RAG Supported files"
-msgstr ""
+msgstr "Файли, підтримувані RAG"
 
 #: src/window.py:1327
 msgid "Supported Files"
-msgstr ""
+msgstr "Підтримувані файли"
 
 #: src/window.py:1331
 msgid "All Files"
-msgstr ""
+msgstr "Усі файли"
 
 #: src/window.py:1337
 msgid "Attach file"
-msgstr ""
+msgstr "Прикріпити файл"
 
 #: src/window.py:1592
 msgid "The file cannot be sent until the program is finished"
@@ -2374,7 +2480,7 @@ msgstr "Ви не можете редагувати повідомлення, п
 #: src/window.py:3061
 #, fuzzy
 msgid "Prompt content"
-msgstr "Управління запитами"
+msgstr "Вміст запиту"
 
 #: src/window.py:3320
 msgid ""
@@ -2417,23 +2523,25 @@ msgid ""
 "Train Newelle to do more with custom extensions and new AI modules, giving "
 "your chatbot endless possibilities."
 msgstr ""
+"Навчіть Newelle робити більше за допомогою користувацьких розширень та нових "
+"модулів ШІ, надаючи вашому чат-боту безмежні можливості."
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:11
 msgid "AI chatbot"
-msgstr ""
+msgstr "Чат-бот зі штучним інтелектом"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:15
 msgid "Quick profile selection"
-msgstr ""
+msgstr "Швидкий вибір профілю"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:19
 #, fuzzy
 msgid "Message Editing"
-msgstr "Потокова передача повідомлень"
+msgstr "Редагування повідомлень"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:23
 msgid "More than 10 standard AI providers"
-msgstr ""
+msgstr "Більше 10 стандартних AI-провайдерів"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:38
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:61
@@ -2443,93 +2551,95 @@ msgstr ""
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:138
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:143
 msgid "Bug fixes"
-msgstr ""
+msgstr "Виправлення помилок"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:39
 msgid "Small improvements"
-msgstr ""
+msgstr "Невеликі покращення"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:46
 msgid "Improve local documents reading and loading performances"
-msgstr ""
+msgstr "Покращено продуктивність читання та завантаження локальних документів"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:47
 msgid "Add option to send with CTRL+Enter"
-msgstr ""
+msgstr "Додати опцію надсилання за допомогою CTRL+Enter"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:48
 msgid "Improve codeblocks"
-msgstr ""
+msgstr "Покращити блоки коду"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:49
 #, fuzzy
 msgid "Fix Kokoro TTS"
-msgstr "Google TTS"
+msgstr "Виправлено Kokoro TTS"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:50
 msgid "Remove emoji from TTS"
-msgstr ""
+msgstr "Видалити емодзі з TTS"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:51
 msgid "Set API keys as password fields"
-msgstr ""
+msgstr "Встановити ключі API як поля пароля"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:52
 msgid "Add thinking support for Gemini"
-msgstr ""
+msgstr "Додати підтримку мислення для Gemini"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:53
 msgid "Updated translations"
-msgstr ""
+msgstr "Оновлені переклади"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:60
 msgid "Added new features"
-msgstr ""
+msgstr "Додано нові функції"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:68
 msgid "Website reading and web search with SearXNG, DuckDuckGo, and Tavily"
-msgstr ""
+msgstr "Читання веб-сайтів та веб-пошук за допомогою SearXNG, DuckDuckGo та Tavily"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:69
 msgid "Improved LaTeX rendering and document management"
-msgstr ""
+msgstr "Покращено рендеринг LaTeX та керування документами"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:70
 msgid "New Thinking Widget and OpenRouter handler"
-msgstr ""
+msgstr "Новий віджет \"Мислення\" та обробник OpenRouter"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:71
 msgid "Vision support for Llama4 on Groq"
-msgstr ""
+msgstr "Підтримка Vision для Llama4 на Groq"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:72
 msgid "New translations (Traditional Chinese, Bengali, Hindi)"
-msgstr ""
+msgstr "Нові переклади (традиційна китайська, бенгальська, гінді)"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:78
 msgid "Fixed many bugs, added some features!"
-msgstr ""
+msgstr "Виправлено багато помилок, додано деякі функції!"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:83
 msgid "Support for new features and bug fixes"
-msgstr ""
+msgstr "Підтримка нових функцій та виправлення помилок"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:88
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:93
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:98
 msgid "Added many new features and bug fixes"
-msgstr ""
+msgstr "Додано багато нових функцій та виправлень помилок"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:103
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:108
 msgid "Added new features and bug fixes"
-msgstr ""
+msgstr "Додано нові функції та виправлення помилок"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:113
 msgid ""
 "Updated the g4f library with versioning, added user guides, improved "
 "extension browsing, and enhanced model handling."
 msgstr ""
+"Оновлено бібліотеку g4f з версіонуванням, додано посібники користувача, "
+"покращено перегляд розширень та обробку моделей."
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:118
 msgid ""
@@ -2537,44 +2647,47 @@ msgid ""
 "extension architecture, added new models, and introduced vision support, "
 "along with more capabilities."
 msgstr ""
+"Виправлено помилки та реалізовано нові функції. Ми змінили архітектуру "
+"розширень, додали нові моделі, запровадили підтримку бачення та інші "
+"можливості."
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:148
 msgid "Stable version"
-msgstr ""
+msgstr "Стабільна версія"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:153
 #, fuzzy
 msgid "Added extension"
-msgstr "Додати розширення"
+msgstr "Додано розширення"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:158
 #, fuzzy
 msgid "Blacklist of commands"
-msgstr "Користувацька команда"
+msgstr "Чорний список команд"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:163
 msgid "Localization"
-msgstr ""
+msgstr "Локалізація"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:168
 msgid "Redesign"
-msgstr ""
+msgstr "Редизайн"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:172
 msgid "Qwersyk"
-msgstr ""
+msgstr "Qwersyk"
 
 #: data/io.github.qwersyk.Newelle.desktop.in:3
 msgid "Newelle: Your advanced chat bot"
-msgstr ""
+msgstr "Newelle: Ваш розширений чат-бот"
 
 #: data/io.github.qwersyk.Newelle.desktop.in:10
 msgid "ai;assistant;chat;chatgpt;gpt;llm;ollama;"
-msgstr ""
+msgstr "ai;assistant;chat;chatgpt;gpt;llm;ollama;"
 
 #, fuzzy
 #~ msgid "Any free Provider"
-#~ msgstr "Будь-який провайдер GPT 3.5 Turbo"
+#~ msgstr "Будь-який вільний провайдер"
 
 #, fuzzy
 #~ msgid "_Cancel"
@@ -2582,7 +2695,7 @@ msgstr ""
 
 #, fuzzy, python-brace-format
 #~ msgid "Name of the {provider_name} Model"
-#~ msgstr "Назва моделі Groq"
+#~ msgstr "Назва моделі {provider_name}"
 
 #~ msgid "Choose an extension"
 #~ msgstr "Виберіть розширення"
@@ -2625,7 +2738,7 @@ msgstr ""
 #~ "теми."
 
 #~ msgid "There was an error retriving the model"
-#~ msgstr "Виникла помилка при отриманні моделі"
+#~ msgstr "Виникла помилка під час отримання моделі"
 
 #~ msgid "The change will take effect after you restart the program."
 #~ msgstr "Зміни набудуть чинності після перезапуску програми."

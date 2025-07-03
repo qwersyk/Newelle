@@ -1,38 +1,32 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-#
 msgid ""
 msgstr ""
-"Project-Id-Version: \n"
+"Project-Id-Version: 1.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-07-02 02:15+0800\n"
 "PO-Revision-Date: 2025-07-03 09:00+0200\n"
-"Last-Translator: Heimen Stoffels <vistausss@fastmail.com>\n"
-"Language-Team: \n"
-"Language: nl\n"
+"Last-Translator: Yehor Hliebov <qsk@gmx.at>\n"
+"Language-Team: Korean <qsk@gmx.at>\n"
+"Language: ko\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 3.3.2\n"
 
 #: src/handlers/embeddings/ollama_handler.py:32
 #: src/handlers/embeddings/openai_handler.py:38
 #: src/handlers/llm/openai_handler.py:75 src/handlers/llm/ollama_handler.py:150
 #: src/handlers/stt/openaisr_handler.py:10
 msgid "API Endpoint"
-msgstr "API-eindpunt"
+msgstr "API 엔드포인트"
 
 #: src/handlers/embeddings/ollama_handler.py:32
 #: src/handlers/llm/openai_handler.py:75 src/handlers/llm/ollama_handler.py:150
 msgid "API base url, change this to use interference APIs"
-msgstr "API-basis-URL, wijzig deze om interferentie-API's te gebruiken"
+msgstr "API 기본 URL입니다. 간섭 API를 사용하려면 변경하십시오."
 
 #: src/handlers/embeddings/ollama_handler.py:33
 #: src/handlers/llm/ollama_handler.py:151
 msgid "Automatically Serve"
-msgstr "Automatisch serveren"
+msgstr "자동으로 서비스"
 
 #: src/handlers/embeddings/ollama_handler.py:33
 #: src/handlers/llm/ollama_handler.py:151
@@ -40,35 +34,34 @@ msgid ""
 "Automatically run ollama serve in background when needed if it's not "
 "running. You can kill it with killall ollama"
 msgstr ""
-"Voer Ollama automatisch op de achtergrond uit wanneer nodig als het niet "
-"actief is. U kunt het uitschakelen met killall ollama."
+"Ollama가 실행 중이 아닌 경우 필요할 때 백그라운드에서 자동으로 실행합니다. "
+"killall ollama 명령으로 종료할 수 있습니다."
 
 #: src/handlers/embeddings/ollama_handler.py:34
 #: src/handlers/llm/ollama_handler.py:153
-#, fuzzy
 msgid "Custom Model"
-msgstr "Aangepast model"
+msgstr "사용자 지정 모델"
 
 #: src/handlers/embeddings/ollama_handler.py:34
 #: src/handlers/embeddings/openai_handler.py:41
 #: src/handlers/llm/claude_handler.py:85 src/handlers/llm/openai_handler.py:78
 #: src/handlers/llm/ollama_handler.py:153
 msgid "Use a custom model"
-msgstr "Gebruik een aangepast model"
+msgstr "사용자 지정 모델 사용"
 
 #: src/handlers/embeddings/ollama_handler.py:40
 #: src/handlers/embeddings/ollama_handler.py:49
 #: src/handlers/llm/ollama_handler.py:159
 #: src/handlers/llm/ollama_handler.py:168
 msgid "Ollama Model"
-msgstr "Ollama-model"
+msgstr "Ollama 모델"
 
 #: src/handlers/embeddings/ollama_handler.py:41
 #: src/handlers/embeddings/ollama_handler.py:49
 #: src/handlers/llm/ollama_handler.py:160
 #: src/handlers/llm/ollama_handler.py:168
 msgid "Name of the Ollama Model"
-msgstr "Naam van het Ollama-model"
+msgstr "Ollama 모델의 이름"
 
 #: src/handlers/embeddings/openai_handler.py:35
 #: src/handlers/llm/claude_handler.py:84 src/handlers/llm/openai_handler.py:72
@@ -80,22 +73,21 @@ msgstr "Naam van het Ollama-model"
 #: src/handlers/tts/groq_tts_handler.py:32
 #: src/handlers/tts/openai_tts_handler.py:18
 msgid "API Key"
-msgstr "API-sleutel"
+msgstr "API 키"
 
 #: src/handlers/embeddings/openai_handler.py:35
 #: src/handlers/llm/openai_handler.py:72
 msgid "API Key for "
-msgstr "API-sleutel voor "
+msgstr "API 키"
 
 #: src/handlers/embeddings/openai_handler.py:38
 msgid "API base url, change this to use different APIs"
-msgstr "API-basis-URL, wijzig deze om verschillende API's te gebruiken"
+msgstr "API 기본 URL입니다. 다른 API를 사용하려면 변경하십시오."
 
 #: src/handlers/embeddings/openai_handler.py:41
 #: src/handlers/llm/openai_handler.py:78
-#, fuzzy
 msgid "Use Custom Model"
-msgstr "Aangepast model gebruiken"
+msgstr "사용자 지정 모델 사용"
 
 #: src/handlers/embeddings/openai_handler.py:44
 #: src/handlers/llm/claude_handler.py:89 src/handlers/llm/claude_handler.py:93
@@ -107,55 +99,54 @@ msgstr "Aangepast model gebruiken"
 #: src/handlers/tts/groq_tts_handler.py:34
 #: src/handlers/tts/openai_tts_handler.py:20
 msgid "Model"
-msgstr "Model"
+msgstr "모델"
 
 #: src/handlers/embeddings/openai_handler.py:44
 msgid "Name of the Embedding Model to use"
-msgstr "Naam van het inbeddingsmodel om te gebruiken"
+msgstr "사용할 임베딩 모델의 이름"
 
 #: src/handlers/embeddings/openai_handler.py:51
 #: src/handlers/llm/openai_handler.py:91
 msgid " Model"
-msgstr " Model"
+msgstr " 모델"
 
 #: src/handlers/llm/claude_handler.py:84
 #: src/handlers/tts/custom_openai_tts.py:18
 #: src/handlers/tts/groq_tts_handler.py:32
 #: src/handlers/tts/openai_tts_handler.py:18
 msgid "The API key to use"
-msgstr "De API-sleutel om te gebruiken"
+msgstr "사용할 API 키"
 
 #: src/handlers/llm/claude_handler.py:89 src/handlers/llm/claude_handler.py:93
 #: src/handlers/tts/custom_openai_tts.py:20
 #: src/handlers/tts/groq_tts_handler.py:34
 #: src/handlers/tts/openai_tts_handler.py:20
 msgid "The model to use"
-msgstr "Het te gebruiken model"
+msgstr "사용할 모델"
 
 #: src/handlers/llm/claude_handler.py:96
 msgid "Max Tokens"
-msgstr "Max. tokens"
+msgstr "최대 토큰"
 
 #: src/handlers/llm/claude_handler.py:96
 msgid "The maximum number of tokens to generate"
-msgstr "Het maximum aantal te genereren tokens"
+msgstr "생성할 최대 토큰 수"
 
 #: src/handlers/llm/custom_handler.py:20 src/handlers/llm/gemini_handler.py:119
 #: src/handlers/llm/gpt4all_handler.py:153
 #: src/handlers/llm/newelle_handler.py:27 src/utility/util.py:136
-#, fuzzy
 msgid "Message Streaming"
-msgstr "Berichtstreaming"
+msgstr "메시지 스트리밍"
 
 #: src/handlers/llm/custom_handler.py:20 src/handlers/llm/gemini_handler.py:120
 #: src/handlers/llm/gpt4all_handler.py:153
 #: src/handlers/llm/newelle_handler.py:28 src/utility/util.py:137
 msgid "Gradually stream message output"
-msgstr "Uitvoer van berichten geleidelijk streamen"
+msgstr "메시지 출력을 점진적으로 스트리밍"
 
 #: src/handlers/llm/custom_handler.py:21
 msgid "Command to execute to get bot output"
-msgstr "Commando om uit te voeren om botoutput te verkrijgen"
+msgstr "봇 출력을 얻기 위해 실행할 명령"
 
 #: src/handlers/llm/custom_handler.py:21
 #, python-brace-format
@@ -163,12 +154,12 @@ msgid ""
 "Command to execute to get bot response, {0} will be replaced with a JSON "
 "file containing the chat, {1} with the system prompt"
 msgstr ""
-"Commando om uit te voeren om botreactie te verkrijgen, {0} wordt vervangen "
-"door een JSON-bestand met de chat, {1} door de systeemprompt"
+"봇 응답을 얻기 위해 실행할 명령입니다. {0}은 채팅이 포함된 JSON 파일로 대체되고, {1}은 시스템 "
+"프롬프트로 대체됩니다."
 
 #: src/handlers/llm/custom_handler.py:22
 msgid "Command to execute to get bot's suggestions"
-msgstr "Commando om uit te voeren om botsuggesties te verkrijgen"
+msgstr "봇의 제안을 얻기 위해 실행할 명령"
 
 #: src/handlers/llm/custom_handler.py:22
 #, python-brace-format
@@ -178,165 +169,159 @@ msgid ""
 "suggestions to generate. Must return a JSON array containing the suggestions "
 "as strings"
 msgstr ""
-"Commando om uit te voeren om chatsuggesties te verkrijgen, {0} wordt "
-"vervangen door een JSON-bestand met de chat, {1} door de extra prompts, {2} "
-"door het aantal te genereren suggesties. Moet een JSON-array retourneren met "
-"de suggesties als strings"
+"채팅 제안을 얻기 위해 실행할 명령입니다. {0}은 채팅이 포함된 JSON 파일로 대체되고, {1}은 추가 "
+"프롬프트로, {2}는 생성할 제안의 수로 대체됩니다. 제안을 문자열로 포함하는 JSON 배열을 반환해야 "
+"합니다."
 
 #: src/handlers/llm/gemini_handler.py:94
 msgid "API Key (required)"
-msgstr "API-sleutel (vereist)"
+msgstr "API 키 (필수)"
 
 #: src/handlers/llm/gemini_handler.py:94
 msgid "API key got from ai.google.dev"
-msgstr "API-sleutel verkregen van ai.google.dev"
+msgstr "ai.google.dev에서 얻은 API 키"
 
 #: src/handlers/llm/gemini_handler.py:98
 msgid "AI Model to use"
-msgstr "AI-model om te gebruiken"
+msgstr "사용할 AI 모델"
 
 #: src/handlers/llm/gemini_handler.py:103
 msgid "Enable System Prompt"
-msgstr "Systeemprompt inschakelen"
+msgstr "시스템 프롬프트 활성화"
 
 #: src/handlers/llm/gemini_handler.py:103
 msgid ""
 "Some models don't support system prompt (or developers instructions), "
 "disable it if you get errors about it"
 msgstr ""
-"Sommige modellen ondersteunen geen systeemprompt (of instructies voor "
-"ontwikkelaars), schakel deze uit als u hierdoor fouten krijgt"
+"일부 모델은 시스템 프롬프트(또는 개발자 지침)를 지원하지 않습니다. 오류가 발생하면 "
+"비활성화하십시오."
 
 #: src/handlers/llm/gemini_handler.py:107
 msgid "Inject system prompt"
-msgstr "Systeemprompt injecteren"
+msgstr "시스템 프롬프트 삽입"
 
 #: src/handlers/llm/gemini_handler.py:107
 msgid ""
 "Even if the model doesn't support system prompts, put the prompts on top of "
 "the user message"
-msgstr ""
-"Zelfs als het model geen systeemprompts ondersteunt, plaats de prompts dan "
-"boven aan het gebruikersbericht"
+msgstr "모델이 시스템 프롬프트를 지원하지 않더라도 프롬프트를 사용자 메시지 위에 배치하십시오."
 
 #: src/handlers/llm/gemini_handler.py:109
-#, fuzzy
 msgid "Thinking Settings"
-msgstr "Denkinstellingen"
+msgstr "사고 설정"
 
 #: src/handlers/llm/gemini_handler.py:109
 msgid "Settings about thinking models"
-msgstr "Instellingen over denkmodellen"
+msgstr "사고 모델에 대한 설정"
 
 #: src/handlers/llm/gemini_handler.py:110
 #: src/handlers/llm/ollama_handler.py:152
 msgid "Enable Thinking"
-msgstr "Denken inschakelen"
+msgstr "사고 활성화"
 
 #: src/handlers/llm/gemini_handler.py:110
 msgid "Show thinking, disable it if your model does not support it"
-msgstr "Toon denken, schakel dit uit als uw model dit niet ondersteunt"
+msgstr "사고를 표시합니다. 모델이 지원하지 않으면 비활성화하십시오."
 
 #: src/handlers/llm/gemini_handler.py:111
 msgid "Enable Thinking Budget"
-msgstr "Denkbudget inschakelen"
+msgstr "사고 예산 활성화"
 
 #: src/handlers/llm/gemini_handler.py:111
 msgid "If to enable thinking budget"
-msgstr "Als denkbudget ingeschakeld moet worden"
+msgstr "사고 예산을 활성화할지 여부"
 
 #: src/handlers/llm/gemini_handler.py:112
 msgid "Thinking Budget"
-msgstr "Denkbudget"
+msgstr "사고 예산"
 
 #: src/handlers/llm/gemini_handler.py:112
 msgid "How much time to spend thinking"
-msgstr "Hoeveel tijd te besteden aan denken"
+msgstr "생각하는 데 보낼 시간"
 
 #: src/handlers/llm/gemini_handler.py:116
 msgid "Image Output"
-msgstr "Afbeeldingsuitvoer"
+msgstr "이미지 출력"
 
 #: src/handlers/llm/gemini_handler.py:116
 msgid "Enable image output, only supported by gemini-2.0-flash-exp"
-msgstr "Afbeeldingsuitvoer inschakelen, alleen ondersteund door gemini-2.0-flash-exp"
+msgstr "이미지 출력을 활성화합니다. gemini-2.0-flash-exp만 지원합니다."
 
 #: src/handlers/llm/gemini_handler.py:125
 msgid "Enable safety settings"
-msgstr "Veiligheidsinstellingen inschakelen"
+msgstr "안전 설정 활성화"
 
 #: src/handlers/llm/gemini_handler.py:126
 msgid "Enable google safety settings to avoid generating harmful content"
-msgstr ""
-"Schakel Google veiligheidsinstellingen in om te voorkomen dat schadelijke "
-"inhoud wordt gegenereerd"
+msgstr "유해한 콘텐츠 생성을 방지하려면 Google 안전 설정을 활성화하세요."
 
 #: src/handlers/llm/gemini_handler.py:131
 #: src/handlers/llm/openai_handler.py:112
 #: src/handlers/llm/newelle_handler.py:18
 msgid "Privacy Policy"
-msgstr "Privacybeleid"
+msgstr "개인 정보 보호 정책"
 
 #: src/handlers/llm/gemini_handler.py:132
 #: src/handlers/llm/openai_handler.py:112
 #: src/handlers/llm/newelle_handler.py:19
 msgid "Open privacy policy website"
-msgstr "Open website privacybeleid"
+msgstr "개인 정보 보호 정책 웹사이트 열기"
 
 #: src/handlers/llm/gemini_handler.py:135 src/handlers/llm/openai_handler.py:81
 msgid "Advanced Parameters"
-msgstr "Geavanceerde parameters"
+msgstr "고급 매개변수"
 
 #: src/handlers/llm/gemini_handler.py:135
 msgid "Enable advanced parameters"
-msgstr "Geavanceerde parameters inschakelen"
+msgstr "고급 매개변수 활성화"
 
 #: src/handlers/llm/gpt4all_handler.py:67
 msgid "RAM Required: "
-msgstr "Vereist RAM: "
+msgstr "필요한 RAM: "
 
 #: src/handlers/llm/gpt4all_handler.py:68
 msgid "Parameters: "
-msgstr "Parameters: "
+msgstr "매개변수: "
 
 #: src/handlers/llm/gpt4all_handler.py:69
 msgid "Size: "
-msgstr "Grootte: "
+msgstr "크기: "
 
 #: src/handlers/llm/gpt4all_handler.py:154 src/handlers/llm/g4f_handler.py:44
 msgid "Model to use"
-msgstr "Model om te gebruiken"
+msgstr "사용할 모델"
 
 #: src/handlers/llm/gpt4all_handler.py:154
 #: src/handlers/tts/elevenlabs_handler.py:25
 msgid "Name of the model to use"
-msgstr "Naam van het te gebruiken model"
+msgstr "사용할 모델의 이름"
 
 #: src/handlers/llm/gpt4all_handler.py:155
 #: src/handlers/llm/ollama_handler.py:172
 msgid "Model Manager"
-msgstr "Modelbeheerder"
+msgstr "모델 관리자"
 
 #: src/handlers/llm/gpt4all_handler.py:155
 #: src/handlers/llm/ollama_handler.py:172
 msgid "List of models available"
-msgstr "Lijst met beschikbare modellen"
+msgstr "사용 가능한 모델 목록"
 
 #: src/handlers/llm/openai_handler.py:81
 msgid "Include parameters like Max Tokens, Top-P, Temperature, etc."
-msgstr "Inclusief parameters zoals Max Tokens, Top-P, Temperatuur, enz."
+msgstr "최대 토큰, Top-P, 온도 등의 매개변수를 포함합니다."
 
 #: src/handlers/llm/openai_handler.py:84
 msgid "Name of the LLM Model to use"
-msgstr "Naam van het te gebruiken LLM-model"
+msgstr "사용할 LLM 모델의 이름"
 
 #: src/handlers/llm/openai_handler.py:103
 msgid "max Tokens"
-msgstr "Max. tokens"
+msgstr "최대 토큰"
 
 #: src/handlers/llm/openai_handler.py:103
 msgid "Max tokens of the generated text"
-msgstr "Max. tokens van de gegenereerde tekst"
+msgstr "생성된 텍스트의 최대 토큰 수"
 
 #: src/handlers/llm/openai_handler.py:104
 msgid "Top-P"
@@ -344,114 +329,107 @@ msgstr "Top-P"
 
 #: src/handlers/llm/openai_handler.py:104
 msgid "An alternative to sampling with temperature, called nucleus sampling"
-msgstr ""
-"Een alternatief voor bemonstering met temperatuur, genaamd nucleus-bemonstering"
+msgstr "온도 샘플링의 대안인 핵 샘플링"
 
 #: src/handlers/llm/openai_handler.py:105
 #: src/handlers/stt/whispercpp_handler.py:50
 msgid "Temperature"
-msgstr "Temperatuur"
+msgstr "온도"
 
 #: src/handlers/llm/openai_handler.py:105
 msgid ""
 "What sampling temperature to use. Higher values will make the output more "
 "random"
-msgstr ""
-"Welke bemonsteringstemperatuur te gebruiken. Hogere waarden maken de uitvoer "
-"willekeuriger"
+msgstr "사용할 샘플링 온도입니다. 값이 높을수록 출력이 더 무작위로 됩니다."
 
 #: src/handlers/llm/openai_handler.py:106
 msgid "Frequency Penalty"
-msgstr "Frequentieboete"
+msgstr "빈도 페널티"
 
 #: src/handlers/llm/openai_handler.py:106
 msgid ""
 "Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
 "to repeat the same line verbatim"
 msgstr ""
-"Getal tussen -2.0 en 2.0. Positieve waarden verlagen de waarschijnlijkheid "
-"dat het model dezelfde regel letterlijk herhaalt"
+"-2.0에서 2.0 사이의 숫자입니다. 양수 값은 모델이 동일한 줄을 문자 그대로 반복할 가능성을 "
+"줄입니다."
 
 #: src/handlers/llm/openai_handler.py:107
 msgid "Presence Penalty"
-msgstr "Aanwezigheidsboete"
+msgstr "존재 페널티"
 
 #: src/handlers/llm/openai_handler.py:107
 msgid ""
 "Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
 "to talk about new topics"
 msgstr ""
-"Getal tussen -2.0 en 2.0. Positieve waarden verlagen de waarschijnlijkheid "
-"dat het model over nieuwe onderwerpen praat"
+"-2.0에서 2.0 사이의 숫자입니다. 양수 값은 모델이 새로운 주제에 대해 이야기할 가능성을 "
+"줄입니다."
 
 #: src/handlers/llm/openrouter_handler.py:14
 msgid "Provider Sorting"
-msgstr "Sorteervolgorde van providers"
+msgstr "공급자 정렬"
 
 #: src/handlers/llm/openrouter_handler.py:14
 msgid "Choose providers based on pricing/throughput or latency"
-msgstr "Kies providers op basis van prijs/doorvoer of latentie"
+msgstr "가격/처리량 또는 지연 시간을 기준으로 공급자를 선택하십시오."
 
 #: src/handlers/llm/openrouter_handler.py:14
 msgid "Price"
-msgstr "Prijs"
+msgstr "가격"
 
 #: src/handlers/llm/openrouter_handler.py:14
 msgid "Throughput"
-msgstr "Doorvoer"
+msgstr "처리량"
 
 #: src/handlers/llm/openrouter_handler.py:14
 msgid "Latency"
-msgstr "Latentie"
+msgstr "지연 시간"
 
 #: src/handlers/llm/openrouter_handler.py:15
 msgid "Providers Order"
-msgstr "Volgorde van providers"
+msgstr "공급자 순서"
 
 #: src/handlers/llm/openrouter_handler.py:15
 msgid ""
 "Add order of providers to use, names separated by a comma.\n"
 "Empty to not specify"
-msgstr ""
-"Voeg de volgorde van te gebruiken providers toe, namen gescheiden door een "
-"komma.\n"
-"Leeg laten om niet te specificeren"
+msgstr "사용할 공급자 순서를 추가합니다. 이름은 쉼표로 구분합니다.\n지정하지 않으려면 비워 두세요."
 
 #: src/handlers/llm/openrouter_handler.py:16
 msgid "Allow Fallbacks"
-msgstr "Fallbacks toestaan"
+msgstr "폴백 허용"
 
 #: src/handlers/llm/openrouter_handler.py:16
 msgid "Allow fallbacks to other providers"
-msgstr "Fallbacks naar andere providers toestaan"
+msgstr "다른 공급자로 폴백 허용"
 
 #: src/handlers/llm/g4f_handler.py:45
 msgid "Update G4F"
-msgstr "G4F bijwerken"
+msgstr "G4F 업데이트"
 
 #: src/handlers/llm/ollama_handler.py:152
 msgid "Allow thinking in the model, only some models are supported"
-msgstr "Denken in het model toestaan, slechts enkele modellen worden ondersteund"
+msgstr "모델에서 사고를 허용합니다. 일부 모델만 지원됩니다."
 
 #: src/handlers/llm/ollama_handler.py:176
 msgid "Add custom model"
-msgstr "Aangepast model toevoegen"
+msgstr "사용자 지정 모델 추가"
 
 #: src/handlers/llm/ollama_handler.py:177
 msgid ""
 "Add any model to this list by putting name:size\n"
 "Or any gguf from hf with hf.co/username/model"
 msgstr ""
-"Voeg elk model toe aan deze lijst door naam:grootte te plaatsen\n"
-"Of een gguf van hf met hf.co/gebruikersnaam/model"
+"name:size를 넣어 이 목록에 모델을 추가하거나, hf.co/username/model에서 gguf를 추가합니다."
 
 #: src/handlers/llm/ollama_handler.py:187
 msgid "Update Ollama"
-msgstr "Ollama bijwerken"
+msgstr "Ollama 업데이트"
 
 #: src/handlers/rag/rag_handler.py:104
 msgid "Index your documents"
-msgstr "Uw documenten indexeren"
+msgstr "문서 인덱싱"
 
 #: src/handlers/rag/rag_handler.py:105
 msgid ""
@@ -459,143 +437,137 @@ msgid ""
 "operation every time you edit/create a document, change document analyzer or "
 "change embedding model"
 msgstr ""
-"Indexeer alle documenten in uw documentmap. U moet deze bewerking uitvoeren "
-"telkens wanneer u een document bewerkt/creëert, de documentanalysator "
-"wijzigt of het inbeddingsmodel wijzigt"
+"문서 폴더의 모든 문서를 인덱싱합니다. 문서를 편집/생성하거나 문서 분석기 또는 임베딩 모델을 "
+"변경할 때마다 이 작업을 실행해야 합니다."
 
 #: src/handlers/stt/custom_handler.py:13 src/handlers/tts/custom_handler.py:17
 msgid "Command to execute"
-msgstr "Commando om uit te voeren"
+msgstr "실행할 명령"
 
 #: src/handlers/stt/custom_handler.py:14
 #, python-brace-format
 msgid "{0} will be replaced with the model fullpath"
-msgstr "{0} wordt vervangen door het volledige pad van het model"
+msgstr "{0}은 모델의 전체 경로로 대체됩니다."
 
 #: src/handlers/stt/googlesr_handler.py:14
 msgid "API Key for Google SR, write 'default' to use the default one"
-msgstr ""
-"API-sleutel voor Google SR, schrijf 'default' om de standaard te gebruiken"
+msgstr "Google SR의 API 키입니다. 기본값을 사용하려면 'default'를 입력하십시오."
 
 #: src/handlers/stt/googlesr_handler.py:21
 #: src/handlers/stt/groqsr_handler.py:29
 #: src/handlers/stt/openaisr_handler.py:32
 #: src/handlers/stt/whispercpp_handler.py:47
 msgid "Language"
-msgstr "Taal"
+msgstr "언어"
 
 #: src/handlers/stt/googlesr_handler.py:22
 msgid "The language of the text to recgnize in IETF"
-msgstr "De taal van de tekst die in IETF moet worden herkend"
+msgstr "IETF에서 인식할 텍스트의 언어"
 
 #: src/handlers/stt/groqsr_handler.py:14
 msgid "API Key for Groq SR, write 'default' to use the default one"
-msgstr ""
-"API-sleutel voor Groq SR, schrijf 'default' om de standaard te gebruiken"
+msgstr "Groq SR의 API 키입니다. 기본값을 사용하려면 'default'를 입력하십시오."
 
 #: src/handlers/stt/groqsr_handler.py:21
 msgid "Groq Model"
-msgstr "Groq Model"
+msgstr "Groq 모델"
 
 #: src/handlers/stt/groqsr_handler.py:22
 msgid "Name of the Groq Model"
-msgstr "Naam van het Groq Model"
+msgstr "Groq 모델의 이름"
 
 #: src/handlers/stt/groqsr_handler.py:30
 msgid ""
 "Specify the language for transcription. Use ISO 639-1 language codes (e.g. "
 "\"en\" for English, \"fr\" for French, etc.). "
 msgstr ""
-"Specificeer de taal voor transcriptie. Gebruik ISO 639-1 taalcodes (bijv. "
-"\"en\" voor Engels, \"fr\" voor Frans, enz.)."
+"전사를 위한 언어를 지정하십시오. ISO 639-1 언어 코드(예: 영어는 \"en\", 프랑스어는 \"fr\" "
+"등)를 사용하십시오."
 
 #: src/handlers/stt/openaisr_handler.py:11
 msgid "Endpoint for OpenAI requests"
-msgstr "Eindpunt voor OpenAI-verzoeken"
+msgstr "OpenAI 요청을 위한 엔드포인트"
 
 #: src/handlers/stt/openaisr_handler.py:18
 msgid "API Key for OpenAI"
-msgstr "API-sleutel voor OpenAI"
+msgstr "OpenAI API 키"
 
 #: src/handlers/stt/openaisr_handler.py:25
 msgid "Whisper Model"
-msgstr "Whisper-model"
+msgstr "Whisper 모델"
 
 #: src/handlers/stt/openaisr_handler.py:26
 msgid "Name of the OpenAI model"
-msgstr "Naam van het OpenAI-model"
+msgstr "OpenAI 모델의 이름"
 
 #: src/handlers/stt/openaisr_handler.py:33
 msgid ""
 "Optional: Specify the language for transcription. Use ISO 639-1 language "
 "codes (e.g. \"en\" for English, \"fr\" for French, etc.). "
 msgstr ""
-"Optioneel: Specificeer de taal voor transcriptie. Gebruik ISO 639-1 "
-"taalcodes (bijv. \"en\" voor Engels, \"fr\" voor Frans, enz.)."
+"선택 사항: 전사를 위한 언어를 지정하십시오. ISO 639-1 언어 코드(예: 영어는 \"en\", "
+"프랑스어는 \"fr\" 등)를 사용하십시오."
 
 #: src/handlers/stt/vosk_handler.py:17
 msgid "Model Path"
-msgstr "Modelpad"
+msgstr "모델 경로"
 
 #: src/handlers/stt/vosk_handler.py:18
 msgid "Absolute path to the VOSK model (unzipped)"
-msgstr "Absoluut pad naar het VOSK-model (uitgepakt)"
+msgstr "VOSK 모델(압축 해제됨)의 절대 경로"
 
 #: src/handlers/stt/whisper_handler.py:16
 #: src/handlers/stt/whispercpp_handler.py:41
 msgid "Name of the Whisper model"
-msgstr "Naam van het Whisper-model"
+msgstr "Whisper 모델의 이름"
 
 #: src/handlers/stt/witai_handler.py:13
 msgid "Server Access Token for wit.ai"
-msgstr "Server toegangstoken voor wit.ai"
+msgstr "wit.ai의 서버 액세스 토큰"
 
 #: src/handlers/stt/sphinx_handler.py:19
 msgid "Could not understand the audio"
-msgstr "Kon de audio niet begrijpen"
+msgstr "오디오를 이해할 수 없습니다."
 
 #: src/handlers/stt/whispercpp_handler.py:47
 msgid "Language of the recognition."
-msgstr "Taal van de herkenning."
+msgstr "인식 언어."
 
 #: src/handlers/stt/whispercpp_handler.py:48
 msgid "Model Library"
-msgstr "Modellenbibliotheek"
+msgstr "모델 라이브러리"
 
 #: src/handlers/stt/whispercpp_handler.py:48
 msgid "Manage Whisper models"
-msgstr "Whisper-modellen beheren"
+msgstr "Whisper 모델 관리"
 
 #: src/handlers/stt/whispercpp_handler.py:49
-#, fuzzy
 msgid "Advanced Settings"
-msgstr "Geavanceerde instellingen"
+msgstr "고급 설정"
 
 #: src/handlers/stt/whispercpp_handler.py:49
-#, fuzzy
 msgid "More advanced settings"
-msgstr "Meer geavanceerde instellingen"
+msgstr "더 고급 설정"
 
 #: src/handlers/stt/whispercpp_handler.py:50
 msgid "Temperature to use"
-msgstr "Temperatuur om te gebruiken"
+msgstr "사용할 온도"
 
 #: src/handlers/stt/whispercpp_handler.py:51
-#, fuzzy
 msgid "Prompt for the recognition"
-msgstr "Prompt voor de herkenning"
+msgstr "인식을 위한 프롬프트"
 
 #: src/handlers/stt/whispercpp_handler.py:51
 msgid "Prompt to use for the recognition"
-msgstr "Prompt om te gebruiken voor de herkenning"
+msgstr "인식에 사용할 프롬프트"
 
 #: src/handlers/tts/custom_openai_tts.py:17
 msgid "Endpoint"
-msgstr "Eindpunt"
+msgstr "엔드포인트"
 
 #: src/handlers/tts/custom_openai_tts.py:17
 msgid "Custom endpoint of the service to use"
-msgstr "Aangepast eindpunt van de te gebruiken service"
+msgstr "사용할 서비스의 사용자 지정 엔드포인트"
 
 #: src/handlers/tts/custom_openai_tts.py:19
 #: src/handlers/tts/elevenlabs_handler.py:17
@@ -603,91 +575,88 @@ msgstr "Aangepast eindpunt van de te gebruiken service"
 #: src/handlers/tts/openai_tts_handler.py:19 src/handlers/tts/tts.py:33
 #: src/ui/settings.py:128
 msgid "Voice"
-msgstr "Stem"
+msgstr "음성"
 
 #: src/handlers/tts/custom_openai_tts.py:19
 #: src/handlers/tts/groq_tts_handler.py:33
 #: src/handlers/tts/openai_tts_handler.py:19
 msgid "The voice to use"
-msgstr "De te gebruiken stem"
+msgstr "사용할 음성"
 
 #: src/handlers/tts/custom_openai_tts.py:21
 #: src/handlers/tts/openai_tts_handler.py:21
 msgid "Instructions"
-msgstr "Instructies"
+msgstr "지침"
 
 #: src/handlers/tts/custom_openai_tts.py:21
 #: src/handlers/tts/openai_tts_handler.py:21
 msgid ""
 "Instructions for the voice generation. Leave it blank to avoid this field"
-msgstr ""
-"Instructies voor de stemgeneratie. Laat dit veld leeg om het te vermijden"
+msgstr "음성 생성을 위한 지침입니다. 이 필드를 비워 두려면 공백으로 두십시오."
 
 #: src/handlers/tts/elevenlabs_handler.py:10
 msgid "API Key for ElevenLabs"
-msgstr "API-sleutel voor ElevenLabs"
+msgstr "ElevenLabs API 키"
 
 #: src/handlers/tts/elevenlabs_handler.py:18
 msgid "Voice ID to use"
-msgstr "Stem-ID om te gebruiken"
+msgstr "사용할 음성 ID"
 
 #: src/handlers/tts/elevenlabs_handler.py:32
 msgid "Stability"
-msgstr "Stabiliteit"
+msgstr "안정성"
 
 #: src/handlers/tts/elevenlabs_handler.py:33
 msgid "stability of the voice"
-msgstr "stabiliteit van de stem"
+msgstr "음성의 안정성"
 
 #: src/handlers/tts/elevenlabs_handler.py:42
 msgid "Similarity boost"
-msgstr "Gelijkenisboost"
+msgstr "유사성 향상"
 
 #: src/handlers/tts/elevenlabs_handler.py:43
 msgid "Boosts overall voice clarity and speaker similarity"
-msgstr "Verhoogt de algehele stemhelderheid en sprekergelijkenis"
+msgstr "전반적인 음성 명확성과 스피커 유사성을 향상시킵니다."
 
 #: src/handlers/tts/elevenlabs_handler.py:52
 msgid "Style exaggeration"
-msgstr "Stijl overdreven"
+msgstr "스타일 과장"
 
 #: src/handlers/tts/elevenlabs_handler.py:53
 msgid ""
 "High values are reccomended if the style of the speech must be exaggerated"
-msgstr ""
-"Hoge waarden worden aanbevolen als de stijl van de spraak moet worden "
-"overdreven"
+msgstr "음성 스타일을 과장해야 하는 경우 높은 값을 권장합니다."
 
 #: src/handlers/tts/custom_handler.py:17
 #, python-brace-format
 msgid "{0} will be replaced with the file fullpath, {1} with the text"
-msgstr "{0} wordt vervangen door het volledige pad van het bestand, {1} door de tekst"
+msgstr "{0}은 파일의 전체 경로로 대체되고, {1}은 텍스트로 대체됩니다."
 
 #: src/handlers/tts/tts.py:34
 msgid "Choose the preferred voice"
-msgstr "Kies de gewenste stem"
+msgstr "선호하는 음성을 선택하십시오."
 
 #: src/handlers/websearch/tavily.py:20
 msgid "Token"
-msgstr "Token"
+msgstr "토큰"
 
 #: src/handlers/websearch/tavily.py:20
 msgid "Tavily API key"
-msgstr "Tavily API-sleutel"
+msgstr "Tavily API 키"
 
 #: src/handlers/websearch/tavily.py:21
 #: src/handlers/websearch/duckduckgo_handler.py:14
 msgid "Max Results"
-msgstr "Max. resultaten"
+msgstr "최대 결과"
 
 #: src/handlers/websearch/tavily.py:21
 #: src/handlers/websearch/duckduckgo_handler.py:14
 msgid "Number of results to consider"
-msgstr "Aantal te overwegen resultaten"
+msgstr "고려할 결과 수"
 
 #: src/handlers/websearch/tavily.py:22
 msgid "The depth of the search"
-msgstr "De diepte van de zoekopdracht"
+msgstr "검색 깊이"
 
 #: src/handlers/websearch/tavily.py:22
 msgid ""
@@ -696,15 +665,13 @@ msgid ""
 "provides generic content snippets from each source. A basic search costs 1 "
 "API Credit, while an advanced search costs 2 API Credits."
 msgstr ""
-"De diepte van de zoekopdracht. Geavanceerd zoeken is afgestemd op het "
-"ophalen van de meest relevante bronnen en inhoudsfragmenten voor uw "
-"zoekopdracht, terwijl basis zoeken algemene inhoudsfragmenten van elke bron "
-"biedt. Een basis zoekopdracht kost 1 API-tegoed, terwijl een geavanceerde "
-"zoekopdracht 2 API-tegoeden kost."
+"검색의 깊이입니다. 고급 검색은 쿼리에 가장 관련성 높은 소스와 콘텐츠 스니펫을 검색하도록 "
+"맞춤화된 반면, 기본 검색은 각 소스에서 일반적인 콘텐츠 스니펫을 제공합니다. 기본 검색은 1 API "
+"크레딧, 고급 검색은 2 API 크레딧이 소요됩니다."
 
 #: src/handlers/websearch/tavily.py:23
 msgid "The category of the search"
-msgstr "De categorie van de zoekopdracht"
+msgstr "검색 카테고리"
 
 #: src/handlers/websearch/tavily.py:23
 msgid ""
@@ -713,15 +680,13 @@ msgid ""
 "mainstream media sources. General is for broader, more general-purpose "
 "searches that may include a wide range of sources."
 msgstr ""
-"De categorie van de zoekopdracht. Nieuws is nuttig voor het ophalen van "
-"realtime updates, met name over politiek, sport en belangrijke actuele "
-"gebeurtenissen die door reguliere mediabronnen worden behandeld. Algemeen is "
-"voor bredere, meer algemene zoekopdrachten die een breed scala aan bronnen "
-"kunnen omvatten."
+"검색의 범주입니다. 뉴스는 실시간 업데이트, 특히 주류 미디어 소스에서 다루는 정치, 스포츠 및 "
+"주요 시사 사건에 대한 정보를 검색하는 데 유용합니다. 일반은 더 광범위하고 다양한 소스를 "
+"포함할 수 있는 일반적인 목적의 검색을 위한 것입니다."
 
 #: src/handlers/websearch/tavily.py:24
 msgid "Chunks per source"
-msgstr "Stukken per bron"
+msgstr "소스당 청크"
 
 #: src/handlers/websearch/tavily.py:24
 msgid ""
@@ -729,392 +694,375 @@ msgid ""
 "length is maximum 500 characters. Available only when search depth is "
 "advanced."
 msgstr ""
-"Het aantal inhoudsfragmenten dat van elke bron moet worden opgehaald. De "
-"lengte van elk fragment is maximaal 500 tekens. Alleen beschikbaar wanneer de "
-"zoekdiepte geavanceerd is."
+"각 소스에서 검색할 콘텐츠 청크의 수입니다. 각 청크의 길이는 최대 500자입니다. 검색 깊이가 "
+"고급일 때만 사용할 수 있습니다."
 
 #: src/handlers/websearch/tavily.py:25
 msgid "Number of days back from the current date to include"
-msgstr "Aantal dagen terug vanaf de huidige datum om op te nemen"
+msgstr "현재 날짜로부터 거슬러 올라가 포함할 일수"
 
 #: src/handlers/websearch/tavily.py:25
 msgid "Available only if topic is news."
-msgstr "Alleen beschikbaar als het onderwerp nieuws is."
+msgstr "토픽이 뉴스일 경우에만 사용 가능합니다."
 
 #: src/handlers/websearch/tavily.py:26
 msgid "Include answer"
-msgstr "Antwoord opnemen"
+msgstr "답변 포함"
 
 #: src/handlers/websearch/tavily.py:26
 msgid ""
 "Include an LLM-generated answer to the provided query. Basic search returns "
 "a quick answer. Advanced returns a more detailed answer."
 msgstr ""
-"Voeg een door LLM gegenereerd antwoord toe aan de opgegeven zoekopdracht. "
-"Basis zoeken retourneert een snel antwoord. Geavanceerd retourneert een "
-"gedetailleerder antwoord."
+"제공된 쿼리에 대한 LLM 생성 답변을 포함합니다. 기본 검색은 빠른 답변을 반환하고, 고급 검색은 "
+"더 자세한 답변을 반환합니다."
 
 #: src/handlers/websearch/tavily.py:27
 msgid "Include raw content"
-msgstr "Ruwe inhoud opnemen"
+msgstr "원본 콘텐츠 포함"
 
 #: src/handlers/websearch/tavily.py:27
 msgid "Include the cleaned and parsed HTML content of each search result."
-msgstr "Inclusief de opgeschoonde en geparste HTML-inhoud van elk zoekresultaat."
+msgstr "각 검색 결과의 정리되고 파싱된 HTML 콘텐츠를 포함합니다."
 
 #: src/handlers/websearch/tavily.py:28
 msgid "Include images"
-msgstr "Afbeeldingen opnemen"
+msgstr "이미지 포함"
 
 #: src/handlers/websearch/tavily.py:28
 msgid "Perform an image search and include the results in the response."
-msgstr "Voer een afbeeldingenzoekopdracht uit en neem de resultaten op in de reactie."
+msgstr "이미지 검색을 수행하고 결과를 응답에 포함합니다."
 
 #: src/handlers/websearch/tavily.py:29
 msgid "Include image descriptions"
-msgstr "Afbeeldingsbeschrijvingen opnemen"
+msgstr "이미지 설명 포함"
 
 #: src/handlers/websearch/tavily.py:29
 msgid ""
 "When Include images is enabled, also add a descriptive text for each image."
-msgstr ""
-"Wanneer 'Afbeeldingen opnemen' is ingeschakeld, voeg dan ook een beschrijvende "
-"tekst toe voor elke afbeelding."
+msgstr "이미지 포함이 활성화된 경우 각 이미지에 대한 설명 텍스트도 추가합니다."
 
 #: src/handlers/websearch/tavily.py:30
 msgid "Include domains"
-msgstr "Domeinen opnemen"
+msgstr "도메인 포함"
 
 #: src/handlers/websearch/tavily.py:30
 msgid "A list of domains to specifically include in the search results."
-msgstr "Een lijst met domeinen die specifiek moeten worden opgenomen in de zoekresultaten."
+msgstr "검색 결과에 특별히 포함할 도메인 목록입니다."
 
 #: src/handlers/websearch/tavily.py:31
 msgid "Exclude domains"
-msgstr "Domeinen uitsluiten"
+msgstr "도메인 제외"
 
 #: src/handlers/websearch/tavily.py:31
 msgid "A list of domains to specifically exclude from the search results."
-msgstr "Een lijst met domeinen die specifiek moeten worden uitgesloten van de zoekresultaten."
+msgstr "검색 결과에서 특별히 제외할 도메인 목록입니다."
 
 #: src/handlers/websearch/duckduckgo_handler.py:15
 msgid "Region"
-msgstr "Regio"
+msgstr "지역"
 
 #: src/handlers/websearch/duckduckgo_handler.py:15
 msgid "Region for the search results"
-msgstr "Regio voor de zoekresultaten"
+msgstr "검색 결과에 대한 지역"
 
 #: src/ui/profile.py:33 src/window.py:119
 msgid "Settings"
-msgstr "Instellingen"
+msgstr "설정"
 
 #: src/ui/profile.py:53
 msgid "Profile Name"
-msgstr "Profielnaam"
+msgstr "프로필 이름"
 
 #: src/ui/profile.py:58
-#, fuzzy
 msgid "Copied Settings"
-msgstr "Gekopieerde instellingen"
+msgstr "복사된 설정"
 
 #: src/ui/profile.py:58
 msgid "Settings that will be copied to the new profile"
-msgstr "Instellingen die naar het nieuwe profiel worden gekopieerd"
+msgstr "새 프로필로 복사될 설정"
 
 #: src/ui/profile.py:70
 msgid "Create Profile"
-msgstr "Profiel aanmaken"
+msgstr "프로필 생성"
 
 #: src/ui/profile.py:72 src/ui/profile.py:74 src/ui/profile.py:129
 msgid "Import Profile"
-msgstr "Profiel importeren"
+msgstr "프로필 가져오기"
 
 #: src/ui/profile.py:79 src/ui/widgets/profilerow.py:43
 msgid "Edit Profile"
-msgstr "Profiel bewerken"
+msgstr "프로필 편집"
 
 #: src/ui/profile.py:84 src/ui/profile.py:99 src/ui/profile.py:123
 msgid "Export Profile"
-msgstr "Profiel exporteren"
+msgstr "프로필 내보내기"
 
 #: src/ui/profile.py:87
 msgid "Export Passwords"
-msgstr "Wachtwoorden exporteren"
+msgstr "비밀번호 내보내기"
 
 #: src/ui/profile.py:87
 msgid "Also export password-like fields"
-msgstr "Exporteer ook wachtwoordachtige velden"
+msgstr "비밀번호와 같은 필드도 내보내기"
 
 #: src/ui/profile.py:89
 msgid "Export Propic"
-msgstr "Profielafbeelding exporteren"
+msgstr "프로필 사진 내보내기"
 
 #: src/ui/profile.py:89
 msgid "Also export the profile picture"
-msgstr "Exporteer ook de profielfoto"
+msgstr "프로필 사진도 내보내기"
 
 #: src/ui/profile.py:109 src/ui/explorer.py:692
-#, fuzzy
 msgid "Create"
-msgstr "Aanmaken"
+msgstr "생성"
 
 #: src/ui/profile.py:109
 msgid "Apply"
-msgstr "Toepassen"
+msgstr "적용"
 
 #: src/ui/profile.py:116
 msgid "The settings of the current profile will be copied into the new one"
-msgstr "De instellingen van het huidige profiel worden gekopieerd naar het nieuwe profiel"
+msgstr "현재 프로필 설정이 새 프로필로 복사됩니다."
 
 #: src/ui/profile.py:122 src/ui/profile.py:128
 msgid "Newelle Profiles"
-msgstr "Newelle Profielen"
+msgstr "Newelle 프로필"
 
 #: src/ui/profile.py:123
 msgid "Export"
-msgstr "Exporteren"
+msgstr "내보내기"
 
 #: src/ui/profile.py:129
 msgid "Import"
-msgstr "Importeren"
+msgstr "가져오기"
 
 #: src/ui/profile.py:197
 msgid "Set profile picture"
-msgstr "Profielfoto instellen"
+msgstr "프로필 사진 설정"
 
 #: src/ui/thread_editing.py:6 src/window.py:117
 msgid "Thread editing"
-msgstr "Thread bewerken"
+msgstr "스레드 편집"
 
 #: src/ui/thread_editing.py:36
 msgid "No threads are running"
-msgstr "Geen threads actief"
+msgstr "실행 중인 스레드가 없습니다."
 
 #: src/ui/thread_editing.py:42
 msgid "Thread number: "
-msgstr "Threadnummer: "
+msgstr "스레드 번호: "
 
 #: src/ui/widgets/profilerow.py:26
 msgid "Select profile"
-msgstr "Profiel selecteren"
+msgstr "프로필 선택"
 
 #: src/ui/widgets/profilerow.py:53
 msgid "Delete Profile"
-msgstr "Profiel verwijderen"
+msgstr "프로필 삭제"
 
 #: src/ui/widgets/tipscarousel.py:41
 msgid "Newelle Tips"
-msgstr "Newelle Tips"
+msgstr "Newelle 팁"
 
 #: src/ui/widgets/thinking.py:27
 msgid "Thoughts"
-msgstr "Gedachten"
+msgstr "생각"
 
 #: src/ui/widgets/thinking.py:28 src/ui/widgets/thinking.py:135
 msgid "Expand to see details"
-msgstr "Uitvouwen om details te zien"
+msgstr "확장하여 자세한 내용 보기"
 
 #: src/ui/widgets/thinking.py:123
 msgid "Thinking..."
-msgstr "Aan het denken..."
+msgstr "생각 중..."
 
 #: src/ui/widgets/thinking.py:124
 msgid "The LLM is thinking... Expand to see thought process"
-msgstr "De LLM denkt na... Uitvouwen om denkproces te zien"
+msgstr "LLM이 생각 중입니다... 확장하여 사고 과정을 보십시오."
 
 #: src/ui/widgets/thinking.py:137
 msgid "No thought process recorded"
-msgstr "Geen denkproces vastgelegd"
+msgstr "사고 과정이 기록되지 않았습니다."
 
 #: src/ui/explorer.py:192
 msgid "Folder is Empty"
-msgstr "Map is leeg"
+msgstr "폴더가 비어 있습니다."
 
 #: src/ui/explorer.py:340 src/window.py:1574
 msgid "File not found"
-msgstr "Bestand niet gevonden"
+msgstr "파일을 찾을 수 없습니다."
 
 #: src/ui/explorer.py:355
 msgid "Open in new tab"
-msgstr "Openen in nieuw tabblad"
+msgstr "새 탭에서 열기"
 
 #: src/ui/explorer.py:357
 msgid "Open in integrated editor"
-msgstr "Openen in geïntegreerde editor"
+msgstr "통합 편집기에서 열기"
 
 #: src/ui/explorer.py:360 src/ui/explorer.py:589
 msgid "Open in file manager"
-msgstr "Openen in bestandsbeheerder"
+msgstr "파일 관리자에서 열기"
 
 #: src/ui/explorer.py:363 src/ui/explorer.py:451
 msgid "Rename"
-msgstr "Hernoemen"
+msgstr "이름 바꾸기"
 
 #: src/ui/explorer.py:366 src/ui/explorer.py:502 src/ui/settings.py:275
 #: src/ui/settings.py:346
 msgid "Delete"
-msgstr "Verwijderen"
+msgstr "삭제"
 
 #: src/ui/explorer.py:369
 msgid "Copy full path"
-msgstr "Volledig pad kopiëren"
+msgstr "전체 경로 복사"
 
 #: src/ui/explorer.py:420 src/ui/explorer.py:657
-#, fuzzy
 msgid "Failed to open file manager"
-msgstr "Bestandsbeheerder kon niet worden geopend"
+msgstr "파일 관리자를 열지 못했습니다."
 
 #: src/ui/explorer.py:436
-#, fuzzy
 msgid "New name:"
-msgstr "Nieuwe naam:"
+msgstr "새 이름:"
 
 #: src/ui/explorer.py:448 src/ui/explorer.py:501 src/ui/explorer.py:689
 #: src/main.py:209
 msgid "Cancel"
-msgstr "Annuleren"
+msgstr "취소"
 
 #: src/ui/explorer.py:471
 msgid "Renamed successfully"
-msgstr "Succesvol hernoemd"
+msgstr "이름이 성공적으로 변경되었습니다."
 
 #: src/ui/explorer.py:476
-#, fuzzy
 msgid "Failed to rename: {}"
-msgstr "Hernoemen mislukt: {}"
+msgstr "이름 바꾸기 실패: {}"
 
 #: src/ui/explorer.py:497
 msgid "Delete File?"
-msgstr "Bestand verwijderen?"
+msgstr "파일을 삭제하시겠습니까?"
 
 #: src/ui/explorer.py:499
 msgid "Are you sure you want to delete \"{}\"?"
-msgstr "Weet u zeker dat u \"{}\" wilt verwijderen?"
+msgstr "\"{}\"을(를) 삭제하시겠습니까?"
 
 #: src/ui/explorer.py:520
 msgid "Deleted successfully"
-msgstr "Succesvol verwijderd"
+msgstr "성공적으로 삭제되었습니다."
 
 #: src/ui/explorer.py:525
-#, fuzzy
 msgid "Failed to delete: {}"
-msgstr "Verwijderen mislukt: {}"
+msgstr "삭제 실패: {}"
 
 #: src/ui/explorer.py:538
 msgid "Path copied to clipboard"
-msgstr "Pad gekopieerd naar klembord"
+msgstr "경로가 클립보드에 복사되었습니다."
 
 #: src/ui/explorer.py:542
-#, fuzzy
 msgid "Failed to copy path"
-msgstr "Pad kopiëren mislukt"
+msgstr "경로를 복사하지 못했습니다."
 
 #: src/ui/explorer.py:580
-#, fuzzy
 msgid "Create new folder"
-msgstr "Nieuwe map aanmaken"
+msgstr "새 폴더 만들기"
 
 #: src/ui/explorer.py:583
 msgid "Create new file"
-msgstr "Nieuw bestand aanmaken"
+msgstr "새 파일 만들기"
 
 #: src/ui/explorer.py:586
 msgid "Open Terminal Here"
-msgstr "Open Terminal hier"
+msgstr "여기서 터미널 열기"
 
 #: src/ui/explorer.py:640
 msgid "Create New Folder"
-msgstr "Nieuwe map aanmaken"
+msgstr "새 폴더 만들기"
 
 #: src/ui/explorer.py:640
-#, fuzzy
 msgid "Folder name:"
-msgstr "Mapnaam:"
+msgstr "폴더 이름:"
 
 #: src/ui/explorer.py:644
 msgid "Create New File"
-msgstr "Nieuw bestand aanmaken"
+msgstr "새 파일 만들기"
 
 #: src/ui/explorer.py:644
-#, fuzzy
 msgid "File name:"
-msgstr "Bestandsnaam:"
+msgstr "파일 이름:"
 
 #: src/ui/explorer.py:713
 msgid "Folder created successfully"
-msgstr "Map succesvol aangemaakt"
+msgstr "폴더가 성공적으로 생성되었습니다."
 
 #: src/ui/explorer.py:720
 msgid "File created successfully"
-msgstr "Bestand succesvol aangemaakt"
+msgstr "파일이 성공적으로 생성되었습니다."
 
 #: src/ui/explorer.py:725
 msgid "A file or folder with that name already exists"
-msgstr "Een bestand of map met die naam bestaat al"
+msgstr "해당 이름의 파일 또는 폴더가 이미 존재합니다."
 
 #: src/ui/explorer.py:728
-#, fuzzy
 msgid "folder"
-msgstr "map"
+msgstr "폴더"
 
 #: src/ui/explorer.py:728
 msgid "file"
-msgstr "bestand"
+msgstr "파일"
 
 #: src/ui/explorer.py:730
-#, fuzzy
 msgid "Failed to create {}: {}"
-msgstr "Maken van {}: {} mislukt"
+msgstr "생성 실패 {}: {}"
 
 #: src/ui/shortcuts.py:6
 msgid "Help"
-msgstr "Help"
+msgstr "도움말"
 
 #: src/ui/shortcuts.py:12
 msgid "Shortcuts"
-msgstr "Sneltoetsen"
+msgstr "단축키"
 
 #: src/ui/shortcuts.py:13
 msgid "Reload chat"
-msgstr "Chat opnieuw laden"
+msgstr "채팅 다시 로드"
 
 #: src/ui/shortcuts.py:14
 msgid "Reload folder"
-msgstr "Map opnieuw laden"
+msgstr "폴더 다시 로드"
 
 #: src/ui/shortcuts.py:15
 msgid "New tab"
-msgstr "Nieuw tabblad"
+msgstr "새 탭"
 
 #: src/ui/shortcuts.py:16
 msgid "Paste Image"
-msgstr "Afbeelding plakken"
+msgstr "이미지 붙여넣기"
 
 #: src/ui/shortcuts.py:17
 msgid "Focus message box"
-msgstr "Berichtvak focussen"
+msgstr "메시지 상자 포커스"
 
 #: src/ui/shortcuts.py:18
 msgid "Start/stop recording"
-msgstr "Opname starten/stoppen"
+msgstr "녹음 시작/중지"
 
 #: src/ui/shortcuts.py:19
 msgid "Save"
-msgstr "Opslaan"
+msgstr "저장"
 
 #: src/ui/shortcuts.py:20
-#, fuzzy
 msgid "Stop TTS"
-msgstr "TTS stoppen"
+msgstr "TTS 중지"
 
 #: src/ui/shortcuts.py:21
 msgid "Zoom in"
-msgstr "Inzoomen"
+msgstr "확대"
 
 #: src/ui/shortcuts.py:22
 msgid "Zoom out"
-msgstr "Uitzoomen"
+msgstr "축소"
 
 #: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.appdata.xml.in:7
 #: data/io.github.qwersyk.Newelle.desktop.in:2
@@ -1123,40 +1071,39 @@ msgstr "Newelle"
 
 #: src/ui/mini_window.py:20
 msgid "Chat is opened in mini window"
-msgstr "Chat is geopend in mini-venster"
+msgstr "미니 창에서 채팅이 열렸습니다."
 
 #: src/ui/presentation.py:93
 msgid "Welcome to Newelle"
-msgstr "Welkom bij Newelle"
+msgstr "Newelle에 오신 것을 환영합니다."
 
 #: src/ui/presentation.py:94
 msgid "Your ultimate virtual assistant."
-msgstr "Uw ultieme virtuele assistent."
+msgstr "최고의 가상 비서."
 
 #: src/ui/presentation.py:98
 msgid "Github Page"
-msgstr "Github-pagina"
+msgstr "Github 페이지"
 
 #: src/ui/presentation.py:105
 msgid "Choose your favourite AI Language Model"
-msgstr "Kies uw favoriete AI-taalmodel"
+msgstr "좋아하는 AI 언어 모델 선택"
 
 #: src/ui/presentation.py:106
 msgid ""
 "Newelle can be used with mutiple models and providers!\n"
 "<b>Note: It is strongly suggested to read the Guide to LLM page</b>"
 msgstr ""
-"Newelle kan worden gebruikt met meerdere modellen en providers!\n"
-"<b>Opmerking: Het wordt sterk aangeraden om de handleiding voor LLM te "
-"lezen</b>"
+"Newelle은 여러 모델 및 공급자와 함께 사용할 수 있습니다!\n"
+"<b>참고: LLM 가이드 페이지를 읽는 것을 적극 권장합니다.</b>"
 
 #: src/ui/presentation.py:110
 msgid "Guide to LLM"
-msgstr "Handleiding voor LLM"
+msgstr "LLM 가이드"
 
 #: src/ui/presentation.py:117
 msgid "Chat with your documents"
-msgstr "Chatten met uw documenten"
+msgstr "문서와 채팅"
 
 #: src/ui/presentation.py:118
 msgid ""
@@ -1164,13 +1111,12 @@ msgid ""
 "chat or from your own files! Information relevant to your query will be sent "
 "to the LLM."
 msgstr ""
-"Newelle kan relevante informatie ophalen uit documenten die u in de chat "
-"verstuurt of uit uw eigen bestanden! Informatie die relevant is voor uw "
-"zoekopdracht wordt naar de LLM gestuurd."
+"Newelle은 채팅으로 보내는 문서 또는 자신의 파일에서 관련 정보를 검색할 수 있습니다! 쿼리에 "
+"관련된 정보는 LLM으로 전송됩니다."
 
 #: src/ui/presentation.py:124 src/ui/settings.py:236 src/window.py:647
 msgid "Command virtualization"
-msgstr "Commando virtualisatie"
+msgstr "명령어 가상화"
 
 #: src/ui/presentation.py:125
 msgid ""
@@ -1180,66 +1126,59 @@ msgid ""
 "By default, your commands will be <b>virtualized in the Flatpak environment</"
 "b>, but pay attention!"
 msgstr ""
-"Newelle kan worden gebruikt om commando's uit te voeren op uw systeem, maar "
-"let op wat u uitvoert! <b>De LLM staat niet onder onze controle, dus het kan "
-"kwaadaardige code genereren!</b>\n"
-"Standaard worden uw commando's <b>gevirtualiseerd in de Flatpak-omgeving</"
-"b>, maar let op!"
+"Newelle을 사용하여 시스템에서 명령을 실행할 수 있지만, 실행하는 것에 주의하십시오! "
+"<b>LLM은 저희의 통제하에 있지 않으므로 악성 코드를 생성할 수 있습니다!</b>\n"
+"기본적으로 명령은 <b>Flatpak 환경에서 가상화됩니다.</b> 하지만 주의하십시오!"
 
 #: src/ui/presentation.py:131 src/ui/extension.py:17 src/constants.py:513
 #: src/window.py:118
 msgid "Extensions"
-msgstr "Extensies"
+msgstr "확장"
 
 #: src/ui/presentation.py:132
 msgid "You can extend Newelle's functionalities using extensions!"
-msgstr "U kunt de functionaliteiten van Newelle uitbreiden met extensies!"
+msgstr "확장을 사용하여 Newelle의 기능을 확장할 수 있습니다!"
 
 #: src/ui/presentation.py:136
-#, fuzzy
 msgid "Download extensions"
-msgstr "Extensies downloaden"
+msgstr "확장 다운로드"
 
 #: src/ui/presentation.py:146
 msgid "Permission Error"
-msgstr "Toestemmingsfout"
+msgstr "권한 오류"
 
 #: src/ui/presentation.py:147
 msgid ""
 "Newelle does not have enough permissions to run commands on your system."
-msgstr ""
-"Newelle heeft onvoldoende machtigingen om commando's op uw systeem uit te "
-"voeren."
+msgstr "Newelle에는 시스템에서 명령을 실행할 충분한 권한이 없습니다."
 
 #: src/ui/presentation.py:158
 msgid "Begin using the app"
-msgstr "Begin met het gebruiken van de app"
+msgstr "앱 사용 시작"
 
 #: src/ui/presentation.py:163
 msgid "Start chatting"
-msgstr "Begin met chatten"
+msgstr "채팅 시작"
 
 #: src/ui/extension.py:50
-#, fuzzy
 msgid "Installed Extensions"
-msgstr "Geïnstalleerde extensies"
+msgstr "설치된 확장"
 
 #: src/ui/extension.py:85
 msgid "User guide to Extensions"
-msgstr "Gebruikershandleiding voor extensies"
+msgstr "확장 사용자 가이드"
 
 #: src/ui/extension.py:88
-#, fuzzy
 msgid "Download new Extensions"
-msgstr "Nieuwe extensies downloaden"
+msgstr "새 확장 다운로드"
 
 #: src/ui/extension.py:91
 msgid "Install extension from file..."
-msgstr "Extensie installeren vanuit bestand..."
+msgstr "파일에서 확장 설치..."
 
 #: src/ui/settings.py:46 src/constants.py:523
 msgid "General"
-msgstr "Algemeen"
+msgstr "일반"
 
 #: src/ui/settings.py:47 src/constants.py:478
 msgid "LLM"
@@ -1247,131 +1186,124 @@ msgstr "LLM"
 
 #: src/ui/settings.py:48 src/constants.py:528
 msgid "Prompts"
-msgstr "Prompts"
+msgstr "프롬프트"
 
 #: src/ui/settings.py:49
 msgid "Knowledge"
-msgstr "Kennis"
+msgstr "지식"
 
 #: src/ui/settings.py:53
 msgid "Language Model"
-msgstr "Taalmodel"
+msgstr "언어 모델"
 
 #: src/ui/settings.py:62 src/ui/settings.py:82
 msgid "Other LLMs"
-msgstr "Andere LLM's"
+msgstr "다른 LLM"
 
 #: src/ui/settings.py:62 src/ui/settings.py:82
 msgid "Other available LLM providers"
-msgstr "Andere beschikbare LLM-providers"
+msgstr "사용 가능한 다른 LLM 공급자"
 
 #: src/ui/settings.py:72
-#, fuzzy
 msgid "Advanced LLM Settings"
-msgstr "Geavanceerde LLM-instellingen"
+msgstr "고급 LLM 설정"
 
 #: src/ui/settings.py:76
 msgid "Secondary Language Model"
-msgstr "Secundair taalmodel"
+msgstr "보조 언어 모델"
 
 #: src/ui/settings.py:76
 msgid ""
 "Model used for secondary tasks, like offer, chat name and memory generation"
-msgstr ""
-"Model gebruikt voor secundaire taken, zoals aanbod, chatnaam en geheugen"
-"generatie"
+msgstr "제공, 채팅 이름 및 메모리 생성과 같은 보조 작업에 사용되는 모델"
 
 #: src/ui/settings.py:93
 msgid "Embedding Model"
-msgstr "Inbeddingsmodel"
+msgstr "임베딩 모델"
 
 #: src/ui/settings.py:93
 msgid ""
 "Embedding is used to trasform text into vectors. Used by Long Term Memory "
 "and RAG. Changing it might require you to re-index documents or reset memory."
 msgstr ""
-"Inbedding wordt gebruikt om tekst om te zetten in vectoren. Wordt gebruikt "
-"door Langetermijngeheugen en RAG. Het wijzigen ervan kan vereisen dat u "
-"documenten opnieuw indexeert of het geheugen opnieuw instelt."
+"임베딩은 텍스트를 벡터로 변환하는 데 사용됩니다. 장기 메모리 및 RAG에서 사용됩니다. "
+"변경하면 문서를 다시 인덱싱하거나 메모리를 재설정해야 할 수 있습니다."
 
 #: src/ui/settings.py:104 src/window.py:645
-#, fuzzy
 msgid "Long Term Memory"
-msgstr "Langetermijngeheugen"
+msgstr "장기 기억"
 
 #: src/ui/settings.py:104
 msgid "Keep memory of old conversations"
-msgstr "Geheugen van oude gesprekken bewaren"
+msgstr "이전 대화 기억 유지"
 
 #: src/ui/settings.py:116 src/constants.py:401
 msgid "Web Search"
-msgstr "Webzoekopdracht"
+msgstr "웹 검색"
 
 #: src/ui/settings.py:116
 msgid "Search information on the Web"
-msgstr "Informatie op het web zoeken"
+msgstr "웹에서 정보 검색"
 
 #: src/ui/settings.py:132
 msgid "Text To Speech Program"
-msgstr "Tekst naar spraakprogramma"
+msgstr "텍스트 음성 변환 프로그램"
 
 #: src/ui/settings.py:132
 msgid "Choose which text to speech to use"
-msgstr "Kies welke tekst naar spraak te gebruiken"
+msgstr "사용할 텍스트 음성 변환 선택"
 
 #: src/ui/settings.py:141
 msgid "Speech To Text Engine"
-msgstr "Spraak naar tekst-engine"
+msgstr "음성 텍스트 변환 엔진"
 
 #: src/ui/settings.py:141
 msgid "Choose which speech recognition engine you want"
-msgstr "Kies welke spraakherkenningsengine u wilt"
+msgstr "사용할 음성 인식 엔진 선택"
 
 #: src/ui/settings.py:149
 msgid "Automatic Speech To Text"
-msgstr "Automatische spraak naar tekst"
+msgstr "자동 음성 텍스트 변환"
 
 #: src/ui/settings.py:149
 msgid "Automatically restart speech to text at the end of a text/TTS"
-msgstr ""
-"Automatisch spraak naar tekst opnieuw starten aan het einde van een tekst/TTS"
+msgstr "텍스트/TTS가 끝나면 음성 텍스트 변환을 자동으로 다시 시작합니다."
 
 #: src/ui/settings.py:153
 msgid "Prompt control"
-msgstr "Promptbeheer"
+msgstr "프롬프트 제어"
 
 #: src/ui/settings.py:158
 msgid "Interface"
-msgstr "Interface"
+msgstr "인터페이스"
 
 #: src/ui/settings.py:161
-#, fuzzy
 msgid "Interface Size"
-msgstr "Interfagrootte"
+msgstr "인터페이스 크기"
 
 #: src/ui/settings.py:161
 msgid "Adjust the size of the interface"
-msgstr "Pas de grootte van de interface aan"
+msgstr "인터페이스 크기 조정"
 
 #: src/ui/settings.py:173
 msgid "Editor color scheme"
-msgstr "Kleurenschema van editor"
+msgstr "편집기 색상 구성표"
 
 #: src/ui/settings.py:173
 msgid "Change the color scheme of the editor and codeblocks"
-msgstr "Wijzig het kleurenschema van de editor en codeblokken"
+msgstr "편집기 및 코드 블록의 색상 구성표 변경"
 
 #: src/ui/settings.py:180
 msgid "Hidden files"
-msgstr "Verborgen bestanden"
+msgstr "숨김 파일"
 
 #: src/ui/settings.py:180
 msgid "Show hidden files"
-msgstr "Verborgen bestanden tonen"
+msgstr "숨김 파일 표시"
 
 #: src/ui/settings.py:186
 msgid "Send with ENTER"
-msgstr "Verzenden met ENTER"
+msgstr "ENTER로 전송"
 
 #: src/ui/settings.py:186
 msgid ""
@@ -1379,57 +1311,54 @@ msgid ""
 "CTRL+ENTER. If disabled, messages will be sent with SHIFT+ENTER, and newline "
 "with enter"
 msgstr ""
-"Indien ingeschakeld, worden berichten verzonden met ENTER. Gebruik CTRL+ENTER "
-"voor een nieuwe regel. Indien uitgeschakeld, worden berichten verzonden met "
-"SHIFT+ENTER en een nieuwe regel met enter"
+"활성화하면 ENTER로 메시지가 전송되고, 새 줄로 이동하려면 CTRL+ENTER를 사용합니다. "
+"비활성화하면 SHIFT+ENTER로 메시지가 전송되고, ENTER로 새 줄이 추가됩니다."
 
 #: src/ui/settings.py:192
 msgid "Remove thinking from history"
-msgstr "Denken uit geschiedenis verwijderen"
+msgstr "기록에서 사고 제거"
 
 #: src/ui/settings.py:192
 msgid ""
 "Do not send old thinking blocks for reasoning models in order to reduce "
 "token usage"
-msgstr ""
-"Stuur geen oude denkblokken voor redeneermodellen om het tokengebruik te "
-"verminderen"
+msgstr "토큰 사용량을 줄이기 위해 추론 모델에 대한 이전 사고 블록을 보내지 마십시오."
 
 #: src/ui/settings.py:198
 msgid "Display LaTeX"
-msgstr "LaTeX weergeven"
+msgstr "LaTeX 표시"
 
 #: src/ui/settings.py:198
 msgid "Display LaTeX formulas in chat"
-msgstr "LaTeX-formules weergeven in chat"
+msgstr "채팅에 LaTeX 수식 표시"
 
 #: src/ui/settings.py:204
 msgid "Reverse Chat Order"
-msgstr "Chatvolgorde omkeren"
+msgstr "채팅 순서 반전"
 
 #: src/ui/settings.py:204
 msgid "Show most recent chats on top in chat list (change chat to apply)"
-msgstr "Toon meest recente chats bovenaan in chatlijst (wijzig chat om toe te passen)"
+msgstr "채팅 목록에서 가장 최근 채팅을 상단에 표시합니다(적용하려면 채팅 변경)."
 
 #: src/ui/settings.py:210
 msgid "Automatically Generate Chat Names"
-msgstr "Automatisch chatnamen genereren"
+msgstr "자동으로 채팅 이름 생성"
 
 #: src/ui/settings.py:210
 msgid "Generate chat names automatically after the first two messages"
-msgstr "Chatnamen automatisch genereren na de eerste twee berichten"
+msgstr "첫 두 메시지 이후 자동으로 채팅 이름 생성"
 
 #: src/ui/settings.py:216
 msgid "Number of offers"
-msgstr "Aantal aanbiedingen"
+msgstr "제안 수"
 
 #: src/ui/settings.py:216
 msgid "Number of message suggestions to send to chat "
-msgstr "Aantal berichtsuggesties om naar de chat te sturen"
+msgstr "채팅으로 보낼 메시지 제안 수"
 
 #: src/ui/settings.py:223
 msgid "Username"
-msgstr "Gebruikersnaam"
+msgstr "사용자 이름"
 
 #: src/ui/settings.py:223
 #, python-brace-format
@@ -1438,162 +1367,151 @@ msgid ""
 "This information is not sent to the LLM by default\n"
 "You can add it to a prompt using the {USER} variable"
 msgstr ""
-"Wijzig het label dat voor uw bericht verschijnt\n"
-"Deze informatie wordt standaard niet naar de LLM gestuurd\n"
-"U kunt het toevoegen aan een prompt met behulp van de variabele {USER}"
+"메시지 앞에 나타나는 레이블을 변경합니다.\n"
+"이 정보는 기본적으로 LLM으로 전송되지 않습니다.\n"
+"{USER} 변수를 사용하여 프롬프트에 추가할 수 있습니다."
 
 #: src/ui/settings.py:233
 msgid "Neural Network Control"
-msgstr "Neuraal netwerkbeheer"
+msgstr "신경망 제어"
 
 #: src/ui/settings.py:236
 msgid "Run commands in a virtual machine"
-msgstr "Commando's uitvoeren in een virtuele machine"
+msgstr "가상 머신에서 명령 실행"
 
 #: src/ui/settings.py:249
 msgid "External Terminal"
-msgstr "Externe terminal"
+msgstr "외부 터미널"
 
 #: src/ui/settings.py:249
 msgid "Choose the external terminal where to run the console commands"
-msgstr "Kies de externe terminal om de consolecommando's uit te voeren"
+msgstr "콘솔 명령을 실행할 외부 터미널 선택"
 
 #: src/ui/settings.py:258
 msgid "Program memory"
-msgstr "Programmgeheugen"
+msgstr "프로그램 메모리"
 
 #: src/ui/settings.py:258
 msgid "How long the program remembers the chat "
-msgstr "Hoe lang het programma de chat onthoudt"
+msgstr "프로그램이 채팅을 기억하는 시간"
 
 #: src/ui/settings.py:265
 msgid "Developer"
-msgstr "Ontwikkelaar"
+msgstr "개발자"
 
 #: src/ui/settings.py:268 src/ui/stdout_monitor.py:31
 #: src/ui/stdout_monitor.py:41
 msgid "Program Output Monitor"
-msgstr "Programma-uitvoer monitor"
+msgstr "프로그램 출력 모니터"
 
 #: src/ui/settings.py:268
 msgid ""
 "Monitor the program output in real-time, useful for debugging and seeing "
 "downloads progress"
-msgstr ""
-"Monitor de programma-uitvoer in real-time, nuttig voor debuggen en het zien "
-"van downloadvoortgang"
+msgstr "프로그램 출력을 실시간으로 모니터링합니다. 디버깅 및 다운로드 진행 상황 확인에 유용합니다."
 
 #: src/ui/settings.py:269
 msgid "Open"
-msgstr "Openen"
+msgstr "열기"
 
 #: src/ui/settings.py:274
 msgid "Delete pip path"
-msgstr "Pip-pad verwijderen"
+msgstr "pip 경로 삭제"
 
 #: src/ui/settings.py:274
 msgid "Remove the extra dependencies installed"
-msgstr "Verwijder de extra geïnstalleerde afhankelijkheden"
+msgstr "설치된 추가 종속성 제거"
 
 #: src/ui/settings.py:294
 msgid "Auto-run commands"
-msgstr "Automatisch uitvoeren van commando's"
+msgstr "자동 실행 명령"
 
 #: src/ui/settings.py:294
 msgid "Commands that the bot will write will automatically run"
-msgstr "Commando's die de bot schrijft, worden automatisch uitgevoerd"
+msgstr "봇이 작성할 명령은 자동으로 실행됩니다."
 
 #: src/ui/settings.py:297
-#, fuzzy
 msgid "Max number of commands"
-msgstr "Max. aantal commando's"
+msgstr "최대 명령 수"
 
 #: src/ui/settings.py:297
-#, fuzzy
 msgid ""
 "Maximum number of commands that the bot will write after a single user "
 "request"
-msgstr ""
-"Maximaal aantal commando's dat de bot zal schrijven na één "
-"gebruikersverzoek"
+msgstr "단일 사용자 요청 후 봇이 작성할 최대 명령 수"
 
 #: src/ui/settings.py:328
 msgid "Browser"
-msgstr "Browser"
+msgstr "브라우저"
 
 #: src/ui/settings.py:328
 msgid "Settings for the browser"
-msgstr "Instellingen voor de browser"
+msgstr "브라우저 설정"
 
 #: src/ui/settings.py:333
 msgid "Use external browser"
-msgstr "Externe browser gebruiken"
+msgstr "외부 브라우저 사용"
 
 #: src/ui/settings.py:333
 msgid "Use an external browser to open links instead of integrated one"
-msgstr "Gebruik een externe browser om links te openen in plaats van de geïntegreerde"
+msgstr "통합 브라우저 대신 외부 브라우저를 사용하여 링크 열기"
 
 #: src/ui/settings.py:340
 msgid "Persist browser session"
-msgstr "Browsersessie behouden"
+msgstr "브라우저 세션 유지"
 
 #: src/ui/settings.py:340
 msgid ""
 "Persist browser session between restarts. Turning this off requires "
 "restarting the program"
-msgstr ""
-"Browsersessie behouden tussen herstarts. Als u dit uitschakelt, moet het "
-"programma opnieuw worden gestart"
+msgstr "재시작 간에 브라우저 세션을 유지합니다. 이 옵션을 끄면 프로그램을 다시 시작해야 합니다."
 
 #: src/ui/settings.py:345
 msgid "Delete browser data"
-msgstr "Browsergegevens verwijderen"
+msgstr "브라우저 데이터 삭제"
 
 #: src/ui/settings.py:345
 msgid "Delete browser session and data"
-msgstr "Browsersessie en gegevens verwijderen"
+msgstr "브라우저 세션 및 데이터 삭제"
 
 #: src/ui/settings.py:352
 msgid "Initial browser page"
-msgstr "Startpagina van de browser"
+msgstr "초기 브라우저 페이지"
 
 #: src/ui/settings.py:352
 msgid "The page where the browser will start"
-msgstr "De pagina waar de browser zal starten"
+msgstr "브라우저가 시작될 페이지"
 
 #: src/ui/settings.py:359
-#, fuzzy
 msgid "Search string"
-msgstr "Zoekreeks"
+msgstr "검색 문자열"
 
 #: src/ui/settings.py:359
 #, python-format
 msgid "The search string used in the browser, %s is replaced with the query"
-msgstr "De zoekreeks die in de browser wordt gebruikt, %s wordt vervangen door de zoekopdracht"
+msgstr "브라우저에서 사용되는 검색 문자열, %s는 쿼리로 대체됩니다."
 
 #: src/ui/settings.py:380
 msgid "Document Sources (RAG)"
-msgstr "Documentbronnen (RAG)"
+msgstr "문서 소스 (RAG)"
 
 #: src/ui/settings.py:380
 msgid "Include content from your documents in the responses"
-msgstr "Inhoud van uw documenten opnemen in de antwoorden"
+msgstr "응답에 문서의 콘텐츠 포함"
 
 #: src/ui/settings.py:381
 msgid "Document Analyzer"
-msgstr "Documentanalysator"
+msgstr "문서 분석기"
 
 #: src/ui/settings.py:381
 msgid ""
 "The document analyzer uses multiple techniques to extract relevant "
 "information about your documents"
-msgstr ""
-"De documentanalysator gebruikt meerdere technieken om relevante informatie "
-"over uw documenten te extraheren"
+msgstr "문서 분석기는 여러 기술을 사용하여 문서에서 관련 정보를 추출합니다."
 
 #: src/ui/settings.py:392
 msgid "Read documents if unsupported"
-msgstr "Documenten lezen indien niet ondersteund"
+msgstr "지원되지 않는 경우 문서 읽기"
 
 #: src/ui/settings.py:392
 msgid ""
@@ -1601,13 +1519,12 @@ msgid ""
 "documents sent in the chat will be given to the LLM using your Document "
 "Analyzer."
 msgstr ""
-"Als de LLM het lezen van documenten niet ondersteunt, wordt relevante "
-"informatie over documenten die in de chat zijn verzonden, aan de LLM gegeven "
-"met behulp van uw documentanalysator."
+"LLM이 문서 읽기를 지원하지 않는 경우, 채팅으로 전송된 문서에 대한 관련 정보는 문서 분석기를 "
+"사용하여 LLM에 제공됩니다."
 
 #: src/ui/settings.py:396
 msgid "Maximum tokens for RAG"
-msgstr "Maximaal aantal tokens voor RAG"
+msgstr "RAG의 최대 토큰 수"
 
 #: src/ui/settings.py:396
 msgid ""
@@ -1615,103 +1532,97 @@ msgid ""
 "exceed this token count,\n"
 "dump all of them in the context"
 msgstr ""
-"Het maximale aantal tokens dat voor RAG moet worden gebruikt. Als de "
-"documenten dit tokentelling niet overschrijden,\n"
-"dump ze allemaal in de context"
+"RAG에 사용될 최대 토큰 수입니다. 문서가 이 토큰 수를 초과하지 않으면, 모든 문서를 "
+"컨텍스트에 덤프합니다."
 
 #: src/ui/settings.py:413
 msgid "Document Folder"
-msgstr "Documentmap"
+msgstr "문서 폴더"
 
 #: src/ui/settings.py:413
 msgid ""
 "Put the documents you want to query in your document folder. The document "
 "analyzer will find relevant information in them if this option is enabled"
 msgstr ""
-"Plaats de documenten die u wilt opvragen in uw documentmap. De "
-"documentanalysator vindt er relevante informatie in als deze optie is "
-"ingeschakeld"
+"쿼리하려는 문서를 문서 폴더에 넣으십시오. 이 옵션이 활성화되면 문서 분석기가 해당 문서에서 "
+"관련 정보를 찾습니다."
 
 #: src/ui/settings.py:416
 msgid "Put all the documents you want to index in this folder"
-msgstr "Plaats alle documenten die u wilt indexeren in deze map"
+msgstr "인덱싱하려는 모든 문서를 이 폴더에 넣으십시오."
 
 #: src/ui/settings.py:452
 msgid "Silence threshold"
-msgstr "Stiltegrens"
+msgstr "무음 임계값"
 
 #: src/ui/settings.py:452
 msgid ""
 "Silence threshold in seconds, percentage of the volume to be considered "
 "silence"
-msgstr ""
-"Stiltegrens in seconden, percentage van het volume dat als stilte moet worden "
-"beschouwd"
+msgstr "무음 임계값(초), 볼륨의 백분율로 무음으로 간주됨"
 
 #: src/ui/settings.py:465
 msgid "Silence time"
-msgstr "Stiltetijd"
+msgstr "무음 시간"
 
 #: src/ui/settings.py:465
 msgid "Silence time in seconds before recording stops automatically"
-msgstr "Stiltetijd in seconden voordat de opname automatisch stopt"
+msgstr "녹음이 자동으로 중지되기 전의 무음 시간(초)"
 
 #: src/ui/settings.py:1044
 msgid "Not enough permissions"
-msgstr "Niet genoeg rechten"
+msgstr "권한 부족"
 
 #: src/ui/settings.py:1048
 msgid ""
 "Newelle does not have enough permissions to run commands on your system, "
 "please run the following command"
-msgstr ""
-"Newelle heeft onvoldoende machtigingen om commando's op uw systeem uit te "
-"voeren, voer het volgende commando uit"
+msgstr "Newelle에는 시스템에서 명령을 실행할 충분한 권한이 없습니다. 다음 명령을 실행하십시오."
 
 #: src/ui/settings.py:1049 src/ui/settings.py:1062
 msgid "Understood"
-msgstr "Begrepen"
+msgstr "이해했습니다."
 
 #: src/ui/settings.py:1061
 msgid "Pip path deleted"
-msgstr "Pip-pad verwijderd"
+msgstr "Pip 경로가 삭제되었습니다."
 
 #: src/ui/settings.py:1061
 msgid ""
 "The pip path has been deleted, you can now reinstall the dependencies. This "
 "operation requires a restart of the application."
 msgstr ""
-"Het pip-pad is verwijderd, u kunt nu de afhankelijkheden opnieuw installeren. "
-"Deze bewerking vereist een herstart van de applicatie."
+"pip 경로가 삭제되었습니다. 이제 종속성을 다시 설치할 수 있습니다. 이 작업은 애플리케이션을 "
+"다시 시작해야 합니다."
 
 #: src/ui/stdout_monitor.py:48
 msgid "Clear output"
-msgstr "Uitvoer wissen"
+msgstr "출력 지우기"
 
 #: src/ui/stdout_monitor.py:61
 msgid "Start/Stop monitoring"
-msgstr "Monitoring starten/stoppen"
+msgstr "모니터링 시작/중지"
 
 #: src/ui/stdout_monitor.py:109 src/ui/stdout_monitor.py:182
 #: src/ui/stdout_monitor.py:191 src/window.py:3683
 msgid "Monitoring: Active"
-msgstr "Monitoring: Actief"
+msgstr "모니터링: 활성"
 
 #: src/ui/stdout_monitor.py:109 src/ui/stdout_monitor.py:208
 msgid "Monitoring: Stopped"
-msgstr "Monitoring: Gestopt"
+msgstr "모니터링: 중지됨"
 
 #: src/ui/stdout_monitor.py:116 src/ui/stdout_monitor.py:252
 msgid "Lines: {}"
-msgstr "Regels: {}"
+msgstr "줄: {}"
 
 #: src/ui/stdout_monitor.py:267
 msgid "Lines: 0"
-msgstr "Regels: 0"
+msgstr "줄: 0"
 
 #: src/constants.py:20
 msgid "Newelle Demo API"
-msgstr "Newelle Demo API"
+msgstr "Newelle 데모 API"
 
 #: src/constants.py:26
 msgid "GPT4Free"
@@ -1719,23 +1630,22 @@ msgstr "GPT4Free"
 
 #: src/constants.py:34
 msgid "Local Model"
-msgstr "Lokaal model"
+msgstr "로컬 모델"
 
 #: src/constants.py:35
 msgid ""
 "NO GPU SUPPORT, USE OLLAMA INSTEAD. Run a LLM model locally, more privacy "
 "but slower"
-msgstr ""
-"GEEN GPU ONDERSTEUNING, GEBRUIK OLLAMA IN PLAATS. Voer een LLM-model "
-"lokaal uit, meer privacy maar langzamer"
+msgstr "GPU 지원 없음, 대신 OLLAMA 사용. LLM 모델을 로컬에서 실행합니다. 더 많은 "
+"개인 정보 보호 기능을 제공하지만 속도가 느립니다."
 
 #: src/constants.py:40
 msgid "Ollama Instance"
-msgstr "Ollama-instantie"
+msgstr "Ollama 인스턴스"
 
 #: src/constants.py:41
 msgid "Easily run multiple LLM models on your own hardware"
-msgstr "Eenvoudig meerdere LLM-modellen op uw eigen hardware uitvoeren"
+msgstr "자신의 하드웨어에서 여러 LLM 모델을 쉽게 실행할 수 있습니다."
 
 #: src/constants.py:47
 msgid "Groq"
@@ -1751,7 +1661,7 @@ msgstr "OpenAI API"
 
 #: src/constants.py:61
 msgid "OpenAI API. Custom endpoints supported. Use this for custom providers"
-msgstr "OpenAI API. Aangepaste eindpunten ondersteund. Gebruik dit voor aangepaste providers"
+msgstr "OpenAI API. 사용자 지정 엔드포인트가 지원됩니다. 사용자 지정 공급자에 사용하십시오."
 
 #: src/constants.py:66
 msgid "Anthropic Claude"
@@ -1761,17 +1671,15 @@ msgstr "Anthropic Claude"
 msgid ""
 "Official APIs for Anthropic Claude's models, with image and file support, "
 "requires an API key"
-msgstr ""
-"Officiële API's voor Anthropic Claude's modellen, met afbeeldingen- en "
-"bestandondersteuning, vereist een API-sleutel"
+msgstr "Anthropic Claude 모델의 공식 API는 이미지 및 파일 지원을 제공하며 API 키가 필요합니다."
 
 #: src/constants.py:73
 msgid "Mistral"
-msgstr "Mistral"
+msgstr "미스트랄"
 
 #: src/constants.py:74
 msgid "Mistral API"
-msgstr "Mistral API"
+msgstr "미스트랄 API"
 
 #: src/constants.py:80
 msgid "OpenRouter"
@@ -1779,24 +1687,23 @@ msgstr "OpenRouter"
 
 #: src/constants.py:81
 msgid "Openrouter.ai API, supports lots of models"
-msgstr "Openrouter.ai API, ondersteunt veel modellen"
+msgstr "Openrouter.ai API는 많은 모델을 지원합니다."
 
 #: src/constants.py:87
 msgid "Deepseek"
-msgstr "Deepseek"
+msgstr "딥시크"
 
 #: src/constants.py:88
 msgid "Deepseek API, strongest open source models"
-msgstr "Deepseek API, sterkste open source modellen"
+msgstr "Deepseek API, 가장 강력한 오픈 소스 모델"
 
 #: src/constants.py:94 src/constants.py:203
-#, fuzzy
 msgid "Custom Command"
-msgstr "Aangepast commando"
+msgstr "사용자 지정 명령"
 
 #: src/constants.py:95
 msgid "Use the output of a custom command"
-msgstr "Gebruik de uitvoer van een aangepast commando"
+msgstr "사용자 지정 명령의 출력 사용"
 
 #: src/constants.py:104
 msgid "Whisper C++"
@@ -1804,27 +1711,27 @@ msgstr "Whisper C++"
 
 #: src/constants.py:105
 msgid "Works offline. Optimized Whisper impelementation written in C++"
-msgstr "Werkt offline. Geoptimaliseerde Whisper-implementatie geschreven in C++"
+msgstr "오프라인에서 작동합니다. C++로 작성된 최적화된 Whisper 구현"
 
 #: src/constants.py:111
 msgid "CMU Sphinx"
-msgstr "CMU Sphinx"
+msgstr "CMU 스핑크스"
 
 #: src/constants.py:112
 msgid "Works offline. Only English supported"
-msgstr "Werkt offline. Alleen Engels wordt ondersteund"
+msgstr "오프라인에서 작동합니다. 영어만 지원됩니다."
 
 #: src/constants.py:118
 msgid "Google Speech Recognition"
-msgstr "Google spraakherkenning"
+msgstr "Google 음성 인식"
 
 #: src/constants.py:119 src/constants.py:125
 msgid "Google Speech Recognition online"
-msgstr "Google spraakherkenning online"
+msgstr "Google 음성 인식 온라인"
 
 #: src/constants.py:124
 msgid "Groq Speech Recognition"
-msgstr "Groq spraakherkenning"
+msgstr "Groq 음성 인식"
 
 #: src/constants.py:130
 msgid "Wit AI"
@@ -1832,8 +1739,7 @@ msgstr "Wit AI"
 
 #: src/constants.py:131
 msgid "wit.ai speech recognition free API (language chosen on the website)"
-msgstr ""
-"wit.ai spraakherkenning gratis API (taal gekozen op de website)"
+msgstr "wit.ai 음성 인식 무료 API (웹사이트에서 언어 선택)"
 
 #: src/constants.py:137
 msgid "Vosk API"
@@ -1841,7 +1747,7 @@ msgstr "Vosk API"
 
 #: src/constants.py:138
 msgid "Works Offline"
-msgstr "Werkt offline"
+msgstr "오프라인 작동"
 
 #: src/constants.py:144
 msgid "Whisper API"
@@ -1849,17 +1755,15 @@ msgstr "Whisper API"
 
 #: src/constants.py:145
 msgid "Uses OpenAI Whisper API"
-msgstr "Gebruikt OpenAI Whisper API"
+msgstr "OpenAI Whisper API 사용"
 
 #: src/constants.py:151
-#, fuzzy
 msgid "Custom command"
-msgstr "Aangepast commando"
+msgstr "사용자 지정 명령"
 
 #: src/constants.py:152
-#, fuzzy
 msgid "Runs a custom command"
-msgstr "Voert een aangepast commando uit"
+msgstr "사용자 지정 명령 실행"
 
 #: src/constants.py:161
 msgid "Google TTS"
@@ -1867,18 +1771,16 @@ msgstr "Google TTS"
 
 #: src/constants.py:162
 msgid "Google's text to speech"
-msgstr "Google's tekst naar spraak"
+msgstr "Google의 텍스트 음성 변환"
 
 #: src/constants.py:167
 msgid "Kokoro TTS"
-msgstr "Kokoro TTS"
+msgstr "코코로 TTS"
 
 #: src/constants.py:168
 msgid ""
 "Lightweight and fast open source TTS engine. ~3GB dependencies, 400MB model"
-msgstr ""
-"Lichtgewicht en snelle open source TTS-engine. ~3GB afhankelijkheden, 400MB "
-"model"
+msgstr "가볍고 빠른 오픈 소스 TTS 엔진. ~3GB 종속성, 400MB 모델"
 
 #: src/constants.py:173
 msgid "ElevenLabs TTS"
@@ -1886,14 +1788,13 @@ msgstr "ElevenLabs TTS"
 
 #: src/constants.py:174
 msgid "Natural sounding TTS"
-msgstr "Natuurlijk klinkende TTS"
+msgstr "자연스러운 TTS"
 
 #: src/constants.py:179 src/constants.py:180
 msgid "OpenAI TTS"
 msgstr "OpenAI TTS"
 
 #: src/constants.py:185
-#, fuzzy
 msgid "Groq TTS"
 msgstr "Groq TTS"
 
@@ -1903,7 +1804,7 @@ msgstr "Groq TTS API"
 
 #: src/constants.py:191 src/constants.py:192
 msgid "Custom OpenAI TTS"
-msgstr "Aangepaste OpenAI TTS"
+msgstr "사용자 지정 OpenAI TTS"
 
 #: src/constants.py:197
 msgid "Espeak TTS"
@@ -1911,12 +1812,12 @@ msgstr "Espeak TTS"
 
 #: src/constants.py:198
 msgid "Offline TTS"
-msgstr "Offline TTS"
+msgstr "오프라인 TTS"
 
 #: src/constants.py:204
 #, python-brace-format
 msgid "Use a custom command as TTS, {0} will be replaced with the text"
-msgstr "Gebruik een aangepast commando als TTS, {0} wordt vervangen door de tekst"
+msgstr "사용자 지정 명령을 TTS로 사용합니다. {0}은 텍스트로 대체됩니다."
 
 #: src/constants.py:212
 msgid "WordLlama"
@@ -1926,36 +1827,32 @@ msgstr "WordLlama"
 msgid ""
 "Light local embedding model based on llama. Works offline, very low "
 "resources usage"
-msgstr ""
-"Licht lokaal inbeddingsmodel gebaseerd op Llama. Werkt offline, zeer laag "
-"resourcegebruik"
+msgstr "라마를 기반으로 한 경량 로컬 임베딩 모델입니다. 오프라인에서 작동하며 리소스 사용량이 매우 적습니다."
 
 #: src/constants.py:218
 msgid "Ollama Embedding"
-msgstr "Ollama-inbedding"
+msgstr "Ollama 임베딩"
 
 #: src/constants.py:219
 msgid ""
 "Use Ollama models for Embedding. Works offline, very low resources usage"
-msgstr ""
-"Gebruik Ollama-modellen voor inbedding. Werkt offline, zeer laag "
-"resourcegebruik"
+msgstr "임베딩에 Ollama 모델을 사용합니다. 오프라인에서 작동하며 리소스 사용량이 매우 적습니다."
 
 #: src/constants.py:231
 msgid "Use Google Gemini API to get embeddings"
-msgstr "Gebruik Google Gemini API om inbeddingen te verkrijgen"
+msgstr "Google Gemini API를 사용하여 임베딩 가져오기"
 
 #: src/constants.py:239
 msgid "User Summary"
-msgstr "Gebruikerssamenvatting"
+msgstr "사용자 요약"
 
 #: src/constants.py:240
 msgid "Generate a summary of the user's conversation"
-msgstr "Genereer een samenvatting van het gesprek van de gebruiker"
+msgstr "사용자 대화 요약 생성"
 
 #: src/constants.py:245
 msgid "Memoripy"
-msgstr "Memoripy"
+msgstr "메모리파이"
 
 #: src/constants.py:246
 msgid ""
@@ -1963,29 +1860,28 @@ msgid ""
 "retrivial, memory decay, concept extraction and other advanced techniques. "
 "Does 1 llm call per message."
 msgstr ""
-"Haal berichten op uit eerdere gesprekken met behulp van contextuele "
-"geheugenherstel, geheugenverval, conceptextractie en andere geavanceerde "
-"technieken. Voert 1 LLM-oproep per bericht uit."
+"컨텍스트 메모리 검색, 메모리 감쇠, 개념 추출 및 기타 고급 기술을 사용하여 이전 대화에서 메시지를 "
+"추출합니다. 메시지당 1회 LLM 호출을 수행합니다."
 
 #: src/constants.py:251
 msgid "User Summary + Memoripy"
-msgstr "Gebruikerssamenvatting + Memoripy"
+msgstr "사용자 요약 + 메모리파이"
 
 #: src/constants.py:252
 msgid "Use both technologies for long term memory"
-msgstr "Gebruik beide technologieën voor langetermijngeheugen"
+msgstr "장기 기억을 위해 두 기술 모두 사용"
 
 #: src/constants.py:260
 msgid "Document reader"
-msgstr "Documentlezer"
+msgstr "문서 판독기"
 
 #: src/constants.py:261
 msgid ""
 "Classic RAG approach - chunk documents and embed them, then compare them to "
 "the query and return the most relevant documents"
 msgstr ""
-"Klassieke RAG-aanpak - chunk documenten en embed ze, vergelijk ze vervolgens "
-"met de zoekopdracht en retourneer de meest relevante documenten"
+"클래식 RAG 접근 방식 - 문서를 청크하고 임베딩한 다음 쿼리와 비교하여 가장 관련성 높은 문서를 "
+"반환합니다."
 
 #: src/constants.py:269
 msgid "SearXNG"
@@ -1993,7 +1889,7 @@ msgstr "SearXNG"
 
 #: src/constants.py:270
 msgid "SearXNG - Private and selfhostable search engine"
-msgstr "SearXNG - Privé en zelf te hosten zoekmachine"
+msgstr "SearXNG - 비공개 및 자체 호스팅 가능한 검색 엔진"
 
 #: src/constants.py:275
 msgid "DuckDuckGo"
@@ -2001,7 +1897,7 @@ msgstr "DuckDuckGo"
 
 #: src/constants.py:276
 msgid "DuckDuckGo search"
-msgstr "DuckDuckGo zoeken"
+msgstr "DuckDuckGo 검색"
 
 #: src/constants.py:281
 msgid "Tavily"
@@ -2009,75 +1905,71 @@ msgstr "Tavily"
 
 #: src/constants.py:282
 msgid "Tavily search"
-msgstr "Tavily zoeken"
+msgstr "Tavily 검색"
 
 #: src/constants.py:375
 msgid "Helpful assistant"
-msgstr "Behulpzame assistent"
+msgstr "유용한 비서"
 
 #: src/constants.py:376
 msgid "General purpose prompt to enhance the LLM answers and give more context"
-msgstr ""
-"Algemeen doelprompt om de LLM-antwoorden te verbeteren en meer context te "
-"geven"
+msgstr "LLM 답변을 개선하고 더 많은 컨텍스트를 제공하는 일반적인 프롬프트"
 
 #: src/constants.py:384
 msgid "Console access"
-msgstr "Consoletoegang"
+msgstr "콘솔 액세스"
 
 #: src/constants.py:385
 msgid "Can the program run terminal commands on the computer"
-msgstr "Kan het programma terminalcommando's uitvoeren op de computer"
+msgstr "프로그램이 컴퓨터에서 터미널 명령을 실행할 수 있습니까?"
 
 #: src/constants.py:392
 msgid "Current directory"
-msgstr "Huidige map"
+msgstr "현재 디렉토리"
 
 #: src/constants.py:393
 msgid "What is the current directory"
-msgstr "Wat is de huidige map"
+msgstr "현재 디렉토리는 무엇입니까?"
 
 #: src/constants.py:402
 msgid "Allow the LLM to search on the internet"
-msgstr "Sta de LLM toe om op internet te zoeken"
+msgstr "LLM이 인터넷을 검색하도록 허용"
 
 #: src/constants.py:410
 msgid "Basic functionality"
-msgstr "Basisfunctionaliteit"
+msgstr "기본 기능"
 
 #: src/constants.py:411
 msgid "Showing tables and code (*can work without it)"
-msgstr "Tabellen en code tonen (*kan ook zonder)"
+msgstr "테이블 및 코드 표시 (*없어도 작동할 수 있음)"
 
 #: src/constants.py:419
 msgid "Graphs access"
-msgstr "Grafiektoegang"
+msgstr "그래프 액세스"
 
 #: src/constants.py:420
 msgid "Can the program display graphs"
-msgstr "Kan het programma grafieken weergeven"
+msgstr "프로그램이 그래프를 표시할 수 있습니까?"
 
 #: src/constants.py:428
 msgid "Show image"
-msgstr "Afbeelding tonen"
+msgstr "이미지 표시"
 
 #: src/constants.py:429
 msgid "Show image in chat"
-msgstr "Afbeelding tonen in chat"
+msgstr "채팅에 이미지 표시"
 
 #: src/constants.py:437
-#, fuzzy
 msgid "Custom Prompt"
-msgstr "Aangepaste prompt"
+msgstr "사용자 지정 프롬프트"
 
 #: src/constants.py:438
 msgid "Add your own custom prompt"
-msgstr "Voeg uw eigen aangepaste prompt toe"
+msgstr "자신의 사용자 지정 프롬프트 추가"
 
 #: src/constants.py:480
-#, fuzzy
 msgid "LLM and Secondary LLM settings"
-msgstr "LLM- en secundaire LLM-instellingen"
+msgstr "LLM 및 보조 LLM 설정"
 
 #: src/constants.py:483 src/window.py:646
 msgid "TTS"
@@ -2085,7 +1977,7 @@ msgstr "TTS"
 
 #: src/constants.py:485
 msgid "Text to Speech settings"
-msgstr "Tekst naar spraak instellingen"
+msgstr "텍스트 음성 변환 설정"
 
 #: src/constants.py:488
 msgid "STT"
@@ -2093,34 +1985,31 @@ msgstr "STT"
 
 #: src/constants.py:490
 msgid "Speech to Text settings"
-msgstr "Spraak naar tekst instellingen"
+msgstr "음성 텍스트 변환 설정"
 
 #: src/constants.py:493
 msgid "Embedding"
-msgstr "Inbedding"
+msgstr "임베딩"
 
 #: src/constants.py:495
-#, fuzzy
 msgid "Embedding settings"
-msgstr "Inbeddingsinstellingen"
+msgstr "임베딩 설정"
 
 #: src/constants.py:498
 msgid "Memory"
-msgstr "Geheugen"
+msgstr "메모리"
 
 #: src/constants.py:500
-#, fuzzy
 msgid "Memory settings"
-msgstr "Geheugeninstellingen"
+msgstr "메모리 설정"
 
 #: src/constants.py:503
 msgid "Websearch"
-msgstr "Webzoekopdracht"
+msgstr "웹 검색"
 
 #: src/constants.py:505
-#, fuzzy
 msgid "Websearch settings"
-msgstr "Webzoekinstellingen"
+msgstr "웹 검색 설정"
 
 #: src/constants.py:508
 msgid "RAG"
@@ -2128,375 +2017,353 @@ msgstr "RAG"
 
 #: src/constants.py:510
 msgid "Document analyzer settings"
-msgstr "Instellingen documentanalysator"
+msgstr "문서 분석기 설정"
 
 #: src/constants.py:515
-#, fuzzy
 msgid "Extensions settings"
-msgstr "Extensie-instellingen"
+msgstr "확장 설정"
 
 #: src/constants.py:518
-#, fuzzy
 msgid "Inteface"
-msgstr "Interface"
+msgstr "인터페이스"
 
 #: src/constants.py:520
 msgid "Interface settings, hidden files, reverse order, zoom..."
-msgstr "Interface-instellingen, verborgen bestanden, omgekeerde volgorde, zoom..."
+msgstr "인터페이스 설정, 숨김 파일, 역순, 확대/축소..."
 
 #: src/constants.py:525
 msgid ""
 "General settings, virtualization, offers, memory length, automatically "
 "generate chat name, current folder..."
 msgstr ""
-"Algemene instellingen, virtualisatie, aanbiedingen, geheugenlengte, "
-"automatisch chatnaam genereren, huidige map..."
+"일반 설정, 가상화, 제안, 메모리 길이, 채팅 이름 자동 생성, 현재 폴더..."
 
 #: src/constants.py:530
 msgid "Prompts settings, custom extra prompt, custom prompts..."
-msgstr "Promptinstellingen, aangepaste extra prompt, aangepaste prompts..."
+msgstr "프롬프트 설정, 사용자 지정 추가 프롬프트, 사용자 지정 프롬프트..."
 
 #: src/controller.py:135 src/window.py:1846
 msgid "Chat "
-msgstr "Chat"
+msgstr "채팅 "
 
 #: src/main.py:205
 msgid "Terminal threads are still running in the background"
-msgstr "Terminal-threads draaien nog steeds op de achtergrond"
+msgstr "터미널 스레드가 아직 백그라운드에서 실행 중입니다."
 
 #: src/main.py:206
 msgid "When you close the window, they will be automatically terminated"
-msgstr "Wanneer u het venster sluit, worden ze automatisch beëindigd"
+msgstr "창을 닫으면 자동으로 종료됩니다."
 
 #: src/main.py:210
 msgid "Close"
-msgstr "Sluiten"
+msgstr "닫기"
 
 #: src/main.py:244
 msgid "Chat is rebooted"
-msgstr "Chat is opnieuw opgestart"
+msgstr "채팅이 다시 시작되었습니다."
 
 #: src/main.py:249
 msgid "Folder is rebooted"
-msgstr "Map is opnieuw opgestart"
+msgstr "폴더가 다시 시작되었습니다."
 
 #: src/main.py:254
 msgid "Chat is created"
-msgstr "Chat is aangemaakt"
+msgstr "채팅이 생성되었습니다."
 
 #: src/window.py:120
 msgid "Keyboard shorcuts"
-msgstr "Sneltoetsen"
+msgstr "키보드 단축키"
 
 #: src/window.py:121
 msgid "About"
-msgstr "Over"
+msgstr "정보"
 
 #: src/window.py:128 src/window.py:197
 msgid "Chat"
-msgstr "Chat"
+msgstr "채팅"
 
 #: src/window.py:170
 msgid "History"
-msgstr "Geschiedenis"
+msgstr "기록"
 
 #: src/window.py:191
 msgid "Create a chat"
-msgstr "Een chat aanmaken"
+msgstr "채팅 만들기"
 
 #: src/window.py:196
-#, fuzzy
 msgid "Chats"
-msgstr "Chats"
+msgstr "채팅"
 
 #: src/window.py:267
 msgid " Stop"
-msgstr " Stoppen"
+msgstr " 중지"
 
 #: src/window.py:282
 msgid " Clear"
-msgstr " Wissen"
+msgstr " 지우기"
 
 #: src/window.py:297
 msgid " Continue"
-msgstr " Doorgaan"
+msgstr " 계속"
 
 #: src/window.py:310
 msgid " Regenerate"
-msgstr " Hergenereren"
+msgstr " 다시 생성"
 
 #: src/window.py:376
 msgid "Send a message..."
-msgstr "Stuur een bericht..."
+msgstr "메시지 보내기..."
 
 #: src/window.py:467
 msgid "Explorer Tab"
-msgstr "Verkenner-tabblad"
+msgstr "탐색기 탭"
 
 #: src/window.py:468
 msgid "Terminal Tab"
-msgstr "Terminal-tabblad"
+msgstr "터미널 탭"
 
 #: src/window.py:469
 msgid "Browser Tab"
-msgstr "Browser-tabblad"
+msgstr "브라우저 탭"
 
 #: src/window.py:587
 msgid "Ask about a website"
-msgstr "Vraag over een website"
+msgstr "웹사이트에 대해 문의"
 
 #: src/window.py:587
 msgid "Write #https://website.com in chat to ask information about a website"
-msgstr ""
-"Schrijf #https://website.com in de chat om informatie over een website te "
-"vragen"
+msgstr "채팅에서 #https://website.com을(를) 작성하여 웹사이트에 대한 정보를 요청하십시오."
 
 #: src/window.py:588
 msgid "Check out our Extensions!"
-msgstr "Bekijk onze extensies!"
+msgstr "저희 확장 프로그램을 확인해 보세요!"
 
 #: src/window.py:588
 msgid "We have a lot of extensions for different things. Check it out!"
-msgstr "We hebben veel extensies voor verschillende dingen. Bekijk het!"
+msgstr "다양한 확장 기능이 많이 있습니다. 확인해 보세요!"
 
 #: src/window.py:589
 msgid "Chat with documents!"
-msgstr "Chatten met documenten!"
+msgstr "문서와 채팅!"
 
 #: src/window.py:589
 msgid ""
 "Add your documents to your documents folder and chat using the information "
 "contained in them!"
-msgstr ""
-"Voeg uw documenten toe aan uw documentenmap en chat met behulp van de "
-"informatie die daarin is opgenomen!"
+msgstr "문서를 문서 폴더에 추가하고 문서에 포함된 정보를 사용하여 채팅하세요!"
 
 #: src/window.py:590
 msgid "Surf the web!"
-msgstr "Surf op het web!"
+msgstr "웹 서핑!"
 
 #: src/window.py:590
 msgid ""
 "Enable web search to allow the LLM to surf the web and provide up to date "
 "answers"
-msgstr ""
-"Schakel webzoekopdracht in om de LLM toe te staan op het web te surfen en "
-"actuele antwoorden te geven"
+msgstr "웹 검색을 활성화하여 LLM이 웹을 탐색하고 최신 답변을 제공하도록 허용하십시오."
 
 #: src/window.py:591
 msgid "Mini Window"
-msgstr "Mini-venster"
+msgstr "미니 창"
 
 #: src/window.py:591
 msgid "Ask questions on the fly using the mini window mode"
-msgstr "Stel vragen direct met de mini-venstermodus"
+msgstr "미니 창 모드를 사용하여 즉석에서 질문하기"
 
 #: src/window.py:592
 msgid "Text to Speech"
-msgstr "Tekst naar spraak"
+msgstr "텍스트 음성 변환"
 
 #: src/window.py:592
 msgid "Newelle supports text-to-speech! Enable it in the settings"
-msgstr "Newelle ondersteunt tekst-naar-spraak! Schakel het in via de instellingen"
+msgstr "Newelle은 텍스트 음성 변환을 지원합니다! 설정에서 활성화하세요."
 
 #: src/window.py:593
-#, fuzzy
 msgid "Keyboard Shortcuts"
-msgstr "Sneltoetsen"
+msgstr "키보드 단축키"
 
 #: src/window.py:593
-#, fuzzy
 msgid "Control Newelle using Keyboard Shortcuts"
-msgstr "Bedien Newelle met sneltoetsen"
+msgstr "키보드 단축키를 사용하여 Newelle 제어"
 
 #: src/window.py:594
-#, fuzzy
 msgid "Prompt Control"
-msgstr "Promptbeheer"
+msgstr "프롬프트 제어"
 
 #: src/window.py:594
 msgid "Newelle gives you 100% prompt control. Tune your prompts for your use."
-msgstr ""
-"Newelle geeft u 100% promptbeheer. Stem uw prompts af op uw gebruik."
+msgstr "Newelle은 100% 프롬프트 제어를 제공합니다. 사용에 맞게 프롬프트를 조정하십시오."
 
 #: src/window.py:595
-#, fuzzy
 msgid "Thread Editing"
-msgstr "Thread bewerken"
+msgstr "스레드 편집"
 
 #: src/window.py:595
 msgid "Check the programs and processes you run from Newelle"
-msgstr "Controleer de programma's en processen die u vanuit Newelle uitvoert"
+msgstr "Newelle에서 실행하는 프로그램 및 프로세스 확인"
 
 #: src/window.py:596
 msgid "Programmable Prompts"
-msgstr "Programmeerbare prompts"
+msgstr "프로그래밍 가능한 프롬프트"
 
 #: src/window.py:596
 msgid ""
 "You can add dynamic prompts to Newelle, with conditions and probabilities"
-msgstr "U kunt dynamische prompts aan Newelle toevoegen, met voorwaarden en waarschijnlijkheden"
+msgstr "조건 및 확률을 사용하여 동적 프롬프트를 Newelle에 추가할 수 있습니다."
 
 #: src/window.py:603
-#, fuzzy
 msgid "New Chat"
-msgstr "Nieuwe chat"
+msgstr "새 채팅"
 
 #: src/window.py:621
 msgid "Provider Errror"
-msgstr "Providerfout"
+msgstr "공급자 오류"
 
 #: src/window.py:644
 msgid "Local Documents"
-msgstr "Lokale documenten"
+msgstr "로컬 문서"
 
 #: src/window.py:648
 msgid "Web search"
-msgstr "Webzoekopdracht"
+msgstr "웹 검색"
 
 #: src/window.py:890
 msgid "This provider does not have a model list"
-msgstr "Deze provider heeft geen modellenlijst"
+msgstr "이 공급자에는 모델 목록이 없습니다."
 
 #: src/window.py:895
 msgid " Models"
-msgstr " Modellen"
+msgstr " 모델"
 
 #: src/window.py:898
 msgid "Search Models..."
-msgstr "Modellen zoeken..."
+msgstr "모델 검색..."
 
 #: src/window.py:1126
 msgid "Create new profile"
-msgstr "Nieuw profiel aanmaken"
+msgstr "새 프로필 만들기"
 
 #: src/window.py:1260
 msgid "Could not recognize your voice"
-msgstr "Kon uw stem niet herkennen"
+msgstr "음성을 인식할 수 없습니다."
 
 #: src/window.py:1297
 msgid "Images"
-msgstr "Afbeeldingen"
+msgstr "이미지"
 
 #: src/window.py:1301
 msgid "LLM Supported Files"
-msgstr "LLM ondersteunde bestanden"
+msgstr "LLM 지원 파일"
 
 #: src/window.py:1309
 msgid "RAG Supported files"
-msgstr "RAG ondersteunde bestanden"
+msgstr "RAG 지원 파일"
 
 #: src/window.py:1327
 msgid "Supported Files"
-msgstr "Ondersteunde bestanden"
+msgstr "지원되는 파일"
 
 #: src/window.py:1331
 msgid "All Files"
-msgstr "Alle bestanden"
+msgstr "모든 파일"
 
 #: src/window.py:1337
 msgid "Attach file"
-msgstr "Bestand bijvoegen"
+msgstr "파일 첨부"
 
 #: src/window.py:1592
 msgid "The file cannot be sent until the program is finished"
-msgstr "Het bestand kan pas worden verzonden als het programma is voltooid"
+msgstr "프로그램이 완료될 때까지 파일을 보낼 수 없습니다."
 
 #: src/window.py:1614
 msgid "The file is not recognized"
-msgstr "Het bestand wordt niet herkend"
+msgstr "파일을 인식할 수 없습니다."
 
 #: src/window.py:1633
 msgid "You can no longer continue the message."
-msgstr "U kunt het bericht niet meer voortzetten."
+msgstr "더 이상 메시지를 계속할 수 없습니다."
 
 #: src/window.py:1658
 msgid "You can no longer regenerate the message."
-msgstr "U kunt het bericht niet meer opnieuw genereren."
+msgstr "더 이상 메시지를 다시 생성할 수 없습니다."
 
 #: src/window.py:1890
 msgid "Chat is cleared"
-msgstr "Chat is gewist"
+msgstr "채팅이 지워졌습니다."
 
 #: src/window.py:1915
 msgid "The message was canceled and deleted from history"
-msgstr "Het bericht is geannuleerd en uit de geschiedenis verwijderd"
+msgstr "메시지가 취소되고 기록에서 삭제되었습니다."
 
 #: src/window.py:1959
 msgid "The message cannot be sent until the program is finished"
-msgstr "Het bericht kan pas worden verzonden als het programma is voltooid"
+msgstr "프로그램이 완료될 때까지 메시지를 보낼 수 없습니다."
 
 #: src/window.py:2936
 msgid "You can't edit a message while the program is running."
-msgstr "U kunt een bericht niet bewerken terwijl het programma actief is."
+msgstr "프로그램이 실행 중일 때는 메시지를 편집할 수 없습니다."
 
 #: src/window.py:3061
-#, fuzzy
 msgid "Prompt content"
-msgstr "Promptinhoud"
+msgstr "프롬프트 내용"
 
 #: src/window.py:3320
-#, fuzzy
 msgid ""
 "The neural network has access to your computer and any data in this chat and "
 "can run commands, be careful, we are not responsible for the neural network. "
 "Do not share any sensitive information."
 msgstr ""
-"Het neurale netwerk heeft toegang tot uw computer en alle gegevens in deze "
-"chat en kan commando's uitvoeren. Wees voorzichtig, wij zijn niet "
-"verantwoordelijk voor het neurale netwerk. Deel geen gevoelige informatie."
+"신경망은 컴퓨터와 이 채팅의 모든 데이터에 접근할 수 있으며 명령을 실행할 수 있습니다. "
+"주의하십시오. 저희는 신경망에 대해 책임지지 않습니다. 민감한 정보를 공유하지 마십시오."
 
 #: src/window.py:3349
-#, fuzzy
 msgid ""
 "The neural network has access to any data in this chat, be careful, we are "
 "not responsible for the neural network. Do not share any sensitive "
 "information."
 msgstr ""
-"Het neurale netwerk heeft toegang tot alle gegevens in deze chat. Wees "
-"voorzichtig, wij zijn niet verantwoordelijk voor het neurale netwerk. Deel "
-"geen gevoelige informatie."
+"신경망은 이 채팅의 모든 데이터에 접근할 수 있습니다. 주의하십시오. 저희는 신경망에 대해 "
+"책임지지 않습니다. 민감한 정보를 공유하지 마십시오."
 
 #: src/window.py:3398
 msgid "Wrong folder path"
-msgstr "Verkeerd map-pad"
+msgstr "잘못된 폴더 경로"
 
 #: src/window.py:3431
 msgid "Thread has not been completed, thread number: "
-msgstr "Thread is niet voltooid, threadnummer: "
+msgstr "스레드가 완료되지 않았습니다. 스레드 번호: "
 
 #: src/window.py:3443
 msgid "Failed to open the folder"
-msgstr "Map kon niet worden geopend"
+msgstr "폴더를 열지 못했습니다."
 
 #: src/window.py:3622
 msgid "Chat is empty"
-msgstr "Chat is leeg"
+msgstr "채팅이 비어 있습니다."
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:9
 msgid ""
 "Train Newelle to do more with custom extensions and new AI modules, giving "
 "your chatbot endless possibilities."
 msgstr ""
-"Train Newelle om meer te doen met aangepaste extensies en nieuwe AI-modules, "
-"waardoor uw chatbot eindeloze mogelijkheden krijgt."
+"Newelle을 사용자 지정 확장 기능과 새로운 AI 모듈로 훈련하여 챗봇에 무한한 가능성을 "
+"부여하십시오."
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:11
 msgid "AI chatbot"
-msgstr "AI-chatbot"
+msgstr "AI 챗봇"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:15
 msgid "Quick profile selection"
-msgstr "Snelle profielselectie"
+msgstr "빠른 프로필 선택"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:19
-#, fuzzy
 msgid "Message Editing"
-msgstr "Bericht bewerken"
+msgstr "메시지 편집"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:23
 msgid "More than 10 standard AI providers"
-msgstr "Meer dan 10 standaard AI-providers"
+msgstr "10개 이상의 표준 AI 공급자"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:38
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:61
@@ -2506,94 +2373,94 @@ msgstr "Meer dan 10 standaard AI-providers"
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:138
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:143
 msgid "Bug fixes"
-msgstr "Bugfixes"
+msgstr "버그 수정"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:39
 msgid "Small improvements"
-msgstr "Kleine verbeteringen"
+msgstr "작은 개선 사항"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:46
 msgid "Improve local documents reading and loading performances"
-msgstr "Verbeterde lees- en laadprestaties van lokale documenten"
+msgstr "로컬 문서 읽기 및 로드 성능 향상"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:47
 msgid "Add option to send with CTRL+Enter"
-msgstr "Optie toevoegen om met CTRL+Enter te verzenden"
+msgstr "CTRL+Enter로 전송하는 옵션 추가"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:48
 msgid "Improve codeblocks"
-msgstr "Codeblokken verbeteren"
+msgstr "코드 블록 개선"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:49
 msgid "Fix Kokoro TTS"
-msgstr "Kokoro TTS repareren"
+msgstr "코코로 TTS 수정"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:50
 msgid "Remove emoji from TTS"
-msgstr "Emoji's verwijderen uit TTS"
+msgstr "TTS에서 이모지 제거"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:51
 msgid "Set API keys as password fields"
-msgstr "API-sleutels instellen als wachtwoordvelden"
+msgstr "API 키를 비밀번호 필드로 설정"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:52
 msgid "Add thinking support for Gemini"
-msgstr "Denkondersteuning voor Gemini toevoegen"
+msgstr "Gemini에 사고 지원 추가"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:53
 msgid "Updated translations"
-msgstr "Bijgewerkte vertalingen"
+msgstr "번역 업데이트"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:60
 msgid "Added new features"
-msgstr "Nieuwe functies toegevoegd"
+msgstr "새로운 기능 추가"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:68
 msgid "Website reading and web search with SearXNG, DuckDuckGo, and Tavily"
-msgstr "Website lezen en web zoeken met SearXNG, DuckDuckGo en Tavily"
+msgstr "SearXNG, DuckDuckGo, Tavily를 이용한 웹사이트 읽기 및 웹 검색"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:69
 msgid "Improved LaTeX rendering and document management"
-msgstr "Verbeterde LaTeX-weergave en documentbeheer"
+msgstr "LaTeX 렌더링 및 문서 관리 개선"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:70
 msgid "New Thinking Widget and OpenRouter handler"
-msgstr "Nieuwe Thinking Widget en OpenRouter handler"
+msgstr "새로운 사고 위젯 및 OpenRouter 핸들러"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:71
 msgid "Vision support for Llama4 on Groq"
-msgstr "Visieondersteuning voor Llama4 op Groq"
+msgstr "Groq의 Llama4에 대한 비전 지원"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:72
 msgid "New translations (Traditional Chinese, Bengali, Hindi)"
-msgstr "Nieuwe vertalingen (Traditioneel Chinees, Bengaals, Hindi)"
+msgstr "새로운 번역 (번체 중국어, 벵골어, 힌디어)"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:78
 msgid "Fixed many bugs, added some features!"
-msgstr "Veel bugs verholpen, enkele functies toegevoegd!"
+msgstr "많은 버그 수정, 일부 기능 추가!"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:83
 msgid "Support for new features and bug fixes"
-msgstr "Ondersteuning voor nieuwe functies en bugfixes"
+msgstr "새로운 기능 및 버그 수정 지원"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:88
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:93
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:98
 msgid "Added many new features and bug fixes"
-msgstr "Veel nieuwe functies en bugfixes toegevoegd"
+msgstr "많은 새로운 기능 및 버그 수정 추가"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:103
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:108
 msgid "Added new features and bug fixes"
-msgstr "Nieuwe functies en bugfixes toegevoegd"
+msgstr "새로운 기능 및 버그 수정 추가"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:113
 msgid ""
 "Updated the g4f library with versioning, added user guides, improved "
 "extension browsing, and enhanced model handling."
 msgstr ""
-"De g4f-bibliotheek bijgewerkt met versiebeheer, gebruikershandleidingen "
-"toegevoegd, browsen van extensies verbeterd en modelbeheer verbeterd."
+"버전 관리를 통해 g4f 라이브러리를 업데이트하고, 사용자 가이드를 추가하고, 확장 "
+"탐색을 개선하고, 모델 처리를 향상했습니다."
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:118
 msgid ""
@@ -2601,31 +2468,28 @@ msgid ""
 "extension architecture, added new models, and introduced vision support, "
 "along with more capabilities."
 msgstr ""
-"Bugfixes en nieuwe functies zijn geïmplementeerd. We hebben de extensie "
-"architectuur aangepast, nieuwe modellen toegevoegd en visieondersteuning "
-"geïntroduceerd, samen met meer mogelijkheden."
+"버그 수정 및 새로운 기능이 구현되었습니다. 확장 아키텍처를 수정하고, 새로운 모델을 "
+"추가하고, 비전 지원을 도입했으며, 더 많은 기능을 제공합니다."
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:148
 msgid "Stable version"
-msgstr "Stabiele versie"
+msgstr "안정 버전"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:153
-#, fuzzy
 msgid "Added extension"
-msgstr "Extensie toegevoegd"
+msgstr "확장 추가"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:158
-#, fuzzy
 msgid "Blacklist of commands"
-msgstr "Zwarte lijst van commando's"
+msgstr "명령어 블랙리스트"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:163
 msgid "Localization"
-msgstr "Lokalisatie"
+msgstr "현지화"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:168
 msgid "Redesign"
-msgstr "Redesign"
+msgstr "재설계"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:172
 msgid "Qwersyk"
@@ -2633,33 +2497,8 @@ msgstr "Qwersyk"
 
 #: data/io.github.qwersyk.Newelle.desktop.in:3
 msgid "Newelle: Your advanced chat bot"
-msgstr "Newelle: Uw geavanceerde chatbot"
+msgstr "Newelle: 고급 챗봇"
 
 #: data/io.github.qwersyk.Newelle.desktop.in:10
 msgid "ai;assistant;chat;chatgpt;gpt;llm;ollama;"
-msgstr "ai;assistent;chat;chatgpt;gpt;llm;ollama;"
-
-#, fuzzy
-#~ msgid "_Cancel"
-#~ msgstr "Annuleren"
-
-#~ msgid "Choose an extension"
-#~ msgstr "Kies een uitbreiding"
-
-#~ msgid " has been removed"
-#~ msgstr " is verwijderd"
-
-#~ msgid "Extension added. New extensions will run from the next launch"
-#~ msgstr "Extensie toegevoegd. Nieuwe extensies worden vanaf de volgende lancering uitgevoerd"
-
-#~ msgid "The extension is wrong"
-#~ msgstr "De extensie is fout"
-
-#~ msgid "This is not an extension"
-#~ msgstr "Dit is geen extensie"
-
-#~ msgid "Chat has been stopped"
-#~ msgstr "De chat is gestopt"
-
-#~ msgid "The change will take effect after you restart the program."
-#~ msgstr "De wijziging wordt van kracht nadat u het programma opnieuw hebt gestart."
+msgstr "ai;assistant;chat;chatgpt;gpt;llm;ollama;"

@@ -6,10 +6,10 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
+"Project-Id-Version: 1.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-07-02 02:15+0800\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"PO-Revision-Date: 2025-07-03 09:00+0200\n"
 "Last-Translator: aritra saha<EMAIL@ADDRESS>\n"
 "Language-Team: Bengali\n"
 "Language: bn\n"
@@ -181,7 +181,7 @@ msgstr ""
 
 #: src/handlers/llm/gemini_handler.py:94
 msgid "API Key (required)"
-msgstr "API কী (প্রয়োজনীয়)"
+msgstr "API কী (প্রয়োজনীয়)"
 
 #: src/handlers/llm/gemini_handler.py:94
 msgid "API key got from ai.google.dev"
@@ -436,7 +436,7 @@ msgid ""
 "Add any model to this list by putting name:size\n"
 "Or any gguf from hf with hf.co/username/model"
 msgstr ""
-"নাম:আকার বসিয়ে এই তালিকায় যেকোনো মডেল যোগ করুন\n"
+"নাম:আকার বসিয়ে এই তালিকায় যেকোনো মডেল যোগ করুন\n"
 "অথবা hf.co/ব্যবহারকারীর নাম/মডেল সহ hf থেকে যেকোনো gguf"
 
 #: src/handlers/llm/ollama_handler.py:187
@@ -832,11 +832,11 @@ msgstr "প্রোফাইল রপ্তানি করুন"
 
 #: src/ui/profile.py:87
 msgid "Export Passwords"
-msgstr "পাসওয়ার্ড রপ্তানি করুন"
+msgstr "পাসওয়ার্ড রপ্তানি করুন"
 
 #: src/ui/profile.py:87
 msgid "Also export password-like fields"
-msgstr "পাসওয়ার্ড সদৃশ ক্ষেত্রও রপ্তানি করুন"
+msgstr "পাসওয়ার্ড সদৃশ ক্ষেত্রও রপ্তানি করুন"
 
 #: src/ui/profile.py:89
 msgid "Export Propic"
@@ -854,7 +854,7 @@ msgstr "তৈরি করুন"
 
 #: src/ui/profile.py:109
 msgid "Apply"
-msgstr "প্রয়োগ করুন"
+msgstr "প্রয়োগ করুন"
 
 #: src/ui/profile.py:116
 msgid "The settings of the current profile will be copied into the new one"
@@ -863,7 +863,7 @@ msgstr "বর্তমান প্রোফাইলের সেটিংস 
 #: src/ui/profile.py:122 src/ui/profile.py:128
 #, fuzzy
 msgid "Newelle Profiles"
-msgstr "নিউয়েল প্রোফাইলসমূহ"
+msgstr "নিউয়েল প্রোফাইলসমূহ"
 
 #: src/ui/profile.py:123
 msgid "Export"
@@ -2508,7 +2508,7 @@ msgstr "TTS থেকে ইমোজি সরান"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:51
 msgid "Set API keys as password fields"
-msgstr "API কীকে পাসওয়ার্ড ক্ষেত্র হিসেবে সেট করুন"
+msgstr "API কীকে পাসওয়ার্ড ক্ষেত্র হিসেবে সেট করুন"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:52
 msgid "Add thinking support for Gemini"
@@ -2610,7 +2610,7 @@ msgstr "নিউয়েল: আপনার উন্নত চ্যাট �
 
 #: data/io.github.qwersyk.Newelle.desktop.in:10
 msgid "ai;assistant;chat;chatgpt;gpt;llm;ollama;"
-msgstr ""
+msgstr "কৃত্রিম বুদ্ধিমত্তা;সহকারী;চ্যাট;চ্যাটজিপিটি;জিপিটি;এলএলএম;ওল্লামা;"
 
 #~ msgid "Any free Provider"
 #~ msgstr "যেকোনো বিনামূল্যের প্রদানকারী"
