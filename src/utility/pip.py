@@ -48,7 +48,7 @@ def runtime_find_module(full_module_name):
     except Exception as _:
         return None
 
-def install_module(module, path):
+def install_module(module, path, update=True):
     # Manage pip path locking
     global PIP_INSTALLED 
     LOCK_SEMAPHORE.acquire()
@@ -58,17 +58,25 @@ def install_module(module, path):
         LOCKS[path] = lock
     LOCK_SEMAPHORE.release()
     lock.acquire()
+    # Set temp path 
+    origTemp = os.environ.get("TMPDIR")
+    os.environ["TMPDIR"] = os.path.join(os.getcwd(), "tmp")
     try:
         if find_module("pip") is None and not PIP_INSTALLED:
             print("Downloading pip...")
             subprocess.check_output(["bash", "-c", "cd " + os.path.dirname(path) + " && wget https://bootstrap.pypa.io/get-pip.py && python get-pip.py"])
             subprocess.check_output(["bash", "-c", "cd " + os.path.dirname(path) + " && rm get-pip.py || true"])
             PIP_INSTALLED = True
-        r = subprocess.run([sys.executable, "-m", "pip", "install","--target", path, "--upgrade"] + module.split(" ") , capture_output=False) 
+        command = [sys.executable, "-m", "pip", "install","--target", path]
+        if update:
+            command.append("--upgrade")
+        r = subprocess.run(command + module.split(" ") , capture_output=False) 
         print(module + " installed")
     except Exception as e:
         PIP_INSTALLED = False
         print("Error installing " + module + " " + str(e))
         r = None
+    if origTemp:
+        os.environ["TMPDIR"] = origTemp
     lock.release()
     return r
