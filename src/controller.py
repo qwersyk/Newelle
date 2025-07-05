@@ -242,7 +242,7 @@ class NewelleController:
 
     def load_integrations(self):
         """Load integrations"""
-        self.integrationsloader = ExtensionLoader(self.extension_path, pip_path=self.pip_path, settings=self.settings)
+        self.integrationsloader = ExtensionLoader(self.extension_path, pip_path=self.pip_path, settings=self.settings, extension_cache=self.extensions_cache)
         self.integrationsloader.load_integrations(AVAILABLE_INTEGRATIONS)
         self.set_ui_controller(self.ui_controller)
 
