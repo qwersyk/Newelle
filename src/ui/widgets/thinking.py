@@ -14,7 +14,6 @@ class ThinkingWidget(Gtk.Box):
 
     def __init__(self, **kwargs):
         super().__init__(orientation=Gtk.Orientation.VERTICAL, **kwargs)
-        self.add_css_class("code")
         self.add_css_class("card")
         self.set_margin_top(10)
         self.set_margin_end(10)

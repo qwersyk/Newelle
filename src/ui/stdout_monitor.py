@@ -27,7 +27,7 @@ class StdoutMonitorDialog:
             return
             
         # Create the window
-        self.window = Gtk.Window()
+        self.window = Gtk.Window(decorated=False)
         self.window.set_title(_("Program Output Monitor"))
         self.window.set_default_size(800, 600)
         self.window.set_transient_for(self.parent_window)

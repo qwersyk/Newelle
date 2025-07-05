@@ -44,7 +44,7 @@ class WhisperCPPHandler(STTHandler):
                 "default": "tiny",
                 "website": "https://github.com/openai/whisper/blob/main/model-card.md#model-details",
             },
-            ExtraSettings.EntrySetting("language", _("Language"), _("Language of the recognition."), "auto"),
+            ExtraSettings.EntrySetting("language", _("Language"), _("Language of the recognition. For example en, it..."), "auto"),
             ExtraSettings.NestedSetting("model_library", _("Model Library"), _("Manage Whisper models"), self.get_model_library()),
             ExtraSettings.NestedSetting("advanced_settings", _("Advanced Settings"), _("More advanced settings"), [
                 ExtraSettings.ScaleSetting("temperature", _("Temperature"), _("Temperature to use"), 0.0, 0.0, 1.0, 2),
@@ -75,6 +75,7 @@ class WhisperCPPHandler(STTHandler):
     def install_model(self, model_name):
         if self.is_model_installed(model_name):
             os.remove(os.path.join(self.path, "whisper", "whisper.cpp/models/ggml-" + model_name + ".bin"))
+            self.settings_update()
         else:
             path = os.path.join(self.path, "whisper/whisper.cpp/models/download-ggml-model.sh")
             f = subprocess.check_output(get_spawn_command() + ["bash", "-c", f"sh {path} " + model_name])
