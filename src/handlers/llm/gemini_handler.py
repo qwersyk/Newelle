@@ -19,7 +19,7 @@ class GeminiHandler(LLMHandler):
     Official Google Gemini APIs, they support history and system prompts
     """
 
-    default_models = [("Gemini 2.0 Flash","gemini-2.0-flash"), ("Gemini 2.0 Flash Lite", "gemini-2.0-flash-lite")]
+    default_models = [("Gemini 2.0 Flash","gemini-2.0-flash"), ("Gemini 2.5 Flash", "gemini-2.5-flash")]
     
     def __init__(self, settings, path):
         super().__init__(settings, path)
