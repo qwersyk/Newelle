@@ -536,7 +536,7 @@ msgstr "Percorso modello"
 
 #: src/handlers/stt/vosk_handler.py:18
 msgid "Absolute path to the VOSK model (unzipped)"
-msgstr "Percorso assoluto del modello VOSK (decomprimere)"
+msgstr "Percorso assoluto del modello VOSK (decompresso)"
 
 #: src/handlers/stt/whisper_handler.py:16
 #: src/handlers/stt/whispercpp_handler.py:41
@@ -910,7 +910,7 @@ msgstr "Consigli Newelle"
 
 #: src/ui/widgets/thinking.py:27
 msgid "Thoughts"
-msgstr "Pensieri"
+msgstr "Ragionamento"
 
 #: src/ui/widgets/thinking.py:28 src/ui/widgets/thinking.py:135
 msgid "Expand to see details"
@@ -987,7 +987,7 @@ msgstr "Impossibile rinominare: {}"
 
 #: src/ui/explorer.py:497
 msgid "Delete File?"
-msgstr "Eliminare file?"
+msgstr "Eliminare il file?"
 
 #: src/ui/explorer.py:499
 msgid "Are you sure you want to delete \"{}\"?"
@@ -1489,7 +1489,7 @@ msgstr "Apri"
 
 #: src/ui/settings.py:274
 msgid "Delete pip path"
-msgstr "Elimina percorso pip"
+msgstr "Elimina cartella pip"
 
 #: src/ui/settings.py:274
 msgid "Remove the extra dependencies installed"
@@ -1617,7 +1617,7 @@ msgid ""
 msgstr ""
 "La quantità massima di token da utilizzare per RAG. Se i documenti non "
 "superano questo conteggio di token,\n"
-"riversali tutti nel contesto"
+"inseriscili per intero nel contesto"
 
 #: src/ui/settings.py:413
 msgid "Document Folder"
@@ -1673,7 +1673,7 @@ msgstr "Capito"
 
 #: src/ui/settings.py:1061
 msgid "Pip path deleted"
-msgstr "Percorso pip eliminato"
+msgstr "Cartella pip eliminata"
 
 #: src/ui/settings.py:1061
 msgid ""
@@ -1725,7 +1725,7 @@ msgid ""
 "NO GPU SUPPORT, USE OLLAMA INSTEAD. Run a LLM model locally, more privacy "
 "but slower"
 msgstr ""
-"NESSUN SUPPORTO GPU, USA OLLAMA INVECE. Esegui un modello LLM localmente, "
+"NESSUN SUPPORTO GPU, USA OLLAMA. Esegui un modello LLM localmente, "
 "più privacy ma più lento"
 
 #: src/constants.py:40
@@ -2012,7 +2012,7 @@ msgstr "Ricerca Tavily"
 
 #: src/constants.py:375
 msgid "Helpful assistant"
-msgstr "Assistente utile"
+msgstr "Assistente"
 
 #: src/constants.py:376
 msgid "General purpose prompt to enhance the LLM answers and give more context"
@@ -2233,15 +2233,15 @@ msgstr "Invia un messaggio..."
 
 #: src/window.py:467
 msgid "Explorer Tab"
-msgstr "Scheda Esplora"
+msgstr "Gestore File"
 
 #: src/window.py:468
 msgid "Terminal Tab"
-msgstr "Scheda Terminale"
+msgstr "Terminale"
 
 #: src/window.py:469
 msgid "Browser Tab"
-msgstr "Scheda Browser"
+msgstr "Browser"
 
 #: src/window.py:587
 msgid "Ask about a website"
