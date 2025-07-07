@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-02 02:15+0800\n"
+"POT-Creation-Date: 2025-07-06 02:35+0800\n"
 "PO-Revision-Date: 2025-07-03 09:00+0200\n"
 "Last-Translator: Yehor Hliebov <qsk@gmx.at>\n"
 "Language-Team: Korean <qsk@gmx.at>\n"
@@ -13,13 +13,13 @@ msgstr ""
 
 #: src/handlers/embeddings/ollama_handler.py:32
 #: src/handlers/embeddings/openai_handler.py:38
-#: src/handlers/llm/openai_handler.py:75 src/handlers/llm/ollama_handler.py:150
+#: src/handlers/llm/ollama_handler.py:150 src/handlers/llm/openai_handler.py:75
 #: src/handlers/stt/openaisr_handler.py:10
 msgid "API Endpoint"
 msgstr "API 엔드포인트"
 
 #: src/handlers/embeddings/ollama_handler.py:32
-#: src/handlers/llm/openai_handler.py:75 src/handlers/llm/ollama_handler.py:150
+#: src/handlers/llm/ollama_handler.py:150 src/handlers/llm/openai_handler.py:75
 msgid "API base url, change this to use interference APIs"
 msgstr "API 기본 URL입니다. 간섭 API를 사용하려면 변경하십시오."
 
@@ -44,8 +44,8 @@ msgstr "사용자 지정 모델"
 
 #: src/handlers/embeddings/ollama_handler.py:34
 #: src/handlers/embeddings/openai_handler.py:41
-#: src/handlers/llm/claude_handler.py:85 src/handlers/llm/openai_handler.py:78
-#: src/handlers/llm/ollama_handler.py:153
+#: src/handlers/llm/claude_handler.py:85 src/handlers/llm/ollama_handler.py:153
+#: src/handlers/llm/openai_handler.py:78
 msgid "Use a custom model"
 msgstr "사용자 지정 모델 사용"
 
@@ -91,8 +91,8 @@ msgstr "사용자 지정 모델 사용"
 
 #: src/handlers/embeddings/openai_handler.py:44
 #: src/handlers/llm/claude_handler.py:89 src/handlers/llm/claude_handler.py:93
-#: src/handlers/llm/gemini_handler.py:97 src/handlers/llm/openai_handler.py:84
-#: src/handlers/llm/g4f_handler.py:44 src/handlers/stt/whisper_handler.py:15
+#: src/handlers/llm/g4f_handler.py:44 src/handlers/llm/openai_handler.py:84
+#: src/handlers/llm/gemini_handler.py:97 src/handlers/stt/whisper_handler.py:15
 #: src/handlers/stt/whispercpp_handler.py:40
 #: src/handlers/tts/custom_openai_tts.py:20
 #: src/handlers/tts/elevenlabs_handler.py:24
@@ -132,15 +132,17 @@ msgstr "최대 토큰"
 msgid "The maximum number of tokens to generate"
 msgstr "생성할 최대 토큰 수"
 
-#: src/handlers/llm/custom_handler.py:20 src/handlers/llm/gemini_handler.py:119
+#: src/handlers/llm/custom_handler.py:20
 #: src/handlers/llm/gpt4all_handler.py:153
-#: src/handlers/llm/newelle_handler.py:27 src/utility/util.py:136
+#: src/handlers/llm/newelle_handler.py:27
+#: src/handlers/llm/gemini_handler.py:119 src/utility/util.py:136
 msgid "Message Streaming"
 msgstr "메시지 스트리밍"
 
-#: src/handlers/llm/custom_handler.py:20 src/handlers/llm/gemini_handler.py:120
+#: src/handlers/llm/custom_handler.py:20
 #: src/handlers/llm/gpt4all_handler.py:153
-#: src/handlers/llm/newelle_handler.py:28 src/utility/util.py:137
+#: src/handlers/llm/newelle_handler.py:28
+#: src/handlers/llm/gemini_handler.py:120 src/utility/util.py:137
 msgid "Gradually stream message output"
 msgstr "메시지 출력을 점진적으로 스트리밍"
 
@@ -154,8 +156,8 @@ msgid ""
 "Command to execute to get bot response, {0} will be replaced with a JSON "
 "file containing the chat, {1} with the system prompt"
 msgstr ""
-"봇 응답을 얻기 위해 실행할 명령입니다. {0}은 채팅이 포함된 JSON 파일로 대체되고, {1}은 시스템 "
-"프롬프트로 대체됩니다."
+"봇 응답을 얻기 위해 실행할 명령입니다. {0}은 채팅이 포함된 JSON 파일로 대체되"
+"고, {1}은 시스템 프롬프트로 대체됩니다."
 
 #: src/handlers/llm/custom_handler.py:22
 msgid "Command to execute to get bot's suggestions"
@@ -169,112 +171,9 @@ msgid ""
 "suggestions to generate. Must return a JSON array containing the suggestions "
 "as strings"
 msgstr ""
-"채팅 제안을 얻기 위해 실행할 명령입니다. {0}은 채팅이 포함된 JSON 파일로 대체되고, {1}은 추가 "
-"프롬프트로, {2}는 생성할 제안의 수로 대체됩니다. 제안을 문자열로 포함하는 JSON 배열을 반환해야 "
-"합니다."
-
-#: src/handlers/llm/gemini_handler.py:94
-msgid "API Key (required)"
-msgstr "API 키 (필수)"
-
-#: src/handlers/llm/gemini_handler.py:94
-msgid "API key got from ai.google.dev"
-msgstr "ai.google.dev에서 얻은 API 키"
-
-#: src/handlers/llm/gemini_handler.py:98
-msgid "AI Model to use"
-msgstr "사용할 AI 모델"
-
-#: src/handlers/llm/gemini_handler.py:103
-msgid "Enable System Prompt"
-msgstr "시스템 프롬프트 활성화"
-
-#: src/handlers/llm/gemini_handler.py:103
-msgid ""
-"Some models don't support system prompt (or developers instructions), "
-"disable it if you get errors about it"
-msgstr ""
-"일부 모델은 시스템 프롬프트(또는 개발자 지침)를 지원하지 않습니다. 오류가 발생하면 "
-"비활성화하십시오."
-
-#: src/handlers/llm/gemini_handler.py:107
-msgid "Inject system prompt"
-msgstr "시스템 프롬프트 삽입"
-
-#: src/handlers/llm/gemini_handler.py:107
-msgid ""
-"Even if the model doesn't support system prompts, put the prompts on top of "
-"the user message"
-msgstr "모델이 시스템 프롬프트를 지원하지 않더라도 프롬프트를 사용자 메시지 위에 배치하십시오."
-
-#: src/handlers/llm/gemini_handler.py:109
-msgid "Thinking Settings"
-msgstr "사고 설정"
-
-#: src/handlers/llm/gemini_handler.py:109
-msgid "Settings about thinking models"
-msgstr "사고 모델에 대한 설정"
-
-#: src/handlers/llm/gemini_handler.py:110
-#: src/handlers/llm/ollama_handler.py:152
-msgid "Enable Thinking"
-msgstr "사고 활성화"
-
-#: src/handlers/llm/gemini_handler.py:110
-msgid "Show thinking, disable it if your model does not support it"
-msgstr "사고를 표시합니다. 모델이 지원하지 않으면 비활성화하십시오."
-
-#: src/handlers/llm/gemini_handler.py:111
-msgid "Enable Thinking Budget"
-msgstr "사고 예산 활성화"
-
-#: src/handlers/llm/gemini_handler.py:111
-msgid "If to enable thinking budget"
-msgstr "사고 예산을 활성화할지 여부"
-
-#: src/handlers/llm/gemini_handler.py:112
-msgid "Thinking Budget"
-msgstr "사고 예산"
-
-#: src/handlers/llm/gemini_handler.py:112
-msgid "How much time to spend thinking"
-msgstr "생각하는 데 보낼 시간"
-
-#: src/handlers/llm/gemini_handler.py:116
-msgid "Image Output"
-msgstr "이미지 출력"
-
-#: src/handlers/llm/gemini_handler.py:116
-msgid "Enable image output, only supported by gemini-2.0-flash-exp"
-msgstr "이미지 출력을 활성화합니다. gemini-2.0-flash-exp만 지원합니다."
-
-#: src/handlers/llm/gemini_handler.py:125
-msgid "Enable safety settings"
-msgstr "안전 설정 활성화"
-
-#: src/handlers/llm/gemini_handler.py:126
-msgid "Enable google safety settings to avoid generating harmful content"
-msgstr "유해한 콘텐츠 생성을 방지하려면 Google 안전 설정을 활성화하세요."
-
-#: src/handlers/llm/gemini_handler.py:131
-#: src/handlers/llm/openai_handler.py:112
-#: src/handlers/llm/newelle_handler.py:18
-msgid "Privacy Policy"
-msgstr "개인 정보 보호 정책"
-
-#: src/handlers/llm/gemini_handler.py:132
-#: src/handlers/llm/openai_handler.py:112
-#: src/handlers/llm/newelle_handler.py:19
-msgid "Open privacy policy website"
-msgstr "개인 정보 보호 정책 웹사이트 열기"
-
-#: src/handlers/llm/gemini_handler.py:135 src/handlers/llm/openai_handler.py:81
-msgid "Advanced Parameters"
-msgstr "고급 매개변수"
-
-#: src/handlers/llm/gemini_handler.py:135
-msgid "Enable advanced parameters"
-msgstr "고급 매개변수 활성화"
+"채팅 제안을 얻기 위해 실행할 명령입니다. {0}은 채팅이 포함된 JSON 파일로 대체"
+"되고, {1}은 추가 프롬프트로, {2}는 생성할 제안의 수로 대체됩니다. 제안을 문자"
+"열로 포함하는 JSON 배열을 반환해야 합니다."
 
 #: src/handlers/llm/gpt4all_handler.py:67
 msgid "RAM Required: "
@@ -306,6 +205,51 @@ msgstr "모델 관리자"
 #: src/handlers/llm/ollama_handler.py:172
 msgid "List of models available"
 msgstr "사용 가능한 모델 목록"
+
+#: src/handlers/llm/g4f_handler.py:45
+msgid "Update G4F"
+msgstr "G4F 업데이트"
+
+#: src/handlers/llm/newelle_handler.py:18
+#: src/handlers/llm/openai_handler.py:112
+#: src/handlers/llm/gemini_handler.py:131
+msgid "Privacy Policy"
+msgstr "개인 정보 보호 정책"
+
+#: src/handlers/llm/newelle_handler.py:19
+#: src/handlers/llm/openai_handler.py:112
+#: src/handlers/llm/gemini_handler.py:132
+msgid "Open privacy policy website"
+msgstr "개인 정보 보호 정책 웹사이트 열기"
+
+#: src/handlers/llm/ollama_handler.py:152
+#: src/handlers/llm/gemini_handler.py:110
+msgid "Enable Thinking"
+msgstr "사고 활성화"
+
+#: src/handlers/llm/ollama_handler.py:152
+msgid "Allow thinking in the model, only some models are supported"
+msgstr "모델에서 사고를 허용합니다. 일부 모델만 지원됩니다."
+
+#: src/handlers/llm/ollama_handler.py:176
+msgid "Add custom model"
+msgstr "사용자 지정 모델 추가"
+
+#: src/handlers/llm/ollama_handler.py:177
+msgid ""
+"Add any model to this list by putting name:size\n"
+"Or any gguf from hf with hf.co/username/model"
+msgstr ""
+"name:size를 넣어 이 목록에 모델을 추가하거나, hf.co/username/model에서 gguf"
+"를 추가합니다."
+
+#: src/handlers/llm/ollama_handler.py:187
+msgid "Update Ollama"
+msgstr "Ollama 업데이트"
+
+#: src/handlers/llm/openai_handler.py:81 src/handlers/llm/gemini_handler.py:135
+msgid "Advanced Parameters"
+msgstr "고급 매개변수"
 
 #: src/handlers/llm/openai_handler.py:81
 msgid "Include parameters like Max Tokens, Top-P, Temperature, etc."
@@ -351,8 +295,8 @@ msgid ""
 "Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
 "to repeat the same line verbatim"
 msgstr ""
-"-2.0에서 2.0 사이의 숫자입니다. 양수 값은 모델이 동일한 줄을 문자 그대로 반복할 가능성을 "
-"줄입니다."
+"-2.0에서 2.0 사이의 숫자입니다. 양수 값은 모델이 동일한 줄을 문자 그대로 반복"
+"할 가능성을 줄입니다."
 
 #: src/handlers/llm/openai_handler.py:107
 msgid "Presence Penalty"
@@ -363,8 +307,8 @@ msgid ""
 "Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
 "to talk about new topics"
 msgstr ""
-"-2.0에서 2.0 사이의 숫자입니다. 양수 값은 모델이 새로운 주제에 대해 이야기할 가능성을 "
-"줄입니다."
+"-2.0에서 2.0 사이의 숫자입니다. 양수 값은 모델이 새로운 주제에 대해 이야기할 "
+"가능성을 줄입니다."
 
 #: src/handlers/llm/openrouter_handler.py:14
 msgid "Provider Sorting"
@@ -394,7 +338,9 @@ msgstr "공급자 순서"
 msgid ""
 "Add order of providers to use, names separated by a comma.\n"
 "Empty to not specify"
-msgstr "사용할 공급자 순서를 추가합니다. 이름은 쉼표로 구분합니다.\n지정하지 않으려면 비워 두세요."
+msgstr ""
+"사용할 공급자 순서를 추가합니다. 이름은 쉼표로 구분합니다.\n"
+"지정하지 않으려면 비워 두세요."
 
 #: src/handlers/llm/openrouter_handler.py:16
 msgid "Allow Fallbacks"
@@ -404,28 +350,89 @@ msgstr "폴백 허용"
 msgid "Allow fallbacks to other providers"
 msgstr "다른 공급자로 폴백 허용"
 
-#: src/handlers/llm/g4f_handler.py:45
-msgid "Update G4F"
-msgstr "G4F 업데이트"
+#: src/handlers/llm/gemini_handler.py:94
+msgid "API Key (required)"
+msgstr "API 키 (필수)"
 
-#: src/handlers/llm/ollama_handler.py:152
-msgid "Allow thinking in the model, only some models are supported"
-msgstr "모델에서 사고를 허용합니다. 일부 모델만 지원됩니다."
+#: src/handlers/llm/gemini_handler.py:94
+msgid "API key got from ai.google.dev"
+msgstr "ai.google.dev에서 얻은 API 키"
 
-#: src/handlers/llm/ollama_handler.py:176
-msgid "Add custom model"
-msgstr "사용자 지정 모델 추가"
+#: src/handlers/llm/gemini_handler.py:98
+msgid "AI Model to use"
+msgstr "사용할 AI 모델"
 
-#: src/handlers/llm/ollama_handler.py:177
+#: src/handlers/llm/gemini_handler.py:103
+msgid "Enable System Prompt"
+msgstr "시스템 프롬프트 활성화"
+
+#: src/handlers/llm/gemini_handler.py:103
 msgid ""
-"Add any model to this list by putting name:size\n"
-"Or any gguf from hf with hf.co/username/model"
+"Some models don't support system prompt (or developers instructions), "
+"disable it if you get errors about it"
 msgstr ""
-"name:size를 넣어 이 목록에 모델을 추가하거나, hf.co/username/model에서 gguf를 추가합니다."
+"일부 모델은 시스템 프롬프트(또는 개발자 지침)를 지원하지 않습니다. 오류가 발"
+"생하면 비활성화하십시오."
 
-#: src/handlers/llm/ollama_handler.py:187
-msgid "Update Ollama"
-msgstr "Ollama 업데이트"
+#: src/handlers/llm/gemini_handler.py:107
+msgid "Inject system prompt"
+msgstr "시스템 프롬프트 삽입"
+
+#: src/handlers/llm/gemini_handler.py:107
+msgid ""
+"Even if the model doesn't support system prompts, put the prompts on top of "
+"the user message"
+msgstr ""
+"모델이 시스템 프롬프트를 지원하지 않더라도 프롬프트를 사용자 메시지 위에 배치"
+"하십시오."
+
+#: src/handlers/llm/gemini_handler.py:109
+msgid "Thinking Settings"
+msgstr "사고 설정"
+
+#: src/handlers/llm/gemini_handler.py:109
+msgid "Settings about thinking models"
+msgstr "사고 모델에 대한 설정"
+
+#: src/handlers/llm/gemini_handler.py:110
+msgid "Show thinking, disable it if your model does not support it"
+msgstr "사고를 표시합니다. 모델이 지원하지 않으면 비활성화하십시오."
+
+#: src/handlers/llm/gemini_handler.py:111
+msgid "Enable Thinking Budget"
+msgstr "사고 예산 활성화"
+
+#: src/handlers/llm/gemini_handler.py:111
+msgid "If to enable thinking budget"
+msgstr "사고 예산을 활성화할지 여부"
+
+#: src/handlers/llm/gemini_handler.py:112
+msgid "Thinking Budget"
+msgstr "사고 예산"
+
+#: src/handlers/llm/gemini_handler.py:112
+msgid "How much time to spend thinking"
+msgstr "생각하는 데 보낼 시간"
+
+#: src/handlers/llm/gemini_handler.py:116
+msgid "Image Output"
+msgstr "이미지 출력"
+
+#: src/handlers/llm/gemini_handler.py:116
+msgid "Enable image output, only supported by gemini-2.0-flash-exp"
+msgstr "이미지 출력을 활성화합니다. gemini-2.0-flash-exp만 지원합니다."
+
+#: src/handlers/llm/gemini_handler.py:125
+msgid "Enable safety settings"
+msgstr "안전 설정 활성화"
+
+#: src/handlers/llm/gemini_handler.py:126
+msgid "Enable google safety settings to avoid generating harmful content"
+msgstr "유해한 콘텐츠 생성을 방지하려면 Google 안전 설정을 활성화하세요."
+
+#: src/handlers/llm/gemini_handler.py:135
+msgid "Enable advanced parameters"
+msgstr "고급 매개변수 활성화"
 
 #: src/handlers/rag/rag_handler.py:104
 msgid "Index your documents"
@@ -437,8 +444,8 @@ msgid ""
 "operation every time you edit/create a document, change document analyzer or "
 "change embedding model"
 msgstr ""
-"문서 폴더의 모든 문서를 인덱싱합니다. 문서를 편집/생성하거나 문서 분석기 또는 임베딩 모델을 "
-"변경할 때마다 이 작업을 실행해야 합니다."
+"문서 폴더의 모든 문서를 인덱싱합니다. 문서를 편집/생성하거나 문서 분석기 또"
+"는 임베딩 모델을 변경할 때마다 이 작업을 실행해야 합니다."
 
 #: src/handlers/stt/custom_handler.py:13 src/handlers/tts/custom_handler.py:17
 msgid "Command to execute"
@@ -451,7 +458,8 @@ msgstr "{0}은 모델의 전체 경로로 대체됩니다."
 
 #: src/handlers/stt/googlesr_handler.py:14
 msgid "API Key for Google SR, write 'default' to use the default one"
-msgstr "Google SR의 API 키입니다. 기본값을 사용하려면 'default'를 입력하십시오."
+msgstr ""
+"Google SR의 API 키입니다. 기본값을 사용하려면 'default'를 입력하십시오."
 
 #: src/handlers/stt/googlesr_handler.py:21
 #: src/handlers/stt/groqsr_handler.py:29
@@ -481,8 +489,8 @@ msgid ""
 "Specify the language for transcription. Use ISO 639-1 language codes (e.g. "
 "\"en\" for English, \"fr\" for French, etc.). "
 msgstr ""
-"전사를 위한 언어를 지정하십시오. ISO 639-1 언어 코드(예: 영어는 \"en\", 프랑스어는 \"fr\" "
-"등)를 사용하십시오."
+"전사를 위한 언어를 지정하십시오. ISO 639-1 언어 코드(예: 영어는 \"en\", 프랑"
+"스어는 \"fr\" 등)를 사용하십시오."
 
 #: src/handlers/stt/openaisr_handler.py:11
 msgid "Endpoint for OpenAI requests"
@@ -505,8 +513,8 @@ msgid ""
 "Optional: Specify the language for transcription. Use ISO 639-1 language "
 "codes (e.g. \"en\" for English, \"fr\" for French, etc.). "
 msgstr ""
-"선택 사항: 전사를 위한 언어를 지정하십시오. ISO 639-1 언어 코드(예: 영어는 \"en\", "
-"프랑스어는 \"fr\" 등)를 사용하십시오."
+"선택 사항: 전사를 위한 언어를 지정하십시오. ISO 639-1 언어 코드(예: 영어는 "
+"\"en\", 프랑스어는 \"fr\" 등)를 사용하십시오."
 
 #: src/handlers/stt/vosk_handler.py:17
 msgid "Model Path"
@@ -530,7 +538,8 @@ msgid "Could not understand the audio"
 msgstr "오디오를 이해할 수 없습니다."
 
 #: src/handlers/stt/whispercpp_handler.py:47
-msgid "Language of the recognition."
+#, fuzzy
+msgid "Language of the recognition. For example en, it..."
 msgstr "인식 언어."
 
 #: src/handlers/stt/whispercpp_handler.py:48
@@ -665,9 +674,10 @@ msgid ""
 "provides generic content snippets from each source. A basic search costs 1 "
 "API Credit, while an advanced search costs 2 API Credits."
 msgstr ""
-"검색의 깊이입니다. 고급 검색은 쿼리에 가장 관련성 높은 소스와 콘텐츠 스니펫을 검색하도록 "
-"맞춤화된 반면, 기본 검색은 각 소스에서 일반적인 콘텐츠 스니펫을 제공합니다. 기본 검색은 1 API "
-"크레딧, 고급 검색은 2 API 크레딧이 소요됩니다."
+"검색의 깊이입니다. 고급 검색은 쿼리에 가장 관련성 높은 소스와 콘텐츠 스니펫"
+"을 검색하도록 맞춤화된 반면, 기본 검색은 각 소스에서 일반적인 콘텐츠 스니펫"
+"을 제공합니다. 기본 검색은 1 API 크레딧, 고급 검색은 2 API 크레딧이 소요됩니"
+"다."
 
 #: src/handlers/websearch/tavily.py:23
 msgid "The category of the search"
@@ -680,9 +690,10 @@ msgid ""
 "mainstream media sources. General is for broader, more general-purpose "
 "searches that may include a wide range of sources."
 msgstr ""
-"검색의 범주입니다. 뉴스는 실시간 업데이트, 특히 주류 미디어 소스에서 다루는 정치, 스포츠 및 "
-"주요 시사 사건에 대한 정보를 검색하는 데 유용합니다. 일반은 더 광범위하고 다양한 소스를 "
-"포함할 수 있는 일반적인 목적의 검색을 위한 것입니다."
+"검색의 범주입니다. 뉴스는 실시간 업데이트, 특히 주류 미디어 소스에서 다루는 "
+"정치, 스포츠 및 주요 시사 사건에 대한 정보를 검색하는 데 유용합니다. 일반은 "
+"더 광범위하고 다양한 소스를 포함할 수 있는 일반적인 목적의 검색을 위한 것입니"
+"다."
 
 #: src/handlers/websearch/tavily.py:24
 msgid "Chunks per source"
@@ -694,8 +705,8 @@ msgid ""
 "length is maximum 500 characters. Available only when search depth is "
 "advanced."
 msgstr ""
-"각 소스에서 검색할 콘텐츠 청크의 수입니다. 각 청크의 길이는 최대 500자입니다. 검색 깊이가 "
-"고급일 때만 사용할 수 있습니다."
+"각 소스에서 검색할 콘텐츠 청크의 수입니다. 각 청크의 길이는 최대 500자입니"
+"다. 검색 깊이가 고급일 때만 사용할 수 있습니다."
 
 #: src/handlers/websearch/tavily.py:25
 msgid "Number of days back from the current date to include"
@@ -714,8 +725,8 @@ msgid ""
 "Include an LLM-generated answer to the provided query. Basic search returns "
 "a quick answer. Advanced returns a more detailed answer."
 msgstr ""
-"제공된 쿼리에 대한 LLM 생성 답변을 포함합니다. 기본 검색은 빠른 답변을 반환하고, 고급 검색은 "
-"더 자세한 답변을 반환합니다."
+"제공된 쿼리에 대한 LLM 생성 답변을 포함합니다. 기본 검색은 빠른 답변을 반환하"
+"고, 고급 검색은 더 자세한 답변을 반환합니다."
 
 #: src/handlers/websearch/tavily.py:27
 msgid "Include raw content"
@@ -866,23 +877,23 @@ msgstr "프로필 삭제"
 msgid "Newelle Tips"
 msgstr "Newelle 팁"
 
-#: src/ui/widgets/thinking.py:27
+#: src/ui/widgets/thinking.py:26
 msgid "Thoughts"
 msgstr "생각"
 
-#: src/ui/widgets/thinking.py:28 src/ui/widgets/thinking.py:135
+#: src/ui/widgets/thinking.py:27 src/ui/widgets/thinking.py:134
 msgid "Expand to see details"
 msgstr "확장하여 자세한 내용 보기"
 
-#: src/ui/widgets/thinking.py:123
+#: src/ui/widgets/thinking.py:122
 msgid "Thinking..."
 msgstr "생각 중..."
 
-#: src/ui/widgets/thinking.py:124
+#: src/ui/widgets/thinking.py:123
 msgid "The LLM is thinking... Expand to see thought process"
 msgstr "LLM이 생각 중입니다... 확장하여 사고 과정을 보십시오."
 
-#: src/ui/widgets/thinking.py:137
+#: src/ui/widgets/thinking.py:136
 msgid "No thought process recorded"
 msgstr "사고 과정이 기록되지 않았습니다."
 
@@ -1064,6 +1075,27 @@ msgstr "확대"
 msgid "Zoom out"
 msgstr "축소"
 
+#: src/ui/extension.py:17 src/ui/presentation.py:131 src/constants.py:513
+#: src/window.py:118
+msgid "Extensions"
+msgstr "확장"
+
+#: src/ui/extension.py:50
+msgid "Installed Extensions"
+msgstr "설치된 확장"
+
+#: src/ui/extension.py:85
+msgid "User guide to Extensions"
+msgstr "확장 사용자 가이드"
+
+#: src/ui/extension.py:88
+msgid "Download new Extensions"
+msgstr "새 확장 다운로드"
+
+#: src/ui/extension.py:91
+msgid "Install extension from file..."
+msgstr "파일에서 확장 설치..."
+
 #: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.appdata.xml.in:7
 #: data/io.github.qwersyk.Newelle.desktop.in:2
 msgid "Newelle"
@@ -1111,8 +1143,8 @@ msgid ""
 "chat or from your own files! Information relevant to your query will be sent "
 "to the LLM."
 msgstr ""
-"Newelle은 채팅으로 보내는 문서 또는 자신의 파일에서 관련 정보를 검색할 수 있습니다! 쿼리에 "
-"관련된 정보는 LLM으로 전송됩니다."
+"Newelle은 채팅으로 보내는 문서 또는 자신의 파일에서 관련 정보를 검색할 수 있"
+"습니다! 쿼리에 관련된 정보는 LLM으로 전송됩니다."
 
 #: src/ui/presentation.py:124 src/ui/settings.py:236 src/window.py:647
 msgid "Command virtualization"
@@ -1126,14 +1158,10 @@ msgid ""
 "By default, your commands will be <b>virtualized in the Flatpak environment</"
 "b>, but pay attention!"
 msgstr ""
-"Newelle을 사용하여 시스템에서 명령을 실행할 수 있지만, 실행하는 것에 주의하십시오! "
-"<b>LLM은 저희의 통제하에 있지 않으므로 악성 코드를 생성할 수 있습니다!</b>\n"
+"Newelle을 사용하여 시스템에서 명령을 실행할 수 있지만, 실행하는 것에 주의하십"
+"시오! <b>LLM은 저희의 통제하에 있지 않으므로 악성 코드를 생성할 수 있습니다!"
+"</b>\n"
 "기본적으로 명령은 <b>Flatpak 환경에서 가상화됩니다.</b> 하지만 주의하십시오!"
-
-#: src/ui/presentation.py:131 src/ui/extension.py:17 src/constants.py:513
-#: src/window.py:118
-msgid "Extensions"
-msgstr "확장"
 
 #: src/ui/presentation.py:132
 msgid "You can extend Newelle's functionalities using extensions!"
@@ -1159,22 +1187,6 @@ msgstr "앱 사용 시작"
 #: src/ui/presentation.py:163
 msgid "Start chatting"
 msgstr "채팅 시작"
-
-#: src/ui/extension.py:50
-msgid "Installed Extensions"
-msgstr "설치된 확장"
-
-#: src/ui/extension.py:85
-msgid "User guide to Extensions"
-msgstr "확장 사용자 가이드"
-
-#: src/ui/extension.py:88
-msgid "Download new Extensions"
-msgstr "새 확장 다운로드"
-
-#: src/ui/extension.py:91
-msgid "Install extension from file..."
-msgstr "파일에서 확장 설치..."
 
 #: src/ui/settings.py:46 src/constants.py:523
 msgid "General"
@@ -1226,8 +1238,8 @@ msgid ""
 "Embedding is used to trasform text into vectors. Used by Long Term Memory "
 "and RAG. Changing it might require you to re-index documents or reset memory."
 msgstr ""
-"임베딩은 텍스트를 벡터로 변환하는 데 사용됩니다. 장기 메모리 및 RAG에서 사용됩니다. "
-"변경하면 문서를 다시 인덱싱하거나 메모리를 재설정해야 할 수 있습니다."
+"임베딩은 텍스트를 벡터로 변환하는 데 사용됩니다. 장기 메모리 및 RAG에서 사용"
+"됩니다. 변경하면 문서를 다시 인덱싱하거나 메모리를 재설정해야 할 수 있습니다."
 
 #: src/ui/settings.py:104 src/window.py:645
 msgid "Long Term Memory"
@@ -1311,8 +1323,9 @@ msgid ""
 "CTRL+ENTER. If disabled, messages will be sent with SHIFT+ENTER, and newline "
 "with enter"
 msgstr ""
-"활성화하면 ENTER로 메시지가 전송되고, 새 줄로 이동하려면 CTRL+ENTER를 사용합니다. "
-"비활성화하면 SHIFT+ENTER로 메시지가 전송되고, ENTER로 새 줄이 추가됩니다."
+"활성화하면 ENTER로 메시지가 전송되고, 새 줄로 이동하려면 CTRL+ENTER를 사용합"
+"니다. 비활성화하면 SHIFT+ENTER로 메시지가 전송되고, ENTER로 새 줄이 추가됩니"
+"다."
 
 #: src/ui/settings.py:192
 msgid "Remove thinking from history"
@@ -1322,7 +1335,8 @@ msgstr "기록에서 사고 제거"
 msgid ""
 "Do not send old thinking blocks for reasoning models in order to reduce "
 "token usage"
-msgstr "토큰 사용량을 줄이기 위해 추론 모델에 대한 이전 사고 블록을 보내지 마십시오."
+msgstr ""
+"토큰 사용량을 줄이기 위해 추론 모델에 대한 이전 사고 블록을 보내지 마십시오."
 
 #: src/ui/settings.py:198
 msgid "Display LaTeX"
@@ -1338,7 +1352,8 @@ msgstr "채팅 순서 반전"
 
 #: src/ui/settings.py:204
 msgid "Show most recent chats on top in chat list (change chat to apply)"
-msgstr "채팅 목록에서 가장 최근 채팅을 상단에 표시합니다(적용하려면 채팅 변경)."
+msgstr ""
+"채팅 목록에서 가장 최근 채팅을 상단에 표시합니다(적용하려면 채팅 변경)."
 
 #: src/ui/settings.py:210
 msgid "Automatically Generate Chat Names"
@@ -1408,7 +1423,9 @@ msgstr "프로그램 출력 모니터"
 msgid ""
 "Monitor the program output in real-time, useful for debugging and seeing "
 "downloads progress"
-msgstr "프로그램 출력을 실시간으로 모니터링합니다. 디버깅 및 다운로드 진행 상황 확인에 유용합니다."
+msgstr ""
+"프로그램 출력을 실시간으로 모니터링합니다. 디버깅 및 다운로드 진행 상황 확인"
+"에 유용합니다."
 
 #: src/ui/settings.py:269
 msgid "Open"
@@ -1464,7 +1481,9 @@ msgstr "브라우저 세션 유지"
 msgid ""
 "Persist browser session between restarts. Turning this off requires "
 "restarting the program"
-msgstr "재시작 간에 브라우저 세션을 유지합니다. 이 옵션을 끄면 프로그램을 다시 시작해야 합니다."
+msgstr ""
+"재시작 간에 브라우저 세션을 유지합니다. 이 옵션을 끄면 프로그램을 다시 시작해"
+"야 합니다."
 
 #: src/ui/settings.py:345
 msgid "Delete browser data"
@@ -1519,8 +1538,8 @@ msgid ""
 "documents sent in the chat will be given to the LLM using your Document "
 "Analyzer."
 msgstr ""
-"LLM이 문서 읽기를 지원하지 않는 경우, 채팅으로 전송된 문서에 대한 관련 정보는 문서 분석기를 "
-"사용하여 LLM에 제공됩니다."
+"LLM이 문서 읽기를 지원하지 않는 경우, 채팅으로 전송된 문서에 대한 관련 정보"
+"는 문서 분석기를 사용하여 LLM에 제공됩니다."
 
 #: src/ui/settings.py:396
 msgid "Maximum tokens for RAG"
@@ -1532,8 +1551,8 @@ msgid ""
 "exceed this token count,\n"
 "dump all of them in the context"
 msgstr ""
-"RAG에 사용될 최대 토큰 수입니다. 문서가 이 토큰 수를 초과하지 않으면, 모든 문서를 "
-"컨텍스트에 덤프합니다."
+"RAG에 사용될 최대 토큰 수입니다. 문서가 이 토큰 수를 초과하지 않으면, 모든 문"
+"서를 컨텍스트에 덤프합니다."
 
 #: src/ui/settings.py:413
 msgid "Document Folder"
@@ -1544,8 +1563,8 @@ msgid ""
 "Put the documents you want to query in your document folder. The document "
 "analyzer will find relevant information in them if this option is enabled"
 msgstr ""
-"쿼리하려는 문서를 문서 폴더에 넣으십시오. 이 옵션이 활성화되면 문서 분석기가 해당 문서에서 "
-"관련 정보를 찾습니다."
+"쿼리하려는 문서를 문서 폴더에 넣으십시오. 이 옵션이 활성화되면 문서 분석기가 "
+"해당 문서에서 관련 정보를 찾습니다."
 
 #: src/ui/settings.py:416
 msgid "Put all the documents you want to index in this folder"
@@ -1577,7 +1596,9 @@ msgstr "권한 부족"
 msgid ""
 "Newelle does not have enough permissions to run commands on your system, "
 "please run the following command"
-msgstr "Newelle에는 시스템에서 명령을 실행할 충분한 권한이 없습니다. 다음 명령을 실행하십시오."
+msgstr ""
+"Newelle에는 시스템에서 명령을 실행할 충분한 권한이 없습니다. 다음 명령을 실행"
+"하십시오."
 
 #: src/ui/settings.py:1049 src/ui/settings.py:1062
 msgid "Understood"
@@ -1592,8 +1613,8 @@ msgid ""
 "The pip path has been deleted, you can now reinstall the dependencies. This "
 "operation requires a restart of the application."
 msgstr ""
-"pip 경로가 삭제되었습니다. 이제 종속성을 다시 설치할 수 있습니다. 이 작업은 애플리케이션을 "
-"다시 시작해야 합니다."
+"pip 경로가 삭제되었습니다. 이제 종속성을 다시 설치할 수 있습니다. 이 작업은 "
+"애플리케이션을 다시 시작해야 합니다."
 
 #: src/ui/stdout_monitor.py:48
 msgid "Clear output"
@@ -1636,8 +1657,9 @@ msgstr "로컬 모델"
 msgid ""
 "NO GPU SUPPORT, USE OLLAMA INSTEAD. Run a LLM model locally, more privacy "
 "but slower"
-msgstr "GPU 지원 없음, 대신 OLLAMA 사용. LLM 모델을 로컬에서 실행합니다. 더 많은 "
-"개인 정보 보호 기능을 제공하지만 속도가 느립니다."
+msgstr ""
+"GPU 지원 없음, 대신 OLLAMA 사용. LLM 모델을 로컬에서 실행합니다. 더 많은 개"
+"인 정보 보호 기능을 제공하지만 속도가 느립니다."
 
 #: src/constants.py:40
 msgid "Ollama Instance"
@@ -1661,7 +1683,9 @@ msgstr "OpenAI API"
 
 #: src/constants.py:61
 msgid "OpenAI API. Custom endpoints supported. Use this for custom providers"
-msgstr "OpenAI API. 사용자 지정 엔드포인트가 지원됩니다. 사용자 지정 공급자에 사용하십시오."
+msgstr ""
+"OpenAI API. 사용자 지정 엔드포인트가 지원됩니다. 사용자 지정 공급자에 사용하"
+"십시오."
 
 #: src/constants.py:66
 msgid "Anthropic Claude"
@@ -1671,7 +1695,9 @@ msgstr "Anthropic Claude"
 msgid ""
 "Official APIs for Anthropic Claude's models, with image and file support, "
 "requires an API key"
-msgstr "Anthropic Claude 모델의 공식 API는 이미지 및 파일 지원을 제공하며 API 키가 필요합니다."
+msgstr ""
+"Anthropic Claude 모델의 공식 API는 이미지 및 파일 지원을 제공하며 API 키가 필"
+"요합니다."
 
 #: src/constants.py:73
 msgid "Mistral"
@@ -1827,7 +1853,9 @@ msgstr "WordLlama"
 msgid ""
 "Light local embedding model based on llama. Works offline, very low "
 "resources usage"
-msgstr "라마를 기반으로 한 경량 로컬 임베딩 모델입니다. 오프라인에서 작동하며 리소스 사용량이 매우 적습니다."
+msgstr ""
+"라마를 기반으로 한 경량 로컬 임베딩 모델입니다. 오프라인에서 작동하며 리소스 "
+"사용량이 매우 적습니다."
 
 #: src/constants.py:218
 msgid "Ollama Embedding"
@@ -1836,7 +1864,9 @@ msgstr "Ollama 임베딩"
 #: src/constants.py:219
 msgid ""
 "Use Ollama models for Embedding. Works offline, very low resources usage"
-msgstr "임베딩에 Ollama 모델을 사용합니다. 오프라인에서 작동하며 리소스 사용량이 매우 적습니다."
+msgstr ""
+"임베딩에 Ollama 모델을 사용합니다. 오프라인에서 작동하며 리소스 사용량이 매"
+"우 적습니다."
 
 #: src/constants.py:231
 msgid "Use Google Gemini API to get embeddings"
@@ -1860,8 +1890,8 @@ msgid ""
 "retrivial, memory decay, concept extraction and other advanced techniques. "
 "Does 1 llm call per message."
 msgstr ""
-"컨텍스트 메모리 검색, 메모리 감쇠, 개념 추출 및 기타 고급 기술을 사용하여 이전 대화에서 메시지를 "
-"추출합니다. 메시지당 1회 LLM 호출을 수행합니다."
+"컨텍스트 메모리 검색, 메모리 감쇠, 개념 추출 및 기타 고급 기술을 사용하여 이"
+"전 대화에서 메시지를 추출합니다. 메시지당 1회 LLM 호출을 수행합니다."
 
 #: src/constants.py:251
 msgid "User Summary + Memoripy"
@@ -1880,8 +1910,8 @@ msgid ""
 "Classic RAG approach - chunk documents and embed them, then compare them to "
 "the query and return the most relevant documents"
 msgstr ""
-"클래식 RAG 접근 방식 - 문서를 청크하고 임베딩한 다음 쿼리와 비교하여 가장 관련성 높은 문서를 "
-"반환합니다."
+"클래식 RAG 접근 방식 - 문서를 청크하고 임베딩한 다음 쿼리와 비교하여 가장 관"
+"련성 높은 문서를 반환합니다."
 
 #: src/constants.py:269
 msgid "SearXNG"
@@ -2042,10 +2072,6 @@ msgstr ""
 msgid "Prompts settings, custom extra prompt, custom prompts..."
 msgstr "프롬프트 설정, 사용자 지정 추가 프롬프트, 사용자 지정 프롬프트..."
 
-#: src/controller.py:135 src/window.py:1846
-msgid "Chat "
-msgstr "채팅 "
-
 #: src/main.py:205
 msgid "Terminal threads are still running in the background"
 msgstr "터미널 스레드가 아직 백그라운드에서 실행 중입니다."
@@ -2132,7 +2158,9 @@ msgstr "웹사이트에 대해 문의"
 
 #: src/window.py:587
 msgid "Write #https://website.com in chat to ask information about a website"
-msgstr "채팅에서 #https://website.com을(를) 작성하여 웹사이트에 대한 정보를 요청하십시오."
+msgstr ""
+"채팅에서 #https://website.com을(를) 작성하여 웹사이트에 대한 정보를 요청하십"
+"시오."
 
 #: src/window.py:588
 msgid "Check out our Extensions!"
@@ -2160,7 +2188,8 @@ msgstr "웹 서핑!"
 msgid ""
 "Enable web search to allow the LLM to surf the web and provide up to date "
 "answers"
-msgstr "웹 검색을 활성화하여 LLM이 웹을 탐색하고 최신 답변을 제공하도록 허용하십시오."
+msgstr ""
+"웹 검색을 활성화하여 LLM이 웹을 탐색하고 최신 답변을 제공하도록 허용하십시오."
 
 #: src/window.py:591
 msgid "Mini Window"
@@ -2192,7 +2221,9 @@ msgstr "프롬프트 제어"
 
 #: src/window.py:594
 msgid "Newelle gives you 100% prompt control. Tune your prompts for your use."
-msgstr "Newelle은 100% 프롬프트 제어를 제공합니다. 사용에 맞게 프롬프트를 조정하십시오."
+msgstr ""
+"Newelle은 100% 프롬프트 제어를 제공합니다. 사용에 맞게 프롬프트를 조정하십시"
+"오."
 
 #: src/window.py:595
 msgid "Thread Editing"
@@ -2287,6 +2318,10 @@ msgstr "더 이상 메시지를 계속할 수 없습니다."
 msgid "You can no longer regenerate the message."
 msgstr "더 이상 메시지를 다시 생성할 수 없습니다."
 
+#: src/window.py:1846 src/controller.py:135
+msgid "Chat "
+msgstr "채팅 "
+
 #: src/window.py:1890
 msgid "Chat is cleared"
 msgstr "채팅이 지워졌습니다."
@@ -2313,8 +2348,9 @@ msgid ""
 "can run commands, be careful, we are not responsible for the neural network. "
 "Do not share any sensitive information."
 msgstr ""
-"신경망은 컴퓨터와 이 채팅의 모든 데이터에 접근할 수 있으며 명령을 실행할 수 있습니다. "
-"주의하십시오. 저희는 신경망에 대해 책임지지 않습니다. 민감한 정보를 공유하지 마십시오."
+"신경망은 컴퓨터와 이 채팅의 모든 데이터에 접근할 수 있으며 명령을 실행할 수 "
+"있습니다. 주의하십시오. 저희는 신경망에 대해 책임지지 않습니다. 민감한 정보"
+"를 공유하지 마십시오."
 
 #: src/window.py:3349
 msgid ""
@@ -2322,8 +2358,8 @@ msgid ""
 "not responsible for the neural network. Do not share any sensitive "
 "information."
 msgstr ""
-"신경망은 이 채팅의 모든 데이터에 접근할 수 있습니다. 주의하십시오. 저희는 신경망에 대해 "
-"책임지지 않습니다. 민감한 정보를 공유하지 마십시오."
+"신경망은 이 채팅의 모든 데이터에 접근할 수 있습니다. 주의하십시오. 저희는 신"
+"경망에 대해 책임지지 않습니다. 민감한 정보를 공유하지 마십시오."
 
 #: src/window.py:3398
 msgid "Wrong folder path"
@@ -2346,8 +2382,8 @@ msgid ""
 "Train Newelle to do more with custom extensions and new AI modules, giving "
 "your chatbot endless possibilities."
 msgstr ""
-"Newelle을 사용자 지정 확장 기능과 새로운 AI 모듈로 훈련하여 챗봇에 무한한 가능성을 "
-"부여하십시오."
+"Newelle을 사용자 지정 확장 기능과 새로운 AI 모듈로 훈련하여 챗봇에 무한한 가"
+"능성을 부여하십시오."
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:11
 msgid "AI chatbot"
@@ -2459,8 +2495,8 @@ msgid ""
 "Updated the g4f library with versioning, added user guides, improved "
 "extension browsing, and enhanced model handling."
 msgstr ""
-"버전 관리를 통해 g4f 라이브러리를 업데이트하고, 사용자 가이드를 추가하고, 확장 "
-"탐색을 개선하고, 모델 처리를 향상했습니다."
+"버전 관리를 통해 g4f 라이브러리를 업데이트하고, 사용자 가이드를 추가하고, 확"
+"장 탐색을 개선하고, 모델 처리를 향상했습니다."
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:118
 msgid ""
@@ -2468,8 +2504,8 @@ msgid ""
 "extension architecture, added new models, and introduced vision support, "
 "along with more capabilities."
 msgstr ""
-"버그 수정 및 새로운 기능이 구현되었습니다. 확장 아키텍처를 수정하고, 새로운 모델을 "
-"추가하고, 비전 지원을 도입했으며, 더 많은 기능을 제공합니다."
+"버그 수정 및 새로운 기능이 구현되었습니다. 확장 아키텍처를 수정하고, 새로운 "
+"모델을 추가하고, 비전 지원을 도입했으며, 더 많은 기능을 제공합니다."
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:148
 msgid "Stable version"

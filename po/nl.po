@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-02 02:15+0800\n"
+"POT-Creation-Date: 2025-07-06 02:35+0800\n"
 "PO-Revision-Date: 2025-07-03 09:00+0200\n"
 "Last-Translator: Heimen Stoffels <vistausss@fastmail.com>\n"
 "Language-Team: \n"
@@ -19,13 +19,13 @@ msgstr ""
 
 #: src/handlers/embeddings/ollama_handler.py:32
 #: src/handlers/embeddings/openai_handler.py:38
-#: src/handlers/llm/openai_handler.py:75 src/handlers/llm/ollama_handler.py:150
+#: src/handlers/llm/ollama_handler.py:150 src/handlers/llm/openai_handler.py:75
 #: src/handlers/stt/openaisr_handler.py:10
 msgid "API Endpoint"
 msgstr "API-eindpunt"
 
 #: src/handlers/embeddings/ollama_handler.py:32
-#: src/handlers/llm/openai_handler.py:75 src/handlers/llm/ollama_handler.py:150
+#: src/handlers/llm/ollama_handler.py:150 src/handlers/llm/openai_handler.py:75
 msgid "API base url, change this to use interference APIs"
 msgstr "API-basis-URL, wijzig deze om interferentie-API's te gebruiken"
 
@@ -51,8 +51,8 @@ msgstr "Aangepast model"
 
 #: src/handlers/embeddings/ollama_handler.py:34
 #: src/handlers/embeddings/openai_handler.py:41
-#: src/handlers/llm/claude_handler.py:85 src/handlers/llm/openai_handler.py:78
-#: src/handlers/llm/ollama_handler.py:153
+#: src/handlers/llm/claude_handler.py:85 src/handlers/llm/ollama_handler.py:153
+#: src/handlers/llm/openai_handler.py:78
 msgid "Use a custom model"
 msgstr "Gebruik een aangepast model"
 
@@ -99,8 +99,8 @@ msgstr "Aangepast model gebruiken"
 
 #: src/handlers/embeddings/openai_handler.py:44
 #: src/handlers/llm/claude_handler.py:89 src/handlers/llm/claude_handler.py:93
-#: src/handlers/llm/gemini_handler.py:97 src/handlers/llm/openai_handler.py:84
-#: src/handlers/llm/g4f_handler.py:44 src/handlers/stt/whisper_handler.py:15
+#: src/handlers/llm/g4f_handler.py:44 src/handlers/llm/openai_handler.py:84
+#: src/handlers/llm/gemini_handler.py:97 src/handlers/stt/whisper_handler.py:15
 #: src/handlers/stt/whispercpp_handler.py:40
 #: src/handlers/tts/custom_openai_tts.py:20
 #: src/handlers/tts/elevenlabs_handler.py:24
@@ -140,16 +140,18 @@ msgstr "Max. tokens"
 msgid "The maximum number of tokens to generate"
 msgstr "Het maximum aantal te genereren tokens"
 
-#: src/handlers/llm/custom_handler.py:20 src/handlers/llm/gemini_handler.py:119
+#: src/handlers/llm/custom_handler.py:20
 #: src/handlers/llm/gpt4all_handler.py:153
-#: src/handlers/llm/newelle_handler.py:27 src/utility/util.py:136
+#: src/handlers/llm/newelle_handler.py:27
+#: src/handlers/llm/gemini_handler.py:119 src/utility/util.py:136
 #, fuzzy
 msgid "Message Streaming"
 msgstr "Berichtstreaming"
 
-#: src/handlers/llm/custom_handler.py:20 src/handlers/llm/gemini_handler.py:120
+#: src/handlers/llm/custom_handler.py:20
 #: src/handlers/llm/gpt4all_handler.py:153
-#: src/handlers/llm/newelle_handler.py:28 src/utility/util.py:137
+#: src/handlers/llm/newelle_handler.py:28
+#: src/handlers/llm/gemini_handler.py:120 src/utility/util.py:137
 msgid "Gradually stream message output"
 msgstr "Uitvoer van berichten geleidelijk streamen"
 
@@ -183,114 +185,6 @@ msgstr ""
 "door het aantal te genereren suggesties. Moet een JSON-array retourneren met "
 "de suggesties als strings"
 
-#: src/handlers/llm/gemini_handler.py:94
-msgid "API Key (required)"
-msgstr "API-sleutel (vereist)"
-
-#: src/handlers/llm/gemini_handler.py:94
-msgid "API key got from ai.google.dev"
-msgstr "API-sleutel verkregen van ai.google.dev"
-
-#: src/handlers/llm/gemini_handler.py:98
-msgid "AI Model to use"
-msgstr "AI-model om te gebruiken"
-
-#: src/handlers/llm/gemini_handler.py:103
-msgid "Enable System Prompt"
-msgstr "Systeemprompt inschakelen"
-
-#: src/handlers/llm/gemini_handler.py:103
-msgid ""
-"Some models don't support system prompt (or developers instructions), "
-"disable it if you get errors about it"
-msgstr ""
-"Sommige modellen ondersteunen geen systeemprompt (of instructies voor "
-"ontwikkelaars), schakel deze uit als u hierdoor fouten krijgt"
-
-#: src/handlers/llm/gemini_handler.py:107
-msgid "Inject system prompt"
-msgstr "Systeemprompt injecteren"
-
-#: src/handlers/llm/gemini_handler.py:107
-msgid ""
-"Even if the model doesn't support system prompts, put the prompts on top of "
-"the user message"
-msgstr ""
-"Zelfs als het model geen systeemprompts ondersteunt, plaats de prompts dan "
-"boven aan het gebruikersbericht"
-
-#: src/handlers/llm/gemini_handler.py:109
-#, fuzzy
-msgid "Thinking Settings"
-msgstr "Denkinstellingen"
-
-#: src/handlers/llm/gemini_handler.py:109
-msgid "Settings about thinking models"
-msgstr "Instellingen over denkmodellen"
-
-#: src/handlers/llm/gemini_handler.py:110
-#: src/handlers/llm/ollama_handler.py:152
-msgid "Enable Thinking"
-msgstr "Denken inschakelen"
-
-#: src/handlers/llm/gemini_handler.py:110
-msgid "Show thinking, disable it if your model does not support it"
-msgstr "Toon denken, schakel dit uit als uw model dit niet ondersteunt"
-
-#: src/handlers/llm/gemini_handler.py:111
-msgid "Enable Thinking Budget"
-msgstr "Denkbudget inschakelen"
-
-#: src/handlers/llm/gemini_handler.py:111
-msgid "If to enable thinking budget"
-msgstr "Als denkbudget ingeschakeld moet worden"
-
-#: src/handlers/llm/gemini_handler.py:112
-msgid "Thinking Budget"
-msgstr "Denkbudget"
-
-#: src/handlers/llm/gemini_handler.py:112
-msgid "How much time to spend thinking"
-msgstr "Hoeveel tijd te besteden aan denken"
-
-#: src/handlers/llm/gemini_handler.py:116
-msgid "Image Output"
-msgstr "Afbeeldingsuitvoer"
-
-#: src/handlers/llm/gemini_handler.py:116
-msgid "Enable image output, only supported by gemini-2.0-flash-exp"
-msgstr "Afbeeldingsuitvoer inschakelen, alleen ondersteund door gemini-2.0-flash-exp"
-
-#: src/handlers/llm/gemini_handler.py:125
-msgid "Enable safety settings"
-msgstr "Veiligheidsinstellingen inschakelen"
-
-#: src/handlers/llm/gemini_handler.py:126
-msgid "Enable google safety settings to avoid generating harmful content"
-msgstr ""
-"Schakel Google veiligheidsinstellingen in om te voorkomen dat schadelijke "
-"inhoud wordt gegenereerd"
-
-#: src/handlers/llm/gemini_handler.py:131
-#: src/handlers/llm/openai_handler.py:112
-#: src/handlers/llm/newelle_handler.py:18
-msgid "Privacy Policy"
-msgstr "Privacybeleid"
-
-#: src/handlers/llm/gemini_handler.py:132
-#: src/handlers/llm/openai_handler.py:112
-#: src/handlers/llm/newelle_handler.py:19
-msgid "Open privacy policy website"
-msgstr "Open website privacybeleid"
-
-#: src/handlers/llm/gemini_handler.py:135 src/handlers/llm/openai_handler.py:81
-msgid "Advanced Parameters"
-msgstr "Geavanceerde parameters"
-
-#: src/handlers/llm/gemini_handler.py:135
-msgid "Enable advanced parameters"
-msgstr "Geavanceerde parameters inschakelen"
-
 #: src/handlers/llm/gpt4all_handler.py:67
 msgid "RAM Required: "
 msgstr "Vereist RAM: "
@@ -322,6 +216,52 @@ msgstr "Modelbeheerder"
 msgid "List of models available"
 msgstr "Lijst met beschikbare modellen"
 
+#: src/handlers/llm/g4f_handler.py:45
+msgid "Update G4F"
+msgstr "G4F bijwerken"
+
+#: src/handlers/llm/newelle_handler.py:18
+#: src/handlers/llm/openai_handler.py:112
+#: src/handlers/llm/gemini_handler.py:131
+msgid "Privacy Policy"
+msgstr "Privacybeleid"
+
+#: src/handlers/llm/newelle_handler.py:19
+#: src/handlers/llm/openai_handler.py:112
+#: src/handlers/llm/gemini_handler.py:132
+msgid "Open privacy policy website"
+msgstr "Open website privacybeleid"
+
+#: src/handlers/llm/ollama_handler.py:152
+#: src/handlers/llm/gemini_handler.py:110
+msgid "Enable Thinking"
+msgstr "Denken inschakelen"
+
+#: src/handlers/llm/ollama_handler.py:152
+msgid "Allow thinking in the model, only some models are supported"
+msgstr ""
+"Denken in het model toestaan, slechts enkele modellen worden ondersteund"
+
+#: src/handlers/llm/ollama_handler.py:176
+msgid "Add custom model"
+msgstr "Aangepast model toevoegen"
+
+#: src/handlers/llm/ollama_handler.py:177
+msgid ""
+"Add any model to this list by putting name:size\n"
+"Or any gguf from hf with hf.co/username/model"
+msgstr ""
+"Voeg elk model toe aan deze lijst door naam:grootte te plaatsen\n"
+"Of een gguf van hf met hf.co/gebruikersnaam/model"
+
+#: src/handlers/llm/ollama_handler.py:187
+msgid "Update Ollama"
+msgstr "Ollama bijwerken"
+
+#: src/handlers/llm/openai_handler.py:81 src/handlers/llm/gemini_handler.py:135
+msgid "Advanced Parameters"
+msgstr "Geavanceerde parameters"
+
 #: src/handlers/llm/openai_handler.py:81
 msgid "Include parameters like Max Tokens, Top-P, Temperature, etc."
 msgstr "Inclusief parameters zoals Max Tokens, Top-P, Temperatuur, enz."
@@ -345,7 +285,8 @@ msgstr "Top-P"
 #: src/handlers/llm/openai_handler.py:104
 msgid "An alternative to sampling with temperature, called nucleus sampling"
 msgstr ""
-"Een alternatief voor bemonstering met temperatuur, genaamd nucleus-bemonstering"
+"Een alternatief voor bemonstering met temperatuur, genaamd nucleus-"
+"bemonstering"
 
 #: src/handlers/llm/openai_handler.py:105
 #: src/handlers/stt/whispercpp_handler.py:50
@@ -425,29 +366,93 @@ msgstr "Fallbacks toestaan"
 msgid "Allow fallbacks to other providers"
 msgstr "Fallbacks naar andere providers toestaan"
 
-#: src/handlers/llm/g4f_handler.py:45
-msgid "Update G4F"
-msgstr "G4F bijwerken"
+#: src/handlers/llm/gemini_handler.py:94
+msgid "API Key (required)"
+msgstr "API-sleutel (vereist)"
 
-#: src/handlers/llm/ollama_handler.py:152
-msgid "Allow thinking in the model, only some models are supported"
-msgstr "Denken in het model toestaan, slechts enkele modellen worden ondersteund"
+#: src/handlers/llm/gemini_handler.py:94
+msgid "API key got from ai.google.dev"
+msgstr "API-sleutel verkregen van ai.google.dev"
 
-#: src/handlers/llm/ollama_handler.py:176
-msgid "Add custom model"
-msgstr "Aangepast model toevoegen"
+#: src/handlers/llm/gemini_handler.py:98
+msgid "AI Model to use"
+msgstr "AI-model om te gebruiken"
 
-#: src/handlers/llm/ollama_handler.py:177
+#: src/handlers/llm/gemini_handler.py:103
+msgid "Enable System Prompt"
+msgstr "Systeemprompt inschakelen"
+
+#: src/handlers/llm/gemini_handler.py:103
 msgid ""
-"Add any model to this list by putting name:size\n"
-"Or any gguf from hf with hf.co/username/model"
+"Some models don't support system prompt (or developers instructions), "
+"disable it if you get errors about it"
 msgstr ""
-"Voeg elk model toe aan deze lijst door naam:grootte te plaatsen\n"
-"Of een gguf van hf met hf.co/gebruikersnaam/model"
+"Sommige modellen ondersteunen geen systeemprompt (of instructies voor "
+"ontwikkelaars), schakel deze uit als u hierdoor fouten krijgt"
 
-#: src/handlers/llm/ollama_handler.py:187
-msgid "Update Ollama"
-msgstr "Ollama bijwerken"
+#: src/handlers/llm/gemini_handler.py:107
+msgid "Inject system prompt"
+msgstr "Systeemprompt injecteren"
+
+#: src/handlers/llm/gemini_handler.py:107
+msgid ""
+"Even if the model doesn't support system prompts, put the prompts on top of "
+"the user message"
+msgstr ""
+"Zelfs als het model geen systeemprompts ondersteunt, plaats de prompts dan "
+"boven aan het gebruikersbericht"
+
+#: src/handlers/llm/gemini_handler.py:109
+#, fuzzy
+msgid "Thinking Settings"
+msgstr "Denkinstellingen"
+
+#: src/handlers/llm/gemini_handler.py:109
+msgid "Settings about thinking models"
+msgstr "Instellingen over denkmodellen"
+
+#: src/handlers/llm/gemini_handler.py:110
+msgid "Show thinking, disable it if your model does not support it"
+msgstr "Toon denken, schakel dit uit als uw model dit niet ondersteunt"
+
+#: src/handlers/llm/gemini_handler.py:111
+msgid "Enable Thinking Budget"
+msgstr "Denkbudget inschakelen"
+
+#: src/handlers/llm/gemini_handler.py:111
+msgid "If to enable thinking budget"
+msgstr "Als denkbudget ingeschakeld moet worden"
+
+#: src/handlers/llm/gemini_handler.py:112
+msgid "Thinking Budget"
+msgstr "Denkbudget"
+
+#: src/handlers/llm/gemini_handler.py:112
+msgid "How much time to spend thinking"
+msgstr "Hoeveel tijd te besteden aan denken"
+
+#: src/handlers/llm/gemini_handler.py:116
+msgid "Image Output"
+msgstr "Afbeeldingsuitvoer"
+
+#: src/handlers/llm/gemini_handler.py:116
+msgid "Enable image output, only supported by gemini-2.0-flash-exp"
+msgstr ""
+"Afbeeldingsuitvoer inschakelen, alleen ondersteund door gemini-2.0-flash-exp"
+
+#: src/handlers/llm/gemini_handler.py:125
+msgid "Enable safety settings"
+msgstr "Veiligheidsinstellingen inschakelen"
+
+#: src/handlers/llm/gemini_handler.py:126
+msgid "Enable google safety settings to avoid generating harmful content"
+msgstr ""
+"Schakel Google veiligheidsinstellingen in om te voorkomen dat schadelijke "
+"inhoud wordt gegenereerd"
+
+#: src/handlers/llm/gemini_handler.py:135
+msgid "Enable advanced parameters"
+msgstr "Geavanceerde parameters inschakelen"
 
 #: src/handlers/rag/rag_handler.py:104
 msgid "Index your documents"
@@ -555,7 +560,8 @@ msgid "Could not understand the audio"
 msgstr "Kon de audio niet begrijpen"
 
 #: src/handlers/stt/whispercpp_handler.py:47
-msgid "Language of the recognition."
+#, fuzzy
+msgid "Language of the recognition. For example en, it..."
 msgstr "Taal van de herkenning."
 
 #: src/handlers/stt/whispercpp_handler.py:48
@@ -661,7 +667,8 @@ msgstr ""
 #: src/handlers/tts/custom_handler.py:17
 #, python-brace-format
 msgid "{0} will be replaced with the file fullpath, {1} with the text"
-msgstr "{0} wordt vervangen door het volledige pad van het bestand, {1} door de tekst"
+msgstr ""
+"{0} wordt vervangen door het volledige pad van het bestand, {1} door de tekst"
 
 #: src/handlers/tts/tts.py:34
 msgid "Choose the preferred voice"
@@ -730,8 +737,8 @@ msgid ""
 "advanced."
 msgstr ""
 "Het aantal inhoudsfragmenten dat van elke bron moet worden opgehaald. De "
-"lengte van elk fragment is maximaal 500 tekens. Alleen beschikbaar wanneer de "
-"zoekdiepte geavanceerd is."
+"lengte van elk fragment is maximaal 500 tekens. Alleen beschikbaar wanneer "
+"de zoekdiepte geavanceerd is."
 
 #: src/handlers/websearch/tavily.py:25
 msgid "Number of days back from the current date to include"
@@ -760,7 +767,8 @@ msgstr "Ruwe inhoud opnemen"
 
 #: src/handlers/websearch/tavily.py:27
 msgid "Include the cleaned and parsed HTML content of each search result."
-msgstr "Inclusief de opgeschoonde en geparste HTML-inhoud van elk zoekresultaat."
+msgstr ""
+"Inclusief de opgeschoonde en geparste HTML-inhoud van elk zoekresultaat."
 
 #: src/handlers/websearch/tavily.py:28
 msgid "Include images"
@@ -768,7 +776,8 @@ msgstr "Afbeeldingen opnemen"
 
 #: src/handlers/websearch/tavily.py:28
 msgid "Perform an image search and include the results in the response."
-msgstr "Voer een afbeeldingenzoekopdracht uit en neem de resultaten op in de reactie."
+msgstr ""
+"Voer een afbeeldingenzoekopdracht uit en neem de resultaten op in de reactie."
 
 #: src/handlers/websearch/tavily.py:29
 msgid "Include image descriptions"
@@ -778,8 +787,8 @@ msgstr "Afbeeldingsbeschrijvingen opnemen"
 msgid ""
 "When Include images is enabled, also add a descriptive text for each image."
 msgstr ""
-"Wanneer 'Afbeeldingen opnemen' is ingeschakeld, voeg dan ook een beschrijvende "
-"tekst toe voor elke afbeelding."
+"Wanneer 'Afbeeldingen opnemen' is ingeschakeld, voeg dan ook een "
+"beschrijvende tekst toe voor elke afbeelding."
 
 #: src/handlers/websearch/tavily.py:30
 msgid "Include domains"
@@ -787,7 +796,9 @@ msgstr "Domeinen opnemen"
 
 #: src/handlers/websearch/tavily.py:30
 msgid "A list of domains to specifically include in the search results."
-msgstr "Een lijst met domeinen die specifiek moeten worden opgenomen in de zoekresultaten."
+msgstr ""
+"Een lijst met domeinen die specifiek moeten worden opgenomen in de "
+"zoekresultaten."
 
 #: src/handlers/websearch/tavily.py:31
 msgid "Exclude domains"
@@ -795,7 +806,9 @@ msgstr "Domeinen uitsluiten"
 
 #: src/handlers/websearch/tavily.py:31
 msgid "A list of domains to specifically exclude from the search results."
-msgstr "Een lijst met domeinen die specifiek moeten worden uitgesloten van de zoekresultaten."
+msgstr ""
+"Een lijst met domeinen die specifiek moeten worden uitgesloten van de "
+"zoekresultaten."
 
 #: src/handlers/websearch/duckduckgo_handler.py:15
 msgid "Region"
@@ -865,7 +878,9 @@ msgstr "Toepassen"
 
 #: src/ui/profile.py:116
 msgid "The settings of the current profile will be copied into the new one"
-msgstr "De instellingen van het huidige profiel worden gekopieerd naar het nieuwe profiel"
+msgstr ""
+"De instellingen van het huidige profiel worden gekopieerd naar het nieuwe "
+"profiel"
 
 #: src/ui/profile.py:122 src/ui/profile.py:128
 msgid "Newelle Profiles"
@@ -907,23 +922,23 @@ msgstr "Profiel verwijderen"
 msgid "Newelle Tips"
 msgstr "Newelle Tips"
 
-#: src/ui/widgets/thinking.py:27
+#: src/ui/widgets/thinking.py:26
 msgid "Thoughts"
 msgstr "Gedachten"
 
-#: src/ui/widgets/thinking.py:28 src/ui/widgets/thinking.py:135
+#: src/ui/widgets/thinking.py:27 src/ui/widgets/thinking.py:134
 msgid "Expand to see details"
 msgstr "Uitvouwen om details te zien"
 
-#: src/ui/widgets/thinking.py:123
+#: src/ui/widgets/thinking.py:122
 msgid "Thinking..."
 msgstr "Aan het denken..."
 
-#: src/ui/widgets/thinking.py:124
+#: src/ui/widgets/thinking.py:123
 msgid "The LLM is thinking... Expand to see thought process"
 msgstr "De LLM denkt na... Uitvouwen om denkproces te zien"
 
-#: src/ui/widgets/thinking.py:137
+#: src/ui/widgets/thinking.py:136
 msgid "No thought process recorded"
 msgstr "Geen denkproces vastgelegd"
 
@@ -1116,6 +1131,29 @@ msgstr "Inzoomen"
 msgid "Zoom out"
 msgstr "Uitzoomen"
 
+#: src/ui/extension.py:17 src/ui/presentation.py:131 src/constants.py:513
+#: src/window.py:118
+msgid "Extensions"
+msgstr "Extensies"
+
+#: src/ui/extension.py:50
+#, fuzzy
+msgid "Installed Extensions"
+msgstr "Geïnstalleerde extensies"
+
+#: src/ui/extension.py:85
+msgid "User guide to Extensions"
+msgstr "Gebruikershandleiding voor extensies"
+
+#: src/ui/extension.py:88
+#, fuzzy
+msgid "Download new Extensions"
+msgstr "Nieuwe extensies downloaden"
+
+#: src/ui/extension.py:91
+msgid "Install extension from file..."
+msgstr "Extensie installeren vanuit bestand..."
+
 #: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.appdata.xml.in:7
 #: data/io.github.qwersyk.Newelle.desktop.in:2
 msgid "Newelle"
@@ -1186,11 +1224,6 @@ msgstr ""
 "Standaard worden uw commando's <b>gevirtualiseerd in de Flatpak-omgeving</"
 "b>, maar let op!"
 
-#: src/ui/presentation.py:131 src/ui/extension.py:17 src/constants.py:513
-#: src/window.py:118
-msgid "Extensions"
-msgstr "Extensies"
-
 #: src/ui/presentation.py:132
 msgid "You can extend Newelle's functionalities using extensions!"
 msgstr "U kunt de functionaliteiten van Newelle uitbreiden met extensies!"
@@ -1218,24 +1251,6 @@ msgstr "Begin met het gebruiken van de app"
 #: src/ui/presentation.py:163
 msgid "Start chatting"
 msgstr "Begin met chatten"
-
-#: src/ui/extension.py:50
-#, fuzzy
-msgid "Installed Extensions"
-msgstr "Geïnstalleerde extensies"
-
-#: src/ui/extension.py:85
-msgid "User guide to Extensions"
-msgstr "Gebruikershandleiding voor extensies"
-
-#: src/ui/extension.py:88
-#, fuzzy
-msgid "Download new Extensions"
-msgstr "Nieuwe extensies downloaden"
-
-#: src/ui/extension.py:91
-msgid "Install extension from file..."
-msgstr "Extensie installeren vanuit bestand..."
 
 #: src/ui/settings.py:46 src/constants.py:523
 msgid "General"
@@ -1278,8 +1293,8 @@ msgstr "Secundair taalmodel"
 msgid ""
 "Model used for secondary tasks, like offer, chat name and memory generation"
 msgstr ""
-"Model gebruikt voor secundaire taken, zoals aanbod, chatnaam en geheugen"
-"generatie"
+"Model gebruikt voor secundaire taken, zoals aanbod, chatnaam en "
+"geheugengeneratie"
 
 #: src/ui/settings.py:93
 msgid "Embedding Model"
@@ -1379,9 +1394,9 @@ msgid ""
 "CTRL+ENTER. If disabled, messages will be sent with SHIFT+ENTER, and newline "
 "with enter"
 msgstr ""
-"Indien ingeschakeld, worden berichten verzonden met ENTER. Gebruik CTRL+ENTER "
-"voor een nieuwe regel. Indien uitgeschakeld, worden berichten verzonden met "
-"SHIFT+ENTER en een nieuwe regel met enter"
+"Indien ingeschakeld, worden berichten verzonden met ENTER. Gebruik "
+"CTRL+ENTER voor een nieuwe regel. Indien uitgeschakeld, worden berichten "
+"verzonden met SHIFT+ENTER en een nieuwe regel met enter"
 
 #: src/ui/settings.py:192
 msgid "Remove thinking from history"
@@ -1409,7 +1424,8 @@ msgstr "Chatvolgorde omkeren"
 
 #: src/ui/settings.py:204
 msgid "Show most recent chats on top in chat list (change chat to apply)"
-msgstr "Toon meest recente chats bovenaan in chatlijst (wijzig chat om toe te passen)"
+msgstr ""
+"Toon meest recente chats bovenaan in chatlijst (wijzig chat om toe te passen)"
 
 #: src/ui/settings.py:210
 msgid "Automatically Generate Chat Names"
@@ -1514,8 +1530,7 @@ msgid ""
 "Maximum number of commands that the bot will write after a single user "
 "request"
 msgstr ""
-"Maximaal aantal commando's dat de bot zal schrijven na één "
-"gebruikersverzoek"
+"Maximaal aantal commando's dat de bot zal schrijven na één gebruikersverzoek"
 
 #: src/ui/settings.py:328
 msgid "Browser"
@@ -1531,7 +1546,8 @@ msgstr "Externe browser gebruiken"
 
 #: src/ui/settings.py:333
 msgid "Use an external browser to open links instead of integrated one"
-msgstr "Gebruik een externe browser om links te openen in plaats van de geïntegreerde"
+msgstr ""
+"Gebruik een externe browser om links te openen in plaats van de geïntegreerde"
 
 #: src/ui/settings.py:340
 msgid "Persist browser session"
@@ -1569,7 +1585,9 @@ msgstr "Zoekreeks"
 #: src/ui/settings.py:359
 #, python-format
 msgid "The search string used in the browser, %s is replaced with the query"
-msgstr "De zoekreeks die in de browser wordt gebruikt, %s wordt vervangen door de zoekopdracht"
+msgstr ""
+"De zoekreeks die in de browser wordt gebruikt, %s wordt vervangen door de "
+"zoekopdracht"
 
 #: src/ui/settings.py:380
 msgid "Document Sources (RAG)"
@@ -1645,8 +1663,8 @@ msgid ""
 "Silence threshold in seconds, percentage of the volume to be considered "
 "silence"
 msgstr ""
-"Stiltegrens in seconden, percentage van het volume dat als stilte moet worden "
-"beschouwd"
+"Stiltegrens in seconden, percentage van het volume dat als stilte moet "
+"worden beschouwd"
 
 #: src/ui/settings.py:465
 msgid "Silence time"
@@ -1681,8 +1699,8 @@ msgid ""
 "The pip path has been deleted, you can now reinstall the dependencies. This "
 "operation requires a restart of the application."
 msgstr ""
-"Het pip-pad is verwijderd, u kunt nu de afhankelijkheden opnieuw installeren. "
-"Deze bewerking vereist een herstart van de applicatie."
+"Het pip-pad is verwijderd, u kunt nu de afhankelijkheden opnieuw "
+"installeren. Deze bewerking vereist een herstart van de applicatie."
 
 #: src/ui/stdout_monitor.py:48
 msgid "Clear output"
@@ -1726,8 +1744,8 @@ msgid ""
 "NO GPU SUPPORT, USE OLLAMA INSTEAD. Run a LLM model locally, more privacy "
 "but slower"
 msgstr ""
-"GEEN GPU ONDERSTEUNING, GEBRUIK OLLAMA IN PLAATS. Voer een LLM-model "
-"lokaal uit, meer privacy maar langzamer"
+"GEEN GPU ONDERSTEUNING, GEBRUIK OLLAMA IN PLAATS. Voer een LLM-model lokaal "
+"uit, meer privacy maar langzamer"
 
 #: src/constants.py:40
 msgid "Ollama Instance"
@@ -1751,7 +1769,9 @@ msgstr "OpenAI API"
 
 #: src/constants.py:61
 msgid "OpenAI API. Custom endpoints supported. Use this for custom providers"
-msgstr "OpenAI API. Aangepaste eindpunten ondersteund. Gebruik dit voor aangepaste providers"
+msgstr ""
+"OpenAI API. Aangepaste eindpunten ondersteund. Gebruik dit voor aangepaste "
+"providers"
 
 #: src/constants.py:66
 msgid "Anthropic Claude"
@@ -1804,7 +1824,8 @@ msgstr "Whisper C++"
 
 #: src/constants.py:105
 msgid "Works offline. Optimized Whisper impelementation written in C++"
-msgstr "Werkt offline. Geoptimaliseerde Whisper-implementatie geschreven in C++"
+msgstr ""
+"Werkt offline. Geoptimaliseerde Whisper-implementatie geschreven in C++"
 
 #: src/constants.py:111
 msgid "CMU Sphinx"
@@ -1832,8 +1853,7 @@ msgstr "Wit AI"
 
 #: src/constants.py:131
 msgid "wit.ai speech recognition free API (language chosen on the website)"
-msgstr ""
-"wit.ai spraakherkenning gratis API (taal gekozen op de website)"
+msgstr "wit.ai spraakherkenning gratis API (taal gekozen op de website)"
 
 #: src/constants.py:137
 msgid "Vosk API"
@@ -1916,7 +1936,8 @@ msgstr "Offline TTS"
 #: src/constants.py:204
 #, python-brace-format
 msgid "Use a custom command as TTS, {0} will be replaced with the text"
-msgstr "Gebruik een aangepast commando als TTS, {0} wordt vervangen door de tekst"
+msgstr ""
+"Gebruik een aangepast commando als TTS, {0} wordt vervangen door de tekst"
 
 #: src/constants.py:212
 msgid "WordLlama"
@@ -2142,7 +2163,8 @@ msgstr "Interface"
 
 #: src/constants.py:520
 msgid "Interface settings, hidden files, reverse order, zoom..."
-msgstr "Interface-instellingen, verborgen bestanden, omgekeerde volgorde, zoom..."
+msgstr ""
+"Interface-instellingen, verborgen bestanden, omgekeerde volgorde, zoom..."
 
 #: src/constants.py:525
 msgid ""
@@ -2155,10 +2177,6 @@ msgstr ""
 #: src/constants.py:530
 msgid "Prompts settings, custom extra prompt, custom prompts..."
 msgstr "Promptinstellingen, aangepaste extra prompt, aangepaste prompts..."
-
-#: src/controller.py:135 src/window.py:1846
-msgid "Chat "
-msgstr "Chat"
 
 #: src/main.py:205
 msgid "Terminal threads are still running in the background"
@@ -2297,7 +2315,8 @@ msgstr "Tekst naar spraak"
 
 #: src/window.py:592
 msgid "Newelle supports text-to-speech! Enable it in the settings"
-msgstr "Newelle ondersteunt tekst-naar-spraak! Schakel het in via de instellingen"
+msgstr ""
+"Newelle ondersteunt tekst-naar-spraak! Schakel het in via de instellingen"
 
 #: src/window.py:593
 #, fuzzy
@@ -2316,8 +2335,7 @@ msgstr "Promptbeheer"
 
 #: src/window.py:594
 msgid "Newelle gives you 100% prompt control. Tune your prompts for your use."
-msgstr ""
-"Newelle geeft u 100% promptbeheer. Stem uw prompts af op uw gebruik."
+msgstr "Newelle geeft u 100% promptbeheer. Stem uw prompts af op uw gebruik."
 
 #: src/window.py:595
 #, fuzzy
@@ -2335,7 +2353,9 @@ msgstr "Programmeerbare prompts"
 #: src/window.py:596
 msgid ""
 "You can add dynamic prompts to Newelle, with conditions and probabilities"
-msgstr "U kunt dynamische prompts aan Newelle toevoegen, met voorwaarden en waarschijnlijkheden"
+msgstr ""
+"U kunt dynamische prompts aan Newelle toevoegen, met voorwaarden en "
+"waarschijnlijkheden"
 
 #: src/window.py:603
 #, fuzzy
@@ -2413,6 +2433,10 @@ msgstr "U kunt het bericht niet meer voortzetten."
 #: src/window.py:1658
 msgid "You can no longer regenerate the message."
 msgstr "U kunt het bericht niet meer opnieuw genereren."
+
+#: src/window.py:1846 src/controller.py:135
+msgid "Chat "
+msgstr "Chat"
 
 #: src/window.py:1890
 msgid "Chat is cleared"
@@ -2650,7 +2674,9 @@ msgstr "ai;assistent;chat;chatgpt;gpt;llm;ollama;"
 #~ msgstr " is verwijderd"
 
 #~ msgid "Extension added. New extensions will run from the next launch"
-#~ msgstr "Extensie toegevoegd. Nieuwe extensies worden vanaf de volgende lancering uitgevoerd"
+#~ msgstr ""
+#~ "Extensie toegevoegd. Nieuwe extensies worden vanaf de volgende lancering "
+#~ "uitgevoerd"
 
 #~ msgid "The extension is wrong"
 #~ msgstr "De extensie is fout"
@@ -2662,4 +2688,5 @@ msgstr "ai;assistent;chat;chatgpt;gpt;llm;ollama;"
 #~ msgstr "De chat is gestopt"
 
 #~ msgid "The change will take effect after you restart the program."
-#~ msgstr "De wijziging wordt van kracht nadat u het programma opnieuw hebt gestart."
+#~ msgstr ""
+#~ "De wijziging wordt van kracht nadat u het programma opnieuw hebt gestart."

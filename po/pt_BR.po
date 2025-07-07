@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-02 02:15+0800\n"
+"POT-Creation-Date: 2025-07-06 02:35+0800\n"
 "PO-Revision-Date: 2025-07-03 09:00+0200\n"
 "Last-Translator: Yehor Hliebov <qsk@gmx.at>\n"
 "Language-Team: Brazilian Portuguese <qsk@gmx.at>\n"
@@ -13,13 +13,13 @@ msgstr ""
 
 #: src/handlers/embeddings/ollama_handler.py:32
 #: src/handlers/embeddings/openai_handler.py:38
-#: src/handlers/llm/openai_handler.py:75 src/handlers/llm/ollama_handler.py:150
+#: src/handlers/llm/ollama_handler.py:150 src/handlers/llm/openai_handler.py:75
 #: src/handlers/stt/openaisr_handler.py:10
 msgid "API Endpoint"
 msgstr "Endpoint da API"
 
 #: src/handlers/embeddings/ollama_handler.py:32
-#: src/handlers/llm/openai_handler.py:75 src/handlers/llm/ollama_handler.py:150
+#: src/handlers/llm/ollama_handler.py:150 src/handlers/llm/openai_handler.py:75
 msgid "API base url, change this to use interference APIs"
 msgstr "URL base da API, altere isso para usar APIs de inferência"
 
@@ -44,8 +44,8 @@ msgstr "Modelo Personalizado"
 
 #: src/handlers/embeddings/ollama_handler.py:34
 #: src/handlers/embeddings/openai_handler.py:41
-#: src/handlers/llm/claude_handler.py:85 src/handlers/llm/openai_handler.py:78
-#: src/handlers/llm/ollama_handler.py:153
+#: src/handlers/llm/claude_handler.py:85 src/handlers/llm/ollama_handler.py:153
+#: src/handlers/llm/openai_handler.py:78
 msgid "Use a custom model"
 msgstr "Usar um modelo personalizado"
 
@@ -91,8 +91,8 @@ msgstr "Usar Modelo Personalizado"
 
 #: src/handlers/embeddings/openai_handler.py:44
 #: src/handlers/llm/claude_handler.py:89 src/handlers/llm/claude_handler.py:93
-#: src/handlers/llm/gemini_handler.py:97 src/handlers/llm/openai_handler.py:84
-#: src/handlers/llm/g4f_handler.py:44 src/handlers/stt/whisper_handler.py:15
+#: src/handlers/llm/g4f_handler.py:44 src/handlers/llm/openai_handler.py:84
+#: src/handlers/llm/gemini_handler.py:97 src/handlers/stt/whisper_handler.py:15
 #: src/handlers/stt/whispercpp_handler.py:40
 #: src/handlers/tts/custom_openai_tts.py:20
 #: src/handlers/tts/elevenlabs_handler.py:24
@@ -132,15 +132,17 @@ msgstr "Máximo de Tokens"
 msgid "The maximum number of tokens to generate"
 msgstr "O número máximo de tokens para gerar"
 
-#: src/handlers/llm/custom_handler.py:20 src/handlers/llm/gemini_handler.py:119
+#: src/handlers/llm/custom_handler.py:20
 #: src/handlers/llm/gpt4all_handler.py:153
-#: src/handlers/llm/newelle_handler.py:27 src/utility/util.py:136
+#: src/handlers/llm/newelle_handler.py:27
+#: src/handlers/llm/gemini_handler.py:119 src/utility/util.py:136
 msgid "Message Streaming"
 msgstr "Transmissão de Mensagens"
 
-#: src/handlers/llm/custom_handler.py:20 src/handlers/llm/gemini_handler.py:120
+#: src/handlers/llm/custom_handler.py:20
 #: src/handlers/llm/gpt4all_handler.py:153
-#: src/handlers/llm/newelle_handler.py:28 src/utility/util.py:137
+#: src/handlers/llm/newelle_handler.py:28
+#: src/handlers/llm/gemini_handler.py:120 src/utility/util.py:137
 msgid "Gradually stream message output"
 msgstr "Transmita gradualmente a saída da mensagem"
 
@@ -174,113 +176,6 @@ msgstr ""
 "número de sugestões a serem geradas. Deve retornar um array JSON contendo as "
 "sugestões como strings"
 
-#: src/handlers/llm/gemini_handler.py:94
-msgid "API Key (required)"
-msgstr "Chave da API (obrigatória)"
-
-#: src/handlers/llm/gemini_handler.py:94
-msgid "API key got from ai.google.dev"
-msgstr "Chave da API obtida de ai.google.dev"
-
-#: src/handlers/llm/gemini_handler.py:98
-msgid "AI Model to use"
-msgstr "Modelo de IA a ser usado"
-
-#: src/handlers/llm/gemini_handler.py:103
-msgid "Enable System Prompt"
-msgstr "Habilitar Prompt do Sistema"
-
-#: src/handlers/llm/gemini_handler.py:103
-msgid ""
-"Some models don't support system prompt (or developers instructions), "
-"disable it if you get errors about it"
-msgstr ""
-"Alguns modelos não suportam o prompt do sistema (ou instruções do "
-"desenvolvedor), desative-o se você receber erros sobre isso"
-
-#: src/handlers/llm/gemini_handler.py:107
-msgid "Inject system prompt"
-msgstr "Injetar prompt do sistema"
-
-#: src/handlers/llm/gemini_handler.py:107
-msgid ""
-"Even if the model doesn't support system prompts, put the prompts on top of "
-"the user message"
-msgstr ""
-"Mesmo que o modelo não suporte prompts do sistema, coloque os prompts no topo"
-" da mensagem do usuário"
-
-#: src/handlers/llm/gemini_handler.py:109
-msgid "Thinking Settings"
-msgstr "Configurações de Pensamento"
-
-#: src/handlers/llm/gemini_handler.py:109
-msgid "Settings about thinking models"
-msgstr "Configurações sobre modelos de pensamento"
-
-#: src/handlers/llm/gemini_handler.py:110
-#: src/handlers/llm/ollama_handler.py:152
-msgid "Enable Thinking"
-msgstr "Habilitar Pensamento"
-
-#: src/handlers/llm/gemini_handler.py:110
-msgid "Show thinking, disable it if your model does not support it"
-msgstr "Mostrar pensamento, desative se o seu modelo não suportar"
-
-#: src/handlers/llm/gemini_handler.py:111
-msgid "Enable Thinking Budget"
-msgstr "Habilitar Orçamento de Pensamento"
-
-#: src/handlers/llm/gemini_handler.py:111
-msgid "If to enable thinking budget"
-msgstr "Se deve habilitar o orçamento de pensamento"
-
-#: src/handlers/llm/gemini_handler.py:112
-msgid "Thinking Budget"
-msgstr "Orçamento de Pensamento"
-
-#: src/handlers/llm/gemini_handler.py:112
-msgid "How much time to spend thinking"
-msgstr "Quanto tempo gastar pensando"
-
-#: src/handlers/llm/gemini_handler.py:116
-msgid "Image Output"
-msgstr "Saída de Imagem"
-
-#: src/handlers/llm/gemini_handler.py:116
-msgid "Enable image output, only supported by gemini-2.0-flash-exp"
-msgstr "Habilitar saída de imagem, apenas suportado por gemini-2.0-flash-exp"
-
-#: src/handlers/llm/gemini_handler.py:125
-msgid "Enable safety settings"
-msgstr "Habilitar configurações de segurança"
-
-#: src/handlers/llm/gemini_handler.py:126
-msgid "Enable google safety settings to avoid generating harmful content"
-msgstr ""
-"Habilite as configurações de segurança do Google para evitar a geração de "
-"conteúdo prejudicial"
-
-#: src/handlers/llm/gemini_handler.py:131
-#: src/handlers/llm/openai_handler.py:112
-#: src/handlers/llm/newelle_handler.py:18
-msgid "Privacy Policy"
-msgstr "Política de Privacidade"
-
-#: src/handlers/llm/gemini_handler.py:132
-#: src/handlers/llm/openai_handler.py:112
-#: src/handlers/llm/newelle_handler.py:19
-msgid "Open privacy policy website"
-msgstr "Abrir site da política de privacidade"
-
-#: src/handlers/llm/gemini_handler.py:135 src/handlers/llm/openai_handler.py:81
-msgid "Advanced Parameters"
-msgstr "Parâmetros Avançados"
-
-#: src/handlers/llm/gemini_handler.py:135
-msgid "Enable advanced parameters"
-msgstr "Habilitar parâmetros avançados"
-
 #: src/handlers/llm/gpt4all_handler.py:67
 msgid "RAM Required: "
 msgstr "RAM Necessária: "
@@ -312,6 +207,51 @@ msgstr "Gerenciador de Modelos"
 msgid "List of models available"
 msgstr "Lista de modelos disponíveis"
 
+#: src/handlers/llm/g4f_handler.py:45
+msgid "Update G4F"
+msgstr "Atualizar G4F"
+
+#: src/handlers/llm/newelle_handler.py:18
+#: src/handlers/llm/openai_handler.py:112
+#: src/handlers/llm/gemini_handler.py:131
+msgid "Privacy Policy"
+msgstr "Política de Privacidade"
+
+#: src/handlers/llm/newelle_handler.py:19
+#: src/handlers/llm/openai_handler.py:112
+#: src/handlers/llm/gemini_handler.py:132
+msgid "Open privacy policy website"
+msgstr "Abrir site da política de privacidade"
+
+#: src/handlers/llm/ollama_handler.py:152
+#: src/handlers/llm/gemini_handler.py:110
+msgid "Enable Thinking"
+msgstr "Habilitar Pensamento"
+
+#: src/handlers/llm/ollama_handler.py:152
+msgid "Allow thinking in the model, only some models are supported"
+msgstr "Permitir pensar no modelo, apenas alguns modelos são suportados"
+
+#: src/handlers/llm/ollama_handler.py:176
+msgid "Add custom model"
+msgstr "Adicionar modelo personalizado"
+
+#: src/handlers/llm/ollama_handler.py:177
+msgid ""
+"Add any model to this list by putting name:size\n"
+"Or any gguf from hf with hf.co/username/model"
+msgstr ""
+"Adicione qualquer modelo a esta lista digitando nome:tamanho\n"
+"Ou qualquer gguf de hf com hf.co/username/model"
+
+#: src/handlers/llm/ollama_handler.py:187
+msgid "Update Ollama"
+msgstr "Atualizar Ollama"
+
+#: src/handlers/llm/openai_handler.py:81 src/handlers/llm/gemini_handler.py:135
+msgid "Advanced Parameters"
+msgstr "Parâmetros Avançados"
+
 #: src/handlers/llm/openai_handler.py:81
 msgid "Include parameters like Max Tokens, Top-P, Temperature, etc."
 msgstr "Incluir parâmetros como Max Tokens, Top-P, Temperatura, etc."
@@ -334,7 +274,8 @@ msgstr "Top-P"
 
 #: src/handlers/llm/openai_handler.py:104
 msgid "An alternative to sampling with temperature, called nucleus sampling"
-msgstr "Uma alternativa à amostragem com temperatura, chamada amostragem de núcleo"
+msgstr ""
+"Uma alternativa à amostragem com temperatura, chamada amostragem de núcleo"
 
 #: src/handlers/llm/openai_handler.py:105
 #: src/handlers/stt/whispercpp_handler.py:50
@@ -402,8 +343,8 @@ msgid ""
 "Add order of providers to use, names separated by a comma.\n"
 "Empty to not specify"
 msgstr ""
-"Adicione a ordem dos provedores a serem usados, nomes separados por vírgula."
-"\n"
+"Adicione a ordem dos provedores a serem usados, nomes separados por "
+"vírgula.\n"
 "Deixe em branco para não especificar"
 
 #: src/handlers/llm/openrouter_handler.py:16
@@ -414,29 +355,91 @@ msgstr "Permitir Fallbacks"
 msgid "Allow fallbacks to other providers"
 msgstr "Permitir fallbacks para outros provedores"
 
-#: src/handlers/llm/g4f_handler.py:45
-msgid "Update G4F"
-msgstr "Atualizar G4F"
+#: src/handlers/llm/gemini_handler.py:94
+msgid "API Key (required)"
+msgstr "Chave da API (obrigatória)"
 
-#: src/handlers/llm/ollama_handler.py:152
-msgid "Allow thinking in the model, only some models are supported"
-msgstr "Permitir pensar no modelo, apenas alguns modelos são suportados"
+#: src/handlers/llm/gemini_handler.py:94
+msgid "API key got from ai.google.dev"
+msgstr "Chave da API obtida de ai.google.dev"
 
-#: src/handlers/llm/ollama_handler.py:176
-msgid "Add custom model"
-msgstr "Adicionar modelo personalizado"
+#: src/handlers/llm/gemini_handler.py:98
+msgid "AI Model to use"
+msgstr "Modelo de IA a ser usado"
 
-#: src/handlers/llm/ollama_handler.py:177
+#: src/handlers/llm/gemini_handler.py:103
+msgid "Enable System Prompt"
+msgstr "Habilitar Prompt do Sistema"
+
+#: src/handlers/llm/gemini_handler.py:103
 msgid ""
-"Add any model to this list by putting name:size\n"
-"Or any gguf from hf with hf.co/username/model"
+"Some models don't support system prompt (or developers instructions), "
+"disable it if you get errors about it"
 msgstr ""
-"Adicione qualquer modelo a esta lista digitando nome:tamanho\n"
-"Ou qualquer gguf de hf com hf.co/username/model"
+"Alguns modelos não suportam o prompt do sistema (ou instruções do "
+"desenvolvedor), desative-o se você receber erros sobre isso"
 
-#: src/handlers/llm/ollama_handler.py:187
-msgid "Update Ollama"
-msgstr "Atualizar Ollama"
+#: src/handlers/llm/gemini_handler.py:107
+msgid "Inject system prompt"
+msgstr "Injetar prompt do sistema"
+
+#: src/handlers/llm/gemini_handler.py:107
+msgid ""
+"Even if the model doesn't support system prompts, put the prompts on top of "
+"the user message"
+msgstr ""
+"Mesmo que o modelo não suporte prompts do sistema, coloque os prompts no "
+"topo da mensagem do usuário"
+
+#: src/handlers/llm/gemini_handler.py:109
+msgid "Thinking Settings"
+msgstr "Configurações de Pensamento"
+
+#: src/handlers/llm/gemini_handler.py:109
+msgid "Settings about thinking models"
+msgstr "Configurações sobre modelos de pensamento"
+
+#: src/handlers/llm/gemini_handler.py:110
+msgid "Show thinking, disable it if your model does not support it"
+msgstr "Mostrar pensamento, desative se o seu modelo não suportar"
+
+#: src/handlers/llm/gemini_handler.py:111
+msgid "Enable Thinking Budget"
+msgstr "Habilitar Orçamento de Pensamento"
+
+#: src/handlers/llm/gemini_handler.py:111
+msgid "If to enable thinking budget"
+msgstr "Se deve habilitar o orçamento de pensamento"
+
+#: src/handlers/llm/gemini_handler.py:112
+msgid "Thinking Budget"
+msgstr "Orçamento de Pensamento"
+
+#: src/handlers/llm/gemini_handler.py:112
+msgid "How much time to spend thinking"
+msgstr "Quanto tempo gastar pensando"
+
+#: src/handlers/llm/gemini_handler.py:116
+msgid "Image Output"
+msgstr "Saída de Imagem"
+
+#: src/handlers/llm/gemini_handler.py:116
+msgid "Enable image output, only supported by gemini-2.0-flash-exp"
+msgstr "Habilitar saída de imagem, apenas suportado por gemini-2.0-flash-exp"
+
+#: src/handlers/llm/gemini_handler.py:125
+msgid "Enable safety settings"
+msgstr "Habilitar configurações de segurança"
+
+#: src/handlers/llm/gemini_handler.py:126
+msgid "Enable google safety settings to avoid generating harmful content"
+msgstr ""
+"Habilite as configurações de segurança do Google para evitar a geração de "
+"conteúdo prejudicial"
+
+#: src/handlers/llm/gemini_handler.py:135
+msgid "Enable advanced parameters"
+msgstr "Habilitar parâmetros avançados"
 
 #: src/handlers/rag/rag_handler.py:104
 msgid "Index your documents"
@@ -542,7 +545,8 @@ msgid "Could not understand the audio"
 msgstr "Não foi possível entender o áudio"
 
 #: src/handlers/stt/whispercpp_handler.py:47
-msgid "Language of the recognition."
+#, fuzzy
+msgid "Language of the recognition. For example en, it..."
 msgstr "Idioma do reconhecimento."
 
 #: src/handlers/stt/whispercpp_handler.py:48
@@ -742,7 +746,8 @@ msgstr "Incluir conteúdo bruto"
 
 #: src/handlers/websearch/tavily.py:27
 msgid "Include the cleaned and parsed HTML content of each search result."
-msgstr "Inclua o conteúdo HTML limpo e analisado de cada resultado de pesquisa."
+msgstr ""
+"Inclua o conteúdo HTML limpo e analisado de cada resultado de pesquisa."
 
 #: src/handlers/websearch/tavily.py:28
 msgid "Include images"
@@ -769,7 +774,9 @@ msgstr "Incluir domínios"
 
 #: src/handlers/websearch/tavily.py:30
 msgid "A list of domains to specifically include in the search results."
-msgstr "Uma lista de domínios para incluir especificamente nos resultados da pesquisa."
+msgstr ""
+"Uma lista de domínios para incluir especificamente nos resultados da "
+"pesquisa."
 
 #: src/handlers/websearch/tavily.py:31
 msgid "Exclude domains"
@@ -777,7 +784,9 @@ msgstr "Excluir domínios"
 
 #: src/handlers/websearch/tavily.py:31
 msgid "A list of domains to specifically exclude from the search results."
-msgstr "Uma lista de domínios para excluir especificamente dos resultados da pesquisa."
+msgstr ""
+"Uma lista de domínios para excluir especificamente dos resultados da "
+"pesquisa."
 
 #: src/handlers/websearch/duckduckgo_handler.py:15
 msgid "Region"
@@ -887,23 +896,23 @@ msgstr "Excluir Perfil"
 msgid "Newelle Tips"
 msgstr "Dicas do Newelle"
 
-#: src/ui/widgets/thinking.py:27
+#: src/ui/widgets/thinking.py:26
 msgid "Thoughts"
 msgstr "Pensamentos"
 
-#: src/ui/widgets/thinking.py:28 src/ui/widgets/thinking.py:135
+#: src/ui/widgets/thinking.py:27 src/ui/widgets/thinking.py:134
 msgid "Expand to see details"
 msgstr "Expandir para ver detalhes"
 
-#: src/ui/widgets/thinking.py:123
+#: src/ui/widgets/thinking.py:122
 msgid "Thinking..."
 msgstr "Pensando..."
 
-#: src/ui/widgets/thinking.py:124
+#: src/ui/widgets/thinking.py:123
 msgid "The LLM is thinking... Expand to see thought process"
 msgstr "O LLM está pensando... Expanda para ver o processo de pensamento"
 
-#: src/ui/widgets/thinking.py:137
+#: src/ui/widgets/thinking.py:136
 msgid "No thought process recorded"
 msgstr "Nenhum processo de pensamento registrado"
 
@@ -1085,6 +1094,27 @@ msgstr "Aumentar zoom"
 msgid "Zoom out"
 msgstr "Diminuir zoom"
 
+#: src/ui/extension.py:17 src/ui/presentation.py:131 src/constants.py:513
+#: src/window.py:118
+msgid "Extensions"
+msgstr "Extensões"
+
+#: src/ui/extension.py:50
+msgid "Installed Extensions"
+msgstr "Extensões Instaladas"
+
+#: src/ui/extension.py:85
+msgid "User guide to Extensions"
+msgstr "Guia do usuário para Extensões"
+
+#: src/ui/extension.py:88
+msgid "Download new Extensions"
+msgstr "Baixar novas Extensões"
+
+#: src/ui/extension.py:91
+msgid "Install extension from file..."
+msgstr "Instalar extensão de arquivo..."
+
 #: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.appdata.xml.in:7
 #: data/io.github.qwersyk.Newelle.desktop.in:2
 msgid "Newelle"
@@ -1151,13 +1181,8 @@ msgstr ""
 "O Newelle pode ser usado para executar comandos no seu sistema, mas preste "
 "atenção no que você executa! <b>O LLM não está sob nosso controle, então "
 "pode gerar código malicioso!</b>\n"
-"Por padrão, seus comandos serão <b>virtualizados no ambiente Flatpak</b>, mas "
-"preste atenção!"
-
-#: src/ui/presentation.py:131 src/ui/extension.py:17 src/constants.py:513
-#: src/window.py:118
-msgid "Extensions"
-msgstr "Extensões"
+"Por padrão, seus comandos serão <b>virtualizados no ambiente Flatpak</b>, "
+"mas preste atenção!"
 
 #: src/ui/presentation.py:132
 msgid "You can extend Newelle's functionalities using extensions!"
@@ -1174,7 +1199,9 @@ msgstr "Erro de Permissão"
 #: src/ui/presentation.py:147
 msgid ""
 "Newelle does not have enough permissions to run commands on your system."
-msgstr "O Newelle não tem permissões suficientes para executar comandos no seu sistema."
+msgstr ""
+"O Newelle não tem permissões suficientes para executar comandos no seu "
+"sistema."
 
 #: src/ui/presentation.py:158
 msgid "Begin using the app"
@@ -1183,22 +1210,6 @@ msgstr "Comece a usar o aplicativo"
 #: src/ui/presentation.py:163
 msgid "Start chatting"
 msgstr "Começar a conversar"
-
-#: src/ui/extension.py:50
-msgid "Installed Extensions"
-msgstr "Extensões Instaladas"
-
-#: src/ui/extension.py:85
-msgid "User guide to Extensions"
-msgstr "Guia do usuário para Extensões"
-
-#: src/ui/extension.py:88
-msgid "Download new Extensions"
-msgstr "Baixar novas Extensões"
-
-#: src/ui/extension.py:91
-msgid "Install extension from file..."
-msgstr "Instalar extensão de arquivo..."
 
 #: src/ui/settings.py:46 src/constants.py:523
 msgid "General"
@@ -1368,7 +1379,9 @@ msgstr "Inverter Ordem do Chat"
 
 #: src/ui/settings.py:204
 msgid "Show most recent chats on top in chat list (change chat to apply)"
-msgstr "Mostrar os chats mais recentes no topo da lista de chats (alterar chat para aplicar)"
+msgstr ""
+"Mostrar os chats mais recentes no topo da lista de chats (alterar chat para "
+"aplicar)"
 
 #: src/ui/settings.py:210
 msgid "Automatically Generate Chat Names"
@@ -1525,7 +1538,8 @@ msgstr "String de pesquisa"
 #: src/ui/settings.py:359
 #, python-format
 msgid "The search string used in the browser, %s is replaced with the query"
-msgstr "A string de pesquisa usada no navegador, %s é substituído pela consulta"
+msgstr ""
+"A string de pesquisa usada no navegador, %s é substituído pela consulta"
 
 #: src/ui/settings.py:380
 msgid "Document Sources (RAG)"
@@ -1610,7 +1624,8 @@ msgstr "Tempo de silêncio"
 
 #: src/ui/settings.py:465
 msgid "Silence time in seconds before recording stops automatically"
-msgstr "Tempo de silêncio em segundos antes que a gravação pare automaticamente"
+msgstr ""
+"Tempo de silêncio em segundos antes que a gravação pare automaticamente"
 
 #: src/ui/settings.py:1044
 msgid "Not enough permissions"
@@ -1682,8 +1697,8 @@ msgid ""
 "NO GPU SUPPORT, USE OLLAMA INSTEAD. Run a LLM model locally, more privacy "
 "but slower"
 msgstr ""
-"SEM SUPORTE A GPU, USE OLLAMA EM VEZ DISSO. Execute um modelo LLM localmente,"
-" mais privacidade, mas mais lento"
+"SEM SUPORTE A GPU, USE OLLAMA EM VEZ DISSO. Execute um modelo LLM "
+"localmente, mais privacidade, mas mais lento"
 
 #: src/constants.py:40
 msgid "Ollama Instance"
@@ -1707,7 +1722,9 @@ msgstr "API OpenAI"
 
 #: src/constants.py:61
 msgid "OpenAI API. Custom endpoints supported. Use this for custom providers"
-msgstr "API OpenAI. Endpoints personalizados suportados. Use para provedores personalizados"
+msgstr ""
+"API OpenAI. Endpoints personalizados suportados. Use para provedores "
+"personalizados"
 
 #: src/constants.py:66
 msgid "Anthropic Claude"
@@ -1787,7 +1804,8 @@ msgstr "Wit AI"
 
 #: src/constants.py:131
 msgid "wit.ai speech recognition free API (language chosen on the website)"
-msgstr "API gratuita de reconhecimento de fala wit.ai (idioma escolhido no site)"
+msgstr ""
+"API gratuita de reconhecimento de fala wit.ai (idioma escolhido no site)"
 
 #: src/constants.py:137
 msgid "Vosk API"
@@ -1968,7 +1986,9 @@ msgstr "Assistente útil"
 
 #: src/constants.py:376
 msgid "General purpose prompt to enhance the LLM answers and give more context"
-msgstr "Prompt de uso geral para aprimorar as respostas do LLM e fornecer mais contexto"
+msgstr ""
+"Prompt de uso geral para aprimorar as respostas do LLM e fornecer mais "
+"contexto"
 
 #: src/constants.py:384
 msgid "Console access"
@@ -2096,11 +2116,9 @@ msgstr ""
 
 #: src/constants.py:530
 msgid "Prompts settings, custom extra prompt, custom prompts..."
-msgstr "Configurações de prompts, prompt extra personalizado, prompts personalizados..."
-
-#: src/controller.py:135 src/window.py:1846
-msgid "Chat "
-msgstr "Chat "
+msgstr ""
+"Configurações de prompts, prompt extra personalizado, prompts "
+"personalizados..."
 
 #: src/main.py:205
 msgid "Terminal threads are still running in the background"
@@ -2188,7 +2206,8 @@ msgstr "Perguntar sobre um site"
 
 #: src/window.py:587
 msgid "Write #https://website.com in chat to ask information about a website"
-msgstr "Escreva #https://site.com no chat para perguntar informações sobre um site"
+msgstr ""
+"Escreva #https://site.com no chat para perguntar informações sobre um site"
 
 #: src/window.py:588
 msgid "Check out our Extensions!"
@@ -2252,7 +2271,8 @@ msgstr "Controle de Prompt"
 
 #: src/window.py:594
 msgid "Newelle gives you 100% prompt control. Tune your prompts for your use."
-msgstr "Newelle oferece 100% de controle de prompt. Ajuste seus prompts para seu uso."
+msgstr ""
+"Newelle oferece 100% de controle de prompt. Ajuste seus prompts para seu uso."
 
 #: src/window.py:595
 msgid "Thread Editing"
@@ -2349,6 +2369,10 @@ msgstr "Você não pode mais continuar a mensagem."
 msgid "You can no longer regenerate the message."
 msgstr "Você não pode mais regenerar a mensagem."
 
+#: src/window.py:1846 src/controller.py:135
+msgid "Chat "
+msgstr "Chat "
+
 #: src/window.py:1890
 msgid "Chat is cleared"
 msgstr "O chat foi limpo"
@@ -2363,7 +2387,8 @@ msgstr "A mensagem não pode ser enviada até que o programa termine"
 
 #: src/window.py:2936
 msgid "You can't edit a message while the program is running."
-msgstr "Você não pode editar uma mensagem enquanto o programa está em execução."
+msgstr ""
+"Você não pode editar uma mensagem enquanto o programa está em execução."
 
 #: src/window.py:3061
 msgid "Prompt content"
@@ -2531,9 +2556,9 @@ msgid ""
 "extension architecture, added new models, and introduced vision support, "
 "along with more capabilities."
 msgstr ""
-"Correções de bugs e novas funcionalidades foram implementadas. Modificamos a"
-" arquitetura das extensões, adicionamos novos modelos e introduzimos "
-"suporte à visão, juntamente com mais recursos."
+"Correções de bugs e novas funcionalidades foram implementadas. Modificamos a "
+"arquitetura das extensões, adicionamos novos modelos e introduzimos suporte "
+"à visão, juntamente com mais recursos."
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:148
 msgid "Stable version"
