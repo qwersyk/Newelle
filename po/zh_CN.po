@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-02 02:15+0800\n"
+"POT-Creation-Date: 2025-07-06 02:35+0800\n"
 "PO-Revision-Date: 2025-07-03 09:00+0200\n"
 "Last-Translator: Yehor Hliebov <qsk@gmx.at>\n"
 "Language-Team: Chinese Simplified <qsk@gmx.at>\n"
@@ -13,13 +13,13 @@ msgstr ""
 
 #: src/handlers/embeddings/ollama_handler.py:32
 #: src/handlers/embeddings/openai_handler.py:38
-#: src/handlers/llm/openai_handler.py:75 src/handlers/llm/ollama_handler.py:150
+#: src/handlers/llm/ollama_handler.py:150 src/handlers/llm/openai_handler.py:75
 #: src/handlers/stt/openaisr_handler.py:10
 msgid "API Endpoint"
 msgstr "API 端点"
 
 #: src/handlers/embeddings/ollama_handler.py:32
-#: src/handlers/llm/openai_handler.py:75 src/handlers/llm/ollama_handler.py:150
+#: src/handlers/llm/ollama_handler.py:150 src/handlers/llm/openai_handler.py:75
 msgid "API base url, change this to use interference APIs"
 msgstr "API 基础 URL，更改此项以使用推理 API"
 
@@ -33,7 +33,9 @@ msgstr "自动服务"
 msgid ""
 "Automatically run ollama serve in background when needed if it's not "
 "running. You can kill it with killall ollama"
-msgstr "如果 Ollama 未运行，则在需要时自动在后台运行 ollama serve。您可以使用 killall ollama 终止它"
+msgstr ""
+"如果 Ollama 未运行，则在需要时自动在后台运行 ollama serve。您可以使用 "
+"killall ollama 终止它"
 
 #: src/handlers/embeddings/ollama_handler.py:34
 #: src/handlers/llm/ollama_handler.py:153
@@ -42,8 +44,8 @@ msgstr "自定义模型"
 
 #: src/handlers/embeddings/ollama_handler.py:34
 #: src/handlers/embeddings/openai_handler.py:41
-#: src/handlers/llm/claude_handler.py:85 src/handlers/llm/openai_handler.py:78
-#: src/handlers/llm/ollama_handler.py:153
+#: src/handlers/llm/claude_handler.py:85 src/handlers/llm/ollama_handler.py:153
+#: src/handlers/llm/openai_handler.py:78
 msgid "Use a custom model"
 msgstr "使用自定义模型"
 
@@ -89,8 +91,8 @@ msgstr "使用自定义模型"
 
 #: src/handlers/embeddings/openai_handler.py:44
 #: src/handlers/llm/claude_handler.py:89 src/handlers/llm/claude_handler.py:93
-#: src/handlers/llm/gemini_handler.py:97 src/handlers/llm/openai_handler.py:84
-#: src/handlers/llm/g4f_handler.py:44 src/handlers/stt/whisper_handler.py:15
+#: src/handlers/llm/g4f_handler.py:44 src/handlers/llm/openai_handler.py:84
+#: src/handlers/llm/gemini_handler.py:97 src/handlers/stt/whisper_handler.py:15
 #: src/handlers/stt/whispercpp_handler.py:40
 #: src/handlers/tts/custom_openai_tts.py:20
 #: src/handlers/tts/elevenlabs_handler.py:24
@@ -130,15 +132,17 @@ msgstr "最大令牌"
 msgid "The maximum number of tokens to generate"
 msgstr "要生成的最大令牌数"
 
-#: src/handlers/llm/custom_handler.py:20 src/handlers/llm/gemini_handler.py:119
+#: src/handlers/llm/custom_handler.py:20
 #: src/handlers/llm/gpt4all_handler.py:153
-#: src/handlers/llm/newelle_handler.py:27 src/utility/util.py:136
+#: src/handlers/llm/newelle_handler.py:27
+#: src/handlers/llm/gemini_handler.py:119 src/utility/util.py:136
 msgid "Message Streaming"
 msgstr "消息流"
 
-#: src/handlers/llm/custom_handler.py:20 src/handlers/llm/gemini_handler.py:120
+#: src/handlers/llm/custom_handler.py:20
 #: src/handlers/llm/gpt4all_handler.py:153
-#: src/handlers/llm/newelle_handler.py:28 src/utility/util.py:137
+#: src/handlers/llm/newelle_handler.py:28
+#: src/handlers/llm/gemini_handler.py:120 src/utility/util.py:137
 msgid "Gradually stream message output"
 msgstr "逐步流式传输消息输出"
 
@@ -151,7 +155,9 @@ msgstr "执行命令以获取机器人输出"
 msgid ""
 "Command to execute to get bot response, {0} will be replaced with a JSON "
 "file containing the chat, {1} with the system prompt"
-msgstr "执行命令以获取机器人响应，{0} 将替换为包含聊天的 JSON 文件，{1} 将替换为系统提示"
+msgstr ""
+"执行命令以获取机器人响应，{0} 将替换为包含聊天的 JSON 文件，{1} 将替换为系统"
+"提示"
 
 #: src/handlers/llm/custom_handler.py:22
 msgid "Command to execute to get bot's suggestions"
@@ -164,108 +170,9 @@ msgid ""
 "file containing the chat, {1} with the extra prompts, {2} with the numer of "
 "suggestions to generate. Must return a JSON array containing the suggestions "
 "as strings"
-msgstr "执行命令以获取聊天建议，{0} 将替换为包含聊天的 JSON 文件，{1} 将替换为额外提示，{2} 将替换为要生成的建议数量。必须返回一个包含建议字符串的 JSON 数组"
-
-#: src/handlers/llm/gemini_handler.py:94
-msgid "API Key (required)"
-msgstr "API 密钥 (必需)"
-
-#: src/handlers/llm/gemini_handler.py:94
-msgid "API key got from ai.google.dev"
-msgstr "从 ai.google.dev 获取的 API 密钥"
-
-#: src/handlers/llm/gemini_handler.py:98
-msgid "AI Model to use"
-msgstr "要使用的 AI 模型"
-
-#: src/handlers/llm/gemini_handler.py:103
-msgid "Enable System Prompt"
-msgstr "启用系统提示"
-
-#: src/handlers/llm/gemini_handler.py:103
-msgid ""
-"Some models don't support system prompt (or developers instructions), "
-"disable it if you get errors about it"
-msgstr "某些模型不支持系统提示（或开发者指令），如果遇到相关错误，请禁用它"
-
-#: src/handlers/llm/gemini_handler.py:107
-msgid "Inject system prompt"
-msgstr "注入系统提示"
-
-#: src/handlers/llm/gemini_handler.py:107
-msgid ""
-"Even if the model doesn't support system prompts, put the prompts on top of "
-"the user message"
-msgstr "即使模型不支持系统提示，也将提示放在用户消息的顶部"
-
-#: src/handlers/llm/gemini_handler.py:109
-msgid "Thinking Settings"
-msgstr "思考设置"
-
-#: src/handlers/llm/gemini_handler.py:109
-msgid "Settings about thinking models"
-msgstr "关于思考模型的设置"
-
-#: src/handlers/llm/gemini_handler.py:110
-#: src/handlers/llm/ollama_handler.py:152
-msgid "Enable Thinking"
-msgstr "启用思考"
-
-#: src/handlers/llm/gemini_handler.py:110
-msgid "Show thinking, disable it if your model does not support it"
-msgstr "显示思考过程，如果您的模型不支持，请禁用它"
-
-#: src/handlers/llm/gemini_handler.py:111
-msgid "Enable Thinking Budget"
-msgstr "启用思考预算"
-
-#: src/handlers/llm/gemini_handler.py:111
-msgid "If to enable thinking budget"
-msgstr "是否启用思考预算"
-
-#: src/handlers/llm/gemini_handler.py:112
-msgid "Thinking Budget"
-msgstr "思考预算"
-
-#: src/handlers/llm/gemini_handler.py:112
-msgid "How much time to spend thinking"
-msgstr "思考时间花费多少"
-
-#: src/handlers/llm/gemini_handler.py:116
-msgid "Image Output"
-msgstr "图像输出"
-
-#: src/handlers/llm/gemini_handler.py:116
-msgid "Enable image output, only supported by gemini-2.0-flash-exp"
-msgstr "启用图像输出，仅 gemini-2.0-flash-exp 支持"
-
-#: src/handlers/llm/gemini_handler.py:125
-msgid "Enable safety settings"
-msgstr "启用安全设置"
-
-#: src/handlers/llm/gemini_handler.py:126
-msgid "Enable google safety settings to avoid generating harmful content"
-msgstr "启用 Google 安全设置以避免生成有害内容"
-
-#: src/handlers/llm/gemini_handler.py:131
-#: src/handlers/llm/openai_handler.py:112
-#: src/handlers/llm/newelle_handler.py:18
-msgid "Privacy Policy"
-msgstr "隐私政策"
-
-#: src/handlers/llm/gemini_handler.py:132
-#: src/handlers/llm/openai_handler.py:112
-#: src/handlers/llm/newelle_handler.py:19
-msgid "Open privacy policy website"
-msgstr "打开隐私政策网站"
-
-#: src/handlers/llm/gemini_handler.py:135 src/handlers/llm/openai_handler.py:81
-msgid "Advanced Parameters"
-msgstr "高级参数"
-
-#: src/handlers/llm/gemini_handler.py:135
-msgid "Enable advanced parameters"
-msgstr "启用高级参数"
+msgstr ""
+"执行命令以获取聊天建议，{0} 将替换为包含聊天的 JSON 文件，{1} 将替换为额外提"
+"示，{2} 将替换为要生成的建议数量。必须返回一个包含建议字符串的 JSON 数组"
 
 #: src/handlers/llm/gpt4all_handler.py:67
 msgid "RAM Required: "
@@ -297,6 +204,51 @@ msgstr "模型管理器"
 #: src/handlers/llm/ollama_handler.py:172
 msgid "List of models available"
 msgstr "可用模型列表"
+
+#: src/handlers/llm/g4f_handler.py:45
+msgid "Update G4F"
+msgstr "更新 G4F"
+
+#: src/handlers/llm/newelle_handler.py:18
+#: src/handlers/llm/openai_handler.py:112
+#: src/handlers/llm/gemini_handler.py:131
+msgid "Privacy Policy"
+msgstr "隐私政策"
+
+#: src/handlers/llm/newelle_handler.py:19
+#: src/handlers/llm/openai_handler.py:112
+#: src/handlers/llm/gemini_handler.py:132
+msgid "Open privacy policy website"
+msgstr "打开隐私政策网站"
+
+#: src/handlers/llm/ollama_handler.py:152
+#: src/handlers/llm/gemini_handler.py:110
+msgid "Enable Thinking"
+msgstr "启用思考"
+
+#: src/handlers/llm/ollama_handler.py:152
+msgid "Allow thinking in the model, only some models are supported"
+msgstr "允许模型进行思考，仅部分模型支持"
+
+#: src/handlers/llm/ollama_handler.py:176
+msgid "Add custom model"
+msgstr "添加自定义模型"
+
+#: src/handlers/llm/ollama_handler.py:177
+msgid ""
+"Add any model to this list by putting name:size\n"
+"Or any gguf from hf with hf.co/username/model"
+msgstr ""
+"通过输入名称:大小将任何模型添加到此列表\n"
+"或从 hf.co/username/model 添加任何 gguf 模型"
+
+#: src/handlers/llm/ollama_handler.py:187
+msgid "Update Ollama"
+msgstr "更新 Ollama"
+
+#: src/handlers/llm/openai_handler.py:81 src/handlers/llm/gemini_handler.py:135
+msgid "Advanced Parameters"
+msgstr "高级参数"
 
 #: src/handlers/llm/openai_handler.py:81
 msgid "Include parameters like Max Tokens, Top-P, Temperature, etc."
@@ -381,7 +333,9 @@ msgstr "提供商顺序"
 msgid ""
 "Add order of providers to use, names separated by a comma.\n"
 "Empty to not specify"
-msgstr "添加要使用的提供商顺序，名称用逗号分隔。\n留空表示不指定"
+msgstr ""
+"添加要使用的提供商顺序，名称用逗号分隔。\n"
+"留空表示不指定"
 
 #: src/handlers/llm/openrouter_handler.py:16
 msgid "Allow Fallbacks"
@@ -391,27 +345,85 @@ msgstr "允许回退"
 msgid "Allow fallbacks to other providers"
 msgstr "允许回退到其他提供商"
 
-#: src/handlers/llm/g4f_handler.py:45
-msgid "Update G4F"
-msgstr "更新 G4F"
+#: src/handlers/llm/gemini_handler.py:94
+msgid "API Key (required)"
+msgstr "API 密钥 (必需)"
 
-#: src/handlers/llm/ollama_handler.py:152
-msgid "Allow thinking in the model, only some models are supported"
-msgstr "允许模型进行思考，仅部分模型支持"
+#: src/handlers/llm/gemini_handler.py:94
+msgid "API key got from ai.google.dev"
+msgstr "从 ai.google.dev 获取的 API 密钥"
 
-#: src/handlers/llm/ollama_handler.py:176
-msgid "Add custom model"
-msgstr "添加自定义模型"
+#: src/handlers/llm/gemini_handler.py:98
+msgid "AI Model to use"
+msgstr "要使用的 AI 模型"
 
-#: src/handlers/llm/ollama_handler.py:177
+#: src/handlers/llm/gemini_handler.py:103
+msgid "Enable System Prompt"
+msgstr "启用系统提示"
+
+#: src/handlers/llm/gemini_handler.py:103
 msgid ""
-"Add any model to this list by putting name:size\n"
-"Or any gguf from hf with hf.co/username/model"
-msgstr "通过输入名称:大小将任何模型添加到此列表\n或从 hf.co/username/model 添加任何 gguf 模型"
+"Some models don't support system prompt (or developers instructions), "
+"disable it if you get errors about it"
+msgstr "某些模型不支持系统提示（或开发者指令），如果遇到相关错误，请禁用它"
 
-#: src/handlers/llm/ollama_handler.py:187
-msgid "Update Ollama"
-msgstr "更新 Ollama"
+#: src/handlers/llm/gemini_handler.py:107
+msgid "Inject system prompt"
+msgstr "注入系统提示"
+
+#: src/handlers/llm/gemini_handler.py:107
+msgid ""
+"Even if the model doesn't support system prompts, put the prompts on top of "
+"the user message"
+msgstr "即使模型不支持系统提示，也将提示放在用户消息的顶部"
+
+#: src/handlers/llm/gemini_handler.py:109
+msgid "Thinking Settings"
+msgstr "思考设置"
+
+#: src/handlers/llm/gemini_handler.py:109
+msgid "Settings about thinking models"
+msgstr "关于思考模型的设置"
+
+#: src/handlers/llm/gemini_handler.py:110
+msgid "Show thinking, disable it if your model does not support it"
+msgstr "显示思考过程，如果您的模型不支持，请禁用它"
+
+#: src/handlers/llm/gemini_handler.py:111
+msgid "Enable Thinking Budget"
+msgstr "启用思考预算"
+
+#: src/handlers/llm/gemini_handler.py:111
+msgid "If to enable thinking budget"
+msgstr "是否启用思考预算"
+
+#: src/handlers/llm/gemini_handler.py:112
+msgid "Thinking Budget"
+msgstr "思考预算"
+
+#: src/handlers/llm/gemini_handler.py:112
+msgid "How much time to spend thinking"
+msgstr "思考时间花费多少"
+
+#: src/handlers/llm/gemini_handler.py:116
+msgid "Image Output"
+msgstr "图像输出"
+
+#: src/handlers/llm/gemini_handler.py:116
+msgid "Enable image output, only supported by gemini-2.0-flash-exp"
+msgstr "启用图像输出，仅 gemini-2.0-flash-exp 支持"
+
+#: src/handlers/llm/gemini_handler.py:125
+msgid "Enable safety settings"
+msgstr "启用安全设置"
+
+#: src/handlers/llm/gemini_handler.py:126
+msgid "Enable google safety settings to avoid generating harmful content"
+msgstr "启用 Google 安全设置以避免生成有害内容"
+
+#: src/handlers/llm/gemini_handler.py:135
+msgid "Enable advanced parameters"
+msgstr "启用高级参数"
 
 #: src/handlers/rag/rag_handler.py:104
 msgid "Index your documents"
@@ -422,7 +434,9 @@ msgid ""
 "Index all the documents in your document folder. You have to run this "
 "operation every time you edit/create a document, change document analyzer or "
 "change embedding model"
-msgstr "索引文档文件夹中的所有文档。每次编辑/创建文档、更改文档分析器或更改嵌入模型时，都必须运行此操作"
+msgstr ""
+"索引文档文件夹中的所有文档。每次编辑/创建文档、更改文档分析器或更改嵌入模型"
+"时，都必须运行此操作"
 
 #: src/handlers/stt/custom_handler.py:13 src/handlers/tts/custom_handler.py:17
 msgid "Command to execute"
@@ -464,7 +478,8 @@ msgstr "Groq 模型名称"
 msgid ""
 "Specify the language for transcription. Use ISO 639-1 language codes (e.g. "
 "\"en\" for English, \"fr\" for French, etc.). "
-msgstr "指定转录语言。使用 ISO 639-1 语言代码（例如，“en”表示英语，“fr”表示法语等）。"
+msgstr ""
+"指定转录语言。使用 ISO 639-1 语言代码（例如，“en”表示英语，“fr”表示法语等）。"
 
 #: src/handlers/stt/openaisr_handler.py:11
 msgid "Endpoint for OpenAI requests"
@@ -486,7 +501,9 @@ msgstr "OpenAI 模型名称"
 msgid ""
 "Optional: Specify the language for transcription. Use ISO 639-1 language "
 "codes (e.g. \"en\" for English, \"fr\" for French, etc.). "
-msgstr "可选：指定转录语言。使用 ISO 639-1 语言代码（例如，“en”表示英语，“fr”表示法语等）。"
+msgstr ""
+"可选：指定转录语言。使用 ISO 639-1 语言代码（例如，“en”表示英语，“fr”表示法语"
+"等）。"
 
 #: src/handlers/stt/vosk_handler.py:17
 msgid "Model Path"
@@ -510,7 +527,8 @@ msgid "Could not understand the audio"
 msgstr "无法理解音频"
 
 #: src/handlers/stt/whispercpp_handler.py:47
-msgid "Language of the recognition."
+#, fuzzy
+msgid "Language of the recognition. For example en, it..."
 msgstr "识别语言。"
 
 #: src/handlers/stt/whispercpp_handler.py:48
@@ -644,7 +662,10 @@ msgid ""
 "relevant sources and content snippets for your query, while basic search "
 "provides generic content snippets from each source. A basic search costs 1 "
 "API Credit, while an advanced search costs 2 API Credits."
-msgstr "搜索深度。高级搜索旨在检索与您的查询最相关的来源和内容片段，而基本搜索则从每个来源提供通用内容片段。基本搜索消耗 1 个 API 信用，高级搜索消耗 2 个 API 信用。"
+msgstr ""
+"搜索深度。高级搜索旨在检索与您的查询最相关的来源和内容片段，而基本搜索则从每"
+"个来源提供通用内容片段。基本搜索消耗 1 个 API 信用，高级搜索消耗 2 个 API 信"
+"用。"
 
 #: src/handlers/websearch/tavily.py:23
 msgid "The category of the search"
@@ -656,7 +677,9 @@ msgid ""
 "particularly about politics, sports, and major current events covered by "
 "mainstream media sources. General is for broader, more general-purpose "
 "searches that may include a wide range of sources."
-msgstr "搜索类别。新闻对于检索实时更新非常有用，特别是关于主流媒体报道的政治、体育和重大时事。通用适用于更广泛、更通用目的的搜索，可能包括各种来源。"
+msgstr ""
+"搜索类别。新闻对于检索实时更新非常有用，特别是关于主流媒体报道的政治、体育和"
+"重大时事。通用适用于更广泛、更通用目的的搜索，可能包括各种来源。"
 
 #: src/handlers/websearch/tavily.py:24
 msgid "Chunks per source"
@@ -667,7 +690,9 @@ msgid ""
 "The number of content chunks to retrieve from each source. Each chunk's "
 "length is maximum 500 characters. Available only when search depth is "
 "advanced."
-msgstr "从每个源检索的内容块的数量。每个块的最大长度为 500 个字符。仅当搜索深度为高级时可用。"
+msgstr ""
+"从每个源检索的内容块的数量。每个块的最大长度为 500 个字符。仅当搜索深度为高级"
+"时可用。"
 
 #: src/handlers/websearch/tavily.py:25
 msgid "Number of days back from the current date to include"
@@ -685,7 +710,9 @@ msgstr "包含答案"
 msgid ""
 "Include an LLM-generated answer to the provided query. Basic search returns "
 "a quick answer. Advanced returns a more detailed answer."
-msgstr "包含 LLM 为所提供查询生成的答案。基本搜索返回快速答案。高级搜索返回更详细的答案。"
+msgstr ""
+"包含 LLM 为所提供查询生成的答案。基本搜索返回快速答案。高级搜索返回更详细的答"
+"案。"
 
 #: src/handlers/websearch/tavily.py:27
 msgid "Include raw content"
@@ -836,23 +863,23 @@ msgstr "删除配置文件"
 msgid "Newelle Tips"
 msgstr "Newelle 提示"
 
-#: src/ui/widgets/thinking.py:27
+#: src/ui/widgets/thinking.py:26
 msgid "Thoughts"
 msgstr "思考"
 
-#: src/ui/widgets/thinking.py:28 src/ui/widgets/thinking.py:135
+#: src/ui/widgets/thinking.py:27 src/ui/widgets/thinking.py:134
 msgid "Expand to see details"
 msgstr "展开查看详情"
 
-#: src/ui/widgets/thinking.py:123
+#: src/ui/widgets/thinking.py:122
 msgid "Thinking..."
 msgstr "思考中..."
 
-#: src/ui/widgets/thinking.py:124
+#: src/ui/widgets/thinking.py:123
 msgid "The LLM is thinking... Expand to see thought process"
 msgstr "LLM 正在思考中... 展开查看思考过程"
 
-#: src/ui/widgets/thinking.py:137
+#: src/ui/widgets/thinking.py:136
 msgid "No thought process recorded"
 msgstr "没有记录思考过程"
 
@@ -1034,6 +1061,27 @@ msgstr "放大"
 msgid "Zoom out"
 msgstr "缩小"
 
+#: src/ui/extension.py:17 src/ui/presentation.py:131 src/constants.py:513
+#: src/window.py:118
+msgid "Extensions"
+msgstr "扩展"
+
+#: src/ui/extension.py:50
+msgid "Installed Extensions"
+msgstr "已安装的扩展"
+
+#: src/ui/extension.py:85
+msgid "User guide to Extensions"
+msgstr "扩展用户指南"
+
+#: src/ui/extension.py:88
+msgid "Download new Extensions"
+msgstr "下载新扩展"
+
+#: src/ui/extension.py:91
+msgid "Install extension from file..."
+msgstr "从文件安装扩展..."
+
 #: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.appdata.xml.in:7
 #: data/io.github.qwersyk.Newelle.desktop.in:2
 msgid "Newelle"
@@ -1063,7 +1111,9 @@ msgstr "选择您最喜欢的 AI 语言模型"
 msgid ""
 "Newelle can be used with mutiple models and providers!\n"
 "<b>Note: It is strongly suggested to read the Guide to LLM page</b>"
-msgstr "Newelle 可以与多种模型和提供商一起使用！\n<b>注意：强烈建议阅读 LLM 指南页面</b>"
+msgstr ""
+"Newelle 可以与多种模型和提供商一起使用！\n"
+"<b>注意：强烈建议阅读 LLM 指南页面</b>"
 
 #: src/ui/presentation.py:110
 msgid "Guide to LLM"
@@ -1078,7 +1128,9 @@ msgid ""
 "Newelle can retrieve relevant information from documents you send in the "
 "chat or from your own files! Information relevant to your query will be sent "
 "to the LLM."
-msgstr "Newelle 可以从您在聊天中发送的文档或您自己的文件中检索相关信息！与您的查询相关的信息将发送给 LLM。"
+msgstr ""
+"Newelle 可以从您在聊天中发送的文档或您自己的文件中检索相关信息！与您的查询相"
+"关的信息将发送给 LLM。"
 
 #: src/ui/presentation.py:124 src/ui/settings.py:236 src/window.py:647
 msgid "Command virtualization"
@@ -1091,12 +1143,10 @@ msgid ""
 "malicious code!</b>\n"
 "By default, your commands will be <b>virtualized in the Flatpak environment</"
 "b>, but pay attention!"
-msgstr "Newelle 可用于在您的系统上运行命令，但请注意您运行的内容！<b>LLM 不受我们控制，因此它可能会生成恶意代码！</b>\n默认情况下，您的命令将<b>在 Flatpak 环境中虚拟化</b>，但请注意！"
-
-#: src/ui/presentation.py:131 src/ui/extension.py:17 src/constants.py:513
-#: src/window.py:118
-msgid "Extensions"
-msgstr "扩展"
+msgstr ""
+"Newelle 可用于在您的系统上运行命令，但请注意您运行的内容！<b>LLM 不受我们控"
+"制，因此它可能会生成恶意代码！</b>\n"
+"默认情况下，您的命令将<b>在 Flatpak 环境中虚拟化</b>，但请注意！"
 
 #: src/ui/presentation.py:132
 msgid "You can extend Newelle's functionalities using extensions!"
@@ -1122,22 +1172,6 @@ msgstr "开始使用应用程序"
 #: src/ui/presentation.py:163
 msgid "Start chatting"
 msgstr "开始聊天"
-
-#: src/ui/extension.py:50
-msgid "Installed Extensions"
-msgstr "已安装的扩展"
-
-#: src/ui/extension.py:85
-msgid "User guide to Extensions"
-msgstr "扩展用户指南"
-
-#: src/ui/extension.py:88
-msgid "Download new Extensions"
-msgstr "下载新扩展"
-
-#: src/ui/extension.py:91
-msgid "Install extension from file..."
-msgstr "从文件安装扩展..."
 
 #: src/ui/settings.py:46 src/constants.py:523
 msgid "General"
@@ -1188,7 +1222,9 @@ msgstr "嵌入模型"
 msgid ""
 "Embedding is used to trasform text into vectors. Used by Long Term Memory "
 "and RAG. Changing it might require you to re-index documents or reset memory."
-msgstr "嵌入用于将文本转换为向量。由长期记忆和 RAG 使用。更改它可能需要您重新索引文档或重置记忆。"
+msgstr ""
+"嵌入用于将文本转换为向量。由长期记忆和 RAG 使用。更改它可能需要您重新索引文档"
+"或重置记忆。"
 
 #: src/ui/settings.py:104 src/window.py:645
 msgid "Long Term Memory"
@@ -1271,7 +1307,9 @@ msgid ""
 "If enabled, messages will be sent with ENTER, to go to a new line use "
 "CTRL+ENTER. If disabled, messages will be sent with SHIFT+ENTER, and newline "
 "with enter"
-msgstr "如果启用，消息将通过回车键发送，换行请使用 CTRL+回车。如果禁用，消息将通过 SHIFT+回车发送，换行请使用回车"
+msgstr ""
+"如果启用，消息将通过回车键发送，换行请使用 CTRL+回车。如果禁用，消息将通过 "
+"SHIFT+回车发送，换行请使用回车"
 
 #: src/ui/settings.py:192
 msgid "Remove thinking from history"
@@ -1325,7 +1363,10 @@ msgid ""
 "Change the label that appears before your message\n"
 "This information is not sent to the LLM by default\n"
 "You can add it to a prompt using the {USER} variable"
-msgstr "更改消息前显示的标签\n默认情况下，此信息不会发送到 LLM\n您可以使用 {USER} 变量将其添加到提示中"
+msgstr ""
+"更改消息前显示的标签\n"
+"默认情况下，此信息不会发送到 LLM\n"
+"您可以使用 {USER} 变量将其添加到提示中"
 
 #: src/ui/settings.py:233
 msgid "Neural Network Control"
@@ -1474,7 +1515,9 @@ msgid ""
 "If the LLM does not support reading documents, relevant information about "
 "documents sent in the chat will be given to the LLM using your Document "
 "Analyzer."
-msgstr "如果 LLM 不支持读取文档，则通过您的文档分析器将聊天中发送的文档相关信息提供给 LLM。"
+msgstr ""
+"如果 LLM 不支持读取文档，则通过您的文档分析器将聊天中发送的文档相关信息提供"
+"给 LLM。"
 
 #: src/ui/settings.py:396
 msgid "Maximum tokens for RAG"
@@ -1485,7 +1528,8 @@ msgid ""
 "The maximum amount of tokens to be used for RAG. If the documents do not "
 "exceed this token count,\n"
 "dump all of them in the context"
-msgstr "用于 RAG 的最大令牌数。如果文档不超过此令牌计数，则将所有文档转储到上下文中"
+msgstr ""
+"用于 RAG 的最大令牌数。如果文档不超过此令牌计数，则将所有文档转储到上下文中"
 
 #: src/ui/settings.py:413
 msgid "Document Folder"
@@ -1495,7 +1539,9 @@ msgstr "文档文件夹"
 msgid ""
 "Put the documents you want to query in your document folder. The document "
 "analyzer will find relevant information in them if this option is enabled"
-msgstr "将您要查询的文档放入文档文件夹。如果启用此选项，文档分析器将找到其中的相关信息"
+msgstr ""
+"将您要查询的文档放入文档文件夹。如果启用此选项，文档分析器将找到其中的相关信"
+"息"
 
 #: src/ui/settings.py:416
 msgid "Put all the documents you want to index in this folder"
@@ -1806,7 +1852,9 @@ msgid ""
 "Extract messages from previous conversations using contextual memory "
 "retrivial, memory decay, concept extraction and other advanced techniques. "
 "Does 1 llm call per message."
-msgstr "使用上下文记忆检索、记忆衰减、概念提取和其他高级技术从之前的对话中提取消息。每条消息执行 1 次 LLM 调用。"
+msgstr ""
+"使用上下文记忆检索、记忆衰减、概念提取和其他高级技术从之前的对话中提取消息。"
+"每条消息执行 1 次 LLM 调用。"
 
 #: src/constants.py:251
 msgid "User Summary + Memoripy"
@@ -1824,7 +1872,8 @@ msgstr "文档阅读器"
 msgid ""
 "Classic RAG approach - chunk documents and embed them, then compare them to "
 "the query and return the most relevant documents"
-msgstr "经典的 RAG 方法 - 将文档分块并嵌入，然后与查询进行比较并返回最相关的文档"
+msgstr ""
+"经典的 RAG 方法 - 将文档分块并嵌入，然后与查询进行比较并返回最相关的文档"
 
 #: src/constants.py:269
 msgid "SearXNG"
@@ -1983,10 +2032,6 @@ msgstr "通用设置、虚拟化、建议、记忆长度、自动生成聊天名
 #: src/constants.py:530
 msgid "Prompts settings, custom extra prompt, custom prompts..."
 msgstr "提示设置、自定义额外提示、自定义提示..."
-
-#: src/controller.py:135 src/window.py:1846
-msgid "Chat "
-msgstr "聊天 "
 
 #: src/main.py:205
 msgid "Terminal threads are still running in the background"
@@ -2229,6 +2274,10 @@ msgstr "您无法再继续此消息。"
 msgid "You can no longer regenerate the message."
 msgstr "您无法再重新生成此消息。"
 
+#: src/window.py:1846 src/controller.py:135
+msgid "Chat "
+msgstr "聊天 "
+
 #: src/window.py:1890
 msgid "Chat is cleared"
 msgstr "聊天已清除"
@@ -2254,14 +2303,18 @@ msgid ""
 "The neural network has access to your computer and any data in this chat and "
 "can run commands, be careful, we are not responsible for the neural network. "
 "Do not share any sensitive information."
-msgstr "神经网络可以访问您的计算机和此聊天中的任何数据，并可以运行命令，请小心，我们不对神经网络负责。请勿分享任何敏感信息。"
+msgstr ""
+"神经网络可以访问您的计算机和此聊天中的任何数据，并可以运行命令，请小心，我们"
+"不对神经网络负责。请勿分享任何敏感信息。"
 
 #: src/window.py:3349
 msgid ""
 "The neural network has access to any data in this chat, be careful, we are "
 "not responsible for the neural network. Do not share any sensitive "
 "information."
-msgstr "神经网络可以访问此聊天中的任何数据，请小心，我们不对神经网络负责。请勿分享任何敏感信息。"
+msgstr ""
+"神经网络可以访问此聊天中的任何数据，请小心，我们不对神经网络负责。请勿分享任"
+"何敏感信息。"
 
 #: src/window.py:3398
 msgid "Wrong folder path"
@@ -2283,7 +2336,9 @@ msgstr "聊天是空的"
 msgid ""
 "Train Newelle to do more with custom extensions and new AI modules, giving "
 "your chatbot endless possibilities."
-msgstr "通过自定义扩展和新的 AI 模块训练 Newelle 完成更多任务，为您的聊天机器人提供无限可能。"
+msgstr ""
+"通过自定义扩展和新的 AI 模块训练 Newelle 完成更多任务，为您的聊天机器人提供无"
+"限可能。"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:11
 msgid "AI chatbot"
@@ -2394,14 +2449,18 @@ msgstr "新增功能并修复了错误"
 msgid ""
 "Updated the g4f library with versioning, added user guides, improved "
 "extension browsing, and enhanced model handling."
-msgstr "更新了 g4f 库并加入了版本控制，增加了用户指南，改进了扩展浏览，并增强了模型处理。"
+msgstr ""
+"更新了 g4f 库并加入了版本控制，增加了用户指南，改进了扩展浏览，并增强了模型处"
+"理。"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:118
 msgid ""
 "Bug fixes and new features have been implemented. We've modified the "
 "extension architecture, added new models, and introduced vision support, "
 "along with more capabilities."
-msgstr "已实施错误修复和新功能。我们修改了扩展架构，添加了新模型，并引入了视觉支持，以及更多功能。"
+msgstr ""
+"已实施错误修复和新功能。我们修改了扩展架构，添加了新模型，并引入了视觉支持，"
+"以及更多功能。"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:148
 msgid "Stable version"

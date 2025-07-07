@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Newelle 0.3.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-02 02:15+0800\n"
+"POT-Creation-Date: 2025-07-06 02:35+0800\n"
 "PO-Revision-Date: 2025-03-26 19:30\n"
 "Last-Translator: Oliver Tzeng（曾嘉禾）<olivertzeng@proton.me>\n"
 "Language-Team: l10n-tw\n"
@@ -19,13 +19,13 @@ msgstr ""
 
 #: src/handlers/embeddings/ollama_handler.py:32
 #: src/handlers/embeddings/openai_handler.py:38
-#: src/handlers/llm/openai_handler.py:75 src/handlers/llm/ollama_handler.py:150
+#: src/handlers/llm/ollama_handler.py:150 src/handlers/llm/openai_handler.py:75
 #: src/handlers/stt/openaisr_handler.py:10
 msgid "API Endpoint"
 msgstr "API 端點"
 
 #: src/handlers/embeddings/ollama_handler.py:32
-#: src/handlers/llm/openai_handler.py:75 src/handlers/llm/ollama_handler.py:150
+#: src/handlers/llm/ollama_handler.py:150 src/handlers/llm/openai_handler.py:75
 msgid "API base url, change this to use interference APIs"
 msgstr "API 擷取的網址"
 
@@ -49,8 +49,8 @@ msgstr "自訂模型"
 
 #: src/handlers/embeddings/ollama_handler.py:34
 #: src/handlers/embeddings/openai_handler.py:41
-#: src/handlers/llm/claude_handler.py:85 src/handlers/llm/openai_handler.py:78
-#: src/handlers/llm/ollama_handler.py:153
+#: src/handlers/llm/claude_handler.py:85 src/handlers/llm/ollama_handler.py:153
+#: src/handlers/llm/openai_handler.py:78
 msgid "Use a custom model"
 msgstr "使用自訂的模型"
 
@@ -96,8 +96,8 @@ msgstr "使用自訂模型"
 
 #: src/handlers/embeddings/openai_handler.py:44
 #: src/handlers/llm/claude_handler.py:89 src/handlers/llm/claude_handler.py:93
-#: src/handlers/llm/gemini_handler.py:97 src/handlers/llm/openai_handler.py:84
-#: src/handlers/llm/g4f_handler.py:44 src/handlers/stt/whisper_handler.py:15
+#: src/handlers/llm/g4f_handler.py:44 src/handlers/llm/openai_handler.py:84
+#: src/handlers/llm/gemini_handler.py:97 src/handlers/stt/whisper_handler.py:15
 #: src/handlers/stt/whispercpp_handler.py:40
 #: src/handlers/tts/custom_openai_tts.py:20
 #: src/handlers/tts/elevenlabs_handler.py:24
@@ -137,15 +137,17 @@ msgstr "Token 限制"
 msgid "The maximum number of tokens to generate"
 msgstr "使用的最多 Token 數量"
 
-#: src/handlers/llm/custom_handler.py:20 src/handlers/llm/gemini_handler.py:119
+#: src/handlers/llm/custom_handler.py:20
 #: src/handlers/llm/gpt4all_handler.py:153
-#: src/handlers/llm/newelle_handler.py:27 src/utility/util.py:136
+#: src/handlers/llm/newelle_handler.py:27
+#: src/handlers/llm/gemini_handler.py:119 src/utility/util.py:136
 msgid "Message Streaming"
 msgstr "訊息串流"
 
-#: src/handlers/llm/custom_handler.py:20 src/handlers/llm/gemini_handler.py:120
+#: src/handlers/llm/custom_handler.py:20
 #: src/handlers/llm/gpt4all_handler.py:153
-#: src/handlers/llm/newelle_handler.py:28 src/utility/util.py:137
+#: src/handlers/llm/newelle_handler.py:28
+#: src/handlers/llm/gemini_handler.py:120 src/utility/util.py:137
 msgid "Gradually stream message output"
 msgstr "逐漸的將訊息輸出串流"
 
@@ -174,107 +176,6 @@ msgid ""
 msgstr ""
 "{0} 參數會被以 JSON 格式儲存的聊天紀錄取代，{1} 包含系統提示，{2}則包含需要生"
 "成的數量。必須傳回以建議（字串）組成的 JSON 陣列"
-
-#: src/handlers/llm/gemini_handler.py:94
-msgid "API Key (required)"
-msgstr "API 金鑰（必填）"
-
-#: src/handlers/llm/gemini_handler.py:94
-msgid "API key got from ai.google.dev"
-msgstr "從 ai.google.dev 取得的 API 金鑰"
-
-#: src/handlers/llm/gemini_handler.py:98
-msgid "AI Model to use"
-msgstr "使用的 AI 模型"
-
-#: src/handlers/llm/gemini_handler.py:103
-msgid "Enable System Prompt"
-msgstr "啟用系統提示"
-
-#: src/handlers/llm/gemini_handler.py:103
-msgid ""
-"Some models don't support system prompt (or developers instructions), "
-"disable it if you get errors about it"
-msgstr "某些模型不支援此設定"
-
-#: src/handlers/llm/gemini_handler.py:107
-msgid "Inject system prompt"
-msgstr "注入系統提示"
-
-#: src/handlers/llm/gemini_handler.py:107
-msgid ""
-"Even if the model doesn't support system prompts, put the prompts on top of "
-"the user message"
-msgstr "即使使用不支援系統提示的模型仍可以開啟此設定"
-
-#: src/handlers/llm/gemini_handler.py:109
-msgid "Thinking Settings"
-msgstr "思考設定"
-
-#: src/handlers/llm/gemini_handler.py:109
-msgid "Settings about thinking models"
-msgstr "有關推理模型的設定"
-
-#: src/handlers/llm/gemini_handler.py:110
-#: src/handlers/llm/ollama_handler.py:152
-msgid "Enable Thinking"
-msgstr "啟用思考"
-
-#: src/handlers/llm/gemini_handler.py:110
-msgid "Show thinking, disable it if your model does not support it"
-msgstr "顯示思考過程，若您使用的模型不支援請停用此設定"
-
-#: src/handlers/llm/gemini_handler.py:111
-msgid "Enable Thinking Budget"
-msgstr "啟用思考預算"
-
-#: src/handlers/llm/gemini_handler.py:111
-msgid "If to enable thinking budget"
-msgstr "是否啟用思考預算"
-
-#: src/handlers/llm/gemini_handler.py:112
-msgid "Thinking Budget"
-msgstr "思考預算"
-
-#: src/handlers/llm/gemini_handler.py:112
-msgid "How much time to spend thinking"
-msgstr "思考時間的最大值"
-
-#: src/handlers/llm/gemini_handler.py:116
-msgid "Image Output"
-msgstr "影像輸出"
-
-#: src/handlers/llm/gemini_handler.py:116
-msgid "Enable image output, only supported by gemini-2.0-flash-exp"
-msgstr "啟用影像輸出，僅支援 gemini-2.0-flash-exp"
-
-#: src/handlers/llm/gemini_handler.py:125
-msgid "Enable safety settings"
-msgstr "啟用安全設定"
-
-#: src/handlers/llm/gemini_handler.py:126
-msgid "Enable google safety settings to avoid generating harmful content"
-msgstr "啟用 Google 的安全設定以排除不當內容"
-
-#: src/handlers/llm/gemini_handler.py:131
-#: src/handlers/llm/openai_handler.py:112
-#: src/handlers/llm/newelle_handler.py:18
-msgid "Privacy Policy"
-msgstr "隱私政策"
-
-#: src/handlers/llm/gemini_handler.py:132
-#: src/handlers/llm/openai_handler.py:112
-#: src/handlers/llm/newelle_handler.py:19
-msgid "Open privacy policy website"
-msgstr "開啟隱私政策網站"
-
-#: src/handlers/llm/gemini_handler.py:135 src/handlers/llm/openai_handler.py:81
-msgid "Advanced Parameters"
-msgstr "更多設定"
-
-#: src/handlers/llm/gemini_handler.py:135
-msgid "Enable advanced parameters"
-msgstr "調整更多參數"
 
 #: src/handlers/llm/gpt4all_handler.py:67
 msgid "RAM Required: "
@@ -306,6 +207,51 @@ msgstr "模型管理器"
 #: src/handlers/llm/ollama_handler.py:172
 msgid "List of models available"
 msgstr "可使用的模型列表"
+
+#: src/handlers/llm/g4f_handler.py:45
+msgid "Update G4F"
+msgstr "更新 G4F"
+
+#: src/handlers/llm/newelle_handler.py:18
+#: src/handlers/llm/openai_handler.py:112
+#: src/handlers/llm/gemini_handler.py:131
+msgid "Privacy Policy"
+msgstr "隱私政策"
+
+#: src/handlers/llm/newelle_handler.py:19
+#: src/handlers/llm/openai_handler.py:112
+#: src/handlers/llm/gemini_handler.py:132
+msgid "Open privacy policy website"
+msgstr "開啟隱私政策網站"
+
+#: src/handlers/llm/ollama_handler.py:152
+#: src/handlers/llm/gemini_handler.py:110
+msgid "Enable Thinking"
+msgstr "啟用思考"
+
+#: src/handlers/llm/ollama_handler.py:152
+msgid "Allow thinking in the model, only some models are supported"
+msgstr "允許模型能夠進行「推理」，僅支援某些模型"
+
+#: src/handlers/llm/ollama_handler.py:176
+msgid "Add custom model"
+msgstr "新增自訂模型"
+
+#: src/handlers/llm/ollama_handler.py:177
+msgid ""
+"Add any model to this list by putting name:size\n"
+"Or any gguf from hf with hf.co/username/model"
+msgstr ""
+"在此以「模型名稱:大小」的格式新增其他模型\n"
+"或是從 HuggingFace（hf.co/username/model）的任何 gguf"
+
+#: src/handlers/llm/ollama_handler.py:187
+msgid "Update Ollama"
+msgstr "更新 Ollama"
+
+#: src/handlers/llm/openai_handler.py:81 src/handlers/llm/gemini_handler.py:135
+msgid "Advanced Parameters"
+msgstr "更多設定"
 
 #: src/handlers/llm/openai_handler.py:81
 msgid "Include parameters like Max Tokens, Top-P, Temperature, etc."
@@ -400,29 +346,85 @@ msgstr "允許後備供給者"
 msgid "Allow fallbacks to other providers"
 msgstr "允許在無法使用主要供給者時使用其他供給者"
 
-#: src/handlers/llm/g4f_handler.py:45
-msgid "Update G4F"
-msgstr "更新 G4F"
+#: src/handlers/llm/gemini_handler.py:94
+msgid "API Key (required)"
+msgstr "API 金鑰（必填）"
 
-#: src/handlers/llm/ollama_handler.py:152
-msgid "Allow thinking in the model, only some models are supported"
-msgstr "允許模型能夠進行「推理」，僅支援某些模型"
+#: src/handlers/llm/gemini_handler.py:94
+msgid "API key got from ai.google.dev"
+msgstr "從 ai.google.dev 取得的 API 金鑰"
 
-#: src/handlers/llm/ollama_handler.py:176
-msgid "Add custom model"
-msgstr "新增自訂模型"
+#: src/handlers/llm/gemini_handler.py:98
+msgid "AI Model to use"
+msgstr "使用的 AI 模型"
 
-#: src/handlers/llm/ollama_handler.py:177
+#: src/handlers/llm/gemini_handler.py:103
+msgid "Enable System Prompt"
+msgstr "啟用系統提示"
+
+#: src/handlers/llm/gemini_handler.py:103
 msgid ""
-"Add any model to this list by putting name:size\n"
-"Or any gguf from hf with hf.co/username/model"
-msgstr ""
-"在此以「模型名稱:大小」的格式新增其他模型\n"
-"或是從 HuggingFace（hf.co/username/model）的任何 gguf"
+"Some models don't support system prompt (or developers instructions), "
+"disable it if you get errors about it"
+msgstr "某些模型不支援此設定"
 
-#: src/handlers/llm/ollama_handler.py:187
-msgid "Update Ollama"
-msgstr "更新 Ollama"
+#: src/handlers/llm/gemini_handler.py:107
+msgid "Inject system prompt"
+msgstr "注入系統提示"
+
+#: src/handlers/llm/gemini_handler.py:107
+msgid ""
+"Even if the model doesn't support system prompts, put the prompts on top of "
+"the user message"
+msgstr "即使使用不支援系統提示的模型仍可以開啟此設定"
+
+#: src/handlers/llm/gemini_handler.py:109
+msgid "Thinking Settings"
+msgstr "思考設定"
+
+#: src/handlers/llm/gemini_handler.py:109
+msgid "Settings about thinking models"
+msgstr "有關推理模型的設定"
+
+#: src/handlers/llm/gemini_handler.py:110
+msgid "Show thinking, disable it if your model does not support it"
+msgstr "顯示思考過程，若您使用的模型不支援請停用此設定"
+
+#: src/handlers/llm/gemini_handler.py:111
+msgid "Enable Thinking Budget"
+msgstr "啟用思考預算"
+
+#: src/handlers/llm/gemini_handler.py:111
+msgid "If to enable thinking budget"
+msgstr "是否啟用思考預算"
+
+#: src/handlers/llm/gemini_handler.py:112
+msgid "Thinking Budget"
+msgstr "思考預算"
+
+#: src/handlers/llm/gemini_handler.py:112
+msgid "How much time to spend thinking"
+msgstr "思考時間的最大值"
+
+#: src/handlers/llm/gemini_handler.py:116
+msgid "Image Output"
+msgstr "影像輸出"
+
+#: src/handlers/llm/gemini_handler.py:116
+msgid "Enable image output, only supported by gemini-2.0-flash-exp"
+msgstr "啟用影像輸出，僅支援 gemini-2.0-flash-exp"
+
+#: src/handlers/llm/gemini_handler.py:125
+msgid "Enable safety settings"
+msgstr "啟用安全設定"
+
+#: src/handlers/llm/gemini_handler.py:126
+msgid "Enable google safety settings to avoid generating harmful content"
+msgstr "啟用 Google 的安全設定以排除不當內容"
+
+#: src/handlers/llm/gemini_handler.py:135
+msgid "Enable advanced parameters"
+msgstr "調整更多參數"
 
 #: src/handlers/rag/rag_handler.py:104
 msgid "Index your documents"
@@ -525,8 +527,8 @@ msgid "Could not understand the audio"
 msgstr "無法理解語音"
 
 #: src/handlers/stt/whispercpp_handler.py:47
-msgid "Language of the recognition."
-msgstr "辨識的語言"
+msgid "Language of the recognition. For example en, it..."
+msgstr "辨識的語言，如 en，it..."
 
 #: src/handlers/stt/whispercpp_handler.py:48
 msgid "Model Library"
@@ -858,23 +860,23 @@ msgstr "刪除設定檔"
 msgid "Newelle Tips"
 msgstr "Newelle 小秘訣"
 
-#: src/ui/widgets/thinking.py:27
+#: src/ui/widgets/thinking.py:26
 msgid "Thoughts"
 msgstr "思考過程"
 
-#: src/ui/widgets/thinking.py:28 src/ui/widgets/thinking.py:135
+#: src/ui/widgets/thinking.py:27 src/ui/widgets/thinking.py:134
 msgid "Expand to see details"
 msgstr "點開以顯示完整內容"
 
-#: src/ui/widgets/thinking.py:123
+#: src/ui/widgets/thinking.py:122
 msgid "Thinking..."
 msgstr "思考中..."
 
-#: src/ui/widgets/thinking.py:124
+#: src/ui/widgets/thinking.py:123
 msgid "The LLM is thinking... Expand to see thought process"
 msgstr "思考中...點開以顯示完整內容"
 
-#: src/ui/widgets/thinking.py:137
+#: src/ui/widgets/thinking.py:136
 msgid "No thought process recorded"
 msgstr "沒有思考過程"
 
@@ -1056,6 +1058,27 @@ msgstr "放大"
 msgid "Zoom out"
 msgstr "縮小"
 
+#: src/ui/extension.py:17 src/ui/presentation.py:131 src/constants.py:513
+#: src/window.py:118
+msgid "Extensions"
+msgstr "擴充功能"
+
+#: src/ui/extension.py:50
+msgid "Installed Extensions"
+msgstr "已安裝的擴充功能"
+
+#: src/ui/extension.py:85
+msgid "User guide to Extensions"
+msgstr "擴充功能使用說明"
+
+#: src/ui/extension.py:88
+msgid "Download new Extensions"
+msgstr "下載擴充功能"
+
+#: src/ui/extension.py:91
+msgid "Install extension from file..."
+msgstr "從檔案安裝檔案..."
+
 #: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.appdata.xml.in:7
 #: data/io.github.qwersyk.Newelle.desktop.in:2
 msgid "Newelle"
@@ -1120,11 +1143,6 @@ msgstr ""
 "的程式碼！</b>\n"
 "即使指令大多可能將於<b> Flatpak 沙盒中執行</b>，但請仍小心。"
 
-#: src/ui/presentation.py:131 src/ui/extension.py:17 src/constants.py:513
-#: src/window.py:118
-msgid "Extensions"
-msgstr "擴充功能"
-
 #: src/ui/presentation.py:132
 msgid "You can extend Newelle's functionalities using extensions!"
 msgstr "利用擴充功能讓 Newelle 的功能多又更多！"
@@ -1149,22 +1167,6 @@ msgstr "開始使用應用程式"
 #: src/ui/presentation.py:163
 msgid "Start chatting"
 msgstr "開始聊天"
-
-#: src/ui/extension.py:50
-msgid "Installed Extensions"
-msgstr "已安裝的擴充功能"
-
-#: src/ui/extension.py:85
-msgid "User guide to Extensions"
-msgstr "擴充功能使用說明"
-
-#: src/ui/extension.py:88
-msgid "Download new Extensions"
-msgstr "下載擴充功能"
-
-#: src/ui/extension.py:91
-msgid "Install extension from file..."
-msgstr "從檔案安裝檔案..."
 
 #: src/ui/settings.py:46 src/constants.py:523
 msgid "General"
@@ -1574,7 +1576,8 @@ msgstr "已刪除 pip 路徑"
 msgid ""
 "The pip path has been deleted, you can now reinstall the dependencies. This "
 "operation requires a restart of the application."
-msgstr "pip 路徑已被刪除，您可以重新安裝其依賴。請重新啟動應用程式以套用此操作。"
+msgstr ""
+"pip 路徑已被刪除，您可以重新安裝其依賴。請重新啟動應用程式以套用此操作。"
 
 #: src/ui/stdout_monitor.py:48
 msgid "Clear output"
@@ -2020,10 +2023,6 @@ msgstr "一般設定、指令虛擬化、記憶長度、自動生成聊天室名
 msgid "Prompts settings, custom extra prompt, custom prompts..."
 msgstr "提示語設定、自訂提示語等..."
 
-#: src/controller.py:135 src/window.py:1846
-msgid "Chat "
-msgstr "聊天室 "
-
 #: src/main.py:205
 msgid "Terminal threads are still running in the background"
 msgstr "終端機執行緒正在背景中執行"
@@ -2265,6 +2264,10 @@ msgstr "您無法繼續此訊息。"
 msgid "You can no longer regenerate the message."
 msgstr "您無法重新生成此訊息。"
 
+#: src/window.py:1846 src/controller.py:135
+msgid "Chat "
+msgstr "聊天室 "
+
 #: src/window.py:1890
 msgid "Chat is cleared"
 msgstr "已清除聊天紀錄"
@@ -2491,9 +2494,9 @@ msgstr "ai;assistant;chat;chatgpt;gpt;llm;ollama;"
 #~ msgid "_Delete"
 #~ msgstr "刪除"
 
-#, fuzzy, python-brace-format
+#, python-brace-format
 #~ msgid "Name of the {provider_name} Model"
-#~ msgstr "Groq 模型名稱"
+#~ msgstr "模型 {provider_name} 供應者名稱"
 
 #~ msgid "Choose an extension"
 #~ msgstr "從檔案安裝..."

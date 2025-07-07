@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-02 02:15+0800\n"
+"POT-Creation-Date: 2025-07-06 02:35+0800\n"
 "PO-Revision-Date: 2025-07-03 09:00+0200\n"
 "Last-Translator: aritra saha<EMAIL@ADDRESS>\n"
 "Language-Team: Bengali\n"
@@ -19,13 +19,13 @@ msgstr ""
 
 #: src/handlers/embeddings/ollama_handler.py:32
 #: src/handlers/embeddings/openai_handler.py:38
-#: src/handlers/llm/openai_handler.py:75 src/handlers/llm/ollama_handler.py:150
+#: src/handlers/llm/ollama_handler.py:150 src/handlers/llm/openai_handler.py:75
 #: src/handlers/stt/openaisr_handler.py:10
 msgid "API Endpoint"
 msgstr "API এন্ডপয়েন্ট"
 
 #: src/handlers/embeddings/ollama_handler.py:32
-#: src/handlers/llm/openai_handler.py:75 src/handlers/llm/ollama_handler.py:150
+#: src/handlers/llm/ollama_handler.py:150 src/handlers/llm/openai_handler.py:75
 msgid "API base url, change this to use interference APIs"
 msgstr "API বেস URL, ইন্টারফারেন্স API ব্যবহার করতে এটি পরিবর্তন করুন"
 
@@ -50,8 +50,8 @@ msgstr "কাস্টম মডেল"
 
 #: src/handlers/embeddings/ollama_handler.py:34
 #: src/handlers/embeddings/openai_handler.py:41
-#: src/handlers/llm/claude_handler.py:85 src/handlers/llm/openai_handler.py:78
-#: src/handlers/llm/ollama_handler.py:153
+#: src/handlers/llm/claude_handler.py:85 src/handlers/llm/ollama_handler.py:153
+#: src/handlers/llm/openai_handler.py:78
 msgid "Use a custom model"
 msgstr "একটি কাস্টম মডেল ব্যবহার করুন"
 
@@ -97,8 +97,8 @@ msgstr "কাস্টম মডেল ব্যবহার করুন"
 
 #: src/handlers/embeddings/openai_handler.py:44
 #: src/handlers/llm/claude_handler.py:89 src/handlers/llm/claude_handler.py:93
-#: src/handlers/llm/gemini_handler.py:97 src/handlers/llm/openai_handler.py:84
-#: src/handlers/llm/g4f_handler.py:44 src/handlers/stt/whisper_handler.py:15
+#: src/handlers/llm/g4f_handler.py:44 src/handlers/llm/openai_handler.py:84
+#: src/handlers/llm/gemini_handler.py:97 src/handlers/stt/whisper_handler.py:15
 #: src/handlers/stt/whispercpp_handler.py:40
 #: src/handlers/tts/custom_openai_tts.py:20
 #: src/handlers/tts/elevenlabs_handler.py:24
@@ -138,15 +138,17 @@ msgstr "সর্বোচ্চ টোকেন"
 msgid "The maximum number of tokens to generate"
 msgstr "তৈরি করার জন্য টোকেনের সর্বোচ্চ সংখ্যা"
 
-#: src/handlers/llm/custom_handler.py:20 src/handlers/llm/gemini_handler.py:119
+#: src/handlers/llm/custom_handler.py:20
 #: src/handlers/llm/gpt4all_handler.py:153
-#: src/handlers/llm/newelle_handler.py:27 src/utility/util.py:136
+#: src/handlers/llm/newelle_handler.py:27
+#: src/handlers/llm/gemini_handler.py:119 src/utility/util.py:136
 msgid "Message Streaming"
 msgstr "বার্তা স্ট্রিমিং"
 
-#: src/handlers/llm/custom_handler.py:20 src/handlers/llm/gemini_handler.py:120
+#: src/handlers/llm/custom_handler.py:20
 #: src/handlers/llm/gpt4all_handler.py:153
-#: src/handlers/llm/newelle_handler.py:28 src/utility/util.py:137
+#: src/handlers/llm/newelle_handler.py:28
+#: src/handlers/llm/gemini_handler.py:120 src/utility/util.py:137
 msgid "Gradually stream message output"
 msgstr "ধীরে ধীরে বার্তা আউটপুট স্ট্রিম করুন"
 
@@ -179,113 +181,6 @@ msgstr ""
 "প্রতিস্থাপিত হবে, {1} অতিরিক্ত প্রম্পট দ্বারা, {2} তৈরি করার জন্য পরামর্শের সংখ্যা "
 "দ্বারা। অবশ্যই স্ট্রিং হিসাবে পরামর্শ ধারণকারী একটি JSON অ্যারে ফেরত দিতে হবে"
 
-#: src/handlers/llm/gemini_handler.py:94
-msgid "API Key (required)"
-msgstr "API কী (প্রয়োজনীয়)"
-
-#: src/handlers/llm/gemini_handler.py:94
-msgid "API key got from ai.google.dev"
-msgstr "ai.google.dev থেকে প্রাপ্ত API কী"
-
-#: src/handlers/llm/gemini_handler.py:98
-msgid "AI Model to use"
-msgstr "ব্যবহার করার জন্য AI মডেল"
-
-#: src/handlers/llm/gemini_handler.py:103
-msgid "Enable System Prompt"
-msgstr "সিস্টেম প্রম্পট সক্ষম করুন"
-
-#: src/handlers/llm/gemini_handler.py:103
-msgid ""
-"Some models don't support system prompt (or developers instructions), "
-"disable it if you get errors about it"
-msgstr ""
-"কিছু মডেল সিস্টেম প্রম্পট (বা ডেভেলপারদের নির্দেশাবলী) সমর্থন করে না, যদি এটি "
-"সম্পর্কে ত্রুটি পান তবে এটি নিষ্ক্রিয় করুন"
-
-#: src/handlers/llm/gemini_handler.py:107
-msgid "Inject system prompt"
-msgstr "সিস্টেম প্রম্পট ইনজেক্ট করুন"
-
-#: src/handlers/llm/gemini_handler.py:107
-msgid ""
-"Even if the model doesn't support system prompts, put the prompts on top of "
-"the user message"
-msgstr ""
-"এমনকি যদি মডেল সিস্টেম প্রম্পট সমর্থন না করে, ব্যবহারকারীর বার্তার উপরে প্রম্পটগুলি "
-"রাখুন"
-
-#: src/handlers/llm/gemini_handler.py:109
-#, fuzzy
-msgid "Thinking Settings"
-msgstr "সেটিংস"
-
-#: src/handlers/llm/gemini_handler.py:109
-msgid "Settings about thinking models"
-msgstr "ভাবনা মডেল সম্পর্কিত সেটিংস"
-
-#: src/handlers/llm/gemini_handler.py:110
-#: src/handlers/llm/ollama_handler.py:152
-msgid "Enable Thinking"
-msgstr "ভাবনা সক্রিয় করুন"
-
-#: src/handlers/llm/gemini_handler.py:110
-msgid "Show thinking, disable it if your model does not support it"
-msgstr "ভাবনা দেখান, আপনার মডেল যদি এটি সমর্থন না করে তবে এটি নিষ্ক্রিয় করুন"
-
-#: src/handlers/llm/gemini_handler.py:111
-msgid "Enable Thinking Budget"
-msgstr "ভাবনা বাজেট সক্রিয় করুন"
-
-#: src/handlers/llm/gemini_handler.py:111
-msgid "If to enable thinking budget"
-msgstr "ভাবনা বাজেট সক্রিয় করতে হবে কিনা"
-
-#: src/handlers/llm/gemini_handler.py:112
-#, fuzzy
-msgid "Thinking Budget"
-msgstr "ভাবনা বাজেট"
-
-#: src/handlers/llm/gemini_handler.py:112
-msgid "How much time to spend thinking"
-msgstr "ভাবনা করতে কত সময় ব্যয় করবেন"
-
-#: src/handlers/llm/gemini_handler.py:116
-msgid "Image Output"
-msgstr "চিত্র আউটপুট"
-
-#: src/handlers/llm/gemini_handler.py:116
-msgid "Enable image output, only supported by gemini-2.0-flash-exp"
-msgstr "চিত্র আউটপুট সক্ষম করুন, শুধুমাত্র gemini-2.0-flash-exp দ্বারা সমর্থিত"
-
-#: src/handlers/llm/gemini_handler.py:125
-msgid "Enable safety settings"
-msgstr "নিরাপত্তা সেটিংস সক্ষম করুন"
-
-#: src/handlers/llm/gemini_handler.py:126
-msgid "Enable google safety settings to avoid generating harmful content"
-msgstr "ক্ষতিকারক সামগ্রী তৈরি এড়াতে Google নিরাপত্তা সেটিংস সক্ষম করুন"
-
-#: src/handlers/llm/gemini_handler.py:131
-#: src/handlers/llm/openai_handler.py:112
-#: src/handlers/llm/newelle_handler.py:18
-msgid "Privacy Policy"
-msgstr "গোপনীয়তা নীতি"
-
-#: src/handlers/llm/gemini_handler.py:132
-#: src/handlers/llm/openai_handler.py:112
-#: src/handlers/llm/newelle_handler.py:19
-msgid "Open privacy policy website"
-msgstr "গোপনীয়তা নীতি ওয়েবসাইট খুলুন"
-
-#: src/handlers/llm/gemini_handler.py:135 src/handlers/llm/openai_handler.py:81
-msgid "Advanced Parameters"
-msgstr "উন্নত প্যারামিটার"
-
-#: src/handlers/llm/gemini_handler.py:135
-msgid "Enable advanced parameters"
-msgstr "উন্নত প্যারামিটার সক্ষম করুন"
-
 #: src/handlers/llm/gpt4all_handler.py:67
 msgid "RAM Required: "
 msgstr "RAM প্রয়োজন: "
@@ -316,6 +211,51 @@ msgstr "মডেল ম্যানেজার"
 #: src/handlers/llm/ollama_handler.py:172
 msgid "List of models available"
 msgstr "উপলব্ধ মডেলগুলির তালিকা"
+
+#: src/handlers/llm/g4f_handler.py:45
+msgid "Update G4F"
+msgstr ""
+
+#: src/handlers/llm/newelle_handler.py:18
+#: src/handlers/llm/openai_handler.py:112
+#: src/handlers/llm/gemini_handler.py:131
+msgid "Privacy Policy"
+msgstr "গোপনীয়তা নীতি"
+
+#: src/handlers/llm/newelle_handler.py:19
+#: src/handlers/llm/openai_handler.py:112
+#: src/handlers/llm/gemini_handler.py:132
+msgid "Open privacy policy website"
+msgstr "গোপনীয়তা নীতি ওয়েবসাইট খুলুন"
+
+#: src/handlers/llm/ollama_handler.py:152
+#: src/handlers/llm/gemini_handler.py:110
+msgid "Enable Thinking"
+msgstr "ভাবনা সক্রিয় করুন"
+
+#: src/handlers/llm/ollama_handler.py:152
+msgid "Allow thinking in the model, only some models are supported"
+msgstr ""
+
+#: src/handlers/llm/ollama_handler.py:176
+msgid "Add custom model"
+msgstr "কাস্টম মডেল যোগ করুন"
+
+#: src/handlers/llm/ollama_handler.py:177
+msgid ""
+"Add any model to this list by putting name:size\n"
+"Or any gguf from hf with hf.co/username/model"
+msgstr ""
+"নাম:আকার বসিয়ে এই তালিকায় যেকোনো মডেল যোগ করুন\n"
+"অথবা hf.co/ব্যবহারকারীর নাম/মডেল সহ hf থেকে যেকোনো gguf"
+
+#: src/handlers/llm/ollama_handler.py:187
+msgid "Update Ollama"
+msgstr ""
+
+#: src/handlers/llm/openai_handler.py:81 src/handlers/llm/gemini_handler.py:135
+msgid "Advanced Parameters"
+msgstr "উন্নত প্যারামিটার"
 
 #: src/handlers/llm/openai_handler.py:81
 msgid "Include parameters like Max Tokens, Top-P, Temperature, etc."
@@ -419,29 +359,91 @@ msgstr "ফলব্যাক অনুমোদন করুন"
 msgid "Allow fallbacks to other providers"
 msgstr "অন্যান্য প্রদানকারীদের ফলব্যাক অনুমোদন করুন"
 
-#: src/handlers/llm/g4f_handler.py:45
-msgid "Update G4F"
-msgstr ""
+#: src/handlers/llm/gemini_handler.py:94
+msgid "API Key (required)"
+msgstr "API কী (প্রয়োজনীয়)"
 
-#: src/handlers/llm/ollama_handler.py:152
-msgid "Allow thinking in the model, only some models are supported"
-msgstr ""
+#: src/handlers/llm/gemini_handler.py:94
+msgid "API key got from ai.google.dev"
+msgstr "ai.google.dev থেকে প্রাপ্ত API কী"
 
-#: src/handlers/llm/ollama_handler.py:176
-msgid "Add custom model"
-msgstr "কাস্টম মডেল যোগ করুন"
+#: src/handlers/llm/gemini_handler.py:98
+msgid "AI Model to use"
+msgstr "ব্যবহার করার জন্য AI মডেল"
 
-#: src/handlers/llm/ollama_handler.py:177
+#: src/handlers/llm/gemini_handler.py:103
+msgid "Enable System Prompt"
+msgstr "সিস্টেম প্রম্পট সক্ষম করুন"
+
+#: src/handlers/llm/gemini_handler.py:103
 msgid ""
-"Add any model to this list by putting name:size\n"
-"Or any gguf from hf with hf.co/username/model"
+"Some models don't support system prompt (or developers instructions), "
+"disable it if you get errors about it"
 msgstr ""
-"নাম:আকার বসিয়ে এই তালিকায় যেকোনো মডেল যোগ করুন\n"
-"অথবা hf.co/ব্যবহারকারীর নাম/মডেল সহ hf থেকে যেকোনো gguf"
+"কিছু মডেল সিস্টেম প্রম্পট (বা ডেভেলপারদের নির্দেশাবলী) সমর্থন করে না, যদি এটি "
+"সম্পর্কে ত্রুটি পান তবে এটি নিষ্ক্রিয় করুন"
 
-#: src/handlers/llm/ollama_handler.py:187
-msgid "Update Ollama"
+#: src/handlers/llm/gemini_handler.py:107
+msgid "Inject system prompt"
+msgstr "সিস্টেম প্রম্পট ইনজেক্ট করুন"
+
+#: src/handlers/llm/gemini_handler.py:107
+msgid ""
+"Even if the model doesn't support system prompts, put the prompts on top of "
+"the user message"
 msgstr ""
+"এমনকি যদি মডেল সিস্টেম প্রম্পট সমর্থন না করে, ব্যবহারকারীর বার্তার উপরে প্রম্পটগুলি "
+"রাখুন"
+
+#: src/handlers/llm/gemini_handler.py:109
+#, fuzzy
+msgid "Thinking Settings"
+msgstr "সেটিংস"
+
+#: src/handlers/llm/gemini_handler.py:109
+msgid "Settings about thinking models"
+msgstr "ভাবনা মডেল সম্পর্কিত সেটিংস"
+
+#: src/handlers/llm/gemini_handler.py:110
+msgid "Show thinking, disable it if your model does not support it"
+msgstr "ভাবনা দেখান, আপনার মডেল যদি এটি সমর্থন না করে তবে এটি নিষ্ক্রিয় করুন"
+
+#: src/handlers/llm/gemini_handler.py:111
+msgid "Enable Thinking Budget"
+msgstr "ভাবনা বাজেট সক্রিয় করুন"
+
+#: src/handlers/llm/gemini_handler.py:111
+msgid "If to enable thinking budget"
+msgstr "ভাবনা বাজেট সক্রিয় করতে হবে কিনা"
+
+#: src/handlers/llm/gemini_handler.py:112
+#, fuzzy
+msgid "Thinking Budget"
+msgstr "ভাবনা বাজেট"
+
+#: src/handlers/llm/gemini_handler.py:112
+msgid "How much time to spend thinking"
+msgstr "ভাবনা করতে কত সময় ব্যয় করবেন"
+
+#: src/handlers/llm/gemini_handler.py:116
+msgid "Image Output"
+msgstr "চিত্র আউটপুট"
+
+#: src/handlers/llm/gemini_handler.py:116
+msgid "Enable image output, only supported by gemini-2.0-flash-exp"
+msgstr "চিত্র আউটপুট সক্ষম করুন, শুধুমাত্র gemini-2.0-flash-exp দ্বারা সমর্থিত"
+
+#: src/handlers/llm/gemini_handler.py:125
+msgid "Enable safety settings"
+msgstr "নিরাপত্তা সেটিংস সক্ষম করুন"
+
+#: src/handlers/llm/gemini_handler.py:126
+msgid "Enable google safety settings to avoid generating harmful content"
+msgstr "ক্ষতিকারক সামগ্রী তৈরি এড়াতে Google নিরাপত্তা সেটিংস সক্ষম করুন"
+
+#: src/handlers/llm/gemini_handler.py:135
+msgid "Enable advanced parameters"
+msgstr "উন্নত প্যারামিটার সক্ষম করুন"
 
 #: src/handlers/rag/rag_handler.py:104
 msgid "Index your documents"
@@ -548,7 +550,7 @@ msgstr "অডিও বোঝা যায়নি"
 
 #: src/handlers/stt/whispercpp_handler.py:47
 #, fuzzy
-msgid "Language of the recognition."
+msgid "Language of the recognition. For example en, it..."
 msgstr "IETF-এ চেনার জন্য টেক্সটের ভাষা"
 
 #: src/handlers/stt/whispercpp_handler.py:48
@@ -903,23 +905,23 @@ msgstr "প্রোফাইল নির্বাচন করুন"
 msgid "Newelle Tips"
 msgstr "নিউয়েল"
 
-#: src/ui/widgets/thinking.py:27
+#: src/ui/widgets/thinking.py:26
 msgid "Thoughts"
 msgstr "চিন্তা"
 
-#: src/ui/widgets/thinking.py:28 src/ui/widgets/thinking.py:135
+#: src/ui/widgets/thinking.py:27 src/ui/widgets/thinking.py:134
 msgid "Expand to see details"
 msgstr "বিস্তারিত দেখতে প্রসারিত করুন"
 
-#: src/ui/widgets/thinking.py:123
+#: src/ui/widgets/thinking.py:122
 msgid "Thinking..."
 msgstr "ভাবছে..."
 
-#: src/ui/widgets/thinking.py:124
+#: src/ui/widgets/thinking.py:123
 msgid "The LLM is thinking... Expand to see thought process"
 msgstr "এলএলএম ভাবছে... চিন্তার প্রক্রিয়া দেখতে প্রসারিত করুন"
 
-#: src/ui/widgets/thinking.py:137
+#: src/ui/widgets/thinking.py:136
 msgid "No thought process recorded"
 msgstr "কোনো চিন্তার প্রক্রিয়া রেকর্ড করা হয়নি"
 
@@ -1120,6 +1122,28 @@ msgstr ""
 msgid "Zoom out"
 msgstr ""
 
+#: src/ui/extension.py:17 src/ui/presentation.py:131 src/constants.py:513
+#: src/window.py:118
+msgid "Extensions"
+msgstr "এক্সটেনশন"
+
+#: src/ui/extension.py:50
+#, fuzzy
+msgid "Installed Extensions"
+msgstr "ইনস্টল করা এক্সটেনশন"
+
+#: src/ui/extension.py:85
+msgid "User guide to Extensions"
+msgstr "এক্সটেনশনগুলির জন্য ব্যবহারকারী নির্দেশিকা"
+
+#: src/ui/extension.py:88
+msgid "Download new Extensions"
+msgstr "নতুন এক্সটেনশন ডাউনলোড করুন"
+
+#: src/ui/extension.py:91
+msgid "Install extension from file..."
+msgstr "ফাইল থেকে এক্সটেনশন ইনস্টল করুন..."
+
 #: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.appdata.xml.in:7
 #: data/io.github.qwersyk.Newelle.desktop.in:2
 msgid "Newelle"
@@ -1188,11 +1212,6 @@ msgstr ""
 "ডিফল্টরূপে, আপনার কমান্ডগুলি <b>ফ্ল্যাটপ্যাক পরিবেশে ভার্চুয়ালাইজড</b> হবে, তবে "
 "মনোযোগ দিন!"
 
-#: src/ui/presentation.py:131 src/ui/extension.py:17 src/constants.py:513
-#: src/window.py:118
-msgid "Extensions"
-msgstr "এক্সটেনশন"
-
 #: src/ui/presentation.py:132
 msgid "You can extend Newelle's functionalities using extensions!"
 msgstr "আপনি এক্সটেনশন ব্যবহার করে নিউয়েলের কার্যকারিতা প্রসারিত করতে পারেন!"
@@ -1217,23 +1236,6 @@ msgstr "অ্যাপ ব্যবহার শুরু করুন"
 #: src/ui/presentation.py:163
 msgid "Start chatting"
 msgstr "চ্যাটিং শুরু করুন"
-
-#: src/ui/extension.py:50
-#, fuzzy
-msgid "Installed Extensions"
-msgstr "ইনস্টল করা এক্সটেনশন"
-
-#: src/ui/extension.py:85
-msgid "User guide to Extensions"
-msgstr "এক্সটেনশনগুলির জন্য ব্যবহারকারী নির্দেশিকা"
-
-#: src/ui/extension.py:88
-msgid "Download new Extensions"
-msgstr "নতুন এক্সটেনশন ডাউনলোড করুন"
-
-#: src/ui/extension.py:91
-msgid "Install extension from file..."
-msgstr "ফাইল থেকে এক্সটেনশন ইনস্টল করুন..."
 
 #: src/ui/settings.py:46 src/constants.py:523
 msgid "General"
@@ -2129,10 +2131,6 @@ msgstr ""
 msgid "Prompts settings, custom extra prompt, custom prompts..."
 msgstr "প্রম্পট সেটিংস, কাস্টম অতিরিক্ত প্রম্পট, কাস্টম প্রম্পট..."
 
-#: src/controller.py:135 src/window.py:1846
-msgid "Chat "
-msgstr "চ্যাট "
-
 #: src/main.py:205
 msgid "Terminal threads are still running in the background"
 msgstr "টার্মিনাল থ্রেডগুলি এখনও ব্যাকগ্রাউন্ডে চলছে"
@@ -2390,6 +2388,10 @@ msgstr "আপনি আর বার্তাটি চালিয়ে য�
 #: src/window.py:1658
 msgid "You can no longer regenerate the message."
 msgstr "আপনি আর বার্তাটি পুনরায় তৈরি করতে পারবেন না।"
+
+#: src/window.py:1846 src/controller.py:135
+msgid "Chat "
+msgstr "চ্যাট "
 
 #: src/window.py:1890
 msgid "Chat is cleared"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Newelle 0.2.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-02 02:15+0800\n"
+"POT-Creation-Date: 2025-07-06 02:35+0800\n"
 "PO-Revision-Date: 2025-07-03 09:00+0200\n"
 "Last-Translator: Yehor Qwersyk <qsk@gmx.at>\n"
 "Language-Team: Russian\n"
@@ -15,13 +15,13 @@ msgstr ""
 
 #: src/handlers/embeddings/ollama_handler.py:32
 #: src/handlers/embeddings/openai_handler.py:38
-#: src/handlers/llm/openai_handler.py:75 src/handlers/llm/ollama_handler.py:150
+#: src/handlers/llm/ollama_handler.py:150 src/handlers/llm/openai_handler.py:75
 #: src/handlers/stt/openaisr_handler.py:10
 msgid "API Endpoint"
 msgstr "Конечная точка API"
 
 #: src/handlers/embeddings/ollama_handler.py:32
-#: src/handlers/llm/openai_handler.py:75 src/handlers/llm/ollama_handler.py:150
+#: src/handlers/llm/ollama_handler.py:150 src/handlers/llm/openai_handler.py:75
 msgid "API base url, change this to use interference APIs"
 msgstr "Базовый URL-адрес API, измените его для использования API-интерфейсов"
 
@@ -47,8 +47,8 @@ msgstr "Пользовательская модель"
 
 #: src/handlers/embeddings/ollama_handler.py:34
 #: src/handlers/embeddings/openai_handler.py:41
-#: src/handlers/llm/claude_handler.py:85 src/handlers/llm/openai_handler.py:78
-#: src/handlers/llm/ollama_handler.py:153
+#: src/handlers/llm/claude_handler.py:85 src/handlers/llm/ollama_handler.py:153
+#: src/handlers/llm/openai_handler.py:78
 msgid "Use a custom model"
 msgstr "Использовать пользовательскую модель"
 
@@ -95,8 +95,8 @@ msgstr "Использовать пользовательскую модель"
 
 #: src/handlers/embeddings/openai_handler.py:44
 #: src/handlers/llm/claude_handler.py:89 src/handlers/llm/claude_handler.py:93
-#: src/handlers/llm/gemini_handler.py:97 src/handlers/llm/openai_handler.py:84
-#: src/handlers/llm/g4f_handler.py:44 src/handlers/stt/whisper_handler.py:15
+#: src/handlers/llm/g4f_handler.py:44 src/handlers/llm/openai_handler.py:84
+#: src/handlers/llm/gemini_handler.py:97 src/handlers/stt/whisper_handler.py:15
 #: src/handlers/stt/whispercpp_handler.py:40
 #: src/handlers/tts/custom_openai_tts.py:20
 #: src/handlers/tts/elevenlabs_handler.py:24
@@ -136,16 +136,18 @@ msgstr "Максимальное количество токенов"
 msgid "The maximum number of tokens to generate"
 msgstr "Максимальное количество токенов для генерации"
 
-#: src/handlers/llm/custom_handler.py:20 src/handlers/llm/gemini_handler.py:119
+#: src/handlers/llm/custom_handler.py:20
 #: src/handlers/llm/gpt4all_handler.py:153
-#: src/handlers/llm/newelle_handler.py:27 src/utility/util.py:136
+#: src/handlers/llm/newelle_handler.py:27
+#: src/handlers/llm/gemini_handler.py:119 src/utility/util.py:136
 #, fuzzy
 msgid "Message Streaming"
 msgstr "Потоковая передача сообщений"
 
-#: src/handlers/llm/custom_handler.py:20 src/handlers/llm/gemini_handler.py:120
+#: src/handlers/llm/custom_handler.py:20
 #: src/handlers/llm/gpt4all_handler.py:153
-#: src/handlers/llm/newelle_handler.py:28 src/utility/util.py:137
+#: src/handlers/llm/newelle_handler.py:28
+#: src/handlers/llm/gemini_handler.py:120 src/utility/util.py:137
 msgid "Gradually stream message output"
 msgstr "Постепенно выводить сообщения"
 
@@ -179,114 +181,6 @@ msgstr ""
 "предложений для генерации. Должен возвращать массив JSON, содержащий "
 "предложения в виде строк"
 
-#: src/handlers/llm/gemini_handler.py:94
-msgid "API Key (required)"
-msgstr "Ключ API (обязательно)"
-
-#: src/handlers/llm/gemini_handler.py:94
-msgid "API key got from ai.google.dev"
-msgstr "Ключ API, полученный с ai.google.dev"
-
-#: src/handlers/llm/gemini_handler.py:98
-msgid "AI Model to use"
-msgstr "Используемая модель ИИ"
-
-#: src/handlers/llm/gemini_handler.py:103
-msgid "Enable System Prompt"
-msgstr "Включить системную подсказку"
-
-#: src/handlers/llm/gemini_handler.py:103
-msgid ""
-"Some models don't support system prompt (or developers instructions), "
-"disable it if you get errors about it"
-msgstr ""
-"Некоторые модели не поддерживают системные подсказки (или инструкции "
-"разработчиков), отключите их, если получаете ошибки."
-
-#: src/handlers/llm/gemini_handler.py:107
-msgid "Inject system prompt"
-msgstr "Внедрить системную подсказку"
-
-#: src/handlers/llm/gemini_handler.py:107
-msgid ""
-"Even if the model doesn't support system prompts, put the prompts on top of "
-"the user message"
-msgstr ""
-"Даже если модель не поддерживает системные подсказки, разместите подсказки "
-"поверх сообщения пользователя."
-
-#: src/handlers/llm/gemini_handler.py:109
-#, fuzzy
-msgid "Thinking Settings"
-msgstr "Настройки размышлений"
-
-#: src/handlers/llm/gemini_handler.py:109
-msgid "Settings about thinking models"
-msgstr "Настройки моделей размышлений"
-
-#: src/handlers/llm/gemini_handler.py:110
-#: src/handlers/llm/ollama_handler.py:152
-msgid "Enable Thinking"
-msgstr "Включить размышления"
-
-#: src/handlers/llm/gemini_handler.py:110
-msgid "Show thinking, disable it if your model does not support it"
-msgstr "Показывать размышления, отключите, если ваша модель не поддерживает это"
-
-#: src/handlers/llm/gemini_handler.py:111
-msgid "Enable Thinking Budget"
-msgstr "Включить бюджет на размышления"
-
-#: src/handlers/llm/gemini_handler.py:111
-msgid "If to enable thinking budget"
-msgstr "Включить ли бюджет на размышления"
-
-#: src/handlers/llm/gemini_handler.py:112
-msgid "Thinking Budget"
-msgstr "Бюджет на размышления"
-
-#: src/handlers/llm/gemini_handler.py:112
-msgid "How much time to spend thinking"
-msgstr "Сколько времени уделять размышлениям"
-
-#: src/handlers/llm/gemini_handler.py:116
-msgid "Image Output"
-msgstr "Вывод изображений"
-
-#: src/handlers/llm/gemini_handler.py:116
-msgid "Enable image output, only supported by gemini-2.0-flash-exp"
-msgstr "Включить вывод изображений, поддерживается только gemini-2.0-flash-exp"
-
-#: src/handlers/llm/gemini_handler.py:125
-msgid "Enable safety settings"
-msgstr "Включить настройки безопасности"
-
-#: src/handlers/llm/gemini_handler.py:126
-msgid "Enable google safety settings to avoid generating harmful content"
-msgstr ""
-"Включить настройки безопасности Google, чтобы избежать генерации вредоносного "
-"контента"
-
-#: src/handlers/llm/gemini_handler.py:131
-#: src/handlers/llm/openai_handler.py:112
-#: src/handlers/llm/newelle_handler.py:18
-msgid "Privacy Policy"
-msgstr "Политика конфиденциальности"
-
-#: src/handlers/llm/gemini_handler.py:132
-#: src/handlers/llm/openai_handler.py:112
-#: src/handlers/llm/newelle_handler.py:19
-msgid "Open privacy policy website"
-msgstr "Открыть сайт политики конфиденциальности"
-
-#: src/handlers/llm/gemini_handler.py:135 src/handlers/llm/openai_handler.py:81
-msgid "Advanced Parameters"
-msgstr "Расширенные параметры"
-
-#: src/handlers/llm/gemini_handler.py:135
-msgid "Enable advanced parameters"
-msgstr "Включить расширенные параметры"
-
 #: src/handlers/llm/gpt4all_handler.py:67
 msgid "RAM Required: "
 msgstr "Требуется ОЗУ: "
@@ -317,6 +211,51 @@ msgstr "Менеджер моделей"
 #: src/handlers/llm/ollama_handler.py:172
 msgid "List of models available"
 msgstr "Список доступных моделей"
+
+#: src/handlers/llm/g4f_handler.py:45
+msgid "Update G4F"
+msgstr "Обновить G4F"
+
+#: src/handlers/llm/newelle_handler.py:18
+#: src/handlers/llm/openai_handler.py:112
+#: src/handlers/llm/gemini_handler.py:131
+msgid "Privacy Policy"
+msgstr "Политика конфиденциальности"
+
+#: src/handlers/llm/newelle_handler.py:19
+#: src/handlers/llm/openai_handler.py:112
+#: src/handlers/llm/gemini_handler.py:132
+msgid "Open privacy policy website"
+msgstr "Открыть сайт политики конфиденциальности"
+
+#: src/handlers/llm/ollama_handler.py:152
+#: src/handlers/llm/gemini_handler.py:110
+msgid "Enable Thinking"
+msgstr "Включить размышления"
+
+#: src/handlers/llm/ollama_handler.py:152
+msgid "Allow thinking in the model, only some models are supported"
+msgstr "Разрешить размышления в модели, поддерживаются только некоторые модели"
+
+#: src/handlers/llm/ollama_handler.py:176
+msgid "Add custom model"
+msgstr "Добавить пользовательскую модель"
+
+#: src/handlers/llm/ollama_handler.py:177
+msgid ""
+"Add any model to this list by putting name:size\n"
+"Or any gguf from hf with hf.co/username/model"
+msgstr ""
+"Добавьте любую модель в этот список, указав имя:размер\n"
+"Или любой gguf из hf с hf.co/username/model"
+
+#: src/handlers/llm/ollama_handler.py:187
+msgid "Update Ollama"
+msgstr "Обновить Ollama"
+
+#: src/handlers/llm/openai_handler.py:81 src/handlers/llm/gemini_handler.py:135
+msgid "Advanced Parameters"
+msgstr "Расширенные параметры"
 
 #: src/handlers/llm/openai_handler.py:81
 msgid "Include parameters like Max Tokens, Top-P, Temperature, etc."
@@ -419,30 +358,93 @@ msgstr "Разрешить откат"
 msgid "Allow fallbacks to other providers"
 msgstr "Разрешить откат к другим поставщикам"
 
-#: src/handlers/llm/g4f_handler.py:45
-msgid "Update G4F"
-msgstr "Обновить G4F"
+#: src/handlers/llm/gemini_handler.py:94
+msgid "API Key (required)"
+msgstr "Ключ API (обязательно)"
 
-#: src/handlers/llm/ollama_handler.py:152
-msgid "Allow thinking in the model, only some models are supported"
-msgstr ""
-"Разрешить размышления в модели, поддерживаются только некоторые модели"
+#: src/handlers/llm/gemini_handler.py:94
+msgid "API key got from ai.google.dev"
+msgstr "Ключ API, полученный с ai.google.dev"
 
-#: src/handlers/llm/ollama_handler.py:176
-msgid "Add custom model"
-msgstr "Добавить пользовательскую модель"
+#: src/handlers/llm/gemini_handler.py:98
+msgid "AI Model to use"
+msgstr "Используемая модель ИИ"
 
-#: src/handlers/llm/ollama_handler.py:177
+#: src/handlers/llm/gemini_handler.py:103
+msgid "Enable System Prompt"
+msgstr "Включить системную подсказку"
+
+#: src/handlers/llm/gemini_handler.py:103
 msgid ""
-"Add any model to this list by putting name:size\n"
-"Or any gguf from hf with hf.co/username/model"
+"Some models don't support system prompt (or developers instructions), "
+"disable it if you get errors about it"
 msgstr ""
-"Добавьте любую модель в этот список, указав имя:размер\n"
-"Или любой gguf из hf с hf.co/username/model"
+"Некоторые модели не поддерживают системные подсказки (или инструкции "
+"разработчиков), отключите их, если получаете ошибки."
 
-#: src/handlers/llm/ollama_handler.py:187
-msgid "Update Ollama"
-msgstr "Обновить Ollama"
+#: src/handlers/llm/gemini_handler.py:107
+msgid "Inject system prompt"
+msgstr "Внедрить системную подсказку"
+
+#: src/handlers/llm/gemini_handler.py:107
+msgid ""
+"Even if the model doesn't support system prompts, put the prompts on top of "
+"the user message"
+msgstr ""
+"Даже если модель не поддерживает системные подсказки, разместите подсказки "
+"поверх сообщения пользователя."
+
+#: src/handlers/llm/gemini_handler.py:109
+#, fuzzy
+msgid "Thinking Settings"
+msgstr "Настройки размышлений"
+
+#: src/handlers/llm/gemini_handler.py:109
+msgid "Settings about thinking models"
+msgstr "Настройки моделей размышлений"
+
+#: src/handlers/llm/gemini_handler.py:110
+msgid "Show thinking, disable it if your model does not support it"
+msgstr ""
+"Показывать размышления, отключите, если ваша модель не поддерживает это"
+
+#: src/handlers/llm/gemini_handler.py:111
+msgid "Enable Thinking Budget"
+msgstr "Включить бюджет на размышления"
+
+#: src/handlers/llm/gemini_handler.py:111
+msgid "If to enable thinking budget"
+msgstr "Включить ли бюджет на размышления"
+
+#: src/handlers/llm/gemini_handler.py:112
+msgid "Thinking Budget"
+msgstr "Бюджет на размышления"
+
+#: src/handlers/llm/gemini_handler.py:112
+msgid "How much time to spend thinking"
+msgstr "Сколько времени уделять размышлениям"
+
+#: src/handlers/llm/gemini_handler.py:116
+msgid "Image Output"
+msgstr "Вывод изображений"
+
+#: src/handlers/llm/gemini_handler.py:116
+msgid "Enable image output, only supported by gemini-2.0-flash-exp"
+msgstr "Включить вывод изображений, поддерживается только gemini-2.0-flash-exp"
+
+#: src/handlers/llm/gemini_handler.py:125
+msgid "Enable safety settings"
+msgstr "Включить настройки безопасности"
+
+#: src/handlers/llm/gemini_handler.py:126
+msgid "Enable google safety settings to avoid generating harmful content"
+msgstr ""
+"Включить настройки безопасности Google, чтобы избежать генерации "
+"вредоносного контента"
+
+#: src/handlers/llm/gemini_handler.py:135
+msgid "Enable advanced parameters"
+msgstr "Включить расширенные параметры"
 
 #: src/handlers/rag/rag_handler.py:104
 msgid "Index your documents"
@@ -455,8 +457,8 @@ msgid ""
 "change embedding model"
 msgstr ""
 "Индексируйте все документы в вашей папке документов. Вы должны выполнять эту "
-"операцию каждый раз, когда редактируете/создаете документ, меняете анализатор "
-"документов или меняете модель эмбеддинга"
+"операцию каждый раз, когда редактируете/создаете документ, меняете "
+"анализатор документов или меняете модель эмбеддинга"
 
 #: src/handlers/stt/custom_handler.py:13 src/handlers/tts/custom_handler.py:17
 msgid "Command to execute"
@@ -552,7 +554,8 @@ msgid "Could not understand the audio"
 msgstr "Не удалось понять аудио"
 
 #: src/handlers/stt/whispercpp_handler.py:47
-msgid "Language of the recognition."
+#, fuzzy
+msgid "Language of the recognition. For example en, it..."
 msgstr "Язык распознавания."
 
 #: src/handlers/stt/whispercpp_handler.py:48
@@ -617,7 +620,8 @@ msgstr "Инструкции"
 #: src/handlers/tts/openai_tts_handler.py:21
 msgid ""
 "Instructions for the voice generation. Leave it blank to avoid this field"
-msgstr "Инструкции для генерации голоса. Оставьте пустым, чтобы пропустить поле"
+msgstr ""
+"Инструкции для генерации голоса. Оставьте пустым, чтобы пропустить поле"
 
 #: src/handlers/tts/elevenlabs_handler.py:10
 msgid "API Key for ElevenLabs"
@@ -743,8 +747,8 @@ msgid ""
 "Include an LLM-generated answer to the provided query. Basic search returns "
 "a quick answer. Advanced returns a more detailed answer."
 msgstr ""
-"Включите ответ, сгенерированный LLM, на предоставленный запрос. Базовый поиск "
-"возвращает быстрый ответ. Расширенный возвращает более подробный ответ."
+"Включите ответ, сгенерированный LLM, на предоставленный запрос. Базовый "
+"поиск возвращает быстрый ответ. Расширенный возвращает более подробный ответ."
 
 #: src/handlers/websearch/tavily.py:27
 msgid "Include raw content"
@@ -752,7 +756,8 @@ msgstr "Включить необработанный контент"
 
 #: src/handlers/websearch/tavily.py:27
 msgid "Include the cleaned and parsed HTML content of each search result."
-msgstr "Включить очищенный и разобранный HTML-контент каждого результата поиска."
+msgstr ""
+"Включить очищенный и разобранный HTML-контент каждого результата поиска."
 
 #: src/handlers/websearch/tavily.py:28
 msgid "Include images"
@@ -899,23 +904,23 @@ msgstr "Удалить профиль"
 msgid "Newelle Tips"
 msgstr "Советы Newelle"
 
-#: src/ui/widgets/thinking.py:27
+#: src/ui/widgets/thinking.py:26
 msgid "Thoughts"
 msgstr "Мысли"
 
-#: src/ui/widgets/thinking.py:28 src/ui/widgets/thinking.py:135
+#: src/ui/widgets/thinking.py:27 src/ui/widgets/thinking.py:134
 msgid "Expand to see details"
 msgstr "Развернуть, чтобы увидеть детали"
 
-#: src/ui/widgets/thinking.py:123
+#: src/ui/widgets/thinking.py:122
 msgid "Thinking..."
 msgstr "Размышления..."
 
-#: src/ui/widgets/thinking.py:124
+#: src/ui/widgets/thinking.py:123
 msgid "The LLM is thinking... Expand to see thought process"
 msgstr "LLM размышляет... Разверните, чтобы увидеть ход мыслей"
 
-#: src/ui/widgets/thinking.py:137
+#: src/ui/widgets/thinking.py:136
 msgid "No thought process recorded"
 msgstr "Процесс размышлений не записан"
 
@@ -1108,6 +1113,29 @@ msgstr "Увеличить"
 msgid "Zoom out"
 msgstr "Уменьшить"
 
+#: src/ui/extension.py:17 src/ui/presentation.py:131 src/constants.py:513
+#: src/window.py:118
+msgid "Extensions"
+msgstr "Расширения"
+
+#: src/ui/extension.py:50
+#, fuzzy
+msgid "Installed Extensions"
+msgstr "Установленные расширения"
+
+#: src/ui/extension.py:85
+msgid "User guide to Extensions"
+msgstr "Руководство пользователя по расширениям"
+
+#: src/ui/extension.py:88
+#, fuzzy
+msgid "Download new Extensions"
+msgstr "Загрузить новые расширения"
+
+#: src/ui/extension.py:91
+msgid "Install extension from file..."
+msgstr "Установить расширение из файла..."
+
 #: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.appdata.xml.in:7
 #: data/io.github.qwersyk.Newelle.desktop.in:2
 msgid "Newelle"
@@ -1157,8 +1185,8 @@ msgid ""
 "to the LLM."
 msgstr ""
 "Newelle может извлекать соответствующую информацию из документов, которые вы "
-"отправляете в чат, или из ваших собственных файлов! Информация, относящаяся к "
-"вашему запросу, будет отправлена в LLM."
+"отправляете в чат, или из ваших собственных файлов! Информация, относящаяся "
+"к вашему запросу, будет отправлена в LLM."
 
 #: src/ui/presentation.py:124 src/ui/settings.py:236 src/window.py:647
 msgid "Command virtualization"
@@ -1172,16 +1200,11 @@ msgid ""
 "By default, your commands will be <b>virtualized in the Flatpak environment</"
 "b>, but pay attention!"
 msgstr ""
-"Newelle может использоваться для выполнения команд в вашей системе, но будьте "
-"внимательны к тому, что вы запускаете! <b>LLM не находится под нашим "
+"Newelle может использоваться для выполнения команд в вашей системе, но "
+"будьте внимательны к тому, что вы запускаете! <b>LLM не находится под нашим "
 "контролем, поэтому он может генерировать вредоносный код!</b>\n"
 "По умолчанию ваши команды будут <b>виртуализированы в среде Flatpak</b>, но "
 "будьте внимательны!"
-
-#: src/ui/presentation.py:131 src/ui/extension.py:17 src/constants.py:513
-#: src/window.py:118
-msgid "Extensions"
-msgstr "Расширения"
 
 #: src/ui/presentation.py:132
 msgid "You can extend Newelle's functionalities using extensions!"
@@ -1209,24 +1232,6 @@ msgstr "Начать использовать приложение"
 #: src/ui/presentation.py:163
 msgid "Start chatting"
 msgstr "Начать чат"
-
-#: src/ui/extension.py:50
-#, fuzzy
-msgid "Installed Extensions"
-msgstr "Установленные расширения"
-
-#: src/ui/extension.py:85
-msgid "User guide to Extensions"
-msgstr "Руководство пользователя по расширениям"
-
-#: src/ui/extension.py:88
-#, fuzzy
-msgid "Download new Extensions"
-msgstr "Загрузить новые расширения"
-
-#: src/ui/extension.py:91
-msgid "Install extension from file..."
-msgstr "Установить расширение из файла..."
 
 #: src/ui/settings.py:46 src/constants.py:523
 msgid "General"
@@ -1371,8 +1376,8 @@ msgid ""
 "with enter"
 msgstr ""
 "Если включено, сообщения будут отправляться с ENTER, для перехода на новую "
-"строку используйте CTRL+ENTER. Если отключено, сообщения будут отправляться с "
-"SHIFT+ENTER, а новая строка — с ENTER"
+"строку используйте CTRL+ENTER. Если отключено, сообщения будут отправляться "
+"с SHIFT+ENTER, а новая строка — с ENTER"
 
 #: src/ui/settings.py:192
 msgid "Remove thinking from history"
@@ -1535,8 +1540,8 @@ msgid ""
 "Persist browser session between restarts. Turning this off requires "
 "restarting the program"
 msgstr ""
-"Сохранять сессию браузера между перезапусками. Отключение этой опции "
-"требует перезапуска программы"
+"Сохранять сессию браузера между перезапусками. Отключение этой опции требует "
+"перезапуска программы"
 
 #: src/ui/settings.py:345
 msgid "Delete browser data"
@@ -1581,8 +1586,8 @@ msgid ""
 "The document analyzer uses multiple techniques to extract relevant "
 "information about your documents"
 msgstr ""
-"Анализатор документов использует несколько методов для извлечения релевантной "
-"информации из ваших документов"
+"Анализатор документов использует несколько методов для извлечения "
+"релевантной информации из ваших документов"
 
 #: src/ui/settings.py:392
 msgid "Read documents if unsupported"
@@ -1627,7 +1632,8 @@ msgstr ""
 
 #: src/ui/settings.py:416
 msgid "Put all the documents you want to index in this folder"
-msgstr "Поместите все документы, которые вы хотите проиндексировать, в эту папку"
+msgstr ""
+"Поместите все документы, которые вы хотите проиндексировать, в эту папку"
 
 #: src/ui/settings.py:452
 msgid "Silence threshold"
@@ -1743,8 +1749,9 @@ msgstr "API OpenAI"
 
 #: src/constants.py:61
 msgid "OpenAI API. Custom endpoints supported. Use this for custom providers"
-msgstr "OpenAI API. Поддерживаются пользовательские конечные точки. Используйте "
-"для пользовательских поставщиков"
+msgstr ""
+"OpenAI API. Поддерживаются пользовательские конечные точки. Используйте для "
+"пользовательских поставщиков"
 
 #: src/constants.py:66
 msgid "Anthropic Claude"
@@ -1909,7 +1916,8 @@ msgstr "Офлайн TTS"
 #: src/constants.py:204
 #, python-brace-format
 msgid "Use a custom command as TTS, {0} will be replaced with the text"
-msgstr "Использовать пользовательскую команду как TTS, {0} будет заменен текстом"
+msgstr ""
+"Использовать пользовательскую команду как TTS, {0} будет заменен текстом"
 
 #: src/constants.py:212
 msgid "WordLlama"
@@ -1957,8 +1965,8 @@ msgid ""
 "Does 1 llm call per message."
 msgstr ""
 "Извлечение сообщений из предыдущих разговоров с использованием контекстного "
-"извлечения памяти, затухания памяти, извлечения концепций и других "
-"передовых методов. Выполняет 1 вызов LLM на сообщение."
+"извлечения памяти, затухания памяти, извлечения концепций и других передовых "
+"методов. Выполняет 1 вызов LLM на сообщение."
 
 #: src/constants.py:251
 msgid "User Summary + Memoripy"
@@ -1977,9 +1985,8 @@ msgid ""
 "Classic RAG approach - chunk documents and embed them, then compare them to "
 "the query and return the most relevant documents"
 msgstr ""
-"Классический подход RAG - разбиение документов на фрагменты и их "
-"внедрение, затем сравнение их с запросом и возврат наиболее релевантных "
-"документов"
+"Классический подход RAG - разбиение документов на фрагменты и их внедрение, "
+"затем сравнение их с запросом и возврат наиболее релевантных документов"
 
 #: src/constants.py:269
 msgid "SearXNG"
@@ -2148,12 +2155,9 @@ msgstr ""
 
 #: src/constants.py:530
 msgid "Prompts settings, custom extra prompt, custom prompts..."
-msgstr "Настройки подсказок, пользовательская дополнительная подсказка, "
+msgstr ""
+"Настройки подсказок, пользовательская дополнительная подсказка, "
 "пользовательские подсказки..."
-
-#: src/controller.py:135 src/window.py:1846
-msgid "Chat "
-msgstr "Чат "
 
 #: src/main.py:205
 msgid "Terminal threads are still running in the background"
@@ -2263,8 +2267,8 @@ msgid ""
 "Add your documents to your documents folder and chat using the information "
 "contained in them!"
 msgstr ""
-"Добавьте свои документы в папку документов и общайтесь, используя информацию, "
-"содержащуюся в них!"
+"Добавьте свои документы в папку документов и общайтесь, используя "
+"информацию, содержащуюся в них!"
 
 #: src/window.py:590
 msgid "Surf the web!"
@@ -2292,8 +2296,8 @@ msgstr "Преобразование текста в речь"
 
 #: src/window.py:592
 msgid "Newelle supports text-to-speech! Enable it in the settings"
-msgstr "Newelle поддерживает преобразование текста в речь! Включите это в "
-"настройках"
+msgstr ""
+"Newelle поддерживает преобразование текста в речь! Включите это в настройках"
 
 #: src/window.py:593
 #, fuzzy
@@ -2312,8 +2316,9 @@ msgstr "Управление подсказками"
 
 #: src/window.py:594
 msgid "Newelle gives you 100% prompt control. Tune your prompts for your use."
-msgstr "Newelle предоставляет вам 100% контроль над подсказками. Настраивайте "
-"свои подсказки для своего использования."
+msgstr ""
+"Newelle предоставляет вам 100% контроль над подсказками. Настраивайте свои "
+"подсказки для своего использования."
 
 #: src/window.py:595
 #, fuzzy
@@ -2411,6 +2416,10 @@ msgstr "Вы больше не можете продолжить сообщен�
 #: src/window.py:1658
 msgid "You can no longer regenerate the message."
 msgstr "Вы больше не можете перегенерировать сообщение."
+
+#: src/window.py:1846 src/controller.py:135
+msgid "Chat "
+msgstr "Чат "
 
 #: src/window.py:1890
 msgid "Chat is cleared"

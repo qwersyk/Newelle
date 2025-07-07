@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-02 02:15+0800\n"
+"POT-Creation-Date: 2025-07-06 02:35+0800\n"
 "PO-Revision-Date: 2025-07-03 09:00+0200\n"
 "Last-Translator: Yehor Hliebov <qsk@gmx.at>\n"
 "Language-Team: Hungarian <qsk@gmx.at>\n"
@@ -13,13 +13,13 @@ msgstr ""
 
 #: src/handlers/embeddings/ollama_handler.py:32
 #: src/handlers/embeddings/openai_handler.py:38
-#: src/handlers/llm/openai_handler.py:75 src/handlers/llm/ollama_handler.py:150
+#: src/handlers/llm/ollama_handler.py:150 src/handlers/llm/openai_handler.py:75
 #: src/handlers/stt/openaisr_handler.py:10
 msgid "API Endpoint"
 msgstr "API végpont"
 
 #: src/handlers/embeddings/ollama_handler.py:32
-#: src/handlers/llm/openai_handler.py:75 src/handlers/llm/ollama_handler.py:150
+#: src/handlers/llm/ollama_handler.py:150 src/handlers/llm/openai_handler.py:75
 msgid "API base url, change this to use interference APIs"
 msgstr "API alap URL, ezt módosítva használhatók az interferencia API-k"
 
@@ -44,8 +44,8 @@ msgstr "Egyéni modell"
 
 #: src/handlers/embeddings/ollama_handler.py:34
 #: src/handlers/embeddings/openai_handler.py:41
-#: src/handlers/llm/claude_handler.py:85 src/handlers/llm/openai_handler.py:78
-#: src/handlers/llm/ollama_handler.py:153
+#: src/handlers/llm/claude_handler.py:85 src/handlers/llm/ollama_handler.py:153
+#: src/handlers/llm/openai_handler.py:78
 msgid "Use a custom model"
 msgstr "Egyéni modell használata"
 
@@ -91,8 +91,8 @@ msgstr "Egyéni modell használata"
 
 #: src/handlers/embeddings/openai_handler.py:44
 #: src/handlers/llm/claude_handler.py:89 src/handlers/llm/claude_handler.py:93
-#: src/handlers/llm/gemini_handler.py:97 src/handlers/llm/openai_handler.py:84
-#: src/handlers/llm/g4f_handler.py:44 src/handlers/stt/whisper_handler.py:15
+#: src/handlers/llm/g4f_handler.py:44 src/handlers/llm/openai_handler.py:84
+#: src/handlers/llm/gemini_handler.py:97 src/handlers/stt/whisper_handler.py:15
 #: src/handlers/stt/whispercpp_handler.py:40
 #: src/handlers/tts/custom_openai_tts.py:20
 #: src/handlers/tts/elevenlabs_handler.py:24
@@ -132,15 +132,17 @@ msgstr "Max tokenek"
 msgid "The maximum number of tokens to generate"
 msgstr "A generálandó tokenek maximális száma"
 
-#: src/handlers/llm/custom_handler.py:20 src/handlers/llm/gemini_handler.py:119
+#: src/handlers/llm/custom_handler.py:20
 #: src/handlers/llm/gpt4all_handler.py:153
-#: src/handlers/llm/newelle_handler.py:27 src/utility/util.py:136
+#: src/handlers/llm/newelle_handler.py:27
+#: src/handlers/llm/gemini_handler.py:119 src/utility/util.py:136
 msgid "Message Streaming"
 msgstr "Üzenetfolyam"
 
-#: src/handlers/llm/custom_handler.py:20 src/handlers/llm/gemini_handler.py:120
+#: src/handlers/llm/custom_handler.py:20
 #: src/handlers/llm/gpt4all_handler.py:153
-#: src/handlers/llm/newelle_handler.py:28 src/utility/util.py:137
+#: src/handlers/llm/newelle_handler.py:28
+#: src/handlers/llm/gemini_handler.py:120 src/utility/util.py:137
 msgid "Gradually stream message output"
 msgstr "Fokozatosan streameli az üzenetkimenetet"
 
@@ -174,114 +176,6 @@ msgstr ""
 "helyére pedig a generálandó javaslatok számával. Egy JSON tömböt kell "
 "visszaadnia, amely a javaslatokat karakterláncként tartalmazza."
 
-#: src/handlers/llm/gemini_handler.py:94
-msgid "API Key (required)"
-msgstr "API kulcs (kötelező)"
-
-#: src/handlers/llm/gemini_handler.py:94
-msgid "API key got from ai.google.dev"
-msgstr "Az ai.google.dev-ről szerzett API kulcs"
-
-#: src/handlers/llm/gemini_handler.py:98
-msgid "AI Model to use"
-msgstr "Használandó AI modell"
-
-#: src/handlers/llm/gemini_handler.py:103
-msgid "Enable System Prompt"
-msgstr "Rendszerüzenetek engedélyezése"
-
-#: src/handlers/llm/gemini_handler.py:103
-msgid ""
-"Some models don't support system prompt (or developers instructions), "
-"disable it if you get errors about it"
-msgstr ""
-"Néhány modell nem támogatja a rendszerüzeneteket (vagy a fejlesztői "
-"utasításokat), kapcsolja ki, ha hibákat tapasztal."
-
-#: src/handlers/llm/gemini_handler.py:107
-msgid "Inject system prompt"
-msgstr "Rendszerüzenet beillesztése"
-
-#: src/handlers/llm/gemini_handler.py:107
-msgid ""
-"Even if the model doesn't support system prompts, put the prompts on top of "
-"the user message"
-msgstr ""
-"Még ha a modell nem is támogatja a rendszerüzeneteket, tegye az üzeneteket "
-"a felhasználói üzenet fölé."
-
-#: src/handlers/llm/gemini_handler.py:109
-msgid "Thinking Settings"
-msgstr "Gondolkodási beállítások"
-
-#: src/handlers/llm/gemini_handler.py:109
-msgid "Settings about thinking models"
-msgstr "A gondolkodási modellekre vonatkozó beállítások"
-
-#: src/handlers/llm/gemini_handler.py:110
-#: src/handlers/llm/ollama_handler.py:152
-msgid "Enable Thinking"
-msgstr "Gondolkodás engedélyezése"
-
-#: src/handlers/llm/gemini_handler.py:110
-msgid "Show thinking, disable it if your model does not support it"
-msgstr "Gondolkodás megjelenítése, kapcsolja ki, ha a modellje nem támogatja"
-
-#: src/handlers/llm/gemini_handler.py:111
-msgid "Enable Thinking Budget"
-msgstr "Gondolkodási költségvetés engedélyezése"
-
-#: src/handlers/llm/gemini_handler.py:111
-msgid "If to enable thinking budget"
-msgstr "Gondolkodási költségvetés engedélyezése"
-
-#: src/handlers/llm/gemini_handler.py:112
-msgid "Thinking Budget"
-msgstr "Gondolkodási költségvetés"
-
-#: src/handlers/llm/gemini_handler.py:112
-msgid "How much time to spend thinking"
-msgstr "Mennyi időt fordítson a gondolkodásra"
-
-#: src/handlers/llm/gemini_handler.py:116
-msgid "Image Output"
-msgstr "Képek kimenet"
-
-#: src/handlers/llm/gemini_handler.py:116
-msgid "Enable image output, only supported by gemini-2.0-flash-exp"
-msgstr ""
-"Képkimenet engedélyezése, csak a gemini-2.0-flash-exp támogatja"
-
-#: src/handlers/llm/gemini_handler.py:125
-msgid "Enable safety settings"
-msgstr "Biztonsági beállítások engedélyezése"
-
-#: src/handlers/llm/gemini_handler.py:126
-msgid "Enable google safety settings to avoid generating harmful content"
-msgstr ""
-"Engedélyezze a Google biztonsági beállításait a káros tartalom generálásának "
-"elkerülése érdekében"
-
-#: src/handlers/llm/gemini_handler.py:131
-#: src/handlers/llm/openai_handler.py:112
-#: src/handlers/llm/newelle_handler.py:18
-msgid "Privacy Policy"
-msgstr "Adatvédelmi irányelvek"
-
-#: src/handlers/llm/gemini_handler.py:132
-#: src/handlers/llm/openai_handler.py:112
-#: src/handlers/llm/newelle_handler.py:19
-msgid "Open privacy policy website"
-msgstr "Adatvédelmi irányelvek webhelyének megnyitása"
-
-#: src/handlers/llm/gemini_handler.py:135 src/handlers/llm/openai_handler.py:81
-msgid "Advanced Parameters"
-msgstr "Haladó paraméterek"
-
-#: src/handlers/llm/gemini_handler.py:135
-msgid "Enable advanced parameters"
-msgstr "Haladó paraméterek engedélyezése"
-
 #: src/handlers/llm/gpt4all_handler.py:67
 msgid "RAM Required: "
 msgstr "Szükséges RAM: "
@@ -313,6 +207,51 @@ msgstr "Modellkezelő"
 msgid "List of models available"
 msgstr "Elérhető modellek listája"
 
+#: src/handlers/llm/g4f_handler.py:45
+msgid "Update G4F"
+msgstr "G4F frissítése"
+
+#: src/handlers/llm/newelle_handler.py:18
+#: src/handlers/llm/openai_handler.py:112
+#: src/handlers/llm/gemini_handler.py:131
+msgid "Privacy Policy"
+msgstr "Adatvédelmi irányelvek"
+
+#: src/handlers/llm/newelle_handler.py:19
+#: src/handlers/llm/openai_handler.py:112
+#: src/handlers/llm/gemini_handler.py:132
+msgid "Open privacy policy website"
+msgstr "Adatvédelmi irányelvek webhelyének megnyitása"
+
+#: src/handlers/llm/ollama_handler.py:152
+#: src/handlers/llm/gemini_handler.py:110
+msgid "Enable Thinking"
+msgstr "Gondolkodás engedélyezése"
+
+#: src/handlers/llm/ollama_handler.py:152
+msgid "Allow thinking in the model, only some models are supported"
+msgstr "Gondolkodás engedélyezése a modellben, csak néhány modell támogatott"
+
+#: src/handlers/llm/ollama_handler.py:176
+msgid "Add custom model"
+msgstr "Egyéni modell hozzáadása"
+
+#: src/handlers/llm/ollama_handler.py:177
+msgid ""
+"Add any model to this list by putting name:size\n"
+"Or any gguf from hf with hf.co/username/model"
+msgstr ""
+"Adjon hozzá bármilyen modellt ehhez a listához név:méret formátumban\n"
+"Vagy bármely gguf modellt a hf-ről a hf.co/felhasználónév/modell címen"
+
+#: src/handlers/llm/ollama_handler.py:187
+msgid "Update Ollama"
+msgstr "Ollama frissítése"
+
+#: src/handlers/llm/openai_handler.py:81 src/handlers/llm/gemini_handler.py:135
+msgid "Advanced Parameters"
+msgstr "Haladó paraméterek"
+
 #: src/handlers/llm/openai_handler.py:81
 msgid "Include parameters like Max Tokens, Top-P, Temperature, etc."
 msgstr ""
@@ -338,8 +277,8 @@ msgstr "Top-P"
 #: src/handlers/llm/openai_handler.py:104
 msgid "An alternative to sampling with temperature, called nucleus sampling"
 msgstr ""
-"A hőmérséklettel történő mintavételezés alternatívája, az úgynevezett nucleus "
-"mintavételezés"
+"A hőmérséklettel történő mintavételezés alternatívája, az úgynevezett "
+"nucleus mintavételezés"
 
 #: src/handlers/llm/openai_handler.py:105
 #: src/handlers/stt/whispercpp_handler.py:50
@@ -407,8 +346,8 @@ msgid ""
 "Add order of providers to use, names separated by a comma.\n"
 "Empty to not specify"
 msgstr ""
-"Adja meg a használandó szolgáltatók sorrendjét, a neveket vesszővel elválasztva."
-"\n"
+"Adja meg a használandó szolgáltatók sorrendjét, a neveket vesszővel "
+"elválasztva.\n"
 "Hagyja üresen, ha nem kívánja megadni."
 
 #: src/handlers/llm/openrouter_handler.py:16
@@ -419,30 +358,91 @@ msgstr "Visszalépések engedélyezése"
 msgid "Allow fallbacks to other providers"
 msgstr "Más szolgáltatókra való visszalépések engedélyezése"
 
-#: src/handlers/llm/g4f_handler.py:45
-msgid "Update G4F"
-msgstr "G4F frissítése"
+#: src/handlers/llm/gemini_handler.py:94
+msgid "API Key (required)"
+msgstr "API kulcs (kötelező)"
 
-#: src/handlers/llm/ollama_handler.py:152
-msgid "Allow thinking in the model, only some models are supported"
-msgstr ""
-"Gondolkodás engedélyezése a modellben, csak néhány modell támogatott"
+#: src/handlers/llm/gemini_handler.py:94
+msgid "API key got from ai.google.dev"
+msgstr "Az ai.google.dev-ről szerzett API kulcs"
 
-#: src/handlers/llm/ollama_handler.py:176
-msgid "Add custom model"
-msgstr "Egyéni modell hozzáadása"
+#: src/handlers/llm/gemini_handler.py:98
+msgid "AI Model to use"
+msgstr "Használandó AI modell"
 
-#: src/handlers/llm/ollama_handler.py:177
+#: src/handlers/llm/gemini_handler.py:103
+msgid "Enable System Prompt"
+msgstr "Rendszerüzenetek engedélyezése"
+
+#: src/handlers/llm/gemini_handler.py:103
 msgid ""
-"Add any model to this list by putting name:size\n"
-"Or any gguf from hf with hf.co/username/model"
+"Some models don't support system prompt (or developers instructions), "
+"disable it if you get errors about it"
 msgstr ""
-"Adjon hozzá bármilyen modellt ehhez a listához név:méret formátumban\n"
-"Vagy bármely gguf modellt a hf-ről a hf.co/felhasználónév/modell címen"
+"Néhány modell nem támogatja a rendszerüzeneteket (vagy a fejlesztői "
+"utasításokat), kapcsolja ki, ha hibákat tapasztal."
 
-#: src/handlers/llm/ollama_handler.py:187
-msgid "Update Ollama"
-msgstr "Ollama frissítése"
+#: src/handlers/llm/gemini_handler.py:107
+msgid "Inject system prompt"
+msgstr "Rendszerüzenet beillesztése"
+
+#: src/handlers/llm/gemini_handler.py:107
+msgid ""
+"Even if the model doesn't support system prompts, put the prompts on top of "
+"the user message"
+msgstr ""
+"Még ha a modell nem is támogatja a rendszerüzeneteket, tegye az üzeneteket a "
+"felhasználói üzenet fölé."
+
+#: src/handlers/llm/gemini_handler.py:109
+msgid "Thinking Settings"
+msgstr "Gondolkodási beállítások"
+
+#: src/handlers/llm/gemini_handler.py:109
+msgid "Settings about thinking models"
+msgstr "A gondolkodási modellekre vonatkozó beállítások"
+
+#: src/handlers/llm/gemini_handler.py:110
+msgid "Show thinking, disable it if your model does not support it"
+msgstr "Gondolkodás megjelenítése, kapcsolja ki, ha a modellje nem támogatja"
+
+#: src/handlers/llm/gemini_handler.py:111
+msgid "Enable Thinking Budget"
+msgstr "Gondolkodási költségvetés engedélyezése"
+
+#: src/handlers/llm/gemini_handler.py:111
+msgid "If to enable thinking budget"
+msgstr "Gondolkodási költségvetés engedélyezése"
+
+#: src/handlers/llm/gemini_handler.py:112
+msgid "Thinking Budget"
+msgstr "Gondolkodási költségvetés"
+
+#: src/handlers/llm/gemini_handler.py:112
+msgid "How much time to spend thinking"
+msgstr "Mennyi időt fordítson a gondolkodásra"
+
+#: src/handlers/llm/gemini_handler.py:116
+msgid "Image Output"
+msgstr "Képek kimenet"
+
+#: src/handlers/llm/gemini_handler.py:116
+msgid "Enable image output, only supported by gemini-2.0-flash-exp"
+msgstr "Képkimenet engedélyezése, csak a gemini-2.0-flash-exp támogatja"
+
+#: src/handlers/llm/gemini_handler.py:125
+msgid "Enable safety settings"
+msgstr "Biztonsági beállítások engedélyezése"
+
+#: src/handlers/llm/gemini_handler.py:126
+msgid "Enable google safety settings to avoid generating harmful content"
+msgstr ""
+"Engedélyezze a Google biztonsági beállításait a káros tartalom generálásának "
+"elkerülése érdekében"
+
+#: src/handlers/llm/gemini_handler.py:135
+msgid "Enable advanced parameters"
+msgstr "Haladó paraméterek engedélyezése"
 
 #: src/handlers/rag/rag_handler.py:104
 msgid "Index your documents"
@@ -552,7 +552,8 @@ msgid "Could not understand the audio"
 msgstr "Nem sikerült értelmezni a hangot"
 
 #: src/handlers/stt/whispercpp_handler.py:47
-msgid "Language of the recognition."
+#, fuzzy
+msgid "Language of the recognition. For example en, it..."
 msgstr "A felismerés nyelve."
 
 #: src/handlers/stt/whispercpp_handler.py:48
@@ -614,7 +615,8 @@ msgstr "Utasítások"
 #: src/handlers/tts/openai_tts_handler.py:21
 msgid ""
 "Instructions for the voice generation. Leave it blank to avoid this field"
-msgstr "Utasítások a hanggeneráláshoz. Hagyja üresen, hogy elkerülje ezt a mezőt"
+msgstr ""
+"Utasítások a hanggeneráláshoz. Hagyja üresen, hogy elkerülje ezt a mezőt"
 
 #: src/handlers/tts/elevenlabs_handler.py:10
 msgid "API Key for ElevenLabs"
@@ -647,8 +649,7 @@ msgstr "Stílus túlzása"
 #: src/handlers/tts/elevenlabs_handler.py:53
 msgid ""
 "High values are reccomended if the style of the speech must be exaggerated"
-msgstr ""
-"Magas értékek javasoltak, ha a beszéd stílusát túlzottá kell tenni"
+msgstr "Magas értékek javasoltak, ha a beszéd stílusát túlzottá kell tenni"
 
 #: src/handlers/tts/custom_handler.py:17
 #, python-brace-format
@@ -688,10 +689,11 @@ msgid ""
 "provides generic content snippets from each source. A basic search costs 1 "
 "API Credit, while an advanced search costs 2 API Credits."
 msgstr ""
-"A keresés mélysége. Az „Advanced” (haladó) keresés a legrelevánsabb forrásokat "
-"és tartalomrészleteket célozza meg a lekérdezéséhez, míg az „Basic” (alap) "
-"keresés általános tartalomrészleteket biztosít minden forrásból. Egy alap "
-"keresés 1 API kreditbe, míg egy haladó keresés 2 API kreditbe kerül."
+"A keresés mélysége. Az „Advanced” (haladó) keresés a legrelevánsabb "
+"forrásokat és tartalomrészleteket célozza meg a lekérdezéséhez, míg az "
+"„Basic” (alap) keresés általános tartalomrészleteket biztosít minden "
+"forrásból. Egy alap keresés 1 API kreditbe, míg egy haladó keresés 2 API "
+"kreditbe kerül."
 
 #: src/handlers/websearch/tavily.py:23
 msgid "The category of the search"
@@ -705,8 +707,8 @@ msgid ""
 "searches that may include a wide range of sources."
 msgstr ""
 "A keresés kategóriája. A „Hírek” hasznos a valós idejű frissítések "
-"lekérdezéséhez, különösen a politikáról, sportról és a mainstream média által "
-"tárgyalt nagyobb aktuális eseményekről. Az „Általános” szélesebb, "
+"lekérdezéséhez, különösen a politikáról, sportról és a mainstream média "
+"által tárgyalt nagyobb aktuális eseményekről. Az „Általános” szélesebb, "
 "általánosabb célú keresésekhez használható, amelyek sokféle forrást "
 "tartalmazhatnak."
 
@@ -759,8 +761,7 @@ msgstr "Képek mellékelése"
 
 #: src/handlers/websearch/tavily.py:28
 msgid "Perform an image search and include the results in the response."
-msgstr ""
-"Képes keresés végrehajtása és az eredmények mellékelése a válaszban."
+msgstr "Képes keresés végrehajtása és az eredmények mellékelése a válaszban."
 
 #: src/handlers/websearch/tavily.py:29
 msgid "Include image descriptions"
@@ -779,8 +780,9 @@ msgstr "Domainek mellékelése"
 
 #: src/handlers/websearch/tavily.py:30
 msgid "A list of domains to specifically include in the search results."
-msgstr "Azon domainek listája, amelyeket kifejezetten bele kell foglalni a "
-"keresési eredményekbe."
+msgstr ""
+"Azon domainek listája, amelyeket kifejezetten bele kell foglalni a keresési "
+"eredményekbe."
 
 #: src/handlers/websearch/tavily.py:31
 msgid "Exclude domains"
@@ -788,7 +790,8 @@ msgstr "Domainek kizárása"
 
 #: src/handlers/websearch/tavily.py:31
 msgid "A list of domains to specifically exclude from the search results."
-msgstr "Azon domainek listája, amelyeket kifejezetten ki kell zárni a keresési "
+msgstr ""
+"Azon domainek listája, amelyeket kifejezetten ki kell zárni a keresési "
 "eredményekből."
 
 #: src/handlers/websearch/duckduckgo_handler.py:15
@@ -899,23 +902,24 @@ msgstr "Profil törlése"
 msgid "Newelle Tips"
 msgstr "Newelle tippek"
 
-#: src/ui/widgets/thinking.py:27
+#: src/ui/widgets/thinking.py:26
 msgid "Thoughts"
 msgstr "Gondolatok"
 
-#: src/ui/widgets/thinking.py:28 src/ui/widgets/thinking.py:135
+#: src/ui/widgets/thinking.py:27 src/ui/widgets/thinking.py:134
 msgid "Expand to see details"
 msgstr "Kibontás a részletek megtekintéséhez"
 
-#: src/ui/widgets/thinking.py:123
+#: src/ui/widgets/thinking.py:122
 msgid "Thinking..."
 msgstr "Gondolkodás..."
 
-#: src/ui/widgets/thinking.py:124
+#: src/ui/widgets/thinking.py:123
 msgid "The LLM is thinking... Expand to see thought process"
-msgstr "Az LLM gondolkodik... Bontsa ki a gondolkodási folyamat megtekintéséhez"
+msgstr ""
+"Az LLM gondolkodik... Bontsa ki a gondolkodási folyamat megtekintéséhez"
 
-#: src/ui/widgets/thinking.py:137
+#: src/ui/widgets/thinking.py:136
 msgid "No thought process recorded"
 msgstr "Nincs rögzített gondolkodási folyamat"
 
@@ -1097,6 +1101,27 @@ msgstr "Nagyítás"
 msgid "Zoom out"
 msgstr "Kicsinyítés"
 
+#: src/ui/extension.py:17 src/ui/presentation.py:131 src/constants.py:513
+#: src/window.py:118
+msgid "Extensions"
+msgstr "Bővítmények"
+
+#: src/ui/extension.py:50
+msgid "Installed Extensions"
+msgstr "Telepített bővítmények"
+
+#: src/ui/extension.py:85
+msgid "User guide to Extensions"
+msgstr "Felhasználói útmutató a bővítményekhez"
+
+#: src/ui/extension.py:88
+msgid "Download new Extensions"
+msgstr "Új bővítmények letöltése"
+
+#: src/ui/extension.py:91
+msgid "Install extension from file..."
+msgstr "Bővítmény telepítése fájlból..."
+
 #: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.appdata.xml.in:7
 #: data/io.github.qwersyk.Newelle.desktop.in:2
 msgid "Newelle"
@@ -1166,11 +1191,6 @@ msgstr ""
 "Alapértelmezés szerint a parancsok <b>virtualizálva lesznek a Flatpak "
 "környezetben</b>, de figyeljen oda!"
 
-#: src/ui/presentation.py:131 src/ui/extension.py:17 src/constants.py:513
-#: src/window.py:118
-msgid "Extensions"
-msgstr "Bővítmények"
-
 #: src/ui/presentation.py:132
 msgid "You can extend Newelle's functionalities using extensions!"
 msgstr "Kibővítheti a Newelle funkcionalitását bővítményekkel!"
@@ -1186,8 +1206,8 @@ msgstr "Engedélyhiba"
 #: src/ui/presentation.py:147
 msgid ""
 "Newelle does not have enough permissions to run commands on your system."
-msgstr "A Newelle-nek nincs elegendő engedélye parancsok futtatásához a "
-"rendszerén."
+msgstr ""
+"A Newelle-nek nincs elegendő engedélye parancsok futtatásához a rendszerén."
 
 #: src/ui/presentation.py:158
 msgid "Begin using the app"
@@ -1196,22 +1216,6 @@ msgstr "Az alkalmazás használatának megkezdése"
 #: src/ui/presentation.py:163
 msgid "Start chatting"
 msgstr "Csevegés indítása"
-
-#: src/ui/extension.py:50
-msgid "Installed Extensions"
-msgstr "Telepített bővítmények"
-
-#: src/ui/extension.py:85
-msgid "User guide to Extensions"
-msgstr "Felhasználói útmutató a bővítményekhez"
-
-#: src/ui/extension.py:88
-msgid "Download new Extensions"
-msgstr "Új bővítmények letöltése"
-
-#: src/ui/extension.py:91
-msgid "Install extension from file..."
-msgstr "Bővítmény telepítése fájlból..."
 
 #: src/ui/settings.py:46 src/constants.py:523
 msgid "General"
@@ -1265,9 +1269,9 @@ msgid ""
 "Embedding is used to trasform text into vectors. Used by Long Term Memory "
 "and RAG. Changing it might require you to re-index documents or reset memory."
 msgstr ""
-"A beágyazás szöveg vektorokká alakítására szolgál. A hosszú távú memória és a "
-"RAG használja. A módosítása szükségessé teheti a dokumentumok újrainexelését "
-"vagy a memória alaphelyzetbe állítását."
+"A beágyazás szöveg vektorokká alakítására szolgál. A hosszú távú memória és "
+"a RAG használja. A módosítása szükségessé teheti a dokumentumok "
+"újrainexelését vagy a memória alaphelyzetbe állítását."
 
 #: src/ui/settings.py:104 src/window.py:645
 msgid "Long Term Memory"
@@ -1430,8 +1434,8 @@ msgstr "Külső terminál"
 
 #: src/ui/settings.py:249
 msgid "Choose the external terminal where to run the console commands"
-msgstr "Válassza ki a külső terminált, ahol a konzolparancsokat futtatni "
-"szeretné"
+msgstr ""
+"Válassza ki a külső terminált, ahol a konzolparancsokat futtatni szeretné"
 
 #: src/ui/settings.py:258
 msgid "Program memory"
@@ -1541,8 +1545,8 @@ msgstr "Keresési karakterlánc"
 #: src/ui/settings.py:359
 #, python-format
 msgid "The search string used in the browser, %s is replaced with the query"
-msgstr "A böngészőben használt keresési karakterlánc, a %s helyére a lekérdezés "
-"kerül"
+msgstr ""
+"A böngészőben használt keresési karakterlánc, a %s helyére a lekérdezés kerül"
 
 #: src/ui/settings.py:380
 msgid "Document Sources (RAG)"
@@ -1618,8 +1622,8 @@ msgid ""
 "Silence threshold in seconds, percentage of the volume to be considered "
 "silence"
 msgstr ""
-"Csendküszöb másodpercekben, a hangerő százalékos aránya, amelyet csendnek kell "
-"tekinteni"
+"Csendküszöb másodpercekben, a hangerő százalékos aránya, amelyet csendnek "
+"kell tekinteni"
 
 #: src/ui/settings.py:465
 msgid "Silence time"
@@ -1627,8 +1631,8 @@ msgstr "Csend időtartama"
 
 #: src/ui/settings.py:465
 msgid "Silence time in seconds before recording stops automatically"
-msgstr "Csend időtartama másodpercekben, mielőtt a felvétel automatikusan "
-"leáll"
+msgstr ""
+"Csend időtartama másodpercekben, mielőtt a felvétel automatikusan leáll"
 
 #: src/ui/settings.py:1044
 msgid "Not enough permissions"
@@ -1738,8 +1742,8 @@ msgid ""
 "Official APIs for Anthropic Claude's models, with image and file support, "
 "requires an API key"
 msgstr ""
-"Az Anthropic Claude modelljeinek hivatalos API-jai, kép- és fájltámogatással, "
-"API kulcsot igényelnek"
+"Az Anthropic Claude modelljeinek hivatalos API-jai, kép- és "
+"fájltámogatással, API kulcsot igényelnek"
 
 #: src/constants.py:73
 msgid "Mistral"
@@ -1808,7 +1812,8 @@ msgstr "Wit AI"
 #: src/constants.py:131
 msgid "wit.ai speech recognition free API (language chosen on the website)"
 msgstr ""
-"wit.ai ingyenes beszédfelismerő API (a nyelvet a weboldalon lehet kiválasztani)"
+"wit.ai ingyenes beszédfelismerő API (a nyelvet a weboldalon lehet "
+"kiválasztani)"
 
 #: src/constants.py:137
 msgid "Vosk API"
@@ -2121,10 +2126,6 @@ msgstr ""
 msgid "Prompts settings, custom extra prompt, custom prompts..."
 msgstr "Üzenet beállítások, egyéni extra üzenet, egyéni üzenetek..."
 
-#: src/controller.py:135 src/window.py:1846
-msgid "Chat "
-msgstr "Csevegés "
-
 #: src/main.py:205
 msgid "Terminal threads are still running in the background"
 msgstr "A terminálszálak még mindig futnak a háttérben"
@@ -2244,8 +2245,8 @@ msgid ""
 "Enable web search to allow the LLM to surf the web and provide up to date "
 "answers"
 msgstr ""
-"Engedélyezze a webes keresést, hogy az LLM böngészhessen a weben és naprakész "
-"válaszokat adjon"
+"Engedélyezze a webes keresést, hogy az LLM böngészhessen a weben és "
+"naprakész válaszokat adjon"
 
 #: src/window.py:591
 msgid "Mini Window"
@@ -2375,6 +2376,10 @@ msgstr "Nem folytathatja az üzenetet."
 #: src/window.py:1658
 msgid "You can no longer regenerate the message."
 msgstr "Nem generálhatja újra az üzenetet."
+
+#: src/window.py:1846 src/controller.py:135
+msgid "Chat "
+msgstr "Csevegés "
 
 #: src/window.py:1890
 msgid "Chat is cleared"
@@ -2508,8 +2513,8 @@ msgstr "Új funkciók hozzáadva"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:68
 msgid "Website reading and web search with SearXNG, DuckDuckGo, and Tavily"
-msgstr "Weboldal olvasás és webes keresés SearXNG, DuckDuckGo és Tavily "
-"segítségével"
+msgstr ""
+"Weboldal olvasás és webes keresés SearXNG, DuckDuckGo és Tavily segítségével"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:69
 msgid "Improved LaTeX rendering and document management"
