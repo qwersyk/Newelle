@@ -144,7 +144,7 @@ class OpenAIHandler(LLMHandler):
         from openai import NOT_GIVEN
         advanced_params = self.get_setting("advanced_params")
         if not advanced_params:
-            return NOT_GIVEN, NOT_GIVEN, NOT_GIVEN, NOT_GIVEN, NOT_GIVEN
+            return NOT_GIVEN, NOT_GIVEN, NOT_GIVEN, NOT_GIVEN
         top_p = self.get_setting("top-p")
         temperature = self.get_setting("temperature")
         presence_penalty = self.get_setting("presence-penalty")
