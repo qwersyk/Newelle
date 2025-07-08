@@ -488,6 +488,8 @@ class MainWindow(Adw.ApplicationWindow):
                 icon = Gtk.Image.new_from_icon_name(icon_name)
             elif type(icon_name) is GdkPixbuf.Pixbuf:
                 icon = Gtk.Image.new_from_pixbuf(icon_name)
+            elif type(icon_name) is Gtk.IconPaintable:
+                icon = Gtk.Image.new_from_paintable(icon_name)
             icon.set_icon_size(Gtk.IconSize.INHERIT)
             row_box.append(icon)
             

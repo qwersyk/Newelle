@@ -1,4 +1,4 @@
-from gi.repository import GdkPixbuf
+from gi.repository import GdkPixbuf, Gtk
 from .handler import Handler
 
 
@@ -51,7 +51,7 @@ def PromptDescription(key: str, title: str, description: str, text:str, setting_
         "show_in_settings": show_in_settings
     }
 
-def TabButtonDescription(title: str, icon: GdkPixbuf.Pixbuf | str, callback):
+def TabButtonDescription(title: str, icon: GdkPixbuf.Pixbuf | str | Gtk.IconPaintable, callback):
     """Generate a "new tab button"
 
     Args:
