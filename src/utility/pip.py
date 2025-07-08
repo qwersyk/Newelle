@@ -48,7 +48,7 @@ def runtime_find_module(full_module_name):
     except Exception as _:
         return None
 
-def install_module(module, path, update=True):
+def install_module(module, path, update=True, cache_dir=None):
     # Manage pip path locking
     global PIP_INSTALLED 
     LOCK_SEMAPHORE.acquire()
@@ -60,7 +60,10 @@ def install_module(module, path, update=True):
     lock.acquire()
     # Set temp path 
     origTemp = os.environ.get("TMPDIR")
-    os.environ["TMPDIR"] = os.path.join(os.getcwd(), "tmp")
+    if not cache_dir:
+        os.environ["TMPDIR"] = os.path.join(os.getcwd(), "tmp")
+    else:
+        os.environ["TMPDIR"] = cache_dir
     try:
         if find_module("pip") is None and not PIP_INSTALLED:
             print("Downloading pip...")

@@ -8,9 +8,11 @@ from ...handlers import ExtraSettings
 class KokoroTTSHandler(TTSHandler):
     key = "kokoro"
     def install(self):
+        cache_dir = os.path.join(self.path, "kokoro_cache")
+        os.makedirs(cache_dir, exist_ok=True)
         extra_deps = "fugashi jaconv mojimoji mecab-python3 unidic-lite"
         index_url = " --extra-index-url https://download.pytorch.org/whl/cpu --trusted-host download.pytorch.org"
-        install_module("kokoro==0.9.4 soundfile espeakng-loader " + extra_deps + index_url, self.pip_path, update=False)
+        install_module("kokoro==0.9.4 soundfile espeakng-loader " + extra_deps + index_url, self.pip_path, update=False, cache_dir=cache_dir)
         if not self.is_installed():
             self.throw("Kokoro installation failed", ErrorSeverity.ERROR)
 

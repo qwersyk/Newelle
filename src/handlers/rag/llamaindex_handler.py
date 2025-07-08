@@ -83,8 +83,9 @@ class LlamaIndexHanlder(RAGHandler):
             self.loading_thread.start()
 
     def install(self):
-       dependencies = "tiktoken faiss-cpu llama-index-core llama-index-readers-file llama-index-vector-stores-faiss"
-       install_module(dependencies, self.pip_path)
+       if not find_module("llama_index") and not find_module("faiss"): 
+           dependencies = "tiktoken faiss-cpu llama-index-core llama-index-readers-file llama-index-vector-stores-faiss"
+           install_module(dependencies, self.pip_path)
 
     def is_installed(self) -> bool:
         return find_module("llama_index") is not None and find_module("tiktoken") is not None and find_module("faiss") is not None and find_module("llama_index.vector_stores") is not None

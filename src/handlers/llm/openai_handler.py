@@ -78,7 +78,7 @@ class OpenAIHandler(LLMHandler):
             ExtraSettings.ToggleSetting("custom_model", _("Use Custom Model"), _("Use a custom model"), False, update_settings=True)
         ]
         advanced_param_toggle = [
-            ExtraSettings.ToggleSetting("advanced_params", _("Advanced Parameters"), _("Include parameters like Max Tokens, Top-P, Temperature, etc."), default_advanced_params, update_settings=True)
+            ExtraSettings.ToggleSetting("advanced_params", _("Advanced Parameters"), _("Include parameters like Top-P, Temperature, etc."), default_advanced_params, update_settings=True)
         ]
         models_settings = [ 
             ExtraSettings.EntrySetting("model", _("Model"), _("Name of the LLM Model to use"), self.models[0][0]),
@@ -100,7 +100,6 @@ class OpenAIHandler(LLMHandler):
             models_settings[0]["website"] = model_list_url
         
         advanced_settings = [
-            ExtraSettings.ScaleSetting("max-tokens", _("max Tokens"), _("Max tokens of the generated text"), 4000, 3, 8000, 0),
             ExtraSettings.ScaleSetting("top-p", _("Top-P"), _("An alternative to sampling with temperature, called nucleus sampling"), 1, 0, 1, 2),
             ExtraSettings.ScaleSetting("temperature", _("Temperature"), _("What sampling temperature to use. Higher values will make the output more random"), 1, 0, 2, 1),
             ExtraSettings.ScaleSetting("frequency-penalty", _("Frequency Penalty"), _("Number between -2.0 and 2.0. Positive values decrease the model's likelihood to repeat the same line verbatim"), 0, -2, 2, 0),
@@ -145,13 +144,12 @@ class OpenAIHandler(LLMHandler):
         from openai import NOT_GIVEN
         advanced_params = self.get_setting("advanced_params")
         if not advanced_params:
-            return NOT_GIVEN, NOT_GIVEN, NOT_GIVEN, NOT_GIVEN, NOT_GIVEN
+            return NOT_GIVEN, NOT_GIVEN, NOT_GIVEN, NOT_GIVEN
         top_p = self.get_setting("top-p")
         temperature = self.get_setting("temperature")
-        max_tokens = int(self.get_setting("max-tokens"))
         presence_penalty = self.get_setting("presence-penalty")
         frequency_penalty = self.get_setting("frequency-penalty")
-        return top_p, temperature, max_tokens, presence_penalty, frequency_penalty 
+        return top_p, temperature, presence_penalty, frequency_penalty 
 
     def generate_text(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = []) -> str:
         from openai import OpenAI
@@ -165,13 +163,12 @@ class OpenAIHandler(LLMHandler):
             api_key=api,
             base_url=self.get_setting("endpoint")
         )
-        top_p, temperature, max_tokens, presence_penalty, frequency_penalty = self.get_advanced_params()
+        top_p, temperature, presence_penalty, frequency_penalty = self.get_advanced_params()
         try:
             response = client.chat.completions.create(
                 model=self.get_setting("model"),
                 messages=messages,
                 top_p=top_p,
-                max_tokens=max_tokens,
                 temperature=temperature,
                 presence_penalty=presence_penalty,
                 frequency_penalty=frequency_penalty
@@ -194,13 +191,12 @@ class OpenAIHandler(LLMHandler):
             api_key=api,
             base_url=self.get_setting("endpoint")
         )
-        top_p, temperature, max_tokens, presence_penalty, frequency_penalty = self.get_advanced_params()
+        top_p, temperature, presence_penalty, frequency_penalty = self.get_advanced_params()
         try:
             response = client.chat.completions.create(
                 model=self.get_setting("model"),
                 messages=messages,
                 top_p=top_p,
-                max_tokens=max_tokens,
                 temperature=temperature,
                 presence_penalty=presence_penalty,
                 frequency_penalty=frequency_penalty, 
