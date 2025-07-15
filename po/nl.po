@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-06 02:35+0800\n"
+"POT-Creation-Date: 2025-07-08 18:07+0800\n"
 "PO-Revision-Date: 2025-07-03 09:00+0200\n"
 "Last-Translator: Heimen Stoffels <vistausss@fastmail.com>\n"
 "Language-Team: \n"
@@ -99,8 +99,8 @@ msgstr "Aangepast model gebruiken"
 
 #: src/handlers/embeddings/openai_handler.py:44
 #: src/handlers/llm/claude_handler.py:89 src/handlers/llm/claude_handler.py:93
-#: src/handlers/llm/g4f_handler.py:44 src/handlers/llm/openai_handler.py:84
-#: src/handlers/llm/gemini_handler.py:97 src/handlers/stt/whisper_handler.py:15
+#: src/handlers/llm/g4f_handler.py:44 src/handlers/llm/gemini_handler.py:97
+#: src/handlers/llm/openai_handler.py:84 src/handlers/stt/whisper_handler.py:15
 #: src/handlers/stt/whispercpp_handler.py:40
 #: src/handlers/tts/custom_openai_tts.py:20
 #: src/handlers/tts/elevenlabs_handler.py:24
@@ -221,14 +221,14 @@ msgid "Update G4F"
 msgstr "G4F bijwerken"
 
 #: src/handlers/llm/newelle_handler.py:18
-#: src/handlers/llm/openai_handler.py:112
 #: src/handlers/llm/gemini_handler.py:131
+#: src/handlers/llm/openai_handler.py:111
 msgid "Privacy Policy"
 msgstr "Privacybeleid"
 
 #: src/handlers/llm/newelle_handler.py:19
-#: src/handlers/llm/openai_handler.py:112
 #: src/handlers/llm/gemini_handler.py:132
+#: src/handlers/llm/openai_handler.py:111
 msgid "Open privacy policy website"
 msgstr "Open website privacybeleid"
 
@@ -257,73 +257,6 @@ msgstr ""
 #: src/handlers/llm/ollama_handler.py:187
 msgid "Update Ollama"
 msgstr "Ollama bijwerken"
-
-#: src/handlers/llm/openai_handler.py:81 src/handlers/llm/gemini_handler.py:135
-msgid "Advanced Parameters"
-msgstr "Geavanceerde parameters"
-
-#: src/handlers/llm/openai_handler.py:81
-msgid "Include parameters like Max Tokens, Top-P, Temperature, etc."
-msgstr "Inclusief parameters zoals Max Tokens, Top-P, Temperatuur, enz."
-
-#: src/handlers/llm/openai_handler.py:84
-msgid "Name of the LLM Model to use"
-msgstr "Naam van het te gebruiken LLM-model"
-
-#: src/handlers/llm/openai_handler.py:103
-msgid "max Tokens"
-msgstr "Max. tokens"
-
-#: src/handlers/llm/openai_handler.py:103
-msgid "Max tokens of the generated text"
-msgstr "Max. tokens van de gegenereerde tekst"
-
-#: src/handlers/llm/openai_handler.py:104
-msgid "Top-P"
-msgstr "Top-P"
-
-#: src/handlers/llm/openai_handler.py:104
-msgid "An alternative to sampling with temperature, called nucleus sampling"
-msgstr ""
-"Een alternatief voor bemonstering met temperatuur, genaamd nucleus-"
-"bemonstering"
-
-#: src/handlers/llm/openai_handler.py:105
-#: src/handlers/stt/whispercpp_handler.py:50
-msgid "Temperature"
-msgstr "Temperatuur"
-
-#: src/handlers/llm/openai_handler.py:105
-msgid ""
-"What sampling temperature to use. Higher values will make the output more "
-"random"
-msgstr ""
-"Welke bemonsteringstemperatuur te gebruiken. Hogere waarden maken de uitvoer "
-"willekeuriger"
-
-#: src/handlers/llm/openai_handler.py:106
-msgid "Frequency Penalty"
-msgstr "Frequentieboete"
-
-#: src/handlers/llm/openai_handler.py:106
-msgid ""
-"Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
-"to repeat the same line verbatim"
-msgstr ""
-"Getal tussen -2.0 en 2.0. Positieve waarden verlagen de waarschijnlijkheid "
-"dat het model dezelfde regel letterlijk herhaalt"
-
-#: src/handlers/llm/openai_handler.py:107
-msgid "Presence Penalty"
-msgstr "Aanwezigheidsboete"
-
-#: src/handlers/llm/openai_handler.py:107
-msgid ""
-"Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
-"to talk about new topics"
-msgstr ""
-"Getal tussen -2.0 en 2.0. Positieve waarden verlagen de waarschijnlijkheid "
-"dat het model over nieuwe onderwerpen praat"
 
 #: src/handlers/llm/openrouter_handler.py:14
 msgid "Provider Sorting"
@@ -450,9 +383,69 @@ msgstr ""
 "Schakel Google veiligheidsinstellingen in om te voorkomen dat schadelijke "
 "inhoud wordt gegenereerd"
 
+#: src/handlers/llm/gemini_handler.py:135 src/handlers/llm/openai_handler.py:81
+msgid "Advanced Parameters"
+msgstr "Geavanceerde parameters"
+
 #: src/handlers/llm/gemini_handler.py:135
 msgid "Enable advanced parameters"
 msgstr "Geavanceerde parameters inschakelen"
+
+#: src/handlers/llm/openai_handler.py:81
+#, fuzzy
+msgid "Include parameters like Top-P, Temperature, etc."
+msgstr "Inclusief parameters zoals Max Tokens, Top-P, Temperatuur, enz."
+
+#: src/handlers/llm/openai_handler.py:84
+msgid "Name of the LLM Model to use"
+msgstr "Naam van het te gebruiken LLM-model"
+
+#: src/handlers/llm/openai_handler.py:103
+msgid "Top-P"
+msgstr "Top-P"
+
+#: src/handlers/llm/openai_handler.py:103
+msgid "An alternative to sampling with temperature, called nucleus sampling"
+msgstr ""
+"Een alternatief voor bemonstering met temperatuur, genaamd nucleus-"
+"bemonstering"
+
+#: src/handlers/llm/openai_handler.py:104
+#: src/handlers/stt/whispercpp_handler.py:50
+msgid "Temperature"
+msgstr "Temperatuur"
+
+#: src/handlers/llm/openai_handler.py:104
+msgid ""
+"What sampling temperature to use. Higher values will make the output more "
+"random"
+msgstr ""
+"Welke bemonsteringstemperatuur te gebruiken. Hogere waarden maken de uitvoer "
+"willekeuriger"
+
+#: src/handlers/llm/openai_handler.py:105
+msgid "Frequency Penalty"
+msgstr "Frequentieboete"
+
+#: src/handlers/llm/openai_handler.py:105
+msgid ""
+"Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
+"to repeat the same line verbatim"
+msgstr ""
+"Getal tussen -2.0 en 2.0. Positieve waarden verlagen de waarschijnlijkheid "
+"dat het model dezelfde regel letterlijk herhaalt"
+
+#: src/handlers/llm/openai_handler.py:106
+msgid "Presence Penalty"
+msgstr "Aanwezigheidsboete"
+
+#: src/handlers/llm/openai_handler.py:106
+msgid ""
+"Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
+"to talk about new topics"
+msgstr ""
+"Getal tussen -2.0 en 2.0. Positieve waarden verlagen de waarschijnlijkheid "
+"dat het model over nieuwe onderwerpen praat"
 
 #: src/handlers/rag/rag_handler.py:104
 msgid "Index your documents"
@@ -946,7 +939,7 @@ msgstr "Geen denkproces vastgelegd"
 msgid "Folder is Empty"
 msgstr "Map is leeg"
 
-#: src/ui/explorer.py:340 src/window.py:1574
+#: src/ui/explorer.py:340 src/window.py:1576
 msgid "File not found"
 msgstr "Bestand niet gevonden"
 
@@ -1206,7 +1199,7 @@ msgstr ""
 "verstuurt of uit uw eigen bestanden! Informatie die relevant is voor uw "
 "zoekopdracht wordt naar de LLM gestuurd."
 
-#: src/ui/presentation.py:124 src/ui/settings.py:236 src/window.py:647
+#: src/ui/presentation.py:124 src/ui/settings.py:236 src/window.py:649
 msgid "Command virtualization"
 msgstr "Commando virtualisatie"
 
@@ -1309,7 +1302,7 @@ msgstr ""
 "door Langetermijngeheugen en RAG. Het wijzigen ervan kan vereisen dat u "
 "documenten opnieuw indexeert of het geheugen opnieuw instelt."
 
-#: src/ui/settings.py:104 src/window.py:645
+#: src/ui/settings.py:104 src/window.py:647
 #, fuzzy
 msgid "Long Term Memory"
 msgstr "Langetermijngeheugen"
@@ -1711,7 +1704,7 @@ msgid "Start/Stop monitoring"
 msgstr "Monitoring starten/stoppen"
 
 #: src/ui/stdout_monitor.py:109 src/ui/stdout_monitor.py:182
-#: src/ui/stdout_monitor.py:191 src/window.py:3683
+#: src/ui/stdout_monitor.py:191 src/window.py:3686
 msgid "Monitoring: Active"
 msgstr "Monitoring: Actief"
 
@@ -2100,7 +2093,7 @@ msgstr "Voeg uw eigen aangepaste prompt toe"
 msgid "LLM and Secondary LLM settings"
 msgstr "LLM- en secundaire LLM-instellingen"
 
-#: src/constants.py:483 src/window.py:646
+#: src/constants.py:483 src/window.py:648
 msgid "TTS"
 msgstr "TTS"
 
@@ -2202,6 +2195,10 @@ msgstr "Map is opnieuw opgestart"
 msgid "Chat is created"
 msgstr "Chat is aangemaakt"
 
+#: src/controller.py:135 src/window.py:1848
+msgid "Chat "
+msgstr "Chat"
+
 #: src/window.py:120
 msgid "Keyboard shorcuts"
 msgstr "Sneltoetsen"
@@ -2259,29 +2256,29 @@ msgstr "Terminal-tabblad"
 msgid "Browser Tab"
 msgstr "Browser-tabblad"
 
-#: src/window.py:587
+#: src/window.py:589
 msgid "Ask about a website"
 msgstr "Vraag over een website"
 
-#: src/window.py:587
+#: src/window.py:589
 msgid "Write #https://website.com in chat to ask information about a website"
 msgstr ""
 "Schrijf #https://website.com in de chat om informatie over een website te "
 "vragen"
 
-#: src/window.py:588
+#: src/window.py:590
 msgid "Check out our Extensions!"
 msgstr "Bekijk onze extensies!"
 
-#: src/window.py:588
+#: src/window.py:590
 msgid "We have a lot of extensions for different things. Check it out!"
 msgstr "We hebben veel extensies voor verschillende dingen. Bekijk het!"
 
-#: src/window.py:589
+#: src/window.py:591
 msgid "Chat with documents!"
 msgstr "Chatten met documenten!"
 
-#: src/window.py:589
+#: src/window.py:591
 msgid ""
 "Add your documents to your documents folder and chat using the information "
 "contained in them!"
@@ -2289,11 +2286,11 @@ msgstr ""
 "Voeg uw documenten toe aan uw documentenmap en chat met behulp van de "
 "informatie die daarin is opgenomen!"
 
-#: src/window.py:590
+#: src/window.py:592
 msgid "Surf the web!"
 msgstr "Surf op het web!"
 
-#: src/window.py:590
+#: src/window.py:592
 msgid ""
 "Enable web search to allow the LLM to surf the web and provide up to date "
 "answers"
@@ -2301,165 +2298,161 @@ msgstr ""
 "Schakel webzoekopdracht in om de LLM toe te staan op het web te surfen en "
 "actuele antwoorden te geven"
 
-#: src/window.py:591
+#: src/window.py:593
 msgid "Mini Window"
 msgstr "Mini-venster"
 
-#: src/window.py:591
+#: src/window.py:593
 msgid "Ask questions on the fly using the mini window mode"
 msgstr "Stel vragen direct met de mini-venstermodus"
 
-#: src/window.py:592
+#: src/window.py:594
 msgid "Text to Speech"
 msgstr "Tekst naar spraak"
 
-#: src/window.py:592
+#: src/window.py:594
 msgid "Newelle supports text-to-speech! Enable it in the settings"
 msgstr ""
 "Newelle ondersteunt tekst-naar-spraak! Schakel het in via de instellingen"
 
-#: src/window.py:593
+#: src/window.py:595
 #, fuzzy
 msgid "Keyboard Shortcuts"
 msgstr "Sneltoetsen"
 
-#: src/window.py:593
+#: src/window.py:595
 #, fuzzy
 msgid "Control Newelle using Keyboard Shortcuts"
 msgstr "Bedien Newelle met sneltoetsen"
 
-#: src/window.py:594
+#: src/window.py:596
 #, fuzzy
 msgid "Prompt Control"
 msgstr "Promptbeheer"
 
-#: src/window.py:594
+#: src/window.py:596
 msgid "Newelle gives you 100% prompt control. Tune your prompts for your use."
 msgstr "Newelle geeft u 100% promptbeheer. Stem uw prompts af op uw gebruik."
 
-#: src/window.py:595
+#: src/window.py:597
 #, fuzzy
 msgid "Thread Editing"
 msgstr "Thread bewerken"
 
-#: src/window.py:595
+#: src/window.py:597
 msgid "Check the programs and processes you run from Newelle"
 msgstr "Controleer de programma's en processen die u vanuit Newelle uitvoert"
 
-#: src/window.py:596
+#: src/window.py:598
 msgid "Programmable Prompts"
 msgstr "Programmeerbare prompts"
 
-#: src/window.py:596
+#: src/window.py:598
 msgid ""
 "You can add dynamic prompts to Newelle, with conditions and probabilities"
 msgstr ""
 "U kunt dynamische prompts aan Newelle toevoegen, met voorwaarden en "
 "waarschijnlijkheden"
 
-#: src/window.py:603
+#: src/window.py:605
 #, fuzzy
 msgid "New Chat"
 msgstr "Nieuwe chat"
 
-#: src/window.py:621
+#: src/window.py:623
 msgid "Provider Errror"
 msgstr "Providerfout"
 
-#: src/window.py:644
+#: src/window.py:646
 msgid "Local Documents"
 msgstr "Lokale documenten"
 
-#: src/window.py:648
+#: src/window.py:650
 msgid "Web search"
 msgstr "Webzoekopdracht"
 
-#: src/window.py:890
+#: src/window.py:892
 msgid "This provider does not have a model list"
 msgstr "Deze provider heeft geen modellenlijst"
 
-#: src/window.py:895
+#: src/window.py:897
 msgid " Models"
 msgstr " Modellen"
 
-#: src/window.py:898
+#: src/window.py:900
 msgid "Search Models..."
 msgstr "Modellen zoeken..."
 
-#: src/window.py:1126
+#: src/window.py:1128
 msgid "Create new profile"
 msgstr "Nieuw profiel aanmaken"
 
-#: src/window.py:1260
+#: src/window.py:1262
 msgid "Could not recognize your voice"
 msgstr "Kon uw stem niet herkennen"
 
-#: src/window.py:1297
+#: src/window.py:1299
 msgid "Images"
 msgstr "Afbeeldingen"
 
-#: src/window.py:1301
+#: src/window.py:1303
 msgid "LLM Supported Files"
 msgstr "LLM ondersteunde bestanden"
 
-#: src/window.py:1309
+#: src/window.py:1311
 msgid "RAG Supported files"
 msgstr "RAG ondersteunde bestanden"
 
-#: src/window.py:1327
+#: src/window.py:1329
 msgid "Supported Files"
 msgstr "Ondersteunde bestanden"
 
-#: src/window.py:1331
+#: src/window.py:1333
 msgid "All Files"
 msgstr "Alle bestanden"
 
-#: src/window.py:1337
+#: src/window.py:1339
 msgid "Attach file"
 msgstr "Bestand bijvoegen"
 
-#: src/window.py:1592
+#: src/window.py:1594
 msgid "The file cannot be sent until the program is finished"
 msgstr "Het bestand kan pas worden verzonden als het programma is voltooid"
 
-#: src/window.py:1614
+#: src/window.py:1616
 msgid "The file is not recognized"
 msgstr "Het bestand wordt niet herkend"
 
-#: src/window.py:1633
+#: src/window.py:1635
 msgid "You can no longer continue the message."
 msgstr "U kunt het bericht niet meer voortzetten."
 
-#: src/window.py:1658
+#: src/window.py:1660
 msgid "You can no longer regenerate the message."
 msgstr "U kunt het bericht niet meer opnieuw genereren."
 
-#: src/window.py:1846 src/controller.py:135
-msgid "Chat "
-msgstr "Chat"
-
-#: src/window.py:1890
+#: src/window.py:1892
 msgid "Chat is cleared"
 msgstr "Chat is gewist"
 
-#: src/window.py:1915
+#: src/window.py:1917
 msgid "The message was canceled and deleted from history"
 msgstr "Het bericht is geannuleerd en uit de geschiedenis verwijderd"
 
-#: src/window.py:1959
+#: src/window.py:1961
 msgid "The message cannot be sent until the program is finished"
 msgstr "Het bericht kan pas worden verzonden als het programma is voltooid"
 
-#: src/window.py:2936
+#: src/window.py:2939
 msgid "You can't edit a message while the program is running."
 msgstr "U kunt een bericht niet bewerken terwijl het programma actief is."
 
-#: src/window.py:3061
+#: src/window.py:3064
 #, fuzzy
 msgid "Prompt content"
 msgstr "Promptinhoud"
 
-#: src/window.py:3320
+#: src/window.py:3323
 #, fuzzy
 msgid ""
 "The neural network has access to your computer and any data in this chat and "
@@ -2470,7 +2463,7 @@ msgstr ""
 "chat en kan commando's uitvoeren. Wees voorzichtig, wij zijn niet "
 "verantwoordelijk voor het neurale netwerk. Deel geen gevoelige informatie."
 
-#: src/window.py:3349
+#: src/window.py:3352
 #, fuzzy
 msgid ""
 "The neural network has access to any data in this chat, be careful, we are "
@@ -2481,19 +2474,19 @@ msgstr ""
 "voorzichtig, wij zijn niet verantwoordelijk voor het neurale netwerk. Deel "
 "geen gevoelige informatie."
 
-#: src/window.py:3398
+#: src/window.py:3401
 msgid "Wrong folder path"
 msgstr "Verkeerd map-pad"
 
-#: src/window.py:3431
+#: src/window.py:3434
 msgid "Thread has not been completed, thread number: "
 msgstr "Thread is niet voltooid, threadnummer: "
 
-#: src/window.py:3443
+#: src/window.py:3446
 msgid "Failed to open the folder"
 msgstr "Map kon niet worden geopend"
 
-#: src/window.py:3622
+#: src/window.py:3625
 msgid "Chat is empty"
 msgstr "Chat is leeg"
 
@@ -2662,6 +2655,12 @@ msgstr "Newelle: Uw geavanceerde chatbot"
 #: data/io.github.qwersyk.Newelle.desktop.in:10
 msgid "ai;assistant;chat;chatgpt;gpt;llm;ollama;"
 msgstr "ai;assistent;chat;chatgpt;gpt;llm;ollama;"
+
+#~ msgid "max Tokens"
+#~ msgstr "Max. tokens"
+
+#~ msgid "Max tokens of the generated text"
+#~ msgstr "Max. tokens van de gegenereerde tekst"
 
 #, fuzzy
 #~ msgid "_Cancel"

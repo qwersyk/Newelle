@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Newelle 0.3.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-06 02:35+0800\n"
+"POT-Creation-Date: 2025-07-08 18:07+0800\n"
 "PO-Revision-Date: 2025-03-26 19:30\n"
 "Last-Translator: Oliver Tzeng（曾嘉禾）<olivertzeng@proton.me>\n"
 "Language-Team: l10n-tw\n"
@@ -96,8 +96,8 @@ msgstr "使用自訂模型"
 
 #: src/handlers/embeddings/openai_handler.py:44
 #: src/handlers/llm/claude_handler.py:89 src/handlers/llm/claude_handler.py:93
-#: src/handlers/llm/g4f_handler.py:44 src/handlers/llm/openai_handler.py:84
-#: src/handlers/llm/gemini_handler.py:97 src/handlers/stt/whisper_handler.py:15
+#: src/handlers/llm/g4f_handler.py:44 src/handlers/llm/gemini_handler.py:97
+#: src/handlers/llm/openai_handler.py:84 src/handlers/stt/whisper_handler.py:15
 #: src/handlers/stt/whispercpp_handler.py:40
 #: src/handlers/tts/custom_openai_tts.py:20
 #: src/handlers/tts/elevenlabs_handler.py:24
@@ -213,14 +213,14 @@ msgid "Update G4F"
 msgstr "更新 G4F"
 
 #: src/handlers/llm/newelle_handler.py:18
-#: src/handlers/llm/openai_handler.py:112
 #: src/handlers/llm/gemini_handler.py:131
+#: src/handlers/llm/openai_handler.py:111
 msgid "Privacy Policy"
 msgstr "隱私政策"
 
 #: src/handlers/llm/newelle_handler.py:19
-#: src/handlers/llm/openai_handler.py:112
 #: src/handlers/llm/gemini_handler.py:132
+#: src/handlers/llm/openai_handler.py:111
 msgid "Open privacy policy website"
 msgstr "開啟隱私政策網站"
 
@@ -248,65 +248,6 @@ msgstr ""
 #: src/handlers/llm/ollama_handler.py:187
 msgid "Update Ollama"
 msgstr "更新 Ollama"
-
-#: src/handlers/llm/openai_handler.py:81 src/handlers/llm/gemini_handler.py:135
-msgid "Advanced Parameters"
-msgstr "更多設定"
-
-#: src/handlers/llm/openai_handler.py:81
-msgid "Include parameters like Max Tokens, Top-P, Temperature, etc."
-msgstr "包含 Token 限制、Top-P、溫度等參數"
-
-#: src/handlers/llm/openai_handler.py:84
-msgid "Name of the LLM Model to use"
-msgstr "使用的大型語言模型"
-
-#: src/handlers/llm/openai_handler.py:103
-msgid "max Tokens"
-msgstr "Token 限制"
-
-#: src/handlers/llm/openai_handler.py:103
-msgid "Max tokens of the generated text"
-msgstr "使用的最多 Token 數量"
-
-#: src/handlers/llm/openai_handler.py:104
-msgid "Top-P"
-msgstr "Top-P"
-
-#: src/handlers/llm/openai_handler.py:104
-msgid "An alternative to sampling with temperature, called nucleus sampling"
-msgstr "一種調整隨機性的替代的技術"
-
-#: src/handlers/llm/openai_handler.py:105
-#: src/handlers/stt/whispercpp_handler.py:50
-msgid "Temperature"
-msgstr "溫度"
-
-#: src/handlers/llm/openai_handler.py:105
-msgid ""
-"What sampling temperature to use. Higher values will make the output more "
-"random"
-msgstr "溫度越高隨機性越高"
-
-#: src/handlers/llm/openai_handler.py:106
-msgid "Frequency Penalty"
-msgstr "重複懲罰"
-
-#: src/handlers/llm/openai_handler.py:106
-msgid ""
-"Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
-"to repeat the same line verbatim"
-msgstr "數值介於±2.0。數值越大將減少輸出重複率"
-
-#: src/handlers/llm/openai_handler.py:107
-msgid "Presence Penalty"
-msgstr "存在懲罰"
-
-#: src/handlers/llm/openai_handler.py:107
-msgid ""
-"Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
-"to talk about new topics"
-msgstr "數值介於±2.0。數值越大將讓模型搬出新話題的機率"
 
 #: src/handlers/llm/openrouter_handler.py:14
 msgid "Provider Sorting"
@@ -422,9 +363,60 @@ msgstr "啟用安全設定"
 msgid "Enable google safety settings to avoid generating harmful content"
 msgstr "啟用 Google 的安全設定以排除不當內容"
 
+#: src/handlers/llm/gemini_handler.py:135 src/handlers/llm/openai_handler.py:81
+msgid "Advanced Parameters"
+msgstr "更多設定"
+
 #: src/handlers/llm/gemini_handler.py:135
 msgid "Enable advanced parameters"
 msgstr "調整更多參數"
+
+#: src/handlers/llm/openai_handler.py:81
+msgid "Include parameters like Top-P, Temperature, etc."
+msgstr "包含 Token 限制、Top-P、溫度等參數"
+
+#: src/handlers/llm/openai_handler.py:84
+msgid "Name of the LLM Model to use"
+msgstr "使用的大型語言模型"
+
+#: src/handlers/llm/openai_handler.py:103
+msgid "Top-P"
+msgstr "Top-P"
+
+#: src/handlers/llm/openai_handler.py:103
+msgid "An alternative to sampling with temperature, called nucleus sampling"
+msgstr "一種調整隨機性的替代的技術"
+
+#: src/handlers/llm/openai_handler.py:104
+#: src/handlers/stt/whispercpp_handler.py:50
+msgid "Temperature"
+msgstr "溫度"
+
+#: src/handlers/llm/openai_handler.py:104
+msgid ""
+"What sampling temperature to use. Higher values will make the output more "
+"random"
+msgstr "溫度越高隨機性越高"
+
+#: src/handlers/llm/openai_handler.py:105
+msgid "Frequency Penalty"
+msgstr "重複懲罰"
+
+#: src/handlers/llm/openai_handler.py:105
+msgid ""
+"Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
+"to repeat the same line verbatim"
+msgstr "數值介於±2.0。數值越大將減少輸出重複率"
+
+#: src/handlers/llm/openai_handler.py:106
+msgid "Presence Penalty"
+msgstr "存在懲罰"
+
+#: src/handlers/llm/openai_handler.py:106
+msgid ""
+"Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
+"to talk about new topics"
+msgstr "數值介於±2.0。數值越大將讓模型搬出新話題的機率"
 
 #: src/handlers/rag/rag_handler.py:104
 msgid "Index your documents"
@@ -884,7 +876,7 @@ msgstr "沒有思考過程"
 msgid "Folder is Empty"
 msgstr "資料夾為空"
 
-#: src/ui/explorer.py:340 src/window.py:1574
+#: src/ui/explorer.py:340 src/window.py:1576
 msgid "File not found"
 msgstr "找不到檔案"
 
@@ -1127,7 +1119,7 @@ msgid ""
 "to the LLM."
 msgstr "Newelle 能擷取檔案的相關資訊並且傳送給模型以給予更精確的回覆！"
 
-#: src/ui/presentation.py:124 src/ui/settings.py:236 src/window.py:647
+#: src/ui/presentation.py:124 src/ui/settings.py:236 src/window.py:649
 msgid "Command virtualization"
 msgstr "指令虛擬化"
 
@@ -1221,7 +1213,7 @@ msgstr ""
 "專門將文字轉成向量以提供給 RAG 與長期記憶所使用的模型。改變此設定後請重整索引"
 "與清除記憶。"
 
-#: src/ui/settings.py:104 src/window.py:645
+#: src/ui/settings.py:104 src/window.py:647
 msgid "Long Term Memory"
 msgstr "長期記憶"
 
@@ -1588,7 +1580,7 @@ msgid "Start/Stop monitoring"
 msgstr "開始/停止監測"
 
 #: src/ui/stdout_monitor.py:109 src/ui/stdout_monitor.py:182
-#: src/ui/stdout_monitor.py:191 src/window.py:3683
+#: src/ui/stdout_monitor.py:191 src/window.py:3686
 msgid "Monitoring: Active"
 msgstr "監測：已啟用"
 
@@ -1953,7 +1945,7 @@ msgstr "在此新增自訂的提示語"
 msgid "LLM and Secondary LLM settings"
 msgstr "大型語言模型與輔助模型設定"
 
-#: src/constants.py:483 src/window.py:646
+#: src/constants.py:483 src/window.py:648
 msgid "TTS"
 msgstr "文本轉語音"
 
@@ -2047,6 +2039,10 @@ msgstr "重新整理資料夾完成"
 msgid "Chat is created"
 msgstr "已建立新的聊天室"
 
+#: src/controller.py:135 src/window.py:1848
+msgid "Chat "
+msgstr "聊天室 "
+
 #: src/window.py:120
 msgid "Keyboard shorcuts"
 msgstr "快捷鍵"
@@ -2103,192 +2099,188 @@ msgstr "終端機監分頁"
 msgid "Browser Tab"
 msgstr "瀏覽器分頁"
 
-#: src/window.py:587
+#: src/window.py:589
 msgid "Ask about a website"
 msgstr "詢問有關一個網站的資訊"
 
-#: src/window.py:587
+#: src/window.py:589
 msgid "Write #https://website.com in chat to ask information about a website"
 msgstr "在聊天室內以 #https://網站.名稱 的格式以詢問一個網站的資訊"
 
-#: src/window.py:588
+#: src/window.py:590
 msgid "Check out our Extensions!"
 msgstr "看看我們的擴充功能"
 
-#: src/window.py:588
+#: src/window.py:590
 msgid "We have a lot of extensions for different things. Check it out!"
 msgstr "我們有五花八門的擴充功能可供使用！"
 
-#: src/window.py:589
+#: src/window.py:591
 msgid "Chat with documents!"
 msgstr "與檔案互動！"
 
-#: src/window.py:589
+#: src/window.py:591
 msgid ""
 "Add your documents to your documents folder and chat using the information "
 "contained in them!"
 msgstr "在「文件」資料夾內放置檔案以讓人工智慧讀取，提供更精確的回覆"
 
-#: src/window.py:590
+#: src/window.py:592
 msgid "Surf the web!"
 msgstr "支援網路搜尋！"
 
-#: src/window.py:590
+#: src/window.py:592
 msgid ""
 "Enable web search to allow the LLM to surf the web and provide up to date "
 "answers"
 msgstr "提供網路搜尋的功能以提供更新的資訊"
 
-#: src/window.py:591
+#: src/window.py:593
 msgid "Mini Window"
 msgstr "迷你視窗"
 
-#: src/window.py:591
+#: src/window.py:593
 msgid "Ask questions on the fly using the mini window mode"
 msgstr "啟用迷你視窗模式以更方便地問問題"
 
-#: src/window.py:592
+#: src/window.py:594
 msgid "Text to Speech"
 msgstr "文本轉語音"
 
-#: src/window.py:592
+#: src/window.py:594
 msgid "Newelle supports text-to-speech! Enable it in the settings"
 msgstr "Newelle 提供文本轉語音功能"
 
-#: src/window.py:593
+#: src/window.py:595
 msgid "Keyboard Shortcuts"
 msgstr "快捷鍵"
 
-#: src/window.py:593
+#: src/window.py:595
 msgid "Control Newelle using Keyboard Shortcuts"
 msgstr "使用快捷鍵以更便捷地使用 Newelle"
 
-#: src/window.py:594
+#: src/window.py:596
 msgid "Prompt Control"
 msgstr "提示語控制"
 
-#: src/window.py:594
+#: src/window.py:596
 msgid "Newelle gives you 100% prompt control. Tune your prompts for your use."
 msgstr "Newelle 讓您能夠完全控制提示語。"
 
-#: src/window.py:595
+#: src/window.py:597
 msgid "Thread Editing"
 msgstr "執行緒編輯"
 
-#: src/window.py:595
+#: src/window.py:597
 msgid "Check the programs and processes you run from Newelle"
 msgstr "檢視從 Newelle 執行的各種行程"
 
-#: src/window.py:596
+#: src/window.py:598
 msgid "Programmable Prompts"
 msgstr "高自由度的提示語"
 
-#: src/window.py:596
+#: src/window.py:598
 msgid ""
 "You can add dynamic prompts to Newelle, with conditions and probabilities"
 msgstr "您可以"
 
-#: src/window.py:603
+#: src/window.py:605
 msgid "New Chat"
 msgstr "新聊天室"
 
-#: src/window.py:621
+#: src/window.py:623
 msgid "Provider Errror"
 msgstr "供給者錯誤"
 
-#: src/window.py:644
+#: src/window.py:646
 msgid "Local Documents"
 msgstr "本地檔案"
 
-#: src/window.py:648
+#: src/window.py:650
 msgid "Web search"
 msgstr "網路搜尋"
 
-#: src/window.py:890
+#: src/window.py:892
 msgid "This provider does not have a model list"
 msgstr "此供給者沒有模型清單"
 
-#: src/window.py:895
+#: src/window.py:897
 msgid " Models"
 msgstr " 個模型"
 
-#: src/window.py:898
+#: src/window.py:900
 msgid "Search Models..."
 msgstr "搜尋模型......"
 
-#: src/window.py:1126
+#: src/window.py:1128
 msgid "Create new profile"
 msgstr "建立新設定檔"
 
-#: src/window.py:1260
+#: src/window.py:1262
 msgid "Could not recognize your voice"
 msgstr "無法辨識聲音"
 
-#: src/window.py:1297
+#: src/window.py:1299
 msgid "Images"
 msgstr "圖片"
 
-#: src/window.py:1301
+#: src/window.py:1303
 msgid "LLM Supported Files"
 msgstr "大型語言模型支援的檔案"
 
-#: src/window.py:1309
+#: src/window.py:1311
 msgid "RAG Supported files"
 msgstr "RAG 支援的檔案"
 
-#: src/window.py:1327
+#: src/window.py:1329
 msgid "Supported Files"
 msgstr "支援的檔案"
 
-#: src/window.py:1331
+#: src/window.py:1333
 msgid "All Files"
 msgstr "所有檔案"
 
-#: src/window.py:1337
+#: src/window.py:1339
 msgid "Attach file"
 msgstr "嵌入檔案"
 
-#: src/window.py:1592
+#: src/window.py:1594
 msgid "The file cannot be sent until the program is finished"
 msgstr "在執行完成前無法上傳檔案"
 
-#: src/window.py:1614
+#: src/window.py:1616
 msgid "The file is not recognized"
 msgstr "檔案無法辨識"
 
-#: src/window.py:1633
+#: src/window.py:1635
 msgid "You can no longer continue the message."
 msgstr "您無法繼續此訊息。"
 
-#: src/window.py:1658
+#: src/window.py:1660
 msgid "You can no longer regenerate the message."
 msgstr "您無法重新生成此訊息。"
 
-#: src/window.py:1846 src/controller.py:135
-msgid "Chat "
-msgstr "聊天室 "
-
-#: src/window.py:1890
+#: src/window.py:1892
 msgid "Chat is cleared"
 msgstr "已清除聊天紀錄"
 
-#: src/window.py:1915
+#: src/window.py:1917
 msgid "The message was canceled and deleted from history"
 msgstr "此訊息已從聊天紀錄中取消並且刪除"
 
-#: src/window.py:1959
+#: src/window.py:1961
 msgid "The message cannot be sent until the program is finished"
 msgstr "在執行完成前無法傳送訊息"
 
-#: src/window.py:2936
+#: src/window.py:2939
 msgid "You can't edit a message while the program is running."
 msgstr "在執行完成前無法編輯訊息"
 
-#: src/window.py:3061
+#: src/window.py:3064
 msgid "Prompt content"
 msgstr "提示內容"
 
-#: src/window.py:3320
+#: src/window.py:3323
 msgid ""
 "The neural network has access to your computer and any data in this chat and "
 "can run commands, be careful, we are not responsible for the neural network. "
@@ -2298,7 +2290,7 @@ msgstr ""
 "我們對這些模型不承擔任何責任\n"
 "請勿分享機密資訊"
 
-#: src/window.py:3349
+#: src/window.py:3352
 msgid ""
 "The neural network has access to any data in this chat, be careful, we are "
 "not responsible for the neural network. Do not share any sensitive "
@@ -2308,19 +2300,19 @@ msgstr ""
 "我們對這些模型不承擔任何責任\n"
 "請勿分享機密資訊"
 
-#: src/window.py:3398
+#: src/window.py:3401
 msgid "Wrong folder path"
 msgstr "錯誤資料夾路徑"
 
-#: src/window.py:3431
+#: src/window.py:3434
 msgid "Thread has not been completed, thread number: "
 msgstr "執行緒尚未完成，執行緒序號："
 
-#: src/window.py:3443
+#: src/window.py:3446
 msgid "Failed to open the folder"
 msgstr "無法開啟資料夾"
 
-#: src/window.py:3622
+#: src/window.py:3625
 msgid "Chat is empty"
 msgstr "聊天室為空"
 
@@ -2481,6 +2473,12 @@ msgstr "Newelle：您強大的聊天機器人"
 #: data/io.github.qwersyk.Newelle.desktop.in:10
 msgid "ai;assistant;chat;chatgpt;gpt;llm;ollama;"
 msgstr "ai;assistant;chat;chatgpt;gpt;llm;ollama;"
+
+#~ msgid "max Tokens"
+#~ msgstr "Token 限制"
+
+#~ msgid "Max tokens of the generated text"
+#~ msgstr "使用的最多 Token 數量"
 
 #~ msgid "Any free Provider"
 #~ msgstr "其他免費服務"

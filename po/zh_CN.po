@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-06 02:35+0800\n"
+"POT-Creation-Date: 2025-07-08 18:07+0800\n"
 "PO-Revision-Date: 2025-07-03 09:00+0200\n"
 "Last-Translator: Yehor Hliebov <qsk@gmx.at>\n"
 "Language-Team: Chinese Simplified <qsk@gmx.at>\n"
@@ -91,8 +91,8 @@ msgstr "使用自定义模型"
 
 #: src/handlers/embeddings/openai_handler.py:44
 #: src/handlers/llm/claude_handler.py:89 src/handlers/llm/claude_handler.py:93
-#: src/handlers/llm/g4f_handler.py:44 src/handlers/llm/openai_handler.py:84
-#: src/handlers/llm/gemini_handler.py:97 src/handlers/stt/whisper_handler.py:15
+#: src/handlers/llm/g4f_handler.py:44 src/handlers/llm/gemini_handler.py:97
+#: src/handlers/llm/openai_handler.py:84 src/handlers/stt/whisper_handler.py:15
 #: src/handlers/stt/whispercpp_handler.py:40
 #: src/handlers/tts/custom_openai_tts.py:20
 #: src/handlers/tts/elevenlabs_handler.py:24
@@ -210,14 +210,14 @@ msgid "Update G4F"
 msgstr "更新 G4F"
 
 #: src/handlers/llm/newelle_handler.py:18
-#: src/handlers/llm/openai_handler.py:112
 #: src/handlers/llm/gemini_handler.py:131
+#: src/handlers/llm/openai_handler.py:111
 msgid "Privacy Policy"
 msgstr "隐私政策"
 
 #: src/handlers/llm/newelle_handler.py:19
-#: src/handlers/llm/openai_handler.py:112
 #: src/handlers/llm/gemini_handler.py:132
+#: src/handlers/llm/openai_handler.py:111
 msgid "Open privacy policy website"
 msgstr "打开隐私政策网站"
 
@@ -245,65 +245,6 @@ msgstr ""
 #: src/handlers/llm/ollama_handler.py:187
 msgid "Update Ollama"
 msgstr "更新 Ollama"
-
-#: src/handlers/llm/openai_handler.py:81 src/handlers/llm/gemini_handler.py:135
-msgid "Advanced Parameters"
-msgstr "高级参数"
-
-#: src/handlers/llm/openai_handler.py:81
-msgid "Include parameters like Max Tokens, Top-P, Temperature, etc."
-msgstr "包含最大令牌、Top-P、温度等参数"
-
-#: src/handlers/llm/openai_handler.py:84
-msgid "Name of the LLM Model to use"
-msgstr "要使用的 LLM 模型名称"
-
-#: src/handlers/llm/openai_handler.py:103
-msgid "max Tokens"
-msgstr "最大令牌"
-
-#: src/handlers/llm/openai_handler.py:103
-msgid "Max tokens of the generated text"
-msgstr "生成文本的最大令牌数"
-
-#: src/handlers/llm/openai_handler.py:104
-msgid "Top-P"
-msgstr "Top-P"
-
-#: src/handlers/llm/openai_handler.py:104
-msgid "An alternative to sampling with temperature, called nucleus sampling"
-msgstr "一种替代温度采样的方法，称为核采样"
-
-#: src/handlers/llm/openai_handler.py:105
-#: src/handlers/stt/whispercpp_handler.py:50
-msgid "Temperature"
-msgstr "温度"
-
-#: src/handlers/llm/openai_handler.py:105
-msgid ""
-"What sampling temperature to use. Higher values will make the output more "
-"random"
-msgstr "要使用的采样温度。值越高，输出越随机"
-
-#: src/handlers/llm/openai_handler.py:106
-msgid "Frequency Penalty"
-msgstr "频率惩罚"
-
-#: src/handlers/llm/openai_handler.py:106
-msgid ""
-"Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
-"to repeat the same line verbatim"
-msgstr "介于 -2.0 和 2.0 之间的数字。正值会降低模型逐字重复相同行的可能性"
-
-#: src/handlers/llm/openai_handler.py:107
-msgid "Presence Penalty"
-msgstr "存在惩罚"
-
-#: src/handlers/llm/openai_handler.py:107
-msgid ""
-"Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
-"to talk about new topics"
-msgstr "介于 -2.0 和 2.0 之间的数字。正值会降低模型谈论新主题的可能性"
 
 #: src/handlers/llm/openrouter_handler.py:14
 msgid "Provider Sorting"
@@ -421,9 +362,61 @@ msgstr "启用安全设置"
 msgid "Enable google safety settings to avoid generating harmful content"
 msgstr "启用 Google 安全设置以避免生成有害内容"
 
+#: src/handlers/llm/gemini_handler.py:135 src/handlers/llm/openai_handler.py:81
+msgid "Advanced Parameters"
+msgstr "高级参数"
+
 #: src/handlers/llm/gemini_handler.py:135
 msgid "Enable advanced parameters"
 msgstr "启用高级参数"
+
+#: src/handlers/llm/openai_handler.py:81
+#, fuzzy
+msgid "Include parameters like Top-P, Temperature, etc."
+msgstr "包含最大令牌、Top-P、温度等参数"
+
+#: src/handlers/llm/openai_handler.py:84
+msgid "Name of the LLM Model to use"
+msgstr "要使用的 LLM 模型名称"
+
+#: src/handlers/llm/openai_handler.py:103
+msgid "Top-P"
+msgstr "Top-P"
+
+#: src/handlers/llm/openai_handler.py:103
+msgid "An alternative to sampling with temperature, called nucleus sampling"
+msgstr "一种替代温度采样的方法，称为核采样"
+
+#: src/handlers/llm/openai_handler.py:104
+#: src/handlers/stt/whispercpp_handler.py:50
+msgid "Temperature"
+msgstr "温度"
+
+#: src/handlers/llm/openai_handler.py:104
+msgid ""
+"What sampling temperature to use. Higher values will make the output more "
+"random"
+msgstr "要使用的采样温度。值越高，输出越随机"
+
+#: src/handlers/llm/openai_handler.py:105
+msgid "Frequency Penalty"
+msgstr "频率惩罚"
+
+#: src/handlers/llm/openai_handler.py:105
+msgid ""
+"Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
+"to repeat the same line verbatim"
+msgstr "介于 -2.0 和 2.0 之间的数字。正值会降低模型逐字重复相同行的可能性"
+
+#: src/handlers/llm/openai_handler.py:106
+msgid "Presence Penalty"
+msgstr "存在惩罚"
+
+#: src/handlers/llm/openai_handler.py:106
+msgid ""
+"Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
+"to talk about new topics"
+msgstr "介于 -2.0 和 2.0 之间的数字。正值会降低模型谈论新主题的可能性"
 
 #: src/handlers/rag/rag_handler.py:104
 msgid "Index your documents"
@@ -887,7 +880,7 @@ msgstr "没有记录思考过程"
 msgid "Folder is Empty"
 msgstr "文件夹为空"
 
-#: src/ui/explorer.py:340 src/window.py:1574
+#: src/ui/explorer.py:340 src/window.py:1576
 msgid "File not found"
 msgstr "文件未找到"
 
@@ -1132,7 +1125,7 @@ msgstr ""
 "Newelle 可以从您在聊天中发送的文档或您自己的文件中检索相关信息！与您的查询相"
 "关的信息将发送给 LLM。"
 
-#: src/ui/presentation.py:124 src/ui/settings.py:236 src/window.py:647
+#: src/ui/presentation.py:124 src/ui/settings.py:236 src/window.py:649
 msgid "Command virtualization"
 msgstr "命令虚拟化"
 
@@ -1226,7 +1219,7 @@ msgstr ""
 "嵌入用于将文本转换为向量。由长期记忆和 RAG 使用。更改它可能需要您重新索引文档"
 "或重置记忆。"
 
-#: src/ui/settings.py:104 src/window.py:645
+#: src/ui/settings.py:104 src/window.py:647
 msgid "Long Term Memory"
 msgstr "长期记忆"
 
@@ -1598,7 +1591,7 @@ msgid "Start/Stop monitoring"
 msgstr "开始/停止监控"
 
 #: src/ui/stdout_monitor.py:109 src/ui/stdout_monitor.py:182
-#: src/ui/stdout_monitor.py:191 src/window.py:3683
+#: src/ui/stdout_monitor.py:191 src/window.py:3686
 msgid "Monitoring: Active"
 msgstr "监控：活动"
 
@@ -1963,7 +1956,7 @@ msgstr "添加您自己的自定义提示"
 msgid "LLM and Secondary LLM settings"
 msgstr "LLM 和辅助 LLM 设置"
 
-#: src/constants.py:483 src/window.py:646
+#: src/constants.py:483 src/window.py:648
 msgid "TTS"
 msgstr "文本转语音"
 
@@ -2057,6 +2050,10 @@ msgstr "文件夹已重启"
 msgid "Chat is created"
 msgstr "聊天已创建"
 
+#: src/controller.py:135 src/window.py:1848
+msgid "Chat "
+msgstr "聊天 "
+
 #: src/window.py:120
 msgid "Keyboard shorcuts"
 msgstr "键盘快捷键"
@@ -2113,192 +2110,188 @@ msgstr "终端标签页"
 msgid "Browser Tab"
 msgstr "浏览器标签页"
 
-#: src/window.py:587
+#: src/window.py:589
 msgid "Ask about a website"
 msgstr "询问关于网站的信息"
 
-#: src/window.py:587
+#: src/window.py:589
 msgid "Write #https://website.com in chat to ask information about a website"
 msgstr "在聊天中输入 #https://website.com 询问关于网站的信息"
 
-#: src/window.py:588
+#: src/window.py:590
 msgid "Check out our Extensions!"
 msgstr "查看我们的扩展！"
 
-#: src/window.py:588
+#: src/window.py:590
 msgid "We have a lot of extensions for different things. Check it out!"
 msgstr "我们有许多用于不同功能的扩展。快来查看吧！"
 
-#: src/window.py:589
+#: src/window.py:591
 msgid "Chat with documents!"
 msgstr "与文档聊天！"
 
-#: src/window.py:589
+#: src/window.py:591
 msgid ""
 "Add your documents to your documents folder and chat using the information "
 "contained in them!"
 msgstr "将您的文档添加到文档文件夹中，然后使用其中包含的信息进行聊天！"
 
-#: src/window.py:590
+#: src/window.py:592
 msgid "Surf the web!"
 msgstr "网上冲浪！"
 
-#: src/window.py:590
+#: src/window.py:592
 msgid ""
 "Enable web search to allow the LLM to surf the web and provide up to date "
 "answers"
 msgstr "启用网络搜索，允许 LLM 上网并提供最新答案"
 
-#: src/window.py:591
+#: src/window.py:593
 msgid "Mini Window"
 msgstr "迷你窗口"
 
-#: src/window.py:591
+#: src/window.py:593
 msgid "Ask questions on the fly using the mini window mode"
 msgstr "使用迷你窗口模式随时提问"
 
-#: src/window.py:592
+#: src/window.py:594
 msgid "Text to Speech"
 msgstr "文本转语音"
 
-#: src/window.py:592
+#: src/window.py:594
 msgid "Newelle supports text-to-speech! Enable it in the settings"
 msgstr "Newelle 支持文本转语音！在设置中启用它"
 
-#: src/window.py:593
+#: src/window.py:595
 msgid "Keyboard Shortcuts"
 msgstr "键盘快捷键"
 
-#: src/window.py:593
+#: src/window.py:595
 msgid "Control Newelle using Keyboard Shortcuts"
 msgstr "使用键盘快捷键控制 Newelle"
 
-#: src/window.py:594
+#: src/window.py:596
 msgid "Prompt Control"
 msgstr "提示控制"
 
-#: src/window.py:594
+#: src/window.py:596
 msgid "Newelle gives you 100% prompt control. Tune your prompts for your use."
 msgstr "Newelle 提供 100% 的提示控制。根据您的使用情况调整提示。"
 
-#: src/window.py:595
+#: src/window.py:597
 msgid "Thread Editing"
 msgstr "线程编辑"
 
-#: src/window.py:595
+#: src/window.py:597
 msgid "Check the programs and processes you run from Newelle"
 msgstr "检查您从 Newelle 运行的程序和进程"
 
-#: src/window.py:596
+#: src/window.py:598
 msgid "Programmable Prompts"
 msgstr "可编程提示"
 
-#: src/window.py:596
+#: src/window.py:598
 msgid ""
 "You can add dynamic prompts to Newelle, with conditions and probabilities"
 msgstr "您可以为 Newelle 添加动态提示，并带有条件和概率"
 
-#: src/window.py:603
+#: src/window.py:605
 msgid "New Chat"
 msgstr "新聊天"
 
-#: src/window.py:621
+#: src/window.py:623
 msgid "Provider Errror"
 msgstr "提供商错误"
 
-#: src/window.py:644
+#: src/window.py:646
 msgid "Local Documents"
 msgstr "本地文档"
 
-#: src/window.py:648
+#: src/window.py:650
 msgid "Web search"
 msgstr "网络搜索"
 
-#: src/window.py:890
+#: src/window.py:892
 msgid "This provider does not have a model list"
 msgstr "此提供商没有模型列表"
 
-#: src/window.py:895
+#: src/window.py:897
 msgid " Models"
 msgstr "模型"
 
-#: src/window.py:898
+#: src/window.py:900
 msgid "Search Models..."
 msgstr "搜索模型..."
 
-#: src/window.py:1126
+#: src/window.py:1128
 msgid "Create new profile"
 msgstr "创建新配置文件"
 
-#: src/window.py:1260
+#: src/window.py:1262
 msgid "Could not recognize your voice"
 msgstr "无法识别您的语音"
 
-#: src/window.py:1297
+#: src/window.py:1299
 msgid "Images"
 msgstr "图片"
 
-#: src/window.py:1301
+#: src/window.py:1303
 msgid "LLM Supported Files"
 msgstr "LLM 支持的文件"
 
-#: src/window.py:1309
+#: src/window.py:1311
 msgid "RAG Supported files"
 msgstr "RAG 支持的文件"
 
-#: src/window.py:1327
+#: src/window.py:1329
 msgid "Supported Files"
 msgstr "支持的文件"
 
-#: src/window.py:1331
+#: src/window.py:1333
 msgid "All Files"
 msgstr "所有文件"
 
-#: src/window.py:1337
+#: src/window.py:1339
 msgid "Attach file"
 msgstr "附件"
 
-#: src/window.py:1592
+#: src/window.py:1594
 msgid "The file cannot be sent until the program is finished"
 msgstr "程序完成前无法发送文件"
 
-#: src/window.py:1614
+#: src/window.py:1616
 msgid "The file is not recognized"
 msgstr "文件无法识别"
 
-#: src/window.py:1633
+#: src/window.py:1635
 msgid "You can no longer continue the message."
 msgstr "您无法再继续此消息。"
 
-#: src/window.py:1658
+#: src/window.py:1660
 msgid "You can no longer regenerate the message."
 msgstr "您无法再重新生成此消息。"
 
-#: src/window.py:1846 src/controller.py:135
-msgid "Chat "
-msgstr "聊天 "
-
-#: src/window.py:1890
+#: src/window.py:1892
 msgid "Chat is cleared"
 msgstr "聊天已清除"
 
-#: src/window.py:1915
+#: src/window.py:1917
 msgid "The message was canceled and deleted from history"
 msgstr "消息已取消并从历史记录中删除"
 
-#: src/window.py:1959
+#: src/window.py:1961
 msgid "The message cannot be sent until the program is finished"
 msgstr "程序完成前无法发送消息"
 
-#: src/window.py:2936
+#: src/window.py:2939
 msgid "You can't edit a message while the program is running."
 msgstr "程序运行时无法编辑消息。"
 
-#: src/window.py:3061
+#: src/window.py:3064
 msgid "Prompt content"
 msgstr "提示内容"
 
-#: src/window.py:3320
+#: src/window.py:3323
 msgid ""
 "The neural network has access to your computer and any data in this chat and "
 "can run commands, be careful, we are not responsible for the neural network. "
@@ -2307,7 +2300,7 @@ msgstr ""
 "神经网络可以访问您的计算机和此聊天中的任何数据，并可以运行命令，请小心，我们"
 "不对神经网络负责。请勿分享任何敏感信息。"
 
-#: src/window.py:3349
+#: src/window.py:3352
 msgid ""
 "The neural network has access to any data in this chat, be careful, we are "
 "not responsible for the neural network. Do not share any sensitive "
@@ -2316,19 +2309,19 @@ msgstr ""
 "神经网络可以访问此聊天中的任何数据，请小心，我们不对神经网络负责。请勿分享任"
 "何敏感信息。"
 
-#: src/window.py:3398
+#: src/window.py:3401
 msgid "Wrong folder path"
 msgstr "错误的文件夹路径"
 
-#: src/window.py:3431
+#: src/window.py:3434
 msgid "Thread has not been completed, thread number: "
 msgstr "线程尚未完成，线程号："
 
-#: src/window.py:3443
+#: src/window.py:3446
 msgid "Failed to open the folder"
 msgstr "未能打开文件夹"
 
-#: src/window.py:3622
+#: src/window.py:3625
 msgid "Chat is empty"
 msgstr "聊天是空的"
 
@@ -2493,3 +2486,9 @@ msgstr "Newelle：您的智能聊天机器人"
 #: data/io.github.qwersyk.Newelle.desktop.in:10
 msgid "ai;assistant;chat;chatgpt;gpt;llm;ollama;"
 msgstr "ai;助手;聊天;chatgpt;gpt;llm;ollama;"
+
+#~ msgid "max Tokens"
+#~ msgstr "最大令牌"
+
+#~ msgid "Max tokens of the generated text"
+#~ msgstr "生成文本的最大令牌数"

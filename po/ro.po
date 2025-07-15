@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-06 02:35+0800\n"
+"POT-Creation-Date: 2025-07-08 18:07+0800\n"
 "PO-Revision-Date: 2025-07-03 09:00+0200\n"
 "Last-Translator: Yehor Hliebov <qsk@gmx.at>\n"
 "Language-Team: Romanian <qsk@gmx.at>\n"
@@ -94,8 +94,8 @@ msgstr "Utilizează Model Personalizat"
 
 #: src/handlers/embeddings/openai_handler.py:44
 #: src/handlers/llm/claude_handler.py:89 src/handlers/llm/claude_handler.py:93
-#: src/handlers/llm/g4f_handler.py:44 src/handlers/llm/openai_handler.py:84
-#: src/handlers/llm/gemini_handler.py:97 src/handlers/stt/whisper_handler.py:15
+#: src/handlers/llm/g4f_handler.py:44 src/handlers/llm/gemini_handler.py:97
+#: src/handlers/llm/openai_handler.py:84 src/handlers/stt/whisper_handler.py:15
 #: src/handlers/stt/whispercpp_handler.py:40
 #: src/handlers/tts/custom_openai_tts.py:20
 #: src/handlers/tts/elevenlabs_handler.py:24
@@ -215,14 +215,14 @@ msgid "Update G4F"
 msgstr "Actualizează G4F"
 
 #: src/handlers/llm/newelle_handler.py:18
-#: src/handlers/llm/openai_handler.py:112
 #: src/handlers/llm/gemini_handler.py:131
+#: src/handlers/llm/openai_handler.py:111
 msgid "Privacy Policy"
 msgstr "Politica de confidențialitate"
 
 #: src/handlers/llm/newelle_handler.py:19
-#: src/handlers/llm/openai_handler.py:112
 #: src/handlers/llm/gemini_handler.py:132
+#: src/handlers/llm/openai_handler.py:111
 msgid "Open privacy policy website"
 msgstr "Deschide site-ul cu politica de confidențialitate"
 
@@ -250,72 +250,6 @@ msgstr ""
 #: src/handlers/llm/ollama_handler.py:187
 msgid "Update Ollama"
 msgstr "Actualizează Ollama"
-
-#: src/handlers/llm/openai_handler.py:81 src/handlers/llm/gemini_handler.py:135
-msgid "Advanced Parameters"
-msgstr "Parametri avansați"
-
-#: src/handlers/llm/openai_handler.py:81
-msgid "Include parameters like Max Tokens, Top-P, Temperature, etc."
-msgstr "Includeți parametri precum Max Tokens, Top-P, Temperatură, etc."
-
-#: src/handlers/llm/openai_handler.py:84
-msgid "Name of the LLM Model to use"
-msgstr "Numele modelului LLM de utilizat"
-
-#: src/handlers/llm/openai_handler.py:103
-msgid "max Tokens"
-msgstr "Număr maxim de token-uri"
-
-#: src/handlers/llm/openai_handler.py:103
-msgid "Max tokens of the generated text"
-msgstr "Numărul maxim de token-uri din textul generat"
-
-#: src/handlers/llm/openai_handler.py:104
-msgid "Top-P"
-msgstr "Top-P"
-
-#: src/handlers/llm/openai_handler.py:104
-msgid "An alternative to sampling with temperature, called nucleus sampling"
-msgstr ""
-"O alternativă la eșantionarea cu temperatură, numită eșantionare nucleu"
-
-#: src/handlers/llm/openai_handler.py:105
-#: src/handlers/stt/whispercpp_handler.py:50
-msgid "Temperature"
-msgstr "Temperatură"
-
-#: src/handlers/llm/openai_handler.py:105
-msgid ""
-"What sampling temperature to use. Higher values will make the output more "
-"random"
-msgstr ""
-"Ce temperatură de eșantionare să se utilizeze. Valori mai mari vor face "
-"ieșirea mai aleatorie"
-
-#: src/handlers/llm/openai_handler.py:106
-msgid "Frequency Penalty"
-msgstr "Penalizare Frecvență"
-
-#: src/handlers/llm/openai_handler.py:106
-msgid ""
-"Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
-"to repeat the same line verbatim"
-msgstr ""
-"Număr între -2.0 și 2.0. Valorile pozitive scad probabilitatea ca modelul să "
-"repete aceeași linie cuvânt cu cuvânt"
-
-#: src/handlers/llm/openai_handler.py:107
-msgid "Presence Penalty"
-msgstr "Penalizare Prezență"
-
-#: src/handlers/llm/openai_handler.py:107
-msgid ""
-"Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
-"to talk about new topics"
-msgstr ""
-"Număr între -2.0 și 2.0. Valorile pozitive scad probabilitatea ca modelul să "
-"discute despre subiecte noi"
 
 #: src/handlers/llm/openrouter_handler.py:14
 msgid "Provider Sorting"
@@ -439,9 +373,68 @@ msgstr ""
 "Activează setările de siguranță Google pentru a evita generarea de conținut "
 "dăunător"
 
+#: src/handlers/llm/gemini_handler.py:135 src/handlers/llm/openai_handler.py:81
+msgid "Advanced Parameters"
+msgstr "Parametri avansați"
+
 #: src/handlers/llm/gemini_handler.py:135
 msgid "Enable advanced parameters"
 msgstr "Activează parametrii avansați"
+
+#: src/handlers/llm/openai_handler.py:81
+#, fuzzy
+msgid "Include parameters like Top-P, Temperature, etc."
+msgstr "Includeți parametri precum Max Tokens, Top-P, Temperatură, etc."
+
+#: src/handlers/llm/openai_handler.py:84
+msgid "Name of the LLM Model to use"
+msgstr "Numele modelului LLM de utilizat"
+
+#: src/handlers/llm/openai_handler.py:103
+msgid "Top-P"
+msgstr "Top-P"
+
+#: src/handlers/llm/openai_handler.py:103
+msgid "An alternative to sampling with temperature, called nucleus sampling"
+msgstr ""
+"O alternativă la eșantionarea cu temperatură, numită eșantionare nucleu"
+
+#: src/handlers/llm/openai_handler.py:104
+#: src/handlers/stt/whispercpp_handler.py:50
+msgid "Temperature"
+msgstr "Temperatură"
+
+#: src/handlers/llm/openai_handler.py:104
+msgid ""
+"What sampling temperature to use. Higher values will make the output more "
+"random"
+msgstr ""
+"Ce temperatură de eșantionare să se utilizeze. Valori mai mari vor face "
+"ieșirea mai aleatorie"
+
+#: src/handlers/llm/openai_handler.py:105
+msgid "Frequency Penalty"
+msgstr "Penalizare Frecvență"
+
+#: src/handlers/llm/openai_handler.py:105
+msgid ""
+"Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
+"to repeat the same line verbatim"
+msgstr ""
+"Număr între -2.0 și 2.0. Valorile pozitive scad probabilitatea ca modelul să "
+"repete aceeași linie cuvânt cu cuvânt"
+
+#: src/handlers/llm/openai_handler.py:106
+msgid "Presence Penalty"
+msgstr "Penalizare Prezență"
+
+#: src/handlers/llm/openai_handler.py:106
+msgid ""
+"Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
+"to talk about new topics"
+msgstr ""
+"Număr între -2.0 și 2.0. Valorile pozitive scad probabilitatea ca modelul să "
+"discute despre subiecte noi"
 
 #: src/handlers/rag/rag_handler.py:104
 msgid "Index your documents"
@@ -920,7 +913,7 @@ msgstr "Nu a fost înregistrat niciun proces de gândire"
 msgid "Folder is Empty"
 msgstr "Folderul este gol"
 
-#: src/ui/explorer.py:340 src/window.py:1574
+#: src/ui/explorer.py:340 src/window.py:1576
 msgid "File not found"
 msgstr "Fișier negăsit"
 
@@ -1166,7 +1159,7 @@ msgstr ""
 "trimiteți în chat sau din propriile fișiere! Informațiile relevante pentru "
 "interogarea dvs. vor fi trimise către LLM."
 
-#: src/ui/presentation.py:124 src/ui/settings.py:236 src/window.py:647
+#: src/ui/presentation.py:124 src/ui/settings.py:236 src/window.py:649
 msgid "Command virtualization"
 msgstr "Virtualizare comenzi"
 
@@ -1266,7 +1259,7 @@ msgstr ""
 "de Memoria pe Termen Lung și RAG. Modificarea acesteia ar putea necesita "
 "reindexarea documentelor sau resetarea memoriei."
 
-#: src/ui/settings.py:104 src/window.py:645
+#: src/ui/settings.py:104 src/window.py:647
 msgid "Long Term Memory"
 msgstr "Memorie pe termen lung"
 
@@ -1663,7 +1656,7 @@ msgid "Start/Stop monitoring"
 msgstr "Pornire/Oprire monitorizare"
 
 #: src/ui/stdout_monitor.py:109 src/ui/stdout_monitor.py:182
-#: src/ui/stdout_monitor.py:191 src/window.py:3683
+#: src/ui/stdout_monitor.py:191 src/window.py:3686
 msgid "Monitoring: Active"
 msgstr "Monitorizare: Activă"
 
@@ -2043,7 +2036,7 @@ msgstr "Adăugați propriul prompt personalizat"
 msgid "LLM and Secondary LLM settings"
 msgstr "Setări LLM și LLM Secundar"
 
-#: src/constants.py:483 src/window.py:646
+#: src/constants.py:483 src/window.py:648
 msgid "TTS"
 msgstr "TTS"
 
@@ -2140,6 +2133,10 @@ msgstr "Folderul a fost repornit"
 msgid "Chat is created"
 msgstr "Chatul este creat"
 
+#: src/controller.py:135 src/window.py:1848
+msgid "Chat "
+msgstr "Chat "
+
 #: src/window.py:120
 msgid "Keyboard shorcuts"
 msgstr "Scurtături de la tastatură"
@@ -2196,29 +2193,29 @@ msgstr "Fila Terminal"
 msgid "Browser Tab"
 msgstr "Fila Browser"
 
-#: src/window.py:587
+#: src/window.py:589
 msgid "Ask about a website"
 msgstr "Întreabă despre un site web"
 
-#: src/window.py:587
+#: src/window.py:589
 msgid "Write #https://website.com in chat to ask information about a website"
 msgstr ""
 "Scrie #https://website.com în chat pentru a cere informații despre un site "
 "web"
 
-#: src/window.py:588
+#: src/window.py:590
 msgid "Check out our Extensions!"
 msgstr "Verifică extensiile noastre!"
 
-#: src/window.py:588
+#: src/window.py:590
 msgid "We have a lot of extensions for different things. Check it out!"
 msgstr "Avem o mulțime de extensii pentru diverse lucruri. Verifică-le!"
 
-#: src/window.py:589
+#: src/window.py:591
 msgid "Chat with documents!"
 msgstr "Conversează cu documentele!"
 
-#: src/window.py:589
+#: src/window.py:591
 msgid ""
 "Add your documents to your documents folder and chat using the information "
 "contained in them!"
@@ -2226,11 +2223,11 @@ msgstr ""
 "Adăugați documentele în folderul de documente și discutați utilizând "
 "informațiile conținute în ele!"
 
-#: src/window.py:590
+#: src/window.py:592
 msgid "Surf the web!"
 msgstr "Navighează pe web!"
 
-#: src/window.py:590
+#: src/window.py:592
 msgid ""
 "Enable web search to allow the LLM to surf the web and provide up to date "
 "answers"
@@ -2238,159 +2235,155 @@ msgstr ""
 "Activează căutarea web pentru a permite LLM-ului să navigheze pe web și să "
 "ofere răspunsuri actualizate"
 
-#: src/window.py:591
+#: src/window.py:593
 msgid "Mini Window"
 msgstr "Fereastră Mini"
 
-#: src/window.py:591
+#: src/window.py:593
 msgid "Ask questions on the fly using the mini window mode"
 msgstr "Pune întrebări din mers folosind modul fereastră mini"
 
-#: src/window.py:592
+#: src/window.py:594
 msgid "Text to Speech"
 msgstr "Text-to-Speech"
 
-#: src/window.py:592
+#: src/window.py:594
 msgid "Newelle supports text-to-speech! Enable it in the settings"
 msgstr "Newelle suportă text-to-speech! Activează-l în setări"
 
-#: src/window.py:593
+#: src/window.py:595
 msgid "Keyboard Shortcuts"
 msgstr "Scurtături de la tastatură"
 
-#: src/window.py:593
+#: src/window.py:595
 msgid "Control Newelle using Keyboard Shortcuts"
 msgstr "Controlează Newelle folosind scurtături de la tastatură"
 
-#: src/window.py:594
+#: src/window.py:596
 msgid "Prompt Control"
 msgstr "Control prompt"
 
-#: src/window.py:594
+#: src/window.py:596
 msgid "Newelle gives you 100% prompt control. Tune your prompts for your use."
 msgstr ""
 "Newelle îți oferă control total asupra prompturilor. Ajustează-le pentru "
 "nevoile tale."
 
-#: src/window.py:595
+#: src/window.py:597
 msgid "Thread Editing"
 msgstr "Editare fir de execuție"
 
-#: src/window.py:595
+#: src/window.py:597
 msgid "Check the programs and processes you run from Newelle"
 msgstr "Verifică programele și procesele pe care le rulezi din Newelle"
 
-#: src/window.py:596
+#: src/window.py:598
 msgid "Programmable Prompts"
 msgstr "Prompturi programabile"
 
-#: src/window.py:596
+#: src/window.py:598
 msgid ""
 "You can add dynamic prompts to Newelle, with conditions and probabilities"
 msgstr ""
 "Puteți adăuga prompturi dinamice la Newelle, cu condiții și probabilități"
 
-#: src/window.py:603
+#: src/window.py:605
 msgid "New Chat"
 msgstr "Chat Nou"
 
-#: src/window.py:621
+#: src/window.py:623
 msgid "Provider Errror"
 msgstr "Eroare furnizor"
 
-#: src/window.py:644
+#: src/window.py:646
 msgid "Local Documents"
 msgstr "Documente locale"
 
-#: src/window.py:648
+#: src/window.py:650
 msgid "Web search"
 msgstr "Căutare web"
 
-#: src/window.py:890
+#: src/window.py:892
 msgid "This provider does not have a model list"
 msgstr "Acest furnizor nu are o listă de modele"
 
-#: src/window.py:895
+#: src/window.py:897
 msgid " Models"
 msgstr " Modele"
 
-#: src/window.py:898
+#: src/window.py:900
 msgid "Search Models..."
 msgstr "Caută modele..."
 
-#: src/window.py:1126
+#: src/window.py:1128
 msgid "Create new profile"
 msgstr "Creează profil nou"
 
-#: src/window.py:1260
+#: src/window.py:1262
 msgid "Could not recognize your voice"
 msgstr "Nu am putut recunoaște vocea dvs."
 
-#: src/window.py:1297
+#: src/window.py:1299
 msgid "Images"
 msgstr "Imagini"
 
-#: src/window.py:1301
+#: src/window.py:1303
 msgid "LLM Supported Files"
 msgstr "Fișiere suportate de LLM"
 
-#: src/window.py:1309
+#: src/window.py:1311
 msgid "RAG Supported files"
 msgstr "Fișiere suportate RAG"
 
-#: src/window.py:1327
+#: src/window.py:1329
 msgid "Supported Files"
 msgstr "Fișiere suportate"
 
-#: src/window.py:1331
+#: src/window.py:1333
 msgid "All Files"
 msgstr "Toate fișierele"
 
-#: src/window.py:1337
+#: src/window.py:1339
 msgid "Attach file"
 msgstr "Atașează fișier"
 
-#: src/window.py:1592
+#: src/window.py:1594
 msgid "The file cannot be sent until the program is finished"
 msgstr "Fișierul nu poate fi trimis până când programul nu este terminat"
 
-#: src/window.py:1614
+#: src/window.py:1616
 msgid "The file is not recognized"
 msgstr "Fișierul nu este recunoscut"
 
-#: src/window.py:1633
+#: src/window.py:1635
 msgid "You can no longer continue the message."
 msgstr "Nu mai puteți continua mesajul."
 
-#: src/window.py:1658
+#: src/window.py:1660
 msgid "You can no longer regenerate the message."
 msgstr "Nu mai puteți regenera mesajul."
 
-#: src/window.py:1846 src/controller.py:135
-msgid "Chat "
-msgstr "Chat "
-
-#: src/window.py:1890
+#: src/window.py:1892
 msgid "Chat is cleared"
 msgstr "Chatul este șters"
 
-#: src/window.py:1915
+#: src/window.py:1917
 msgid "The message was canceled and deleted from history"
 msgstr "Mesajul a fost anulat și șters din istoric"
 
-#: src/window.py:1959
+#: src/window.py:1961
 msgid "The message cannot be sent until the program is finished"
 msgstr "Mesajul nu poate fi trimis până când programul nu este terminat"
 
-#: src/window.py:2936
+#: src/window.py:2939
 msgid "You can't edit a message while the program is running."
 msgstr "Nu poți edita un mesaj în timp ce programul rulează."
 
-#: src/window.py:3061
+#: src/window.py:3064
 msgid "Prompt content"
 msgstr "Conținut prompt"
 
-#: src/window.py:3320
+#: src/window.py:3323
 msgid ""
 "The neural network has access to your computer and any data in this chat and "
 "can run commands, be careful, we are not responsible for the neural network. "
@@ -2400,7 +2393,7 @@ msgstr ""
 "și poate rula comenzi, fiți atenți, nu suntem responsabili pentru rețeaua "
 "neurală. Nu partajați informații sensibile."
 
-#: src/window.py:3349
+#: src/window.py:3352
 msgid ""
 "The neural network has access to any data in this chat, be careful, we are "
 "not responsible for the neural network. Do not share any sensitive "
@@ -2410,19 +2403,19 @@ msgstr ""
 "suntem responsabili pentru rețeaua neurală. Nu partajați informații "
 "sensibile."
 
-#: src/window.py:3398
+#: src/window.py:3401
 msgid "Wrong folder path"
 msgstr "Calea folderului greșită"
 
-#: src/window.py:3431
+#: src/window.py:3434
 msgid "Thread has not been completed, thread number: "
 msgstr "Firul de execuție nu a fost finalizat, numărul firului de execuție: "
 
-#: src/window.py:3443
+#: src/window.py:3446
 msgid "Failed to open the folder"
 msgstr "Nu s-a putut deschide folderul"
 
-#: src/window.py:3622
+#: src/window.py:3625
 msgid "Chat is empty"
 msgstr "Chatul este gol"
 
@@ -2592,3 +2585,9 @@ msgstr "Newelle: Chatbot-ul tău avansat"
 #: data/io.github.qwersyk.Newelle.desktop.in:10
 msgid "ai;assistant;chat;chatgpt;gpt;llm;ollama;"
 msgstr "ai;asistent;chat;chatgpt;gpt;llm;ollama;"
+
+#~ msgid "max Tokens"
+#~ msgstr "Număr maxim de token-uri"
+
+#~ msgid "Max tokens of the generated text"
+#~ msgstr "Numărul maxim de token-uri din textul generat"

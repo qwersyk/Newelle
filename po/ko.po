@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-06 02:35+0800\n"
+"POT-Creation-Date: 2025-07-08 18:07+0800\n"
 "PO-Revision-Date: 2025-07-03 09:00+0200\n"
 "Last-Translator: Yehor Hliebov <qsk@gmx.at>\n"
 "Language-Team: Korean <qsk@gmx.at>\n"
@@ -91,8 +91,8 @@ msgstr "사용자 지정 모델 사용"
 
 #: src/handlers/embeddings/openai_handler.py:44
 #: src/handlers/llm/claude_handler.py:89 src/handlers/llm/claude_handler.py:93
-#: src/handlers/llm/g4f_handler.py:44 src/handlers/llm/openai_handler.py:84
-#: src/handlers/llm/gemini_handler.py:97 src/handlers/stt/whisper_handler.py:15
+#: src/handlers/llm/g4f_handler.py:44 src/handlers/llm/gemini_handler.py:97
+#: src/handlers/llm/openai_handler.py:84 src/handlers/stt/whisper_handler.py:15
 #: src/handlers/stt/whispercpp_handler.py:40
 #: src/handlers/tts/custom_openai_tts.py:20
 #: src/handlers/tts/elevenlabs_handler.py:24
@@ -211,14 +211,14 @@ msgid "Update G4F"
 msgstr "G4F 업데이트"
 
 #: src/handlers/llm/newelle_handler.py:18
-#: src/handlers/llm/openai_handler.py:112
 #: src/handlers/llm/gemini_handler.py:131
+#: src/handlers/llm/openai_handler.py:111
 msgid "Privacy Policy"
 msgstr "개인 정보 보호 정책"
 
 #: src/handlers/llm/newelle_handler.py:19
-#: src/handlers/llm/openai_handler.py:112
 #: src/handlers/llm/gemini_handler.py:132
+#: src/handlers/llm/openai_handler.py:111
 msgid "Open privacy policy website"
 msgstr "개인 정보 보호 정책 웹사이트 열기"
 
@@ -246,69 +246,6 @@ msgstr ""
 #: src/handlers/llm/ollama_handler.py:187
 msgid "Update Ollama"
 msgstr "Ollama 업데이트"
-
-#: src/handlers/llm/openai_handler.py:81 src/handlers/llm/gemini_handler.py:135
-msgid "Advanced Parameters"
-msgstr "고급 매개변수"
-
-#: src/handlers/llm/openai_handler.py:81
-msgid "Include parameters like Max Tokens, Top-P, Temperature, etc."
-msgstr "최대 토큰, Top-P, 온도 등의 매개변수를 포함합니다."
-
-#: src/handlers/llm/openai_handler.py:84
-msgid "Name of the LLM Model to use"
-msgstr "사용할 LLM 모델의 이름"
-
-#: src/handlers/llm/openai_handler.py:103
-msgid "max Tokens"
-msgstr "최대 토큰"
-
-#: src/handlers/llm/openai_handler.py:103
-msgid "Max tokens of the generated text"
-msgstr "생성된 텍스트의 최대 토큰 수"
-
-#: src/handlers/llm/openai_handler.py:104
-msgid "Top-P"
-msgstr "Top-P"
-
-#: src/handlers/llm/openai_handler.py:104
-msgid "An alternative to sampling with temperature, called nucleus sampling"
-msgstr "온도 샘플링의 대안인 핵 샘플링"
-
-#: src/handlers/llm/openai_handler.py:105
-#: src/handlers/stt/whispercpp_handler.py:50
-msgid "Temperature"
-msgstr "온도"
-
-#: src/handlers/llm/openai_handler.py:105
-msgid ""
-"What sampling temperature to use. Higher values will make the output more "
-"random"
-msgstr "사용할 샘플링 온도입니다. 값이 높을수록 출력이 더 무작위로 됩니다."
-
-#: src/handlers/llm/openai_handler.py:106
-msgid "Frequency Penalty"
-msgstr "빈도 페널티"
-
-#: src/handlers/llm/openai_handler.py:106
-msgid ""
-"Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
-"to repeat the same line verbatim"
-msgstr ""
-"-2.0에서 2.0 사이의 숫자입니다. 양수 값은 모델이 동일한 줄을 문자 그대로 반복"
-"할 가능성을 줄입니다."
-
-#: src/handlers/llm/openai_handler.py:107
-msgid "Presence Penalty"
-msgstr "존재 페널티"
-
-#: src/handlers/llm/openai_handler.py:107
-msgid ""
-"Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
-"to talk about new topics"
-msgstr ""
-"-2.0에서 2.0 사이의 숫자입니다. 양수 값은 모델이 새로운 주제에 대해 이야기할 "
-"가능성을 줄입니다."
 
 #: src/handlers/llm/openrouter_handler.py:14
 msgid "Provider Sorting"
@@ -430,9 +367,65 @@ msgstr "안전 설정 활성화"
 msgid "Enable google safety settings to avoid generating harmful content"
 msgstr "유해한 콘텐츠 생성을 방지하려면 Google 안전 설정을 활성화하세요."
 
+#: src/handlers/llm/gemini_handler.py:135 src/handlers/llm/openai_handler.py:81
+msgid "Advanced Parameters"
+msgstr "고급 매개변수"
+
 #: src/handlers/llm/gemini_handler.py:135
 msgid "Enable advanced parameters"
 msgstr "고급 매개변수 활성화"
+
+#: src/handlers/llm/openai_handler.py:81
+#, fuzzy
+msgid "Include parameters like Top-P, Temperature, etc."
+msgstr "최대 토큰, Top-P, 온도 등의 매개변수를 포함합니다."
+
+#: src/handlers/llm/openai_handler.py:84
+msgid "Name of the LLM Model to use"
+msgstr "사용할 LLM 모델의 이름"
+
+#: src/handlers/llm/openai_handler.py:103
+msgid "Top-P"
+msgstr "Top-P"
+
+#: src/handlers/llm/openai_handler.py:103
+msgid "An alternative to sampling with temperature, called nucleus sampling"
+msgstr "온도 샘플링의 대안인 핵 샘플링"
+
+#: src/handlers/llm/openai_handler.py:104
+#: src/handlers/stt/whispercpp_handler.py:50
+msgid "Temperature"
+msgstr "온도"
+
+#: src/handlers/llm/openai_handler.py:104
+msgid ""
+"What sampling temperature to use. Higher values will make the output more "
+"random"
+msgstr "사용할 샘플링 온도입니다. 값이 높을수록 출력이 더 무작위로 됩니다."
+
+#: src/handlers/llm/openai_handler.py:105
+msgid "Frequency Penalty"
+msgstr "빈도 페널티"
+
+#: src/handlers/llm/openai_handler.py:105
+msgid ""
+"Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
+"to repeat the same line verbatim"
+msgstr ""
+"-2.0에서 2.0 사이의 숫자입니다. 양수 값은 모델이 동일한 줄을 문자 그대로 반복"
+"할 가능성을 줄입니다."
+
+#: src/handlers/llm/openai_handler.py:106
+msgid "Presence Penalty"
+msgstr "존재 페널티"
+
+#: src/handlers/llm/openai_handler.py:106
+msgid ""
+"Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
+"to talk about new topics"
+msgstr ""
+"-2.0에서 2.0 사이의 숫자입니다. 양수 값은 모델이 새로운 주제에 대해 이야기할 "
+"가능성을 줄입니다."
 
 #: src/handlers/rag/rag_handler.py:104
 msgid "Index your documents"
@@ -901,7 +894,7 @@ msgstr "사고 과정이 기록되지 않았습니다."
 msgid "Folder is Empty"
 msgstr "폴더가 비어 있습니다."
 
-#: src/ui/explorer.py:340 src/window.py:1574
+#: src/ui/explorer.py:340 src/window.py:1576
 msgid "File not found"
 msgstr "파일을 찾을 수 없습니다."
 
@@ -1146,7 +1139,7 @@ msgstr ""
 "Newelle은 채팅으로 보내는 문서 또는 자신의 파일에서 관련 정보를 검색할 수 있"
 "습니다! 쿼리에 관련된 정보는 LLM으로 전송됩니다."
 
-#: src/ui/presentation.py:124 src/ui/settings.py:236 src/window.py:647
+#: src/ui/presentation.py:124 src/ui/settings.py:236 src/window.py:649
 msgid "Command virtualization"
 msgstr "명령어 가상화"
 
@@ -1241,7 +1234,7 @@ msgstr ""
 "임베딩은 텍스트를 벡터로 변환하는 데 사용됩니다. 장기 메모리 및 RAG에서 사용"
 "됩니다. 변경하면 문서를 다시 인덱싱하거나 메모리를 재설정해야 할 수 있습니다."
 
-#: src/ui/settings.py:104 src/window.py:645
+#: src/ui/settings.py:104 src/window.py:647
 msgid "Long Term Memory"
 msgstr "장기 기억"
 
@@ -1625,7 +1618,7 @@ msgid "Start/Stop monitoring"
 msgstr "모니터링 시작/중지"
 
 #: src/ui/stdout_monitor.py:109 src/ui/stdout_monitor.py:182
-#: src/ui/stdout_monitor.py:191 src/window.py:3683
+#: src/ui/stdout_monitor.py:191 src/window.py:3686
 msgid "Monitoring: Active"
 msgstr "모니터링: 활성"
 
@@ -2001,7 +1994,7 @@ msgstr "자신의 사용자 지정 프롬프트 추가"
 msgid "LLM and Secondary LLM settings"
 msgstr "LLM 및 보조 LLM 설정"
 
-#: src/constants.py:483 src/window.py:646
+#: src/constants.py:483 src/window.py:648
 msgid "TTS"
 msgstr "TTS"
 
@@ -2096,6 +2089,10 @@ msgstr "폴더가 다시 시작되었습니다."
 msgid "Chat is created"
 msgstr "채팅이 생성되었습니다."
 
+#: src/controller.py:135 src/window.py:1848
+msgid "Chat "
+msgstr "채팅 "
+
 #: src/window.py:120
 msgid "Keyboard shorcuts"
 msgstr "키보드 단축키"
@@ -2152,197 +2149,193 @@ msgstr "터미널 탭"
 msgid "Browser Tab"
 msgstr "브라우저 탭"
 
-#: src/window.py:587
+#: src/window.py:589
 msgid "Ask about a website"
 msgstr "웹사이트에 대해 문의"
 
-#: src/window.py:587
+#: src/window.py:589
 msgid "Write #https://website.com in chat to ask information about a website"
 msgstr ""
 "채팅에서 #https://website.com을(를) 작성하여 웹사이트에 대한 정보를 요청하십"
 "시오."
 
-#: src/window.py:588
+#: src/window.py:590
 msgid "Check out our Extensions!"
 msgstr "저희 확장 프로그램을 확인해 보세요!"
 
-#: src/window.py:588
+#: src/window.py:590
 msgid "We have a lot of extensions for different things. Check it out!"
 msgstr "다양한 확장 기능이 많이 있습니다. 확인해 보세요!"
 
-#: src/window.py:589
+#: src/window.py:591
 msgid "Chat with documents!"
 msgstr "문서와 채팅!"
 
-#: src/window.py:589
+#: src/window.py:591
 msgid ""
 "Add your documents to your documents folder and chat using the information "
 "contained in them!"
 msgstr "문서를 문서 폴더에 추가하고 문서에 포함된 정보를 사용하여 채팅하세요!"
 
-#: src/window.py:590
+#: src/window.py:592
 msgid "Surf the web!"
 msgstr "웹 서핑!"
 
-#: src/window.py:590
+#: src/window.py:592
 msgid ""
 "Enable web search to allow the LLM to surf the web and provide up to date "
 "answers"
 msgstr ""
 "웹 검색을 활성화하여 LLM이 웹을 탐색하고 최신 답변을 제공하도록 허용하십시오."
 
-#: src/window.py:591
+#: src/window.py:593
 msgid "Mini Window"
 msgstr "미니 창"
 
-#: src/window.py:591
+#: src/window.py:593
 msgid "Ask questions on the fly using the mini window mode"
 msgstr "미니 창 모드를 사용하여 즉석에서 질문하기"
 
-#: src/window.py:592
+#: src/window.py:594
 msgid "Text to Speech"
 msgstr "텍스트 음성 변환"
 
-#: src/window.py:592
+#: src/window.py:594
 msgid "Newelle supports text-to-speech! Enable it in the settings"
 msgstr "Newelle은 텍스트 음성 변환을 지원합니다! 설정에서 활성화하세요."
 
-#: src/window.py:593
+#: src/window.py:595
 msgid "Keyboard Shortcuts"
 msgstr "키보드 단축키"
 
-#: src/window.py:593
+#: src/window.py:595
 msgid "Control Newelle using Keyboard Shortcuts"
 msgstr "키보드 단축키를 사용하여 Newelle 제어"
 
-#: src/window.py:594
+#: src/window.py:596
 msgid "Prompt Control"
 msgstr "프롬프트 제어"
 
-#: src/window.py:594
+#: src/window.py:596
 msgid "Newelle gives you 100% prompt control. Tune your prompts for your use."
 msgstr ""
 "Newelle은 100% 프롬프트 제어를 제공합니다. 사용에 맞게 프롬프트를 조정하십시"
 "오."
 
-#: src/window.py:595
+#: src/window.py:597
 msgid "Thread Editing"
 msgstr "스레드 편집"
 
-#: src/window.py:595
+#: src/window.py:597
 msgid "Check the programs and processes you run from Newelle"
 msgstr "Newelle에서 실행하는 프로그램 및 프로세스 확인"
 
-#: src/window.py:596
+#: src/window.py:598
 msgid "Programmable Prompts"
 msgstr "프로그래밍 가능한 프롬프트"
 
-#: src/window.py:596
+#: src/window.py:598
 msgid ""
 "You can add dynamic prompts to Newelle, with conditions and probabilities"
 msgstr "조건 및 확률을 사용하여 동적 프롬프트를 Newelle에 추가할 수 있습니다."
 
-#: src/window.py:603
+#: src/window.py:605
 msgid "New Chat"
 msgstr "새 채팅"
 
-#: src/window.py:621
+#: src/window.py:623
 msgid "Provider Errror"
 msgstr "공급자 오류"
 
-#: src/window.py:644
+#: src/window.py:646
 msgid "Local Documents"
 msgstr "로컬 문서"
 
-#: src/window.py:648
+#: src/window.py:650
 msgid "Web search"
 msgstr "웹 검색"
 
-#: src/window.py:890
+#: src/window.py:892
 msgid "This provider does not have a model list"
 msgstr "이 공급자에는 모델 목록이 없습니다."
 
-#: src/window.py:895
+#: src/window.py:897
 msgid " Models"
 msgstr " 모델"
 
-#: src/window.py:898
+#: src/window.py:900
 msgid "Search Models..."
 msgstr "모델 검색..."
 
-#: src/window.py:1126
+#: src/window.py:1128
 msgid "Create new profile"
 msgstr "새 프로필 만들기"
 
-#: src/window.py:1260
+#: src/window.py:1262
 msgid "Could not recognize your voice"
 msgstr "음성을 인식할 수 없습니다."
 
-#: src/window.py:1297
+#: src/window.py:1299
 msgid "Images"
 msgstr "이미지"
 
-#: src/window.py:1301
+#: src/window.py:1303
 msgid "LLM Supported Files"
 msgstr "LLM 지원 파일"
 
-#: src/window.py:1309
+#: src/window.py:1311
 msgid "RAG Supported files"
 msgstr "RAG 지원 파일"
 
-#: src/window.py:1327
+#: src/window.py:1329
 msgid "Supported Files"
 msgstr "지원되는 파일"
 
-#: src/window.py:1331
+#: src/window.py:1333
 msgid "All Files"
 msgstr "모든 파일"
 
-#: src/window.py:1337
+#: src/window.py:1339
 msgid "Attach file"
 msgstr "파일 첨부"
 
-#: src/window.py:1592
+#: src/window.py:1594
 msgid "The file cannot be sent until the program is finished"
 msgstr "프로그램이 완료될 때까지 파일을 보낼 수 없습니다."
 
-#: src/window.py:1614
+#: src/window.py:1616
 msgid "The file is not recognized"
 msgstr "파일을 인식할 수 없습니다."
 
-#: src/window.py:1633
+#: src/window.py:1635
 msgid "You can no longer continue the message."
 msgstr "더 이상 메시지를 계속할 수 없습니다."
 
-#: src/window.py:1658
+#: src/window.py:1660
 msgid "You can no longer regenerate the message."
 msgstr "더 이상 메시지를 다시 생성할 수 없습니다."
 
-#: src/window.py:1846 src/controller.py:135
-msgid "Chat "
-msgstr "채팅 "
-
-#: src/window.py:1890
+#: src/window.py:1892
 msgid "Chat is cleared"
 msgstr "채팅이 지워졌습니다."
 
-#: src/window.py:1915
+#: src/window.py:1917
 msgid "The message was canceled and deleted from history"
 msgstr "메시지가 취소되고 기록에서 삭제되었습니다."
 
-#: src/window.py:1959
+#: src/window.py:1961
 msgid "The message cannot be sent until the program is finished"
 msgstr "프로그램이 완료될 때까지 메시지를 보낼 수 없습니다."
 
-#: src/window.py:2936
+#: src/window.py:2939
 msgid "You can't edit a message while the program is running."
 msgstr "프로그램이 실행 중일 때는 메시지를 편집할 수 없습니다."
 
-#: src/window.py:3061
+#: src/window.py:3064
 msgid "Prompt content"
 msgstr "프롬프트 내용"
 
-#: src/window.py:3320
+#: src/window.py:3323
 msgid ""
 "The neural network has access to your computer and any data in this chat and "
 "can run commands, be careful, we are not responsible for the neural network. "
@@ -2352,7 +2345,7 @@ msgstr ""
 "있습니다. 주의하십시오. 저희는 신경망에 대해 책임지지 않습니다. 민감한 정보"
 "를 공유하지 마십시오."
 
-#: src/window.py:3349
+#: src/window.py:3352
 msgid ""
 "The neural network has access to any data in this chat, be careful, we are "
 "not responsible for the neural network. Do not share any sensitive "
@@ -2361,19 +2354,19 @@ msgstr ""
 "신경망은 이 채팅의 모든 데이터에 접근할 수 있습니다. 주의하십시오. 저희는 신"
 "경망에 대해 책임지지 않습니다. 민감한 정보를 공유하지 마십시오."
 
-#: src/window.py:3398
+#: src/window.py:3401
 msgid "Wrong folder path"
 msgstr "잘못된 폴더 경로"
 
-#: src/window.py:3431
+#: src/window.py:3434
 msgid "Thread has not been completed, thread number: "
 msgstr "스레드가 완료되지 않았습니다. 스레드 번호: "
 
-#: src/window.py:3443
+#: src/window.py:3446
 msgid "Failed to open the folder"
 msgstr "폴더를 열지 못했습니다."
 
-#: src/window.py:3622
+#: src/window.py:3625
 msgid "Chat is empty"
 msgstr "채팅이 비어 있습니다."
 
@@ -2538,3 +2531,9 @@ msgstr "Newelle: 고급 챗봇"
 #: data/io.github.qwersyk.Newelle.desktop.in:10
 msgid "ai;assistant;chat;chatgpt;gpt;llm;ollama;"
 msgstr "ai;assistant;chat;chatgpt;gpt;llm;ollama;"
+
+#~ msgid "max Tokens"
+#~ msgstr "최대 토큰"
+
+#~ msgid "Max tokens of the generated text"
+#~ msgstr "생성된 텍스트의 최대 토큰 수"
