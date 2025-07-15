@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-06 02:35+0800\n"
+"POT-Creation-Date: 2025-07-08 18:07+0800\n"
 "PO-Revision-Date: 2025-07-03 09:00+0200\n"
 "Last-Translator: Yehor Hliebov <qsk@gmx.at>\n"
 "Language-Team: Indonesian <qsk@gmx.at>\n"
@@ -91,8 +91,8 @@ msgstr "Gunakan Model Kustom"
 
 #: src/handlers/embeddings/openai_handler.py:44
 #: src/handlers/llm/claude_handler.py:89 src/handlers/llm/claude_handler.py:93
-#: src/handlers/llm/g4f_handler.py:44 src/handlers/llm/openai_handler.py:84
-#: src/handlers/llm/gemini_handler.py:97 src/handlers/stt/whisper_handler.py:15
+#: src/handlers/llm/g4f_handler.py:44 src/handlers/llm/gemini_handler.py:97
+#: src/handlers/llm/openai_handler.py:84 src/handlers/stt/whisper_handler.py:15
 #: src/handlers/stt/whispercpp_handler.py:40
 #: src/handlers/tts/custom_openai_tts.py:20
 #: src/handlers/tts/elevenlabs_handler.py:24
@@ -212,14 +212,14 @@ msgid "Update G4F"
 msgstr "Perbarui G4F"
 
 #: src/handlers/llm/newelle_handler.py:18
-#: src/handlers/llm/openai_handler.py:112
 #: src/handlers/llm/gemini_handler.py:131
+#: src/handlers/llm/openai_handler.py:111
 msgid "Privacy Policy"
 msgstr "Kebijakan Privasi"
 
 #: src/handlers/llm/newelle_handler.py:19
-#: src/handlers/llm/openai_handler.py:112
 #: src/handlers/llm/gemini_handler.py:132
+#: src/handlers/llm/openai_handler.py:111
 msgid "Open privacy policy website"
 msgstr "Buka situs web kebijakan privasi"
 
@@ -247,71 +247,6 @@ msgstr ""
 #: src/handlers/llm/ollama_handler.py:187
 msgid "Update Ollama"
 msgstr "Perbarui Ollama"
-
-#: src/handlers/llm/openai_handler.py:81 src/handlers/llm/gemini_handler.py:135
-msgid "Advanced Parameters"
-msgstr "Parameter Lanjutan"
-
-#: src/handlers/llm/openai_handler.py:81
-msgid "Include parameters like Max Tokens, Top-P, Temperature, etc."
-msgstr "Sertakan parameter seperti Maks Token, Top-P, Suhu, dll."
-
-#: src/handlers/llm/openai_handler.py:84
-msgid "Name of the LLM Model to use"
-msgstr "Nama Model LLM yang akan digunakan"
-
-#: src/handlers/llm/openai_handler.py:103
-msgid "max Tokens"
-msgstr "Maks Token"
-
-#: src/handlers/llm/openai_handler.py:103
-msgid "Max tokens of the generated text"
-msgstr "Maks token dari teks yang dihasilkan"
-
-#: src/handlers/llm/openai_handler.py:104
-msgid "Top-P"
-msgstr "Top-P"
-
-#: src/handlers/llm/openai_handler.py:104
-msgid "An alternative to sampling with temperature, called nucleus sampling"
-msgstr "Alternatif untuk sampling dengan suhu, disebut nucleus sampling"
-
-#: src/handlers/llm/openai_handler.py:105
-#: src/handlers/stt/whispercpp_handler.py:50
-msgid "Temperature"
-msgstr "Suhu"
-
-#: src/handlers/llm/openai_handler.py:105
-msgid ""
-"What sampling temperature to use. Higher values will make the output more "
-"random"
-msgstr ""
-"Suhu sampling apa yang akan digunakan. Nilai yang lebih tinggi akan membuat "
-"keluaran lebih acak"
-
-#: src/handlers/llm/openai_handler.py:106
-msgid "Frequency Penalty"
-msgstr "Penalti Frekuensi"
-
-#: src/handlers/llm/openai_handler.py:106
-msgid ""
-"Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
-"to repeat the same line verbatim"
-msgstr ""
-"Angka antara -2.0 dan 2.0. Nilai positif mengurangi kemungkinan model untuk "
-"mengulang baris yang sama persis"
-
-#: src/handlers/llm/openai_handler.py:107
-msgid "Presence Penalty"
-msgstr "Penalti Kehadiran"
-
-#: src/handlers/llm/openai_handler.py:107
-msgid ""
-"Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
-"to talk about new topics"
-msgstr ""
-"Angka antara -2.0 dan 2.0. Nilai positif mengurangi kemungkinan model untuk "
-"membahas topik baru"
 
 #: src/handlers/llm/openrouter_handler.py:14
 msgid "Provider Sorting"
@@ -435,9 +370,67 @@ msgstr ""
 "Aktifkan pengaturan keamanan Google untuk menghindari pembuatan konten "
 "berbahaya"
 
+#: src/handlers/llm/gemini_handler.py:135 src/handlers/llm/openai_handler.py:81
+msgid "Advanced Parameters"
+msgstr "Parameter Lanjutan"
+
 #: src/handlers/llm/gemini_handler.py:135
 msgid "Enable advanced parameters"
 msgstr "Aktifkan parameter lanjutan"
+
+#: src/handlers/llm/openai_handler.py:81
+#, fuzzy
+msgid "Include parameters like Top-P, Temperature, etc."
+msgstr "Sertakan parameter seperti Maks Token, Top-P, Suhu, dll."
+
+#: src/handlers/llm/openai_handler.py:84
+msgid "Name of the LLM Model to use"
+msgstr "Nama Model LLM yang akan digunakan"
+
+#: src/handlers/llm/openai_handler.py:103
+msgid "Top-P"
+msgstr "Top-P"
+
+#: src/handlers/llm/openai_handler.py:103
+msgid "An alternative to sampling with temperature, called nucleus sampling"
+msgstr "Alternatif untuk sampling dengan suhu, disebut nucleus sampling"
+
+#: src/handlers/llm/openai_handler.py:104
+#: src/handlers/stt/whispercpp_handler.py:50
+msgid "Temperature"
+msgstr "Suhu"
+
+#: src/handlers/llm/openai_handler.py:104
+msgid ""
+"What sampling temperature to use. Higher values will make the output more "
+"random"
+msgstr ""
+"Suhu sampling apa yang akan digunakan. Nilai yang lebih tinggi akan membuat "
+"keluaran lebih acak"
+
+#: src/handlers/llm/openai_handler.py:105
+msgid "Frequency Penalty"
+msgstr "Penalti Frekuensi"
+
+#: src/handlers/llm/openai_handler.py:105
+msgid ""
+"Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
+"to repeat the same line verbatim"
+msgstr ""
+"Angka antara -2.0 dan 2.0. Nilai positif mengurangi kemungkinan model untuk "
+"mengulang baris yang sama persis"
+
+#: src/handlers/llm/openai_handler.py:106
+msgid "Presence Penalty"
+msgstr "Penalti Kehadiran"
+
+#: src/handlers/llm/openai_handler.py:106
+msgid ""
+"Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
+"to talk about new topics"
+msgstr ""
+"Angka antara -2.0 dan 2.0. Nilai positif mengurangi kemungkinan model untuk "
+"membahas topik baru"
 
 #: src/handlers/rag/rag_handler.py:104
 msgid "Index your documents"
@@ -919,7 +912,7 @@ msgstr "Tidak ada proses berpikir yang direkam"
 msgid "Folder is Empty"
 msgstr "Folder Kosong"
 
-#: src/ui/explorer.py:340 src/window.py:1574
+#: src/ui/explorer.py:340 src/window.py:1576
 msgid "File not found"
 msgstr "Berkas tidak ditemukan"
 
@@ -1165,7 +1158,7 @@ msgstr ""
 "obrolan atau dari berkas Anda sendiri! Informasi yang relevan dengan kueri "
 "Anda akan dikirim ke LLM."
 
-#: src/ui/presentation.py:124 src/ui/settings.py:236 src/window.py:647
+#: src/ui/presentation.py:124 src/ui/settings.py:236 src/window.py:649
 msgid "Command virtualization"
 msgstr "Virtualisasi perintah"
 
@@ -1266,7 +1259,7 @@ msgstr ""
 "Memori Jangka Panjang dan RAG. Mengubahnya mungkin mengharuskan Anda untuk "
 "mengindeks ulang dokumen atau mengatur ulang memori."
 
-#: src/ui/settings.py:104 src/window.py:645
+#: src/ui/settings.py:104 src/window.py:647
 msgid "Long Term Memory"
 msgstr "Memori Jangka Panjang"
 
@@ -1663,7 +1656,7 @@ msgid "Start/Stop monitoring"
 msgstr "Mulai/Hentikan pemantauan"
 
 #: src/ui/stdout_monitor.py:109 src/ui/stdout_monitor.py:182
-#: src/ui/stdout_monitor.py:191 src/window.py:3683
+#: src/ui/stdout_monitor.py:191 src/window.py:3686
 msgid "Monitoring: Active"
 msgstr "Pemantauan: Aktif"
 
@@ -2043,7 +2036,7 @@ msgstr "Tambahkan prompt kustom Anda sendiri"
 msgid "LLM and Secondary LLM settings"
 msgstr "Pengaturan LLM dan LLM Sekunder"
 
-#: src/constants.py:483 src/window.py:646
+#: src/constants.py:483 src/window.py:648
 msgid "TTS"
 msgstr "TTS"
 
@@ -2139,6 +2132,10 @@ msgstr "Folder di-reboot"
 msgid "Chat is created"
 msgstr "Obrolan dibuat"
 
+#: src/controller.py:135 src/window.py:1848
+msgid "Chat "
+msgstr "Obrolan "
+
 #: src/window.py:120
 msgid "Keyboard shorcuts"
 msgstr "Pintasan keyboard"
@@ -2195,29 +2192,29 @@ msgstr "Tab Terminal"
 msgid "Browser Tab"
 msgstr "Tab Peramban"
 
-#: src/window.py:587
+#: src/window.py:589
 msgid "Ask about a website"
 msgstr "Tanyakan tentang sebuah situs web"
 
-#: src/window.py:587
+#: src/window.py:589
 msgid "Write #https://website.com in chat to ask information about a website"
 msgstr ""
 "Tulis #https://website.com di obrolan untuk menanyakan informasi tentang "
 "situs web"
 
-#: src/window.py:588
+#: src/window.py:590
 msgid "Check out our Extensions!"
 msgstr "Lihat Ekstensi kami!"
 
-#: src/window.py:588
+#: src/window.py:590
 msgid "We have a lot of extensions for different things. Check it out!"
 msgstr "Kami memiliki banyak ekstensi untuk berbagai hal. Lihatlah!"
 
-#: src/window.py:589
+#: src/window.py:591
 msgid "Chat with documents!"
 msgstr "Mengobrol dengan dokumen!"
 
-#: src/window.py:589
+#: src/window.py:591
 msgid ""
 "Add your documents to your documents folder and chat using the information "
 "contained in them!"
@@ -2225,11 +2222,11 @@ msgstr ""
 "Tambahkan dokumen Anda ke folder dokumen Anda dan mengobrol menggunakan "
 "informasi yang terkandung di dalamnya!"
 
-#: src/window.py:590
+#: src/window.py:592
 msgid "Surf the web!"
 msgstr "Jelajahi web!"
 
-#: src/window.py:590
+#: src/window.py:592
 msgid ""
 "Enable web search to allow the LLM to surf the web and provide up to date "
 "answers"
@@ -2237,160 +2234,156 @@ msgstr ""
 "Aktifkan pencarian web untuk memungkinkan LLM menjelajahi web dan memberikan "
 "jawaban terkini"
 
-#: src/window.py:591
+#: src/window.py:593
 msgid "Mini Window"
 msgstr "Jendela Mini"
 
-#: src/window.py:591
+#: src/window.py:593
 msgid "Ask questions on the fly using the mini window mode"
 msgstr "Ajukan pertanyaan dengan cepat menggunakan mode jendela mini"
 
-#: src/window.py:592
+#: src/window.py:594
 msgid "Text to Speech"
 msgstr "Teks ke Suara"
 
-#: src/window.py:592
+#: src/window.py:594
 msgid "Newelle supports text-to-speech! Enable it in the settings"
 msgstr "Newelle mendukung text-to-speech! Aktifkan di pengaturan"
 
-#: src/window.py:593
+#: src/window.py:595
 msgid "Keyboard Shortcuts"
 msgstr "Pintasan Keyboard"
 
-#: src/window.py:593
+#: src/window.py:595
 msgid "Control Newelle using Keyboard Shortcuts"
 msgstr "Kontrol Newelle menggunakan Pintasan Keyboard"
 
-#: src/window.py:594
+#: src/window.py:596
 msgid "Prompt Control"
 msgstr "Kontrol Prompt"
 
-#: src/window.py:594
+#: src/window.py:596
 msgid "Newelle gives you 100% prompt control. Tune your prompts for your use."
 msgstr ""
 "Newelle memberi Anda kontrol prompt 100%. Sesuaikan prompt Anda untuk "
 "penggunaan Anda."
 
-#: src/window.py:595
+#: src/window.py:597
 msgid "Thread Editing"
 msgstr "Pengeditan Thread"
 
-#: src/window.py:595
+#: src/window.py:597
 msgid "Check the programs and processes you run from Newelle"
 msgstr "Periksa program dan proses yang Anda jalankan dari Newelle"
 
-#: src/window.py:596
+#: src/window.py:598
 msgid "Programmable Prompts"
 msgstr "Prompt yang Dapat Diprogram"
 
-#: src/window.py:596
+#: src/window.py:598
 msgid ""
 "You can add dynamic prompts to Newelle, with conditions and probabilities"
 msgstr ""
 "Anda dapat menambahkan prompt dinamis ke Newelle, dengan kondisi dan "
 "probabilitas"
 
-#: src/window.py:603
+#: src/window.py:605
 msgid "New Chat"
 msgstr "Obrolan Baru"
 
-#: src/window.py:621
+#: src/window.py:623
 msgid "Provider Errror"
 msgstr "Kesalahan Penyedia"
 
-#: src/window.py:644
+#: src/window.py:646
 msgid "Local Documents"
 msgstr "Dokumen Lokal"
 
-#: src/window.py:648
+#: src/window.py:650
 msgid "Web search"
 msgstr "Pencarian Web"
 
-#: src/window.py:890
+#: src/window.py:892
 msgid "This provider does not have a model list"
 msgstr "Penyedia ini tidak memiliki daftar model"
 
-#: src/window.py:895
+#: src/window.py:897
 msgid " Models"
 msgstr " Model"
 
-#: src/window.py:898
+#: src/window.py:900
 msgid "Search Models..."
 msgstr "Cari Model..."
 
-#: src/window.py:1126
+#: src/window.py:1128
 msgid "Create new profile"
 msgstr "Buat profil baru"
 
-#: src/window.py:1260
+#: src/window.py:1262
 msgid "Could not recognize your voice"
 msgstr "Tidak dapat mengenali suara Anda"
 
-#: src/window.py:1297
+#: src/window.py:1299
 msgid "Images"
 msgstr "Gambar"
 
-#: src/window.py:1301
+#: src/window.py:1303
 msgid "LLM Supported Files"
 msgstr "Berkas yang Didukung LLM"
 
-#: src/window.py:1309
+#: src/window.py:1311
 msgid "RAG Supported files"
 msgstr "Berkas yang Didukung RAG"
 
-#: src/window.py:1327
+#: src/window.py:1329
 msgid "Supported Files"
 msgstr "Berkas yang Didukung"
 
-#: src/window.py:1331
+#: src/window.py:1333
 msgid "All Files"
 msgstr "Semua Berkas"
 
-#: src/window.py:1337
+#: src/window.py:1339
 msgid "Attach file"
 msgstr "Lampirkan berkas"
 
-#: src/window.py:1592
+#: src/window.py:1594
 msgid "The file cannot be sent until the program is finished"
 msgstr "Berkas tidak dapat dikirim sampai program selesai"
 
-#: src/window.py:1614
+#: src/window.py:1616
 msgid "The file is not recognized"
 msgstr "Berkas tidak dikenali"
 
-#: src/window.py:1633
+#: src/window.py:1635
 msgid "You can no longer continue the message."
 msgstr "Anda tidak dapat lagi melanjutkan pesan."
 
-#: src/window.py:1658
+#: src/window.py:1660
 msgid "You can no longer regenerate the message."
 msgstr "Anda tidak dapat lagi menghasilkan ulang pesan."
 
-#: src/window.py:1846 src/controller.py:135
-msgid "Chat "
-msgstr "Obrolan "
-
-#: src/window.py:1890
+#: src/window.py:1892
 msgid "Chat is cleared"
 msgstr "Obrolan dibersihkan"
 
-#: src/window.py:1915
+#: src/window.py:1917
 msgid "The message was canceled and deleted from history"
 msgstr "Pesan dibatalkan dan dihapus dari riwayat"
 
-#: src/window.py:1959
+#: src/window.py:1961
 msgid "The message cannot be sent until the program is finished"
 msgstr "Pesan tidak dapat dikirim sampai program selesai"
 
-#: src/window.py:2936
+#: src/window.py:2939
 msgid "You can't edit a message while the program is running."
 msgstr "Anda tidak dapat mengedit pesan saat program sedang berjalan."
 
-#: src/window.py:3061
+#: src/window.py:3064
 msgid "Prompt content"
 msgstr "Konten prompt"
 
-#: src/window.py:3320
+#: src/window.py:3323
 msgid ""
 "The neural network has access to your computer and any data in this chat and "
 "can run commands, be careful, we are not responsible for the neural network. "
@@ -2401,7 +2394,7 @@ msgstr ""
 "bertanggung jawab atas jaringan saraf. Jangan bagikan informasi sensitif apa "
 "pun."
 
-#: src/window.py:3349
+#: src/window.py:3352
 msgid ""
 "The neural network has access to any data in this chat, be careful, we are "
 "not responsible for the neural network. Do not share any sensitive "
@@ -2411,19 +2404,19 @@ msgstr ""
 "hatilah, kami tidak bertanggung jawab atas jaringan saraf. Jangan bagikan "
 "informasi sensitif apa pun."
 
-#: src/window.py:3398
+#: src/window.py:3401
 msgid "Wrong folder path"
 msgstr "Jalur folder salah"
 
-#: src/window.py:3431
+#: src/window.py:3434
 msgid "Thread has not been completed, thread number: "
 msgstr "Thread belum selesai, nomor thread: "
 
-#: src/window.py:3443
+#: src/window.py:3446
 msgid "Failed to open the folder"
 msgstr "Gagal membuka folder"
 
-#: src/window.py:3622
+#: src/window.py:3625
 msgid "Chat is empty"
 msgstr "Obrolan kosong"
 
@@ -2590,3 +2583,9 @@ msgstr "Newelle: Chat bot canggih Anda"
 #: data/io.github.qwersyk.Newelle.desktop.in:10
 msgid "ai;assistant;chat;chatgpt;gpt;llm;ollama;"
 msgstr "ai;asisten;chat;chatgpt;gpt;llm;ollama;"
+
+#~ msgid "max Tokens"
+#~ msgstr "Maks Token"
+
+#~ msgid "Max tokens of the generated text"
+#~ msgstr "Maks token dari teks yang dihasilkan"

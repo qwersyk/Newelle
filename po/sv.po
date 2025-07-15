@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-06 02:35+0800\n"
+"POT-Creation-Date: 2025-07-08 18:07+0800\n"
 "PO-Revision-Date: 2025-07-03 09:00+0200\n"
 "Last-Translator: Yehor Hliebov <qsk@gmx.at>\n"
 "Language-Team: Swedish <qsk@gmx.at>\n"
@@ -91,8 +91,8 @@ msgstr "Använd anpassad modell"
 
 #: src/handlers/embeddings/openai_handler.py:44
 #: src/handlers/llm/claude_handler.py:89 src/handlers/llm/claude_handler.py:93
-#: src/handlers/llm/g4f_handler.py:44 src/handlers/llm/openai_handler.py:84
-#: src/handlers/llm/gemini_handler.py:97 src/handlers/stt/whisper_handler.py:15
+#: src/handlers/llm/g4f_handler.py:44 src/handlers/llm/gemini_handler.py:97
+#: src/handlers/llm/openai_handler.py:84 src/handlers/stt/whisper_handler.py:15
 #: src/handlers/stt/whispercpp_handler.py:40
 #: src/handlers/tts/custom_openai_tts.py:20
 #: src/handlers/tts/elevenlabs_handler.py:24
@@ -212,14 +212,14 @@ msgid "Update G4F"
 msgstr "Uppdatera G4F"
 
 #: src/handlers/llm/newelle_handler.py:18
-#: src/handlers/llm/openai_handler.py:112
 #: src/handlers/llm/gemini_handler.py:131
+#: src/handlers/llm/openai_handler.py:111
 msgid "Privacy Policy"
 msgstr "Integritetspolicy"
 
 #: src/handlers/llm/newelle_handler.py:19
-#: src/handlers/llm/openai_handler.py:112
 #: src/handlers/llm/gemini_handler.py:132
+#: src/handlers/llm/openai_handler.py:111
 msgid "Open privacy policy website"
 msgstr "Öppna webbplatsen för integritetspolicy"
 
@@ -247,71 +247,6 @@ msgstr ""
 #: src/handlers/llm/ollama_handler.py:187
 msgid "Update Ollama"
 msgstr "Uppdatera Ollama"
-
-#: src/handlers/llm/openai_handler.py:81 src/handlers/llm/gemini_handler.py:135
-msgid "Advanced Parameters"
-msgstr "Avancerade parametrar"
-
-#: src/handlers/llm/openai_handler.py:81
-msgid "Include parameters like Max Tokens, Top-P, Temperature, etc."
-msgstr "Inkludera parametrar som Max Tokens, Top-P, Temperatur, etc."
-
-#: src/handlers/llm/openai_handler.py:84
-msgid "Name of the LLM Model to use"
-msgstr "Namnet på LLM-modellen att använda"
-
-#: src/handlers/llm/openai_handler.py:103
-msgid "max Tokens"
-msgstr "Max antal tokens"
-
-#: src/handlers/llm/openai_handler.py:103
-msgid "Max tokens of the generated text"
-msgstr "Max antal tokens för den genererade texten"
-
-#: src/handlers/llm/openai_handler.py:104
-msgid "Top-P"
-msgstr "Top-P"
-
-#: src/handlers/llm/openai_handler.py:104
-msgid "An alternative to sampling with temperature, called nucleus sampling"
-msgstr "Ett alternativ till sampling med temperatur, kallat kärnsampling"
-
-#: src/handlers/llm/openai_handler.py:105
-#: src/handlers/stt/whispercpp_handler.py:50
-msgid "Temperature"
-msgstr "Temperatur"
-
-#: src/handlers/llm/openai_handler.py:105
-msgid ""
-"What sampling temperature to use. Higher values will make the output more "
-"random"
-msgstr ""
-"Vilken samplingstemperatur som ska användas. Högre värden gör utdata mer "
-"slumpmässig"
-
-#: src/handlers/llm/openai_handler.py:106
-msgid "Frequency Penalty"
-msgstr "Frekvensstraff"
-
-#: src/handlers/llm/openai_handler.py:106
-msgid ""
-"Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
-"to repeat the same line verbatim"
-msgstr ""
-"Tal mellan -2.0 och 2.0. Positiva värden minskar modellens sannolikhet att "
-"upprepa samma rad ordagrant"
-
-#: src/handlers/llm/openai_handler.py:107
-msgid "Presence Penalty"
-msgstr "Närvarostraff"
-
-#: src/handlers/llm/openai_handler.py:107
-msgid ""
-"Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
-"to talk about new topics"
-msgstr ""
-"Tal mellan -2.0 och 2.0. Positiva värden minskar modellens sannolikhet att "
-"prata om nya ämnen"
 
 #: src/handlers/llm/openrouter_handler.py:14
 msgid "Provider Sorting"
@@ -435,9 +370,67 @@ msgstr ""
 "Aktivera Googles säkerhetsinställningar för att undvika att generera "
 "skadligt innehåll"
 
+#: src/handlers/llm/gemini_handler.py:135 src/handlers/llm/openai_handler.py:81
+msgid "Advanced Parameters"
+msgstr "Avancerade parametrar"
+
 #: src/handlers/llm/gemini_handler.py:135
 msgid "Enable advanced parameters"
 msgstr "Aktivera avancerade parametrar"
+
+#: src/handlers/llm/openai_handler.py:81
+#, fuzzy
+msgid "Include parameters like Top-P, Temperature, etc."
+msgstr "Inkludera parametrar som Max Tokens, Top-P, Temperatur, etc."
+
+#: src/handlers/llm/openai_handler.py:84
+msgid "Name of the LLM Model to use"
+msgstr "Namnet på LLM-modellen att använda"
+
+#: src/handlers/llm/openai_handler.py:103
+msgid "Top-P"
+msgstr "Top-P"
+
+#: src/handlers/llm/openai_handler.py:103
+msgid "An alternative to sampling with temperature, called nucleus sampling"
+msgstr "Ett alternativ till sampling med temperatur, kallat kärnsampling"
+
+#: src/handlers/llm/openai_handler.py:104
+#: src/handlers/stt/whispercpp_handler.py:50
+msgid "Temperature"
+msgstr "Temperatur"
+
+#: src/handlers/llm/openai_handler.py:104
+msgid ""
+"What sampling temperature to use. Higher values will make the output more "
+"random"
+msgstr ""
+"Vilken samplingstemperatur som ska användas. Högre värden gör utdata mer "
+"slumpmässig"
+
+#: src/handlers/llm/openai_handler.py:105
+msgid "Frequency Penalty"
+msgstr "Frekvensstraff"
+
+#: src/handlers/llm/openai_handler.py:105
+msgid ""
+"Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
+"to repeat the same line verbatim"
+msgstr ""
+"Tal mellan -2.0 och 2.0. Positiva värden minskar modellens sannolikhet att "
+"upprepa samma rad ordagrant"
+
+#: src/handlers/llm/openai_handler.py:106
+msgid "Presence Penalty"
+msgstr "Närvarostraff"
+
+#: src/handlers/llm/openai_handler.py:106
+msgid ""
+"Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
+"to talk about new topics"
+msgstr ""
+"Tal mellan -2.0 och 2.0. Positiva värden minskar modellens sannolikhet att "
+"prata om nya ämnen"
 
 #: src/handlers/rag/rag_handler.py:104
 msgid "Index your documents"
@@ -914,7 +907,7 @@ msgstr "Ingen tankeprocess registrerad"
 msgid "Folder is Empty"
 msgstr "Mappen är tom"
 
-#: src/ui/explorer.py:340 src/window.py:1574
+#: src/ui/explorer.py:340 src/window.py:1576
 msgid "File not found"
 msgstr "Filen hittades inte"
 
@@ -1160,7 +1153,7 @@ msgstr ""
 "eller från dina egna filer! Information relevant för din fråga kommer att "
 "skickas till LLM."
 
-#: src/ui/presentation.py:124 src/ui/settings.py:236 src/window.py:647
+#: src/ui/presentation.py:124 src/ui/settings.py:236 src/window.py:649
 msgid "Command virtualization"
 msgstr "Kommando virtualisering"
 
@@ -1261,7 +1254,7 @@ msgstr ""
 "långtidsminne och RAG. Att ändra den kan kräva att du omindexerar dokument "
 "eller återställer minnet."
 
-#: src/ui/settings.py:104 src/window.py:645
+#: src/ui/settings.py:104 src/window.py:647
 msgid "Long Term Memory"
 msgstr "Långtidsminne"
 
@@ -1655,7 +1648,7 @@ msgid "Start/Stop monitoring"
 msgstr "Starta/Stoppa övervakning"
 
 #: src/ui/stdout_monitor.py:109 src/ui/stdout_monitor.py:182
-#: src/ui/stdout_monitor.py:191 src/window.py:3683
+#: src/ui/stdout_monitor.py:191 src/window.py:3686
 msgid "Monitoring: Active"
 msgstr "Övervakning: Aktiv"
 
@@ -2033,7 +2026,7 @@ msgstr "Lägg till din egen anpassade prompt"
 msgid "LLM and Secondary LLM settings"
 msgstr "LLM och sekundära LLM-inställningar"
 
-#: src/constants.py:483 src/window.py:646
+#: src/constants.py:483 src/window.py:648
 msgid "TTS"
 msgstr "TTS"
 
@@ -2129,6 +2122,10 @@ msgstr "Mappen är omstartad"
 msgid "Chat is created"
 msgstr "Chatten är skapad"
 
+#: src/controller.py:135 src/window.py:1848
+msgid "Chat "
+msgstr "Chatt "
+
 #: src/window.py:120
 msgid "Keyboard shorcuts"
 msgstr "Tangentbordsgenvägar"
@@ -2185,29 +2182,29 @@ msgstr "Terminalflik"
 msgid "Browser Tab"
 msgstr "Webbläsarflik"
 
-#: src/window.py:587
+#: src/window.py:589
 msgid "Ask about a website"
 msgstr "Fråga om en webbplats"
 
-#: src/window.py:587
+#: src/window.py:589
 msgid "Write #https://website.com in chat to ask information about a website"
 msgstr ""
 "Skriv #https://website.com i chatten för att fråga information om en "
 "webbplats"
 
-#: src/window.py:588
+#: src/window.py:590
 msgid "Check out our Extensions!"
 msgstr "Kolla in våra tillägg!"
 
-#: src/window.py:588
+#: src/window.py:590
 msgid "We have a lot of extensions for different things. Check it out!"
 msgstr "Vi har många tillägg för olika saker. Kolla in dem!"
 
-#: src/window.py:589
+#: src/window.py:591
 msgid "Chat with documents!"
 msgstr "Chatta med dokument!"
 
-#: src/window.py:589
+#: src/window.py:591
 msgid ""
 "Add your documents to your documents folder and chat using the information "
 "contained in them!"
@@ -2215,11 +2212,11 @@ msgstr ""
 "Lägg till dina dokument i din dokumentmapp och chatta med informationen i "
 "dem!"
 
-#: src/window.py:590
+#: src/window.py:592
 msgid "Surf the web!"
 msgstr "Surfa på webben!"
 
-#: src/window.py:590
+#: src/window.py:592
 msgid ""
 "Enable web search to allow the LLM to surf the web and provide up to date "
 "answers"
@@ -2227,159 +2224,155 @@ msgstr ""
 "Aktivera webbsökning för att tillåta LLM att surfa på webben och ge "
 "uppdaterade svar"
 
-#: src/window.py:591
+#: src/window.py:593
 msgid "Mini Window"
 msgstr "Minifönster"
 
-#: src/window.py:591
+#: src/window.py:593
 msgid "Ask questions on the fly using the mini window mode"
 msgstr "Ställ frågor direkt med hjälp av minifönsterläget"
 
-#: src/window.py:592
+#: src/window.py:594
 msgid "Text to Speech"
 msgstr "Text till tal"
 
-#: src/window.py:592
+#: src/window.py:594
 msgid "Newelle supports text-to-speech! Enable it in the settings"
 msgstr "Newelle stöder text till tal! Aktivera det i inställningarna"
 
-#: src/window.py:593
+#: src/window.py:595
 msgid "Keyboard Shortcuts"
 msgstr "Tangentbordsgenvägar"
 
-#: src/window.py:593
+#: src/window.py:595
 msgid "Control Newelle using Keyboard Shortcuts"
 msgstr "Kontrollera Newelle med tangentbordsgenvägar"
 
-#: src/window.py:594
+#: src/window.py:596
 msgid "Prompt Control"
 msgstr "Promptkontroll"
 
-#: src/window.py:594
+#: src/window.py:596
 msgid "Newelle gives you 100% prompt control. Tune your prompts for your use."
 msgstr ""
 "Newelle ger dig 100% promptkontroll. Anpassa dina prompter för din "
 "användning."
 
-#: src/window.py:595
+#: src/window.py:597
 msgid "Thread Editing"
 msgstr "Trådredigering"
 
-#: src/window.py:595
+#: src/window.py:597
 msgid "Check the programs and processes you run from Newelle"
 msgstr "Kontrollera programmen och processerna du kör från Newelle"
 
-#: src/window.py:596
+#: src/window.py:598
 msgid "Programmable Prompts"
 msgstr "Programmerbara prompter"
 
-#: src/window.py:596
+#: src/window.py:598
 msgid ""
 "You can add dynamic prompts to Newelle, with conditions and probabilities"
 msgstr ""
 "Du kan lägga till dynamiska prompter i Newelle, med villkor och sannolikheter"
 
-#: src/window.py:603
+#: src/window.py:605
 msgid "New Chat"
 msgstr "Ny chatt"
 
-#: src/window.py:621
+#: src/window.py:623
 msgid "Provider Errror"
 msgstr "Leverantörsfel"
 
-#: src/window.py:644
+#: src/window.py:646
 msgid "Local Documents"
 msgstr "Lokala dokument"
 
-#: src/window.py:648
+#: src/window.py:650
 msgid "Web search"
 msgstr "Webbsökning"
 
-#: src/window.py:890
+#: src/window.py:892
 msgid "This provider does not have a model list"
 msgstr "Denna leverantör har ingen modelllista"
 
-#: src/window.py:895
+#: src/window.py:897
 msgid " Models"
 msgstr " Modeller"
 
-#: src/window.py:898
+#: src/window.py:900
 msgid "Search Models..."
 msgstr "Sök modeller..."
 
-#: src/window.py:1126
+#: src/window.py:1128
 msgid "Create new profile"
 msgstr "Skapa ny profil"
 
-#: src/window.py:1260
+#: src/window.py:1262
 msgid "Could not recognize your voice"
 msgstr "Kunde inte känna igen din röst"
 
-#: src/window.py:1297
+#: src/window.py:1299
 msgid "Images"
 msgstr "Bilder"
 
-#: src/window.py:1301
+#: src/window.py:1303
 msgid "LLM Supported Files"
 msgstr "LLM-stödda filer"
 
-#: src/window.py:1309
+#: src/window.py:1311
 msgid "RAG Supported files"
 msgstr "RAG-stödda filer"
 
-#: src/window.py:1327
+#: src/window.py:1329
 msgid "Supported Files"
 msgstr "Filer som stöds"
 
-#: src/window.py:1331
+#: src/window.py:1333
 msgid "All Files"
 msgstr "Alla filer"
 
-#: src/window.py:1337
+#: src/window.py:1339
 msgid "Attach file"
 msgstr "Bifoga fil"
 
-#: src/window.py:1592
+#: src/window.py:1594
 msgid "The file cannot be sent until the program is finished"
 msgstr "Filen kan inte skickas förrän programmet är klart"
 
-#: src/window.py:1614
+#: src/window.py:1616
 msgid "The file is not recognized"
 msgstr "Filen känns inte igen"
 
-#: src/window.py:1633
+#: src/window.py:1635
 msgid "You can no longer continue the message."
 msgstr "Du kan inte längre fortsätta meddelandet."
 
-#: src/window.py:1658
+#: src/window.py:1660
 msgid "You can no longer regenerate the message."
 msgstr "Du kan inte längre återskapa meddelandet."
 
-#: src/window.py:1846 src/controller.py:135
-msgid "Chat "
-msgstr "Chatt "
-
-#: src/window.py:1890
+#: src/window.py:1892
 msgid "Chat is cleared"
 msgstr "Chatten är rensad"
 
-#: src/window.py:1915
+#: src/window.py:1917
 msgid "The message was canceled and deleted from history"
 msgstr "Meddelandet avbröts och togs bort från historiken"
 
-#: src/window.py:1959
+#: src/window.py:1961
 msgid "The message cannot be sent until the program is finished"
 msgstr "Meddelandet kan inte skickas förrän programmet är klart"
 
-#: src/window.py:2936
+#: src/window.py:2939
 msgid "You can't edit a message while the program is running."
 msgstr "Du kan inte redigera ett meddelande medan programmet körs."
 
-#: src/window.py:3061
+#: src/window.py:3064
 msgid "Prompt content"
 msgstr "Promptinnehåll"
 
-#: src/window.py:3320
+#: src/window.py:3323
 msgid ""
 "The neural network has access to your computer and any data in this chat and "
 "can run commands, be careful, we are not responsible for the neural network. "
@@ -2389,7 +2382,7 @@ msgstr ""
 "och kan köra kommandon, var försiktig, vi ansvarar inte för det neurala "
 "nätverket. Dela inte känslig information."
 
-#: src/window.py:3349
+#: src/window.py:3352
 msgid ""
 "The neural network has access to any data in this chat, be careful, we are "
 "not responsible for the neural network. Do not share any sensitive "
@@ -2399,19 +2392,19 @@ msgstr ""
 "försiktig, vi ansvarar inte för det neurala nätverket. Dela inte känslig "
 "information."
 
-#: src/window.py:3398
+#: src/window.py:3401
 msgid "Wrong folder path"
 msgstr "Fel mappssökväg"
 
-#: src/window.py:3431
+#: src/window.py:3434
 msgid "Thread has not been completed, thread number: "
 msgstr "Tråden har inte slutförts, trådnummer: "
 
-#: src/window.py:3443
+#: src/window.py:3446
 msgid "Failed to open the folder"
 msgstr "Kunde inte öppna mappen"
 
-#: src/window.py:3622
+#: src/window.py:3625
 msgid "Chat is empty"
 msgstr "Chatten är tom"
 
@@ -2578,3 +2571,9 @@ msgstr "Newelle: Din avancerade chattbot"
 #: data/io.github.qwersyk.Newelle.desktop.in:10
 msgid "ai;assistant;chat;chatgpt;gpt;llm;ollama;"
 msgstr "ai;assistent;chatt;chatgpt;gpt;llm;ollama;"
+
+#~ msgid "max Tokens"
+#~ msgstr "Max antal tokens"
+
+#~ msgid "Max tokens of the generated text"
+#~ msgstr "Max antal tokens för den genererade texten"

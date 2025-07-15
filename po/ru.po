@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Newelle 0.2.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-06 02:35+0800\n"
+"POT-Creation-Date: 2025-07-08 18:07+0800\n"
 "PO-Revision-Date: 2025-07-03 09:00+0200\n"
 "Last-Translator: Yehor Qwersyk <qsk@gmx.at>\n"
 "Language-Team: Russian\n"
@@ -95,8 +95,8 @@ msgstr "Использовать пользовательскую модель"
 
 #: src/handlers/embeddings/openai_handler.py:44
 #: src/handlers/llm/claude_handler.py:89 src/handlers/llm/claude_handler.py:93
-#: src/handlers/llm/g4f_handler.py:44 src/handlers/llm/openai_handler.py:84
-#: src/handlers/llm/gemini_handler.py:97 src/handlers/stt/whisper_handler.py:15
+#: src/handlers/llm/g4f_handler.py:44 src/handlers/llm/gemini_handler.py:97
+#: src/handlers/llm/openai_handler.py:84 src/handlers/stt/whisper_handler.py:15
 #: src/handlers/stt/whispercpp_handler.py:40
 #: src/handlers/tts/custom_openai_tts.py:20
 #: src/handlers/tts/elevenlabs_handler.py:24
@@ -217,14 +217,14 @@ msgid "Update G4F"
 msgstr "Обновить G4F"
 
 #: src/handlers/llm/newelle_handler.py:18
-#: src/handlers/llm/openai_handler.py:112
 #: src/handlers/llm/gemini_handler.py:131
+#: src/handlers/llm/openai_handler.py:111
 msgid "Privacy Policy"
 msgstr "Политика конфиденциальности"
 
 #: src/handlers/llm/newelle_handler.py:19
-#: src/handlers/llm/openai_handler.py:112
 #: src/handlers/llm/gemini_handler.py:132
+#: src/handlers/llm/openai_handler.py:111
 msgid "Open privacy policy website"
 msgstr "Открыть сайт политики конфиденциальности"
 
@@ -252,71 +252,6 @@ msgstr ""
 #: src/handlers/llm/ollama_handler.py:187
 msgid "Update Ollama"
 msgstr "Обновить Ollama"
-
-#: src/handlers/llm/openai_handler.py:81 src/handlers/llm/gemini_handler.py:135
-msgid "Advanced Parameters"
-msgstr "Расширенные параметры"
-
-#: src/handlers/llm/openai_handler.py:81
-msgid "Include parameters like Max Tokens, Top-P, Temperature, etc."
-msgstr "Включить параметры, такие как Max Tokens, Top-P, Temperature и т. д."
-
-#: src/handlers/llm/openai_handler.py:84
-msgid "Name of the LLM Model to use"
-msgstr "Название модели LLM для использования"
-
-#: src/handlers/llm/openai_handler.py:103
-msgid "max Tokens"
-msgstr "Макс. токены"
-
-#: src/handlers/llm/openai_handler.py:103
-msgid "Max tokens of the generated text"
-msgstr "Максимальное количество токенов сгенерированного текста"
-
-#: src/handlers/llm/openai_handler.py:104
-msgid "Top-P"
-msgstr "Top-P"
-
-#: src/handlers/llm/openai_handler.py:104
-msgid "An alternative to sampling with temperature, called nucleus sampling"
-msgstr "Альтернатива выборке с температурой, называемая ядерной выборкой"
-
-#: src/handlers/llm/openai_handler.py:105
-#: src/handlers/stt/whispercpp_handler.py:50
-msgid "Temperature"
-msgstr "Температура"
-
-#: src/handlers/llm/openai_handler.py:105
-msgid ""
-"What sampling temperature to use. Higher values will make the output more "
-"random"
-msgstr ""
-"Какую температуру выборки использовать. Более высокие значения сделают вывод "
-"более случайным"
-
-#: src/handlers/llm/openai_handler.py:106
-msgid "Frequency Penalty"
-msgstr "Штраф за частоту"
-
-#: src/handlers/llm/openai_handler.py:106
-msgid ""
-"Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
-"to repeat the same line verbatim"
-msgstr ""
-"Число от -2.0 до 2.0. Положительные значения уменьшают вероятность того, что "
-"модель повторит ту же строку дословно"
-
-#: src/handlers/llm/openai_handler.py:107
-msgid "Presence Penalty"
-msgstr "Штраф за присутствие"
-
-#: src/handlers/llm/openai_handler.py:107
-msgid ""
-"Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
-"to talk about new topics"
-msgstr ""
-"Число от -2.0 до 2.0. Положительные значения уменьшают вероятность того, что "
-"модель будет говорить о новых темах"
 
 #: src/handlers/llm/openrouter_handler.py:14
 msgid "Provider Sorting"
@@ -442,9 +377,67 @@ msgstr ""
 "Включить настройки безопасности Google, чтобы избежать генерации "
 "вредоносного контента"
 
+#: src/handlers/llm/gemini_handler.py:135 src/handlers/llm/openai_handler.py:81
+msgid "Advanced Parameters"
+msgstr "Расширенные параметры"
+
 #: src/handlers/llm/gemini_handler.py:135
 msgid "Enable advanced parameters"
 msgstr "Включить расширенные параметры"
+
+#: src/handlers/llm/openai_handler.py:81
+#, fuzzy
+msgid "Include parameters like Top-P, Temperature, etc."
+msgstr "Включить параметры, такие как Max Tokens, Top-P, Temperature и т. д."
+
+#: src/handlers/llm/openai_handler.py:84
+msgid "Name of the LLM Model to use"
+msgstr "Название модели LLM для использования"
+
+#: src/handlers/llm/openai_handler.py:103
+msgid "Top-P"
+msgstr "Top-P"
+
+#: src/handlers/llm/openai_handler.py:103
+msgid "An alternative to sampling with temperature, called nucleus sampling"
+msgstr "Альтернатива выборке с температурой, называемая ядерной выборкой"
+
+#: src/handlers/llm/openai_handler.py:104
+#: src/handlers/stt/whispercpp_handler.py:50
+msgid "Temperature"
+msgstr "Температура"
+
+#: src/handlers/llm/openai_handler.py:104
+msgid ""
+"What sampling temperature to use. Higher values will make the output more "
+"random"
+msgstr ""
+"Какую температуру выборки использовать. Более высокие значения сделают вывод "
+"более случайным"
+
+#: src/handlers/llm/openai_handler.py:105
+msgid "Frequency Penalty"
+msgstr "Штраф за частоту"
+
+#: src/handlers/llm/openai_handler.py:105
+msgid ""
+"Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
+"to repeat the same line verbatim"
+msgstr ""
+"Число от -2.0 до 2.0. Положительные значения уменьшают вероятность того, что "
+"модель повторит ту же строку дословно"
+
+#: src/handlers/llm/openai_handler.py:106
+msgid "Presence Penalty"
+msgstr "Штраф за присутствие"
+
+#: src/handlers/llm/openai_handler.py:106
+msgid ""
+"Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
+"to talk about new topics"
+msgstr ""
+"Число от -2.0 до 2.0. Положительные значения уменьшают вероятность того, что "
+"модель будет говорить о новых темах"
 
 #: src/handlers/rag/rag_handler.py:104
 msgid "Index your documents"
@@ -928,7 +921,7 @@ msgstr "Процесс размышлений не записан"
 msgid "Folder is Empty"
 msgstr "Папка пуста"
 
-#: src/ui/explorer.py:340 src/window.py:1574
+#: src/ui/explorer.py:340 src/window.py:1576
 msgid "File not found"
 msgstr "Файл не найден"
 
@@ -1188,7 +1181,7 @@ msgstr ""
 "отправляете в чат, или из ваших собственных файлов! Информация, относящаяся "
 "к вашему запросу, будет отправлена в LLM."
 
-#: src/ui/presentation.py:124 src/ui/settings.py:236 src/window.py:647
+#: src/ui/presentation.py:124 src/ui/settings.py:236 src/window.py:649
 msgid "Command virtualization"
 msgstr "Виртуализация команд"
 
@@ -1290,7 +1283,7 @@ msgstr ""
 "долговременной памятью и RAG. Изменение может потребовать повторной "
 "индексации документов или сброса памяти."
 
-#: src/ui/settings.py:104 src/window.py:645
+#: src/ui/settings.py:104 src/window.py:647
 #, fuzzy
 msgid "Long Term Memory"
 msgstr "Долговременная память"
@@ -1691,7 +1684,7 @@ msgid "Start/Stop monitoring"
 msgstr "Начать/Остановить мониторинг"
 
 #: src/ui/stdout_monitor.py:109 src/ui/stdout_monitor.py:182
-#: src/ui/stdout_monitor.py:191 src/window.py:3683
+#: src/ui/stdout_monitor.py:191 src/window.py:3686
 msgid "Monitoring: Active"
 msgstr "Мониторинг: Активен"
 
@@ -2080,7 +2073,7 @@ msgstr "Добавьте свою собственную подсказку"
 msgid "LLM and Secondary LLM settings"
 msgstr "Настройки LLM и вторичного LLM"
 
-#: src/constants.py:483 src/window.py:646
+#: src/constants.py:483 src/window.py:648
 msgid "TTS"
 msgstr "TTS"
 
@@ -2183,6 +2176,10 @@ msgstr "Папка перезагружена"
 msgid "Chat is created"
 msgstr "Чат создан"
 
+#: src/controller.py:135 src/window.py:1848
+msgid "Chat "
+msgstr "Чат "
+
 #: src/window.py:120
 #, fuzzy
 msgid "Keyboard shorcuts"
@@ -2241,28 +2238,28 @@ msgstr "Вкладка Терминал"
 msgid "Browser Tab"
 msgstr "Вкладка Браузер"
 
-#: src/window.py:587
+#: src/window.py:589
 msgid "Ask about a website"
 msgstr "Спросить о веб-сайте"
 
-#: src/window.py:587
+#: src/window.py:589
 msgid "Write #https://website.com in chat to ask information about a website"
 msgstr ""
 "Напишите #https://website.com в чате, чтобы запросить информацию о веб-сайте"
 
-#: src/window.py:588
+#: src/window.py:590
 msgid "Check out our Extensions!"
 msgstr "Ознакомьтесь с нашими расширениями!"
 
-#: src/window.py:588
+#: src/window.py:590
 msgid "We have a lot of extensions for different things. Check it out!"
 msgstr "У нас много расширений для разных целей. Проверьте!"
 
-#: src/window.py:589
+#: src/window.py:591
 msgid "Chat with documents!"
 msgstr "Общайтесь с документами!"
 
-#: src/window.py:589
+#: src/window.py:591
 msgid ""
 "Add your documents to your documents folder and chat using the information "
 "contained in them!"
@@ -2270,11 +2267,11 @@ msgstr ""
 "Добавьте свои документы в папку документов и общайтесь, используя "
 "информацию, содержащуюся в них!"
 
-#: src/window.py:590
+#: src/window.py:592
 msgid "Surf the web!"
 msgstr "Путешествуйте по интернету!"
 
-#: src/window.py:590
+#: src/window.py:592
 msgid ""
 "Enable web search to allow the LLM to surf the web and provide up to date "
 "answers"
@@ -2282,167 +2279,163 @@ msgstr ""
 "Включите веб-поиск, чтобы LLM мог просматривать веб-страницы и предоставлять "
 "актуальные ответы"
 
-#: src/window.py:591
+#: src/window.py:593
 msgid "Mini Window"
 msgstr "Мини-окно"
 
-#: src/window.py:591
+#: src/window.py:593
 msgid "Ask questions on the fly using the mini window mode"
 msgstr "Задавайте вопросы на лету, используя режим мини-окна"
 
-#: src/window.py:592
+#: src/window.py:594
 msgid "Text to Speech"
 msgstr "Преобразование текста в речь"
 
-#: src/window.py:592
+#: src/window.py:594
 msgid "Newelle supports text-to-speech! Enable it in the settings"
 msgstr ""
 "Newelle поддерживает преобразование текста в речь! Включите это в настройках"
 
-#: src/window.py:593
+#: src/window.py:595
 #, fuzzy
 msgid "Keyboard Shortcuts"
 msgstr "Быстрые клавиши"
 
-#: src/window.py:593
+#: src/window.py:595
 #, fuzzy
 msgid "Control Newelle using Keyboard Shortcuts"
 msgstr "Управление Newelle с помощью горячих клавиш"
 
-#: src/window.py:594
+#: src/window.py:596
 #, fuzzy
 msgid "Prompt Control"
 msgstr "Управление подсказками"
 
-#: src/window.py:594
+#: src/window.py:596
 msgid "Newelle gives you 100% prompt control. Tune your prompts for your use."
 msgstr ""
 "Newelle предоставляет вам 100% контроль над подсказками. Настраивайте свои "
 "подсказки для своего использования."
 
-#: src/window.py:595
+#: src/window.py:597
 #, fuzzy
 msgid "Thread Editing"
 msgstr "Редактирование потока"
 
-#: src/window.py:595
+#: src/window.py:597
 msgid "Check the programs and processes you run from Newelle"
 msgstr "Проверьте программы и процессы, которые вы запускаете из Newelle"
 
-#: src/window.py:596
+#: src/window.py:598
 msgid "Programmable Prompts"
 msgstr "Программируемые подсказки"
 
-#: src/window.py:596
+#: src/window.py:598
 msgid ""
 "You can add dynamic prompts to Newelle, with conditions and probabilities"
 msgstr ""
 "Вы можете добавлять динамические подсказки в Newelle, с условиями и "
 "вероятностями"
 
-#: src/window.py:603
+#: src/window.py:605
 #, fuzzy
 msgid "New Chat"
 msgstr "Новый чат"
 
-#: src/window.py:621
+#: src/window.py:623
 msgid "Provider Errror"
 msgstr "Ошибка провайдера"
 
-#: src/window.py:644
+#: src/window.py:646
 msgid "Local Documents"
 msgstr "Локальные документы"
 
-#: src/window.py:648
+#: src/window.py:650
 msgid "Web search"
 msgstr "Веб-поиск"
 
-#: src/window.py:890
+#: src/window.py:892
 msgid "This provider does not have a model list"
 msgstr "У этого поставщика нет списка моделей"
 
-#: src/window.py:895
+#: src/window.py:897
 msgid " Models"
 msgstr " Модели"
 
-#: src/window.py:898
+#: src/window.py:900
 msgid "Search Models..."
 msgstr "Поиск моделей..."
 
-#: src/window.py:1126
+#: src/window.py:1128
 msgid "Create new profile"
 msgstr "Создать новый профиль"
 
-#: src/window.py:1260
+#: src/window.py:1262
 msgid "Could not recognize your voice"
 msgstr "Не удалось распознать ваш голос"
 
-#: src/window.py:1297
+#: src/window.py:1299
 msgid "Images"
 msgstr "Изображения"
 
-#: src/window.py:1301
+#: src/window.py:1303
 msgid "LLM Supported Files"
 msgstr "Файлы, поддерживаемые LLM"
 
-#: src/window.py:1309
+#: src/window.py:1311
 msgid "RAG Supported files"
 msgstr "Файлы, поддерживаемые RAG"
 
-#: src/window.py:1327
+#: src/window.py:1329
 msgid "Supported Files"
 msgstr "Поддерживаемые файлы"
 
-#: src/window.py:1331
+#: src/window.py:1333
 msgid "All Files"
 msgstr "Все файлы"
 
-#: src/window.py:1337
+#: src/window.py:1339
 msgid "Attach file"
 msgstr "Прикрепить файл"
 
-#: src/window.py:1592
+#: src/window.py:1594
 msgid "The file cannot be sent until the program is finished"
 msgstr "Файл не может быть отправлен, пока программа не завершится"
 
-#: src/window.py:1614
+#: src/window.py:1616
 msgid "The file is not recognized"
 msgstr "Файл не распознан"
 
-#: src/window.py:1633
+#: src/window.py:1635
 msgid "You can no longer continue the message."
 msgstr "Вы больше не можете продолжить сообщение."
 
-#: src/window.py:1658
+#: src/window.py:1660
 msgid "You can no longer regenerate the message."
 msgstr "Вы больше не можете перегенерировать сообщение."
 
-#: src/window.py:1846 src/controller.py:135
-msgid "Chat "
-msgstr "Чат "
-
-#: src/window.py:1890
+#: src/window.py:1892
 msgid "Chat is cleared"
 msgstr "Чат очищен"
 
-#: src/window.py:1915
+#: src/window.py:1917
 msgid "The message was canceled and deleted from history"
 msgstr "Сообщение было отменено и удалено из истории"
 
-#: src/window.py:1959
+#: src/window.py:1961
 msgid "The message cannot be sent until the program is finished"
 msgstr "Сообщение не может быть отправлено, пока программа не завершится"
 
-#: src/window.py:2936
+#: src/window.py:2939
 msgid "You can't edit a message while the program is running."
 msgstr "Нельзя редактировать сообщение во время работы программы."
 
-#: src/window.py:3061
+#: src/window.py:3064
 #, fuzzy
 msgid "Prompt content"
 msgstr "Содержимое подсказки"
 
-#: src/window.py:3320
+#: src/window.py:3323
 #, fuzzy
 msgid ""
 "The neural network has access to your computer and any data in this chat and "
@@ -2453,7 +2446,7 @@ msgstr ""
 "этом чате, а также может выполнять команды. Будьте осторожны, мы не несем "
 "ответственности за нейронную сеть. Не делитесь конфиденциальной информацией."
 
-#: src/window.py:3349
+#: src/window.py:3352
 #, fuzzy
 msgid ""
 "The neural network has access to any data in this chat, be careful, we are "
@@ -2464,19 +2457,19 @@ msgstr ""
 "осторожны, мы не несем ответственности за нейронную сеть. Не делитесь "
 "конфиденциальной информацией."
 
-#: src/window.py:3398
+#: src/window.py:3401
 msgid "Wrong folder path"
 msgstr "Неверный путь к папке"
 
-#: src/window.py:3431
+#: src/window.py:3434
 msgid "Thread has not been completed, thread number: "
 msgstr "Поток не завершен, номер потока: "
 
-#: src/window.py:3443
+#: src/window.py:3446
 msgid "Failed to open the folder"
 msgstr "Не удалось открыть папку"
 
-#: src/window.py:3622
+#: src/window.py:3625
 msgid "Chat is empty"
 msgstr "Чат пуст"
 
@@ -2645,6 +2638,12 @@ msgstr "Newelle: Ваш продвинутый чат-бот"
 #: data/io.github.qwersyk.Newelle.desktop.in:10
 msgid "ai;assistant;chat;chatgpt;gpt;llm;ollama;"
 msgstr "ai;assistant;chat;chatgpt;gpt;llm;ollama;"
+
+#~ msgid "max Tokens"
+#~ msgstr "Макс. токены"
+
+#~ msgid "Max tokens of the generated text"
+#~ msgstr "Максимальное количество токенов сгенерированного текста"
 
 #, fuzzy
 #~ msgid "_Cancel"

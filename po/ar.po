@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-06 02:35+0800\n"
+"POT-Creation-Date: 2025-07-08 18:07+0800\n"
 "PO-Revision-Date: 2025-07-03 09:00+0200\n"
 "Last-Translator: Amine Saoud <amiensa@proton.me>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -103,8 +103,8 @@ msgstr "استخدام نموذج مخصص"
 
 #: src/handlers/embeddings/openai_handler.py:44
 #: src/handlers/llm/claude_handler.py:89 src/handlers/llm/claude_handler.py:93
-#: src/handlers/llm/g4f_handler.py:44 src/handlers/llm/openai_handler.py:84
-#: src/handlers/llm/gemini_handler.py:97 src/handlers/stt/whisper_handler.py:15
+#: src/handlers/llm/g4f_handler.py:44 src/handlers/llm/gemini_handler.py:97
+#: src/handlers/llm/openai_handler.py:84 src/handlers/stt/whisper_handler.py:15
 #: src/handlers/stt/whispercpp_handler.py:40
 #: src/handlers/tts/custom_openai_tts.py:20
 #: src/handlers/tts/elevenlabs_handler.py:24
@@ -224,14 +224,14 @@ msgid "Update G4F"
 msgstr "تحديث G4F"
 
 #: src/handlers/llm/newelle_handler.py:18
-#: src/handlers/llm/openai_handler.py:112
 #: src/handlers/llm/gemini_handler.py:131
+#: src/handlers/llm/openai_handler.py:111
 msgid "Privacy Policy"
 msgstr "سياسة الخصوصية"
 
 #: src/handlers/llm/newelle_handler.py:19
-#: src/handlers/llm/openai_handler.py:112
 #: src/handlers/llm/gemini_handler.py:132
+#: src/handlers/llm/openai_handler.py:111
 msgid "Open privacy policy website"
 msgstr "فتح موقع سياسة الخصوصية"
 
@@ -259,71 +259,6 @@ msgstr ""
 #: src/handlers/llm/ollama_handler.py:187
 msgid "Update Ollama"
 msgstr "تحديث أولاما"
-
-#: src/handlers/llm/openai_handler.py:81 src/handlers/llm/gemini_handler.py:135
-msgid "Advanced Parameters"
-msgstr "معلمات متقدمة"
-
-#: src/handlers/llm/openai_handler.py:81
-msgid "Include parameters like Max Tokens, Top-P, Temperature, etc."
-msgstr "تضمين معلمات مثل الحد الأقصى للرموز، Top-P، درجة الحرارة، إلخ."
-
-#: src/handlers/llm/openai_handler.py:84
-msgid "Name of the LLM Model to use"
-msgstr "اسم نموذج LLM المراد استخدامه"
-
-#: src/handlers/llm/openai_handler.py:103
-msgid "max Tokens"
-msgstr "الحد الأقصى للرموز"
-
-#: src/handlers/llm/openai_handler.py:103
-msgid "Max tokens of the generated text"
-msgstr "الحد الأقصى لرموز النص المولّد"
-
-#: src/handlers/llm/openai_handler.py:104
-msgid "Top-P"
-msgstr "Top-P"
-
-#: src/handlers/llm/openai_handler.py:104
-msgid "An alternative to sampling with temperature, called nucleus sampling"
-msgstr "بديل لأخذ العينات بالحرارة، يسمى أخذ العينات النووية"
-
-#: src/handlers/llm/openai_handler.py:105
-#: src/handlers/stt/whispercpp_handler.py:50
-msgid "Temperature"
-msgstr "درجة الحرارة"
-
-#: src/handlers/llm/openai_handler.py:105
-msgid ""
-"What sampling temperature to use. Higher values will make the output more "
-"random"
-msgstr ""
-"ما هي درجة حرارة العينة التي ستستخدم. القيم الأعلى ستجعل المخرجات أكثر "
-"عشوائية"
-
-#: src/handlers/llm/openai_handler.py:106
-msgid "Frequency Penalty"
-msgstr "عقوبة التردد"
-
-#: src/handlers/llm/openai_handler.py:106
-msgid ""
-"Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
-"to repeat the same line verbatim"
-msgstr ""
-"رقم بين -2.0 و 2.0. القيم الإيجابية تقلل من احتمالية النموذج لتكرار نفس "
-"السطر حرفياً"
-
-#: src/handlers/llm/openai_handler.py:107
-msgid "Presence Penalty"
-msgstr "عقوبة الحضور"
-
-#: src/handlers/llm/openai_handler.py:107
-msgid ""
-"Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
-"to talk about new topics"
-msgstr ""
-"رقم بين -2.0 و 2.0. القيم الإيجابية تقلل من احتمالية النموذج للحديث عن "
-"مواضيع جديدة"
 
 #: src/handlers/llm/openrouter_handler.py:14
 msgid "Provider Sorting"
@@ -445,9 +380,67 @@ msgstr "تمكين إعدادات الأمان"
 msgid "Enable google safety settings to avoid generating harmful content"
 msgstr "تمكين إعدادات أمان جوجل لتجنب توليد محتوى ضار"
 
+#: src/handlers/llm/gemini_handler.py:135 src/handlers/llm/openai_handler.py:81
+msgid "Advanced Parameters"
+msgstr "معلمات متقدمة"
+
 #: src/handlers/llm/gemini_handler.py:135
 msgid "Enable advanced parameters"
 msgstr "تمكين المعلمات المتقدمة"
+
+#: src/handlers/llm/openai_handler.py:81
+#, fuzzy
+msgid "Include parameters like Top-P, Temperature, etc."
+msgstr "تضمين معلمات مثل الحد الأقصى للرموز، Top-P، درجة الحرارة، إلخ."
+
+#: src/handlers/llm/openai_handler.py:84
+msgid "Name of the LLM Model to use"
+msgstr "اسم نموذج LLM المراد استخدامه"
+
+#: src/handlers/llm/openai_handler.py:103
+msgid "Top-P"
+msgstr "Top-P"
+
+#: src/handlers/llm/openai_handler.py:103
+msgid "An alternative to sampling with temperature, called nucleus sampling"
+msgstr "بديل لأخذ العينات بالحرارة، يسمى أخذ العينات النووية"
+
+#: src/handlers/llm/openai_handler.py:104
+#: src/handlers/stt/whispercpp_handler.py:50
+msgid "Temperature"
+msgstr "درجة الحرارة"
+
+#: src/handlers/llm/openai_handler.py:104
+msgid ""
+"What sampling temperature to use. Higher values will make the output more "
+"random"
+msgstr ""
+"ما هي درجة حرارة العينة التي ستستخدم. القيم الأعلى ستجعل المخرجات أكثر "
+"عشوائية"
+
+#: src/handlers/llm/openai_handler.py:105
+msgid "Frequency Penalty"
+msgstr "عقوبة التردد"
+
+#: src/handlers/llm/openai_handler.py:105
+msgid ""
+"Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
+"to repeat the same line verbatim"
+msgstr ""
+"رقم بين -2.0 و 2.0. القيم الإيجابية تقلل من احتمالية النموذج لتكرار نفس "
+"السطر حرفياً"
+
+#: src/handlers/llm/openai_handler.py:106
+msgid "Presence Penalty"
+msgstr "عقوبة الحضور"
+
+#: src/handlers/llm/openai_handler.py:106
+msgid ""
+"Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
+"to talk about new topics"
+msgstr ""
+"رقم بين -2.0 و 2.0. القيم الإيجابية تقلل من احتمالية النموذج للحديث عن "
+"مواضيع جديدة"
 
 #: src/handlers/rag/rag_handler.py:104
 msgid "Index your documents"
@@ -919,7 +912,7 @@ msgstr "لم يتم تسجيل أي عملية تفكير"
 msgid "Folder is Empty"
 msgstr "المجلد فارغ"
 
-#: src/ui/explorer.py:340 src/window.py:1574
+#: src/ui/explorer.py:340 src/window.py:1576
 msgid "File not found"
 msgstr "لم يتم العثور على الملف"
 
@@ -1178,7 +1171,7 @@ msgstr ""
 "أو من ملفاتك الخاصة! سيتم إرسال المعلومات ذات الصلة باستعلامك إلى نموذج "
 "اللغة الكبيرة."
 
-#: src/ui/presentation.py:124 src/ui/settings.py:236 src/window.py:647
+#: src/ui/presentation.py:124 src/ui/settings.py:236 src/window.py:649
 msgid "Command virtualization"
 msgstr "محاكاة الأوامر"
 
@@ -1275,7 +1268,7 @@ msgstr ""
 "يستخدم التضمين لتحويل النص إلى متجهات. يستخدمه الذاكرة طويلة الأمد و RAG. قد "
 "يتطلب تغييره إعادة فهرسة المستندات أو إعادة تعيين الذاكرة."
 
-#: src/ui/settings.py:104 src/window.py:645
+#: src/ui/settings.py:104 src/window.py:647
 #, fuzzy
 msgid "Long Term Memory"
 msgstr "الذاكرة طويلة الأمد"
@@ -1666,7 +1659,7 @@ msgid "Start/Stop monitoring"
 msgstr "بدء/إيقاف المراقبة"
 
 #: src/ui/stdout_monitor.py:109 src/ui/stdout_monitor.py:182
-#: src/ui/stdout_monitor.py:191 src/window.py:3683
+#: src/ui/stdout_monitor.py:191 src/window.py:3686
 msgid "Monitoring: Active"
 msgstr "المراقبة: نشطة"
 
@@ -2053,7 +2046,7 @@ msgstr "أضف موجهك المخصص"
 msgid "LLM and Secondary LLM settings"
 msgstr "إعدادات LLM و LLM الثانوي"
 
-#: src/constants.py:483 src/window.py:646
+#: src/constants.py:483 src/window.py:648
 msgid "TTS"
 msgstr "تحويل النص إلى كلام"
 
@@ -2154,6 +2147,10 @@ msgstr "تمت إعادة تشغيل المجلد"
 msgid "Chat is created"
 msgstr "تم إنشاء دردشة"
 
+#: src/controller.py:135 src/window.py:1848
+msgid "Chat "
+msgstr "دردشة "
+
 #: src/window.py:120
 msgid "Keyboard shorcuts"
 msgstr "اختصارات لوحة المفاتيح"
@@ -2211,27 +2208,27 @@ msgstr "علامة تبويب الطرفية"
 msgid "Browser Tab"
 msgstr "علامة تبويب المتصفح"
 
-#: src/window.py:587
+#: src/window.py:589
 msgid "Ask about a website"
 msgstr "اسأل عن موقع ويب"
 
-#: src/window.py:587
+#: src/window.py:589
 msgid "Write #https://website.com in chat to ask information about a website"
 msgstr "اكتب #https://website.com في الدردشة لطلب معلومات عن موقع ويب"
 
-#: src/window.py:588
+#: src/window.py:590
 msgid "Check out our Extensions!"
 msgstr "اطلع على إضافاتنا!"
 
-#: src/window.py:588
+#: src/window.py:590
 msgid "We have a lot of extensions for different things. Check it out!"
 msgstr "لدينا العديد من الإضافات لأشياء مختلفة. تحقق منها!"
 
-#: src/window.py:589
+#: src/window.py:591
 msgid "Chat with documents!"
 msgstr "الدردشة مع المستندات!"
 
-#: src/window.py:589
+#: src/window.py:591
 msgid ""
 "Add your documents to your documents folder and chat using the information "
 "contained in them!"
@@ -2239,11 +2236,11 @@ msgstr ""
 "أضف مستنداتك إلى مجلد المستندات الخاص بك ودردش باستخدام المعلومات الموجودة "
 "فيها!"
 
-#: src/window.py:590
+#: src/window.py:592
 msgid "Surf the web!"
 msgstr "تصفح الويب!"
 
-#: src/window.py:590
+#: src/window.py:592
 msgid ""
 "Enable web search to allow the LLM to surf the web and provide up to date "
 "answers"
@@ -2251,162 +2248,158 @@ msgstr ""
 "مكّن البحث على الويب للسماح لنموذج اللغة الكبيرة بتصفح الويب وتقديم إجابات "
 "محدثة"
 
-#: src/window.py:591
+#: src/window.py:593
 msgid "Mini Window"
 msgstr "نافذة مصغرة"
 
-#: src/window.py:591
+#: src/window.py:593
 msgid "Ask questions on the fly using the mini window mode"
 msgstr "اطرح الأسئلة بسرعة باستخدام وضع النافذة المصغرة"
 
-#: src/window.py:592
+#: src/window.py:594
 msgid "Text to Speech"
 msgstr "تحويل النص إلى كلام"
 
-#: src/window.py:592
+#: src/window.py:594
 msgid "Newelle supports text-to-speech! Enable it in the settings"
 msgstr "Newelle يدعم تحويل النص إلى كلام! قم بتمكينه في الإعدادات"
 
-#: src/window.py:593
+#: src/window.py:595
 #, fuzzy
 msgid "Keyboard Shortcuts"
 msgstr "اختصارات لوحة المفاتيح"
 
-#: src/window.py:593
+#: src/window.py:595
 #, fuzzy
 msgid "Control Newelle using Keyboard Shortcuts"
 msgstr "التحكم في Newelle باستخدام اختصارات لوحة المفاتيح"
 
-#: src/window.py:594
+#: src/window.py:596
 #, fuzzy
 msgid "Prompt Control"
 msgstr "التحكم في الموجه"
 
-#: src/window.py:594
+#: src/window.py:596
 msgid "Newelle gives you 100% prompt control. Tune your prompts for your use."
 msgstr "نيويل يمنحك 100% تحكم في الموجهات. اضبط موجهاتك لاستخدامك الخاص."
 
-#: src/window.py:595
+#: src/window.py:597
 #, fuzzy
 msgid "Thread Editing"
 msgstr "تعديل الخيوط"
 
-#: src/window.py:595
+#: src/window.py:597
 msgid "Check the programs and processes you run from Newelle"
 msgstr "تحقق من البرامج والعمليات التي تشغلها من Newelle"
 
-#: src/window.py:596
+#: src/window.py:598
 msgid "Programmable Prompts"
 msgstr "موجهات قابلة للبرمجة"
 
-#: src/window.py:596
+#: src/window.py:598
 msgid ""
 "You can add dynamic prompts to Newelle, with conditions and probabilities"
 msgstr "يمكنك إضافة موجهات ديناميكية إلى Newelle، مع شروط واحتِمَالات"
 
-#: src/window.py:603
+#: src/window.py:605
 #, fuzzy
 msgid "New Chat"
 msgstr "دردشة جديدة"
 
-#: src/window.py:621
+#: src/window.py:623
 msgid "Provider Errror"
 msgstr "خطأ في المزود"
 
-#: src/window.py:644
+#: src/window.py:646
 msgid "Local Documents"
 msgstr "المستندات المحلية"
 
-#: src/window.py:648
+#: src/window.py:650
 msgid "Web search"
 msgstr "بحث الويب"
 
-#: src/window.py:890
+#: src/window.py:892
 msgid "This provider does not have a model list"
 msgstr "هذا المزود لا يملك قائمة بالنماذج"
 
-#: src/window.py:895
+#: src/window.py:897
 msgid " Models"
 msgstr " نماذج"
 
-#: src/window.py:898
+#: src/window.py:900
 msgid "Search Models..."
 msgstr "البحث عن نماذج..."
 
-#: src/window.py:1126
+#: src/window.py:1128
 msgid "Create new profile"
 msgstr "إنشاء ملف شخصي جديد"
 
-#: src/window.py:1260
+#: src/window.py:1262
 msgid "Could not recognize your voice"
 msgstr "لم يتم التعرف على صوتك"
 
-#: src/window.py:1297
+#: src/window.py:1299
 msgid "Images"
 msgstr "الصور"
 
-#: src/window.py:1301
+#: src/window.py:1303
 msgid "LLM Supported Files"
 msgstr "ملفات مدعومة من LLM"
 
-#: src/window.py:1309
+#: src/window.py:1311
 msgid "RAG Supported files"
 msgstr "ملفات مدعومة من RAG"
 
-#: src/window.py:1327
+#: src/window.py:1329
 msgid "Supported Files"
 msgstr "الملفات المدعومة"
 
-#: src/window.py:1331
+#: src/window.py:1333
 msgid "All Files"
 msgstr "جميع الملفات"
 
-#: src/window.py:1337
+#: src/window.py:1339
 msgid "Attach file"
 msgstr "إرفاق ملف"
 
-#: src/window.py:1592
+#: src/window.py:1594
 msgid "The file cannot be sent until the program is finished"
 msgstr "لا يمكن إرسال الملف حتى ينتهي البرنامج"
 
-#: src/window.py:1614
+#: src/window.py:1616
 msgid "The file is not recognized"
 msgstr "الملف غير معروف"
 
-#: src/window.py:1633
+#: src/window.py:1635
 msgid "You can no longer continue the message."
 msgstr "لا يمكنك متابعة الرسالة."
 
-#: src/window.py:1658
+#: src/window.py:1660
 msgid "You can no longer regenerate the message."
 msgstr "لا يمكنك إعادة توليد الرسالة."
 
-#: src/window.py:1846 src/controller.py:135
-msgid "Chat "
-msgstr "دردشة "
-
-#: src/window.py:1890
+#: src/window.py:1892
 msgid "Chat is cleared"
 msgstr "تم مسح الدردشة"
 
-#: src/window.py:1915
+#: src/window.py:1917
 msgid "The message was canceled and deleted from history"
 msgstr "تم إلغاء الرسالة وحذفها من السجل"
 
-#: src/window.py:1959
+#: src/window.py:1961
 msgid "The message cannot be sent until the program is finished"
 msgstr "لا يمكن إرسال الرسالة حتى ينتهي البرنامج"
 
-#: src/window.py:2936
+#: src/window.py:2939
 msgid "You can't edit a message while the program is running."
 msgstr "لا يمكنك تعديل رسالة أثناء تشغيل البرنامج."
 
-#: src/window.py:3061
+#: src/window.py:3064
 #, fuzzy
 msgid "Prompt content"
 msgstr "محتوى الموجه"
 
-#: src/window.py:3320
+#: src/window.py:3323
 #, fuzzy
 msgid ""
 "The neural network has access to your computer and any data in this chat and "
@@ -2417,7 +2410,7 @@ msgstr ""
 "في هذه الدردشة ويمكنها تشغيل الأوامر، كن حذرًا، نحن لسنا مسؤولين عن الشبكة "
 "العصبية. لا تشارك أي معلومات حساسة."
 
-#: src/window.py:3349
+#: src/window.py:3352
 #, fuzzy
 msgid ""
 "The neural network has access to any data in this chat, be careful, we are "
@@ -2427,19 +2420,19 @@ msgstr ""
 "الشبكة العصبية لديها إمكانية الوصول إلى أي بيانات في هذه الدردشة، كن حذرًا، "
 "نحن لسنا مسؤولين عن الشبكة العصبية. لا تشارك أي معلومات حساسة."
 
-#: src/window.py:3398
+#: src/window.py:3401
 msgid "Wrong folder path"
 msgstr "مسار المجلد خاطئ"
 
-#: src/window.py:3431
+#: src/window.py:3434
 msgid "Thread has not been completed, thread number: "
 msgstr "لم يتم إكمال الخيط، رقم الخيط: "
 
-#: src/window.py:3443
+#: src/window.py:3446
 msgid "Failed to open the folder"
 msgstr "فشل فتح المجلد"
 
-#: src/window.py:3622
+#: src/window.py:3625
 msgid "Chat is empty"
 msgstr "الدردشة فارغة"
 
@@ -2607,6 +2600,12 @@ msgstr "نيويل: روبوت الدردشة المتقدم الخاص بك"
 #: data/io.github.qwersyk.Newelle.desktop.in:10
 msgid "ai;assistant;chat;chatgpt;gpt;llm;ollama;"
 msgstr "ذكاء اصطناعي;مساعد;دردشة;شات جي بي تي;جي بي تي;نموذج لغة كبيرة;أولاما;"
+
+#~ msgid "max Tokens"
+#~ msgstr "الحد الأقصى للرموز"
+
+#~ msgid "Max tokens of the generated text"
+#~ msgstr "الحد الأقصى لرموز النص المولّد"
 
 #, fuzzy
 #~ msgid "_Cancel"
