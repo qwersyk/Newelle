@@ -7,7 +7,7 @@ class DDGSeachHandler(WebSearchHandler):
 
     @staticmethod
     def get_extra_requirements() -> list:
-        return ["duckduckgo_search"]
+        return ["ddgs"]
 
     def get_extra_settings(self) -> list:
         return [

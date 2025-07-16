@@ -20,12 +20,13 @@ from ..controller import NewelleController
 
 
 class Settings(Adw.PreferencesWindow):
-    def __init__(self,app, controller: NewelleController,headless=False, startup_page=None, *args, **kwargs):
+    def __init__(self,app, controller: NewelleController,headless=False, startup_page=None, popup=False, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.app = app
         self.controller = controller
         self.settings = controller.settings
         self.headless = headless
+        self.popup = popup
         if not headless:
             self.set_transient_for(app.win)
         self.set_modal(True)
@@ -583,7 +584,7 @@ class Settings(Adw.PreferencesWindow):
         else:
             return
         self.settings.set_string(setting_name, button.get_name())
-        if constants == AVAILABLE_LLMS and self.headless:
+        if constants == AVAILABLE_LLMS and self.popup:
             self.app.win.update_available_models()
         if constants == AVAILABLE_RAGS or constants == AVAILABLE_EMBEDDINGS:
             self.app.win.update_settings()

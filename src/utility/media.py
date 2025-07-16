@@ -5,6 +5,13 @@ import fnmatch
 import mimetypes
 
 def encode_image_base64(file_path):
+    if file_path.startswith("http"):
+        import requests 
+        response = requests.get(file_path)
+        file_path = "/tmp/" + file_path.split("/")[-1]
+        with open(file_path, "wb") as f:
+            f.write(response.content)
+
     mime_types = {
         '.jpg': 'image/jpeg',
         '.jpeg': 'image/jpeg',

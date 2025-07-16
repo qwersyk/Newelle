@@ -766,7 +766,8 @@ class MainWindow(Adw.ApplicationWindow):
             "stop", lambda: GLib.idle_add(self.mute_tts_button.set_visible, False)
         )
         if ReloadType.LLM in reloads:
-            self.reload_buttons()
+            self.reload_buttons() 
+            self.update_model_popup()
 
     def reload_buttons(self):
         """Reload offers and buttons on LLM change"""
@@ -817,7 +818,7 @@ class MainWindow(Adw.ApplicationWindow):
         scroll = Gtk.ScrolledWindow()
         scroll.set_vexpand(True)
         scroll.set_hexpand(True)
-        settings = Settings(self.app, self.controller, headless=True)
+        settings = Settings(self.app, self.controller, headless=True, popup=True)
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         stack = Adw.ViewStack()
         self.model_popup_settings = settings
