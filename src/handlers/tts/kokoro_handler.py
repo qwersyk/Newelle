@@ -1,4 +1,4 @@
-from os import walk
+import os
 import subprocess
 from .tts import TTSHandler
 from ...utility.pip import install_module, find_module
