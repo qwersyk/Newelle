@@ -6,6 +6,7 @@ import threading
 
 LOCK_SEMAPHORE = threading.Semaphore(1)
 LOCKS = {}
+INSTALLING_PACKAGES = []
 PIP_INSTALLED = False
 
 def is_module_available(module_name: str) -> bool:
@@ -49,6 +50,10 @@ def runtime_find_module(full_module_name):
         return None
 
 def install_module(module, path, update=True, cache_dir=None):
+    # Avoid reinstalling the same package multiple times 
+    if module in INSTALLING_PACKAGES:
+        return
+    INSTALLING_PACKAGES.append(module)
     # Manage pip path locking
     global PIP_INSTALLED 
     LOCK_SEMAPHORE.acquire()
@@ -58,6 +63,7 @@ def install_module(module, path, update=True, cache_dir=None):
         LOCKS[path] = lock
     LOCK_SEMAPHORE.release()
     lock.acquire()
+
     # Set temp path 
     origTemp = os.environ.get("TMPDIR")
     if not cache_dir:
