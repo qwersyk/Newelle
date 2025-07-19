@@ -800,9 +800,12 @@ class MainWindow(Adw.ApplicationWindow):
     # Model popup
     def update_model_popup(self):
         """Update the label in the popup"""
+        if not hasattr(self, "model_menu_button"):
+            return
         model_name = AVAILABLE_LLMS[self.model.key]["title"]
         if self.model.get_setting("model") is not None:
             model_name = model_name + " - " + self.model.get_setting("model")
+        
         self.model_menu_button.set_child(
             Gtk.Label(
                 label=model_name,
@@ -2186,6 +2189,14 @@ class MainWindow(Adw.ApplicationWindow):
         old_user_prompt = self.chat[-1]["Message"]
         self.chat, prompts = self.controller.integrationsloader.preprocess_history(self.chat, prompts)
         self.chat, prompts = self.extensionloader.preprocess_history(self.chat, prompts)
+        # Edit messages that require to be updated
+        history = self.get_history()
+        edited_messages = get_edited_messages(history, old_history)
+        if edited_messages is None:
+            GLib.idle_add(self.show_chat)
+        else:
+            for message in edited_messages:
+                GLib.idle_add(self.reload_message, message)
         if len(self.chat) == 0:
             GLib.idle_add(self.remove_send_button_spinner)
             GLib.idle_add(self.show_chat)

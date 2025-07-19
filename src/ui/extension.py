@@ -80,6 +80,7 @@ class Extension(Gtk.Window):
                 invisible_icon.set_opacity(0)
                 row.add_suffix(invisible_icon)
             
+            settings.settingsrows[(extension.key, "extension", False)]["row"] = row
             settings.add_flatpak_waning_button(extension, row)
             self.extensiongroup.add(row)                            
         download_button = Gtk.Button(label=_("User guide to Extensions"), margin_top=10)
