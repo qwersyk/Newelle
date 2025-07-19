@@ -800,9 +800,12 @@ class MainWindow(Adw.ApplicationWindow):
     # Model popup
     def update_model_popup(self):
         """Update the label in the popup"""
+        if not hasattr(self, "model_menu_button"):
+            return
         model_name = AVAILABLE_LLMS[self.model.key]["title"]
         if self.model.get_setting("model") is not None:
             model_name = model_name + " - " + self.model.get_setting("model")
+        
         self.model_menu_button.set_child(
             Gtk.Label(
                 label=model_name,
