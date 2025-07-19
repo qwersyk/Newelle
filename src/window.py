@@ -2189,6 +2189,14 @@ class MainWindow(Adw.ApplicationWindow):
         old_user_prompt = self.chat[-1]["Message"]
         self.chat, prompts = self.controller.integrationsloader.preprocess_history(self.chat, prompts)
         self.chat, prompts = self.extensionloader.preprocess_history(self.chat, prompts)
+        # Edit messages that require to be updated
+        history = self.get_history()
+        edited_messages = get_edited_messages(history, old_history)
+        if edited_messages is None:
+            GLib.idle_add(self.show_chat)
+        else:
+            for message in edited_messages:
+                GLib.idle_add(self.reload_message, message)
         if len(self.chat) == 0:
             GLib.idle_add(self.remove_send_button_spinner)
             GLib.idle_add(self.show_chat)
