@@ -26,7 +26,6 @@
     "*.la",
     "*.a"
   ],
-  "sdk-extensions" : [ "org.freedesktop.Sdk.Extension.llvm19" ],
   "modules": [
     "modules/vte.json",
     "modules/python3-requests.json",
