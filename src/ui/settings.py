@@ -261,7 +261,7 @@ class Settings(Adw.PreferencesWindow):
         int_spin.set_adjustment(Gtk.Adjustment(lower=0, upper=90, step_increment=1, page_increment=10, page_size=0))
         row.add_suffix(int_spin)
         self.settings.bind("memory", int_spin, 'value', Gio.SettingsBindFlags.DEFAULT)
-        
+        self.SECONDARY_LLM.add(row)
         # Developer settings
         self.developer = Adw.PreferencesGroup(title=_('Developer'))
         self.general_page.add(self.developer)
@@ -935,6 +935,7 @@ class Settings(Adw.PreferencesWindow):
             model (): a handler instance
         """
         self.controller.installing_handlers[(model.key, model.schema_key)] = True 
+        print("AE")
         model.install()
         self.controller.installing_handlers[(model.key, model.schema_key)] = False 
         GLib.idle_add(self.update_ui_after_install, button, model)
