@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-08 18:07+0800\n"
+"POT-Creation-Date: 2025-07-23 20:25+0800\n"
 "PO-Revision-Date: 2025-07-03 09:00+0200\n"
 "Last-Translator: Yehor Hliebov <qsk@gmx.at>\n"
 "Language-Team: Turkish <qsk@gmx.at>\n"
@@ -583,7 +583,7 @@ msgstr "Kullanılacak hizmetin özel uç noktası"
 #: src/handlers/tts/elevenlabs_handler.py:17
 #: src/handlers/tts/groq_tts_handler.py:33
 #: src/handlers/tts/openai_tts_handler.py:19 src/handlers/tts/tts.py:33
-#: src/ui/settings.py:128
+#: src/ui/settings.py:129
 msgid "Voice"
 msgstr "Ses"
 
@@ -907,7 +907,7 @@ msgstr "Düşünce süreci kaydedilmedi"
 msgid "Folder is Empty"
 msgstr "Klasör Boş"
 
-#: src/ui/explorer.py:340 src/window.py:1576
+#: src/ui/explorer.py:340 src/window.py:1580
 msgid "File not found"
 msgstr "Dosya bulunamadı"
 
@@ -927,8 +927,8 @@ msgstr "Dosya yöneticisinde aç"
 msgid "Rename"
 msgstr "Yeniden Adlandır"
 
-#: src/ui/explorer.py:366 src/ui/explorer.py:502 src/ui/settings.py:275
-#: src/ui/settings.py:346
+#: src/ui/explorer.py:366 src/ui/explorer.py:502 src/ui/settings.py:276
+#: src/ui/settings.py:347
 msgid "Delete"
 msgstr "Sil"
 
@@ -954,6 +954,7 @@ msgid "Renamed successfully"
 msgstr "Başarıyla yeniden adlandırıldı"
 
 #: src/ui/explorer.py:476
+#, python-brace-format
 msgid "Failed to rename: {}"
 msgstr "Yeniden adlandırılamadı: {}"
 
@@ -962,6 +963,7 @@ msgid "Delete File?"
 msgstr "Dosya Silinsin mi?"
 
 #: src/ui/explorer.py:499
+#, python-brace-format
 msgid "Are you sure you want to delete \"{}\"?"
 msgstr "\"{}\" öğesini silmek istediğinizden emin misiniz?"
 
@@ -970,6 +972,7 @@ msgid "Deleted successfully"
 msgstr "Başarıyla silindi"
 
 #: src/ui/explorer.py:525
+#, python-brace-format
 msgid "Failed to delete: {}"
 msgstr "Silinemedi: {}"
 
@@ -1030,6 +1033,7 @@ msgid "file"
 msgstr "dosya"
 
 #: src/ui/explorer.py:730
+#, python-brace-format
 msgid "Failed to create {}: {}"
 msgstr "Oluşturulamadı {}: {}"
 
@@ -1081,27 +1085,6 @@ msgstr "Yakınlaştır"
 msgid "Zoom out"
 msgstr "Uzaklaştır"
 
-#: src/ui/extension.py:17 src/ui/presentation.py:131 src/constants.py:513
-#: src/window.py:118
-msgid "Extensions"
-msgstr "Uzantılar"
-
-#: src/ui/extension.py:50
-msgid "Installed Extensions"
-msgstr "Yüklü Uzantılar"
-
-#: src/ui/extension.py:85
-msgid "User guide to Extensions"
-msgstr "Uzantılar için kullanıcı rehberi"
-
-#: src/ui/extension.py:88
-msgid "Download new Extensions"
-msgstr "Yeni Uzantıları İndir"
-
-#: src/ui/extension.py:91
-msgid "Install extension from file..."
-msgstr "Dosyadan uzantı yükle..."
-
 #: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.appdata.xml.in:7
 #: data/io.github.qwersyk.Newelle.desktop.in:2
 msgid "Newelle"
@@ -1152,7 +1135,7 @@ msgstr ""
 "Newelle, sohbette gönderdiğiniz belgelerden veya kendi dosyalarınızdan "
 "ilgili bilgileri alabilir! Sorgunuzla ilgili bilgiler LLM'ye gönderilecektir."
 
-#: src/ui/presentation.py:124 src/ui/settings.py:236 src/window.py:649
+#: src/ui/presentation.py:124 src/ui/settings.py:237 src/window.py:649
 msgid "Command virtualization"
 msgstr "Komut sanallaştırma"
 
@@ -1169,6 +1152,11 @@ msgstr ""
 "nedenle kötü amaçlı kod üretebilir!</b>\n"
 "Varsayılan olarak, komutlarınız <b>Flatpak ortamında sanallaştırılacaktır</"
 "b>, ancak dikkatli olun!"
+
+#: src/ui/presentation.py:131 src/ui/extension.py:17 src/constants.py:513
+#: src/window.py:118
+msgid "Extensions"
+msgstr "Uzantılar"
 
 #: src/ui/presentation.py:132
 msgid "You can extend Newelle's functionalities using extensions!"
@@ -1195,445 +1183,10 @@ msgstr "Uygulamayı kullanmaya başla"
 msgid "Start chatting"
 msgstr "Sohbete başla"
 
-#: src/ui/settings.py:46 src/constants.py:523
-msgid "General"
-msgstr "Genel"
-
-#: src/ui/settings.py:47 src/constants.py:478
-msgid "LLM"
-msgstr "LLM"
-
-#: src/ui/settings.py:48 src/constants.py:528
-msgid "Prompts"
-msgstr "İstemler"
-
-#: src/ui/settings.py:49
-msgid "Knowledge"
-msgstr "Bilgi"
-
-#: src/ui/settings.py:53
-msgid "Language Model"
-msgstr "Dil Modeli"
-
-#: src/ui/settings.py:62 src/ui/settings.py:82
-msgid "Other LLMs"
-msgstr "Diğer LLM'ler"
-
-#: src/ui/settings.py:62 src/ui/settings.py:82
-msgid "Other available LLM providers"
-msgstr "Mevcut diğer LLM sağlayıcıları"
-
-#: src/ui/settings.py:72
-msgid "Advanced LLM Settings"
-msgstr "Gelişmiş LLM Ayarları"
-
-#: src/ui/settings.py:76
-msgid "Secondary Language Model"
-msgstr "İkincil Dil Modeli"
-
-#: src/ui/settings.py:76
-msgid ""
-"Model used for secondary tasks, like offer, chat name and memory generation"
-msgstr ""
-"Teklif, sohbet adı ve bellek oluşturma gibi ikincil görevler için kullanılan "
-"model"
-
-#: src/ui/settings.py:93
-msgid "Embedding Model"
-msgstr "Gömme Modeli"
-
-#: src/ui/settings.py:93
-msgid ""
-"Embedding is used to trasform text into vectors. Used by Long Term Memory "
-"and RAG. Changing it might require you to re-index documents or reset memory."
-msgstr ""
-"Gömme, metni vektörlere dönüştürmek için kullanılır. Uzun Süreli Bellek ve "
-"RAG tarafından kullanılır. Değiştirmek, belgeleri yeniden dizine eklemenizi "
-"veya belleği sıfırlamanızı gerektirebilir."
-
-#: src/ui/settings.py:104 src/window.py:647
-msgid "Long Term Memory"
-msgstr "Uzun Süreli Bellek"
-
-#: src/ui/settings.py:104
-msgid "Keep memory of old conversations"
-msgstr "Eski konuşmaların belleğini tut"
-
-#: src/ui/settings.py:116 src/constants.py:401
-msgid "Web Search"
-msgstr "Web Araması"
-
-#: src/ui/settings.py:116
-msgid "Search information on the Web"
-msgstr "Web'de bilgi ara"
-
-#: src/ui/settings.py:132
-msgid "Text To Speech Program"
-msgstr "Metinden Konuşmaya Programı"
-
-#: src/ui/settings.py:132
-msgid "Choose which text to speech to use"
-msgstr "Kullanılacak metin okuyucuyu seçin"
-
-#: src/ui/settings.py:141
-msgid "Speech To Text Engine"
-msgstr "Konuşmadan Metne Motoru"
-
-#: src/ui/settings.py:141
-msgid "Choose which speech recognition engine you want"
-msgstr "Hangi konuşma tanıma motorunu istediğinizi seçin"
-
-#: src/ui/settings.py:149
-msgid "Automatic Speech To Text"
-msgstr "Otomatik Konuşmadan Metne"
-
-#: src/ui/settings.py:149
-msgid "Automatically restart speech to text at the end of a text/TTS"
-msgstr "Metin/TTS'nin sonunda konuşmayı metne otomatik olarak yeniden başlat"
-
-#: src/ui/settings.py:153
-msgid "Prompt control"
-msgstr "İstem kontrolü"
-
-#: src/ui/settings.py:158
-msgid "Interface"
-msgstr "Arayüz"
-
-#: src/ui/settings.py:161
-msgid "Interface Size"
-msgstr "Arayüz Boyutu"
-
-#: src/ui/settings.py:161
-msgid "Adjust the size of the interface"
-msgstr "Arayüz boyutunu ayarla"
-
-#: src/ui/settings.py:173
-msgid "Editor color scheme"
-msgstr "Düzenleyici renk şemasını değiştir"
-
-#: src/ui/settings.py:173
-msgid "Change the color scheme of the editor and codeblocks"
-msgstr "Düzenleyicinin ve kod bloklarının renk şemasını değiştir"
-
-#: src/ui/settings.py:180
-msgid "Hidden files"
-msgstr "Gizli dosyalar"
-
-#: src/ui/settings.py:180
-msgid "Show hidden files"
-msgstr "Gizli dosyaları göster"
-
-#: src/ui/settings.py:186
-msgid "Send with ENTER"
-msgstr "ENTER ile Gönder"
-
-#: src/ui/settings.py:186
-msgid ""
-"If enabled, messages will be sent with ENTER, to go to a new line use "
-"CTRL+ENTER. If disabled, messages will be sent with SHIFT+ENTER, and newline "
-"with enter"
-msgstr ""
-"Etkinleştirilirse, mesajlar ENTER ile gönderilecektir; yeni bir satıra "
-"geçmek için CTRL+ENTER kullanın. Devre dışı bırakılırsa, mesajlar "
-"SHIFT+ENTER ile gönderilecek ve yeni satıra enter ile geçilecektir"
-
-#: src/ui/settings.py:192
-msgid "Remove thinking from history"
-msgstr "Düşünceleri geçmişten kaldır"
-
-#: src/ui/settings.py:192
-msgid ""
-"Do not send old thinking blocks for reasoning models in order to reduce "
-"token usage"
-msgstr ""
-"Belirteç kullanımını azaltmak için akıl yürütme modelleri için eski düşünce "
-"bloklarını göndermeyin"
-
-#: src/ui/settings.py:198
-msgid "Display LaTeX"
-msgstr "LaTeX Görüntüle"
-
-#: src/ui/settings.py:198
-msgid "Display LaTeX formulas in chat"
-msgstr "Sohbette LaTeX formüllerini görüntüle"
-
-#: src/ui/settings.py:204
-msgid "Reverse Chat Order"
-msgstr "Sohbet Sırasını Ters Çevir"
-
-#: src/ui/settings.py:204
-msgid "Show most recent chats on top in chat list (change chat to apply)"
-msgstr ""
-"Sohbet listesinde en yeni sohbetleri üstte göster (uygulamak için sohbeti "
-"değiştir)"
-
-#: src/ui/settings.py:210
-msgid "Automatically Generate Chat Names"
-msgstr "Otomatik Olarak Sohbet Adları Oluştur"
-
-#: src/ui/settings.py:210
-msgid "Generate chat names automatically after the first two messages"
-msgstr "İlk iki mesajdan sonra sohbet adlarını otomatik olarak oluştur"
-
-#: src/ui/settings.py:216
-msgid "Number of offers"
-msgstr "Teklif sayısı"
-
-#: src/ui/settings.py:216
-msgid "Number of message suggestions to send to chat "
-msgstr "Sohbete gönderilecek mesaj önerisi sayısı "
-
-#: src/ui/settings.py:223
-msgid "Username"
-msgstr "Kullanıcı Adı"
-
-#: src/ui/settings.py:223
-#, python-brace-format
-msgid ""
-"Change the label that appears before your message\n"
-"This information is not sent to the LLM by default\n"
-"You can add it to a prompt using the {USER} variable"
-msgstr ""
-"Mesajınızdan önce görünen etiketi değiştirin\n"
-"Bu bilgi varsayılan olarak LLM'ye gönderilmez\n"
-"{USER} değişkenini kullanarak bir isteme ekleyebilirsiniz"
-
-#: src/ui/settings.py:233
-msgid "Neural Network Control"
-msgstr "Sinir Ağı Kontrolü"
-
-#: src/ui/settings.py:236
-msgid "Run commands in a virtual machine"
-msgstr "Komutları sanal bir makinede çalıştır"
-
-#: src/ui/settings.py:249
-msgid "External Terminal"
-msgstr "Harici Terminal"
-
-#: src/ui/settings.py:249
-msgid "Choose the external terminal where to run the console commands"
-msgstr "Konsol komutlarını çalıştırmak için harici terminali seçin"
-
-#: src/ui/settings.py:258
-msgid "Program memory"
-msgstr "Program belleği"
-
-#: src/ui/settings.py:258
-msgid "How long the program remembers the chat "
-msgstr "Programın sohbeti ne kadar süreyle hatırladığı "
-
-#: src/ui/settings.py:265
-msgid "Developer"
-msgstr "Geliştirici"
-
-#: src/ui/settings.py:268 src/ui/stdout_monitor.py:31
-#: src/ui/stdout_monitor.py:41
+#: src/ui/stdout_monitor.py:31 src/ui/stdout_monitor.py:41
+#: src/ui/settings.py:269
 msgid "Program Output Monitor"
 msgstr "Program Çıktı Monitörü"
-
-#: src/ui/settings.py:268
-msgid ""
-"Monitor the program output in real-time, useful for debugging and seeing "
-"downloads progress"
-msgstr ""
-"Program çıktısını gerçek zamanlı olarak izleyin, hata ayıklama ve indirme "
-"ilerlemesini görmek için kullanışlıdır"
-
-#: src/ui/settings.py:269
-msgid "Open"
-msgstr "Aç"
-
-#: src/ui/settings.py:274
-msgid "Delete pip path"
-msgstr "pip yolunu sil"
-
-#: src/ui/settings.py:274
-msgid "Remove the extra dependencies installed"
-msgstr "Yüklü ek bağımlılıkları kaldır"
-
-#: src/ui/settings.py:294
-msgid "Auto-run commands"
-msgstr "Otomatik çalıştır komutları"
-
-#: src/ui/settings.py:294
-msgid "Commands that the bot will write will automatically run"
-msgstr "Botun yazacağı komutlar otomatik olarak çalışacaktır"
-
-#: src/ui/settings.py:297
-msgid "Max number of commands"
-msgstr "Maksimum komut sayısı"
-
-#: src/ui/settings.py:297
-msgid ""
-"Maximum number of commands that the bot will write after a single user "
-"request"
-msgstr ""
-"Botun tek bir kullanıcı isteğinden sonra yazacağı maksimum komut sayısı"
-
-#: src/ui/settings.py:328
-msgid "Browser"
-msgstr "Tarayıcı"
-
-#: src/ui/settings.py:328
-msgid "Settings for the browser"
-msgstr "Tarayıcı ayarları"
-
-#: src/ui/settings.py:333
-msgid "Use external browser"
-msgstr "Harici tarayıcı kullan"
-
-#: src/ui/settings.py:333
-msgid "Use an external browser to open links instead of integrated one"
-msgstr "Bağlantıları entegre olan yerine harici bir tarayıcıda açın"
-
-#: src/ui/settings.py:340
-msgid "Persist browser session"
-msgstr "Tarayıcı oturumunu kalıcı yap"
-
-#: src/ui/settings.py:340
-msgid ""
-"Persist browser session between restarts. Turning this off requires "
-"restarting the program"
-msgstr ""
-"Yeniden başlatmalar arasında tarayıcı oturumunu kalıcı yap. Bunu kapatmak "
-"programın yeniden başlatılmasını gerektirir"
-
-#: src/ui/settings.py:345
-msgid "Delete browser data"
-msgstr "Tarayıcı verilerini sil"
-
-#: src/ui/settings.py:345
-msgid "Delete browser session and data"
-msgstr "Tarayıcı oturumunu ve verilerini sil"
-
-#: src/ui/settings.py:352
-msgid "Initial browser page"
-msgstr "İlk tarayıcı sayfası"
-
-#: src/ui/settings.py:352
-msgid "The page where the browser will start"
-msgstr "Tarayıcının başlayacağı sayfa"
-
-#: src/ui/settings.py:359
-msgid "Search string"
-msgstr "Arama dizesi"
-
-#: src/ui/settings.py:359
-#, python-format
-msgid "The search string used in the browser, %s is replaced with the query"
-msgstr "Tarayıcıda kullanılan arama dizesi, %s sorgu ile değiştirilir"
-
-#: src/ui/settings.py:380
-msgid "Document Sources (RAG)"
-msgstr "Belge Kaynakları (RAG)"
-
-#: src/ui/settings.py:380
-msgid "Include content from your documents in the responses"
-msgstr "Yanıtlarınıza belgelerinizden içerik ekleyin"
-
-#: src/ui/settings.py:381
-msgid "Document Analyzer"
-msgstr "Belge Çözümleyici"
-
-#: src/ui/settings.py:381
-msgid ""
-"The document analyzer uses multiple techniques to extract relevant "
-"information about your documents"
-msgstr ""
-"Belge analizörü, belgelerinizle ilgili ilgili bilgileri çıkarmak için birden "
-"çok teknik kullanır"
-
-#: src/ui/settings.py:392
-msgid "Read documents if unsupported"
-msgstr "Desteklenmiyorsa belgeleri oku"
-
-#: src/ui/settings.py:392
-msgid ""
-"If the LLM does not support reading documents, relevant information about "
-"documents sent in the chat will be given to the LLM using your Document "
-"Analyzer."
-msgstr ""
-"LLM belgeleri okumayı desteklemiyorsa, sohbette gönderilen belgelerle ilgili "
-"ilgili bilgiler Belge Analizörünüz kullanılarak LLM'ye verilecektir."
-
-#: src/ui/settings.py:396
-msgid "Maximum tokens for RAG"
-msgstr "RAG için maksimum token"
-
-#: src/ui/settings.py:396
-msgid ""
-"The maximum amount of tokens to be used for RAG. If the documents do not "
-"exceed this token count,\n"
-"dump all of them in the context"
-msgstr ""
-"RAG için kullanılacak maksimum token miktarı. Eğer belgeler bu token "
-"miktarını aşmıyorsa,\n"
-"hepsini bağlama dökün"
-
-#: src/ui/settings.py:413
-msgid "Document Folder"
-msgstr "Belge Klasörü"
-
-#: src/ui/settings.py:413
-msgid ""
-"Put the documents you want to query in your document folder. The document "
-"analyzer will find relevant information in them if this option is enabled"
-msgstr ""
-"Sorgulamak istediğiniz belgeleri belge klasörünüze koyun. Bu seçenek etkin "
-"ise belge analizörü onlarda ilgili bilgileri bulacaktır"
-
-#: src/ui/settings.py:416
-msgid "Put all the documents you want to index in this folder"
-msgstr "Dizine eklemek istediğiniz tüm belgeleri bu klasöre koyun"
-
-#: src/ui/settings.py:452
-msgid "Silence threshold"
-msgstr "Sessizlik eşiği"
-
-#: src/ui/settings.py:452
-msgid ""
-"Silence threshold in seconds, percentage of the volume to be considered "
-"silence"
-msgstr ""
-"Saniye cinsinden sessizlik eşiği, hacmin sessizlik olarak kabul edilecek "
-"yüzdesi"
-
-#: src/ui/settings.py:465
-msgid "Silence time"
-msgstr "Sessizlik süresi"
-
-#: src/ui/settings.py:465
-msgid "Silence time in seconds before recording stops automatically"
-msgstr ""
-"Kaydın otomatik olarak durmasından önceki saniye cinsinden sessizlik süresi"
-
-#: src/ui/settings.py:1044
-msgid "Not enough permissions"
-msgstr "Yeterli izin yok"
-
-#: src/ui/settings.py:1048
-msgid ""
-"Newelle does not have enough permissions to run commands on your system, "
-"please run the following command"
-msgstr ""
-"Newelle'in sisteminizde komut çalıştırmak için yeterli izni yok, lütfen "
-"aşağıdaki komutu çalıştırın"
-
-#: src/ui/settings.py:1049 src/ui/settings.py:1062
-msgid "Understood"
-msgstr "Anlaşıldı"
-
-#: src/ui/settings.py:1061
-msgid "Pip path deleted"
-msgstr "Pip yolu silindi"
-
-#: src/ui/settings.py:1061
-msgid ""
-"The pip path has been deleted, you can now reinstall the dependencies. This "
-"operation requires a restart of the application."
-msgstr ""
-"Pip yolu silindi, şimdi bağımlılıkları yeniden yükleyebilirsiniz. Bu işlem "
-"uygulamanın yeniden başlatılmasını gerektirir."
 
 #: src/ui/stdout_monitor.py:48
 msgid "Clear output"
@@ -1644,7 +1197,7 @@ msgid "Start/Stop monitoring"
 msgstr "İzlemeyi Başlat/Durdur"
 
 #: src/ui/stdout_monitor.py:109 src/ui/stdout_monitor.py:182
-#: src/ui/stdout_monitor.py:191 src/window.py:3686
+#: src/ui/stdout_monitor.py:191 src/window.py:3698
 msgid "Monitoring: Active"
 msgstr "İzleme: Aktif"
 
@@ -1653,12 +1206,492 @@ msgid "Monitoring: Stopped"
 msgstr "İzleme: Durduruldu"
 
 #: src/ui/stdout_monitor.py:116 src/ui/stdout_monitor.py:252
+#, python-brace-format
 msgid "Lines: {}"
 msgstr "Satırlar: {}"
 
 #: src/ui/stdout_monitor.py:267
 msgid "Lines: 0"
 msgstr "Satırlar: 0"
+
+#: src/ui/extension.py:50
+msgid "Installed Extensions"
+msgstr "Yüklü Uzantılar"
+
+#: src/ui/extension.py:86
+msgid "User guide to Extensions"
+msgstr "Uzantılar için kullanıcı rehberi"
+
+#: src/ui/extension.py:89
+msgid "Download new Extensions"
+msgstr "Yeni Uzantıları İndir"
+
+#: src/ui/extension.py:92
+msgid "Install extension from file..."
+msgstr "Dosyadan uzantı yükle..."
+
+#: src/ui/settings.py:47 src/constants.py:523
+msgid "General"
+msgstr "Genel"
+
+#: src/ui/settings.py:48 src/constants.py:478
+msgid "LLM"
+msgstr "LLM"
+
+#: src/ui/settings.py:49 src/constants.py:528
+msgid "Prompts"
+msgstr "İstemler"
+
+#: src/ui/settings.py:50
+msgid "Knowledge"
+msgstr "Bilgi"
+
+#: src/ui/settings.py:54
+msgid "Language Model"
+msgstr "Dil Modeli"
+
+#: src/ui/settings.py:63 src/ui/settings.py:83
+msgid "Other LLMs"
+msgstr "Diğer LLM'ler"
+
+#: src/ui/settings.py:63 src/ui/settings.py:83
+msgid "Other available LLM providers"
+msgstr "Mevcut diğer LLM sağlayıcıları"
+
+#: src/ui/settings.py:73
+msgid "Advanced LLM Settings"
+msgstr "Gelişmiş LLM Ayarları"
+
+#: src/ui/settings.py:77
+msgid "Secondary Language Model"
+msgstr "İkincil Dil Modeli"
+
+#: src/ui/settings.py:77
+msgid ""
+"Model used for secondary tasks, like offer, chat name and memory generation"
+msgstr ""
+"Teklif, sohbet adı ve bellek oluşturma gibi ikincil görevler için kullanılan "
+"model"
+
+#: src/ui/settings.py:94
+msgid "Embedding Model"
+msgstr "Gömme Modeli"
+
+#: src/ui/settings.py:94
+msgid ""
+"Embedding is used to trasform text into vectors. Used by Long Term Memory "
+"and RAG. Changing it might require you to re-index documents or reset memory."
+msgstr ""
+"Gömme, metni vektörlere dönüştürmek için kullanılır. Uzun Süreli Bellek ve "
+"RAG tarafından kullanılır. Değiştirmek, belgeleri yeniden dizine eklemenizi "
+"veya belleği sıfırlamanızı gerektirebilir."
+
+#: src/ui/settings.py:105 src/window.py:647
+msgid "Long Term Memory"
+msgstr "Uzun Süreli Bellek"
+
+#: src/ui/settings.py:105
+msgid "Keep memory of old conversations"
+msgstr "Eski konuşmaların belleğini tut"
+
+#: src/ui/settings.py:117 src/constants.py:401
+msgid "Web Search"
+msgstr "Web Araması"
+
+#: src/ui/settings.py:117
+msgid "Search information on the Web"
+msgstr "Web'de bilgi ara"
+
+#: src/ui/settings.py:133
+msgid "Text To Speech Program"
+msgstr "Metinden Konuşmaya Programı"
+
+#: src/ui/settings.py:133
+msgid "Choose which text to speech to use"
+msgstr "Kullanılacak metin okuyucuyu seçin"
+
+#: src/ui/settings.py:142
+msgid "Speech To Text Engine"
+msgstr "Konuşmadan Metne Motoru"
+
+#: src/ui/settings.py:142
+msgid "Choose which speech recognition engine you want"
+msgstr "Hangi konuşma tanıma motorunu istediğinizi seçin"
+
+#: src/ui/settings.py:150
+msgid "Automatic Speech To Text"
+msgstr "Otomatik Konuşmadan Metne"
+
+#: src/ui/settings.py:150
+msgid "Automatically restart speech to text at the end of a text/TTS"
+msgstr "Metin/TTS'nin sonunda konuşmayı metne otomatik olarak yeniden başlat"
+
+#: src/ui/settings.py:154
+msgid "Prompt control"
+msgstr "İstem kontrolü"
+
+#: src/ui/settings.py:159
+msgid "Interface"
+msgstr "Arayüz"
+
+#: src/ui/settings.py:162
+msgid "Interface Size"
+msgstr "Arayüz Boyutu"
+
+#: src/ui/settings.py:162
+msgid "Adjust the size of the interface"
+msgstr "Arayüz boyutunu ayarla"
+
+#: src/ui/settings.py:174
+msgid "Editor color scheme"
+msgstr "Düzenleyici renk şemasını değiştir"
+
+#: src/ui/settings.py:174
+msgid "Change the color scheme of the editor and codeblocks"
+msgstr "Düzenleyicinin ve kod bloklarının renk şemasını değiştir"
+
+#: src/ui/settings.py:181
+msgid "Hidden files"
+msgstr "Gizli dosyalar"
+
+#: src/ui/settings.py:181
+msgid "Show hidden files"
+msgstr "Gizli dosyaları göster"
+
+#: src/ui/settings.py:187
+msgid "Send with ENTER"
+msgstr "ENTER ile Gönder"
+
+#: src/ui/settings.py:187
+msgid ""
+"If enabled, messages will be sent with ENTER, to go to a new line use "
+"CTRL+ENTER. If disabled, messages will be sent with SHIFT+ENTER, and newline "
+"with enter"
+msgstr ""
+"Etkinleştirilirse, mesajlar ENTER ile gönderilecektir; yeni bir satıra "
+"geçmek için CTRL+ENTER kullanın. Devre dışı bırakılırsa, mesajlar "
+"SHIFT+ENTER ile gönderilecek ve yeni satıra enter ile geçilecektir"
+
+#: src/ui/settings.py:193
+msgid "Remove thinking from history"
+msgstr "Düşünceleri geçmişten kaldır"
+
+#: src/ui/settings.py:193
+msgid ""
+"Do not send old thinking blocks for reasoning models in order to reduce "
+"token usage"
+msgstr ""
+"Belirteç kullanımını azaltmak için akıl yürütme modelleri için eski düşünce "
+"bloklarını göndermeyin"
+
+#: src/ui/settings.py:199
+msgid "Display LaTeX"
+msgstr "LaTeX Görüntüle"
+
+#: src/ui/settings.py:199
+msgid "Display LaTeX formulas in chat"
+msgstr "Sohbette LaTeX formüllerini görüntüle"
+
+#: src/ui/settings.py:205
+msgid "Reverse Chat Order"
+msgstr "Sohbet Sırasını Ters Çevir"
+
+#: src/ui/settings.py:205
+msgid "Show most recent chats on top in chat list (change chat to apply)"
+msgstr ""
+"Sohbet listesinde en yeni sohbetleri üstte göster (uygulamak için sohbeti "
+"değiştir)"
+
+#: src/ui/settings.py:211
+msgid "Automatically Generate Chat Names"
+msgstr "Otomatik Olarak Sohbet Adları Oluştur"
+
+#: src/ui/settings.py:211
+msgid "Generate chat names automatically after the first two messages"
+msgstr "İlk iki mesajdan sonra sohbet adlarını otomatik olarak oluştur"
+
+#: src/ui/settings.py:217
+msgid "Number of offers"
+msgstr "Teklif sayısı"
+
+#: src/ui/settings.py:217
+msgid "Number of message suggestions to send to chat "
+msgstr "Sohbete gönderilecek mesaj önerisi sayısı "
+
+#: src/ui/settings.py:224
+msgid "Username"
+msgstr "Kullanıcı Adı"
+
+#: src/ui/settings.py:224
+#, python-brace-format
+msgid ""
+"Change the label that appears before your message\n"
+"This information is not sent to the LLM by default\n"
+"You can add it to a prompt using the {USER} variable"
+msgstr ""
+"Mesajınızdan önce görünen etiketi değiştirin\n"
+"Bu bilgi varsayılan olarak LLM'ye gönderilmez\n"
+"{USER} değişkenini kullanarak bir isteme ekleyebilirsiniz"
+
+#: src/ui/settings.py:234
+msgid "Neural Network Control"
+msgstr "Sinir Ağı Kontrolü"
+
+#: src/ui/settings.py:237
+msgid "Run commands in a virtual machine"
+msgstr "Komutları sanal bir makinede çalıştır"
+
+#: src/ui/settings.py:250
+msgid "External Terminal"
+msgstr "Harici Terminal"
+
+#: src/ui/settings.py:250
+msgid "Choose the external terminal where to run the console commands"
+msgstr "Konsol komutlarını çalıştırmak için harici terminali seçin"
+
+#: src/ui/settings.py:259
+msgid "Program memory"
+msgstr "Program belleği"
+
+#: src/ui/settings.py:259
+msgid "How long the program remembers the chat "
+msgstr "Programın sohbeti ne kadar süreyle hatırladığı "
+
+#: src/ui/settings.py:266
+msgid "Developer"
+msgstr "Geliştirici"
+
+#: src/ui/settings.py:269
+msgid ""
+"Monitor the program output in real-time, useful for debugging and seeing "
+"downloads progress"
+msgstr ""
+"Program çıktısını gerçek zamanlı olarak izleyin, hata ayıklama ve indirme "
+"ilerlemesini görmek için kullanışlıdır"
+
+#: src/ui/settings.py:270
+msgid "Open"
+msgstr "Aç"
+
+#: src/ui/settings.py:275
+msgid "Delete pip path"
+msgstr "pip yolunu sil"
+
+#: src/ui/settings.py:275
+msgid "Remove the extra dependencies installed"
+msgstr "Yüklü ek bağımlılıkları kaldır"
+
+#: src/ui/settings.py:295
+msgid "Auto-run commands"
+msgstr "Otomatik çalıştır komutları"
+
+#: src/ui/settings.py:295
+msgid "Commands that the bot will write will automatically run"
+msgstr "Botun yazacağı komutlar otomatik olarak çalışacaktır"
+
+#: src/ui/settings.py:298
+msgid "Max number of commands"
+msgstr "Maksimum komut sayısı"
+
+#: src/ui/settings.py:298
+msgid ""
+"Maximum number of commands that the bot will write after a single user "
+"request"
+msgstr ""
+"Botun tek bir kullanıcı isteğinden sonra yazacağı maksimum komut sayısı"
+
+#: src/ui/settings.py:329
+msgid "Browser"
+msgstr "Tarayıcı"
+
+#: src/ui/settings.py:329
+msgid "Settings for the browser"
+msgstr "Tarayıcı ayarları"
+
+#: src/ui/settings.py:334
+msgid "Use external browser"
+msgstr "Harici tarayıcı kullan"
+
+#: src/ui/settings.py:334
+msgid "Use an external browser to open links instead of integrated one"
+msgstr "Bağlantıları entegre olan yerine harici bir tarayıcıda açın"
+
+#: src/ui/settings.py:341
+msgid "Persist browser session"
+msgstr "Tarayıcı oturumunu kalıcı yap"
+
+#: src/ui/settings.py:341
+msgid ""
+"Persist browser session between restarts. Turning this off requires "
+"restarting the program"
+msgstr ""
+"Yeniden başlatmalar arasında tarayıcı oturumunu kalıcı yap. Bunu kapatmak "
+"programın yeniden başlatılmasını gerektirir"
+
+#: src/ui/settings.py:346
+msgid "Delete browser data"
+msgstr "Tarayıcı verilerini sil"
+
+#: src/ui/settings.py:346
+msgid "Delete browser session and data"
+msgstr "Tarayıcı oturumunu ve verilerini sil"
+
+#: src/ui/settings.py:353
+msgid "Initial browser page"
+msgstr "İlk tarayıcı sayfası"
+
+#: src/ui/settings.py:353
+msgid "The page where the browser will start"
+msgstr "Tarayıcının başlayacağı sayfa"
+
+#: src/ui/settings.py:360
+msgid "Search string"
+msgstr "Arama dizesi"
+
+#: src/ui/settings.py:360
+#, python-format
+msgid "The search string used in the browser, %s is replaced with the query"
+msgstr "Tarayıcıda kullanılan arama dizesi, %s sorgu ile değiştirilir"
+
+#: src/ui/settings.py:381
+msgid "Document Sources (RAG)"
+msgstr "Belge Kaynakları (RAG)"
+
+#: src/ui/settings.py:381
+msgid "Include content from your documents in the responses"
+msgstr "Yanıtlarınıza belgelerinizden içerik ekleyin"
+
+#: src/ui/settings.py:382
+msgid "Document Analyzer"
+msgstr "Belge Çözümleyici"
+
+#: src/ui/settings.py:382
+msgid ""
+"The document analyzer uses multiple techniques to extract relevant "
+"information about your documents"
+msgstr ""
+"Belge analizörü, belgelerinizle ilgili ilgili bilgileri çıkarmak için birden "
+"çok teknik kullanır"
+
+#: src/ui/settings.py:393
+msgid "Read documents if unsupported"
+msgstr "Desteklenmiyorsa belgeleri oku"
+
+#: src/ui/settings.py:393
+msgid ""
+"If the LLM does not support reading documents, relevant information about "
+"documents sent in the chat will be given to the LLM using your Document "
+"Analyzer."
+msgstr ""
+"LLM belgeleri okumayı desteklemiyorsa, sohbette gönderilen belgelerle ilgili "
+"ilgili bilgiler Belge Analizörünüz kullanılarak LLM'ye verilecektir."
+
+#: src/ui/settings.py:397
+msgid "Maximum tokens for RAG"
+msgstr "RAG için maksimum token"
+
+#: src/ui/settings.py:397
+msgid ""
+"The maximum amount of tokens to be used for RAG. If the documents do not "
+"exceed this token count,\n"
+"dump all of them in the context"
+msgstr ""
+"RAG için kullanılacak maksimum token miktarı. Eğer belgeler bu token "
+"miktarını aşmıyorsa,\n"
+"hepsini bağlama dökün"
+
+#: src/ui/settings.py:414
+msgid "Document Folder"
+msgstr "Belge Klasörü"
+
+#: src/ui/settings.py:414
+msgid ""
+"Put the documents you want to query in your document folder. The document "
+"analyzer will find relevant information in them if this option is enabled"
+msgstr ""
+"Sorgulamak istediğiniz belgeleri belge klasörünüze koyun. Bu seçenek etkin "
+"ise belge analizörü onlarda ilgili bilgileri bulacaktır"
+
+#: src/ui/settings.py:417
+msgid "Put all the documents you want to index in this folder"
+msgstr "Dizine eklemek istediğiniz tüm belgeleri bu klasöre koyun"
+
+#: src/ui/settings.py:453
+msgid "Silence threshold"
+msgstr "Sessizlik eşiği"
+
+#: src/ui/settings.py:453
+msgid ""
+"Silence threshold in seconds, percentage of the volume to be considered "
+"silence"
+msgstr ""
+"Saniye cinsinden sessizlik eşiği, hacmin sessizlik olarak kabul edilecek "
+"yüzdesi"
+
+#: src/ui/settings.py:466
+msgid "Silence time"
+msgstr "Sessizlik süresi"
+
+#: src/ui/settings.py:466
+msgid "Silence time in seconds before recording stops automatically"
+msgstr ""
+"Kaydın otomatik olarak durmasından önceki saniye cinsinden sessizlik süresi"
+
+#: src/ui/settings.py:1046
+msgid "Not enough permissions"
+msgstr "Yeterli izin yok"
+
+#: src/ui/settings.py:1050
+msgid ""
+"Newelle does not have enough permissions to run commands on your system, "
+"please run the following command"
+msgstr ""
+"Newelle'in sisteminizde komut çalıştırmak için yeterli izni yok, lütfen "
+"aşağıdaki komutu çalıştırın"
+
+#: src/ui/settings.py:1051 src/ui/settings.py:1064
+msgid "Understood"
+msgstr "Anlaşıldı"
+
+#: src/ui/settings.py:1063
+msgid "Pip path deleted"
+msgstr "Pip yolu silindi"
+
+#: src/ui/settings.py:1063
+msgid ""
+"The pip path has been deleted, you can now reinstall the dependencies. This "
+"operation requires a restart of the application."
+msgstr ""
+"Pip yolu silindi, şimdi bağımlılıkları yeniden yükleyebilirsiniz. Bu işlem "
+"uygulamanın yeniden başlatılmasını gerektirir."
+
+#: src/main.py:205
+msgid "Terminal threads are still running in the background"
+msgstr "Terminal iş parçacıkları hala arka planda çalışıyor"
+
+#: src/main.py:206
+msgid "When you close the window, they will be automatically terminated"
+msgstr "Pencereyi kapattığınızda, otomatik olarak sonlandırılacaklardır"
+
+#: src/main.py:210
+msgid "Close"
+msgstr "Kapat"
+
+#: src/main.py:244
+msgid "Chat is rebooted"
+msgstr "Sohbet yeniden başlatıldı"
+
+#: src/main.py:249
+msgid "Folder is rebooted"
+msgstr "Klasör yeniden başlatıldı"
+
+#: src/main.py:254
+msgid "Chat is created"
+msgstr "Sohbet oluşturuldu"
+
+#: src/controller.py:135 src/window.py:1852
+msgid "Chat "
+msgstr "Sohbet "
 
 #: src/constants.py:20
 msgid "Newelle Demo API"
@@ -2099,34 +2132,6 @@ msgstr ""
 msgid "Prompts settings, custom extra prompt, custom prompts..."
 msgstr "İstem ayarları, özel ek istem, özel istemler..."
 
-#: src/main.py:205
-msgid "Terminal threads are still running in the background"
-msgstr "Terminal iş parçacıkları hala arka planda çalışıyor"
-
-#: src/main.py:206
-msgid "When you close the window, they will be automatically terminated"
-msgstr "Pencereyi kapattığınızda, otomatik olarak sonlandırılacaklardır"
-
-#: src/main.py:210
-msgid "Close"
-msgstr "Kapat"
-
-#: src/main.py:244
-msgid "Chat is rebooted"
-msgstr "Sohbet yeniden başlatıldı"
-
-#: src/main.py:249
-msgid "Folder is rebooted"
-msgstr "Klasör yeniden başlatıldı"
-
-#: src/main.py:254
-msgid "Chat is created"
-msgstr "Sohbet oluşturuldu"
-
-#: src/controller.py:135 src/window.py:1848
-msgid "Chat "
-msgstr "Sohbet "
-
 #: src/window.py:120
 msgid "Keyboard shorcuts"
 msgstr "Klavye kısayolları"
@@ -2291,87 +2296,87 @@ msgstr "Yerel Belgeler"
 msgid "Web search"
 msgstr "Web araması"
 
-#: src/window.py:892
+#: src/window.py:896
 msgid "This provider does not have a model list"
 msgstr "Bu sağlayıcının bir model listesi yok"
 
-#: src/window.py:897
+#: src/window.py:901
 msgid " Models"
 msgstr " Modeller"
 
-#: src/window.py:900
+#: src/window.py:904
 msgid "Search Models..."
 msgstr "Model Ara..."
 
-#: src/window.py:1128
+#: src/window.py:1132
 msgid "Create new profile"
 msgstr "Yeni profil oluştur"
 
-#: src/window.py:1262
+#: src/window.py:1266
 msgid "Could not recognize your voice"
 msgstr "Sesiniz tanınamadı"
 
-#: src/window.py:1299
+#: src/window.py:1303
 msgid "Images"
 msgstr "Görseller"
 
-#: src/window.py:1303
+#: src/window.py:1307
 msgid "LLM Supported Files"
 msgstr "LLM Desteklenen Dosyalar"
 
-#: src/window.py:1311
+#: src/window.py:1315
 msgid "RAG Supported files"
 msgstr "RAG Desteklenen dosyalar"
 
-#: src/window.py:1329
+#: src/window.py:1333
 msgid "Supported Files"
 msgstr "Desteklenen Dosyalar"
 
-#: src/window.py:1333
+#: src/window.py:1337
 msgid "All Files"
 msgstr "Tüm Dosyalar"
 
-#: src/window.py:1339
+#: src/window.py:1343
 msgid "Attach file"
 msgstr "Dosya ekle"
 
-#: src/window.py:1594
+#: src/window.py:1598
 msgid "The file cannot be sent until the program is finished"
 msgstr "Program bitene kadar dosya gönderilemez"
 
-#: src/window.py:1616
+#: src/window.py:1620
 msgid "The file is not recognized"
 msgstr "Dosya tanınmadı"
 
-#: src/window.py:1635
+#: src/window.py:1639
 msgid "You can no longer continue the message."
 msgstr "Mesajı artık devam ettiremezsiniz."
 
-#: src/window.py:1660
+#: src/window.py:1664
 msgid "You can no longer regenerate the message."
 msgstr "Mesajı artık yeniden oluşturamazsınız."
 
-#: src/window.py:1892
+#: src/window.py:1896
 msgid "Chat is cleared"
 msgstr "Sohbet temizlendi"
 
-#: src/window.py:1917
+#: src/window.py:1921
 msgid "The message was canceled and deleted from history"
 msgstr "Mesaj iptal edildi ve geçmişten silindi"
 
-#: src/window.py:1961
+#: src/window.py:1965
 msgid "The message cannot be sent until the program is finished"
 msgstr "Program bitene kadar mesaj gönderilemez"
 
-#: src/window.py:2939
+#: src/window.py:2951
 msgid "You can't edit a message while the program is running."
 msgstr "Program çalışırken bir mesajı düzenleyemezsiniz."
 
-#: src/window.py:3064
+#: src/window.py:3076
 msgid "Prompt content"
 msgstr "İstem içeriği"
 
-#: src/window.py:3323
+#: src/window.py:3335
 msgid ""
 "The neural network has access to your computer and any data in this chat and "
 "can run commands, be careful, we are not responsible for the neural network. "
@@ -2381,7 +2386,7 @@ msgstr ""
 "çalıştırabilir, dikkatli olun, sinir ağından biz sorumlu değiliz. Hassas "
 "bilgileri paylaşmayın."
 
-#: src/window.py:3352
+#: src/window.py:3364
 msgid ""
 "The neural network has access to any data in this chat, be careful, we are "
 "not responsible for the neural network. Do not share any sensitive "
@@ -2390,19 +2395,19 @@ msgstr ""
 "Sinir ağı bu sohbetteki herhangi bir veriye erişebilir, dikkatli olun, sinir "
 "ağından biz sorumlu değiliz. Hassas bilgileri paylaşmayın."
 
-#: src/window.py:3401
+#: src/window.py:3413
 msgid "Wrong folder path"
 msgstr "Yanlış klasör yolu"
 
-#: src/window.py:3434
+#: src/window.py:3446
 msgid "Thread has not been completed, thread number: "
 msgstr "İş parçacığı tamamlanmadı, iş parçacığı numarası: "
 
-#: src/window.py:3446
+#: src/window.py:3458
 msgid "Failed to open the folder"
 msgstr "Klasör açılamadı"
 
-#: src/window.py:3625
+#: src/window.py:3637
 msgid "Chat is empty"
 msgstr "Sohbet boş"
 

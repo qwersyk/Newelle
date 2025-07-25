@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-08 18:07+0800\n"
+"POT-Creation-Date: 2025-07-23 20:25+0800\n"
 "PO-Revision-Date: 2025-07-03 09:00+0200\n"
 "Last-Translator: Yehor Hliebov <qsk@gmx.at>\n"
 "Language-Team: Romanian <qsk@gmx.at>\n"
@@ -586,7 +586,7 @@ msgstr "Endpoint personalizat al serviciului de utilizat"
 #: src/handlers/tts/elevenlabs_handler.py:17
 #: src/handlers/tts/groq_tts_handler.py:33
 #: src/handlers/tts/openai_tts_handler.py:19 src/handlers/tts/tts.py:33
-#: src/ui/settings.py:128
+#: src/ui/settings.py:129
 msgid "Voice"
 msgstr "Voce"
 
@@ -913,7 +913,7 @@ msgstr "Nu a fost înregistrat niciun proces de gândire"
 msgid "Folder is Empty"
 msgstr "Folderul este gol"
 
-#: src/ui/explorer.py:340 src/window.py:1576
+#: src/ui/explorer.py:340 src/window.py:1580
 msgid "File not found"
 msgstr "Fișier negăsit"
 
@@ -933,8 +933,8 @@ msgstr "Deschide în managerul de fișiere"
 msgid "Rename"
 msgstr "Redenumire"
 
-#: src/ui/explorer.py:366 src/ui/explorer.py:502 src/ui/settings.py:275
-#: src/ui/settings.py:346
+#: src/ui/explorer.py:366 src/ui/explorer.py:502 src/ui/settings.py:276
+#: src/ui/settings.py:347
 msgid "Delete"
 msgstr "Șterge"
 
@@ -960,6 +960,7 @@ msgid "Renamed successfully"
 msgstr "Redenumit cu succes"
 
 #: src/ui/explorer.py:476
+#, python-brace-format
 msgid "Failed to rename: {}"
 msgstr "Nu s-a putut redenumi: {}"
 
@@ -968,6 +969,7 @@ msgid "Delete File?"
 msgstr "Șterge fișierul?"
 
 #: src/ui/explorer.py:499
+#, python-brace-format
 msgid "Are you sure you want to delete \"{}\"?"
 msgstr "Sigur doriți să ștergeți „{}”?"
 
@@ -976,6 +978,7 @@ msgid "Deleted successfully"
 msgstr "Șters cu succes"
 
 #: src/ui/explorer.py:525
+#, python-brace-format
 msgid "Failed to delete: {}"
 msgstr "Nu s-a putut șterge: {}"
 
@@ -1036,6 +1039,7 @@ msgid "file"
 msgstr "fișier"
 
 #: src/ui/explorer.py:730
+#, python-brace-format
 msgid "Failed to create {}: {}"
 msgstr "Nu s-a putut crea {}: {}"
 
@@ -1086,27 +1090,6 @@ msgstr "Mărește"
 #: src/ui/shortcuts.py:22
 msgid "Zoom out"
 msgstr "Micșorează"
-
-#: src/ui/extension.py:17 src/ui/presentation.py:131 src/constants.py:513
-#: src/window.py:118
-msgid "Extensions"
-msgstr "Extensii"
-
-#: src/ui/extension.py:50
-msgid "Installed Extensions"
-msgstr "Extensii instalate"
-
-#: src/ui/extension.py:85
-msgid "User guide to Extensions"
-msgstr "Ghid de utilizare a extensiilor"
-
-#: src/ui/extension.py:88
-msgid "Download new Extensions"
-msgstr "Descarcă extensii noi"
-
-#: src/ui/extension.py:91
-msgid "Install extension from file..."
-msgstr "Instalează extensia din fișier..."
 
 #: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.appdata.xml.in:7
 #: data/io.github.qwersyk.Newelle.desktop.in:2
@@ -1159,7 +1142,7 @@ msgstr ""
 "trimiteți în chat sau din propriile fișiere! Informațiile relevante pentru "
 "interogarea dvs. vor fi trimise către LLM."
 
-#: src/ui/presentation.py:124 src/ui/settings.py:236 src/window.py:649
+#: src/ui/presentation.py:124 src/ui/settings.py:237 src/window.py:649
 msgid "Command virtualization"
 msgstr "Virtualizare comenzi"
 
@@ -1176,6 +1159,11 @@ msgstr ""
 "ar putea genera cod malițios!</b>\n"
 "În mod implicit, comenzile dvs. vor fi <b>virtualizate în mediul Flatpak</"
 "b>, dar fiți atenți!"
+
+#: src/ui/presentation.py:131 src/ui/extension.py:17 src/constants.py:513
+#: src/window.py:118
+msgid "Extensions"
+msgstr "Extensii"
 
 #: src/ui/presentation.py:132
 msgid "You can extend Newelle's functionalities using extensions!"
@@ -1203,449 +1191,10 @@ msgstr "Începeți să utilizați aplicația"
 msgid "Start chatting"
 msgstr "Începe chatul"
 
-#: src/ui/settings.py:46 src/constants.py:523
-msgid "General"
-msgstr "General"
-
-#: src/ui/settings.py:47 src/constants.py:478
-msgid "LLM"
-msgstr "LLM"
-
-#: src/ui/settings.py:48 src/constants.py:528
-msgid "Prompts"
-msgstr "Prompturi"
-
-#: src/ui/settings.py:49
-msgid "Knowledge"
-msgstr "Cunoștințe"
-
-#: src/ui/settings.py:53
-msgid "Language Model"
-msgstr "Model de Limbaj"
-
-#: src/ui/settings.py:62 src/ui/settings.py:82
-msgid "Other LLMs"
-msgstr "Alte LLM-uri"
-
-#: src/ui/settings.py:62 src/ui/settings.py:82
-msgid "Other available LLM providers"
-msgstr "Alți furnizori LLM disponibili"
-
-#: src/ui/settings.py:72
-msgid "Advanced LLM Settings"
-msgstr "Setări avansate LLM"
-
-#: src/ui/settings.py:76
-msgid "Secondary Language Model"
-msgstr "Model de limbaj secundar"
-
-#: src/ui/settings.py:76
-msgid ""
-"Model used for secondary tasks, like offer, chat name and memory generation"
-msgstr ""
-"Model utilizat pentru sarcini secundare, cum ar fi ofertă, nume de chat și "
-"generare de memorie"
-
-#: src/ui/settings.py:93
-msgid "Embedding Model"
-msgstr "Model de încorporare"
-
-#: src/ui/settings.py:93
-msgid ""
-"Embedding is used to trasform text into vectors. Used by Long Term Memory "
-"and RAG. Changing it might require you to re-index documents or reset memory."
-msgstr ""
-"Încorporarea este utilizată pentru a transforma textul în vectori. Utilizată "
-"de Memoria pe Termen Lung și RAG. Modificarea acesteia ar putea necesita "
-"reindexarea documentelor sau resetarea memoriei."
-
-#: src/ui/settings.py:104 src/window.py:647
-msgid "Long Term Memory"
-msgstr "Memorie pe termen lung"
-
-#: src/ui/settings.py:104
-msgid "Keep memory of old conversations"
-msgstr "Păstrează memoria conversațiilor vechi"
-
-#: src/ui/settings.py:116 src/constants.py:401
-msgid "Web Search"
-msgstr "Căutare Web"
-
-#: src/ui/settings.py:116
-msgid "Search information on the Web"
-msgstr "Căutați informații pe web"
-
-#: src/ui/settings.py:132
-msgid "Text To Speech Program"
-msgstr "Program text-to-speech"
-
-#: src/ui/settings.py:132
-msgid "Choose which text to speech to use"
-msgstr "Alegeți ce program text-to-speech să utilizați"
-
-#: src/ui/settings.py:141
-msgid "Speech To Text Engine"
-msgstr "Motor de transformare a vorbirii în text"
-
-#: src/ui/settings.py:141
-msgid "Choose which speech recognition engine you want"
-msgstr "Alegeți motorul de recunoaștere vocală pe care îl doriți"
-
-#: src/ui/settings.py:149
-msgid "Automatic Speech To Text"
-msgstr "Recunoaștere vocală automată"
-
-#: src/ui/settings.py:149
-msgid "Automatically restart speech to text at the end of a text/TTS"
-msgstr "Repornește automat recunoașterea vocală la sfârșitul unui text/TTS"
-
-#: src/ui/settings.py:153
-msgid "Prompt control"
-msgstr "Control prompt"
-
-#: src/ui/settings.py:158
-msgid "Interface"
-msgstr "Interfață"
-
-#: src/ui/settings.py:161
-msgid "Interface Size"
-msgstr "Dimensiune Interfață"
-
-#: src/ui/settings.py:161
-msgid "Adjust the size of the interface"
-msgstr "Ajustează dimensiunea interfeței"
-
-#: src/ui/settings.py:173
-msgid "Editor color scheme"
-msgstr "Schema de culori a editorului"
-
-#: src/ui/settings.py:173
-msgid "Change the color scheme of the editor and codeblocks"
-msgstr "Schimbați schema de culori a editorului și a blocurilor de cod"
-
-#: src/ui/settings.py:180
-msgid "Hidden files"
-msgstr "Fișiere ascunse"
-
-#: src/ui/settings.py:180
-msgid "Show hidden files"
-msgstr "Arată fișierele ascunse"
-
-#: src/ui/settings.py:186
-msgid "Send with ENTER"
-msgstr "Trimite cu ENTER"
-
-#: src/ui/settings.py:186
-msgid ""
-"If enabled, messages will be sent with ENTER, to go to a new line use "
-"CTRL+ENTER. If disabled, messages will be sent with SHIFT+ENTER, and newline "
-"with enter"
-msgstr ""
-"Dacă este activat, mesajele vor fi trimise cu ENTER, pentru a merge la o "
-"linie nouă utilizați CTRL+ENTER. Dacă este dezactivat, mesajele vor fi "
-"trimise cu SHIFT+ENTER, iar linia nouă cu ENTER"
-
-#: src/ui/settings.py:192
-msgid "Remove thinking from history"
-msgstr "Elimină gândirea din istoric"
-
-#: src/ui/settings.py:192
-msgid ""
-"Do not send old thinking blocks for reasoning models in order to reduce "
-"token usage"
-msgstr ""
-"Nu trimite blocuri vechi de gândire pentru modelele de raționament, pentru a "
-"reduce utilizarea de token-uri"
-
-#: src/ui/settings.py:198
-msgid "Display LaTeX"
-msgstr "Afișează LaTeX"
-
-#: src/ui/settings.py:198
-msgid "Display LaTeX formulas in chat"
-msgstr "Afișează formulele LaTeX în chat"
-
-#: src/ui/settings.py:204
-msgid "Reverse Chat Order"
-msgstr "Inversează ordinea chatului"
-
-#: src/ui/settings.py:204
-msgid "Show most recent chats on top in chat list (change chat to apply)"
-msgstr ""
-"Afișează cele mai recente chaturi în partea de sus a listei de chaturi "
-"(schimbați chatul pentru a aplica)"
-
-#: src/ui/settings.py:210
-msgid "Automatically Generate Chat Names"
-msgstr "Generează automat nume de chat"
-
-#: src/ui/settings.py:210
-msgid "Generate chat names automatically after the first two messages"
-msgstr "Generează automat nume de chat după primele două mesaje"
-
-#: src/ui/settings.py:216
-msgid "Number of offers"
-msgstr "Număr de oferte"
-
-#: src/ui/settings.py:216
-msgid "Number of message suggestions to send to chat "
-msgstr "Numărul de sugestii de mesaje de trimis în chat "
-
-#: src/ui/settings.py:223
-msgid "Username"
-msgstr "Nume utilizator"
-
-#: src/ui/settings.py:223
-#, python-brace-format
-msgid ""
-"Change the label that appears before your message\n"
-"This information is not sent to the LLM by default\n"
-"You can add it to a prompt using the {USER} variable"
-msgstr ""
-"Schimbați eticheta care apare înainte de mesajul dvs.\n"
-"Această informație nu este trimisă LLM-ului în mod implicit\n"
-"Puteți să o adăugați la un prompt utilizând variabila {USER}"
-
-#: src/ui/settings.py:233
-msgid "Neural Network Control"
-msgstr "Control Rețea Neurală"
-
-#: src/ui/settings.py:236
-msgid "Run commands in a virtual machine"
-msgstr "Execută comenzi într-o mașină virtuală"
-
-#: src/ui/settings.py:249
-msgid "External Terminal"
-msgstr "Terminal Extern"
-
-#: src/ui/settings.py:249
-msgid "Choose the external terminal where to run the console commands"
-msgstr "Alegeți terminalul extern unde să rulați comenzile consolei"
-
-#: src/ui/settings.py:258
-msgid "Program memory"
-msgstr "Memoria programului"
-
-#: src/ui/settings.py:258
-msgid "How long the program remembers the chat "
-msgstr "Cât timp programul își amintește conversația "
-
-#: src/ui/settings.py:265
-msgid "Developer"
-msgstr "Dezvoltator"
-
-#: src/ui/settings.py:268 src/ui/stdout_monitor.py:31
-#: src/ui/stdout_monitor.py:41
+#: src/ui/stdout_monitor.py:31 src/ui/stdout_monitor.py:41
+#: src/ui/settings.py:269
 msgid "Program Output Monitor"
 msgstr "Monitorizare ieșire program"
-
-#: src/ui/settings.py:268
-msgid ""
-"Monitor the program output in real-time, useful for debugging and seeing "
-"downloads progress"
-msgstr ""
-"Monitorizează ieșirea programului în timp real, util pentru depanare și "
-"pentru a vedea progresul descărcărilor"
-
-#: src/ui/settings.py:269
-msgid "Open"
-msgstr "Deschide"
-
-#: src/ui/settings.py:274
-msgid "Delete pip path"
-msgstr "Șterge calea pip"
-
-#: src/ui/settings.py:274
-msgid "Remove the extra dependencies installed"
-msgstr "Elimină dependențele suplimentare instalate"
-
-#: src/ui/settings.py:294
-msgid "Auto-run commands"
-msgstr "Comenzi cu rulare automată"
-
-#: src/ui/settings.py:294
-msgid "Commands that the bot will write will automatically run"
-msgstr "Comenzile pe care botul le va scrie vor rula automat"
-
-#: src/ui/settings.py:297
-msgid "Max number of commands"
-msgstr "Număr maxim de comenzi"
-
-#: src/ui/settings.py:297
-msgid ""
-"Maximum number of commands that the bot will write after a single user "
-"request"
-msgstr ""
-"Numărul maxim de comenzi pe care botul le va scrie după o singură cerere a "
-"utilizatorului"
-
-#: src/ui/settings.py:328
-msgid "Browser"
-msgstr "Browser"
-
-#: src/ui/settings.py:328
-msgid "Settings for the browser"
-msgstr "Setări pentru browser"
-
-#: src/ui/settings.py:333
-msgid "Use external browser"
-msgstr "Utilizează browser extern"
-
-#: src/ui/settings.py:333
-msgid "Use an external browser to open links instead of integrated one"
-msgstr ""
-"Utilizează un browser extern pentru a deschide linkuri în loc de cel integrat"
-
-#: src/ui/settings.py:340
-msgid "Persist browser session"
-msgstr "Păstrează sesiunea browserului"
-
-#: src/ui/settings.py:340
-msgid ""
-"Persist browser session between restarts. Turning this off requires "
-"restarting the program"
-msgstr ""
-"Păstrează sesiunea browserului între reporniri. Dezactivarea acestei opțiuni "
-"necesită repornirea programului"
-
-#: src/ui/settings.py:345
-msgid "Delete browser data"
-msgstr "Șterge datele browserului"
-
-#: src/ui/settings.py:345
-msgid "Delete browser session and data"
-msgstr "Șterge sesiunea și datele browserului"
-
-#: src/ui/settings.py:352
-msgid "Initial browser page"
-msgstr "Pagina inițială a browserului"
-
-#: src/ui/settings.py:352
-msgid "The page where the browser will start"
-msgstr "Pagina de unde va porni browserul"
-
-#: src/ui/settings.py:359
-msgid "Search string"
-msgstr "Șir de căutare"
-
-#: src/ui/settings.py:359
-#, python-format
-msgid "The search string used in the browser, %s is replaced with the query"
-msgstr "Șirul de căutare utilizat în browser, %s este înlocuit cu interogarea"
-
-#: src/ui/settings.py:380
-msgid "Document Sources (RAG)"
-msgstr "Surse documente (RAG)"
-
-#: src/ui/settings.py:380
-msgid "Include content from your documents in the responses"
-msgstr "Includeți conținut din documentele dvs. în răspunsuri"
-
-#: src/ui/settings.py:381
-msgid "Document Analyzer"
-msgstr "Analizor Documente"
-
-#: src/ui/settings.py:381
-msgid ""
-"The document analyzer uses multiple techniques to extract relevant "
-"information about your documents"
-msgstr ""
-"Analizatorul de documente utilizează multiple tehnici pentru a extrage "
-"informații relevante despre documentele dvs."
-
-#: src/ui/settings.py:392
-msgid "Read documents if unsupported"
-msgstr "Citiți documentele dacă nu sunt acceptate"
-
-#: src/ui/settings.py:392
-msgid ""
-"If the LLM does not support reading documents, relevant information about "
-"documents sent in the chat will be given to the LLM using your Document "
-"Analyzer."
-msgstr ""
-"Dacă LLM-ul nu suportă citirea documentelor, informațiile relevante despre "
-"documentele trimise în chat vor fi furnizate LLM-ului utilizând analizorul "
-"dvs. de documente."
-
-#: src/ui/settings.py:396
-msgid "Maximum tokens for RAG"
-msgstr "Token-uri maxime pentru RAG"
-
-#: src/ui/settings.py:396
-msgid ""
-"The maximum amount of tokens to be used for RAG. If the documents do not "
-"exceed this token count,\n"
-"dump all of them in the context"
-msgstr ""
-"Cantitatea maximă de token-uri de utilizat pentru RAG. Dacă documentele nu "
-"depășesc acest număr de token-uri,\n"
-"le aruncă pe toate în context"
-
-#: src/ui/settings.py:413
-msgid "Document Folder"
-msgstr "Folder documente"
-
-#: src/ui/settings.py:413
-msgid ""
-"Put the documents you want to query in your document folder. The document "
-"analyzer will find relevant information in them if this option is enabled"
-msgstr ""
-"Puneți documentele pe care doriți să le interogați în folderul dvs. de "
-"documente. Analizatorul de documente va găsi informații relevante în ele, "
-"dacă această opțiune este activată"
-
-#: src/ui/settings.py:416
-msgid "Put all the documents you want to index in this folder"
-msgstr "Puneți toate documentele pe care doriți să le indexați în acest folder"
-
-#: src/ui/settings.py:452
-msgid "Silence threshold"
-msgstr "Prag de silențiu"
-
-#: src/ui/settings.py:452
-msgid ""
-"Silence threshold in seconds, percentage of the volume to be considered "
-"silence"
-msgstr ""
-"Prag de silențiu în secunde, procent din volum pentru a fi considerat "
-"silențiu"
-
-#: src/ui/settings.py:465
-msgid "Silence time"
-msgstr "Timp de silențiu"
-
-#: src/ui/settings.py:465
-msgid "Silence time in seconds before recording stops automatically"
-msgstr ""
-"Timpul de silențiu în secunde înainte ca înregistrarea să se oprească automat"
-
-#: src/ui/settings.py:1044
-msgid "Not enough permissions"
-msgstr "Nu sunt suficiente permisiuni"
-
-#: src/ui/settings.py:1048
-msgid ""
-"Newelle does not have enough permissions to run commands on your system, "
-"please run the following command"
-msgstr ""
-"Newelle nu are suficiente permisiuni pentru a rula comenzi pe sistemul dvs., "
-"vă rugăm să rulați următoarea comandă"
-
-#: src/ui/settings.py:1049 src/ui/settings.py:1062
-msgid "Understood"
-msgstr "Înțeles"
-
-#: src/ui/settings.py:1061
-msgid "Pip path deleted"
-msgstr "Calea pip a fost ștearsă"
-
-#: src/ui/settings.py:1061
-msgid ""
-"The pip path has been deleted, you can now reinstall the dependencies. This "
-"operation requires a restart of the application."
-msgstr ""
-"Calea pip a fost ștearsă, acum puteți reinstala dependențele. Această "
-"operațiune necesită repornirea aplicației."
 
 #: src/ui/stdout_monitor.py:48
 msgid "Clear output"
@@ -1656,7 +1205,7 @@ msgid "Start/Stop monitoring"
 msgstr "Pornire/Oprire monitorizare"
 
 #: src/ui/stdout_monitor.py:109 src/ui/stdout_monitor.py:182
-#: src/ui/stdout_monitor.py:191 src/window.py:3686
+#: src/ui/stdout_monitor.py:191 src/window.py:3698
 msgid "Monitoring: Active"
 msgstr "Monitorizare: Activă"
 
@@ -1665,12 +1214,496 @@ msgid "Monitoring: Stopped"
 msgstr "Monitorizare: Oprită"
 
 #: src/ui/stdout_monitor.py:116 src/ui/stdout_monitor.py:252
+#, python-brace-format
 msgid "Lines: {}"
 msgstr "Linii: {}"
 
 #: src/ui/stdout_monitor.py:267
 msgid "Lines: 0"
 msgstr "Linii: 0"
+
+#: src/ui/extension.py:50
+msgid "Installed Extensions"
+msgstr "Extensii instalate"
+
+#: src/ui/extension.py:86
+msgid "User guide to Extensions"
+msgstr "Ghid de utilizare a extensiilor"
+
+#: src/ui/extension.py:89
+msgid "Download new Extensions"
+msgstr "Descarcă extensii noi"
+
+#: src/ui/extension.py:92
+msgid "Install extension from file..."
+msgstr "Instalează extensia din fișier..."
+
+#: src/ui/settings.py:47 src/constants.py:523
+msgid "General"
+msgstr "General"
+
+#: src/ui/settings.py:48 src/constants.py:478
+msgid "LLM"
+msgstr "LLM"
+
+#: src/ui/settings.py:49 src/constants.py:528
+msgid "Prompts"
+msgstr "Prompturi"
+
+#: src/ui/settings.py:50
+msgid "Knowledge"
+msgstr "Cunoștințe"
+
+#: src/ui/settings.py:54
+msgid "Language Model"
+msgstr "Model de Limbaj"
+
+#: src/ui/settings.py:63 src/ui/settings.py:83
+msgid "Other LLMs"
+msgstr "Alte LLM-uri"
+
+#: src/ui/settings.py:63 src/ui/settings.py:83
+msgid "Other available LLM providers"
+msgstr "Alți furnizori LLM disponibili"
+
+#: src/ui/settings.py:73
+msgid "Advanced LLM Settings"
+msgstr "Setări avansate LLM"
+
+#: src/ui/settings.py:77
+msgid "Secondary Language Model"
+msgstr "Model de limbaj secundar"
+
+#: src/ui/settings.py:77
+msgid ""
+"Model used for secondary tasks, like offer, chat name and memory generation"
+msgstr ""
+"Model utilizat pentru sarcini secundare, cum ar fi ofertă, nume de chat și "
+"generare de memorie"
+
+#: src/ui/settings.py:94
+msgid "Embedding Model"
+msgstr "Model de încorporare"
+
+#: src/ui/settings.py:94
+msgid ""
+"Embedding is used to trasform text into vectors. Used by Long Term Memory "
+"and RAG. Changing it might require you to re-index documents or reset memory."
+msgstr ""
+"Încorporarea este utilizată pentru a transforma textul în vectori. Utilizată "
+"de Memoria pe Termen Lung și RAG. Modificarea acesteia ar putea necesita "
+"reindexarea documentelor sau resetarea memoriei."
+
+#: src/ui/settings.py:105 src/window.py:647
+msgid "Long Term Memory"
+msgstr "Memorie pe termen lung"
+
+#: src/ui/settings.py:105
+msgid "Keep memory of old conversations"
+msgstr "Păstrează memoria conversațiilor vechi"
+
+#: src/ui/settings.py:117 src/constants.py:401
+msgid "Web Search"
+msgstr "Căutare Web"
+
+#: src/ui/settings.py:117
+msgid "Search information on the Web"
+msgstr "Căutați informații pe web"
+
+#: src/ui/settings.py:133
+msgid "Text To Speech Program"
+msgstr "Program text-to-speech"
+
+#: src/ui/settings.py:133
+msgid "Choose which text to speech to use"
+msgstr "Alegeți ce program text-to-speech să utilizați"
+
+#: src/ui/settings.py:142
+msgid "Speech To Text Engine"
+msgstr "Motor de transformare a vorbirii în text"
+
+#: src/ui/settings.py:142
+msgid "Choose which speech recognition engine you want"
+msgstr "Alegeți motorul de recunoaștere vocală pe care îl doriți"
+
+#: src/ui/settings.py:150
+msgid "Automatic Speech To Text"
+msgstr "Recunoaștere vocală automată"
+
+#: src/ui/settings.py:150
+msgid "Automatically restart speech to text at the end of a text/TTS"
+msgstr "Repornește automat recunoașterea vocală la sfârșitul unui text/TTS"
+
+#: src/ui/settings.py:154
+msgid "Prompt control"
+msgstr "Control prompt"
+
+#: src/ui/settings.py:159
+msgid "Interface"
+msgstr "Interfață"
+
+#: src/ui/settings.py:162
+msgid "Interface Size"
+msgstr "Dimensiune Interfață"
+
+#: src/ui/settings.py:162
+msgid "Adjust the size of the interface"
+msgstr "Ajustează dimensiunea interfeței"
+
+#: src/ui/settings.py:174
+msgid "Editor color scheme"
+msgstr "Schema de culori a editorului"
+
+#: src/ui/settings.py:174
+msgid "Change the color scheme of the editor and codeblocks"
+msgstr "Schimbați schema de culori a editorului și a blocurilor de cod"
+
+#: src/ui/settings.py:181
+msgid "Hidden files"
+msgstr "Fișiere ascunse"
+
+#: src/ui/settings.py:181
+msgid "Show hidden files"
+msgstr "Arată fișierele ascunse"
+
+#: src/ui/settings.py:187
+msgid "Send with ENTER"
+msgstr "Trimite cu ENTER"
+
+#: src/ui/settings.py:187
+msgid ""
+"If enabled, messages will be sent with ENTER, to go to a new line use "
+"CTRL+ENTER. If disabled, messages will be sent with SHIFT+ENTER, and newline "
+"with enter"
+msgstr ""
+"Dacă este activat, mesajele vor fi trimise cu ENTER, pentru a merge la o "
+"linie nouă utilizați CTRL+ENTER. Dacă este dezactivat, mesajele vor fi "
+"trimise cu SHIFT+ENTER, iar linia nouă cu ENTER"
+
+#: src/ui/settings.py:193
+msgid "Remove thinking from history"
+msgstr "Elimină gândirea din istoric"
+
+#: src/ui/settings.py:193
+msgid ""
+"Do not send old thinking blocks for reasoning models in order to reduce "
+"token usage"
+msgstr ""
+"Nu trimite blocuri vechi de gândire pentru modelele de raționament, pentru a "
+"reduce utilizarea de token-uri"
+
+#: src/ui/settings.py:199
+msgid "Display LaTeX"
+msgstr "Afișează LaTeX"
+
+#: src/ui/settings.py:199
+msgid "Display LaTeX formulas in chat"
+msgstr "Afișează formulele LaTeX în chat"
+
+#: src/ui/settings.py:205
+msgid "Reverse Chat Order"
+msgstr "Inversează ordinea chatului"
+
+#: src/ui/settings.py:205
+msgid "Show most recent chats on top in chat list (change chat to apply)"
+msgstr ""
+"Afișează cele mai recente chaturi în partea de sus a listei de chaturi "
+"(schimbați chatul pentru a aplica)"
+
+#: src/ui/settings.py:211
+msgid "Automatically Generate Chat Names"
+msgstr "Generează automat nume de chat"
+
+#: src/ui/settings.py:211
+msgid "Generate chat names automatically after the first two messages"
+msgstr "Generează automat nume de chat după primele două mesaje"
+
+#: src/ui/settings.py:217
+msgid "Number of offers"
+msgstr "Număr de oferte"
+
+#: src/ui/settings.py:217
+msgid "Number of message suggestions to send to chat "
+msgstr "Numărul de sugestii de mesaje de trimis în chat "
+
+#: src/ui/settings.py:224
+msgid "Username"
+msgstr "Nume utilizator"
+
+#: src/ui/settings.py:224
+#, python-brace-format
+msgid ""
+"Change the label that appears before your message\n"
+"This information is not sent to the LLM by default\n"
+"You can add it to a prompt using the {USER} variable"
+msgstr ""
+"Schimbați eticheta care apare înainte de mesajul dvs.\n"
+"Această informație nu este trimisă LLM-ului în mod implicit\n"
+"Puteți să o adăugați la un prompt utilizând variabila {USER}"
+
+#: src/ui/settings.py:234
+msgid "Neural Network Control"
+msgstr "Control Rețea Neurală"
+
+#: src/ui/settings.py:237
+msgid "Run commands in a virtual machine"
+msgstr "Execută comenzi într-o mașină virtuală"
+
+#: src/ui/settings.py:250
+msgid "External Terminal"
+msgstr "Terminal Extern"
+
+#: src/ui/settings.py:250
+msgid "Choose the external terminal where to run the console commands"
+msgstr "Alegeți terminalul extern unde să rulați comenzile consolei"
+
+#: src/ui/settings.py:259
+msgid "Program memory"
+msgstr "Memoria programului"
+
+#: src/ui/settings.py:259
+msgid "How long the program remembers the chat "
+msgstr "Cât timp programul își amintește conversația "
+
+#: src/ui/settings.py:266
+msgid "Developer"
+msgstr "Dezvoltator"
+
+#: src/ui/settings.py:269
+msgid ""
+"Monitor the program output in real-time, useful for debugging and seeing "
+"downloads progress"
+msgstr ""
+"Monitorizează ieșirea programului în timp real, util pentru depanare și "
+"pentru a vedea progresul descărcărilor"
+
+#: src/ui/settings.py:270
+msgid "Open"
+msgstr "Deschide"
+
+#: src/ui/settings.py:275
+msgid "Delete pip path"
+msgstr "Șterge calea pip"
+
+#: src/ui/settings.py:275
+msgid "Remove the extra dependencies installed"
+msgstr "Elimină dependențele suplimentare instalate"
+
+#: src/ui/settings.py:295
+msgid "Auto-run commands"
+msgstr "Comenzi cu rulare automată"
+
+#: src/ui/settings.py:295
+msgid "Commands that the bot will write will automatically run"
+msgstr "Comenzile pe care botul le va scrie vor rula automat"
+
+#: src/ui/settings.py:298
+msgid "Max number of commands"
+msgstr "Număr maxim de comenzi"
+
+#: src/ui/settings.py:298
+msgid ""
+"Maximum number of commands that the bot will write after a single user "
+"request"
+msgstr ""
+"Numărul maxim de comenzi pe care botul le va scrie după o singură cerere a "
+"utilizatorului"
+
+#: src/ui/settings.py:329
+msgid "Browser"
+msgstr "Browser"
+
+#: src/ui/settings.py:329
+msgid "Settings for the browser"
+msgstr "Setări pentru browser"
+
+#: src/ui/settings.py:334
+msgid "Use external browser"
+msgstr "Utilizează browser extern"
+
+#: src/ui/settings.py:334
+msgid "Use an external browser to open links instead of integrated one"
+msgstr ""
+"Utilizează un browser extern pentru a deschide linkuri în loc de cel integrat"
+
+#: src/ui/settings.py:341
+msgid "Persist browser session"
+msgstr "Păstrează sesiunea browserului"
+
+#: src/ui/settings.py:341
+msgid ""
+"Persist browser session between restarts. Turning this off requires "
+"restarting the program"
+msgstr ""
+"Păstrează sesiunea browserului între reporniri. Dezactivarea acestei opțiuni "
+"necesită repornirea programului"
+
+#: src/ui/settings.py:346
+msgid "Delete browser data"
+msgstr "Șterge datele browserului"
+
+#: src/ui/settings.py:346
+msgid "Delete browser session and data"
+msgstr "Șterge sesiunea și datele browserului"
+
+#: src/ui/settings.py:353
+msgid "Initial browser page"
+msgstr "Pagina inițială a browserului"
+
+#: src/ui/settings.py:353
+msgid "The page where the browser will start"
+msgstr "Pagina de unde va porni browserul"
+
+#: src/ui/settings.py:360
+msgid "Search string"
+msgstr "Șir de căutare"
+
+#: src/ui/settings.py:360
+#, python-format
+msgid "The search string used in the browser, %s is replaced with the query"
+msgstr "Șirul de căutare utilizat în browser, %s este înlocuit cu interogarea"
+
+#: src/ui/settings.py:381
+msgid "Document Sources (RAG)"
+msgstr "Surse documente (RAG)"
+
+#: src/ui/settings.py:381
+msgid "Include content from your documents in the responses"
+msgstr "Includeți conținut din documentele dvs. în răspunsuri"
+
+#: src/ui/settings.py:382
+msgid "Document Analyzer"
+msgstr "Analizor Documente"
+
+#: src/ui/settings.py:382
+msgid ""
+"The document analyzer uses multiple techniques to extract relevant "
+"information about your documents"
+msgstr ""
+"Analizatorul de documente utilizează multiple tehnici pentru a extrage "
+"informații relevante despre documentele dvs."
+
+#: src/ui/settings.py:393
+msgid "Read documents if unsupported"
+msgstr "Citiți documentele dacă nu sunt acceptate"
+
+#: src/ui/settings.py:393
+msgid ""
+"If the LLM does not support reading documents, relevant information about "
+"documents sent in the chat will be given to the LLM using your Document "
+"Analyzer."
+msgstr ""
+"Dacă LLM-ul nu suportă citirea documentelor, informațiile relevante despre "
+"documentele trimise în chat vor fi furnizate LLM-ului utilizând analizorul "
+"dvs. de documente."
+
+#: src/ui/settings.py:397
+msgid "Maximum tokens for RAG"
+msgstr "Token-uri maxime pentru RAG"
+
+#: src/ui/settings.py:397
+msgid ""
+"The maximum amount of tokens to be used for RAG. If the documents do not "
+"exceed this token count,\n"
+"dump all of them in the context"
+msgstr ""
+"Cantitatea maximă de token-uri de utilizat pentru RAG. Dacă documentele nu "
+"depășesc acest număr de token-uri,\n"
+"le aruncă pe toate în context"
+
+#: src/ui/settings.py:414
+msgid "Document Folder"
+msgstr "Folder documente"
+
+#: src/ui/settings.py:414
+msgid ""
+"Put the documents you want to query in your document folder. The document "
+"analyzer will find relevant information in them if this option is enabled"
+msgstr ""
+"Puneți documentele pe care doriți să le interogați în folderul dvs. de "
+"documente. Analizatorul de documente va găsi informații relevante în ele, "
+"dacă această opțiune este activată"
+
+#: src/ui/settings.py:417
+msgid "Put all the documents you want to index in this folder"
+msgstr "Puneți toate documentele pe care doriți să le indexați în acest folder"
+
+#: src/ui/settings.py:453
+msgid "Silence threshold"
+msgstr "Prag de silențiu"
+
+#: src/ui/settings.py:453
+msgid ""
+"Silence threshold in seconds, percentage of the volume to be considered "
+"silence"
+msgstr ""
+"Prag de silențiu în secunde, procent din volum pentru a fi considerat "
+"silențiu"
+
+#: src/ui/settings.py:466
+msgid "Silence time"
+msgstr "Timp de silențiu"
+
+#: src/ui/settings.py:466
+msgid "Silence time in seconds before recording stops automatically"
+msgstr ""
+"Timpul de silențiu în secunde înainte ca înregistrarea să se oprească automat"
+
+#: src/ui/settings.py:1046
+msgid "Not enough permissions"
+msgstr "Nu sunt suficiente permisiuni"
+
+#: src/ui/settings.py:1050
+msgid ""
+"Newelle does not have enough permissions to run commands on your system, "
+"please run the following command"
+msgstr ""
+"Newelle nu are suficiente permisiuni pentru a rula comenzi pe sistemul dvs., "
+"vă rugăm să rulați următoarea comandă"
+
+#: src/ui/settings.py:1051 src/ui/settings.py:1064
+msgid "Understood"
+msgstr "Înțeles"
+
+#: src/ui/settings.py:1063
+msgid "Pip path deleted"
+msgstr "Calea pip a fost ștearsă"
+
+#: src/ui/settings.py:1063
+msgid ""
+"The pip path has been deleted, you can now reinstall the dependencies. This "
+"operation requires a restart of the application."
+msgstr ""
+"Calea pip a fost ștearsă, acum puteți reinstala dependențele. Această "
+"operațiune necesită repornirea aplicației."
+
+#: src/main.py:205
+msgid "Terminal threads are still running in the background"
+msgstr "Firele de execuție ale terminalului rulează încă în fundal"
+
+#: src/main.py:206
+msgid "When you close the window, they will be automatically terminated"
+msgstr "Când închideți fereastra, acestea vor fi terminate automat"
+
+#: src/main.py:210
+msgid "Close"
+msgstr "Închide"
+
+#: src/main.py:244
+msgid "Chat is rebooted"
+msgstr "Chatul a fost repornit"
+
+#: src/main.py:249
+msgid "Folder is rebooted"
+msgstr "Folderul a fost repornit"
+
+#: src/main.py:254
+msgid "Chat is created"
+msgstr "Chatul este creat"
+
+#: src/controller.py:135 src/window.py:1852
+msgid "Chat "
+msgstr "Chat "
 
 #: src/constants.py:20
 msgid "Newelle Demo API"
@@ -2109,34 +2142,6 @@ msgid "Prompts settings, custom extra prompt, custom prompts..."
 msgstr ""
 "Setări prompturi, prompt suplimentar personalizat, prompturi personalizate..."
 
-#: src/main.py:205
-msgid "Terminal threads are still running in the background"
-msgstr "Firele de execuție ale terminalului rulează încă în fundal"
-
-#: src/main.py:206
-msgid "When you close the window, they will be automatically terminated"
-msgstr "Când închideți fereastra, acestea vor fi terminate automat"
-
-#: src/main.py:210
-msgid "Close"
-msgstr "Închide"
-
-#: src/main.py:244
-msgid "Chat is rebooted"
-msgstr "Chatul a fost repornit"
-
-#: src/main.py:249
-msgid "Folder is rebooted"
-msgstr "Folderul a fost repornit"
-
-#: src/main.py:254
-msgid "Chat is created"
-msgstr "Chatul este creat"
-
-#: src/controller.py:135 src/window.py:1848
-msgid "Chat "
-msgstr "Chat "
-
 #: src/window.py:120
 msgid "Keyboard shorcuts"
 msgstr "Scurtături de la tastatură"
@@ -2303,87 +2308,87 @@ msgstr "Documente locale"
 msgid "Web search"
 msgstr "Căutare web"
 
-#: src/window.py:892
+#: src/window.py:896
 msgid "This provider does not have a model list"
 msgstr "Acest furnizor nu are o listă de modele"
 
-#: src/window.py:897
+#: src/window.py:901
 msgid " Models"
 msgstr " Modele"
 
-#: src/window.py:900
+#: src/window.py:904
 msgid "Search Models..."
 msgstr "Caută modele..."
 
-#: src/window.py:1128
+#: src/window.py:1132
 msgid "Create new profile"
 msgstr "Creează profil nou"
 
-#: src/window.py:1262
+#: src/window.py:1266
 msgid "Could not recognize your voice"
 msgstr "Nu am putut recunoaște vocea dvs."
 
-#: src/window.py:1299
+#: src/window.py:1303
 msgid "Images"
 msgstr "Imagini"
 
-#: src/window.py:1303
+#: src/window.py:1307
 msgid "LLM Supported Files"
 msgstr "Fișiere suportate de LLM"
 
-#: src/window.py:1311
+#: src/window.py:1315
 msgid "RAG Supported files"
 msgstr "Fișiere suportate RAG"
 
-#: src/window.py:1329
+#: src/window.py:1333
 msgid "Supported Files"
 msgstr "Fișiere suportate"
 
-#: src/window.py:1333
+#: src/window.py:1337
 msgid "All Files"
 msgstr "Toate fișierele"
 
-#: src/window.py:1339
+#: src/window.py:1343
 msgid "Attach file"
 msgstr "Atașează fișier"
 
-#: src/window.py:1594
+#: src/window.py:1598
 msgid "The file cannot be sent until the program is finished"
 msgstr "Fișierul nu poate fi trimis până când programul nu este terminat"
 
-#: src/window.py:1616
+#: src/window.py:1620
 msgid "The file is not recognized"
 msgstr "Fișierul nu este recunoscut"
 
-#: src/window.py:1635
+#: src/window.py:1639
 msgid "You can no longer continue the message."
 msgstr "Nu mai puteți continua mesajul."
 
-#: src/window.py:1660
+#: src/window.py:1664
 msgid "You can no longer regenerate the message."
 msgstr "Nu mai puteți regenera mesajul."
 
-#: src/window.py:1892
+#: src/window.py:1896
 msgid "Chat is cleared"
 msgstr "Chatul este șters"
 
-#: src/window.py:1917
+#: src/window.py:1921
 msgid "The message was canceled and deleted from history"
 msgstr "Mesajul a fost anulat și șters din istoric"
 
-#: src/window.py:1961
+#: src/window.py:1965
 msgid "The message cannot be sent until the program is finished"
 msgstr "Mesajul nu poate fi trimis până când programul nu este terminat"
 
-#: src/window.py:2939
+#: src/window.py:2951
 msgid "You can't edit a message while the program is running."
 msgstr "Nu poți edita un mesaj în timp ce programul rulează."
 
-#: src/window.py:3064
+#: src/window.py:3076
 msgid "Prompt content"
 msgstr "Conținut prompt"
 
-#: src/window.py:3323
+#: src/window.py:3335
 msgid ""
 "The neural network has access to your computer and any data in this chat and "
 "can run commands, be careful, we are not responsible for the neural network. "
@@ -2393,7 +2398,7 @@ msgstr ""
 "și poate rula comenzi, fiți atenți, nu suntem responsabili pentru rețeaua "
 "neurală. Nu partajați informații sensibile."
 
-#: src/window.py:3352
+#: src/window.py:3364
 msgid ""
 "The neural network has access to any data in this chat, be careful, we are "
 "not responsible for the neural network. Do not share any sensitive "
@@ -2403,19 +2408,19 @@ msgstr ""
 "suntem responsabili pentru rețeaua neurală. Nu partajați informații "
 "sensibile."
 
-#: src/window.py:3401
+#: src/window.py:3413
 msgid "Wrong folder path"
 msgstr "Calea folderului greșită"
 
-#: src/window.py:3434
+#: src/window.py:3446
 msgid "Thread has not been completed, thread number: "
 msgstr "Firul de execuție nu a fost finalizat, numărul firului de execuție: "
 
-#: src/window.py:3446
+#: src/window.py:3458
 msgid "Failed to open the folder"
 msgstr "Nu s-a putut deschide folderul"
 
-#: src/window.py:3625
+#: src/window.py:3637
 msgid "Chat is empty"
 msgstr "Chatul este gol"
 

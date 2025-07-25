@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-08 18:07+0800\n"
+"POT-Creation-Date: 2025-07-23 20:25+0800\n"
 "PO-Revision-Date: 2025-07-03 09:00+0200\n"
 "Last-Translator: Heimen Stoffels <vistausss@fastmail.com>\n"
 "Language-Team: \n"
@@ -600,7 +600,7 @@ msgstr "Aangepast eindpunt van de te gebruiken service"
 #: src/handlers/tts/elevenlabs_handler.py:17
 #: src/handlers/tts/groq_tts_handler.py:33
 #: src/handlers/tts/openai_tts_handler.py:19 src/handlers/tts/tts.py:33
-#: src/ui/settings.py:128
+#: src/ui/settings.py:129
 msgid "Voice"
 msgstr "Stem"
 
@@ -939,7 +939,7 @@ msgstr "Geen denkproces vastgelegd"
 msgid "Folder is Empty"
 msgstr "Map is leeg"
 
-#: src/ui/explorer.py:340 src/window.py:1576
+#: src/ui/explorer.py:340 src/window.py:1580
 msgid "File not found"
 msgstr "Bestand niet gevonden"
 
@@ -959,8 +959,8 @@ msgstr "Openen in bestandsbeheerder"
 msgid "Rename"
 msgstr "Hernoemen"
 
-#: src/ui/explorer.py:366 src/ui/explorer.py:502 src/ui/settings.py:275
-#: src/ui/settings.py:346
+#: src/ui/explorer.py:366 src/ui/explorer.py:502 src/ui/settings.py:276
+#: src/ui/settings.py:347
 msgid "Delete"
 msgstr "Verwijderen"
 
@@ -988,7 +988,7 @@ msgid "Renamed successfully"
 msgstr "Succesvol hernoemd"
 
 #: src/ui/explorer.py:476
-#, fuzzy
+#, fuzzy, python-brace-format
 msgid "Failed to rename: {}"
 msgstr "Hernoemen mislukt: {}"
 
@@ -997,6 +997,7 @@ msgid "Delete File?"
 msgstr "Bestand verwijderen?"
 
 #: src/ui/explorer.py:499
+#, python-brace-format
 msgid "Are you sure you want to delete \"{}\"?"
 msgstr "Weet u zeker dat u \"{}\" wilt verwijderen?"
 
@@ -1005,7 +1006,7 @@ msgid "Deleted successfully"
 msgstr "Succesvol verwijderd"
 
 #: src/ui/explorer.py:525
-#, fuzzy
+#, fuzzy, python-brace-format
 msgid "Failed to delete: {}"
 msgstr "Verwijderen mislukt: {}"
 
@@ -1071,7 +1072,7 @@ msgid "file"
 msgstr "bestand"
 
 #: src/ui/explorer.py:730
-#, fuzzy
+#, fuzzy, python-brace-format
 msgid "Failed to create {}: {}"
 msgstr "Maken van {}: {} mislukt"
 
@@ -1123,29 +1124,6 @@ msgstr "Inzoomen"
 #: src/ui/shortcuts.py:22
 msgid "Zoom out"
 msgstr "Uitzoomen"
-
-#: src/ui/extension.py:17 src/ui/presentation.py:131 src/constants.py:513
-#: src/window.py:118
-msgid "Extensions"
-msgstr "Extensies"
-
-#: src/ui/extension.py:50
-#, fuzzy
-msgid "Installed Extensions"
-msgstr "Geïnstalleerde extensies"
-
-#: src/ui/extension.py:85
-msgid "User guide to Extensions"
-msgstr "Gebruikershandleiding voor extensies"
-
-#: src/ui/extension.py:88
-#, fuzzy
-msgid "Download new Extensions"
-msgstr "Nieuwe extensies downloaden"
-
-#: src/ui/extension.py:91
-msgid "Install extension from file..."
-msgstr "Extensie installeren vanuit bestand..."
 
 #: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.appdata.xml.in:7
 #: data/io.github.qwersyk.Newelle.desktop.in:2
@@ -1199,7 +1177,7 @@ msgstr ""
 "verstuurt of uit uw eigen bestanden! Informatie die relevant is voor uw "
 "zoekopdracht wordt naar de LLM gestuurd."
 
-#: src/ui/presentation.py:124 src/ui/settings.py:236 src/window.py:649
+#: src/ui/presentation.py:124 src/ui/settings.py:237 src/window.py:649
 msgid "Command virtualization"
 msgstr "Commando virtualisatie"
 
@@ -1216,6 +1194,11 @@ msgstr ""
 "kwaadaardige code genereren!</b>\n"
 "Standaard worden uw commando's <b>gevirtualiseerd in de Flatpak-omgeving</"
 "b>, maar let op!"
+
+#: src/ui/presentation.py:131 src/ui/extension.py:17 src/constants.py:513
+#: src/window.py:118
+msgid "Extensions"
+msgstr "Extensies"
 
 #: src/ui/presentation.py:132
 msgid "You can extend Newelle's functionalities using extensions!"
@@ -1245,455 +1228,10 @@ msgstr "Begin met het gebruiken van de app"
 msgid "Start chatting"
 msgstr "Begin met chatten"
 
-#: src/ui/settings.py:46 src/constants.py:523
-msgid "General"
-msgstr "Algemeen"
-
-#: src/ui/settings.py:47 src/constants.py:478
-msgid "LLM"
-msgstr "LLM"
-
-#: src/ui/settings.py:48 src/constants.py:528
-msgid "Prompts"
-msgstr "Prompts"
-
-#: src/ui/settings.py:49
-msgid "Knowledge"
-msgstr "Kennis"
-
-#: src/ui/settings.py:53
-msgid "Language Model"
-msgstr "Taalmodel"
-
-#: src/ui/settings.py:62 src/ui/settings.py:82
-msgid "Other LLMs"
-msgstr "Andere LLM's"
-
-#: src/ui/settings.py:62 src/ui/settings.py:82
-msgid "Other available LLM providers"
-msgstr "Andere beschikbare LLM-providers"
-
-#: src/ui/settings.py:72
-#, fuzzy
-msgid "Advanced LLM Settings"
-msgstr "Geavanceerde LLM-instellingen"
-
-#: src/ui/settings.py:76
-msgid "Secondary Language Model"
-msgstr "Secundair taalmodel"
-
-#: src/ui/settings.py:76
-msgid ""
-"Model used for secondary tasks, like offer, chat name and memory generation"
-msgstr ""
-"Model gebruikt voor secundaire taken, zoals aanbod, chatnaam en "
-"geheugengeneratie"
-
-#: src/ui/settings.py:93
-msgid "Embedding Model"
-msgstr "Inbeddingsmodel"
-
-#: src/ui/settings.py:93
-msgid ""
-"Embedding is used to trasform text into vectors. Used by Long Term Memory "
-"and RAG. Changing it might require you to re-index documents or reset memory."
-msgstr ""
-"Inbedding wordt gebruikt om tekst om te zetten in vectoren. Wordt gebruikt "
-"door Langetermijngeheugen en RAG. Het wijzigen ervan kan vereisen dat u "
-"documenten opnieuw indexeert of het geheugen opnieuw instelt."
-
-#: src/ui/settings.py:104 src/window.py:647
-#, fuzzy
-msgid "Long Term Memory"
-msgstr "Langetermijngeheugen"
-
-#: src/ui/settings.py:104
-msgid "Keep memory of old conversations"
-msgstr "Geheugen van oude gesprekken bewaren"
-
-#: src/ui/settings.py:116 src/constants.py:401
-msgid "Web Search"
-msgstr "Webzoekopdracht"
-
-#: src/ui/settings.py:116
-msgid "Search information on the Web"
-msgstr "Informatie op het web zoeken"
-
-#: src/ui/settings.py:132
-msgid "Text To Speech Program"
-msgstr "Tekst naar spraakprogramma"
-
-#: src/ui/settings.py:132
-msgid "Choose which text to speech to use"
-msgstr "Kies welke tekst naar spraak te gebruiken"
-
-#: src/ui/settings.py:141
-msgid "Speech To Text Engine"
-msgstr "Spraak naar tekst-engine"
-
-#: src/ui/settings.py:141
-msgid "Choose which speech recognition engine you want"
-msgstr "Kies welke spraakherkenningsengine u wilt"
-
-#: src/ui/settings.py:149
-msgid "Automatic Speech To Text"
-msgstr "Automatische spraak naar tekst"
-
-#: src/ui/settings.py:149
-msgid "Automatically restart speech to text at the end of a text/TTS"
-msgstr ""
-"Automatisch spraak naar tekst opnieuw starten aan het einde van een tekst/TTS"
-
-#: src/ui/settings.py:153
-msgid "Prompt control"
-msgstr "Promptbeheer"
-
-#: src/ui/settings.py:158
-msgid "Interface"
-msgstr "Interface"
-
-#: src/ui/settings.py:161
-#, fuzzy
-msgid "Interface Size"
-msgstr "Interfagrootte"
-
-#: src/ui/settings.py:161
-msgid "Adjust the size of the interface"
-msgstr "Pas de grootte van de interface aan"
-
-#: src/ui/settings.py:173
-msgid "Editor color scheme"
-msgstr "Kleurenschema van editor"
-
-#: src/ui/settings.py:173
-msgid "Change the color scheme of the editor and codeblocks"
-msgstr "Wijzig het kleurenschema van de editor en codeblokken"
-
-#: src/ui/settings.py:180
-msgid "Hidden files"
-msgstr "Verborgen bestanden"
-
-#: src/ui/settings.py:180
-msgid "Show hidden files"
-msgstr "Verborgen bestanden tonen"
-
-#: src/ui/settings.py:186
-msgid "Send with ENTER"
-msgstr "Verzenden met ENTER"
-
-#: src/ui/settings.py:186
-msgid ""
-"If enabled, messages will be sent with ENTER, to go to a new line use "
-"CTRL+ENTER. If disabled, messages will be sent with SHIFT+ENTER, and newline "
-"with enter"
-msgstr ""
-"Indien ingeschakeld, worden berichten verzonden met ENTER. Gebruik "
-"CTRL+ENTER voor een nieuwe regel. Indien uitgeschakeld, worden berichten "
-"verzonden met SHIFT+ENTER en een nieuwe regel met enter"
-
-#: src/ui/settings.py:192
-msgid "Remove thinking from history"
-msgstr "Denken uit geschiedenis verwijderen"
-
-#: src/ui/settings.py:192
-msgid ""
-"Do not send old thinking blocks for reasoning models in order to reduce "
-"token usage"
-msgstr ""
-"Stuur geen oude denkblokken voor redeneermodellen om het tokengebruik te "
-"verminderen"
-
-#: src/ui/settings.py:198
-msgid "Display LaTeX"
-msgstr "LaTeX weergeven"
-
-#: src/ui/settings.py:198
-msgid "Display LaTeX formulas in chat"
-msgstr "LaTeX-formules weergeven in chat"
-
-#: src/ui/settings.py:204
-msgid "Reverse Chat Order"
-msgstr "Chatvolgorde omkeren"
-
-#: src/ui/settings.py:204
-msgid "Show most recent chats on top in chat list (change chat to apply)"
-msgstr ""
-"Toon meest recente chats bovenaan in chatlijst (wijzig chat om toe te passen)"
-
-#: src/ui/settings.py:210
-msgid "Automatically Generate Chat Names"
-msgstr "Automatisch chatnamen genereren"
-
-#: src/ui/settings.py:210
-msgid "Generate chat names automatically after the first two messages"
-msgstr "Chatnamen automatisch genereren na de eerste twee berichten"
-
-#: src/ui/settings.py:216
-msgid "Number of offers"
-msgstr "Aantal aanbiedingen"
-
-#: src/ui/settings.py:216
-msgid "Number of message suggestions to send to chat "
-msgstr "Aantal berichtsuggesties om naar de chat te sturen"
-
-#: src/ui/settings.py:223
-msgid "Username"
-msgstr "Gebruikersnaam"
-
-#: src/ui/settings.py:223
-#, python-brace-format
-msgid ""
-"Change the label that appears before your message\n"
-"This information is not sent to the LLM by default\n"
-"You can add it to a prompt using the {USER} variable"
-msgstr ""
-"Wijzig het label dat voor uw bericht verschijnt\n"
-"Deze informatie wordt standaard niet naar de LLM gestuurd\n"
-"U kunt het toevoegen aan een prompt met behulp van de variabele {USER}"
-
-#: src/ui/settings.py:233
-msgid "Neural Network Control"
-msgstr "Neuraal netwerkbeheer"
-
-#: src/ui/settings.py:236
-msgid "Run commands in a virtual machine"
-msgstr "Commando's uitvoeren in een virtuele machine"
-
-#: src/ui/settings.py:249
-msgid "External Terminal"
-msgstr "Externe terminal"
-
-#: src/ui/settings.py:249
-msgid "Choose the external terminal where to run the console commands"
-msgstr "Kies de externe terminal om de consolecommando's uit te voeren"
-
-#: src/ui/settings.py:258
-msgid "Program memory"
-msgstr "Programmgeheugen"
-
-#: src/ui/settings.py:258
-msgid "How long the program remembers the chat "
-msgstr "Hoe lang het programma de chat onthoudt"
-
-#: src/ui/settings.py:265
-msgid "Developer"
-msgstr "Ontwikkelaar"
-
-#: src/ui/settings.py:268 src/ui/stdout_monitor.py:31
-#: src/ui/stdout_monitor.py:41
+#: src/ui/stdout_monitor.py:31 src/ui/stdout_monitor.py:41
+#: src/ui/settings.py:269
 msgid "Program Output Monitor"
 msgstr "Programma-uitvoer monitor"
-
-#: src/ui/settings.py:268
-msgid ""
-"Monitor the program output in real-time, useful for debugging and seeing "
-"downloads progress"
-msgstr ""
-"Monitor de programma-uitvoer in real-time, nuttig voor debuggen en het zien "
-"van downloadvoortgang"
-
-#: src/ui/settings.py:269
-msgid "Open"
-msgstr "Openen"
-
-#: src/ui/settings.py:274
-msgid "Delete pip path"
-msgstr "Pip-pad verwijderen"
-
-#: src/ui/settings.py:274
-msgid "Remove the extra dependencies installed"
-msgstr "Verwijder de extra geïnstalleerde afhankelijkheden"
-
-#: src/ui/settings.py:294
-msgid "Auto-run commands"
-msgstr "Automatisch uitvoeren van commando's"
-
-#: src/ui/settings.py:294
-msgid "Commands that the bot will write will automatically run"
-msgstr "Commando's die de bot schrijft, worden automatisch uitgevoerd"
-
-#: src/ui/settings.py:297
-#, fuzzy
-msgid "Max number of commands"
-msgstr "Max. aantal commando's"
-
-#: src/ui/settings.py:297
-#, fuzzy
-msgid ""
-"Maximum number of commands that the bot will write after a single user "
-"request"
-msgstr ""
-"Maximaal aantal commando's dat de bot zal schrijven na één gebruikersverzoek"
-
-#: src/ui/settings.py:328
-msgid "Browser"
-msgstr "Browser"
-
-#: src/ui/settings.py:328
-msgid "Settings for the browser"
-msgstr "Instellingen voor de browser"
-
-#: src/ui/settings.py:333
-msgid "Use external browser"
-msgstr "Externe browser gebruiken"
-
-#: src/ui/settings.py:333
-msgid "Use an external browser to open links instead of integrated one"
-msgstr ""
-"Gebruik een externe browser om links te openen in plaats van de geïntegreerde"
-
-#: src/ui/settings.py:340
-msgid "Persist browser session"
-msgstr "Browsersessie behouden"
-
-#: src/ui/settings.py:340
-msgid ""
-"Persist browser session between restarts. Turning this off requires "
-"restarting the program"
-msgstr ""
-"Browsersessie behouden tussen herstarts. Als u dit uitschakelt, moet het "
-"programma opnieuw worden gestart"
-
-#: src/ui/settings.py:345
-msgid "Delete browser data"
-msgstr "Browsergegevens verwijderen"
-
-#: src/ui/settings.py:345
-msgid "Delete browser session and data"
-msgstr "Browsersessie en gegevens verwijderen"
-
-#: src/ui/settings.py:352
-msgid "Initial browser page"
-msgstr "Startpagina van de browser"
-
-#: src/ui/settings.py:352
-msgid "The page where the browser will start"
-msgstr "De pagina waar de browser zal starten"
-
-#: src/ui/settings.py:359
-#, fuzzy
-msgid "Search string"
-msgstr "Zoekreeks"
-
-#: src/ui/settings.py:359
-#, python-format
-msgid "The search string used in the browser, %s is replaced with the query"
-msgstr ""
-"De zoekreeks die in de browser wordt gebruikt, %s wordt vervangen door de "
-"zoekopdracht"
-
-#: src/ui/settings.py:380
-msgid "Document Sources (RAG)"
-msgstr "Documentbronnen (RAG)"
-
-#: src/ui/settings.py:380
-msgid "Include content from your documents in the responses"
-msgstr "Inhoud van uw documenten opnemen in de antwoorden"
-
-#: src/ui/settings.py:381
-msgid "Document Analyzer"
-msgstr "Documentanalysator"
-
-#: src/ui/settings.py:381
-msgid ""
-"The document analyzer uses multiple techniques to extract relevant "
-"information about your documents"
-msgstr ""
-"De documentanalysator gebruikt meerdere technieken om relevante informatie "
-"over uw documenten te extraheren"
-
-#: src/ui/settings.py:392
-msgid "Read documents if unsupported"
-msgstr "Documenten lezen indien niet ondersteund"
-
-#: src/ui/settings.py:392
-msgid ""
-"If the LLM does not support reading documents, relevant information about "
-"documents sent in the chat will be given to the LLM using your Document "
-"Analyzer."
-msgstr ""
-"Als de LLM het lezen van documenten niet ondersteunt, wordt relevante "
-"informatie over documenten die in de chat zijn verzonden, aan de LLM gegeven "
-"met behulp van uw documentanalysator."
-
-#: src/ui/settings.py:396
-msgid "Maximum tokens for RAG"
-msgstr "Maximaal aantal tokens voor RAG"
-
-#: src/ui/settings.py:396
-msgid ""
-"The maximum amount of tokens to be used for RAG. If the documents do not "
-"exceed this token count,\n"
-"dump all of them in the context"
-msgstr ""
-"Het maximale aantal tokens dat voor RAG moet worden gebruikt. Als de "
-"documenten dit tokentelling niet overschrijden,\n"
-"dump ze allemaal in de context"
-
-#: src/ui/settings.py:413
-msgid "Document Folder"
-msgstr "Documentmap"
-
-#: src/ui/settings.py:413
-msgid ""
-"Put the documents you want to query in your document folder. The document "
-"analyzer will find relevant information in them if this option is enabled"
-msgstr ""
-"Plaats de documenten die u wilt opvragen in uw documentmap. De "
-"documentanalysator vindt er relevante informatie in als deze optie is "
-"ingeschakeld"
-
-#: src/ui/settings.py:416
-msgid "Put all the documents you want to index in this folder"
-msgstr "Plaats alle documenten die u wilt indexeren in deze map"
-
-#: src/ui/settings.py:452
-msgid "Silence threshold"
-msgstr "Stiltegrens"
-
-#: src/ui/settings.py:452
-msgid ""
-"Silence threshold in seconds, percentage of the volume to be considered "
-"silence"
-msgstr ""
-"Stiltegrens in seconden, percentage van het volume dat als stilte moet "
-"worden beschouwd"
-
-#: src/ui/settings.py:465
-msgid "Silence time"
-msgstr "Stiltetijd"
-
-#: src/ui/settings.py:465
-msgid "Silence time in seconds before recording stops automatically"
-msgstr "Stiltetijd in seconden voordat de opname automatisch stopt"
-
-#: src/ui/settings.py:1044
-msgid "Not enough permissions"
-msgstr "Niet genoeg rechten"
-
-#: src/ui/settings.py:1048
-msgid ""
-"Newelle does not have enough permissions to run commands on your system, "
-"please run the following command"
-msgstr ""
-"Newelle heeft onvoldoende machtigingen om commando's op uw systeem uit te "
-"voeren, voer het volgende commando uit"
-
-#: src/ui/settings.py:1049 src/ui/settings.py:1062
-msgid "Understood"
-msgstr "Begrepen"
-
-#: src/ui/settings.py:1061
-msgid "Pip path deleted"
-msgstr "Pip-pad verwijderd"
-
-#: src/ui/settings.py:1061
-msgid ""
-"The pip path has been deleted, you can now reinstall the dependencies. This "
-"operation requires a restart of the application."
-msgstr ""
-"Het pip-pad is verwijderd, u kunt nu de afhankelijkheden opnieuw "
-"installeren. Deze bewerking vereist een herstart van de applicatie."
 
 #: src/ui/stdout_monitor.py:48
 msgid "Clear output"
@@ -1704,7 +1242,7 @@ msgid "Start/Stop monitoring"
 msgstr "Monitoring starten/stoppen"
 
 #: src/ui/stdout_monitor.py:109 src/ui/stdout_monitor.py:182
-#: src/ui/stdout_monitor.py:191 src/window.py:3686
+#: src/ui/stdout_monitor.py:191 src/window.py:3698
 msgid "Monitoring: Active"
 msgstr "Monitoring: Actief"
 
@@ -1713,12 +1251,504 @@ msgid "Monitoring: Stopped"
 msgstr "Monitoring: Gestopt"
 
 #: src/ui/stdout_monitor.py:116 src/ui/stdout_monitor.py:252
+#, python-brace-format
 msgid "Lines: {}"
 msgstr "Regels: {}"
 
 #: src/ui/stdout_monitor.py:267
 msgid "Lines: 0"
 msgstr "Regels: 0"
+
+#: src/ui/extension.py:50
+#, fuzzy
+msgid "Installed Extensions"
+msgstr "Geïnstalleerde extensies"
+
+#: src/ui/extension.py:86
+msgid "User guide to Extensions"
+msgstr "Gebruikershandleiding voor extensies"
+
+#: src/ui/extension.py:89
+#, fuzzy
+msgid "Download new Extensions"
+msgstr "Nieuwe extensies downloaden"
+
+#: src/ui/extension.py:92
+msgid "Install extension from file..."
+msgstr "Extensie installeren vanuit bestand..."
+
+#: src/ui/settings.py:47 src/constants.py:523
+msgid "General"
+msgstr "Algemeen"
+
+#: src/ui/settings.py:48 src/constants.py:478
+msgid "LLM"
+msgstr "LLM"
+
+#: src/ui/settings.py:49 src/constants.py:528
+msgid "Prompts"
+msgstr "Prompts"
+
+#: src/ui/settings.py:50
+msgid "Knowledge"
+msgstr "Kennis"
+
+#: src/ui/settings.py:54
+msgid "Language Model"
+msgstr "Taalmodel"
+
+#: src/ui/settings.py:63 src/ui/settings.py:83
+msgid "Other LLMs"
+msgstr "Andere LLM's"
+
+#: src/ui/settings.py:63 src/ui/settings.py:83
+msgid "Other available LLM providers"
+msgstr "Andere beschikbare LLM-providers"
+
+#: src/ui/settings.py:73
+#, fuzzy
+msgid "Advanced LLM Settings"
+msgstr "Geavanceerde LLM-instellingen"
+
+#: src/ui/settings.py:77
+msgid "Secondary Language Model"
+msgstr "Secundair taalmodel"
+
+#: src/ui/settings.py:77
+msgid ""
+"Model used for secondary tasks, like offer, chat name and memory generation"
+msgstr ""
+"Model gebruikt voor secundaire taken, zoals aanbod, chatnaam en "
+"geheugengeneratie"
+
+#: src/ui/settings.py:94
+msgid "Embedding Model"
+msgstr "Inbeddingsmodel"
+
+#: src/ui/settings.py:94
+msgid ""
+"Embedding is used to trasform text into vectors. Used by Long Term Memory "
+"and RAG. Changing it might require you to re-index documents or reset memory."
+msgstr ""
+"Inbedding wordt gebruikt om tekst om te zetten in vectoren. Wordt gebruikt "
+"door Langetermijngeheugen en RAG. Het wijzigen ervan kan vereisen dat u "
+"documenten opnieuw indexeert of het geheugen opnieuw instelt."
+
+#: src/ui/settings.py:105 src/window.py:647
+#, fuzzy
+msgid "Long Term Memory"
+msgstr "Langetermijngeheugen"
+
+#: src/ui/settings.py:105
+msgid "Keep memory of old conversations"
+msgstr "Geheugen van oude gesprekken bewaren"
+
+#: src/ui/settings.py:117 src/constants.py:401
+msgid "Web Search"
+msgstr "Webzoekopdracht"
+
+#: src/ui/settings.py:117
+msgid "Search information on the Web"
+msgstr "Informatie op het web zoeken"
+
+#: src/ui/settings.py:133
+msgid "Text To Speech Program"
+msgstr "Tekst naar spraakprogramma"
+
+#: src/ui/settings.py:133
+msgid "Choose which text to speech to use"
+msgstr "Kies welke tekst naar spraak te gebruiken"
+
+#: src/ui/settings.py:142
+msgid "Speech To Text Engine"
+msgstr "Spraak naar tekst-engine"
+
+#: src/ui/settings.py:142
+msgid "Choose which speech recognition engine you want"
+msgstr "Kies welke spraakherkenningsengine u wilt"
+
+#: src/ui/settings.py:150
+msgid "Automatic Speech To Text"
+msgstr "Automatische spraak naar tekst"
+
+#: src/ui/settings.py:150
+msgid "Automatically restart speech to text at the end of a text/TTS"
+msgstr ""
+"Automatisch spraak naar tekst opnieuw starten aan het einde van een tekst/TTS"
+
+#: src/ui/settings.py:154
+msgid "Prompt control"
+msgstr "Promptbeheer"
+
+#: src/ui/settings.py:159
+msgid "Interface"
+msgstr "Interface"
+
+#: src/ui/settings.py:162
+#, fuzzy
+msgid "Interface Size"
+msgstr "Interfagrootte"
+
+#: src/ui/settings.py:162
+msgid "Adjust the size of the interface"
+msgstr "Pas de grootte van de interface aan"
+
+#: src/ui/settings.py:174
+msgid "Editor color scheme"
+msgstr "Kleurenschema van editor"
+
+#: src/ui/settings.py:174
+msgid "Change the color scheme of the editor and codeblocks"
+msgstr "Wijzig het kleurenschema van de editor en codeblokken"
+
+#: src/ui/settings.py:181
+msgid "Hidden files"
+msgstr "Verborgen bestanden"
+
+#: src/ui/settings.py:181
+msgid "Show hidden files"
+msgstr "Verborgen bestanden tonen"
+
+#: src/ui/settings.py:187
+msgid "Send with ENTER"
+msgstr "Verzenden met ENTER"
+
+#: src/ui/settings.py:187
+msgid ""
+"If enabled, messages will be sent with ENTER, to go to a new line use "
+"CTRL+ENTER. If disabled, messages will be sent with SHIFT+ENTER, and newline "
+"with enter"
+msgstr ""
+"Indien ingeschakeld, worden berichten verzonden met ENTER. Gebruik "
+"CTRL+ENTER voor een nieuwe regel. Indien uitgeschakeld, worden berichten "
+"verzonden met SHIFT+ENTER en een nieuwe regel met enter"
+
+#: src/ui/settings.py:193
+msgid "Remove thinking from history"
+msgstr "Denken uit geschiedenis verwijderen"
+
+#: src/ui/settings.py:193
+msgid ""
+"Do not send old thinking blocks for reasoning models in order to reduce "
+"token usage"
+msgstr ""
+"Stuur geen oude denkblokken voor redeneermodellen om het tokengebruik te "
+"verminderen"
+
+#: src/ui/settings.py:199
+msgid "Display LaTeX"
+msgstr "LaTeX weergeven"
+
+#: src/ui/settings.py:199
+msgid "Display LaTeX formulas in chat"
+msgstr "LaTeX-formules weergeven in chat"
+
+#: src/ui/settings.py:205
+msgid "Reverse Chat Order"
+msgstr "Chatvolgorde omkeren"
+
+#: src/ui/settings.py:205
+msgid "Show most recent chats on top in chat list (change chat to apply)"
+msgstr ""
+"Toon meest recente chats bovenaan in chatlijst (wijzig chat om toe te passen)"
+
+#: src/ui/settings.py:211
+msgid "Automatically Generate Chat Names"
+msgstr "Automatisch chatnamen genereren"
+
+#: src/ui/settings.py:211
+msgid "Generate chat names automatically after the first two messages"
+msgstr "Chatnamen automatisch genereren na de eerste twee berichten"
+
+#: src/ui/settings.py:217
+msgid "Number of offers"
+msgstr "Aantal aanbiedingen"
+
+#: src/ui/settings.py:217
+msgid "Number of message suggestions to send to chat "
+msgstr "Aantal berichtsuggesties om naar de chat te sturen"
+
+#: src/ui/settings.py:224
+msgid "Username"
+msgstr "Gebruikersnaam"
+
+#: src/ui/settings.py:224
+#, python-brace-format
+msgid ""
+"Change the label that appears before your message\n"
+"This information is not sent to the LLM by default\n"
+"You can add it to a prompt using the {USER} variable"
+msgstr ""
+"Wijzig het label dat voor uw bericht verschijnt\n"
+"Deze informatie wordt standaard niet naar de LLM gestuurd\n"
+"U kunt het toevoegen aan een prompt met behulp van de variabele {USER}"
+
+#: src/ui/settings.py:234
+msgid "Neural Network Control"
+msgstr "Neuraal netwerkbeheer"
+
+#: src/ui/settings.py:237
+msgid "Run commands in a virtual machine"
+msgstr "Commando's uitvoeren in een virtuele machine"
+
+#: src/ui/settings.py:250
+msgid "External Terminal"
+msgstr "Externe terminal"
+
+#: src/ui/settings.py:250
+msgid "Choose the external terminal where to run the console commands"
+msgstr "Kies de externe terminal om de consolecommando's uit te voeren"
+
+#: src/ui/settings.py:259
+msgid "Program memory"
+msgstr "Programmgeheugen"
+
+#: src/ui/settings.py:259
+msgid "How long the program remembers the chat "
+msgstr "Hoe lang het programma de chat onthoudt"
+
+#: src/ui/settings.py:266
+msgid "Developer"
+msgstr "Ontwikkelaar"
+
+#: src/ui/settings.py:269
+msgid ""
+"Monitor the program output in real-time, useful for debugging and seeing "
+"downloads progress"
+msgstr ""
+"Monitor de programma-uitvoer in real-time, nuttig voor debuggen en het zien "
+"van downloadvoortgang"
+
+#: src/ui/settings.py:270
+msgid "Open"
+msgstr "Openen"
+
+#: src/ui/settings.py:275
+msgid "Delete pip path"
+msgstr "Pip-pad verwijderen"
+
+#: src/ui/settings.py:275
+msgid "Remove the extra dependencies installed"
+msgstr "Verwijder de extra geïnstalleerde afhankelijkheden"
+
+#: src/ui/settings.py:295
+msgid "Auto-run commands"
+msgstr "Automatisch uitvoeren van commando's"
+
+#: src/ui/settings.py:295
+msgid "Commands that the bot will write will automatically run"
+msgstr "Commando's die de bot schrijft, worden automatisch uitgevoerd"
+
+#: src/ui/settings.py:298
+#, fuzzy
+msgid "Max number of commands"
+msgstr "Max. aantal commando's"
+
+#: src/ui/settings.py:298
+#, fuzzy
+msgid ""
+"Maximum number of commands that the bot will write after a single user "
+"request"
+msgstr ""
+"Maximaal aantal commando's dat de bot zal schrijven na één gebruikersverzoek"
+
+#: src/ui/settings.py:329
+msgid "Browser"
+msgstr "Browser"
+
+#: src/ui/settings.py:329
+msgid "Settings for the browser"
+msgstr "Instellingen voor de browser"
+
+#: src/ui/settings.py:334
+msgid "Use external browser"
+msgstr "Externe browser gebruiken"
+
+#: src/ui/settings.py:334
+msgid "Use an external browser to open links instead of integrated one"
+msgstr ""
+"Gebruik een externe browser om links te openen in plaats van de geïntegreerde"
+
+#: src/ui/settings.py:341
+msgid "Persist browser session"
+msgstr "Browsersessie behouden"
+
+#: src/ui/settings.py:341
+msgid ""
+"Persist browser session between restarts. Turning this off requires "
+"restarting the program"
+msgstr ""
+"Browsersessie behouden tussen herstarts. Als u dit uitschakelt, moet het "
+"programma opnieuw worden gestart"
+
+#: src/ui/settings.py:346
+msgid "Delete browser data"
+msgstr "Browsergegevens verwijderen"
+
+#: src/ui/settings.py:346
+msgid "Delete browser session and data"
+msgstr "Browsersessie en gegevens verwijderen"
+
+#: src/ui/settings.py:353
+msgid "Initial browser page"
+msgstr "Startpagina van de browser"
+
+#: src/ui/settings.py:353
+msgid "The page where the browser will start"
+msgstr "De pagina waar de browser zal starten"
+
+#: src/ui/settings.py:360
+#, fuzzy
+msgid "Search string"
+msgstr "Zoekreeks"
+
+#: src/ui/settings.py:360
+#, python-format
+msgid "The search string used in the browser, %s is replaced with the query"
+msgstr ""
+"De zoekreeks die in de browser wordt gebruikt, %s wordt vervangen door de "
+"zoekopdracht"
+
+#: src/ui/settings.py:381
+msgid "Document Sources (RAG)"
+msgstr "Documentbronnen (RAG)"
+
+#: src/ui/settings.py:381
+msgid "Include content from your documents in the responses"
+msgstr "Inhoud van uw documenten opnemen in de antwoorden"
+
+#: src/ui/settings.py:382
+msgid "Document Analyzer"
+msgstr "Documentanalysator"
+
+#: src/ui/settings.py:382
+msgid ""
+"The document analyzer uses multiple techniques to extract relevant "
+"information about your documents"
+msgstr ""
+"De documentanalysator gebruikt meerdere technieken om relevante informatie "
+"over uw documenten te extraheren"
+
+#: src/ui/settings.py:393
+msgid "Read documents if unsupported"
+msgstr "Documenten lezen indien niet ondersteund"
+
+#: src/ui/settings.py:393
+msgid ""
+"If the LLM does not support reading documents, relevant information about "
+"documents sent in the chat will be given to the LLM using your Document "
+"Analyzer."
+msgstr ""
+"Als de LLM het lezen van documenten niet ondersteunt, wordt relevante "
+"informatie over documenten die in de chat zijn verzonden, aan de LLM gegeven "
+"met behulp van uw documentanalysator."
+
+#: src/ui/settings.py:397
+msgid "Maximum tokens for RAG"
+msgstr "Maximaal aantal tokens voor RAG"
+
+#: src/ui/settings.py:397
+msgid ""
+"The maximum amount of tokens to be used for RAG. If the documents do not "
+"exceed this token count,\n"
+"dump all of them in the context"
+msgstr ""
+"Het maximale aantal tokens dat voor RAG moet worden gebruikt. Als de "
+"documenten dit tokentelling niet overschrijden,\n"
+"dump ze allemaal in de context"
+
+#: src/ui/settings.py:414
+msgid "Document Folder"
+msgstr "Documentmap"
+
+#: src/ui/settings.py:414
+msgid ""
+"Put the documents you want to query in your document folder. The document "
+"analyzer will find relevant information in them if this option is enabled"
+msgstr ""
+"Plaats de documenten die u wilt opvragen in uw documentmap. De "
+"documentanalysator vindt er relevante informatie in als deze optie is "
+"ingeschakeld"
+
+#: src/ui/settings.py:417
+msgid "Put all the documents you want to index in this folder"
+msgstr "Plaats alle documenten die u wilt indexeren in deze map"
+
+#: src/ui/settings.py:453
+msgid "Silence threshold"
+msgstr "Stiltegrens"
+
+#: src/ui/settings.py:453
+msgid ""
+"Silence threshold in seconds, percentage of the volume to be considered "
+"silence"
+msgstr ""
+"Stiltegrens in seconden, percentage van het volume dat als stilte moet "
+"worden beschouwd"
+
+#: src/ui/settings.py:466
+msgid "Silence time"
+msgstr "Stiltetijd"
+
+#: src/ui/settings.py:466
+msgid "Silence time in seconds before recording stops automatically"
+msgstr "Stiltetijd in seconden voordat de opname automatisch stopt"
+
+#: src/ui/settings.py:1046
+msgid "Not enough permissions"
+msgstr "Niet genoeg rechten"
+
+#: src/ui/settings.py:1050
+msgid ""
+"Newelle does not have enough permissions to run commands on your system, "
+"please run the following command"
+msgstr ""
+"Newelle heeft onvoldoende machtigingen om commando's op uw systeem uit te "
+"voeren, voer het volgende commando uit"
+
+#: src/ui/settings.py:1051 src/ui/settings.py:1064
+msgid "Understood"
+msgstr "Begrepen"
+
+#: src/ui/settings.py:1063
+msgid "Pip path deleted"
+msgstr "Pip-pad verwijderd"
+
+#: src/ui/settings.py:1063
+msgid ""
+"The pip path has been deleted, you can now reinstall the dependencies. This "
+"operation requires a restart of the application."
+msgstr ""
+"Het pip-pad is verwijderd, u kunt nu de afhankelijkheden opnieuw "
+"installeren. Deze bewerking vereist een herstart van de applicatie."
+
+#: src/main.py:205
+msgid "Terminal threads are still running in the background"
+msgstr "Terminal-threads draaien nog steeds op de achtergrond"
+
+#: src/main.py:206
+msgid "When you close the window, they will be automatically terminated"
+msgstr "Wanneer u het venster sluit, worden ze automatisch beëindigd"
+
+#: src/main.py:210
+msgid "Close"
+msgstr "Sluiten"
+
+#: src/main.py:244
+msgid "Chat is rebooted"
+msgstr "Chat is opnieuw opgestart"
+
+#: src/main.py:249
+msgid "Folder is rebooted"
+msgstr "Map is opnieuw opgestart"
+
+#: src/main.py:254
+msgid "Chat is created"
+msgstr "Chat is aangemaakt"
+
+#: src/controller.py:135 src/window.py:1852
+msgid "Chat "
+msgstr "Chat"
 
 #: src/constants.py:20
 msgid "Newelle Demo API"
@@ -2171,34 +2201,6 @@ msgstr ""
 msgid "Prompts settings, custom extra prompt, custom prompts..."
 msgstr "Promptinstellingen, aangepaste extra prompt, aangepaste prompts..."
 
-#: src/main.py:205
-msgid "Terminal threads are still running in the background"
-msgstr "Terminal-threads draaien nog steeds op de achtergrond"
-
-#: src/main.py:206
-msgid "When you close the window, they will be automatically terminated"
-msgstr "Wanneer u het venster sluit, worden ze automatisch beëindigd"
-
-#: src/main.py:210
-msgid "Close"
-msgstr "Sluiten"
-
-#: src/main.py:244
-msgid "Chat is rebooted"
-msgstr "Chat is opnieuw opgestart"
-
-#: src/main.py:249
-msgid "Folder is rebooted"
-msgstr "Map is opnieuw opgestart"
-
-#: src/main.py:254
-msgid "Chat is created"
-msgstr "Chat is aangemaakt"
-
-#: src/controller.py:135 src/window.py:1848
-msgid "Chat "
-msgstr "Chat"
-
 #: src/window.py:120
 msgid "Keyboard shorcuts"
 msgstr "Sneltoetsen"
@@ -2371,88 +2373,88 @@ msgstr "Lokale documenten"
 msgid "Web search"
 msgstr "Webzoekopdracht"
 
-#: src/window.py:892
+#: src/window.py:896
 msgid "This provider does not have a model list"
 msgstr "Deze provider heeft geen modellenlijst"
 
-#: src/window.py:897
+#: src/window.py:901
 msgid " Models"
 msgstr " Modellen"
 
-#: src/window.py:900
+#: src/window.py:904
 msgid "Search Models..."
 msgstr "Modellen zoeken..."
 
-#: src/window.py:1128
+#: src/window.py:1132
 msgid "Create new profile"
 msgstr "Nieuw profiel aanmaken"
 
-#: src/window.py:1262
+#: src/window.py:1266
 msgid "Could not recognize your voice"
 msgstr "Kon uw stem niet herkennen"
 
-#: src/window.py:1299
+#: src/window.py:1303
 msgid "Images"
 msgstr "Afbeeldingen"
 
-#: src/window.py:1303
+#: src/window.py:1307
 msgid "LLM Supported Files"
 msgstr "LLM ondersteunde bestanden"
 
-#: src/window.py:1311
+#: src/window.py:1315
 msgid "RAG Supported files"
 msgstr "RAG ondersteunde bestanden"
 
-#: src/window.py:1329
+#: src/window.py:1333
 msgid "Supported Files"
 msgstr "Ondersteunde bestanden"
 
-#: src/window.py:1333
+#: src/window.py:1337
 msgid "All Files"
 msgstr "Alle bestanden"
 
-#: src/window.py:1339
+#: src/window.py:1343
 msgid "Attach file"
 msgstr "Bestand bijvoegen"
 
-#: src/window.py:1594
+#: src/window.py:1598
 msgid "The file cannot be sent until the program is finished"
 msgstr "Het bestand kan pas worden verzonden als het programma is voltooid"
 
-#: src/window.py:1616
+#: src/window.py:1620
 msgid "The file is not recognized"
 msgstr "Het bestand wordt niet herkend"
 
-#: src/window.py:1635
+#: src/window.py:1639
 msgid "You can no longer continue the message."
 msgstr "U kunt het bericht niet meer voortzetten."
 
-#: src/window.py:1660
+#: src/window.py:1664
 msgid "You can no longer regenerate the message."
 msgstr "U kunt het bericht niet meer opnieuw genereren."
 
-#: src/window.py:1892
+#: src/window.py:1896
 msgid "Chat is cleared"
 msgstr "Chat is gewist"
 
-#: src/window.py:1917
+#: src/window.py:1921
 msgid "The message was canceled and deleted from history"
 msgstr "Het bericht is geannuleerd en uit de geschiedenis verwijderd"
 
-#: src/window.py:1961
+#: src/window.py:1965
 msgid "The message cannot be sent until the program is finished"
 msgstr "Het bericht kan pas worden verzonden als het programma is voltooid"
 
-#: src/window.py:2939
+#: src/window.py:2951
 msgid "You can't edit a message while the program is running."
 msgstr "U kunt een bericht niet bewerken terwijl het programma actief is."
 
-#: src/window.py:3064
+#: src/window.py:3076
 #, fuzzy
 msgid "Prompt content"
 msgstr "Promptinhoud"
 
-#: src/window.py:3323
+#: src/window.py:3335
 #, fuzzy
 msgid ""
 "The neural network has access to your computer and any data in this chat and "
@@ -2463,7 +2465,7 @@ msgstr ""
 "chat en kan commando's uitvoeren. Wees voorzichtig, wij zijn niet "
 "verantwoordelijk voor het neurale netwerk. Deel geen gevoelige informatie."
 
-#: src/window.py:3352
+#: src/window.py:3364
 #, fuzzy
 msgid ""
 "The neural network has access to any data in this chat, be careful, we are "
@@ -2474,19 +2476,19 @@ msgstr ""
 "voorzichtig, wij zijn niet verantwoordelijk voor het neurale netwerk. Deel "
 "geen gevoelige informatie."
 
-#: src/window.py:3401
+#: src/window.py:3413
 msgid "Wrong folder path"
 msgstr "Verkeerd map-pad"
 
-#: src/window.py:3434
+#: src/window.py:3446
 msgid "Thread has not been completed, thread number: "
 msgstr "Thread is niet voltooid, threadnummer: "
 
-#: src/window.py:3446
+#: src/window.py:3458
 msgid "Failed to open the folder"
 msgstr "Map kon niet worden geopend"
 
-#: src/window.py:3625
+#: src/window.py:3637
 msgid "Chat is empty"
 msgstr "Chat is leeg"
 

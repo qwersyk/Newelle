@@ -63,11 +63,11 @@ src/ui/widgets/tipscarousel.py
 src/ui/widgets/thinking.py
 src/ui/explorer.py
 src/ui/shortcuts.py
-src/ui/extension.py
 src/ui/mini_window.py
 src/ui/presentation.py
-src/ui/settings.py
 src/ui/stdout_monitor.py
+src/ui/extension.py
+src/ui/settings.py
 src/utility/audio_recorder.py
 src/utility/util.py
 src/utility/website_scraper.py
@@ -76,10 +76,10 @@ src/utility/stdout_capture.py
 src/utility/replacehelper.py
 src/utility/strings.py
 src/ui_controller.py
-src/constants.py
 src/extensions.py
 src/main.py
 src/controller.py
+src/constants.py
 src/window.py
 data/io.github.qwersyk.Newelle.appdata.xml.in
 data/io.github.qwersyk.Newelle.desktop.in
