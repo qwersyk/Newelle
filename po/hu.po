@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-08 18:07+0800\n"
+"POT-Creation-Date: 2025-07-23 20:25+0800\n"
 "PO-Revision-Date: 2025-07-03 09:00+0200\n"
 "Last-Translator: Yehor Hliebov <qsk@gmx.at>\n"
 "Language-Team: Hungarian <qsk@gmx.at>\n"
@@ -589,7 +589,7 @@ msgstr "A használandó szolgáltatás egyéni végpontja"
 #: src/handlers/tts/elevenlabs_handler.py:17
 #: src/handlers/tts/groq_tts_handler.py:33
 #: src/handlers/tts/openai_tts_handler.py:19 src/handlers/tts/tts.py:33
-#: src/ui/settings.py:128
+#: src/ui/settings.py:129
 msgid "Voice"
 msgstr "Hang"
 
@@ -920,7 +920,7 @@ msgstr "Nincs rögzített gondolkodási folyamat"
 msgid "Folder is Empty"
 msgstr "A mappa üres"
 
-#: src/ui/explorer.py:340 src/window.py:1576
+#: src/ui/explorer.py:340 src/window.py:1580
 msgid "File not found"
 msgstr "Fájl nem található"
 
@@ -940,8 +940,8 @@ msgstr "Megnyitás fájlkezelőben"
 msgid "Rename"
 msgstr "Átnevezés"
 
-#: src/ui/explorer.py:366 src/ui/explorer.py:502 src/ui/settings.py:275
-#: src/ui/settings.py:346
+#: src/ui/explorer.py:366 src/ui/explorer.py:502 src/ui/settings.py:276
+#: src/ui/settings.py:347
 msgid "Delete"
 msgstr "Törlés"
 
@@ -967,6 +967,7 @@ msgid "Renamed successfully"
 msgstr "Sikeresen átnevezve"
 
 #: src/ui/explorer.py:476
+#, python-brace-format
 msgid "Failed to rename: {}"
 msgstr "Sikertelen átnevezés: {}"
 
@@ -975,6 +976,7 @@ msgid "Delete File?"
 msgstr "Fájl törlése?"
 
 #: src/ui/explorer.py:499
+#, python-brace-format
 msgid "Are you sure you want to delete \"{}\"?"
 msgstr "Biztosan törölni szeretné a „{}” fájlt?"
 
@@ -983,6 +985,7 @@ msgid "Deleted successfully"
 msgstr "Sikeresen törölve"
 
 #: src/ui/explorer.py:525
+#, python-brace-format
 msgid "Failed to delete: {}"
 msgstr "Sikertelen törlés: {}"
 
@@ -1043,6 +1046,7 @@ msgid "file"
 msgstr "fájl"
 
 #: src/ui/explorer.py:730
+#, python-brace-format
 msgid "Failed to create {}: {}"
 msgstr "Sikertelen létrehozás {}: {}"
 
@@ -1093,27 +1097,6 @@ msgstr "Nagyítás"
 #: src/ui/shortcuts.py:22
 msgid "Zoom out"
 msgstr "Kicsinyítés"
-
-#: src/ui/extension.py:17 src/ui/presentation.py:131 src/constants.py:513
-#: src/window.py:118
-msgid "Extensions"
-msgstr "Bővítmények"
-
-#: src/ui/extension.py:50
-msgid "Installed Extensions"
-msgstr "Telepített bővítmények"
-
-#: src/ui/extension.py:85
-msgid "User guide to Extensions"
-msgstr "Felhasználói útmutató a bővítményekhez"
-
-#: src/ui/extension.py:88
-msgid "Download new Extensions"
-msgstr "Új bővítmények letöltése"
-
-#: src/ui/extension.py:91
-msgid "Install extension from file..."
-msgstr "Bővítmény telepítése fájlból..."
 
 #: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.appdata.xml.in:7
 #: data/io.github.qwersyk.Newelle.desktop.in:2
@@ -1166,7 +1149,7 @@ msgstr ""
 "dokumentumokból vagy a saját fájljaiból! A lekérdezéséhez kapcsolódó "
 "információk elküldésre kerülnek az LLM-nek."
 
-#: src/ui/presentation.py:124 src/ui/settings.py:236 src/window.py:649
+#: src/ui/presentation.py:124 src/ui/settings.py:237 src/window.py:649
 msgid "Command virtualization"
 msgstr "Parancs virtualizálás"
 
@@ -1183,6 +1166,11 @@ msgstr ""
 "kódot generálhat!</b>\n"
 "Alapértelmezés szerint a parancsok <b>virtualizálva lesznek a Flatpak "
 "környezetben</b>, de figyeljen oda!"
+
+#: src/ui/presentation.py:131 src/ui/extension.py:17 src/constants.py:513
+#: src/window.py:118
+msgid "Extensions"
+msgstr "Bővítmények"
 
 #: src/ui/presentation.py:132
 msgid "You can extend Newelle's functionalities using extensions!"
@@ -1210,450 +1198,10 @@ msgstr "Az alkalmazás használatának megkezdése"
 msgid "Start chatting"
 msgstr "Csevegés indítása"
 
-#: src/ui/settings.py:46 src/constants.py:523
-msgid "General"
-msgstr "Általános"
-
-#: src/ui/settings.py:47 src/constants.py:478
-msgid "LLM"
-msgstr "LLM"
-
-#: src/ui/settings.py:48 src/constants.py:528
-msgid "Prompts"
-msgstr "Üzenetek"
-
-#: src/ui/settings.py:49
-msgid "Knowledge"
-msgstr "Tudás"
-
-#: src/ui/settings.py:53
-msgid "Language Model"
-msgstr "Nyelvi modell"
-
-#: src/ui/settings.py:62 src/ui/settings.py:82
-msgid "Other LLMs"
-msgstr "Egyéb LLM-ek"
-
-#: src/ui/settings.py:62 src/ui/settings.py:82
-msgid "Other available LLM providers"
-msgstr "Egyéb elérhető LLM szolgáltatók"
-
-#: src/ui/settings.py:72
-msgid "Advanced LLM Settings"
-msgstr "Haladó LLM beállítások"
-
-#: src/ui/settings.py:76
-msgid "Secondary Language Model"
-msgstr "Másodlagos nyelvi modell"
-
-#: src/ui/settings.py:76
-msgid ""
-"Model used for secondary tasks, like offer, chat name and memory generation"
-msgstr ""
-"Másodlagos feladatokhoz, például ajánlatokhoz, csevegésnevekhez és memória "
-"generáláshoz használt modell"
-
-#: src/ui/settings.py:93
-msgid "Embedding Model"
-msgstr "Beágyazási modell"
-
-#: src/ui/settings.py:93
-msgid ""
-"Embedding is used to trasform text into vectors. Used by Long Term Memory "
-"and RAG. Changing it might require you to re-index documents or reset memory."
-msgstr ""
-"A beágyazás szöveg vektorokká alakítására szolgál. A hosszú távú memória és "
-"a RAG használja. A módosítása szükségessé teheti a dokumentumok "
-"újrainexelését vagy a memória alaphelyzetbe állítását."
-
-#: src/ui/settings.py:104 src/window.py:647
-msgid "Long Term Memory"
-msgstr "Hosszú távú memória"
-
-#: src/ui/settings.py:104
-msgid "Keep memory of old conversations"
-msgstr "Régi beszélgetések megőrzése"
-
-#: src/ui/settings.py:116 src/constants.py:401
-msgid "Web Search"
-msgstr "Webes keresés"
-
-#: src/ui/settings.py:116
-msgid "Search information on the Web"
-msgstr "Információ keresése a weben"
-
-#: src/ui/settings.py:132
-msgid "Text To Speech Program"
-msgstr "Szövegfelolvasó program"
-
-#: src/ui/settings.py:132
-msgid "Choose which text to speech to use"
-msgstr "Válassza ki a használni kívánt szövegfelolvasót"
-
-#: src/ui/settings.py:141
-msgid "Speech To Text Engine"
-msgstr "Beszédfelismerő motor"
-
-#: src/ui/settings.py:141
-msgid "Choose which speech recognition engine you want"
-msgstr "Válassza ki a használni kívánt beszédfelismerő motort"
-
-#: src/ui/settings.py:149
-msgid "Automatic Speech To Text"
-msgstr "Automatikus beszédfelismerés"
-
-#: src/ui/settings.py:149
-msgid "Automatically restart speech to text at the end of a text/TTS"
-msgstr "Automatikusan újraindítja a beszédfelismerést egy szöveg/TTS végén"
-
-#: src/ui/settings.py:153
-msgid "Prompt control"
-msgstr "Üzenet vezérlés"
-
-#: src/ui/settings.py:158
-msgid "Interface"
-msgstr "Felület"
-
-#: src/ui/settings.py:161
-msgid "Interface Size"
-msgstr "Felület mérete"
-
-#: src/ui/settings.py:161
-msgid "Adjust the size of the interface"
-msgstr "A felület méretének beállítása"
-
-#: src/ui/settings.py:173
-msgid "Editor color scheme"
-msgstr "Szerkesztő színvilága"
-
-#: src/ui/settings.py:173
-msgid "Change the color scheme of the editor and codeblocks"
-msgstr "A szerkesztő és a kódblokkok színvilágának módosítása"
-
-#: src/ui/settings.py:180
-msgid "Hidden files"
-msgstr "Rejtett fájlok"
-
-#: src/ui/settings.py:180
-msgid "Show hidden files"
-msgstr "Rejtett fájlok megjelenítése"
-
-#: src/ui/settings.py:186
-msgid "Send with ENTER"
-msgstr "Küldés ENTER billentyűvel"
-
-#: src/ui/settings.py:186
-msgid ""
-"If enabled, messages will be sent with ENTER, to go to a new line use "
-"CTRL+ENTER. If disabled, messages will be sent with SHIFT+ENTER, and newline "
-"with enter"
-msgstr ""
-"Ha engedélyezve van, az üzeneteket ENTER-rel küldi el, új sorba a CTRL+ENTER "
-"billentyűkkel lehet lépni. Ha letiltva van, az üzeneteket SHIFT+ENTER-rel "
-"küldi el, és az ENTER új sort hoz létre."
-
-#: src/ui/settings.py:192
-msgid "Remove thinking from history"
-msgstr "Gondolkodás eltávolítása az előzményekből"
-
-#: src/ui/settings.py:192
-msgid ""
-"Do not send old thinking blocks for reasoning models in order to reduce "
-"token usage"
-msgstr ""
-"Ne küldjön régi gondolkodási blokkokat a gondolkodó modelleknek a token "
-"felhasználás csökkentése érdekében."
-
-#: src/ui/settings.py:198
-msgid "Display LaTeX"
-msgstr "LaTeX megjelenítése"
-
-#: src/ui/settings.py:198
-msgid "Display LaTeX formulas in chat"
-msgstr "LaTeX képletek megjelenítése a csevegésben"
-
-#: src/ui/settings.py:204
-msgid "Reverse Chat Order"
-msgstr "Csevegés sorrendjének megfordítása"
-
-#: src/ui/settings.py:204
-msgid "Show most recent chats on top in chat list (change chat to apply)"
-msgstr ""
-"A legutóbbi csevegések megjelenítése felül a csevegéslistán (a csevegés "
-"módosítása után lép érvénybe)"
-
-#: src/ui/settings.py:210
-msgid "Automatically Generate Chat Names"
-msgstr "Automatikus csevegésnevek generálása"
-
-#: src/ui/settings.py:210
-msgid "Generate chat names automatically after the first two messages"
-msgstr "A csevegésnevek automatikus generálása az első két üzenet után"
-
-#: src/ui/settings.py:216
-msgid "Number of offers"
-msgstr "Ajánlatok száma"
-
-#: src/ui/settings.py:216
-msgid "Number of message suggestions to send to chat "
-msgstr "A csevegéshez küldendő üzenetjavaslatok száma "
-
-#: src/ui/settings.py:223
-msgid "Username"
-msgstr "Felhasználónév"
-
-#: src/ui/settings.py:223
-#, python-brace-format
-msgid ""
-"Change the label that appears before your message\n"
-"This information is not sent to the LLM by default\n"
-"You can add it to a prompt using the {USER} variable"
-msgstr ""
-"Módosítsa az üzenete előtt megjelenő címkét\n"
-"Ez az információ alapértelmezés szerint nem kerül elküldésre az LLM-nek\n"
-"Hozzáadhatja egy üzenethez a {USER} változó használatával"
-
-#: src/ui/settings.py:233
-msgid "Neural Network Control"
-msgstr "Neuronhálózati vezérlés"
-
-#: src/ui/settings.py:236
-msgid "Run commands in a virtual machine"
-msgstr "Parancsok futtatása virtuális gépen"
-
-#: src/ui/settings.py:249
-msgid "External Terminal"
-msgstr "Külső terminál"
-
-#: src/ui/settings.py:249
-msgid "Choose the external terminal where to run the console commands"
-msgstr ""
-"Válassza ki a külső terminált, ahol a konzolparancsokat futtatni szeretné"
-
-#: src/ui/settings.py:258
-msgid "Program memory"
-msgstr "Programmemória"
-
-#: src/ui/settings.py:258
-msgid "How long the program remembers the chat "
-msgstr "Meddig emlékszik a program a csevegésre "
-
-#: src/ui/settings.py:265
-msgid "Developer"
-msgstr "Fejlesztő"
-
-#: src/ui/settings.py:268 src/ui/stdout_monitor.py:31
-#: src/ui/stdout_monitor.py:41
+#: src/ui/stdout_monitor.py:31 src/ui/stdout_monitor.py:41
+#: src/ui/settings.py:269
 msgid "Program Output Monitor"
 msgstr "Programkimenet-figyelő"
-
-#: src/ui/settings.py:268
-msgid ""
-"Monitor the program output in real-time, useful for debugging and seeing "
-"downloads progress"
-msgstr ""
-"Figyelje a program kimenetét valós időben, ami hasznos hibakereséshez és a "
-"letöltések előrehaladásának nyomon követéséhez"
-
-#: src/ui/settings.py:269
-msgid "Open"
-msgstr "Megnyitás"
-
-#: src/ui/settings.py:274
-msgid "Delete pip path"
-msgstr "Pip útvonal törlése"
-
-#: src/ui/settings.py:274
-msgid "Remove the extra dependencies installed"
-msgstr "Az extra telepített függőségek eltávolítása"
-
-#: src/ui/settings.py:294
-msgid "Auto-run commands"
-msgstr "Parancsok automatikus futtatása"
-
-#: src/ui/settings.py:294
-msgid "Commands that the bot will write will automatically run"
-msgstr "A bot által írt parancsok automatikusan futnak"
-
-#: src/ui/settings.py:297
-msgid "Max number of commands"
-msgstr "Parancsok maximális száma"
-
-#: src/ui/settings.py:297
-msgid ""
-"Maximum number of commands that the bot will write after a single user "
-"request"
-msgstr ""
-"A parancsok maximális száma, amelyet a bot egyetlen felhasználói kérés után "
-"írni fog"
-
-#: src/ui/settings.py:328
-msgid "Browser"
-msgstr "Böngésző"
-
-#: src/ui/settings.py:328
-msgid "Settings for the browser"
-msgstr "Böngésző beállításai"
-
-#: src/ui/settings.py:333
-msgid "Use external browser"
-msgstr "Külső böngésző használata"
-
-#: src/ui/settings.py:333
-msgid "Use an external browser to open links instead of integrated one"
-msgstr "Külső böngésző használata a linkek megnyitásához az integrált helyett"
-
-#: src/ui/settings.py:340
-msgid "Persist browser session"
-msgstr "Böngésző munkamenet megtartása"
-
-#: src/ui/settings.py:340
-msgid ""
-"Persist browser session between restarts. Turning this off requires "
-"restarting the program"
-msgstr ""
-"Böngésző munkamenet megőrzése újraindítások között. Ennek kikapcsolása a "
-"program újraindítását igényli"
-
-#: src/ui/settings.py:345
-msgid "Delete browser data"
-msgstr "Böngészőadatok törlése"
-
-#: src/ui/settings.py:345
-msgid "Delete browser session and data"
-msgstr "Böngésző munkamenet és adatok törlése"
-
-#: src/ui/settings.py:352
-msgid "Initial browser page"
-msgstr "Kezdő böngészőoldal"
-
-#: src/ui/settings.py:352
-msgid "The page where the browser will start"
-msgstr "Az oldal, ahol a böngésző elindul"
-
-#: src/ui/settings.py:359
-msgid "Search string"
-msgstr "Keresési karakterlánc"
-
-#: src/ui/settings.py:359
-#, python-format
-msgid "The search string used in the browser, %s is replaced with the query"
-msgstr ""
-"A böngészőben használt keresési karakterlánc, a %s helyére a lekérdezés kerül"
-
-#: src/ui/settings.py:380
-msgid "Document Sources (RAG)"
-msgstr "Dokumentumforrások (RAG)"
-
-#: src/ui/settings.py:380
-msgid "Include content from your documents in the responses"
-msgstr "Dokumentumok tartalmának mellékelése a válaszokban"
-
-#: src/ui/settings.py:381
-msgid "Document Analyzer"
-msgstr "Dokumentumelemző"
-
-#: src/ui/settings.py:381
-msgid ""
-"The document analyzer uses multiple techniques to extract relevant "
-"information about your documents"
-msgstr ""
-"A dokumentumelemző több technikát is használ a releváns információk "
-"kinyerésére a dokumentumokból"
-
-#: src/ui/settings.py:392
-msgid "Read documents if unsupported"
-msgstr "Dokumentumok olvasása, ha nem támogatott"
-
-#: src/ui/settings.py:392
-msgid ""
-"If the LLM does not support reading documents, relevant information about "
-"documents sent in the chat will be given to the LLM using your Document "
-"Analyzer."
-msgstr ""
-"Ha az LLM nem támogatja a dokumentumok olvasását, a csevegésben küldött "
-"dokumentumokról releváns információk kerülnek az LLM-hez az Ön "
-"dokumentumelemzőjével."
-
-#: src/ui/settings.py:396
-msgid "Maximum tokens for RAG"
-msgstr "Maximális tokenek RAG-hez"
-
-#: src/ui/settings.py:396
-msgid ""
-"The maximum amount of tokens to be used for RAG. If the documents do not "
-"exceed this token count,\n"
-"dump all of them in the context"
-msgstr ""
-"A RAG-hez használható tokenek maximális száma. Ha a dokumentumok nem "
-"haladják meg ezt a tokenszámot,\n"
-"az összeset kiürítjük a kontextusba"
-
-#: src/ui/settings.py:413
-msgid "Document Folder"
-msgstr "Dokumentummappa"
-
-#: src/ui/settings.py:413
-msgid ""
-"Put the documents you want to query in your document folder. The document "
-"analyzer will find relevant information in them if this option is enabled"
-msgstr ""
-"Helyezze a lekérdezni kívánt dokumentumokat a dokumentum mappájába. A "
-"dokumentumelemző releváns információkat talál bennük, ha ez az opció "
-"engedélyezve van."
-
-#: src/ui/settings.py:416
-msgid "Put all the documents you want to index in this folder"
-msgstr "Helyezze ebbe a mappába az összes indexelni kívánt dokumentumot"
-
-#: src/ui/settings.py:452
-msgid "Silence threshold"
-msgstr "Csend küszöb"
-
-#: src/ui/settings.py:452
-msgid ""
-"Silence threshold in seconds, percentage of the volume to be considered "
-"silence"
-msgstr ""
-"Csendküszöb másodpercekben, a hangerő százalékos aránya, amelyet csendnek "
-"kell tekinteni"
-
-#: src/ui/settings.py:465
-msgid "Silence time"
-msgstr "Csend időtartama"
-
-#: src/ui/settings.py:465
-msgid "Silence time in seconds before recording stops automatically"
-msgstr ""
-"Csend időtartama másodpercekben, mielőtt a felvétel automatikusan leáll"
-
-#: src/ui/settings.py:1044
-msgid "Not enough permissions"
-msgstr "Nincs elegendő engedély"
-
-#: src/ui/settings.py:1048
-msgid ""
-"Newelle does not have enough permissions to run commands on your system, "
-"please run the following command"
-msgstr ""
-"A Newelle-nek nincs elegendő engedélye parancsok futtatásához a rendszerén, "
-"kérjük, futtassa a következő parancsot"
-
-#: src/ui/settings.py:1049 src/ui/settings.py:1062
-msgid "Understood"
-msgstr "Értem"
-
-#: src/ui/settings.py:1061
-msgid "Pip path deleted"
-msgstr "Pip útvonal törölve"
-
-#: src/ui/settings.py:1061
-msgid ""
-"The pip path has been deleted, you can now reinstall the dependencies. This "
-"operation requires a restart of the application."
-msgstr ""
-"A pip útvonal törölve lett, most újra telepítheti a függőségeket. Ez a "
-"művelet az alkalmazás újraindítását igényli."
 
 #: src/ui/stdout_monitor.py:48
 msgid "Clear output"
@@ -1664,7 +1212,7 @@ msgid "Start/Stop monitoring"
 msgstr "Figyelés indítása/leállítása"
 
 #: src/ui/stdout_monitor.py:109 src/ui/stdout_monitor.py:182
-#: src/ui/stdout_monitor.py:191 src/window.py:3686
+#: src/ui/stdout_monitor.py:191 src/window.py:3698
 msgid "Monitoring: Active"
 msgstr "Figyelés: Aktív"
 
@@ -1673,12 +1221,497 @@ msgid "Monitoring: Stopped"
 msgstr "Figyelés: Leállítva"
 
 #: src/ui/stdout_monitor.py:116 src/ui/stdout_monitor.py:252
+#, python-brace-format
 msgid "Lines: {}"
 msgstr "Sorok: {}"
 
 #: src/ui/stdout_monitor.py:267
 msgid "Lines: 0"
 msgstr "Sorok: 0"
+
+#: src/ui/extension.py:50
+msgid "Installed Extensions"
+msgstr "Telepített bővítmények"
+
+#: src/ui/extension.py:86
+msgid "User guide to Extensions"
+msgstr "Felhasználói útmutató a bővítményekhez"
+
+#: src/ui/extension.py:89
+msgid "Download new Extensions"
+msgstr "Új bővítmények letöltése"
+
+#: src/ui/extension.py:92
+msgid "Install extension from file..."
+msgstr "Bővítmény telepítése fájlból..."
+
+#: src/ui/settings.py:47 src/constants.py:523
+msgid "General"
+msgstr "Általános"
+
+#: src/ui/settings.py:48 src/constants.py:478
+msgid "LLM"
+msgstr "LLM"
+
+#: src/ui/settings.py:49 src/constants.py:528
+msgid "Prompts"
+msgstr "Üzenetek"
+
+#: src/ui/settings.py:50
+msgid "Knowledge"
+msgstr "Tudás"
+
+#: src/ui/settings.py:54
+msgid "Language Model"
+msgstr "Nyelvi modell"
+
+#: src/ui/settings.py:63 src/ui/settings.py:83
+msgid "Other LLMs"
+msgstr "Egyéb LLM-ek"
+
+#: src/ui/settings.py:63 src/ui/settings.py:83
+msgid "Other available LLM providers"
+msgstr "Egyéb elérhető LLM szolgáltatók"
+
+#: src/ui/settings.py:73
+msgid "Advanced LLM Settings"
+msgstr "Haladó LLM beállítások"
+
+#: src/ui/settings.py:77
+msgid "Secondary Language Model"
+msgstr "Másodlagos nyelvi modell"
+
+#: src/ui/settings.py:77
+msgid ""
+"Model used for secondary tasks, like offer, chat name and memory generation"
+msgstr ""
+"Másodlagos feladatokhoz, például ajánlatokhoz, csevegésnevekhez és memória "
+"generáláshoz használt modell"
+
+#: src/ui/settings.py:94
+msgid "Embedding Model"
+msgstr "Beágyazási modell"
+
+#: src/ui/settings.py:94
+msgid ""
+"Embedding is used to trasform text into vectors. Used by Long Term Memory "
+"and RAG. Changing it might require you to re-index documents or reset memory."
+msgstr ""
+"A beágyazás szöveg vektorokká alakítására szolgál. A hosszú távú memória és "
+"a RAG használja. A módosítása szükségessé teheti a dokumentumok "
+"újrainexelését vagy a memória alaphelyzetbe állítását."
+
+#: src/ui/settings.py:105 src/window.py:647
+msgid "Long Term Memory"
+msgstr "Hosszú távú memória"
+
+#: src/ui/settings.py:105
+msgid "Keep memory of old conversations"
+msgstr "Régi beszélgetések megőrzése"
+
+#: src/ui/settings.py:117 src/constants.py:401
+msgid "Web Search"
+msgstr "Webes keresés"
+
+#: src/ui/settings.py:117
+msgid "Search information on the Web"
+msgstr "Információ keresése a weben"
+
+#: src/ui/settings.py:133
+msgid "Text To Speech Program"
+msgstr "Szövegfelolvasó program"
+
+#: src/ui/settings.py:133
+msgid "Choose which text to speech to use"
+msgstr "Válassza ki a használni kívánt szövegfelolvasót"
+
+#: src/ui/settings.py:142
+msgid "Speech To Text Engine"
+msgstr "Beszédfelismerő motor"
+
+#: src/ui/settings.py:142
+msgid "Choose which speech recognition engine you want"
+msgstr "Válassza ki a használni kívánt beszédfelismerő motort"
+
+#: src/ui/settings.py:150
+msgid "Automatic Speech To Text"
+msgstr "Automatikus beszédfelismerés"
+
+#: src/ui/settings.py:150
+msgid "Automatically restart speech to text at the end of a text/TTS"
+msgstr "Automatikusan újraindítja a beszédfelismerést egy szöveg/TTS végén"
+
+#: src/ui/settings.py:154
+msgid "Prompt control"
+msgstr "Üzenet vezérlés"
+
+#: src/ui/settings.py:159
+msgid "Interface"
+msgstr "Felület"
+
+#: src/ui/settings.py:162
+msgid "Interface Size"
+msgstr "Felület mérete"
+
+#: src/ui/settings.py:162
+msgid "Adjust the size of the interface"
+msgstr "A felület méretének beállítása"
+
+#: src/ui/settings.py:174
+msgid "Editor color scheme"
+msgstr "Szerkesztő színvilága"
+
+#: src/ui/settings.py:174
+msgid "Change the color scheme of the editor and codeblocks"
+msgstr "A szerkesztő és a kódblokkok színvilágának módosítása"
+
+#: src/ui/settings.py:181
+msgid "Hidden files"
+msgstr "Rejtett fájlok"
+
+#: src/ui/settings.py:181
+msgid "Show hidden files"
+msgstr "Rejtett fájlok megjelenítése"
+
+#: src/ui/settings.py:187
+msgid "Send with ENTER"
+msgstr "Küldés ENTER billentyűvel"
+
+#: src/ui/settings.py:187
+msgid ""
+"If enabled, messages will be sent with ENTER, to go to a new line use "
+"CTRL+ENTER. If disabled, messages will be sent with SHIFT+ENTER, and newline "
+"with enter"
+msgstr ""
+"Ha engedélyezve van, az üzeneteket ENTER-rel küldi el, új sorba a CTRL+ENTER "
+"billentyűkkel lehet lépni. Ha letiltva van, az üzeneteket SHIFT+ENTER-rel "
+"küldi el, és az ENTER új sort hoz létre."
+
+#: src/ui/settings.py:193
+msgid "Remove thinking from history"
+msgstr "Gondolkodás eltávolítása az előzményekből"
+
+#: src/ui/settings.py:193
+msgid ""
+"Do not send old thinking blocks for reasoning models in order to reduce "
+"token usage"
+msgstr ""
+"Ne küldjön régi gondolkodási blokkokat a gondolkodó modelleknek a token "
+"felhasználás csökkentése érdekében."
+
+#: src/ui/settings.py:199
+msgid "Display LaTeX"
+msgstr "LaTeX megjelenítése"
+
+#: src/ui/settings.py:199
+msgid "Display LaTeX formulas in chat"
+msgstr "LaTeX képletek megjelenítése a csevegésben"
+
+#: src/ui/settings.py:205
+msgid "Reverse Chat Order"
+msgstr "Csevegés sorrendjének megfordítása"
+
+#: src/ui/settings.py:205
+msgid "Show most recent chats on top in chat list (change chat to apply)"
+msgstr ""
+"A legutóbbi csevegések megjelenítése felül a csevegéslistán (a csevegés "
+"módosítása után lép érvénybe)"
+
+#: src/ui/settings.py:211
+msgid "Automatically Generate Chat Names"
+msgstr "Automatikus csevegésnevek generálása"
+
+#: src/ui/settings.py:211
+msgid "Generate chat names automatically after the first two messages"
+msgstr "A csevegésnevek automatikus generálása az első két üzenet után"
+
+#: src/ui/settings.py:217
+msgid "Number of offers"
+msgstr "Ajánlatok száma"
+
+#: src/ui/settings.py:217
+msgid "Number of message suggestions to send to chat "
+msgstr "A csevegéshez küldendő üzenetjavaslatok száma "
+
+#: src/ui/settings.py:224
+msgid "Username"
+msgstr "Felhasználónév"
+
+#: src/ui/settings.py:224
+#, python-brace-format
+msgid ""
+"Change the label that appears before your message\n"
+"This information is not sent to the LLM by default\n"
+"You can add it to a prompt using the {USER} variable"
+msgstr ""
+"Módosítsa az üzenete előtt megjelenő címkét\n"
+"Ez az információ alapértelmezés szerint nem kerül elküldésre az LLM-nek\n"
+"Hozzáadhatja egy üzenethez a {USER} változó használatával"
+
+#: src/ui/settings.py:234
+msgid "Neural Network Control"
+msgstr "Neuronhálózati vezérlés"
+
+#: src/ui/settings.py:237
+msgid "Run commands in a virtual machine"
+msgstr "Parancsok futtatása virtuális gépen"
+
+#: src/ui/settings.py:250
+msgid "External Terminal"
+msgstr "Külső terminál"
+
+#: src/ui/settings.py:250
+msgid "Choose the external terminal where to run the console commands"
+msgstr ""
+"Válassza ki a külső terminált, ahol a konzolparancsokat futtatni szeretné"
+
+#: src/ui/settings.py:259
+msgid "Program memory"
+msgstr "Programmemória"
+
+#: src/ui/settings.py:259
+msgid "How long the program remembers the chat "
+msgstr "Meddig emlékszik a program a csevegésre "
+
+#: src/ui/settings.py:266
+msgid "Developer"
+msgstr "Fejlesztő"
+
+#: src/ui/settings.py:269
+msgid ""
+"Monitor the program output in real-time, useful for debugging and seeing "
+"downloads progress"
+msgstr ""
+"Figyelje a program kimenetét valós időben, ami hasznos hibakereséshez és a "
+"letöltések előrehaladásának nyomon követéséhez"
+
+#: src/ui/settings.py:270
+msgid "Open"
+msgstr "Megnyitás"
+
+#: src/ui/settings.py:275
+msgid "Delete pip path"
+msgstr "Pip útvonal törlése"
+
+#: src/ui/settings.py:275
+msgid "Remove the extra dependencies installed"
+msgstr "Az extra telepített függőségek eltávolítása"
+
+#: src/ui/settings.py:295
+msgid "Auto-run commands"
+msgstr "Parancsok automatikus futtatása"
+
+#: src/ui/settings.py:295
+msgid "Commands that the bot will write will automatically run"
+msgstr "A bot által írt parancsok automatikusan futnak"
+
+#: src/ui/settings.py:298
+msgid "Max number of commands"
+msgstr "Parancsok maximális száma"
+
+#: src/ui/settings.py:298
+msgid ""
+"Maximum number of commands that the bot will write after a single user "
+"request"
+msgstr ""
+"A parancsok maximális száma, amelyet a bot egyetlen felhasználói kérés után "
+"írni fog"
+
+#: src/ui/settings.py:329
+msgid "Browser"
+msgstr "Böngésző"
+
+#: src/ui/settings.py:329
+msgid "Settings for the browser"
+msgstr "Böngésző beállításai"
+
+#: src/ui/settings.py:334
+msgid "Use external browser"
+msgstr "Külső böngésző használata"
+
+#: src/ui/settings.py:334
+msgid "Use an external browser to open links instead of integrated one"
+msgstr "Külső böngésző használata a linkek megnyitásához az integrált helyett"
+
+#: src/ui/settings.py:341
+msgid "Persist browser session"
+msgstr "Böngésző munkamenet megtartása"
+
+#: src/ui/settings.py:341
+msgid ""
+"Persist browser session between restarts. Turning this off requires "
+"restarting the program"
+msgstr ""
+"Böngésző munkamenet megőrzése újraindítások között. Ennek kikapcsolása a "
+"program újraindítását igényli"
+
+#: src/ui/settings.py:346
+msgid "Delete browser data"
+msgstr "Böngészőadatok törlése"
+
+#: src/ui/settings.py:346
+msgid "Delete browser session and data"
+msgstr "Böngésző munkamenet és adatok törlése"
+
+#: src/ui/settings.py:353
+msgid "Initial browser page"
+msgstr "Kezdő böngészőoldal"
+
+#: src/ui/settings.py:353
+msgid "The page where the browser will start"
+msgstr "Az oldal, ahol a böngésző elindul"
+
+#: src/ui/settings.py:360
+msgid "Search string"
+msgstr "Keresési karakterlánc"
+
+#: src/ui/settings.py:360
+#, python-format
+msgid "The search string used in the browser, %s is replaced with the query"
+msgstr ""
+"A böngészőben használt keresési karakterlánc, a %s helyére a lekérdezés kerül"
+
+#: src/ui/settings.py:381
+msgid "Document Sources (RAG)"
+msgstr "Dokumentumforrások (RAG)"
+
+#: src/ui/settings.py:381
+msgid "Include content from your documents in the responses"
+msgstr "Dokumentumok tartalmának mellékelése a válaszokban"
+
+#: src/ui/settings.py:382
+msgid "Document Analyzer"
+msgstr "Dokumentumelemző"
+
+#: src/ui/settings.py:382
+msgid ""
+"The document analyzer uses multiple techniques to extract relevant "
+"information about your documents"
+msgstr ""
+"A dokumentumelemző több technikát is használ a releváns információk "
+"kinyerésére a dokumentumokból"
+
+#: src/ui/settings.py:393
+msgid "Read documents if unsupported"
+msgstr "Dokumentumok olvasása, ha nem támogatott"
+
+#: src/ui/settings.py:393
+msgid ""
+"If the LLM does not support reading documents, relevant information about "
+"documents sent in the chat will be given to the LLM using your Document "
+"Analyzer."
+msgstr ""
+"Ha az LLM nem támogatja a dokumentumok olvasását, a csevegésben küldött "
+"dokumentumokról releváns információk kerülnek az LLM-hez az Ön "
+"dokumentumelemzőjével."
+
+#: src/ui/settings.py:397
+msgid "Maximum tokens for RAG"
+msgstr "Maximális tokenek RAG-hez"
+
+#: src/ui/settings.py:397
+msgid ""
+"The maximum amount of tokens to be used for RAG. If the documents do not "
+"exceed this token count,\n"
+"dump all of them in the context"
+msgstr ""
+"A RAG-hez használható tokenek maximális száma. Ha a dokumentumok nem "
+"haladják meg ezt a tokenszámot,\n"
+"az összeset kiürítjük a kontextusba"
+
+#: src/ui/settings.py:414
+msgid "Document Folder"
+msgstr "Dokumentummappa"
+
+#: src/ui/settings.py:414
+msgid ""
+"Put the documents you want to query in your document folder. The document "
+"analyzer will find relevant information in them if this option is enabled"
+msgstr ""
+"Helyezze a lekérdezni kívánt dokumentumokat a dokumentum mappájába. A "
+"dokumentumelemző releváns információkat talál bennük, ha ez az opció "
+"engedélyezve van."
+
+#: src/ui/settings.py:417
+msgid "Put all the documents you want to index in this folder"
+msgstr "Helyezze ebbe a mappába az összes indexelni kívánt dokumentumot"
+
+#: src/ui/settings.py:453
+msgid "Silence threshold"
+msgstr "Csend küszöb"
+
+#: src/ui/settings.py:453
+msgid ""
+"Silence threshold in seconds, percentage of the volume to be considered "
+"silence"
+msgstr ""
+"Csendküszöb másodpercekben, a hangerő százalékos aránya, amelyet csendnek "
+"kell tekinteni"
+
+#: src/ui/settings.py:466
+msgid "Silence time"
+msgstr "Csend időtartama"
+
+#: src/ui/settings.py:466
+msgid "Silence time in seconds before recording stops automatically"
+msgstr ""
+"Csend időtartama másodpercekben, mielőtt a felvétel automatikusan leáll"
+
+#: src/ui/settings.py:1046
+msgid "Not enough permissions"
+msgstr "Nincs elegendő engedély"
+
+#: src/ui/settings.py:1050
+msgid ""
+"Newelle does not have enough permissions to run commands on your system, "
+"please run the following command"
+msgstr ""
+"A Newelle-nek nincs elegendő engedélye parancsok futtatásához a rendszerén, "
+"kérjük, futtassa a következő parancsot"
+
+#: src/ui/settings.py:1051 src/ui/settings.py:1064
+msgid "Understood"
+msgstr "Értem"
+
+#: src/ui/settings.py:1063
+msgid "Pip path deleted"
+msgstr "Pip útvonal törölve"
+
+#: src/ui/settings.py:1063
+msgid ""
+"The pip path has been deleted, you can now reinstall the dependencies. This "
+"operation requires a restart of the application."
+msgstr ""
+"A pip útvonal törölve lett, most újra telepítheti a függőségeket. Ez a "
+"művelet az alkalmazás újraindítását igényli."
+
+#: src/main.py:205
+msgid "Terminal threads are still running in the background"
+msgstr "A terminálszálak még mindig futnak a háttérben"
+
+#: src/main.py:206
+msgid "When you close the window, they will be automatically terminated"
+msgstr "Az ablak bezárásakor automatikusan leállnak"
+
+#: src/main.py:210
+msgid "Close"
+msgstr "Bezárás"
+
+#: src/main.py:244
+msgid "Chat is rebooted"
+msgstr "A csevegés újraindult"
+
+#: src/main.py:249
+msgid "Folder is rebooted"
+msgstr "A mappa újraindult"
+
+#: src/main.py:254
+msgid "Chat is created"
+msgstr "A csevegés létrejött"
+
+#: src/controller.py:135 src/window.py:1852
+msgid "Chat "
+msgstr "Csevegés "
 
 #: src/constants.py:20
 msgid "Newelle Demo API"
@@ -2119,34 +2152,6 @@ msgstr ""
 msgid "Prompts settings, custom extra prompt, custom prompts..."
 msgstr "Üzenet beállítások, egyéni extra üzenet, egyéni üzenetek..."
 
-#: src/main.py:205
-msgid "Terminal threads are still running in the background"
-msgstr "A terminálszálak még mindig futnak a háttérben"
-
-#: src/main.py:206
-msgid "When you close the window, they will be automatically terminated"
-msgstr "Az ablak bezárásakor automatikusan leállnak"
-
-#: src/main.py:210
-msgid "Close"
-msgstr "Bezárás"
-
-#: src/main.py:244
-msgid "Chat is rebooted"
-msgstr "A csevegés újraindult"
-
-#: src/main.py:249
-msgid "Folder is rebooted"
-msgstr "A mappa újraindult"
-
-#: src/main.py:254
-msgid "Chat is created"
-msgstr "A csevegés létrejött"
-
-#: src/controller.py:135 src/window.py:1848
-msgid "Chat "
-msgstr "Csevegés "
-
 #: src/window.py:120
 msgid "Keyboard shorcuts"
 msgstr "Billentyűparancsok"
@@ -2314,87 +2319,87 @@ msgstr "Helyi dokumentumok"
 msgid "Web search"
 msgstr "Webes keresés"
 
-#: src/window.py:892
+#: src/window.py:896
 msgid "This provider does not have a model list"
 msgstr "Ennek a szolgáltatónak nincs modelllistája"
 
-#: src/window.py:897
+#: src/window.py:901
 msgid " Models"
 msgstr " Modellek"
 
-#: src/window.py:900
+#: src/window.py:904
 msgid "Search Models..."
 msgstr "Modellek keresése..."
 
-#: src/window.py:1128
+#: src/window.py:1132
 msgid "Create new profile"
 msgstr "Új profil létrehozása"
 
-#: src/window.py:1262
+#: src/window.py:1266
 msgid "Could not recognize your voice"
 msgstr "Nem sikerült felismerni a hangját"
 
-#: src/window.py:1299
+#: src/window.py:1303
 msgid "Images"
 msgstr "Képek"
 
-#: src/window.py:1303
+#: src/window.py:1307
 msgid "LLM Supported Files"
 msgstr "LLM támogatott fájlok"
 
-#: src/window.py:1311
+#: src/window.py:1315
 msgid "RAG Supported files"
 msgstr "RAG támogatott fájlok"
 
-#: src/window.py:1329
+#: src/window.py:1333
 msgid "Supported Files"
 msgstr "Támogatott fájlok"
 
-#: src/window.py:1333
+#: src/window.py:1337
 msgid "All Files"
 msgstr "Összes fájl"
 
-#: src/window.py:1339
+#: src/window.py:1343
 msgid "Attach file"
 msgstr "Fájl csatolása"
 
-#: src/window.py:1594
+#: src/window.py:1598
 msgid "The file cannot be sent until the program is finished"
 msgstr "A fájl nem küldhető el, amíg a program be nem fejeződik"
 
-#: src/window.py:1616
+#: src/window.py:1620
 msgid "The file is not recognized"
 msgstr "A fájl nem ismerhető fel"
 
-#: src/window.py:1635
+#: src/window.py:1639
 msgid "You can no longer continue the message."
 msgstr "Nem folytathatja az üzenetet."
 
-#: src/window.py:1660
+#: src/window.py:1664
 msgid "You can no longer regenerate the message."
 msgstr "Nem generálhatja újra az üzenetet."
 
-#: src/window.py:1892
+#: src/window.py:1896
 msgid "Chat is cleared"
 msgstr "A csevegés törölve"
 
-#: src/window.py:1917
+#: src/window.py:1921
 msgid "The message was canceled and deleted from history"
 msgstr "Az üzenet törölve és eltávolítva az előzményekből"
 
-#: src/window.py:1961
+#: src/window.py:1965
 msgid "The message cannot be sent until the program is finished"
 msgstr "Az üzenet nem küldhető el, amíg a program be nem fejeződik"
 
-#: src/window.py:2939
+#: src/window.py:2951
 msgid "You can't edit a message while the program is running."
 msgstr "Nem szerkeszthet üzenetet, amíg a program fut."
 
-#: src/window.py:3064
+#: src/window.py:3076
 msgid "Prompt content"
 msgstr "Üzenet tartalma"
 
-#: src/window.py:3323
+#: src/window.py:3335
 msgid ""
 "The neural network has access to your computer and any data in this chat and "
 "can run commands, be careful, we are not responsible for the neural network. "
@@ -2404,7 +2409,7 @@ msgstr ""
 "bármely adathoz, és parancsokat futtathat, legyen óvatos, nem vagyunk "
 "felelősek a neuronhálózatért. Ne osszon meg semmilyen érzékeny információt."
 
-#: src/window.py:3352
+#: src/window.py:3364
 msgid ""
 "The neural network has access to any data in this chat, be careful, we are "
 "not responsible for the neural network. Do not share any sensitive "
@@ -2414,19 +2419,19 @@ msgstr ""
 "nem vagyunk felelősek a neuronhálózatért. Ne osszon meg semmilyen érzékeny "
 "információt."
 
-#: src/window.py:3401
+#: src/window.py:3413
 msgid "Wrong folder path"
 msgstr "Hibás mappaelérési út"
 
-#: src/window.py:3434
+#: src/window.py:3446
 msgid "Thread has not been completed, thread number: "
 msgstr "A szál nem fejeződött be, szál száma: "
 
-#: src/window.py:3446
+#: src/window.py:3458
 msgid "Failed to open the folder"
 msgstr "Nem sikerült megnyitni a mappát"
 
-#: src/window.py:3625
+#: src/window.py:3637
 msgid "Chat is empty"
 msgstr "A csevegés üres"
 

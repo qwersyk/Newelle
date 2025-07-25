@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-08 18:07+0800\n"
+"POT-Creation-Date: 2025-07-23 20:25+0800\n"
 "PO-Revision-Date: 2025-07-03 09:00+0200\n"
 "Last-Translator: Yehor Hliebov <qsk@gmx.at>\n"
 "Language-Team: Ukrainian\n"
@@ -623,7 +623,7 @@ msgstr "Користувацька кінцева точка сервісу дл
 #: src/handlers/tts/elevenlabs_handler.py:17
 #: src/handlers/tts/groq_tts_handler.py:33
 #: src/handlers/tts/openai_tts_handler.py:19 src/handlers/tts/tts.py:33
-#: src/ui/settings.py:128
+#: src/ui/settings.py:129
 msgid "Voice"
 msgstr "Голос"
 
@@ -954,7 +954,7 @@ msgstr "Процес мислення не записано"
 msgid "Folder is Empty"
 msgstr "Папка порожня"
 
-#: src/ui/explorer.py:340 src/window.py:1576
+#: src/ui/explorer.py:340 src/window.py:1580
 msgid "File not found"
 msgstr "Файл не знайдено"
 
@@ -974,8 +974,8 @@ msgstr "Відкрити у файловому менеджері"
 msgid "Rename"
 msgstr "Перейменувати"
 
-#: src/ui/explorer.py:366 src/ui/explorer.py:502 src/ui/settings.py:275
-#: src/ui/settings.py:346
+#: src/ui/explorer.py:366 src/ui/explorer.py:502 src/ui/settings.py:276
+#: src/ui/settings.py:347
 msgid "Delete"
 msgstr "Видалити"
 
@@ -1003,7 +1003,7 @@ msgid "Renamed successfully"
 msgstr "Успішно перейменовано"
 
 #: src/ui/explorer.py:476
-#, fuzzy
+#, fuzzy, python-brace-format
 msgid "Failed to rename: {}"
 msgstr "Не вдалося перейменувати: {}"
 
@@ -1012,6 +1012,7 @@ msgid "Delete File?"
 msgstr "Видалити файл?"
 
 #: src/ui/explorer.py:499
+#, python-brace-format
 msgid "Are you sure you want to delete \"{}\"?"
 msgstr "Ви впевнені, що хочете видалити \"{}\"?"
 
@@ -1020,7 +1021,7 @@ msgid "Deleted successfully"
 msgstr "Успішно видалено"
 
 #: src/ui/explorer.py:525
-#, fuzzy
+#, fuzzy, python-brace-format
 msgid "Failed to delete: {}"
 msgstr "Не вдалося видалити: {}"
 
@@ -1086,7 +1087,7 @@ msgid "file"
 msgstr "файл"
 
 #: src/ui/explorer.py:730
-#, fuzzy
+#, fuzzy, python-brace-format
 msgid "Failed to create {}: {}"
 msgstr "Не вдалося створити {}: {}"
 
@@ -1140,29 +1141,6 @@ msgstr "Збільшити"
 msgid "Zoom out"
 msgstr "Зменшити"
 
-#: src/ui/extension.py:17 src/ui/presentation.py:131 src/constants.py:513
-#: src/window.py:118
-msgid "Extensions"
-msgstr "Розширення"
-
-#: src/ui/extension.py:50
-#, fuzzy
-msgid "Installed Extensions"
-msgstr "Встановлені розширення"
-
-#: src/ui/extension.py:85
-msgid "User guide to Extensions"
-msgstr "Посібник користувача з розширень"
-
-#: src/ui/extension.py:88
-#, fuzzy
-msgid "Download new Extensions"
-msgstr "Завантажити нові розширення"
-
-#: src/ui/extension.py:91
-msgid "Install extension from file..."
-msgstr "Встановити розширення з файлу..."
-
 #: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.appdata.xml.in:7
 #: data/io.github.qwersyk.Newelle.desktop.in:2
 msgid "Newelle"
@@ -1215,7 +1193,7 @@ msgstr ""
 "надсилаєте в чат, або з ваших власних файлів! Інформація, що відповідає "
 "вашому запиту, буде надіслана в LLM."
 
-#: src/ui/presentation.py:124 src/ui/settings.py:236 src/window.py:649
+#: src/ui/presentation.py:124 src/ui/settings.py:237 src/window.py:649
 msgid "Command virtualization"
 msgstr "Віртуалізація команд"
 
@@ -1232,6 +1210,11 @@ msgstr ""
 "контролем, тому він може генерувати шкідливий код!</b>\n"
 "За замовчуванням, ваші команди будуть <b>віртуалізовані в середовищі "
 "Flatpak</b>, але будьте уважні!"
+
+#: src/ui/presentation.py:131 src/ui/extension.py:17 src/constants.py:513
+#: src/window.py:118
+msgid "Extensions"
+msgstr "Розширення"
 
 #: src/ui/presentation.py:132
 msgid "You can extend Newelle's functionalities using extensions!"
@@ -1258,454 +1241,10 @@ msgstr "Почати використання програми"
 msgid "Start chatting"
 msgstr "Почати спілкування"
 
-#: src/ui/settings.py:46 src/constants.py:523
-msgid "General"
-msgstr "Загальне"
-
-#: src/ui/settings.py:47 src/constants.py:478
-msgid "LLM"
-msgstr "LLM"
-
-#: src/ui/settings.py:48 src/constants.py:528
-#, fuzzy
-msgid "Prompts"
-msgstr "Запити"
-
-#: src/ui/settings.py:49
-msgid "Knowledge"
-msgstr "Знання"
-
-#: src/ui/settings.py:53
-msgid "Language Model"
-msgstr "Мовна модель"
-
-#: src/ui/settings.py:62 src/ui/settings.py:82
-msgid "Other LLMs"
-msgstr "Інші LLM"
-
-#: src/ui/settings.py:62 src/ui/settings.py:82
-msgid "Other available LLM providers"
-msgstr "Інші доступні LLM-провайдери"
-
-#: src/ui/settings.py:72
-#, fuzzy
-msgid "Advanced LLM Settings"
-msgstr "Розширені налаштування LLM"
-
-#: src/ui/settings.py:76
-#, fuzzy
-msgid "Secondary Language Model"
-msgstr "Додаткова мовна модель"
-
-#: src/ui/settings.py:76
-msgid ""
-"Model used for secondary tasks, like offer, chat name and memory generation"
-msgstr ""
-"Модель, що використовується для вторинних завдань, таких як пропозиція, "
-"назва чату та генерація пам'яті"
-
-#: src/ui/settings.py:93
-#, fuzzy
-msgid "Embedding Model"
-msgstr "Модель вбудовування"
-
-#: src/ui/settings.py:93
-msgid ""
-"Embedding is used to trasform text into vectors. Used by Long Term Memory "
-"and RAG. Changing it might require you to re-index documents or reset memory."
-msgstr ""
-"Вбудовування використовується для перетворення тексту на вектори. "
-"Використовується довготривалою пам'яттю та RAG. Зміна може вимагати "
-"переіндексації документів або скидання пам'яті."
-
-#: src/ui/settings.py:104 src/window.py:647
-#, fuzzy
-msgid "Long Term Memory"
-msgstr "Довготривала пам'ять"
-
-#: src/ui/settings.py:104
-msgid "Keep memory of old conversations"
-msgstr "Зберігати пам'ять про старі розмови"
-
-#: src/ui/settings.py:116 src/constants.py:401
-msgid "Web Search"
-msgstr "Веб-пошук"
-
-#: src/ui/settings.py:116
-msgid "Search information on the Web"
-msgstr "Шукати інформацію в Інтернеті"
-
-#: src/ui/settings.py:132
-msgid "Text To Speech Program"
-msgstr "Програма перетворення тексту на мовлення"
-
-#: src/ui/settings.py:132
-msgid "Choose which text to speech to use"
-msgstr "Виберіть, який синтезатор мовлення використовувати"
-
-#: src/ui/settings.py:141
-msgid "Speech To Text Engine"
-msgstr "Рушій перетворення мовлення на текст"
-
-#: src/ui/settings.py:141
-msgid "Choose which speech recognition engine you want"
-msgstr "Виберіть, який рушій розпізнавання мовлення ви хочете"
-
-#: src/ui/settings.py:149
-#, fuzzy
-msgid "Automatic Speech To Text"
-msgstr "Автоматичне перетворення мовлення на текст"
-
-#: src/ui/settings.py:149
-msgid "Automatically restart speech to text at the end of a text/TTS"
-msgstr "Автоматично перезапускати розпізнавання мови після тексту/TTS"
-
-#: src/ui/settings.py:153
-msgid "Prompt control"
-msgstr "Управління запитами"
-
-#: src/ui/settings.py:158
-msgid "Interface"
-msgstr "Інтерфейс"
-
-#: src/ui/settings.py:161
-#, fuzzy
-msgid "Interface Size"
-msgstr "Розмір інтерфейсу"
-
-#: src/ui/settings.py:161
-msgid "Adjust the size of the interface"
-msgstr "Налаштуйте розмір інтерфейсу"
-
-#: src/ui/settings.py:173
-msgid "Editor color scheme"
-msgstr "Кольорова схема редактора"
-
-#: src/ui/settings.py:173
-msgid "Change the color scheme of the editor and codeblocks"
-msgstr "Змінити кольорову схему редактора та блоків коду"
-
-#: src/ui/settings.py:180
-msgid "Hidden files"
-msgstr "Приховані файли"
-
-#: src/ui/settings.py:180
-msgid "Show hidden files"
-msgstr "Показати приховані файли"
-
-#: src/ui/settings.py:186
-msgid "Send with ENTER"
-msgstr "Надіслати за допомогою ENTER"
-
-#: src/ui/settings.py:186
-msgid ""
-"If enabled, messages will be sent with ENTER, to go to a new line use "
-"CTRL+ENTER. If disabled, messages will be sent with SHIFT+ENTER, and newline "
-"with enter"
-msgstr ""
-"Якщо увімкнено, повідомлення будуть надсилатися за допомогою ENTER, для "
-"переходу на новий рядок використовуйте CTRL+ENTER. Якщо вимкнено, "
-"повідомлення будуть надсилатися за допомогою SHIFT+ENTER, а новий рядок – за "
-"допомогою ENTER"
-
-#: src/ui/settings.py:192
-msgid "Remove thinking from history"
-msgstr "Видалити мислення з історії"
-
-#: src/ui/settings.py:192
-msgid ""
-"Do not send old thinking blocks for reasoning models in order to reduce "
-"token usage"
-msgstr ""
-"Не надсилати старі блоки мислення для моделей міркування, щоб зменшити "
-"використання токенів"
-
-#: src/ui/settings.py:198
-msgid "Display LaTeX"
-msgstr "Відображати LaTeX"
-
-#: src/ui/settings.py:198
-msgid "Display LaTeX formulas in chat"
-msgstr "Відображати формули LaTeX у чаті"
-
-#: src/ui/settings.py:204
-msgid "Reverse Chat Order"
-msgstr "Змінити порядок чатів"
-
-#: src/ui/settings.py:204
-msgid "Show most recent chats on top in chat list (change chat to apply)"
-msgstr ""
-"Показати найновіші чати вгорі списку чатів (змініть чат, щоб застосувати)"
-
-#: src/ui/settings.py:210
-msgid "Automatically Generate Chat Names"
-msgstr "Автоматично генерувати назви чатів"
-
-#: src/ui/settings.py:210
-msgid "Generate chat names automatically after the first two messages"
-msgstr "Генерувати назви чатів автоматично після перших двох повідомлень"
-
-#: src/ui/settings.py:216
-msgid "Number of offers"
-msgstr "Кількість пропозицій"
-
-#: src/ui/settings.py:216
-msgid "Number of message suggestions to send to chat "
-msgstr "Кількість пропозицій повідомлень для відправки в чат "
-
-#: src/ui/settings.py:223
-msgid "Username"
-msgstr "Ім'я користувача"
-
-#: src/ui/settings.py:223
-#, python-brace-format
-msgid ""
-"Change the label that appears before your message\n"
-"This information is not sent to the LLM by default\n"
-"You can add it to a prompt using the {USER} variable"
-msgstr ""
-"Змініть мітку, що з'являється перед вашим повідомленням\n"
-"Ця інформація не надсилається до LLM за замовчуванням\n"
-"Ви можете додати її до запиту за допомогою змінної {USER}"
-
-#: src/ui/settings.py:233
-msgid "Neural Network Control"
-msgstr "Управління нейронною мережею"
-
-#: src/ui/settings.py:236
-msgid "Run commands in a virtual machine"
-msgstr "Запускати команди у віртуальній машині"
-
-#: src/ui/settings.py:249
-msgid "External Terminal"
-msgstr "Зовнішній термінал"
-
-#: src/ui/settings.py:249
-msgid "Choose the external terminal where to run the console commands"
-msgstr "Виберіть зовнішній термінал, де запускатимуться консольні команди"
-
-#: src/ui/settings.py:258
-msgid "Program memory"
-msgstr "Пам'ять програми"
-
-#: src/ui/settings.py:258
-msgid "How long the program remembers the chat "
-msgstr "Як довго програма пам'ятає чат "
-
-#: src/ui/settings.py:265
-msgid "Developer"
-msgstr "Розробник"
-
-#: src/ui/settings.py:268 src/ui/stdout_monitor.py:31
-#: src/ui/stdout_monitor.py:41
+#: src/ui/stdout_monitor.py:31 src/ui/stdout_monitor.py:41
+#: src/ui/settings.py:269
 msgid "Program Output Monitor"
 msgstr "Монітор виведення програми"
-
-#: src/ui/settings.py:268
-msgid ""
-"Monitor the program output in real-time, useful for debugging and seeing "
-"downloads progress"
-msgstr ""
-"Моніторинг виводу програми в реальному часі, корисно для налагодження та "
-"перегляду прогресу завантажень"
-
-#: src/ui/settings.py:269
-msgid "Open"
-msgstr "Відкрити"
-
-#: src/ui/settings.py:274
-msgid "Delete pip path"
-msgstr "Видалити шлях pip"
-
-#: src/ui/settings.py:274
-msgid "Remove the extra dependencies installed"
-msgstr "Видалити встановлені додаткові залежності"
-
-#: src/ui/settings.py:294
-msgid "Auto-run commands"
-msgstr "Автозапуск команд"
-
-#: src/ui/settings.py:294
-msgid "Commands that the bot will write will automatically run"
-msgstr "Команди, які напише бот, будуть автоматично виконуватися"
-
-#: src/ui/settings.py:297
-#, fuzzy
-msgid "Max number of commands"
-msgstr "Максимальна кількість команд"
-
-#: src/ui/settings.py:297
-#, fuzzy
-msgid ""
-"Maximum number of commands that the bot will write after a single user "
-"request"
-msgstr ""
-"Максимальна кількість команд, які бот напише після одного запиту користувача"
-
-#: src/ui/settings.py:328
-msgid "Browser"
-msgstr "Браузер"
-
-#: src/ui/settings.py:328
-msgid "Settings for the browser"
-msgstr "Налаштування браузера"
-
-#: src/ui/settings.py:333
-msgid "Use external browser"
-msgstr "Використовувати зовнішній браузер"
-
-#: src/ui/settings.py:333
-msgid "Use an external browser to open links instead of integrated one"
-msgstr ""
-"Використовувати зовнішній браузер для відкриття посилань замість вбудованого"
-
-#: src/ui/settings.py:340
-msgid "Persist browser session"
-msgstr "Зберігати сесію браузера"
-
-#: src/ui/settings.py:340
-msgid ""
-"Persist browser session between restarts. Turning this off requires "
-"restarting the program"
-msgstr ""
-"Зберігати сесію браузера між перезапусками. Вимкнення цієї функції вимагає "
-"перезапуску програми"
-
-#: src/ui/settings.py:345
-msgid "Delete browser data"
-msgstr "Видалити дані браузера"
-
-#: src/ui/settings.py:345
-msgid "Delete browser session and data"
-msgstr "Видалити сесію та дані браузера"
-
-#: src/ui/settings.py:352
-msgid "Initial browser page"
-msgstr "Початкова сторінка браузера"
-
-#: src/ui/settings.py:352
-msgid "The page where the browser will start"
-msgstr "Сторінка, з якої почнеться браузер"
-
-#: src/ui/settings.py:359
-#, fuzzy
-msgid "Search string"
-msgstr "Рядок пошуку"
-
-#: src/ui/settings.py:359
-#, python-format
-msgid "The search string used in the browser, %s is replaced with the query"
-msgstr "Рядок пошуку, що використовується у браузері, %s замінюється запитом"
-
-#: src/ui/settings.py:380
-msgid "Document Sources (RAG)"
-msgstr "Джерела документів (RAG)"
-
-#: src/ui/settings.py:380
-msgid "Include content from your documents in the responses"
-msgstr "Включати вміст з ваших документів у відповіді"
-
-#: src/ui/settings.py:381
-msgid "Document Analyzer"
-msgstr "Аналізатор документів"
-
-#: src/ui/settings.py:381
-msgid ""
-"The document analyzer uses multiple techniques to extract relevant "
-"information about your documents"
-msgstr ""
-"Аналізатор документів використовує кілька технік для вилучення релевантної "
-"інформації з ваших документів"
-
-#: src/ui/settings.py:392
-msgid "Read documents if unsupported"
-msgstr "Читати документи, якщо не підтримується"
-
-#: src/ui/settings.py:392
-msgid ""
-"If the LLM does not support reading documents, relevant information about "
-"documents sent in the chat will be given to the LLM using your Document "
-"Analyzer."
-msgstr ""
-"Якщо LLM не підтримує читання документів, відповідна інформація про "
-"документи, надіслані в чат, буде надана LLM за допомогою вашого аналізатора "
-"документів."
-
-#: src/ui/settings.py:396
-msgid "Maximum tokens for RAG"
-msgstr "Максимальна кількість токенів для RAG"
-
-#: src/ui/settings.py:396
-msgid ""
-"The maximum amount of tokens to be used for RAG. If the documents do not "
-"exceed this token count,\n"
-"dump all of them in the context"
-msgstr ""
-"Максимальна кількість токенів, що будуть використані для RAG. Якщо документи "
-"не перевищують цієї кількості токенів,\n"
-"включіть їх усі в контекст"
-
-#: src/ui/settings.py:413
-msgid "Document Folder"
-msgstr "Папка з документами"
-
-#: src/ui/settings.py:413
-msgid ""
-"Put the documents you want to query in your document folder. The document "
-"analyzer will find relevant information in them if this option is enabled"
-msgstr ""
-"Помістіть документи, які ви хочете запитати, у папку документів. Аналізатор "
-"документів знайде в них відповідну інформацію, якщо цю опцію увімкнено"
-
-#: src/ui/settings.py:416
-msgid "Put all the documents you want to index in this folder"
-msgstr "Помістіть усі документи, які ви хочете індексувати, у цю папку"
-
-#: src/ui/settings.py:452
-msgid "Silence threshold"
-msgstr "Поріг тиші"
-
-#: src/ui/settings.py:452
-msgid ""
-"Silence threshold in seconds, percentage of the volume to be considered "
-"silence"
-msgstr "Поріг тиші в секундах, відсоток гучності, що вважатиметься тишею"
-
-#: src/ui/settings.py:465
-msgid "Silence time"
-msgstr "Час тиші"
-
-#: src/ui/settings.py:465
-msgid "Silence time in seconds before recording stops automatically"
-msgstr "Час тиші в секундах, перш ніж запис автоматично зупиниться"
-
-#: src/ui/settings.py:1044
-msgid "Not enough permissions"
-msgstr "Недостатньо прав"
-
-#: src/ui/settings.py:1048
-msgid ""
-"Newelle does not have enough permissions to run commands on your system, "
-"please run the following command"
-msgstr ""
-"Newelle не має достатньо прав для виконання команд у вашій системі, будь "
-"ласка, виконайте наступну команду"
-
-#: src/ui/settings.py:1049 src/ui/settings.py:1062
-msgid "Understood"
-msgstr "Зрозуміло"
-
-#: src/ui/settings.py:1061
-msgid "Pip path deleted"
-msgstr "Шлях Pip видалено"
-
-#: src/ui/settings.py:1061
-msgid ""
-"The pip path has been deleted, you can now reinstall the dependencies. This "
-"operation requires a restart of the application."
-msgstr ""
-"Шлях pip було видалено, тепер ви можете перевстановити залежності. Ця "
-"операція вимагає перезапуску програми."
 
 #: src/ui/stdout_monitor.py:48
 msgid "Clear output"
@@ -1717,7 +1256,7 @@ msgid "Start/Stop monitoring"
 msgstr "Почати/зупинити моніторинг"
 
 #: src/ui/stdout_monitor.py:109 src/ui/stdout_monitor.py:182
-#: src/ui/stdout_monitor.py:191 src/window.py:3686
+#: src/ui/stdout_monitor.py:191 src/window.py:3698
 msgid "Monitoring: Active"
 msgstr "Моніторинг: Активний"
 
@@ -1726,12 +1265,503 @@ msgid "Monitoring: Stopped"
 msgstr "Моніторинг: Зупинено"
 
 #: src/ui/stdout_monitor.py:116 src/ui/stdout_monitor.py:252
+#, python-brace-format
 msgid "Lines: {}"
 msgstr "Рядків: {}"
 
 #: src/ui/stdout_monitor.py:267
 msgid "Lines: 0"
 msgstr "Рядків: 0"
+
+#: src/ui/extension.py:50
+#, fuzzy
+msgid "Installed Extensions"
+msgstr "Встановлені розширення"
+
+#: src/ui/extension.py:86
+msgid "User guide to Extensions"
+msgstr "Посібник користувача з розширень"
+
+#: src/ui/extension.py:89
+#, fuzzy
+msgid "Download new Extensions"
+msgstr "Завантажити нові розширення"
+
+#: src/ui/extension.py:92
+msgid "Install extension from file..."
+msgstr "Встановити розширення з файлу..."
+
+#: src/ui/settings.py:47 src/constants.py:523
+msgid "General"
+msgstr "Загальне"
+
+#: src/ui/settings.py:48 src/constants.py:478
+msgid "LLM"
+msgstr "LLM"
+
+#: src/ui/settings.py:49 src/constants.py:528
+#, fuzzy
+msgid "Prompts"
+msgstr "Запити"
+
+#: src/ui/settings.py:50
+msgid "Knowledge"
+msgstr "Знання"
+
+#: src/ui/settings.py:54
+msgid "Language Model"
+msgstr "Мовна модель"
+
+#: src/ui/settings.py:63 src/ui/settings.py:83
+msgid "Other LLMs"
+msgstr "Інші LLM"
+
+#: src/ui/settings.py:63 src/ui/settings.py:83
+msgid "Other available LLM providers"
+msgstr "Інші доступні LLM-провайдери"
+
+#: src/ui/settings.py:73
+#, fuzzy
+msgid "Advanced LLM Settings"
+msgstr "Розширені налаштування LLM"
+
+#: src/ui/settings.py:77
+#, fuzzy
+msgid "Secondary Language Model"
+msgstr "Додаткова мовна модель"
+
+#: src/ui/settings.py:77
+msgid ""
+"Model used for secondary tasks, like offer, chat name and memory generation"
+msgstr ""
+"Модель, що використовується для вторинних завдань, таких як пропозиція, "
+"назва чату та генерація пам'яті"
+
+#: src/ui/settings.py:94
+#, fuzzy
+msgid "Embedding Model"
+msgstr "Модель вбудовування"
+
+#: src/ui/settings.py:94
+msgid ""
+"Embedding is used to trasform text into vectors. Used by Long Term Memory "
+"and RAG. Changing it might require you to re-index documents or reset memory."
+msgstr ""
+"Вбудовування використовується для перетворення тексту на вектори. "
+"Використовується довготривалою пам'яттю та RAG. Зміна може вимагати "
+"переіндексації документів або скидання пам'яті."
+
+#: src/ui/settings.py:105 src/window.py:647
+#, fuzzy
+msgid "Long Term Memory"
+msgstr "Довготривала пам'ять"
+
+#: src/ui/settings.py:105
+msgid "Keep memory of old conversations"
+msgstr "Зберігати пам'ять про старі розмови"
+
+#: src/ui/settings.py:117 src/constants.py:401
+msgid "Web Search"
+msgstr "Веб-пошук"
+
+#: src/ui/settings.py:117
+msgid "Search information on the Web"
+msgstr "Шукати інформацію в Інтернеті"
+
+#: src/ui/settings.py:133
+msgid "Text To Speech Program"
+msgstr "Програма перетворення тексту на мовлення"
+
+#: src/ui/settings.py:133
+msgid "Choose which text to speech to use"
+msgstr "Виберіть, який синтезатор мовлення використовувати"
+
+#: src/ui/settings.py:142
+msgid "Speech To Text Engine"
+msgstr "Рушій перетворення мовлення на текст"
+
+#: src/ui/settings.py:142
+msgid "Choose which speech recognition engine you want"
+msgstr "Виберіть, який рушій розпізнавання мовлення ви хочете"
+
+#: src/ui/settings.py:150
+#, fuzzy
+msgid "Automatic Speech To Text"
+msgstr "Автоматичне перетворення мовлення на текст"
+
+#: src/ui/settings.py:150
+msgid "Automatically restart speech to text at the end of a text/TTS"
+msgstr "Автоматично перезапускати розпізнавання мови після тексту/TTS"
+
+#: src/ui/settings.py:154
+msgid "Prompt control"
+msgstr "Управління запитами"
+
+#: src/ui/settings.py:159
+msgid "Interface"
+msgstr "Інтерфейс"
+
+#: src/ui/settings.py:162
+#, fuzzy
+msgid "Interface Size"
+msgstr "Розмір інтерфейсу"
+
+#: src/ui/settings.py:162
+msgid "Adjust the size of the interface"
+msgstr "Налаштуйте розмір інтерфейсу"
+
+#: src/ui/settings.py:174
+msgid "Editor color scheme"
+msgstr "Кольорова схема редактора"
+
+#: src/ui/settings.py:174
+msgid "Change the color scheme of the editor and codeblocks"
+msgstr "Змінити кольорову схему редактора та блоків коду"
+
+#: src/ui/settings.py:181
+msgid "Hidden files"
+msgstr "Приховані файли"
+
+#: src/ui/settings.py:181
+msgid "Show hidden files"
+msgstr "Показати приховані файли"
+
+#: src/ui/settings.py:187
+msgid "Send with ENTER"
+msgstr "Надіслати за допомогою ENTER"
+
+#: src/ui/settings.py:187
+msgid ""
+"If enabled, messages will be sent with ENTER, to go to a new line use "
+"CTRL+ENTER. If disabled, messages will be sent with SHIFT+ENTER, and newline "
+"with enter"
+msgstr ""
+"Якщо увімкнено, повідомлення будуть надсилатися за допомогою ENTER, для "
+"переходу на новий рядок використовуйте CTRL+ENTER. Якщо вимкнено, "
+"повідомлення будуть надсилатися за допомогою SHIFT+ENTER, а новий рядок – за "
+"допомогою ENTER"
+
+#: src/ui/settings.py:193
+msgid "Remove thinking from history"
+msgstr "Видалити мислення з історії"
+
+#: src/ui/settings.py:193
+msgid ""
+"Do not send old thinking blocks for reasoning models in order to reduce "
+"token usage"
+msgstr ""
+"Не надсилати старі блоки мислення для моделей міркування, щоб зменшити "
+"використання токенів"
+
+#: src/ui/settings.py:199
+msgid "Display LaTeX"
+msgstr "Відображати LaTeX"
+
+#: src/ui/settings.py:199
+msgid "Display LaTeX formulas in chat"
+msgstr "Відображати формули LaTeX у чаті"
+
+#: src/ui/settings.py:205
+msgid "Reverse Chat Order"
+msgstr "Змінити порядок чатів"
+
+#: src/ui/settings.py:205
+msgid "Show most recent chats on top in chat list (change chat to apply)"
+msgstr ""
+"Показати найновіші чати вгорі списку чатів (змініть чат, щоб застосувати)"
+
+#: src/ui/settings.py:211
+msgid "Automatically Generate Chat Names"
+msgstr "Автоматично генерувати назви чатів"
+
+#: src/ui/settings.py:211
+msgid "Generate chat names automatically after the first two messages"
+msgstr "Генерувати назви чатів автоматично після перших двох повідомлень"
+
+#: src/ui/settings.py:217
+msgid "Number of offers"
+msgstr "Кількість пропозицій"
+
+#: src/ui/settings.py:217
+msgid "Number of message suggestions to send to chat "
+msgstr "Кількість пропозицій повідомлень для відправки в чат "
+
+#: src/ui/settings.py:224
+msgid "Username"
+msgstr "Ім'я користувача"
+
+#: src/ui/settings.py:224
+#, python-brace-format
+msgid ""
+"Change the label that appears before your message\n"
+"This information is not sent to the LLM by default\n"
+"You can add it to a prompt using the {USER} variable"
+msgstr ""
+"Змініть мітку, що з'являється перед вашим повідомленням\n"
+"Ця інформація не надсилається до LLM за замовчуванням\n"
+"Ви можете додати її до запиту за допомогою змінної {USER}"
+
+#: src/ui/settings.py:234
+msgid "Neural Network Control"
+msgstr "Управління нейронною мережею"
+
+#: src/ui/settings.py:237
+msgid "Run commands in a virtual machine"
+msgstr "Запускати команди у віртуальній машині"
+
+#: src/ui/settings.py:250
+msgid "External Terminal"
+msgstr "Зовнішній термінал"
+
+#: src/ui/settings.py:250
+msgid "Choose the external terminal where to run the console commands"
+msgstr "Виберіть зовнішній термінал, де запускатимуться консольні команди"
+
+#: src/ui/settings.py:259
+msgid "Program memory"
+msgstr "Пам'ять програми"
+
+#: src/ui/settings.py:259
+msgid "How long the program remembers the chat "
+msgstr "Як довго програма пам'ятає чат "
+
+#: src/ui/settings.py:266
+msgid "Developer"
+msgstr "Розробник"
+
+#: src/ui/settings.py:269
+msgid ""
+"Monitor the program output in real-time, useful for debugging and seeing "
+"downloads progress"
+msgstr ""
+"Моніторинг виводу програми в реальному часі, корисно для налагодження та "
+"перегляду прогресу завантажень"
+
+#: src/ui/settings.py:270
+msgid "Open"
+msgstr "Відкрити"
+
+#: src/ui/settings.py:275
+msgid "Delete pip path"
+msgstr "Видалити шлях pip"
+
+#: src/ui/settings.py:275
+msgid "Remove the extra dependencies installed"
+msgstr "Видалити встановлені додаткові залежності"
+
+#: src/ui/settings.py:295
+msgid "Auto-run commands"
+msgstr "Автозапуск команд"
+
+#: src/ui/settings.py:295
+msgid "Commands that the bot will write will automatically run"
+msgstr "Команди, які напише бот, будуть автоматично виконуватися"
+
+#: src/ui/settings.py:298
+#, fuzzy
+msgid "Max number of commands"
+msgstr "Максимальна кількість команд"
+
+#: src/ui/settings.py:298
+#, fuzzy
+msgid ""
+"Maximum number of commands that the bot will write after a single user "
+"request"
+msgstr ""
+"Максимальна кількість команд, які бот напише після одного запиту користувача"
+
+#: src/ui/settings.py:329
+msgid "Browser"
+msgstr "Браузер"
+
+#: src/ui/settings.py:329
+msgid "Settings for the browser"
+msgstr "Налаштування браузера"
+
+#: src/ui/settings.py:334
+msgid "Use external browser"
+msgstr "Використовувати зовнішній браузер"
+
+#: src/ui/settings.py:334
+msgid "Use an external browser to open links instead of integrated one"
+msgstr ""
+"Використовувати зовнішній браузер для відкриття посилань замість вбудованого"
+
+#: src/ui/settings.py:341
+msgid "Persist browser session"
+msgstr "Зберігати сесію браузера"
+
+#: src/ui/settings.py:341
+msgid ""
+"Persist browser session between restarts. Turning this off requires "
+"restarting the program"
+msgstr ""
+"Зберігати сесію браузера між перезапусками. Вимкнення цієї функції вимагає "
+"перезапуску програми"
+
+#: src/ui/settings.py:346
+msgid "Delete browser data"
+msgstr "Видалити дані браузера"
+
+#: src/ui/settings.py:346
+msgid "Delete browser session and data"
+msgstr "Видалити сесію та дані браузера"
+
+#: src/ui/settings.py:353
+msgid "Initial browser page"
+msgstr "Початкова сторінка браузера"
+
+#: src/ui/settings.py:353
+msgid "The page where the browser will start"
+msgstr "Сторінка, з якої почнеться браузер"
+
+#: src/ui/settings.py:360
+#, fuzzy
+msgid "Search string"
+msgstr "Рядок пошуку"
+
+#: src/ui/settings.py:360
+#, python-format
+msgid "The search string used in the browser, %s is replaced with the query"
+msgstr "Рядок пошуку, що використовується у браузері, %s замінюється запитом"
+
+#: src/ui/settings.py:381
+msgid "Document Sources (RAG)"
+msgstr "Джерела документів (RAG)"
+
+#: src/ui/settings.py:381
+msgid "Include content from your documents in the responses"
+msgstr "Включати вміст з ваших документів у відповіді"
+
+#: src/ui/settings.py:382
+msgid "Document Analyzer"
+msgstr "Аналізатор документів"
+
+#: src/ui/settings.py:382
+msgid ""
+"The document analyzer uses multiple techniques to extract relevant "
+"information about your documents"
+msgstr ""
+"Аналізатор документів використовує кілька технік для вилучення релевантної "
+"інформації з ваших документів"
+
+#: src/ui/settings.py:393
+msgid "Read documents if unsupported"
+msgstr "Читати документи, якщо не підтримується"
+
+#: src/ui/settings.py:393
+msgid ""
+"If the LLM does not support reading documents, relevant information about "
+"documents sent in the chat will be given to the LLM using your Document "
+"Analyzer."
+msgstr ""
+"Якщо LLM не підтримує читання документів, відповідна інформація про "
+"документи, надіслані в чат, буде надана LLM за допомогою вашого аналізатора "
+"документів."
+
+#: src/ui/settings.py:397
+msgid "Maximum tokens for RAG"
+msgstr "Максимальна кількість токенів для RAG"
+
+#: src/ui/settings.py:397
+msgid ""
+"The maximum amount of tokens to be used for RAG. If the documents do not "
+"exceed this token count,\n"
+"dump all of them in the context"
+msgstr ""
+"Максимальна кількість токенів, що будуть використані для RAG. Якщо документи "
+"не перевищують цієї кількості токенів,\n"
+"включіть їх усі в контекст"
+
+#: src/ui/settings.py:414
+msgid "Document Folder"
+msgstr "Папка з документами"
+
+#: src/ui/settings.py:414
+msgid ""
+"Put the documents you want to query in your document folder. The document "
+"analyzer will find relevant information in them if this option is enabled"
+msgstr ""
+"Помістіть документи, які ви хочете запитати, у папку документів. Аналізатор "
+"документів знайде в них відповідну інформацію, якщо цю опцію увімкнено"
+
+#: src/ui/settings.py:417
+msgid "Put all the documents you want to index in this folder"
+msgstr "Помістіть усі документи, які ви хочете індексувати, у цю папку"
+
+#: src/ui/settings.py:453
+msgid "Silence threshold"
+msgstr "Поріг тиші"
+
+#: src/ui/settings.py:453
+msgid ""
+"Silence threshold in seconds, percentage of the volume to be considered "
+"silence"
+msgstr "Поріг тиші в секундах, відсоток гучності, що вважатиметься тишею"
+
+#: src/ui/settings.py:466
+msgid "Silence time"
+msgstr "Час тиші"
+
+#: src/ui/settings.py:466
+msgid "Silence time in seconds before recording stops automatically"
+msgstr "Час тиші в секундах, перш ніж запис автоматично зупиниться"
+
+#: src/ui/settings.py:1046
+msgid "Not enough permissions"
+msgstr "Недостатньо прав"
+
+#: src/ui/settings.py:1050
+msgid ""
+"Newelle does not have enough permissions to run commands on your system, "
+"please run the following command"
+msgstr ""
+"Newelle не має достатньо прав для виконання команд у вашій системі, будь "
+"ласка, виконайте наступну команду"
+
+#: src/ui/settings.py:1051 src/ui/settings.py:1064
+msgid "Understood"
+msgstr "Зрозуміло"
+
+#: src/ui/settings.py:1063
+msgid "Pip path deleted"
+msgstr "Шлях Pip видалено"
+
+#: src/ui/settings.py:1063
+msgid ""
+"The pip path has been deleted, you can now reinstall the dependencies. This "
+"operation requires a restart of the application."
+msgstr ""
+"Шлях pip було видалено, тепер ви можете перевстановити залежності. Ця "
+"операція вимагає перезапуску програми."
+
+#: src/main.py:205
+msgid "Terminal threads are still running in the background"
+msgstr "Потоки терміналу все ще виконуються у фоновому режимі"
+
+#: src/main.py:206
+msgid "When you close the window, they will be automatically terminated"
+msgstr "Коли ви закриєте вікно, вони будуть автоматично завершені"
+
+#: src/main.py:210
+msgid "Close"
+msgstr "Закрити"
+
+#: src/main.py:244
+msgid "Chat is rebooted"
+msgstr "Чат перезавантажено"
+
+#: src/main.py:249
+msgid "Folder is rebooted"
+msgstr "Папку перезавантажено"
+
+#: src/main.py:254
+msgid "Chat is created"
+msgstr "Чат створено"
+
+#: src/controller.py:135 src/window.py:1852
+msgid "Chat "
+msgstr "Чат "
 
 #: src/constants.py:20
 msgid "Newelle Demo API"
@@ -2194,34 +2224,6 @@ msgid "Prompts settings, custom extra prompt, custom prompts..."
 msgstr ""
 "Налаштування запитів, користувацькі додаткові запити, користувацькі запити..."
 
-#: src/main.py:205
-msgid "Terminal threads are still running in the background"
-msgstr "Потоки терміналу все ще виконуються у фоновому режимі"
-
-#: src/main.py:206
-msgid "When you close the window, they will be automatically terminated"
-msgstr "Коли ви закриєте вікно, вони будуть автоматично завершені"
-
-#: src/main.py:210
-msgid "Close"
-msgstr "Закрити"
-
-#: src/main.py:244
-msgid "Chat is rebooted"
-msgstr "Чат перезавантажено"
-
-#: src/main.py:249
-msgid "Folder is rebooted"
-msgstr "Папку перезавантажено"
-
-#: src/main.py:254
-msgid "Chat is created"
-msgstr "Чат створено"
-
-#: src/controller.py:135 src/window.py:1848
-msgid "Chat "
-msgstr "Чат "
-
 #: src/window.py:120
 msgid "Keyboard shorcuts"
 msgstr "Гарячі клавіші"
@@ -2395,91 +2397,91 @@ msgstr "Локальні документи"
 msgid "Web search"
 msgstr "Веб-пошук"
 
-#: src/window.py:892
+#: src/window.py:896
 msgid "This provider does not have a model list"
 msgstr "Цей провайдер не має списку моделей"
 
-#: src/window.py:897
+#: src/window.py:901
 #, fuzzy
 msgid " Models"
 msgstr "Моделі"
 
-#: src/window.py:900
+#: src/window.py:904
 #, fuzzy
 msgid "Search Models..."
 msgstr "Пошук моделей..."
 
-#: src/window.py:1128
+#: src/window.py:1132
 msgid "Create new profile"
 msgstr "Створити новий профіль"
 
-#: src/window.py:1262
+#: src/window.py:1266
 msgid "Could not recognize your voice"
 msgstr "Не вдалося розпізнати ваш голос"
 
-#: src/window.py:1299
+#: src/window.py:1303
 msgid "Images"
 msgstr "Зображення"
 
-#: src/window.py:1303
+#: src/window.py:1307
 msgid "LLM Supported Files"
 msgstr "Файли, підтримувані LLM"
 
-#: src/window.py:1311
+#: src/window.py:1315
 msgid "RAG Supported files"
 msgstr "Файли, підтримувані RAG"
 
-#: src/window.py:1329
+#: src/window.py:1333
 msgid "Supported Files"
 msgstr "Підтримувані файли"
 
-#: src/window.py:1333
+#: src/window.py:1337
 msgid "All Files"
 msgstr "Усі файли"
 
-#: src/window.py:1339
+#: src/window.py:1343
 msgid "Attach file"
 msgstr "Прикріпити файл"
 
-#: src/window.py:1594
+#: src/window.py:1598
 msgid "The file cannot be sent until the program is finished"
 msgstr "Файл не може бути відправлений, поки програма не завершить роботу"
 
-#: src/window.py:1616
+#: src/window.py:1620
 msgid "The file is not recognized"
 msgstr "Файл не розпізнано"
 
-#: src/window.py:1635
+#: src/window.py:1639
 msgid "You can no longer continue the message."
 msgstr "Ви більше не можете продовжити повідомлення."
 
-#: src/window.py:1660
+#: src/window.py:1664
 msgid "You can no longer regenerate the message."
 msgstr "Ви більше не можете перегенерувати повідомлення."
 
-#: src/window.py:1892
+#: src/window.py:1896
 msgid "Chat is cleared"
 msgstr "Чат очищено"
 
-#: src/window.py:1917
+#: src/window.py:1921
 msgid "The message was canceled and deleted from history"
 msgstr "Повідомлення було скасовано та видалено з історії"
 
-#: src/window.py:1961
+#: src/window.py:1965
 msgid "The message cannot be sent until the program is finished"
 msgstr ""
 "Повідомлення не може бути відправлене, поки програма не завершить роботу"
 
-#: src/window.py:2939
+#: src/window.py:2951
 msgid "You can't edit a message while the program is running."
 msgstr "Ви не можете редагувати повідомлення, поки програма виконується."
 
-#: src/window.py:3064
+#: src/window.py:3076
 #, fuzzy
 msgid "Prompt content"
 msgstr "Вміст запиту"
 
-#: src/window.py:3323
+#: src/window.py:3335
 msgid ""
 "The neural network has access to your computer and any data in this chat and "
 "can run commands, be careful, we are not responsible for the neural network. "
@@ -2489,7 +2491,7 @@ msgstr ""
 "чаті і може виконувати команди, будьте обережні, ми не несемо "
 "відповідальності за нейронну мережу. Не діліться конфіденційною інформацією."
 
-#: src/window.py:3352
+#: src/window.py:3364
 msgid ""
 "The neural network has access to any data in this chat, be careful, we are "
 "not responsible for the neural network. Do not share any sensitive "
@@ -2499,19 +2501,19 @@ msgstr ""
 "ми не несемо відповідальності за нейронну мережу. Не діліться конфіденційною "
 "інформацією."
 
-#: src/window.py:3401
+#: src/window.py:3413
 msgid "Wrong folder path"
 msgstr "Неправильний шлях до папки"
 
-#: src/window.py:3434
+#: src/window.py:3446
 msgid "Thread has not been completed, thread number: "
 msgstr "Потік не завершено, номер потоку: "
 
-#: src/window.py:3446
+#: src/window.py:3458
 msgid "Failed to open the folder"
 msgstr "Не вдалося відкрити папку"
 
-#: src/window.py:3625
+#: src/window.py:3637
 msgid "Chat is empty"
 msgstr "Чат порожній"
 

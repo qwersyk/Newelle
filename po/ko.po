@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-08 18:07+0800\n"
+"POT-Creation-Date: 2025-07-23 20:25+0800\n"
 "PO-Revision-Date: 2025-07-03 09:00+0200\n"
 "Last-Translator: Yehor Hliebov <qsk@gmx.at>\n"
 "Language-Team: Korean <qsk@gmx.at>\n"
@@ -575,7 +575,7 @@ msgstr "사용할 서비스의 사용자 지정 엔드포인트"
 #: src/handlers/tts/elevenlabs_handler.py:17
 #: src/handlers/tts/groq_tts_handler.py:33
 #: src/handlers/tts/openai_tts_handler.py:19 src/handlers/tts/tts.py:33
-#: src/ui/settings.py:128
+#: src/ui/settings.py:129
 msgid "Voice"
 msgstr "음성"
 
@@ -894,7 +894,7 @@ msgstr "사고 과정이 기록되지 않았습니다."
 msgid "Folder is Empty"
 msgstr "폴더가 비어 있습니다."
 
-#: src/ui/explorer.py:340 src/window.py:1576
+#: src/ui/explorer.py:340 src/window.py:1580
 msgid "File not found"
 msgstr "파일을 찾을 수 없습니다."
 
@@ -914,8 +914,8 @@ msgstr "파일 관리자에서 열기"
 msgid "Rename"
 msgstr "이름 바꾸기"
 
-#: src/ui/explorer.py:366 src/ui/explorer.py:502 src/ui/settings.py:275
-#: src/ui/settings.py:346
+#: src/ui/explorer.py:366 src/ui/explorer.py:502 src/ui/settings.py:276
+#: src/ui/settings.py:347
 msgid "Delete"
 msgstr "삭제"
 
@@ -941,6 +941,7 @@ msgid "Renamed successfully"
 msgstr "이름이 성공적으로 변경되었습니다."
 
 #: src/ui/explorer.py:476
+#, python-brace-format
 msgid "Failed to rename: {}"
 msgstr "이름 바꾸기 실패: {}"
 
@@ -949,6 +950,7 @@ msgid "Delete File?"
 msgstr "파일을 삭제하시겠습니까?"
 
 #: src/ui/explorer.py:499
+#, python-brace-format
 msgid "Are you sure you want to delete \"{}\"?"
 msgstr "\"{}\"을(를) 삭제하시겠습니까?"
 
@@ -957,6 +959,7 @@ msgid "Deleted successfully"
 msgstr "성공적으로 삭제되었습니다."
 
 #: src/ui/explorer.py:525
+#, python-brace-format
 msgid "Failed to delete: {}"
 msgstr "삭제 실패: {}"
 
@@ -1017,6 +1020,7 @@ msgid "file"
 msgstr "파일"
 
 #: src/ui/explorer.py:730
+#, python-brace-format
 msgid "Failed to create {}: {}"
 msgstr "생성 실패 {}: {}"
 
@@ -1068,27 +1072,6 @@ msgstr "확대"
 msgid "Zoom out"
 msgstr "축소"
 
-#: src/ui/extension.py:17 src/ui/presentation.py:131 src/constants.py:513
-#: src/window.py:118
-msgid "Extensions"
-msgstr "확장"
-
-#: src/ui/extension.py:50
-msgid "Installed Extensions"
-msgstr "설치된 확장"
-
-#: src/ui/extension.py:85
-msgid "User guide to Extensions"
-msgstr "확장 사용자 가이드"
-
-#: src/ui/extension.py:88
-msgid "Download new Extensions"
-msgstr "새 확장 다운로드"
-
-#: src/ui/extension.py:91
-msgid "Install extension from file..."
-msgstr "파일에서 확장 설치..."
-
 #: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.appdata.xml.in:7
 #: data/io.github.qwersyk.Newelle.desktop.in:2
 msgid "Newelle"
@@ -1139,7 +1122,7 @@ msgstr ""
 "Newelle은 채팅으로 보내는 문서 또는 자신의 파일에서 관련 정보를 검색할 수 있"
 "습니다! 쿼리에 관련된 정보는 LLM으로 전송됩니다."
 
-#: src/ui/presentation.py:124 src/ui/settings.py:236 src/window.py:649
+#: src/ui/presentation.py:124 src/ui/settings.py:237 src/window.py:649
 msgid "Command virtualization"
 msgstr "명령어 가상화"
 
@@ -1155,6 +1138,11 @@ msgstr ""
 "시오! <b>LLM은 저희의 통제하에 있지 않으므로 악성 코드를 생성할 수 있습니다!"
 "</b>\n"
 "기본적으로 명령은 <b>Flatpak 환경에서 가상화됩니다.</b> 하지만 주의하십시오!"
+
+#: src/ui/presentation.py:131 src/ui/extension.py:17 src/constants.py:513
+#: src/window.py:118
+msgid "Extensions"
+msgstr "확장"
 
 #: src/ui/presentation.py:132
 msgid "You can extend Newelle's functionalities using extensions!"
@@ -1181,433 +1169,10 @@ msgstr "앱 사용 시작"
 msgid "Start chatting"
 msgstr "채팅 시작"
 
-#: src/ui/settings.py:46 src/constants.py:523
-msgid "General"
-msgstr "일반"
-
-#: src/ui/settings.py:47 src/constants.py:478
-msgid "LLM"
-msgstr "LLM"
-
-#: src/ui/settings.py:48 src/constants.py:528
-msgid "Prompts"
-msgstr "프롬프트"
-
-#: src/ui/settings.py:49
-msgid "Knowledge"
-msgstr "지식"
-
-#: src/ui/settings.py:53
-msgid "Language Model"
-msgstr "언어 모델"
-
-#: src/ui/settings.py:62 src/ui/settings.py:82
-msgid "Other LLMs"
-msgstr "다른 LLM"
-
-#: src/ui/settings.py:62 src/ui/settings.py:82
-msgid "Other available LLM providers"
-msgstr "사용 가능한 다른 LLM 공급자"
-
-#: src/ui/settings.py:72
-msgid "Advanced LLM Settings"
-msgstr "고급 LLM 설정"
-
-#: src/ui/settings.py:76
-msgid "Secondary Language Model"
-msgstr "보조 언어 모델"
-
-#: src/ui/settings.py:76
-msgid ""
-"Model used for secondary tasks, like offer, chat name and memory generation"
-msgstr "제공, 채팅 이름 및 메모리 생성과 같은 보조 작업에 사용되는 모델"
-
-#: src/ui/settings.py:93
-msgid "Embedding Model"
-msgstr "임베딩 모델"
-
-#: src/ui/settings.py:93
-msgid ""
-"Embedding is used to trasform text into vectors. Used by Long Term Memory "
-"and RAG. Changing it might require you to re-index documents or reset memory."
-msgstr ""
-"임베딩은 텍스트를 벡터로 변환하는 데 사용됩니다. 장기 메모리 및 RAG에서 사용"
-"됩니다. 변경하면 문서를 다시 인덱싱하거나 메모리를 재설정해야 할 수 있습니다."
-
-#: src/ui/settings.py:104 src/window.py:647
-msgid "Long Term Memory"
-msgstr "장기 기억"
-
-#: src/ui/settings.py:104
-msgid "Keep memory of old conversations"
-msgstr "이전 대화 기억 유지"
-
-#: src/ui/settings.py:116 src/constants.py:401
-msgid "Web Search"
-msgstr "웹 검색"
-
-#: src/ui/settings.py:116
-msgid "Search information on the Web"
-msgstr "웹에서 정보 검색"
-
-#: src/ui/settings.py:132
-msgid "Text To Speech Program"
-msgstr "텍스트 음성 변환 프로그램"
-
-#: src/ui/settings.py:132
-msgid "Choose which text to speech to use"
-msgstr "사용할 텍스트 음성 변환 선택"
-
-#: src/ui/settings.py:141
-msgid "Speech To Text Engine"
-msgstr "음성 텍스트 변환 엔진"
-
-#: src/ui/settings.py:141
-msgid "Choose which speech recognition engine you want"
-msgstr "사용할 음성 인식 엔진 선택"
-
-#: src/ui/settings.py:149
-msgid "Automatic Speech To Text"
-msgstr "자동 음성 텍스트 변환"
-
-#: src/ui/settings.py:149
-msgid "Automatically restart speech to text at the end of a text/TTS"
-msgstr "텍스트/TTS가 끝나면 음성 텍스트 변환을 자동으로 다시 시작합니다."
-
-#: src/ui/settings.py:153
-msgid "Prompt control"
-msgstr "프롬프트 제어"
-
-#: src/ui/settings.py:158
-msgid "Interface"
-msgstr "인터페이스"
-
-#: src/ui/settings.py:161
-msgid "Interface Size"
-msgstr "인터페이스 크기"
-
-#: src/ui/settings.py:161
-msgid "Adjust the size of the interface"
-msgstr "인터페이스 크기 조정"
-
-#: src/ui/settings.py:173
-msgid "Editor color scheme"
-msgstr "편집기 색상 구성표"
-
-#: src/ui/settings.py:173
-msgid "Change the color scheme of the editor and codeblocks"
-msgstr "편집기 및 코드 블록의 색상 구성표 변경"
-
-#: src/ui/settings.py:180
-msgid "Hidden files"
-msgstr "숨김 파일"
-
-#: src/ui/settings.py:180
-msgid "Show hidden files"
-msgstr "숨김 파일 표시"
-
-#: src/ui/settings.py:186
-msgid "Send with ENTER"
-msgstr "ENTER로 전송"
-
-#: src/ui/settings.py:186
-msgid ""
-"If enabled, messages will be sent with ENTER, to go to a new line use "
-"CTRL+ENTER. If disabled, messages will be sent with SHIFT+ENTER, and newline "
-"with enter"
-msgstr ""
-"활성화하면 ENTER로 메시지가 전송되고, 새 줄로 이동하려면 CTRL+ENTER를 사용합"
-"니다. 비활성화하면 SHIFT+ENTER로 메시지가 전송되고, ENTER로 새 줄이 추가됩니"
-"다."
-
-#: src/ui/settings.py:192
-msgid "Remove thinking from history"
-msgstr "기록에서 사고 제거"
-
-#: src/ui/settings.py:192
-msgid ""
-"Do not send old thinking blocks for reasoning models in order to reduce "
-"token usage"
-msgstr ""
-"토큰 사용량을 줄이기 위해 추론 모델에 대한 이전 사고 블록을 보내지 마십시오."
-
-#: src/ui/settings.py:198
-msgid "Display LaTeX"
-msgstr "LaTeX 표시"
-
-#: src/ui/settings.py:198
-msgid "Display LaTeX formulas in chat"
-msgstr "채팅에 LaTeX 수식 표시"
-
-#: src/ui/settings.py:204
-msgid "Reverse Chat Order"
-msgstr "채팅 순서 반전"
-
-#: src/ui/settings.py:204
-msgid "Show most recent chats on top in chat list (change chat to apply)"
-msgstr ""
-"채팅 목록에서 가장 최근 채팅을 상단에 표시합니다(적용하려면 채팅 변경)."
-
-#: src/ui/settings.py:210
-msgid "Automatically Generate Chat Names"
-msgstr "자동으로 채팅 이름 생성"
-
-#: src/ui/settings.py:210
-msgid "Generate chat names automatically after the first two messages"
-msgstr "첫 두 메시지 이후 자동으로 채팅 이름 생성"
-
-#: src/ui/settings.py:216
-msgid "Number of offers"
-msgstr "제안 수"
-
-#: src/ui/settings.py:216
-msgid "Number of message suggestions to send to chat "
-msgstr "채팅으로 보낼 메시지 제안 수"
-
-#: src/ui/settings.py:223
-msgid "Username"
-msgstr "사용자 이름"
-
-#: src/ui/settings.py:223
-#, python-brace-format
-msgid ""
-"Change the label that appears before your message\n"
-"This information is not sent to the LLM by default\n"
-"You can add it to a prompt using the {USER} variable"
-msgstr ""
-"메시지 앞에 나타나는 레이블을 변경합니다.\n"
-"이 정보는 기본적으로 LLM으로 전송되지 않습니다.\n"
-"{USER} 변수를 사용하여 프롬프트에 추가할 수 있습니다."
-
-#: src/ui/settings.py:233
-msgid "Neural Network Control"
-msgstr "신경망 제어"
-
-#: src/ui/settings.py:236
-msgid "Run commands in a virtual machine"
-msgstr "가상 머신에서 명령 실행"
-
-#: src/ui/settings.py:249
-msgid "External Terminal"
-msgstr "외부 터미널"
-
-#: src/ui/settings.py:249
-msgid "Choose the external terminal where to run the console commands"
-msgstr "콘솔 명령을 실행할 외부 터미널 선택"
-
-#: src/ui/settings.py:258
-msgid "Program memory"
-msgstr "프로그램 메모리"
-
-#: src/ui/settings.py:258
-msgid "How long the program remembers the chat "
-msgstr "프로그램이 채팅을 기억하는 시간"
-
-#: src/ui/settings.py:265
-msgid "Developer"
-msgstr "개발자"
-
-#: src/ui/settings.py:268 src/ui/stdout_monitor.py:31
-#: src/ui/stdout_monitor.py:41
+#: src/ui/stdout_monitor.py:31 src/ui/stdout_monitor.py:41
+#: src/ui/settings.py:269
 msgid "Program Output Monitor"
 msgstr "프로그램 출력 모니터"
-
-#: src/ui/settings.py:268
-msgid ""
-"Monitor the program output in real-time, useful for debugging and seeing "
-"downloads progress"
-msgstr ""
-"프로그램 출력을 실시간으로 모니터링합니다. 디버깅 및 다운로드 진행 상황 확인"
-"에 유용합니다."
-
-#: src/ui/settings.py:269
-msgid "Open"
-msgstr "열기"
-
-#: src/ui/settings.py:274
-msgid "Delete pip path"
-msgstr "pip 경로 삭제"
-
-#: src/ui/settings.py:274
-msgid "Remove the extra dependencies installed"
-msgstr "설치된 추가 종속성 제거"
-
-#: src/ui/settings.py:294
-msgid "Auto-run commands"
-msgstr "자동 실행 명령"
-
-#: src/ui/settings.py:294
-msgid "Commands that the bot will write will automatically run"
-msgstr "봇이 작성할 명령은 자동으로 실행됩니다."
-
-#: src/ui/settings.py:297
-msgid "Max number of commands"
-msgstr "최대 명령 수"
-
-#: src/ui/settings.py:297
-msgid ""
-"Maximum number of commands that the bot will write after a single user "
-"request"
-msgstr "단일 사용자 요청 후 봇이 작성할 최대 명령 수"
-
-#: src/ui/settings.py:328
-msgid "Browser"
-msgstr "브라우저"
-
-#: src/ui/settings.py:328
-msgid "Settings for the browser"
-msgstr "브라우저 설정"
-
-#: src/ui/settings.py:333
-msgid "Use external browser"
-msgstr "외부 브라우저 사용"
-
-#: src/ui/settings.py:333
-msgid "Use an external browser to open links instead of integrated one"
-msgstr "통합 브라우저 대신 외부 브라우저를 사용하여 링크 열기"
-
-#: src/ui/settings.py:340
-msgid "Persist browser session"
-msgstr "브라우저 세션 유지"
-
-#: src/ui/settings.py:340
-msgid ""
-"Persist browser session between restarts. Turning this off requires "
-"restarting the program"
-msgstr ""
-"재시작 간에 브라우저 세션을 유지합니다. 이 옵션을 끄면 프로그램을 다시 시작해"
-"야 합니다."
-
-#: src/ui/settings.py:345
-msgid "Delete browser data"
-msgstr "브라우저 데이터 삭제"
-
-#: src/ui/settings.py:345
-msgid "Delete browser session and data"
-msgstr "브라우저 세션 및 데이터 삭제"
-
-#: src/ui/settings.py:352
-msgid "Initial browser page"
-msgstr "초기 브라우저 페이지"
-
-#: src/ui/settings.py:352
-msgid "The page where the browser will start"
-msgstr "브라우저가 시작될 페이지"
-
-#: src/ui/settings.py:359
-msgid "Search string"
-msgstr "검색 문자열"
-
-#: src/ui/settings.py:359
-#, python-format
-msgid "The search string used in the browser, %s is replaced with the query"
-msgstr "브라우저에서 사용되는 검색 문자열, %s는 쿼리로 대체됩니다."
-
-#: src/ui/settings.py:380
-msgid "Document Sources (RAG)"
-msgstr "문서 소스 (RAG)"
-
-#: src/ui/settings.py:380
-msgid "Include content from your documents in the responses"
-msgstr "응답에 문서의 콘텐츠 포함"
-
-#: src/ui/settings.py:381
-msgid "Document Analyzer"
-msgstr "문서 분석기"
-
-#: src/ui/settings.py:381
-msgid ""
-"The document analyzer uses multiple techniques to extract relevant "
-"information about your documents"
-msgstr "문서 분석기는 여러 기술을 사용하여 문서에서 관련 정보를 추출합니다."
-
-#: src/ui/settings.py:392
-msgid "Read documents if unsupported"
-msgstr "지원되지 않는 경우 문서 읽기"
-
-#: src/ui/settings.py:392
-msgid ""
-"If the LLM does not support reading documents, relevant information about "
-"documents sent in the chat will be given to the LLM using your Document "
-"Analyzer."
-msgstr ""
-"LLM이 문서 읽기를 지원하지 않는 경우, 채팅으로 전송된 문서에 대한 관련 정보"
-"는 문서 분석기를 사용하여 LLM에 제공됩니다."
-
-#: src/ui/settings.py:396
-msgid "Maximum tokens for RAG"
-msgstr "RAG의 최대 토큰 수"
-
-#: src/ui/settings.py:396
-msgid ""
-"The maximum amount of tokens to be used for RAG. If the documents do not "
-"exceed this token count,\n"
-"dump all of them in the context"
-msgstr ""
-"RAG에 사용될 최대 토큰 수입니다. 문서가 이 토큰 수를 초과하지 않으면, 모든 문"
-"서를 컨텍스트에 덤프합니다."
-
-#: src/ui/settings.py:413
-msgid "Document Folder"
-msgstr "문서 폴더"
-
-#: src/ui/settings.py:413
-msgid ""
-"Put the documents you want to query in your document folder. The document "
-"analyzer will find relevant information in them if this option is enabled"
-msgstr ""
-"쿼리하려는 문서를 문서 폴더에 넣으십시오. 이 옵션이 활성화되면 문서 분석기가 "
-"해당 문서에서 관련 정보를 찾습니다."
-
-#: src/ui/settings.py:416
-msgid "Put all the documents you want to index in this folder"
-msgstr "인덱싱하려는 모든 문서를 이 폴더에 넣으십시오."
-
-#: src/ui/settings.py:452
-msgid "Silence threshold"
-msgstr "무음 임계값"
-
-#: src/ui/settings.py:452
-msgid ""
-"Silence threshold in seconds, percentage of the volume to be considered "
-"silence"
-msgstr "무음 임계값(초), 볼륨의 백분율로 무음으로 간주됨"
-
-#: src/ui/settings.py:465
-msgid "Silence time"
-msgstr "무음 시간"
-
-#: src/ui/settings.py:465
-msgid "Silence time in seconds before recording stops automatically"
-msgstr "녹음이 자동으로 중지되기 전의 무음 시간(초)"
-
-#: src/ui/settings.py:1044
-msgid "Not enough permissions"
-msgstr "권한 부족"
-
-#: src/ui/settings.py:1048
-msgid ""
-"Newelle does not have enough permissions to run commands on your system, "
-"please run the following command"
-msgstr ""
-"Newelle에는 시스템에서 명령을 실행할 충분한 권한이 없습니다. 다음 명령을 실행"
-"하십시오."
-
-#: src/ui/settings.py:1049 src/ui/settings.py:1062
-msgid "Understood"
-msgstr "이해했습니다."
-
-#: src/ui/settings.py:1061
-msgid "Pip path deleted"
-msgstr "Pip 경로가 삭제되었습니다."
-
-#: src/ui/settings.py:1061
-msgid ""
-"The pip path has been deleted, you can now reinstall the dependencies. This "
-"operation requires a restart of the application."
-msgstr ""
-"pip 경로가 삭제되었습니다. 이제 종속성을 다시 설치할 수 있습니다. 이 작업은 "
-"애플리케이션을 다시 시작해야 합니다."
 
 #: src/ui/stdout_monitor.py:48
 msgid "Clear output"
@@ -1618,7 +1183,7 @@ msgid "Start/Stop monitoring"
 msgstr "모니터링 시작/중지"
 
 #: src/ui/stdout_monitor.py:109 src/ui/stdout_monitor.py:182
-#: src/ui/stdout_monitor.py:191 src/window.py:3686
+#: src/ui/stdout_monitor.py:191 src/window.py:3698
 msgid "Monitoring: Active"
 msgstr "모니터링: 활성"
 
@@ -1627,12 +1192,480 @@ msgid "Monitoring: Stopped"
 msgstr "모니터링: 중지됨"
 
 #: src/ui/stdout_monitor.py:116 src/ui/stdout_monitor.py:252
+#, python-brace-format
 msgid "Lines: {}"
 msgstr "줄: {}"
 
 #: src/ui/stdout_monitor.py:267
 msgid "Lines: 0"
 msgstr "줄: 0"
+
+#: src/ui/extension.py:50
+msgid "Installed Extensions"
+msgstr "설치된 확장"
+
+#: src/ui/extension.py:86
+msgid "User guide to Extensions"
+msgstr "확장 사용자 가이드"
+
+#: src/ui/extension.py:89
+msgid "Download new Extensions"
+msgstr "새 확장 다운로드"
+
+#: src/ui/extension.py:92
+msgid "Install extension from file..."
+msgstr "파일에서 확장 설치..."
+
+#: src/ui/settings.py:47 src/constants.py:523
+msgid "General"
+msgstr "일반"
+
+#: src/ui/settings.py:48 src/constants.py:478
+msgid "LLM"
+msgstr "LLM"
+
+#: src/ui/settings.py:49 src/constants.py:528
+msgid "Prompts"
+msgstr "프롬프트"
+
+#: src/ui/settings.py:50
+msgid "Knowledge"
+msgstr "지식"
+
+#: src/ui/settings.py:54
+msgid "Language Model"
+msgstr "언어 모델"
+
+#: src/ui/settings.py:63 src/ui/settings.py:83
+msgid "Other LLMs"
+msgstr "다른 LLM"
+
+#: src/ui/settings.py:63 src/ui/settings.py:83
+msgid "Other available LLM providers"
+msgstr "사용 가능한 다른 LLM 공급자"
+
+#: src/ui/settings.py:73
+msgid "Advanced LLM Settings"
+msgstr "고급 LLM 설정"
+
+#: src/ui/settings.py:77
+msgid "Secondary Language Model"
+msgstr "보조 언어 모델"
+
+#: src/ui/settings.py:77
+msgid ""
+"Model used for secondary tasks, like offer, chat name and memory generation"
+msgstr "제공, 채팅 이름 및 메모리 생성과 같은 보조 작업에 사용되는 모델"
+
+#: src/ui/settings.py:94
+msgid "Embedding Model"
+msgstr "임베딩 모델"
+
+#: src/ui/settings.py:94
+msgid ""
+"Embedding is used to trasform text into vectors. Used by Long Term Memory "
+"and RAG. Changing it might require you to re-index documents or reset memory."
+msgstr ""
+"임베딩은 텍스트를 벡터로 변환하는 데 사용됩니다. 장기 메모리 및 RAG에서 사용"
+"됩니다. 변경하면 문서를 다시 인덱싱하거나 메모리를 재설정해야 할 수 있습니다."
+
+#: src/ui/settings.py:105 src/window.py:647
+msgid "Long Term Memory"
+msgstr "장기 기억"
+
+#: src/ui/settings.py:105
+msgid "Keep memory of old conversations"
+msgstr "이전 대화 기억 유지"
+
+#: src/ui/settings.py:117 src/constants.py:401
+msgid "Web Search"
+msgstr "웹 검색"
+
+#: src/ui/settings.py:117
+msgid "Search information on the Web"
+msgstr "웹에서 정보 검색"
+
+#: src/ui/settings.py:133
+msgid "Text To Speech Program"
+msgstr "텍스트 음성 변환 프로그램"
+
+#: src/ui/settings.py:133
+msgid "Choose which text to speech to use"
+msgstr "사용할 텍스트 음성 변환 선택"
+
+#: src/ui/settings.py:142
+msgid "Speech To Text Engine"
+msgstr "음성 텍스트 변환 엔진"
+
+#: src/ui/settings.py:142
+msgid "Choose which speech recognition engine you want"
+msgstr "사용할 음성 인식 엔진 선택"
+
+#: src/ui/settings.py:150
+msgid "Automatic Speech To Text"
+msgstr "자동 음성 텍스트 변환"
+
+#: src/ui/settings.py:150
+msgid "Automatically restart speech to text at the end of a text/TTS"
+msgstr "텍스트/TTS가 끝나면 음성 텍스트 변환을 자동으로 다시 시작합니다."
+
+#: src/ui/settings.py:154
+msgid "Prompt control"
+msgstr "프롬프트 제어"
+
+#: src/ui/settings.py:159
+msgid "Interface"
+msgstr "인터페이스"
+
+#: src/ui/settings.py:162
+msgid "Interface Size"
+msgstr "인터페이스 크기"
+
+#: src/ui/settings.py:162
+msgid "Adjust the size of the interface"
+msgstr "인터페이스 크기 조정"
+
+#: src/ui/settings.py:174
+msgid "Editor color scheme"
+msgstr "편집기 색상 구성표"
+
+#: src/ui/settings.py:174
+msgid "Change the color scheme of the editor and codeblocks"
+msgstr "편집기 및 코드 블록의 색상 구성표 변경"
+
+#: src/ui/settings.py:181
+msgid "Hidden files"
+msgstr "숨김 파일"
+
+#: src/ui/settings.py:181
+msgid "Show hidden files"
+msgstr "숨김 파일 표시"
+
+#: src/ui/settings.py:187
+msgid "Send with ENTER"
+msgstr "ENTER로 전송"
+
+#: src/ui/settings.py:187
+msgid ""
+"If enabled, messages will be sent with ENTER, to go to a new line use "
+"CTRL+ENTER. If disabled, messages will be sent with SHIFT+ENTER, and newline "
+"with enter"
+msgstr ""
+"활성화하면 ENTER로 메시지가 전송되고, 새 줄로 이동하려면 CTRL+ENTER를 사용합"
+"니다. 비활성화하면 SHIFT+ENTER로 메시지가 전송되고, ENTER로 새 줄이 추가됩니"
+"다."
+
+#: src/ui/settings.py:193
+msgid "Remove thinking from history"
+msgstr "기록에서 사고 제거"
+
+#: src/ui/settings.py:193
+msgid ""
+"Do not send old thinking blocks for reasoning models in order to reduce "
+"token usage"
+msgstr ""
+"토큰 사용량을 줄이기 위해 추론 모델에 대한 이전 사고 블록을 보내지 마십시오."
+
+#: src/ui/settings.py:199
+msgid "Display LaTeX"
+msgstr "LaTeX 표시"
+
+#: src/ui/settings.py:199
+msgid "Display LaTeX formulas in chat"
+msgstr "채팅에 LaTeX 수식 표시"
+
+#: src/ui/settings.py:205
+msgid "Reverse Chat Order"
+msgstr "채팅 순서 반전"
+
+#: src/ui/settings.py:205
+msgid "Show most recent chats on top in chat list (change chat to apply)"
+msgstr ""
+"채팅 목록에서 가장 최근 채팅을 상단에 표시합니다(적용하려면 채팅 변경)."
+
+#: src/ui/settings.py:211
+msgid "Automatically Generate Chat Names"
+msgstr "자동으로 채팅 이름 생성"
+
+#: src/ui/settings.py:211
+msgid "Generate chat names automatically after the first two messages"
+msgstr "첫 두 메시지 이후 자동으로 채팅 이름 생성"
+
+#: src/ui/settings.py:217
+msgid "Number of offers"
+msgstr "제안 수"
+
+#: src/ui/settings.py:217
+msgid "Number of message suggestions to send to chat "
+msgstr "채팅으로 보낼 메시지 제안 수"
+
+#: src/ui/settings.py:224
+msgid "Username"
+msgstr "사용자 이름"
+
+#: src/ui/settings.py:224
+#, python-brace-format
+msgid ""
+"Change the label that appears before your message\n"
+"This information is not sent to the LLM by default\n"
+"You can add it to a prompt using the {USER} variable"
+msgstr ""
+"메시지 앞에 나타나는 레이블을 변경합니다.\n"
+"이 정보는 기본적으로 LLM으로 전송되지 않습니다.\n"
+"{USER} 변수를 사용하여 프롬프트에 추가할 수 있습니다."
+
+#: src/ui/settings.py:234
+msgid "Neural Network Control"
+msgstr "신경망 제어"
+
+#: src/ui/settings.py:237
+msgid "Run commands in a virtual machine"
+msgstr "가상 머신에서 명령 실행"
+
+#: src/ui/settings.py:250
+msgid "External Terminal"
+msgstr "외부 터미널"
+
+#: src/ui/settings.py:250
+msgid "Choose the external terminal where to run the console commands"
+msgstr "콘솔 명령을 실행할 외부 터미널 선택"
+
+#: src/ui/settings.py:259
+msgid "Program memory"
+msgstr "프로그램 메모리"
+
+#: src/ui/settings.py:259
+msgid "How long the program remembers the chat "
+msgstr "프로그램이 채팅을 기억하는 시간"
+
+#: src/ui/settings.py:266
+msgid "Developer"
+msgstr "개발자"
+
+#: src/ui/settings.py:269
+msgid ""
+"Monitor the program output in real-time, useful for debugging and seeing "
+"downloads progress"
+msgstr ""
+"프로그램 출력을 실시간으로 모니터링합니다. 디버깅 및 다운로드 진행 상황 확인"
+"에 유용합니다."
+
+#: src/ui/settings.py:270
+msgid "Open"
+msgstr "열기"
+
+#: src/ui/settings.py:275
+msgid "Delete pip path"
+msgstr "pip 경로 삭제"
+
+#: src/ui/settings.py:275
+msgid "Remove the extra dependencies installed"
+msgstr "설치된 추가 종속성 제거"
+
+#: src/ui/settings.py:295
+msgid "Auto-run commands"
+msgstr "자동 실행 명령"
+
+#: src/ui/settings.py:295
+msgid "Commands that the bot will write will automatically run"
+msgstr "봇이 작성할 명령은 자동으로 실행됩니다."
+
+#: src/ui/settings.py:298
+msgid "Max number of commands"
+msgstr "최대 명령 수"
+
+#: src/ui/settings.py:298
+msgid ""
+"Maximum number of commands that the bot will write after a single user "
+"request"
+msgstr "단일 사용자 요청 후 봇이 작성할 최대 명령 수"
+
+#: src/ui/settings.py:329
+msgid "Browser"
+msgstr "브라우저"
+
+#: src/ui/settings.py:329
+msgid "Settings for the browser"
+msgstr "브라우저 설정"
+
+#: src/ui/settings.py:334
+msgid "Use external browser"
+msgstr "외부 브라우저 사용"
+
+#: src/ui/settings.py:334
+msgid "Use an external browser to open links instead of integrated one"
+msgstr "통합 브라우저 대신 외부 브라우저를 사용하여 링크 열기"
+
+#: src/ui/settings.py:341
+msgid "Persist browser session"
+msgstr "브라우저 세션 유지"
+
+#: src/ui/settings.py:341
+msgid ""
+"Persist browser session between restarts. Turning this off requires "
+"restarting the program"
+msgstr ""
+"재시작 간에 브라우저 세션을 유지합니다. 이 옵션을 끄면 프로그램을 다시 시작해"
+"야 합니다."
+
+#: src/ui/settings.py:346
+msgid "Delete browser data"
+msgstr "브라우저 데이터 삭제"
+
+#: src/ui/settings.py:346
+msgid "Delete browser session and data"
+msgstr "브라우저 세션 및 데이터 삭제"
+
+#: src/ui/settings.py:353
+msgid "Initial browser page"
+msgstr "초기 브라우저 페이지"
+
+#: src/ui/settings.py:353
+msgid "The page where the browser will start"
+msgstr "브라우저가 시작될 페이지"
+
+#: src/ui/settings.py:360
+msgid "Search string"
+msgstr "검색 문자열"
+
+#: src/ui/settings.py:360
+#, python-format
+msgid "The search string used in the browser, %s is replaced with the query"
+msgstr "브라우저에서 사용되는 검색 문자열, %s는 쿼리로 대체됩니다."
+
+#: src/ui/settings.py:381
+msgid "Document Sources (RAG)"
+msgstr "문서 소스 (RAG)"
+
+#: src/ui/settings.py:381
+msgid "Include content from your documents in the responses"
+msgstr "응답에 문서의 콘텐츠 포함"
+
+#: src/ui/settings.py:382
+msgid "Document Analyzer"
+msgstr "문서 분석기"
+
+#: src/ui/settings.py:382
+msgid ""
+"The document analyzer uses multiple techniques to extract relevant "
+"information about your documents"
+msgstr "문서 분석기는 여러 기술을 사용하여 문서에서 관련 정보를 추출합니다."
+
+#: src/ui/settings.py:393
+msgid "Read documents if unsupported"
+msgstr "지원되지 않는 경우 문서 읽기"
+
+#: src/ui/settings.py:393
+msgid ""
+"If the LLM does not support reading documents, relevant information about "
+"documents sent in the chat will be given to the LLM using your Document "
+"Analyzer."
+msgstr ""
+"LLM이 문서 읽기를 지원하지 않는 경우, 채팅으로 전송된 문서에 대한 관련 정보"
+"는 문서 분석기를 사용하여 LLM에 제공됩니다."
+
+#: src/ui/settings.py:397
+msgid "Maximum tokens for RAG"
+msgstr "RAG의 최대 토큰 수"
+
+#: src/ui/settings.py:397
+msgid ""
+"The maximum amount of tokens to be used for RAG. If the documents do not "
+"exceed this token count,\n"
+"dump all of them in the context"
+msgstr ""
+"RAG에 사용될 최대 토큰 수입니다. 문서가 이 토큰 수를 초과하지 않으면, 모든 문"
+"서를 컨텍스트에 덤프합니다."
+
+#: src/ui/settings.py:414
+msgid "Document Folder"
+msgstr "문서 폴더"
+
+#: src/ui/settings.py:414
+msgid ""
+"Put the documents you want to query in your document folder. The document "
+"analyzer will find relevant information in them if this option is enabled"
+msgstr ""
+"쿼리하려는 문서를 문서 폴더에 넣으십시오. 이 옵션이 활성화되면 문서 분석기가 "
+"해당 문서에서 관련 정보를 찾습니다."
+
+#: src/ui/settings.py:417
+msgid "Put all the documents you want to index in this folder"
+msgstr "인덱싱하려는 모든 문서를 이 폴더에 넣으십시오."
+
+#: src/ui/settings.py:453
+msgid "Silence threshold"
+msgstr "무음 임계값"
+
+#: src/ui/settings.py:453
+msgid ""
+"Silence threshold in seconds, percentage of the volume to be considered "
+"silence"
+msgstr "무음 임계값(초), 볼륨의 백분율로 무음으로 간주됨"
+
+#: src/ui/settings.py:466
+msgid "Silence time"
+msgstr "무음 시간"
+
+#: src/ui/settings.py:466
+msgid "Silence time in seconds before recording stops automatically"
+msgstr "녹음이 자동으로 중지되기 전의 무음 시간(초)"
+
+#: src/ui/settings.py:1046
+msgid "Not enough permissions"
+msgstr "권한 부족"
+
+#: src/ui/settings.py:1050
+msgid ""
+"Newelle does not have enough permissions to run commands on your system, "
+"please run the following command"
+msgstr ""
+"Newelle에는 시스템에서 명령을 실행할 충분한 권한이 없습니다. 다음 명령을 실행"
+"하십시오."
+
+#: src/ui/settings.py:1051 src/ui/settings.py:1064
+msgid "Understood"
+msgstr "이해했습니다."
+
+#: src/ui/settings.py:1063
+msgid "Pip path deleted"
+msgstr "Pip 경로가 삭제되었습니다."
+
+#: src/ui/settings.py:1063
+msgid ""
+"The pip path has been deleted, you can now reinstall the dependencies. This "
+"operation requires a restart of the application."
+msgstr ""
+"pip 경로가 삭제되었습니다. 이제 종속성을 다시 설치할 수 있습니다. 이 작업은 "
+"애플리케이션을 다시 시작해야 합니다."
+
+#: src/main.py:205
+msgid "Terminal threads are still running in the background"
+msgstr "터미널 스레드가 아직 백그라운드에서 실행 중입니다."
+
+#: src/main.py:206
+msgid "When you close the window, they will be automatically terminated"
+msgstr "창을 닫으면 자동으로 종료됩니다."
+
+#: src/main.py:210
+msgid "Close"
+msgstr "닫기"
+
+#: src/main.py:244
+msgid "Chat is rebooted"
+msgstr "채팅이 다시 시작되었습니다."
+
+#: src/main.py:249
+msgid "Folder is rebooted"
+msgstr "폴더가 다시 시작되었습니다."
+
+#: src/main.py:254
+msgid "Chat is created"
+msgstr "채팅이 생성되었습니다."
+
+#: src/controller.py:135 src/window.py:1852
+msgid "Chat "
+msgstr "채팅 "
 
 #: src/constants.py:20
 msgid "Newelle Demo API"
@@ -2065,34 +2098,6 @@ msgstr ""
 msgid "Prompts settings, custom extra prompt, custom prompts..."
 msgstr "프롬프트 설정, 사용자 지정 추가 프롬프트, 사용자 지정 프롬프트..."
 
-#: src/main.py:205
-msgid "Terminal threads are still running in the background"
-msgstr "터미널 스레드가 아직 백그라운드에서 실행 중입니다."
-
-#: src/main.py:206
-msgid "When you close the window, they will be automatically terminated"
-msgstr "창을 닫으면 자동으로 종료됩니다."
-
-#: src/main.py:210
-msgid "Close"
-msgstr "닫기"
-
-#: src/main.py:244
-msgid "Chat is rebooted"
-msgstr "채팅이 다시 시작되었습니다."
-
-#: src/main.py:249
-msgid "Folder is rebooted"
-msgstr "폴더가 다시 시작되었습니다."
-
-#: src/main.py:254
-msgid "Chat is created"
-msgstr "채팅이 생성되었습니다."
-
-#: src/controller.py:135 src/window.py:1848
-msgid "Chat "
-msgstr "채팅 "
-
 #: src/window.py:120
 msgid "Keyboard shorcuts"
 msgstr "키보드 단축키"
@@ -2255,87 +2260,87 @@ msgstr "로컬 문서"
 msgid "Web search"
 msgstr "웹 검색"
 
-#: src/window.py:892
+#: src/window.py:896
 msgid "This provider does not have a model list"
 msgstr "이 공급자에는 모델 목록이 없습니다."
 
-#: src/window.py:897
+#: src/window.py:901
 msgid " Models"
 msgstr " 모델"
 
-#: src/window.py:900
+#: src/window.py:904
 msgid "Search Models..."
 msgstr "모델 검색..."
 
-#: src/window.py:1128
+#: src/window.py:1132
 msgid "Create new profile"
 msgstr "새 프로필 만들기"
 
-#: src/window.py:1262
+#: src/window.py:1266
 msgid "Could not recognize your voice"
 msgstr "음성을 인식할 수 없습니다."
 
-#: src/window.py:1299
+#: src/window.py:1303
 msgid "Images"
 msgstr "이미지"
 
-#: src/window.py:1303
+#: src/window.py:1307
 msgid "LLM Supported Files"
 msgstr "LLM 지원 파일"
 
-#: src/window.py:1311
+#: src/window.py:1315
 msgid "RAG Supported files"
 msgstr "RAG 지원 파일"
 
-#: src/window.py:1329
+#: src/window.py:1333
 msgid "Supported Files"
 msgstr "지원되는 파일"
 
-#: src/window.py:1333
+#: src/window.py:1337
 msgid "All Files"
 msgstr "모든 파일"
 
-#: src/window.py:1339
+#: src/window.py:1343
 msgid "Attach file"
 msgstr "파일 첨부"
 
-#: src/window.py:1594
+#: src/window.py:1598
 msgid "The file cannot be sent until the program is finished"
 msgstr "프로그램이 완료될 때까지 파일을 보낼 수 없습니다."
 
-#: src/window.py:1616
+#: src/window.py:1620
 msgid "The file is not recognized"
 msgstr "파일을 인식할 수 없습니다."
 
-#: src/window.py:1635
+#: src/window.py:1639
 msgid "You can no longer continue the message."
 msgstr "더 이상 메시지를 계속할 수 없습니다."
 
-#: src/window.py:1660
+#: src/window.py:1664
 msgid "You can no longer regenerate the message."
 msgstr "더 이상 메시지를 다시 생성할 수 없습니다."
 
-#: src/window.py:1892
+#: src/window.py:1896
 msgid "Chat is cleared"
 msgstr "채팅이 지워졌습니다."
 
-#: src/window.py:1917
+#: src/window.py:1921
 msgid "The message was canceled and deleted from history"
 msgstr "메시지가 취소되고 기록에서 삭제되었습니다."
 
-#: src/window.py:1961
+#: src/window.py:1965
 msgid "The message cannot be sent until the program is finished"
 msgstr "프로그램이 완료될 때까지 메시지를 보낼 수 없습니다."
 
-#: src/window.py:2939
+#: src/window.py:2951
 msgid "You can't edit a message while the program is running."
 msgstr "프로그램이 실행 중일 때는 메시지를 편집할 수 없습니다."
 
-#: src/window.py:3064
+#: src/window.py:3076
 msgid "Prompt content"
 msgstr "프롬프트 내용"
 
-#: src/window.py:3323
+#: src/window.py:3335
 msgid ""
 "The neural network has access to your computer and any data in this chat and "
 "can run commands, be careful, we are not responsible for the neural network. "
@@ -2345,7 +2350,7 @@ msgstr ""
 "있습니다. 주의하십시오. 저희는 신경망에 대해 책임지지 않습니다. 민감한 정보"
 "를 공유하지 마십시오."
 
-#: src/window.py:3352
+#: src/window.py:3364
 msgid ""
 "The neural network has access to any data in this chat, be careful, we are "
 "not responsible for the neural network. Do not share any sensitive "
@@ -2354,19 +2359,19 @@ msgstr ""
 "신경망은 이 채팅의 모든 데이터에 접근할 수 있습니다. 주의하십시오. 저희는 신"
 "경망에 대해 책임지지 않습니다. 민감한 정보를 공유하지 마십시오."
 
-#: src/window.py:3401
+#: src/window.py:3413
 msgid "Wrong folder path"
 msgstr "잘못된 폴더 경로"
 
-#: src/window.py:3434
+#: src/window.py:3446
 msgid "Thread has not been completed, thread number: "
 msgstr "스레드가 완료되지 않았습니다. 스레드 번호: "
 
-#: src/window.py:3446
+#: src/window.py:3458
 msgid "Failed to open the folder"
 msgstr "폴더를 열지 못했습니다."
 
-#: src/window.py:3625
+#: src/window.py:3637
 msgid "Chat is empty"
 msgstr "채팅이 비어 있습니다."
 

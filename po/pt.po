@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-08 18:07+0800\n"
+"POT-Creation-Date: 2025-07-23 20:25+0800\n"
 "PO-Revision-Date: 2025-07-03 09:00+0200\n"
 "Last-Translator: Yehor Hliebov <qsk@gmx.at>\n"
 "Language-Team: Portuguese <qsk@gmx.at>\n"
@@ -582,7 +582,7 @@ msgstr "Ponto de extremidade personalizado do serviço a ser usado"
 #: src/handlers/tts/elevenlabs_handler.py:17
 #: src/handlers/tts/groq_tts_handler.py:33
 #: src/handlers/tts/openai_tts_handler.py:19 src/handlers/tts/tts.py:33
-#: src/ui/settings.py:128
+#: src/ui/settings.py:129
 msgid "Voice"
 msgstr "Voz"
 
@@ -912,7 +912,7 @@ msgstr "Nenhum processo de pensamento registrado"
 msgid "Folder is Empty"
 msgstr "A Pasta está Vazia"
 
-#: src/ui/explorer.py:340 src/window.py:1576
+#: src/ui/explorer.py:340 src/window.py:1580
 msgid "File not found"
 msgstr "Arquivo não encontrado"
 
@@ -932,8 +932,8 @@ msgstr "Abrir no gerenciador de arquivos"
 msgid "Rename"
 msgstr "Renomear"
 
-#: src/ui/explorer.py:366 src/ui/explorer.py:502 src/ui/settings.py:275
-#: src/ui/settings.py:346
+#: src/ui/explorer.py:366 src/ui/explorer.py:502 src/ui/settings.py:276
+#: src/ui/settings.py:347
 msgid "Delete"
 msgstr "Excluir"
 
@@ -959,6 +959,7 @@ msgid "Renamed successfully"
 msgstr "Renomeado com sucesso"
 
 #: src/ui/explorer.py:476
+#, python-brace-format
 msgid "Failed to rename: {}"
 msgstr "Falha ao renomear: {}"
 
@@ -967,6 +968,7 @@ msgid "Delete File?"
 msgstr "Excluir Arquivo?"
 
 #: src/ui/explorer.py:499
+#, python-brace-format
 msgid "Are you sure you want to delete \"{}\"?"
 msgstr "Tem certeza de que deseja excluir \"{}\"?"
 
@@ -975,6 +977,7 @@ msgid "Deleted successfully"
 msgstr "Excluído com sucesso"
 
 #: src/ui/explorer.py:525
+#, python-brace-format
 msgid "Failed to delete: {}"
 msgstr "Falha ao excluir: {}"
 
@@ -1035,6 +1038,7 @@ msgid "file"
 msgstr "arquivo"
 
 #: src/ui/explorer.py:730
+#, python-brace-format
 msgid "Failed to create {}: {}"
 msgstr "Falha ao criar {}: {}"
 
@@ -1085,27 +1089,6 @@ msgstr "Aumentar zoom"
 #: src/ui/shortcuts.py:22
 msgid "Zoom out"
 msgstr "Diminuir zoom"
-
-#: src/ui/extension.py:17 src/ui/presentation.py:131 src/constants.py:513
-#: src/window.py:118
-msgid "Extensions"
-msgstr "Extensões"
-
-#: src/ui/extension.py:50
-msgid "Installed Extensions"
-msgstr "Extensões Instaladas"
-
-#: src/ui/extension.py:85
-msgid "User guide to Extensions"
-msgstr "Guia do usuário para Extensões"
-
-#: src/ui/extension.py:88
-msgid "Download new Extensions"
-msgstr "Baixar novas Extensões"
-
-#: src/ui/extension.py:91
-msgid "Install extension from file..."
-msgstr "Instalar extensão de arquivo..."
 
 #: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.appdata.xml.in:7
 #: data/io.github.qwersyk.Newelle.desktop.in:2
@@ -1158,7 +1141,7 @@ msgstr ""
 "no chat ou de seus próprios arquivos! Informações relevantes para sua "
 "consulta serão enviadas para o LLM."
 
-#: src/ui/presentation.py:124 src/ui/settings.py:236 src/window.py:649
+#: src/ui/presentation.py:124 src/ui/settings.py:237 src/window.py:649
 msgid "Command virtualization"
 msgstr "Virtualização de comandos"
 
@@ -1175,6 +1158,11 @@ msgstr ""
 "pode gerar código malicioso!</b>\n"
 "Por padrão, seus comandos serão <b>virtualizados no ambiente Flatpak</b>, "
 "mas preste atenção!"
+
+#: src/ui/presentation.py:131 src/ui/extension.py:17 src/constants.py:513
+#: src/window.py:118
+msgid "Extensions"
+msgstr "Extensões"
 
 #: src/ui/presentation.py:132
 msgid "You can extend Newelle's functionalities using extensions!"
@@ -1203,449 +1191,10 @@ msgstr "Começar a usar o aplicativo"
 msgid "Start chatting"
 msgstr "Começar a conversar"
 
-#: src/ui/settings.py:46 src/constants.py:523
-msgid "General"
-msgstr "Geral"
-
-#: src/ui/settings.py:47 src/constants.py:478
-msgid "LLM"
-msgstr "LLM"
-
-#: src/ui/settings.py:48 src/constants.py:528
-msgid "Prompts"
-msgstr "Prompts"
-
-#: src/ui/settings.py:49
-msgid "Knowledge"
-msgstr "Conhecimento"
-
-#: src/ui/settings.py:53
-msgid "Language Model"
-msgstr "Modelo de Linguagem"
-
-#: src/ui/settings.py:62 src/ui/settings.py:82
-msgid "Other LLMs"
-msgstr "Outros LLMs"
-
-#: src/ui/settings.py:62 src/ui/settings.py:82
-msgid "Other available LLM providers"
-msgstr "Outros provedores LLM disponíveis"
-
-#: src/ui/settings.py:72
-msgid "Advanced LLM Settings"
-msgstr "Configurações Avançadas do LLM"
-
-#: src/ui/settings.py:76
-msgid "Secondary Language Model"
-msgstr "Modelo de Linguagem Secundário"
-
-#: src/ui/settings.py:76
-msgid ""
-"Model used for secondary tasks, like offer, chat name and memory generation"
-msgstr ""
-"Modelo usado para tarefas secundárias, como oferta, nome do chat e geração "
-"de memória"
-
-#: src/ui/settings.py:93
-msgid "Embedding Model"
-msgstr "Modelo de Incorporação"
-
-#: src/ui/settings.py:93
-msgid ""
-"Embedding is used to trasform text into vectors. Used by Long Term Memory "
-"and RAG. Changing it might require you to re-index documents or reset memory."
-msgstr ""
-"A incorporação é usada para transformar texto em vetores. Usado pela Memória "
-"de Longo Prazo e RAG. Alterá-lo pode exigir que você reindexe documentos ou "
-"redefina a memória."
-
-#: src/ui/settings.py:104 src/window.py:647
-msgid "Long Term Memory"
-msgstr "Memória de Longo Prazo"
-
-#: src/ui/settings.py:104
-msgid "Keep memory of old conversations"
-msgstr "Manter a memória de conversas antigas"
-
-#: src/ui/settings.py:116 src/constants.py:401
-msgid "Web Search"
-msgstr "Pesquisa na Web"
-
-#: src/ui/settings.py:116
-msgid "Search information on the Web"
-msgstr "Pesquisar informações na Web"
-
-#: src/ui/settings.py:132
-msgid "Text To Speech Program"
-msgstr "Programa de Texto para Fala"
-
-#: src/ui/settings.py:132
-msgid "Choose which text to speech to use"
-msgstr "Escolha qual texto para fala usar"
-
-#: src/ui/settings.py:141
-msgid "Speech To Text Engine"
-msgstr "Mecanismo de Fala para Texto"
-
-#: src/ui/settings.py:141
-msgid "Choose which speech recognition engine you want"
-msgstr "Escolha o mecanismo de reconhecimento de fala que você deseja"
-
-#: src/ui/settings.py:149
-msgid "Automatic Speech To Text"
-msgstr "Fala para Texto Automática"
-
-#: src/ui/settings.py:149
-msgid "Automatically restart speech to text at the end of a text/TTS"
-msgstr "Reiniciar automaticamente a fala para texto no final de um texto/TTS"
-
-#: src/ui/settings.py:153
-msgid "Prompt control"
-msgstr "Controle de Prompt"
-
-#: src/ui/settings.py:158
-msgid "Interface"
-msgstr "Interface"
-
-#: src/ui/settings.py:161
-msgid "Interface Size"
-msgstr "Tamanho da Interface"
-
-#: src/ui/settings.py:161
-msgid "Adjust the size of the interface"
-msgstr "Ajustar o tamanho da interface"
-
-#: src/ui/settings.py:173
-msgid "Editor color scheme"
-msgstr "Esquema de cores do editor"
-
-#: src/ui/settings.py:173
-msgid "Change the color scheme of the editor and codeblocks"
-msgstr "Mudar o esquema de cores do editor e dos blocos de código"
-
-#: src/ui/settings.py:180
-msgid "Hidden files"
-msgstr "Arquivos ocultos"
-
-#: src/ui/settings.py:180
-msgid "Show hidden files"
-msgstr "Mostrar arquivos ocultos"
-
-#: src/ui/settings.py:186
-msgid "Send with ENTER"
-msgstr "Enviar com ENTER"
-
-#: src/ui/settings.py:186
-msgid ""
-"If enabled, messages will be sent with ENTER, to go to a new line use "
-"CTRL+ENTER. If disabled, messages will be sent with SHIFT+ENTER, and newline "
-"with enter"
-msgstr ""
-"Se ativado, as mensagens serão enviadas com ENTER, para ir para uma nova "
-"linha use CTRL+ENTER. Se desativado, as mensagens serão enviadas com "
-"SHIFT+ENTER, e a nova linha com ENTER"
-
-#: src/ui/settings.py:192
-msgid "Remove thinking from history"
-msgstr "Remover o pensamento do histórico"
-
-#: src/ui/settings.py:192
-msgid ""
-"Do not send old thinking blocks for reasoning models in order to reduce "
-"token usage"
-msgstr ""
-"Não enviar blocos de pensamento antigos para modelos de raciocínio a fim de "
-"reduzir o uso de tokens"
-
-#: src/ui/settings.py:198
-msgid "Display LaTeX"
-msgstr "Exibir LaTeX"
-
-#: src/ui/settings.py:198
-msgid "Display LaTeX formulas in chat"
-msgstr "Exibir fórmulas LaTeX no chat"
-
-#: src/ui/settings.py:204
-msgid "Reverse Chat Order"
-msgstr "Inverter Ordem do Chat"
-
-#: src/ui/settings.py:204
-msgid "Show most recent chats on top in chat list (change chat to apply)"
-msgstr ""
-"Mostrar os chats mais recentes no topo da lista de chats (mude o chat para "
-"aplicar)"
-
-#: src/ui/settings.py:210
-msgid "Automatically Generate Chat Names"
-msgstr "Gerar Nomes de Chat Automaticamente"
-
-#: src/ui/settings.py:210
-msgid "Generate chat names automatically after the first two messages"
-msgstr "Gerar nomes de chat automaticamente após as duas primeiras mensagens"
-
-#: src/ui/settings.py:216
-msgid "Number of offers"
-msgstr "Número de ofertas"
-
-#: src/ui/settings.py:216
-msgid "Number of message suggestions to send to chat "
-msgstr "Número de sugestões de mensagem para enviar ao chat "
-
-#: src/ui/settings.py:223
-msgid "Username"
-msgstr "Nome de usuário"
-
-#: src/ui/settings.py:223
-#, python-brace-format
-msgid ""
-"Change the label that appears before your message\n"
-"This information is not sent to the LLM by default\n"
-"You can add it to a prompt using the {USER} variable"
-msgstr ""
-"Altere o rótulo que aparece antes da sua mensagem\n"
-"Esta informação não é enviada para o LLM por padrão\n"
-"Você pode adicioná-la a um prompt usando a variável {USER}"
-
-#: src/ui/settings.py:233
-msgid "Neural Network Control"
-msgstr "Controle de Rede Neural"
-
-#: src/ui/settings.py:236
-msgid "Run commands in a virtual machine"
-msgstr "Executar comandos em uma máquina virtual"
-
-#: src/ui/settings.py:249
-msgid "External Terminal"
-msgstr "Terminal Externo"
-
-#: src/ui/settings.py:249
-msgid "Choose the external terminal where to run the console commands"
-msgstr "Escolha o terminal externo onde executar os comandos do console"
-
-#: src/ui/settings.py:258
-msgid "Program memory"
-msgstr "Memória do programa"
-
-#: src/ui/settings.py:258
-msgid "How long the program remembers the chat "
-msgstr "Por quanto tempo o programa se lembra do chat "
-
-#: src/ui/settings.py:265
-msgid "Developer"
-msgstr "Desenvolvedor"
-
-#: src/ui/settings.py:268 src/ui/stdout_monitor.py:31
-#: src/ui/stdout_monitor.py:41
+#: src/ui/stdout_monitor.py:31 src/ui/stdout_monitor.py:41
+#: src/ui/settings.py:269
 msgid "Program Output Monitor"
 msgstr "Monitor de Saída do Programa"
-
-#: src/ui/settings.py:268
-msgid ""
-"Monitor the program output in real-time, useful for debugging and seeing "
-"downloads progress"
-msgstr ""
-"Monitorar a saída do programa em tempo real, útil para depuração e para ver "
-"o progresso dos downloads"
-
-#: src/ui/settings.py:269
-msgid "Open"
-msgstr "Abrir"
-
-#: src/ui/settings.py:274
-msgid "Delete pip path"
-msgstr "Excluir caminho do pip"
-
-#: src/ui/settings.py:274
-msgid "Remove the extra dependencies installed"
-msgstr "Remover as dependências extras instaladas"
-
-#: src/ui/settings.py:294
-msgid "Auto-run commands"
-msgstr "Comandos de execução automática"
-
-#: src/ui/settings.py:294
-msgid "Commands that the bot will write will automatically run"
-msgstr "Os comandos que o bot escreverá serão executados automaticamente"
-
-#: src/ui/settings.py:297
-msgid "Max number of commands"
-msgstr "Número máximo de comandos"
-
-#: src/ui/settings.py:297
-msgid ""
-"Maximum number of commands that the bot will write after a single user "
-"request"
-msgstr ""
-"Número máximo de comandos que o bot escreverá após uma única solicitação do "
-"usuário"
-
-#: src/ui/settings.py:328
-msgid "Browser"
-msgstr "Navegador"
-
-#: src/ui/settings.py:328
-msgid "Settings for the browser"
-msgstr "Configurações do navegador"
-
-#: src/ui/settings.py:333
-msgid "Use external browser"
-msgstr "Usar navegador externo"
-
-#: src/ui/settings.py:333
-msgid "Use an external browser to open links instead of integrated one"
-msgstr "Usar um navegador externo para abrir links em vez do integrado"
-
-#: src/ui/settings.py:340
-msgid "Persist browser session"
-msgstr "Persistir sessão do navegador"
-
-#: src/ui/settings.py:340
-msgid ""
-"Persist browser session between restarts. Turning this off requires "
-"restarting the program"
-msgstr ""
-"Persistir a sessão do navegador entre as reinicializações. Desativar isso "
-"requer reiniciar o programa"
-
-#: src/ui/settings.py:345
-msgid "Delete browser data"
-msgstr "Excluir dados do navegador"
-
-#: src/ui/settings.py:345
-msgid "Delete browser session and data"
-msgstr "Excluir sessão e dados do navegador"
-
-#: src/ui/settings.py:352
-msgid "Initial browser page"
-msgstr "Página inicial do navegador"
-
-#: src/ui/settings.py:352
-msgid "The page where the browser will start"
-msgstr "A página onde o navegador iniciará"
-
-#: src/ui/settings.py:359
-msgid "Search string"
-msgstr "String de pesquisa"
-
-#: src/ui/settings.py:359
-#, python-format
-msgid "The search string used in the browser, %s is replaced with the query"
-msgstr ""
-"A string de pesquisa usada no navegador, %s é substituída pela consulta"
-
-#: src/ui/settings.py:380
-msgid "Document Sources (RAG)"
-msgstr "Fontes de Documentos (RAG)"
-
-#: src/ui/settings.py:380
-msgid "Include content from your documents in the responses"
-msgstr "Incluir conteúdo de seus documentos nas respostas"
-
-#: src/ui/settings.py:381
-msgid "Document Analyzer"
-msgstr "Analisador de Documentos"
-
-#: src/ui/settings.py:381
-msgid ""
-"The document analyzer uses multiple techniques to extract relevant "
-"information about your documents"
-msgstr ""
-"O analisador de documentos usa múltiplas técnicas para extrair informações "
-"relevantes sobre seus documentos"
-
-#: src/ui/settings.py:392
-msgid "Read documents if unsupported"
-msgstr "Ler documentos se não suportados"
-
-#: src/ui/settings.py:392
-msgid ""
-"If the LLM does not support reading documents, relevant information about "
-"documents sent in the chat will be given to the LLM using your Document "
-"Analyzer."
-msgstr ""
-"Se o LLM não suportar a leitura de documentos, informações relevantes sobre "
-"os documentos enviados no chat serão fornecidas ao LLM usando seu Analisador "
-"de Documentos."
-
-#: src/ui/settings.py:396
-msgid "Maximum tokens for RAG"
-msgstr "Tokens máximos para RAG"
-
-#: src/ui/settings.py:396
-msgid ""
-"The maximum amount of tokens to be used for RAG. If the documents do not "
-"exceed this token count,\n"
-"dump all of them in the context"
-msgstr ""
-"A quantidade máxima de tokens a serem usados para RAG. Se os documentos não "
-"excederem essa contagem de tokens,\n"
-"descarregar todos eles no contexto"
-
-#: src/ui/settings.py:413
-msgid "Document Folder"
-msgstr "Pasta de Documentos"
-
-#: src/ui/settings.py:413
-msgid ""
-"Put the documents you want to query in your document folder. The document "
-"analyzer will find relevant information in them if this option is enabled"
-msgstr ""
-"Coloque os documentos que você deseja consultar em sua pasta de documentos. "
-"O analisador de documentos encontrará informações relevantes neles se esta "
-"opção estiver ativada"
-
-#: src/ui/settings.py:416
-msgid "Put all the documents you want to index in this folder"
-msgstr "Coloque todos os documentos que você deseja indexar nesta pasta"
-
-#: src/ui/settings.py:452
-msgid "Silence threshold"
-msgstr "Limiar de silêncio"
-
-#: src/ui/settings.py:452
-msgid ""
-"Silence threshold in seconds, percentage of the volume to be considered "
-"silence"
-msgstr ""
-"Limiar de silêncio em segundos, porcentagem do volume a ser considerada "
-"silêncio"
-
-#: src/ui/settings.py:465
-msgid "Silence time"
-msgstr "Tempo de silêncio"
-
-#: src/ui/settings.py:465
-msgid "Silence time in seconds before recording stops automatically"
-msgstr ""
-"Tempo de silêncio em segundos antes que a gravação pare automaticamente"
-
-#: src/ui/settings.py:1044
-msgid "Not enough permissions"
-msgstr "Permissões insuficientes"
-
-#: src/ui/settings.py:1048
-msgid ""
-"Newelle does not have enough permissions to run commands on your system, "
-"please run the following command"
-msgstr ""
-"Newelle não possui permissões suficientes para executar comandos em seu "
-"sistema, por favor, execute o seguinte comando"
-
-#: src/ui/settings.py:1049 src/ui/settings.py:1062
-msgid "Understood"
-msgstr "Entendido"
-
-#: src/ui/settings.py:1061
-msgid "Pip path deleted"
-msgstr "Caminho do Pip excluído"
-
-#: src/ui/settings.py:1061
-msgid ""
-"The pip path has been deleted, you can now reinstall the dependencies. This "
-"operation requires a restart of the application."
-msgstr ""
-"O caminho do pip foi excluído, agora você pode reinstalar as dependências. "
-"Esta operação requer a reinicialização do aplicativo."
 
 #: src/ui/stdout_monitor.py:48
 msgid "Clear output"
@@ -1656,7 +1205,7 @@ msgid "Start/Stop monitoring"
 msgstr "Iniciar/Parar monitoramento"
 
 #: src/ui/stdout_monitor.py:109 src/ui/stdout_monitor.py:182
-#: src/ui/stdout_monitor.py:191 src/window.py:3686
+#: src/ui/stdout_monitor.py:191 src/window.py:3698
 msgid "Monitoring: Active"
 msgstr "Monitoramento: Ativo"
 
@@ -1665,12 +1214,496 @@ msgid "Monitoring: Stopped"
 msgstr "Monitoramento: Parado"
 
 #: src/ui/stdout_monitor.py:116 src/ui/stdout_monitor.py:252
+#, python-brace-format
 msgid "Lines: {}"
 msgstr "Linhas: {}"
 
 #: src/ui/stdout_monitor.py:267
 msgid "Lines: 0"
 msgstr "Linhas: 0"
+
+#: src/ui/extension.py:50
+msgid "Installed Extensions"
+msgstr "Extensões Instaladas"
+
+#: src/ui/extension.py:86
+msgid "User guide to Extensions"
+msgstr "Guia do usuário para Extensões"
+
+#: src/ui/extension.py:89
+msgid "Download new Extensions"
+msgstr "Baixar novas Extensões"
+
+#: src/ui/extension.py:92
+msgid "Install extension from file..."
+msgstr "Instalar extensão de arquivo..."
+
+#: src/ui/settings.py:47 src/constants.py:523
+msgid "General"
+msgstr "Geral"
+
+#: src/ui/settings.py:48 src/constants.py:478
+msgid "LLM"
+msgstr "LLM"
+
+#: src/ui/settings.py:49 src/constants.py:528
+msgid "Prompts"
+msgstr "Prompts"
+
+#: src/ui/settings.py:50
+msgid "Knowledge"
+msgstr "Conhecimento"
+
+#: src/ui/settings.py:54
+msgid "Language Model"
+msgstr "Modelo de Linguagem"
+
+#: src/ui/settings.py:63 src/ui/settings.py:83
+msgid "Other LLMs"
+msgstr "Outros LLMs"
+
+#: src/ui/settings.py:63 src/ui/settings.py:83
+msgid "Other available LLM providers"
+msgstr "Outros provedores LLM disponíveis"
+
+#: src/ui/settings.py:73
+msgid "Advanced LLM Settings"
+msgstr "Configurações Avançadas do LLM"
+
+#: src/ui/settings.py:77
+msgid "Secondary Language Model"
+msgstr "Modelo de Linguagem Secundário"
+
+#: src/ui/settings.py:77
+msgid ""
+"Model used for secondary tasks, like offer, chat name and memory generation"
+msgstr ""
+"Modelo usado para tarefas secundárias, como oferta, nome do chat e geração "
+"de memória"
+
+#: src/ui/settings.py:94
+msgid "Embedding Model"
+msgstr "Modelo de Incorporação"
+
+#: src/ui/settings.py:94
+msgid ""
+"Embedding is used to trasform text into vectors. Used by Long Term Memory "
+"and RAG. Changing it might require you to re-index documents or reset memory."
+msgstr ""
+"A incorporação é usada para transformar texto em vetores. Usado pela Memória "
+"de Longo Prazo e RAG. Alterá-lo pode exigir que você reindexe documentos ou "
+"redefina a memória."
+
+#: src/ui/settings.py:105 src/window.py:647
+msgid "Long Term Memory"
+msgstr "Memória de Longo Prazo"
+
+#: src/ui/settings.py:105
+msgid "Keep memory of old conversations"
+msgstr "Manter a memória de conversas antigas"
+
+#: src/ui/settings.py:117 src/constants.py:401
+msgid "Web Search"
+msgstr "Pesquisa na Web"
+
+#: src/ui/settings.py:117
+msgid "Search information on the Web"
+msgstr "Pesquisar informações na Web"
+
+#: src/ui/settings.py:133
+msgid "Text To Speech Program"
+msgstr "Programa de Texto para Fala"
+
+#: src/ui/settings.py:133
+msgid "Choose which text to speech to use"
+msgstr "Escolha qual texto para fala usar"
+
+#: src/ui/settings.py:142
+msgid "Speech To Text Engine"
+msgstr "Mecanismo de Fala para Texto"
+
+#: src/ui/settings.py:142
+msgid "Choose which speech recognition engine you want"
+msgstr "Escolha o mecanismo de reconhecimento de fala que você deseja"
+
+#: src/ui/settings.py:150
+msgid "Automatic Speech To Text"
+msgstr "Fala para Texto Automática"
+
+#: src/ui/settings.py:150
+msgid "Automatically restart speech to text at the end of a text/TTS"
+msgstr "Reiniciar automaticamente a fala para texto no final de um texto/TTS"
+
+#: src/ui/settings.py:154
+msgid "Prompt control"
+msgstr "Controle de Prompt"
+
+#: src/ui/settings.py:159
+msgid "Interface"
+msgstr "Interface"
+
+#: src/ui/settings.py:162
+msgid "Interface Size"
+msgstr "Tamanho da Interface"
+
+#: src/ui/settings.py:162
+msgid "Adjust the size of the interface"
+msgstr "Ajustar o tamanho da interface"
+
+#: src/ui/settings.py:174
+msgid "Editor color scheme"
+msgstr "Esquema de cores do editor"
+
+#: src/ui/settings.py:174
+msgid "Change the color scheme of the editor and codeblocks"
+msgstr "Mudar o esquema de cores do editor e dos blocos de código"
+
+#: src/ui/settings.py:181
+msgid "Hidden files"
+msgstr "Arquivos ocultos"
+
+#: src/ui/settings.py:181
+msgid "Show hidden files"
+msgstr "Mostrar arquivos ocultos"
+
+#: src/ui/settings.py:187
+msgid "Send with ENTER"
+msgstr "Enviar com ENTER"
+
+#: src/ui/settings.py:187
+msgid ""
+"If enabled, messages will be sent with ENTER, to go to a new line use "
+"CTRL+ENTER. If disabled, messages will be sent with SHIFT+ENTER, and newline "
+"with enter"
+msgstr ""
+"Se ativado, as mensagens serão enviadas com ENTER, para ir para uma nova "
+"linha use CTRL+ENTER. Se desativado, as mensagens serão enviadas com "
+"SHIFT+ENTER, e a nova linha com ENTER"
+
+#: src/ui/settings.py:193
+msgid "Remove thinking from history"
+msgstr "Remover o pensamento do histórico"
+
+#: src/ui/settings.py:193
+msgid ""
+"Do not send old thinking blocks for reasoning models in order to reduce "
+"token usage"
+msgstr ""
+"Não enviar blocos de pensamento antigos para modelos de raciocínio a fim de "
+"reduzir o uso de tokens"
+
+#: src/ui/settings.py:199
+msgid "Display LaTeX"
+msgstr "Exibir LaTeX"
+
+#: src/ui/settings.py:199
+msgid "Display LaTeX formulas in chat"
+msgstr "Exibir fórmulas LaTeX no chat"
+
+#: src/ui/settings.py:205
+msgid "Reverse Chat Order"
+msgstr "Inverter Ordem do Chat"
+
+#: src/ui/settings.py:205
+msgid "Show most recent chats on top in chat list (change chat to apply)"
+msgstr ""
+"Mostrar os chats mais recentes no topo da lista de chats (mude o chat para "
+"aplicar)"
+
+#: src/ui/settings.py:211
+msgid "Automatically Generate Chat Names"
+msgstr "Gerar Nomes de Chat Automaticamente"
+
+#: src/ui/settings.py:211
+msgid "Generate chat names automatically after the first two messages"
+msgstr "Gerar nomes de chat automaticamente após as duas primeiras mensagens"
+
+#: src/ui/settings.py:217
+msgid "Number of offers"
+msgstr "Número de ofertas"
+
+#: src/ui/settings.py:217
+msgid "Number of message suggestions to send to chat "
+msgstr "Número de sugestões de mensagem para enviar ao chat "
+
+#: src/ui/settings.py:224
+msgid "Username"
+msgstr "Nome de usuário"
+
+#: src/ui/settings.py:224
+#, python-brace-format
+msgid ""
+"Change the label that appears before your message\n"
+"This information is not sent to the LLM by default\n"
+"You can add it to a prompt using the {USER} variable"
+msgstr ""
+"Altere o rótulo que aparece antes da sua mensagem\n"
+"Esta informação não é enviada para o LLM por padrão\n"
+"Você pode adicioná-la a um prompt usando a variável {USER}"
+
+#: src/ui/settings.py:234
+msgid "Neural Network Control"
+msgstr "Controle de Rede Neural"
+
+#: src/ui/settings.py:237
+msgid "Run commands in a virtual machine"
+msgstr "Executar comandos em uma máquina virtual"
+
+#: src/ui/settings.py:250
+msgid "External Terminal"
+msgstr "Terminal Externo"
+
+#: src/ui/settings.py:250
+msgid "Choose the external terminal where to run the console commands"
+msgstr "Escolha o terminal externo onde executar os comandos do console"
+
+#: src/ui/settings.py:259
+msgid "Program memory"
+msgstr "Memória do programa"
+
+#: src/ui/settings.py:259
+msgid "How long the program remembers the chat "
+msgstr "Por quanto tempo o programa se lembra do chat "
+
+#: src/ui/settings.py:266
+msgid "Developer"
+msgstr "Desenvolvedor"
+
+#: src/ui/settings.py:269
+msgid ""
+"Monitor the program output in real-time, useful for debugging and seeing "
+"downloads progress"
+msgstr ""
+"Monitorar a saída do programa em tempo real, útil para depuração e para ver "
+"o progresso dos downloads"
+
+#: src/ui/settings.py:270
+msgid "Open"
+msgstr "Abrir"
+
+#: src/ui/settings.py:275
+msgid "Delete pip path"
+msgstr "Excluir caminho do pip"
+
+#: src/ui/settings.py:275
+msgid "Remove the extra dependencies installed"
+msgstr "Remover as dependências extras instaladas"
+
+#: src/ui/settings.py:295
+msgid "Auto-run commands"
+msgstr "Comandos de execução automática"
+
+#: src/ui/settings.py:295
+msgid "Commands that the bot will write will automatically run"
+msgstr "Os comandos que o bot escreverá serão executados automaticamente"
+
+#: src/ui/settings.py:298
+msgid "Max number of commands"
+msgstr "Número máximo de comandos"
+
+#: src/ui/settings.py:298
+msgid ""
+"Maximum number of commands that the bot will write after a single user "
+"request"
+msgstr ""
+"Número máximo de comandos que o bot escreverá após uma única solicitação do "
+"usuário"
+
+#: src/ui/settings.py:329
+msgid "Browser"
+msgstr "Navegador"
+
+#: src/ui/settings.py:329
+msgid "Settings for the browser"
+msgstr "Configurações do navegador"
+
+#: src/ui/settings.py:334
+msgid "Use external browser"
+msgstr "Usar navegador externo"
+
+#: src/ui/settings.py:334
+msgid "Use an external browser to open links instead of integrated one"
+msgstr "Usar um navegador externo para abrir links em vez do integrado"
+
+#: src/ui/settings.py:341
+msgid "Persist browser session"
+msgstr "Persistir sessão do navegador"
+
+#: src/ui/settings.py:341
+msgid ""
+"Persist browser session between restarts. Turning this off requires "
+"restarting the program"
+msgstr ""
+"Persistir a sessão do navegador entre as reinicializações. Desativar isso "
+"requer reiniciar o programa"
+
+#: src/ui/settings.py:346
+msgid "Delete browser data"
+msgstr "Excluir dados do navegador"
+
+#: src/ui/settings.py:346
+msgid "Delete browser session and data"
+msgstr "Excluir sessão e dados do navegador"
+
+#: src/ui/settings.py:353
+msgid "Initial browser page"
+msgstr "Página inicial do navegador"
+
+#: src/ui/settings.py:353
+msgid "The page where the browser will start"
+msgstr "A página onde o navegador iniciará"
+
+#: src/ui/settings.py:360
+msgid "Search string"
+msgstr "String de pesquisa"
+
+#: src/ui/settings.py:360
+#, python-format
+msgid "The search string used in the browser, %s is replaced with the query"
+msgstr ""
+"A string de pesquisa usada no navegador, %s é substituída pela consulta"
+
+#: src/ui/settings.py:381
+msgid "Document Sources (RAG)"
+msgstr "Fontes de Documentos (RAG)"
+
+#: src/ui/settings.py:381
+msgid "Include content from your documents in the responses"
+msgstr "Incluir conteúdo de seus documentos nas respostas"
+
+#: src/ui/settings.py:382
+msgid "Document Analyzer"
+msgstr "Analisador de Documentos"
+
+#: src/ui/settings.py:382
+msgid ""
+"The document analyzer uses multiple techniques to extract relevant "
+"information about your documents"
+msgstr ""
+"O analisador de documentos usa múltiplas técnicas para extrair informações "
+"relevantes sobre seus documentos"
+
+#: src/ui/settings.py:393
+msgid "Read documents if unsupported"
+msgstr "Ler documentos se não suportados"
+
+#: src/ui/settings.py:393
+msgid ""
+"If the LLM does not support reading documents, relevant information about "
+"documents sent in the chat will be given to the LLM using your Document "
+"Analyzer."
+msgstr ""
+"Se o LLM não suportar a leitura de documentos, informações relevantes sobre "
+"os documentos enviados no chat serão fornecidas ao LLM usando seu Analisador "
+"de Documentos."
+
+#: src/ui/settings.py:397
+msgid "Maximum tokens for RAG"
+msgstr "Tokens máximos para RAG"
+
+#: src/ui/settings.py:397
+msgid ""
+"The maximum amount of tokens to be used for RAG. If the documents do not "
+"exceed this token count,\n"
+"dump all of them in the context"
+msgstr ""
+"A quantidade máxima de tokens a serem usados para RAG. Se os documentos não "
+"excederem essa contagem de tokens,\n"
+"descarregar todos eles no contexto"
+
+#: src/ui/settings.py:414
+msgid "Document Folder"
+msgstr "Pasta de Documentos"
+
+#: src/ui/settings.py:414
+msgid ""
+"Put the documents you want to query in your document folder. The document "
+"analyzer will find relevant information in them if this option is enabled"
+msgstr ""
+"Coloque os documentos que você deseja consultar em sua pasta de documentos. "
+"O analisador de documentos encontrará informações relevantes neles se esta "
+"opção estiver ativada"
+
+#: src/ui/settings.py:417
+msgid "Put all the documents you want to index in this folder"
+msgstr "Coloque todos os documentos que você deseja indexar nesta pasta"
+
+#: src/ui/settings.py:453
+msgid "Silence threshold"
+msgstr "Limiar de silêncio"
+
+#: src/ui/settings.py:453
+msgid ""
+"Silence threshold in seconds, percentage of the volume to be considered "
+"silence"
+msgstr ""
+"Limiar de silêncio em segundos, porcentagem do volume a ser considerada "
+"silêncio"
+
+#: src/ui/settings.py:466
+msgid "Silence time"
+msgstr "Tempo de silêncio"
+
+#: src/ui/settings.py:466
+msgid "Silence time in seconds before recording stops automatically"
+msgstr ""
+"Tempo de silêncio em segundos antes que a gravação pare automaticamente"
+
+#: src/ui/settings.py:1046
+msgid "Not enough permissions"
+msgstr "Permissões insuficientes"
+
+#: src/ui/settings.py:1050
+msgid ""
+"Newelle does not have enough permissions to run commands on your system, "
+"please run the following command"
+msgstr ""
+"Newelle não possui permissões suficientes para executar comandos em seu "
+"sistema, por favor, execute o seguinte comando"
+
+#: src/ui/settings.py:1051 src/ui/settings.py:1064
+msgid "Understood"
+msgstr "Entendido"
+
+#: src/ui/settings.py:1063
+msgid "Pip path deleted"
+msgstr "Caminho do Pip excluído"
+
+#: src/ui/settings.py:1063
+msgid ""
+"The pip path has been deleted, you can now reinstall the dependencies. This "
+"operation requires a restart of the application."
+msgstr ""
+"O caminho do pip foi excluído, agora você pode reinstalar as dependências. "
+"Esta operação requer a reinicialização do aplicativo."
+
+#: src/main.py:205
+msgid "Terminal threads are still running in the background"
+msgstr "Threads do terminal ainda estão em execução em segundo plano"
+
+#: src/main.py:206
+msgid "When you close the window, they will be automatically terminated"
+msgstr "Quando você fechar a janela, elas serão automaticamente encerradas"
+
+#: src/main.py:210
+msgid "Close"
+msgstr "Fechar"
+
+#: src/main.py:244
+msgid "Chat is rebooted"
+msgstr "Chat reiniciado"
+
+#: src/main.py:249
+msgid "Folder is rebooted"
+msgstr "Pasta reiniciada"
+
+#: src/main.py:254
+msgid "Chat is created"
+msgstr "Chat criado"
+
+#: src/controller.py:135 src/window.py:1852
+msgid "Chat "
+msgstr "Chat "
 
 #: src/constants.py:20
 msgid "Newelle Demo API"
@@ -2112,34 +2145,6 @@ msgstr ""
 "Configurações de prompts, prompt extra personalizado, prompts "
 "personalizados..."
 
-#: src/main.py:205
-msgid "Terminal threads are still running in the background"
-msgstr "Threads do terminal ainda estão em execução em segundo plano"
-
-#: src/main.py:206
-msgid "When you close the window, they will be automatically terminated"
-msgstr "Quando você fechar a janela, elas serão automaticamente encerradas"
-
-#: src/main.py:210
-msgid "Close"
-msgstr "Fechar"
-
-#: src/main.py:244
-msgid "Chat is rebooted"
-msgstr "Chat reiniciado"
-
-#: src/main.py:249
-msgid "Folder is rebooted"
-msgstr "Pasta reiniciada"
-
-#: src/main.py:254
-msgid "Chat is created"
-msgstr "Chat criado"
-
-#: src/controller.py:135 src/window.py:1848
-msgid "Chat "
-msgstr "Chat "
-
 #: src/window.py:120
 msgid "Keyboard shorcuts"
 msgstr "Atalhos de teclado"
@@ -2305,88 +2310,88 @@ msgstr "Documentos Locais"
 msgid "Web search"
 msgstr "Pesquisa na web"
 
-#: src/window.py:892
+#: src/window.py:896
 msgid "This provider does not have a model list"
 msgstr "Este provedor não possui uma lista de modelos"
 
-#: src/window.py:897
+#: src/window.py:901
 msgid " Models"
 msgstr " Modelos"
 
-#: src/window.py:900
+#: src/window.py:904
 msgid "Search Models..."
 msgstr "Buscar Modelos..."
 
-#: src/window.py:1128
+#: src/window.py:1132
 msgid "Create new profile"
 msgstr "Criar novo perfil"
 
-#: src/window.py:1262
+#: src/window.py:1266
 msgid "Could not recognize your voice"
 msgstr "Não foi possível reconhecer sua voz"
 
-#: src/window.py:1299
+#: src/window.py:1303
 msgid "Images"
 msgstr "Imagens"
 
-#: src/window.py:1303
+#: src/window.py:1307
 msgid "LLM Supported Files"
 msgstr "Arquivos Suportados pelo LLM"
 
-#: src/window.py:1311
+#: src/window.py:1315
 msgid "RAG Supported files"
 msgstr "Arquivos Suportados pelo RAG"
 
-#: src/window.py:1329
+#: src/window.py:1333
 msgid "Supported Files"
 msgstr "Arquivos Suportados"
 
-#: src/window.py:1333
+#: src/window.py:1337
 msgid "All Files"
 msgstr "Todos os Arquivos"
 
-#: src/window.py:1339
+#: src/window.py:1343
 msgid "Attach file"
 msgstr "Anexar arquivo"
 
-#: src/window.py:1594
+#: src/window.py:1598
 msgid "The file cannot be sent until the program is finished"
 msgstr "O arquivo não pode ser enviado até que o programa seja finalizado"
 
-#: src/window.py:1616
+#: src/window.py:1620
 msgid "The file is not recognized"
 msgstr "O arquivo não é reconhecido"
 
-#: src/window.py:1635
+#: src/window.py:1639
 msgid "You can no longer continue the message."
 msgstr "Você não pode mais continuar a mensagem."
 
-#: src/window.py:1660
+#: src/window.py:1664
 msgid "You can no longer regenerate the message."
 msgstr "Você não pode mais regenerar a mensagem."
 
-#: src/window.py:1892
+#: src/window.py:1896
 msgid "Chat is cleared"
 msgstr "Chat limpo"
 
-#: src/window.py:1917
+#: src/window.py:1921
 msgid "The message was canceled and deleted from history"
 msgstr "A mensagem foi cancelada e excluída do histórico"
 
-#: src/window.py:1961
+#: src/window.py:1965
 msgid "The message cannot be sent until the program is finished"
 msgstr "A mensagem não pode ser enviada até que o programa seja finalizado"
 
-#: src/window.py:2939
+#: src/window.py:2951
 msgid "You can't edit a message while the program is running."
 msgstr ""
 "Você não pode editar uma mensagem enquanto o programa está em execução."
 
-#: src/window.py:3064
+#: src/window.py:3076
 msgid "Prompt content"
 msgstr "Conteúdo do prompt"
 
-#: src/window.py:3323
+#: src/window.py:3335
 msgid ""
 "The neural network has access to your computer and any data in this chat and "
 "can run commands, be careful, we are not responsible for the neural network. "
@@ -2396,7 +2401,7 @@ msgstr ""
 "pode executar comandos. Tenha cuidado, não nos responsabilizamos pela rede "
 "neural. Não compartilhe informações sensíveis."
 
-#: src/window.py:3352
+#: src/window.py:3364
 msgid ""
 "The neural network has access to any data in this chat, be careful, we are "
 "not responsible for the neural network. Do not share any sensitive "
@@ -2406,19 +2411,19 @@ msgstr ""
 "nos responsabilizamos pela rede neural. Não compartilhe informações "
 "sensíveis."
 
-#: src/window.py:3401
+#: src/window.py:3413
 msgid "Wrong folder path"
 msgstr "Caminho da pasta incorreto"
 
-#: src/window.py:3434
+#: src/window.py:3446
 msgid "Thread has not been completed, thread number: "
 msgstr "A thread não foi concluída, número da thread: "
 
-#: src/window.py:3446
+#: src/window.py:3458
 msgid "Failed to open the folder"
 msgstr "Falha ao abrir a pasta"
 
-#: src/window.py:3625
+#: src/window.py:3637
 msgid "Chat is empty"
 msgstr "Chat vazio"
 

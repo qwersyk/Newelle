@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-08 18:07+0800\n"
+"POT-Creation-Date: 2025-07-23 20:25+0800\n"
 "PO-Revision-Date: 2025-07-03 09:00+0200\n"
 "Last-Translator: Amine Saoud <amiensa@proton.me>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -592,7 +592,7 @@ msgstr "نقطة نهاية مخصصة للخدمة المراد استخدام�
 #: src/handlers/tts/elevenlabs_handler.py:17
 #: src/handlers/tts/groq_tts_handler.py:33
 #: src/handlers/tts/openai_tts_handler.py:19 src/handlers/tts/tts.py:33
-#: src/ui/settings.py:128
+#: src/ui/settings.py:129
 msgid "Voice"
 msgstr "الصوت"
 
@@ -912,7 +912,7 @@ msgstr "لم يتم تسجيل أي عملية تفكير"
 msgid "Folder is Empty"
 msgstr "المجلد فارغ"
 
-#: src/ui/explorer.py:340 src/window.py:1576
+#: src/ui/explorer.py:340 src/window.py:1580
 msgid "File not found"
 msgstr "لم يتم العثور على الملف"
 
@@ -932,8 +932,8 @@ msgstr "فتح في مدير الملفات"
 msgid "Rename"
 msgstr "إعادة تسمية"
 
-#: src/ui/explorer.py:366 src/ui/explorer.py:502 src/ui/settings.py:275
-#: src/ui/settings.py:346
+#: src/ui/explorer.py:366 src/ui/explorer.py:502 src/ui/settings.py:276
+#: src/ui/settings.py:347
 msgid "Delete"
 msgstr "حذف"
 
@@ -961,7 +961,7 @@ msgid "Renamed successfully"
 msgstr "تمت إعادة التسمية بنجاح"
 
 #: src/ui/explorer.py:476
-#, fuzzy
+#, fuzzy, python-brace-format
 msgid "Failed to rename: {}"
 msgstr "فشل إعادة التسمية: {}"
 
@@ -970,6 +970,7 @@ msgid "Delete File?"
 msgstr "حذف الملف؟"
 
 #: src/ui/explorer.py:499
+#, python-brace-format
 msgid "Are you sure you want to delete \"{}\"?"
 msgstr "هل أنت متأكد أنك تريد حذف \"{}\"؟"
 
@@ -978,7 +979,7 @@ msgid "Deleted successfully"
 msgstr "تم الحذف بنجاح"
 
 #: src/ui/explorer.py:525
-#, fuzzy
+#, fuzzy, python-brace-format
 msgid "Failed to delete: {}"
 msgstr "فشل الحذف: {}"
 
@@ -1044,7 +1045,7 @@ msgid "file"
 msgstr "ملف"
 
 #: src/ui/explorer.py:730
-#, fuzzy
+#, fuzzy, python-brace-format
 msgid "Failed to create {}: {}"
 msgstr "فشل إنشاء {}: {}"
 
@@ -1097,29 +1098,6 @@ msgstr "تكبير"
 msgid "Zoom out"
 msgstr "تصغير"
 
-#: src/ui/extension.py:17 src/ui/presentation.py:131 src/constants.py:513
-#: src/window.py:118
-msgid "Extensions"
-msgstr "إضافات"
-
-#: src/ui/extension.py:50
-#, fuzzy
-msgid "Installed Extensions"
-msgstr "الإضافات المثبتة"
-
-#: src/ui/extension.py:85
-msgid "User guide to Extensions"
-msgstr "دليل المستخدم للإضافات"
-
-#: src/ui/extension.py:88
-#, fuzzy
-msgid "Download new Extensions"
-msgstr "تنزيل إضافات جديدة"
-
-#: src/ui/extension.py:91
-msgid "Install extension from file..."
-msgstr "تثبيت إضافة من ملف..."
-
 #: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.appdata.xml.in:7
 #: data/io.github.qwersyk.Newelle.desktop.in:2
 msgid "Newelle"
@@ -1171,7 +1149,7 @@ msgstr ""
 "أو من ملفاتك الخاصة! سيتم إرسال المعلومات ذات الصلة باستعلامك إلى نموذج "
 "اللغة الكبيرة."
 
-#: src/ui/presentation.py:124 src/ui/settings.py:236 src/window.py:649
+#: src/ui/presentation.py:124 src/ui/settings.py:237 src/window.py:649
 msgid "Command virtualization"
 msgstr "محاكاة الأوامر"
 
@@ -1186,6 +1164,11 @@ msgstr ""
 "يمكن استخدام نيويل لتشغيل الأوامر على نظامك، ولكن انتبه لما تقوم بتشغيله! "
 "<b>نموذج اللغة الكبيرة ليس تحت سيطرتنا، لذلك قد يولد رمزًا ضارًا!</b>\n"
 "افتراضيًا، سيتم <b>محاكاة أوامرك في بيئة Flatpak</b>، ولكن انتبه!"
+
+#: src/ui/presentation.py:131 src/ui/extension.py:17 src/constants.py:513
+#: src/window.py:118
+msgid "Extensions"
+msgstr "إضافات"
 
 #: src/ui/presentation.py:132
 msgid "You can extend Newelle's functionalities using extensions!"
@@ -1213,442 +1196,10 @@ msgstr "ابدأ استخدام التطبيق"
 msgid "Start chatting"
 msgstr "ابدأ الدردشة"
 
-#: src/ui/settings.py:46 src/constants.py:523
-msgid "General"
-msgstr "عام"
-
-#: src/ui/settings.py:47 src/constants.py:478
-msgid "LLM"
-msgstr "نموذج اللغة الكبيرة"
-
-#: src/ui/settings.py:48 src/constants.py:528
-msgid "Prompts"
-msgstr "الموجهات"
-
-#: src/ui/settings.py:49
-msgid "Knowledge"
-msgstr "المعرفة"
-
-#: src/ui/settings.py:53
-msgid "Language Model"
-msgstr "نموذج اللغة"
-
-#: src/ui/settings.py:62 src/ui/settings.py:82
-msgid "Other LLMs"
-msgstr "نماذج لغة كبيرة أخرى"
-
-#: src/ui/settings.py:62 src/ui/settings.py:82
-msgid "Other available LLM providers"
-msgstr "مزودو نماذج اللغة الكبيرة المتاحون الآخرون"
-
-#: src/ui/settings.py:72
-#, fuzzy
-msgid "Advanced LLM Settings"
-msgstr "إعدادات نماذج اللغة الكبيرة المتقدمة"
-
-#: src/ui/settings.py:76
-msgid "Secondary Language Model"
-msgstr "نموذج اللغة الثانوي"
-
-#: src/ui/settings.py:76
-msgid ""
-"Model used for secondary tasks, like offer, chat name and memory generation"
-msgstr ""
-"النموذج المستخدم للمهام الثانوية، مثل العرض، اسم الدردشة، وتوليد الذاكرة"
-
-#: src/ui/settings.py:93
-msgid "Embedding Model"
-msgstr "نموذج التضمين"
-
-#: src/ui/settings.py:93
-msgid ""
-"Embedding is used to trasform text into vectors. Used by Long Term Memory "
-"and RAG. Changing it might require you to re-index documents or reset memory."
-msgstr ""
-"يستخدم التضمين لتحويل النص إلى متجهات. يستخدمه الذاكرة طويلة الأمد و RAG. قد "
-"يتطلب تغييره إعادة فهرسة المستندات أو إعادة تعيين الذاكرة."
-
-#: src/ui/settings.py:104 src/window.py:647
-#, fuzzy
-msgid "Long Term Memory"
-msgstr "الذاكرة طويلة الأمد"
-
-#: src/ui/settings.py:104
-msgid "Keep memory of old conversations"
-msgstr "احتفظ بذاكرة المحادثات القديمة"
-
-#: src/ui/settings.py:116 src/constants.py:401
-msgid "Web Search"
-msgstr "البحث على الويب"
-
-#: src/ui/settings.py:116
-msgid "Search information on the Web"
-msgstr "ابحث عن المعلومات على الويب"
-
-#: src/ui/settings.py:132
-msgid "Text To Speech Program"
-msgstr "برنامج تحويل النص إلى كلام"
-
-#: src/ui/settings.py:132
-msgid "Choose which text to speech to use"
-msgstr "اختر برنامج تحويل النص إلى كلام المراد استخدامه"
-
-#: src/ui/settings.py:141
-msgid "Speech To Text Engine"
-msgstr "محرك تحويل الكلام إلى نص"
-
-#: src/ui/settings.py:141
-msgid "Choose which speech recognition engine you want"
-msgstr "اختر محرك التعرف على الكلام الذي تريده"
-
-#: src/ui/settings.py:149
-msgid "Automatic Speech To Text"
-msgstr "تحويل الكلام إلى نص تلقائي"
-
-#: src/ui/settings.py:149
-msgid "Automatically restart speech to text at the end of a text/TTS"
-msgstr "إعادة تشغيل تحويل الكلام إلى نص تلقائيًا في نهاية النص/TTS"
-
-#: src/ui/settings.py:153
-msgid "Prompt control"
-msgstr "التحكم في الموجه"
-
-#: src/ui/settings.py:158
-msgid "Interface"
-msgstr "الواجهة"
-
-#: src/ui/settings.py:161
-#, fuzzy
-msgid "Interface Size"
-msgstr "حجم الواجهة"
-
-#: src/ui/settings.py:161
-msgid "Adjust the size of the interface"
-msgstr "ضبط حجم الواجهة"
-
-#: src/ui/settings.py:173
-msgid "Editor color scheme"
-msgstr "نظام ألوان المحرر"
-
-#: src/ui/settings.py:173
-msgid "Change the color scheme of the editor and codeblocks"
-msgstr "تغيير نظام ألوان المحرر وكتل التعليمات البرمجية"
-
-#: src/ui/settings.py:180
-msgid "Hidden files"
-msgstr "الملفات المخفية"
-
-#: src/ui/settings.py:180
-msgid "Show hidden files"
-msgstr "إظهار الملفات المخفية"
-
-#: src/ui/settings.py:186
-msgid "Send with ENTER"
-msgstr "إرسال مع ENTER"
-
-#: src/ui/settings.py:186
-msgid ""
-"If enabled, messages will be sent with ENTER, to go to a new line use "
-"CTRL+ENTER. If disabled, messages will be sent with SHIFT+ENTER, and newline "
-"with enter"
-msgstr ""
-"إذا تم التمكين، سيتم إرسال الرسائل باستخدام ENTER، للانتقال إلى سطر جديد "
-"استخدم CTRL+ENTER. إذا تم التعطيل، سيتم إرسال الرسائل باستخدام SHIFT+ENTER، "
-"والسطر الجديد باستخدام ENTER"
-
-#: src/ui/settings.py:192
-msgid "Remove thinking from history"
-msgstr "إزالة التفكير من السجل"
-
-#: src/ui/settings.py:192
-msgid ""
-"Do not send old thinking blocks for reasoning models in order to reduce "
-"token usage"
-msgstr "لا ترسل كتل التفكير القديمة لنماذج التفكير لتقليل استخدام الرموز"
-
-#: src/ui/settings.py:198
-msgid "Display LaTeX"
-msgstr "عرض LaTeX"
-
-#: src/ui/settings.py:198
-msgid "Display LaTeX formulas in chat"
-msgstr "عرض صيغ LaTeX في الدردشة"
-
-#: src/ui/settings.py:204
-msgid "Reverse Chat Order"
-msgstr "عكس ترتيب الدردشة"
-
-#: src/ui/settings.py:204
-msgid "Show most recent chats on top in chat list (change chat to apply)"
-msgstr ""
-"إظهار أحدث الدردشات في الأعلى في قائمة الدردشات (غيّر الدردشة لتطبيق التغيير)"
-
-#: src/ui/settings.py:210
-msgid "Automatically Generate Chat Names"
-msgstr "توليد أسماء الدردشات تلقائيًا"
-
-#: src/ui/settings.py:210
-msgid "Generate chat names automatically after the first two messages"
-msgstr "توليد أسماء الدردشات تلقائيًا بعد أول رسالتين"
-
-#: src/ui/settings.py:216
-msgid "Number of offers"
-msgstr "عدد العروض"
-
-#: src/ui/settings.py:216
-msgid "Number of message suggestions to send to chat "
-msgstr "عدد اقتراحات الرسائل لإرسالها إلى الدردشة "
-
-#: src/ui/settings.py:223
-msgid "Username"
-msgstr "اسم المستخدم"
-
-#: src/ui/settings.py:223
-#, python-brace-format
-msgid ""
-"Change the label that appears before your message\n"
-"This information is not sent to the LLM by default\n"
-"You can add it to a prompt using the {USER} variable"
-msgstr ""
-"غيّر التسمية التي تظهر قبل رسالتك\n"
-"هذه المعلومات لا يتم إرسالها إلى نموذج اللغة الكبيرة (LLM) افتراضيًا\n"
-"يمكنك إضافتها إلى موجه باستخدام المتغير {USER}"
-
-#: src/ui/settings.py:233
-msgid "Neural Network Control"
-msgstr "التحكم في الشبكة العصبية"
-
-#: src/ui/settings.py:236
-msgid "Run commands in a virtual machine"
-msgstr "تشغيل الأوامر في جهاز افتراضي"
-
-#: src/ui/settings.py:249
-msgid "External Terminal"
-msgstr "الطرفية الخارجية"
-
-#: src/ui/settings.py:249
-msgid "Choose the external terminal where to run the console commands"
-msgstr "اختر الطرفية الخارجية لتشغيل أوامر الكونسول فيها"
-
-#: src/ui/settings.py:258
-msgid "Program memory"
-msgstr "ذاكرة البرنامج"
-
-#: src/ui/settings.py:258
-msgid "How long the program remembers the chat "
-msgstr "كم من الوقت يتذكر البرنامج الدردشة"
-
-#: src/ui/settings.py:265
-msgid "Developer"
-msgstr "المطور"
-
-#: src/ui/settings.py:268 src/ui/stdout_monitor.py:31
-#: src/ui/stdout_monitor.py:41
+#: src/ui/stdout_monitor.py:31 src/ui/stdout_monitor.py:41
+#: src/ui/settings.py:269
 msgid "Program Output Monitor"
 msgstr "مراقب إخراج البرنامج"
-
-#: src/ui/settings.py:268
-msgid ""
-"Monitor the program output in real-time, useful for debugging and seeing "
-"downloads progress"
-msgstr ""
-"مراقبة إخراج البرنامج في الوقت الحقيقي، مفيد لتصحيح الأخطاء ورؤية تقدم "
-"التنزيلات"
-
-#: src/ui/settings.py:269
-msgid "Open"
-msgstr "فتح"
-
-#: src/ui/settings.py:274
-msgid "Delete pip path"
-msgstr "حذف مسار pip"
-
-#: src/ui/settings.py:274
-msgid "Remove the extra dependencies installed"
-msgstr "إزالة التبعيات الإضافية المثبتة"
-
-#: src/ui/settings.py:294
-msgid "Auto-run commands"
-msgstr "تشغيل الأوامر تلقائيا"
-
-#: src/ui/settings.py:294
-msgid "Commands that the bot will write will automatically run"
-msgstr "سيتم تشغيل الأوامر التي يكتبها الروبوت تلقائيًا"
-
-#: src/ui/settings.py:297
-#, fuzzy
-msgid "Max number of commands"
-msgstr "الحد الأقصى لعدد الأوامر"
-
-#: src/ui/settings.py:297
-#, fuzzy
-msgid ""
-"Maximum number of commands that the bot will write after a single user "
-"request"
-msgstr "الحد الأقصى لعدد الأوامر التي سيكتبها الروبوت بعد طلب واحد من المستخدم"
-
-#: src/ui/settings.py:328
-msgid "Browser"
-msgstr "المتصفح"
-
-#: src/ui/settings.py:328
-msgid "Settings for the browser"
-msgstr "إعدادات المتصفح"
-
-#: src/ui/settings.py:333
-msgid "Use external browser"
-msgstr "استخدام متصفح خارجي"
-
-#: src/ui/settings.py:333
-msgid "Use an external browser to open links instead of integrated one"
-msgstr "استخدم متصفحًا خارجيًا لفتح الروابط بدلاً من المتصفح المدمج"
-
-#: src/ui/settings.py:340
-msgid "Persist browser session"
-msgstr "استمرار جلسة المتصفح"
-
-#: src/ui/settings.py:340
-msgid ""
-"Persist browser session between restarts. Turning this off requires "
-"restarting the program"
-msgstr ""
-"استمرار جلسة المتصفح بين عمليات إعادة التشغيل. يتطلب إيقاف هذا الخيار إعادة "
-"تشغيل البرنامج"
-
-#: src/ui/settings.py:345
-msgid "Delete browser data"
-msgstr "حذف بيانات المتصفح"
-
-#: src/ui/settings.py:345
-msgid "Delete browser session and data"
-msgstr "حذف جلسة المتصفح وبياناته"
-
-#: src/ui/settings.py:352
-msgid "Initial browser page"
-msgstr "صفحة المتصفح الأولية"
-
-#: src/ui/settings.py:352
-msgid "The page where the browser will start"
-msgstr "الصفحة التي سيبدأ منها المتصفح"
-
-#: src/ui/settings.py:359
-#, fuzzy
-msgid "Search string"
-msgstr "سلسلة البحث"
-
-#: src/ui/settings.py:359
-#, python-format
-msgid "The search string used in the browser, %s is replaced with the query"
-msgstr "سلسلة البحث المستخدمة في المتصفح، يتم استبدال %s بالاستعلام"
-
-#: src/ui/settings.py:380
-msgid "Document Sources (RAG)"
-msgstr "مصادر المستندات (RAG)"
-
-#: src/ui/settings.py:380
-msgid "Include content from your documents in the responses"
-msgstr "تضمين محتوى مستنداتك في الردود"
-
-#: src/ui/settings.py:381
-msgid "Document Analyzer"
-msgstr "محلل المستندات"
-
-#: src/ui/settings.py:381
-msgid ""
-"The document analyzer uses multiple techniques to extract relevant "
-"information about your documents"
-msgstr ""
-"يستخدم محلل المستندات تقنيات متعددة لاستخراج المعلومات ذات الصلة من مستنداتك"
-
-#: src/ui/settings.py:392
-msgid "Read documents if unsupported"
-msgstr "قراءة المستندات إذا كانت غير مدعومة"
-
-#: src/ui/settings.py:392
-msgid ""
-"If the LLM does not support reading documents, relevant information about "
-"documents sent in the chat will be given to the LLM using your Document "
-"Analyzer."
-msgstr ""
-"إذا كان نموذج اللغة الكبيرة لا يدعم قراءة المستندات، سيتم تقديم المعلومات "
-"المتعلقة بالمستندات المرسلة في الدردشة إلى نموذج اللغة الكبيرة باستخدام محلل "
-"المستندات الخاص بك."
-
-#: src/ui/settings.py:396
-msgid "Maximum tokens for RAG"
-msgstr "الحد الأقصى للرموز لـ RAG"
-
-#: src/ui/settings.py:396
-msgid ""
-"The maximum amount of tokens to be used for RAG. If the documents do not "
-"exceed this token count,\n"
-"dump all of them in the context"
-msgstr ""
-"الحد الأقصى لعدد الرموز التي سيتم استخدامها لـ RAG. إذا لم تتجاوز المستندات "
-"هذا العدد من الرموز،\n"
-"أفرغها كلها في السياق"
-
-#: src/ui/settings.py:413
-msgid "Document Folder"
-msgstr "مجلد المستندات"
-
-#: src/ui/settings.py:413
-msgid ""
-"Put the documents you want to query in your document folder. The document "
-"analyzer will find relevant information in them if this option is enabled"
-msgstr ""
-"ضع المستندات التي تريد استعلامها في مجلد مستنداتك. سيجد محلل المستندات "
-"المعلومات ذات الصلة فيها إذا تم تمكين هذا الخيار"
-
-#: src/ui/settings.py:416
-msgid "Put all the documents you want to index in this folder"
-msgstr "ضع جميع المستندات التي تريد فهرستها في هذا المجلد"
-
-#: src/ui/settings.py:452
-msgid "Silence threshold"
-msgstr "عتبة الصمت"
-
-#: src/ui/settings.py:452
-msgid ""
-"Silence threshold in seconds, percentage of the volume to be considered "
-"silence"
-msgstr "عتبة الصمت بالثواني، نسبة من الحجم تعتبر صمتًا"
-
-#: src/ui/settings.py:465
-msgid "Silence time"
-msgstr "وقت الصمت"
-
-#: src/ui/settings.py:465
-msgid "Silence time in seconds before recording stops automatically"
-msgstr "وقت الصمت بالثواني قبل أن يتوقف التسجيل تلقائياً"
-
-#: src/ui/settings.py:1044
-msgid "Not enough permissions"
-msgstr "لا توجد أذونات كافية"
-
-#: src/ui/settings.py:1048
-msgid ""
-"Newelle does not have enough permissions to run commands on your system, "
-"please run the following command"
-msgstr ""
-"لا تملك Newelle أذونات كافية لتشغيل الأوامر على نظامك، يرجى تشغيل الأمر "
-"التالي"
-
-#: src/ui/settings.py:1049 src/ui/settings.py:1062
-msgid "Understood"
-msgstr "مفهوم"
-
-#: src/ui/settings.py:1061
-msgid "Pip path deleted"
-msgstr "تم حذف مسار Pip"
-
-#: src/ui/settings.py:1061
-msgid ""
-"The pip path has been deleted, you can now reinstall the dependencies. This "
-"operation requires a restart of the application."
-msgstr ""
-"تم حذف مسار pip، يمكنك الآن إعادة تثبيت التبعيات. تتطلب هذه العملية إعادة "
-"تشغيل التطبيق."
 
 #: src/ui/stdout_monitor.py:48
 msgid "Clear output"
@@ -1659,7 +1210,7 @@ msgid "Start/Stop monitoring"
 msgstr "بدء/إيقاف المراقبة"
 
 #: src/ui/stdout_monitor.py:109 src/ui/stdout_monitor.py:182
-#: src/ui/stdout_monitor.py:191 src/window.py:3686
+#: src/ui/stdout_monitor.py:191 src/window.py:3698
 msgid "Monitoring: Active"
 msgstr "المراقبة: نشطة"
 
@@ -1668,12 +1219,491 @@ msgid "Monitoring: Stopped"
 msgstr "المراقبة: متوقفة"
 
 #: src/ui/stdout_monitor.py:116 src/ui/stdout_monitor.py:252
+#, python-brace-format
 msgid "Lines: {}"
 msgstr "الأسطر: {}"
 
 #: src/ui/stdout_monitor.py:267
 msgid "Lines: 0"
 msgstr "الأسطر: 0"
+
+#: src/ui/extension.py:50
+#, fuzzy
+msgid "Installed Extensions"
+msgstr "الإضافات المثبتة"
+
+#: src/ui/extension.py:86
+msgid "User guide to Extensions"
+msgstr "دليل المستخدم للإضافات"
+
+#: src/ui/extension.py:89
+#, fuzzy
+msgid "Download new Extensions"
+msgstr "تنزيل إضافات جديدة"
+
+#: src/ui/extension.py:92
+msgid "Install extension from file..."
+msgstr "تثبيت إضافة من ملف..."
+
+#: src/ui/settings.py:47 src/constants.py:523
+msgid "General"
+msgstr "عام"
+
+#: src/ui/settings.py:48 src/constants.py:478
+msgid "LLM"
+msgstr "نموذج اللغة الكبيرة"
+
+#: src/ui/settings.py:49 src/constants.py:528
+msgid "Prompts"
+msgstr "الموجهات"
+
+#: src/ui/settings.py:50
+msgid "Knowledge"
+msgstr "المعرفة"
+
+#: src/ui/settings.py:54
+msgid "Language Model"
+msgstr "نموذج اللغة"
+
+#: src/ui/settings.py:63 src/ui/settings.py:83
+msgid "Other LLMs"
+msgstr "نماذج لغة كبيرة أخرى"
+
+#: src/ui/settings.py:63 src/ui/settings.py:83
+msgid "Other available LLM providers"
+msgstr "مزودو نماذج اللغة الكبيرة المتاحون الآخرون"
+
+#: src/ui/settings.py:73
+#, fuzzy
+msgid "Advanced LLM Settings"
+msgstr "إعدادات نماذج اللغة الكبيرة المتقدمة"
+
+#: src/ui/settings.py:77
+msgid "Secondary Language Model"
+msgstr "نموذج اللغة الثانوي"
+
+#: src/ui/settings.py:77
+msgid ""
+"Model used for secondary tasks, like offer, chat name and memory generation"
+msgstr ""
+"النموذج المستخدم للمهام الثانوية، مثل العرض، اسم الدردشة، وتوليد الذاكرة"
+
+#: src/ui/settings.py:94
+msgid "Embedding Model"
+msgstr "نموذج التضمين"
+
+#: src/ui/settings.py:94
+msgid ""
+"Embedding is used to trasform text into vectors. Used by Long Term Memory "
+"and RAG. Changing it might require you to re-index documents or reset memory."
+msgstr ""
+"يستخدم التضمين لتحويل النص إلى متجهات. يستخدمه الذاكرة طويلة الأمد و RAG. قد "
+"يتطلب تغييره إعادة فهرسة المستندات أو إعادة تعيين الذاكرة."
+
+#: src/ui/settings.py:105 src/window.py:647
+#, fuzzy
+msgid "Long Term Memory"
+msgstr "الذاكرة طويلة الأمد"
+
+#: src/ui/settings.py:105
+msgid "Keep memory of old conversations"
+msgstr "احتفظ بذاكرة المحادثات القديمة"
+
+#: src/ui/settings.py:117 src/constants.py:401
+msgid "Web Search"
+msgstr "البحث على الويب"
+
+#: src/ui/settings.py:117
+msgid "Search information on the Web"
+msgstr "ابحث عن المعلومات على الويب"
+
+#: src/ui/settings.py:133
+msgid "Text To Speech Program"
+msgstr "برنامج تحويل النص إلى كلام"
+
+#: src/ui/settings.py:133
+msgid "Choose which text to speech to use"
+msgstr "اختر برنامج تحويل النص إلى كلام المراد استخدامه"
+
+#: src/ui/settings.py:142
+msgid "Speech To Text Engine"
+msgstr "محرك تحويل الكلام إلى نص"
+
+#: src/ui/settings.py:142
+msgid "Choose which speech recognition engine you want"
+msgstr "اختر محرك التعرف على الكلام الذي تريده"
+
+#: src/ui/settings.py:150
+msgid "Automatic Speech To Text"
+msgstr "تحويل الكلام إلى نص تلقائي"
+
+#: src/ui/settings.py:150
+msgid "Automatically restart speech to text at the end of a text/TTS"
+msgstr "إعادة تشغيل تحويل الكلام إلى نص تلقائيًا في نهاية النص/TTS"
+
+#: src/ui/settings.py:154
+msgid "Prompt control"
+msgstr "التحكم في الموجه"
+
+#: src/ui/settings.py:159
+msgid "Interface"
+msgstr "الواجهة"
+
+#: src/ui/settings.py:162
+#, fuzzy
+msgid "Interface Size"
+msgstr "حجم الواجهة"
+
+#: src/ui/settings.py:162
+msgid "Adjust the size of the interface"
+msgstr "ضبط حجم الواجهة"
+
+#: src/ui/settings.py:174
+msgid "Editor color scheme"
+msgstr "نظام ألوان المحرر"
+
+#: src/ui/settings.py:174
+msgid "Change the color scheme of the editor and codeblocks"
+msgstr "تغيير نظام ألوان المحرر وكتل التعليمات البرمجية"
+
+#: src/ui/settings.py:181
+msgid "Hidden files"
+msgstr "الملفات المخفية"
+
+#: src/ui/settings.py:181
+msgid "Show hidden files"
+msgstr "إظهار الملفات المخفية"
+
+#: src/ui/settings.py:187
+msgid "Send with ENTER"
+msgstr "إرسال مع ENTER"
+
+#: src/ui/settings.py:187
+msgid ""
+"If enabled, messages will be sent with ENTER, to go to a new line use "
+"CTRL+ENTER. If disabled, messages will be sent with SHIFT+ENTER, and newline "
+"with enter"
+msgstr ""
+"إذا تم التمكين، سيتم إرسال الرسائل باستخدام ENTER، للانتقال إلى سطر جديد "
+"استخدم CTRL+ENTER. إذا تم التعطيل، سيتم إرسال الرسائل باستخدام SHIFT+ENTER، "
+"والسطر الجديد باستخدام ENTER"
+
+#: src/ui/settings.py:193
+msgid "Remove thinking from history"
+msgstr "إزالة التفكير من السجل"
+
+#: src/ui/settings.py:193
+msgid ""
+"Do not send old thinking blocks for reasoning models in order to reduce "
+"token usage"
+msgstr "لا ترسل كتل التفكير القديمة لنماذج التفكير لتقليل استخدام الرموز"
+
+#: src/ui/settings.py:199
+msgid "Display LaTeX"
+msgstr "عرض LaTeX"
+
+#: src/ui/settings.py:199
+msgid "Display LaTeX formulas in chat"
+msgstr "عرض صيغ LaTeX في الدردشة"
+
+#: src/ui/settings.py:205
+msgid "Reverse Chat Order"
+msgstr "عكس ترتيب الدردشة"
+
+#: src/ui/settings.py:205
+msgid "Show most recent chats on top in chat list (change chat to apply)"
+msgstr ""
+"إظهار أحدث الدردشات في الأعلى في قائمة الدردشات (غيّر الدردشة لتطبيق التغيير)"
+
+#: src/ui/settings.py:211
+msgid "Automatically Generate Chat Names"
+msgstr "توليد أسماء الدردشات تلقائيًا"
+
+#: src/ui/settings.py:211
+msgid "Generate chat names automatically after the first two messages"
+msgstr "توليد أسماء الدردشات تلقائيًا بعد أول رسالتين"
+
+#: src/ui/settings.py:217
+msgid "Number of offers"
+msgstr "عدد العروض"
+
+#: src/ui/settings.py:217
+msgid "Number of message suggestions to send to chat "
+msgstr "عدد اقتراحات الرسائل لإرسالها إلى الدردشة "
+
+#: src/ui/settings.py:224
+msgid "Username"
+msgstr "اسم المستخدم"
+
+#: src/ui/settings.py:224
+#, python-brace-format
+msgid ""
+"Change the label that appears before your message\n"
+"This information is not sent to the LLM by default\n"
+"You can add it to a prompt using the {USER} variable"
+msgstr ""
+"غيّر التسمية التي تظهر قبل رسالتك\n"
+"هذه المعلومات لا يتم إرسالها إلى نموذج اللغة الكبيرة (LLM) افتراضيًا\n"
+"يمكنك إضافتها إلى موجه باستخدام المتغير {USER}"
+
+#: src/ui/settings.py:234
+msgid "Neural Network Control"
+msgstr "التحكم في الشبكة العصبية"
+
+#: src/ui/settings.py:237
+msgid "Run commands in a virtual machine"
+msgstr "تشغيل الأوامر في جهاز افتراضي"
+
+#: src/ui/settings.py:250
+msgid "External Terminal"
+msgstr "الطرفية الخارجية"
+
+#: src/ui/settings.py:250
+msgid "Choose the external terminal where to run the console commands"
+msgstr "اختر الطرفية الخارجية لتشغيل أوامر الكونسول فيها"
+
+#: src/ui/settings.py:259
+msgid "Program memory"
+msgstr "ذاكرة البرنامج"
+
+#: src/ui/settings.py:259
+msgid "How long the program remembers the chat "
+msgstr "كم من الوقت يتذكر البرنامج الدردشة"
+
+#: src/ui/settings.py:266
+msgid "Developer"
+msgstr "المطور"
+
+#: src/ui/settings.py:269
+msgid ""
+"Monitor the program output in real-time, useful for debugging and seeing "
+"downloads progress"
+msgstr ""
+"مراقبة إخراج البرنامج في الوقت الحقيقي، مفيد لتصحيح الأخطاء ورؤية تقدم "
+"التنزيلات"
+
+#: src/ui/settings.py:270
+msgid "Open"
+msgstr "فتح"
+
+#: src/ui/settings.py:275
+msgid "Delete pip path"
+msgstr "حذف مسار pip"
+
+#: src/ui/settings.py:275
+msgid "Remove the extra dependencies installed"
+msgstr "إزالة التبعيات الإضافية المثبتة"
+
+#: src/ui/settings.py:295
+msgid "Auto-run commands"
+msgstr "تشغيل الأوامر تلقائيا"
+
+#: src/ui/settings.py:295
+msgid "Commands that the bot will write will automatically run"
+msgstr "سيتم تشغيل الأوامر التي يكتبها الروبوت تلقائيًا"
+
+#: src/ui/settings.py:298
+#, fuzzy
+msgid "Max number of commands"
+msgstr "الحد الأقصى لعدد الأوامر"
+
+#: src/ui/settings.py:298
+#, fuzzy
+msgid ""
+"Maximum number of commands that the bot will write after a single user "
+"request"
+msgstr "الحد الأقصى لعدد الأوامر التي سيكتبها الروبوت بعد طلب واحد من المستخدم"
+
+#: src/ui/settings.py:329
+msgid "Browser"
+msgstr "المتصفح"
+
+#: src/ui/settings.py:329
+msgid "Settings for the browser"
+msgstr "إعدادات المتصفح"
+
+#: src/ui/settings.py:334
+msgid "Use external browser"
+msgstr "استخدام متصفح خارجي"
+
+#: src/ui/settings.py:334
+msgid "Use an external browser to open links instead of integrated one"
+msgstr "استخدم متصفحًا خارجيًا لفتح الروابط بدلاً من المتصفح المدمج"
+
+#: src/ui/settings.py:341
+msgid "Persist browser session"
+msgstr "استمرار جلسة المتصفح"
+
+#: src/ui/settings.py:341
+msgid ""
+"Persist browser session between restarts. Turning this off requires "
+"restarting the program"
+msgstr ""
+"استمرار جلسة المتصفح بين عمليات إعادة التشغيل. يتطلب إيقاف هذا الخيار إعادة "
+"تشغيل البرنامج"
+
+#: src/ui/settings.py:346
+msgid "Delete browser data"
+msgstr "حذف بيانات المتصفح"
+
+#: src/ui/settings.py:346
+msgid "Delete browser session and data"
+msgstr "حذف جلسة المتصفح وبياناته"
+
+#: src/ui/settings.py:353
+msgid "Initial browser page"
+msgstr "صفحة المتصفح الأولية"
+
+#: src/ui/settings.py:353
+msgid "The page where the browser will start"
+msgstr "الصفحة التي سيبدأ منها المتصفح"
+
+#: src/ui/settings.py:360
+#, fuzzy
+msgid "Search string"
+msgstr "سلسلة البحث"
+
+#: src/ui/settings.py:360
+#, python-format
+msgid "The search string used in the browser, %s is replaced with the query"
+msgstr "سلسلة البحث المستخدمة في المتصفح، يتم استبدال %s بالاستعلام"
+
+#: src/ui/settings.py:381
+msgid "Document Sources (RAG)"
+msgstr "مصادر المستندات (RAG)"
+
+#: src/ui/settings.py:381
+msgid "Include content from your documents in the responses"
+msgstr "تضمين محتوى مستنداتك في الردود"
+
+#: src/ui/settings.py:382
+msgid "Document Analyzer"
+msgstr "محلل المستندات"
+
+#: src/ui/settings.py:382
+msgid ""
+"The document analyzer uses multiple techniques to extract relevant "
+"information about your documents"
+msgstr ""
+"يستخدم محلل المستندات تقنيات متعددة لاستخراج المعلومات ذات الصلة من مستنداتك"
+
+#: src/ui/settings.py:393
+msgid "Read documents if unsupported"
+msgstr "قراءة المستندات إذا كانت غير مدعومة"
+
+#: src/ui/settings.py:393
+msgid ""
+"If the LLM does not support reading documents, relevant information about "
+"documents sent in the chat will be given to the LLM using your Document "
+"Analyzer."
+msgstr ""
+"إذا كان نموذج اللغة الكبيرة لا يدعم قراءة المستندات، سيتم تقديم المعلومات "
+"المتعلقة بالمستندات المرسلة في الدردشة إلى نموذج اللغة الكبيرة باستخدام محلل "
+"المستندات الخاص بك."
+
+#: src/ui/settings.py:397
+msgid "Maximum tokens for RAG"
+msgstr "الحد الأقصى للرموز لـ RAG"
+
+#: src/ui/settings.py:397
+msgid ""
+"The maximum amount of tokens to be used for RAG. If the documents do not "
+"exceed this token count,\n"
+"dump all of them in the context"
+msgstr ""
+"الحد الأقصى لعدد الرموز التي سيتم استخدامها لـ RAG. إذا لم تتجاوز المستندات "
+"هذا العدد من الرموز،\n"
+"أفرغها كلها في السياق"
+
+#: src/ui/settings.py:414
+msgid "Document Folder"
+msgstr "مجلد المستندات"
+
+#: src/ui/settings.py:414
+msgid ""
+"Put the documents you want to query in your document folder. The document "
+"analyzer will find relevant information in them if this option is enabled"
+msgstr ""
+"ضع المستندات التي تريد استعلامها في مجلد مستنداتك. سيجد محلل المستندات "
+"المعلومات ذات الصلة فيها إذا تم تمكين هذا الخيار"
+
+#: src/ui/settings.py:417
+msgid "Put all the documents you want to index in this folder"
+msgstr "ضع جميع المستندات التي تريد فهرستها في هذا المجلد"
+
+#: src/ui/settings.py:453
+msgid "Silence threshold"
+msgstr "عتبة الصمت"
+
+#: src/ui/settings.py:453
+msgid ""
+"Silence threshold in seconds, percentage of the volume to be considered "
+"silence"
+msgstr "عتبة الصمت بالثواني، نسبة من الحجم تعتبر صمتًا"
+
+#: src/ui/settings.py:466
+msgid "Silence time"
+msgstr "وقت الصمت"
+
+#: src/ui/settings.py:466
+msgid "Silence time in seconds before recording stops automatically"
+msgstr "وقت الصمت بالثواني قبل أن يتوقف التسجيل تلقائياً"
+
+#: src/ui/settings.py:1046
+msgid "Not enough permissions"
+msgstr "لا توجد أذونات كافية"
+
+#: src/ui/settings.py:1050
+msgid ""
+"Newelle does not have enough permissions to run commands on your system, "
+"please run the following command"
+msgstr ""
+"لا تملك Newelle أذونات كافية لتشغيل الأوامر على نظامك، يرجى تشغيل الأمر "
+"التالي"
+
+#: src/ui/settings.py:1051 src/ui/settings.py:1064
+msgid "Understood"
+msgstr "مفهوم"
+
+#: src/ui/settings.py:1063
+msgid "Pip path deleted"
+msgstr "تم حذف مسار Pip"
+
+#: src/ui/settings.py:1063
+msgid ""
+"The pip path has been deleted, you can now reinstall the dependencies. This "
+"operation requires a restart of the application."
+msgstr ""
+"تم حذف مسار pip، يمكنك الآن إعادة تثبيت التبعيات. تتطلب هذه العملية إعادة "
+"تشغيل التطبيق."
+
+#: src/main.py:205
+msgid "Terminal threads are still running in the background"
+msgstr "عمليات الطرفية لا تزال قيد التشغيل في الخلفية"
+
+#: src/main.py:206
+msgid "When you close the window, they will be automatically terminated"
+msgstr "عند إغلاق النافذة، سيتم إنهاؤها تلقائيًا"
+
+#: src/main.py:210
+msgid "Close"
+msgstr "إغلاق"
+
+#: src/main.py:244
+msgid "Chat is rebooted"
+msgstr "تم إعادة تشغيل الدردشة"
+
+#: src/main.py:249
+msgid "Folder is rebooted"
+msgstr "تمت إعادة تشغيل المجلد"
+
+#: src/main.py:254
+msgid "Chat is created"
+msgstr "تم إنشاء دردشة"
+
+#: src/controller.py:135 src/window.py:1852
+msgid "Chat "
+msgstr "دردشة "
 
 #: src/constants.py:20
 msgid "Newelle Demo API"
@@ -2123,34 +2153,6 @@ msgstr ""
 msgid "Prompts settings, custom extra prompt, custom prompts..."
 msgstr "إعدادات الموجهات، موجه إضافي مخصص، موجهات مخصصة..."
 
-#: src/main.py:205
-msgid "Terminal threads are still running in the background"
-msgstr "عمليات الطرفية لا تزال قيد التشغيل في الخلفية"
-
-#: src/main.py:206
-msgid "When you close the window, they will be automatically terminated"
-msgstr "عند إغلاق النافذة، سيتم إنهاؤها تلقائيًا"
-
-#: src/main.py:210
-msgid "Close"
-msgstr "إغلاق"
-
-#: src/main.py:244
-msgid "Chat is rebooted"
-msgstr "تم إعادة تشغيل الدردشة"
-
-#: src/main.py:249
-msgid "Folder is rebooted"
-msgstr "تمت إعادة تشغيل المجلد"
-
-#: src/main.py:254
-msgid "Chat is created"
-msgstr "تم إنشاء دردشة"
-
-#: src/controller.py:135 src/window.py:1848
-msgid "Chat "
-msgstr "دردشة "
-
 #: src/window.py:120
 msgid "Keyboard shorcuts"
 msgstr "اختصارات لوحة المفاتيح"
@@ -2318,88 +2320,88 @@ msgstr "المستندات المحلية"
 msgid "Web search"
 msgstr "بحث الويب"
 
-#: src/window.py:892
+#: src/window.py:896
 msgid "This provider does not have a model list"
 msgstr "هذا المزود لا يملك قائمة بالنماذج"
 
-#: src/window.py:897
+#: src/window.py:901
 msgid " Models"
 msgstr " نماذج"
 
-#: src/window.py:900
+#: src/window.py:904
 msgid "Search Models..."
 msgstr "البحث عن نماذج..."
 
-#: src/window.py:1128
+#: src/window.py:1132
 msgid "Create new profile"
 msgstr "إنشاء ملف شخصي جديد"
 
-#: src/window.py:1262
+#: src/window.py:1266
 msgid "Could not recognize your voice"
 msgstr "لم يتم التعرف على صوتك"
 
-#: src/window.py:1299
+#: src/window.py:1303
 msgid "Images"
 msgstr "الصور"
 
-#: src/window.py:1303
+#: src/window.py:1307
 msgid "LLM Supported Files"
 msgstr "ملفات مدعومة من LLM"
 
-#: src/window.py:1311
+#: src/window.py:1315
 msgid "RAG Supported files"
 msgstr "ملفات مدعومة من RAG"
 
-#: src/window.py:1329
+#: src/window.py:1333
 msgid "Supported Files"
 msgstr "الملفات المدعومة"
 
-#: src/window.py:1333
+#: src/window.py:1337
 msgid "All Files"
 msgstr "جميع الملفات"
 
-#: src/window.py:1339
+#: src/window.py:1343
 msgid "Attach file"
 msgstr "إرفاق ملف"
 
-#: src/window.py:1594
+#: src/window.py:1598
 msgid "The file cannot be sent until the program is finished"
 msgstr "لا يمكن إرسال الملف حتى ينتهي البرنامج"
 
-#: src/window.py:1616
+#: src/window.py:1620
 msgid "The file is not recognized"
 msgstr "الملف غير معروف"
 
-#: src/window.py:1635
+#: src/window.py:1639
 msgid "You can no longer continue the message."
 msgstr "لا يمكنك متابعة الرسالة."
 
-#: src/window.py:1660
+#: src/window.py:1664
 msgid "You can no longer regenerate the message."
 msgstr "لا يمكنك إعادة توليد الرسالة."
 
-#: src/window.py:1892
+#: src/window.py:1896
 msgid "Chat is cleared"
 msgstr "تم مسح الدردشة"
 
-#: src/window.py:1917
+#: src/window.py:1921
 msgid "The message was canceled and deleted from history"
 msgstr "تم إلغاء الرسالة وحذفها من السجل"
 
-#: src/window.py:1961
+#: src/window.py:1965
 msgid "The message cannot be sent until the program is finished"
 msgstr "لا يمكن إرسال الرسالة حتى ينتهي البرنامج"
 
-#: src/window.py:2939
+#: src/window.py:2951
 msgid "You can't edit a message while the program is running."
 msgstr "لا يمكنك تعديل رسالة أثناء تشغيل البرنامج."
 
-#: src/window.py:3064
+#: src/window.py:3076
 #, fuzzy
 msgid "Prompt content"
 msgstr "محتوى الموجه"
 
-#: src/window.py:3323
+#: src/window.py:3335
 #, fuzzy
 msgid ""
 "The neural network has access to your computer and any data in this chat and "
@@ -2410,7 +2412,7 @@ msgstr ""
 "في هذه الدردشة ويمكنها تشغيل الأوامر، كن حذرًا، نحن لسنا مسؤولين عن الشبكة "
 "العصبية. لا تشارك أي معلومات حساسة."
 
-#: src/window.py:3352
+#: src/window.py:3364
 #, fuzzy
 msgid ""
 "The neural network has access to any data in this chat, be careful, we are "
@@ -2420,19 +2422,19 @@ msgstr ""
 "الشبكة العصبية لديها إمكانية الوصول إلى أي بيانات في هذه الدردشة، كن حذرًا، "
 "نحن لسنا مسؤولين عن الشبكة العصبية. لا تشارك أي معلومات حساسة."
 
-#: src/window.py:3401
+#: src/window.py:3413
 msgid "Wrong folder path"
 msgstr "مسار المجلد خاطئ"
 
-#: src/window.py:3434
+#: src/window.py:3446
 msgid "Thread has not been completed, thread number: "
 msgstr "لم يتم إكمال الخيط، رقم الخيط: "
 
-#: src/window.py:3446
+#: src/window.py:3458
 msgid "Failed to open the folder"
 msgstr "فشل فتح المجلد"
 
-#: src/window.py:3625
+#: src/window.py:3637
 msgid "Chat is empty"
 msgstr "الدردشة فارغة"
 
