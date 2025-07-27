@@ -2010,6 +2010,7 @@ class MainWindow(Adw.ApplicationWindow):
         text = button.get_child().get_label()
         self.chat.append({"User": "User", "Message": text})
         self.show_message(text, id_message=len(self.chat) - 1, is_user=True)
+        
         threading.Thread(target=self.send_message).start()
 
     def generate_suggestions(self):
@@ -2339,6 +2340,7 @@ class MainWindow(Adw.ApplicationWindow):
         # Create the message label
         self.streaming_message_box.append(scrolled_window)
         self.streaming_box = self.add_message("Assistant", self.streaming_message_box)
+        self.messages_box.pop()
         self.streaming_box.set_overflow(Gtk.Overflow.VISIBLE)
 
     def update_message(self, message, stream_number_variable):
@@ -2411,8 +2413,8 @@ class MainWindow(Adw.ApplicationWindow):
     # Show messages in chat
     def show_chat(self, animate=False):
         """Show a chat"""
-        self.messages_box = []
         self.last_error_box = None
+        self.messages_box = [] 
         if not self.check_streams["chat"]:
             self.check_streams["chat"] = True
             try:
@@ -2991,6 +2993,7 @@ class MainWindow(Adw.ApplicationWindow):
         message_box = self.messages_box[message_id + 1]  # +1 to fix message warning
         old_label = message_box.get_last_child()
         if old_label is not None:
+
             message_box.remove(old_label)
             message_box.append(
                 self.show_message(
@@ -3217,7 +3220,9 @@ class MainWindow(Adw.ApplicationWindow):
             margin_end=10,
             halign=Gtk.Align.START,
         )
+        print(user, message)
         self.messages_box.append(box)
+        print(len(self.messages_box))
         # Create edit controls
         if editable:
             apply_edit_stack = self.build_edit_box(box, str(id_message))
