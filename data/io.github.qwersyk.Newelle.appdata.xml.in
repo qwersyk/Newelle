@@ -32,6 +32,23 @@
 	<url type="bugtracker">https://github.com/qwersyk/Newelle/issues</url>
 	<content_rating type="oars-1.0" />
 	<releases>
+	    <release version="1.0" date="2025-29-07">
+            <description>
+                <ul>
+                    <li>Mini Apps support! Extensions can now show custom mini apps on the sidebar</li>
+                    <li>Added integrated browser Mini App: browse the web directly in Newelle and attach web pages</li>
+                    <li>Improved integrated file manager, supporting multiple file operations</li>
+                    <li>Integrated file editor: edit files and codeblocks directly in Newelle</li>
+                    <li>Integrated Terminal mini app: open the terminal directly in Newelle</li>
+                    <li>Programmable prompts: add dynamic content to prompts with conditionals and random strings</li>
+                    <li>Add ability to manually edit chat name</li>
+                    <li>Minor bug fixes</li>
+                    <li>Added support for multiple languages for Kokoro TTS and Whisper.CPP</li>
+                    <li>Run HTML/CSS/JS websites directly in app</li>
+                    <li>New animation on chat change</li>
+                </ul>
+            </description>
+        </release>
 	    <release version="0.9.8" date="2025-06-03">
             <description>
                 <ul>
