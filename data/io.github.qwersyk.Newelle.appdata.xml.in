@@ -32,7 +32,7 @@
 	<url type="bugtracker">https://github.com/qwersyk/Newelle/issues</url>
 	<content_rating type="oars-1.0" />
 	<releases>
-	    <release version="1.0" date="2025-29-07">
+	    <release version="1.0" date="2025-07-29">
             <description>
                 <ul>
                     <li>Mini Apps support! Extensions can now show custom mini apps on the sidebar</li>
