@@ -148,27 +148,38 @@ def human_readable_size(size: float, decimal_places:int =2) -> str:
 
 
 def extract_json(input_string: str) -> str:
-    """Extract JSON string from input string
+    """Extracts the first valid JSON string from an input string.
 
     Args:
-        input_string (): The input string 
+        input_string: The string to search for a JSON object or array.
 
     Returns:
-        str: The JSON string 
+        The first valid JSON string found, or an empty JSON object "{}" if none is found.
     """
-    # Regular expression to find JSON objects or arrays
-    json_pattern = re.compile(r'\{.*?\}|\[.*?\]', re.DOTALL)
-    
-    # Find all JSON-like substrings
-    matches = json_pattern.findall(input_string) 
-    # Parse each match and return the first valid JSON
-    for match in matches:
+    decoder = json.JSONDecoder()
+    pos = 0
+    while pos < len(input_string):
+        # Find the first opening brace or bracket
+        match = None
+        first_brace = input_string.find('{', pos)
+        first_bracket = input_string.find('[', pos)
+
+        if first_brace != -1 and (first_bracket == -1 or first_brace < first_bracket):
+            pos = first_brace
+        elif first_bracket != -1:
+            pos = first_bracket
+        else:
+            # No more JSON objects in the string
+            break
+
         try:
-            json_data = json.loads(match)
-            return match
+            # Attempt to decode a JSON object from the current position
+            obj, end_pos = decoder.raw_decode(input_string[pos:])
+            return input_string[pos:pos + end_pos]
         except json.JSONDecodeError:
-            continue
-    print("Wrong JSON", input_string)
+            # If decoding fails, move to the next character and try again
+            pos += 1
+            
     return "{}"
 
 
