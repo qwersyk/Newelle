@@ -2062,6 +2062,7 @@ class MainWindow(Adw.ApplicationWindow):
         history = []
         count = self.controller.newelle_settings.memory
         msgs = chat[:-1] if not include_last_message else chat
+        msgs.reverse()
         for msg in msgs:
             if count == 0:
                 break
@@ -2072,7 +2073,7 @@ class MainWindow(Adw.ApplicationWindow):
             if msg["User"] == "File" or msg["User"] == "Folder":
                 msg["Message"] = f"```{msg['User'].lower()}\n{msg['Message'].strip()}\n```"
                 msg["User"] = "User"
-            history.append(msg)
+            history.insert(0,msg)
             count -= 1
         return history
 
@@ -3220,9 +3221,7 @@ class MainWindow(Adw.ApplicationWindow):
             margin_end=10,
             halign=Gtk.Align.START,
         )
-        print(user, message)
         self.messages_box.append(box)
-        print(len(self.messages_box))
         # Create edit controls
         if editable:
             apply_edit_stack = self.build_edit_box(box, str(id_message))
