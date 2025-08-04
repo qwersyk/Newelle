@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-23 20:25+0800\n"
+"POT-Creation-Date: 2025-08-03 15:55+0800\n"
 "PO-Revision-Date: 2025-07-03 09:00+0200\n"
 "Last-Translator: Yehor Hliebov <qsk@gmx.at>\n"
 "Language-Team: Polish <qsk@gmx.at>\n"
@@ -248,46 +248,6 @@ msgstr ""
 msgid "Update Ollama"
 msgstr "Aktualizuj Ollama"
 
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Provider Sorting"
-msgstr "Sortowanie dostawców"
-
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Choose providers based on pricing/throughput or latency"
-msgstr "Wybierz dostawców na podstawie cen/przepustowości lub opóźnień"
-
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Price"
-msgstr "Cena"
-
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Throughput"
-msgstr "Przepustowość"
-
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Latency"
-msgstr "Opóźnienie"
-
-#: src/handlers/llm/openrouter_handler.py:15
-msgid "Providers Order"
-msgstr "Kolejność dostawców"
-
-#: src/handlers/llm/openrouter_handler.py:15
-msgid ""
-"Add order of providers to use, names separated by a comma.\n"
-"Empty to not specify"
-msgstr ""
-"Dodaj kolejność dostawców do użycia, nazwy oddzielone przecinkami.\n"
-"Puste, aby nie określać"
-
-#: src/handlers/llm/openrouter_handler.py:16
-msgid "Allow Fallbacks"
-msgstr "Zezwól na powrót do poprzedniej wersji"
-
-#: src/handlers/llm/openrouter_handler.py:16
-msgid "Allow fallbacks to other providers"
-msgstr "Zezwól na powrót do innych dostawców"
-
 #: src/handlers/llm/gemini_handler.py:94
 msgid "API Key (required)"
 msgstr "Klucz API (wymagany)"
@@ -431,6 +391,46 @@ msgid ""
 msgstr ""
 "Liczba między -2.0 a 2.0. Wartości dodatnie zmniejszają prawdopodobieństwo, "
 "że model będzie mówił o nowych tematach"
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Provider Sorting"
+msgstr "Sortowanie dostawców"
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Choose providers based on pricing/throughput or latency"
+msgstr "Wybierz dostawców na podstawie cen/przepustowości lub opóźnień"
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Price"
+msgstr "Cena"
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Throughput"
+msgstr "Przepustowość"
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Latency"
+msgstr "Opóźnienie"
+
+#: src/handlers/llm/openrouter_handler.py:15
+msgid "Providers Order"
+msgstr "Kolejność dostawców"
+
+#: src/handlers/llm/openrouter_handler.py:15
+msgid ""
+"Add order of providers to use, names separated by a comma.\n"
+"Empty to not specify"
+msgstr ""
+"Dodaj kolejność dostawców do użycia, nazwy oddzielone przecinkami.\n"
+"Puste, aby nie określać"
+
+#: src/handlers/llm/openrouter_handler.py:16
+msgid "Allow Fallbacks"
+msgstr "Zezwól na powrót do poprzedniej wersji"
+
+#: src/handlers/llm/openrouter_handler.py:16
+msgid "Allow fallbacks to other providers"
+msgstr "Zezwól na powrót do innych dostawców"
 
 #: src/handlers/rag/rag_handler.py:104
 msgid "Index your documents"
@@ -879,10 +879,6 @@ msgstr "Wybierz profil"
 msgid "Delete Profile"
 msgstr "Usuń profil"
 
-#: src/ui/widgets/tipscarousel.py:41
-msgid "Newelle Tips"
-msgstr "Wskazówki Newelle"
-
 #: src/ui/widgets/thinking.py:26
 msgid "Thoughts"
 msgstr "Myśli"
@@ -902,6 +898,10 @@ msgstr "LLM myśli... Rozwiń, aby zobaczyć proces myślowy"
 #: src/ui/widgets/thinking.py:136
 msgid "No thought process recorded"
 msgstr "Nie zarejestrowano procesu myślowego"
+
+#: src/ui/widgets/tipscarousel.py:41
+msgid "Newelle Tips"
+msgstr "Wskazówki Newelle"
 
 #: src/ui/explorer.py:192
 msgid "Folder is Empty"
@@ -1085,8 +1085,60 @@ msgstr "Powiększ"
 msgid "Zoom out"
 msgstr "Pomniejsz"
 
-#: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.appdata.xml.in:7
-#: data/io.github.qwersyk.Newelle.desktop.in:2
+#: src/ui/stdout_monitor.py:31 src/ui/stdout_monitor.py:41
+#: src/ui/settings.py:269
+msgid "Program Output Monitor"
+msgstr "Monitor wyjścia programu"
+
+#: src/ui/stdout_monitor.py:48
+msgid "Clear output"
+msgstr "Wyczyść wyjście"
+
+#: src/ui/stdout_monitor.py:61
+msgid "Start/Stop monitoring"
+msgstr "Rozpocznij/Zatrzymaj monitorowanie"
+
+#: src/ui/stdout_monitor.py:109 src/ui/stdout_monitor.py:182
+#: src/ui/stdout_monitor.py:191 src/window.py:3702
+msgid "Monitoring: Active"
+msgstr "Monitorowanie: Aktywne"
+
+#: src/ui/stdout_monitor.py:109 src/ui/stdout_monitor.py:208
+msgid "Monitoring: Stopped"
+msgstr "Monitorowanie: Zatrzymane"
+
+#: src/ui/stdout_monitor.py:116 src/ui/stdout_monitor.py:252
+#, python-brace-format
+msgid "Lines: {}"
+msgstr "Linie: {}"
+
+#: src/ui/stdout_monitor.py:267
+msgid "Lines: 0"
+msgstr "Linie: 0"
+
+#: src/ui/extension.py:17 src/ui/presentation.py:131 src/constants.py:513
+#: src/window.py:118
+msgid "Extensions"
+msgstr "Rozszerzenia"
+
+#: src/ui/extension.py:50
+msgid "Installed Extensions"
+msgstr "Zainstalowane rozszerzenia"
+
+#: src/ui/extension.py:86
+msgid "User guide to Extensions"
+msgstr "Instrukcja obsługi rozszerzeń"
+
+#: src/ui/extension.py:89
+msgid "Download new Extensions"
+msgstr "Pobierz nowe rozszerzenia"
+
+#: src/ui/extension.py:92
+msgid "Install extension from file..."
+msgstr "Zainstaluj rozszerzenie z pliku..."
+
+#: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.desktop.in:2
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:7
 msgid "Newelle"
 msgstr "Newelle"
 
@@ -1155,11 +1207,6 @@ msgstr ""
 "Domyślnie Twoje polecenia będą <b>wirtualizowane w środowisku Flatpak</b>, "
 "ale bądź ostrożny!"
 
-#: src/ui/presentation.py:131 src/ui/extension.py:17 src/constants.py:513
-#: src/window.py:118
-msgid "Extensions"
-msgstr "Rozszerzenia"
-
 #: src/ui/presentation.py:132
 msgid "You can extend Newelle's functionalities using extensions!"
 msgstr "Możesz rozszerzyć funkcjonalności Newelle za pomocą rozszerzeń!"
@@ -1186,53 +1233,6 @@ msgstr "Rozpocznij korzystanie z aplikacji"
 #: src/ui/presentation.py:163
 msgid "Start chatting"
 msgstr "Rozpocznij czat"
-
-#: src/ui/stdout_monitor.py:31 src/ui/stdout_monitor.py:41
-#: src/ui/settings.py:269
-msgid "Program Output Monitor"
-msgstr "Monitor wyjścia programu"
-
-#: src/ui/stdout_monitor.py:48
-msgid "Clear output"
-msgstr "Wyczyść wyjście"
-
-#: src/ui/stdout_monitor.py:61
-msgid "Start/Stop monitoring"
-msgstr "Rozpocznij/Zatrzymaj monitorowanie"
-
-#: src/ui/stdout_monitor.py:109 src/ui/stdout_monitor.py:182
-#: src/ui/stdout_monitor.py:191 src/window.py:3698
-msgid "Monitoring: Active"
-msgstr "Monitorowanie: Aktywne"
-
-#: src/ui/stdout_monitor.py:109 src/ui/stdout_monitor.py:208
-msgid "Monitoring: Stopped"
-msgstr "Monitorowanie: Zatrzymane"
-
-#: src/ui/stdout_monitor.py:116 src/ui/stdout_monitor.py:252
-#, python-brace-format
-msgid "Lines: {}"
-msgstr "Linie: {}"
-
-#: src/ui/stdout_monitor.py:267
-msgid "Lines: 0"
-msgstr "Linie: 0"
-
-#: src/ui/extension.py:50
-msgid "Installed Extensions"
-msgstr "Zainstalowane rozszerzenia"
-
-#: src/ui/extension.py:86
-msgid "User guide to Extensions"
-msgstr "Instrukcja obsługi rozszerzeń"
-
-#: src/ui/extension.py:89
-msgid "Download new Extensions"
-msgstr "Pobierz nowe rozszerzenia"
-
-#: src/ui/extension.py:92
-msgid "Install extension from file..."
-msgstr "Zainstaluj rozszerzenie z pliku..."
 
 #: src/ui/settings.py:47 src/constants.py:523
 msgid "General"
@@ -1670,34 +1670,6 @@ msgid ""
 msgstr ""
 "Ścieżka pip została usunięta, możesz teraz ponownie zainstalować zależności. "
 "Ta operacja wymaga ponownego uruchomienia aplikacji."
-
-#: src/main.py:205
-msgid "Terminal threads are still running in the background"
-msgstr "Wątki terminala nadal działają w tle"
-
-#: src/main.py:206
-msgid "When you close the window, they will be automatically terminated"
-msgstr "Gdy zamkniesz okno, zostaną one automatycznie zakończone"
-
-#: src/main.py:210
-msgid "Close"
-msgstr "Zamknij"
-
-#: src/main.py:244
-msgid "Chat is rebooted"
-msgstr "Czat został ponownie uruchomiony"
-
-#: src/main.py:249
-msgid "Folder is rebooted"
-msgstr "Folder został ponownie uruchomiony"
-
-#: src/main.py:254
-msgid "Chat is created"
-msgstr "Czat został utworzony"
-
-#: src/controller.py:135 src/window.py:1852
-msgid "Chat "
-msgstr "Czat "
 
 #: src/constants.py:20
 msgid "Newelle Demo API"
@@ -2138,6 +2110,34 @@ msgid "Prompts settings, custom extra prompt, custom prompts..."
 msgstr ""
 "Ustawienia monitów, niestandardowy dodatkowy monit, niestandardowe monity..."
 
+#: src/controller.py:135 src/window.py:1852
+msgid "Chat "
+msgstr "Czat "
+
+#: src/main.py:205
+msgid "Terminal threads are still running in the background"
+msgstr "Wątki terminala nadal działają w tle"
+
+#: src/main.py:206
+msgid "When you close the window, they will be automatically terminated"
+msgstr "Gdy zamkniesz okno, zostaną one automatycznie zakończone"
+
+#: src/main.py:210
+msgid "Close"
+msgstr "Zamknij"
+
+#: src/main.py:244
+msgid "Chat is rebooted"
+msgstr "Czat został ponownie uruchomiony"
+
+#: src/main.py:249
+msgid "Folder is rebooted"
+msgstr "Folder został ponownie uruchomiony"
+
+#: src/main.py:254
+msgid "Chat is created"
+msgstr "Czat został utworzony"
+
 #: src/window.py:120
 msgid "Keyboard shorcuts"
 msgstr "Skróty klawiaturowe"
@@ -2378,15 +2378,15 @@ msgid "The message cannot be sent until the program is finished"
 msgstr ""
 "Wiadomość nie może zostać wysłana, dopóki program nie zakończy działania"
 
-#: src/window.py:2951
+#: src/window.py:2954
 msgid "You can't edit a message while the program is running."
 msgstr "Nie możesz edytować wiadomości, gdy program jest uruchomiony."
 
-#: src/window.py:3076
+#: src/window.py:3080
 msgid "Prompt content"
 msgstr "Treść monitu"
 
-#: src/window.py:3335
+#: src/window.py:3339
 msgid ""
 "The neural network has access to your computer and any data in this chat and "
 "can run commands, be careful, we are not responsible for the neural network. "
@@ -2397,7 +2397,7 @@ msgstr ""
 "odpowiedzialności za sieć neuronową. Nie udostępniaj żadnych poufnych "
 "informacji."
 
-#: src/window.py:3364
+#: src/window.py:3368
 msgid ""
 "The neural network has access to any data in this chat, be careful, we are "
 "not responsible for the neural network. Do not share any sensitive "
@@ -2407,21 +2407,29 @@ msgstr ""
 "nie ponosimy odpowiedzialności za sieć neuronową. Nie udostępniaj żadnych "
 "poufnych informacji."
 
-#: src/window.py:3413
+#: src/window.py:3417
 msgid "Wrong folder path"
 msgstr "Błędna ścieżka folderu"
 
-#: src/window.py:3446
+#: src/window.py:3450
 msgid "Thread has not been completed, thread number: "
 msgstr "Wątek nie został ukończony, numer wątku: "
 
-#: src/window.py:3458
+#: src/window.py:3462
 msgid "Failed to open the folder"
 msgstr "Nie udało się otworzyć folderu"
 
-#: src/window.py:3637
+#: src/window.py:3641
 msgid "Chat is empty"
 msgstr "Czat jest pusty"
+
+#: data/io.github.qwersyk.Newelle.desktop.in:3
+msgid "Newelle: Your advanced chat bot"
+msgstr "Newelle: Twój zaawansowany chatbot"
+
+#: data/io.github.qwersyk.Newelle.desktop.in:10
+msgid "ai;assistant;chat;chatgpt;gpt;llm;ollama;"
+msgstr "ai;asystent;czat;chatgpt;gpt;llm;ollama;"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:9
 msgid ""
@@ -2448,97 +2456,148 @@ msgid "More than 10 standard AI providers"
 msgstr "Ponad 10 standardowych dostawców AI"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:38
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:61
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:123
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:128
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:133
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:138
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:143
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:62
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:85
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:147
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:152
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:157
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:162
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:167
 msgid "Bug fixes"
 msgstr "Poprawki błędów"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:39
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:45
+msgid ""
+"Mini Apps support! Extensions can now show custom mini apps on the sidebar"
+msgstr ""
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:46
+msgid ""
+"Added integrated browser Mini App: browse the web directly in Newelle and "
+"attach web pages"
+msgstr ""
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:47
+msgid "Improved integrated file manager, supporting multiple file operations"
+msgstr ""
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:48
+msgid "Integrated file editor: edit files and codeblocks directly in Newelle"
+msgstr ""
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:49
+msgid "Integrated Terminal mini app: open the terminal directly in Newelle"
+msgstr ""
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:50
+msgid ""
+"Programmable prompts: add dynamic content to prompts with conditionals and "
+"random strings"
+msgstr ""
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:51
+msgid "Add ability to manually edit chat name"
+msgstr ""
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:52
+#, fuzzy
+msgid "Minor bug fixes"
+msgstr "Poprawki błędów"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:53
+msgid "Added support for multiple languages for Kokoro TTS and Whisper.CPP"
+msgstr ""
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:54
+msgid "Run HTML/CSS/JS websites directly in app"
+msgstr ""
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:55
+msgid "New animation on chat change"
+msgstr ""
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:63
 msgid "Small improvements"
 msgstr "Drobne ulepszenia"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:46
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:70
 msgid "Improve local documents reading and loading performances"
 msgstr "Poprawa wydajności czytania i ładowania lokalnych dokumentów"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:47
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:71
 msgid "Add option to send with CTRL+Enter"
 msgstr "Dodaj opcję wysyłania za pomocą CTRL+Enter"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:48
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:72
 msgid "Improve codeblocks"
 msgstr "Ulepsz bloki kodu"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:49
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:73
 msgid "Fix Kokoro TTS"
 msgstr "Napraw Kokoro TTS"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:50
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:74
 msgid "Remove emoji from TTS"
 msgstr "Usuń emoji z TTS"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:51
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:75
 msgid "Set API keys as password fields"
 msgstr "Ustaw klucze API jako pola hasła"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:52
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:76
 msgid "Add thinking support for Gemini"
 msgstr "Dodaj wsparcie myślenia dla Gemini"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:53
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:77
 msgid "Updated translations"
 msgstr "Zaktualizowane tłumaczenia"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:60
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:84
 msgid "Added new features"
 msgstr "Dodano nowe funkcje"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:68
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:92
 msgid "Website reading and web search with SearXNG, DuckDuckGo, and Tavily"
 msgstr ""
 "Czytanie stron internetowych i wyszukiwanie w sieci za pomocą SearXNG, "
 "DuckDuckGo i Tavily"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:69
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:93
 msgid "Improved LaTeX rendering and document management"
 msgstr "Ulepszone renderowanie LaTeX i zarządzanie dokumentami"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:70
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:94
 msgid "New Thinking Widget and OpenRouter handler"
 msgstr "Nowy widżet myślenia i obsługa OpenRouter"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:71
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:95
 msgid "Vision support for Llama4 on Groq"
 msgstr "Obsługa wizji dla Llama4 na Groq"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:72
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:96
 msgid "New translations (Traditional Chinese, Bengali, Hindi)"
 msgstr "Nowe tłumaczenia (tradycyjny chiński, bengalski, hindi)"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:78
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:102
 msgid "Fixed many bugs, added some features!"
 msgstr "Naprawiono wiele błędów, dodano kilka funkcji!"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:83
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:107
 msgid "Support for new features and bug fixes"
 msgstr "Wsparcie dla nowych funkcji i poprawek błędów"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:88
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:93
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:98
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:112
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:117
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:122
 msgid "Added many new features and bug fixes"
 msgstr "Dodano wiele nowych funkcji i poprawek błędów"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:103
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:108
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:127
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:132
 msgid "Added new features and bug fixes"
 msgstr "Dodano nowe funkcje i poprawki błędów"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:113
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:137
 msgid ""
 "Updated the g4f library with versioning, added user guides, improved "
 "extension browsing, and enhanced model handling."
@@ -2546,7 +2605,7 @@ msgstr ""
 "Zaktualizowano bibliotekę g4f o wersjonowanie, dodano instrukcje obsługi, "
 "ulepszono przeglądanie rozszerzeń i poprawiono obsługę modeli."
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:118
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:142
 msgid ""
 "Bug fixes and new features have been implemented. We've modified the "
 "extension architecture, added new models, and introduced vision support, "
@@ -2556,37 +2615,29 @@ msgstr ""
 "rozszerzeń, dodaliśmy nowe modele i wprowadziliśmy wsparcie wizji, wraz z "
 "innymi możliwościami."
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:148
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:172
 msgid "Stable version"
 msgstr "Stabilna wersja"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:153
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:177
 msgid "Added extension"
 msgstr "Dodano rozszerzenie"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:158
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:182
 msgid "Blacklist of commands"
 msgstr "Czarna lista poleceń"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:163
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:187
 msgid "Localization"
 msgstr "Lokalizacja"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:168
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:192
 msgid "Redesign"
 msgstr "Przeprojektowanie"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:172
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:196
 msgid "Qwersyk"
 msgstr "Qwersyk"
-
-#: data/io.github.qwersyk.Newelle.desktop.in:3
-msgid "Newelle: Your advanced chat bot"
-msgstr "Newelle: Twój zaawansowany chatbot"
-
-#: data/io.github.qwersyk.Newelle.desktop.in:10
-msgid "ai;assistant;chat;chatgpt;gpt;llm;ollama;"
-msgstr "ai;asystent;czat;chatgpt;gpt;llm;ollama;"
 
 #~ msgid "max Tokens"
 #~ msgstr "maks. tokeny"

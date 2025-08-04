@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Newelle 0.3.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-23 20:25+0800\n"
+"POT-Creation-Date: 2025-08-03 15:55+0800\n"
 "PO-Revision-Date: 2025-03-26 19:30\n"
 "Last-Translator: Oliver Tzeng（曾嘉禾）<olivertzeng@proton.me>\n"
 "Language-Team: l10n-tw\n"
@@ -249,44 +249,6 @@ msgstr ""
 msgid "Update Ollama"
 msgstr "更新 Ollama"
 
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Provider Sorting"
-msgstr "供給者排序"
-
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Choose providers based on pricing/throughput or latency"
-msgstr "根據最佳價格、流量或最低延遲選擇供給者"
-
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Price"
-msgstr "價格"
-
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Throughput"
-msgstr "流量"
-
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Latency"
-msgstr "延遲"
-
-#: src/handlers/llm/openrouter_handler.py:15
-msgid "Providers Order"
-msgstr "供給者排序"
-
-#: src/handlers/llm/openrouter_handler.py:15
-msgid ""
-"Add order of providers to use, names separated by a comma.\n"
-"Empty to not specify"
-msgstr "新增自訂供給者，將不同供給者名稱以逗號隔開。留空以不使用"
-
-#: src/handlers/llm/openrouter_handler.py:16
-msgid "Allow Fallbacks"
-msgstr "允許後備供給者"
-
-#: src/handlers/llm/openrouter_handler.py:16
-msgid "Allow fallbacks to other providers"
-msgstr "允許在無法使用主要供給者時使用其他供給者"
-
 #: src/handlers/llm/gemini_handler.py:94
 msgid "API Key (required)"
 msgstr "API 金鑰（必填）"
@@ -417,6 +379,44 @@ msgid ""
 "Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
 "to talk about new topics"
 msgstr "數值介於±2.0。數值越大將讓模型搬出新話題的機率"
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Provider Sorting"
+msgstr "供給者排序"
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Choose providers based on pricing/throughput or latency"
+msgstr "根據最佳價格、流量或最低延遲選擇供給者"
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Price"
+msgstr "價格"
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Throughput"
+msgstr "流量"
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Latency"
+msgstr "延遲"
+
+#: src/handlers/llm/openrouter_handler.py:15
+msgid "Providers Order"
+msgstr "供給者排序"
+
+#: src/handlers/llm/openrouter_handler.py:15
+msgid ""
+"Add order of providers to use, names separated by a comma.\n"
+"Empty to not specify"
+msgstr "新增自訂供給者，將不同供給者名稱以逗號隔開。留空以不使用"
+
+#: src/handlers/llm/openrouter_handler.py:16
+msgid "Allow Fallbacks"
+msgstr "允許後備供給者"
+
+#: src/handlers/llm/openrouter_handler.py:16
+msgid "Allow fallbacks to other providers"
+msgstr "允許在無法使用主要供給者時使用其他供給者"
 
 #: src/handlers/rag/rag_handler.py:104
 msgid "Index your documents"
@@ -848,10 +848,6 @@ msgstr "選擇設定檔"
 msgid "Delete Profile"
 msgstr "刪除設定檔"
 
-#: src/ui/widgets/tipscarousel.py:41
-msgid "Newelle Tips"
-msgstr "Newelle 小秘訣"
-
 #: src/ui/widgets/thinking.py:26
 msgid "Thoughts"
 msgstr "思考過程"
@@ -871,6 +867,10 @@ msgstr "思考中...點開以顯示完整內容"
 #: src/ui/widgets/thinking.py:136
 msgid "No thought process recorded"
 msgstr "沒有思考過程"
+
+#: src/ui/widgets/tipscarousel.py:41
+msgid "Newelle Tips"
+msgstr "Newelle 小秘訣"
 
 #: src/ui/explorer.py:192
 msgid "Folder is Empty"
@@ -1054,8 +1054,60 @@ msgstr "放大"
 msgid "Zoom out"
 msgstr "縮小"
 
-#: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.appdata.xml.in:7
-#: data/io.github.qwersyk.Newelle.desktop.in:2
+#: src/ui/stdout_monitor.py:31 src/ui/stdout_monitor.py:41
+#: src/ui/settings.py:269
+msgid "Program Output Monitor"
+msgstr "程式輸出監測器"
+
+#: src/ui/stdout_monitor.py:48
+msgid "Clear output"
+msgstr "清除輸出"
+
+#: src/ui/stdout_monitor.py:61
+msgid "Start/Stop monitoring"
+msgstr "開始/停止監測"
+
+#: src/ui/stdout_monitor.py:109 src/ui/stdout_monitor.py:182
+#: src/ui/stdout_monitor.py:191 src/window.py:3702
+msgid "Monitoring: Active"
+msgstr "監測：已啟用"
+
+#: src/ui/stdout_monitor.py:109 src/ui/stdout_monitor.py:208
+msgid "Monitoring: Stopped"
+msgstr "監測：已停用"
+
+#: src/ui/stdout_monitor.py:116 src/ui/stdout_monitor.py:252
+#, python-brace-format
+msgid "Lines: {}"
+msgstr "行數：{}"
+
+#: src/ui/stdout_monitor.py:267
+msgid "Lines: 0"
+msgstr "行數：0"
+
+#: src/ui/extension.py:17 src/ui/presentation.py:131 src/constants.py:513
+#: src/window.py:118
+msgid "Extensions"
+msgstr "擴充功能"
+
+#: src/ui/extension.py:50
+msgid "Installed Extensions"
+msgstr "已安裝的擴充功能"
+
+#: src/ui/extension.py:86
+msgid "User guide to Extensions"
+msgstr "擴充功能使用說明"
+
+#: src/ui/extension.py:89
+msgid "Download new Extensions"
+msgstr "下載擴充功能"
+
+#: src/ui/extension.py:92
+msgid "Install extension from file..."
+msgstr "從檔案安裝檔案..."
+
+#: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.desktop.in:2
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:7
 msgid "Newelle"
 msgstr "Newelle"
 
@@ -1118,11 +1170,6 @@ msgstr ""
 "的程式碼！</b>\n"
 "即使指令大多可能將於<b> Flatpak 沙盒中執行</b>，但請仍小心。"
 
-#: src/ui/presentation.py:131 src/ui/extension.py:17 src/constants.py:513
-#: src/window.py:118
-msgid "Extensions"
-msgstr "擴充功能"
-
 #: src/ui/presentation.py:132
 msgid "You can extend Newelle's functionalities using extensions!"
 msgstr "利用擴充功能讓 Newelle 的功能多又更多！"
@@ -1147,53 +1194,6 @@ msgstr "開始使用應用程式"
 #: src/ui/presentation.py:163
 msgid "Start chatting"
 msgstr "開始聊天"
-
-#: src/ui/stdout_monitor.py:31 src/ui/stdout_monitor.py:41
-#: src/ui/settings.py:269
-msgid "Program Output Monitor"
-msgstr "程式輸出監測器"
-
-#: src/ui/stdout_monitor.py:48
-msgid "Clear output"
-msgstr "清除輸出"
-
-#: src/ui/stdout_monitor.py:61
-msgid "Start/Stop monitoring"
-msgstr "開始/停止監測"
-
-#: src/ui/stdout_monitor.py:109 src/ui/stdout_monitor.py:182
-#: src/ui/stdout_monitor.py:191 src/window.py:3698
-msgid "Monitoring: Active"
-msgstr "監測：已啟用"
-
-#: src/ui/stdout_monitor.py:109 src/ui/stdout_monitor.py:208
-msgid "Monitoring: Stopped"
-msgstr "監測：已停用"
-
-#: src/ui/stdout_monitor.py:116 src/ui/stdout_monitor.py:252
-#, python-brace-format
-msgid "Lines: {}"
-msgstr "行數：{}"
-
-#: src/ui/stdout_monitor.py:267
-msgid "Lines: 0"
-msgstr "行數：0"
-
-#: src/ui/extension.py:50
-msgid "Installed Extensions"
-msgstr "已安裝的擴充功能"
-
-#: src/ui/extension.py:86
-msgid "User guide to Extensions"
-msgstr "擴充功能使用說明"
-
-#: src/ui/extension.py:89
-msgid "Download new Extensions"
-msgstr "下載擴充功能"
-
-#: src/ui/extension.py:92
-msgid "Install extension from file..."
-msgstr "從檔案安裝檔案..."
 
 #: src/ui/settings.py:47 src/constants.py:523
 msgid "General"
@@ -1600,34 +1600,6 @@ msgid ""
 "operation requires a restart of the application."
 msgstr ""
 "pip 路徑已被刪除，您可以重新安裝其依賴。請重新啟動應用程式以套用此操作。"
-
-#: src/main.py:205
-msgid "Terminal threads are still running in the background"
-msgstr "終端機執行緒正在背景中執行"
-
-#: src/main.py:206
-msgid "When you close the window, they will be automatically terminated"
-msgstr "關閉視窗後將自動停止執行"
-
-#: src/main.py:210
-msgid "Close"
-msgstr "關閉"
-
-#: src/main.py:244
-msgid "Chat is rebooted"
-msgstr "重新整理聊天紀錄完成"
-
-#: src/main.py:249
-msgid "Folder is rebooted"
-msgstr "重新整理資料夾完成"
-
-#: src/main.py:254
-msgid "Chat is created"
-msgstr "已建立新的聊天室"
-
-#: src/controller.py:135 src/window.py:1852
-msgid "Chat "
-msgstr "聊天室 "
 
 #: src/constants.py:20
 msgid "Newelle Demo API"
@@ -2048,6 +2020,34 @@ msgstr "一般設定、指令虛擬化、記憶長度、自動生成聊天室名
 msgid "Prompts settings, custom extra prompt, custom prompts..."
 msgstr "提示語設定、自訂提示語等..."
 
+#: src/controller.py:135 src/window.py:1852
+msgid "Chat "
+msgstr "聊天室 "
+
+#: src/main.py:205
+msgid "Terminal threads are still running in the background"
+msgstr "終端機執行緒正在背景中執行"
+
+#: src/main.py:206
+msgid "When you close the window, they will be automatically terminated"
+msgstr "關閉視窗後將自動停止執行"
+
+#: src/main.py:210
+msgid "Close"
+msgstr "關閉"
+
+#: src/main.py:244
+msgid "Chat is rebooted"
+msgstr "重新整理聊天紀錄完成"
+
+#: src/main.py:249
+msgid "Folder is rebooted"
+msgstr "重新整理資料夾完成"
+
+#: src/main.py:254
+msgid "Chat is created"
+msgstr "已建立新的聊天室"
+
 #: src/window.py:120
 msgid "Keyboard shorcuts"
 msgstr "快捷鍵"
@@ -2277,15 +2277,15 @@ msgstr "此訊息已從聊天紀錄中取消並且刪除"
 msgid "The message cannot be sent until the program is finished"
 msgstr "在執行完成前無法傳送訊息"
 
-#: src/window.py:2951
+#: src/window.py:2954
 msgid "You can't edit a message while the program is running."
 msgstr "在執行完成前無法編輯訊息"
 
-#: src/window.py:3076
+#: src/window.py:3080
 msgid "Prompt content"
 msgstr "提示內容"
 
-#: src/window.py:3335
+#: src/window.py:3339
 msgid ""
 "The neural network has access to your computer and any data in this chat and "
 "can run commands, be careful, we are not responsible for the neural network. "
@@ -2295,7 +2295,7 @@ msgstr ""
 "我們對這些模型不承擔任何責任\n"
 "請勿分享機密資訊"
 
-#: src/window.py:3364
+#: src/window.py:3368
 msgid ""
 "The neural network has access to any data in this chat, be careful, we are "
 "not responsible for the neural network. Do not share any sensitive "
@@ -2305,21 +2305,29 @@ msgstr ""
 "我們對這些模型不承擔任何責任\n"
 "請勿分享機密資訊"
 
-#: src/window.py:3413
+#: src/window.py:3417
 msgid "Wrong folder path"
 msgstr "錯誤資料夾路徑"
 
-#: src/window.py:3446
+#: src/window.py:3450
 msgid "Thread has not been completed, thread number: "
 msgstr "執行緒尚未完成，執行緒序號："
 
-#: src/window.py:3458
+#: src/window.py:3462
 msgid "Failed to open the folder"
 msgstr "無法開啟資料夾"
 
-#: src/window.py:3637
+#: src/window.py:3641
 msgid "Chat is empty"
 msgstr "聊天室為空"
+
+#: data/io.github.qwersyk.Newelle.desktop.in:3
+msgid "Newelle: Your advanced chat bot"
+msgstr "Newelle：您強大的聊天機器人"
+
+#: data/io.github.qwersyk.Newelle.desktop.in:10
+msgid "ai;assistant;chat;chatgpt;gpt;llm;ollama;"
+msgstr "ai;assistant;chat;chatgpt;gpt;llm;ollama;"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:9
 msgid ""
@@ -2344,101 +2352,151 @@ msgid "More than 10 standard AI providers"
 msgstr "多過 10 種 AI 服務"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:38
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:61
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:123
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:128
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:133
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:138
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:143
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:62
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:85
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:147
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:152
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:157
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:162
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:167
 msgid "Bug fixes"
 msgstr "修正各種錯誤"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:39
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:45
+msgid ""
+"Mini Apps support! Extensions can now show custom mini apps on the sidebar"
+msgstr "迷你應用程式支援！擴充功能將能於側欄顯示迷你應用程式"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:46
+msgid ""
+"Added integrated browser Mini App: browse the web directly in Newelle and "
+"attach web pages"
+msgstr "新增內建瀏覽器迷你應用程式：直接地於 Newelle 瀏覽並內嵌網頁"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:47
+msgid "Improved integrated file manager, supporting multiple file operations"
+msgstr "改良內建檔案管理，支援多檔案操作"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:48
+msgid "Integrated file editor: edit files and codeblocks directly in Newelle"
+msgstr "內建檔案編輯器：直接地於 Newelle 編輯檔案與程式碼"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:49
+msgid "Integrated Terminal mini app: open the terminal directly in Newelle"
+msgstr "內建終端機迷你應用程式：於 Newelle 直接地開啟終端機"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:50
+msgid ""
+"Programmable prompts: add dynamic content to prompts with conditionals and "
+"random strings"
+msgstr "動態提示語"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:51
+msgid "Add ability to manually edit chat name"
+msgstr "現在可直接更改聊天室名稱"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:52
+msgid "Minor bug fixes"
+msgstr "修正各種小錯誤"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:53
+msgid "Added support for multiple languages for Kokoro TTS and Whisper.CPP"
+msgstr "支援 Kokoro TTS 與 Whisper.CPP 的更多語言"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:54
+msgid "Run HTML/CSS/JS websites directly in app"
+msgstr "直接地於應用程式內執行 HTML/CSS/JS"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:55
+msgid "New animation on chat change"
+msgstr "新增更動聊天室時的小動畫"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:63
 msgid "Small improvements"
 msgstr "小小改進"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:46
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:70
 msgid "Improve local documents reading and loading performances"
 msgstr "改善檔案閱讀理解速度"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:47
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:71
 msgid "Add option to send with CTRL+Enter"
 msgstr "新增 CTRL＋Enter 快捷鍵"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:48
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:72
 msgid "Improve codeblocks"
 msgstr "改善程式碼區塊顯示"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:49
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:73
 msgid "Fix Kokoro TTS"
 msgstr "修復 Kokoro 文本轉語音"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:50
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:74
 msgid "Remove emoji from TTS"
 msgstr "從文本轉語音移除表情符號"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:51
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:75
 msgid "Set API keys as password fields"
 msgstr "設定 API 金鑰為「密碼」型輸入框"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:52
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:76
 msgid "Add thinking support for Gemini"
 msgstr "新增 Gemini 思考支援"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:53
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:77
 msgid "Updated translations"
 msgstr "更新翻譯"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:60
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:84
 msgid "Added new features"
 msgstr "新增更多新功能"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:68
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:92
 msgid "Website reading and web search with SearXNG, DuckDuckGo, and Tavily"
 msgstr "網站閱讀與支援 SearXNG、DuckDuckGo、與 Tavily 等搜尋引擎"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:69
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:93
 msgid "Improved LaTeX rendering and document management"
 msgstr "改良 LaTeX 處理以及文件管理"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:70
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:94
 msgid "New Thinking Widget and OpenRouter handler"
 msgstr "新增推理模型的「思考過程」以及 OpenRouter 管理"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:71
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:95
 msgid "Vision support for Llama4 on Groq"
 msgstr "新增 Groq Llama4 圖片辨識支援"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:72
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:96
 msgid "New translations (Traditional Chinese, Bengali, Hindi)"
 msgstr "新翻譯（繁體中文、孟加拉文、印度文）"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:78
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:102
 msgid "Fixed many bugs, added some features!"
 msgstr "新增更多新功能以及修正錯誤"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:83
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:107
 msgid "Support for new features and bug fixes"
 msgstr "新增更多新功能以及修正錯誤"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:88
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:93
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:98
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:112
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:117
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:122
 msgid "Added many new features and bug fixes"
 msgstr "新增更多新功能以及修正錯誤"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:103
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:108
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:127
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:132
 msgid "Added new features and bug fixes"
 msgstr "新增更多新功能以及修正錯誤"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:113
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:137
 msgid ""
 "Updated the g4f library with versioning, added user guides, improved "
 "extension browsing, and enhanced model handling."
 msgstr "改良 g4f 資料庫的版本管理、使用者說明、擴充功能瀏覽、以及模型處理。"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:118
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:142
 msgid ""
 "Bug fixes and new features have been implemented. We've modified the "
 "extension architecture, added new models, and introduced vision support, "
@@ -2447,37 +2505,29 @@ msgstr ""
 "新增更多新功能以及修正錯誤。我們不但更改了擴充功能架構、新增新模型、以及新增"
 "圖片上傳功能等。"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:148
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:172
 msgid "Stable version"
 msgstr "穩定版本"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:153
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:177
 msgid "Added extension"
 msgstr "已新增擴充功能"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:158
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:182
 msgid "Blacklist of commands"
 msgstr "指令黑名單"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:163
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:187
 msgid "Localization"
 msgstr "翻譯"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:168
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:192
 msgid "Redesign"
 msgstr "重新設計"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:172
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:196
 msgid "Qwersyk"
 msgstr "Qwersyk"
-
-#: data/io.github.qwersyk.Newelle.desktop.in:3
-msgid "Newelle: Your advanced chat bot"
-msgstr "Newelle：您強大的聊天機器人"
-
-#: data/io.github.qwersyk.Newelle.desktop.in:10
-msgid "ai;assistant;chat;chatgpt;gpt;llm;ollama;"
-msgstr "ai;assistant;chat;chatgpt;gpt;llm;ollama;"
 
 #~ msgid "max Tokens"
 #~ msgstr "Token 限制"
