@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-23 20:25+0800\n"
+"POT-Creation-Date: 2025-08-03 15:55+0800\n"
 "PO-Revision-Date: 2025-07-03 09:00+0200\n"
 "Last-Translator: Yehor Hliebov <qsk@gmx.at>\n"
 "Language-Team: Ukrainian\n"
@@ -269,46 +269,6 @@ msgstr ""
 msgid "Update Ollama"
 msgstr "Оновити Ollama"
 
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Provider Sorting"
-msgstr "Сортування провайдерів"
-
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Choose providers based on pricing/throughput or latency"
-msgstr "Виберіть провайдерів за ціною/пропускною здатністю або затримкою"
-
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Price"
-msgstr "Ціна"
-
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Throughput"
-msgstr "Пропускна здатність"
-
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Latency"
-msgstr "Затримка"
-
-#: src/handlers/llm/openrouter_handler.py:15
-msgid "Providers Order"
-msgstr "Порядок провайдерів"
-
-#: src/handlers/llm/openrouter_handler.py:15
-msgid ""
-"Add order of providers to use, names separated by a comma.\n"
-"Empty to not specify"
-msgstr ""
-"Додайте порядок провайдерів для використання, імена розділені комою.\n"
-"Залиште порожнім, щоб не вказувати"
-
-#: src/handlers/llm/openrouter_handler.py:16
-msgid "Allow Fallbacks"
-msgstr "Дозволити резервування"
-
-#: src/handlers/llm/openrouter_handler.py:16
-msgid "Allow fallbacks to other providers"
-msgstr "Дозволити резервування на інших провайдерів"
-
 #: src/handlers/llm/gemini_handler.py:94
 msgid "API Key (required)"
 msgstr "API-ключ (обов'язково)"
@@ -461,6 +421,46 @@ msgid ""
 msgstr ""
 "Число від -2.0 до 2.0. Позитивні значення зменшують ймовірність моделі "
 "говорити про нові теми"
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Provider Sorting"
+msgstr "Сортування провайдерів"
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Choose providers based on pricing/throughput or latency"
+msgstr "Виберіть провайдерів за ціною/пропускною здатністю або затримкою"
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Price"
+msgstr "Ціна"
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Throughput"
+msgstr "Пропускна здатність"
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Latency"
+msgstr "Затримка"
+
+#: src/handlers/llm/openrouter_handler.py:15
+msgid "Providers Order"
+msgstr "Порядок провайдерів"
+
+#: src/handlers/llm/openrouter_handler.py:15
+msgid ""
+"Add order of providers to use, names separated by a comma.\n"
+"Empty to not specify"
+msgstr ""
+"Додайте порядок провайдерів для використання, імена розділені комою.\n"
+"Залиште порожнім, щоб не вказувати"
+
+#: src/handlers/llm/openrouter_handler.py:16
+msgid "Allow Fallbacks"
+msgstr "Дозволити резервування"
+
+#: src/handlers/llm/openrouter_handler.py:16
+msgid "Allow fallbacks to other providers"
+msgstr "Дозволити резервування на інших провайдерів"
 
 #: src/handlers/rag/rag_handler.py:104
 msgid "Index your documents"
@@ -926,10 +926,6 @@ msgstr "Вибрати профіль"
 msgid "Delete Profile"
 msgstr "Видалити профіль"
 
-#: src/ui/widgets/tipscarousel.py:41
-msgid "Newelle Tips"
-msgstr "Поради Newelle"
-
 #: src/ui/widgets/thinking.py:26
 msgid "Thoughts"
 msgstr "Думки"
@@ -949,6 +945,10 @@ msgstr "LLM мислить... Розгорніть, щоб побачити пр
 #: src/ui/widgets/thinking.py:136
 msgid "No thought process recorded"
 msgstr "Процес мислення не записано"
+
+#: src/ui/widgets/tipscarousel.py:41
+msgid "Newelle Tips"
+msgstr "Поради Newelle"
 
 #: src/ui/explorer.py:192
 msgid "Folder is Empty"
@@ -1141,8 +1141,63 @@ msgstr "Збільшити"
 msgid "Zoom out"
 msgstr "Зменшити"
 
-#: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.appdata.xml.in:7
-#: data/io.github.qwersyk.Newelle.desktop.in:2
+#: src/ui/stdout_monitor.py:31 src/ui/stdout_monitor.py:41
+#: src/ui/settings.py:269
+msgid "Program Output Monitor"
+msgstr "Монітор виведення програми"
+
+#: src/ui/stdout_monitor.py:48
+msgid "Clear output"
+msgstr "Очистити вивід"
+
+#: src/ui/stdout_monitor.py:61
+#, fuzzy
+msgid "Start/Stop monitoring"
+msgstr "Почати/зупинити моніторинг"
+
+#: src/ui/stdout_monitor.py:109 src/ui/stdout_monitor.py:182
+#: src/ui/stdout_monitor.py:191 src/window.py:3702
+msgid "Monitoring: Active"
+msgstr "Моніторинг: Активний"
+
+#: src/ui/stdout_monitor.py:109 src/ui/stdout_monitor.py:208
+msgid "Monitoring: Stopped"
+msgstr "Моніторинг: Зупинено"
+
+#: src/ui/stdout_monitor.py:116 src/ui/stdout_monitor.py:252
+#, python-brace-format
+msgid "Lines: {}"
+msgstr "Рядків: {}"
+
+#: src/ui/stdout_monitor.py:267
+msgid "Lines: 0"
+msgstr "Рядків: 0"
+
+#: src/ui/extension.py:17 src/ui/presentation.py:131 src/constants.py:513
+#: src/window.py:118
+msgid "Extensions"
+msgstr "Розширення"
+
+#: src/ui/extension.py:50
+#, fuzzy
+msgid "Installed Extensions"
+msgstr "Встановлені розширення"
+
+#: src/ui/extension.py:86
+msgid "User guide to Extensions"
+msgstr "Посібник користувача з розширень"
+
+#: src/ui/extension.py:89
+#, fuzzy
+msgid "Download new Extensions"
+msgstr "Завантажити нові розширення"
+
+#: src/ui/extension.py:92
+msgid "Install extension from file..."
+msgstr "Встановити розширення з файлу..."
+
+#: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.desktop.in:2
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:7
 msgid "Newelle"
 msgstr "Newelle"
 
@@ -1211,11 +1266,6 @@ msgstr ""
 "За замовчуванням, ваші команди будуть <b>віртуалізовані в середовищі "
 "Flatpak</b>, але будьте уважні!"
 
-#: src/ui/presentation.py:131 src/ui/extension.py:17 src/constants.py:513
-#: src/window.py:118
-msgid "Extensions"
-msgstr "Розширення"
-
 #: src/ui/presentation.py:132
 msgid "You can extend Newelle's functionalities using extensions!"
 msgstr "Ви можете розширити функціональність Newelle за допомогою розширень!"
@@ -1240,56 +1290,6 @@ msgstr "Почати використання програми"
 #: src/ui/presentation.py:163
 msgid "Start chatting"
 msgstr "Почати спілкування"
-
-#: src/ui/stdout_monitor.py:31 src/ui/stdout_monitor.py:41
-#: src/ui/settings.py:269
-msgid "Program Output Monitor"
-msgstr "Монітор виведення програми"
-
-#: src/ui/stdout_monitor.py:48
-msgid "Clear output"
-msgstr "Очистити вивід"
-
-#: src/ui/stdout_monitor.py:61
-#, fuzzy
-msgid "Start/Stop monitoring"
-msgstr "Почати/зупинити моніторинг"
-
-#: src/ui/stdout_monitor.py:109 src/ui/stdout_monitor.py:182
-#: src/ui/stdout_monitor.py:191 src/window.py:3698
-msgid "Monitoring: Active"
-msgstr "Моніторинг: Активний"
-
-#: src/ui/stdout_monitor.py:109 src/ui/stdout_monitor.py:208
-msgid "Monitoring: Stopped"
-msgstr "Моніторинг: Зупинено"
-
-#: src/ui/stdout_monitor.py:116 src/ui/stdout_monitor.py:252
-#, python-brace-format
-msgid "Lines: {}"
-msgstr "Рядків: {}"
-
-#: src/ui/stdout_monitor.py:267
-msgid "Lines: 0"
-msgstr "Рядків: 0"
-
-#: src/ui/extension.py:50
-#, fuzzy
-msgid "Installed Extensions"
-msgstr "Встановлені розширення"
-
-#: src/ui/extension.py:86
-msgid "User guide to Extensions"
-msgstr "Посібник користувача з розширень"
-
-#: src/ui/extension.py:89
-#, fuzzy
-msgid "Download new Extensions"
-msgstr "Завантажити нові розширення"
-
-#: src/ui/extension.py:92
-msgid "Install extension from file..."
-msgstr "Встановити розширення з файлу..."
 
 #: src/ui/settings.py:47 src/constants.py:523
 msgid "General"
@@ -1734,34 +1734,6 @@ msgid ""
 msgstr ""
 "Шлях pip було видалено, тепер ви можете перевстановити залежності. Ця "
 "операція вимагає перезапуску програми."
-
-#: src/main.py:205
-msgid "Terminal threads are still running in the background"
-msgstr "Потоки терміналу все ще виконуються у фоновому режимі"
-
-#: src/main.py:206
-msgid "When you close the window, they will be automatically terminated"
-msgstr "Коли ви закриєте вікно, вони будуть автоматично завершені"
-
-#: src/main.py:210
-msgid "Close"
-msgstr "Закрити"
-
-#: src/main.py:244
-msgid "Chat is rebooted"
-msgstr "Чат перезавантажено"
-
-#: src/main.py:249
-msgid "Folder is rebooted"
-msgstr "Папку перезавантажено"
-
-#: src/main.py:254
-msgid "Chat is created"
-msgstr "Чат створено"
-
-#: src/controller.py:135 src/window.py:1852
-msgid "Chat "
-msgstr "Чат "
 
 #: src/constants.py:20
 msgid "Newelle Demo API"
@@ -2224,6 +2196,34 @@ msgid "Prompts settings, custom extra prompt, custom prompts..."
 msgstr ""
 "Налаштування запитів, користувацькі додаткові запити, користувацькі запити..."
 
+#: src/controller.py:135 src/window.py:1852
+msgid "Chat "
+msgstr "Чат "
+
+#: src/main.py:205
+msgid "Terminal threads are still running in the background"
+msgstr "Потоки терміналу все ще виконуються у фоновому режимі"
+
+#: src/main.py:206
+msgid "When you close the window, they will be automatically terminated"
+msgstr "Коли ви закриєте вікно, вони будуть автоматично завершені"
+
+#: src/main.py:210
+msgid "Close"
+msgstr "Закрити"
+
+#: src/main.py:244
+msgid "Chat is rebooted"
+msgstr "Чат перезавантажено"
+
+#: src/main.py:249
+msgid "Folder is rebooted"
+msgstr "Папку перезавантажено"
+
+#: src/main.py:254
+msgid "Chat is created"
+msgstr "Чат створено"
+
 #: src/window.py:120
 msgid "Keyboard shorcuts"
 msgstr "Гарячі клавіші"
@@ -2472,16 +2472,16 @@ msgid "The message cannot be sent until the program is finished"
 msgstr ""
 "Повідомлення не може бути відправлене, поки програма не завершить роботу"
 
-#: src/window.py:2951
+#: src/window.py:2954
 msgid "You can't edit a message while the program is running."
 msgstr "Ви не можете редагувати повідомлення, поки програма виконується."
 
-#: src/window.py:3076
+#: src/window.py:3080
 #, fuzzy
 msgid "Prompt content"
 msgstr "Вміст запиту"
 
-#: src/window.py:3335
+#: src/window.py:3339
 msgid ""
 "The neural network has access to your computer and any data in this chat and "
 "can run commands, be careful, we are not responsible for the neural network. "
@@ -2491,7 +2491,7 @@ msgstr ""
 "чаті і може виконувати команди, будьте обережні, ми не несемо "
 "відповідальності за нейронну мережу. Не діліться конфіденційною інформацією."
 
-#: src/window.py:3364
+#: src/window.py:3368
 msgid ""
 "The neural network has access to any data in this chat, be careful, we are "
 "not responsible for the neural network. Do not share any sensitive "
@@ -2501,21 +2501,29 @@ msgstr ""
 "ми не несемо відповідальності за нейронну мережу. Не діліться конфіденційною "
 "інформацією."
 
-#: src/window.py:3413
+#: src/window.py:3417
 msgid "Wrong folder path"
 msgstr "Неправильний шлях до папки"
 
-#: src/window.py:3446
+#: src/window.py:3450
 msgid "Thread has not been completed, thread number: "
 msgstr "Потік не завершено, номер потоку: "
 
-#: src/window.py:3458
+#: src/window.py:3462
 msgid "Failed to open the folder"
 msgstr "Не вдалося відкрити папку"
 
-#: src/window.py:3637
+#: src/window.py:3641
 msgid "Chat is empty"
 msgstr "Чат порожній"
+
+#: data/io.github.qwersyk.Newelle.desktop.in:3
+msgid "Newelle: Your advanced chat bot"
+msgstr "Newelle: Ваш розширений чат-бот"
+
+#: data/io.github.qwersyk.Newelle.desktop.in:10
+msgid "ai;assistant;chat;chatgpt;gpt;llm;ollama;"
+msgstr "ai;assistant;chat;chatgpt;gpt;llm;ollama;"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:9
 msgid ""
@@ -2543,97 +2551,148 @@ msgid "More than 10 standard AI providers"
 msgstr "Більше 10 стандартних AI-провайдерів"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:38
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:61
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:123
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:128
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:133
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:138
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:143
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:62
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:85
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:147
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:152
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:157
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:162
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:167
 msgid "Bug fixes"
 msgstr "Виправлення помилок"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:39
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:45
+msgid ""
+"Mini Apps support! Extensions can now show custom mini apps on the sidebar"
+msgstr ""
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:46
+msgid ""
+"Added integrated browser Mini App: browse the web directly in Newelle and "
+"attach web pages"
+msgstr ""
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:47
+msgid "Improved integrated file manager, supporting multiple file operations"
+msgstr ""
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:48
+msgid "Integrated file editor: edit files and codeblocks directly in Newelle"
+msgstr ""
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:49
+msgid "Integrated Terminal mini app: open the terminal directly in Newelle"
+msgstr ""
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:50
+msgid ""
+"Programmable prompts: add dynamic content to prompts with conditionals and "
+"random strings"
+msgstr ""
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:51
+msgid "Add ability to manually edit chat name"
+msgstr ""
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:52
+#, fuzzy
+msgid "Minor bug fixes"
+msgstr "Виправлення помилок"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:53
+msgid "Added support for multiple languages for Kokoro TTS and Whisper.CPP"
+msgstr ""
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:54
+msgid "Run HTML/CSS/JS websites directly in app"
+msgstr ""
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:55
+msgid "New animation on chat change"
+msgstr ""
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:63
 msgid "Small improvements"
 msgstr "Невеликі покращення"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:46
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:70
 msgid "Improve local documents reading and loading performances"
 msgstr "Покращено продуктивність читання та завантаження локальних документів"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:47
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:71
 msgid "Add option to send with CTRL+Enter"
 msgstr "Додати опцію надсилання за допомогою CTRL+Enter"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:48
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:72
 msgid "Improve codeblocks"
 msgstr "Покращити блоки коду"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:49
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:73
 #, fuzzy
 msgid "Fix Kokoro TTS"
 msgstr "Виправлено Kokoro TTS"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:50
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:74
 msgid "Remove emoji from TTS"
 msgstr "Видалити емодзі з TTS"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:51
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:75
 msgid "Set API keys as password fields"
 msgstr "Встановити ключі API як поля пароля"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:52
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:76
 msgid "Add thinking support for Gemini"
 msgstr "Додати підтримку мислення для Gemini"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:53
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:77
 msgid "Updated translations"
 msgstr "Оновлені переклади"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:60
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:84
 msgid "Added new features"
 msgstr "Додано нові функції"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:68
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:92
 msgid "Website reading and web search with SearXNG, DuckDuckGo, and Tavily"
 msgstr ""
 "Читання веб-сайтів та веб-пошук за допомогою SearXNG, DuckDuckGo та Tavily"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:69
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:93
 msgid "Improved LaTeX rendering and document management"
 msgstr "Покращено рендеринг LaTeX та керування документами"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:70
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:94
 msgid "New Thinking Widget and OpenRouter handler"
 msgstr "Новий віджет \"Мислення\" та обробник OpenRouter"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:71
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:95
 msgid "Vision support for Llama4 on Groq"
 msgstr "Підтримка Vision для Llama4 на Groq"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:72
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:96
 msgid "New translations (Traditional Chinese, Bengali, Hindi)"
 msgstr "Нові переклади (традиційна китайська, бенгальська, гінді)"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:78
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:102
 msgid "Fixed many bugs, added some features!"
 msgstr "Виправлено багато помилок, додано деякі функції!"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:83
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:107
 msgid "Support for new features and bug fixes"
 msgstr "Підтримка нових функцій та виправлення помилок"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:88
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:93
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:98
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:112
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:117
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:122
 msgid "Added many new features and bug fixes"
 msgstr "Додано багато нових функцій та виправлень помилок"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:103
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:108
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:127
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:132
 msgid "Added new features and bug fixes"
 msgstr "Додано нові функції та виправлення помилок"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:113
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:137
 msgid ""
 "Updated the g4f library with versioning, added user guides, improved "
 "extension browsing, and enhanced model handling."
@@ -2641,7 +2700,7 @@ msgstr ""
 "Оновлено бібліотеку g4f з версіонуванням, додано посібники користувача, "
 "покращено перегляд розширень та обробку моделей."
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:118
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:142
 msgid ""
 "Bug fixes and new features have been implemented. We've modified the "
 "extension architecture, added new models, and introduced vision support, "
@@ -2651,39 +2710,31 @@ msgstr ""
 "розширень, додали нові моделі, запровадили підтримку бачення та інші "
 "можливості."
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:148
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:172
 msgid "Stable version"
 msgstr "Стабільна версія"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:153
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:177
 #, fuzzy
 msgid "Added extension"
 msgstr "Додано розширення"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:158
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:182
 #, fuzzy
 msgid "Blacklist of commands"
 msgstr "Чорний список команд"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:163
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:187
 msgid "Localization"
 msgstr "Локалізація"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:168
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:192
 msgid "Redesign"
 msgstr "Редизайн"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:172
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:196
 msgid "Qwersyk"
 msgstr "Qwersyk"
-
-#: data/io.github.qwersyk.Newelle.desktop.in:3
-msgid "Newelle: Your advanced chat bot"
-msgstr "Newelle: Ваш розширений чат-бот"
-
-#: data/io.github.qwersyk.Newelle.desktop.in:10
-msgid "ai;assistant;chat;chatgpt;gpt;llm;ollama;"
-msgstr "ai;assistant;chat;chatgpt;gpt;llm;ollama;"
 
 #, fuzzy
 #~ msgid "max Tokens"

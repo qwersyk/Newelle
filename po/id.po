@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-23 20:25+0800\n"
+"POT-Creation-Date: 2025-08-03 15:55+0800\n"
 "PO-Revision-Date: 2025-07-03 09:00+0200\n"
 "Last-Translator: Yehor Hliebov <qsk@gmx.at>\n"
 "Language-Team: Indonesian <qsk@gmx.at>\n"
@@ -248,46 +248,6 @@ msgstr ""
 msgid "Update Ollama"
 msgstr "Perbarui Ollama"
 
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Provider Sorting"
-msgstr "Penyortiran Penyedia"
-
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Choose providers based on pricing/throughput or latency"
-msgstr "Pilih penyedia berdasarkan harga/throughput atau latensi"
-
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Price"
-msgstr "Harga"
-
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Throughput"
-msgstr "Throughput"
-
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Latency"
-msgstr "Latensi"
-
-#: src/handlers/llm/openrouter_handler.py:15
-msgid "Providers Order"
-msgstr "Urutan Penyedia"
-
-#: src/handlers/llm/openrouter_handler.py:15
-msgid ""
-"Add order of providers to use, names separated by a comma.\n"
-"Empty to not specify"
-msgstr ""
-"Tambahkan urutan penyedia yang akan digunakan, nama dipisahkan oleh koma.\n"
-"Kosongkan untuk tidak menentukan"
-
-#: src/handlers/llm/openrouter_handler.py:16
-msgid "Allow Fallbacks"
-msgstr "Izinkan Fallback"
-
-#: src/handlers/llm/openrouter_handler.py:16
-msgid "Allow fallbacks to other providers"
-msgstr "Izinkan fallback ke penyedia lain"
-
 #: src/handlers/llm/gemini_handler.py:94
 msgid "API Key (required)"
 msgstr "Kunci API (wajib)"
@@ -431,6 +391,46 @@ msgid ""
 msgstr ""
 "Angka antara -2.0 dan 2.0. Nilai positif mengurangi kemungkinan model untuk "
 "membahas topik baru"
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Provider Sorting"
+msgstr "Penyortiran Penyedia"
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Choose providers based on pricing/throughput or latency"
+msgstr "Pilih penyedia berdasarkan harga/throughput atau latensi"
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Price"
+msgstr "Harga"
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Throughput"
+msgstr "Throughput"
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Latency"
+msgstr "Latensi"
+
+#: src/handlers/llm/openrouter_handler.py:15
+msgid "Providers Order"
+msgstr "Urutan Penyedia"
+
+#: src/handlers/llm/openrouter_handler.py:15
+msgid ""
+"Add order of providers to use, names separated by a comma.\n"
+"Empty to not specify"
+msgstr ""
+"Tambahkan urutan penyedia yang akan digunakan, nama dipisahkan oleh koma.\n"
+"Kosongkan untuk tidak menentukan"
+
+#: src/handlers/llm/openrouter_handler.py:16
+msgid "Allow Fallbacks"
+msgstr "Izinkan Fallback"
+
+#: src/handlers/llm/openrouter_handler.py:16
+msgid "Allow fallbacks to other providers"
+msgstr "Izinkan fallback ke penyedia lain"
 
 #: src/handlers/rag/rag_handler.py:104
 msgid "Index your documents"
@@ -884,10 +884,6 @@ msgstr "Pilih profil"
 msgid "Delete Profile"
 msgstr "Hapus Profil"
 
-#: src/ui/widgets/tipscarousel.py:41
-msgid "Newelle Tips"
-msgstr "Tips Newelle"
-
 #: src/ui/widgets/thinking.py:26
 msgid "Thoughts"
 msgstr "Pikiran"
@@ -907,6 +903,10 @@ msgstr "LLM sedang berpikir... Perluas untuk melihat proses berpikir"
 #: src/ui/widgets/thinking.py:136
 msgid "No thought process recorded"
 msgstr "Tidak ada proses berpikir yang direkam"
+
+#: src/ui/widgets/tipscarousel.py:41
+msgid "Newelle Tips"
+msgstr "Tips Newelle"
 
 #: src/ui/explorer.py:192
 msgid "Folder is Empty"
@@ -1090,8 +1090,60 @@ msgstr "Perbesar"
 msgid "Zoom out"
 msgstr "Perkecil"
 
-#: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.appdata.xml.in:7
-#: data/io.github.qwersyk.Newelle.desktop.in:2
+#: src/ui/stdout_monitor.py:31 src/ui/stdout_monitor.py:41
+#: src/ui/settings.py:269
+msgid "Program Output Monitor"
+msgstr "Monitor Keluaran Program"
+
+#: src/ui/stdout_monitor.py:48
+msgid "Clear output"
+msgstr "Bersihkan keluaran"
+
+#: src/ui/stdout_monitor.py:61
+msgid "Start/Stop monitoring"
+msgstr "Mulai/Hentikan pemantauan"
+
+#: src/ui/stdout_monitor.py:109 src/ui/stdout_monitor.py:182
+#: src/ui/stdout_monitor.py:191 src/window.py:3702
+msgid "Monitoring: Active"
+msgstr "Pemantauan: Aktif"
+
+#: src/ui/stdout_monitor.py:109 src/ui/stdout_monitor.py:208
+msgid "Monitoring: Stopped"
+msgstr "Pemantauan: Berhenti"
+
+#: src/ui/stdout_monitor.py:116 src/ui/stdout_monitor.py:252
+#, python-brace-format
+msgid "Lines: {}"
+msgstr "Baris: {}"
+
+#: src/ui/stdout_monitor.py:267
+msgid "Lines: 0"
+msgstr "Baris: 0"
+
+#: src/ui/extension.py:17 src/ui/presentation.py:131 src/constants.py:513
+#: src/window.py:118
+msgid "Extensions"
+msgstr "Ekstensi"
+
+#: src/ui/extension.py:50
+msgid "Installed Extensions"
+msgstr "Ekstensi Terpasang"
+
+#: src/ui/extension.py:86
+msgid "User guide to Extensions"
+msgstr "Panduan Pengguna untuk Ekstensi"
+
+#: src/ui/extension.py:89
+msgid "Download new Extensions"
+msgstr "Unduh Ekstensi baru"
+
+#: src/ui/extension.py:92
+msgid "Install extension from file..."
+msgstr "Pasang ekstensi dari berkas..."
+
+#: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.desktop.in:2
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:7
 msgid "Newelle"
 msgstr "Newelle"
 
@@ -1159,11 +1211,6 @@ msgstr ""
 "Secara default, perintah Anda akan <b>divirtualisasikan dalam lingkungan "
 "Flatpak</b>, tetapi perhatikan!"
 
-#: src/ui/presentation.py:131 src/ui/extension.py:17 src/constants.py:513
-#: src/window.py:118
-msgid "Extensions"
-msgstr "Ekstensi"
-
 #: src/ui/presentation.py:132
 msgid "You can extend Newelle's functionalities using extensions!"
 msgstr "Anda dapat memperluas fungsionalitas Newelle menggunakan ekstensi!"
@@ -1190,53 +1237,6 @@ msgstr "Mulai menggunakan aplikasi"
 #: src/ui/presentation.py:163
 msgid "Start chatting"
 msgstr "Mulai mengobrol"
-
-#: src/ui/stdout_monitor.py:31 src/ui/stdout_monitor.py:41
-#: src/ui/settings.py:269
-msgid "Program Output Monitor"
-msgstr "Monitor Keluaran Program"
-
-#: src/ui/stdout_monitor.py:48
-msgid "Clear output"
-msgstr "Bersihkan keluaran"
-
-#: src/ui/stdout_monitor.py:61
-msgid "Start/Stop monitoring"
-msgstr "Mulai/Hentikan pemantauan"
-
-#: src/ui/stdout_monitor.py:109 src/ui/stdout_monitor.py:182
-#: src/ui/stdout_monitor.py:191 src/window.py:3698
-msgid "Monitoring: Active"
-msgstr "Pemantauan: Aktif"
-
-#: src/ui/stdout_monitor.py:109 src/ui/stdout_monitor.py:208
-msgid "Monitoring: Stopped"
-msgstr "Pemantauan: Berhenti"
-
-#: src/ui/stdout_monitor.py:116 src/ui/stdout_monitor.py:252
-#, python-brace-format
-msgid "Lines: {}"
-msgstr "Baris: {}"
-
-#: src/ui/stdout_monitor.py:267
-msgid "Lines: 0"
-msgstr "Baris: 0"
-
-#: src/ui/extension.py:50
-msgid "Installed Extensions"
-msgstr "Ekstensi Terpasang"
-
-#: src/ui/extension.py:86
-msgid "User guide to Extensions"
-msgstr "Panduan Pengguna untuk Ekstensi"
-
-#: src/ui/extension.py:89
-msgid "Download new Extensions"
-msgstr "Unduh Ekstensi baru"
-
-#: src/ui/extension.py:92
-msgid "Install extension from file..."
-msgstr "Pasang ekstensi dari berkas..."
 
 #: src/ui/settings.py:47 src/constants.py:523
 msgid "General"
@@ -1677,34 +1677,6 @@ msgstr ""
 "Jalur pip telah dihapus, Anda sekarang dapat menginstal ulang dependensi. "
 "Operasi ini memerlukan restart aplikasi."
 
-#: src/main.py:205
-msgid "Terminal threads are still running in the background"
-msgstr "Thread terminal masih berjalan di latar belakang"
-
-#: src/main.py:206
-msgid "When you close the window, they will be automatically terminated"
-msgstr "Saat Anda menutup jendela, mereka akan otomatis dihentikan"
-
-#: src/main.py:210
-msgid "Close"
-msgstr "Tutup"
-
-#: src/main.py:244
-msgid "Chat is rebooted"
-msgstr "Obrolan di-reboot"
-
-#: src/main.py:249
-msgid "Folder is rebooted"
-msgstr "Folder di-reboot"
-
-#: src/main.py:254
-msgid "Chat is created"
-msgstr "Obrolan dibuat"
-
-#: src/controller.py:135 src/window.py:1852
-msgid "Chat "
-msgstr "Obrolan "
-
 #: src/constants.py:20
 msgid "Newelle Demo API"
 msgstr "API Demo Newelle"
@@ -2141,6 +2113,34 @@ msgstr ""
 msgid "Prompts settings, custom extra prompt, custom prompts..."
 msgstr "Pengaturan prompt, prompt tambahan kustom, prompt kustom..."
 
+#: src/controller.py:135 src/window.py:1852
+msgid "Chat "
+msgstr "Obrolan "
+
+#: src/main.py:205
+msgid "Terminal threads are still running in the background"
+msgstr "Thread terminal masih berjalan di latar belakang"
+
+#: src/main.py:206
+msgid "When you close the window, they will be automatically terminated"
+msgstr "Saat Anda menutup jendela, mereka akan otomatis dihentikan"
+
+#: src/main.py:210
+msgid "Close"
+msgstr "Tutup"
+
+#: src/main.py:244
+msgid "Chat is rebooted"
+msgstr "Obrolan di-reboot"
+
+#: src/main.py:249
+msgid "Folder is rebooted"
+msgstr "Folder di-reboot"
+
+#: src/main.py:254
+msgid "Chat is created"
+msgstr "Obrolan dibuat"
+
 #: src/window.py:120
 msgid "Keyboard shorcuts"
 msgstr "Pintasan keyboard"
@@ -2380,15 +2380,15 @@ msgstr "Pesan dibatalkan dan dihapus dari riwayat"
 msgid "The message cannot be sent until the program is finished"
 msgstr "Pesan tidak dapat dikirim sampai program selesai"
 
-#: src/window.py:2951
+#: src/window.py:2954
 msgid "You can't edit a message while the program is running."
 msgstr "Anda tidak dapat mengedit pesan saat program sedang berjalan."
 
-#: src/window.py:3076
+#: src/window.py:3080
 msgid "Prompt content"
 msgstr "Konten prompt"
 
-#: src/window.py:3335
+#: src/window.py:3339
 msgid ""
 "The neural network has access to your computer and any data in this chat and "
 "can run commands, be careful, we are not responsible for the neural network. "
@@ -2399,7 +2399,7 @@ msgstr ""
 "bertanggung jawab atas jaringan saraf. Jangan bagikan informasi sensitif apa "
 "pun."
 
-#: src/window.py:3364
+#: src/window.py:3368
 msgid ""
 "The neural network has access to any data in this chat, be careful, we are "
 "not responsible for the neural network. Do not share any sensitive "
@@ -2409,21 +2409,29 @@ msgstr ""
 "hatilah, kami tidak bertanggung jawab atas jaringan saraf. Jangan bagikan "
 "informasi sensitif apa pun."
 
-#: src/window.py:3413
+#: src/window.py:3417
 msgid "Wrong folder path"
 msgstr "Jalur folder salah"
 
-#: src/window.py:3446
+#: src/window.py:3450
 msgid "Thread has not been completed, thread number: "
 msgstr "Thread belum selesai, nomor thread: "
 
-#: src/window.py:3458
+#: src/window.py:3462
 msgid "Failed to open the folder"
 msgstr "Gagal membuka folder"
 
-#: src/window.py:3637
+#: src/window.py:3641
 msgid "Chat is empty"
 msgstr "Obrolan kosong"
+
+#: data/io.github.qwersyk.Newelle.desktop.in:3
+msgid "Newelle: Your advanced chat bot"
+msgstr "Newelle: Chat bot canggih Anda"
+
+#: data/io.github.qwersyk.Newelle.desktop.in:10
+msgid "ai;assistant;chat;chatgpt;gpt;llm;ollama;"
+msgstr "ai;asisten;chat;chatgpt;gpt;llm;ollama;"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:9
 msgid ""
@@ -2450,96 +2458,147 @@ msgid "More than 10 standard AI providers"
 msgstr "Lebih dari 10 penyedia AI standar"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:38
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:61
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:123
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:128
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:133
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:138
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:143
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:62
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:85
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:147
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:152
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:157
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:162
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:167
 msgid "Bug fixes"
 msgstr "Perbaikan bug"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:39
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:45
+msgid ""
+"Mini Apps support! Extensions can now show custom mini apps on the sidebar"
+msgstr ""
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:46
+msgid ""
+"Added integrated browser Mini App: browse the web directly in Newelle and "
+"attach web pages"
+msgstr ""
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:47
+msgid "Improved integrated file manager, supporting multiple file operations"
+msgstr ""
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:48
+msgid "Integrated file editor: edit files and codeblocks directly in Newelle"
+msgstr ""
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:49
+msgid "Integrated Terminal mini app: open the terminal directly in Newelle"
+msgstr ""
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:50
+msgid ""
+"Programmable prompts: add dynamic content to prompts with conditionals and "
+"random strings"
+msgstr ""
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:51
+msgid "Add ability to manually edit chat name"
+msgstr ""
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:52
+#, fuzzy
+msgid "Minor bug fixes"
+msgstr "Perbaikan bug"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:53
+msgid "Added support for multiple languages for Kokoro TTS and Whisper.CPP"
+msgstr ""
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:54
+msgid "Run HTML/CSS/JS websites directly in app"
+msgstr ""
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:55
+msgid "New animation on chat change"
+msgstr ""
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:63
 msgid "Small improvements"
 msgstr "Perbaikan kecil"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:46
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:70
 msgid "Improve local documents reading and loading performances"
 msgstr "Tingkatkan kinerja pembacaan dan pemuatan dokumen lokal"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:47
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:71
 msgid "Add option to send with CTRL+Enter"
 msgstr "Tambahkan opsi untuk mengirim dengan CTRL+Enter"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:48
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:72
 msgid "Improve codeblocks"
 msgstr "Tingkatkan blok kode"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:49
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:73
 msgid "Fix Kokoro TTS"
 msgstr "Perbaiki Kokoro TTS"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:50
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:74
 msgid "Remove emoji from TTS"
 msgstr "Hapus emoji dari TTS"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:51
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:75
 msgid "Set API keys as password fields"
 msgstr "Atur kunci API sebagai bidang kata sandi"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:52
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:76
 msgid "Add thinking support for Gemini"
 msgstr "Tambahkan dukungan berpikir untuk Gemini"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:53
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:77
 msgid "Updated translations"
 msgstr "Terjemahan diperbarui"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:60
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:84
 msgid "Added new features"
 msgstr "Menambahkan fitur baru"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:68
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:92
 msgid "Website reading and web search with SearXNG, DuckDuckGo, and Tavily"
 msgstr ""
 "Pembacaan situs web dan pencarian web dengan SearXNG, DuckDuckGo, dan Tavily"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:69
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:93
 msgid "Improved LaTeX rendering and document management"
 msgstr "Peningkatan rendering LaTeX dan manajemen dokumen"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:70
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:94
 msgid "New Thinking Widget and OpenRouter handler"
 msgstr "Widget Pemikiran Baru dan penangan OpenRouter"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:71
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:95
 msgid "Vision support for Llama4 on Groq"
 msgstr "Dukungan visi untuk Llama4 di Groq"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:72
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:96
 msgid "New translations (Traditional Chinese, Bengali, Hindi)"
 msgstr "Terjemahan baru (Tionghoa Tradisional, Bengali, Hindi)"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:78
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:102
 msgid "Fixed many bugs, added some features!"
 msgstr "Banyak bug diperbaiki, beberapa fitur ditambahkan!"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:83
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:107
 msgid "Support for new features and bug fixes"
 msgstr "Dukungan untuk fitur baru dan perbaikan bug"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:88
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:93
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:98
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:112
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:117
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:122
 msgid "Added many new features and bug fixes"
 msgstr "Menambahkan banyak fitur baru dan perbaikan bug"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:103
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:108
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:127
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:132
 msgid "Added new features and bug fixes"
 msgstr "Menambahkan fitur baru dan perbaikan bug"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:113
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:137
 msgid ""
 "Updated the g4f library with versioning, added user guides, improved "
 "extension browsing, and enhanced model handling."
@@ -2547,7 +2606,7 @@ msgstr ""
 "Memperbarui pustaka g4f dengan versioning, menambahkan panduan pengguna, "
 "meningkatkan penjelajahan ekstensi, dan menyempurnakan penanganan model."
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:118
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:142
 msgid ""
 "Bug fixes and new features have been implemented. We've modified the "
 "extension architecture, added new models, and introduced vision support, "
@@ -2557,37 +2616,29 @@ msgstr ""
 "arsitektur ekstensi, menambahkan model baru, dan memperkenalkan dukungan "
 "visi, serta lebih banyak kemampuan."
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:148
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:172
 msgid "Stable version"
 msgstr "Versi stabil"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:153
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:177
 msgid "Added extension"
 msgstr "Ekstensi ditambahkan"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:158
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:182
 msgid "Blacklist of commands"
 msgstr "Daftar hitam perintah"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:163
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:187
 msgid "Localization"
 msgstr "Lokalisasi"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:168
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:192
 msgid "Redesign"
 msgstr "Desain Ulang"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:172
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:196
 msgid "Qwersyk"
 msgstr "Qwersyk"
-
-#: data/io.github.qwersyk.Newelle.desktop.in:3
-msgid "Newelle: Your advanced chat bot"
-msgstr "Newelle: Chat bot canggih Anda"
-
-#: data/io.github.qwersyk.Newelle.desktop.in:10
-msgid "ai;assistant;chat;chatgpt;gpt;llm;ollama;"
-msgstr "ai;asisten;chat;chatgpt;gpt;llm;ollama;"
 
 #~ msgid "max Tokens"
 #~ msgstr "Maks Token"

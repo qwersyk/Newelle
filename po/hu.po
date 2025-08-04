@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-23 20:25+0800\n"
+"POT-Creation-Date: 2025-08-03 15:55+0800\n"
 "PO-Revision-Date: 2025-07-03 09:00+0200\n"
 "Last-Translator: Yehor Hliebov <qsk@gmx.at>\n"
 "Language-Team: Hungarian <qsk@gmx.at>\n"
@@ -248,47 +248,6 @@ msgstr ""
 msgid "Update Ollama"
 msgstr "Ollama frissítése"
 
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Provider Sorting"
-msgstr "Szolgáltató rendezés"
-
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Choose providers based on pricing/throughput or latency"
-msgstr "Válasszon szolgáltatókat ár/átviteli sebesség vagy késleltetés alapján"
-
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Price"
-msgstr "Ár"
-
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Throughput"
-msgstr "Átviteli sebesség"
-
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Latency"
-msgstr "Késleltetés"
-
-#: src/handlers/llm/openrouter_handler.py:15
-msgid "Providers Order"
-msgstr "Szolgáltatók sorrendje"
-
-#: src/handlers/llm/openrouter_handler.py:15
-msgid ""
-"Add order of providers to use, names separated by a comma.\n"
-"Empty to not specify"
-msgstr ""
-"Adja meg a használandó szolgáltatók sorrendjét, a neveket vesszővel "
-"elválasztva.\n"
-"Hagyja üresen, ha nem kívánja megadni."
-
-#: src/handlers/llm/openrouter_handler.py:16
-msgid "Allow Fallbacks"
-msgstr "Visszalépések engedélyezése"
-
-#: src/handlers/llm/openrouter_handler.py:16
-msgid "Allow fallbacks to other providers"
-msgstr "Más szolgáltatókra való visszalépések engedélyezése"
-
 #: src/handlers/llm/gemini_handler.py:94
 msgid "API Key (required)"
 msgstr "API kulcs (kötelező)"
@@ -436,6 +395,47 @@ msgid ""
 msgstr ""
 "Szám -2,0 és 2,0 között. A pozitív értékek csökkentik annak valószínűségét, "
 "hogy a modell új témákról beszéljen."
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Provider Sorting"
+msgstr "Szolgáltató rendezés"
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Choose providers based on pricing/throughput or latency"
+msgstr "Válasszon szolgáltatókat ár/átviteli sebesség vagy késleltetés alapján"
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Price"
+msgstr "Ár"
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Throughput"
+msgstr "Átviteli sebesség"
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Latency"
+msgstr "Késleltetés"
+
+#: src/handlers/llm/openrouter_handler.py:15
+msgid "Providers Order"
+msgstr "Szolgáltatók sorrendje"
+
+#: src/handlers/llm/openrouter_handler.py:15
+msgid ""
+"Add order of providers to use, names separated by a comma.\n"
+"Empty to not specify"
+msgstr ""
+"Adja meg a használandó szolgáltatók sorrendjét, a neveket vesszővel "
+"elválasztva.\n"
+"Hagyja üresen, ha nem kívánja megadni."
+
+#: src/handlers/llm/openrouter_handler.py:16
+msgid "Allow Fallbacks"
+msgstr "Visszalépések engedélyezése"
+
+#: src/handlers/llm/openrouter_handler.py:16
+msgid "Allow fallbacks to other providers"
+msgstr "Más szolgáltatókra való visszalépések engedélyezése"
 
 #: src/handlers/rag/rag_handler.py:104
 msgid "Index your documents"
@@ -891,10 +891,6 @@ msgstr "Profil kiválasztása"
 msgid "Delete Profile"
 msgstr "Profil törlése"
 
-#: src/ui/widgets/tipscarousel.py:41
-msgid "Newelle Tips"
-msgstr "Newelle tippek"
-
 #: src/ui/widgets/thinking.py:26
 msgid "Thoughts"
 msgstr "Gondolatok"
@@ -915,6 +911,10 @@ msgstr ""
 #: src/ui/widgets/thinking.py:136
 msgid "No thought process recorded"
 msgstr "Nincs rögzített gondolkodási folyamat"
+
+#: src/ui/widgets/tipscarousel.py:41
+msgid "Newelle Tips"
+msgstr "Newelle tippek"
 
 #: src/ui/explorer.py:192
 msgid "Folder is Empty"
@@ -1098,8 +1098,60 @@ msgstr "Nagyítás"
 msgid "Zoom out"
 msgstr "Kicsinyítés"
 
-#: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.appdata.xml.in:7
-#: data/io.github.qwersyk.Newelle.desktop.in:2
+#: src/ui/stdout_monitor.py:31 src/ui/stdout_monitor.py:41
+#: src/ui/settings.py:269
+msgid "Program Output Monitor"
+msgstr "Programkimenet-figyelő"
+
+#: src/ui/stdout_monitor.py:48
+msgid "Clear output"
+msgstr "Kimenet törlése"
+
+#: src/ui/stdout_monitor.py:61
+msgid "Start/Stop monitoring"
+msgstr "Figyelés indítása/leállítása"
+
+#: src/ui/stdout_monitor.py:109 src/ui/stdout_monitor.py:182
+#: src/ui/stdout_monitor.py:191 src/window.py:3702
+msgid "Monitoring: Active"
+msgstr "Figyelés: Aktív"
+
+#: src/ui/stdout_monitor.py:109 src/ui/stdout_monitor.py:208
+msgid "Monitoring: Stopped"
+msgstr "Figyelés: Leállítva"
+
+#: src/ui/stdout_monitor.py:116 src/ui/stdout_monitor.py:252
+#, python-brace-format
+msgid "Lines: {}"
+msgstr "Sorok: {}"
+
+#: src/ui/stdout_monitor.py:267
+msgid "Lines: 0"
+msgstr "Sorok: 0"
+
+#: src/ui/extension.py:17 src/ui/presentation.py:131 src/constants.py:513
+#: src/window.py:118
+msgid "Extensions"
+msgstr "Bővítmények"
+
+#: src/ui/extension.py:50
+msgid "Installed Extensions"
+msgstr "Telepített bővítmények"
+
+#: src/ui/extension.py:86
+msgid "User guide to Extensions"
+msgstr "Felhasználói útmutató a bővítményekhez"
+
+#: src/ui/extension.py:89
+msgid "Download new Extensions"
+msgstr "Új bővítmények letöltése"
+
+#: src/ui/extension.py:92
+msgid "Install extension from file..."
+msgstr "Bővítmény telepítése fájlból..."
+
+#: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.desktop.in:2
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:7
 msgid "Newelle"
 msgstr "Newelle"
 
@@ -1167,11 +1219,6 @@ msgstr ""
 "Alapértelmezés szerint a parancsok <b>virtualizálva lesznek a Flatpak "
 "környezetben</b>, de figyeljen oda!"
 
-#: src/ui/presentation.py:131 src/ui/extension.py:17 src/constants.py:513
-#: src/window.py:118
-msgid "Extensions"
-msgstr "Bővítmények"
-
 #: src/ui/presentation.py:132
 msgid "You can extend Newelle's functionalities using extensions!"
 msgstr "Kibővítheti a Newelle funkcionalitását bővítményekkel!"
@@ -1197,53 +1244,6 @@ msgstr "Az alkalmazás használatának megkezdése"
 #: src/ui/presentation.py:163
 msgid "Start chatting"
 msgstr "Csevegés indítása"
-
-#: src/ui/stdout_monitor.py:31 src/ui/stdout_monitor.py:41
-#: src/ui/settings.py:269
-msgid "Program Output Monitor"
-msgstr "Programkimenet-figyelő"
-
-#: src/ui/stdout_monitor.py:48
-msgid "Clear output"
-msgstr "Kimenet törlése"
-
-#: src/ui/stdout_monitor.py:61
-msgid "Start/Stop monitoring"
-msgstr "Figyelés indítása/leállítása"
-
-#: src/ui/stdout_monitor.py:109 src/ui/stdout_monitor.py:182
-#: src/ui/stdout_monitor.py:191 src/window.py:3698
-msgid "Monitoring: Active"
-msgstr "Figyelés: Aktív"
-
-#: src/ui/stdout_monitor.py:109 src/ui/stdout_monitor.py:208
-msgid "Monitoring: Stopped"
-msgstr "Figyelés: Leállítva"
-
-#: src/ui/stdout_monitor.py:116 src/ui/stdout_monitor.py:252
-#, python-brace-format
-msgid "Lines: {}"
-msgstr "Sorok: {}"
-
-#: src/ui/stdout_monitor.py:267
-msgid "Lines: 0"
-msgstr "Sorok: 0"
-
-#: src/ui/extension.py:50
-msgid "Installed Extensions"
-msgstr "Telepített bővítmények"
-
-#: src/ui/extension.py:86
-msgid "User guide to Extensions"
-msgstr "Felhasználói útmutató a bővítményekhez"
-
-#: src/ui/extension.py:89
-msgid "Download new Extensions"
-msgstr "Új bővítmények letöltése"
-
-#: src/ui/extension.py:92
-msgid "Install extension from file..."
-msgstr "Bővítmény telepítése fájlból..."
 
 #: src/ui/settings.py:47 src/constants.py:523
 msgid "General"
@@ -1685,34 +1685,6 @@ msgstr ""
 "A pip útvonal törölve lett, most újra telepítheti a függőségeket. Ez a "
 "művelet az alkalmazás újraindítását igényli."
 
-#: src/main.py:205
-msgid "Terminal threads are still running in the background"
-msgstr "A terminálszálak még mindig futnak a háttérben"
-
-#: src/main.py:206
-msgid "When you close the window, they will be automatically terminated"
-msgstr "Az ablak bezárásakor automatikusan leállnak"
-
-#: src/main.py:210
-msgid "Close"
-msgstr "Bezárás"
-
-#: src/main.py:244
-msgid "Chat is rebooted"
-msgstr "A csevegés újraindult"
-
-#: src/main.py:249
-msgid "Folder is rebooted"
-msgstr "A mappa újraindult"
-
-#: src/main.py:254
-msgid "Chat is created"
-msgstr "A csevegés létrejött"
-
-#: src/controller.py:135 src/window.py:1852
-msgid "Chat "
-msgstr "Csevegés "
-
 #: src/constants.py:20
 msgid "Newelle Demo API"
 msgstr "Newelle Demó API"
@@ -2152,6 +2124,34 @@ msgstr ""
 msgid "Prompts settings, custom extra prompt, custom prompts..."
 msgstr "Üzenet beállítások, egyéni extra üzenet, egyéni üzenetek..."
 
+#: src/controller.py:135 src/window.py:1852
+msgid "Chat "
+msgstr "Csevegés "
+
+#: src/main.py:205
+msgid "Terminal threads are still running in the background"
+msgstr "A terminálszálak még mindig futnak a háttérben"
+
+#: src/main.py:206
+msgid "When you close the window, they will be automatically terminated"
+msgstr "Az ablak bezárásakor automatikusan leállnak"
+
+#: src/main.py:210
+msgid "Close"
+msgstr "Bezárás"
+
+#: src/main.py:244
+msgid "Chat is rebooted"
+msgstr "A csevegés újraindult"
+
+#: src/main.py:249
+msgid "Folder is rebooted"
+msgstr "A mappa újraindult"
+
+#: src/main.py:254
+msgid "Chat is created"
+msgstr "A csevegés létrejött"
+
 #: src/window.py:120
 msgid "Keyboard shorcuts"
 msgstr "Billentyűparancsok"
@@ -2391,15 +2391,15 @@ msgstr "Az üzenet törölve és eltávolítva az előzményekből"
 msgid "The message cannot be sent until the program is finished"
 msgstr "Az üzenet nem küldhető el, amíg a program be nem fejeződik"
 
-#: src/window.py:2951
+#: src/window.py:2954
 msgid "You can't edit a message while the program is running."
 msgstr "Nem szerkeszthet üzenetet, amíg a program fut."
 
-#: src/window.py:3076
+#: src/window.py:3080
 msgid "Prompt content"
 msgstr "Üzenet tartalma"
 
-#: src/window.py:3335
+#: src/window.py:3339
 msgid ""
 "The neural network has access to your computer and any data in this chat and "
 "can run commands, be careful, we are not responsible for the neural network. "
@@ -2409,7 +2409,7 @@ msgstr ""
 "bármely adathoz, és parancsokat futtathat, legyen óvatos, nem vagyunk "
 "felelősek a neuronhálózatért. Ne osszon meg semmilyen érzékeny információt."
 
-#: src/window.py:3364
+#: src/window.py:3368
 msgid ""
 "The neural network has access to any data in this chat, be careful, we are "
 "not responsible for the neural network. Do not share any sensitive "
@@ -2419,21 +2419,29 @@ msgstr ""
 "nem vagyunk felelősek a neuronhálózatért. Ne osszon meg semmilyen érzékeny "
 "információt."
 
-#: src/window.py:3413
+#: src/window.py:3417
 msgid "Wrong folder path"
 msgstr "Hibás mappaelérési út"
 
-#: src/window.py:3446
+#: src/window.py:3450
 msgid "Thread has not been completed, thread number: "
 msgstr "A szál nem fejeződött be, szál száma: "
 
-#: src/window.py:3458
+#: src/window.py:3462
 msgid "Failed to open the folder"
 msgstr "Nem sikerült megnyitni a mappát"
 
-#: src/window.py:3637
+#: src/window.py:3641
 msgid "Chat is empty"
 msgstr "A csevegés üres"
+
+#: data/io.github.qwersyk.Newelle.desktop.in:3
+msgid "Newelle: Your advanced chat bot"
+msgstr "Newelle: Az Ön fejlett chatbotja"
+
+#: data/io.github.qwersyk.Newelle.desktop.in:10
+msgid "ai;assistant;chat;chatgpt;gpt;llm;ollama;"
+msgstr "ai;asszisztens;csevegés;chatgpt;gpt;llm;ollama;"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:9
 msgid ""
@@ -2460,96 +2468,147 @@ msgid "More than 10 standard AI providers"
 msgstr "Több mint 10 szabványos AI szolgáltató"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:38
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:61
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:123
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:128
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:133
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:138
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:143
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:62
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:85
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:147
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:152
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:157
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:162
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:167
 msgid "Bug fixes"
 msgstr "Hibajavítások"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:39
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:45
+msgid ""
+"Mini Apps support! Extensions can now show custom mini apps on the sidebar"
+msgstr ""
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:46
+msgid ""
+"Added integrated browser Mini App: browse the web directly in Newelle and "
+"attach web pages"
+msgstr ""
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:47
+msgid "Improved integrated file manager, supporting multiple file operations"
+msgstr ""
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:48
+msgid "Integrated file editor: edit files and codeblocks directly in Newelle"
+msgstr ""
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:49
+msgid "Integrated Terminal mini app: open the terminal directly in Newelle"
+msgstr ""
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:50
+msgid ""
+"Programmable prompts: add dynamic content to prompts with conditionals and "
+"random strings"
+msgstr ""
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:51
+msgid "Add ability to manually edit chat name"
+msgstr ""
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:52
+#, fuzzy
+msgid "Minor bug fixes"
+msgstr "Hibajavítások"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:53
+msgid "Added support for multiple languages for Kokoro TTS and Whisper.CPP"
+msgstr ""
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:54
+msgid "Run HTML/CSS/JS websites directly in app"
+msgstr ""
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:55
+msgid "New animation on chat change"
+msgstr ""
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:63
 msgid "Small improvements"
 msgstr "Apró fejlesztések"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:46
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:70
 msgid "Improve local documents reading and loading performances"
 msgstr "A helyi dokumentumok olvasási és betöltési teljesítményének javítása"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:47
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:71
 msgid "Add option to send with CTRL+Enter"
 msgstr "Hozzáadva a CTRL+Enter billentyűvel való küldés lehetősége"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:48
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:72
 msgid "Improve codeblocks"
 msgstr "Kódblokkok fejlesztése"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:49
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:73
 msgid "Fix Kokoro TTS"
 msgstr "Kokoro TTS javítása"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:50
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:74
 msgid "Remove emoji from TTS"
 msgstr "Hangulatjelek eltávolítása a TTS-ből"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:51
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:75
 msgid "Set API keys as password fields"
 msgstr "API kulcsok jelszómezőként való beállítása"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:52
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:76
 msgid "Add thinking support for Gemini"
 msgstr "Gondolkodási támogatás hozzáadása a Geminihez"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:53
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:77
 msgid "Updated translations"
 msgstr "Frissített fordítások"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:60
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:84
 msgid "Added new features"
 msgstr "Új funkciók hozzáadva"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:68
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:92
 msgid "Website reading and web search with SearXNG, DuckDuckGo, and Tavily"
 msgstr ""
 "Weboldal olvasás és webes keresés SearXNG, DuckDuckGo és Tavily segítségével"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:69
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:93
 msgid "Improved LaTeX rendering and document management"
 msgstr "Javított LaTeX renderelés és dokumentumkezelés"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:70
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:94
 msgid "New Thinking Widget and OpenRouter handler"
 msgstr "Új gondolkodási widget és OpenRouter kezelő"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:71
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:95
 msgid "Vision support for Llama4 on Groq"
 msgstr "Látás támogatás a Llama4-hez Groq-on"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:72
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:96
 msgid "New translations (Traditional Chinese, Bengali, Hindi)"
 msgstr "Új fordítások (hagyományos kínai, bengáli, hindi)"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:78
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:102
 msgid "Fixed many bugs, added some features!"
 msgstr "Sok hiba javítva, néhány funkció hozzáadva!"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:83
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:107
 msgid "Support for new features and bug fixes"
 msgstr "Új funkciók és hibajavítások támogatása"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:88
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:93
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:98
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:112
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:117
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:122
 msgid "Added many new features and bug fixes"
 msgstr "Sok új funkció és hibajavítás hozzáadva"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:103
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:108
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:127
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:132
 msgid "Added new features and bug fixes"
 msgstr "Új funkciók és hibajavítások hozzáadva"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:113
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:137
 msgid ""
 "Updated the g4f library with versioning, added user guides, improved "
 "extension browsing, and enhanced model handling."
@@ -2558,7 +2617,7 @@ msgstr ""
 "hozzáadásra, javult a bővítmények böngészése, és a modellkezelés is "
 "fejlettebb lett."
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:118
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:142
 msgid ""
 "Bug fixes and new features have been implemented. We've modified the "
 "extension architecture, added new models, and introduced vision support, "
@@ -2568,37 +2627,29 @@ msgstr ""
 "architektúráját, új modelleket adtunk hozzá, és bevezettük a látás "
 "támogatást, valamint további képességeket."
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:148
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:172
 msgid "Stable version"
 msgstr "Stabil verzió"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:153
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:177
 msgid "Added extension"
 msgstr "Hozzáadott bővítmény"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:158
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:182
 msgid "Blacklist of commands"
 msgstr "Parancsok feketelistája"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:163
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:187
 msgid "Localization"
 msgstr "Lokalizáció"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:168
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:192
 msgid "Redesign"
 msgstr "Újratervezés"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:172
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:196
 msgid "Qwersyk"
 msgstr "Qwersyk"
-
-#: data/io.github.qwersyk.Newelle.desktop.in:3
-msgid "Newelle: Your advanced chat bot"
-msgstr "Newelle: Az Ön fejlett chatbotja"
-
-#: data/io.github.qwersyk.Newelle.desktop.in:10
-msgid "ai;assistant;chat;chatgpt;gpt;llm;ollama;"
-msgstr "ai;asszisztens;csevegés;chatgpt;gpt;llm;ollama;"
 
 #~ msgid "max Tokens"
 #~ msgstr "Max tokenek"

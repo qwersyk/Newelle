@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-23 20:25+0800\n"
+"POT-Creation-Date: 2025-08-03 15:55+0800\n"
 "PO-Revision-Date: 2025-07-03 09:00+0200\n"
 "Last-Translator: aritra saha<EMAIL@ADDRESS>\n"
 "Language-Team: Bengali\n"
@@ -253,48 +253,6 @@ msgstr ""
 msgid "Update Ollama"
 msgstr ""
 
-#: src/handlers/llm/openrouter_handler.py:14
-#, fuzzy
-msgid "Provider Sorting"
-msgstr "প্রদানকারী ত্রুটি"
-
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Choose providers based on pricing/throughput or latency"
-msgstr "মূল্য/থ্রুপুট বা লেটেন্সির উপর ভিত্তি করে প্রদানকারী নির্বাচন করুন"
-
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Price"
-msgstr "মূল্য"
-
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Throughput"
-msgstr "থ্রুপুট"
-
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Latency"
-msgstr "লেটেন্সি"
-
-#: src/handlers/llm/openrouter_handler.py:15
-#, fuzzy
-msgid "Providers Order"
-msgstr "প্রদানকারী ত্রুটি"
-
-#: src/handlers/llm/openrouter_handler.py:15
-msgid ""
-"Add order of providers to use, names separated by a comma.\n"
-"Empty to not specify"
-msgstr ""
-"ব্যবহার করার জন্য প্রদানকারীদের ক্রম যোগ করুন, নামগুলি কমা দ্বারা পৃথক করা।\n"
-"নির্দিষ্ট না করতে খালি রাখুন।"
-
-#: src/handlers/llm/openrouter_handler.py:16
-msgid "Allow Fallbacks"
-msgstr "ফলব্যাক অনুমোদন করুন"
-
-#: src/handlers/llm/openrouter_handler.py:16
-msgid "Allow fallbacks to other providers"
-msgstr "অন্যান্য প্রদানকারীদের ফলব্যাক অনুমোদন করুন"
-
 #: src/handlers/llm/gemini_handler.py:94
 msgid "API Key (required)"
 msgstr "API কী (প্রয়োজনীয়)"
@@ -437,6 +395,48 @@ msgid ""
 msgstr ""
 "সংখ্যা -2.0 এবং 2.0 এর মধ্যে। পজিটিভ মান মডেলের নতুন বিষয় নিয়ে কথা বলার সম্ভাবনা "
 "হ্রাস করে"
+
+#: src/handlers/llm/openrouter_handler.py:14
+#, fuzzy
+msgid "Provider Sorting"
+msgstr "প্রদানকারী ত্রুটি"
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Choose providers based on pricing/throughput or latency"
+msgstr "মূল্য/থ্রুপুট বা লেটেন্সির উপর ভিত্তি করে প্রদানকারী নির্বাচন করুন"
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Price"
+msgstr "মূল্য"
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Throughput"
+msgstr "থ্রুপুট"
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Latency"
+msgstr "লেটেন্সি"
+
+#: src/handlers/llm/openrouter_handler.py:15
+#, fuzzy
+msgid "Providers Order"
+msgstr "প্রদানকারী ত্রুটি"
+
+#: src/handlers/llm/openrouter_handler.py:15
+msgid ""
+"Add order of providers to use, names separated by a comma.\n"
+"Empty to not specify"
+msgstr ""
+"ব্যবহার করার জন্য প্রদানকারীদের ক্রম যোগ করুন, নামগুলি কমা দ্বারা পৃথক করা।\n"
+"নির্দিষ্ট না করতে খালি রাখুন।"
+
+#: src/handlers/llm/openrouter_handler.py:16
+msgid "Allow Fallbacks"
+msgstr "ফলব্যাক অনুমোদন করুন"
+
+#: src/handlers/llm/openrouter_handler.py:16
+msgid "Allow fallbacks to other providers"
+msgstr "অন্যান্য প্রদানকারীদের ফলব্যাক অনুমোদন করুন"
 
 #: src/handlers/rag/rag_handler.py:104
 msgid "Index your documents"
@@ -893,11 +893,6 @@ msgstr "প্রোফাইল নির্বাচন করুন"
 msgid "Delete Profile"
 msgstr "প্রোফাইল নির্বাচন করুন"
 
-#: src/ui/widgets/tipscarousel.py:41
-#, fuzzy
-msgid "Newelle Tips"
-msgstr "নিউয়েল"
-
 #: src/ui/widgets/thinking.py:26
 msgid "Thoughts"
 msgstr "চিন্তা"
@@ -917,6 +912,11 @@ msgstr "এলএলএম ভাবছে... চিন্তার প্রক
 #: src/ui/widgets/thinking.py:136
 msgid "No thought process recorded"
 msgstr "কোনো চিন্তার প্রক্রিয়া রেকর্ড করা হয়নি"
+
+#: src/ui/widgets/tipscarousel.py:41
+#, fuzzy
+msgid "Newelle Tips"
+msgstr "নিউয়েল"
 
 #: src/ui/explorer.py:192
 #, fuzzy
@@ -1116,8 +1116,62 @@ msgstr ""
 msgid "Zoom out"
 msgstr ""
 
-#: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.appdata.xml.in:7
-#: data/io.github.qwersyk.Newelle.desktop.in:2
+#: src/ui/stdout_monitor.py:31 src/ui/stdout_monitor.py:41
+#: src/ui/settings.py:269
+msgid "Program Output Monitor"
+msgstr ""
+
+#: src/ui/stdout_monitor.py:48
+msgid "Clear output"
+msgstr ""
+
+#: src/ui/stdout_monitor.py:61
+#, fuzzy
+msgid "Start/Stop monitoring"
+msgstr "রেকর্ডিং শুরু করুন"
+
+#: src/ui/stdout_monitor.py:109 src/ui/stdout_monitor.py:182
+#: src/ui/stdout_monitor.py:191 src/window.py:3702
+msgid "Monitoring: Active"
+msgstr ""
+
+#: src/ui/stdout_monitor.py:109 src/ui/stdout_monitor.py:208
+msgid "Monitoring: Stopped"
+msgstr ""
+
+#: src/ui/stdout_monitor.py:116 src/ui/stdout_monitor.py:252
+#, python-brace-format
+msgid "Lines: {}"
+msgstr ""
+
+#: src/ui/stdout_monitor.py:267
+msgid "Lines: 0"
+msgstr ""
+
+#: src/ui/extension.py:17 src/ui/presentation.py:131 src/constants.py:513
+#: src/window.py:118
+msgid "Extensions"
+msgstr "এক্সটেনশন"
+
+#: src/ui/extension.py:50
+#, fuzzy
+msgid "Installed Extensions"
+msgstr "ইনস্টল করা এক্সটেনশন"
+
+#: src/ui/extension.py:86
+msgid "User guide to Extensions"
+msgstr "এক্সটেনশনগুলির জন্য ব্যবহারকারী নির্দেশিকা"
+
+#: src/ui/extension.py:89
+msgid "Download new Extensions"
+msgstr "নতুন এক্সটেনশন ডাউনলোড করুন"
+
+#: src/ui/extension.py:92
+msgid "Install extension from file..."
+msgstr "ফাইল থেকে এক্সটেনশন ইনস্টল করুন..."
+
+#: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.desktop.in:2
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:7
 msgid "Newelle"
 msgstr "নিউয়েল"
 
@@ -1184,11 +1238,6 @@ msgstr ""
 "ডিফল্টরূপে, আপনার কমান্ডগুলি <b>ফ্ল্যাটপ্যাক পরিবেশে ভার্চুয়ালাইজড</b> হবে, তবে "
 "মনোযোগ দিন!"
 
-#: src/ui/presentation.py:131 src/ui/extension.py:17 src/constants.py:513
-#: src/window.py:118
-msgid "Extensions"
-msgstr "এক্সটেনশন"
-
 #: src/ui/presentation.py:132
 msgid "You can extend Newelle's functionalities using extensions!"
 msgstr "আপনি এক্সটেনশন ব্যবহার করে নিউয়েলের কার্যকারিতা প্রসারিত করতে পারেন!"
@@ -1213,55 +1262,6 @@ msgstr "অ্যাপ ব্যবহার শুরু করুন"
 #: src/ui/presentation.py:163
 msgid "Start chatting"
 msgstr "চ্যাটিং শুরু করুন"
-
-#: src/ui/stdout_monitor.py:31 src/ui/stdout_monitor.py:41
-#: src/ui/settings.py:269
-msgid "Program Output Monitor"
-msgstr ""
-
-#: src/ui/stdout_monitor.py:48
-msgid "Clear output"
-msgstr ""
-
-#: src/ui/stdout_monitor.py:61
-#, fuzzy
-msgid "Start/Stop monitoring"
-msgstr "রেকর্ডিং শুরু করুন"
-
-#: src/ui/stdout_monitor.py:109 src/ui/stdout_monitor.py:182
-#: src/ui/stdout_monitor.py:191 src/window.py:3698
-msgid "Monitoring: Active"
-msgstr ""
-
-#: src/ui/stdout_monitor.py:109 src/ui/stdout_monitor.py:208
-msgid "Monitoring: Stopped"
-msgstr ""
-
-#: src/ui/stdout_monitor.py:116 src/ui/stdout_monitor.py:252
-#, python-brace-format
-msgid "Lines: {}"
-msgstr ""
-
-#: src/ui/stdout_monitor.py:267
-msgid "Lines: 0"
-msgstr ""
-
-#: src/ui/extension.py:50
-#, fuzzy
-msgid "Installed Extensions"
-msgstr "ইনস্টল করা এক্সটেনশন"
-
-#: src/ui/extension.py:86
-msgid "User guide to Extensions"
-msgstr "এক্সটেনশনগুলির জন্য ব্যবহারকারী নির্দেশিকা"
-
-#: src/ui/extension.py:89
-msgid "Download new Extensions"
-msgstr "নতুন এক্সটেনশন ডাউনলোড করুন"
-
-#: src/ui/extension.py:92
-msgid "Install extension from file..."
-msgstr "ফাইল থেকে এক্সটেনশন ইনস্টল করুন..."
 
 #: src/ui/settings.py:47 src/constants.py:523
 msgid "General"
@@ -1684,34 +1684,6 @@ msgid ""
 "The pip path has been deleted, you can now reinstall the dependencies. This "
 "operation requires a restart of the application."
 msgstr ""
-
-#: src/main.py:205
-msgid "Terminal threads are still running in the background"
-msgstr "টার্মিনাল থ্রেডগুলি এখনও ব্যাকগ্রাউন্ডে চলছে"
-
-#: src/main.py:206
-msgid "When you close the window, they will be automatically terminated"
-msgstr "আপনি যখন উইন্ডোটি বন্ধ করবেন, তখন সেগুলি স্বয়ংক্রিয়ভাবে বন্ধ হয়ে যাবে"
-
-#: src/main.py:210
-msgid "Close"
-msgstr "বন্ধ করুন"
-
-#: src/main.py:244
-msgid "Chat is rebooted"
-msgstr "চ্যাট রিবুট করা হয়েছে"
-
-#: src/main.py:249
-msgid "Folder is rebooted"
-msgstr "ফোল্ডার রিবুট করা হয়েছে"
-
-#: src/main.py:254
-msgid "Chat is created"
-msgstr "চ্যাট তৈরি করা হয়েছে"
-
-#: src/controller.py:135 src/window.py:1852
-msgid "Chat "
-msgstr "চ্যাট "
 
 #: src/constants.py:20
 msgid "Newelle Demo API"
@@ -2154,6 +2126,34 @@ msgstr ""
 msgid "Prompts settings, custom extra prompt, custom prompts..."
 msgstr "প্রম্পট সেটিংস, কাস্টম অতিরিক্ত প্রম্পট, কাস্টম প্রম্পট..."
 
+#: src/controller.py:135 src/window.py:1852
+msgid "Chat "
+msgstr "চ্যাট "
+
+#: src/main.py:205
+msgid "Terminal threads are still running in the background"
+msgstr "টার্মিনাল থ্রেডগুলি এখনও ব্যাকগ্রাউন্ডে চলছে"
+
+#: src/main.py:206
+msgid "When you close the window, they will be automatically terminated"
+msgstr "আপনি যখন উইন্ডোটি বন্ধ করবেন, তখন সেগুলি স্বয়ংক্রিয়ভাবে বন্ধ হয়ে যাবে"
+
+#: src/main.py:210
+msgid "Close"
+msgstr "বন্ধ করুন"
+
+#: src/main.py:244
+msgid "Chat is rebooted"
+msgstr "চ্যাট রিবুট করা হয়েছে"
+
+#: src/main.py:249
+msgid "Folder is rebooted"
+msgstr "ফোল্ডার রিবুট করা হয়েছে"
+
+#: src/main.py:254
+msgid "Chat is created"
+msgstr "চ্যাট তৈরি করা হয়েছে"
+
 #: src/window.py:120
 msgid "Keyboard shorcuts"
 msgstr "কিবোর্ড শর্টকাট"
@@ -2400,15 +2400,15 @@ msgstr "বার্তাটি বাতিল করা হয়েছে �
 msgid "The message cannot be sent until the program is finished"
 msgstr "প্রোগ্রাম শেষ না হওয়া পর্যন্ত বার্তাটি পাঠানো যাবে না"
 
-#: src/window.py:2951
+#: src/window.py:2954
 msgid "You can't edit a message while the program is running."
 msgstr "প্রোগ্রাম চলার সময় আপনি একটি বার্তা সম্পাদনা করতে পারবেন না।"
 
-#: src/window.py:3076
+#: src/window.py:3080
 msgid "Prompt content"
 msgstr "প্রম্পট বিষয়বস্তু"
 
-#: src/window.py:3335
+#: src/window.py:3339
 msgid ""
 "The neural network has access to your computer and any data in this chat and "
 "can run commands, be careful, we are not responsible for the neural network. "
@@ -2418,7 +2418,7 @@ msgstr ""
 "এবং এটি কমান্ড চালাতে পারে, সতর্ক থাকুন, আমরা নিউরাল নেটওয়ার্কের জন্য দায়ী নই। "
 "কোনো সংবেদনশীল তথ্য শেয়ার করবেন না।"
 
-#: src/window.py:3364
+#: src/window.py:3368
 msgid ""
 "The neural network has access to any data in this chat, be careful, we are "
 "not responsible for the neural network. Do not share any sensitive "
@@ -2427,21 +2427,29 @@ msgstr ""
 "নিউরাল নেটওয়ার্কের এই চ্যাটের যেকোনো ডেটাতে অ্যাক্সেস রয়েছে, সতর্ক থাকুন, আমরা "
 "নিউরাল নেটওয়ার্কের জন্য দায়ী নই। কোনো সংবেদনশীল তথ্য শেয়ার করবেন না।"
 
-#: src/window.py:3413
+#: src/window.py:3417
 msgid "Wrong folder path"
 msgstr "ভুল ফোল্ডার পাথ"
 
-#: src/window.py:3446
+#: src/window.py:3450
 msgid "Thread has not been completed, thread number: "
 msgstr "থ্রেড সম্পন্ন হয়নি, থ্রেড নম্বর: "
 
-#: src/window.py:3458
+#: src/window.py:3462
 msgid "Failed to open the folder"
 msgstr "ফোল্ডার খুলতে ব্যর্থ"
 
-#: src/window.py:3637
+#: src/window.py:3641
 msgid "Chat is empty"
 msgstr "চ্যাট খালি"
+
+#: data/io.github.qwersyk.Newelle.desktop.in:3
+msgid "Newelle: Your advanced chat bot"
+msgstr "নিউয়েল: আপনার উন্নত চ্যাট বট"
+
+#: data/io.github.qwersyk.Newelle.desktop.in:10
+msgid "ai;assistant;chat;chatgpt;gpt;llm;ollama;"
+msgstr "কৃত্রিম বুদ্ধিমত্তা;সহকারী;চ্যাট;চ্যাটজিপিটি;জিপিটি;এলএলএম;ওল্লামা;"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:9
 msgid ""
@@ -2469,96 +2477,147 @@ msgid "More than 10 standard AI providers"
 msgstr "১০টির বেশি স্ট্যান্ডার্ড এআই প্রদানকারী"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:38
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:61
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:123
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:128
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:133
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:138
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:143
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:62
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:85
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:147
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:152
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:157
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:162
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:167
 msgid "Bug fixes"
 msgstr "বাগ সংশোধন"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:39
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:45
+msgid ""
+"Mini Apps support! Extensions can now show custom mini apps on the sidebar"
+msgstr ""
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:46
+msgid ""
+"Added integrated browser Mini App: browse the web directly in Newelle and "
+"attach web pages"
+msgstr ""
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:47
+msgid "Improved integrated file manager, supporting multiple file operations"
+msgstr ""
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:48
+msgid "Integrated file editor: edit files and codeblocks directly in Newelle"
+msgstr ""
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:49
+msgid "Integrated Terminal mini app: open the terminal directly in Newelle"
+msgstr ""
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:50
+msgid ""
+"Programmable prompts: add dynamic content to prompts with conditionals and "
+"random strings"
+msgstr ""
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:51
+msgid "Add ability to manually edit chat name"
+msgstr ""
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:52
+#, fuzzy
+msgid "Minor bug fixes"
+msgstr "বাগ সংশোধন"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:53
+msgid "Added support for multiple languages for Kokoro TTS and Whisper.CPP"
+msgstr ""
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:54
+msgid "Run HTML/CSS/JS websites directly in app"
+msgstr ""
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:55
+msgid "New animation on chat change"
+msgstr ""
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:63
 msgid "Small improvements"
 msgstr "ছোটখাট কিছু উন্নতি"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:46
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:70
 msgid "Improve local documents reading and loading performances"
 msgstr "লোকাল ডকুমেন্ট পড়া এবং লোড করার কর্মক্ষমতা উন্নত করুন"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:47
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:71
 msgid "Add option to send with CTRL+Enter"
 msgstr "CTRL+Enter দিয়ে পাঠানোর বিকল্প যোগ করুন"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:48
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:72
 msgid "Improve codeblocks"
 msgstr "কোডব্লক উন্নত করুন"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:49
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:73
 #, fuzzy
 msgid "Fix Kokoro TTS"
 msgstr "Kokoro TTS সংশোধন করুন"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:50
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:74
 msgid "Remove emoji from TTS"
 msgstr "TTS থেকে ইমোজি সরান"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:51
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:75
 msgid "Set API keys as password fields"
 msgstr "API কীকে পাসওয়ার্ড ক্ষেত্র হিসেবে সেট করুন"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:52
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:76
 msgid "Add thinking support for Gemini"
 msgstr "Gemini এর জন্য ভাবনার সমর্থন যোগ করুন"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:53
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:77
 msgid "Updated translations"
 msgstr "আপডেট করা অনুবাদ"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:60
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:84
 msgid "Added new features"
 msgstr "নতুন বৈশিষ্ট্য যুক্ত করা হয়েছে"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:68
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:92
 msgid "Website reading and web search with SearXNG, DuckDuckGo, and Tavily"
 msgstr "SearXNG, DuckDuckGo, এবং Tavily সহ ওয়েবসাইট পড়া এবং ওয়েব অনুসন্ধান"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:69
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:93
 msgid "Improved LaTeX rendering and document management"
 msgstr "উন্নত ল্যাটেক্স রেন্ডারিং এবং নথি ব্যবস্থাপনা"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:70
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:94
 msgid "New Thinking Widget and OpenRouter handler"
 msgstr "নতুন থিংকিং উইজেট এবং ওপেনরাউটার হ্যান্ডলার"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:71
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:95
 msgid "Vision support for Llama4 on Groq"
 msgstr "গ্রোকে Llama4-এর জন্য ভিশন সমর্থন"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:72
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:96
 msgid "New translations (Traditional Chinese, Bengali, Hindi)"
 msgstr "নতুন অনুবাদ (ঐতিহ্যবাহী চীনা, বাংলা, হিন্দি)"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:78
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:102
 msgid "Fixed many bugs, added some features!"
 msgstr "অনেক বাগ ঠিক করা হয়েছে, কিছু বৈশিষ্ট্য যুক্ত করা হয়েছে!"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:83
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:107
 msgid "Support for new features and bug fixes"
 msgstr "নতুন বৈশিষ্ট্য এবং বাগ সংশোধনের জন্য সমর্থন"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:88
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:93
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:98
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:112
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:117
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:122
 msgid "Added many new features and bug fixes"
 msgstr "অনেক নতুন বৈশিষ্ট্য এবং বাগ সংশোধন যুক্ত করা হয়েছে"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:103
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:108
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:127
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:132
 msgid "Added new features and bug fixes"
 msgstr "নতুন বৈশিষ্ট্য এবং বাগ সংশোধন যুক্ত করা হয়েছে"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:113
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:137
 msgid ""
 "Updated the g4f library with versioning, added user guides, improved "
 "extension browsing, and enhanced model handling."
@@ -2566,7 +2625,7 @@ msgstr ""
 "g4f লাইব্রেরিকে সংস্করণ সহ আপডেট করা হয়েছে, ব্যবহারকারী নির্দেশিকা যোগ করা "
 "হয়েছে, এক্সটেনশন ব্রাউজিং উন্নত করা হয়েছে এবং মডেল হ্যান্ডলিং উন্নত করা হয়েছে।"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:118
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:142
 msgid ""
 "Bug fixes and new features have been implemented. We've modified the "
 "extension architecture, added new models, and introduced vision support, "
@@ -2575,39 +2634,31 @@ msgstr ""
 "বাগ সংশোধন এবং নতুন বৈশিষ্ট্য প্রয়োগ করা হয়েছে। আমরা এক্সটেনশন আর্কিটেকচার পরিবর্তন "
 "করেছি, নতুন মডেল যোগ করেছি এবং আরও অনেক ক্ষমতার সাথে ভিশন সমর্থন চালু করেছি।"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:148
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:172
 msgid "Stable version"
 msgstr "স্থিতিশীল সংস্করণ"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:153
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:177
 #, fuzzy
 msgid "Added extension"
 msgstr "এক্সটেনশন যুক্ত করা হয়েছে"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:158
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:182
 #, fuzzy
 msgid "Blacklist of commands"
 msgstr "কমান্ডের কালো তালিকা"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:163
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:187
 msgid "Localization"
 msgstr "স্থানীয়করণ"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:168
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:192
 msgid "Redesign"
 msgstr "পুনরায় নকশা"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:172
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:196
 msgid "Qwersyk"
 msgstr "Qwersyk"
-
-#: data/io.github.qwersyk.Newelle.desktop.in:3
-msgid "Newelle: Your advanced chat bot"
-msgstr "নিউয়েল: আপনার উন্নত চ্যাট বট"
-
-#: data/io.github.qwersyk.Newelle.desktop.in:10
-msgid "ai;assistant;chat;chatgpt;gpt;llm;ollama;"
-msgstr "কৃত্রিম বুদ্ধিমত্তা;সহকারী;চ্যাট;চ্যাটজিপিটি;জিপিটি;এলএলএম;ওল্লামা;"
 
 #~ msgid "max Tokens"
 #~ msgstr "সর্বোচ্চ টোকেন"

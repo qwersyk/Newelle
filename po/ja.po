@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-23 20:25+0800\n"
+"POT-Creation-Date: 2025-08-03 15:55+0800\n"
 "PO-Revision-Date: 2025-07-03 09:00+0200\n"
 "Last-Translator: Yehor Hliebov <qsk@gmx.at>\n"
 "Language-Team: Japanese <qsk@gmx.at>\n"
@@ -247,46 +247,6 @@ msgstr ""
 msgid "Update Ollama"
 msgstr "Ollamaを更新"
 
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Provider Sorting"
-msgstr "プロバイダーのソート"
-
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Choose providers based on pricing/throughput or latency"
-msgstr "価格/スループットまたはレイテンシーに基づいてプロバイダーを選択します"
-
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Price"
-msgstr "価格"
-
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Throughput"
-msgstr "スループット"
-
-#: src/handlers/llm/openrouter_handler.py:14
-msgid "Latency"
-msgstr "レイテンシー"
-
-#: src/handlers/llm/openrouter_handler.py:15
-msgid "Providers Order"
-msgstr "プロバイダーの順序"
-
-#: src/handlers/llm/openrouter_handler.py:15
-msgid ""
-"Add order of providers to use, names separated by a comma.\n"
-"Empty to not specify"
-msgstr ""
-"使用するプロバイダーの順序を、コンマで区切って追加します。\n"
-"空にすると指定しません"
-
-#: src/handlers/llm/openrouter_handler.py:16
-msgid "Allow Fallbacks"
-msgstr "フォールバックを許可する"
-
-#: src/handlers/llm/openrouter_handler.py:16
-msgid "Allow fallbacks to other providers"
-msgstr "他のプロバイダーへのフォールバックを許可する"
-
 #: src/handlers/llm/gemini_handler.py:94
 msgid "API Key (required)"
 msgstr "APIキー (必須)"
@@ -427,6 +387,46 @@ msgid ""
 msgstr ""
 "-2.0から2.0の間の数値。正の値は、モデルが新しいトピックについて話す可能性を低"
 "くします"
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Provider Sorting"
+msgstr "プロバイダーのソート"
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Choose providers based on pricing/throughput or latency"
+msgstr "価格/スループットまたはレイテンシーに基づいてプロバイダーを選択します"
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Price"
+msgstr "価格"
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Throughput"
+msgstr "スループット"
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Latency"
+msgstr "レイテンシー"
+
+#: src/handlers/llm/openrouter_handler.py:15
+msgid "Providers Order"
+msgstr "プロバイダーの順序"
+
+#: src/handlers/llm/openrouter_handler.py:15
+msgid ""
+"Add order of providers to use, names separated by a comma.\n"
+"Empty to not specify"
+msgstr ""
+"使用するプロバイダーの順序を、コンマで区切って追加します。\n"
+"空にすると指定しません"
+
+#: src/handlers/llm/openrouter_handler.py:16
+msgid "Allow Fallbacks"
+msgstr "フォールバックを許可する"
+
+#: src/handlers/llm/openrouter_handler.py:16
+msgid "Allow fallbacks to other providers"
+msgstr "他のプロバイダーへのフォールバックを許可する"
 
 #: src/handlers/rag/rag_handler.py:104
 msgid "Index your documents"
@@ -868,10 +868,6 @@ msgstr "プロファイルの選択"
 msgid "Delete Profile"
 msgstr "プロファイルの削除"
 
-#: src/ui/widgets/tipscarousel.py:41
-msgid "Newelle Tips"
-msgstr "Newelleのヒント"
-
 #: src/ui/widgets/thinking.py:26
 msgid "Thoughts"
 msgstr "思考"
@@ -891,6 +887,10 @@ msgstr "LLMが思考しています... 思考プロセスを表示するには�
 #: src/ui/widgets/thinking.py:136
 msgid "No thought process recorded"
 msgstr "思考プロセスが記録されていません"
+
+#: src/ui/widgets/tipscarousel.py:41
+msgid "Newelle Tips"
+msgstr "Newelleのヒント"
 
 #: src/ui/explorer.py:192
 msgid "Folder is Empty"
@@ -1074,8 +1074,60 @@ msgstr "拡大"
 msgid "Zoom out"
 msgstr "縮小"
 
-#: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.appdata.xml.in:7
-#: data/io.github.qwersyk.Newelle.desktop.in:2
+#: src/ui/stdout_monitor.py:31 src/ui/stdout_monitor.py:41
+#: src/ui/settings.py:269
+msgid "Program Output Monitor"
+msgstr "プログラム出力モニター"
+
+#: src/ui/stdout_monitor.py:48
+msgid "Clear output"
+msgstr "出力をクリア"
+
+#: src/ui/stdout_monitor.py:61
+msgid "Start/Stop monitoring"
+msgstr "監視の開始/停止"
+
+#: src/ui/stdout_monitor.py:109 src/ui/stdout_monitor.py:182
+#: src/ui/stdout_monitor.py:191 src/window.py:3702
+msgid "Monitoring: Active"
+msgstr "監視中：アクティブ"
+
+#: src/ui/stdout_monitor.py:109 src/ui/stdout_monitor.py:208
+msgid "Monitoring: Stopped"
+msgstr "監視中：停止済み"
+
+#: src/ui/stdout_monitor.py:116 src/ui/stdout_monitor.py:252
+#, python-brace-format
+msgid "Lines: {}"
+msgstr "行数: {}"
+
+#: src/ui/stdout_monitor.py:267
+msgid "Lines: 0"
+msgstr "行数: 0"
+
+#: src/ui/extension.py:17 src/ui/presentation.py:131 src/constants.py:513
+#: src/window.py:118
+msgid "Extensions"
+msgstr "拡張機能"
+
+#: src/ui/extension.py:50
+msgid "Installed Extensions"
+msgstr "インストールされている拡張機能"
+
+#: src/ui/extension.py:86
+msgid "User guide to Extensions"
+msgstr "拡張機能のユーザーガイド"
+
+#: src/ui/extension.py:89
+msgid "Download new Extensions"
+msgstr "新しい拡張機能をダウンロード"
+
+#: src/ui/extension.py:92
+msgid "Install extension from file..."
+msgstr "ファイルから拡張機能をインストール..."
+
+#: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.desktop.in:2
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:7
 msgid "Newelle"
 msgstr "Newelle"
 
@@ -1142,11 +1194,6 @@ msgstr ""
 "デフォルトでは、コマンドは<b>Flatpak環境で仮想化されます</b>が、注意が必要で"
 "す！"
 
-#: src/ui/presentation.py:131 src/ui/extension.py:17 src/constants.py:513
-#: src/window.py:118
-msgid "Extensions"
-msgstr "拡張機能"
-
 #: src/ui/presentation.py:132
 msgid "You can extend Newelle's functionalities using extensions!"
 msgstr "拡張機能を使ってNewelleの機能を拡張できます！"
@@ -1171,53 +1218,6 @@ msgstr "アプリの使用を開始する"
 #: src/ui/presentation.py:163
 msgid "Start chatting"
 msgstr "チャットを開始"
-
-#: src/ui/stdout_monitor.py:31 src/ui/stdout_monitor.py:41
-#: src/ui/settings.py:269
-msgid "Program Output Monitor"
-msgstr "プログラム出力モニター"
-
-#: src/ui/stdout_monitor.py:48
-msgid "Clear output"
-msgstr "出力をクリア"
-
-#: src/ui/stdout_monitor.py:61
-msgid "Start/Stop monitoring"
-msgstr "監視の開始/停止"
-
-#: src/ui/stdout_monitor.py:109 src/ui/stdout_monitor.py:182
-#: src/ui/stdout_monitor.py:191 src/window.py:3698
-msgid "Monitoring: Active"
-msgstr "監視中：アクティブ"
-
-#: src/ui/stdout_monitor.py:109 src/ui/stdout_monitor.py:208
-msgid "Monitoring: Stopped"
-msgstr "監視中：停止済み"
-
-#: src/ui/stdout_monitor.py:116 src/ui/stdout_monitor.py:252
-#, python-brace-format
-msgid "Lines: {}"
-msgstr "行数: {}"
-
-#: src/ui/stdout_monitor.py:267
-msgid "Lines: 0"
-msgstr "行数: 0"
-
-#: src/ui/extension.py:50
-msgid "Installed Extensions"
-msgstr "インストールされている拡張機能"
-
-#: src/ui/extension.py:86
-msgid "User guide to Extensions"
-msgstr "拡張機能のユーザーガイド"
-
-#: src/ui/extension.py:89
-msgid "Download new Extensions"
-msgstr "新しい拡張機能をダウンロード"
-
-#: src/ui/extension.py:92
-msgid "Install extension from file..."
-msgstr "ファイルから拡張機能をインストール..."
 
 #: src/ui/settings.py:47 src/constants.py:523
 msgid "General"
@@ -1642,34 +1642,6 @@ msgid ""
 msgstr ""
 "pipパスが削除されました。これで依存関係を再インストールできます。この操作には"
 "アプリケーションの再起動が必要です。"
-
-#: src/main.py:205
-msgid "Terminal threads are still running in the background"
-msgstr "ターミナルスレッドがバックグラウンドでまだ実行中です"
-
-#: src/main.py:206
-msgid "When you close the window, they will be automatically terminated"
-msgstr "ウィンドウを閉じると、自動的に終了されます"
-
-#: src/main.py:210
-msgid "Close"
-msgstr "閉じる"
-
-#: src/main.py:244
-msgid "Chat is rebooted"
-msgstr "チャットが再起動されました"
-
-#: src/main.py:249
-msgid "Folder is rebooted"
-msgstr "フォルダが再起動されました"
-
-#: src/main.py:254
-msgid "Chat is created"
-msgstr "チャットが作成されました"
-
-#: src/controller.py:135 src/window.py:1852
-msgid "Chat "
-msgstr "チャット"
 
 #: src/constants.py:20
 msgid "Newelle Demo API"
@@ -2103,6 +2075,34 @@ msgstr ""
 msgid "Prompts settings, custom extra prompt, custom prompts..."
 msgstr "プロンプト設定、カスタム追加プロンプト、カスタムプロンプト..."
 
+#: src/controller.py:135 src/window.py:1852
+msgid "Chat "
+msgstr "チャット"
+
+#: src/main.py:205
+msgid "Terminal threads are still running in the background"
+msgstr "ターミナルスレッドがバックグラウンドでまだ実行中です"
+
+#: src/main.py:206
+msgid "When you close the window, they will be automatically terminated"
+msgstr "ウィンドウを閉じると、自動的に終了されます"
+
+#: src/main.py:210
+msgid "Close"
+msgstr "閉じる"
+
+#: src/main.py:244
+msgid "Chat is rebooted"
+msgstr "チャットが再起動されました"
+
+#: src/main.py:249
+msgid "Folder is rebooted"
+msgstr "フォルダが再起動されました"
+
+#: src/main.py:254
+msgid "Chat is created"
+msgstr "チャットが作成されました"
+
 #: src/window.py:120
 msgid "Keyboard shorcuts"
 msgstr "キーボードショートカット"
@@ -2341,15 +2341,15 @@ msgstr "メッセージはキャンセルされ、履歴から削除されまし
 msgid "The message cannot be sent until the program is finished"
 msgstr "プログラムが終了するまでメッセージを送信できません"
 
-#: src/window.py:2951
+#: src/window.py:2954
 msgid "You can't edit a message while the program is running."
 msgstr "プログラムの実行中はメッセージを編集できません。"
 
-#: src/window.py:3076
+#: src/window.py:3080
 msgid "Prompt content"
 msgstr "プロンプトの内容"
 
-#: src/window.py:3335
+#: src/window.py:3339
 msgid ""
 "The neural network has access to your computer and any data in this chat and "
 "can run commands, be careful, we are not responsible for the neural network. "
@@ -2359,7 +2359,7 @@ msgstr ""
 "タにアクセスでき、コマンドを実行できます。ニューラルネットワークについて当社"
 "は責任を負いませんので、注意してください。機密情報を共有しないでください。"
 
-#: src/window.py:3364
+#: src/window.py:3368
 msgid ""
 "The neural network has access to any data in this chat, be careful, we are "
 "not responsible for the neural network. Do not share any sensitive "
@@ -2369,21 +2369,29 @@ msgstr ""
 "ニューラルネットワークについて当社は責任を負いませんので、注意してください。"
 "機密情報を共有しないでください。"
 
-#: src/window.py:3413
+#: src/window.py:3417
 msgid "Wrong folder path"
 msgstr "間違ったフォルダパス"
 
-#: src/window.py:3446
+#: src/window.py:3450
 msgid "Thread has not been completed, thread number: "
 msgstr "スレッドが完了していません。スレッド番号："
 
-#: src/window.py:3458
+#: src/window.py:3462
 msgid "Failed to open the folder"
 msgstr "フォルダを開くのに失敗しました"
 
-#: src/window.py:3637
+#: src/window.py:3641
 msgid "Chat is empty"
 msgstr "チャットは空です"
+
+#: data/io.github.qwersyk.Newelle.desktop.in:3
+msgid "Newelle: Your advanced chat bot"
+msgstr "Newelle: あなたの高度なチャットボット"
+
+#: data/io.github.qwersyk.Newelle.desktop.in:10
+msgid "ai;assistant;chat;chatgpt;gpt;llm;ollama;"
+msgstr "AI;アシスタント;チャット;ChatGPT;GPT;LLM;Ollama;"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:9
 msgid ""
@@ -2410,95 +2418,146 @@ msgid "More than 10 standard AI providers"
 msgstr "10種類以上の標準AIプロバイダー"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:38
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:61
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:123
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:128
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:133
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:138
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:143
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:62
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:85
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:147
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:152
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:157
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:162
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:167
 msgid "Bug fixes"
 msgstr "バグ修正"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:39
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:45
+msgid ""
+"Mini Apps support! Extensions can now show custom mini apps on the sidebar"
+msgstr ""
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:46
+msgid ""
+"Added integrated browser Mini App: browse the web directly in Newelle and "
+"attach web pages"
+msgstr ""
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:47
+msgid "Improved integrated file manager, supporting multiple file operations"
+msgstr ""
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:48
+msgid "Integrated file editor: edit files and codeblocks directly in Newelle"
+msgstr ""
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:49
+msgid "Integrated Terminal mini app: open the terminal directly in Newelle"
+msgstr ""
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:50
+msgid ""
+"Programmable prompts: add dynamic content to prompts with conditionals and "
+"random strings"
+msgstr ""
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:51
+msgid "Add ability to manually edit chat name"
+msgstr ""
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:52
+#, fuzzy
+msgid "Minor bug fixes"
+msgstr "バグ修正"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:53
+msgid "Added support for multiple languages for Kokoro TTS and Whisper.CPP"
+msgstr ""
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:54
+msgid "Run HTML/CSS/JS websites directly in app"
+msgstr ""
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:55
+msgid "New animation on chat change"
+msgstr ""
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:63
 msgid "Small improvements"
 msgstr "小さな改善"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:46
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:70
 msgid "Improve local documents reading and loading performances"
 msgstr "ローカルドキュメントの読み込みとロードのパフォーマンスを改善"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:47
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:71
 msgid "Add option to send with CTRL+Enter"
 msgstr "CTRL+Enterで送信するオプションを追加"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:48
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:72
 msgid "Improve codeblocks"
 msgstr "コードブロックを改善"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:49
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:73
 msgid "Fix Kokoro TTS"
 msgstr "Kokoro TTSを修正"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:50
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:74
 msgid "Remove emoji from TTS"
 msgstr "TTSから絵文字を削除"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:51
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:75
 msgid "Set API keys as password fields"
 msgstr "APIキーをパスワードフィールドとして設定"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:52
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:76
 msgid "Add thinking support for Gemini"
 msgstr "Geminiの思考サポートを追加"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:53
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:77
 msgid "Updated translations"
 msgstr "翻訳を更新"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:60
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:84
 msgid "Added new features"
 msgstr "新機能を追加"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:68
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:92
 msgid "Website reading and web search with SearXNG, DuckDuckGo, and Tavily"
 msgstr "SearXNG、DuckDuckGo、Tavilyによるウェブサイトの読み取りとウェブ検索"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:69
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:93
 msgid "Improved LaTeX rendering and document management"
 msgstr "LaTeXレンダリングとドキュメント管理を改善"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:70
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:94
 msgid "New Thinking Widget and OpenRouter handler"
 msgstr "新しい思考ウィジェットとOpenRouterハンドラー"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:71
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:95
 msgid "Vision support for Llama4 on Groq"
 msgstr "Groq上のLlama4のビジョンサポート"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:72
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:96
 msgid "New translations (Traditional Chinese, Bengali, Hindi)"
 msgstr "新しい翻訳（繁体字中国語、ベンガル語、ヒンディー語）"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:78
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:102
 msgid "Fixed many bugs, added some features!"
 msgstr "多くのバグを修正し、いくつかの機能を追加しました！"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:83
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:107
 msgid "Support for new features and bug fixes"
 msgstr "新機能とバグ修正のサポート"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:88
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:93
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:98
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:112
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:117
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:122
 msgid "Added many new features and bug fixes"
 msgstr "多くの新機能とバグ修正を追加"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:103
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:108
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:127
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:132
 msgid "Added new features and bug fixes"
 msgstr "新機能とバグ修正を追加"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:113
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:137
 msgid ""
 "Updated the g4f library with versioning, added user guides, improved "
 "extension browsing, and enhanced model handling."
@@ -2506,7 +2565,7 @@ msgstr ""
 "g4fライブラリをバージョン管理で更新し、ユーザーガイドを追加し、拡張機能のブラ"
 "ウジングを改善し、モデル処理を強化しました。"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:118
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:142
 msgid ""
 "Bug fixes and new features have been implemented. We've modified the "
 "extension architecture, added new models, and introduced vision support, "
@@ -2515,37 +2574,29 @@ msgstr ""
 "バグ修正と新機能が実装されました。拡張機能のアーキテクチャを変更し、新しいモ"
 "デルを追加し、ビジョンサポートをはじめとする多くの機能が導入されました。"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:148
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:172
 msgid "Stable version"
 msgstr "安定版"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:153
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:177
 msgid "Added extension"
 msgstr "拡張機能を追加"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:158
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:182
 msgid "Blacklist of commands"
 msgstr "コマンドのブラックリスト"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:163
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:187
 msgid "Localization"
 msgstr "ローカライズ"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:168
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:192
 msgid "Redesign"
 msgstr "再設計"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:172
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:196
 msgid "Qwersyk"
 msgstr "Qwersyk"
-
-#: data/io.github.qwersyk.Newelle.desktop.in:3
-msgid "Newelle: Your advanced chat bot"
-msgstr "Newelle: あなたの高度なチャットボット"
-
-#: data/io.github.qwersyk.Newelle.desktop.in:10
-msgid "ai;assistant;chat;chatgpt;gpt;llm;ollama;"
-msgstr "AI;アシスタント;チャット;ChatGPT;GPT;LLM;Ollama;"
 
 #~ msgid "max Tokens"
 #~ msgstr "最大トークン数"
