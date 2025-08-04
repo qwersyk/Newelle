@@ -13,6 +13,7 @@ class KokoroTTSHandler(TTSHandler):
         extra_deps = "fugashi jaconv mojimoji mecab-python3 unidic-lite"
         index_url = " --extra-index-url https://download.pytorch.org/whl/cpu --trusted-host download.pytorch.org"
         install_module("kokoro==0.9.4 soundfile espeakng-loader " + extra_deps + index_url, self.pip_path, update=False, cache_dir=cache_dir)
+        install_module("transformers", self.pip_path)
         if not self.is_installed():
             self.throw("Kokoro installation failed", ErrorSeverity.ERROR)
 
