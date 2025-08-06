@@ -11,7 +11,7 @@ from gi.repository import Gtk, Adw, Gio, GLib, GtkSource
 from ..handlers import Handler
 
 from ..constants import AVAILABLE_EMBEDDINGS, AVAILABLE_LLMS, AVAILABLE_MEMORIES, AVAILABLE_PROMPTS, AVAILABLE_TTS, AVAILABLE_STT, PROMPTS, AVAILABLE_RAGS, AVAILABLE_WEBSEARCH
-
+from ..utility.pip import install_module
 from .widgets import ComboRowHelper, CopyBox 
 from .widgets import MultilineEntry
 from ..utility.system import can_escape_sandbox, get_spawn_command, open_website, open_folder 
@@ -276,6 +276,21 @@ class Settings(Adw.PreferencesWindow):
         button = Gtk.Button(label=_("Delete"), valign=Gtk.Align.CENTER, css_classes=["destructive-action"])
         row.add_suffix(button)
         button.connect("clicked", lambda _ : self.delete_pip_path())
+        self.developer.add(row)
+        # Install pip module 
+        row = Adw.ActionRow(title=_("Install pip module"), subtitle=_("Manually install pip module"))
+        entry = Gtk.Entry(valign=Gtk.Align.CENTER)
+        button = Gtk.Button(icon_name="download-symbolic", valign=Gtk.Align.CENTER)
+        row.add_suffix(entry)
+        row.add_suffix(button)
+        def install_custom_module(button):
+            module = entry.get_text()
+            def install_thread():
+                install_module(module, self.controller.pip_path, True)
+            t = threading.Thread(target=install_thread)
+            t.start()
+            self.app.win.show_stdout_monitor_dialog(self)
+        button.connect("clicked", install_custom_module)
         self.developer.add(row)
         
         self.add(self.LLMPage)
