@@ -1,3 +1,4 @@
+from ...utility.pip import find_module, install_module
 from .tts import TTSHandler
 
 class ElevenLabs(TTSHandler):
@@ -24,7 +25,7 @@ class ElevenLabs(TTSHandler):
                 "title": _("Model"),
                 "description": _("Name of the model to use"),
                 "type": "combo",
-                "values": (("eleven_turbo_v2_5", "eleven_turbo_v2_5"), ("eleven_multilingual_v2", "eleven_multilingual_v2")),
+                "values": (("eleven_turbo_v2_5", "eleven_turbo_v2_5"), ("eleven_multilingual_v2", "eleven_multilingual_v2"), ("eleven_flash_v2_5", "eleven_flash_v2_5"), ("eleven_v3", "eleven_v3"), ("eleven_ttv_v3", "eleven_ttv_v3")),
                 "default": "eleven_turbo_v2_5"
             },
             {
@@ -60,16 +61,17 @@ class ElevenLabs(TTSHandler):
 
         ]
 
-    @staticmethod
-    def get_extra_requirements() -> list[str]:
-        return ["elevenlabs"]
+    def install(self):
+        install_module("elevenlabs==2.9.1", self.pip_path, True)
+    
+    def is_installed(self) -> bool:
+        return find_module("elevenlabs") is not None
 
     def save_audio(self, message, file):
         from elevenlabs.client import ElevenLabs 
         from elevenlabs import save
         from elevenlabs.types import VoiceSettings
         client = ElevenLabs(api_key=self.get_setting("api"))
-        audio = client.generate(text=message, voice=self.get_setting("voice"), model=self.get_setting("model"),
-                                voice_settings=VoiceSettings(stability=self.get_setting("stability"), similarity_boost=self.get_setting("similarity"), style=self.get_setting("style_exaggeration")))
+        sett = VoiceSettings(stability=self.get_setting("stability"), similarity_boost=self.get_setting("similarity"), style=self.get_setting("style_exaggeration"))
+        audio = client.text_to_speech.convert(text=message, voice_id=self.get_setting("voice"), model_id=self.get_setting("model"), output_format="mp3_44100_128", voice_settings=sett)
         save(audio, file) 
-        return  
