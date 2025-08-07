@@ -50,9 +50,9 @@ class OpenAIHandler(LLMHandler):
         return True
 
     def get_extra_settings(self) -> list:
-        return self.build_extra_settings("OpenAI", True, True, True, True, True, "https://openai.com/policies/row-privacy-policy/", None)
+        return self.build_extra_settings("OpenAI", True, True, True, True, True, "https://openai.com/policies/row-privacy-policy/", None, False,False,True)
 
-    def build_extra_settings(self, provider_name: str, has_api_key: bool, has_stream_settings: bool, endpoint_change: bool, allow_advanced_params: bool, supports_automatic_models: bool, privacy_notice_url : str | None, model_list_url: str | None, default_advanced_params: bool = False, default_automatic_models: bool = False) -> list:
+    def build_extra_settings(self, provider_name: str, has_api_key: bool, has_stream_settings: bool, endpoint_change: bool, allow_advanced_params: bool, supports_automatic_models: bool, privacy_notice_url : str | None, model_list_url: str | None, default_advanced_params: bool = False, default_automatic_models: bool = False, supports_custom_body : bool = False) -> list:
         """Helper to build the list of extra settings for OpenAI Handlers
 
         Args:
@@ -105,6 +105,7 @@ class OpenAIHandler(LLMHandler):
             ExtraSettings.ScaleSetting("frequency-penalty", _("Frequency Penalty"), _("Number between -2.0 and 2.0. Positive values decrease the model's likelihood to repeat the same line verbatim"), 0, -2, 2, 0),
             ExtraSettings.ScaleSetting("presence-penalty", _("Presence Penalty"), _("Number between -2.0 and 2.0. Positive values decrease the model's likelihood to talk about new topics"), 0, -2, 2, 0),
         ]
+        custom_body = ExtraSettings.MultilineEntrySetting("custom_body", _("Custom Options"), _("Provide a JSON containing the custom options"), "{}") 
         
         privacy_notice = [
             ExtraSettings.ButtonSetting(
@@ -133,6 +134,8 @@ class OpenAIHandler(LLMHandler):
                 settings += advanced_settings
         if privacy_notice_url is not None:
             settings += privacy_notice
+        if supports_custom_body:
+            settings += [custom_body]
         return settings
 
     def convert_history(self, history: list, prompts: list | None = None) -> list:
@@ -233,6 +236,15 @@ class OpenAIHandler(LLMHandler):
             raise e
 
     def get_extra_body(self):
+        body = self.get_setting("custom_body")
+        if body is not None:
+            try:
+                j = json.loads(body)
+                return j
+            except Exception as e:
+                print("Wrong custom body")
+                self.throw("Wrong custom body given to OpenAI LLM Handler, ignoring")
+                return {}
         return {}
 
     def get_extra_headers(self):
