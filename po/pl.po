@@ -1,15 +1,21 @@
+#
+# Piotr Orzechowski <orzechowski.tech>, 2025.
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: 1.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-08-03 15:55+0800\n"
-"PO-Revision-Date: 2025-07-03 09:00+0200\n"
-"Last-Translator: Yehor Hliebov <qsk@gmx.at>\n"
-"Language-Team: Polish <qsk@gmx.at>\n"
+"PO-Revision-Date: 2025-08-14 18:34+0200\n"
+"Last-Translator: Piotr Orzechowski <orzechowski.tech>\n"
+"Language-Team: Polish\n"
 "Language: pl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
+"|| n%100>=20) ? 1 : 2);\n"
+"X-Generator: Gtranslator 48.0\n"
 
 #: src/handlers/embeddings/ollama_handler.py:32
 #: src/handlers/embeddings/openai_handler.py:38
@@ -78,7 +84,7 @@ msgstr "Klucz API"
 #: src/handlers/embeddings/openai_handler.py:35
 #: src/handlers/llm/openai_handler.py:72
 msgid "API Key for "
-msgstr "Klucz API dla "
+msgstr "Klucz API "
 
 #: src/handlers/embeddings/openai_handler.py:38
 msgid "API base url, change this to use different APIs"
@@ -157,7 +163,7 @@ msgid ""
 "file containing the chat, {1} with the system prompt"
 msgstr ""
 "Polecenie do wykonania, aby uzyskać odpowiedź bota, {0} zostanie zastąpione "
-"plikiem JSON zawierającym czat, {1} monitem systemowym"
+"plikiem JSON zawierającym czat, {1} - podpowiedzią systemową"
 
 #: src/handlers/llm/custom_handler.py:22
 msgid "Command to execute to get bot's suggestions"
@@ -172,9 +178,9 @@ msgid ""
 "as strings"
 msgstr ""
 "Polecenie do wykonania, aby uzyskać sugestie czatu, {0} zostanie zastąpione "
-"plikiem JSON zawierającym czat, {1} dodatkowymi monitami, {2} liczbą "
-"sugestii do wygenerowania. Musi zwrócić tablicę JSON zawierającą sugestie "
-"jako ciągi znaków"
+"plikiem JSON zawierającym czat, {1} - dodatkowymi podpowiedziami, {2} - "
+"liczbą sugestii do wygenerowania. Musi zwrócić tablicę JSON zawierającą "
+"sugestie jako ciągi znaków"
 
 #: src/handlers/llm/gpt4all_handler.py:67
 msgid "RAM Required: "
@@ -258,31 +264,31 @@ msgstr "Klucz API uzyskany z ai.google.dev"
 
 #: src/handlers/llm/gemini_handler.py:98
 msgid "AI Model to use"
-msgstr "Model AI do użycia"
+msgstr "Model SI do użycia"
 
 #: src/handlers/llm/gemini_handler.py:103
 msgid "Enable System Prompt"
-msgstr "Włącz monit systemowy"
+msgstr "Włącz podpowiedź systemową"
 
 #: src/handlers/llm/gemini_handler.py:103
 msgid ""
 "Some models don't support system prompt (or developers instructions), "
 "disable it if you get errors about it"
 msgstr ""
-"Niektóre modele nie obsługują monitu systemowego (lub instrukcji dla "
-"programistów), wyłącz to, jeśli otrzymasz błędy z tym związane"
+"Niektóre modele nie obsługują podpowiedzi systemowej (lub instrukcji "
+"programistów). Wyłącz to, jeśli pojawią się błędy z tym związane"
 
 #: src/handlers/llm/gemini_handler.py:107
 msgid "Inject system prompt"
-msgstr "Wstrzyknij monit systemowy"
+msgstr "Wstrzyknij podpowiedź systemową"
 
 #: src/handlers/llm/gemini_handler.py:107
 msgid ""
 "Even if the model doesn't support system prompts, put the prompts on top of "
 "the user message"
 msgstr ""
-"Nawet jeśli model nie obsługuje monitów systemowych, umieść monity na górze "
-"wiadomości użytkownika"
+"Nawet jeśli model nie obsługuje podpowiedzi systemowych, dodaj podpowiedzi "
+"powyżej wiadomości użytkownika"
 
 #: src/handlers/llm/gemini_handler.py:109
 msgid "Thinking Settings"
@@ -290,7 +296,7 @@ msgstr "Ustawienia myślenia"
 
 #: src/handlers/llm/gemini_handler.py:109
 msgid "Settings about thinking models"
-msgstr "Ustawienia dotyczące modeli myślenia"
+msgstr "Ustawienia modeli myślących"
 
 #: src/handlers/llm/gemini_handler.py:110
 msgid "Show thinking, disable it if your model does not support it"
@@ -339,13 +345,12 @@ msgid "Enable advanced parameters"
 msgstr "Włącz zaawansowane parametry"
 
 #: src/handlers/llm/openai_handler.py:81
-#, fuzzy
 msgid "Include parameters like Top-P, Temperature, etc."
-msgstr "Włącz parametry takie jak maks. tokeny, Top-P, temperatura itp."
+msgstr "Włącz parametry takie jak top-p, temperatura itp."
 
 #: src/handlers/llm/openai_handler.py:84
 msgid "Name of the LLM Model to use"
-msgstr "Nazwa modelu LLM do użycia"
+msgstr "Nazwa modelu do użycia"
 
 #: src/handlers/llm/openai_handler.py:103
 msgid "Top-P"
@@ -457,7 +462,7 @@ msgstr "{0} zostanie zastąpione pełną ścieżką do modelu"
 
 #: src/handlers/stt/googlesr_handler.py:14
 msgid "API Key for Google SR, write 'default' to use the default one"
-msgstr "Klucz API dla Google SR, wpisz „default”, aby użyć domyślnego"
+msgstr "Klucz API Google SR, wpisz „default”, aby użyć domyślnego"
 
 #: src/handlers/stt/googlesr_handler.py:21
 #: src/handlers/stt/groqsr_handler.py:29
@@ -472,7 +477,7 @@ msgstr "Język tekstu do rozpoznania w formacie IETF"
 
 #: src/handlers/stt/groqsr_handler.py:14
 msgid "API Key for Groq SR, write 'default' to use the default one"
-msgstr "Klucz API dla Groq SR, wpisz „default”, aby użyć domyślnego"
+msgstr "Klucz API Groq SR, wpisz „default”, aby użyć domyślnego"
 
 #: src/handlers/stt/groqsr_handler.py:21
 msgid "Groq Model"
@@ -488,15 +493,15 @@ msgid ""
 "\"en\" for English, \"fr\" for French, etc.). "
 msgstr ""
 "Określ język transkrypcji. Użyj kodów językowych ISO 639-1 (np. „en” dla "
-"angielskiego, „fr” dla francuskiego itp.). "
+"angielskiego, „fr” dla francuskiego itd.). "
 
 #: src/handlers/stt/openaisr_handler.py:11
 msgid "Endpoint for OpenAI requests"
-msgstr "Punkt końcowy dla żądań OpenAI"
+msgstr "Punkt końcowy żądań OpenAI"
 
 #: src/handlers/stt/openaisr_handler.py:18
 msgid "API Key for OpenAI"
-msgstr "Klucz API dla OpenAI"
+msgstr "Klucz API OpenAI"
 
 #: src/handlers/stt/openaisr_handler.py:25
 msgid "Whisper Model"
@@ -512,7 +517,7 @@ msgid ""
 "codes (e.g. \"en\" for English, \"fr\" for French, etc.). "
 msgstr ""
 "Opcjonalnie: Określ język transkrypcji. Użyj kodów językowych ISO 639-1 (np. "
-"„en” dla angielskiego, „fr” dla francuskiego itp.). "
+"„en” dla angielskiego, „fr” dla francuskiego itd.). "
 
 #: src/handlers/stt/vosk_handler.py:17
 msgid "Model Path"
@@ -529,16 +534,15 @@ msgstr "Nazwa modelu Whisper"
 
 #: src/handlers/stt/witai_handler.py:13
 msgid "Server Access Token for wit.ai"
-msgstr "Token dostępu do serwera dla wit.ai"
+msgstr "Token dostępu do serwera wit.ai"
 
 #: src/handlers/stt/sphinx_handler.py:19
 msgid "Could not understand the audio"
 msgstr "Nie można zrozumieć dźwięku"
 
 #: src/handlers/stt/whispercpp_handler.py:47
-#, fuzzy
 msgid "Language of the recognition. For example en, it..."
-msgstr "Język rozpoznawania."
+msgstr "Język rozpoznawania, np. en, it..."
 
 #: src/handlers/stt/whispercpp_handler.py:48
 msgid "Model Library"
@@ -562,11 +566,11 @@ msgstr "Temperatura do użycia"
 
 #: src/handlers/stt/whispercpp_handler.py:51
 msgid "Prompt for the recognition"
-msgstr "Monit do rozpoznawania"
+msgstr "Podpowiedź rozpoznawania"
 
 #: src/handlers/stt/whispercpp_handler.py:51
 msgid "Prompt to use for the recognition"
-msgstr "Monit do użycia dla rozpoznawania"
+msgstr "Podpowiedź do użycia przy rozpoznawaniu"
 
 #: src/handlers/tts/custom_openai_tts.py:17
 msgid "Endpoint"
@@ -604,7 +608,7 @@ msgstr ""
 
 #: src/handlers/tts/elevenlabs_handler.py:10
 msgid "API Key for ElevenLabs"
-msgstr "Klucz API dla ElevenLabs"
+msgstr "Klucz API ElevenLabs"
 
 #: src/handlers/tts/elevenlabs_handler.py:18
 msgid "Voice ID to use"
@@ -727,7 +731,7 @@ msgid ""
 "Include an LLM-generated answer to the provided query. Basic search returns "
 "a quick answer. Advanced returns a more detailed answer."
 msgstr ""
-"Dołącz odpowiedź wygenerowaną przez LLM do podanego zapytania. Podstawowe "
+"Dołącz odpowiedź wygenerowaną przez model do podanego zapytania. Podstawowe "
 "wyszukiwanie zwraca szybką odpowiedź. Zaawansowane zwraca bardziej "
 "szczegółową odpowiedź."
 
@@ -781,7 +785,7 @@ msgstr "Region"
 
 #: src/handlers/websearch/duckduckgo_handler.py:15
 msgid "Region for the search results"
-msgstr "Region dla wyników wyszukiwania"
+msgstr "Region wyników wyszukiwania"
 
 #: src/ui/profile.py:33 src/window.py:119
 msgid "Settings"
@@ -893,7 +897,7 @@ msgstr "Myślę..."
 
 #: src/ui/widgets/thinking.py:123
 msgid "The LLM is thinking... Expand to see thought process"
-msgstr "LLM myśli... Rozwiń, aby zobaczyć proces myślowy"
+msgstr "Model myśli... Rozwiń, aby zobaczyć proces myślowy"
 
 #: src/ui/widgets/thinking.py:136
 msgid "No thought process recorded"
@@ -1088,7 +1092,7 @@ msgstr "Pomniejsz"
 #: src/ui/stdout_monitor.py:31 src/ui/stdout_monitor.py:41
 #: src/ui/settings.py:269
 msgid "Program Output Monitor"
-msgstr "Monitor wyjścia programu"
+msgstr "Śledzenie wyjścia programu"
 
 #: src/ui/stdout_monitor.py:48
 msgid "Clear output"
@@ -1096,16 +1100,16 @@ msgstr "Wyczyść wyjście"
 
 #: src/ui/stdout_monitor.py:61
 msgid "Start/Stop monitoring"
-msgstr "Rozpocznij/Zatrzymaj monitorowanie"
+msgstr "Rozpocznij/Zatrzymaj śledzenie"
 
 #: src/ui/stdout_monitor.py:109 src/ui/stdout_monitor.py:182
 #: src/ui/stdout_monitor.py:191 src/window.py:3702
 msgid "Monitoring: Active"
-msgstr "Monitorowanie: Aktywne"
+msgstr "Śledzenie: Aktywne"
 
 #: src/ui/stdout_monitor.py:109 src/ui/stdout_monitor.py:208
 msgid "Monitoring: Stopped"
-msgstr "Monitorowanie: Zatrzymane"
+msgstr "Śledzenie: Zatrzymane"
 
 #: src/ui/stdout_monitor.py:116 src/ui/stdout_monitor.py:252
 #, python-brace-format
@@ -1160,7 +1164,7 @@ msgstr "Strona Github"
 
 #: src/ui/presentation.py:105
 msgid "Choose your favourite AI Language Model"
-msgstr "Wybierz swój ulubiony model językowy AI"
+msgstr "Wybierz swój ulubiony model językowy SI"
 
 #: src/ui/presentation.py:106
 msgid ""
@@ -1168,12 +1172,12 @@ msgid ""
 "<b>Note: It is strongly suggested to read the Guide to LLM page</b>"
 msgstr ""
 "Newelle może być używane z wieloma modelami i dostawcami!\n"
-"<b>Uwaga: Zdecydowanie zaleca się zapoznanie się ze stroną Przewodnik po "
-"LLM</b>"
+"<b>Uwaga: Zdecydowanie zaleca się zapoznanie się ze stroną Przewodnika po "
+"dużych modelach językowych</b>"
 
 #: src/ui/presentation.py:110
 msgid "Guide to LLM"
-msgstr "Przewodnik po LLM"
+msgstr "Przewodnik po dużych modelach językowych"
 
 #: src/ui/presentation.py:117
 msgid "Chat with your documents"
@@ -1187,7 +1191,7 @@ msgid ""
 msgstr ""
 "Newelle może pobierać istotne informacje z dokumentów, które wysyłasz na "
 "czacie lub z własnych plików! Informacje związane z Twoim zapytaniem zostaną "
-"przesłane do LLM."
+"przesłane do modelu."
 
 #: src/ui/presentation.py:124 src/ui/settings.py:237 src/window.py:649
 msgid "Command virtualization"
@@ -1202,8 +1206,8 @@ msgid ""
 "b>, but pay attention!"
 msgstr ""
 "Newelle może być używane do uruchamiania poleceń w Twoim systemie, ale zwróć "
-"uwagę na to, co uruchamiasz! <b>LLM nie jest pod naszą kontrolą, więc może "
-"generować złośliwy kod!</b>\n"
+"uwagę na to, co uruchamiasz! <b>Duży model językowy nie jest pod naszą "
+"kontrolą, więc może generować złośliwy kod!</b>\n"
 "Domyślnie Twoje polecenia będą <b>wirtualizowane w środowisku Flatpak</b>, "
 "ale bądź ostrożny!"
 
@@ -1240,11 +1244,11 @@ msgstr "Ogólne"
 
 #: src/ui/settings.py:48 src/constants.py:478
 msgid "LLM"
-msgstr "LLM"
+msgstr "Duży model językowy (LLM)"
 
 #: src/ui/settings.py:49 src/constants.py:528
 msgid "Prompts"
-msgstr "Monity"
+msgstr "Podpowiedzi"
 
 #: src/ui/settings.py:50
 msgid "Knowledge"
@@ -1256,15 +1260,15 @@ msgstr "Model językowy"
 
 #: src/ui/settings.py:63 src/ui/settings.py:83
 msgid "Other LLMs"
-msgstr "Inne LLM"
+msgstr "Inne duże modele językowe"
 
 #: src/ui/settings.py:63 src/ui/settings.py:83
 msgid "Other available LLM providers"
-msgstr "Inni dostępni dostawcy LLM"
+msgstr "Inni dostępni dostawcy dużych modeli językowych"
 
 #: src/ui/settings.py:73
 msgid "Advanced LLM Settings"
-msgstr "Zaawansowane ustawienia LLM"
+msgstr "Zaawansowane ustawienia dużego modelu językowego"
 
 #: src/ui/settings.py:77
 msgid "Secondary Language Model"
@@ -1332,7 +1336,7 @@ msgstr "Automatycznie wznawiaj zamianę mowy na tekst po zakończeniu tekstu/TTS
 
 #: src/ui/settings.py:154
 msgid "Prompt control"
-msgstr "Kontrola monitów"
+msgstr "Kontrola podpowiedzi"
 
 #: src/ui/settings.py:159
 msgid "Interface"
@@ -1385,7 +1389,7 @@ msgid ""
 "Do not send old thinking blocks for reasoning models in order to reduce "
 "token usage"
 msgstr ""
-"Nie wysyłaj starych bloków myślenia dla modeli wnioskujących, aby zmniejszyć "
+"Nie wysyłaj starych bloków myślenia modeli wnioskujących, aby zmniejszyć "
 "zużycie tokenów"
 
 #: src/ui/settings.py:199
@@ -1433,8 +1437,8 @@ msgid ""
 "You can add it to a prompt using the {USER} variable"
 msgstr ""
 "Zmień etykietę, która pojawia się przed Twoją wiadomością\n"
-"Ta informacja nie jest domyślnie wysyłana do LLM\n"
-"Możesz dodać ją do monitu za pomocą zmiennej {USER}"
+"Ta informacja nie jest domyślnie wysyłana do dużego modelu językowego\n"
+"Możesz dodać ją do podpowiedzi za pomocą zmiennej {USER}"
 
 #: src/ui/settings.py:234
 msgid "Neural Network Control"
@@ -1470,7 +1474,7 @@ msgid ""
 "Monitor the program output in real-time, useful for debugging and seeing "
 "downloads progress"
 msgstr ""
-"Monitoruj wyjście programu w czasie rzeczywistym, przydatne do debugowania i "
+"Śledź wyjście programu w czasie rzeczywistym, przydatne do debugowania i "
 "śledzenia postępu pobierania"
 
 #: src/ui/settings.py:270
@@ -1589,13 +1593,13 @@ msgid ""
 "documents sent in the chat will be given to the LLM using your Document "
 "Analyzer."
 msgstr ""
-"Jeśli LLM nie obsługuje czytania dokumentów, istotne informacje o "
-"dokumentach wysłanych na czacie zostaną przekazane LLM za pomocą analizatora "
-"dokumentów."
+"Jeśli model nie obsługuje czytania dokumentów, istotne informacje o "
+"dokumentach wysłanych na czacie zostaną przekazane modelowi za pomocą "
+"analizatora dokumentów."
 
 #: src/ui/settings.py:397
 msgid "Maximum tokens for RAG"
-msgstr "Maksymalna liczba tokenów dla RAG"
+msgstr "Maksymalna liczba tokenów RAG"
 
 #: src/ui/settings.py:397
 msgid ""
@@ -1603,7 +1607,7 @@ msgid ""
 "exceed this token count,\n"
 "dump all of them in the context"
 msgstr ""
-"Maksymalna liczba tokenów do użycia dla RAG. Jeśli dokumenty nie "
+"Maksymalna liczba tokenów do użycia przez RAG. Jeśli dokumenty nie "
 "przekraczają tej liczby tokenów,\n"
 "umieść je wszystkie w kontekście"
 
@@ -1688,8 +1692,8 @@ msgid ""
 "NO GPU SUPPORT, USE OLLAMA INSTEAD. Run a LLM model locally, more privacy "
 "but slower"
 msgstr ""
-"BRAK WSPARCIA DLA GPU, ZAMIAST TEGO UŻYJ OLLAMA. Uruchom model LLM lokalnie, "
-"więcej prywatności, ale wolniej"
+"BRAK OBSŁUGI GPU, ZAMIAST TEGO UŻYJ OLLAMA. Uruchom model lokalnie - więcej "
+"prywatności, ale wolniejsze"
 
 #: src/constants.py:40
 msgid "Ollama Instance"
@@ -1697,7 +1701,7 @@ msgstr "Instancja Ollama"
 
 #: src/constants.py:41
 msgid "Easily run multiple LLM models on your own hardware"
-msgstr "Łatwo uruchamiaj wiele modeli LLM na własnym sprzęcie"
+msgstr "Łatwo uruchamiaj wiele modeli na własnym sprzęcie"
 
 #: src/constants.py:47
 msgid "Groq"
@@ -1726,8 +1730,8 @@ msgid ""
 "Official APIs for Anthropic Claude's models, with image and file support, "
 "requires an API key"
 msgstr ""
-"Oficjalne API dla modeli Anthropic Claude, z obsługą obrazów i plików, "
-"wymaga klucza API"
+"Oficjalne API modeli Anthropic Claude, z obsługą obrazów i plików; wymaga "
+"klucza API"
 
 #: src/constants.py:73
 msgid "Mistral"
@@ -1837,7 +1841,7 @@ msgstr "Kokoro TTS"
 #: src/constants.py:168
 msgid ""
 "Lightweight and fast open source TTS engine. ~3GB dependencies, 400MB model"
-msgstr "Lekki i szybki silnik TTS open source. ~3 GB zależności, model 400 MB"
+msgstr "Lekki i szybki silnik TTS open source. ~3 GB zależności, model 400 MiB"
 
 #: src/constants.py:173
 msgid "ElevenLabs TTS"
@@ -1886,8 +1890,8 @@ msgid ""
 "Light local embedding model based on llama. Works offline, very low "
 "resources usage"
 msgstr ""
-"Lekki lokalny model osadzania oparty na llama. Działa offline, bardzo niskie "
-"zużycie zasobów"
+"Lekki lokalny model osadzania oparty na llama. Działa bez dostępu do sieci; "
+"bardzo niskie zużycie zasobów"
 
 #: src/constants.py:218
 msgid "Ollama Embedding"
@@ -1897,8 +1901,8 @@ msgstr "Osadzanie Ollama"
 msgid ""
 "Use Ollama models for Embedding. Works offline, very low resources usage"
 msgstr ""
-"Użyj modeli Ollama do osadzania. Działa offline, bardzo niskie zużycie "
-"zasobów"
+"Użyj modeli Ollama do osadzania. Działa bez dostępu do sieci; bardzo niskie "
+"zużycie zasobów"
 
 #: src/constants.py:231
 msgid "Use Google Gemini API to get embeddings"
@@ -1924,7 +1928,7 @@ msgid ""
 msgstr ""
 "Wyodrębniaj wiadomości z poprzednich rozmów za pomocą kontekstowego "
 "odzyskiwania pamięci, zanikania pamięci, ekstrakcji pojęć i innych "
-"zaawansowanych technik. Wykonuje 1 wywołanie LLM na wiadomość."
+"zaawansowanych technik. Wykonuje 1 wywołanie modelu na wiadomość."
 
 #: src/constants.py:251
 msgid "User Summary + Memoripy"
@@ -1977,8 +1981,8 @@ msgstr "Pomocny asystent"
 #: src/constants.py:376
 msgid "General purpose prompt to enhance the LLM answers and give more context"
 msgstr ""
-"Monit ogólnego przeznaczenia do ulepszania odpowiedzi LLM i dostarczania "
-"większego kontekstu"
+"Podpowiedź ogólnego przeznaczenia do ulepszania odpowiedzi modelu i "
+"dostarczania szerszego kontekstu"
 
 #: src/constants.py:384
 msgid "Console access"
@@ -1998,7 +2002,7 @@ msgstr "Jaki jest bieżący katalog"
 
 #: src/constants.py:402
 msgid "Allow the LLM to search on the internet"
-msgstr "Zezwól LLM na wyszukiwanie w internecie"
+msgstr "Zezwól modelowi na wyszukiwanie w Internecie"
 
 #: src/constants.py:410
 msgid "Basic functionality"
@@ -2026,15 +2030,15 @@ msgstr "Pokaż obraz w czacie"
 
 #: src/constants.py:437
 msgid "Custom Prompt"
-msgstr "Niestandardowy monit"
+msgstr "Niestandardowa podpowiedź"
 
 #: src/constants.py:438
 msgid "Add your own custom prompt"
-msgstr "Dodaj własny niestandardowy monit"
+msgstr "Dodaj własną niestandardową podpowiedź"
 
 #: src/constants.py:480
 msgid "LLM and Secondary LLM settings"
-msgstr "Ustawienia LLM i pomocniczego LLM"
+msgstr "Ustawienia modelu i pomocniczego modelu"
 
 #: src/constants.py:483 src/window.py:648
 msgid "TTS"
@@ -2108,7 +2112,8 @@ msgstr ""
 #: src/constants.py:530
 msgid "Prompts settings, custom extra prompt, custom prompts..."
 msgstr ""
-"Ustawienia monitów, niestandardowy dodatkowy monit, niestandardowe monity..."
+"Ustawienia podpowiedzi, niestandardowa dodatkowa podpowiedź, niestandardowe "
+"podpowiedzi..."
 
 #: src/controller.py:135 src/window.py:1852
 msgid "Chat "
@@ -2156,7 +2161,7 @@ msgstr "Historia"
 
 #: src/window.py:191
 msgid "Create a chat"
-msgstr "Utwórz czat"
+msgstr "Rozpocznij nowy czat"
 
 #: src/window.py:196
 msgid "Chats"
@@ -2176,7 +2181,7 @@ msgstr " Kontynuuj"
 
 #: src/window.py:310
 msgid " Regenerate"
-msgstr " Regeneruj"
+msgstr " Wygeneruj ponownie"
 
 #: src/window.py:376
 msgid "Send a message..."
@@ -2188,7 +2193,7 @@ msgstr "Zakładka Eksplorator"
 
 #: src/window.py:468
 msgid "Terminal Tab"
-msgstr "Zakładka Terminal"
+msgstr "Zakładka terminala"
 
 #: src/window.py:469
 msgid "Browser Tab"
@@ -2233,7 +2238,7 @@ msgid ""
 "Enable web search to allow the LLM to surf the web and provide up to date "
 "answers"
 msgstr ""
-"Włącz wyszukiwanie w sieci, aby umożliwić LLM przeglądanie sieci i "
+"Włącz wyszukiwanie w sieci, aby umożliwić modelowi przeglądanie sieci i "
 "dostarczanie aktualnych odpowiedzi"
 
 #: src/window.py:593
@@ -2262,12 +2267,12 @@ msgstr "Kontroluj Newelle za pomocą skrótów klawiaturowych"
 
 #: src/window.py:596
 msgid "Prompt Control"
-msgstr "Kontrola monitów"
+msgstr "Kontrola podpowiedzi"
 
 #: src/window.py:596
 msgid "Newelle gives you 100% prompt control. Tune your prompts for your use."
 msgstr ""
-"Newelle daje Ci 100% kontroli nad monitami. Dostosuj monity do swoich "
+"Newelle daje Ci 100% kontroli nad podpowiedziami. Dostosuj je do swoich "
 "potrzeb."
 
 #: src/window.py:597
@@ -2280,13 +2285,13 @@ msgstr "Sprawdź programy i procesy, które uruchamiasz z Newelle"
 
 #: src/window.py:598
 msgid "Programmable Prompts"
-msgstr "Programowalne monity"
+msgstr "Programowalne podpowiedzi"
 
 #: src/window.py:598
 msgid ""
 "You can add dynamic prompts to Newelle, with conditions and probabilities"
 msgstr ""
-"Możesz dodawać dynamiczne monity do Newelle, z warunkami i "
+"Możesz dodawać dynamiczne podpowiedzi do Newelle, z warunkami i "
 "prawdopodobieństwami"
 
 #: src/window.py:605
@@ -2331,7 +2336,7 @@ msgstr "Obrazy"
 
 #: src/window.py:1307
 msgid "LLM Supported Files"
-msgstr "Pliki obsługiwane przez LLM"
+msgstr "Pliki obsługiwane przez model"
 
 #: src/window.py:1315
 msgid "RAG Supported files"
@@ -2384,7 +2389,7 @@ msgstr "Nie możesz edytować wiadomości, gdy program jest uruchomiony."
 
 #: src/window.py:3080
 msgid "Prompt content"
-msgstr "Treść monitu"
+msgstr "Treść podpowiedzi"
 
 #: src/window.py:3339
 msgid ""
@@ -2429,7 +2434,7 @@ msgstr "Newelle: Twój zaawansowany chatbot"
 
 #: data/io.github.qwersyk.Newelle.desktop.in:10
 msgid "ai;assistant;chat;chatgpt;gpt;llm;ollama;"
-msgstr "ai;asystent;czat;chatgpt;gpt;llm;ollama;"
+msgstr "si;asystent;czat;chatgpt;gpt;llm;ollama;"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:9
 msgid ""
@@ -2437,11 +2442,11 @@ msgid ""
 "your chatbot endless possibilities."
 msgstr ""
 "Trenuj Newelle, aby robił więcej dzięki niestandardowym rozszerzeniom i "
-"nowym modułom AI, dając Twojemu chatbotowi nieograniczone możliwości."
+"nowym modułom SI, dając Twojemu chatbotowi nieograniczone możliwości."
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:11
 msgid "AI chatbot"
-msgstr "Chatbot AI"
+msgstr "Chatbot SI"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:15
 msgid "Quick profile selection"
@@ -2453,7 +2458,7 @@ msgstr "Edycja wiadomości"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:23
 msgid "More than 10 standard AI providers"
-msgstr "Ponad 10 standardowych dostawców AI"
+msgstr "Ponad 10 standardowych dostawców SI"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:38
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:62
@@ -2470,51 +2475,60 @@ msgstr "Poprawki błędów"
 msgid ""
 "Mini Apps support! Extensions can now show custom mini apps on the sidebar"
 msgstr ""
+"Obsługa mini apek! Rozszerzenia mogą teraz pokazywać specjalne mini apki na "
+"panelu bocznym"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:46
 msgid ""
 "Added integrated browser Mini App: browse the web directly in Newelle and "
 "attach web pages"
 msgstr ""
+"Dodano zintegrowaną z mini apkę „przeglądarka”: przeglądaj sieć bezpośrednio "
+"w Newelle i dołączaj strony internetowe"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:47
 msgid "Improved integrated file manager, supporting multiple file operations"
 msgstr ""
+"Usprawniony zintegrowany menedżer plików, obsługujący wiele operacji na "
+"plikach"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:48
 msgid "Integrated file editor: edit files and codeblocks directly in Newelle"
 msgstr ""
+"Zintegrowany edytor plików: edytuj pliki i bloki kodu bezpośrednio w Newelle"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:49
 msgid "Integrated Terminal mini app: open the terminal directly in Newelle"
 msgstr ""
+"Zintegrowana mini apka „terminal”: otwieraj terminal bezpośrednio w Newelle"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:50
 msgid ""
 "Programmable prompts: add dynamic content to prompts with conditionals and "
 "random strings"
 msgstr ""
+"Programowalne podpowiedzi: dodaj dynamiczne treści do podpowiedzi, z "
+"warunkami i losowymi napisami"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:51
 msgid "Add ability to manually edit chat name"
-msgstr ""
+msgstr "Dodaj możliwość ręcznej edycji nazw czatów"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:52
-#, fuzzy
 msgid "Minor bug fixes"
-msgstr "Poprawki błędów"
+msgstr "Pomniejsze poprawki błędów"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:53
 msgid "Added support for multiple languages for Kokoro TTS and Whisper.CPP"
-msgstr ""
+msgstr "Dodano osbługę wielu języków przez Kokoro TTS i Whisper.CPP"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:54
 msgid "Run HTML/CSS/JS websites directly in app"
-msgstr ""
+msgstr "Uruchamiaj strony HTML/CSS/JS bezpośrednio w apce"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:55
 msgid "New animation on chat change"
-msgstr ""
+msgstr "Nowa animacja przy zmianie czatu"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:63
 msgid "Small improvements"
@@ -2546,7 +2560,7 @@ msgstr "Ustaw klucze API jako pola hasła"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:76
 msgid "Add thinking support for Gemini"
-msgstr "Dodaj wsparcie myślenia dla Gemini"
+msgstr "Dodaj obsługę myślenia Gemini"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:77
 msgid "Updated translations"
@@ -2572,7 +2586,7 @@ msgstr "Nowy widżet myślenia i obsługa OpenRouter"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:95
 msgid "Vision support for Llama4 on Groq"
-msgstr "Obsługa wizji dla Llama4 na Groq"
+msgstr "Obsługa wizji Llama4 na Groq"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:96
 msgid "New translations (Traditional Chinese, Bengali, Hindi)"
@@ -2584,7 +2598,7 @@ msgstr "Naprawiono wiele błędów, dodano kilka funkcji!"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:107
 msgid "Support for new features and bug fixes"
-msgstr "Wsparcie dla nowych funkcji i poprawek błędów"
+msgstr "Obsługa nowych funkcji i poprawki błędów"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:112
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:117
@@ -2611,8 +2625,8 @@ msgid ""
 "extension architecture, added new models, and introduced vision support, "
 "along with more capabilities."
 msgstr ""
-"Wdrożono poprawki błędów i nowe funkcje. Zmodyfikowaliśmy architekturę "
-"rozszerzeń, dodaliśmy nowe modele i wprowadziliśmy wsparcie wizji, wraz z "
+"Wdrożyliśmy poprawki błędów i nowe funkcje. Zmodyfikowaliśmy architekturę "
+"rozszerzeń, dodaliśmy nowe modele i wprowadziliśmy obsługę wizji wraz z "
 "innymi możliwościami."
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:172
