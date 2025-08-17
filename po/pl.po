@@ -6,7 +6,7 @@ msgstr ""
 "Project-Id-Version: 1.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-08-03 15:55+0800\n"
-"PO-Revision-Date: 2025-08-14 18:34+0200\n"
+"PO-Revision-Date: 2025-08-17 17:33+0200\n"
 "Last-Translator: Piotr Orzechowski <orzechowski.tech>\n"
 "Language-Team: Polish\n"
 "Language: pl\n"
@@ -27,7 +27,7 @@ msgstr "Punkt końcowy API"
 #: src/handlers/embeddings/ollama_handler.py:32
 #: src/handlers/llm/ollama_handler.py:150 src/handlers/llm/openai_handler.py:75
 msgid "API base url, change this to use interference APIs"
-msgstr "Bazowy URL API, zmień go, aby używać API inferencji"
+msgstr "Bazowy URL API. Zmień go, aby używać API inferencji"
 
 #: src/handlers/embeddings/ollama_handler.py:33
 #: src/handlers/llm/ollama_handler.py:151
@@ -88,7 +88,7 @@ msgstr "Klucz API "
 
 #: src/handlers/embeddings/openai_handler.py:38
 msgid "API base url, change this to use different APIs"
-msgstr "Bazowy URL API, zmień go, aby używać różnych API"
+msgstr "Bazowy URL API. Zmień go, aby używać różnych API"
 
 #: src/handlers/embeddings/openai_handler.py:41
 #: src/handlers/llm/openai_handler.py:78
@@ -150,7 +150,7 @@ msgstr "Przesyłanie wiadomości strumieniowo"
 #: src/handlers/llm/newelle_handler.py:28
 #: src/handlers/llm/gemini_handler.py:120 src/utility/util.py:137
 msgid "Gradually stream message output"
-msgstr "Stopniowo przesyłaj wyjście wiadomości strumieniowo"
+msgstr "Stopniowo przesyłaj wyjście wiadomości"
 
 #: src/handlers/llm/custom_handler.py:21
 msgid "Command to execute to get bot output"
@@ -162,7 +162,7 @@ msgid ""
 "Command to execute to get bot response, {0} will be replaced with a JSON "
 "file containing the chat, {1} with the system prompt"
 msgstr ""
-"Polecenie do wykonania, aby uzyskać odpowiedź bota, {0} zostanie zastąpione "
+"Polecenie do wykonania, aby uzyskać odpowiedź bota. {0} zostanie zastąpione "
 "plikiem JSON zawierającym czat, {1} - podpowiedzią systemową"
 
 #: src/handlers/llm/custom_handler.py:22
@@ -177,7 +177,7 @@ msgid ""
 "suggestions to generate. Must return a JSON array containing the suggestions "
 "as strings"
 msgstr ""
-"Polecenie do wykonania, aby uzyskać sugestie czatu, {0} zostanie zastąpione "
+"Polecenie do wykonania, aby uzyskać sugestie czatu. {0} zostanie zastąpione "
 "plikiem JSON zawierającym czat, {1} - dodatkowymi podpowiedziami, {2} - "
 "liczbą sugestii do wygenerowania. Musi zwrócić tablicę JSON zawierającą "
 "sugestie jako ciągi znaków"
@@ -236,7 +236,7 @@ msgstr "Włącz myślenie"
 
 #: src/handlers/llm/ollama_handler.py:152
 msgid "Allow thinking in the model, only some models are supported"
-msgstr "Zezwól na myślenie w modelu, tylko niektóre modele są obsługiwane"
+msgstr "Zezwól na myślenie w modelu - tylko niektóre modele są obsługiwane"
 
 #: src/handlers/llm/ollama_handler.py:176
 msgid "Add custom model"
@@ -287,8 +287,8 @@ msgid ""
 "Even if the model doesn't support system prompts, put the prompts on top of "
 "the user message"
 msgstr ""
-"Nawet jeśli model nie obsługuje podpowiedzi systemowych, dodaj podpowiedzi "
-"powyżej wiadomości użytkownika"
+"Nawet jeśli model nie obsługuje podpowiedzi systemowych, dodawaj je powyżej "
+"wiadomości użytkownika"
 
 #: src/handlers/llm/gemini_handler.py:109
 msgid "Thinking Settings"
@@ -300,7 +300,7 @@ msgstr "Ustawienia modeli myślących"
 
 #: src/handlers/llm/gemini_handler.py:110
 msgid "Show thinking, disable it if your model does not support it"
-msgstr "Pokaż myślenie, wyłącz, jeśli Twój model tego nie obsługuje"
+msgstr "Pokazuj myślenie. Wyłącz, jeśli Twój model tego nie obsługuje"
 
 #: src/handlers/llm/gemini_handler.py:111
 msgid "Enable Thinking Budget"
@@ -324,7 +324,7 @@ msgstr "Wyjście obrazu"
 
 #: src/handlers/llm/gemini_handler.py:116
 msgid "Enable image output, only supported by gemini-2.0-flash-exp"
-msgstr "Włącz wyjście obrazu, obsługiwane tylko przez gemini-2.0-flash-exp"
+msgstr "Włącz wyjście obrazu. Obsługiwane tylko przez gemini-2.0-flash-exp"
 
 #: src/handlers/llm/gemini_handler.py:125
 msgid "Enable safety settings"
@@ -382,7 +382,7 @@ msgid ""
 "Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
 "to repeat the same line verbatim"
 msgstr ""
-"Liczba między -2.0 a 2.0. Wartości dodatnie zmniejszają prawdopodobieństwo, "
+"Liczba między -2,0 a 2,0. Wartości dodatnie zmniejszają prawdopodobieństwo, "
 "że model powtórzy tę samą linię dosłownie"
 
 #: src/handlers/llm/openai_handler.py:106
@@ -394,7 +394,7 @@ msgid ""
 "Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
 "to talk about new topics"
 msgstr ""
-"Liczba między -2.0 a 2.0. Wartości dodatnie zmniejszają prawdopodobieństwo, "
+"Liczba między -2,0 a 2,0. Wartości dodatnie zmniejszają prawdopodobieństwo, "
 "że model będzie mówił o nowych tematach"
 
 #: src/handlers/llm/openrouter_handler.py:14
@@ -431,15 +431,15 @@ msgstr ""
 
 #: src/handlers/llm/openrouter_handler.py:16
 msgid "Allow Fallbacks"
-msgstr "Zezwól na powrót do poprzedniej wersji"
+msgstr "Zezwól na dostawców rezerwowych"
 
 #: src/handlers/llm/openrouter_handler.py:16
 msgid "Allow fallbacks to other providers"
-msgstr "Zezwól na powrót do innych dostawców"
+msgstr "Zezwól na przełączanie na dostawców rezerwowych"
 
 #: src/handlers/rag/rag_handler.py:104
 msgid "Index your documents"
-msgstr "Zaindeksuj swoje dokumenty"
+msgstr "Zindeksuj swoje dokumenty"
 
 #: src/handlers/rag/rag_handler.py:105
 msgid ""
@@ -447,7 +447,7 @@ msgid ""
 "operation every time you edit/create a document, change document analyzer or "
 "change embedding model"
 msgstr ""
-"Zaindeksuj wszystkie dokumenty w folderze dokumentów. Musisz uruchamiać tę "
+"Zindeksuj wszystkie dokumenty w folderze dokumentów. Musisz uruchamiać tę "
 "operację za każdym razem, gdy edytujesz/tworzysz dokument, zmieniasz "
 "analizator dokumentów lub zmieniasz model osadzania"
 
@@ -462,7 +462,7 @@ msgstr "{0} zostanie zastąpione pełną ścieżką do modelu"
 
 #: src/handlers/stt/googlesr_handler.py:14
 msgid "API Key for Google SR, write 'default' to use the default one"
-msgstr "Klucz API Google SR, wpisz „default”, aby użyć domyślnego"
+msgstr "Klucz API Google SR. Wpisz „default”, aby użyć domyślnego"
 
 #: src/handlers/stt/googlesr_handler.py:21
 #: src/handlers/stt/groqsr_handler.py:29
@@ -473,11 +473,11 @@ msgstr "Język"
 
 #: src/handlers/stt/googlesr_handler.py:22
 msgid "The language of the text to recgnize in IETF"
-msgstr "Język tekstu do rozpoznania w formacie IETF"
+msgstr "Język tekstu do rozpoznania, w formacie IETF"
 
 #: src/handlers/stt/groqsr_handler.py:14
 msgid "API Key for Groq SR, write 'default' to use the default one"
-msgstr "Klucz API Groq SR, wpisz „default”, aby użyć domyślnego"
+msgstr "Klucz API Groq SR. Wpisz „default”, aby użyć domyślnego"
 
 #: src/handlers/stt/groqsr_handler.py:21
 msgid "Groq Model"
@@ -554,11 +554,11 @@ msgstr "Zarządzaj modelami Whisper"
 
 #: src/handlers/stt/whispercpp_handler.py:49
 msgid "Advanced Settings"
-msgstr "Zaawansowane ustawienia"
+msgstr "Ustawienia zaawansowane"
 
 #: src/handlers/stt/whispercpp_handler.py:49
 msgid "More advanced settings"
-msgstr "Więcej zaawansowanych ustawień"
+msgstr "Więcej ustawień zaawansowanych"
 
 #: src/handlers/stt/whispercpp_handler.py:50
 msgid "Temperature to use"
@@ -604,7 +604,8 @@ msgstr "Instrukcje"
 msgid ""
 "Instructions for the voice generation. Leave it blank to avoid this field"
 msgstr ""
-"Instrukcje dotyczące generowania głosu. Pozostaw puste, aby pominąć to pole"
+"Instrukcje dotyczące generowania głosu. Pozostaw puste, aby zignorować to "
+"pole"
 
 #: src/handlers/tts/elevenlabs_handler.py:10
 msgid "API Key for ElevenLabs"
@@ -632,17 +633,18 @@ msgstr "Zwiększa ogólną klarowność głosu i podobieństwo mówcy"
 
 #: src/handlers/tts/elevenlabs_handler.py:52
 msgid "Style exaggeration"
-msgstr "Przesadzenie stylu"
+msgstr "Przejaskrawienie stylu"
 
 #: src/handlers/tts/elevenlabs_handler.py:53
 msgid ""
 "High values are reccomended if the style of the speech must be exaggerated"
-msgstr "Zalecane są wysokie wartości, jeśli styl mowy musi być przesadzony"
+msgstr ""
+"Zalecane są wysokie wartości, jeśli styl wypowiedzi ma być przejaskrawiony"
 
 #: src/handlers/tts/custom_handler.py:17
 #, python-brace-format
 msgid "{0} will be replaced with the file fullpath, {1} with the text"
-msgstr "{0} zostanie zastąpione pełną ścieżką do pliku, {1} tekstem"
+msgstr "{0} zostanie zastąpione pełną ścieżką do pliku, {1} - tekstem"
 
 #: src/handlers/tts/tts.py:34
 msgid "Choose the preferred voice"
@@ -659,7 +661,7 @@ msgstr "Klucz API Tavily"
 #: src/handlers/websearch/tavily.py:21
 #: src/handlers/websearch/duckduckgo_handler.py:14
 msgid "Max Results"
-msgstr "Maks. wyniki"
+msgstr "Maks. wyników"
 
 #: src/handlers/websearch/tavily.py:21
 #: src/handlers/websearch/duckduckgo_handler.py:14
@@ -668,7 +670,7 @@ msgstr "Liczba wyników do rozważenia"
 
 #: src/handlers/websearch/tavily.py:22
 msgid "The depth of the search"
-msgstr "Głębokość wyszukiwania"
+msgstr "Dogłębność wyszukiwania"
 
 #: src/handlers/websearch/tavily.py:22
 msgid ""
@@ -677,11 +679,11 @@ msgid ""
 "provides generic content snippets from each source. A basic search costs 1 "
 "API Credit, while an advanced search costs 2 API Credits."
 msgstr ""
-"Głębokość wyszukiwania. Wyszukiwanie zaawansowane jest dostosowane do "
+"Dogłębność wyszukiwania. Wyszukiwanie zaawansowane jest dostosowane do "
 "pobierania najbardziej odpowiednich źródeł i fragmentów treści dla Twojego "
 "zapytania, podczas gdy wyszukiwanie podstawowe dostarcza ogólne fragmenty "
 "treści z każdego źródła. Podstawowe wyszukiwanie kosztuje 1 kredyt API, a "
-"zaawansowane 2 kredyty API."
+"zaawansowane - 2 kredyty."
 
 #: src/handlers/websearch/tavily.py:23
 msgid "The category of the search"
@@ -694,11 +696,11 @@ msgid ""
 "mainstream media sources. General is for broader, more general-purpose "
 "searches that may include a wide range of sources."
 msgstr ""
-"Kategoria wyszukiwania. Wiadomości są przydatne do pobierania aktualizacji w "
-"czasie rzeczywistym, zwłaszcza dotyczących polityki, sportu i ważnych "
-"bieżących wydarzeń relacjonowanych przez główne źródła mediów. Ogólne służy "
-"do szerszych, bardziej ogólnych wyszukiwań, które mogą obejmować szeroki "
-"zakres źródeł."
+"Kategoria wyszukiwania. „Wiadomości” są przydatne do pobierania nowinek w "
+"czasie rzeczywistym, zwłaszcza dotyczących polityki, sportu i ważnych, "
+"bieżących wydarzeń relacjonowanych przez główne media. „Ogólne” służy do "
+"szerszych, bardziej ogólnych wyszukiwań, które mogą obejmować szeroki zakres "
+"źródeł."
 
 #: src/handlers/websearch/tavily.py:24
 msgid "Chunks per source"
@@ -711,7 +713,7 @@ msgid ""
 "advanced."
 msgstr ""
 "Liczba bloków treści do pobrania z każdego źródła. Długość każdego bloku "
-"wynosi maksymalnie 500 znaków. Dostępne tylko przy zaawansowanej głębokości "
+"wynosi maksymalnie 500 znaków. Dostępne tylko przy zaawansowanej dogłębności "
 "wyszukiwania."
 
 #: src/handlers/websearch/tavily.py:25
@@ -720,7 +722,7 @@ msgstr "Liczba dni wstecz od bieżącej daty do uwzględnienia"
 
 #: src/handlers/websearch/tavily.py:25
 msgid "Available only if topic is news."
-msgstr "Dostępne tylko, jeśli temat to wiadomości."
+msgstr "Dostępne tylko dla kategorii „wiadomości”."
 
 #: src/handlers/websearch/tavily.py:26
 msgid "Include answer"
@@ -737,7 +739,7 @@ msgstr ""
 
 #: src/handlers/websearch/tavily.py:27
 msgid "Include raw content"
-msgstr "Dołącz surową treść"
+msgstr "Dołącz nieobrobioną treść"
 
 #: src/handlers/websearch/tavily.py:27
 msgid "Include the cleaned and parsed HTML content of each search result."
@@ -760,8 +762,8 @@ msgstr "Dołącz opisy obrazów"
 msgid ""
 "When Include images is enabled, also add a descriptive text for each image."
 msgstr ""
-"Gdy opcja „Dołącz obrazy” jest włączona, dodaj również tekst opisowy dla "
-"każdego obrazu."
+"Gdy opcja „Dołącz obrazy” jest włączona, dodaj również opis tekstowy każdego "
+"obrazu."
 
 #: src/handlers/websearch/tavily.py:30
 msgid "Include domains"
@@ -797,7 +799,7 @@ msgstr "Nazwa profilu"
 
 #: src/ui/profile.py:58
 msgid "Copied Settings"
-msgstr "Skopiowane ustawienia"
+msgstr "Ustawienia do skopiowania"
 
 #: src/ui/profile.py:58
 msgid "Settings that will be copied to the new profile"
@@ -893,7 +895,7 @@ msgstr "Rozwiń, aby zobaczyć szczegóły"
 
 #: src/ui/widgets/thinking.py:122
 msgid "Thinking..."
-msgstr "Myślę..."
+msgstr "Myślenie..."
 
 #: src/ui/widgets/thinking.py:123
 msgid "The LLM is thinking... Expand to see thought process"
@@ -901,7 +903,7 @@ msgstr "Model myśli... Rozwiń, aby zobaczyć proces myślowy"
 
 #: src/ui/widgets/thinking.py:136
 msgid "No thought process recorded"
-msgstr "Nie zarejestrowano procesu myślowego"
+msgstr "Nie zarejestrowano żadnego procesu myślowego"
 
 #: src/ui/widgets/tipscarousel.py:41
 msgid "Newelle Tips"
@@ -913,7 +915,7 @@ msgstr "Folder jest pusty"
 
 #: src/ui/explorer.py:340 src/window.py:1580
 msgid "File not found"
-msgstr "Plik nie znaleziono"
+msgstr "Nie odnaleziono pliku"
 
 #: src/ui/explorer.py:355
 msgid "Open in new tab"
@@ -955,7 +957,7 @@ msgstr "Anuluj"
 
 #: src/ui/explorer.py:471
 msgid "Renamed successfully"
-msgstr "Zmieniono nazwę pomyślnie"
+msgstr "Pomyślnie zmieniono nazwę"
 
 #: src/ui/explorer.py:476
 #, python-brace-format
@@ -973,7 +975,7 @@ msgstr "Czy na pewno chcesz usunąć „{}”?"
 
 #: src/ui/explorer.py:520
 msgid "Deleted successfully"
-msgstr "Usunięto pomyślnie"
+msgstr "Pomyślnie usunięto"
 
 #: src/ui/explorer.py:525
 #, python-brace-format
@@ -1018,11 +1020,11 @@ msgstr "Nazwa pliku:"
 
 #: src/ui/explorer.py:713
 msgid "Folder created successfully"
-msgstr "Folder utworzono pomyślnie"
+msgstr "Pomyślnie utworzono folder"
 
 #: src/ui/explorer.py:720
 msgid "File created successfully"
-msgstr "Plik utworzono pomyślnie"
+msgstr "Pomyślnie utworzono plik"
 
 #: src/ui/explorer.py:725
 msgid "A file or folder with that name already exists"
@@ -1047,15 +1049,15 @@ msgstr "Pomoc"
 
 #: src/ui/shortcuts.py:12
 msgid "Shortcuts"
-msgstr "Skróty klawiszowe"
+msgstr "Skróty klawiaturowe"
 
 #: src/ui/shortcuts.py:13
 msgid "Reload chat"
-msgstr "Przeładuj czat"
+msgstr "Ponownie wczytaj czat"
 
 #: src/ui/shortcuts.py:14
 msgid "Reload folder"
-msgstr "Przeładuj folder"
+msgstr "Ponownie wczytaj folder"
 
 #: src/ui/shortcuts.py:15
 msgid "New tab"
@@ -1067,7 +1069,7 @@ msgstr "Wklej obraz"
 
 #: src/ui/shortcuts.py:17
 msgid "Focus message box"
-msgstr "Skup na polu wiadomości"
+msgstr "Ustaw na polu wiadomości"
 
 #: src/ui/shortcuts.py:18
 msgid "Start/stop recording"
@@ -1114,11 +1116,11 @@ msgstr "Śledzenie: Zatrzymane"
 #: src/ui/stdout_monitor.py:116 src/ui/stdout_monitor.py:252
 #, python-brace-format
 msgid "Lines: {}"
-msgstr "Linie: {}"
+msgstr "Linii: {}"
 
 #: src/ui/stdout_monitor.py:267
 msgid "Lines: 0"
-msgstr "Linie: 0"
+msgstr "Linii: 0"
 
 #: src/ui/extension.py:17 src/ui/presentation.py:131 src/constants.py:513
 #: src/window.py:118
@@ -1160,7 +1162,7 @@ msgstr "Twój najlepszy wirtualny asystent."
 
 #: src/ui/presentation.py:98
 msgid "Github Page"
-msgstr "Strona Github"
+msgstr "Strona GitHub"
 
 #: src/ui/presentation.py:105
 msgid "Choose your favourite AI Language Model"
@@ -1171,7 +1173,7 @@ msgid ""
 "Newelle can be used with mutiple models and providers!\n"
 "<b>Note: It is strongly suggested to read the Guide to LLM page</b>"
 msgstr ""
-"Newelle może być używane z wieloma modelami i dostawcami!\n"
+"Newelle może być używany z wieloma modelami i dostawcami!\n"
 "<b>Uwaga: Zdecydowanie zaleca się zapoznanie się ze stroną Przewodnika po "
 "dużych modelach językowych</b>"
 
@@ -1189,7 +1191,7 @@ msgid ""
 "chat or from your own files! Information relevant to your query will be sent "
 "to the LLM."
 msgstr ""
-"Newelle może pobierać istotne informacje z dokumentów, które wysyłasz na "
+"Newelle może pobierać istotne informacje z dokumentów, które wysyłasz w "
 "czacie lub z własnych plików! Informacje związane z Twoim zapytaniem zostaną "
 "przesłane do modelu."
 
@@ -1213,7 +1215,7 @@ msgstr ""
 
 #: src/ui/presentation.py:132
 msgid "You can extend Newelle's functionalities using extensions!"
-msgstr "Możesz rozszerzyć funkcjonalności Newelle za pomocą rozszerzeń!"
+msgstr "Możesz rozszerzyć funkcjonalność Newelle za pomocą rozszerzeń!"
 
 #: src/ui/presentation.py:136
 msgid "Download extensions"
@@ -1232,7 +1234,7 @@ msgstr ""
 
 #: src/ui/presentation.py:158
 msgid "Begin using the app"
-msgstr "Rozpocznij korzystanie z aplikacji"
+msgstr "Rozpocznij korzystanie z programu"
 
 #: src/ui/presentation.py:163
 msgid "Start chatting"
@@ -1244,7 +1246,7 @@ msgstr "Ogólne"
 
 #: src/ui/settings.py:48 src/constants.py:478
 msgid "LLM"
-msgstr "Duży model językowy (LLM)"
+msgstr "LLM"
 
 #: src/ui/settings.py:49 src/constants.py:528
 msgid "Prompts"
@@ -1256,7 +1258,7 @@ msgstr "Wiedza"
 
 #: src/ui/settings.py:54
 msgid "Language Model"
-msgstr "Model językowy"
+msgstr "Duży model językowy (LLM)"
 
 #: src/ui/settings.py:63 src/ui/settings.py:83
 msgid "Other LLMs"
@@ -1272,13 +1274,13 @@ msgstr "Zaawansowane ustawienia dużego modelu językowego"
 
 #: src/ui/settings.py:77
 msgid "Secondary Language Model"
-msgstr "Drugi model językowy"
+msgstr "Poboczny model językowy"
 
 #: src/ui/settings.py:77
 msgid ""
 "Model used for secondary tasks, like offer, chat name and memory generation"
 msgstr ""
-"Model używany do zadań pobocznych, takich jak oferta, nazwa czatu i "
+"Model używany do zadań pobocznych, takich jak sugestie, nazwa czatu i "
 "generowanie pamięci"
 
 #: src/ui/settings.py:94
@@ -1291,7 +1293,7 @@ msgid ""
 "and RAG. Changing it might require you to re-index documents or reset memory."
 msgstr ""
 "Osadzanie służy do przekształcania tekstu w wektory. Używane przez pamięć "
-"długoterminową i RAG. Zmiana może wymagać ponownego indeksowania dokumentów "
+"długoterminową i RAG. Zmiana może wymagać ponownego zindeksowania dokumentów "
 "lub zresetowania pamięci."
 
 #: src/ui/settings.py:105 src/window.py:647
@@ -1312,23 +1314,23 @@ msgstr "Szukaj informacji w sieci"
 
 #: src/ui/settings.py:133
 msgid "Text To Speech Program"
-msgstr "Program zamiany tekstu na mowę"
+msgstr "Program zamiany tekstu na mowę (TTS)"
 
 #: src/ui/settings.py:133
 msgid "Choose which text to speech to use"
-msgstr "Wybierz, który program zamiany tekstu na mowę ma być używany"
+msgstr "Wybierz który program zamiany tekstu na mowę ma być używany"
 
 #: src/ui/settings.py:142
 msgid "Speech To Text Engine"
-msgstr "Silnik zamiany mowy na tekst"
+msgstr "Mechanizm zamiany mowy na tekst (STT)"
 
 #: src/ui/settings.py:142
 msgid "Choose which speech recognition engine you want"
-msgstr "Wybierz silnik rozpoznawania mowy, którego chcesz użyć"
+msgstr "Wybierz mechanizm rozpoznawania mowy, którego chcesz użyć"
 
 #: src/ui/settings.py:150
 msgid "Automatic Speech To Text"
-msgstr "Automatyczna zamiana mowy na tekst"
+msgstr "Automatyczna zamiana mowy na tekst (STT)"
 
 #: src/ui/settings.py:150
 msgid "Automatically restart speech to text at the end of a text/TTS"
@@ -1364,11 +1366,11 @@ msgstr "Ukryte pliki"
 
 #: src/ui/settings.py:181
 msgid "Show hidden files"
-msgstr "Pokaż ukryte pliki"
+msgstr "Pokazuj ukryte pliki"
 
 #: src/ui/settings.py:187
 msgid "Send with ENTER"
-msgstr "Wyślij z ENTER"
+msgstr "Wysyłaj za pomocą klawisza ENTER"
 
 #: src/ui/settings.py:187
 msgid ""
@@ -1376,13 +1378,14 @@ msgid ""
 "CTRL+ENTER. If disabled, messages will be sent with SHIFT+ENTER, and newline "
 "with enter"
 msgstr ""
-"Jeśli włączone, wiadomości będą wysyłane klawiszem ENTER, aby przejść do "
-"nowej linii, użyj CTRL+ENTER. Jeśli wyłączone, wiadomości będą wysyłane "
-"klawiszem SHIFT+ENTER, a nowa linia klawiszem ENTER"
+"Jeśli włączone, wiadomości będą wysyłane za pomocą klawisza ENTER; aby "
+"przejść do nowej linii, użyj kombinacji CTRL+ENTER. Jeśli wyłączone, "
+"wiadomości będą wysyłane za pomocą kombinacji SHIFT+ENTER, a nowa linia - "
+"klawiszem ENTER"
 
 #: src/ui/settings.py:193
 msgid "Remove thinking from history"
-msgstr "Usuń myśli z historii"
+msgstr "Usuwaj myśli z historii"
 
 #: src/ui/settings.py:193
 msgid ""
@@ -1394,7 +1397,7 @@ msgstr ""
 
 #: src/ui/settings.py:199
 msgid "Display LaTeX"
-msgstr "Wyświetl LaTeX"
+msgstr "Wyświetlaj LaTeX"
 
 #: src/ui/settings.py:199
 msgid "Display LaTeX formulas in chat"
@@ -1407,7 +1410,7 @@ msgstr "Odwróć kolejność czatów"
 #: src/ui/settings.py:205
 msgid "Show most recent chats on top in chat list (change chat to apply)"
 msgstr ""
-"Pokaż najnowsze czaty na górze listy czatów (zmień czat, aby zastosować)"
+"Pokazuj najnowsze czaty na górze listy czatów (zmień czat, aby zastosować)"
 
 #: src/ui/settings.py:211
 msgid "Automatically Generate Chat Names"
@@ -1419,7 +1422,7 @@ msgstr "Generuj nazwy czatów automatycznie po pierwszych dwóch wiadomościach"
 
 #: src/ui/settings.py:217
 msgid "Number of offers"
-msgstr "Liczba ofert"
+msgstr "Liczba sugestii"
 
 #: src/ui/settings.py:217
 msgid "Number of message suggestions to send to chat "
@@ -1454,8 +1457,7 @@ msgstr "Zewnętrzny terminal"
 
 #: src/ui/settings.py:250
 msgid "Choose the external terminal where to run the console commands"
-msgstr ""
-"Wybierz zewnętrzny terminal, w którym mają być uruchamiane polecenia konsoli"
+msgstr "Wybierz zewnętrzny terminal, w którym mają być uruchamiane polecenia"
 
 #: src/ui/settings.py:259
 msgid "Program memory"
@@ -1474,7 +1476,7 @@ msgid ""
 "Monitor the program output in real-time, useful for debugging and seeing "
 "downloads progress"
 msgstr ""
-"Śledź wyjście programu w czasie rzeczywistym, przydatne do debugowania i "
+"Śledź wyjście programu w czasie rzeczywistym. Przydatne do debugowania i "
 "śledzenia postępu pobierania"
 
 #: src/ui/settings.py:270
@@ -1487,7 +1489,7 @@ msgstr "Usuń ścieżkę pip"
 
 #: src/ui/settings.py:275
 msgid "Remove the extra dependencies installed"
-msgstr "Usuń zainstalowane dodatkowe zależności"
+msgstr "Usuń dodatkowe zainstalowane zależności"
 
 #: src/ui/settings.py:295
 msgid "Auto-run commands"
@@ -1495,7 +1497,7 @@ msgstr "Automatyczne uruchamianie poleceń"
 
 #: src/ui/settings.py:295
 msgid "Commands that the bot will write will automatically run"
-msgstr "Polecenia, które bot napisze, będą automatycznie uruchamiane"
+msgstr "Polecenia napisane przez bota będą uruchamiane automatycznie"
 
 #: src/ui/settings.py:298
 msgid "Max number of commands"
@@ -1506,7 +1508,8 @@ msgid ""
 "Maximum number of commands that the bot will write after a single user "
 "request"
 msgstr ""
-"Maksymalna liczba poleceń, które bot napisze po jednym żądaniu użytkownika"
+"Maksymalna liczba poleceń, które bot napisze po pojedynczym żądaniu "
+"użytkownika"
 
 #: src/ui/settings.py:329
 msgid "Browser"
@@ -1518,24 +1521,24 @@ msgstr "Ustawienia przeglądarki"
 
 #: src/ui/settings.py:334
 msgid "Use external browser"
-msgstr "Użyj zewnętrznej przeglądarki"
+msgstr "Używaj zewnętrznej przeglądarki"
 
 #: src/ui/settings.py:334
 msgid "Use an external browser to open links instead of integrated one"
 msgstr ""
-"Użyj zewnętrznej przeglądarki do otwierania linków zamiast zintegrowanej"
+"Używaj zewnętrznej przeglądarki do otwierania linków, zamiast zintegrowanej"
 
 #: src/ui/settings.py:341
 msgid "Persist browser session"
-msgstr "Zachowaj sesję przeglądarki"
+msgstr "Zachowuj sesję przeglądarki"
 
 #: src/ui/settings.py:341
 msgid ""
 "Persist browser session between restarts. Turning this off requires "
 "restarting the program"
 msgstr ""
-"Zachowaj sesję przeglądarki między restartami. Wyłączenie tej opcji wymaga "
-"ponownego uruchomienia programu"
+"Zachowuj sesję przeglądarki między ponownymi uruchomieniami. Wyłączenie tej "
+"opcji wymaga ponownego uruchomienia programu"
 
 #: src/ui/settings.py:346
 msgid "Delete browser data"
@@ -1547,11 +1550,11 @@ msgstr "Usuń sesję i dane przeglądarki"
 
 #: src/ui/settings.py:353
 msgid "Initial browser page"
-msgstr "Początkowa strona przeglądarki"
+msgstr "Strona początkowa przeglądarki"
 
 #: src/ui/settings.py:353
 msgid "The page where the browser will start"
-msgstr "Strona, na której rozpocznie się przeglądarka"
+msgstr "Strona, która będzie wyświetlana po uruchomieniu przeglądarki"
 
 #: src/ui/settings.py:360
 msgid "Search string"
@@ -1565,7 +1568,7 @@ msgstr ""
 
 #: src/ui/settings.py:381
 msgid "Document Sources (RAG)"
-msgstr "Źródła dokumentów (RAG)"
+msgstr "Źródła dokumentów (używane w RAG)"
 
 #: src/ui/settings.py:381
 msgid "Include content from your documents in the responses"
@@ -1599,7 +1602,7 @@ msgstr ""
 
 #: src/ui/settings.py:397
 msgid "Maximum tokens for RAG"
-msgstr "Maksymalna liczba tokenów RAG"
+msgstr "Maksymalna liczba tokenów w RAG"
 
 #: src/ui/settings.py:397
 msgid ""
@@ -1620,13 +1623,13 @@ msgid ""
 "Put the documents you want to query in your document folder. The document "
 "analyzer will find relevant information in them if this option is enabled"
 msgstr ""
-"Umieść dokumenty, które chcesz przetworzyć, w folderze dokumentów. "
+"Umieść dokumenty, które chcesz przetwarzać, w folderze dokumentów. "
 "Analizator dokumentów znajdzie w nich istotne informacje, jeśli ta opcja "
 "jest włączona"
 
 #: src/ui/settings.py:417
 msgid "Put all the documents you want to index in this folder"
-msgstr "Umieść wszystkie dokumenty, które chcesz zaindeksować, w tym folderze"
+msgstr "Umieść wszystkie dokumenty, które chcesz zindeksować, w tym folderze"
 
 #: src/ui/settings.py:453
 msgid "Silence threshold"
@@ -1640,12 +1643,13 @@ msgstr "Próg ciszy w sekundach, procent głośności do uznania za ciszę"
 
 #: src/ui/settings.py:466
 msgid "Silence time"
-msgstr "Czas ciszy"
+msgstr "Czas trwania ciszy"
 
 #: src/ui/settings.py:466
 msgid "Silence time in seconds before recording stops automatically"
 msgstr ""
-"Czas ciszy w sekundach, po którym nagrywanie zatrzymuje się automatycznie"
+"Czas trwania ciszy w sekundach, po którym nagrywanie zatrzymuje się "
+"automatycznie"
 
 #: src/ui/settings.py:1046
 msgid "Not enough permissions"
@@ -1657,7 +1661,7 @@ msgid ""
 "please run the following command"
 msgstr ""
 "Newelle nie ma wystarczających uprawnień do uruchamiania poleceń w Twoim "
-"systemie, proszę uruchomić następujące polecenie"
+"systemie. Proszę uruchomić następujące polecenie"
 
 #: src/ui/settings.py:1051 src/ui/settings.py:1064
 msgid "Understood"
@@ -1673,7 +1677,7 @@ msgid ""
 "operation requires a restart of the application."
 msgstr ""
 "Ścieżka pip została usunięta, możesz teraz ponownie zainstalować zależności. "
-"Ta operacja wymaga ponownego uruchomienia aplikacji."
+"Ta operacja wymaga ponownego uruchomienia programu."
 
 #: src/constants.py:20
 msgid "Newelle Demo API"
@@ -1723,7 +1727,7 @@ msgstr ""
 
 #: src/constants.py:66
 msgid "Anthropic Claude"
-msgstr "Antropiczny Claude"
+msgstr "Anthropic Claude"
 
 #: src/constants.py:67
 msgid ""
@@ -1747,15 +1751,15 @@ msgstr "OpenRouter"
 
 #: src/constants.py:81
 msgid "Openrouter.ai API, supports lots of models"
-msgstr "API Openrouter.ai, obsługuje wiele modeli"
+msgstr "API openrouter.ai, obsługuje wiele modeli"
 
 #: src/constants.py:87
 msgid "Deepseek"
-msgstr "Deepseek"
+msgstr "DeepSeek"
 
 #: src/constants.py:88
 msgid "Deepseek API, strongest open source models"
-msgstr "API Deepseek, najsilniejsze modele open source"
+msgstr "API DeepSeek - najsilniejszych modeli open source"
 
 #: src/constants.py:94 src/constants.py:203
 msgid "Custom Command"
@@ -1763,7 +1767,7 @@ msgstr "Niestandardowe polecenie"
 
 #: src/constants.py:95
 msgid "Use the output of a custom command"
-msgstr "Użyj wyniku niestandardowego polecenia"
+msgstr "Używaj wyjścia niestandardowego polecenia"
 
 #: src/constants.py:104
 msgid "Whisper C++"
@@ -1771,7 +1775,9 @@ msgstr "Whisper C++"
 
 #: src/constants.py:105
 msgid "Works offline. Optimized Whisper impelementation written in C++"
-msgstr "Działa offline. Zoptymalizowana implementacja Whisper napisana w C++"
+msgstr ""
+"Działa bez dostępu do sieci. Zoptymalizowana implementacja Whisper, napisana "
+"w C++"
 
 #: src/constants.py:111
 msgid "CMU Sphinx"
@@ -1779,7 +1785,7 @@ msgstr "CMU Sphinx"
 
 #: src/constants.py:112
 msgid "Works offline. Only English supported"
-msgstr "Działa offline. Obsługiwany tylko język angielski"
+msgstr "Działa bez dostępu do sieci. Obsługiwany tylko język angielski"
 
 #: src/constants.py:118
 msgid "Google Speech Recognition"
@@ -1787,7 +1793,7 @@ msgstr "Rozpoznawanie mowy Google"
 
 #: src/constants.py:119 src/constants.py:125
 msgid "Google Speech Recognition online"
-msgstr "Rozpoznawanie mowy Google online"
+msgstr "Zdalne rozpoznawanie mowy Google"
 
 #: src/constants.py:124
 msgid "Groq Speech Recognition"
@@ -1800,7 +1806,8 @@ msgstr "Wit AI"
 #: src/constants.py:131
 msgid "wit.ai speech recognition free API (language chosen on the website)"
 msgstr ""
-"Darmowe API rozpoznawania mowy wit.ai (język wybrany na stronie internetowej)"
+"Darmowe API rozpoznawania mowy wit.ai (język wybierany na stronie "
+"internetowej)"
 
 #: src/constants.py:137
 msgid "Vosk API"
@@ -1808,7 +1815,7 @@ msgstr "API Vosk"
 
 #: src/constants.py:138
 msgid "Works Offline"
-msgstr "Działa offline"
+msgstr "Działa bez dostępu do sieci"
 
 #: src/constants.py:144
 msgid "Whisper API"
@@ -1828,7 +1835,7 @@ msgstr "Uruchamia niestandardowe polecenie"
 
 #: src/constants.py:161
 msgid "Google TTS"
-msgstr "TTS Google"
+msgstr "Google"
 
 #: src/constants.py:162
 msgid "Google's text to speech"
@@ -1836,16 +1843,18 @@ msgstr "Zamiana tekstu na mowę Google"
 
 #: src/constants.py:167
 msgid "Kokoro TTS"
-msgstr "Kokoro TTS"
+msgstr "Kokoro"
 
 #: src/constants.py:168
 msgid ""
 "Lightweight and fast open source TTS engine. ~3GB dependencies, 400MB model"
-msgstr "Lekki i szybki silnik TTS open source. ~3 GB zależności, model 400 MiB"
+msgstr ""
+"Lekki i szybki otwartoźródłowy mechanizm TTS. ~3 GiB zależności; model 400 "
+"MiB"
 
 #: src/constants.py:173
 msgid "ElevenLabs TTS"
-msgstr "ElevenLabs TTS"
+msgstr "ElevenLabs"
 
 #: src/constants.py:174
 msgid "Natural sounding TTS"
@@ -1853,33 +1862,33 @@ msgstr "Naturalnie brzmiąca zamiana tekstu na mowę"
 
 #: src/constants.py:179 src/constants.py:180
 msgid "OpenAI TTS"
-msgstr "OpenAI TTS"
+msgstr "OpenAI"
 
 #: src/constants.py:185
 msgid "Groq TTS"
-msgstr "Groq TTS"
+msgstr "Groq"
 
 #: src/constants.py:186
 msgid "Groq TTS API"
-msgstr "API Groq TTS"
+msgstr "API Groq"
 
 #: src/constants.py:191 src/constants.py:192
 msgid "Custom OpenAI TTS"
-msgstr "Niestandardowe OpenAI TTS"
+msgstr "Niestandardowe API OpenAI"
 
 #: src/constants.py:197
 msgid "Espeak TTS"
-msgstr "Espeak TTS"
+msgstr "Espeak"
 
 #: src/constants.py:198
 msgid "Offline TTS"
-msgstr "TTS offline"
+msgstr "Rozpoznawanie mowy bez dostępu do sieci"
 
 #: src/constants.py:204
 #, python-brace-format
 msgid "Use a custom command as TTS, {0} will be replaced with the text"
 msgstr ""
-"Użyj niestandardowego polecenia jako TTS, {0} zostanie zastąpione tekstem"
+"Użyj niestandardowego polecenia jako TTS. {0} zostanie zastąpione tekstem"
 
 #: src/constants.py:212
 msgid "WordLlama"
@@ -1914,7 +1923,7 @@ msgstr "Podsumowanie użytkownika"
 
 #: src/constants.py:240
 msgid "Generate a summary of the user's conversation"
-msgstr "Wygeneruj podsumowanie rozmowy użytkownika"
+msgstr "Generuj podsumowanie rozmowy użytkownika"
 
 #: src/constants.py:245
 msgid "Memoripy"
@@ -1936,7 +1945,7 @@ msgstr "Podsumowanie użytkownika + Memoripy"
 
 #: src/constants.py:252
 msgid "Use both technologies for long term memory"
-msgstr "Użyj obu technologii do pamięci długoterminowej"
+msgstr "Używaj obu technologii do obsługi pamięci długoterminowej"
 
 #: src/constants.py:260
 msgid "Document reader"
@@ -1948,7 +1957,7 @@ msgid ""
 "the query and return the most relevant documents"
 msgstr ""
 "Klasyczne podejście RAG - dziel dokumenty na fragmenty i osadzaj je, a "
-"następnie porównuj je z zapytaniem i zwracaj najbardziej trafne dokumenty"
+"następnie porównuj z zapytaniem i zwracaj najbardziej pasujące dokumenty"
 
 #: src/constants.py:269
 msgid "SearXNG"
@@ -2022,11 +2031,11 @@ msgstr "Czy program może wyświetlać wykresy"
 
 #: src/constants.py:428
 msgid "Show image"
-msgstr "Pokaż obraz"
+msgstr "Pokazuj obrazy"
 
 #: src/constants.py:429
 msgid "Show image in chat"
-msgstr "Pokaż obraz w czacie"
+msgstr "Pokazuj obrazy w czacie"
 
 #: src/constants.py:437
 msgid "Custom Prompt"
@@ -2034,7 +2043,7 @@ msgstr "Niestandardowa podpowiedź"
 
 #: src/constants.py:438
 msgid "Add your own custom prompt"
-msgstr "Dodaj własną niestandardową podpowiedź"
+msgstr "Dodawaj własną niestandardową podpowiedź"
 
 #: src/constants.py:480
 msgid "LLM and Secondary LLM settings"
@@ -2106,7 +2115,7 @@ msgid ""
 "General settings, virtualization, offers, memory length, automatically "
 "generate chat name, current folder..."
 msgstr ""
-"Ustawienia ogólne, wirtualizacja, oferty, długość pamięci, automatyczne "
+"Ustawienia ogólne, wirtualizacja, sugestie, długość pamięci, automatyczne "
 "generowanie nazwy czatu, bieżący folder..."
 
 #: src/constants.py:530
@@ -2133,11 +2142,11 @@ msgstr "Zamknij"
 
 #: src/main.py:244
 msgid "Chat is rebooted"
-msgstr "Czat został ponownie uruchomiony"
+msgstr "Czat został ponownie wczytany"
 
 #: src/main.py:249
 msgid "Folder is rebooted"
-msgstr "Folder został ponownie uruchomiony"
+msgstr "Folder został ponownie wczytany"
 
 #: src/main.py:254
 msgid "Chat is created"
@@ -2189,7 +2198,7 @@ msgstr "Wyślij wiadomość..."
 
 #: src/window.py:467
 msgid "Explorer Tab"
-msgstr "Zakładka Eksplorator"
+msgstr "Zakładka eksploratora"
 
 #: src/window.py:468
 msgid "Terminal Tab"
@@ -2197,7 +2206,7 @@ msgstr "Zakładka terminala"
 
 #: src/window.py:469
 msgid "Browser Tab"
-msgstr "Zakładka Przeglądarka"
+msgstr "Zakładka przeglądarki"
 
 #: src/window.py:589
 msgid "Ask about a website"
@@ -2211,11 +2220,11 @@ msgstr ""
 
 #: src/window.py:590
 msgid "Check out our Extensions!"
-msgstr "Sprawdź nasze rozszerzenia!"
+msgstr "Wypróbuj nasze rozszerzenia!"
 
 #: src/window.py:590
 msgid "We have a lot of extensions for different things. Check it out!"
-msgstr "Mamy wiele rozszerzeń do różnych zastosowań. Sprawdź je!"
+msgstr "Mamy wiele rozszerzeń do różnych zastosowań. Wypróbuj je!"
 
 #: src/window.py:591
 msgid "Chat with documents!"
@@ -2231,14 +2240,14 @@ msgstr ""
 
 #: src/window.py:592
 msgid "Surf the web!"
-msgstr "Surfuj po sieci!"
+msgstr "Przeglądaj sieć!"
 
 #: src/window.py:592
 msgid ""
 "Enable web search to allow the LLM to surf the web and provide up to date "
 "answers"
 msgstr ""
-"Włącz wyszukiwanie w sieci, aby umożliwić modelowi przeglądanie sieci i "
+"Włącz wyszukiwanie w sieci, aby umożliwić modelowi przeglądanie Internetu i "
 "dostarczanie aktualnych odpowiedzi"
 
 #: src/window.py:593
@@ -2360,7 +2369,7 @@ msgstr "Plik nie może zostać wysłany, dopóki program nie zakończy działani
 
 #: src/window.py:1620
 msgid "The file is not recognized"
-msgstr "Plik nie jest rozpoznawany"
+msgstr "Nie rozpoznano pliku"
 
 #: src/window.py:1639
 msgid "You can no longer continue the message."
@@ -2398,7 +2407,7 @@ msgid ""
 "Do not share any sensitive information."
 msgstr ""
 "Sieć neuronowa ma dostęp do Twojego komputera i wszelkich danych w tym "
-"czacie oraz może uruchamiać polecenia. Bądź ostrożny, nie ponosimy "
+"czacie oraz może uruchamiać polecenia. Bądź ostrożny/-a, nie ponosimy "
 "odpowiedzialności za sieć neuronową. Nie udostępniaj żadnych poufnych "
 "informacji."
 
@@ -2408,7 +2417,7 @@ msgid ""
 "not responsible for the neural network. Do not share any sensitive "
 "information."
 msgstr ""
-"Sieć neuronowa ma dostęp do wszelkich danych w tym czacie. Bądź ostrożny, "
+"Sieć neuronowa ma dostęp do wszelkich danych w tym czacie. Bądź ostrożny/-a, "
 "nie ponosimy odpowiedzialności za sieć neuronową. Nie udostępniaj żadnych "
 "poufnych informacji."
 
@@ -2430,7 +2439,7 @@ msgstr "Czat jest pusty"
 
 #: data/io.github.qwersyk.Newelle.desktop.in:3
 msgid "Newelle: Your advanced chat bot"
-msgstr "Newelle: Twój zaawansowany chatbot"
+msgstr "Newelle: Twój zaawansowany bot czatu"
 
 #: data/io.github.qwersyk.Newelle.desktop.in:10
 msgid "ai;assistant;chat;chatgpt;gpt;llm;ollama;"
@@ -2442,11 +2451,11 @@ msgid ""
 "your chatbot endless possibilities."
 msgstr ""
 "Trenuj Newelle, aby robił więcej dzięki niestandardowym rozszerzeniom i "
-"nowym modułom SI, dając Twojemu chatbotowi nieograniczone możliwości."
+"nowym modułom SI, dając Twojemu botowi czatu nieograniczone możliwości."
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:11
 msgid "AI chatbot"
-msgstr "Chatbot SI"
+msgstr "Bot czatu SI"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:15
 msgid "Quick profile selection"
@@ -2483,8 +2492,8 @@ msgid ""
 "Added integrated browser Mini App: browse the web directly in Newelle and "
 "attach web pages"
 msgstr ""
-"Dodano zintegrowaną z mini apkę „przeglądarka”: przeglądaj sieć bezpośrednio "
-"w Newelle i dołączaj strony internetowe"
+"Dodano zintegrowaną mini apkę „przeglądarka”: przeglądaj sieć bezpośrednio w "
+"Newelle i dołączaj strony internetowe"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:47
 msgid "Improved integrated file manager, supporting multiple file operations"
@@ -2507,12 +2516,12 @@ msgid ""
 "Programmable prompts: add dynamic content to prompts with conditionals and "
 "random strings"
 msgstr ""
-"Programowalne podpowiedzi: dodaj dynamiczne treści do podpowiedzi, z "
+"Programowalne podpowiedzi: dodawaj dynamiczne treści do podpowiedzi, z "
 "warunkami i losowymi napisami"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:51
 msgid "Add ability to manually edit chat name"
-msgstr "Dodaj możliwość ręcznej edycji nazw czatów"
+msgstr "Dodano możliwość ręcznej edycji nazw czatów"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:52
 msgid "Minor bug fixes"
@@ -2520,11 +2529,11 @@ msgstr "Pomniejsze poprawki błędów"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:53
 msgid "Added support for multiple languages for Kokoro TTS and Whisper.CPP"
-msgstr "Dodano osbługę wielu języków przez Kokoro TTS i Whisper.CPP"
+msgstr "Dodano obsługę wielu języków przez TTS Kokoro i Whisper.CPP"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:54
 msgid "Run HTML/CSS/JS websites directly in app"
-msgstr "Uruchamiaj strony HTML/CSS/JS bezpośrednio w apce"
+msgstr "Uruchamiaj strony HTML/CSS/JS bezpośrednio w programie"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:55
 msgid "New animation on chat change"
@@ -2536,31 +2545,31 @@ msgstr "Drobne ulepszenia"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:70
 msgid "Improve local documents reading and loading performances"
-msgstr "Poprawa wydajności czytania i ładowania lokalnych dokumentów"
+msgstr "Poprawiono wydajność czytania i ładowania lokalnych dokumentów"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:71
 msgid "Add option to send with CTRL+Enter"
-msgstr "Dodaj opcję wysyłania za pomocą CTRL+Enter"
+msgstr "Dodano opcję wysyłania za pomocą CTRL+Enter"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:72
 msgid "Improve codeblocks"
-msgstr "Ulepsz bloki kodu"
+msgstr "Ulepszono bloki kodu"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:73
 msgid "Fix Kokoro TTS"
-msgstr "Napraw Kokoro TTS"
+msgstr "Naprawiono TTS Kokoro"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:74
 msgid "Remove emoji from TTS"
-msgstr "Usuń emoji z TTS"
+msgstr "Usunięto emotikony z TTS"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:75
 msgid "Set API keys as password fields"
-msgstr "Ustaw klucze API jako pola hasła"
+msgstr "Ustawianie kluczy API jako pola hasła"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:76
 msgid "Add thinking support for Gemini"
-msgstr "Dodaj obsługę myślenia Gemini"
+msgstr "Dodano obsługę myślenia Gemini"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:77
 msgid "Updated translations"
@@ -2578,7 +2587,7 @@ msgstr ""
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:93
 msgid "Improved LaTeX rendering and document management"
-msgstr "Ulepszone renderowanie LaTeX i zarządzanie dokumentami"
+msgstr "Ulepszono wyświetlanie LaTeX i zarządzanie dokumentami"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:94
 msgid "New Thinking Widget and OpenRouter handler"
@@ -2625,9 +2634,9 @@ msgid ""
 "extension architecture, added new models, and introduced vision support, "
 "along with more capabilities."
 msgstr ""
-"Wdrożyliśmy poprawki błędów i nowe funkcje. Zmodyfikowaliśmy architekturę "
-"rozszerzeń, dodaliśmy nowe modele i wprowadziliśmy obsługę wizji wraz z "
-"innymi możliwościami."
+"Wdrożono poprawki błędów i nowe funkcje. Zmodyfikowano architekturę "
+"rozszerzeń, dodano nowe modele i wprowadzono obsługę wizji wraz z innymi "
+"możliwościami."
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:172
 msgid "Stable version"
@@ -2643,7 +2652,7 @@ msgstr "Czarna lista poleceń"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:187
 msgid "Localization"
-msgstr "Lokalizacja"
+msgstr "Regionalizacja"
 
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:192
 msgid "Redesign"
