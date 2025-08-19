@@ -12,11 +12,13 @@ desktopToDarwinBundle,
 vte-gtk4,
 dconf,
 gobject-introspection,
+glib-networking,
 gsettings-desktop-schemas,
 adwaita-icon-theme,
 gtksourceview5,
 desktop-file-utils,
-lsb-release
+lsb-release,
+webkitgtk_6_0
 }:
 
 let
@@ -40,6 +42,8 @@ let
     llama-index-core
     llama-index-readers-file
     pip-install-test
+    cssselect
+    markdownify
   ];
 in
   stdenv.mkDerivation rec {
@@ -74,6 +78,8 @@ in
         gtksourceview5
         desktop-file-utils
         lsb-release
+        webkitgtk_6_0
+        glib-networking
       ];
 
     preFixup = ''
