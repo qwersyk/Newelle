@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-03 15:55+0800\n"
+"POT-Creation-Date: 2025-08-11 01:45+0800\n"
 "PO-Revision-Date: 2025-07-03 09:00+0200\n"
 "Last-Translator: Yehor Hliebov <qsk@gmx.at>\n"
 "Language-Team: Romanian <qsk@gmx.at>\n"
@@ -71,9 +71,9 @@ msgstr "Numele modelului Ollama"
 #: src/handlers/stt/groqsr_handler.py:13
 #: src/handlers/stt/openaisr_handler.py:17 src/handlers/stt/witai_handler.py:12
 #: src/handlers/tts/custom_openai_tts.py:18
-#: src/handlers/tts/elevenlabs_handler.py:9
 #: src/handlers/tts/groq_tts_handler.py:32
 #: src/handlers/tts/openai_tts_handler.py:18
+#: src/handlers/tts/elevenlabs_handler.py:10
 msgid "API Key"
 msgstr "Cheie API"
 
@@ -98,9 +98,9 @@ msgstr "Utilizează Model Personalizat"
 #: src/handlers/llm/openai_handler.py:84 src/handlers/stt/whisper_handler.py:15
 #: src/handlers/stt/whispercpp_handler.py:40
 #: src/handlers/tts/custom_openai_tts.py:20
-#: src/handlers/tts/elevenlabs_handler.py:24
 #: src/handlers/tts/groq_tts_handler.py:34
 #: src/handlers/tts/openai_tts_handler.py:20
+#: src/handlers/tts/elevenlabs_handler.py:25
 msgid "Model"
 msgstr "Model"
 
@@ -196,7 +196,7 @@ msgid "Model to use"
 msgstr "Model de utilizat"
 
 #: src/handlers/llm/gpt4all_handler.py:154
-#: src/handlers/tts/elevenlabs_handler.py:25
+#: src/handlers/tts/elevenlabs_handler.py:26
 msgid "Name of the model to use"
 msgstr "Numele modelului de utilizat"
 
@@ -216,13 +216,13 @@ msgstr "Actualizează G4F"
 
 #: src/handlers/llm/newelle_handler.py:18
 #: src/handlers/llm/gemini_handler.py:131
-#: src/handlers/llm/openai_handler.py:111
+#: src/handlers/llm/openai_handler.py:112
 msgid "Privacy Policy"
 msgstr "Politica de confidențialitate"
 
 #: src/handlers/llm/newelle_handler.py:19
 #: src/handlers/llm/gemini_handler.py:132
-#: src/handlers/llm/openai_handler.py:111
+#: src/handlers/llm/openai_handler.py:112
 msgid "Open privacy policy website"
 msgstr "Deschide site-ul cu politica de confidențialitate"
 
@@ -395,6 +395,15 @@ msgid ""
 msgstr ""
 "Număr între -2.0 și 2.0. Valorile pozitive scad probabilitatea ca modelul să "
 "discute despre subiecte noi"
+
+#: src/handlers/llm/openai_handler.py:108
+#, fuzzy
+msgid "Custom Options"
+msgstr "Prompt personalizat"
+
+#: src/handlers/llm/openai_handler.py:108
+msgid "Provide a JSON containing the custom options"
+msgstr ""
 
 #: src/handlers/llm/openrouter_handler.py:14
 msgid "Provider Sorting"
@@ -583,9 +592,9 @@ msgid "Custom endpoint of the service to use"
 msgstr "Endpoint personalizat al serviciului de utilizat"
 
 #: src/handlers/tts/custom_openai_tts.py:19
-#: src/handlers/tts/elevenlabs_handler.py:17
 #: src/handlers/tts/groq_tts_handler.py:33
-#: src/handlers/tts/openai_tts_handler.py:19 src/handlers/tts/tts.py:33
+#: src/handlers/tts/openai_tts_handler.py:19
+#: src/handlers/tts/elevenlabs_handler.py:18 src/handlers/tts/tts.py:33
 #: src/ui/settings.py:129
 msgid "Voice"
 msgstr "Voce"
@@ -608,44 +617,44 @@ msgid ""
 msgstr ""
 "Instrucțiuni pentru generarea vocii. Lăsați-l gol pentru a evita acest câmp"
 
-#: src/handlers/tts/elevenlabs_handler.py:10
-msgid "API Key for ElevenLabs"
-msgstr "Cheie API pentru ElevenLabs"
-
-#: src/handlers/tts/elevenlabs_handler.py:18
-msgid "Voice ID to use"
-msgstr "ID voce de utilizat"
-
-#: src/handlers/tts/elevenlabs_handler.py:32
-msgid "Stability"
-msgstr "Stabilitate"
-
-#: src/handlers/tts/elevenlabs_handler.py:33
-msgid "stability of the voice"
-msgstr "Stabilitatea vocii"
-
-#: src/handlers/tts/elevenlabs_handler.py:42
-msgid "Similarity boost"
-msgstr "Amplificare similaritate"
-
-#: src/handlers/tts/elevenlabs_handler.py:43
-msgid "Boosts overall voice clarity and speaker similarity"
-msgstr "Amplifică claritatea generală a vocii și similaritatea vorbitorului"
-
-#: src/handlers/tts/elevenlabs_handler.py:52
-msgid "Style exaggeration"
-msgstr "Exagerare stil"
-
-#: src/handlers/tts/elevenlabs_handler.py:53
-msgid ""
-"High values are reccomended if the style of the speech must be exaggerated"
-msgstr ""
-"Valori ridicate sunt recomandate dacă stilul vorbirii trebuie să fie exagerat"
-
 #: src/handlers/tts/custom_handler.py:17
 #, python-brace-format
 msgid "{0} will be replaced with the file fullpath, {1} with the text"
 msgstr "{0} va fi înlocuit cu calea completă a fișierului, {1} cu textul"
+
+#: src/handlers/tts/elevenlabs_handler.py:11
+msgid "API Key for ElevenLabs"
+msgstr "Cheie API pentru ElevenLabs"
+
+#: src/handlers/tts/elevenlabs_handler.py:19
+msgid "Voice ID to use"
+msgstr "ID voce de utilizat"
+
+#: src/handlers/tts/elevenlabs_handler.py:33
+msgid "Stability"
+msgstr "Stabilitate"
+
+#: src/handlers/tts/elevenlabs_handler.py:34
+msgid "stability of the voice"
+msgstr "Stabilitatea vocii"
+
+#: src/handlers/tts/elevenlabs_handler.py:43
+msgid "Similarity boost"
+msgstr "Amplificare similaritate"
+
+#: src/handlers/tts/elevenlabs_handler.py:44
+msgid "Boosts overall voice clarity and speaker similarity"
+msgstr "Amplifică claritatea generală a vocii și similaritatea vorbitorului"
+
+#: src/handlers/tts/elevenlabs_handler.py:53
+msgid "Style exaggeration"
+msgstr "Exagerare stil"
+
+#: src/handlers/tts/elevenlabs_handler.py:54
+msgid ""
+"High values are reccomended if the style of the speech must be exaggerated"
+msgstr ""
+"Valori ridicate sunt recomandate dacă stilul vorbirii trebuie să fie exagerat"
 
 #: src/handlers/tts/tts.py:34
 msgid "Choose the preferred voice"
@@ -934,7 +943,7 @@ msgid "Rename"
 msgstr "Redenumire"
 
 #: src/ui/explorer.py:366 src/ui/explorer.py:502 src/ui/settings.py:276
-#: src/ui/settings.py:347
+#: src/ui/settings.py:362
 msgid "Delete"
 msgstr "Șterge"
 
@@ -1143,8 +1152,8 @@ msgstr "Descarcă extensii noi"
 msgid "Install extension from file..."
 msgstr "Instalează extensia din fișier..."
 
-#: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.desktop.in:2
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:7
+#: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.appdata.xml.in:7
+#: data/io.github.qwersyk.Newelle.desktop.in:2
 msgid "Newelle"
 msgstr "Newelle"
 
@@ -1489,19 +1498,27 @@ msgstr "Șterge calea pip"
 msgid "Remove the extra dependencies installed"
 msgstr "Elimină dependențele suplimentare instalate"
 
-#: src/ui/settings.py:295
+#: src/ui/settings.py:281
+msgid "Install pip module"
+msgstr ""
+
+#: src/ui/settings.py:281
+msgid "Manually install pip module"
+msgstr ""
+
+#: src/ui/settings.py:310
 msgid "Auto-run commands"
 msgstr "Comenzi cu rulare automată"
 
-#: src/ui/settings.py:295
+#: src/ui/settings.py:310
 msgid "Commands that the bot will write will automatically run"
 msgstr "Comenzile pe care botul le va scrie vor rula automat"
 
-#: src/ui/settings.py:298
+#: src/ui/settings.py:313
 msgid "Max number of commands"
 msgstr "Număr maxim de comenzi"
 
-#: src/ui/settings.py:298
+#: src/ui/settings.py:313
 msgid ""
 "Maximum number of commands that the bot will write after a single user "
 "request"
@@ -1509,28 +1526,28 @@ msgstr ""
 "Numărul maxim de comenzi pe care botul le va scrie după o singură cerere a "
 "utilizatorului"
 
-#: src/ui/settings.py:329
+#: src/ui/settings.py:344
 msgid "Browser"
 msgstr "Browser"
 
-#: src/ui/settings.py:329
+#: src/ui/settings.py:344
 msgid "Settings for the browser"
 msgstr "Setări pentru browser"
 
-#: src/ui/settings.py:334
+#: src/ui/settings.py:349
 msgid "Use external browser"
 msgstr "Utilizează browser extern"
 
-#: src/ui/settings.py:334
+#: src/ui/settings.py:349
 msgid "Use an external browser to open links instead of integrated one"
 msgstr ""
 "Utilizează un browser extern pentru a deschide linkuri în loc de cel integrat"
 
-#: src/ui/settings.py:341
+#: src/ui/settings.py:356
 msgid "Persist browser session"
 msgstr "Păstrează sesiunea browserului"
 
-#: src/ui/settings.py:341
+#: src/ui/settings.py:356
 msgid ""
 "Persist browser session between restarts. Turning this off requires "
 "restarting the program"
@@ -1538,44 +1555,44 @@ msgstr ""
 "Păstrează sesiunea browserului între reporniri. Dezactivarea acestei opțiuni "
 "necesită repornirea programului"
 
-#: src/ui/settings.py:346
+#: src/ui/settings.py:361
 msgid "Delete browser data"
 msgstr "Șterge datele browserului"
 
-#: src/ui/settings.py:346
+#: src/ui/settings.py:361
 msgid "Delete browser session and data"
 msgstr "Șterge sesiunea și datele browserului"
 
-#: src/ui/settings.py:353
+#: src/ui/settings.py:368
 msgid "Initial browser page"
 msgstr "Pagina inițială a browserului"
 
-#: src/ui/settings.py:353
+#: src/ui/settings.py:368
 msgid "The page where the browser will start"
 msgstr "Pagina de unde va porni browserul"
 
-#: src/ui/settings.py:360
+#: src/ui/settings.py:375
 msgid "Search string"
 msgstr "Șir de căutare"
 
-#: src/ui/settings.py:360
+#: src/ui/settings.py:375
 #, python-format
 msgid "The search string used in the browser, %s is replaced with the query"
 msgstr "Șirul de căutare utilizat în browser, %s este înlocuit cu interogarea"
 
-#: src/ui/settings.py:381
+#: src/ui/settings.py:396
 msgid "Document Sources (RAG)"
 msgstr "Surse documente (RAG)"
 
-#: src/ui/settings.py:381
+#: src/ui/settings.py:396
 msgid "Include content from your documents in the responses"
 msgstr "Includeți conținut din documentele dvs. în răspunsuri"
 
-#: src/ui/settings.py:382
+#: src/ui/settings.py:397
 msgid "Document Analyzer"
 msgstr "Analizor Documente"
 
-#: src/ui/settings.py:382
+#: src/ui/settings.py:397
 msgid ""
 "The document analyzer uses multiple techniques to extract relevant "
 "information about your documents"
@@ -1583,11 +1600,11 @@ msgstr ""
 "Analizatorul de documente utilizează multiple tehnici pentru a extrage "
 "informații relevante despre documentele dvs."
 
-#: src/ui/settings.py:393
+#: src/ui/settings.py:408
 msgid "Read documents if unsupported"
 msgstr "Citiți documentele dacă nu sunt acceptate"
 
-#: src/ui/settings.py:393
+#: src/ui/settings.py:408
 msgid ""
 "If the LLM does not support reading documents, relevant information about "
 "documents sent in the chat will be given to the LLM using your Document "
@@ -1597,11 +1614,11 @@ msgstr ""
 "documentele trimise în chat vor fi furnizate LLM-ului utilizând analizorul "
 "dvs. de documente."
 
-#: src/ui/settings.py:397
+#: src/ui/settings.py:412
 msgid "Maximum tokens for RAG"
 msgstr "Token-uri maxime pentru RAG"
 
-#: src/ui/settings.py:397
+#: src/ui/settings.py:412
 msgid ""
 "The maximum amount of tokens to be used for RAG. If the documents do not "
 "exceed this token count,\n"
@@ -1611,11 +1628,11 @@ msgstr ""
 "depășesc acest număr de token-uri,\n"
 "le aruncă pe toate în context"
 
-#: src/ui/settings.py:414
+#: src/ui/settings.py:429
 msgid "Document Folder"
 msgstr "Folder documente"
 
-#: src/ui/settings.py:414
+#: src/ui/settings.py:429
 msgid ""
 "Put the documents you want to query in your document folder. The document "
 "analyzer will find relevant information in them if this option is enabled"
@@ -1624,15 +1641,15 @@ msgstr ""
 "documente. Analizatorul de documente va găsi informații relevante în ele, "
 "dacă această opțiune este activată"
 
-#: src/ui/settings.py:417
+#: src/ui/settings.py:432
 msgid "Put all the documents you want to index in this folder"
 msgstr "Puneți toate documentele pe care doriți să le indexați în acest folder"
 
-#: src/ui/settings.py:453
+#: src/ui/settings.py:468
 msgid "Silence threshold"
 msgstr "Prag de silențiu"
 
-#: src/ui/settings.py:453
+#: src/ui/settings.py:468
 msgid ""
 "Silence threshold in seconds, percentage of the volume to be considered "
 "silence"
@@ -1640,20 +1657,20 @@ msgstr ""
 "Prag de silențiu în secunde, procent din volum pentru a fi considerat "
 "silențiu"
 
-#: src/ui/settings.py:466
+#: src/ui/settings.py:481
 msgid "Silence time"
 msgstr "Timp de silențiu"
 
-#: src/ui/settings.py:466
+#: src/ui/settings.py:481
 msgid "Silence time in seconds before recording stops automatically"
 msgstr ""
 "Timpul de silențiu în secunde înainte ca înregistrarea să se oprească automat"
 
-#: src/ui/settings.py:1046
+#: src/ui/settings.py:1061
 msgid "Not enough permissions"
 msgstr "Nu sunt suficiente permisiuni"
 
-#: src/ui/settings.py:1050
+#: src/ui/settings.py:1065
 msgid ""
 "Newelle does not have enough permissions to run commands on your system, "
 "please run the following command"
@@ -1661,15 +1678,15 @@ msgstr ""
 "Newelle nu are suficiente permisiuni pentru a rula comenzi pe sistemul dvs., "
 "vă rugăm să rulați următoarea comandă"
 
-#: src/ui/settings.py:1051 src/ui/settings.py:1064
+#: src/ui/settings.py:1066 src/ui/settings.py:1079
 msgid "Understood"
 msgstr "Înțeles"
 
-#: src/ui/settings.py:1063
+#: src/ui/settings.py:1078
 msgid "Pip path deleted"
 msgstr "Calea pip a fost ștearsă"
 
-#: src/ui/settings.py:1063
+#: src/ui/settings.py:1078
 msgid ""
 "The pip path has been deleted, you can now reinstall the dependencies. This "
 "operation requires a restart of the application."
@@ -2424,14 +2441,6 @@ msgstr "Nu s-a putut deschide folderul"
 msgid "Chat is empty"
 msgstr "Chatul este gol"
 
-#: data/io.github.qwersyk.Newelle.desktop.in:3
-msgid "Newelle: Your advanced chat bot"
-msgstr "Newelle: Chatbot-ul tău avansat"
-
-#: data/io.github.qwersyk.Newelle.desktop.in:10
-msgid "ai;assistant;chat;chatgpt;gpt;llm;ollama;"
-msgstr "ai;asistent;chat;chatgpt;gpt;llm;ollama;"
-
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:9
 msgid ""
 "Train Newelle to do more with custom extensions and new AI modules, giving "
@@ -2641,6 +2650,14 @@ msgstr "Redesign"
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:196
 msgid "Qwersyk"
 msgstr "Qwersyk"
+
+#: data/io.github.qwersyk.Newelle.desktop.in:3
+msgid "Newelle: Your advanced chat bot"
+msgstr "Newelle: Chatbot-ul tău avansat"
+
+#: data/io.github.qwersyk.Newelle.desktop.in:10
+msgid "ai;assistant;chat;chatgpt;gpt;llm;ollama;"
+msgstr "ai;asistent;chat;chatgpt;gpt;llm;ollama;"
 
 #~ msgid "max Tokens"
 #~ msgstr "Număr maxim de token-uri"

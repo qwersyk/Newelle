@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-03 15:55+0800\n"
+"POT-Creation-Date: 2025-08-11 01:45+0800\n"
 "PO-Revision-Date: 2025-07-03 09:00+0200\n"
 "Last-Translator: Yehor Hliebov <qsk@gmx.at>\n"
 "Language-Team: Turkish <qsk@gmx.at>\n"
@@ -69,9 +69,9 @@ msgstr "Ollama Modelinin Adı"
 #: src/handlers/stt/groqsr_handler.py:13
 #: src/handlers/stt/openaisr_handler.py:17 src/handlers/stt/witai_handler.py:12
 #: src/handlers/tts/custom_openai_tts.py:18
-#: src/handlers/tts/elevenlabs_handler.py:9
 #: src/handlers/tts/groq_tts_handler.py:32
 #: src/handlers/tts/openai_tts_handler.py:18
+#: src/handlers/tts/elevenlabs_handler.py:10
 msgid "API Key"
 msgstr "API Anahtarı"
 
@@ -95,9 +95,9 @@ msgstr "Özel Model Kullan"
 #: src/handlers/llm/openai_handler.py:84 src/handlers/stt/whisper_handler.py:15
 #: src/handlers/stt/whispercpp_handler.py:40
 #: src/handlers/tts/custom_openai_tts.py:20
-#: src/handlers/tts/elevenlabs_handler.py:24
 #: src/handlers/tts/groq_tts_handler.py:34
 #: src/handlers/tts/openai_tts_handler.py:20
+#: src/handlers/tts/elevenlabs_handler.py:25
 msgid "Model"
 msgstr "Model"
 
@@ -193,7 +193,7 @@ msgid "Model to use"
 msgstr "Kullanılacak model"
 
 #: src/handlers/llm/gpt4all_handler.py:154
-#: src/handlers/tts/elevenlabs_handler.py:25
+#: src/handlers/tts/elevenlabs_handler.py:26
 msgid "Name of the model to use"
 msgstr "Kullanılacak modelin adı"
 
@@ -213,13 +213,13 @@ msgstr "G4F'yi Güncelle"
 
 #: src/handlers/llm/newelle_handler.py:18
 #: src/handlers/llm/gemini_handler.py:131
-#: src/handlers/llm/openai_handler.py:111
+#: src/handlers/llm/openai_handler.py:112
 msgid "Privacy Policy"
 msgstr "Gizlilik Politikası"
 
 #: src/handlers/llm/newelle_handler.py:19
 #: src/handlers/llm/gemini_handler.py:132
-#: src/handlers/llm/openai_handler.py:111
+#: src/handlers/llm/openai_handler.py:112
 msgid "Open privacy policy website"
 msgstr "Gizlilik politikası web sitesini aç"
 
@@ -393,6 +393,15 @@ msgid ""
 msgstr ""
 "-2.0 ile 2.0 arasında bir sayı. Pozitif değerler, modelin yeni konular "
 "hakkında konuşma olasılığını azaltır"
+
+#: src/handlers/llm/openai_handler.py:108
+#, fuzzy
+msgid "Custom Options"
+msgstr "Özel İstem"
+
+#: src/handlers/llm/openai_handler.py:108
+msgid "Provide a JSON containing the custom options"
+msgstr ""
 
 #: src/handlers/llm/openrouter_handler.py:14
 msgid "Provider Sorting"
@@ -580,9 +589,9 @@ msgid "Custom endpoint of the service to use"
 msgstr "Kullanılacak hizmetin özel uç noktası"
 
 #: src/handlers/tts/custom_openai_tts.py:19
-#: src/handlers/tts/elevenlabs_handler.py:17
 #: src/handlers/tts/groq_tts_handler.py:33
-#: src/handlers/tts/openai_tts_handler.py:19 src/handlers/tts/tts.py:33
+#: src/handlers/tts/openai_tts_handler.py:19
+#: src/handlers/tts/elevenlabs_handler.py:18 src/handlers/tts/tts.py:33
 #: src/ui/settings.py:129
 msgid "Voice"
 msgstr "Ses"
@@ -604,43 +613,43 @@ msgid ""
 "Instructions for the voice generation. Leave it blank to avoid this field"
 msgstr "Ses oluşturma talimatları. Bu alanı boş bırakın"
 
-#: src/handlers/tts/elevenlabs_handler.py:10
-msgid "API Key for ElevenLabs"
-msgstr "ElevenLabs için API Anahtarı"
-
-#: src/handlers/tts/elevenlabs_handler.py:18
-msgid "Voice ID to use"
-msgstr "Kullanılacak Ses Kimliği"
-
-#: src/handlers/tts/elevenlabs_handler.py:32
-msgid "Stability"
-msgstr "Stabilite"
-
-#: src/handlers/tts/elevenlabs_handler.py:33
-msgid "stability of the voice"
-msgstr "sesin stabilite durumu"
-
-#: src/handlers/tts/elevenlabs_handler.py:42
-msgid "Similarity boost"
-msgstr "Benzerlik artışı"
-
-#: src/handlers/tts/elevenlabs_handler.py:43
-msgid "Boosts overall voice clarity and speaker similarity"
-msgstr "Genel ses netliğini ve konuşmacı benzerliğini artırır"
-
-#: src/handlers/tts/elevenlabs_handler.py:52
-msgid "Style exaggeration"
-msgstr "Stil abartısı"
-
-#: src/handlers/tts/elevenlabs_handler.py:53
-msgid ""
-"High values are reccomended if the style of the speech must be exaggerated"
-msgstr "Konuşma tarzının abartılması gerekiyorsa yüksek değerler önerilir"
-
 #: src/handlers/tts/custom_handler.py:17
 #, python-brace-format
 msgid "{0} will be replaced with the file fullpath, {1} with the text"
 msgstr "{0} dosyanın tam yolu ile, {1} metin ile değiştirilecektir"
+
+#: src/handlers/tts/elevenlabs_handler.py:11
+msgid "API Key for ElevenLabs"
+msgstr "ElevenLabs için API Anahtarı"
+
+#: src/handlers/tts/elevenlabs_handler.py:19
+msgid "Voice ID to use"
+msgstr "Kullanılacak Ses Kimliği"
+
+#: src/handlers/tts/elevenlabs_handler.py:33
+msgid "Stability"
+msgstr "Stabilite"
+
+#: src/handlers/tts/elevenlabs_handler.py:34
+msgid "stability of the voice"
+msgstr "sesin stabilite durumu"
+
+#: src/handlers/tts/elevenlabs_handler.py:43
+msgid "Similarity boost"
+msgstr "Benzerlik artışı"
+
+#: src/handlers/tts/elevenlabs_handler.py:44
+msgid "Boosts overall voice clarity and speaker similarity"
+msgstr "Genel ses netliğini ve konuşmacı benzerliğini artırır"
+
+#: src/handlers/tts/elevenlabs_handler.py:53
+msgid "Style exaggeration"
+msgstr "Stil abartısı"
+
+#: src/handlers/tts/elevenlabs_handler.py:54
+msgid ""
+"High values are reccomended if the style of the speech must be exaggerated"
+msgstr "Konuşma tarzının abartılması gerekiyorsa yüksek değerler önerilir"
 
 #: src/handlers/tts/tts.py:34
 msgid "Choose the preferred voice"
@@ -928,7 +937,7 @@ msgid "Rename"
 msgstr "Yeniden Adlandır"
 
 #: src/ui/explorer.py:366 src/ui/explorer.py:502 src/ui/settings.py:276
-#: src/ui/settings.py:347
+#: src/ui/settings.py:362
 msgid "Delete"
 msgstr "Sil"
 
@@ -1137,8 +1146,8 @@ msgstr "Yeni Uzantıları İndir"
 msgid "Install extension from file..."
 msgstr "Dosyadan uzantı yükle..."
 
-#: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.desktop.in:2
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:7
+#: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.appdata.xml.in:7
+#: data/io.github.qwersyk.Newelle.desktop.in:2
 msgid "Newelle"
 msgstr "Newelle"
 
@@ -1481,46 +1490,54 @@ msgstr "pip yolunu sil"
 msgid "Remove the extra dependencies installed"
 msgstr "Yüklü ek bağımlılıkları kaldır"
 
-#: src/ui/settings.py:295
+#: src/ui/settings.py:281
+msgid "Install pip module"
+msgstr ""
+
+#: src/ui/settings.py:281
+msgid "Manually install pip module"
+msgstr ""
+
+#: src/ui/settings.py:310
 msgid "Auto-run commands"
 msgstr "Otomatik çalıştır komutları"
 
-#: src/ui/settings.py:295
+#: src/ui/settings.py:310
 msgid "Commands that the bot will write will automatically run"
 msgstr "Botun yazacağı komutlar otomatik olarak çalışacaktır"
 
-#: src/ui/settings.py:298
+#: src/ui/settings.py:313
 msgid "Max number of commands"
 msgstr "Maksimum komut sayısı"
 
-#: src/ui/settings.py:298
+#: src/ui/settings.py:313
 msgid ""
 "Maximum number of commands that the bot will write after a single user "
 "request"
 msgstr ""
 "Botun tek bir kullanıcı isteğinden sonra yazacağı maksimum komut sayısı"
 
-#: src/ui/settings.py:329
+#: src/ui/settings.py:344
 msgid "Browser"
 msgstr "Tarayıcı"
 
-#: src/ui/settings.py:329
+#: src/ui/settings.py:344
 msgid "Settings for the browser"
 msgstr "Tarayıcı ayarları"
 
-#: src/ui/settings.py:334
+#: src/ui/settings.py:349
 msgid "Use external browser"
 msgstr "Harici tarayıcı kullan"
 
-#: src/ui/settings.py:334
+#: src/ui/settings.py:349
 msgid "Use an external browser to open links instead of integrated one"
 msgstr "Bağlantıları entegre olan yerine harici bir tarayıcıda açın"
 
-#: src/ui/settings.py:341
+#: src/ui/settings.py:356
 msgid "Persist browser session"
 msgstr "Tarayıcı oturumunu kalıcı yap"
 
-#: src/ui/settings.py:341
+#: src/ui/settings.py:356
 msgid ""
 "Persist browser session between restarts. Turning this off requires "
 "restarting the program"
@@ -1528,44 +1545,44 @@ msgstr ""
 "Yeniden başlatmalar arasında tarayıcı oturumunu kalıcı yap. Bunu kapatmak "
 "programın yeniden başlatılmasını gerektirir"
 
-#: src/ui/settings.py:346
+#: src/ui/settings.py:361
 msgid "Delete browser data"
 msgstr "Tarayıcı verilerini sil"
 
-#: src/ui/settings.py:346
+#: src/ui/settings.py:361
 msgid "Delete browser session and data"
 msgstr "Tarayıcı oturumunu ve verilerini sil"
 
-#: src/ui/settings.py:353
+#: src/ui/settings.py:368
 msgid "Initial browser page"
 msgstr "İlk tarayıcı sayfası"
 
-#: src/ui/settings.py:353
+#: src/ui/settings.py:368
 msgid "The page where the browser will start"
 msgstr "Tarayıcının başlayacağı sayfa"
 
-#: src/ui/settings.py:360
+#: src/ui/settings.py:375
 msgid "Search string"
 msgstr "Arama dizesi"
 
-#: src/ui/settings.py:360
+#: src/ui/settings.py:375
 #, python-format
 msgid "The search string used in the browser, %s is replaced with the query"
 msgstr "Tarayıcıda kullanılan arama dizesi, %s sorgu ile değiştirilir"
 
-#: src/ui/settings.py:381
+#: src/ui/settings.py:396
 msgid "Document Sources (RAG)"
 msgstr "Belge Kaynakları (RAG)"
 
-#: src/ui/settings.py:381
+#: src/ui/settings.py:396
 msgid "Include content from your documents in the responses"
 msgstr "Yanıtlarınıza belgelerinizden içerik ekleyin"
 
-#: src/ui/settings.py:382
+#: src/ui/settings.py:397
 msgid "Document Analyzer"
 msgstr "Belge Çözümleyici"
 
-#: src/ui/settings.py:382
+#: src/ui/settings.py:397
 msgid ""
 "The document analyzer uses multiple techniques to extract relevant "
 "information about your documents"
@@ -1573,11 +1590,11 @@ msgstr ""
 "Belge analizörü, belgelerinizle ilgili ilgili bilgileri çıkarmak için birden "
 "çok teknik kullanır"
 
-#: src/ui/settings.py:393
+#: src/ui/settings.py:408
 msgid "Read documents if unsupported"
 msgstr "Desteklenmiyorsa belgeleri oku"
 
-#: src/ui/settings.py:393
+#: src/ui/settings.py:408
 msgid ""
 "If the LLM does not support reading documents, relevant information about "
 "documents sent in the chat will be given to the LLM using your Document "
@@ -1586,11 +1603,11 @@ msgstr ""
 "LLM belgeleri okumayı desteklemiyorsa, sohbette gönderilen belgelerle ilgili "
 "ilgili bilgiler Belge Analizörünüz kullanılarak LLM'ye verilecektir."
 
-#: src/ui/settings.py:397
+#: src/ui/settings.py:412
 msgid "Maximum tokens for RAG"
 msgstr "RAG için maksimum token"
 
-#: src/ui/settings.py:397
+#: src/ui/settings.py:412
 msgid ""
 "The maximum amount of tokens to be used for RAG. If the documents do not "
 "exceed this token count,\n"
@@ -1600,11 +1617,11 @@ msgstr ""
 "miktarını aşmıyorsa,\n"
 "hepsini bağlama dökün"
 
-#: src/ui/settings.py:414
+#: src/ui/settings.py:429
 msgid "Document Folder"
 msgstr "Belge Klasörü"
 
-#: src/ui/settings.py:414
+#: src/ui/settings.py:429
 msgid ""
 "Put the documents you want to query in your document folder. The document "
 "analyzer will find relevant information in them if this option is enabled"
@@ -1612,15 +1629,15 @@ msgstr ""
 "Sorgulamak istediğiniz belgeleri belge klasörünüze koyun. Bu seçenek etkin "
 "ise belge analizörü onlarda ilgili bilgileri bulacaktır"
 
-#: src/ui/settings.py:417
+#: src/ui/settings.py:432
 msgid "Put all the documents you want to index in this folder"
 msgstr "Dizine eklemek istediğiniz tüm belgeleri bu klasöre koyun"
 
-#: src/ui/settings.py:453
+#: src/ui/settings.py:468
 msgid "Silence threshold"
 msgstr "Sessizlik eşiği"
 
-#: src/ui/settings.py:453
+#: src/ui/settings.py:468
 msgid ""
 "Silence threshold in seconds, percentage of the volume to be considered "
 "silence"
@@ -1628,20 +1645,20 @@ msgstr ""
 "Saniye cinsinden sessizlik eşiği, hacmin sessizlik olarak kabul edilecek "
 "yüzdesi"
 
-#: src/ui/settings.py:466
+#: src/ui/settings.py:481
 msgid "Silence time"
 msgstr "Sessizlik süresi"
 
-#: src/ui/settings.py:466
+#: src/ui/settings.py:481
 msgid "Silence time in seconds before recording stops automatically"
 msgstr ""
 "Kaydın otomatik olarak durmasından önceki saniye cinsinden sessizlik süresi"
 
-#: src/ui/settings.py:1046
+#: src/ui/settings.py:1061
 msgid "Not enough permissions"
 msgstr "Yeterli izin yok"
 
-#: src/ui/settings.py:1050
+#: src/ui/settings.py:1065
 msgid ""
 "Newelle does not have enough permissions to run commands on your system, "
 "please run the following command"
@@ -1649,15 +1666,15 @@ msgstr ""
 "Newelle'in sisteminizde komut çalıştırmak için yeterli izni yok, lütfen "
 "aşağıdaki komutu çalıştırın"
 
-#: src/ui/settings.py:1051 src/ui/settings.py:1064
+#: src/ui/settings.py:1066 src/ui/settings.py:1079
 msgid "Understood"
 msgstr "Anlaşıldı"
 
-#: src/ui/settings.py:1063
+#: src/ui/settings.py:1078
 msgid "Pip path deleted"
 msgstr "Pip yolu silindi"
 
-#: src/ui/settings.py:1063
+#: src/ui/settings.py:1078
 msgid ""
 "The pip path has been deleted, you can now reinstall the dependencies. This "
 "operation requires a restart of the application."
@@ -2411,14 +2428,6 @@ msgstr "Klasör açılamadı"
 msgid "Chat is empty"
 msgstr "Sohbet boş"
 
-#: data/io.github.qwersyk.Newelle.desktop.in:3
-msgid "Newelle: Your advanced chat bot"
-msgstr "Newelle: Gelişmiş sohbet robotunuz"
-
-#: data/io.github.qwersyk.Newelle.desktop.in:10
-msgid "ai;assistant;chat;chatgpt;gpt;llm;ollama;"
-msgstr "yapay zeka;asistan;sohbet;chatgpt;gpt;llm;ollama;"
-
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:9
 msgid ""
 "Train Newelle to do more with custom extensions and new AI modules, giving "
@@ -2624,6 +2633,14 @@ msgstr "Yeniden Tasarım"
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:196
 msgid "Qwersyk"
 msgstr "Qwersyk"
+
+#: data/io.github.qwersyk.Newelle.desktop.in:3
+msgid "Newelle: Your advanced chat bot"
+msgstr "Newelle: Gelişmiş sohbet robotunuz"
+
+#: data/io.github.qwersyk.Newelle.desktop.in:10
+msgid "ai;assistant;chat;chatgpt;gpt;llm;ollama;"
+msgstr "yapay zeka;asistan;sohbet;chatgpt;gpt;llm;ollama;"
 
 #~ msgid "max Tokens"
 #~ msgstr "maksimum Token"

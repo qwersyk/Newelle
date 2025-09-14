@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Newelle 0.3.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-03 15:55+0800\n"
+"POT-Creation-Date: 2025-08-11 01:45+0800\n"
 "PO-Revision-Date: 2025-03-26 19:30\n"
 "Last-Translator: Oliver Tzeng（曾嘉禾）<olivertzeng@proton.me>\n"
 "Language-Team: l10n-tw\n"
@@ -74,9 +74,9 @@ msgstr "Ollama 模型名稱"
 #: src/handlers/stt/groqsr_handler.py:13
 #: src/handlers/stt/openaisr_handler.py:17 src/handlers/stt/witai_handler.py:12
 #: src/handlers/tts/custom_openai_tts.py:18
-#: src/handlers/tts/elevenlabs_handler.py:9
 #: src/handlers/tts/groq_tts_handler.py:32
 #: src/handlers/tts/openai_tts_handler.py:18
+#: src/handlers/tts/elevenlabs_handler.py:10
 msgid "API Key"
 msgstr "API 金鑰"
 
@@ -100,9 +100,9 @@ msgstr "使用自訂模型"
 #: src/handlers/llm/openai_handler.py:84 src/handlers/stt/whisper_handler.py:15
 #: src/handlers/stt/whispercpp_handler.py:40
 #: src/handlers/tts/custom_openai_tts.py:20
-#: src/handlers/tts/elevenlabs_handler.py:24
 #: src/handlers/tts/groq_tts_handler.py:34
 #: src/handlers/tts/openai_tts_handler.py:20
+#: src/handlers/tts/elevenlabs_handler.py:25
 msgid "Model"
 msgstr "模型"
 
@@ -194,7 +194,7 @@ msgid "Model to use"
 msgstr "使用的模型"
 
 #: src/handlers/llm/gpt4all_handler.py:154
-#: src/handlers/tts/elevenlabs_handler.py:25
+#: src/handlers/tts/elevenlabs_handler.py:26
 msgid "Name of the model to use"
 msgstr "使用的模型名稱"
 
@@ -214,13 +214,13 @@ msgstr "更新 G4F"
 
 #: src/handlers/llm/newelle_handler.py:18
 #: src/handlers/llm/gemini_handler.py:131
-#: src/handlers/llm/openai_handler.py:111
+#: src/handlers/llm/openai_handler.py:112
 msgid "Privacy Policy"
 msgstr "隱私政策"
 
 #: src/handlers/llm/newelle_handler.py:19
 #: src/handlers/llm/gemini_handler.py:132
-#: src/handlers/llm/openai_handler.py:111
+#: src/handlers/llm/openai_handler.py:112
 msgid "Open privacy policy website"
 msgstr "開啟隱私政策網站"
 
@@ -379,6 +379,14 @@ msgid ""
 "Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
 "to talk about new topics"
 msgstr "數值介於±2.0。數值越大將讓模型搬出新話題的機率"
+
+#: src/handlers/llm/openai_handler.py:108
+msgid "Custom Options"
+msgstr "自訂選項"
+
+#: src/handlers/llm/openai_handler.py:108
+msgid "Provide a JSON containing the custom options"
+msgstr "提供包含自訂選項的 JSON"
 
 #: src/handlers/llm/openrouter_handler.py:14
 msgid "Provider Sorting"
@@ -559,9 +567,9 @@ msgid "Custom endpoint of the service to use"
 msgstr "使用的自訂端點"
 
 #: src/handlers/tts/custom_openai_tts.py:19
-#: src/handlers/tts/elevenlabs_handler.py:17
 #: src/handlers/tts/groq_tts_handler.py:33
-#: src/handlers/tts/openai_tts_handler.py:19 src/handlers/tts/tts.py:33
+#: src/handlers/tts/openai_tts_handler.py:19
+#: src/handlers/tts/elevenlabs_handler.py:18 src/handlers/tts/tts.py:33
 #: src/ui/settings.py:129
 msgid "Voice"
 msgstr "語音"
@@ -583,43 +591,43 @@ msgid ""
 "Instructions for the voice generation. Leave it blank to avoid this field"
 msgstr "聲音生成的步驟，留空以忽略此欄。"
 
-#: src/handlers/tts/elevenlabs_handler.py:10
-msgid "API Key for ElevenLabs"
-msgstr "ElevenLabs 的 API 金鑰"
-
-#: src/handlers/tts/elevenlabs_handler.py:18
-msgid "Voice ID to use"
-msgstr "使用的 Voice ID"
-
-#: src/handlers/tts/elevenlabs_handler.py:32
-msgid "Stability"
-msgstr "穩定度"
-
-#: src/handlers/tts/elevenlabs_handler.py:33
-msgid "stability of the voice"
-msgstr "聲音的穩定度"
-
-#: src/handlers/tts/elevenlabs_handler.py:42
-msgid "Similarity boost"
-msgstr "提升聲線相似度"
-
-#: src/handlers/tts/elevenlabs_handler.py:43
-msgid "Boosts overall voice clarity and speaker similarity"
-msgstr "提升聲線的相似度以及清晰度"
-
-#: src/handlers/tts/elevenlabs_handler.py:52
-msgid "Style exaggeration"
-msgstr "加強語調"
-
-#: src/handlers/tts/elevenlabs_handler.py:53
-msgid ""
-"High values are reccomended if the style of the speech must be exaggerated"
-msgstr "數值越高將越加強語調"
-
 #: src/handlers/tts/custom_handler.py:17
 #, python-brace-format
 msgid "{0} will be replaced with the file fullpath, {1} with the text"
 msgstr "{0} 參數為絕對路徑，{1} 參數則是文字"
+
+#: src/handlers/tts/elevenlabs_handler.py:11
+msgid "API Key for ElevenLabs"
+msgstr "ElevenLabs 的 API 金鑰"
+
+#: src/handlers/tts/elevenlabs_handler.py:19
+msgid "Voice ID to use"
+msgstr "使用的 Voice ID"
+
+#: src/handlers/tts/elevenlabs_handler.py:33
+msgid "Stability"
+msgstr "穩定度"
+
+#: src/handlers/tts/elevenlabs_handler.py:34
+msgid "stability of the voice"
+msgstr "聲音的穩定度"
+
+#: src/handlers/tts/elevenlabs_handler.py:43
+msgid "Similarity boost"
+msgstr "提升聲線相似度"
+
+#: src/handlers/tts/elevenlabs_handler.py:44
+msgid "Boosts overall voice clarity and speaker similarity"
+msgstr "提升聲線的相似度以及清晰度"
+
+#: src/handlers/tts/elevenlabs_handler.py:53
+msgid "Style exaggeration"
+msgstr "加強語調"
+
+#: src/handlers/tts/elevenlabs_handler.py:54
+msgid ""
+"High values are reccomended if the style of the speech must be exaggerated"
+msgstr "數值越高將越加強語調"
 
 #: src/handlers/tts/tts.py:34
 msgid "Choose the preferred voice"
@@ -897,7 +905,7 @@ msgid "Rename"
 msgstr "重新命名"
 
 #: src/ui/explorer.py:366 src/ui/explorer.py:502 src/ui/settings.py:276
-#: src/ui/settings.py:347
+#: src/ui/settings.py:362
 msgid "Delete"
 msgstr "刪除"
 
@@ -1106,8 +1114,8 @@ msgstr "下載擴充功能"
 msgid "Install extension from file..."
 msgstr "從檔案安裝檔案..."
 
-#: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.desktop.in:2
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:7
+#: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.appdata.xml.in:7
+#: data/io.github.qwersyk.Newelle.desktop.in:2
 msgid "Newelle"
 msgstr "Newelle"
 
@@ -1433,109 +1441,117 @@ msgstr "刪除 pip 路徑"
 msgid "Remove the extra dependencies installed"
 msgstr "刪除多餘依賴"
 
-#: src/ui/settings.py:295
+#: src/ui/settings.py:281
+msgid "Install pip module"
+msgstr "安裝 pip 模組"
+
+#: src/ui/settings.py:281
+msgid "Manually install pip module"
+msgstr "手動安裝 pip 模組"
+
+#: src/ui/settings.py:310
 msgid "Auto-run commands"
 msgstr "自訂自動執行指令"
 
-#: src/ui/settings.py:295
+#: src/ui/settings.py:310
 msgid "Commands that the bot will write will automatically run"
 msgstr "將會在終端機內自動執行指令"
 
-#: src/ui/settings.py:298
+#: src/ui/settings.py:313
 msgid "Max number of commands"
 msgstr "最多指令數量"
 
-#: src/ui/settings.py:298
+#: src/ui/settings.py:313
 msgid ""
 "Maximum number of commands that the bot will write after a single user "
 "request"
 msgstr "一次訊息的最多指令數量"
 
-#: src/ui/settings.py:329
+#: src/ui/settings.py:344
 msgid "Browser"
 msgstr "瀏覽器"
 
-#: src/ui/settings.py:329
+#: src/ui/settings.py:344
 msgid "Settings for the browser"
 msgstr "瀏覽器設定"
 
-#: src/ui/settings.py:334
+#: src/ui/settings.py:349
 msgid "Use external browser"
 msgstr "使用外部瀏覽器"
 
-#: src/ui/settings.py:334
+#: src/ui/settings.py:349
 msgid "Use an external browser to open links instead of integrated one"
 msgstr "使用外部瀏覽棄取代內部瀏覽器開啟連結"
 
-#: src/ui/settings.py:341
+#: src/ui/settings.py:356
 msgid "Persist browser session"
 msgstr "保留當前瀏覽器分頁"
 
-#: src/ui/settings.py:341
+#: src/ui/settings.py:356
 msgid ""
 "Persist browser session between restarts. Turning this off requires "
 "restarting the program"
 msgstr "在重新啟動時開啟關閉前的分頁狀態。請重新啟動應用程式以套用此變更"
 
-#: src/ui/settings.py:346
+#: src/ui/settings.py:361
 msgid "Delete browser data"
 msgstr "刪除瀏覽器資料"
 
-#: src/ui/settings.py:346
+#: src/ui/settings.py:361
 msgid "Delete browser session and data"
 msgstr "刪除瀏覽器的所有資料"
 
-#: src/ui/settings.py:353
+#: src/ui/settings.py:368
 msgid "Initial browser page"
 msgstr "初始瀏覽頁面"
 
-#: src/ui/settings.py:353
+#: src/ui/settings.py:368
 msgid "The page where the browser will start"
 msgstr "瀏覽器開啟後將開啟的頁面"
 
-#: src/ui/settings.py:360
+#: src/ui/settings.py:375
 msgid "Search string"
 msgstr "搜尋字串"
 
-#: src/ui/settings.py:360
+#: src/ui/settings.py:375
 #, python-format
 msgid "The search string used in the browser, %s is replaced with the query"
 msgstr "將在瀏覽器搜尋的字串，%s 將以搜尋序列取代"
 
-#: src/ui/settings.py:381
+#: src/ui/settings.py:396
 msgid "Document Sources (RAG)"
 msgstr "檔案來源（RAG）"
 
-#: src/ui/settings.py:381
+#: src/ui/settings.py:396
 msgid "Include content from your documents in the responses"
 msgstr "在回應中包含檔案內容"
 
-#: src/ui/settings.py:382
+#: src/ui/settings.py:397
 msgid "Document Analyzer"
 msgstr "檔案分析器"
 
-#: src/ui/settings.py:382
+#: src/ui/settings.py:397
 msgid ""
 "The document analyzer uses multiple techniques to extract relevant "
 "information about your documents"
 msgstr "使用不同技術提取各個檔案的相關內容"
 
-#: src/ui/settings.py:393
+#: src/ui/settings.py:408
 msgid "Read documents if unsupported"
 msgstr "不支援時閱讀檔案"
 
-#: src/ui/settings.py:393
+#: src/ui/settings.py:408
 msgid ""
 "If the LLM does not support reading documents, relevant information about "
 "documents sent in the chat will be given to the LLM using your Document "
 "Analyzer."
 msgstr "如果模型不支援閱讀文件將會利用檔案分析器傳送檔案相關資訊給模型"
 
-#: src/ui/settings.py:397
+#: src/ui/settings.py:412
 msgid "Maximum tokens for RAG"
 msgstr "RAG 使用 Tokens 的最大值"
 
-#: src/ui/settings.py:397
+#: src/ui/settings.py:412
 msgid ""
 "The maximum amount of tokens to be used for RAG. If the documents do not "
 "exceed this token count,\n"
@@ -1544,57 +1560,57 @@ msgstr ""
 "此將限制每次呼叫 RAG 時使用的 Tokens 的數量。如果需要使用的 Tokens 多過於此數"
 "值，將僅傳送檔案的大致內容"
 
-#: src/ui/settings.py:414
+#: src/ui/settings.py:429
 msgid "Document Folder"
 msgstr "文件資料夾"
 
-#: src/ui/settings.py:414
+#: src/ui/settings.py:429
 msgid ""
 "Put the documents you want to query in your document folder. The document "
 "analyzer will find relevant information in them if this option is enabled"
 msgstr "檔案分析器將從資料夾內提取資訊"
 
-#: src/ui/settings.py:417
+#: src/ui/settings.py:432
 msgid "Put all the documents you want to index in this folder"
 msgstr "將欲索引的檔案放置此資料夾內。"
 
-#: src/ui/settings.py:453
+#: src/ui/settings.py:468
 msgid "Silence threshold"
 msgstr "靜音門檻"
 
-#: src/ui/settings.py:453
+#: src/ui/settings.py:468
 msgid ""
 "Silence threshold in seconds, percentage of the volume to be considered "
 "silence"
 msgstr "靜音門檻以秒為單位，當音量為 0 時也視為靜音"
 
-#: src/ui/settings.py:466
+#: src/ui/settings.py:481
 msgid "Silence time"
 msgstr "靜音時間"
 
-#: src/ui/settings.py:466
+#: src/ui/settings.py:481
 msgid "Silence time in seconds before recording stops automatically"
 msgstr "靜音時間以秒為單位，當靜音時間達到此秒數將自動停止錄音"
 
-#: src/ui/settings.py:1046
+#: src/ui/settings.py:1061
 msgid "Not enough permissions"
 msgstr "權限不足"
 
-#: src/ui/settings.py:1050
+#: src/ui/settings.py:1065
 msgid ""
 "Newelle does not have enough permissions to run commands on your system, "
 "please run the following command"
 msgstr "Newelle 沒有足夠權限在系統內執行指令，請執行以下指令"
 
-#: src/ui/settings.py:1051 src/ui/settings.py:1064
+#: src/ui/settings.py:1066 src/ui/settings.py:1079
 msgid "Understood"
 msgstr "確認"
 
-#: src/ui/settings.py:1063
+#: src/ui/settings.py:1078
 msgid "Pip path deleted"
 msgstr "已刪除 pip 路徑"
 
-#: src/ui/settings.py:1063
+#: src/ui/settings.py:1078
 msgid ""
 "The pip path has been deleted, you can now reinstall the dependencies. This "
 "operation requires a restart of the application."
@@ -2321,14 +2337,6 @@ msgstr "無法開啟資料夾"
 msgid "Chat is empty"
 msgstr "聊天室為空"
 
-#: data/io.github.qwersyk.Newelle.desktop.in:3
-msgid "Newelle: Your advanced chat bot"
-msgstr "Newelle：您強大的聊天機器人"
-
-#: data/io.github.qwersyk.Newelle.desktop.in:10
-msgid "ai;assistant;chat;chatgpt;gpt;llm;ollama;"
-msgstr "ai;assistant;chat;chatgpt;gpt;llm;ollama;"
-
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:9
 msgid ""
 "Train Newelle to do more with custom extensions and new AI modules, giving "
@@ -2528,6 +2536,14 @@ msgstr "重新設計"
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:196
 msgid "Qwersyk"
 msgstr "Qwersyk"
+
+#: data/io.github.qwersyk.Newelle.desktop.in:3
+msgid "Newelle: Your advanced chat bot"
+msgstr "Newelle：您強大的聊天機器人"
+
+#: data/io.github.qwersyk.Newelle.desktop.in:10
+msgid "ai;assistant;chat;chatgpt;gpt;llm;ollama;"
+msgstr "ai;assistant;chat;chatgpt;gpt;llm;ollama;"
 
 #~ msgid "max Tokens"
 #~ msgstr "Token 限制"
