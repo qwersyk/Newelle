@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-03 15:55+0800\n"
+"POT-Creation-Date: 2025-08-11 01:45+0800\n"
 "PO-Revision-Date: 2025-07-03 09:00+0200\n"
 "Last-Translator: Yehor Hliebov <qsk@gmx.at>\n"
 "Language-Team: Korean <qsk@gmx.at>\n"
@@ -69,9 +69,9 @@ msgstr "Ollama 모델의 이름"
 #: src/handlers/stt/groqsr_handler.py:13
 #: src/handlers/stt/openaisr_handler.py:17 src/handlers/stt/witai_handler.py:12
 #: src/handlers/tts/custom_openai_tts.py:18
-#: src/handlers/tts/elevenlabs_handler.py:9
 #: src/handlers/tts/groq_tts_handler.py:32
 #: src/handlers/tts/openai_tts_handler.py:18
+#: src/handlers/tts/elevenlabs_handler.py:10
 msgid "API Key"
 msgstr "API 키"
 
@@ -95,9 +95,9 @@ msgstr "사용자 지정 모델 사용"
 #: src/handlers/llm/openai_handler.py:84 src/handlers/stt/whisper_handler.py:15
 #: src/handlers/stt/whispercpp_handler.py:40
 #: src/handlers/tts/custom_openai_tts.py:20
-#: src/handlers/tts/elevenlabs_handler.py:24
 #: src/handlers/tts/groq_tts_handler.py:34
 #: src/handlers/tts/openai_tts_handler.py:20
+#: src/handlers/tts/elevenlabs_handler.py:25
 msgid "Model"
 msgstr "모델"
 
@@ -192,7 +192,7 @@ msgid "Model to use"
 msgstr "사용할 모델"
 
 #: src/handlers/llm/gpt4all_handler.py:154
-#: src/handlers/tts/elevenlabs_handler.py:25
+#: src/handlers/tts/elevenlabs_handler.py:26
 msgid "Name of the model to use"
 msgstr "사용할 모델의 이름"
 
@@ -212,13 +212,13 @@ msgstr "G4F 업데이트"
 
 #: src/handlers/llm/newelle_handler.py:18
 #: src/handlers/llm/gemini_handler.py:131
-#: src/handlers/llm/openai_handler.py:111
+#: src/handlers/llm/openai_handler.py:112
 msgid "Privacy Policy"
 msgstr "개인 정보 보호 정책"
 
 #: src/handlers/llm/newelle_handler.py:19
 #: src/handlers/llm/gemini_handler.py:132
-#: src/handlers/llm/openai_handler.py:111
+#: src/handlers/llm/openai_handler.py:112
 msgid "Open privacy policy website"
 msgstr "개인 정보 보호 정책 웹사이트 열기"
 
@@ -386,6 +386,15 @@ msgid ""
 msgstr ""
 "-2.0에서 2.0 사이의 숫자입니다. 양수 값은 모델이 새로운 주제에 대해 이야기할 "
 "가능성을 줄입니다."
+
+#: src/handlers/llm/openai_handler.py:108
+#, fuzzy
+msgid "Custom Options"
+msgstr "사용자 지정 프롬프트"
+
+#: src/handlers/llm/openai_handler.py:108
+msgid "Provide a JSON containing the custom options"
+msgstr ""
 
 #: src/handlers/llm/openrouter_handler.py:14
 msgid "Provider Sorting"
@@ -572,9 +581,9 @@ msgid "Custom endpoint of the service to use"
 msgstr "사용할 서비스의 사용자 지정 엔드포인트"
 
 #: src/handlers/tts/custom_openai_tts.py:19
-#: src/handlers/tts/elevenlabs_handler.py:17
 #: src/handlers/tts/groq_tts_handler.py:33
-#: src/handlers/tts/openai_tts_handler.py:19 src/handlers/tts/tts.py:33
+#: src/handlers/tts/openai_tts_handler.py:19
+#: src/handlers/tts/elevenlabs_handler.py:18 src/handlers/tts/tts.py:33
 #: src/ui/settings.py:129
 msgid "Voice"
 msgstr "음성"
@@ -596,43 +605,43 @@ msgid ""
 "Instructions for the voice generation. Leave it blank to avoid this field"
 msgstr "음성 생성을 위한 지침입니다. 이 필드를 비워 두려면 공백으로 두십시오."
 
-#: src/handlers/tts/elevenlabs_handler.py:10
-msgid "API Key for ElevenLabs"
-msgstr "ElevenLabs API 키"
-
-#: src/handlers/tts/elevenlabs_handler.py:18
-msgid "Voice ID to use"
-msgstr "사용할 음성 ID"
-
-#: src/handlers/tts/elevenlabs_handler.py:32
-msgid "Stability"
-msgstr "안정성"
-
-#: src/handlers/tts/elevenlabs_handler.py:33
-msgid "stability of the voice"
-msgstr "음성의 안정성"
-
-#: src/handlers/tts/elevenlabs_handler.py:42
-msgid "Similarity boost"
-msgstr "유사성 향상"
-
-#: src/handlers/tts/elevenlabs_handler.py:43
-msgid "Boosts overall voice clarity and speaker similarity"
-msgstr "전반적인 음성 명확성과 스피커 유사성을 향상시킵니다."
-
-#: src/handlers/tts/elevenlabs_handler.py:52
-msgid "Style exaggeration"
-msgstr "스타일 과장"
-
-#: src/handlers/tts/elevenlabs_handler.py:53
-msgid ""
-"High values are reccomended if the style of the speech must be exaggerated"
-msgstr "음성 스타일을 과장해야 하는 경우 높은 값을 권장합니다."
-
 #: src/handlers/tts/custom_handler.py:17
 #, python-brace-format
 msgid "{0} will be replaced with the file fullpath, {1} with the text"
 msgstr "{0}은 파일의 전체 경로로 대체되고, {1}은 텍스트로 대체됩니다."
+
+#: src/handlers/tts/elevenlabs_handler.py:11
+msgid "API Key for ElevenLabs"
+msgstr "ElevenLabs API 키"
+
+#: src/handlers/tts/elevenlabs_handler.py:19
+msgid "Voice ID to use"
+msgstr "사용할 음성 ID"
+
+#: src/handlers/tts/elevenlabs_handler.py:33
+msgid "Stability"
+msgstr "안정성"
+
+#: src/handlers/tts/elevenlabs_handler.py:34
+msgid "stability of the voice"
+msgstr "음성의 안정성"
+
+#: src/handlers/tts/elevenlabs_handler.py:43
+msgid "Similarity boost"
+msgstr "유사성 향상"
+
+#: src/handlers/tts/elevenlabs_handler.py:44
+msgid "Boosts overall voice clarity and speaker similarity"
+msgstr "전반적인 음성 명확성과 스피커 유사성을 향상시킵니다."
+
+#: src/handlers/tts/elevenlabs_handler.py:53
+msgid "Style exaggeration"
+msgstr "스타일 과장"
+
+#: src/handlers/tts/elevenlabs_handler.py:54
+msgid ""
+"High values are reccomended if the style of the speech must be exaggerated"
+msgstr "음성 스타일을 과장해야 하는 경우 높은 값을 권장합니다."
 
 #: src/handlers/tts/tts.py:34
 msgid "Choose the preferred voice"
@@ -915,7 +924,7 @@ msgid "Rename"
 msgstr "이름 바꾸기"
 
 #: src/ui/explorer.py:366 src/ui/explorer.py:502 src/ui/settings.py:276
-#: src/ui/settings.py:347
+#: src/ui/settings.py:362
 msgid "Delete"
 msgstr "삭제"
 
@@ -1124,8 +1133,8 @@ msgstr "새 확장 다운로드"
 msgid "Install extension from file..."
 msgstr "파일에서 확장 설치..."
 
-#: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.desktop.in:2
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:7
+#: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.appdata.xml.in:7
+#: data/io.github.qwersyk.Newelle.desktop.in:2
 msgid "Newelle"
 msgstr "Newelle"
 
@@ -1462,45 +1471,53 @@ msgstr "pip 경로 삭제"
 msgid "Remove the extra dependencies installed"
 msgstr "설치된 추가 종속성 제거"
 
-#: src/ui/settings.py:295
+#: src/ui/settings.py:281
+msgid "Install pip module"
+msgstr ""
+
+#: src/ui/settings.py:281
+msgid "Manually install pip module"
+msgstr ""
+
+#: src/ui/settings.py:310
 msgid "Auto-run commands"
 msgstr "자동 실행 명령"
 
-#: src/ui/settings.py:295
+#: src/ui/settings.py:310
 msgid "Commands that the bot will write will automatically run"
 msgstr "봇이 작성할 명령은 자동으로 실행됩니다."
 
-#: src/ui/settings.py:298
+#: src/ui/settings.py:313
 msgid "Max number of commands"
 msgstr "최대 명령 수"
 
-#: src/ui/settings.py:298
+#: src/ui/settings.py:313
 msgid ""
 "Maximum number of commands that the bot will write after a single user "
 "request"
 msgstr "단일 사용자 요청 후 봇이 작성할 최대 명령 수"
 
-#: src/ui/settings.py:329
+#: src/ui/settings.py:344
 msgid "Browser"
 msgstr "브라우저"
 
-#: src/ui/settings.py:329
+#: src/ui/settings.py:344
 msgid "Settings for the browser"
 msgstr "브라우저 설정"
 
-#: src/ui/settings.py:334
+#: src/ui/settings.py:349
 msgid "Use external browser"
 msgstr "외부 브라우저 사용"
 
-#: src/ui/settings.py:334
+#: src/ui/settings.py:349
 msgid "Use an external browser to open links instead of integrated one"
 msgstr "통합 브라우저 대신 외부 브라우저를 사용하여 링크 열기"
 
-#: src/ui/settings.py:341
+#: src/ui/settings.py:356
 msgid "Persist browser session"
 msgstr "브라우저 세션 유지"
 
-#: src/ui/settings.py:341
+#: src/ui/settings.py:356
 msgid ""
 "Persist browser session between restarts. Turning this off requires "
 "restarting the program"
@@ -1508,54 +1525,54 @@ msgstr ""
 "재시작 간에 브라우저 세션을 유지합니다. 이 옵션을 끄면 프로그램을 다시 시작해"
 "야 합니다."
 
-#: src/ui/settings.py:346
+#: src/ui/settings.py:361
 msgid "Delete browser data"
 msgstr "브라우저 데이터 삭제"
 
-#: src/ui/settings.py:346
+#: src/ui/settings.py:361
 msgid "Delete browser session and data"
 msgstr "브라우저 세션 및 데이터 삭제"
 
-#: src/ui/settings.py:353
+#: src/ui/settings.py:368
 msgid "Initial browser page"
 msgstr "초기 브라우저 페이지"
 
-#: src/ui/settings.py:353
+#: src/ui/settings.py:368
 msgid "The page where the browser will start"
 msgstr "브라우저가 시작될 페이지"
 
-#: src/ui/settings.py:360
+#: src/ui/settings.py:375
 msgid "Search string"
 msgstr "검색 문자열"
 
-#: src/ui/settings.py:360
+#: src/ui/settings.py:375
 #, python-format
 msgid "The search string used in the browser, %s is replaced with the query"
 msgstr "브라우저에서 사용되는 검색 문자열, %s는 쿼리로 대체됩니다."
 
-#: src/ui/settings.py:381
+#: src/ui/settings.py:396
 msgid "Document Sources (RAG)"
 msgstr "문서 소스 (RAG)"
 
-#: src/ui/settings.py:381
+#: src/ui/settings.py:396
 msgid "Include content from your documents in the responses"
 msgstr "응답에 문서의 콘텐츠 포함"
 
-#: src/ui/settings.py:382
+#: src/ui/settings.py:397
 msgid "Document Analyzer"
 msgstr "문서 분석기"
 
-#: src/ui/settings.py:382
+#: src/ui/settings.py:397
 msgid ""
 "The document analyzer uses multiple techniques to extract relevant "
 "information about your documents"
 msgstr "문서 분석기는 여러 기술을 사용하여 문서에서 관련 정보를 추출합니다."
 
-#: src/ui/settings.py:393
+#: src/ui/settings.py:408
 msgid "Read documents if unsupported"
 msgstr "지원되지 않는 경우 문서 읽기"
 
-#: src/ui/settings.py:393
+#: src/ui/settings.py:408
 msgid ""
 "If the LLM does not support reading documents, relevant information about "
 "documents sent in the chat will be given to the LLM using your Document "
@@ -1564,11 +1581,11 @@ msgstr ""
 "LLM이 문서 읽기를 지원하지 않는 경우, 채팅으로 전송된 문서에 대한 관련 정보"
 "는 문서 분석기를 사용하여 LLM에 제공됩니다."
 
-#: src/ui/settings.py:397
+#: src/ui/settings.py:412
 msgid "Maximum tokens for RAG"
 msgstr "RAG의 최대 토큰 수"
 
-#: src/ui/settings.py:397
+#: src/ui/settings.py:412
 msgid ""
 "The maximum amount of tokens to be used for RAG. If the documents do not "
 "exceed this token count,\n"
@@ -1577,11 +1594,11 @@ msgstr ""
 "RAG에 사용될 최대 토큰 수입니다. 문서가 이 토큰 수를 초과하지 않으면, 모든 문"
 "서를 컨텍스트에 덤프합니다."
 
-#: src/ui/settings.py:414
+#: src/ui/settings.py:429
 msgid "Document Folder"
 msgstr "문서 폴더"
 
-#: src/ui/settings.py:414
+#: src/ui/settings.py:429
 msgid ""
 "Put the documents you want to query in your document folder. The document "
 "analyzer will find relevant information in them if this option is enabled"
@@ -1589,33 +1606,33 @@ msgstr ""
 "쿼리하려는 문서를 문서 폴더에 넣으십시오. 이 옵션이 활성화되면 문서 분석기가 "
 "해당 문서에서 관련 정보를 찾습니다."
 
-#: src/ui/settings.py:417
+#: src/ui/settings.py:432
 msgid "Put all the documents you want to index in this folder"
 msgstr "인덱싱하려는 모든 문서를 이 폴더에 넣으십시오."
 
-#: src/ui/settings.py:453
+#: src/ui/settings.py:468
 msgid "Silence threshold"
 msgstr "무음 임계값"
 
-#: src/ui/settings.py:453
+#: src/ui/settings.py:468
 msgid ""
 "Silence threshold in seconds, percentage of the volume to be considered "
 "silence"
 msgstr "무음 임계값(초), 볼륨의 백분율로 무음으로 간주됨"
 
-#: src/ui/settings.py:466
+#: src/ui/settings.py:481
 msgid "Silence time"
 msgstr "무음 시간"
 
-#: src/ui/settings.py:466
+#: src/ui/settings.py:481
 msgid "Silence time in seconds before recording stops automatically"
 msgstr "녹음이 자동으로 중지되기 전의 무음 시간(초)"
 
-#: src/ui/settings.py:1046
+#: src/ui/settings.py:1061
 msgid "Not enough permissions"
 msgstr "권한 부족"
 
-#: src/ui/settings.py:1050
+#: src/ui/settings.py:1065
 msgid ""
 "Newelle does not have enough permissions to run commands on your system, "
 "please run the following command"
@@ -1623,15 +1640,15 @@ msgstr ""
 "Newelle에는 시스템에서 명령을 실행할 충분한 권한이 없습니다. 다음 명령을 실행"
 "하십시오."
 
-#: src/ui/settings.py:1051 src/ui/settings.py:1064
+#: src/ui/settings.py:1066 src/ui/settings.py:1079
 msgid "Understood"
 msgstr "이해했습니다."
 
-#: src/ui/settings.py:1063
+#: src/ui/settings.py:1078
 msgid "Pip path deleted"
 msgstr "Pip 경로가 삭제되었습니다."
 
-#: src/ui/settings.py:1063
+#: src/ui/settings.py:1078
 msgid ""
 "The pip path has been deleted, you can now reinstall the dependencies. This "
 "operation requires a restart of the application."
@@ -2375,14 +2392,6 @@ msgstr "폴더를 열지 못했습니다."
 msgid "Chat is empty"
 msgstr "채팅이 비어 있습니다."
 
-#: data/io.github.qwersyk.Newelle.desktop.in:3
-msgid "Newelle: Your advanced chat bot"
-msgstr "Newelle: 고급 챗봇"
-
-#: data/io.github.qwersyk.Newelle.desktop.in:10
-msgid "ai;assistant;chat;chatgpt;gpt;llm;ollama;"
-msgstr "ai;assistant;chat;chatgpt;gpt;llm;ollama;"
-
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:9
 msgid ""
 "Train Newelle to do more with custom extensions and new AI modules, giving "
@@ -2587,6 +2596,14 @@ msgstr "재설계"
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:196
 msgid "Qwersyk"
 msgstr "Qwersyk"
+
+#: data/io.github.qwersyk.Newelle.desktop.in:3
+msgid "Newelle: Your advanced chat bot"
+msgstr "Newelle: 고급 챗봇"
+
+#: data/io.github.qwersyk.Newelle.desktop.in:10
+msgid "ai;assistant;chat;chatgpt;gpt;llm;ollama;"
+msgstr "ai;assistant;chat;chatgpt;gpt;llm;ollama;"
 
 #~ msgid "max Tokens"
 #~ msgstr "최대 토큰"

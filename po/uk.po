@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-03 15:55+0800\n"
+"POT-Creation-Date: 2025-08-11 01:45+0800\n"
 "PO-Revision-Date: 2025-07-03 09:00+0200\n"
 "Last-Translator: Yehor Hliebov <qsk@gmx.at>\n"
 "Language-Team: Ukrainian\n"
@@ -76,9 +76,9 @@ msgstr "Назва моделі Ollama"
 #: src/handlers/stt/groqsr_handler.py:13
 #: src/handlers/stt/openaisr_handler.py:17 src/handlers/stt/witai_handler.py:12
 #: src/handlers/tts/custom_openai_tts.py:18
-#: src/handlers/tts/elevenlabs_handler.py:9
 #: src/handlers/tts/groq_tts_handler.py:32
 #: src/handlers/tts/openai_tts_handler.py:18
+#: src/handlers/tts/elevenlabs_handler.py:10
 msgid "API Key"
 msgstr "API-ключ"
 
@@ -105,9 +105,9 @@ msgstr "Використовувати користувацьку модель"
 #: src/handlers/llm/openai_handler.py:84 src/handlers/stt/whisper_handler.py:15
 #: src/handlers/stt/whispercpp_handler.py:40
 #: src/handlers/tts/custom_openai_tts.py:20
-#: src/handlers/tts/elevenlabs_handler.py:24
 #: src/handlers/tts/groq_tts_handler.py:34
 #: src/handlers/tts/openai_tts_handler.py:20
+#: src/handlers/tts/elevenlabs_handler.py:25
 msgid "Model"
 msgstr "Модель"
 
@@ -211,7 +211,7 @@ msgid "Model to use"
 msgstr "Модель для використання"
 
 #: src/handlers/llm/gpt4all_handler.py:154
-#: src/handlers/tts/elevenlabs_handler.py:25
+#: src/handlers/tts/elevenlabs_handler.py:26
 #, fuzzy
 msgid "Name of the model to use"
 msgstr "Назва моделі для використання"
@@ -233,13 +233,13 @@ msgstr "Оновити G4F"
 
 #: src/handlers/llm/newelle_handler.py:18
 #: src/handlers/llm/gemini_handler.py:131
-#: src/handlers/llm/openai_handler.py:111
+#: src/handlers/llm/openai_handler.py:112
 msgid "Privacy Policy"
 msgstr "Політика конфіденційності"
 
 #: src/handlers/llm/newelle_handler.py:19
 #: src/handlers/llm/gemini_handler.py:132
-#: src/handlers/llm/openai_handler.py:111
+#: src/handlers/llm/openai_handler.py:112
 msgid "Open privacy policy website"
 msgstr "Відкрити веб-сайт політики конфіденційності"
 
@@ -421,6 +421,15 @@ msgid ""
 msgstr ""
 "Число від -2.0 до 2.0. Позитивні значення зменшують ймовірність моделі "
 "говорити про нові теми"
+
+#: src/handlers/llm/openai_handler.py:108
+#, fuzzy
+msgid "Custom Options"
+msgstr "Користувацький запит"
+
+#: src/handlers/llm/openai_handler.py:108
+msgid "Provide a JSON containing the custom options"
+msgstr ""
 
 #: src/handlers/llm/openrouter_handler.py:14
 msgid "Provider Sorting"
@@ -620,9 +629,9 @@ msgid "Custom endpoint of the service to use"
 msgstr "Користувацька кінцева точка сервісу для використання"
 
 #: src/handlers/tts/custom_openai_tts.py:19
-#: src/handlers/tts/elevenlabs_handler.py:17
 #: src/handlers/tts/groq_tts_handler.py:33
-#: src/handlers/tts/openai_tts_handler.py:19 src/handlers/tts/tts.py:33
+#: src/handlers/tts/openai_tts_handler.py:19
+#: src/handlers/tts/elevenlabs_handler.py:18 src/handlers/tts/tts.py:33
 #: src/ui/settings.py:129
 msgid "Voice"
 msgstr "Голос"
@@ -646,47 +655,47 @@ msgid ""
 msgstr ""
 "Інструкції для генерації голосу. Залиште порожнім, щоб уникнути цього поля"
 
-#: src/handlers/tts/elevenlabs_handler.py:10
+#: src/handlers/tts/custom_handler.py:17
+#, fuzzy, python-brace-format
+msgid "{0} will be replaced with the file fullpath, {1} with the text"
+msgstr "{0} буде замінено повним шляхом до файлу, {1} – текстом"
+
+#: src/handlers/tts/elevenlabs_handler.py:11
 #, fuzzy
 msgid "API Key for ElevenLabs"
 msgstr "API-ключ для ElevenLabs"
 
-#: src/handlers/tts/elevenlabs_handler.py:18
+#: src/handlers/tts/elevenlabs_handler.py:19
 #, fuzzy
 msgid "Voice ID to use"
 msgstr "Ідентифікатор голосу для використання"
 
-#: src/handlers/tts/elevenlabs_handler.py:32
+#: src/handlers/tts/elevenlabs_handler.py:33
 msgid "Stability"
 msgstr "Стабільність"
 
-#: src/handlers/tts/elevenlabs_handler.py:33
+#: src/handlers/tts/elevenlabs_handler.py:34
 msgid "stability of the voice"
 msgstr "стабільність голосу"
 
-#: src/handlers/tts/elevenlabs_handler.py:42
+#: src/handlers/tts/elevenlabs_handler.py:43
 msgid "Similarity boost"
 msgstr "Підсилення подібності"
 
-#: src/handlers/tts/elevenlabs_handler.py:43
+#: src/handlers/tts/elevenlabs_handler.py:44
 msgid "Boosts overall voice clarity and speaker similarity"
 msgstr "Підвищує загальну чіткість голосу та подібність до мовця"
 
-#: src/handlers/tts/elevenlabs_handler.py:52
+#: src/handlers/tts/elevenlabs_handler.py:53
 msgid "Style exaggeration"
 msgstr "Перебільшення стилю"
 
-#: src/handlers/tts/elevenlabs_handler.py:53
+#: src/handlers/tts/elevenlabs_handler.py:54
 msgid ""
 "High values are reccomended if the style of the speech must be exaggerated"
 msgstr ""
 "Високі значення рекомендуються, якщо стиль мовлення повинен бути "
 "перебільшений"
-
-#: src/handlers/tts/custom_handler.py:17
-#, fuzzy, python-brace-format
-msgid "{0} will be replaced with the file fullpath, {1} with the text"
-msgstr "{0} буде замінено повним шляхом до файлу, {1} – текстом"
 
 #: src/handlers/tts/tts.py:34
 msgid "Choose the preferred voice"
@@ -975,7 +984,7 @@ msgid "Rename"
 msgstr "Перейменувати"
 
 #: src/ui/explorer.py:366 src/ui/explorer.py:502 src/ui/settings.py:276
-#: src/ui/settings.py:347
+#: src/ui/settings.py:362
 msgid "Delete"
 msgstr "Видалити"
 
@@ -1196,8 +1205,8 @@ msgstr "Завантажити нові розширення"
 msgid "Install extension from file..."
 msgstr "Встановити розширення з файлу..."
 
-#: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.desktop.in:2
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:7
+#: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.appdata.xml.in:7
+#: data/io.github.qwersyk.Newelle.desktop.in:2
 msgid "Newelle"
 msgstr "Newelle"
 
@@ -1549,20 +1558,28 @@ msgstr "Видалити шлях pip"
 msgid "Remove the extra dependencies installed"
 msgstr "Видалити встановлені додаткові залежності"
 
-#: src/ui/settings.py:295
+#: src/ui/settings.py:281
+msgid "Install pip module"
+msgstr ""
+
+#: src/ui/settings.py:281
+msgid "Manually install pip module"
+msgstr ""
+
+#: src/ui/settings.py:310
 msgid "Auto-run commands"
 msgstr "Автозапуск команд"
 
-#: src/ui/settings.py:295
+#: src/ui/settings.py:310
 msgid "Commands that the bot will write will automatically run"
 msgstr "Команди, які напише бот, будуть автоматично виконуватися"
 
-#: src/ui/settings.py:298
+#: src/ui/settings.py:313
 #, fuzzy
 msgid "Max number of commands"
 msgstr "Максимальна кількість команд"
 
-#: src/ui/settings.py:298
+#: src/ui/settings.py:313
 #, fuzzy
 msgid ""
 "Maximum number of commands that the bot will write after a single user "
@@ -1570,28 +1587,28 @@ msgid ""
 msgstr ""
 "Максимальна кількість команд, які бот напише після одного запиту користувача"
 
-#: src/ui/settings.py:329
+#: src/ui/settings.py:344
 msgid "Browser"
 msgstr "Браузер"
 
-#: src/ui/settings.py:329
+#: src/ui/settings.py:344
 msgid "Settings for the browser"
 msgstr "Налаштування браузера"
 
-#: src/ui/settings.py:334
+#: src/ui/settings.py:349
 msgid "Use external browser"
 msgstr "Використовувати зовнішній браузер"
 
-#: src/ui/settings.py:334
+#: src/ui/settings.py:349
 msgid "Use an external browser to open links instead of integrated one"
 msgstr ""
 "Використовувати зовнішній браузер для відкриття посилань замість вбудованого"
 
-#: src/ui/settings.py:341
+#: src/ui/settings.py:356
 msgid "Persist browser session"
 msgstr "Зберігати сесію браузера"
 
-#: src/ui/settings.py:341
+#: src/ui/settings.py:356
 msgid ""
 "Persist browser session between restarts. Turning this off requires "
 "restarting the program"
@@ -1599,45 +1616,45 @@ msgstr ""
 "Зберігати сесію браузера між перезапусками. Вимкнення цієї функції вимагає "
 "перезапуску програми"
 
-#: src/ui/settings.py:346
+#: src/ui/settings.py:361
 msgid "Delete browser data"
 msgstr "Видалити дані браузера"
 
-#: src/ui/settings.py:346
+#: src/ui/settings.py:361
 msgid "Delete browser session and data"
 msgstr "Видалити сесію та дані браузера"
 
-#: src/ui/settings.py:353
+#: src/ui/settings.py:368
 msgid "Initial browser page"
 msgstr "Початкова сторінка браузера"
 
-#: src/ui/settings.py:353
+#: src/ui/settings.py:368
 msgid "The page where the browser will start"
 msgstr "Сторінка, з якої почнеться браузер"
 
-#: src/ui/settings.py:360
+#: src/ui/settings.py:375
 #, fuzzy
 msgid "Search string"
 msgstr "Рядок пошуку"
 
-#: src/ui/settings.py:360
+#: src/ui/settings.py:375
 #, python-format
 msgid "The search string used in the browser, %s is replaced with the query"
 msgstr "Рядок пошуку, що використовується у браузері, %s замінюється запитом"
 
-#: src/ui/settings.py:381
+#: src/ui/settings.py:396
 msgid "Document Sources (RAG)"
 msgstr "Джерела документів (RAG)"
 
-#: src/ui/settings.py:381
+#: src/ui/settings.py:396
 msgid "Include content from your documents in the responses"
 msgstr "Включати вміст з ваших документів у відповіді"
 
-#: src/ui/settings.py:382
+#: src/ui/settings.py:397
 msgid "Document Analyzer"
 msgstr "Аналізатор документів"
 
-#: src/ui/settings.py:382
+#: src/ui/settings.py:397
 msgid ""
 "The document analyzer uses multiple techniques to extract relevant "
 "information about your documents"
@@ -1645,11 +1662,11 @@ msgstr ""
 "Аналізатор документів використовує кілька технік для вилучення релевантної "
 "інформації з ваших документів"
 
-#: src/ui/settings.py:393
+#: src/ui/settings.py:408
 msgid "Read documents if unsupported"
 msgstr "Читати документи, якщо не підтримується"
 
-#: src/ui/settings.py:393
+#: src/ui/settings.py:408
 msgid ""
 "If the LLM does not support reading documents, relevant information about "
 "documents sent in the chat will be given to the LLM using your Document "
@@ -1659,11 +1676,11 @@ msgstr ""
 "документи, надіслані в чат, буде надана LLM за допомогою вашого аналізатора "
 "документів."
 
-#: src/ui/settings.py:397
+#: src/ui/settings.py:412
 msgid "Maximum tokens for RAG"
 msgstr "Максимальна кількість токенів для RAG"
 
-#: src/ui/settings.py:397
+#: src/ui/settings.py:412
 msgid ""
 "The maximum amount of tokens to be used for RAG. If the documents do not "
 "exceed this token count,\n"
@@ -1673,11 +1690,11 @@ msgstr ""
 "не перевищують цієї кількості токенів,\n"
 "включіть їх усі в контекст"
 
-#: src/ui/settings.py:414
+#: src/ui/settings.py:429
 msgid "Document Folder"
 msgstr "Папка з документами"
 
-#: src/ui/settings.py:414
+#: src/ui/settings.py:429
 msgid ""
 "Put the documents you want to query in your document folder. The document "
 "analyzer will find relevant information in them if this option is enabled"
@@ -1685,33 +1702,33 @@ msgstr ""
 "Помістіть документи, які ви хочете запитати, у папку документів. Аналізатор "
 "документів знайде в них відповідну інформацію, якщо цю опцію увімкнено"
 
-#: src/ui/settings.py:417
+#: src/ui/settings.py:432
 msgid "Put all the documents you want to index in this folder"
 msgstr "Помістіть усі документи, які ви хочете індексувати, у цю папку"
 
-#: src/ui/settings.py:453
+#: src/ui/settings.py:468
 msgid "Silence threshold"
 msgstr "Поріг тиші"
 
-#: src/ui/settings.py:453
+#: src/ui/settings.py:468
 msgid ""
 "Silence threshold in seconds, percentage of the volume to be considered "
 "silence"
 msgstr "Поріг тиші в секундах, відсоток гучності, що вважатиметься тишею"
 
-#: src/ui/settings.py:466
+#: src/ui/settings.py:481
 msgid "Silence time"
 msgstr "Час тиші"
 
-#: src/ui/settings.py:466
+#: src/ui/settings.py:481
 msgid "Silence time in seconds before recording stops automatically"
 msgstr "Час тиші в секундах, перш ніж запис автоматично зупиниться"
 
-#: src/ui/settings.py:1046
+#: src/ui/settings.py:1061
 msgid "Not enough permissions"
 msgstr "Недостатньо прав"
 
-#: src/ui/settings.py:1050
+#: src/ui/settings.py:1065
 msgid ""
 "Newelle does not have enough permissions to run commands on your system, "
 "please run the following command"
@@ -1719,15 +1736,15 @@ msgstr ""
 "Newelle не має достатньо прав для виконання команд у вашій системі, будь "
 "ласка, виконайте наступну команду"
 
-#: src/ui/settings.py:1051 src/ui/settings.py:1064
+#: src/ui/settings.py:1066 src/ui/settings.py:1079
 msgid "Understood"
 msgstr "Зрозуміло"
 
-#: src/ui/settings.py:1063
+#: src/ui/settings.py:1078
 msgid "Pip path deleted"
 msgstr "Шлях Pip видалено"
 
-#: src/ui/settings.py:1063
+#: src/ui/settings.py:1078
 msgid ""
 "The pip path has been deleted, you can now reinstall the dependencies. This "
 "operation requires a restart of the application."
@@ -2517,14 +2534,6 @@ msgstr "Не вдалося відкрити папку"
 msgid "Chat is empty"
 msgstr "Чат порожній"
 
-#: data/io.github.qwersyk.Newelle.desktop.in:3
-msgid "Newelle: Your advanced chat bot"
-msgstr "Newelle: Ваш розширений чат-бот"
-
-#: data/io.github.qwersyk.Newelle.desktop.in:10
-msgid "ai;assistant;chat;chatgpt;gpt;llm;ollama;"
-msgstr "ai;assistant;chat;chatgpt;gpt;llm;ollama;"
-
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:9
 msgid ""
 "Train Newelle to do more with custom extensions and new AI modules, giving "
@@ -2735,6 +2744,14 @@ msgstr "Редизайн"
 #: data/io.github.qwersyk.Newelle.appdata.xml.in:196
 msgid "Qwersyk"
 msgstr "Qwersyk"
+
+#: data/io.github.qwersyk.Newelle.desktop.in:3
+msgid "Newelle: Your advanced chat bot"
+msgstr "Newelle: Ваш розширений чат-бот"
+
+#: data/io.github.qwersyk.Newelle.desktop.in:10
+msgid "ai;assistant;chat;chatgpt;gpt;llm;ollama;"
+msgstr "ai;assistant;chat;chatgpt;gpt;llm;ollama;"
 
 #, fuzzy
 #~ msgid "max Tokens"
