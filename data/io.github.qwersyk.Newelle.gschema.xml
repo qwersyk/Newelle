@@ -178,6 +178,6 @@
         </key>
         <key name="remember-profile" type="b">
           <default>false</default>
-        <key>
+        </key>
 	</schema>
 </schemalist>
