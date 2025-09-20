@@ -184,6 +184,12 @@ class Settings(Adw.PreferencesWindow):
         self.settings.bind("hidden-files", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
         self.interface.add(row)
 
+        row = Adw.ActionRow(title=_("Remember assistant profile per chat"), subtitle=_("When changing chat, the profile corresponding to the last generation is selected"))
+        switch = Gtk.Switch(valign=Gtk.Align.CENTER)
+        row.add_suffix(switch)
+        self.settings.bind("remember-profile", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
+        self.interface.add(row)
+
         row = Adw.ActionRow(title=_("Send with ENTER"), subtitle=_("If enabled, messages will be sent with ENTER, to go to a new line use CTRL+ENTER. If disabled, messages will be sent with SHIFT+ENTER, and newline with enter"))
         switch = Gtk.Switch(valign=Gtk.Align.CENTER)
         row.add_suffix(switch)
