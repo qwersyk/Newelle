@@ -342,6 +342,7 @@ class NewelleSettings:
         self.virtualization = settings.get_boolean("virtualization")
         self.memory = settings.get_int("memory")
         self.hidden_files = settings.get_boolean("hidden-files")
+        self.remember_profile = settings.get_boolean("remember-profile")
         self.reverse_order = settings.get_boolean("reverse-order")
         self.remove_thinking = settings.get_boolean("remove-thinking")
         self.auto_generate_name = settings.get_boolean("auto-generate-name")

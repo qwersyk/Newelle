@@ -1878,6 +1878,9 @@ class MainWindow(Adw.ApplicationWindow):
         old_chat_id = self.chat_id
         self.chat_id = int(button.get_name())
         self.chat = self.chats[self.chat_id]["chat"]
+        # Change profile 
+        if self.controller.newelle_settings.remember_profile and "profile" in self.chats[self.chat_id]:
+            self.switch_profile(self.chats[self.chat_id]["profile"])
         self.update_history()
         if old_chat_id > self.chat_id:
             self.chat_stack.set_transition_type(Gtk.StackTransitionType.SLIDE_UP)
@@ -2154,6 +2157,9 @@ class MainWindow(Adw.ApplicationWindow):
 
     def send_message(self, manual=True):
         """Send a message in the chat and get bot answer, handle TTS etc"""
+        # Save profile for generation 
+        self.chats[self.chat_id]["profile"] = self.current_profile
+
         GLib.idle_add(self.hide_placeholder)
         if manual:
             self.auto_run_times = 0
