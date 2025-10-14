@@ -256,8 +256,7 @@ class PresentationWindow(Adw.Window):
 
     def create_image_page(self, title:str, description: str, picture:str, actions: list):
         # Picture
-        pic = Gtk.Image()
-        pic.set_from_resource(picture)
-        pic.set_size_request(-1,300)
+        pic = Gtk.Picture()
+        pic.set_resource(picture)
         return self.create_page(title, description, pic, actions)
 
