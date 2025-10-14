@@ -35,6 +35,7 @@ install_data (
     'detach-symbolic.svg',
     'sidebar-show-left-symbolic.svg',
     'magic-wand-symbolic.svg',
+    'emblem-default-symbolic.svg',
     install_dir: symbolic_dir
 )
 install_data (
