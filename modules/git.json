@@ -1,0 +1,26 @@
+{
+    "name": "git",
+    "make-args": [
+        "INSTALL_SYMLINKS=1"
+    ],
+    "make-install-args": [
+        "INSTALL_SYMLINKS=1"
+    ],
+    "cleanup": [
+        "/lib/pkgconfig",
+        "/man"
+    ],
+    "sources": [
+        {
+            "type": "archive",
+            "url": "https://www.kernel.org/pub/software/scm/git/git-2.49.1.tar.gz",
+            "sha256": "84a8383ffc77146133bc128a544450cf8ce5166cbea5056c98033d2f0c454794",
+            "x-checker-data": {
+                "type": "anitya",
+                "project-id": 5350,
+                "stable-only": true,
+                "url-template": "https://www.kernel.org/pub/software/scm/git/git-$version.tar.xz"
+            }
+        }
+    ]
+}

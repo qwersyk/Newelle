@@ -4,23 +4,22 @@
 	    "build-commands": [
 	    	"pip3 install --verbose --exists-action=i --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} --no-build-isolation meson-python",
 	    	"pip3 install --verbose --exists-action=i --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} --no-build-isolation pybind11 cycler fonttools kiwisolver python-dateutil",
-	    	"pip3 install --verbose --exists-action=i --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} --no-build-isolation numpy contourpy",
+	    	"pip3 install --verbose --exists-action=i --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} --no-build-isolation numpy==2.1.0 contourpy",
 		"pip3 install --verbose --exists-action=i --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} --no-build-isolation matplotlib --config-settings=setup-args=\"-Dsystem-freetype=true\" --config-settings=setup-args=\"-Dsystem-qhull=true\""
 	    ],
-
 	    "sources": [
 		{
 		    "type": "file",
-		    "url": "https://files.pythonhosted.org/packages/90/60/2a60342b27b90a16bada939a85e29589902b41073f59668b904b15ea666c/matplotlib-3.10.0-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl",
-		    "sha256": "a994f29e968ca002b50982b27168addfd65f0105610b6be7fa515ca4b5307c95",
+		    "url": "https://files.pythonhosted.org/packages/57/69/cb0812a136550b21361335e9ffb7d459bf6d13e03cb7b015555d5143d2d6/matplotlib-3.10.0-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.whl",
+		    "sha256": "2fbbabc82fde51391c4da5006f965e36d86d95f6ee83fb594b279564a4c5d0d2",
 		    "only-arches": [
 		        "aarch64"
 		    ]
 		},
 		{
 		    "type": "file",
-		    "url": "https://files.pythonhosted.org/packages/a7/b2/d872fc3d753516870d520595ddd8ce4dd44fa797a240999f125f58521ad7/matplotlib-3.10.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
-		    "sha256": "9b0558bae37f154fffda54d779a592bc97ca8b4701f1c710055b609a3bac44c8",
+		    "url": "https://files.pythonhosted.org/packages/ea/3a/bab9deb4fb199c05e9100f94d7f1c702f78d3241e6a71b784d2b88d7bebd/matplotlib-3.10.0-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+		    "sha256": "ad2e15300530c1a94c63cfa546e3b7864bd18ea2901317bae8bbf06a5ade6dcf",
 		    "only-arches": [
 		        "x86_64"
 		    ]
@@ -32,48 +31,48 @@
 		},
 		{
 		    "type": "file",
-		    "url": "https://files.pythonhosted.org/packages/7f/11/4ebd7a3f4a655764dc98481f97bd0a662fb340d1001be6050606be13e162/numpy-2.2.1-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl",
-		    "sha256": "9b1d07b53b78bf84a96898c1bc139ad7f10fda7423f5fd158fd0f47ec5e01ac7",
+		    "url": "https://files.pythonhosted.org/packages/0e/ce/848967516bf8dd4f769886a883a4852dbc62e9b63b1137d2b9900f595222/numpy-2.1.0-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.whl",
+		    "sha256": "652e92fc409e278abdd61e9505649e3938f6d04ce7ef1953f2ec598a50e7c195",
 		    "only-arches": [
 		        "aarch64"
 		    ]
 		},
 		{
 		    "type": "file",
-		    "url": "https://files.pythonhosted.org/packages/7f/a7/c1f1d978166eb6b98ad009503e4d93a8c1962d0eb14a885c352ee0276a54/numpy-2.2.1-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
-		    "sha256": "5062dc1a4e32a10dc2b8b13cedd58988261416e811c1dc4dbdea4f57eea61b0d",
+		    "url": "https://files.pythonhosted.org/packages/15/72/2cebe04758e1123f625ed3221cb3c48602175ad619dd9b47de69689b4656/numpy-2.1.0-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+		    "sha256": "0ab32eb9170bf8ffcbb14f11613f4a0b108d3ffee0832457c5d4808233ba8977",
 		    "only-arches": [
 		        "x86_64"
 		    ]
 		},
 		{
 		    "type": "file",
-		    "url": "https://files.pythonhosted.org/packages/00/44/f5ee560858425c99ef07e04919e736db09d6416408e5a8d3bbfb4a6623fd/fonttools-4.55.3-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl",
-		    "sha256": "07f8288aacf0a38d174445fc78377a97fb0b83cfe352a90c9d9c1400571963c7",
+		    "url": "https://files.pythonhosted.org/packages/34/47/a681cfd10245eb74f65e491a934053ec75c4af639655446558f29818e45e/fonttools-4.55.3-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.whl",
+		    "sha256": "8e75f12c82127486fac2d8bfbf5bf058202f54bf4f158d367e41647b972342ca",
 		    "only-arches": [
 		        "aarch64"
 		    ]
 		},
 		{
 		    "type": "file",
-		    "url": "https://files.pythonhosted.org/packages/24/da/0a001926d791c55e29ac3c52964957a20dbc1963615446b568b7432891c3/fonttools-4.55.3-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
-		    "sha256": "b8d5e8916c0970fbc0f6f1bece0063363bb5857a7f170121a4493e31c3db3314",
+		    "url": "https://files.pythonhosted.org/packages/d2/6c/a7066afc19db0705a12efd812e19c32cde2b9514eb714659522f2ebd60b6/fonttools-4.55.3-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+		    "sha256": "859c358ebf41db18fb72342d3080bce67c02b39e86b9fbcf1610cca14984841b",
 		    "only-arches": [
 		        "x86_64"
 		    ]
 		},
 		{
 		    "type": "file",
-		    "url": "https://files.pythonhosted.org/packages/29/61/39d30b99954e6b46f760e6289c12fede2ab96a254c443639052d1b573fbc/kiwisolver-1.4.8-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl",
-		    "sha256": "257af1622860e51b1a9d0ce387bf5c2c4f36a90594cb9514f55b074bcc787cfc",
+		    "url": "https://files.pythonhosted.org/packages/4e/b9/1c6e9f6dcb103ac5cf87cb695845f5fa71379021500153566d8a8a9fc291/kiwisolver-1.4.8-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.whl",
+		    "sha256": "3ddc373e0eef45b59197de815b1b28ef89ae3955e7722cc9710fb91cd77b7f47",
 		    "only-arches": [
 		        "aarch64"
 		    ]
 		},
 		{
 		    "type": "file",
-		    "url": "https://files.pythonhosted.org/packages/bc/b3/9458adb9472e61a998c8c4d95cfdfec91c73c53a375b30b1428310f923e4/kiwisolver-1.4.8-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
-		    "sha256": "cc978a80a0db3a66d25767b03688f1147a69e6237175c0f4ffffaaedf744055a",
+		    "url": "https://files.pythonhosted.org/packages/8f/e9/6a7d025d8da8c4931522922cd706105aa32b3291d1add8c5427cdcd66e63/kiwisolver-1.4.8-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+		    "sha256": "a5ce1e481a74b44dd5e92ff03ea0cb371ae7a0268318e202be06c8f04f4f1246",
 		    "only-arches": [
 		        "x86_64"
 		    ]

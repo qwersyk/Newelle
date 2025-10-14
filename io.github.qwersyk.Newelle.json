@@ -1,65 +1,72 @@
 {
-  "app-id": "io.github.qwersyk.Newelle",
-  "runtime": "org.gnome.Platform",
-  "runtime-version": "48",
-  "sdk": "org.gnome.Sdk",
-  "command": "newelle",
-  "finish-args": [
-    "--share=network",
-    "--share=ipc",
-    "--socket=fallback-x11",
-    "--device=dri",
-    "--socket=wayland",
-    "--talk-name=org.freedesktop.Flatpak",
-    "--filesystem=home",
-    "--socket=pulseaudio",
-    "--talk-name=org.gnome.Shell.Screencast"
-  ],
-  "cleanup": [
-    "/include",
-    "/lib/pkgconfig",
-    "/man",
-    "/share/doc",
-    "/share/gtk-doc",
-    "/share/man",
-    "/share/pkgconfig",
-    "*.la",
-    "*.a"
-  ],
-  "modules": [
-    "modules/vte.json",
-    "modules/python3-requests.json",
-    "modules/python3-expandvars.json",
-    "modules/python3-gpt4all.json",
-    "modules/python3-gtts.json",
-    "modules/portaudio.json",
-    "modules/python3-pyaudio.json",
-    "modules/python3-speechrecognition.json",
-    "modules/python3-pydub.json",
-    "modules/python3-pillow.json",
-    "modules/python3-matplotlib.json",
-    "modules/python3-pylatexenc.json",
-    "modules/python3-lxml.json",
-    "modules/python3-lxml_html_clean.json",
-    "modules/python3-newspaper3k.json",
-    "modules/python3-markdownify.json",
-    {
-      "name": "newelle",
-      "builddir": true,
-      "buildsystem": "meson",
-      "config-opts": [
-        "-Dprofile=development"
-      ],
-      "build-options":{
-	    "append-path": "/usr/lib/sdk/llvm19/bin",
-	    "prepend-ld-library-path": "/usr/lib/sdk/llvm19/lib"
-      },
-      "sources": [
+    "app-id" : "io.github.qwersyk.Newelle",
+    "runtime" : "org.gnome.Platform",
+    "runtime-version" : "49",
+    "sdk" : "org.gnome.Sdk",
+    "command" : "newelle",
+    "finish-args" : [
+        "--share=network",
+        "--share=ipc",
+        "--socket=fallback-x11",
+        "--device=dri",
+        "--socket=wayland",
+        "--talk-name=org.freedesktop.Flatpak",
+        "--filesystem=home",
+        "--socket=pulseaudio",
+        "--talk-name=org.gnome.Shell.Screencast"
+    ],
+    "cleanup" : [
+        "/include",
+        "/lib/pkgconfig",
+        "/man",
+        "/share/doc",
+        "/share/gtk-doc",
+        "/share/man",
+        "/share/pkgconfig",
+        "*.la",
+        "*.a"
+    ],
+    "modules" : [
+    	"modules/git.json",
+        "modules/vte.json",
+        "modules/python3-requests.json",
+        "modules/python3-expandvars.json",
+        "modules/python3-gpt4all.json",
+        "modules/python3-gtts.json",
+        "modules/portaudio.json",
+        "modules/python3-pyaudio.json",
+        "modules/python3-speechrecognition.json",
+        "modules/python3-pydub.json",
+        "modules/python3-six.json",
+        "modules/python3-pillow.json",
+        "modules/python3-matplotlib.json",
+        "modules/python3-pylatexenc.json",
+        "modules/python3-lxml.json",
+        "modules/python3-lxml_html_clean.json",
+        "modules/python3-newspaper3k.json",
+        "modules/python3-markdownify.json",
+        "modules/python3-openai.json",
         {
-          "type": "git",
-          "url": "."
+            "name" : "newelle",
+            "builddir" : true,
+            "buildsystem" : "meson",
+            "config-opts" : [
+                "-Dprofile=development",
+                "--libdir=lib"
+            ],
+            "build-options" : {
+                "append-path" : "/usr/lib/sdk/llvm19/bin",
+                "prepend-ld-library-path" : "/usr/lib/sdk/llvm19/lib"
+            },
+            "sources" : [
+                {
+                    "type" : "git",
+                    "url" : "."
+                }
+            ]
         }
-      ]
+    ],
+    "build-options" : {
+        "env" : {        }
     }
-  ]
 }
