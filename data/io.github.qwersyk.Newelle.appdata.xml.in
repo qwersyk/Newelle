@@ -32,6 +32,17 @@
 	<url type="bugtracker">https://github.com/qwersyk/Newelle/issues</url>
 	<content_rating type="oars-1.0" />
 	<releases>
+	    <release version="1.0.2" date="2025-10-16">
+            <description>
+                <ul>
+                    <li>Update GNOME 49 runtime</li>
+                    <li>Add custom body for OpenAI handler</li>
+                    <li>Add ability to remember profile per chat</li>
+                    <li>Preinstall openai module</li>
+                    <li>Fix miscellaneous bugs</li>
+                </ul>
+            </description>
+        </release>
 	    <release version="1.0.1" date="2025-08-03">
             <description>
                 <ul>
