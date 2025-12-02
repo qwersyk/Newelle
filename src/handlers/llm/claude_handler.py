@@ -9,7 +9,7 @@ from ...handlers import ExtraSettings
 
 class ClaudeHandler(LLMHandler):
     key = "claude"
-    default_models = (("claude-3-opus-latest", "claude-3-opus-latest"), ("claude-3-5-sonnet-latest", "claude-3-5-sonnet-latest") )
+    default_models = (("claude-sonnet-4-5", "claude-sonnet-4-5"), ("claude-haiku-4-5", "claude-haiku-4-5"), ("claude-opus-4-5","claude-opus-4-5"), ("claude-opus-4-1", "claude-opus-4-1" ) )
     def __init__(self, settings, path):
         super().__init__(settings, path)
         models = self.get_setting("models", False)
