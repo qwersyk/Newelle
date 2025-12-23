@@ -19,7 +19,10 @@ class DDGSeachHandler(WebSearchHandler):
         return self.query_streaming(keywords, lambda title, link, favicon: None)
     
     def query_streaming(self, keywords: str, add_website) -> tuple[str, list]:
-        from duckduckgo_search import DDGS
+        try:
+            from ddgs import DDGS
+        except ImportError:
+            from duckduckgo_search import DDGS
         ddg = DDGS()
         try:
             results = ddg.text(keywords, max_results=self.get_setting("results"), region=self.get_setting("region"))
