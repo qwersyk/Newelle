@@ -37,7 +37,8 @@ newelle_sources = [
   'window.py',
   'extensions.py',
   'controller.py',
-  'ui_controller.py'
+  'ui_controller.py',
+  'tools.py'
 ]
 
 integrations_sources = [
