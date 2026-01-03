@@ -3,6 +3,7 @@ from gi.repository import GLib, Gio, Adw
 import os
 import base64
 
+from .tools import ToolRegistry
 from .utility.media import get_image_base64, get_image_path
 
 from .extensions import NewelleExtension
@@ -86,6 +87,8 @@ class NewelleController:
         self.python_path = python_path
         self.ui_controller : UIController | None = None
         self.installing_handlers = {}
+        self.tools = ToolRegistry()
+        self.msgid = 0
 
     def ui_init(self):
         """Init necessary variables for the UI and load models and handlers"""
@@ -238,12 +241,14 @@ class NewelleController:
         self.extensionloader.load_extensions()
         self.extensionloader.add_handlers(AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS, AVAILABLE_RAGS, AVAILABLE_WEBSEARCH)
         self.extensionloader.add_prompts(PROMPTS, AVAILABLE_PROMPTS)
+        self.extensionloader.add_tools(self.tools)
         self.set_ui_controller(self.ui_controller)
 
     def load_integrations(self):
         """Load integrations"""
         self.integrationsloader = ExtensionLoader(self.extension_path, pip_path=self.pip_path, settings=self.settings, extension_cache=self.extensions_cache)
         self.integrationsloader.load_integrations(AVAILABLE_INTEGRATIONS)
+        self.integrationsloader.add_tools(self.tools)
         self.set_ui_controller(self.ui_controller)
 
     def create_profile(self, profile_name, picture=None, settings={}, settings_groups=[]):

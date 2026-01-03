@@ -190,6 +190,9 @@ class NewelleExtension(Handler):
         """
         return []
 
+    def get_tools(self) -> list:
+        return []
+
     def get_replace_codeblocks_langs(self) -> list:
         """Get the list of codeblock langs that the extension handles and replaces
 
@@ -372,6 +375,16 @@ class ExtensionLoader:
     def set_handlers(self, llm: LLMHandler, stt: STTHandler, tts:TTSHandler|None, secondary_llm: LLMHandler, embedding: EmbeddingHandler, rag: RAGHandler|None, memory: MemoryHandler|None, websearch: WebSearchHandler | None):
         for extension in self.extensions:
             extension.set_handlers(llm, stt, tts, secondary_llm, embedding, rag, memory, websearch)
+    
+    def add_tools(self, tool_registry):
+        for extension in self.extensions:
+            for tool in extension.get_tools():
+                tool_registry.register_tool(tool)
+    
+    def remove_tools(self, tool_registry):
+        for extension in self.extensions:
+            for tool in extension.get_tools():
+                tool_registry.remove_tool(tool.name)
 
     def add_handlers(self, AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS, AVAILABLE_RAG, AVAILABLE_WEBSEARCH):
         """Add the handlers of each extension to the available handlers
