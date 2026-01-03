@@ -5,6 +5,7 @@ import threading
 from ..utility.message_chunk import get_message_chunks
 from ..ui import load_image_with_callback
 from ..utility.website_scraper import WebsiteScraper
+from ..tools import Tool, ToolResult
 
 CHUNK_SIZE = 512 
 MAX_CONTEXT = 5000
@@ -16,6 +17,26 @@ class WebsiteReader(NewelleExtension):
     def __init__(self, pip_path: str, extension_path: str, settings):
         super().__init__(pip_path, extension_path, settings)
         self.caches = {}
+    
+    def read_website(self, url):
+        widget = self.get_gtk_widget(url, "website")
+        result = ToolResult() 
+        def get_answer():
+            out = self.get_article_content(url)
+            result.set_output(out)
+        result.set_widget(widget)
+        t = threading.Thread(target=get_answer)
+        t.start()
+        return result 
+
+    def restore_read_website(self, msg_id, url):
+        widget = self.get_gtk_widget(url, "website")
+        result = ToolResult()
+        result.set_widget(widget)
+        return result 
+
+    def get_tools(self) -> list:
+        return [Tool("website", "Read a website content", self.read_website, title="Read Websites", restore_func=self.restore_read_website)]           
     def get_replace_codeblocks_langs(self) -> list:
         return ["website"]
    

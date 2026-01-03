@@ -1,6 +1,8 @@
+import threading
 from ..utility.message_chunk import get_message_chunks
 from ..extensions import NewelleExtension
 from ..ui.widgets import WebSearchWidget
+from ..tools import ToolResult, Tool
 from gi.repository import Gtk, GLib
 import os
 import json 
@@ -15,6 +17,27 @@ class WebsearchIntegration(NewelleExtension):
         self.widgets = {}
         self.load_widet_cache()
         self.msgid = 0
+
+    def search(self, query: str):
+        msgid = self.ui_controller.get_current_message_id()
+        widget = self.get_gtk_widget(query, "", msgid)
+        result = ToolResult()
+        result.set_widget(widget)
+        def get_answer():
+            out = self.get_answer(query, "")
+            result.set_output(out)
+        th = threading.Thread(target=get_answer)
+        th.start()
+        return result
+    
+    def restore_search(self, msg_id, query:str):
+        widget = self.restore_gtk_widget(query, "", msg_id)
+        return ToolResult(widget)
+
+    def get_tools(self) -> list:
+        return [Tool(
+            "search", "Perform a search query on the internet", self.search,title="Search", restore_func=self.restore_search 
+            )]
 
     def get_replace_codeblocks_langs(self) -> list:
         return ["search"]
