@@ -7,6 +7,9 @@ class UIController:
     def __init__(self, window): 
         self.window = window
 
+    def get_current_message_id(self):
+        return self.window.controller.msgid
+
     def add_tab(self, child: Gtk.Widget, focus=True) -> Adw.TabPage:
         """Add a custom Adw.TabPage
 
