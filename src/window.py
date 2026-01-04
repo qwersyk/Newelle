@@ -27,7 +27,7 @@ from .ui.widgets import MultilineEntry, ProfileRow, DisplayLatex, InlineLatex, T
 from .ui.stdout_monitor import StdoutMonitorDialog
 from .utility.stdout_capture import StdoutMonitor
 from .constants import AVAILABLE_LLMS, SCHEMA_ID, SETTINGS_GROUPS
-
+from .tools import ToolResult
 from .utility.system import get_spawn_command, open_website
 from .utility.strings import (
     clean_bot_response,
@@ -2794,6 +2794,93 @@ class MainWindow(Adw.ApplicationWindow):
                             box.append(CopyBox(chunk.text, code_language, parent=self))
                     else:
                         box.append(CopyBox(chunk.text, code_language, parent=self, id_message=id_message, id_codeblock=codeblock_id, allow_edit=editable))
+                elif chunk.type == "tool_call":
+                    tool_name = chunk.tool_name
+                    args = chunk.tool_args 
+                    tool = self.controller.tools.get_tool(tool_name)
+                    if id_message == -1:
+                        id_message = len(self.chat) - 1 
+                    id_message += 1
+                    if not restore:
+                        self.controller.msgid = id_message
+                    if tool:
+                        try:
+                            if restore:
+                                result = tool.restore(msg_id=id_message, **args)
+                            else:
+                                result = tool.execute(**args)
+                            widget = result.widget
+                            if widget is not None:
+                                # If the answer is provided, the apply_async function 
+                                # Should only do something on error\
+                                # The widget must be edited by the extension
+                                def apply_sync(code):    
+                                    if not code[0]:
+                                        self.add_message("Error", code[1])
+                            else:
+                                # In case only the answer is provided, the apply_async function
+                                # Also return a text expander with the code
+                                text_expander = Gtk.Expander(
+                                    label=tool.name,
+                                    css_classes=["toolbar", "osd"],
+                                    margin_top=10,
+                                    margin_start=10,
+                                    margin_bottom=10,
+                                    margin_end=10,
+                                )
+                                text_expander.set_expanded(False)
+                                box.append(text_expander)
+                                def apply_sync(code):
+                                    text_expander.set_child(
+                                        Gtk.Label(
+                                            wrap=True,
+                                            wrap_mode=Pango.WrapMode.WORD_CHAR,
+                                            label=chunk.text + "\n" + str(code[1]),
+                                            selectable=True,
+                                        )
+                                    ) 
+                            # Add message to history
+                            editable = False
+                            if id_message == -1:
+                                id_message = len(self.chat) - 1
+                            id_message += 1
+                            has_terminal_command = True
+                            reply_from_the_console = None
+                            if (
+                                self.chat[min(id_message, len(self.chat) - 1)][
+                                    "User"
+                                ]
+                                == "Console"
+                            ):
+                                reply_from_the_console = self.chat[
+                                    min(id_message, len(self.chat) - 1)
+                                ]["Message"]
+                            
+                            # Get the response async
+                            def get_response(apply_sync, result:ToolResult):
+                                if not restore:
+                                    response = result.get_output()
+                                    if response is not None:
+                                        code = (True, response)
+                                    else:
+                                        code = (False, "Error:")
+                                else:
+                                    code = (True, reply_from_the_console)
+                                self.chat.append(
+                                    {
+                                        "User": "Console",
+                                        "Message": " " + str(code[1]),
+                                    }
+                                )
+                                GLib.idle_add(apply_sync, code)
+
+                            t = threading.Thread(target=get_response, args=(apply_sync,result))
+                            t.start()
+                            running_threads.append(t)
+                            box.append(widget)
+                        except Exception as e:
+                            print("Tool error " + tool.name + ": " + str(e))
+                            box.append(CopyBox(chunk.text, code_language, parent=self, id_message=id_message, id_codeblock=codeblock_id, allow_edit=editable, ))
                 elif chunk.type == "table":
                     try:
                          

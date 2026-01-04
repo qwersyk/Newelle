@@ -176,6 +176,12 @@
         <key name="editor-color-scheme" type="s">
           <default>"Adwaita-dark"</default>
         </key>
+        <key name="tools-settings" type="s">
+          <default>"{}"</default>
+        </key>
+        <key name="mcp-servers" type="s">
+          <default>"{}"</default>
+        </key> 
         <key name="remember-profile" type="b">
           <default>false</default>
         </key>
