@@ -97,10 +97,12 @@ class Extension(Gtk.Window):
         name = widget.get_name()
         if widget.get_active():
             self.extensionloader.enable(name)
+            self.extensionloader.add_tools(self.controller.tools)
         else:
             self.extensionloader.disable(name)
             self.extensionloader.remove_handlers(self.extensionloader.get_extension_by_id(name), AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS, AVAILABLE_RAGS, AVAILABLE_WEBSEARCH)
             self.extensionloader.remove_prompts(self.extensionloader.get_extension_by_id(name), PROMPTS, AVAILABLE_PROMPTS)
+            self.extensionloader.remove_tools(self.controller.tools, self.extensionloader.get_extension_by_id(name))
     def delete_extension(self,widget):
         self.extensionloader.remove_extension(widget.get_name())
         self.update()

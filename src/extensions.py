@@ -381,10 +381,9 @@ class ExtensionLoader:
             for tool in extension.get_tools():
                 tool_registry.register_tool(tool)
     
-    def remove_tools(self, tool_registry):
-        for extension in self.extensions:
-            for tool in extension.get_tools():
-                tool_registry.remove_tool(tool.name)
+    def remove_tools(self, tool_registry, extension: NewelleExtension):
+        for tool in extension.get_tools():
+            tool_registry.remove_tool(tool.name)
 
     def add_handlers(self, AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS, AVAILABLE_RAG, AVAILABLE_WEBSEARCH):
         """Add the handlers of each extension to the available handlers
