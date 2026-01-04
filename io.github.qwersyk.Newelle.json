@@ -46,6 +46,7 @@
         "modules/python3-newspaper3k.json",
         "modules/python3-markdownify.json",
         "modules/python3-openai.json",
+        "modules/python3-mcp.json",
         {
             "name" : "newelle",
             "builddir" : true,
