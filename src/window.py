@@ -2846,6 +2846,8 @@ class MainWindow(Adw.ApplicationWindow):
                     if not restore:
                         self.controller.msgid = id_message
                     if tool:
+                        editable = False
+                        has_terminal_command = True
                         try:
                             if restore:
                                 result = tool.restore(msg_id=id_message, **args)
@@ -2862,30 +2864,34 @@ class MainWindow(Adw.ApplicationWindow):
                             else:
                                 # In case only the answer is provided, the apply_async function
                                 # Also return a text expander with the code
-                                text_expander = Gtk.Expander(
-                                    label=tool.name,
-                                    css_classes=["toolbar", "osd"],
-                                    margin_top=10,
-                                    margin_start=10,
-                                    margin_bottom=10,
-                                    margin_end=10,
+                                list_box = Gtk.ListBox()
+                                list_box.add_css_class("boxed-list")
+
+                                expander_row = Adw.ExpanderRow(
+                                    title=tool.name,
+                                    subtitle="Running...",
+                                    icon_name="tools-symbolic",
                                 )
-                                text_expander.set_expanded(False)
-                                box.append(text_expander)
+                                list_box.append(expander_row)
+                                widget = list_box
                                 def apply_sync(code):
-                                    text_expander.set_child(
-                                        Gtk.Label(
-                                            wrap=True,
-                                            wrap_mode=Pango.WrapMode.WORD_CHAR,
-                                            label=chunk.text + "\n" + str(code[1]),
-                                            selectable=True,
-                                        )
-                                    ) 
+                                    expander_row.set_subtitle("Completed" if code[0] else "Error")
+
+                                    content_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+
+                                    label = Gtk.Label(
+                                        label=chunk.text + "\n" + str(code[1]),
+                                        wrap=True,
+                                        wrap_mode=Pango.WrapMode.WORD_CHAR,
+                                        selectable=True,
+                                        xalign=0,
+                                    )
+                                    content_box.append(label)
+                                    expander_row.add_row(content_box) 
                             # Add message to history
                             editable = False
                             if id_message == -1:
                                 id_message = len(self.chat) - 1
-                            id_message += 1
                             has_terminal_command = True
                             reply_from_the_console = None
                             if (
@@ -2906,14 +2912,14 @@ class MainWindow(Adw.ApplicationWindow):
                                         code = (True, response)
                                     else:
                                         code = (False, "Error:")
+                                    self.chat.append(
+                                        {
+                                            "User": "Console",
+                                            "Message": " " + str(code[1]),
+                                        }
+                                    )
                                 else:
                                     code = (True, reply_from_the_console)
-                                self.chat.append(
-                                    {
-                                        "User": "Console",
-                                        "Message": " " + str(code[1]),
-                                    }
-                                )
                                 GLib.idle_add(apply_sync, code)
 
                             t = threading.Thread(target=get_response, args=(apply_sync,result))
@@ -2921,8 +2927,9 @@ class MainWindow(Adw.ApplicationWindow):
                             running_threads.append(t)
                             box.append(widget)
                         except Exception as e:
+                            raise e
                             print("Tool error " + tool.name + ": " + str(e))
-                            box.append(CopyBox(chunk.text, code_language, parent=self, id_message=id_message, id_codeblock=codeblock_id, allow_edit=editable, ))
+                            #box.append(CopyBox(chunk.text, code_language, parent=self, id_message=id_message, id_codeblock=codeblock_id, allow_edit=editable, ))
                 elif chunk.type == "table":
                     try:
                          

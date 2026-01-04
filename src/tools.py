@@ -46,12 +46,10 @@ class Tool:
         self.restore_func = restore_func
 
     def restore(self, **kwargs):
-        if self.restore_func:
+        if self.restore_func is not None:
             return self.restore_func(**kwargs)
-        # Fallback to func, removing internal keys
         t = ToolResult()
         t.set_output(None)
-        t.set_widget(None)
         return t
 
     def _generate_schema_from_func(self, func: Callable) -> Dict[str, Any]:
@@ -163,7 +161,7 @@ def tool(name: str, description: str, run_on_main_thread: bool = False, title: s
         return t
     return decorator
 
-def create_io_tool(name: str, description: str, func: Callable) -> Tool:
+def create_io_tool(name: str, description: str, func: Callable, title: str = None) -> Tool:
     def wrapper(**kwargs):
         result = ToolResult()
         def th():
@@ -171,7 +169,7 @@ def create_io_tool(name: str, description: str, func: Callable) -> Tool:
         t = threading.Thread(target=th)
         t.start()
         return result
-    t = Tool(name, description, wrapper)
+    t = Tool(name, description, wrapper, title=title)
     schema = t._generate_schema_from_func(func)
     t.schema = schema
     return t
