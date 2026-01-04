@@ -2,6 +2,8 @@ from typing import Any, Callable, Dict, List, Optional
 import inspect
 from dataclasses import dataclass
 import threading
+import json
+
 
 class ToolResult:
     """
@@ -111,7 +113,7 @@ class ToolRegistry:
             raise ValueError(f"Tool '{name}' not found")
         return tool.execute(**arguments)
     
-    def get_tools_prompt(self, enabled_tools_dict: dict[str, bool] = None, tools_prompt_template: str = "") -> str:
+    def get_tools_prompt(self, enabled_tools_dict: dict[str, bool] = None, tools_prompt_template: str = "", tools_settings: dict = None) -> str:
         """
         Generates the system prompt instructions for using the available tools.
         
@@ -120,6 +122,7 @@ class ToolRegistry:
                                 If None, all registered tools are considered enabled.
             tools_prompt_template: The template string for the tool instructions. 
                                    Must contain {TOOLS_JSON}.
+            tools_settings: Dictionary containing tool settings (including custom prompts).
         """
         
         available_tools = []
@@ -131,17 +134,24 @@ class ToolRegistry:
                 is_enabled = enabled_tools_dict.get(tool_name, True)
             
             if is_enabled:
-                tool_def = {
-                    "name": tool_obj.name,
-                    "description": tool_obj.description,
-                    "parameters": tool_obj.schema
-                }
+                tool_def = None
+                if tools_settings and tool_name in tools_settings and tools_settings[tool_name].get("custom_prompt"):
+                     try:
+                         tool_def = json.loads(tools_settings[tool_name]["custom_prompt"])
+                     except:
+                         pass
+
+                if not tool_def:
+                    tool_def = {
+                        "name": tool_obj.name,
+                        "description": tool_obj.description,
+                        "parameters": tool_obj.schema
+                    }
                 available_tools.append(tool_def)
         
         if not available_tools:
             return ""
 
-        import json
         tools_json = json.dumps(available_tools, indent=2)
         
         if not tools_prompt_template or "{TOOLS_JSON}" not in tools_prompt_template:
@@ -153,8 +163,6 @@ class ToolRegistry:
         
         return tools_prompt_template.replace("{TOOLS_JSON}", tools_json)
 
-# Global registry instance
-global_tool_registry = ToolRegistry()
 
 def tool(name: str, description: str, run_on_main_thread: bool = False, title: str = None, prompt_editable: bool = True, restore_func: Callable = None):
     """Decorator to register a function as a tool."""

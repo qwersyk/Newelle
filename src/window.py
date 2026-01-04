@@ -2175,7 +2175,17 @@ class MainWindow(Adw.ApplicationWindow):
             prompts.append(formatter.format(prompt))
         
         # Tools 
-        tools_prompt = self.controller.tools.get_tools_prompt()
+        try:
+             tools_settings = json.loads(self.controller.settings.get_string("tools-settings"))
+        except:
+             tools_settings = {}
+        
+        enabled_tools = {}
+        for tool_name, settings in tools_settings.items():
+             if "enabled" in settings:
+                 enabled_tools[tool_name] = settings["enabled"]
+
+        tools_prompt = self.controller.tools.get_tools_prompt(enabled_tools_dict=enabled_tools, tools_settings=tools_settings)
         prompts.append(tools_prompt)
         # Start creating the message
         if self.model.stream_enabled():

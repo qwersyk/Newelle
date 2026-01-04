@@ -47,6 +47,7 @@ class Settings(Adw.PreferencesWindow):
         self.general_page = Adw.PreferencesPage(icon_name="settings-symbolic", title=_("General"))
         self.LLMPage = Adw.PreferencesPage(icon_name="brain-augemnted-symbolic", title=_("LLM")) 
         self.PromptsPage = Adw.PreferencesPage(icon_name="question-round-outline-symbolic", title=_("Prompts"))
+        self.ToolsPage = Adw.PreferencesPage(icon_name="tools-symbolic", title=_("Tools"))
         self.MemoryPage = Adw.PreferencesPage(icon_name="vcard-symbolic", title=_("Knowledge"))
         # Dictionary containing all the rows for settings update
         self.settingsrows = {}
@@ -155,6 +156,8 @@ class Settings(Adw.PreferencesWindow):
         self.PromptsPage.add(self.prompt)
         self.prompts_rows = []
         self.build_prompts_settings()
+        # Build tools settings
+        self.build_tools_page()
         # Interface settings
         self.interface = Adw.PreferencesGroup(title=_('Interface'))
         self.general_page.add(self.interface)
@@ -301,12 +304,107 @@ class Settings(Adw.PreferencesWindow):
         
         self.add(self.LLMPage)
         self.add(self.PromptsPage)
+        self.add(self.ToolsPage)
         self.add(self.MemoryPage)
-        self.add(self.general_page) 
+        self.add(self.general_page)  
         if startup_page is not None:
             pages = {"LLM": self.LLMPage, "Prompts": self.PromptsPage, "Memory": self.MemoryPage, "General": self.general_page}
             self.set_visible_page(pages[startup_page])
     
+    def build_tools_page(self):
+        self.tools_group = Adw.PreferencesGroup(title=_("Tools"))
+        self.ToolsPage.add(self.tools_group)
+
+        # Get tools settings
+        try:
+            tools_settings = json.loads(self.settings.get_string("tools-settings"))
+        except:
+            tools_settings = {}
+        
+        # Get all tools
+        tools = self.controller.tools.get_all_tools()
+        
+        for tool in tools:
+            # Default values
+            is_enabled = True
+            custom_prompt = None
+            
+            if tool.name in tools_settings:
+                if "enabled" in tools_settings[tool.name]:
+                    is_enabled = tools_settings[tool.name]["enabled"]
+                if "custom_prompt" in tools_settings[tool.name]:
+                    custom_prompt = tools_settings[tool.name]["custom_prompt"]
+            
+            # Create row
+            row = Adw.ExpanderRow(title=tool.title, subtitle=tool.description)
+            
+            # Toggle
+            toggle = Gtk.Switch(valign=Gtk.Align.CENTER)
+            toggle.set_active(is_enabled)
+            toggle.connect("state-set", self.toggle_tool, tool.name)
+            row.add_suffix(toggle)
+            
+            # Generate default prompt for this tool
+            default_prompt_obj = {
+                "name": tool.name,
+                "description": tool.description,
+                "parameters": tool.schema
+            }
+            default_prompt = json.dumps(default_prompt_obj, indent=2)
+            
+            entry = MultilineEntry()
+            entry.set_text(custom_prompt if custom_prompt else default_prompt)
+            entry.tool_name = tool.name
+            entry.default_prompt = default_prompt
+            entry.set_on_change(self.update_tool_prompt)
+
+            box = Gtk.Box(spacing=6)
+            box.append(entry)
+            
+            # Star button to reset
+            reset_button = Gtk.Button(icon_name="star-filled-rounded-symbolic", css_classes=["flat"], valign=Gtk.Align.CENTER)
+            reset_button.connect("clicked", self.reset_tool_prompt, entry)
+            box.append(reset_button)
+            
+            row.add_row(box)
+            
+            self.tools_group.add(row)
+
+    def toggle_tool(self, switch, state, tool_name):
+        try:
+            tools_settings = json.loads(self.settings.get_string("tools-settings"))
+        except:
+            tools_settings = {}
+        
+        if tool_name not in tools_settings:
+            tools_settings[tool_name] = {"enabled": True, "custom_prompt": None}
+            
+        tools_settings[tool_name]["enabled"] = state
+        self.settings.set_string("tools-settings", json.dumps(tools_settings))
+
+    def update_tool_prompt(self, entry):
+        tool_name = entry.tool_name
+        text = entry.get_text()
+        
+        try:
+            tools_settings = json.loads(self.settings.get_string("tools-settings"))
+        except:
+            tools_settings = {}
+            
+        if tool_name not in tools_settings:
+            tools_settings[tool_name] = {"enabled": True, "custom_prompt": None}
+            
+        if text == entry.default_prompt:
+             tools_settings[tool_name]["custom_prompt"] = None
+        else:
+             tools_settings[tool_name]["custom_prompt"] = text
+             
+        self.settings.set_string("tools-settings", json.dumps(tools_settings))
+
+    def reset_tool_prompt(self, button, entry):
+        entry.set_text(entry.default_prompt)
+        self.update_tool_prompt(entry)
+
     def build_prompts_settings(self):
         # Prompts settings
         self.prompts_settings = self.controller.newelle_settings.prompts_settings 
