@@ -32,6 +32,16 @@
 	<url type="bugtracker">https://github.com/qwersyk/Newelle/issues</url>
 	<content_rating type="oars-1.0" />
 	<releases>
+	    <release version="1.1.0" date="2026-01-05">
+            <description>
+                <ul>
+                    <li>Added MCP servers support</li>
+                    <li>Added tools (explicitly), extensions can add their own tools</li>
+                    <li>Added the possibility to set some models as favourites</li>
+                    <li>You can now trigger keyboard shortcuts actions using commands</li>
+                </ul>
+            </description>
+        </release>
 	    <release version="1.0.2" date="2025-10-16">
             <description>
                 <ul>
