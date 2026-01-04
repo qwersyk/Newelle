@@ -180,7 +180,7 @@
           <default>"{}"</default>
         </key>
         <key name="mcp-servers" type="s">
-          <default>"{}"</default>
+          <default>"[]"</default>
         </key> 
         <key name="remember-profile" type="b">
           <default>false</default>
