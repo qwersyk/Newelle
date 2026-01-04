@@ -193,6 +193,7 @@ class NewelleController:
             self.extensionloader.add_handlers(AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS, AVAILABLE_RAGS, AVAILABLE_WEBSEARCH)
             self.extensionloader.add_prompts(PROMPTS, AVAILABLE_PROMPTS)
             self.newelle_settings.load_prompts()
+            self.extensionloader.add_tools(self.tools)
             self.handlers.extensionloader = self.extensionloader
             self.handlers.select_handlers(self.newelle_settings)
             self.extensionloader.set_ui_controller(self.ui_controller)

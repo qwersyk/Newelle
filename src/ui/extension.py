@@ -1,7 +1,5 @@
-import subprocess
-from threading import Thread
 import os
-
+import subprocess
 from ..controller import NewelleController
 
 from ..utility.system import get_spawn_command
@@ -10,6 +8,7 @@ from ..constants import AVAILABLE_EMBEDDINGS, AVAILABLE_LLMS, AVAILABLE_MEMORIES
 from .settings import Settings
 from ..extensions import ExtensionLoader
 from gi.repository import Gtk, Adw, Gio, GLib
+from threading import Thread
 
 
 class Extension(Gtk.Window):
@@ -97,7 +96,6 @@ class Extension(Gtk.Window):
         name = widget.get_name()
         if widget.get_active():
             self.extensionloader.enable(name)
-            self.extensionloader.add_tools(self.controller.tools)
         else:
             self.extensionloader.disable(name)
             self.extensionloader.remove_handlers(self.extensionloader.get_extension_by_id(name), AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS, AVAILABLE_RAGS, AVAILABLE_WEBSEARCH)
