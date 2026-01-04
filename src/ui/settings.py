@@ -314,6 +314,16 @@ class Settings(Adw.PreferencesWindow):
     def build_tools_page(self):
         self.tools_group = Adw.PreferencesGroup(title=_("Tools"))
         self.ToolsPage.add(self.tools_group)
+        self.tool_rows = []
+        self.refresh_tools_list()
+        
+        self.build_mcp_settings()
+
+    def refresh_tools_list(self):
+        for row in self.tool_rows:
+            self.tools_group.remove(row)
+        self.tool_rows = []
+        
         tools_settings = self.controller.newelle_settings.tools_settings_dict
         # Get all tools
         tools = self.controller.tools.get_all_tools()
@@ -363,6 +373,7 @@ class Settings(Adw.PreferencesWindow):
             row.add_row(box)
             
             self.tools_group.add(row)
+            self.tool_rows.append(row)
 
     def toggle_tool(self, switch, state, tool_name):
         tools_settings = self.controller.newelle_settings.tools_settings_dict
@@ -392,6 +403,76 @@ class Settings(Adw.PreferencesWindow):
     def reset_tool_prompt(self, button, entry):
         entry.set_text(entry.default_prompt)
         self.update_tool_prompt(entry)
+
+    def build_mcp_settings(self):
+        self.mcp_group = Adw.PreferencesGroup(title=_("MCP Servers"), description=_("Manage Model Context Protocol servers"))
+        self.ToolsPage.add(self.mcp_group)
+        
+        # List of servers
+        self.servers_list_group = Adw.ExpanderRow(title=_("Servers"), subtitle=_("List of configured MCP servers"))
+        self.mcp_group.add(self.servers_list_group)
+        
+        self.mcp_server_rows = []
+        self.refresh_mcp_servers_list()
+        
+        # Add server row
+        row = Adw.ActionRow(title=_("Add Server"), subtitle=_("Add a new MCP server URL"))
+        entry = Gtk.Entry(valign=Gtk.Align.CENTER, placeholder_text="http://localhost:8000/sse")
+        row.add_suffix(entry)
+        button = Gtk.Button(icon_name="list-add-symbolic", valign=Gtk.Align.CENTER)
+        button.add_css_class("suggested-action")
+        row.add_suffix(button)
+        
+        def add_server(btn):
+            url = entry.get_text()
+            if not url:
+                return
+            
+            button.set_sensitive(False)
+            entry.set_sensitive(False)
+            
+            def add_thread():
+                mcp_handler = self.controller.get_mcp_integration()
+                added = mcp_handler.add_mcp_server(url)
+                self.settings.set_string("mcp-servers", json.dumps(mcp_handler.mcp_servers))
+                if not added:
+                    GLib.idle_add(self.app.win.show_error_dialog, _("Error"), _("Failed to add MCP server"))
+                    return
+                GLib.idle_add(self.refresh_mcp_servers_list)
+                GLib.idle_add(self.refresh_tools_list)
+                GLib.idle_add(button.set_sensitive, True)
+                GLib.idle_add(entry.set_sensitive, True)
+                GLib.idle_add(entry.set_text, "")
+            t = threading.Thread(target=add_thread)
+            t.start()
+        button.connect("clicked", add_server)
+        self.mcp_group.add(row)
+
+    def refresh_mcp_servers_list(self):
+        for row in self.mcp_server_rows:
+             self.servers_list_group.remove(row)
+        self.mcp_server_rows = []
+
+        servers = json.loads(self.settings.get_string("mcp-servers"))
+        self.controller.newelle_settings.mcp_servers_dict = servers
+        for url in servers:
+            row = Adw.ActionRow(title=url[:30])
+            delete_btn = Gtk.Button(icon_name="user-trash-symbolic", valign=Gtk.Align.CENTER)
+            delete_btn.add_css_class("destructive-action")
+            delete_btn.connect("clicked", self.remove_mcp_server, url)
+            row.add_suffix(delete_btn)
+            self.servers_list_group.add_row(row)
+            self.mcp_server_rows.append(row)
+
+    def remove_mcp_server(self, btn, url):
+        servers = self.controller.newelle_settings.mcp_servers_dict
+        servers.remove(url)
+        self.settings.set_string("mcp-servers", json.dumps(servers))
+        self.controller.newelle_settings.mcp_servers_dict = servers
+        mcp_handler = self.controller.get_mcp_integration()
+        mcp_handler.remove_mcp_server(url)
+        self.refresh_mcp_servers_list()
+        self.refresh_tools_list()
 
     def build_prompts_settings(self):
         # Prompts settings

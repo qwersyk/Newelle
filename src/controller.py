@@ -234,6 +234,24 @@ class NewelleController:
         self.integrationsloader = integrationsloader
         self.handlers.integrationsloader = integrationsloader
 
+    def get_mcp_integration(self):
+        if self.integrationsloader is not None:
+            for integration in self.integrationsloader.get_extensions():
+                if integration.id == "mcp":
+                    return integration
+        return None
+    
+    def update_mcp_tools(self):
+        mcp_integration = self.get_mcp_integration()
+        if mcp_integration is not None:
+            mcp_integration.update_tools()
+            self.tools.update_tools(mcp_integration.get_tools())
+
+    def require_tool_update(self):
+        self.tools = ToolRegistry()
+        self.extensionloader.add_tools(self.tools)
+        self.integrationsloader.add_tools(self.tools)
+        
     def load_extensions(self):
         """Load extensions"""
         # Load extensions
@@ -398,6 +416,8 @@ class NewelleSettings:
         self.editor_color_scheme = settings.get_string("editor-color-scheme")
         self.tools_settings = settings.get_string("tools-settings")
         self.tools_settings_dict = json.loads(self.tools_settings)
+        self.mcp_servers = self.settings.get_string("mcp-servers")
+        self.mcp_servers_dict = json.loads(self.mcp_servers)
         self.load_prompts()
         # Adjust paths
         if os.path.exists(os.path.expanduser(self.main_path)):

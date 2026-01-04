@@ -1,9 +1,7 @@
 from typing import Any, Callable, Dict, List, Optional
 import inspect
-from dataclasses import dataclass
 import threading
 import json
-
 
 class ToolResult:
     """
@@ -51,6 +49,7 @@ class Tool:
         if self.restore_func:
             return self.restore_func(**kwargs)
         # Fallback to func, removing internal keys
+        return
         clean_kwargs = {k: v for k, v in kwargs.items() if k != 'msg_id'}
         return self.func(**clean_kwargs)
 
@@ -160,6 +159,15 @@ def tool(name: str, description: str, run_on_main_thread: bool = False, title: s
     """Decorator to register a function as a tool."""
     def decorator(func):
         t = Tool(name, description, func, run_on_main_thread=run_on_main_thread, title=title, prompt_editable=prompt_editable, restore_func=restore_func)
-        global_tool_registry.register_tool(t)
-        return func
+        return t
     return decorator
+
+def create_io_tool(name: str, description: str, func: Callable) -> Tool:
+    def wrapper(*args, **kwargs):
+        result = ToolResult()
+        def th():
+            result.set_output(func(*args, **kwargs))
+        t = threading.Thread(target=th)
+        t.start()
+        return result
+    return Tool(name, description, wrapper)

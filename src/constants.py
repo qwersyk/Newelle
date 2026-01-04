@@ -8,11 +8,12 @@ from .handlers.rag import LlamaIndexHanlder
 from .handlers.websearch import SearXNGHandler, DDGSeachHandler, TavilyHandler
 from .integrations.website_reader import WebsiteReader
 from .integrations.websearch import WebsearchIntegration
+from .integrations.mcp import MCPIntegration
 
 DIR_NAME = "Newelle"
 SCHEMA_ID = 'io.github.qwersyk.Newelle'
 
-AVAILABLE_INTEGRATIONS = [WebsiteReader, WebsearchIntegration]
+AVAILABLE_INTEGRATIONS = [WebsiteReader, WebsearchIntegration, MCPIntegration]
 
 AVAILABLE_LLMS = {
     "newelle": {
