@@ -314,13 +314,7 @@ class Settings(Adw.PreferencesWindow):
     def build_tools_page(self):
         self.tools_group = Adw.PreferencesGroup(title=_("Tools"))
         self.ToolsPage.add(self.tools_group)
-
-        # Get tools settings
-        try:
-            tools_settings = json.loads(self.settings.get_string("tools-settings"))
-        except:
-            tools_settings = {}
-        
+        tools_settings = self.controller.newelle_settings.tools_settings_dict
         # Get all tools
         tools = self.controller.tools.get_all_tools()
         
@@ -371,10 +365,7 @@ class Settings(Adw.PreferencesWindow):
             self.tools_group.add(row)
 
     def toggle_tool(self, switch, state, tool_name):
-        try:
-            tools_settings = json.loads(self.settings.get_string("tools-settings"))
-        except:
-            tools_settings = {}
+        tools_settings = self.controller.newelle_settings.tools_settings_dict
         
         if tool_name not in tools_settings:
             tools_settings[tool_name] = {"enabled": True, "custom_prompt": None}
@@ -386,19 +377,16 @@ class Settings(Adw.PreferencesWindow):
         tool_name = entry.tool_name
         text = entry.get_text()
         
-        try:
-            tools_settings = json.loads(self.settings.get_string("tools-settings"))
-        except:
-            tools_settings = {}
+        tools_settings = self.controller.newelle_settings.tools_settings_dict
             
         if tool_name not in tools_settings:
             tools_settings[tool_name] = {"enabled": True, "custom_prompt": None}
-            
+
         if text == entry.default_prompt:
-             tools_settings[tool_name]["custom_prompt"] = None
+            tools_settings[tool_name]["custom_prompt"] = None
         else:
-             tools_settings[tool_name]["custom_prompt"] = text
-             
+            tools_settings[tool_name]["custom_prompt"] = text
+
         self.settings.set_string("tools-settings", json.dumps(tools_settings))
 
     def reset_tool_prompt(self, button, entry):

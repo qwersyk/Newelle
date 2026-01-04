@@ -62,6 +62,7 @@ EXTENSIONS: Reload EXTENSIONS
     RELOAD_CHAT_LIST = 11
     WEBSEARCH = 12
     OFFERS = 13
+    TOOLS = 14 
 
 class NewelleController:
     """Main controller, manages the application
@@ -395,6 +396,8 @@ class NewelleSettings:
         self.browser_search_string = settings.get_string("browser-search-string")
         self.browser_session_persist = settings.get_boolean("browser-session-persist")
         self.editor_color_scheme = settings.get_string("editor-color-scheme")
+        self.tools_settings = settings.get_string("tools-settings")
+        self.tools_settings_dict = json.loads(self.tools_settings)
         self.load_prompts()
         # Adjust paths
         if os.path.exists(os.path.expanduser(self.main_path)):

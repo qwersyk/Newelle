@@ -113,7 +113,7 @@ class ToolRegistry:
             raise ValueError(f"Tool '{name}' not found")
         return tool.execute(**arguments)
     
-    def get_tools_prompt(self, enabled_tools_dict: dict[str, bool] = None, tools_prompt_template: str = "", tools_settings: dict = None) -> str:
+    def get_tools_prompt(self, enabled_tools_dict: dict[str, bool] = None, tools_settings: dict = None) -> str:
         """
         Generates the system prompt instructions for using the available tools.
         
@@ -153,15 +153,7 @@ class ToolRegistry:
             return ""
 
         tools_json = json.dumps(available_tools, indent=2)
-        
-        if not tools_prompt_template or "{TOOLS_JSON}" not in tools_prompt_template:
-             # Fallback default prompt if template is missing or invalid
-             prompt = """\n\n# Tools\n\nYou have access to the following tools. To use a tool, you MUST use the following JSON format:\n\n{"tool": "tool_name", "arguments": {"arg_name": "arg_value"}}\n\nAvailable Tools:\n\n"""
-             prompt += tools_json
-             prompt += "\n\nWhen you use a tool, the system will execute it and provide the result in the next message."
-             return prompt
-        
-        return tools_prompt_template.replace("{TOOLS_JSON}", tools_json)
+        return tools_json
 
 
 def tool(name: str, description: str, run_on_main_thread: bool = False, title: str = None, prompt_editable: bool = True, restore_func: Callable = None):

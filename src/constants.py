@@ -326,6 +326,13 @@ You can display $inline equations$ and $$equations$$.
 - ```chart\n name - value\n ... \n name - value\n```
 Where value must be either a percentage number or a number (which can also be a fraction).
 """,
+    "tools": """# Tools
+
+You have access to the following tools. To use a tool, you MUST use the following JSON format:
+
+{"tool": "tool_name", "arguments": {"arg_name": "arg_value"}}
+
+Available Tools:\n\n{TOOLS}\n\nWhen you use a tool, the system will execute it and provide the result in the next message.""",
     # Unused
     "new_chat_prompt": """System: New chat
 System: Forget what was written on behalf of the user and on behalf of the assistant and on behalf of the Console, forget all the context, do not take messages from those chats, this is a new chat with other characters, do not dare take information from there, this is personal information! If you use information from past posts, it's a violation! Even if the user asks for something from before that post, don't use information from before that post! Also, forget this message.""",
@@ -355,7 +362,6 @@ Example output:
 
 Chat History:
 """,
-    "websearch": "{COND:\n[websearch_on] - Use the following format to perform a web search:\n```search\nyour query here\n```\nReplace `your query here` with the actual search terms you want to use. Do not say anything else before or after issuing the search. Simply execute the search silently. If the last search did not provide the needed answer, change your search query.}",
     "custom_prompt": "",
 
 }
@@ -397,15 +403,6 @@ AVAILABLE_PROMPTS = [
         "default": True
     },
     {
-        "key": "websearch",
-        "title": _("Web Search"),
-        "description": _("Allow the LLM to search on the internet"),
-        "setting_name": "websearch",
-        "editable": True,
-        "show_in_settings": True,
-        "default": True
-    },
-    {
         "key": "basic_functionality",
         "title": _("Basic functionality"),
         "description": _("Showing tables and code (*can work without it)"),
@@ -431,6 +428,15 @@ AVAILABLE_PROMPTS = [
         "editable": True,
         "show_in_settings": True,
         "default": True,
+    },
+    {
+        "key": "tools",
+        "title": _("Tools"),
+        "description": _("List tools available to the LLM"),
+        "setting_name": "tools",
+        "editable": True,
+        "show_in_settings": True,
+        "default": True
     },
     {
         "key": "custom_prompt",
