@@ -49,9 +49,10 @@ class Tool:
         if self.restore_func:
             return self.restore_func(**kwargs)
         # Fallback to func, removing internal keys
-        return
-        clean_kwargs = {k: v for k, v in kwargs.items() if k != 'msg_id'}
-        return self.func(**clean_kwargs)
+        t = ToolResult()
+        t.set_output(None)
+        t.set_widget(None)
+        return t
 
     def _generate_schema_from_func(self, func: Callable) -> Dict[str, Any]:
         # Basic schema generation (can be improved)
@@ -163,11 +164,14 @@ def tool(name: str, description: str, run_on_main_thread: bool = False, title: s
     return decorator
 
 def create_io_tool(name: str, description: str, func: Callable) -> Tool:
-    def wrapper(*args, **kwargs):
+    def wrapper(**kwargs):
         result = ToolResult()
         def th():
-            result.set_output(func(*args, **kwargs))
+            result.set_output(func(**kwargs))
         t = threading.Thread(target=th)
         t.start()
         return result
-    return Tool(name, description, wrapper)
+    t = Tool(name, description, wrapper)
+    schema = t._generate_schema_from_func(func)
+    t.schema = schema
+    return t
