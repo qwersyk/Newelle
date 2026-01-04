@@ -768,6 +768,8 @@ class MainWindow(Adw.ApplicationWindow):
         if ReloadType.LLM in reloads:
             self.reload_buttons() 
             self.update_model_popup()
+        if ReloadType.TOOLS in reloads:
+            self.model_popup_settings.refresh_tools_list()
 
     def reload_buttons(self):
         """Reload offers and buttons on LLM change"""
@@ -848,6 +850,12 @@ class MainWindow(Adw.ApplicationWindow):
             title="Prompts",
             name="Prompts",
             icon_name="question-round-outline-symbolic",
+        )
+        stack.add_titled_with_icon(
+            self.scrollable(self.steal_from_settings(settings.tools_group)),
+            title="Tools",
+            name="Tools",
+            icon_name="tools-symbolic",
         )
         if len(self.model.get_models_list()) == 0:
             stack.set_visible_child(llm_page)

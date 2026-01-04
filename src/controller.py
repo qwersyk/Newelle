@@ -474,9 +474,10 @@ class NewelleSettings:
             reloads.append(ReloadType.RELOAD_CHAT)
         if self.reverse_order != new_settings.reverse_order:
             reloads.append(ReloadType.RELOAD_CHAT_LIST)
-
         if self.websearch_on != new_settings.websearch_on or self.websearch_model != new_settings.websearch_model or self.websearch_settings != new_settings.websearch_settings:
             reloads.append(ReloadType.WEBSEARCH)
+        if self.mcp_servers != new_settings.mcp_servers or self.tools_settings != new_settings.tools_settings:
+            reloads.append(ReloadType.TOOLS)
         # Check prompts
         if len(self.prompts) != len(new_settings.prompts):
             reloads.append(ReloadType.PROMPTS)
