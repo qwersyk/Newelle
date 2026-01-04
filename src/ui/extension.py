@@ -1,7 +1,5 @@
-import subprocess
-from threading import Thread
 import os
-
+import subprocess
 from ..controller import NewelleController
 
 from ..utility.system import get_spawn_command
@@ -10,6 +8,7 @@ from ..constants import AVAILABLE_EMBEDDINGS, AVAILABLE_LLMS, AVAILABLE_MEMORIES
 from .settings import Settings
 from ..extensions import ExtensionLoader
 from gi.repository import Gtk, Adw, Gio, GLib
+from threading import Thread
 
 
 class Extension(Gtk.Window):
@@ -101,6 +100,7 @@ class Extension(Gtk.Window):
             self.extensionloader.disable(name)
             self.extensionloader.remove_handlers(self.extensionloader.get_extension_by_id(name), AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS, AVAILABLE_RAGS, AVAILABLE_WEBSEARCH)
             self.extensionloader.remove_prompts(self.extensionloader.get_extension_by_id(name), PROMPTS, AVAILABLE_PROMPTS)
+            self.extensionloader.remove_tools(self.controller.tools, self.extensionloader.get_extension_by_id(name))
     def delete_extension(self,widget):
         self.extensionloader.remove_extension(widget.get_name())
         self.update()

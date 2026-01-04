@@ -5,7 +5,7 @@ import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('GtkSource', '5')
 gi.require_version('Adw', '1')
-from gi.repository import Gtk, Adw, Gio, Gdk
+from gi.repository import Gtk, Adw, Gio, Gdk, GLib
 from .ui.settings import Settings
 from .window import MainWindow
 from .ui.shortcuts import Shortcuts
@@ -17,8 +17,9 @@ from .ui.mini_window import MiniWindow
 class MyApp(Adw.Application):
     def __init__(self, version, **kwargs):
         self.version = version
-        super().__init__(**kwargs)
+        super().__init__(flags=Gio.ApplicationFlags.HANDLES_COMMAND_LINE, **kwargs)
         self.settings = Gio.Settings.new("io.github.qwersyk.Newelle")
+        self.add_main_option("run-action", 0, GLib.OptionFlags.NONE, GLib.OptionArg.STRING, "Run an action", "ACTION")
         css = '''
         .code{
         background-color: rgb(38,38,38);
@@ -221,6 +222,19 @@ class MyApp(Adw.Application):
                 i.terminate()
             self.win.destroy()
     
+    def do_command_line(self, command_line):
+        options = command_line.get_options_dict()
+        if options.contains("run-action"):
+            action_name = options.lookup_value("run-action").get_string()
+            if self.lookup_action(action_name):
+                self.activate_action(action_name, None)
+            else:
+                command_line.printerr(f"Action '{action_name}' not found.\n")
+                return 1
+        
+        self.activate()
+        return 0
+
     def on_activate(self, app):
         if not hasattr(self,"win"):
             self.win = MainWindow(application=app)
