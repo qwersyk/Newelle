@@ -921,7 +921,16 @@ class MainWindow(Adw.ApplicationWindow):
 
         # Populate the list with downloaded models.
         provider_title = AVAILABLE_LLMS[self.model.key]["title"]
-        for name, model in self.model.get_models_list():
+
+        favorites = self.model.get_setting("favorites", search_default=False, return_value=[])
+        if favorites is None:
+            favorites = []
+
+        models = self.model.get_models_list()
+        # Sort by favorite
+        models = sorted(models, key=lambda x: (x[1] not in favorites, x[0].lower()))
+
+        for name, model in models:
             # Create a ListBoxRow to hold our action row.
             listbox_row = Gtk.ListBoxRow()
             listbox_row.get_style_context().add_class("card")
@@ -939,6 +948,17 @@ class MainWindow(Adw.ApplicationWindow):
             action_row = Adw.ActionRow(
                 title=f"{provider_title} - {name}", subtitle=model_subtitle
             )
+            
+            # Star button
+            is_fav = model in favorites
+            btn = Gtk.Button(
+                icon_name="star-filled-rounded-symbolic",
+                css_classes=["flat"] + [] if not is_fav else ["warning"],
+                valign=Gtk.Align.CENTER
+            )
+            btn.connect("clicked", self.on_star_clicked, model)
+            action_row.add_suffix(btn)
+
             listbox_row.set_child(action_row)
 
             # Save attributes for selection handling and searching.
@@ -975,6 +995,20 @@ class MainWindow(Adw.ApplicationWindow):
         self._filter_models(self.search_entry)
 
         return vbox
+
+    def on_star_clicked(self, button, model):
+        favorites = self.model.get_setting("favorites", search_default=False, return_value=[])
+        if favorites is None:
+            favorites = []
+        
+        if model in favorites:
+            favorites.remove(model)
+        else:
+            favorites.append(model)
+        
+        self.model.set_setting("favorites", favorites)
+        self.update_available_models()
+
 
     def _filter_models(self, search_entry):
         """Filters the models list based on the search entry text."""
