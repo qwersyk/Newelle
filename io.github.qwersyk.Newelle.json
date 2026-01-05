@@ -47,6 +47,11 @@
         "modules/python3-markdownify.json",
         "modules/python3-openai.json",
         "modules/python3-mcp.json",
+        "modules/python3-setuptools_rust.json",
+        "modules/python3-tiktoken.json",
+        "modules/python3-faiss-cpu.json",
+        "modules/python3-llamaindex.json",
+        "modules/python3-model2vec.json",
         {
             "name" : "newelle",
             "builddir" : true,
