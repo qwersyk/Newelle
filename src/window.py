@@ -1613,8 +1613,7 @@ class MainWindow(Adw.ApplicationWindow):
                 os.path.join(os.path.expanduser(self.main_path), button.get_name())
             ):
                 self.main_path = button.get_name()
-                os.chdir(os.path.expanduser(self.main_path))
-                GLib.idle_add(self.ui_controller.new_explorer_tab, self.main_path, False)
+                self.ui_controller.new_explorer_tab(self.main_path, False)
             else:
                 subprocess.run(["xdg-open", os.path.expanduser(button.get_name())])
         else:
