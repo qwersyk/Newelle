@@ -20,7 +20,7 @@ class Model2VecHandler(EmbeddingHandler):
     
     def get_extra_settings(self) -> list:
         return [
-            ExtraSettings.ComboSetting("model", "Model", "Model to use", self.get_models(), "minishlab/potion-base-32M")
+            ExtraSettings.ComboSetting("model", "Model", "Model to use", self.get_models(), "minishlab/potion-base-8M")
         ]
 
     def load_model(self):
