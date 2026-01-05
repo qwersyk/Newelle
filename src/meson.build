@@ -141,6 +141,7 @@ embedding_sources = [
   'handlers/embeddings/openai_handler.py',
   'handlers/embeddings/gemini_handler.py',
   'handlers/embeddings/ollama_handler.py',
+  'handlers/embeddings/model2vec.py',
 ]
 
 memory_sources = [  

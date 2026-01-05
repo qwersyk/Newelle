@@ -2,7 +2,7 @@ from copy import deepcopy
 from .handlers.llm import ClaudeHandler, DeepseekHandler, GPT4AllHandler, GroqHandler, OllamaHandler, OpenAIHandler, CustomLLMHandler, GPT3AnyHandler, GeminiHandler, MistralHandler, OpenRouterHandler, NewelleAPIHandler, G4FHandler
 from .handlers.tts import ElevenLabs, gTTSHandler, EspeakHandler, CustomTTSHandler, KokoroTTSHandler, CustomOpenAITTSHandler, OpenAITTSHandler, GroqTTSHandler
 from .handlers.stt import GroqSRHandler, OpenAISRHandler, SphinxHandler, GoogleSRHandler, WhisperCPPHandler, WitAIHandler, VoskHandler, CustomSRHandler
-from .handlers.embeddings import WordLlamaHandler, OpenAIEmbeddingHandler, GeminiEmbeddingHanlder, OllamaEmbeddingHandler
+from .handlers.embeddings import WordLlamaHandler, OpenAIEmbeddingHandler, GeminiEmbeddingHanlder, OllamaEmbeddingHandler, Model2VecHandler
 from .handlers.memory import MemoripyHandler, UserSummaryHandler, SummaryMemoripyHanlder
 from .handlers.rag import LlamaIndexHanlder
 from .handlers.websearch import SearXNGHandler, DDGSeachHandler, TavilyHandler
@@ -213,6 +213,12 @@ AVAILABLE_EMBEDDINGS = {
         "title": _("WordLlama"),
         "description": _("Light local embedding model based on llama. Works offline, very low resources usage"),
         "class": WordLlamaHandler,
+    },
+    "model2vec": {
+        "key": "model2vec",
+        "title": _("Model2Vec"),
+        "description": _("State of art light local embedding model. Works offline, very low resource usage. Suggested for multilingual"),
+        "class": Model2VecHandler,
     },
     "ollamaembedding": {
         "key": "ollamaembedding",
