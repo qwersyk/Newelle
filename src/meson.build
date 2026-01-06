@@ -106,6 +106,7 @@ llm_sources = [
   'handlers/llm/openai_handler.py',
   'handlers/llm/openrouter_handler.py',
   'handlers/llm/deepseek_handler.py',
+  'handlers/llm/llama_cpp_handler.py',
   ]
 
 tts_sources = [
