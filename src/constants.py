@@ -334,12 +334,35 @@ You can display $inline equations$ and $$equations$$.
 Where value must be either a percentage number or a number (which can also be a fraction).
 """,
     "tools": """# Tools
+**Tools Usage Rules**
 
-You have access to the following tools. To use a tool, you MUST use the following JSON format:
+You have access to the following tools.
 
-{"tool": "tool_name", "arguments": {"arg_name": "arg_value"}}
+**When using a tool, you must:**
 
-Available Tools:\n\n{TOOLS}\n\nWhen you use a tool, the system will execute it and provide the result in the next message.""",
+1. Output **only** a single valid JSON object.
+2. Use **exactly** this format:
+
+   ```json
+   {
+     "tool": "tool_name",
+     "arguments": {
+       "arg_name": "arg_value"
+     }
+   }
+   ```
+3. Ensure the JSON is valid (no comments, trailing commas, or extra text).
+4. Use only the tools listed below and only their defined arguments.
+5. **Do not** include any explanations, markdown, or additional text before or after the JSON.
+
+**After invoking a tool, you must immediately stop the message.**
+
+**Available tools:**
+
+```
+{TOOLS}
+```
+""",
     # Unused
     "new_chat_prompt": """System: New chat
 System: Forget what was written on behalf of the user and on behalf of the assistant and on behalf of the Console, forget all the context, do not take messages from those chats, this is a new chat with other characters, do not dare take information from there, this is personal information! If you use information from past posts, it's a violation! Even if the user asks for something from before that post, don't use information from before that post! Also, forget this message.""",

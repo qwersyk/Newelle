@@ -2787,7 +2787,8 @@ class MainWindow(Adw.ApplicationWindow):
                                 GLib.idle_add(apply_sync)
 
                             t = threading.Thread(target=getresponse, args=(path,))
-                            t.start()
+                            if self.controller.newelle_settings.parallel_tool_execution:
+                                t.start()
                             running_threads.append(t)
                             if not restore:
                                 self.auto_run_times += 1
@@ -2873,7 +2874,7 @@ class MainWindow(Adw.ApplicationWindow):
                                 )
                                 list_box.append(expander_row)
                                 widget = list_box
-                                def apply_sync(code):
+                                def apply_sync(code, expander_row):
                                     expander_row.set_subtitle("Completed" if code[0] else "Error")
 
                                     content_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -2904,7 +2905,7 @@ class MainWindow(Adw.ApplicationWindow):
                                 ]["Message"]
                             
                             # Get the response async
-                            def get_response(apply_sync, result:ToolResult):
+                            def get_response(apply_sync, result:ToolResult, expander_row):
                                 if not restore:
                                     response = result.get_output()
                                     if response is not None:
@@ -2919,14 +2920,14 @@ class MainWindow(Adw.ApplicationWindow):
                                     )
                                 else:
                                     code = (True, reply_from_the_console)
-                                GLib.idle_add(apply_sync, code)
+                                GLib.idle_add(apply_sync, code, expander_row)
 
-                            t = threading.Thread(target=get_response, args=(apply_sync,result))
-                            t.start()
+                            t = threading.Thread(target=get_response, args=(apply_sync,result, expander_row))
+                            if self.controller.newelle_settings.parallel_tool_execution:
+                                t.start()
                             running_threads.append(t)
                             box.append(widget)
                         except Exception as e:
-                            raise e
                             print("Tool error " + tool.name + ": " + str(e))
                             #box.append(CopyBox(chunk.text, code_language, parent=self, id_message=id_message, id_codeblock=codeblock_id, allow_edit=editable, ))
                 elif chunk.type == "table":
@@ -3028,8 +3029,13 @@ class MainWindow(Adw.ApplicationWindow):
                 if not restore and not is_user:
 
                     def wait_threads_sm():
-                        for t in running_threads:
-                            t.join()
+                        if not self.controller.newelle_settings.parallel_tool_execution:
+                            for t in running_threads:
+                                t.start()
+                                t.join()
+                        else:
+                            for t in running_threads:
+                                t.join()
                         if len(running_threads) > 0:
                             self.send_message(manual=False)
 

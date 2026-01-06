@@ -2,6 +2,7 @@ from typing import Any, Callable, Dict, List, Optional
 import inspect
 import threading
 import json
+from gi.repository import GLib
 
 class ToolResult:
     """
@@ -161,14 +162,15 @@ def tool(name: str, description: str, run_on_main_thread: bool = False, title: s
         return t
     return decorator
 
-def create_io_tool(name: str, description: str, func: Callable, title: str = None) -> Tool:
+def create_io_tool(name: str, description: str, func: Callable, title: str = None, create_separate_process=False) -> Tool:
     def wrapper(**kwargs):
         result = ToolResult()
         def th():
             result.set_output(func(**kwargs))
         t = threading.Thread(target=th)
-        t.start()
+        GLib.idle_add(t.start)
         return result
+
     t = Tool(name, description, wrapper, title=title)
     schema = t._generate_schema_from_func(func)
     t.schema = schema

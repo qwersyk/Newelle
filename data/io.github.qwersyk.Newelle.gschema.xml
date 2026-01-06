@@ -185,5 +185,8 @@
         <key name="remember-profile" type="b">
           <default>false</default>
         </key>
+        <key name="parallel-tool-execution" type="b">
+            <default>false</default>
+        </key>
 	</schema>
 </schemalist>

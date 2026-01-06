@@ -256,6 +256,12 @@ class Settings(Adw.PreferencesWindow):
         switch.connect("state-set", self.toggle_virtualization)
         self.neural_network.add(row)
         
+        row = Adw.ActionRow(title=_("Parallel Tool Execution"), subtitle=_("Allow the model to execute multiple tools in parallel"))
+        switch = Gtk.Switch(valign=Gtk.Align.CENTER)
+        row.add_suffix(switch)
+        self.settings.bind("parallel-tool-execution", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
+        self.neural_network.add(row)
+        
         row = Adw.ExpanderRow(title=_("External Terminal"), subtitle=_("Choose the external terminal where to run the console commands"))
         terminal_enabled = Gtk.Switch(valign=Gtk.Align.CENTER)
         self.settings.bind("external-terminal-on", terminal_enabled, 'active', Gio.SettingsBindFlags.DEFAULT)

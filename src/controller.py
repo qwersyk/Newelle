@@ -409,7 +409,7 @@ class NewelleSettings:
         self.websearch_on = self.settings.get_boolean("websearch-on")
         self.websearch_model = self.settings.get_string("websearch-model")
         self.websearch_settings = self.settings.get_string("websearch-settings")
-        
+        self.parallel_tool_execution = settings.get_boolean("parallel-tool-execution")
         self.external_browser = settings.get_boolean("external-browser")
         self.initial_browser_page = settings.get_string("initial-browser-page")
         self.browser_search_string = settings.get_string("browser-search-string")
