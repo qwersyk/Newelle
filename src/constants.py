@@ -1,5 +1,5 @@
 from copy import deepcopy
-from .handlers.llm import ClaudeHandler, DeepseekHandler, GPT4AllHandler, GroqHandler, OllamaHandler, OpenAIHandler, CustomLLMHandler, GPT3AnyHandler, GeminiHandler, MistralHandler, OpenRouterHandler, NewelleAPIHandler, G4FHandler, LlamaCPPHandler
+from .handlers.llm import ClaudeHandler, DeepseekHandler, GroqHandler, OllamaHandler, OpenAIHandler, CustomLLMHandler, GeminiHandler, MistralHandler, OpenRouterHandler, NewelleAPIHandler, G4FHandler, LlamaCPPHandler
 from .handlers.tts import ElevenLabs, gTTSHandler, EspeakHandler, CustomTTSHandler, KokoroTTSHandler, CustomOpenAITTSHandler, OpenAITTSHandler, GroqTTSHandler
 from .handlers.stt import GroqSRHandler, OpenAISRHandler, SphinxHandler, GoogleSRHandler, WhisperCPPHandler, WitAIHandler, VoskHandler, CustomSRHandler
 from .handlers.embeddings import WordLlamaHandler, OpenAIEmbeddingHandler, GeminiEmbeddingHanlder, OllamaEmbeddingHandler, Model2VecHandler
@@ -32,15 +32,9 @@ AVAILABLE_LLMS = {
     },
     "llamacpp": {
         "key": "llamacpp",
-        "title": _("LlamaCPP"),
-        "description": _("Run a LLM model locally, more privacy but slower"),
-        "class": LlamaCPPHandler,
-    },
-   "local": {
-        "key": "local",
         "title": _("Local Model"),
-        "description": _("NO GPU SUPPORT, USE OLLAMA INSTEAD. Run a LLM model locally, more privacy but slower"),
-        "class": GPT4AllHandler,
+        "description": _("Run a LLM model locally using LlamaCPP, with possibility to install with Hardware Acceleration"),
+        "class": LlamaCPPHandler,
     },
     "ollama": {
         "key": "ollama",

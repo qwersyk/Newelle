@@ -98,7 +98,6 @@ llm_sources = [
   'handlers/llm/g4f_handler.py',
   'handlers/llm/gemini_handler.py',
   'handlers/llm/gpt3any_handler.py',
-  'handlers/llm/gpt4all_handler.py',
   'handlers/llm/groq_handler.py',
   'handlers/llm/mistral_handler.py',
   'handlers/llm/newelle_handler.py',

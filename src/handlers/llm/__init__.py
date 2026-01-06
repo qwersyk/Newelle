@@ -5,7 +5,6 @@ from .g4f_handler import G4FHandler
 from .gemini_handler import GeminiHandler
 from .gpt3any_handler import GPT3AnyHandler
 from .groq_handler import GroqHandler
-from .gpt4all_handler import GPT4AllHandler
 from .mistral_handler import MistralHandler
 from .ollama_handler import OllamaHandler
 from .openai_handler import OpenAIHandler 
@@ -21,7 +20,6 @@ __all__ = [
     "G4FHandler",
     "GeminiHandler",
     "GPT3AnyHandler",
-    "GPT4AllHandler",
     "GroqHandler",
     "MistralHandler",
     "OllamaHandler",

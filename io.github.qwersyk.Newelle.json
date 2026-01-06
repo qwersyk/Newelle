@@ -31,7 +31,6 @@
         "modules/vte.json",
         "modules/python3-requests.json",
         "modules/python3-expandvars.json",
-        "modules/python3-gpt4all.json",
         "modules/python3-gtts.json",
         "modules/portaudio.json",
         "modules/python3-pyaudio.json",
