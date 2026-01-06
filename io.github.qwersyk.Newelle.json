@@ -52,6 +52,7 @@
         "modules/python3-faiss-cpu.json",
         "modules/python3-llamaindex.json",
         "modules/python3-model2vec.json",
+        "modules/python3-llama-cpp-python.json",
         {
             "name" : "newelle",
             "builddir" : true,
