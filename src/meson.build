@@ -60,6 +60,7 @@ ui_sources = [
   'ui/mini_window.py',
   'ui/explorer.py',
   'ui/stdout_monitor.py',
+  'ui/model_library.py',
 ]
 
 widgets_sources = [
