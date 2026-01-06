@@ -435,6 +435,7 @@ class LlamaCPPHandler(OpenAIHandler):
         return True
 
     def load_model(self, model):
+        model = self.get_setting("model")
         if self.loaded_model == model:
             return True
         path = os.path.join(self.model_folder, self.get_setting("model"))
