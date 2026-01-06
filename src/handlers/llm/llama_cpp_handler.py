@@ -33,7 +33,7 @@ class LlamaCPPHandler(OpenAIHandler):
             except:
                 pass
     
-    def get_custom_model_list(self): 
+    def get_custom_model_list(self, update=False): 
         """Get models in the user folder
 
         Returns:
@@ -46,6 +46,8 @@ class LlamaCPPHandler(OpenAIHandler):
                     file_name = file.rstrip('.gguf')
                     relative_path = os.path.relpath(os.path.join(root, file), self.model_folder)
                     file_list += ((file_name, relative_path), )
+        if update:
+            self.settings_update()
         return file_list
     
     def is_gpu_installed(self) -> bool:
@@ -66,7 +68,7 @@ class LlamaCPPHandler(OpenAIHandler):
         settings =  [
                 ExtraSettings.ComboSetting("model", "Model", "Model to use", self.get_custom_model_list(), 
                 self.get_custom_model_list()[0][1] if len(self.get_custom_model_list()) > 0 else "", 
-                refresh=lambda button: self.get_custom_model_list(),
+                refresh=lambda button: self.get_custom_model_list(True),
                 folder=self.model_folder)
             ]
         if not self.is_gpu_installed():
@@ -85,6 +87,51 @@ class LlamaCPPHandler(OpenAIHandler):
         )
         return settings
 
+    # Model Loading
+    def get_free_port(self):
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.bind(('', 0))
+            return s.getsockname()[1]
+
+    def stream_enabled(self) -> bool:
+        return True
+
+    def load_model(self, model):
+        model = self.get_setting("model")
+        if self.loaded_model == model:
+            return True
+        path = os.path.join(self.model_folder, self.get_setting("model"))
+        if not path or not os.path.exists(path):
+             return False
+        
+        if self.server_process:
+            self.server_process.terminate()
+            self.server_process = None
+            
+        self.port = self.get_free_port()
+        if not self.is_gpu_installed():
+            self.python_path = "python"
+        cmd = [self.python_path, "-m", "llama_cpp.server", "--model", path, "--port", str(self.port)]
+        if is_flatpak() and self.is_gpu_installed():
+             cmd = get_spawn_command() + cmd
+             
+        self.server_process = subprocess.Popen(cmd)
+        self.set_setting("endpoint", f"http://localhost:{self.port}/v1")
+        self.loaded_model = model
+        # Wait for server to potentially start
+        time.sleep(3)
+        url = f"http://localhost:{self.port}/v1/models"
+        start_time = time.time()
+        while time.time() - start_time < 60: # 60 seconds timeout
+            try:
+                if requests.get(url).status_code == 200:
+                    return True
+            except:
+                pass
+            time.sleep(0.5) 
+        return False
+
+    # Model library
     def fetch_models(self):
         url = "https://raw.githubusercontent.com/FrancescoCaracciolo/llm-library-scraper/refs/heads/main/lmstudio/model_list.json"
         response = requests.get(url)
@@ -206,6 +253,8 @@ class LlamaCPPHandler(OpenAIHandler):
         root = button.get_root()
         win = ModelLibraryWindow(self, root)
         win.present()
+
+        # Llama CPP install dialog
 
     def show_install_dialog(self, button):
         win = Adw.Window(title="Install LlamaCPP")
@@ -425,37 +474,3 @@ class LlamaCPPHandler(OpenAIHandler):
     def finish_install(self, win):
         win.close()
         self.settings_update()
-
-    def get_free_port(self):
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.bind(('', 0))
-            return s.getsockname()[1]
-
-    def stream_enabled(self) -> bool:
-        return True
-
-    def load_model(self, model):
-        model = self.get_setting("model")
-        if self.loaded_model == model:
-            return True
-        path = os.path.join(self.model_folder, self.get_setting("model"))
-        if not path or not os.path.exists(path):
-             return False
-        
-        if self.server_process:
-            self.server_process.terminate()
-            self.server_process = None
-            
-        self.port = self.get_free_port()
-        if not self.is_gpu_installed():
-            self.python_path = "python"
-        cmd = [self.python_path, "-m", "llama_cpp.server", "--model", path, "--port", str(self.port)]
-        if is_flatpak() and self.is_gpu_installed():
-             cmd = get_spawn_command() + cmd
-             
-        self.server_process = subprocess.Popen(cmd)
-        self.set_setting("endpoint", f"http://localhost:{self.port}/v1")
-        self.loaded_model = model
-        # Wait for server to potentially start
-        time.sleep(3) 
-        return True

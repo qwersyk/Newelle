@@ -17,7 +17,7 @@ from ...handlers import ExtraSettings
 
 class OllamaHandler(LLMHandler):
     key = "ollama"
-    default_models = (("llama3.1:8b", "llama3.1:8b"), )
+    default_models = (("gemma3:8b", "gemma3:8b"), )
     model_library = []
     # Url where to get the available models info
     library_url = "https://raw.githubusercontent.com/FrancescoCaracciolo/llm-library-scraper/refs/heads/main/ollama/available_models.json"
@@ -338,6 +338,8 @@ class OllamaHandler(LLMHandler):
             host=self.get_setting("endpoint")
         )
         self.auto_serve(client)
+        start_time = time.time()
+        client.generate(self.get_setting("model"), "test", options={"num_predict": 1})
         return True
 
     def get_model_library(self) -> list:

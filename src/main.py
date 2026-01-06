@@ -199,6 +199,7 @@ class MyApp(Adw.Application):
             settings = Gio.Settings.new('io.github.qwersyk.Newelle')
             settings.set_int("window-width", self.win.get_width())
             settings.set_int("window-height", self.win.get_height())
+            self.win.controller.close_application()
             return False
         else:
             dialog = Adw.MessageDialog(
@@ -296,6 +297,10 @@ class MyApp(Adw.Application):
     
     def save(self, *a):
         self.win.save()
+    
+    def debug(self, *a):
+        print(self.win.main_path)
+        self.win.ui_controller.new_explorer_tab("/home/francesco/Progetti", False)
 
 def main(version):
     app = MyApp(application_id="io.github.qwersyk.Newelle", version = version)
@@ -309,4 +314,5 @@ def main(version):
     app.create_action('zoom', app.zoom, ['<primary>plus'])
     app.create_action('zoom', app.zoom, ['<primary>equal'])
     app.create_action('zoom_out', app.zoom_out, ['<primary>minus'])
+    app.create_action('debug', app.debug, ['<primary>b'])
     app.run(sys.argv)

@@ -64,6 +64,10 @@ class MainWindow(Adw.ApplicationWindow):
             min_sidebar_width=420,
             max_sidebar_width=10000
         )
+        # UI things
+        self.model_loading_spinner_button = None
+        self.model_loading_spinner_separator = None
+        self.model_loading_status = False
         # Breakpoint - Collapse the sidebar when the window is too narrow
         breakpoint = Adw.Breakpoint(condition=Adw.BreakpointCondition.new_length(Adw.BreakpointConditionLengthType.MAX_WIDTH, 1000, Adw.LengthUnit.PX))
         breakpoint.add_setter(self.main_program_block, "collapsed", True)
@@ -120,6 +124,8 @@ class MainWindow(Adw.ApplicationWindow):
         menu.append(_("Keyboard shorcuts"), "app.shortcuts")
         menu.append(_("About"), "app.about")
         menu_button.set_menu_model(menu)
+        
+        
         self.chat_block = Gtk.Box(
             orientation=Gtk.Orientation.VERTICAL, hexpand=True, css_classes=["view"]
         )
@@ -815,6 +821,21 @@ class MainWindow(Adw.ApplicationWindow):
             )
         )
 
+    def set_model_loading_spinner(self, status):
+        if status == self.model_loading_status:
+            return
+        self.model_loading_status = status
+        if self.model_loading_spinner_separator is None:
+            return
+        if status:
+            self.title_box.prepend(self.model_loading_spinner_separator)
+            self.title_box.prepend(self.model_loading_spinner_button)
+        else:
+            self.title_box.remove(self.model_loading_spinner_separator)
+            self.title_box.remove(self.model_loading_spinner_button)
+        
+
+
     def build_model_popup(self):
         self.model_menu_button = Gtk.MenuButton()
         self.update_model_popup()
@@ -872,8 +893,18 @@ class MainWindow(Adw.ApplicationWindow):
         # Create a horizontal box to contain both the model button and settings button
         title_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=0)
         title_box.set_css_classes(["linked"])
+        # Spinner 
+        self.model_loading_spinner_button = Gtk.Button() 
+        model_loading_spinner = Gtk.Spinner(spinning=True)
+        self.model_loading_spinner_separator = separator = Gtk.Separator(orientation=Gtk.Orientation.VERTICAL)
+        self.model_loading_spinner_separator.set_margin_top(6)
+        self.model_loading_spinner_separator.set_margin_bottom(6)
+        self.model_loading_spinner_button.set_child(model_loading_spinner)
+        if self.model_loading_status:
+            title_box.append(self.model_loading_spinner_separator)
+            title_box.append(self.model_loading_spinner_button)
         title_box.append(self.model_menu_button)
-        
+        self.title_box = title_box 
         # Add a subtle separator
         separator = Gtk.Separator(orientation=Gtk.Orientation.VERTICAL)
         separator.set_margin_top(6)
