@@ -1,26 +1,28 @@
 from typing import Any
-import threading 
-import os 
+import threading
+import os
 import shutil
-import json 
-import time 
-from subprocess import Popen 
+import json
+import time
+from subprocess import Popen
 
 from gi.repository import Gtk, Adw, Gio, GLib, GtkSource
 
 from ..handlers import Handler
 
-from ..constants import AVAILABLE_EMBEDDINGS, AVAILABLE_LLMS, AVAILABLE_MEMORIES, AVAILABLE_PROMPTS, AVAILABLE_TTS, AVAILABLE_STT, PROMPTS, AVAILABLE_RAGS, AVAILABLE_WEBSEARCH
+from ..constants import AVAILABLE_EMBEDDINGS, AVAILABLE_LLMS, AVAILABLE_MEMORIES, AVAILABLE_PROMPTS, AVAILABLE_TTS, \
+    AVAILABLE_STT, PROMPTS, AVAILABLE_RAGS, AVAILABLE_WEBSEARCH
 from ..utility.pip import install_module
-from .widgets import ComboRowHelper, CopyBox 
+from .widgets import ComboRowHelper, CopyBox
 from .widgets import MultilineEntry
-from ..utility.system import can_escape_sandbox, get_spawn_command, open_website, open_folder 
+from ..utility.system import can_escape_sandbox, get_spawn_command, open_website, open_folder
 
 from ..controller import NewelleController
 
 
 class Settings(Adw.PreferencesWindow):
-    def __init__(self,app, controller: NewelleController,headless=False, startup_page=None, popup=False, *args, **kwargs):
+    def __init__(self, app, controller: NewelleController, headless=False, startup_page=None, popup=False, *args,
+                 **kwargs):
         super().__init__(*args, **kwargs)
         self.app = app
         self.controller = controller
@@ -28,24 +30,24 @@ class Settings(Adw.PreferencesWindow):
         self.headless = headless
         self.popup = popup
         if not headless:
-            self.set_transient_for(app.win)
+            self.set_transient_for(app.window)
         self.set_modal(True)
         self.downloading = {}
         self.slider_labels = {}
         self.directory = GLib.get_user_config_dir()
-        # Load extensions 
+        # Load extensions
         self.extensionloader = controller.extensionloader
         self.model_threads = {}
         # Load custom prompts
-        self.custom_prompts = self.controller.newelle_settings.custom_prompts 
+        self.custom_prompts = self.controller.newelle_settings.custom_prompts
         self.prompts_settings = self.controller.newelle_settings.prompts_settings
         self.prompts = self.controller.newelle_settings.prompts
         self.sandbox = can_escape_sandbox()
-       
+
         self.handlers = self.controller.handlers
         # Page building
         self.general_page = Adw.PreferencesPage(icon_name="settings-symbolic", title=_("General"))
-        self.LLMPage = Adw.PreferencesPage(icon_name="brain-augemnted-symbolic", title=_("LLM")) 
+        self.LLMPage = Adw.PreferencesPage(icon_name="brain-augemnted-symbolic", title=_("LLM"))
         self.PromptsPage = Adw.PreferencesPage(icon_name="question-round-outline-symbolic", title=_("Prompts"))
         self.ToolsPage = Adw.PreferencesPage(icon_name="tools-symbolic", title=_("Tools"))
         self.MemoryPage = Adw.PreferencesPage(icon_name="vcard-symbolic", title=_("Knowledge"))
@@ -53,9 +55,10 @@ class Settings(Adw.PreferencesWindow):
         self.settingsrows = {}
         # Build the LLMs settings
         self.LLM = Adw.PreferencesGroup(title=_('Language Model'))
-        # Add Help Button 
+        # Add Help Button
         help = Gtk.Button(css_classes=["flat"], icon_name="info-outline-symbolic")
-        help.connect("clicked", lambda button : Popen(get_spawn_command() + ["xdg-open", "https://github.com/qwersyk/Newelle/wiki/User-guide-to-the-available-LLMs"]))
+        help.connect("clicked", lambda button: Popen(get_spawn_command() + ["xdg-open",
+                                                                            "https://github.com/qwersyk/Newelle/wiki/User-guide-to-the-available-LLMs"]))
         self.LLM.set_header_suffix(help)
         # Add LLMs
         self.LLMPage.add(self.LLM)
@@ -63,10 +66,10 @@ class Settings(Adw.PreferencesWindow):
         selected = self.settings.get_string("language-model")
         others_row = Adw.ExpanderRow(title=_('Other LLMs'), subtitle=_("Other available LLM providers"))
         for model_key in AVAILABLE_LLMS:
-           row = self.build_row(AVAILABLE_LLMS, model_key, selected, group)
-           if "secondary" in AVAILABLE_LLMS[model_key] and AVAILABLE_LLMS[model_key]["secondary"]:
-               others_row.add_row(row)
-           else:
+            row = self.build_row(AVAILABLE_LLMS, model_key, selected, group)
+            if "secondary" in AVAILABLE_LLMS[model_key] and AVAILABLE_LLMS[model_key]["secondary"]:
+                others_row.add_row(row)
+            else:
                 self.LLM.add(row)
         self.LLM.add(others_row)
 
@@ -75,7 +78,8 @@ class Settings(Adw.PreferencesWindow):
         # Create row
         secondary_LLM_enabled = Gtk.Switch(valign=Gtk.Align.CENTER)
         self.settings.bind("secondary-llm-on", secondary_LLM_enabled, 'active', Gio.SettingsBindFlags.DEFAULT)
-        secondary_LLM = Adw.ExpanderRow(title=_('Secondary Language Model'), subtitle=_("Model used for secondary tasks, like offer, chat name and memory generation"))
+        secondary_LLM = Adw.ExpanderRow(title=_('Secondary Language Model'), subtitle=_(
+            "Model used for secondary tasks, like offer, chat name and memory generation"))
         secondary_LLM.add_action(secondary_LLM_enabled)
         # Add LLMs
         self.MemoryPage.add(self.SECONDARY_LLM)
@@ -83,23 +87,24 @@ class Settings(Adw.PreferencesWindow):
         selected = self.settings.get_string("secondary-language-model")
         others_row = Adw.ExpanderRow(title=_('Other LLMs'), subtitle=_("Other available LLM providers"))
         for model_key in AVAILABLE_LLMS:
-           row = self.build_row(AVAILABLE_LLMS, model_key, selected, group, True)
-           if "secondary" in AVAILABLE_LLMS[model_key] and AVAILABLE_LLMS[model_key]["secondary"]:
-               others_row.add_row(row)
-           else:
-               secondary_LLM.add_row(row)
+            row = self.build_row(AVAILABLE_LLMS, model_key, selected, group, True)
+            if "secondary" in AVAILABLE_LLMS[model_key] and AVAILABLE_LLMS[model_key]["secondary"]:
+                others_row.add_row(row)
+            else:
+                secondary_LLM.add_row(row)
         secondary_LLM.add_row(others_row)
         self.SECONDARY_LLM.add(secondary_LLM)
-        
+
         # Build the Embedding settings
-        embedding_row = Adw.ExpanderRow(title=_('Embedding Model'), subtitle=_("Embedding is used to trasform text into vectors. Used by Long Term Memory and RAG. Changing it might require you to re-index documents or reset memory."))
+        embedding_row = Adw.ExpanderRow(title=_('Embedding Model'), subtitle=_(
+            "Embedding is used to trasform text into vectors. Used by Long Term Memory and RAG. Changing it might require you to re-index documents or reset memory."))
         self.SECONDARY_LLM.add(embedding_row)
         group = Gtk.CheckButton()
         selected = self.settings.get_string("embedding-model")
         for key in AVAILABLE_EMBEDDINGS:
-           row = self.build_row(AVAILABLE_EMBEDDINGS, key, selected, group) 
-           embedding_row.add_row(row)
-        
+            row = self.build_row(AVAILABLE_EMBEDDINGS, key, selected, group)
+            embedding_row.add_row(row)
+
         # Build the Long Term Memory settings
         memory_enabled = Gtk.Switch(valign=Gtk.Align.CENTER)
         self.settings.bind("memory-on", memory_enabled, 'active', Gio.SettingsBindFlags.DEFAULT)
@@ -109,9 +114,9 @@ class Settings(Adw.PreferencesWindow):
         group = Gtk.CheckButton()
         selected = self.settings.get_string("memory-model")
         for key in AVAILABLE_MEMORIES:
-           row = self.build_row(AVAILABLE_MEMORIES, key, selected, group) 
-           tts_program.add_row(row)
-        
+            row = self.build_row(AVAILABLE_MEMORIES, key, selected, group)
+            tts_program.add_row(row)
+
         # Build the Web Search settings
         web_enabled = Gtk.Switch(valign=Gtk.Align.CENTER)
         self.settings.bind("websearch-on", web_enabled, 'active', Gio.SettingsBindFlags.DEFAULT)
@@ -121,8 +126,8 @@ class Settings(Adw.PreferencesWindow):
         group = Gtk.CheckButton()
         selected = self.settings.get_string("websearch-model")
         for key in AVAILABLE_WEBSEARCH:
-           row = self.build_row(AVAILABLE_WEBSEARCH, key, selected, group) 
-           tts_program.add_row(row)
+            row = self.build_row(AVAILABLE_WEBSEARCH, key, selected, group)
+            tts_program.add_row(row)
         # Build the RAG settings
         self.build_rag_settings()
 
@@ -131,27 +136,30 @@ class Settings(Adw.PreferencesWindow):
         self.general_page.add(self.Voicegroup)
         tts_enabled = Gtk.Switch(valign=Gtk.Align.CENTER)
         self.settings.bind("tts-on", tts_enabled, 'active', Gio.SettingsBindFlags.DEFAULT)
-        tts_program = Adw.ExpanderRow(title=_('Text To Speech Program'), subtitle=_("Choose which text to speech to use"))
+        tts_program = Adw.ExpanderRow(title=_('Text To Speech Program'),
+                                      subtitle=_("Choose which text to speech to use"))
         tts_program.add_action(tts_enabled)
         self.Voicegroup.add(tts_program)
         group = Gtk.CheckButton()
         selected = self.settings.get_string("tts")
         for tts_key in AVAILABLE_TTS:
-           row = self.build_row(AVAILABLE_TTS, tts_key, selected, group) 
-           tts_program.add_row(row)
+            row = self.build_row(AVAILABLE_TTS, tts_key, selected, group)
+            tts_program.add_row(row)
         # Build the Speech to Text settings
-        stt_engine = Adw.ExpanderRow(title=_('Speech To Text Engine'), subtitle=_("Choose which speech recognition engine you want"))
+        stt_engine = Adw.ExpanderRow(title=_('Speech To Text Engine'),
+                                     subtitle=_("Choose which speech recognition engine you want"))
         self.Voicegroup.add(stt_engine)
         group = Gtk.CheckButton()
         selected = self.settings.get_string("stt-engine")
         for stt_key in AVAILABLE_STT:
             row = self.build_row(AVAILABLE_STT, stt_key, selected, group)
             stt_engine.add_row(row)
-        # Automatic STT settings 
-        self.auto_stt = Adw.ExpanderRow(title=_('Automatic Speech To Text'), subtitle=_("Automatically restart speech to text at the end of a text/TTS"))
+        # Automatic STT settings
+        self.auto_stt = Adw.ExpanderRow(title=_('Automatic Speech To Text'),
+                                        subtitle=_("Automatically restart speech to text at the end of a text/TTS"))
         self.build_auto_stt()
         self.Voicegroup.add(self.auto_stt)
-        # Build prompts settings 
+        # Build prompts settings
         self.prompt = Adw.PreferencesGroup(title=_('Prompt control'))
         self.PromptsPage.add(self.prompt)
         self.prompts_rows = []
@@ -163,23 +171,27 @@ class Settings(Adw.PreferencesWindow):
         self.general_page.add(self.interface)
 
         row = Adw.ActionRow(title=_("Interface Size"), subtitle=_("Adjust the size of the interface"))
-        spin = Adw.SpinRow(adjustment=Gtk.Adjustment(lower=100, upper=250, value=self.controller.newelle_settings.zoom, page_increment=20, step_increment=10))
+        spin = Adw.SpinRow(adjustment=Gtk.Adjustment(lower=100, upper=250, value=self.controller.newelle_settings.zoom,
+                                                     page_increment=20, step_increment=10))
         row.add_suffix(spin)
-        def update_zoom(x,y):
+
+        def update_zoom(x, y):
             self.controller.settings.set_int("zoom", spin.get_value())
             self.app.win.set_zoom(spin.get_value())
+
         spin.connect("input", update_zoom)
         self.interface.add(row)
 
         style_scheme_manager = GtkSource.StyleSchemeManager.new()
         options = style_scheme_manager.get_scheme_ids()
         if options is not None:
-            row = Adw.ComboRow(title=_("Editor color scheme"), subtitle=_("Change the color scheme of the editor and codeblocks"), )
+            row = Adw.ComboRow(title=_("Editor color scheme"),
+                               subtitle=_("Change the color scheme of the editor and codeblocks"), )
             opts = tuple()
             for option in options:
                 opts += ((option, option),)
             helper = ComboRowHelper(row, opts, self.settings.get_string("editor-color-scheme"))
-            helper.connect("changed", lambda x,y: self.settings.set_string("editor-color-scheme", y))
+            helper.connect("changed", lambda x, y: self.settings.set_string("editor-color-scheme", y))
             self.interface.add(row)
         row = Adw.ActionRow(title=_("Hidden files"), subtitle=_("Show hidden files"))
         switch = Gtk.Switch(valign=Gtk.Align.CENTER)
@@ -187,50 +199,56 @@ class Settings(Adw.PreferencesWindow):
         self.settings.bind("hidden-files", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
         self.interface.add(row)
 
-        row = Adw.ActionRow(title=_("Remember assistant profile per chat"), subtitle=_("When changing chat, the profile corresponding to the last generation is selected"))
+        row = Adw.ActionRow(title=_("Remember assistant profile per chat"), subtitle=_(
+            "When changing chat, the profile corresponding to the last generation is selected"))
         switch = Gtk.Switch(valign=Gtk.Align.CENTER)
         row.add_suffix(switch)
         self.settings.bind("remember-profile", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
         self.interface.add(row)
 
-        row = Adw.ActionRow(title=_("Send with ENTER"), subtitle=_("If enabled, messages will be sent with ENTER, to go to a new line use CTRL+ENTER. If disabled, messages will be sent with SHIFT+ENTER, and newline with enter"))
+        row = Adw.ActionRow(title=_("Send with ENTER"), subtitle=_(
+            "If enabled, messages will be sent with ENTER, to go to a new line use CTRL+ENTER. If disabled, messages will be sent with SHIFT+ENTER, and newline with enter"))
         switch = Gtk.Switch(valign=Gtk.Align.CENTER)
         row.add_suffix(switch)
         self.settings.bind("send-on-enter", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
         self.interface.add(row)
 
-        row = Adw.ActionRow(title=_("Remove thinking from history"), subtitle=_("Do not send old thinking blocks for reasoning models in order to reduce token usage"))
+        row = Adw.ActionRow(title=_("Remove thinking from history"), subtitle=_(
+            "Do not send old thinking blocks for reasoning models in order to reduce token usage"))
         switch = Gtk.Switch(valign=Gtk.Align.CENTER)
         row.add_suffix(switch)
         self.settings.bind("remove-thinking", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
         self.interface.add(row)
-        
+
         row = Adw.ActionRow(title=_("Display LaTeX"), subtitle=_("Display LaTeX formulas in chat"))
         switch = Gtk.Switch(valign=Gtk.Align.CENTER)
         row.add_suffix(switch)
         self.settings.bind("display-latex", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
         self.interface.add(row)
 
-        row = Adw.ActionRow(title=_("Reverse Chat Order"), subtitle=_("Show most recent chats on top in chat list (change chat to apply)"))
+        row = Adw.ActionRow(title=_("Reverse Chat Order"),
+                            subtitle=_("Show most recent chats on top in chat list (change chat to apply)"))
         switch = Gtk.Switch(valign=Gtk.Align.CENTER)
         row.add_suffix(switch)
         self.settings.bind("reverse-order", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
         self.interface.add(row)
-        
-        row = Adw.ActionRow(title=_("Automatically Generate Chat Names"), subtitle=_("Generate chat names automatically after the first two messages"))
+
+        row = Adw.ActionRow(title=_("Automatically Generate Chat Names"),
+                            subtitle=_("Generate chat names automatically after the first two messages"))
         switch = Gtk.Switch(valign=Gtk.Align.CENTER)
         row.add_suffix(switch)
         self.settings.bind("auto-generate-name", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
         self.interface.add(row)
-        
+
         row = Adw.ActionRow(title=_("Number of offers"), subtitle=_("Number of message suggestions to send to chat "))
         int_spin = Gtk.SpinButton(valign=Gtk.Align.CENTER)
         int_spin.set_adjustment(Gtk.Adjustment(lower=0, upper=5, step_increment=1, page_increment=10, page_size=0))
         row.add_suffix(int_spin)
         self.settings.bind("offers", int_spin, 'value', Gio.SettingsBindFlags.DEFAULT)
         self.interface.add(row)
-        
-        row = Adw.ActionRow(title=_("Username"), subtitle=_("Change the label that appears before your message\nThis information is not sent to the LLM by default\nYou can add it to a prompt using the {USER} variable"))
+
+        row = Adw.ActionRow(title=_("Username"), subtitle=_(
+            "Change the label that appears before your message\nThis information is not sent to the LLM by default\nYou can add it to a prompt using the {USER} variable"))
         entry = Gtk.Entry(text=self.controller.newelle_settings.username, valign=Gtk.Align.CENTER)
         entry.connect("changed", lambda entry: self.settings.set_string("user-name", entry.get_text()))
         row.add_suffix(entry)
@@ -241,7 +259,7 @@ class Settings(Adw.PreferencesWindow):
         self.general_page.add(self.browser_group)
         # Neural Network Control
         self.neural_network = Adw.PreferencesGroup(title=_('Neural Network Control'))
-        self.general_page.add(self.neural_network) 
+        self.general_page.add(self.neural_network)
 
         row = Adw.ActionRow(title=_("Command virtualization"), subtitle=_("Run commands in a virtual machine"))
         switch = Gtk.Switch(valign=Gtk.Align.CENTER)
@@ -255,8 +273,9 @@ class Settings(Adw.PreferencesWindow):
         # Connect the function
         switch.connect("state-set", self.toggle_virtualization)
         self.neural_network.add(row)
-        
-        row = Adw.ExpanderRow(title=_("External Terminal"), subtitle=_("Choose the external terminal where to run the console commands"))
+
+        row = Adw.ExpanderRow(title=_("External Terminal"),
+                              subtitle=_("Choose the external terminal where to run the console commands"))
         terminal_enabled = Gtk.Switch(valign=Gtk.Align.CENTER)
         self.settings.bind("external-terminal-on", terminal_enabled, 'active', Gio.SettingsBindFlags.DEFAULT)
         row.add_suffix(terminal_enabled)
@@ -264,7 +283,7 @@ class Settings(Adw.PreferencesWindow):
         self.settings.bind("external-terminal", entry, 'text', Gio.SettingsBindFlags.DEFAULT)
         row.add_row(entry)
         self.neural_network.add(row)
-        # Set default value for the switch        
+        # Set default value for the switch
         row = Adw.ActionRow(title=_("Program memory"), subtitle=_("How long the program remembers the chat "))
         int_spin = Gtk.SpinButton(valign=Gtk.Align.CENTER)
         int_spin.set_adjustment(Gtk.Adjustment(lower=0, upper=90, step_increment=1, page_increment=10, page_size=0))
@@ -275,79 +294,85 @@ class Settings(Adw.PreferencesWindow):
         self.developer = Adw.PreferencesGroup(title=_('Developer'))
         self.general_page.add(self.developer)
         # Program Output Monitor
-        row = Adw.ActionRow(title=_("Program Output Monitor"), subtitle=_("Monitor the program output in real-time, useful for debugging and seeing downloads progress"))
+        row = Adw.ActionRow(title=_("Program Output Monitor"), subtitle=_(
+            "Monitor the program output in real-time, useful for debugging and seeing downloads progress"))
         button = Gtk.Button(label=_("Open"), valign=Gtk.Align.CENTER)
         row.add_suffix(button)
-        button.connect("clicked", lambda _ : self.app.win.show_stdout_monitor_dialog(self))
+        button.connect("clicked", lambda _: self.app.win.show_stdout_monitor_dialog(self))
         self.developer.add(row)
         # Delete pip path
         row = Adw.ActionRow(title=_("Delete pip path"), subtitle=_("Remove the extra dependencies installed"))
         button = Gtk.Button(label=_("Delete"), valign=Gtk.Align.CENTER, css_classes=["destructive-action"])
         row.add_suffix(button)
-        button.connect("clicked", lambda _ : self.delete_pip_path())
+        button.connect("clicked", lambda _: self.delete_pip_path())
         self.developer.add(row)
-        # Install pip module 
+        # Install pip module
         row = Adw.ActionRow(title=_("Install pip module"), subtitle=_("Manually install pip module"))
         entry = Gtk.Entry(valign=Gtk.Align.CENTER)
         button = Gtk.Button(icon_name="download-symbolic", valign=Gtk.Align.CENTER)
         row.add_suffix(entry)
         row.add_suffix(button)
+
         def install_custom_module(button):
             module = entry.get_text()
+
             def install_thread():
                 install_module(module, self.controller.pip_path, True)
+
             t = threading.Thread(target=install_thread)
             t.start()
             self.app.win.show_stdout_monitor_dialog(self)
+
         button.connect("clicked", install_custom_module)
         self.developer.add(row)
-        
+
         self.add(self.LLMPage)
         self.add(self.PromptsPage)
         self.add(self.ToolsPage)
         self.add(self.MemoryPage)
-        self.add(self.general_page)  
+        self.add(self.general_page)
         if startup_page is not None:
-            pages = {"LLM": self.LLMPage, "Prompts": self.PromptsPage, "Memory": self.MemoryPage, "General": self.general_page}
+            pages = {"LLM": self.LLMPage, "Prompts": self.PromptsPage, "Memory": self.MemoryPage,
+                     "General": self.general_page}
             self.set_visible_page(pages[startup_page])
-    
+
     def build_tools_page(self):
         self.tools_group = Adw.PreferencesGroup(title=_("Tools"))
         self.ToolsPage.add(self.tools_group)
         self.tool_rows = []
         self.refresh_tools_list()
-        
+
         self.build_mcp_settings()
 
     def refresh_tools_list(self):
         for row in self.tool_rows:
             self.tools_group.remove(row)
         self.tool_rows = []
-        
+
         tools_settings = self.controller.newelle_settings.tools_settings_dict
         # Get all tools
         tools = self.controller.tools.get_all_tools()
-        
+
         for tool in tools:
             # Default values
             is_enabled = True
             custom_prompt = None
-            
+
             if tool.name in tools_settings:
                 if "enabled" in tools_settings[tool.name]:
                     is_enabled = tools_settings[tool.name]["enabled"]
                 if "custom_prompt" in tools_settings[tool.name]:
                     custom_prompt = tools_settings[tool.name]["custom_prompt"]
-            
+
             # Create row
             row = Adw.ExpanderRow(title=tool.title, subtitle=tool.description)
-            
+
             # Toggle
             toggle = Gtk.Switch(valign=Gtk.Align.CENTER)
             toggle.set_active(is_enabled)
             toggle.connect("state-set", self.toggle_tool, tool.name)
             row.add_suffix(toggle)
-            
+
             # Generate default prompt for this tool
             default_prompt_obj = {
                 "name": tool.name,
@@ -355,7 +380,7 @@ class Settings(Adw.PreferencesWindow):
                 "parameters": tool.schema
             }
             default_prompt = json.dumps(default_prompt_obj, indent=2)
-            
+
             entry = MultilineEntry()
             entry.set_text(custom_prompt if custom_prompt else default_prompt)
             entry.tool_name = tool.name
@@ -364,32 +389,33 @@ class Settings(Adw.PreferencesWindow):
 
             box = Gtk.Box(spacing=6)
             box.append(entry)
-            
+
             # Star button to reset
-            reset_button = Gtk.Button(icon_name="star-filled-rounded-symbolic", css_classes=["flat"], valign=Gtk.Align.CENTER)
+            reset_button = Gtk.Button(icon_name="star-filled-rounded-symbolic", css_classes=["flat"],
+                                      valign=Gtk.Align.CENTER)
             reset_button.connect("clicked", self.reset_tool_prompt, entry)
             box.append(reset_button)
-            
+
             row.add_row(box)
-            
+
             self.tools_group.add(row)
             self.tool_rows.append(row)
 
     def toggle_tool(self, switch, state, tool_name):
         tools_settings = self.controller.newelle_settings.tools_settings_dict
-        
+
         if tool_name not in tools_settings:
             tools_settings[tool_name] = {"enabled": True, "custom_prompt": None}
-            
+
         tools_settings[tool_name]["enabled"] = state
         self.settings.set_string("tools-settings", json.dumps(tools_settings))
 
     def update_tool_prompt(self, entry):
         tool_name = entry.tool_name
         text = entry.get_text()
-        
+
         tools_settings = self.controller.newelle_settings.tools_settings_dict
-            
+
         if tool_name not in tools_settings:
             tools_settings[tool_name] = {"enabled": True, "custom_prompt": None}
 
@@ -405,16 +431,17 @@ class Settings(Adw.PreferencesWindow):
         self.update_tool_prompt(entry)
 
     def build_mcp_settings(self):
-        self.mcp_group = Adw.PreferencesGroup(title=_("MCP Servers"), description=_("Manage Model Context Protocol servers"))
+        self.mcp_group = Adw.PreferencesGroup(title=_("MCP Servers"),
+                                              description=_("Manage Model Context Protocol servers"))
         self.ToolsPage.add(self.mcp_group)
-        
+
         # List of servers
         self.servers_list_group = Adw.ExpanderRow(title=_("Servers"), subtitle=_("List of configured MCP servers"))
         self.mcp_group.add(self.servers_list_group)
-        
+
         self.mcp_server_rows = []
         self.refresh_mcp_servers_list()
-        
+
         # Add server row
         row = Adw.ActionRow(title=_("Add Server"), subtitle=_("Add a new MCP server URL"))
         entry = Gtk.Entry(valign=Gtk.Align.CENTER, placeholder_text="http://localhost:8000/sse")
@@ -422,15 +449,15 @@ class Settings(Adw.PreferencesWindow):
         button = Gtk.Button(icon_name="list-add-symbolic", valign=Gtk.Align.CENTER)
         button.add_css_class("suggested-action")
         row.add_suffix(button)
-        
+
         def add_server(btn):
             url = entry.get_text()
             if not url:
                 return
-            
+
             button.set_sensitive(False)
             entry.set_sensitive(False)
-            
+
             def add_thread():
                 mcp_handler = self.controller.get_mcp_integration()
                 added = mcp_handler.add_mcp_server(url)
@@ -443,14 +470,16 @@ class Settings(Adw.PreferencesWindow):
                 GLib.idle_add(button.set_sensitive, True)
                 GLib.idle_add(entry.set_sensitive, True)
                 GLib.idle_add(entry.set_text, "")
+
             t = threading.Thread(target=add_thread)
             t.start()
+
         button.connect("clicked", add_server)
         self.mcp_group.add(row)
 
     def refresh_mcp_servers_list(self):
         for row in self.mcp_server_rows:
-             self.servers_list_group.remove(row)
+            self.servers_list_group.remove(row)
         self.mcp_server_rows = []
 
         servers = json.loads(self.settings.get_string("mcp-servers"))
@@ -476,17 +505,23 @@ class Settings(Adw.PreferencesWindow):
 
     def build_prompts_settings(self):
         # Prompts settings
-        self.prompts_settings = self.controller.newelle_settings.prompts_settings 
+        self.prompts_settings = self.controller.newelle_settings.prompts_settings
         for prompt in self.prompts_rows:
             self.prompt.remove(prompt)
         self.prompts_rows = []
-        row = Adw.ExpanderRow(title=_("Auto-run commands"), subtitle=_("Commands that the bot will write will automatically run"))
+        row = Adw.ExpanderRow(title=_("Auto-run commands"),
+                              subtitle=_("Commands that the bot will write will automatically run"))
         switch = Gtk.Switch(valign=Gtk.Align.CENTER)
         row.add_suffix(switch)
-        spin = Adw.SpinRow(title=_("Max number of commands"), subtitle=_("Maximum number of commands that the bot will write after a single user request"), adjustment=Gtk.Adjustment(lower=0, upper=30,  page_increment=1, value=self.settings.get_int("max-run-times"), step_increment=1))
+        spin = Adw.SpinRow(title=_("Max number of commands"),
+                           subtitle=_("Maximum number of commands that the bot will write after a single user request"),
+                           adjustment=Gtk.Adjustment(lower=0, upper=30, page_increment=1,
+                                                     value=self.settings.get_int("max-run-times"), step_increment=1))
+
         def update_spin(spin, input):
             self.settings.set_int("max-run-times", int(spin.get_value()))
             return False
+
         spin.connect("input", update_spin)
         row.add_row(spin)
         self.settings.bind("auto-run", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
@@ -515,46 +550,49 @@ class Settings(Adw.PreferencesWindow):
     def build_browser_settings(self):
         # Browser settings
         self.browser_group = Adw.PreferencesGroup(title=_('Browser'), description=_(_("Settings for the browser")))
-        
-        # External Browser toggle 
+
+        # External Browser toggle
         external_browser_toggle = Gtk.Switch(valign=Gtk.Align.CENTER)
         self.settings.bind("external-browser", external_browser_toggle, 'active', Gio.SettingsBindFlags.DEFAULT)
-        row = Adw.ActionRow(title=_("Use external browser"), subtitle=_("Use an external browser to open links instead of integrated one"))
+        row = Adw.ActionRow(title=_("Use external browser"),
+                            subtitle=_("Use an external browser to open links instead of integrated one"))
         row.add_suffix(external_browser_toggle)
         self.browser_group.add(row)
 
-        # Persist browser session toggle 
+        # Persist browser session toggle
         persist_browser_toggle = Gtk.Switch(valign=Gtk.Align.CENTER)
         self.settings.bind("browser-session-persist", persist_browser_toggle, 'active', Gio.SettingsBindFlags.DEFAULT)
-        row = Adw.ActionRow(title=_("Persist browser session"), subtitle=_("Persist browser session between restarts. Turning this off requires restarting the program"))
+        row = Adw.ActionRow(title=_("Persist browser session"), subtitle=_(
+            "Persist browser session between restarts. Turning this off requires restarting the program"))
         row.add_suffix(persist_browser_toggle)
         self.browser_group.add(row)
 
-        # Delete browser session row 
+        # Delete browser session row
         row = Adw.ActionRow(title=_("Delete browser data"), subtitle=_("Delete browser session and data"))
         delete_button = Gtk.Button(label=_("Delete"), valign=Gtk.Align.CENTER)
         delete_button.connect("clicked", self.delete_browser_session)
         row.add_suffix(delete_button)
         self.browser_group.add(row)
-        
-        # Starting page 
+
+        # Starting page
         row = Adw.ActionRow(title=_("Initial browser page"), subtitle=_("The page where the browser will start"))
         entry = Gtk.Entry(valign=Gtk.Align.CENTER)
         self.settings.bind("initial-browser-page", entry, 'text', Gio.SettingsBindFlags.DEFAULT)
         row.add_suffix(entry)
         self.browser_group.add(row)
-        
-        # Search string 
-        row = Adw.ActionRow(title=_("Search string"), subtitle=_("The search string used in the browser, %s is replaced with the query"))
+
+        # Search string
+        row = Adw.ActionRow(title=_("Search string"),
+                            subtitle=_("The search string used in the browser, %s is replaced with the query"))
         entry = Gtk.Entry(valign=Gtk.Align.CENTER)
         self.settings.bind("browser-search-string", entry, 'text', Gio.SettingsBindFlags.DEFAULT)
         row.add_suffix(entry)
         self.browser_group.add(row)
 
-    def delete_browser_session(self, button:Gtk.Button):
+    def delete_browser_session(self, button: Gtk.Button):
         os.remove(self.controller.config_dir + "/bsession.json")
         os.remove(self.controller.config_dir + "/bsession.json.cookies")
-        button.set_sensitive(False) 
+        button.set_sensitive(False)
 
     def build_rag_settings(self):
         def update_scale(scale, label, setting_value, type):
@@ -566,23 +604,27 @@ class Settings(Adw.PreferencesWindow):
                 self.settings.set_int(setting_value, value)
             label.set_text(str(value))
 
-        self.RAG = Adw.PreferencesGroup(title=_('Document Sources (RAG)'), description=_("Include content from your documents in the responses"))
-        tts_program = Adw.ExpanderRow(title=_('Document Analyzer'), subtitle=_("The document analyzer uses multiple techniques to extract relevant information about your documents"))
-        #tts_program.add_action(memory_enabled)
+        self.RAG = Adw.PreferencesGroup(title=_('Document Sources (RAG)'),
+                                        description=_("Include content from your documents in the responses"))
+        tts_program = Adw.ExpanderRow(title=_('Document Analyzer'), subtitle=_(
+            "The document analyzer uses multiple techniques to extract relevant information about your documents"))
+        # tts_program.add_action(memory_enabled)
         self.RAG.add(tts_program)
         group = Gtk.CheckButton()
         selected = self.settings.get_string("rag-model")
         for key in AVAILABLE_RAGS:
-           row = self.build_row(AVAILABLE_RAGS, key, selected, group) 
-           tts_program.add_row(row)
-       
+            row = self.build_row(AVAILABLE_RAGS, key, selected, group)
+            tts_program.add_row(row)
+
         rag_on_docuements = Gtk.Switch(valign=Gtk.Align.CENTER)
         self.settings.bind("rag-on-documents", rag_on_docuements, 'active', Gio.SettingsBindFlags.DEFAULT)
-        rag_row = Adw.ExpanderRow(title=_("Read documents if unsupported"), subtitle=_("If the LLM does not support reading documents, relevant information about documents sent in the chat will be given to the LLM using your Document Analyzer."))
+        rag_row = Adw.ExpanderRow(title=_("Read documents if unsupported"), subtitle=_(
+            "If the LLM does not support reading documents, relevant information about documents sent in the chat will be given to the LLM using your Document Analyzer."))
         rag_row.add_suffix(rag_on_docuements)
         self.RAG.add(rag_row)
-         
-        rag_limit = Adw.ActionRow(title=_("Maximum tokens for RAG"), subtitle=_("The maximum amount of tokens to be used for RAG. If the documents do not exceed this token count,\ndump all of them in the context"))
+
+        rag_limit = Adw.ActionRow(title=_("Maximum tokens for RAG"), subtitle=_(
+            "The maximum amount of tokens to be used for RAG. If the documents do not exceed this token count,\ndump all of them in the context"))
         time_scale = Gtk.Scale(digits=0, round_digits=0)
         time_scale.set_range(0, 50000)
         time_scale.set_size_request(120, -1)
@@ -596,27 +638,29 @@ class Settings(Adw.PreferencesWindow):
         rag_limit.add_suffix(box)
         rag_row.add_row(rag_limit)
 
-        # Document folder 
+        # Document folder
         rag_enabled = Gtk.Switch(valign=Gtk.Align.CENTER)
         self.settings.bind("rag-on", rag_enabled, 'active', Gio.SettingsBindFlags.DEFAULT)
-        document_folder = Adw.ExpanderRow(title=_("Document Folder"), subtitle=_("Put the documents you want to query in your document folder. The document analyzer will find relevant information in them if this option is enabled"))
+        document_folder = Adw.ExpanderRow(title=_("Document Folder"), subtitle=_(
+            "Put the documents you want to query in your document folder. The document analyzer will find relevant information in them if this option is enabled"))
         document_folder.add_suffix(rag_enabled)
-        # Document folder rows 
-        folder = Adw.ActionRow(title="Open your document folder", subtitle=_("Put all the documents you want to index in this folder"))
+        # Document folder rows
+        folder = Adw.ActionRow(title="Open your document folder",
+                               subtitle=_("Put all the documents you want to index in this folder"))
         folder_button = Gtk.Button(icon_name="folder-symbolic", css_classes=["flat"])
         folder_button.connect("clicked", lambda _: open_folder(os.path.join(self.directory, "documents")))
         folder.add_suffix(folder_button)
         document_folder.add_row(folder)
-        
-        self.rag_handler = self.get_object(AVAILABLE_RAGS, selected) 
+
+        self.rag_handler = self.get_object(AVAILABLE_RAGS, selected)
         self.rag_handler.set_handlers(self.handlers.llm, self.handlers.embedding)
-        self.rag_index = self.create_extra_setting(self.rag_handler.get_index_row(), self.rag_handler, AVAILABLE_RAGS) 
+        self.rag_index = self.create_extra_setting(self.rag_handler.get_index_row(), self.rag_handler, AVAILABLE_RAGS)
         document_folder.add_row(self.rag_index)
         self.document_folder = document_folder
 
         self.RAG.add(document_folder)
         self.MemoryPage.add(self.RAG)
-    
+
     def update_rag_index(self):
         self.rag_handler = self.get_object(AVAILABLE_RAGS, self.settings.get_string("rag-model"))
         self.rag_handler.set_handlers(self.handlers.llm, self.handlers.embedding)
@@ -627,7 +671,8 @@ class Settings(Adw.PreferencesWindow):
     def build_auto_stt(self):
         auto_stt_enabled = Gtk.Switch(valign=Gtk.Align.CENTER)
         self.settings.bind("automatic-stt", auto_stt_enabled, 'active', Gio.SettingsBindFlags.DEFAULT)
-        self.auto_stt.add_suffix(auto_stt_enabled) 
+        self.auto_stt.add_suffix(auto_stt_enabled)
+
         def update_scale(scale, label, setting_value, type):
             value = scale.get_value()
             if type is float:
@@ -638,7 +683,8 @@ class Settings(Adw.PreferencesWindow):
             label.set_text(str(value))
 
         # Silence Threshold
-        silence_threshold = Adw.ActionRow(title=_("Silence threshold"), subtitle=_("Silence threshold in seconds, percentage of the volume to be considered silence"))
+        silence_threshold = Adw.ActionRow(title=_("Silence threshold"), subtitle=_(
+            "Silence threshold in seconds, percentage of the volume to be considered silence"))
         threshold = Gtk.Scale(digits=0, round_digits=2)
         threshold.set_range(0, 0.5)
         threshold.set_size_request(120, -1)
@@ -650,8 +696,9 @@ class Settings(Adw.PreferencesWindow):
         box.append(threshold)
         box.append(label)
         silence_threshold.add_suffix(box)
-        # Silence time 
-        silence_time = Adw.ActionRow(title=_("Silence time"), subtitle=_("Silence time in seconds before recording stops automatically"))
+        # Silence time
+        silence_time = Adw.ActionRow(title=_("Silence time"),
+                                     subtitle=_("Silence time in seconds before recording stops automatically"))
         time_scale = Gtk.Scale(digits=0, round_digits=0)
         time_scale.set_range(0, 10)
         time_scale.set_size_request(120, -1)
@@ -663,7 +710,7 @@ class Settings(Adw.PreferencesWindow):
         box.append(time_scale)
         box.append(label)
         silence_time.add_suffix(box)
-        self.auto_stt.add_row(silence_threshold) 
+        self.auto_stt.add_row(silence_threshold)
         self.auto_stt.add_row(silence_time)
 
     def update_prompt(self, switch: Gtk.Switch, state, key: str):
@@ -676,7 +723,8 @@ class Settings(Adw.PreferencesWindow):
         self.prompts_settings[key] = switch.get_active()
         self.settings.set_string("prompts-settings", json.dumps(self.prompts_settings))
 
-    def build_row(self, constants: dict[str, Any], key: str, selected: str, group: Gtk.CheckButton, secondary: bool = False) -> Adw.ActionRow | Adw.ExpanderRow:
+    def build_row(self, constants: dict[str, Any], key: str, selected: str, group: Gtk.CheckButton,
+                  secondary: bool = False) -> Adw.ActionRow | Adw.ExpanderRow:
         """Build the row for every handler
 
         Args:
@@ -698,17 +746,17 @@ class Settings(Adw.PreferencesWindow):
         # Define the type of row
         self.settingsrows[(key, self.convert_constants(constants), secondary)] = {}
         if len(handler.get_extra_settings()) > 0:
-             row = Adw.ExpanderRow(title=model["title"], subtitle=model["description"])
-             self.add_extra_settings(constants, handler, row)
+            row = Adw.ExpanderRow(title=model["title"], subtitle=model["description"])
+            self.add_extra_settings(constants, handler, row)
         else:
             row = Adw.ActionRow(title=model["title"], subtitle=model["description"])
         self.settingsrows[(key, self.convert_constants(constants), secondary)]["row"] = row
-        
-        # Add extra buttons 
+
+        # Add extra buttons
         threading.Thread(target=self.add_download_button, args=(handler, row)).start()
         self.add_flatpak_waning_button(handler, row)
-       
-        # Add copy settings button if it's secondary 
+
+        # Add copy settings button if it's secondary
         if secondary:
             button = Gtk.Button(css_classes=["flat"], icon_name="edit-copy-symbolic", valign=Gtk.Align.CENTER)
             button.connect("clicked", self.copy_settings, constants, handler)
@@ -716,7 +764,7 @@ class Settings(Adw.PreferencesWindow):
         # Add check button
         button = Gtk.CheckButton(name=key, group=group, active=active)
         button.connect("toggled", self.choose_row, constants, secondary)
-        self.settingsrows[(key, self.convert_constants(constants), secondary)]["button"] = button 
+        self.settingsrows[(key, self.convert_constants(constants), secondary)]["button"] = button
         if not self.sandbox and handler.requires_sandbox_escape() or not handler.is_installed():
             button.set_sensitive(False)
         row.add_prefix(button)
@@ -743,7 +791,7 @@ class Settings(Adw.PreferencesWindow):
     def get_constants_from_object(self, handler):
         return self.handlers.get_constants_from_object(handler)
 
-    def choose_row(self, button, constants : dict, secondary=False):
+    def choose_row(self, button, constants: dict, secondary=False):
         """Called by GTK the selected h
         andler is changed
 
@@ -778,22 +826,23 @@ class Settings(Adw.PreferencesWindow):
             self.app.win.update_settings()
             self.update_rag_index()
 
-    def add_extra_settings(self, constants : dict[str, Any], handler : Handler, row : Adw.ExpanderRow, nested_settings : list | None = None):
-        """Buld the extra settings for the specified handler. The extra settings are specified by the method get_extra_settings 
+    def add_extra_settings(self, constants: dict[str, Any], handler: Handler, row: Adw.ExpanderRow,
+                           nested_settings: list | None = None):
+        """Buld the extra settings for the specified handler. The extra settings are specified by the method get_extra_settings
             Extra settings format:
             Required parameters:
-            - title: small title for the setting 
+            - title: small title for the setting
             - description: description for the setting
             - default: default value for the setting
             - type: What type of row to create, possible rows:
-                - entry: input text 
+                - entry: input text
                 - toggle: bool
                 - combo: for multiple choice
                     - values: list of touples of possible values (display_value, actual_value)
-                - range: for number input with a slider 
+                - range: for number input with a slider
                     - min: minimum value
-                    - max: maximum value 
-                    - round: how many digits to round 
+                    - max: maximum value
+                    - round: how many digits to round
             Optional parameters:
                 - folder: add a button that opens a folder with the specified path
                 - website: add a button that opens a website with the specified path
@@ -803,28 +852,33 @@ class Settings(Adw.PreferencesWindow):
             handler: An instance of the handler
             row: row where to add the settings
         """
-        if nested_settings is None: 
-            self.settingsrows[(handler.key, self.convert_constants(constants), handler.is_secondary())]["extra_settings"] = []
+        if nested_settings is None:
+            self.settingsrows[(handler.key, self.convert_constants(constants), handler.is_secondary())][
+                "extra_settings"] = []
             settings = handler.get_extra_settings()
         else:
             settings = nested_settings
         for setting in settings:
-            r = self.create_extra_setting(setting, handler, constants) 
+            r = self.create_extra_setting(setting, handler, constants)
             row.add_row(r)
-            self.settingsrows[handler.key, self.convert_constants(constants), handler.is_secondary()]["extra_settings"].append(r)
-        handler.set_extra_settings_update(lambda _: GLib.idle_add(self.on_setting_change, constants, handler, handler.key, True))
-    
-    def create_extra_setting(self, setting : dict, handler: Handler, constants : dict[str, Any]) -> Adw.ExpanderRow | Adw.ActionRow:
+            self.settingsrows[handler.key, self.convert_constants(constants), handler.is_secondary()][
+                "extra_settings"].append(r)
+        handler.set_extra_settings_update(
+            lambda _: GLib.idle_add(self.on_setting_change, constants, handler, handler.key, True))
+
+    def create_extra_setting(self, setting: dict, handler: Handler,
+                             constants: dict[str, Any]) -> Adw.ExpanderRow | Adw.ActionRow:
         if setting["type"] == "entry":
             r = Adw.ActionRow(title=setting["title"], subtitle=setting["description"])
             value = handler.get_setting(setting["key"])
             value = str(value)
             password = setting.get("password", False)
-            entry = Gtk.Entry(valign=Gtk.Align.CENTER, text=value, name=setting["key"], visibility= (not password))
+            entry = Gtk.Entry(valign=Gtk.Align.CENTER, text=value, name=setting["key"], visibility=(not password))
             entry.connect("changed", self.setting_change_entry, constants, handler)
             r.add_suffix(entry)
             if password:
-                button = Gtk.Button(valign=Gtk.Align.CENTER, name=setting["key"], css_classes=["flat"], icon_name="view-show")
+                button = Gtk.Button(valign=Gtk.Align.CENTER, name=setting["key"], css_classes=["flat"],
+                                    icon_name="view-show")
                 button.connect("clicked", lambda button, entry: entry.set_visibility(not entry.get_visibility()), entry)
                 r.add_suffix(button)
         elif setting["type"] == "multilineentry":
@@ -862,7 +916,7 @@ class Settings(Adw.PreferencesWindow):
             r = Adw.ActionRow(title=setting["title"], subtitle=setting["description"], valign=Gtk.Align.CENTER)
             box = Gtk.Box()
             scale = Gtk.Scale(name=setting["key"], round_digits=setting["round-digits"])
-            scale.set_range(setting["min"], setting["max"]) 
+            scale.set_range(setting["min"], setting["max"])
             scale.set_value(round(handler.get_setting(setting["key"]), setting["round-digits"]))
             scale.set_size_request(120, -1)
             scale.connect("change-value", self.setting_change_scale, constants, handler)
@@ -875,15 +929,16 @@ class Settings(Adw.PreferencesWindow):
             r = Adw.ExpanderRow(title=setting["title"], subtitle=setting["description"])
             self.add_extra_settings(constants, handler, r, setting["extra_settings"])
         elif setting["type"] == "download":
-            r = Adw.ActionRow(title=setting["title"], subtitle=setting["description"]) 
-            
-            actionbutton = Gtk.Button(css_classes=["flat"],valign=Gtk.Align.CENTER)
+            r = Adw.ActionRow(title=setting["title"], subtitle=setting["description"])
+
+            actionbutton = Gtk.Button(css_classes=["flat"], valign=Gtk.Align.CENTER)
             if setting["is_installed"]:
                 actionbutton.set_icon_name("user-trash-symbolic")
-                actionbutton.connect("clicked", lambda button,cb=setting["callback"],key=setting["key"] : cb(key))
+                actionbutton.connect("clicked", lambda button, cb=setting["callback"], key=setting["key"]: cb(key))
                 actionbutton.add_css_class("error")
             else:
-                actionbutton.set_icon_name("folder-download-symbolic" if "download-icon" not in setting else setting["download-icon"])
+                actionbutton.set_icon_name(
+                    "folder-download-symbolic" if "download-icon" not in setting else setting["download-icon"])
                 actionbutton.connect("clicked", self.download_setting, setting, handler)
                 actionbutton.add_css_class("accent")
             r.add_suffix(actionbutton)
@@ -898,19 +953,21 @@ class Settings(Adw.PreferencesWindow):
         if "refresh" in setting:
             refresh_icon = setting.get("refresh_icon", "view-refresh-symbolic")
             refreshbutton = Gtk.Button(icon_name=refresh_icon, valign=Gtk.Align.CENTER, css_classes=["flat"])
+
             def refresh_setting(button, cb=setting["refresh"], refresh_icon=refresh_icon):
                 refreshbutton.set_child(Gtk.Spinner(spinning=True))
                 cb(button)
+
             refreshbutton.connect("clicked", refresh_setting)
             r.add_suffix(refreshbutton)
-        return r 
-    
+        return r
+
     def add_customize_prompt_content(self, row, prompt_name):
         """Add a MultilineEntry to edit a prompt from the given prompt name
 
         Args:
-            row (): row of the prompt 
-            prompt_name (): name of the prompt 
+            row (): row of the prompt
+            prompt_name (): name of the prompt
         """
         box = Gtk.Box()
         entry = MultilineEntry()
@@ -933,7 +990,7 @@ class Settings(Adw.PreferencesWindow):
         """Called when the MultilineEntry is changed
 
         Args:
-            entry : the MultilineEntry 
+            entry : the MultilineEntry
         """
         prompt_name = entry.get_name()
         prompt_text = entry.get_text()
@@ -949,32 +1006,28 @@ class Settings(Adw.PreferencesWindow):
         """Called when the prompt restore is called
 
         Args:
-            button (): the clicked button 
+            button (): the clicked button
         """
         prompt_name = button.get_name()
         self.prompts[prompt_name] = PROMPTS[prompt_name]
         self.__prompts_entries[prompt_name].set_text(self.prompts[prompt_name])
 
-
-
     def toggle_virtualization(self, toggle, status):
         """Called when virtualization is toggled, also checks if there are enough permissions. If there aren't show a warning
 
         Args:
-            toggle (): 
-            status (): 
+            toggle ():
+            status ():
         """
         if not self.sandbox and not status:
-            self.show_flatpak_sandbox_notice()            
+            self.show_flatpak_sandbox_notice()
             toggle.set_active(True)
             self.settings.set_boolean("virtualization", True)
         else:
             self.settings.set_boolean("virtualization", status)
 
-        
+    def on_setting_change(self, constants: dict[str, Any], handler: Handler, key: str, force_change: bool = False):
 
-    def on_setting_change(self, constants: dict[str, Any], handler: Handler, key: str, force_change : bool = False):
-        
         if not force_change:
             setting_info = [info for info in handler.get_extra_settings_list() if info["key"] == key][0]
         else:
@@ -983,14 +1036,15 @@ class Settings(Adw.PreferencesWindow):
         if force_change or "update_settings" in setting_info and setting_info["update_settings"]:
             # remove all the elements in the specified expander row 
             row = self.settingsrows[(handler.key, self.convert_constants(constants), handler.is_secondary())]["row"]
-            setting_list = self.settingsrows[(handler.key, self.convert_constants(constants), handler.is_secondary())]["extra_settings"]
+            setting_list = self.settingsrows[(handler.key, self.convert_constants(constants), handler.is_secondary())][
+                "extra_settings"]
             if constants == AVAILABLE_RAGS:
                 GLib.idle_add(self.update_rag_index)
             for setting_row in setting_list:
                 row.remove(setting_row)
             self.add_extra_settings(constants, handler, row)
 
-    def setting_change_entry(self, entry, constants, handler : Handler):
+    def setting_change_entry(self, entry, constants, handler: Handler):
         """ Called when an entry handler setting is changed 
 
         Args:
@@ -1056,7 +1110,7 @@ class Settings(Adw.PreferencesWindow):
         handler.set_setting(setting, value)
         self.on_setting_change(constants, handler, setting)
 
-    def add_download_button(self, handler : Handler, row : Adw.ActionRow | Adw.ExpanderRow): 
+    def add_download_button(self, handler: Handler, row: Adw.ActionRow | Adw.ExpanderRow):
         """Add download button for an handler dependencies. If clicked it will call handler.install()
 
         Args:
@@ -1069,7 +1123,7 @@ class Settings(Adw.PreferencesWindow):
                 spinner = Gtk.Spinner(spinning=True)
                 actionbutton.set_child(spinner)
                 actionbutton.add_css_class("accent")
-                actionbutton.connect("clicked", lambda _ : self.app.win.show_stdout_monitor_dialog(self))
+                actionbutton.connect("clicked", lambda _: self.app.win.show_stdout_monitor_dialog(self))
             else:
                 icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="folder-download-symbolic"))
                 actionbutton.connect("clicked", self.install_model, handler)
@@ -1080,7 +1134,7 @@ class Settings(Adw.PreferencesWindow):
             elif type(row) is Adw.ExpanderRow:
                 row.add_action(actionbutton)
 
-    def add_flatpak_waning_button(self, handler : Handler, row : Adw.ExpanderRow | Adw.ActionRow | Adw.ComboRow):
+    def add_flatpak_waning_button(self, handler: Handler, row: Adw.ExpanderRow | Adw.ActionRow | Adw.ComboRow):
         """Add flatpak warning button in case the application does not have enough permissions
         On click it will show a warning about this issue and how to solve it
 
@@ -1111,9 +1165,9 @@ class Settings(Adw.PreferencesWindow):
         spinner = Gtk.Spinner(spinning=True)
         button.set_child(spinner)
         button.disconnect_by_func(self.install_model)
-        button.connect("clicked", lambda x : self.app.win.show_stdout_monitor_dialog(self))
-        t = threading.Thread(target=self.install_model_async, args= (button, handler))
-        t.start() 
+        button.connect("clicked", lambda x: self.app.win.show_stdout_monitor_dialog(self))
+        t = threading.Thread(target=self.install_model_async, args=(button, handler))
+        t.start()
 
     def install_model_async(self, button, model):
         """Install the model dependencies, called on another thread
@@ -1122,10 +1176,10 @@ class Settings(Adw.PreferencesWindow):
             button (): button  
             model (): a handler instance
         """
-        self.controller.installing_handlers[(model.key, model.schema_key)] = True 
+        self.controller.installing_handlers[(model.key, model.schema_key)] = True
         print("AE")
         model.install()
-        self.controller.installing_handlers[(model.key, model.schema_key)] = False 
+        self.controller.installing_handlers[(model.key, model.schema_key)] = False
         GLib.idle_add(self.update_ui_after_install, button, model)
 
     def update_ui_after_install(self, button, model):
@@ -1139,7 +1193,8 @@ class Settings(Adw.PreferencesWindow):
             self.on_setting_change(self.get_constants_from_object(model), model, "", True)
         button.set_child(None)
         button.set_sensitive(False)
-        checkbutton = self.settingsrows[(model.key, self.convert_constants(self.get_constants_from_object(model)), model.is_secondary())]["button"]
+        checkbutton = self.settingsrows[
+            (model.key, self.convert_constants(self.get_constants_from_object(model)), model.is_secondary())]["button"]
         checkbutton.set_sensitive(True)
 
     def download_setting(self, button: Gtk.Button, setting, handler: Handler, uninstall=False):
@@ -1155,7 +1210,8 @@ class Settings(Adw.PreferencesWindow):
             return
         box = Gtk.Box(homogeneous=True, spacing=4)
         box.set_orientation(Gtk.Orientation.VERTICAL)
-        icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="folder-download-symbolic" if "download-icon" not in setting else setting["download-icon"]))
+        icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(
+            name="folder-download-symbolic" if "download-icon" not in setting else setting["download-icon"]))
         icon.set_icon_size(Gtk.IconSize.INHERIT)
         progress = Gtk.ProgressBar(hexpand=False)
         progress.set_size_request(4, 4)
@@ -1184,7 +1240,8 @@ class Settings(Adw.PreferencesWindow):
                 print(e)
             time.sleep(1)
 
-    def download_setting_thread(self, handler: Handler, setting: dict, button: Gtk.Button, progressbar: Gtk.ProgressBar):
+    def download_setting_thread(self, handler: Handler, setting: dict, button: Gtk.Button,
+                                progressbar: Gtk.ProgressBar):
         self.model_threads[(setting["key"], handler.key)][1] = threading.current_thread().ident
         self.downloading[(setting["key"], handler.key)] = True
         th = threading.Thread(target=self.update_download_status_setting, args=(handler, setting, progressbar))
@@ -1235,10 +1292,13 @@ class Settings(Adw.PreferencesWindow):
 
         # Aggiungi il testo dell'errore
         dialog.set_body_use_markup(True)
-        dialog.set_body(_("Newelle does not have enough permissions to run commands on your system, please run the following command"))
+        dialog.set_body(
+            _("Newelle does not have enough permissions to run commands on your system, please run the following command"))
         dialog.add_response("close", _("Understood"))
         dialog.set_default_response("close")
-        dialog.set_extra_child(CopyBox("flatpak --user override --talk-name=org.freedesktop.Flatpak --filesystem=home io.github.qwersyk.Newelle", "bash", parent = self))
+        dialog.set_extra_child(CopyBox(
+            "flatpak --user override --talk-name=org.freedesktop.Flatpak --filesystem=home io.github.qwersyk.Newelle",
+            "bash", parent=self))
         dialog.set_close_response("close")
         dialog.set_response_appearance("close", Adw.ResponseAppearance.DESTRUCTIVE)
         dialog.connect('response', lambda dialog, response_id: dialog.destroy())
@@ -1248,7 +1308,8 @@ class Settings(Adw.PreferencesWindow):
     def delete_pip_path(self):
         """Delete the pip path folder"""
         shutil.rmtree(self.controller.pip_path)
-        dialog = Adw.MessageDialog(title=_("Pip path deleted"), body=_("The pip path has been deleted, you can now reinstall the dependencies. This operation requires a restart of the application."))
+        dialog = Adw.MessageDialog(title=_("Pip path deleted"), body=_(
+            "The pip path has been deleted, you can now reinstall the dependencies. This operation requires a restart of the application."))
         dialog.add_response("close", _("Understood"))
         dialog.set_default_response("close")
         dialog.set_close_response("close")

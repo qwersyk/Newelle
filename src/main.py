@@ -1,7 +1,8 @@
 import sys
 import os
 import gettext
-import gi 
+import gi
+
 gi.require_version('Gtk', '4.0')
 gi.require_version('GtkSource', '5')
 gi.require_version('Adw', '1')
@@ -100,10 +101,29 @@ class MyApp(Adw.Application):
           animation-timing-function: ease-in-out;
           animation-iteration-count: infinite;
         }
+        .window-bar-label {
+                color: @view_fg_color;
+                font-weight: 600;
+        }
+        @keyframes chat_locked_pulse {
+            0% { background-color: alpha(@view_fg_color, 0.06); }
+            50% { background-color: alpha(@view_fg_color, 0.12); }
+            100% { background-color: alpha(@view_fg_color, 0.06); }
+        }
+        .chat-locked {
+                background-color: alpha(@view_fg_color, 0.06);
+                animation: chat_locked_pulse 1.6s ease-in-out infinite;
+        }
         '''
+        self.windows = []
+        self.shared_chats = None
+        self.window_chat_usage = {}
+        self.left_sidebar_visible = None
+        self.right_sidebar_visible = None
+        self.right_sidebar_name = None
         css_provider = Gtk.CssProvider()
         css_provider.load_from_data(css, -1)
-        display = Gdk.Display.get_default() 
+        display = Gdk.Display.get_default()
         if display is not None:
             Gtk.StyleContext.add_provider_for_display(
                 display,
@@ -126,7 +146,10 @@ class MyApp(Adw.Application):
         action = Gio.SimpleAction.new("extension", None)
         action.connect('activate', self.extension_action)
         self.add_action(action)
-    
+        # Window management actions
+        self.create_action('new_window', self.create_window)
+        self.create_action('close_window', self.close_active_window)
+
     def create_action(self, name, callback, shortcuts=None):
         action = Gio.SimpleAction.new(name, None)
         action.connect("activate", callback)
@@ -146,38 +169,46 @@ class MyApp(Adw.Application):
                         version=self.version,
                         issue_url='https://github.com/qwersyk/Newelle/issues',
                         website='https://github.com/qwersyk/Newelle',
-                        developers=['Yehor Hliebov  https://github.com/qwersyk',"Francesco Caracciolo https://github.com/FrancescoCaracciolo", "Pim Snel https://github.com/mipmip"],
+                        developers=['Yehor Hliebov  https://github.com/qwersyk',
+                                    "Francesco Caracciolo https://github.com/FrancescoCaracciolo",
+                                    "Pim Snel https://github.com/mipmip"],
                         documenters=["Francesco Caracciolo https://github.com/FrancescoCaracciolo"],
                         designers=["Nokse22 https://github.com/Nokse22", "Jared Tweed https://github.com/JaredTweed"],
-                        translator_credits="\n".join(["Amine Saoud (Arabic) https://github.com/amiensa","Heimen Stoffels (Dutch) https://github.com/Vistaus","Albano Battistella (Italian) https://github.com/albanobattistella","Oliver Tzeng (Traditional Chinese, all languages) https://github.com/olivertzeng","Aritra Saha (Bengali, Hindi) https://github.com/olumolu"]),
+                        translator_credits="\n".join(["Amine Saoud (Arabic) https://github.com/amiensa",
+                                                      "Heimen Stoffels (Dutch) https://github.com/Vistaus",
+                                                      "Albano Battistella (Italian) https://github.com/albanobattistella",
+                                                      "Oliver Tzeng (Traditional Chinese, all languages) https://github.com/olivertzeng",
+                                                      "Aritra Saha (Bengali, Hindi) https://github.com/olumolu"]),
                         copyright='© 2025 qwersyk').present()
 
     def thread_editing_action(self, *a):
         threadediting = ThreadEditing(self)
         threadediting.present()
 
-    def settings_action(self, *a): 
+    def settings_action(self, *a):
         settings = Settings(self, self.win.controller)
         settings.present()
         settings.connect("close-request", self.close_settings)
         self.settingswindow = settings
 
-    def settings_action_paged(self, page=None, *a): 
+    def settings_action_paged(self, page=None, *a):
         settings = Settings(self, self.win.controller, False, page)
         settings.present()
         settings.connect("close-request", self.close_settings)
         self.settingswindow = settings
-    
+
     def close_settings(self, *a):
         settings = Gio.Settings.new('io.github.qwersyk.Newelle')
         settings.set_int("chat", self.win.chat_id)
         settings.set_string("path", os.path.normpath(self.win.main_path))
-        self.win.update_settings()
+        for win in self.windows:
+            win.update_settings()
         self.settingswindow.destroy()
         return True
 
     def extension_action(self, *a):
         extension = Extension(self)
+
         def close(win):
             settings = Gio.Settings.new('io.github.qwersyk.Newelle')
             settings.set_int("chat", self.win.chat_id)
@@ -185,24 +216,32 @@ class MyApp(Adw.Application):
             self.win.update_settings()
             win.destroy()
             return True
-        extension.connect("close-request", close) 
+
+        extension.connect("close-request", close)
         extension.present()
-    
+
     def stdout_monitor_action(self, *a):
         """Show the stdout monitor dialog"""
         self.win.show_stdout_monitor_dialog()
-    
+
     def close_window(self, *a):
-        if hasattr(self,"mini_win"):
+        window = a[0] if len(a) > 0 and isinstance(a[0], MainWindow) else getattr(self, "win", None)
+        if window in self.window_chat_usage:
+            self.window_chat_usage.pop(window, None)
+        if hasattr(self, "mini_win") and window is self.window:
             self.mini_win.close()
-        if all(element.poll() is not None for element in self.win.streams):
+
+        streams = getattr(window, "streams", [])
+        if all(element.poll() is not None for element in streams):
             settings = Gio.Settings.new('io.github.qwersyk.Newelle')
-            settings.set_int("window-width", self.win.get_width())
-            settings.set_int("window-height", self.win.get_height())
+            settings.set_int("window-width", window.get_width())
+            settings.set_int("window-height", window.get_height())
+            if window is self.window:
+                self.quit()
             return False
         else:
             dialog = Adw.MessageDialog(
-                transient_for=self.win,
+                transient_for=window,
                 heading=_("Terminal threads are still running in the background"),
                 body=_("When you close the window, they will be automatically terminated"),
                 body_use_markup=True
@@ -212,16 +251,18 @@ class MyApp(Adw.Application):
             dialog.set_response_appearance("close", Adw.ResponseAppearance.DESTRUCTIVE)
             dialog.set_default_response("cancel")
             dialog.set_close_response("cancel")
-            dialog.connect("response", self.close_message)
+            dialog.connect("response", lambda d, r, w=window: self.close_message(w, r))
             dialog.present()
             return True
-    
-    def close_message(self,a,status):
-        if status=="close":
-            for i in self.win.streams:
+
+    def close_message(self, window, status):
+        if status == "close":
+            for i in getattr(window, "streams", []):
                 i.terminate()
-            self.win.destroy()
-    
+            window.destroy()
+            if window is self.window:
+                self.quit()
+
     def do_command_line(self, command_line):
         options = command_line.get_options_dict()
         if options.contains("run-action"):
@@ -231,51 +272,228 @@ class MyApp(Adw.Application):
             else:
                 command_line.printerr(f"Action '{action_name}' not found.\n")
                 return 1
-        
+
         self.activate()
         return 0
 
     def on_activate(self, app):
-        if not hasattr(self,"win"):
+        if not hasattr(self, "win"):
             self.win = MainWindow(application=app)
+            self.window = self.win
+            self.windows.append(self.win)
             self.win.connect("close-request", self.close_window)
+            self._attach_shared_chats(self.win)
+            self.update_chat_ownership(self.win)
+            self.store_sidebar_state(self.win)
 
         if self.settings.get_string("startup-mode") == "mini":
-            if hasattr(self,"mini_win"):
+            if hasattr(self, "mini_win"):
                 self.mini_win.close()
             self.mini_win = MiniWindow(application=self, main_window=self.win)
             self.mini_win.present()
             self.settings.set_string("startup-mode", "normal")
         else:
-            self.win.present()
+            self.window.present()
 
     def focus_message(self, *a):
         self.win.focus_input()
 
-    def reload_chat(self,*a):
+    def _attach_shared_chats(self, target_win, preserve_active=False):
+        """Ensure all windows share the same chat list without saving to disk."""
+        if self.shared_chats is None:
+            self.shared_chats = target_win.chats
+            return
+
+        active_chat = None
+        if preserve_active and 0 <= target_win.chat_id < len(target_win.chats):
+            active_chat = target_win.chats[target_win.chat_id]
+
+        target_win.controller.chats = self.shared_chats
+        target_win.chats = self.shared_chats
+
+        if active_chat is not None:
+            if target_win.chat_id >= len(self.shared_chats):
+                self.shared_chats.append(active_chat)
+            else:
+                self.shared_chats[target_win.chat_id] = active_chat
+
+        target_win.chat_id = min(target_win.chat_id, len(self.shared_chats) - 1)
+        target_win.chat = target_win.chats[target_win.chat_id]["chat"]
+        target_win.controller.chat = target_win.chat
+
+    def _ensure_chat_available(self, win):
+        """Move the window to a free chat if its current one is locked elsewhere."""
+        locked = self.get_locked_chat_ids(win)
+        if win.chat_id not in locked:
+            return
+
+        for idx in range(len(win.chats)):
+            if idx not in locked:
+                win.chat_id = idx
+                win.chat = win.chats[win.chat_id]["chat"]
+                win.controller.chat = win.chat
+                self.update_chat_ownership(win)
+                return
+
+        win.new_chat(None)
+        self.update_chat_ownership(win)
+
+    def update_chat_ownership(self, win):
+        """Track which chat is currently open in each window."""
+        self.window_chat_usage[win] = win.chat_id
+
+    def get_locked_chat_ids(self, requester=None):
+        """Return chat ids used by other windows."""
+        return {
+            cid
+            for window, cid in self.window_chat_usage.items()
+            if requester is None or window is not requester
+        }
+
+    def get_window_for_chat(self, chat_id):
+        for window, cid in self.window_chat_usage.items():
+            if cid == chat_id:
+                return window
+        return None
+
+    def focus_chat_in_other_window(self, chat_id):
+        """Switch to the window that owns the given chat, if any."""
+        win = self.get_window_for_chat(chat_id)
+        if win is not None:
+            self.set_win(win)
+
+    def store_sidebar_state(self, win):
+        """Persist sidebar visibility from the given window."""
+        self.left_sidebar_visible = win.main.get_show_sidebar()
+        self.right_sidebar_visible = win.main_program_block.get_show_sidebar()
+        self.right_sidebar_name = win.main_program_block.get_name()
+
+    def apply_sidebar_state(self, win):
+        """Apply stored sidebar visibility to a window without forcing switches."""
+        if self.left_sidebar_visible is not None and win.main.get_show_sidebar() != self.left_sidebar_visible:
+            win._sidebar_syncing = True
+            win.main.set_show_sidebar(self.left_sidebar_visible)
+            win._sidebar_syncing = False
+
+        if self.right_sidebar_visible is not None:
+            desired_name = self.right_sidebar_name or win.main_program_block.get_name()
+            win._sidebar_syncing = True
+            win.main_program_block.set_name(desired_name)
+            if win.main_program_block.get_show_sidebar() != self.right_sidebar_visible:
+                win.main_program_block.set_show_sidebar(self.right_sidebar_visible)
+            win._sidebar_syncing = False
+
+    def is_chat_locked(self, chat_id, requester=None):
+        return chat_id in self.get_locked_chat_ids(requester)
+
+    def on_chat_removed(self, removed_index):
+        """Reindex chat ownership after a chat is deleted."""
+        for window, cid in list(self.window_chat_usage.items()):
+            if cid > removed_index:
+                new_cid = cid - 1
+                self.window_chat_usage[window] = new_cid
+                window.chat_id = new_cid
+                window.chat = window.chats[new_cid]["chat"]
+                window.controller.chat = window.chat
+
+    def refresh_window_bar(self):
+        """Refresh window switcher bars in all windows."""
+        for win in self.windows:
+            win.set_window_bar(
+                self.windows,
+                self.win,
+                self.switch_to_window,
+                self.close_window_entry,
+            )
+
+    def create_window(self, *a):
+        """Create a new window and switch to it."""
+        win = MainWindow(application=self)
+        self._attach_shared_chats(win)
+        win.new_chat(None)
+        self._ensure_chat_available(win)
+        self.windows.append(win)
+        win.connect("close-request", self.close_window)
+        self.set_win(win)
+        win.show_chat()
+        self.refresh_window_bar()
+
+    def switch_to_window(self, target_win):
+        """Switch to an existing window."""
+        if target_win not in self.windows:
+            return
+        self.set_win(target_win)
+        self.refresh_window_bar()
+
+    def close_window_entry(self, target_win):
+        """Close a window from the switcher bar."""
+        if target_win not in self.windows or len(self.windows) <= 1:
+            return
+        was_active = target_win is self.win
+        is_self_window = target_win is self.window
+        self.window_chat_usage.pop(target_win, None)
+        self.windows = [w for w in self.windows if w is not target_win]
+        if not is_self_window:
+            try:
+                target_win.destroy()
+            except Exception:
+                pass
+        if was_active and not is_self_window and self.windows:
+            self.set_win(self.windows[0])
+        self.refresh_window_bar()
+        self.win.update_history()
+
+    def close_active_window(self, *a):
+        """Close the currently active window via shortcut."""
+        self.close_window_entry(self.win)
+
+    def switch_window_by_index(self, index, *a):
+        """Switch to window by numeric index (1-based)."""
+        if 0 <= index < len(self.windows):
+            if self.windows[index] is not self.win:
+                self.set_win(self.windows[index])
+
+    def set_win(self, win):
+        prev_win = getattr(self, "win", None)
+        if prev_win is not None and prev_win is not win:
+            self._attach_shared_chats(win, preserve_active=True)
+        else:
+            self._attach_shared_chats(win)
+        self._ensure_chat_available(win)
+        self.apply_sidebar_state(win)
+        self.win = win
+        self.win.main_program_block.unparent()
+        self.window.set_content(self.win.main_program_block)
+        self.win.update_history()
+        self.update_chat_ownership(self.win)
+        self.refresh_window_bar()
+        self.window.present()
+        self.store_sidebar_state(self.win)
+
+    def reload_chat(self, *a):
         self.win.show_chat()
         self.win.notification_block.add_toast(
-                Adw.Toast(title=_('Chat is rebooted')))
+            Adw.Toast(title=_('Chat is rebooted')))
 
-    def reload_folder(self,*a):
+    def reload_folder(self, *a):
         self.win.update_folder()
         self.win.notification_block.add_toast(
-                Adw.Toast(title=_('Folder is rebooted')))
+            Adw.Toast(title=_('Folder is rebooted')))
 
-    def new_chat(self,*a):
+    def new_chat(self, *a):
         self.win.new_chat(None)
         self.win.notification_block.add_toast(
-                Adw.Toast(title=_('Chat is created')))
+            Adw.Toast(title=_('Chat is created')))
 
-    def start_recording(self,*a):
+    def start_recording(self, *a):
         if not self.win.recording:
             self.win.start_recording(self.win.recording_button)
         else:
             self.win.stop_recording(self.win.recording_button)
 
-    def stop_tts(self,*a):
+    def stop_tts(self, *a):
         self.win.mute_tts(self.win.mute_tts_button)
-    
+
     def do_shutdown(self):
         self.win.save_chat()
         settings = Gio.Settings.new('io.github.qwersyk.Newelle')
@@ -293,12 +511,13 @@ class MyApp(Adw.Application):
         zoom = max(100, self.settings.get_int("zoom") - 10)
         self.win.set_zoom(zoom)
         self.settings.set_int("zoom", zoom)
-    
+
     def save(self, *a):
         self.win.save()
 
+
 def main(version):
-    app = MyApp(application_id="io.github.qwersyk.Newelle", version = version)
+    app = MyApp(application_id="io.github.qwersyk.Newelle", version=version)
     app.create_action('reload_chat', app.reload_chat, ['<primary>r'])
     app.create_action('reload_folder', app.reload_folder, ['<primary>e'])
     app.create_action('new_chat', app.new_chat, ['<primary>t'])
@@ -309,4 +528,13 @@ def main(version):
     app.create_action('zoom', app.zoom, ['<primary>plus'])
     app.create_action('zoom', app.zoom, ['<primary>equal'])
     app.create_action('zoom_out', app.zoom_out, ['<primary>minus'])
+    app.create_action('new_window', app.create_window, ['<primary><shift>n'])
+    app.create_action('close_window', app.close_active_window, ['<primary><shift>w'])
+    for i in range(1, 10):
+        idx = i - 1
+        app.create_action(
+            f'switch_window_{i}',
+            lambda action, param=None, idx=idx: app.switch_window_by_index(idx),
+            [f'<primary>{i}'],
+        )
     app.run(sys.argv)
