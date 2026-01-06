@@ -24,6 +24,7 @@ class LlamaCPPHandler(OpenAIHandler):
         self.port = None
         self.loaded_model = None
         self.models = self.get_custom_model_list()
+        self.loaded_on = self.get_setting("gpu_acceleration", False, False)
         self.set_setting("endpoint", "http://localhost")
         self.set_setting("api", "no")
         self.downloading = {}
@@ -51,6 +52,7 @@ class LlamaCPPHandler(OpenAIHandler):
         return file_list
     
     def is_gpu_installed(self) -> bool:
+        self.python_path = os.path.join(self.venv_path, "bin", "python3")
         if not os.path.exists(self.python_path):
             return False
         
@@ -71,6 +73,11 @@ class LlamaCPPHandler(OpenAIHandler):
                 refresh=lambda button: self.get_custom_model_list(True),
                 folder=self.model_folder)
             ]
+        settings.extend(
+            [
+                ExtraSettings.ButtonSetting("library", "Model Library", "Open the model library", self.open_model_library, label="Model Library")
+            ]
+        )
         if not self.is_gpu_installed():
             settings.append(
                 ExtraSettings.ButtonSetting("install", "Install LlamaCPP (Hardware Acceleration)", "Install LlamaCPP Python bindings", self.show_install_dialog, label="Install")
@@ -80,11 +87,6 @@ class LlamaCPPHandler(OpenAIHandler):
                 ExtraSettings.ToggleSetting("gpu_acceleration", "Hardware Acceleration", "Enable hardware acceleration", False),
                 ExtraSettings.ButtonSetting("reinstall", "Reinstall", "Reinstall LlamaCPP", self.show_install_dialog, label="Reinstall")
             ])
-        settings.extend(
-            [
-                ExtraSettings.ButtonSetting("library", "Model Library", "Open the model library", self.open_model_library, label="Model Library")
-            ]
-        )
         return settings
 
     # Model Loading
@@ -98,7 +100,7 @@ class LlamaCPPHandler(OpenAIHandler):
 
     def load_model(self, model):
         model = self.get_setting("model")
-        if self.loaded_model == model:
+        if self.loaded_model == model and self.loaded_on == self.get_setting("gpu_acceleration", False, False):
             return True
         path = os.path.join(self.model_folder, self.get_setting("model"))
         if not path or not os.path.exists(path):
@@ -109,15 +111,16 @@ class LlamaCPPHandler(OpenAIHandler):
             self.server_process = None
             
         self.port = self.get_free_port()
-        if not self.is_gpu_installed():
+        if not self.is_gpu_installed() or not self.get_setting("gpu_acceleration", False):
             self.python_path = "python"
         cmd = [self.python_path, "-m", "llama_cpp.server", "--model", path, "--port", str(self.port)]
-        if is_flatpak() and self.is_gpu_installed():
+        if is_flatpak() and self.is_gpu_installed() and self.get_setting("gpu_acceleration", False, False):
              cmd = get_spawn_command() + cmd
              
         self.server_process = subprocess.Popen(cmd)
         self.set_setting("endpoint", f"http://localhost:{self.port}/v1")
         self.loaded_model = model
+        self.loaded_on = self.get_setting("gpu_acceleration", False, False)
         # Wait for server to potentially start
         time.sleep(3)
         url = f"http://localhost:{self.port}/v1/models"
