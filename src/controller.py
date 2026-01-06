@@ -593,7 +593,7 @@ class HandlersManager:
 
     def load_handlers(self):
         """Load handlers"""
-        self.llm.load_model(None)
+        threading.Thread(target=self.llm.load_model, args=(None,)).start()
         if self.settings.get_boolean("secondary-llm-on"):
             self.secondary_llm.load_model(None)
         self.embedding.load_model()

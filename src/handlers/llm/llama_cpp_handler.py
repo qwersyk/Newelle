@@ -25,7 +25,6 @@ class LlamaCPPHandler(OpenAIHandler):
         self.loaded_model = None
         self.models = self.get_custom_model_list()
         self.loaded_on = self.get_setting("gpu_acceleration", False, False)
-        self.set_setting("endpoint", "http://localhost")
         self.set_setting("api", "no")
         self.downloading = {}
         if not os.path.exists(self.path):
@@ -118,7 +117,6 @@ class LlamaCPPHandler(OpenAIHandler):
              cmd = get_spawn_command() + cmd
              
         self.server_process = subprocess.Popen(cmd)
-        self.set_setting("endpoint", f"http://localhost:{self.port}/v1")
         self.loaded_model = model
         self.loaded_on = self.get_setting("gpu_acceleration", False, False)
         # Wait for server to potentially start
@@ -477,3 +475,12 @@ class LlamaCPPHandler(OpenAIHandler):
     def finish_install(self, win):
         win.close()
         self.settings_update()
+
+    # Override get_setting and set_setting to avoid reloading the model
+    def get_setting(self, key: str, search_default = True, return_value = None):
+        if key == "endpoint":
+            return f"http://localhost:{self.port}/v1"
+        return super().get_setting(key, search_default, return_value)
+
+    def set_setting(self, key: str, value):
+        return super().set_setting(key, value)
