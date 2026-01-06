@@ -49,10 +49,11 @@ class ExplorerPanel(Gtk.Box):
         self.build_explorer_panel_buttons()
         self.update_folder()
 
-    def go_to_path(self, path):
-        self.main_path = path
+    def go_to_path(self, path): 
+        self.set_main_path(path)
+        os.chdir(os.path.expanduser(self.main_path))
         self.get_current_path()
-        self.update_folder()
+        GLib.idle_add(self.update_folder)
 
     def build_explorer_panel_buttons(self):
         box = Gtk.Box(halign=Gtk.Align.CENTER)

@@ -179,6 +179,14 @@ class NewelleController:
                 self.reload(r)
         return reload
 
+    def close_application(self):
+        self.handlers.destroy()
+
+    def wait_llm_loading(self):
+        GLib.idle_add(self.ui_controller.set_model_loading, True)
+        self.handlers.llm.load_model(None)
+        GLib.idle_add(self.ui_controller.set_model_loading, False)
+
     def reload(self, reload_type: ReloadType):
         """Reload the specified settings
 
@@ -199,8 +207,9 @@ class NewelleController:
             self.extensionloader.set_ui_controller(self.ui_controller)
             print("Extensions reload")
         elif reload_type == ReloadType.LLM:
+            self.handlers.llm.destroy()
             self.handlers.select_handlers(self.newelle_settings)
-            threading.Thread(target=self.handlers.llm.load_model, args=(None,)).start()
+            GLib.idle_add(threading.Thread(target=self.wait_llm_loading).start)
         elif reload_type == ReloadType.SECONDARY_LLM:
             self.handlers.select_handlers(self.newelle_settings)
             if self.newelle_settings.use_secondary_language_model:
@@ -409,7 +418,7 @@ class NewelleSettings:
         self.websearch_on = self.settings.get_boolean("websearch-on")
         self.websearch_model = self.settings.get_string("websearch-model")
         self.websearch_settings = self.settings.get_string("websearch-settings")
-        
+        self.parallel_tool_execution = settings.get_boolean("parallel-tool-execution")
         self.external_browser = settings.get_boolean("external-browser")
         self.initial_browser_page = settings.get_string("initial-browser-page")
         self.browser_search_string = settings.get_string("browser-search-string")
@@ -516,6 +525,10 @@ class HandlersManager:
         self.integrationsloader = integrations
         self.installing_handlers = installing_handlers
 
+    def destroy(self):
+        for handler in self.handlers.values():
+            handler.destroy()
+
     def fix_handlers_integrity(self, newelle_settings: NewelleSettings):
         """Select available handlers if not available handlers in settings
 
@@ -580,7 +593,7 @@ class HandlersManager:
 
     def load_handlers(self):
         """Load handlers"""
-        self.llm.load_model(None)
+        threading.Thread(target=self.llm.load_model, args=(None,)).start()
         if self.settings.get_boolean("secondary-llm-on"):
             self.secondary_llm.load_model(None)
         self.embedding.load_model()

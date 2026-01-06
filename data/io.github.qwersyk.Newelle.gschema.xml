@@ -72,7 +72,7 @@
 	        <default>"{}"</default>
         </key>
 	      <key name="embedding-model" type="s">
-            <default>"wordllama"</default>
+            <default>"model2vec"</default>
         </key>
 	      <key name="embedding-settings" type="s">
             <default>"{}"</default>
@@ -184,6 +184,9 @@
         </key> 
         <key name="remember-profile" type="b">
           <default>false</default>
+        </key>
+        <key name="parallel-tool-execution" type="b">
+            <default>false</default>
         </key>
 	</schema>
 </schemalist>

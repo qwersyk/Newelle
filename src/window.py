@@ -64,6 +64,10 @@ class MainWindow(Adw.ApplicationWindow):
             min_sidebar_width=420,
             max_sidebar_width=10000
         )
+        # UI things
+        self.model_loading_spinner_button = None
+        self.model_loading_spinner_separator = None
+        self.model_loading_status = False
         # Breakpoint - Collapse the sidebar when the window is too narrow
         breakpoint = Adw.Breakpoint(condition=Adw.BreakpointCondition.new_length(Adw.BreakpointConditionLengthType.MAX_WIDTH, 1000, Adw.LengthUnit.PX))
         breakpoint.add_setter(self.main_program_block, "collapsed", True)
@@ -120,6 +124,8 @@ class MainWindow(Adw.ApplicationWindow):
         menu.append(_("Keyboard shorcuts"), "app.shortcuts")
         menu.append(_("About"), "app.about")
         menu_button.set_menu_model(menu)
+        
+        
         self.chat_block = Gtk.Box(
             orientation=Gtk.Orientation.VERTICAL, hexpand=True, css_classes=["view"]
         )
@@ -815,6 +821,21 @@ class MainWindow(Adw.ApplicationWindow):
             )
         )
 
+    def set_model_loading_spinner(self, status):
+        if status == self.model_loading_status:
+            return
+        self.model_loading_status = status
+        if self.model_loading_spinner_separator is None:
+            return
+        if status:
+            self.title_box.prepend(self.model_loading_spinner_separator)
+            self.title_box.prepend(self.model_loading_spinner_button)
+        else:
+            self.title_box.remove(self.model_loading_spinner_separator)
+            self.title_box.remove(self.model_loading_spinner_button)
+        
+
+
     def build_model_popup(self):
         self.model_menu_button = Gtk.MenuButton()
         self.update_model_popup()
@@ -872,8 +893,18 @@ class MainWindow(Adw.ApplicationWindow):
         # Create a horizontal box to contain both the model button and settings button
         title_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=0)
         title_box.set_css_classes(["linked"])
+        # Spinner 
+        self.model_loading_spinner_button = Gtk.Button() 
+        model_loading_spinner = Gtk.Spinner(spinning=True)
+        self.model_loading_spinner_separator = separator = Gtk.Separator(orientation=Gtk.Orientation.VERTICAL)
+        self.model_loading_spinner_separator.set_margin_top(6)
+        self.model_loading_spinner_separator.set_margin_bottom(6)
+        self.model_loading_spinner_button.set_child(model_loading_spinner)
+        if self.model_loading_status:
+            title_box.append(self.model_loading_spinner_separator)
+            title_box.append(self.model_loading_spinner_button)
         title_box.append(self.model_menu_button)
-        
+        self.title_box = title_box 
         # Add a subtle separator
         separator = Gtk.Separator(orientation=Gtk.Orientation.VERTICAL)
         separator.set_margin_top(6)
@@ -1613,8 +1644,7 @@ class MainWindow(Adw.ApplicationWindow):
                 os.path.join(os.path.expanduser(self.main_path), button.get_name())
             ):
                 self.main_path = button.get_name()
-                os.chdir(os.path.expanduser(self.main_path))
-                GLib.idle_add(self.ui_controller.new_explorer_tab, self.main_path, False)
+                self.ui_controller.new_explorer_tab(self.main_path, False)
             else:
                 subprocess.run(["xdg-open", os.path.expanduser(button.get_name())])
         else:
@@ -2788,7 +2818,8 @@ class MainWindow(Adw.ApplicationWindow):
                                 GLib.idle_add(apply_sync)
 
                             t = threading.Thread(target=getresponse, args=(path,))
-                            t.start()
+                            if self.controller.newelle_settings.parallel_tool_execution:
+                                t.start()
                             running_threads.append(t)
                             if not restore:
                                 self.auto_run_times += 1
@@ -2874,7 +2905,7 @@ class MainWindow(Adw.ApplicationWindow):
                                 )
                                 list_box.append(expander_row)
                                 widget = list_box
-                                def apply_sync(code):
+                                def apply_sync(code, expander_row):
                                     expander_row.set_subtitle("Completed" if code[0] else "Error")
 
                                     content_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -2905,7 +2936,7 @@ class MainWindow(Adw.ApplicationWindow):
                                 ]["Message"]
                             
                             # Get the response async
-                            def get_response(apply_sync, result:ToolResult):
+                            def get_response(apply_sync, result:ToolResult, expander_row):
                                 if not restore:
                                     response = result.get_output()
                                     if response is not None:
@@ -2920,14 +2951,14 @@ class MainWindow(Adw.ApplicationWindow):
                                     )
                                 else:
                                     code = (True, reply_from_the_console)
-                                GLib.idle_add(apply_sync, code)
+                                GLib.idle_add(apply_sync, code, expander_row)
 
-                            t = threading.Thread(target=get_response, args=(apply_sync,result))
-                            t.start()
+                            t = threading.Thread(target=get_response, args=(apply_sync,result, expander_row))
+                            if self.controller.newelle_settings.parallel_tool_execution:
+                                t.start()
                             running_threads.append(t)
                             box.append(widget)
                         except Exception as e:
-                            raise e
                             print("Tool error " + tool.name + ": " + str(e))
                             #box.append(CopyBox(chunk.text, code_language, parent=self, id_message=id_message, id_codeblock=codeblock_id, allow_edit=editable, ))
                 elif chunk.type == "table":
@@ -3029,8 +3060,13 @@ class MainWindow(Adw.ApplicationWindow):
                 if not restore and not is_user:
 
                     def wait_threads_sm():
-                        for t in running_threads:
-                            t.join()
+                        if not self.controller.newelle_settings.parallel_tool_execution:
+                            for t in running_threads:
+                                t.start()
+                                t.join()
+                        else:
+                            for t in running_threads:
+                                t.join()
                         if len(running_threads) > 0:
                             self.send_message(manual=False)
 

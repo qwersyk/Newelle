@@ -9,7 +9,6 @@ class MCPIntegration(NewelleExtension):
 
     def __init__(self, pip_path, extension_path, settings):
         super().__init__(pip_path, extension_path, settings)
-        self.mcp_servers = ["https://server.smithery.ai/brightdata?api_key=a52a6f6f-7e6d-4fb5-b9e7-971dc28a86d7&profile=extreme-lark-TgkZVO"]
         self.mcp_servers = json.loads(self.settings.get_string("mcp-servers"))
         self.tools = []
         self.tools_dict = {}

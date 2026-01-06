@@ -10,6 +10,9 @@ class UIController:
     def require_tool_update(self):
         self.window.controller.require_tool_update()
 
+    def set_model_loading(self, status):
+        self.window.set_model_loading_spinner(status)
+
     def get_current_message_id(self):
         return self.window.controller.msgid
 

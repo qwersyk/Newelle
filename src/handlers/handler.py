@@ -177,3 +177,6 @@ class Handler():
                 self.on_extra_settings_update("")
             except Exception as e:
                 print(e)
+
+    def destroy(self):
+        pass
