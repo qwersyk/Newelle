@@ -39,6 +39,7 @@ from .utility.strings import (
     replace_codeblock,
     simple_markdown_to_pango,
     remove_emoji,
+    count_tokens,
 )
 from .utility.replacehelper import PromptFormatter, replace_variables, ReplaceHelper, replace_variables_dict
 from .utility.profile_settings import get_settings_dict, get_settings_dict_by_groups, restore_settings_from_dict, restore_settings_from_dict_by_groups
@@ -68,6 +69,8 @@ class MainWindow(Adw.ApplicationWindow):
         self.model_loading_spinner_button = None
         self.model_loading_spinner_separator = None
         self.model_loading_status = False
+        self.last_generation_time = None
+        self.last_token_num = None
         # Breakpoint - Collapse the sidebar when the window is too narrow
         breakpoint = Adw.Breakpoint(condition=Adw.BreakpointCondition.new_length(Adw.BreakpointConditionLengthType.MAX_WIDTH, 1000, Adw.LengthUnit.PX))
         breakpoint.add_setter(self.main_program_block, "collapsed", True)
@@ -2286,6 +2289,7 @@ class MainWindow(Adw.ApplicationWindow):
 
         self.model.set_history(prompts, history)
         try:
+            t1 = time.time()
             if self.model.stream_enabled():
                 message_label = self.model.send_message_stream(
                     self,
@@ -2301,6 +2305,18 @@ class MainWindow(Adw.ApplicationWindow):
                     pass
             else:
                 message_label = self.send_message_to_bot(self.chat[-1]["Message"])
+            self.last_generation_time = time.time() - t1
+            
+            input_tokens = 0
+            for prompt in prompts:
+                input_tokens += count_tokens(prompt)
+            for message in history:
+                input_tokens += count_tokens(message.get("User", "")) + count_tokens(message.get("Message", ""))
+            input_tokens += count_tokens(self.chat[-1]["Message"])
+            
+            output_tokens = count_tokens(message_label)
+            self.last_token_num = (input_tokens, output_tokens)
+            
             message_label = clean_bot_response(message_label) 
         except Exception as e:
             # Show error messsage
@@ -2545,7 +2561,10 @@ class MainWindow(Adw.ApplicationWindow):
     def add_prompt(self, prompt: str | None):
         if prompt is None:
             return
+        self.chat[-1]["enlapsed"] = self.last_generation_time
         self.chat[-1]["Prompt"] = prompt
+        self.chat[-1]["InputTokens"] = self.last_token_num[0]
+        self.chat[-1]["OutputTokens"] = self.last_token_num[1]
 
     def show_message(
         self,
@@ -3254,28 +3273,74 @@ class MainWindow(Adw.ApplicationWindow):
         Args:
             id (): id of the prompt to show
         """
+        # Retrieve prompt data
+        prompt_data = self.chat[id]
+        prompt_text = prompt_data.get("Prompt", "")
+        input_tokens = prompt_data.get("InputTokens", 0)
+        output_tokens = prompt_data.get("OutputTokens", 0)
+        elapsed = prompt_data.get("enlapsed", 0.0)
+
+        speed = 0.0
+        if elapsed > 0:
+            speed = output_tokens / elapsed
+
         dialog = Adw.Dialog(can_close=True)
-        dialog.set_title(_("Prompt content"))
-        label = Gtk.Label(
-            label=self.chat[id]["Prompt"],
-            wrap=True,
-            wrap_mode=Pango.WrapMode.WORD,
-            selectable=True,
-            halign=Gtk.Align.START,
-            hexpand=True,
-            vexpand=True,
-            width_request=400
-        )
-        scroll = Gtk.ScrolledWindow(propagate_natural_width=True, height_request=600)
-        scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
-        scroll.set_child(label)
+        dialog.set_title(_("Prompt Details"))
+
         content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         content.append(
             Adw.HeaderBar(css_classes=["flat"], show_start_title_buttons=True)
         )
+
+        scroll = Gtk.ScrolledWindow(propagate_natural_width=True)
+        scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+        scroll.set_vexpand(True)
+        
+        clamp = Adw.Clamp(maximum_size=600, margin_top=24, margin_bottom=24, margin_start=12, margin_end=12)
+        scroll.set_child(clamp)
+
+        inner_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=24)
+        clamp.set_child(inner_box)
+
+        # Statistics
+        stats_group = Adw.PreferencesGroup(title=_("Statistics"))
+        inner_box.append(stats_group)
+
+        row_input = Adw.ActionRow(title=_("Input Tokens"), subtitle=str(input_tokens))
+        stats_group.add(row_input)
+
+        row_output = Adw.ActionRow(title=_("Output Tokens"), subtitle=str(output_tokens))
+        stats_group.add(row_output)
+
+        row_speed = Adw.ActionRow(title=_("Generation Speed"), subtitle=f"{speed:.2f} tokens/s")
+        stats_group.add(row_speed)
+
+        # Prompt
+        prompt_group = Adw.PreferencesGroup(title=_("Prompt"))
+        inner_box.append(prompt_group)
+
+        prompt_card = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        prompt_card.add_css_class("card")
+        
+        label = Gtk.Label(
+            label=prompt_text,
+            wrap=True,
+            wrap_mode=Pango.WrapMode.WORD,
+            selectable=True,
+            halign=Gtk.Align.START,
+            xalign=0,
+            margin_top=12,
+            margin_bottom=12,
+            margin_start=12,
+            margin_end=12
+        )
+        prompt_card.append(label)
+        prompt_group.add(prompt_card)
+
         content.append(scroll)
         dialog.set_child(content)
-        dialog.set_content_width(400)
+        dialog.set_content_width(500)
+        dialog.set_content_height(600)
         dialog.present()
 
     def copy_message(self, button, id):
