@@ -44,7 +44,7 @@ class EspeakHandler(TTSHandler):
     def is_installed(self):
         if not can_escape_sandbox():
             return False
-        GLib.idle_add(threading.Thread(target=self.is_installed_check).start) 
+        GLib.idle_add(threading.Thread(target=self.check_install).start) 
         return self.is_installed_check
 
     def check_install(self):
