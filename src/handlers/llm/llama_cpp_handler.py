@@ -320,13 +320,22 @@ class LlamaCPPHandler(OpenAIHandler):
         
         self.hw_options = {}
         group = None
-        for hw in ["CPU", "CPU (OpenBLAS)", "Nvidia (CUDA)", "AMD (ROCm)", "AMD (Vulkan)"]:
+        for hw in ["CPU", "CPU (OpenBLAS)", "Nvidia (CUDA)", "AMD (ROCm)", "Any GPU (Vulkan)"]:
             btn = Gtk.CheckButton(label=hw, group=group)
             if group is None:
                 group = btn
                 btn.set_active(True)
             self.hw_options[hw] = btn
             box1.append(btn)
+
+        lbl_flags = Gtk.Label(label="Custom CMake Flags (Optional)")
+        lbl_flags.set_halign(Gtk.Align.START)
+        lbl_flags.set_margin_top(12)
+        box1.append(lbl_flags)
+        
+        self.entry_cmake = Gtk.Entry()
+        self.entry_cmake.set_placeholder_text("-DGGML_AVX2=off ...")
+        box1.append(self.entry_cmake)
             
         btn_next1 = Gtk.Button(label="Next")
         btn_next1.set_halign(Gtk.Align.CENTER)
@@ -407,15 +416,17 @@ class LlamaCPPHandler(OpenAIHandler):
             backend = "cuda"
         elif self.hw_options["AMD (ROCm)"].get_active():
             backend = "rocm"
-        elif self.hw_options["AMD (Vulkan)"].get_active():
+        elif self.hw_options["Any GPU (Vulkan)"].get_active():
             backend = "vulkan"
         elif self.hw_options["CPU (OpenBLAS)"].get_active():
             backend = "cpu_openblas"
             
+        custom_flags = self.entry_cmake.get_text()
+
         carousel.scroll_to(carousel.get_nth_page(2), True)
-        threading.Thread(target=self.run_install_process, args=(backend, carousel)).start()
+        threading.Thread(target=self.run_install_process, args=(backend, carousel, custom_flags)).start()
         
-    def run_install_process(self, backend, carousel):
+    def run_install_process(self, backend, carousel, custom_flags=""):
         if not can_escape_sandbox():
             self.throw("You have to escape the sandbox to install LlamaCPP", ErrorSeverity.ERROR)
         try:
@@ -430,6 +441,10 @@ class LlamaCPPHandler(OpenAIHandler):
             elif backend == "cpu_openblas":
                 cmake_args.append("-DGGML_BLAS=ON")
                 cmake_args.append("-DGGML_BLAS_VENDOR=OpenBLAS")
+
+            if custom_flags:
+                cmake_args.append(custom_flags)
+
             env_vars = {}
             if cmake_args:
                 env_vars["CMAKE_ARGS"] = " ".join(cmake_args)
