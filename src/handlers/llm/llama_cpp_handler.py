@@ -8,6 +8,7 @@ import threading
 import socket
 import time
 import json
+import shutil
 from gi.repository import Gtk, Adw, GLib
 from ...ui.model_library import ModelLibraryWindow, LibraryModel
 import requests
@@ -36,6 +37,8 @@ class LlamaCPPHandler(OpenAIHandler):
         self.venv_path = os.path.join(self.path, "venv")
         self.python_path = os.path.join(self.venv_path, "bin", "python3")
         self.pip_path_venv = os.path.join(self.venv_path, "bin", "pip")
+        self.llama_cpp_path = os.path.join(self.path, "llama.cpp")
+        self.llama_server_path = os.path.join(self.llama_cpp_path, "build", "bin", "llama-server")
         self.model_folder = os.path.join(self.path, "custom_models")
         self.server_process = None
         self.port = None
@@ -82,11 +85,14 @@ class LlamaCPPHandler(OpenAIHandler):
         return file_list
     
     def is_gpu_installed(self) -> bool:
-        self.python_path = os.path.join(self.venv_path, "bin", "python3")
-        if not os.path.exists(self.python_path):
-            return False
-        else:
+        # Check if llama.cpp is built (hardware backend installation)
+        if os.path.exists(self.llama_server_path) and os.access(self.llama_server_path, os.X_OK):
             return True
+        
+        # Fallback: check if Python bindings are installed (CPU-only fallback)
+        self.python_path = os.path.join(self.venv_path, "bin", "python3")
+        if not os.path.exists(self.venv_path):
+            return False
         
         cmd = [self.python_path, "-c", "import llama_cpp"]
         if is_flatpak():
@@ -113,12 +119,12 @@ class LlamaCPPHandler(OpenAIHandler):
         )
         if not self.is_gpu_installed():
             settings.append(
-                ExtraSettings.ButtonSetting("install", "Install LlamaCPP (Hardware Acceleration)", "Install LlamaCPP Python bindings", self.show_install_dialog, label="Install")
+                ExtraSettings.ButtonSetting("install", "Install LlamaCPP (Hardware Acceleration)", "Build llama.cpp with hardware acceleration", self.show_install_dialog, label="Install")
             )
         else:
             settings.extend([
                 ExtraSettings.ToggleSetting("gpu_acceleration", "Hardware Acceleration", "Enable hardware acceleration", False),
-                ExtraSettings.ButtonSetting("reinstall", "Reinstall", "Reinstall LlamaCPP", self.show_install_dialog, label="Reinstall")
+                ExtraSettings.ButtonSetting("reinstall", "Reinstall", "Rebuild llama.cpp", self.show_install_dialog, label="Reinstall")
             ])
         return settings
 
@@ -139,22 +145,24 @@ class LlamaCPPHandler(OpenAIHandler):
         if not path or not os.path.exists(path):
              return False
         
-        if self.server_process:
-            self.server_process.terminate()
-            self.server_process = None
-            
+        # Kill existing server process before starting a new one
+        self.kill_server()
+        
         self.port = self.get_free_port()
-        if not self.is_gpu_installed() or not self.get_setting("gpu_acceleration", False):
-            self.python_path = "python"
-        cmd = [self.python_path, "-m", "llama_cpp.server", "--model", path, "--port", str(self.port)]
+        
+        # Use built llama.cpp server if hardware acceleration is enabled and available
+        if self.get_setting("gpu_acceleration", False, False) and self.is_gpu_installed():
+            cmd_path = self.llama_server_path
+        else:
+            cmd_path = "/app/bin/llama-server"
+        cmd = [cmd_path, "--model", path, "--port", str(self.port), "--host", "127.0.0.1"]
+        print(cmd)
         if is_flatpak() and self.is_gpu_installed() and self.get_setting("gpu_acceleration", False, False):
-             cmd = get_spawn_command() + cmd
-             
+            cmd = get_spawn_command() + cmd
         self.server_process = subprocess.Popen(cmd)
         self.loaded_model = model
         self.loaded_on = self.get_setting("gpu_acceleration", False, False)
         # Wait for server to potentially start
-        time.sleep(3)
         url = f"http://localhost:{self.port}/v1/models"
         start_time = time.time()
         while time.time() - start_time < 60: # 60 seconds timeout
@@ -165,6 +173,27 @@ class LlamaCPPHandler(OpenAIHandler):
                 pass
             time.sleep(0.5) 
         return False
+    
+    def kill_server(self):
+        self.loaded_model = None
+        if self.server_process:
+            try:
+                self.server_process.terminate()
+                # Wait up to 5 seconds for graceful termination
+                try:
+                    self.server_process.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    # Force kill if it doesn't terminate gracefully
+                    self.server_process.kill()
+                    self.server_process.wait()
+            except (ProcessLookupError, ValueError):
+                # Process already terminated
+                pass
+            finally:
+                self.server_process = None
+    
+    def destroy(self):
+        self.kill_server()
 
     # Model library
     def fetch_models(self):
@@ -288,7 +317,7 @@ class LlamaCPPHandler(OpenAIHandler):
         # Llama CPP install dialog
 
     def show_install_dialog(self, button):
-        win = Adw.Window(title="Install LlamaCPP")
+        win = Adw.Window(title="Build llama.cpp")
         win.set_default_size(600, 600)
         win.set_modal(True)
         try:
@@ -315,9 +344,17 @@ class LlamaCPPHandler(OpenAIHandler):
         
         # Page 1: Hardware
         page1 = Adw.StatusPage(title="Select Hardware", description="Choose your acceleration backend", icon_name="brain-augemnted-symbolic")
-        box1 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12, hexpand=True, vexpand=True)
-        box1.set_halign(Gtk.Align.CENTER)
+        main_container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12, hexpand=True, vexpand=True)
+        main_container.set_halign(Gtk.Align.CENTER)
         
+        # Horizontal box for hardware options and CMake flags
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=24, hexpand=True)
+        hbox.set_halign(Gtk.Align.CENTER)
+        hbox.set_margin_start(24)
+        hbox.set_margin_end(24)
+        
+        # Left side: Hardware options
+        left_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
         self.hw_options = {}
         group = None
         for hw in ["CPU", "CPU (OpenBLAS)", "Nvidia (CUDA)", "AMD (ROCm)", "Any GPU (Vulkan)"]:
@@ -326,32 +363,37 @@ class LlamaCPPHandler(OpenAIHandler):
                 group = btn
                 btn.set_active(True)
             self.hw_options[hw] = btn
-            box1.append(btn)
-
+            left_box.append(btn)
+        
+        # Right side: CMake flags
+        right_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12, valign=Gtk.Align.CENTER)
         lbl_flags = Gtk.Label(label="Custom CMake Flags (Optional)")
         lbl_flags.set_halign(Gtk.Align.START)
-        lbl_flags.set_margin_top(12)
-        box1.append(lbl_flags)
+        right_box.append(lbl_flags)
         
         self.entry_cmake = Gtk.Entry()
         self.entry_cmake.set_placeholder_text("-DGGML_AVX2=off ...")
-        box1.append(self.entry_cmake)
+        right_box.append(self.entry_cmake)
+        
+        hbox.append(left_box)
+        hbox.append(right_box)
+        main_container.append(hbox)
             
         btn_next1 = Gtk.Button(label="Next")
         btn_next1.set_halign(Gtk.Align.CENTER)
         btn_next1.set_margin_top(12)
         btn_next1.connect("clicked", lambda x: content.scroll_to(content.get_nth_page(1), True))
-        box1.append(btn_next1)
+        main_container.append(btn_next1)
             
-        page1.set_child(box1)
+        page1.set_child(main_container)
         content.append(page1)
 
         # Page 2: Install Button
-        page2 = Adw.StatusPage(title="Ready to Install", description="Click start to begin compilation", icon_name="tools-symbolic")
+        page2 = Adw.StatusPage(title="Ready to Build", description="Click start to begin compilation", icon_name="tools-symbolic")
         box2 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12, hexpand=True, vexpand=True)
         box2.set_halign(Gtk.Align.CENTER)
         
-        btn_start = Gtk.Button(label="Start Installation")
+        btn_start = Gtk.Button(label="Start Build")
         btn_start.set_halign(Gtk.Align.CENTER)
         btn_start.connect("clicked", lambda x: self.start_installation(content))
         box2.append(btn_start)
@@ -432,22 +474,30 @@ class LlamaCPPHandler(OpenAIHandler):
         try:
             env = os.environ.copy()
             cmake_args = []
+            cmake_args.append("-DGGML_NATIVE=ON")
+            cmake_args.append("-DGGML_AVX2=ON")
+            cmake_args.append("-DGGML_FMA=ON")
+            cmake_args.append("-DGGML_AVX512=OFF")
             if backend == "cuda":
-                cmake_args.append("-DGGML_CUDA=on")
+                cmake_args.append("-DGGML_CUDA=ON")
+                cmake_args.append("-DCMAKE_CUDA_ARCHITECTURES=native")
+                cmake_args.append("-DGGML_CUDA_F16=ON")
+                cmake_args.append("-DGGML_CUDA_GRAPHS=ON")
+
             elif backend == "rocm":
-                cmake_args.append("-DGGML_HIPBLAS=on")
+                cmake_args.append("-DGGML_HIPBLAS=ON")
+                cmake_args.append("-DAMDGPU_TARGETS=native")
             elif backend == "vulkan":
-                cmake_args.append("-DGGML_VULKAN=on")
+                cmake_args.append("-DGGML_VULKAN=ON")
+                cmake_args.append("-DGGML_VULKAN_F16=ON")
             elif backend == "cpu_openblas":
                 cmake_args.append("-DGGML_BLAS=ON")
                 cmake_args.append("-DGGML_BLAS_VENDOR=OpenBLAS")
 
             if custom_flags:
-                cmake_args.append(custom_flags)
-
-            env_vars = {}
-            if cmake_args:
-                env_vars["CMAKE_ARGS"] = " ".join(cmake_args)
+                # Parse custom flags - they might be space-separated or already a list
+                custom_list = custom_flags.split() if isinstance(custom_flags, str) else custom_flags
+                cmake_args.extend(custom_list)
                 
             def append_log(text):
                 buffer = self.log_view.get_buffer()
@@ -458,7 +508,7 @@ class LlamaCPPHandler(OpenAIHandler):
                 self.progress_bar.set_fraction(fraction)
                 return False
 
-            def run_cmd(cmd_list, extra_env=None):
+            def run_cmd(cmd_list, extra_env=None, cwd=None):
                 full_cmd = cmd_list
                 if is_flatpak():
                     flatpak_cmd = get_spawn_command()
@@ -476,7 +526,8 @@ class LlamaCPPHandler(OpenAIHandler):
                     stderr=subprocess.STDOUT, 
                     text=True, 
                     bufsize=1,
-                    env=env if not is_flatpak() else None
+                    env=env if not is_flatpak() else None,
+                    cwd=cwd
                 )
                 
                 while True:
@@ -488,34 +539,54 @@ class LlamaCPPHandler(OpenAIHandler):
                 return process.poll() == 0
 
             GLib.idle_add(set_progress, 0.1)
-            GLib.idle_add(append_log, "Creating virtual environment...\n")
+            GLib.idle_add(append_log, "Cloning llama.cpp repository...\n")
             
-            abs_venv_path = os.path.abspath(self.venv_path)
-            cmd_venv = ["python3", "-m", "venv", abs_venv_path]
-            if not run_cmd(cmd_venv):
-                raise Exception("Failed to create venv")
+            abs_llama_cpp_path = os.path.abspath(self.llama_cpp_path)
+            
+            # Remove existing directory if it exists
+            if os.path.exists(abs_llama_cpp_path):
+                shutil.rmtree(abs_llama_cpp_path)
+            
+            # Clone llama.cpp
+            clone_cmd = ["git", "clone", "https://github.com/ggml-org/llama.cpp.git", abs_llama_cpp_path]
+            if not run_cmd(clone_cmd):
+                raise Exception("Failed to clone llama.cpp repository")
 
-            GLib.idle_add(set_progress, 0.3)
-            GLib.idle_add(append_log, "Upgrading pip...\n")
+            GLib.idle_add(set_progress, 0.2)
+            GLib.idle_add(append_log, "Configuring CMake build...\n")
             
-            pip_bin = os.path.join(abs_venv_path, "bin", "pip")
-            if not run_cmd([pip_bin, "install", "--upgrade", "pip"]):
-                 raise Exception("Failed to upgrade pip")
+            # Configure CMake
+            build_dir = os.path.join(abs_llama_cpp_path, "build")
+            cmake_configure = ["cmake", "-B", "build", "-DCMAKE_BUILD_TYPE=Release"] + cmake_args
+            if not run_cmd(cmake_configure, cwd=abs_llama_cpp_path):
+                raise Exception("Failed to configure CMake build")
                  
-            GLib.idle_add(set_progress, 0.5)
-            GLib.idle_add(append_log, f"Installing llama-cpp-python (Backend: {backend})...\n")
+            GLib.idle_add(set_progress, 0.4)
+            GLib.idle_add(append_log, f"Building llama.cpp (Backend: {backend})...\n")
+            GLib.idle_add(append_log, "This may take several minutes...\n")
+            
+            # Build llama.cpp
+            import multiprocessing
+            num_jobs = multiprocessing.cpu_count()
+            cmake_build = ["cmake", "--build", "build", "--config", "Release", "-j", str(num_jobs)]
+            if not run_cmd(cmake_build, cwd=abs_llama_cpp_path):
+                raise Exception("Failed to build llama.cpp")
 
-            install_cmd = [pip_bin, "install", "llama-cpp-python[server]", "--verbose", "--force-reinstall", "--no-cache-dir"]
-            if not run_cmd(install_cmd, extra_env=env_vars):
-                 raise Exception("Failed to install package")
+            # Verify server binary was built
+            server_binary = os.path.join(build_dir, "bin", "llama-server")
+            if not os.path.exists(server_binary):
+                raise Exception("Server binary not found after build")
 
             GLib.idle_add(set_progress, 1.0)
+            GLib.idle_add(append_log, "Build completed successfully!\n")
             GLib.idle_add(lambda: carousel.scroll_to(carousel.get_nth_page(3), True))
             GLib.idle_add(lambda: self.settings_update())
             self.set_setting("gpu_acceleration", True)
             
         except Exception as e:
-            GLib.idle_add(append_log, f"\nError: {e}")
+            GLib.idle_add(append_log, f"\nError: {e}\n")
+            import traceback
+            GLib.idle_add(append_log, traceback.format_exc())
 
     def finish_install(self, win):
         win.close()
