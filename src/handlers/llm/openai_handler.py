@@ -22,6 +22,14 @@ class OpenAIHandler(LLMHandler):
     def get_models_list(self):
         return self.models
 
+    def set_secondary_settings(self, secondary: bool):
+        if self.key != "openai":
+            endpoint = self.get_setting("endpoint", search_default=False)
+        out = super().set_secondary_settings(secondary)
+        if secondary and self.key != "openai" and endpoint is not None:
+            self.set_setting("endpoint", endpoint) 
+        return out 
+
     def get_models(self, manual=False):
         if self.is_installed():
             try:
