@@ -1,16 +1,19 @@
 import threading 
 import json 
 import requests 
+import os
 from subprocess import Popen 
 from typing import Any, Callable
 import time
 import gettext
+from gi.repository import GLib
+
 _ = gettext.gettext
 
 from ..handler import ErrorSeverity
 
 from .llm import LLMHandler
-from ...utility.system import can_escape_sandbox, get_spawn_command
+from ...utility.system import can_escape_sandbox, get_spawn_command, is_flatpak
 from ...utility.media import extract_image
 from ...utility import get_streaming_extra_setting
 from ...handlers import ExtraSettings
@@ -23,6 +26,10 @@ class OllamaHandler(LLMHandler):
     library_url = "https://raw.githubusercontent.com/FrancescoCaracciolo/llm-library-scraper/refs/heads/main/ollama/available_models.json"
     # List of models to be included in the library by default
     pinned_models = ["qwen3:4b", "qwen3:8b", "deepseek-r1:8b", "qwen3:14b", "llama3.2-vision:11b", "deepseek-r1:1.5b", "deepseek-r1:7b", "deepseek-r1:14b", "llama3.2:3b", "llama3.1:8b", "qwq:32b", "qwen2.5:1.5b", "qwen2.5:3b", "qwen2.5:7b", "qwen2.5:14b", "gemma2:2b", "gemma2:9b", "qwen2.5-coder:3b", "qwen2.5-coder:7b", "qwen2.5-coder:14b", "llama3.3:70b", "phi4:14b"]
+
+    def get_cache_path(self):
+        cache_dir = self.path
+        return os.path.join(cache_dir, "ollama_models.json")
 
     def __init__(self, settings, path):
         super().__init__(settings, path)
@@ -39,7 +46,17 @@ class OllamaHandler(LLMHandler):
         else:
             self.models = json.loads(models)
         if self.get_setting("models-info", False) is not None:
-            self.models_info = self.get_setting("models-info", False)
+            self.set_setting("model-info", None)
+        
+        cache_path = self.get_cache_path()
+        if os.path.exists(cache_path):
+            try:
+                with open(cache_path, "r") as f:
+                    self.models_info = json.load(f)
+            except Exception as e:
+                print(f"Error loading cached models info: {e}")
+                self.models_info = {}
+                threading.Thread(target=self.get_models_infomation, args=()).start()
         else:
             self.models_info = {}
             threading.Thread(target=self.get_models_infomation, args=()).start()
@@ -52,7 +69,9 @@ class OllamaHandler(LLMHandler):
         if self.is_installed(): 
             try:
                 info = requests.get(self.library_url).json()
-                self.set_setting("models-info", info)
+                cache_path = self.get_cache_path()
+                with open(cache_path, "w") as f:
+                    json.dump(info, f)
                 print(info)
                 self.models_info = info
                 self.add_library_information()

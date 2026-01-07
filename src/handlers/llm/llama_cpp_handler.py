@@ -7,6 +7,7 @@ import os
 import threading
 import socket
 import time
+import json
 from gi.repository import Gtk, Adw, GLib
 from ...ui.model_library import ModelLibraryWindow, LibraryModel
 import requests
@@ -14,12 +15,28 @@ import requests
 class LlamaCPPHandler(OpenAIHandler):
     key = "llamacpp"
     
+    def get_cache_path(self):
+        cache_dir = self.path
+        return os.path.join(cache_dir, "llamacpp_models.json")
+
+    def update_library_cache(self):
+        url = "https://raw.githubusercontent.com/FrancescoCaracciolo/llm-library-scraper/refs/heads/main/lmstudio/model_list.json"
+        try:
+            response = requests.get(url)
+            data = response.json()
+            cache_path = self.get_cache_path()
+            with open(cache_path, "w") as f:
+                json.dump(data, f)
+            self.library_data = data
+        except Exception as e:
+            print(f"Error updating library cache: {e}")
+
     def __init__(self, settings, path):
         super().__init__(settings, path)
         self.venv_path = os.path.join(self.path, "venv")
         self.python_path = os.path.join(self.venv_path, "bin", "python3")
         self.pip_path_venv = os.path.join(self.venv_path, "bin", "pip")
-        self.model_folder = self.path
+        self.model_folder = os.path.join(self.path, "custom_models")
         self.server_process = None
         self.port = None
         self.loaded_model = None
@@ -27,9 +44,23 @@ class LlamaCPPHandler(OpenAIHandler):
         self.loaded_on = self.get_setting("gpu_acceleration", False, False)
         self.set_setting("api", "no")
         self.downloading = {}
+        
+        self.library_data = []
+        cache_path = self.get_cache_path()
+        if os.path.exists(cache_path):
+            try:
+                with open(cache_path, "r") as f:
+                    self.library_data = json.load(f)
+            except:
+                self.library_data = []
+                threading.Thread(target=self.update_library_cache).start()
+        else:
+            threading.Thread(target=self.update_library_cache).start()
+
         if not os.path.exists(self.path):
             try:
                 os.makedirs(self.path)
+                os.makedirs(self.model_folder)
             except:
                 pass
     
@@ -54,6 +85,8 @@ class LlamaCPPHandler(OpenAIHandler):
         self.python_path = os.path.join(self.venv_path, "bin", "python3")
         if not os.path.exists(self.python_path):
             return False
+        else:
+            return True
         
         cmd = [self.python_path, "-c", "import llama_cpp"]
         if is_flatpak():
@@ -66,9 +99,10 @@ class LlamaCPPHandler(OpenAIHandler):
             return False
 
     def get_extra_settings(self) -> list:
+        custom_model_list = self.get_custom_model_list()
         settings =  [
                 ExtraSettings.ComboSetting("model", "Model", "Model to use", self.get_custom_model_list(), 
-                self.get_custom_model_list()[0][1] if len(self.get_custom_model_list()) > 0 else "", 
+                custom_model_list[0][1] if len(custom_model_list) > 0 else "", 
                 refresh=lambda button: self.get_custom_model_list(True),
                 folder=self.model_folder)
             ]
@@ -134,9 +168,7 @@ class LlamaCPPHandler(OpenAIHandler):
 
     # Model library
     def fetch_models(self):
-        url = "https://raw.githubusercontent.com/FrancescoCaracciolo/llm-library-scraper/refs/heads/main/lmstudio/model_list.json"
-        response = requests.get(url)
-        data = response.json()
+        data = self.library_data
         models = []
         for model in data:
             models.append(LibraryModel(
@@ -160,9 +192,7 @@ class LlamaCPPHandler(OpenAIHandler):
         return models
 
     def get_model_info_by_title(self, title: str) -> dict:
-        url = "https://raw.githubusercontent.com/FrancescoCaracciolo/llm-library-scraper/refs/heads/main/lmstudio/model_list.json"
-        response = requests.get(url)
-        data = response.json()
+        data = self.library_data
         for model in data:
             if model["title"] == title:
                 return model

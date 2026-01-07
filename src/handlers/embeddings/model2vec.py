@@ -3,6 +3,12 @@ from ...handlers import ExtraSettings
 
 class Model2VecHandler(EmbeddingHandler):
     key="model2vec"
+
+    def __init__(self, settings, path):
+        super().__init__(settings, path)
+        self.model = None
+        self.loaded_model = None
+
     @staticmethod
     def get_extra_requirements() -> list:
         return ["model2vec"]
@@ -25,7 +31,14 @@ class Model2VecHandler(EmbeddingHandler):
 
     def load_model(self):
         from model2vec import StaticModel
-        self.model = StaticModel.from_pretrained(self.get_setting("model"))
+        if self.model is not None:
+            return
+        model = self.get_setting("model")
+        if model == self.loaded_model:
+            return
+        self.model = StaticModel.from_pretrained(model)
+        self.loaded_model = model
+
 
     def get_embedding(self, text: list[str]):
         if not hasattr(self, "model"):
