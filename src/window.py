@@ -2908,9 +2908,10 @@ class MainWindow(Adw.ApplicationWindow):
                                 # If the answer is provided, the apply_async function 
                                 # Should only do something on error\
                                 # The widget must be edited by the extension
-                                def apply_sync(code):    
+                                def apply_sync(code, widget):    
                                     if not code[0]:
                                         self.add_message("Error", code[1])
+                                expander_row = None
                             else:
                                 # In case only the answer is provided, the apply_async function
                                 # Also return a text expander with the code
