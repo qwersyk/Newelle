@@ -204,7 +204,7 @@ class MainWindow(Adw.ApplicationWindow):
         self.chats_main_box.append(Gtk.Separator())
         self.main.set_sidebar(Adw.NavigationPage(child=self.chats_main_box, title=_("Chats")))
         self.main.set_content(Adw.NavigationPage(child=self.chat_panel, title=_("Chat")))
-        self.main.set_show_sidebar(True)
+        self.main.set_show_sidebar(not self.settings.get_boolean("hide-history-on-launch"))
         self.main.connect("notify::show-sidebar", lambda x, _ : self.left_panel_toggle_button.set_active(self.main.get_show_sidebar()))
         # Canvas panel
         self.build_canvas()
