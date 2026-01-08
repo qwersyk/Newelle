@@ -1,16 +1,32 @@
+# List of Python requirements 
 requests
 expandvars
 curl_cffi
 pillow
-gtts
 pyaudio
+pydub
 speechrecognition
 openai
-pygame
 tiktoken
 newspaper3k
+mcp
 lxml
 lxml_html_clean
 pylatexenc
 matplotlib
-gpt4all # Optional
+markdownify
+# If you are packaging the application, you can ignore these requirements
+# (better if you install them)
+model2vec
+faiss-cpu
+llamaindex_core
+llamaindex_readers_file
+llama-index-vector-stores-faiss
+gtts
+
+# list of non-python requirements
+# - git
+# - vte4
+# - llama-server (optional)
+# - portaudio
+# - webkitgtk-6.0
