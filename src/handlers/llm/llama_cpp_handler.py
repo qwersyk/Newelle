@@ -9,6 +9,7 @@ import socket
 import time
 import json
 import shutil
+import atexit
 from gi.repository import Gtk, Adw, GLib
 from ...ui.model_library import ModelLibraryWindow, LibraryModel
 import requests
@@ -35,12 +36,12 @@ class LlamaCPPHandler(OpenAIHandler):
     def __init__(self, settings, path):
         super().__init__(settings, path)
         self.venv_path = os.path.join(self.path, "venv")
-        self.python_path = os.path.join(self.venv_path, "bin", "python3")
-        self.pip_path_venv = os.path.join(self.venv_path, "bin", "pip")
         self.llama_cpp_path = os.path.join(self.path, "llama.cpp")
         self.llama_server_path = os.path.join(self.llama_cpp_path, "build", "bin", "llama-server")
         self.model_folder = os.path.join(self.path, "custom_models")
         self.server_process = None
+        self._atexit_handler = self.kill_server
+        atexit.register(self._atexit_handler)
         self.port = None
         self.loaded_model = None
         self.models = self.get_custom_model_list()
@@ -88,21 +89,7 @@ class LlamaCPPHandler(OpenAIHandler):
         # Check if llama.cpp is built (hardware backend installation)
         if os.path.exists(self.llama_server_path) and os.access(self.llama_server_path, os.X_OK):
             return True
-        
-        # Fallback: check if Python bindings are installed (CPU-only fallback)
-        self.python_path = os.path.join(self.venv_path, "bin", "python3")
-        if not os.path.exists(self.venv_path):
-            return False
-        
-        cmd = [self.python_path, "-c", "import llama_cpp"]
-        if is_flatpak():
-            cmd = get_spawn_command() + cmd
-        
-        try:
-            subprocess.check_call(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            return True
-        except:
-            return False
+        return False
 
     def get_extra_settings(self) -> list:
         custom_model_list = self.get_custom_model_list()
@@ -112,6 +99,7 @@ class LlamaCPPHandler(OpenAIHandler):
                 refresh=lambda button: self.get_custom_model_list(True),
                 folder=self.model_folder)
             ]
+
         settings.extend(
             [
                 ExtraSettings.ButtonSetting("library", "Model Library", "Open the model library", self.open_model_library, label="Model Library")
@@ -156,7 +144,6 @@ class LlamaCPPHandler(OpenAIHandler):
         else:
             cmd_path = "/app/bin/llama-server"
         cmd = [cmd_path, "--model", path, "--port", str(self.port), "--host", "127.0.0.1"]
-        print(cmd)
         if is_flatpak() and self.is_gpu_installed() and self.get_setting("gpu_acceleration", False, False):
             cmd = get_spawn_command() + cmd
         self.server_process = subprocess.Popen(cmd)
@@ -194,6 +181,10 @@ class LlamaCPPHandler(OpenAIHandler):
     
     def destroy(self):
         self.kill_server()
+        try:
+            atexit.unregister(self._atexit_handler)
+        except AttributeError:
+            pass
 
     # Model library
     def fetch_models(self):
