@@ -114,6 +114,11 @@ class LlamaCPPHandler(OpenAIHandler):
                 ExtraSettings.ToggleSetting("gpu_acceleration", "Hardware Acceleration", "Enable hardware acceleration", False),
                 ExtraSettings.ButtonSetting("reinstall", "Reinstall", "Rebuild llama.cpp", self.show_install_dialog, label="Reinstall")
             ])
+        extra_settings = self.build_extra_settings("LlamaCPP", False, True, False, True, False, None, None, False, False, True)
+        extra_settings.extend([
+            ExtraSettings.SpinSetting("ctx", "Context Size", "Context size to use, 0 = load from model", default=0, min=0, max=1200000, page=1024, step=512),
+        ])
+        settings.extend(extra_settings)
         return settings
 
     # Model Loading
@@ -122,12 +127,10 @@ class LlamaCPPHandler(OpenAIHandler):
             s.bind(('', 0))
             return s.getsockname()[1]
 
-    def stream_enabled(self) -> bool:
-        return True
-
     def load_model(self, model):
         model = self.get_setting("model")
-        if self.loaded_model == model and self.loaded_on == self.get_setting("gpu_acceleration", False, False):
+        ctx = self.get_setting("ctx", 2048, 0)
+        if self.loaded_model == model and self.loaded_on == self.get_setting("gpu_acceleration", False, False) and self.loaded_ctx == ctx:
             return True
         path = os.path.join(self.model_folder, self.get_setting("model"))
         if not path or not os.path.exists(path):
@@ -143,12 +146,13 @@ class LlamaCPPHandler(OpenAIHandler):
             cmd_path = self.llama_server_path
         else:
             cmd_path = "/app/bin/llama-server"
-        cmd = [cmd_path, "--model", path, "--port", str(self.port), "--host", "127.0.0.1"]
+        cmd = [cmd_path, "--model", path, "--port", str(self.port), "--host", "127.0.0.1", "-c", str(ctx)]
         if is_flatpak() and self.is_gpu_installed() and self.get_setting("gpu_acceleration", False, False):
             cmd = get_spawn_command() + cmd
         self.server_process = subprocess.Popen(cmd)
         self.loaded_model = model
         self.loaded_on = self.get_setting("gpu_acceleration", False, False)
+        self.loaded_ctx = ctx
         # Wait for server to potentially start
         url = f"http://localhost:{self.port}/v1/models"
         start_time = time.time()

@@ -221,6 +221,7 @@ class MyApp(Adw.Application):
         if status=="close":
             for i in self.win.streams:
                 i.terminate()
+            self.win.controller.close_application()
             self.win.destroy()
     
     def do_command_line(self, command_line):
