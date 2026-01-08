@@ -2989,6 +2989,8 @@ class MainWindow(Adw.ApplicationWindow):
             self.controller.msgid = state["id_message"]
 
         if not tool:
+            widget = CopyBox(chunk.text, "tool_call", parent=self)
+            box.append(widget)
             return
 
         # Generate or retrieve tool call UUID
