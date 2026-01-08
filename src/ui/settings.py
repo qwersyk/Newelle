@@ -588,18 +588,10 @@ class Settings(Adw.PreferencesWindow):
         rag_row.add_suffix(rag_on_docuements)
         self.RAG.add(rag_row)
          
-        rag_limit = Adw.ActionRow(title=_("Maximum tokens for RAG"), subtitle=_("The maximum amount of tokens to be used for RAG. If the documents do not exceed this token count,\ndump all of them in the context"))
-        time_scale = Gtk.Scale(digits=0, round_digits=0)
-        time_scale.set_range(0, 50000)
-        time_scale.set_size_request(120, -1)
-        value = self.settings.get_int("documents-context-limit")
-        time_scale.set_value(value)
-        label = Gtk.Label(label=str(value))
-        time_scale.connect("value-changed", update_scale, label, "documents-context-limit", int)
-        box = Gtk.Box()
-        box.append(time_scale)
-        box.append(label)
-        rag_limit.add_suffix(box)
+        rag_limit = Adw.SpinRow(title=_("Maximum tokens for RAG"), subtitle=_("The maximum amount of tokens to be used for RAG. If the documents do not exceed this token count,\ndump all of them in the context"), adjustment=Gtk.Adjustment(lower=0, upper=50000, step_increment=100, page_increment=1000, value=self.settings.get_int("documents-context-limit")), digits=0)
+        def update_rag_limit(spin, _):
+             self.settings.set_int("documents-context-limit", int(spin.get_value()))
+        rag_limit.connect("notify::value", update_rag_limit)
         rag_row.add_row(rag_limit)
 
         # Document folder 
