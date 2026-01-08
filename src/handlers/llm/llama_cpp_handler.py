@@ -256,14 +256,28 @@ class LlamaCPPHandler(OpenAIHandler):
         print(f"No standard quantization tag found in priority list. Defaulting to: {fallback}")
         return fallback
 
-    def install_model(self, model: str):
+    def pull_model(self, url: str):
+        if "/" in url:
+            if not url.startswith("https://huggingface.co/"):
+                url = "https://huggingface.co/" + url
+            info = self.get_model_info_by_title(url)
+            if not info:
+                self.library_data = [{"title": url, "description": "User added model", "tags": ["custom"], "links": [url], "capabilities": ""}] + self.library_data
+            self.install_model(url, url)
+        else:
+            self.install_model(url)
+    
+    def install_model(self, model: str, gguf_file: str = None):
         if self.model_installed(model):
             os.remove(os.path.join(self.model_folder, model + ".gguf"))
             self.settings_update()
         else:
             info = self.get_model_info_by_title(model)
             links = info["links"]
-            gguf_link = next((link for link in links if link.endswith("-GGUF")), None)
+            if gguf_file is None:
+                gguf_link = next((link for link in links if link.endswith("-GGUF")), None)
+            else:
+                gguf_link = gguf_file    
             parts = gguf_link.split("huggingface.co/")[-1].split("/")
             repo_id = f"{parts[0]}/{parts[1]}"
             print(f"Repo ID: {repo_id}")

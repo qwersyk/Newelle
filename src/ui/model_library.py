@@ -351,8 +351,8 @@ class ModelLibraryWindow(Adw.Window):
     def show_add_custom_model_dialog(self, button):
         dialog = Adw.MessageDialog(
             transient_for=self,
-            heading="Add Custom Model",
-            body="Enter the model name (e.g. llama3:8b) or HF path"
+            heading=_("Add Custom Model"),
+            body=_("Enter the model name (e.g. llama3:8b - ollama only) or HF path")
         )
         dialog.add_response("cancel", "Cancel")
         dialog.add_response("add", "Add")
@@ -371,6 +371,7 @@ class ModelLibraryWindow(Adw.Window):
                 if text:
                     self.handler.set_setting("extra_model_name", text)
                     threading.Thread(target=self.handler.pull_model, args=(text,)).start()
+                    self.refresh_library(None)
             d.close()
             
         dialog.connect("response", on_response)
