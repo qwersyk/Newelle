@@ -278,3 +278,37 @@ class ExtraSettings:
         r["max"] = max
         r["round-digits"] = round
         return r
+
+    @staticmethod 
+    def SpinSetting(key: str, title: str, description: str, default: float, min: float, max: float, step: float = 1.0, page: float = 10.0, round: int = 0,
+                     folder: str|None = None, website: str|None = None, update_settings: bool = False, refresh: Callable|None = None, refresh_icon: str|None = None) -> dict:
+        """
+        Create a new spin setting. Used for numeric values, shows a spin row.
+
+        Args:
+            key: key of the setting 
+            title: title of the setting 
+            description: description of the setting             
+            default: the default value of the setting                             
+            min: the minimum value of the setting                                   
+            max: the maximum value of the setting
+            step: the step increment
+            page: the page increment                               
+            round: the number of digits to round to                             
+            folder: if not None, near the setting it will be shown a button to open the specified folder                               
+            website: if not None, near the setting it will be shown a button to open the specified website                                                                                  
+            update_settings: if True, when the setting is changed, the settings will be automatically updated                                                                            
+            refresh: if not None, near the setting it will be shown a button to refresh the specified function. When clicked the function is executed                                                                                       
+            refresh_icon: if not None, the icon of the refresh button                                                                                                                          
+
+        Returns:
+             - dict: the setting in this format
+        """
+        r = ExtraSettings.Setting(key, title, description, default, folder, website, update_settings, refresh, refresh_icon)
+        r["type"] = "spin"
+        r["min"] = min
+        r["max"] = max
+        r["step"] = step
+        r["page"] = page
+        r["round-digits"] = round
+        return r

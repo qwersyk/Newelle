@@ -20,7 +20,7 @@ from .utility.message_chunk import get_message_chunks
 
 from .ui.profile import ProfileDialog
 from .ui.presentation import PresentationWindow
-from .ui.widgets import File, CopyBox, BarChartBox, MarkupTextView, DocumentReaderWidget, TipsCarousel, BrowserWidget, Terminal, CodeEditorWidget
+from .ui.widgets import File, CopyBox, BarChartBox, MarkupTextView, DocumentReaderWidget, TipsCarousel, BrowserWidget, Terminal, CodeEditorWidget, ToolWidget
 from .ui import apply_css_to_widget, load_image_with_callback
 from .ui.explorer import ExplorerPanel
 from .ui.widgets import MultilineEntry, ProfileRow, DisplayLatex, InlineLatex, ThinkingWidget
@@ -39,6 +39,7 @@ from .utility.strings import (
     replace_codeblock,
     simple_markdown_to_pango,
     remove_emoji,
+    count_tokens,
 )
 from .utility.replacehelper import PromptFormatter, replace_variables, ReplaceHelper, replace_variables_dict
 from .utility.profile_settings import get_settings_dict, get_settings_dict_by_groups, restore_settings_from_dict, restore_settings_from_dict_by_groups
@@ -68,9 +69,12 @@ class MainWindow(Adw.ApplicationWindow):
         self.model_loading_spinner_button = None
         self.model_loading_spinner_separator = None
         self.model_loading_status = False
+        self.last_generation_time = None
+        self.last_token_num = None
         # Breakpoint - Collapse the sidebar when the window is too narrow
         breakpoint = Adw.Breakpoint(condition=Adw.BreakpointCondition.new_length(Adw.BreakpointConditionLengthType.MAX_WIDTH, 1000, Adw.LengthUnit.PX))
-        breakpoint.add_setter(self.main_program_block, "collapsed", True)
+        breakpoint.connect("apply", self.on_breakpoint_apply, self.main_program_block)
+        breakpoint.connect("unapply", self.on_breakpoint_unapply, self.main_program_block)
         self.add_breakpoint(breakpoint)
        
         # Streams
@@ -201,7 +205,7 @@ class MainWindow(Adw.ApplicationWindow):
         self.chats_main_box.append(Gtk.Separator())
         self.main.set_sidebar(Adw.NavigationPage(child=self.chats_main_box, title=_("Chats")))
         self.main.set_content(Adw.NavigationPage(child=self.chat_panel, title=_("Chat")))
-        self.main.set_show_sidebar(True)
+        self.main.set_show_sidebar(not self.settings.get_boolean("hide-history-on-launch"))
         self.main.connect("notify::show-sidebar", lambda x, _ : self.left_panel_toggle_button.set_active(self.main.get_show_sidebar()))
         # Canvas panel
         self.build_canvas()
@@ -526,7 +530,8 @@ class MainWindow(Adw.ApplicationWindow):
         self.set_content(self.main_program_block)
         bin = Adw.BreakpointBin(child=self.main, width_request=300, height_request=300)
         breakpoint = Adw.Breakpoint(condition=Adw.BreakpointCondition.new_length(Adw.BreakpointConditionLengthType.MAX_WIDTH, 900, Adw.LengthUnit.PX))
-        breakpoint.add_setter(self.main, "collapsed", True)
+        breakpoint.connect("apply", self.on_breakpoint_apply, self.main)
+        breakpoint.connect("unapply", self.on_breakpoint_unapply, self.main)
         bin.add_breakpoint(breakpoint)
 
         self.main_program_block.set_content(bin)
@@ -1544,6 +1549,12 @@ class MainWindow(Adw.ApplicationWindow):
         elif type(header_widget) is Gtk.Box:
             self.canvas_headerbox.append(self.headerbox)
 
+    def on_breakpoint_apply(self, breakpoint, split_view):
+        split_view.set_collapsed(True)
+
+    def on_breakpoint_unapply(self, breakpoint, split_view):
+        split_view.set_collapsed(not split_view.get_show_sidebar())
+
     def on_flap_button_toggled(self, toggle_button: Gtk.ToggleButton):
         """Handle flap button toggle"""
         self.focus_input()
@@ -2286,6 +2297,7 @@ class MainWindow(Adw.ApplicationWindow):
 
         self.model.set_history(prompts, history)
         try:
+            t1 = time.time()
             if self.model.stream_enabled():
                 message_label = self.model.send_message_stream(
                     self,
@@ -2301,6 +2313,18 @@ class MainWindow(Adw.ApplicationWindow):
                     pass
             else:
                 message_label = self.send_message_to_bot(self.chat[-1]["Message"])
+            self.last_generation_time = time.time() - t1
+            
+            input_tokens = 0
+            for prompt in prompts:
+                input_tokens += count_tokens(prompt)
+            for message in history:
+                input_tokens += count_tokens(message.get("User", "")) + count_tokens(message.get("Message", ""))
+            input_tokens += count_tokens(self.chat[-1]["Message"])
+            
+            output_tokens = count_tokens(message_label)
+            self.last_token_num = (input_tokens, output_tokens)
+            
             message_label = clean_bot_response(message_label) 
         except Exception as e:
             # Show error messsage
@@ -2545,7 +2569,10 @@ class MainWindow(Adw.ApplicationWindow):
     def add_prompt(self, prompt: str | None):
         if prompt is None:
             return
+        self.chat[-1]["enlapsed"] = self.last_generation_time
         self.chat[-1]["Prompt"] = prompt
+        self.chat[-1]["InputTokens"] = self.last_token_num[0]
+        self.chat[-1]["OutputTokens"] = self.last_token_num[1]
 
     def show_message(
         self,
@@ -2557,40 +2584,41 @@ class MainWindow(Adw.ApplicationWindow):
         newelle_error=False,
         prompt: str | None = None,
     ):
-        """Show a message
+        """Show a message in the chat.
 
         Args:
-            message_label (): text of the message
-            restore (): if the chat is being restored
-            id_message (): id of the message
-            is_user (): true if it's a user message
-            return_widget (): if the widget should be returned and not added
-            newelle_error (): if the message is an error from Newelle
+            message_label: Text content of the message
+            restore: Whether the chat is being restored from history
+            id_message: ID of the message (-1 for new messages)
+            is_user: True if it's a user message
+            return_widget: If True, return the widget instead of adding it
+            newelle_error: If True, display as an error message
+            prompt: Optional prompt to add to history
 
         Returns:
-            Gtk.Widget | None
+            Gtk.Widget | None: The message widget if return_widget is True
         """
-        codeblock_id = -1
         if id_message == -1:
-            id_message = len(self.chat) 
-        editable = True
+            id_message = len(self.chat)
+
+        # Handle empty/whitespace messages
         if message_label == " " * len(message_label) and not is_user:
             if not restore:
                 self.chat.append({"User": "Assistant", "Message": message_label})
                 self.add_prompt(prompt)
-                GLib.idle_add(self.update_button_text)
-                self.status = True
-                self.chat_stop_button.set_visible(False)
-        elif newelle_error:
+                self._finalize_message_display()
+            GLib.idle_add(self.scrolled_chat)
+            self.save_chat()
+            return None
+
+        # Handle error messages
+        if newelle_error:
             if not restore:
-                self.chat_stop_button.set_visible(False)
-                GLib.idle_add(self.update_button_text)
-                self.status = True
-            message_label = markwon_to_pango(message_label)
+                self._finalize_message_display()
             self.last_error_box = self.add_message(
                 "Error",
                 Gtk.Label(
-                    label=message_label,
+                    label=markwon_to_pango(message_label),
                     use_markup=True,
                     wrap=True,
                     margin_top=10,
@@ -2599,481 +2627,602 @@ class MainWindow(Adw.ApplicationWindow):
                     margin_start=10,
                 ),
             )
-        else:
-            if not restore and not is_user:
+            GLib.idle_add(self.scrolled_chat)
+            self.save_chat()
+            return None
+
+        # Initialize message UUID for assistant messages
+        msg_uuid = 0
+        if not is_user:
+            if not restore:
                 msg_uuid = int(uuid.uuid4())
                 self.chat.append({"User": "Assistant", "Message": message_label, "UUID": msg_uuid})
                 self.add_prompt(prompt)
-            elif not is_user:
+            else:
                 msg_uuid = self.chat[id_message].get("UUID", 0)
-            chunks = get_message_chunks(
-                message_label, self.controller.newelle_settings.display_latex
+
+        # Parse message into chunks
+        chunks = get_message_chunks(
+            message_label, self.controller.newelle_settings.display_latex
+        )
+
+        # Build the message container
+        box = Gtk.Box(
+            margin_top=10,
+            margin_start=10,
+            margin_bottom=10,
+            margin_end=10,
+            orientation=Gtk.Orientation.VERTICAL,
+        )
+
+        # Process state
+        state = {
+            "codeblock_id": -1,
+            "id_message": id_message,
+            "editable": True,
+            "has_terminal_command": False,
+            "running_threads": [],
+            "tool_call_counter": 0,  # Counter for multiple tool calls in same message
+        }
+
+        # Process each chunk
+        for chunk in chunks:
+            self._process_chunk(
+                chunk, box, state, restore, is_user, msg_uuid
             )
-            box = Gtk.Box(
+
+        # Finalize and display the message
+        return self._finalize_show_message(
+            box, state, restore, is_user, return_widget
+        )
+
+    def _finalize_message_display(self):
+        """Update UI state after message display."""
+        GLib.idle_add(self.update_button_text)
+        self.status = True
+        self.chat_stop_button.set_visible(False)
+
+    def _process_chunk(self, chunk, box, state, restore, is_user, msg_uuid):
+        """Process a single message chunk and add appropriate widget to box."""
+        if chunk.type == "codeblock":
+            self._process_codeblock(chunk, box, state, restore, is_user, msg_uuid)
+        elif chunk.type == "tool_call":
+            self._process_tool_call(chunk, box, state, restore)
+        elif chunk.type == "table":
+            self._process_table(chunk, box)
+        elif chunk.type == "inline_chunks":
+            self._process_inline_chunks(chunk, box)
+        elif chunk.type in ("latex", "latex_inline"):
+            self._process_latex(chunk, box)
+        elif chunk.type == "thinking":
+            think = ThinkingWidget()
+            think.set_thinking(chunk.text)
+            box.append(think)
+        elif chunk.type == "text":
+            self._process_text(chunk, box)
+
+    def _process_codeblock(self, chunk, box, state, restore, is_user, msg_uuid):
+        """Process a codeblock chunk."""
+        state["codeblock_id"] += 1
+        codeblock_id = state["codeblock_id"]
+        lang = chunk.lang
+        text = chunk.text
+
+        # Check for extension/integration codeblocks
+        codeblocks = {
+            **self.extensionloader.codeblocks,
+            **self.controller.integrationsloader.codeblocks
+        }
+
+        if lang in codeblocks:
+            self._process_extension_codeblock(
+                chunk, box, state, restore, msg_uuid, codeblocks[lang]
+            )
+        elif lang == "think":
+            think = ThinkingWidget()
+            think.set_thinking(text)
+            box.append(think)
+        elif lang == "image":
+            self._process_image_codeblock(text, box)
+        elif lang == "video":
+            self._process_video_codeblock(text, box)
+        elif lang == "console" and not is_user:
+            self._process_console_codeblock(chunk, box, state, restore)
+        elif lang in ("file", "folder"):
+            for obj in text.split("\n"):
+                box.append(self.get_file_button(obj))
+        elif lang == "chart" and not is_user:
+            self._process_chart_codeblock(chunk, box)
+        elif lang == "latex":
+            try:
+                box.append(DisplayLatex(text, 16, self.controller.cache_dir))
+            except Exception as e:
+                print(e)
+                box.append(CopyBox(text, lang, parent=self))
+        else:
+            box.append(CopyBox(
+                text, lang, parent=self,
+                id_message=state["id_message"],
+                id_codeblock=codeblock_id,
+                allow_edit=state["editable"]
+            ))
+
+    def _process_extension_codeblock(self, chunk, box, state, restore, msg_uuid, extension):
+        """Process a codeblock handled by an extension."""
+        lang = chunk.lang
+        value = chunk.text
+
+        try:
+            # Check if extension supports UUID parameter (retrocompatibility)
+            sig = inspect.signature(extension.get_gtk_widget)
+            supports_uuid = len(sig.parameters) == 3
+
+            if restore:
+                widget = (extension.restore_gtk_widget(value, lang, msg_uuid)
+                          if supports_uuid else extension.restore_gtk_widget(value, lang))
+            else:
+                widget = (extension.get_gtk_widget(value, lang, msg_uuid)
+                          if supports_uuid else extension.get_gtk_widget(value, lang))
+
+            if widget is not None:
+                box.append(widget)
+
+            # Check if extension provides both widget and answer
+            if widget is None or extension.provides_both_widget_and_answer(value, lang):
+                self._setup_extension_async_response(
+                    chunk, box, state, restore, extension, widget
+                )
+
+        except Exception as e:
+            print(f"Extension error {extension.id}: {e}")
+            box.append(CopyBox(
+                chunk.text, lang, parent=self,
+                id_message=state["id_message"],
+                id_codeblock=state["codeblock_id"],
+                allow_edit=state["editable"]
+            ))
+
+    def _setup_extension_async_response(self, chunk, box, state, restore, extension, widget):
+        """Set up async response handling for extension codeblocks."""
+        lang = chunk.lang
+        value = chunk.text
+        state["editable"] = False
+        state["has_terminal_command"] = True
+
+        # Get console reply if restoring
+        state["id_message"] += 1
+        reply_from_console = self._get_console_reply(state["id_message"])
+
+        # Create result handler and UI widget
+        if widget is not None:
+            # Widget handles its own display, just show errors
+            def on_result(code):
+                if not code[0]:
+                    self.add_message("Error", code[1])
+        else:
+            # Create expander to show result
+            text_expander = Gtk.Expander(
+                label=lang,
+                css_classes=["toolbar", "osd"],
                 margin_top=10,
                 margin_start=10,
                 margin_bottom=10,
                 margin_end=10,
-                orientation=Gtk.Orientation.VERTICAL,
             )
-            code_language = ""
-            has_terminal_command = False
-            running_threads = []
-            for chunk in chunks:
-                if chunk.type == "codeblock":
-                    codeblock_id += 1
-                    code_language = chunk.lang
-                    # Join extensions and integrations codeblocks
-                    codeblocks = {**self.extensionloader.codeblocks, **self.controller.integrationsloader.codeblocks}
-                    if code_language in codeblocks:
-                        value = chunk.text
-                        extension = codeblocks[code_language]
+            text_expander.set_expanded(False)
+            box.append(text_expander)
 
-                        try:
-                            # Check if the extension widget is available
-                            # Retrocompatibility: check if the extension supports uuid 
-                            if len(inspect.signature(extension.get_gtk_widget).parameters) == 3:
-                                if restore:
-                                    widget = extension.restore_gtk_widget(value, code_language, msg_uuid)
-                                else:
-                                    widget = extension.get_gtk_widget(value, code_language, msg_uuid)
-                            else:
-                                if restore:
-                                    widget = extension.restore_gtk_widget(value, code_language)
-                                else:
-                                    widget = extension.get_gtk_widget(value, code_language)
+            # Capture chunk text in closure
+            chunk_text = value
 
-                            if widget is not None:
-                                # Add the widget to the message
-                                box.append(widget)
-                            if widget is None or extension.provides_both_widget_and_answer(value, code_language):
-                                if widget is not None:
-                                    # If the answer is provided, the apply_async function 
-                                    # Should only do something on error\
-                                    # The widget must be edited by the extension
-                                    def apply_sync(code):    
-                                        if not code[0]:
-                                            self.add_message("Error", code[1])
-                                else:
-                                    # In case only the answer is provided, the apply_async function
-                                    # Also return a text expander with the code
-                                    text_expander = Gtk.Expander(
-                                        label=code_language,
-                                        css_classes=["toolbar", "osd"],
-                                        margin_top=10,
-                                        margin_start=10,
-                                        margin_bottom=10,
-                                        margin_end=10,
-                                    )
-                                    text_expander.set_expanded(False)
-                                    box.append(text_expander)
-                                    def apply_sync(code):
-                                        text_expander.set_child(
-                                            Gtk.Label(
-                                                wrap=True,
-                                                wrap_mode=Pango.WrapMode.WORD_CHAR,
-                                                label=chunk.text + "\n" + str(code[1]),
-                                                selectable=True,
-                                            )
-                                        ) 
-                                # Add message to history
-                                editable = False
-                                if id_message == -1:
-                                    id_message = len(self.chat) - 1
-                                id_message += 1
-                                has_terminal_command = True
-                                reply_from_the_console = None
-                                if (
-                                    self.chat[min(id_message, len(self.chat) - 1)][
-                                        "User"
-                                    ]
-                                    == "Console"
-                                ):
-                                    reply_from_the_console = self.chat[
-                                        min(id_message, len(self.chat) - 1)
-                                    ]["Message"]
-                                
-                                # Get the response async
-                                def get_response(apply_sync):
-                                    if not restore:
-                                        response = extension.get_answer(
-                                            value, code_language
-                                        )
-                                        if response is not None:
-                                            code = (True, response)
-                                        else:
-                                            code = (False, "Error:")
-                                    else:
-                                        code = (True, reply_from_the_console)
-                                    self.chat.append(
-                                        {
-                                            "User": "Console",
-                                            "Message": " " + str(code[1]),
-                                        }
-                                    )
-                                    GLib.idle_add(apply_sync, code)
-
-                                t = threading.Thread(target=get_response, args=(apply_sync,))
-                                t.start()
-                                running_threads.append(t)
-                        except Exception as e:
-                            print("Extension error " + extension.id + ": " + str(e))
-                            box.append(CopyBox(chunk.text, code_language, parent=self, id_message=id_message, id_codeblock=codeblock_id, allow_edit=editable, ))
-                    elif code_language == "think":
-                        think = ThinkingWidget()
-                        think.set_thinking(chunk.text)
-                        box.append(
-                            think
-                        )
-                    elif code_language == "image":
-                        for i in chunk.text.split("\n"):
-                            if i.startswith("data:image/jpeg;base64,"):
-                                data = i[len("data:image/jpeg;base64,") :]
-                                raw_data = base64.b64decode(data)
-                                loader = GdkPixbuf.PixbufLoader()
-                                loader.write(raw_data)
-                                loader.close()
-                                image = Gtk.Image(css_classes=["image"])
-                                image.set_from_pixbuf(loader.get_pixbuf())
-                                box.append(image)
-                            elif i.startswith("https://") or i.startswith("http://"):
-                                image = Gtk.Image(css_classes=["image"])
-                                load_image_with_callback(i, lambda pixbuf_loader : image.set_from_pixbuf(pixbuf_loader.get_pixbuf()))
-                                box.append(image)
-                            else:
-                                image = Gtk.Image(css_classes=["image"])
-                                image.set_from_file(i)
-                                box.append(image)
-                    elif code_language == "video":
-                        for i in chunk.text.split("\n"):
-                            video = Gtk.Video(
-                                css_classes=["video"], vexpand=True, hexpand=True
-                            )
-                            video.set_size_request(-1, 400)
-                            video.set_file(Gio.File.new_for_path(i))
-                            box.append(video)
-                    elif code_language == "console" and not is_user:
-                        editable = False
-                        if id_message == -1:
-                            id_message = len(self.chat) - 1
-                        id_message += 1
-                        if (
-                            self.controller.newelle_settings.auto_run
-                            and not any(
-                                command in chunk.text
-                                for command in ["rm ", "apt ", "sudo ", "yum ", "mkfs "]
-                            )
-                            and self.auto_run_times
-                            < self.controller.newelle_settings.max_run_times
-                        ):
-                            has_terminal_command = True
-                            value = chunk.text
-                            text_expander = Gtk.Expander(
-                                label="Console",
-                                css_classes=["toolbar", "osd"],
-                                margin_top=10,
-                                margin_start=10,
-                                margin_bottom=10,
-                                margin_end=10,
-                            )
-                            text_expander.set_expanded(False)
-                            box.append(text_expander)
-                            path = ""
-                            reply_from_the_console = None
-                            if (
-                                self.chat[min(id_message, len(self.chat) - 1)]["User"]
-                                == "Console"
-                            ):
-                                reply_from_the_console = self.chat[
-                                    min(id_message, len(self.chat) - 1)
-                                ]["Message"]
-
-                            def getresponse(path):
-                                if not restore:
-                                    path = os.path.normpath(self.main_path)
-                                    code = self.execute_terminal_command(value)
-                                else:
-                                    code = (True, reply_from_the_console)
-                                text = f"[User {path}]:$ {value}\n{code[1]}"
-                                if not restore:
-                                    self.chat.append(
-                                        {
-                                            "User": "Console",
-                                            "Message": " " + str(code[1]),
-                                        }
-                                    )
-
-                                def apply_sync():
-                                    text_expander.set_child(
-                                        Gtk.Label(
-                                            wrap=True,
-                                            wrap_mode=Pango.WrapMode.WORD_CHAR,
-                                            label=text,
-                                            selectable=True,
-                                        )
-                                    )
-                                    if not code[0]:
-                                        self.add_message("Error", text_expander)
-
-                                GLib.idle_add(apply_sync)
-
-                            t = threading.Thread(target=getresponse, args=(path,))
-                            if self.controller.newelle_settings.parallel_tool_execution:
-                                t.start()
-                            running_threads.append(t)
-                            if not restore:
-                                self.auto_run_times += 1
-                        else:
-                            if not restore:
-                                self.chat.append({"User": "Console", "Message": "None"})
-                            box.append(
-                                CopyBox(chunk.text, code_language, self, id_message, id_codeblock=codeblock_id, allow_edit=editable)
-                            )
-                        result = {}
-                    elif code_language in ["file", "folder"]:
-                        for obj in chunk.text.split("\n"):
-                            box.append(self.get_file_button(obj))
-                    elif code_language == "chart" and not is_user:
-                        result = {}
-                        lines = chunk.text.split("\n")
-                        percentages = ""
-                        for line in lines:
-                            parts = line.split("-")
-                            if len(parts) == 2:
-                                key = parts[0].strip()
-                                percentages = "%" in parts[1]
-                                value = "".join(
-                                    filter(lambda x: x.isdigit() or x == ".", parts[1])
-                                )
-                                try:
-                                    result[key] = float(value)
-                                except Exception as e:
-                                    result[key] = 0
-                            else:
-                                box.append(
-                                    CopyBox(chunk.text, code_language, parent=self)
-                                )
-                                result = {}
-                                break
-                        if result != {}:
-                            box.append(BarChartBox(result, percentages))
-                    elif code_language == "latex":
-                        try:
-                            box.append(
-                                DisplayLatex(chunk.text, 16, self.controller.cache_dir)
-                            )
-                        except Exception as e:
-                            print(e)
-                            box.append(CopyBox(chunk.text, code_language, parent=self))
-                    else:
-                        box.append(CopyBox(chunk.text, code_language, parent=self, id_message=id_message, id_codeblock=codeblock_id, allow_edit=editable))
-                elif chunk.type == "tool_call":
-                    tool_name = chunk.tool_name
-                    args = chunk.tool_args 
-                    tool = self.controller.tools.get_tool(tool_name)
-                    if id_message == -1:
-                        id_message = len(self.chat) - 1 
-                    id_message += 1
-                    if not restore:
-                        self.controller.msgid = id_message
-                    if tool:
-                        editable = False
-                        has_terminal_command = True
-                        try:
-                            if restore:
-                                result = tool.restore(msg_id=id_message, **args)
-                            else:
-                                result = tool.execute(**args)
-                            widget = result.widget
-                            if widget is not None:
-                                # If the answer is provided, the apply_async function 
-                                # Should only do something on error\
-                                # The widget must be edited by the extension
-                                def apply_sync(code):    
-                                    if not code[0]:
-                                        self.add_message("Error", code[1])
-                            else:
-                                # In case only the answer is provided, the apply_async function
-                                # Also return a text expander with the code
-                                list_box = Gtk.ListBox()
-                                list_box.add_css_class("boxed-list")
-
-                                expander_row = Adw.ExpanderRow(
-                                    title=tool.name,
-                                    subtitle="Running...",
-                                    icon_name="tools-symbolic",
-                                )
-                                list_box.append(expander_row)
-                                widget = list_box
-                                def apply_sync(code, expander_row):
-                                    expander_row.set_subtitle("Completed" if code[0] else "Error")
-
-                                    content_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-
-                                    label = Gtk.Label(
-                                        label=chunk.text + "\n" + str(code[1]),
-                                        wrap=True,
-                                        wrap_mode=Pango.WrapMode.WORD_CHAR,
-                                        selectable=True,
-                                        xalign=0,
-                                    )
-                                    content_box.append(label)
-                                    expander_row.add_row(content_box) 
-                            # Add message to history
-                            editable = False
-                            if id_message == -1:
-                                id_message = len(self.chat) - 1
-                            has_terminal_command = True
-                            reply_from_the_console = None
-                            if (
-                                self.chat[min(id_message, len(self.chat) - 1)][
-                                    "User"
-                                ]
-                                == "Console"
-                            ):
-                                reply_from_the_console = self.chat[
-                                    min(id_message, len(self.chat) - 1)
-                                ]["Message"]
-                            
-                            # Get the response async
-                            def get_response(apply_sync, result:ToolResult, expander_row):
-                                if not restore:
-                                    response = result.get_output()
-                                    if response is not None:
-                                        code = (True, response)
-                                    else:
-                                        code = (False, "Error:")
-                                    self.chat.append(
-                                        {
-                                            "User": "Console",
-                                            "Message": " " + str(code[1]),
-                                        }
-                                    )
-                                else:
-                                    code = (True, reply_from_the_console)
-                                GLib.idle_add(apply_sync, code, expander_row)
-
-                            t = threading.Thread(target=get_response, args=(apply_sync,result, expander_row))
-                            if self.controller.newelle_settings.parallel_tool_execution:
-                                t.start()
-                            running_threads.append(t)
-                            box.append(widget)
-                        except Exception as e:
-                            print("Tool error " + tool.name + ": " + str(e))
-                            #box.append(CopyBox(chunk.text, code_language, parent=self, id_message=id_message, id_codeblock=codeblock_id, allow_edit=editable, ))
-                elif chunk.type == "table":
-                    try:
-                         
-                        box.append(self.create_table(chunk.text.split("\n")))
-                    except Exception as e:
-                        print(e)
-                        box.append(CopyBox(chunk.text, "table", parent=self))
-                elif chunk.type == "inline_chunks":
-                    if chunk.subchunks is None:
-                        continue
-                    # Create a label to guess the size of the chunk
-                    overlay = Gtk.Overlay()
-                    label = Gtk.Label(label=" ".join(ch.text for ch in chunk.subchunks), wrap=True)
-                    label.set_opacity(0)
-                    overlay.set_child(label)
-                    # Create the textview
-                    textview = MarkupTextView()
-                    textview.set_valign(Gtk.Align.START)
-                    textview.set_hexpand(True)
-                    overlay.add_overlay(textview)
-                    overlay.set_measure_overlay(textview, True)
-                    buffer = textview.get_buffer()
-                    iter = buffer.get_start_iter()
-                    txt = ""
-                    for chunk in chunk.subchunks: 
-                        if chunk.type == "text":
-                            textview.add_markup_text(iter, markwon_to_pango(chunk.text))
-                            txt += chunk.text 
-                        elif chunk.type == "latex_inline":
-                            txt += chunk.text
-                            try:
-                                # Create the anchor for the widget
-                                anchor = buffer.create_child_anchor(iter)
-                                # Calculate the current font size according to the current zoom
-                                font_size = 5 + ((self.controller.newelle_settings.zoom)/100 * 4)
-                                # Create the LaTeX widget
-                                latex = InlineLatex(chunk.text, int(font_size))
-                                # Embed the Widget in an overlay in order to avoid disalignment
-                                overlay1 = Gtk.Overlay()
-                                overlay1.add_overlay(latex)
-                                box2 = Gtk.Box()
-                                box2.set_size_request(latex.picture.dims[0], latex.picture.dims[1] + 1)
-                                overlay1.set_child(box2)
-                                latex.set_margin_top(5)
-                                textview.add_child_at_anchor(overlay1, anchor)
-                            except Exception as e:
-                                buffer.insert(iter, LatexNodes2Text().latex_to_text(chunk.text))
-                    box.append(overlay)
-                elif chunk.type == "latex" or chunk.type == "latex_inline":
-                    try:
-                        box.append(
-                            DisplayLatex(chunk.text, 16, self.controller.cache_dir)
-                        )
-                    except Exception:
-                        box.append(CopyBox(chunk.text, "latex", parent=self))
-                elif chunk.type == "thinking":
-                    think = ThinkingWidget()
-                    think.set_thinking(chunk.text)
-                    box.append(
-                        think
+            def on_result(code, expander=text_expander, text=chunk_text):
+                expander.set_child(
+                    Gtk.Label(
+                        wrap=True,
+                        wrap_mode=Pango.WrapMode.WORD_CHAR,
+                        label=f"{text}\n{code[1]}",
+                        selectable=True,
                     )
-                elif chunk.type == "text":
-                    if chunk.text == ".":
-                        continue
-                    label = markwon_to_pango(chunk.text)
-                    box.append(
-                        Gtk.Label(
-                            label=label,
-                            wrap=True,
-                            halign=Gtk.Align.START,
-                            wrap_mode=Pango.WrapMode.WORD_CHAR,
-                            width_chars=1,
-                            selectable=True,
-                            use_markup=True,
-                        )
-                    )
-            if not has_terminal_command:
-                if not return_widget:
-                    self.add_message(
-                        "Assistant" if not is_user else "User",
-                        box,
-                        id_message,
-                        editable,
-                    )
-                else:
-                    return box
-                if not restore:
-                    GLib.idle_add(self.update_button_text)
-                    self.status = True
-                    self.chat_stop_button.set_visible(False)
-                    self.chats[self.chat_id]["chat"] = self.chat
+                )
+
+        # Create and start thread - capture variables in closure
+        ext = extension
+        val = value
+        lng = lang
+        is_restore = restore
+        console_reply = reply_from_console
+
+        def get_response():
+            if not is_restore:
+                response = ext.get_answer(val, lng)
+                code = (True, response) if response is not None else (False, "Error:")
             else:
-                if not return_widget:
-                    self.add_message("Assistant", box, id_message, editable)
+                code = (True, console_reply)
+            self.chat.append({"User": "Console", "Message": " " + str(code[1])})
+            GLib.idle_add(on_result, code)
+
+        t = threading.Thread(target=get_response)
+        t.start()
+        state["running_threads"].append(t)
+
+    def _process_image_codeblock(self, text, box):
+        """Process an image codeblock."""
+        for line in text.split("\n"):
+            if not line.strip():
+                continue
+            image = Gtk.Image(css_classes=["image"])
+            if line.startswith("data:image/jpeg;base64,"):
+                data = line[len("data:image/jpeg;base64,"):]
+                raw_data = base64.b64decode(data)
+                loader = GdkPixbuf.PixbufLoader()
+                loader.write(raw_data)
+                loader.close()
+                image.set_from_pixbuf(loader.get_pixbuf())
+            elif line.startswith(("https://", "http://")):
+                # Capture image in closure
+                img = image
+                load_image_with_callback(
+                    line,
+                    lambda pixbuf_loader, i=img: i.set_from_pixbuf(pixbuf_loader.get_pixbuf())
+                )
+            else:
+                image.set_from_file(line)
+            box.append(image)
+
+    def _process_video_codeblock(self, text, box):
+        """Process a video codeblock."""
+        for line in text.split("\n"):
+            if not line.strip():
+                continue
+            video = Gtk.Video(css_classes=["video"], vexpand=True, hexpand=True)
+            video.set_size_request(-1, 400)
+            video.set_file(Gio.File.new_for_path(line))
+            box.append(video)
+
+    def _process_console_codeblock(self, chunk, box, state, restore):
+        """Process a console command codeblock."""
+        state["editable"] = False
+        state["id_message"] += 1
+        command = chunk.text
+
+        # Check if auto-run is allowed
+        dangerous_commands = ["rm ", "apt ", "sudo ", "yum ", "mkfs "]
+        can_auto_run = (
+            self.controller.newelle_settings.auto_run
+            and not any(cmd in command for cmd in dangerous_commands)
+            and self.auto_run_times < self.controller.newelle_settings.max_run_times
+        )
+
+        if can_auto_run:
+            state["has_terminal_command"] = True
+            text_expander = Gtk.Expander(
+                label="Console",
+                css_classes=["toolbar", "osd"],
+                margin_top=10,
+                margin_start=10,
+                margin_bottom=10,
+                margin_end=10,
+            )
+            text_expander.set_expanded(False)
+            box.append(text_expander)
+
+            reply_from_console = self._get_console_reply(state["id_message"])
+
+            # Capture variables in closure
+            cmd = command
+            is_restore = restore
+            console_reply = reply_from_console
+            expander = text_expander
+
+            def run_command():
+                if not is_restore:
+                    path = os.path.normpath(self.main_path)
+                    code = self.execute_terminal_command(cmd)
+                    self.chat.append({"User": "Console", "Message": " " + str(code[1])})
                 else:
-                    return box
-                if not restore and not is_user:
+                    path = self.main_path
+                    code = (True, console_reply)
 
-                    def wait_threads_sm():
-                        if not self.controller.newelle_settings.parallel_tool_execution:
-                            for t in running_threads:
-                                t.start()
-                                t.join()
-                        else:
-                            for t in running_threads:
-                                t.join()
-                        if len(running_threads) > 0:
-                            self.send_message(manual=False)
+                text = f"[User {path}]:$ {cmd}\n{code[1]}"
 
-                    self.chats[self.chat_id]["chat"] = self.chat
-                    threading.Thread(target=wait_threads_sm).start()
+                def apply_result():
+                    expander.set_child(
+                        Gtk.Label(
+                            wrap=True,
+                            wrap_mode=Pango.WrapMode.WORD_CHAR,
+                            label=text,
+                            selectable=True,
+                        )
+                    )
+                    if not code[0]:
+                        self.add_message("Error", expander)
+
+                GLib.idle_add(apply_result)
+
+            t = threading.Thread(target=run_command)
+            if self.controller.newelle_settings.parallel_tool_execution:
+                t.start()
+            state["running_threads"].append(t)
+
+            if not restore:
+                self.auto_run_times += 1
+        else:
+            if not restore:
+                self.chat.append({"User": "Console", "Message": "None"})
+            box.append(CopyBox(
+                command, "console", self,
+                state["id_message"],
+                id_codeblock=state["codeblock_id"],
+                allow_edit=state["editable"]
+            ))
+
+    def _process_chart_codeblock(self, chunk, box):
+        """Process a chart codeblock."""
+        result = {}
+        percentages = False
+
+        for line in chunk.text.split("\n"):
+            parts = line.split("-")
+            if len(parts) != 2:
+                box.append(CopyBox(chunk.text, "chart", parent=self))
+                return
+
+            key = parts[0].strip()
+            percentages = "%" in parts[1]
+            value_str = "".join(c for c in parts[1] if c.isdigit() or c == ".")
+            try:
+                result[key] = float(value_str)
+            except ValueError:
+                result[key] = 0
+
+        if result:
+            box.append(BarChartBox(result, percentages))
+
+    def _process_tool_call(self, chunk, box, state, restore):
+        """Process a tool call chunk."""
+        tool_name = chunk.tool_name
+        args = chunk.tool_args
+        tool = self.controller.tools.get_tool(tool_name)
+
+        state["id_message"] += 1
+        if not restore:
+            self.controller.msgid = state["id_message"]
+
+        if not tool:
+            widget = CopyBox(chunk.text, "tool_call", parent=self)
+            box.append(widget)
+            return
+
+        # Generate or retrieve tool call UUID
+        tool_call_id = state.get("tool_call_counter", 0)
+        state["tool_call_counter"] = tool_call_id + 1
+        
+        if not restore:
+            tool_uuid = str(uuid.uuid4())[:8]  # Short UUID for readability
+        else:
+            # Retrieve UUID from existing console reply
+            tool_uuid = self._get_tool_call_uuid(state["id_message"], tool_name, tool_call_id)
+        state["editable"] = False
+        state["has_terminal_command"] = True
+
+        # Make tool UUID accessible via ui_controller during execution
+        self.controller.current_tool_uuid = tool_uuid
+
+        try:
+            # Pass tool_uuid to restore function
+            if restore:
+                result = tool.restore(msg_id=state["id_message"], tool_uuid=tool_uuid, **args)
+            else:
+                result = tool.execute(**args)
+            widget = result.widget
+
+            if widget is not None:
+                # Tool provides its own widget
+                def on_result(code, w=widget):
+                    if not code[0]:
+                        self.add_message("Error", code[1])
+            else:
+                # Create ToolWidget for display
+                tool_widget = ToolWidget(tool.name, chunk.text)
+
+                def on_result(code, tw=tool_widget):
+                    tw.set_result(code[0], code[1])
+                widget = tool_widget
+
+            reply_from_console = self._get_tool_response(state["id_message"], tool_name, tool_uuid)
+
+            # Capture variables in closure
+            is_restore = restore
+            console_reply = reply_from_console
+            tool_result = result
+            callback = on_result
+            t_name = tool_name
+            t_uuid = tool_uuid
+
+            def get_response():
+                if not is_restore:
+                    response = tool_result.get_output()
+                    code = (True, response) if response is not None else (False, "Error:")
+                    # Store tool response with identifiable format directly in message
+                    formatted_response = f"[Tool: {t_name}, ID: {t_uuid}]\n{code[1]}"
+                    self.chat.append({
+                        "User": "Console",
+                        "Message": formatted_response,
+                    })
+                else:
+                    code = (True, console_reply)
+                GLib.idle_add(callback, code)
+
+            t = threading.Thread(target=get_response)
+            # Restore expects all tools to return things instantly and do not take any action, so we run them in parallel
+            # They are not considered for the response
+            if self.controller.newelle_settings.parallel_tool_execution or (restore):
+                t.start()
+            state["running_threads"].append(t)
+            box.append(widget)
+
+        except Exception as e:
+            print(f"Tool error {tool.name}: {e}")
+
+    def _process_table(self, chunk, box):
+        """Process a table chunk."""
+        try:
+            box.append(self.create_table(chunk.text.split("\n")))
+        except Exception as e:
+            print(e)
+            box.append(CopyBox(chunk.text, "table", parent=self))
+
+    def _process_inline_chunks(self, chunk, box):
+        """Process inline chunks (text with inline LaTeX)."""
+        if not chunk.subchunks:
+            return
+
+        # Create overlay with hidden label for sizing
+        overlay = Gtk.Overlay()
+        label = Gtk.Label(
+            label=" ".join(ch.text for ch in chunk.subchunks),
+            wrap=True
+        )
+        label.set_opacity(0)
+        overlay.set_child(label)
+
+        # Create textview for content
+        textview = MarkupTextView()
+        textview.set_valign(Gtk.Align.START)
+        textview.set_hexpand(True)
+        overlay.add_overlay(textview)
+        overlay.set_measure_overlay(textview, True)
+
+        buffer = textview.get_buffer()
+        text_iter = buffer.get_start_iter()
+
+        for subchunk in chunk.subchunks:
+            if subchunk.type == "text":
+                textview.add_markup_text(text_iter, markwon_to_pango(subchunk.text))
+            elif subchunk.type == "latex_inline":
+                try:
+                    anchor = buffer.create_child_anchor(text_iter)
+                    font_size = int(5 + (self.controller.newelle_settings.zoom / 100 * 4))
+                    latex = InlineLatex(subchunk.text, font_size)
+
+                    # Embed in overlay to avoid misalignment
+                    latex_overlay = Gtk.Overlay()
+                    latex_overlay.add_overlay(latex)
+                    spacer = Gtk.Box()
+                    spacer.set_size_request(latex.picture.dims[0], latex.picture.dims[1] + 1)
+                    latex_overlay.set_child(spacer)
+                    latex.set_margin_top(5)
+                    textview.add_child_at_anchor(latex_overlay, anchor)
+                except Exception:
+                    buffer.insert(text_iter, LatexNodes2Text().latex_to_text(subchunk.text))
+
+        box.append(overlay)
+
+    def _process_latex(self, chunk, box):
+        """Process a LaTeX chunk."""
+        try:
+            box.append(DisplayLatex(chunk.text, 16, self.controller.cache_dir))
+        except Exception:
+            box.append(CopyBox(chunk.text, "latex", parent=self))
+
+    def _process_text(self, chunk, box):
+        """Process a text chunk."""
+        if chunk.text == ".":
+            return
+        box.append(
+            Gtk.Label(
+                label=markwon_to_pango(chunk.text),
+                wrap=True,
+                halign=Gtk.Align.START,
+                wrap_mode=Pango.WrapMode.WORD_CHAR,
+                width_chars=1,
+                selectable=True,
+                use_markup=True,
+            )
+        )
+
+    def _get_console_reply(self, id_message):
+        """Get existing console reply from chat history if available."""
+        idx = min(id_message, len(self.chat) - 1)
+        if idx >= 0 and self.chat[idx].get("User") == "Console":
+            return self.chat[idx]["Message"]
+        return None
+
+    def _get_tool_response(self, id_message, tool_name, tool_uuid):
+        """Get existing tool response from chat history by tool name and UUID."""
+        # Search forward from id_message for matching tool response
+        for i in range(id_message, len(self.chat)):
+            entry = self.chat[i]
+            if entry.get("User") == "Console":
+                msg = entry.get("Message", "")
+                # Check if message contains matching tool header
+                if msg.startswith(f"[Tool: {tool_name}, ID: {tool_uuid}]"):
+                    # Extract the actual response after the header
+                    lines = msg.split("\n", 1)
+                    return lines[1] if len(lines) > 1 else ""
+                # Legacy format: no tool header, use position-based matching
+                if not msg.startswith("[Tool:"):
+                    return msg
+        return None
+
+    def _get_tool_call_uuid(self, id_message, tool_name, tool_call_index):
+        """Get tool call UUID from chat history during restore."""
+        import re
+        # Count tool responses to find the right one by index
+        count = 0
+        for i in range(id_message, len(self.chat)):
+            entry = self.chat[i]
+            if entry.get("User") == "Console":
+                msg = entry.get("Message", "")
+                # Parse tool header: [Tool: name, ID: uuid]
+                match = re.match(r'\[Tool: ([^,]+), ID: ([^\]]+)\]', msg)
+                if match:
+                    parsed_name, parsed_uuid = match.groups()
+                    if parsed_name == tool_name:
+                        if count == tool_call_index:
+                            return parsed_uuid
+                        count += 1
+                # Legacy format without tool tracking
+                elif not msg.startswith("[Tool:"):
+                    return str(uuid.uuid4())[:8]
+        return str(uuid.uuid4())[:8]  # Fallback for new calls
+
+    def _finalize_show_message(self, box, state, restore, is_user, return_widget):
+        """Finalize message display and handle thread completion."""
+        user_type = "User" if is_user else "Assistant"
+
+        if return_widget:
+            return box
+
+        self.add_message(user_type, box, state["id_message"], state["editable"])
+
+        if not state["has_terminal_command"]:
+            if not restore:
+                self._finalize_message_display()
+                self.chats[self.chat_id]["chat"] = self.chat
+        else:
+            if not restore and not is_user:
+                # Wait for all threads to complete, then send follow-up
+                threads = state["running_threads"]
+                parallel = self.controller.newelle_settings.parallel_tool_execution
+
+                def wait_and_continue():
+                    if not parallel:
+                        for t in threads:
+                            t.start()
+                            t.join()
+                    else:
+                        for t in threads:
+                            t.join()
+                    if threads:
+                        self.send_message(manual=False)
+
+                self.chats[self.chat_id]["chat"] = self.chat
+                threading.Thread(target=wait_and_continue).start()
+
         GLib.idle_add(self.scrolled_chat)
         self.save_chat()
+        return None
 
     def create_table(self, table):
         """Create a table
@@ -3254,28 +3403,74 @@ class MainWindow(Adw.ApplicationWindow):
         Args:
             id (): id of the prompt to show
         """
+        # Retrieve prompt data
+        prompt_data = self.chat[id]
+        prompt_text = prompt_data.get("Prompt", "")
+        input_tokens = prompt_data.get("InputTokens", 0)
+        output_tokens = prompt_data.get("OutputTokens", 0)
+        elapsed = prompt_data.get("enlapsed", 0.0)
+
+        speed = 0.0
+        if elapsed > 0:
+            speed = output_tokens / elapsed
+
         dialog = Adw.Dialog(can_close=True)
-        dialog.set_title(_("Prompt content"))
-        label = Gtk.Label(
-            label=self.chat[id]["Prompt"],
-            wrap=True,
-            wrap_mode=Pango.WrapMode.WORD,
-            selectable=True,
-            halign=Gtk.Align.START,
-            hexpand=True,
-            vexpand=True,
-            width_request=400
-        )
-        scroll = Gtk.ScrolledWindow(propagate_natural_width=True, height_request=600)
-        scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
-        scroll.set_child(label)
+        dialog.set_title(_("Prompt Details"))
+
         content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         content.append(
             Adw.HeaderBar(css_classes=["flat"], show_start_title_buttons=True)
         )
+
+        scroll = Gtk.ScrolledWindow(propagate_natural_width=True)
+        scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+        scroll.set_vexpand(True)
+        
+        clamp = Adw.Clamp(maximum_size=600, margin_top=24, margin_bottom=24, margin_start=12, margin_end=12)
+        scroll.set_child(clamp)
+
+        inner_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=24)
+        clamp.set_child(inner_box)
+
+        # Statistics
+        stats_group = Adw.PreferencesGroup(title=_("Statistics"))
+        inner_box.append(stats_group)
+
+        row_input = Adw.ActionRow(title=_("Input Tokens"), subtitle=str(input_tokens))
+        stats_group.add(row_input)
+
+        row_output = Adw.ActionRow(title=_("Output Tokens"), subtitle=str(output_tokens))
+        stats_group.add(row_output)
+
+        row_speed = Adw.ActionRow(title=_("Generation Speed"), subtitle=f"{speed:.2f} tokens/s")
+        stats_group.add(row_speed)
+
+        # Prompt
+        prompt_group = Adw.PreferencesGroup(title=_("Prompt"))
+        inner_box.append(prompt_group)
+
+        prompt_card = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        prompt_card.add_css_class("card")
+        
+        label = Gtk.Label(
+            label=prompt_text,
+            wrap=True,
+            wrap_mode=Pango.WrapMode.WORD,
+            selectable=True,
+            halign=Gtk.Align.START,
+            xalign=0,
+            margin_top=12,
+            margin_bottom=12,
+            margin_start=12,
+            margin_end=12
+        )
+        prompt_card.append(label)
+        prompt_group.add(prompt_card)
+
         content.append(scroll)
         dialog.set_child(content)
-        dialog.set_content_width(400)
+        dialog.set_content_width(500)
+        dialog.set_content_height(600)
         dialog.present()
 
     def copy_message(self, button, id):

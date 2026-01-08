@@ -4,6 +4,20 @@ import xml
 import xml.dom.minidom
 import json
 from gi.repository import GLib
+import tiktoken
+
+def count_tokens(text: str, model: str = "gpt-4o-mini") -> int:
+    """
+    Count the number of tokens in a string
+    """
+    if False:
+        try:
+            encoding = tiktoken.encoding_for_model(model)
+        except KeyError:
+            encoding = tiktoken.get_encoding("cl100k_base")
+        return len(encoding.encode(text))
+    else:
+        return len(text) // 4
 
 def quote_string(s):
     if "'" in s:

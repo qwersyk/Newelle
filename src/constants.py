@@ -9,11 +9,12 @@ from .handlers.websearch import SearXNGHandler, DDGSeachHandler, TavilyHandler
 from .integrations.website_reader import WebsiteReader
 from .integrations.websearch import WebsearchIntegration
 from .integrations.mcp import MCPIntegration
+from .integrations.default_tools import DefaultToolsIntegration
 
 DIR_NAME = "Newelle"
 SCHEMA_ID = 'io.github.qwersyk.Newelle'
 
-AVAILABLE_INTEGRATIONS = [WebsiteReader, WebsearchIntegration, MCPIntegration]
+AVAILABLE_INTEGRATIONS = [WebsiteReader, WebsearchIntegration, MCPIntegration, DefaultToolsIntegration]
 
 AVAILABLE_LLMS = {
     "newelle": {
@@ -310,6 +311,7 @@ You have the ability to execute commands on the user's Linux computer.
 - **Linux Distribution:** `{DISTRO}`
 - **Desktop Environment** `{DE}`
 - **Display Server** `{DISPLAY}`
+- **Current Directory** `{DIR}`
 **Command Execution Format:**
 - To execute a Linux command, use:
 ```console
@@ -421,15 +423,6 @@ AVAILABLE_PROMPTS = [
         "description": _("Can the program run terminal commands on the computer"),
         "editable": True,
         "show_in_settings": True,
-        "default": True
-    },
-    {
-        "key": "current_directory",
-        "title": _("Current directory"),
-        "description": _("What is the current directory"),
-        "setting_name": "console",
-        "editable": False,
-        "show_in_settings": False,
         "default": True
     },
     {

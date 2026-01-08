@@ -221,6 +221,7 @@ class MyApp(Adw.Application):
         if status=="close":
             for i in self.win.streams:
                 i.terminate()
+            self.win.controller.close_application()
             self.win.destroy()
     
     def do_command_line(self, command_line):
@@ -297,10 +298,11 @@ class MyApp(Adw.Application):
     
     def save(self, *a):
         self.win.save()
-    
+    def pretty_print_chat(self, *a):
+        for msg in self.win.chat:
+            print(msg["User"], msg["Message"])
     def debug(self, *a):
-        print(self.win.main_path)
-        self.win.ui_controller.new_explorer_tab("/home/francesco/Progetti", False)
+        self.pretty_print_chat()
 
 def main(version):
     app = MyApp(application_id="io.github.qwersyk.Newelle", version = version)

@@ -22,6 +22,14 @@ class OpenAIHandler(LLMHandler):
     def get_models_list(self):
         return self.models
 
+    def set_secondary_settings(self, secondary: bool):
+        if self.key != "openai":
+            endpoint = self.get_setting("endpoint", search_default=False)
+        out = super().set_secondary_settings(secondary)
+        if secondary and self.key != "openai" and endpoint is not None:
+            self.set_setting("endpoint", endpoint) 
+        return out 
+
     def get_models(self, manual=False):
         if self.is_installed():
             try:
@@ -81,7 +89,7 @@ class OpenAIHandler(LLMHandler):
             ExtraSettings.ToggleSetting("advanced_params", _("Advanced Parameters"), _("Include parameters like Top-P, Temperature, etc."), default_advanced_params, update_settings=True)
         ]
         models_settings = [ 
-            ExtraSettings.EntrySetting("model", _("Model"), _("Name of the LLM Model to use"), self.models[0][0]),
+            ExtraSettings.EntrySetting("model", _("Model"), _("Name of the LLM Model to use"), self.models[0][0] if len(self.models) > 0 else ""),
         ]
         if model_list_url is not None:
             models_settings[0]["website"] = model_list_url
@@ -91,7 +99,7 @@ class OpenAIHandler(LLMHandler):
                     _(provider_name + " Model"),
                     _(f"Name of the {provider_name} Model"),
                     self.models,
-                    self.models[0][0],
+                    self.models[0][0] if len(self.models) > 0 else "",
                     refresh=lambda button: self.get_models(),
                 )
         ]

@@ -187,6 +187,12 @@ class Settings(Adw.PreferencesWindow):
         self.settings.bind("hidden-files", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
         self.interface.add(row)
 
+        row = Adw.ActionRow(title=_("Hide History on Launch"), subtitle=_("Hide the history sidebar when the application starts"))
+        switch = Gtk.Switch(valign=Gtk.Align.CENTER)
+        row.add_suffix(switch)
+        self.settings.bind("hide-history-on-launch", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
+        self.interface.add(row)
+
         row = Adw.ActionRow(title=_("Remember assistant profile per chat"), subtitle=_("When changing chat, the profile corresponding to the last generation is selected"))
         switch = Gtk.Switch(valign=Gtk.Align.CENTER)
         row.add_suffix(switch)
@@ -335,8 +341,8 @@ class Settings(Adw.PreferencesWindow):
         tools = self.controller.tools.get_all_tools()
         
         for tool in tools:
-            # Default values
-            is_enabled = True
+            # Default values - use tool's default_on attribute
+            is_enabled = tool.default_on
             custom_prompt = None
             
             if tool.name in tools_settings:
@@ -588,18 +594,10 @@ class Settings(Adw.PreferencesWindow):
         rag_row.add_suffix(rag_on_docuements)
         self.RAG.add(rag_row)
          
-        rag_limit = Adw.ActionRow(title=_("Maximum tokens for RAG"), subtitle=_("The maximum amount of tokens to be used for RAG. If the documents do not exceed this token count,\ndump all of them in the context"))
-        time_scale = Gtk.Scale(digits=0, round_digits=0)
-        time_scale.set_range(0, 50000)
-        time_scale.set_size_request(120, -1)
-        value = self.settings.get_int("documents-context-limit")
-        time_scale.set_value(value)
-        label = Gtk.Label(label=str(value))
-        time_scale.connect("value-changed", update_scale, label, "documents-context-limit", int)
-        box = Gtk.Box()
-        box.append(time_scale)
-        box.append(label)
-        rag_limit.add_suffix(box)
+        rag_limit = Adw.SpinRow(title=_("Maximum tokens for RAG"), subtitle=_("The maximum amount of tokens to be used for RAG. If the documents do not exceed this token count,\ndump all of them in the context"), adjustment=Gtk.Adjustment(lower=0, upper=50000, step_increment=100, page_increment=1000, value=self.settings.get_int("documents-context-limit")), digits=0)
+        def update_rag_limit(spin, _):
+             self.settings.set_int("documents-context-limit", int(spin.get_value()))
+        rag_limit.connect("notify::value", update_rag_limit)
         rag_row.add_row(rag_limit)
 
         # Document folder 
@@ -877,6 +875,22 @@ class Settings(Adw.PreferencesWindow):
             box.append(scale)
             self.slider_labels[scale] = label
             r.add_suffix(box)
+        elif setting["type"] == "spin":
+            adj = Gtk.Adjustment(
+                value=handler.get_setting(setting["key"]),
+                lower=setting["min"],
+                upper=setting["max"],
+                step_increment=setting["step"],
+                page_increment=setting["page"]
+            )
+            r = Adw.SpinRow(
+                title=setting["title"], 
+                subtitle=setting["description"], 
+                adjustment=adj,
+                digits=setting["round-digits"]
+            )
+            r.set_name(setting["key"])
+            r.connect("notify::value", self.setting_change_spin, constants, handler)
         elif setting["type"] == "nested":
             r = Adw.ExpanderRow(title=setting["title"], subtitle=setting["description"])
             self.add_extra_settings(constants, handler, r, setting["extra_settings"])
@@ -1046,6 +1060,23 @@ class Settings(Adw.PreferencesWindow):
         digits = scale.get_round_digits()
         value = round(value, digits)
         self.slider_labels[scale].set_label(str(value))
+        handler.set_setting(setting, value)
+        self.on_setting_change(constants, handler, setting)
+
+    def setting_change_spin(self, row, pspec, constants, handler):
+        """Called when a spin for the handler setting is changed
+
+        Args:
+            row (): the changed spin row
+            pspec (): param spec
+            constants (): The constants for the specified handler, can be AVAILABLE_TTS, AVAILABLE_STT...
+            handler (): an instance of the handler
+        """
+        setting = row.get_name()
+        value = row.get_value()
+        if row.get_digits() == 0:
+            value = int(value)
+        
         handler.set_setting(setting, value)
         self.on_setting_change(constants, handler, setting)
 
