@@ -48,6 +48,11 @@ class Tool:
 
     def restore(self, **kwargs):
         if self.restore_func is not None:
+            # Filter out internal parameters if restore_func doesn't accept them
+            sig = inspect.signature(self.restore_func)
+            for param in ['msg_id', 'tool_uuid']:
+                if param not in sig.parameters and 'kwargs' not in str(sig.parameters):
+                    kwargs.pop(param, None)
             return self.restore_func(**kwargs)
         t = ToolResult()
         t.set_output(None)
@@ -85,9 +90,10 @@ class Tool:
 
     def execute(self, **kwargs):
         sig = inspect.signature(self.func)
-        if 'msg_id' not in sig.parameters and 'kwargs' not in sig.parameters:
-            if 'msg_id' in kwargs:
-                del kwargs['msg_id']
+        # Filter out internal parameters if function doesn't accept them
+        for param in ['msg_id', 'tool_uuid']:
+            if param not in sig.parameters and 'kwargs' not in str(sig.parameters):
+                kwargs.pop(param, None)
         return self.func(**kwargs)
 
 class ToolRegistry:
