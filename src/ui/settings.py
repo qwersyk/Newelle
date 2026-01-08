@@ -341,8 +341,8 @@ class Settings(Adw.PreferencesWindow):
         tools = self.controller.tools.get_all_tools()
         
         for tool in tools:
-            # Default values
-            is_enabled = True
+            # Default values - use tool's default_on attribute
+            is_enabled = tool.default_on
             custom_prompt = None
             
             if tool.name in tools_settings:

@@ -145,7 +145,7 @@ class LlamaCPPHandler(OpenAIHandler):
             cmd_path = self.llama_server_path
         else:
             cmd_path = "llama-server"
-        cmd = [cmd_path, "--model", path, "--port", str(self.port), "--host", "127.0.0.1", "-c", str(ctx)]
+        cmd = [cmd_path, "--model", path, "--port", str(self.port), "--host", "127.0.0.1", "-c", str(ctx), "--reasoning-format", "none" ]
         if is_flatpak() and self.is_gpu_installed() and self.get_setting("gpu_acceleration", False, False):
             cmd = get_spawn_command() + cmd
         self.server_process = subprocess.Popen(cmd)

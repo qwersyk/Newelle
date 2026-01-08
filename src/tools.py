@@ -36,7 +36,7 @@ class ToolResult:
 
 
 class Tool:
-    def __init__(self, name: str, description: str, func: Callable, schema: Dict[str, Any] = None, run_on_main_thread: bool = False, title: str = None, prompt_editable: bool = True, restore_func: Callable = None):
+    def __init__(self, name: str, description: str, func: Callable, schema: Dict[str, Any] = None, run_on_main_thread: bool = False, title: str = None, prompt_editable: bool = True, restore_func: Callable = None, default_on: bool = True):
         self.name = name
         self.description = description
         self.func = func
@@ -45,6 +45,7 @@ class Tool:
         self.title = title or name.replace("_", " ").title()
         self.prompt_editable = prompt_editable
         self.restore_func = restore_func
+        self.default_on = default_on
 
     def restore(self, **kwargs):
         if self.restore_func is not None:
@@ -133,10 +134,10 @@ class ToolRegistry:
         available_tools = []
         for tool_name, tool_obj in self._tools.items():
             # If enabled_tools_dict is provided, check if the tool is explicitly disabled (False)
-            # Default to True if not in the dictionary (new tools are enabled by default)
-            is_enabled = True
+            # Default to tool's default_on value if not in the dictionary
+            is_enabled = tool_obj.default_on
             if enabled_tools_dict is not None:
-                is_enabled = enabled_tools_dict.get(tool_name, True)
+                is_enabled = enabled_tools_dict.get(tool_name, tool_obj.default_on)
             
             if is_enabled:
                 tool_def = None
@@ -161,14 +162,14 @@ class ToolRegistry:
         return tools_json
 
 
-def tool(name: str, description: str, run_on_main_thread: bool = False, title: str = None, prompt_editable: bool = True, restore_func: Callable = None):
+def tool(name: str, description: str, run_on_main_thread: bool = False, title: str = None, prompt_editable: bool = True, restore_func: Callable = None, default_on: bool = True):
     """Decorator to register a function as a tool."""
     def decorator(func):
-        t = Tool(name, description, func, run_on_main_thread=run_on_main_thread, title=title, prompt_editable=prompt_editable, restore_func=restore_func)
+        t = Tool(name, description, func, run_on_main_thread=run_on_main_thread, title=title, prompt_editable=prompt_editable, restore_func=restore_func, default_on=default_on)
         return t
     return decorator
 
-def create_io_tool(name: str, description: str, func: Callable, title: str = None, create_separate_process=False) -> Tool:
+def create_io_tool(name: str, description: str, func: Callable, title: str = None, create_separate_process=False, default_on: bool = True) -> Tool:
     def wrapper(**kwargs):
         result = ToolResult()
         def th():
@@ -177,7 +178,7 @@ def create_io_tool(name: str, description: str, func: Callable, title: str = Non
         GLib.idle_add(t.start)
         return result
 
-    t = Tool(name, description, wrapper, title=title)
+    t = Tool(name, description, wrapper, title=title, default_on=default_on)
     schema = t._generate_schema_from_func(func)
     t.schema = schema
     return t

@@ -9,11 +9,12 @@ from .handlers.websearch import SearXNGHandler, DDGSeachHandler, TavilyHandler
 from .integrations.website_reader import WebsiteReader
 from .integrations.websearch import WebsearchIntegration
 from .integrations.mcp import MCPIntegration
+from .integrations.default_tools import DefaultToolsIntegration
 
 DIR_NAME = "Newelle"
 SCHEMA_ID = 'io.github.qwersyk.Newelle'
 
-AVAILABLE_INTEGRATIONS = [WebsiteReader, WebsearchIntegration, MCPIntegration]
+AVAILABLE_INTEGRATIONS = [WebsiteReader, WebsearchIntegration, MCPIntegration, DefaultToolsIntegration]
 
 AVAILABLE_LLMS = {
     "newelle": {
