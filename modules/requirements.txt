@@ -1,11 +1,9 @@
 # List of Python requirements 
 requests
 expandvars
-curl_cffi
 pillow
 pyaudio
 pydub
-speechrecognition
 openai
 tiktoken
 newspaper3k
@@ -19,9 +17,10 @@ markdownify
 # (better if you install them)
 model2vec
 faiss-cpu
-llamaindex_core
-llamaindex_readers_file
+llama-index-core
+llama-index-readers-file
 llama-index-vector-stores-faiss
+speechrecognition
 gtts
 
 # list of non-python requirements
