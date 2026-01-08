@@ -4,7 +4,18 @@ from ...handlers import ExtraSettings, ErrorSeverity
 
 class DDGSeachHandler(WebSearchHandler):
     key="ddgsearch"
-
+    search_engines = [
+        "auto",
+        "bing",
+        "brave",
+        "duckduckgo",
+        "google",
+        "grokipedia",
+        "mojeek",
+        "yandex",
+        "yahoo",
+        "wikipedia"
+    ]
     @staticmethod
     def get_extra_requirements() -> list:
         return ["ddgs"]
@@ -13,6 +24,7 @@ class DDGSeachHandler(WebSearchHandler):
         return [
             ExtraSettings.ScaleSetting("results", _("Max Results"), _("Number of results to consider"), 2, 1, 10, 0),
             ExtraSettings.EntrySetting("region", _("Region"), _("Region for the search results"), "us-en"),
+            ExtraSettings.ComboSetting("search_engine", _("Search Engine"), _("Search engine to use"), self.search_engines,"auto"),
         ]
     
     def query(self, keywords: str) -> tuple[str, list]:
@@ -25,7 +37,7 @@ class DDGSeachHandler(WebSearchHandler):
             from duckduckgo_search import DDGS
         ddg = DDGS()
         try:
-            results = ddg.text(keywords, max_results=self.get_setting("results"), region=self.get_setting("region"))
+            results = ddg.text(keywords, max_results=int(self.get_setting("results")), region=self.get_setting("region"), backend=self.get_setting("search_engine"))
         except Exception as e:
             results = []
             if len(results) == 0:

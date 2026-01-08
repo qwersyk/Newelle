@@ -52,6 +52,7 @@
         "modules/python3-llamaindex.json",
         "modules/python3-model2vec.json",
         "modules/llama-cpp-prebuilt.json",
+        "modules/python3-ddgs.json",
         {
             "name" : "newelle",
             "builddir" : true,

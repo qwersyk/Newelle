@@ -93,7 +93,7 @@
           <default>"{}"</default>
         </key>
         <key name="websearch-model" type="s">
-          <default>"searxng"</default>
+          <default>"ddgsearch"</default>
         </key>
         <key name="rag-on" type="b">
           <default>false</default>
@@ -105,7 +105,7 @@
             <default>"{}"</default>
         </key>
 	      <key name="rag-on-documents" type="b">
-            <default>false</default>
+            <default>true</default>
         </key>
         <key name="documents-context-limit" type="i">
           <default>5000</default>
