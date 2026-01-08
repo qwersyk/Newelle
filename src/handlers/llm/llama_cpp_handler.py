@@ -16,7 +16,7 @@ import requests
 
 class LlamaCPPHandler(OpenAIHandler):
     key = "llamacpp"
-    
+
     def get_cache_path(self):
         cache_dir = self.path
         return os.path.join(cache_dir, "llamacpp_models.json")
@@ -61,9 +61,8 @@ class LlamaCPPHandler(OpenAIHandler):
         else:
             threading.Thread(target=self.update_library_cache).start()
 
-        if not os.path.exists(self.path):
+        if not os.path.exists(self.model_folder):
             try:
-                os.makedirs(self.path)
                 os.makedirs(self.model_folder)
             except:
                 pass
