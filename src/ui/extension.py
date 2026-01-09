@@ -40,6 +40,7 @@ class Extension(Gtk.Window):
     def update(self):
         self.extensionloader = ExtensionLoader(self.extension_path, pip_path=self.pip_directory, extension_cache=self.extensions_cache, settings=self.settings)
         self.extensionloader.load_extensions()
+        self.extensionloader.set_ui_controller(self.controller.ui_controller)
         self.controller.set_extensionsloader(self.extensionloader) 
         settings = Settings(self.app, self.controller, headless=True)
 

@@ -41,7 +41,7 @@ class Model2VecHandler(EmbeddingHandler):
 
 
     def get_embedding(self, text: list[str]):
-        if not hasattr(self, "model"):
+        if not hasattr(self, "model") or self.model is None:
             self.load_model()
         embeddings = self.model.encode(text)
         return embeddings
