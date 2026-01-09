@@ -529,7 +529,7 @@ class MainWindow(Adw.ApplicationWindow):
         self.set_content(self.main_program_block)
         bin = Adw.BreakpointBin(child=self.main, width_request=300, height_request=300)
         breakpoint = Adw.Breakpoint(condition=Adw.BreakpointCondition.new_length(Adw.BreakpointConditionLengthType.MAX_WIDTH, 900, Adw.LengthUnit.PX))
-        breakpoint.add_setter(self.main_program_block, "collapsed", True)
+        breakpoint.add_setter(self.main, "collapsed", True)
         bin.add_breakpoint(breakpoint)
 
         self.main_program_block.set_content(bin)
