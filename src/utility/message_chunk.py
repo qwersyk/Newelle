@@ -40,7 +40,7 @@ class MessageChunk:
 
 # Matches ```lang\ncontent``` (non-greedy content).
 # Relaxed to allow codeblocks that don't end with a newline before the closing fence.
-_CODEBLOCK_PATTERN = re.compile(r'```(\w*)\s*\n(.*?)\s*```', re.DOTALL)
+_CODEBLOCK_PATTERN = re.compile(r'```(\w*)\s*\n(.*?)\n\s*```', re.DOTALL)
 
 _DISPLAY_LATEX_PATTERN = re.compile(r'(\$\$(.+?)\$\$)|(\\\[(.+?)\\\])', re.DOTALL)
 
@@ -260,6 +260,9 @@ def find_tool_calls(text: str) -> List[MessageChunk]:
     for match in _TOOL_START_PATTERN.finditer(text):
         start_index = match.start()
         
+        if start_index < last_end:
+            continue
+        
         if start_index > last_end:
             chunks.append(MessageChunk(type="text", text=text[last_end:start_index]))
             
@@ -288,8 +291,21 @@ def find_tool_calls(text: str) -> List[MessageChunk]:
                         found = True
                         break
         
-        if not found:
-            pass
+        if not found and stack > 0:
+            candidate = text[start_index:] + "}" * stack
+            tool_obj = parse_potential_tool_json(candidate)
+            if tool_obj:
+                tool_name = tool_obj.get("name", tool_obj.get("tool", tool_obj.get("function")))
+                tool_args = tool_obj.get("arguments", tool_obj.get("arguements", tool_obj.get("parameters", {})))
+                
+                chunks.append(MessageChunk(
+                    type="tool_call",
+                    text=candidate,
+                    tool_name=tool_name,
+                    tool_args=tool_args
+                ))
+                last_end = len(text)
+                found = True
 
     if last_end < len(text):
         chunks.append(MessageChunk(type="text", text=text[last_end:]))

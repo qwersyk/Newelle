@@ -1,6 +1,7 @@
 from typing import Any, List
 import threading
 from time import time
+import numpy as np
 
 from ...handlers.llm import LLMHandler 
 from ...handlers.embeddings.embedding import EmbeddingHandler 
@@ -30,8 +31,10 @@ class LlamaIndexHanlder(RAGHandler):
     def get_extra_settings(self) -> list:
         r = [
             ExtraSettings.ScaleSetting("chunk_size", "Chunk Size", "Split text in chunks of the given size (in tokens). Requires a reindex", 512, 64, 2048, 0), 
-            ExtraSettings.ScaleSetting("return_documents", "Documents to return", "Maximum number of documents to return", 3,1,5, 0), 
+            ExtraSettings.ScaleSetting("return_documents", "Documents to return", "Maximum number of documents to return", 3,1,20, 0), 
             ExtraSettings.ScaleSetting("similarity_threshold", "Similarity of the document to be returned", "Set the percentage similarity of a document to get returned", 0.1,0,1, 2), 
+            ExtraSettings.ScaleSetting("oversample_factor", "Oversample Factor", "Factor to multiply the documents to return before filtering with Otsu's thresholding", 2.0, 1.0, 10.0, 1, update_settings=True),
+            ExtraSettings.ScaleSetting("message_context", "Context Messages", "Number of previous messages to consider for retrieval", 5, 0, 20, 0),
             ExtraSettings.ToggleSetting("use_llm", "Secondary LLM", "Use the secondary LLM to improve retrivial", False),
             ExtraSettings.ToggleSetting("subdirectory_on", "Index Only a subdirectory", "Choose only a subdirectory to index. If you already have indexed it, you don't need to re-index", False, update_settings=True), 
         ]
@@ -101,9 +104,11 @@ class LlamaIndexHanlder(RAGHandler):
         vector_store = FaissVectorStore.from_persist_dir(data_path)
         storage_context = StorageContext.from_defaults(persist_dir=data_path, vector_store=vector_store)
         index = load_index_from_storage(storage_context) 
+        oversample = float(self.get_setting("oversample_factor", 2.0))
+        similarity_top_k = int(int(self.get_setting("return_documents")) * oversample)
         retriever = VectorIndexRetriever(
             index=index,
-            similarity_top_k=int(self.get_setting("return_documents")),
+            similarity_top_k=similarity_top_k,
         )
         self.index = index
         self.retriever = retriever
@@ -111,6 +116,84 @@ class LlamaIndexHanlder(RAGHandler):
         retriever.retrieve("test")
         self.loading_thread = None
         self.loaded_index = data_path
+
+    @staticmethod
+    def apply_otsu(nodes, return_documents):
+        if not nodes:
+            return []
+        
+        scores = [node.score for node in nodes]
+        if len(scores) < 2:
+             return nodes
+
+        # Otsu's thresholding
+        scores = np.array(scores)
+        sorted_indices = np.argsort(scores)
+        sorted_scores = scores[sorted_indices]
+        
+        n = len(scores)
+        best_var = -1
+        best_thresh = sorted_scores[0]
+        
+        # Iterate splits
+        for i in range(1, n):
+            c0 = sorted_scores[:i]
+            c1 = sorted_scores[i:]
+            w0 = i / n
+            w1 = (n - i) / n
+            mu0 = np.mean(c0)
+            mu1 = np.mean(c1)
+            var_b = w0 * w1 * (mu0 - mu1)**2
+            if var_b > best_var:
+                best_var = var_b
+                best_thresh = sorted_scores[i]
+        
+        # Filter
+        filtered_nodes = [node for node in nodes if node.score >= best_thresh]
+        filtered_nodes.sort(key=lambda x: x.score, reverse=True)
+        return filtered_nodes[:return_documents]
+
+    def retrieve_with_history(self, prompt: str, history: list[dict[str, str]]) -> list:
+        from llama_index.core.schema import NodeWithScore
+        import copy
+        
+        message_context = int(self.get_setting("message_context", 5))
+        queries = [prompt]
+        
+        # Get previous messages in reverse order (newest first)
+        if message_context > 1 and history:
+            prev_messages = history[-(message_context-1):]
+            queries.extend([msg.get("content", "") for msg in reversed(prev_messages)])
+            
+        all_nodes = {} # node_id -> NodeWithScore
+        
+        # Decay factor for weights
+        decay = 0.8
+        
+        for i, query in enumerate(queries):
+            if not query.strip():
+                continue
+                
+            weight = decay ** i
+            nodes = self.retriever.retrieve(query)
+            
+            for node in nodes:
+                # We need to clone the node because we are modifying the score
+                # and the same node instance might be returned by the retriever (cached)
+                # actually retriever returns new NodeWithScore objects but they point to same TextNode
+                
+                # If we already found this node, add to score
+                if node.node.node_id in all_nodes:
+                    all_nodes[node.node.node_id].score += node.score * weight
+                else:
+                    # Create a copy to avoid side effects if we modify it
+                    new_node = copy.deepcopy(node)
+                    new_node.score = node.score * weight
+                    all_nodes[node.node.node_id] = new_node
+        
+        # Convert back to list
+        combined_nodes = list(all_nodes.values())
+        return combined_nodes
 
     def get_context(self, prompt: str, history: list[dict[str, str]]) -> list[str]:
         self.wait_for_loading()
@@ -122,7 +205,8 @@ class LlamaIndexHanlder(RAGHandler):
             response = query_engine.query(prompt)
             r.append(str(response))
         else:
-            nodes = self.retriever.retrieve(prompt)
+            nodes = self.retrieve_with_history(prompt, history)
+            nodes = self.apply_otsu(nodes, int(self.get_setting("return_documents")))
             if len(nodes) > 0:
                 r.append("--- Context from Files ---")
                 for node in nodes:
@@ -197,13 +281,13 @@ class LlamaIndexHanlder(RAGHandler):
         document_list = []
         urls = []
         for document in documents:
-            if document.startswith("file:"):
+            if document.startswith("file:") or os.path.exists(document):
                 path = document.lstrip("file:")
                 document_list.extend(SimpleDirectoryReader(input_files=[path]).load_data())
             elif document.startswith("text:"):
                 text = document.lstrip("text:")
                 document_list.append(Document(text=text))
-            elif document.startswith("url:"):
+            elif document.startswith("url:") or document.startswith("http://") or document.startswith("https://"):
                 url = document.lstrip("url:")
                 urls.append(url)
         t = []
@@ -236,7 +320,7 @@ class LlamaIndexHanlder(RAGHandler):
         vector_store = FaissVectorStore(faiss_index=faiss_index)
         storage_context = StorageContext.from_defaults(vector_store=vector_store)
         index = VectorStoreIndex.from_documents(document_list, storage_context=storage_context)
-        return LlamaIndexIndex(index, int(self.get_setting("return_documents")), float(self.get_setting("similarity_threshold")), counter, document_list) 
+        return LlamaIndexIndex(index, int(self.get_setting("return_documents")), float(self.get_setting("similarity_threshold")), counter, document_list, float(self.get_setting("oversample_factor", 2.0))) 
 
     def get_embedding_adapter(self, embedding: EmbeddingHandler):
         from llama_index.core.embeddings import BaseEmbedding
@@ -305,7 +389,7 @@ class LlamaIndexHanlder(RAGHandler):
 
 
 class LlamaIndexIndex(RAGIndex):
-    def __init__(self, index, return_documents, similarity_threshold, counter, docs):
+    def __init__(self, index, return_documents, similarity_threshold, counter, docs, oversample_factor=2.0):
         super().__init__()
         self.index = index
         self.retriever = None
@@ -313,6 +397,7 @@ class LlamaIndexIndex(RAGIndex):
         self.similarity_threshold = similarity_threshold
         self.counter = counter
         self.docs = docs
+        self.oversample_factor = oversample_factor
        
     def get_index_size(self):
         return self.counter.total_embedding_token_count
@@ -320,12 +405,14 @@ class LlamaIndexIndex(RAGIndex):
     def query(self, query: str) -> list[str]:
         from llama_index.core.retrievers import VectorIndexRetriever
         if self.retriever is None:
+            similarity_top_k = int(self.return_documents * self.oversample_factor)
             retriever = VectorIndexRetriever(
                 index=self.index,
-                similarity_top_k=int(self.return_documents))
+                similarity_top_k=similarity_top_k)
             self.retriever = retriever 
         r = []
         nodes = self.retriever.retrieve(query)
+        nodes = LlamaIndexHanlder.apply_otsu(nodes, self.return_documents)
         for node in nodes:
             if node.score < float(self.similarity_threshold):
                 continue

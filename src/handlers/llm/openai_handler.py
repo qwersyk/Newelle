@@ -191,6 +191,7 @@ class OpenAIHandler(LLMHandler):
             raise e
     
     def generate_text_stream(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = [], on_update: Callable[[str], Any] = lambda _: None, extra_args: list = []) -> str:
+        self.running = True
         from openai import OpenAI
         history.append({"User": "User", "Message": prompt})
         messages = self.convert_history(history, system_prompt)
@@ -219,6 +220,9 @@ class OpenAIHandler(LLMHandler):
             prev_message = ""
             is_reasoning = False
             for chunk in response:
+                if not self.running:
+                    response.close()
+                    break
                 if len(chunk.choices) == 0:
                     continue
                 if chunk.choices[0].delta.content:

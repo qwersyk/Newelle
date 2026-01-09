@@ -73,8 +73,7 @@ class MainWindow(Adw.ApplicationWindow):
         self.last_token_num = None
         # Breakpoint - Collapse the sidebar when the window is too narrow
         breakpoint = Adw.Breakpoint(condition=Adw.BreakpointCondition.new_length(Adw.BreakpointConditionLengthType.MAX_WIDTH, 1000, Adw.LengthUnit.PX))
-        breakpoint.connect("apply", self.on_breakpoint_apply, self.main_program_block)
-        breakpoint.connect("unapply", self.on_breakpoint_unapply, self.main_program_block)
+        breakpoint.add_setter(self.main_program_block, "collapsed", True)
         self.add_breakpoint(breakpoint)
        
         # Streams
@@ -530,8 +529,7 @@ class MainWindow(Adw.ApplicationWindow):
         self.set_content(self.main_program_block)
         bin = Adw.BreakpointBin(child=self.main, width_request=300, height_request=300)
         breakpoint = Adw.Breakpoint(condition=Adw.BreakpointCondition.new_length(Adw.BreakpointConditionLengthType.MAX_WIDTH, 900, Adw.LengthUnit.PX))
-        breakpoint.connect("apply", self.on_breakpoint_apply, self.main)
-        breakpoint.connect("unapply", self.on_breakpoint_unapply, self.main)
+        breakpoint.add_setter(self.main, "collapsed", True)
         bin.add_breakpoint(breakpoint)
 
         self.main_program_block.set_content(bin)
@@ -1549,12 +1547,6 @@ class MainWindow(Adw.ApplicationWindow):
         elif type(header_widget) is Gtk.Box:
             self.canvas_headerbox.append(self.headerbox)
 
-    def on_breakpoint_apply(self, breakpoint, split_view):
-        split_view.set_collapsed(True)
-
-    def on_breakpoint_unapply(self, breakpoint, split_view):
-        split_view.set_collapsed(not split_view.get_show_sidebar())
-
     def on_flap_button_toggled(self, toggle_button: Gtk.ToggleButton):
         """Handle flap button toggle"""
         self.focus_input()
@@ -1989,22 +1981,14 @@ class MainWindow(Adw.ApplicationWindow):
 
     def stop_chat(self, button=None):
         """Stop generating the message"""
+        self.model.stop()
         self.status = True
         self.stream_number_variable += 1
         self.chat_stop_button.set_visible(False)
         GLib.idle_add(self.update_button_text)
-        if len(self.chat) > 0 and (
-            self.chat[-1]["User"] != "Assistant"
-            or "```console" in self.chat[-1]["Message"]
-        ):
-            for i in range(len(self.chat) - 1, -1, -1):
-                if self.chat[i]["User"] in ["Assistant", "Console"]:
-                    self.chat.pop(i)
-                else:
-                    break
         self.notification_block.add_toast(
             Adw.Toast(
-                title=_("The message was canceled and deleted from history"), timeout=2
+                title=_("The message generation was stopped"), timeout=2
             )
         )
         self.show_chat()
@@ -2416,11 +2400,16 @@ class MainWindow(Adw.ApplicationWindow):
         scrolled_window.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.NEVER)
         scrolled_window.set_overflow(Gtk.Overflow.HIDDEN)
         scrolled_window.set_max_content_width(200)
-        # Create a textview for the message that will be streamed
-        self.streaming_label = Gtk.TextView(
-            wrap_mode=Gtk.WrapMode.WORD_CHAR, editable=False, hexpand=True
+        # Create a label for the message that will be streamed
+        self.streaming_label = Gtk.Label(
+            wrap=True,
+            wrap_mode=Pango.WrapMode.WORD_CHAR,
+            hexpand=True,
+            xalign=0,
+            selectable=True,
+            valign=Gtk.Align.START,
         )
-        # Remove background color from window and textview
+        # Remove background color from window and label
         scrolled_window.add_css_class("scroll")
         self.streaming_label.add_css_class("scroll")
         apply_css_to_widget(
@@ -2429,24 +2418,15 @@ class MainWindow(Adw.ApplicationWindow):
         apply_css_to_widget(
             self.streaming_label, ".scroll { background-color: rgba(0,0,0,0);}"
         )
-        # Add the textview to the scrolledwindow
+        # Add the label to the scrolledwindow
         scrolled_window.set_child(self.streaming_label)
-        # Remove background from the text buffer
-        text_buffer = self.streaming_label.get_buffer()
-        tag = text_buffer.create_tag(
-            "no-background", background_set=False, paragraph_background_set=False
-        )
-        if tag is not None:
-            text_buffer.apply_tag(
-                tag, text_buffer.get_start_iter(), text_buffer.get_end_iter()
-            )
         # Create the message label
         self.streaming_message_box.append(scrolled_window)
         self.streaming_box = self.add_message("Assistant", self.streaming_message_box)
         self.messages_box.pop()
         self.streaming_box.set_overflow(Gtk.Overflow.VISIBLE)
 
-    def update_message(self, message, stream_number_variable):
+    def update_message(self, message, stream_number_variable, *args):
         """Update message label when streaming
 
         Args:
@@ -2483,7 +2463,6 @@ class MainWindow(Adw.ApplicationWindow):
             self.thinking_box.append_thinking(added_thinking)
         if self.streaming_label is not None:
             # Find the differences between the messages
-            added_message = message[len(self.curr_label) :]
             t = time.time()
             if t - self.last_update < 0.05 and not last_update_checked:
                 return
@@ -2492,24 +2471,9 @@ class MainWindow(Adw.ApplicationWindow):
 
             # Edit the label on the main thread
             def idle_edit():
-                self.streaming_label.get_buffer().insert(
-                    self.streaming_label.get_buffer().get_end_iter(), added_message
+                self.streaming_label.set_markup(
+                    simple_markdown_to_pango(self.curr_label)
                 )
-                pl = self.streaming_label.create_pango_layout(self.curr_label)
-                width, height = pl.get_size()
-                width = (
-                    Gtk.Widget.get_scale_factor(self.streaming_label)
-                    * width
-                    / Pango.SCALE
-                )
-                height = (
-                    Gtk.Widget.get_scale_factor(self.streaming_label)
-                    * height
-                    / Pango.SCALE
-                )
-                wmax = self.chat_list_block.get_size(Gtk.Orientation.HORIZONTAL)
-                # Dynamically take the width of the label
-                self.streaming_label.set_size_request(int(min(width, wmax - 150)), -1)
 
             GLib.idle_add(idle_edit)
 
@@ -2659,6 +2623,7 @@ class MainWindow(Adw.ApplicationWindow):
         state = {
             "codeblock_id": -1,
             "id_message": id_message,
+            "original_id": id_message,
             "editable": True,
             "has_terminal_command": False,
             "running_threads": [],
@@ -2786,7 +2751,7 @@ class MainWindow(Adw.ApplicationWindow):
         """Set up async response handling for extension codeblocks."""
         lang = chunk.lang
         value = chunk.text
-        state["editable"] = False
+        # state["editable"] = False
         state["has_terminal_command"] = True
 
         # Get console reply if restoring
@@ -2881,7 +2846,7 @@ class MainWindow(Adw.ApplicationWindow):
 
     def _process_console_codeblock(self, chunk, box, state, restore):
         """Process a console command codeblock."""
-        state["editable"] = False
+        # state["editable"] = False
         state["id_message"] += 1
         command = chunk.text
 
@@ -3002,7 +2967,7 @@ class MainWindow(Adw.ApplicationWindow):
         else:
             # Retrieve UUID from existing console reply
             tool_uuid = self._get_tool_call_uuid(state["id_message"], tool_name, tool_call_id)
-        state["editable"] = False
+        # state["editable"] = False
         state["has_terminal_command"] = True
 
         # Make tool UUID accessible via ui_controller during execution
@@ -3194,7 +3159,7 @@ class MainWindow(Adw.ApplicationWindow):
         if return_widget:
             return box
 
-        self.add_message(user_type, box, state["id_message"], state["editable"])
+        self.add_message(user_type, box, state["original_id"], state["editable"])
 
         if not state["has_terminal_command"]:
             if not restore:
@@ -3391,9 +3356,19 @@ class MainWindow(Adw.ApplicationWindow):
             gesture (): widget with the id of the message to edit as name
             box (): box of the message
         """
-        del self.chat[int(gesture.get_name())]
-        self.chat_list_block.remove(box.get_parent())
-        self.messages_box.remove(box)
+        idx = int(gesture.get_name())
+        if idx < len(self.chat):
+            del self.chat[idx]
+        
+        # Also delete subsequent Console messages
+        while idx < len(self.chat) and self.chat[idx].get("User") == "Console":
+            del self.chat[idx]
+
+        try:
+            self.chat_list_block.remove(box.get_parent())
+            self.messages_box.remove(box)
+        except Exception:
+            pass
         self.save_chat()
         self.show_chat()
 

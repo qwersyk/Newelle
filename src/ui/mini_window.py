@@ -6,7 +6,7 @@ class MiniWindow(Gtk.Window):
         self.main_window = main_window
         self.set_application(application)
         self.set_default_size(500, 100)
-        self.set_title(_("Newelle"))
+        self.set_title(_("Newelle Mini Window"))
         self.set_decorated(False)
         self.add_css_class("mini-window")
 
