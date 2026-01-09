@@ -557,6 +557,11 @@ SETTINGS_GROUPS = {
                 "title": _("Prompts"),
                 "settings": ["prompts-settings", "custom-extra-prompt", "custom-prompts"],
                 "description": _("Prompts settings, custom extra prompt, custom prompts..."),
+        },
+        "tools": {
+            "title": _("Tools"),
+            "settings": ["tools-settings", "mcp-servers"],
+            "description": _("Tools settings, tools groups..."),
         }
 
 }
