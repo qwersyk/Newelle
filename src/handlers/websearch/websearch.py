@@ -7,11 +7,12 @@ class WebSearchHandler(Handler):
     schema_key = "websearch-settings"
     
     @abstractmethod
-    def query(self, keywords: str) -> tuple[str, list]:
+    def query(self, keywords: str, max_results: int = None) -> tuple[str, list]:
         """Return the result for a query and the sources
 
         Args:
             keywords: the query 
+            max_results: the max number of results to return
 
         Returns:
             - str: the text to send to the LLM 
@@ -23,12 +24,13 @@ class WebSearchHandler(Handler):
         return False
 
     @abstractmethod
-    def query_streaming(self,keywords: str, add_website: Callable) -> tuple[str, list]:
+    def query_streaming(self,keywords: str, add_website: Callable, max_results: int = None) -> tuple[str, list]:
         """Return the result for a query in streaming mode
 
         Args:
             keywords: the query 
             add_website: the function to add a website, takes (title, link, favicon_path) 
+            max_results: the max number of results to return
 
         Returns:
             - str: the text to send to the LLM
