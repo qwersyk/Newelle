@@ -1994,18 +1994,9 @@ class MainWindow(Adw.ApplicationWindow):
         self.stream_number_variable += 1
         self.chat_stop_button.set_visible(False)
         GLib.idle_add(self.update_button_text)
-        if len(self.chat) > 0 and (
-            self.chat[-1]["User"] != "Assistant"
-            or "```console" in self.chat[-1]["Message"]
-        ):
-            for i in range(len(self.chat) - 1, -1, -1):
-                if self.chat[i]["User"] in ["Assistant", "Console"]:
-                    self.chat.pop(i)
-                else:
-                    break
         self.notification_block.add_toast(
             Adw.Toast(
-                title=_("The message was canceled and deleted from history"), timeout=2
+                title=_("The message generation was stopped"), timeout=2
             )
         )
         self.show_chat()
