@@ -2659,6 +2659,7 @@ class MainWindow(Adw.ApplicationWindow):
         state = {
             "codeblock_id": -1,
             "id_message": id_message,
+            "original_id": id_message,
             "editable": True,
             "has_terminal_command": False,
             "running_threads": [],
@@ -2786,7 +2787,7 @@ class MainWindow(Adw.ApplicationWindow):
         """Set up async response handling for extension codeblocks."""
         lang = chunk.lang
         value = chunk.text
-        state["editable"] = False
+        # state["editable"] = False
         state["has_terminal_command"] = True
 
         # Get console reply if restoring
@@ -2881,7 +2882,7 @@ class MainWindow(Adw.ApplicationWindow):
 
     def _process_console_codeblock(self, chunk, box, state, restore):
         """Process a console command codeblock."""
-        state["editable"] = False
+        # state["editable"] = False
         state["id_message"] += 1
         command = chunk.text
 
@@ -3002,7 +3003,7 @@ class MainWindow(Adw.ApplicationWindow):
         else:
             # Retrieve UUID from existing console reply
             tool_uuid = self._get_tool_call_uuid(state["id_message"], tool_name, tool_call_id)
-        state["editable"] = False
+        # state["editable"] = False
         state["has_terminal_command"] = True
 
         # Make tool UUID accessible via ui_controller during execution
@@ -3194,7 +3195,7 @@ class MainWindow(Adw.ApplicationWindow):
         if return_widget:
             return box
 
-        self.add_message(user_type, box, state["id_message"], state["editable"])
+        self.add_message(user_type, box, state["original_id"], state["editable"])
 
         if not state["has_terminal_command"]:
             if not restore:
@@ -3391,9 +3392,19 @@ class MainWindow(Adw.ApplicationWindow):
             gesture (): widget with the id of the message to edit as name
             box (): box of the message
         """
-        del self.chat[int(gesture.get_name())]
-        self.chat_list_block.remove(box.get_parent())
-        self.messages_box.remove(box)
+        idx = int(gesture.get_name())
+        if idx < len(self.chat):
+            del self.chat[idx]
+        
+        # Also delete subsequent Console messages
+        while idx < len(self.chat) and self.chat[idx].get("User") == "Console":
+            del self.chat[idx]
+
+        try:
+            self.chat_list_block.remove(box.get_parent())
+            self.messages_box.remove(box)
+        except Exception:
+            pass
         self.save_chat()
         self.show_chat()
 
