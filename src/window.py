@@ -2408,11 +2408,16 @@ class MainWindow(Adw.ApplicationWindow):
         scrolled_window.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.NEVER)
         scrolled_window.set_overflow(Gtk.Overflow.HIDDEN)
         scrolled_window.set_max_content_width(200)
-        # Create a textview for the message that will be streamed
-        self.streaming_label = Gtk.TextView(
-            wrap_mode=Gtk.WrapMode.WORD_CHAR, editable=False, hexpand=True
+        # Create a label for the message that will be streamed
+        self.streaming_label = Gtk.Label(
+            wrap=True,
+            wrap_mode=Pango.WrapMode.WORD_CHAR,
+            hexpand=True,
+            xalign=0,
+            selectable=True,
+            valign=Gtk.Align.START,
         )
-        # Remove background color from window and textview
+        # Remove background color from window and label
         scrolled_window.add_css_class("scroll")
         self.streaming_label.add_css_class("scroll")
         apply_css_to_widget(
@@ -2421,17 +2426,8 @@ class MainWindow(Adw.ApplicationWindow):
         apply_css_to_widget(
             self.streaming_label, ".scroll { background-color: rgba(0,0,0,0);}"
         )
-        # Add the textview to the scrolledwindow
+        # Add the label to the scrolledwindow
         scrolled_window.set_child(self.streaming_label)
-        # Remove background from the text buffer
-        text_buffer = self.streaming_label.get_buffer()
-        tag = text_buffer.create_tag(
-            "no-background", background_set=False, paragraph_background_set=False
-        )
-        if tag is not None:
-            text_buffer.apply_tag(
-                tag, text_buffer.get_start_iter(), text_buffer.get_end_iter()
-            )
         # Create the message label
         self.streaming_message_box.append(scrolled_window)
         self.streaming_box = self.add_message("Assistant", self.streaming_message_box)
@@ -2475,7 +2471,6 @@ class MainWindow(Adw.ApplicationWindow):
             self.thinking_box.append_thinking(added_thinking)
         if self.streaming_label is not None:
             # Find the differences between the messages
-            added_message = message[len(self.curr_label) :]
             t = time.time()
             if t - self.last_update < 0.05 and not last_update_checked:
                 return
@@ -2484,24 +2479,9 @@ class MainWindow(Adw.ApplicationWindow):
 
             # Edit the label on the main thread
             def idle_edit():
-                self.streaming_label.get_buffer().insert(
-                    self.streaming_label.get_buffer().get_end_iter(), added_message
+                self.streaming_label.set_markup(
+                    simple_markdown_to_pango(self.curr_label)
                 )
-                pl = self.streaming_label.create_pango_layout(self.curr_label)
-                width, height = pl.get_size()
-                width = (
-                    Gtk.Widget.get_scale_factor(self.streaming_label)
-                    * width
-                    / Pango.SCALE
-                )
-                height = (
-                    Gtk.Widget.get_scale_factor(self.streaming_label)
-                    * height
-                    / Pango.SCALE
-                )
-                wmax = self.chat_list_block.get_size(Gtk.Orientation.HORIZONTAL)
-                # Dynamically take the width of the label
-                self.streaming_label.set_size_request(int(min(width, wmax - 150)), -1)
 
             GLib.idle_add(idle_edit)
 
