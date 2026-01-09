@@ -340,52 +340,116 @@ class Settings(Adw.PreferencesWindow):
         # Get all tools
         tools = self.controller.tools.get_all_tools()
         
+        # Organize tools by group
+        groups = {}
+        orphans = []
         for tool in tools:
-            # Default values - use tool's default_on attribute
-            is_enabled = tool.default_on
-            custom_prompt = None
+            if hasattr(tool, "tools_group") and tool.tools_group:
+                if tool.tools_group not in groups:
+                    groups[tool.tools_group] = []
+                groups[tool.tools_group].append(tool)
+            else:
+                orphans.append(tool)
+        
+        # Create group rows
+        for group_name, group_tools in groups.items():
+            tool_count = len(group_tools)
+            group_row = Adw.ExpanderRow(
+                title=group_name,
+                subtitle=("{} tools").format(tool_count) if tool_count != 1 else _("1 tool")
+            )
+            # Add folder icon to distinguish groups from individual tools
+            group_icon = Gtk.Image(icon_name="folder-symbolic", css_classes=["dim-label"])
+            group_row.add_prefix(group_icon)
             
-            if tool.name in tools_settings:
-                if "enabled" in tools_settings[tool.name]:
-                    is_enabled = tools_settings[tool.name]["enabled"]
-                if "custom_prompt" in tools_settings[tool.name]:
-                    custom_prompt = tools_settings[tool.name]["custom_prompt"]
+            tool_switches = []
             
-            # Create row
-            row = Adw.ExpanderRow(title=tool.title, subtitle=tool.description)
-            
-            # Toggle
-            toggle = Gtk.Switch(valign=Gtk.Align.CENTER)
-            toggle.set_active(is_enabled)
-            toggle.connect("state-set", self.toggle_tool, tool.name)
-            row.add_suffix(toggle)
-            
-            # Generate default prompt for this tool
-            default_prompt_obj = {
-                "name": tool.name,
-                "description": tool.description,
-                "parameters": tool.schema
-            }
-            default_prompt = json.dumps(default_prompt_obj, indent=2)
-            
-            entry = MultilineEntry()
-            entry.set_text(custom_prompt if custom_prompt else default_prompt)
-            entry.tool_name = tool.name
-            entry.default_prompt = default_prompt
-            entry.set_on_change(self.update_tool_prompt)
+            # Add tools to group
+            for tool in group_tools:
+                row, toggle = self.create_tool_row(tool, tools_settings)
+                group_row.add_row(row)
+                tool_switches.append(toggle)
 
-            box = Gtk.Box(spacing=6)
-            box.append(entry)
+            # Check if all enabled to set group toggle state
+            all_enabled = all(t.get_active() for t in tool_switches)
             
-            # Star button to reset
-            reset_button = Gtk.Button(icon_name="star-filled-rounded-symbolic", css_classes=["flat"], valign=Gtk.Align.CENTER)
-            reset_button.connect("clicked", self.reset_tool_prompt, entry)
-            box.append(reset_button)
+            group_toggle = Gtk.Switch(valign=Gtk.Align.CENTER)
+            group_toggle.set_active(all_enabled)
+            group_toggle.connect("state-set", self.toggle_group, group_tools, tool_switches)
+            group_row.add_suffix(group_toggle)
             
-            row.add_row(box)
-            
-            self.tools_group.add(row)
-            self.tool_rows.append(row)
+            self.tools_group.add(group_row)
+            self.tool_rows.append(group_row)
+
+        # Add orphans
+        if orphans:
+            if groups:
+                # Add a separator to distinguish if there are groups
+                sep = Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL)
+                sep.set_margin_top(12)
+                sep.set_margin_bottom(12)
+                self.tools_group.add(sep)
+                self.tool_rows.append(sep)
+
+            for tool in orphans:
+                row, _ = self.create_tool_row(tool, tools_settings)
+                self.tools_group.add(row)
+                self.tool_rows.append(row)
+
+    def create_tool_row(self, tool, tools_settings):
+        # Default values - use tool's default_on attribute
+        is_enabled = tool.default_on
+        custom_prompt = None
+        
+        if tool.name in tools_settings:
+            if "enabled" in tools_settings[tool.name]:
+                is_enabled = tools_settings[tool.name]["enabled"]
+            if "custom_prompt" in tools_settings[tool.name]:
+                custom_prompt = tools_settings[tool.name]["custom_prompt"]
+        
+        # Create row
+        row = Adw.ExpanderRow(title=tool.title, subtitle=tool.description)
+        # Add tool icon to distinguish from groups
+        tool_icon = Gtk.Image(icon_name="tools-symbolic", css_classes=["dim-label"])
+        row.add_prefix(tool_icon)
+        
+        # Toggle
+        toggle = Gtk.Switch(valign=Gtk.Align.CENTER)
+        toggle.set_active(is_enabled)
+        toggle.connect("state-set", self.toggle_tool, tool.name)
+        row.add_suffix(toggle)
+        
+        # Generate default prompt for this tool
+        default_prompt_obj = {
+            "name": tool.name,
+            "description": tool.description,
+            "parameters": tool.schema
+        }
+        default_prompt = json.dumps(default_prompt_obj, indent=2)
+        
+        entry = MultilineEntry()
+        entry.set_text(custom_prompt if custom_prompt else default_prompt)
+        entry.tool_name = tool.name
+        entry.default_prompt = default_prompt
+        entry.set_on_change(self.update_tool_prompt)
+
+        box = Gtk.Box(spacing=6)
+        box.append(entry)
+        
+        # Star button to reset
+        reset_button = Gtk.Button(icon_name="star-filled-rounded-symbolic", css_classes=["flat"], valign=Gtk.Align.CENTER)
+        reset_button.connect("clicked", self.reset_tool_prompt, entry)
+        box.append(reset_button)
+        
+        row.add_row(box)
+        
+        return row, toggle
+
+    def toggle_group(self, switch, state, tools, tool_switches):
+        # Update UI first (this will trigger toggle_tool for each switch)
+        for s in tool_switches:
+            if s.get_active() != state:
+                s.set_active(state)
 
     def toggle_tool(self, switch, state, tool_name):
         tools_settings = self.controller.newelle_settings.tools_settings_dict

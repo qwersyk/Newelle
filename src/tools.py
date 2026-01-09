@@ -36,7 +36,7 @@ class ToolResult:
 
 
 class Tool:
-    def __init__(self, name: str, description: str, func: Callable, schema: Dict[str, Any] = None, run_on_main_thread: bool = False, title: str = None, prompt_editable: bool = True, restore_func: Callable = None, default_on: bool = True):
+    def __init__(self, name: str, description: str, func: Callable, schema: Dict[str, Any] = None, run_on_main_thread: bool = False, title: str = None, prompt_editable: bool = True, restore_func: Callable = None, default_on: bool = True, tools_group: str = None):
         self.name = name
         self.description = description
         self.func = func
@@ -46,6 +46,7 @@ class Tool:
         self.prompt_editable = prompt_editable
         self.restore_func = restore_func
         self.default_on = default_on
+        self.tools_group = tools_group
 
     def restore(self, **kwargs):
         if self.restore_func is not None:
@@ -162,14 +163,14 @@ class ToolRegistry:
         return tools_json
 
 
-def tool(name: str, description: str, run_on_main_thread: bool = False, title: str = None, prompt_editable: bool = True, restore_func: Callable = None, default_on: bool = True):
+def tool(name: str, description: str, run_on_main_thread: bool = False, title: str = None, prompt_editable: bool = True, restore_func: Callable = None, default_on: bool = True, tools_group: str = None):
     """Decorator to register a function as a tool."""
     def decorator(func):
-        t = Tool(name, description, func, run_on_main_thread=run_on_main_thread, title=title, prompt_editable=prompt_editable, restore_func=restore_func, default_on=default_on)
+        t = Tool(name, description, func, run_on_main_thread=run_on_main_thread, title=title, prompt_editable=prompt_editable, restore_func=restore_func, default_on=default_on, tools_group=tools_group)
         return t
     return decorator
 
-def create_io_tool(name: str, description: str, func: Callable, title: str = None, create_separate_process=False, default_on: bool = True) -> Tool:
+def create_io_tool(name: str, description: str, func: Callable, title: str = None, create_separate_process=False, default_on: bool = True, tools_group: str = None) -> Tool:
     def wrapper(**kwargs):
         result = ToolResult()
         def th():
@@ -178,7 +179,7 @@ def create_io_tool(name: str, description: str, func: Callable, title: str = Non
         GLib.idle_add(t.start)
         return result
 
-    t = Tool(name, description, wrapper, title=title, default_on=default_on)
+    t = Tool(name, description, wrapper, title=title, default_on=default_on, tools_group=tools_group)
     schema = t._generate_schema_from_func(func)
     t.schema = schema
     return t
