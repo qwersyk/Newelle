@@ -73,8 +73,7 @@ class MainWindow(Adw.ApplicationWindow):
         self.last_token_num = None
         # Breakpoint - Collapse the sidebar when the window is too narrow
         breakpoint = Adw.Breakpoint(condition=Adw.BreakpointCondition.new_length(Adw.BreakpointConditionLengthType.MAX_WIDTH, 1000, Adw.LengthUnit.PX))
-        breakpoint.connect("apply", self.on_breakpoint_apply, self.main_program_block)
-        breakpoint.connect("unapply", self.on_breakpoint_unapply, self.main_program_block)
+        breakpoint.add_setter(self.main_program_block, "collapsed", True)
         self.add_breakpoint(breakpoint)
        
         # Streams
@@ -530,8 +529,7 @@ class MainWindow(Adw.ApplicationWindow):
         self.set_content(self.main_program_block)
         bin = Adw.BreakpointBin(child=self.main, width_request=300, height_request=300)
         breakpoint = Adw.Breakpoint(condition=Adw.BreakpointCondition.new_length(Adw.BreakpointConditionLengthType.MAX_WIDTH, 900, Adw.LengthUnit.PX))
-        breakpoint.connect("apply", self.on_breakpoint_apply, self.main)
-        breakpoint.connect("unapply", self.on_breakpoint_unapply, self.main)
+        breakpoint.add_setter(self.main_program_block, "collapsed", True)
         bin.add_breakpoint(breakpoint)
 
         self.main_program_block.set_content(bin)
@@ -1548,12 +1546,6 @@ class MainWindow(Adw.ApplicationWindow):
             header_widget.pack_end(self.headerbox)
         elif type(header_widget) is Gtk.Box:
             self.canvas_headerbox.append(self.headerbox)
-
-    def on_breakpoint_apply(self, breakpoint, split_view):
-        split_view.set_collapsed(True)
-
-    def on_breakpoint_unapply(self, breakpoint, split_view):
-        split_view.set_collapsed(not split_view.get_show_sidebar())
 
     def on_flap_button_toggled(self, toggle_button: Gtk.ToggleButton):
         """Handle flap button toggle"""
