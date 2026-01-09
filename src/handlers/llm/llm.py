@@ -15,6 +15,7 @@ class LLMHandler(Handler):
         super().__init__(settings, path)
         self.settings = settings
         self.path = path
+        self.running = False
 
     def get_models_list(self):
         return tuple()
@@ -94,6 +95,10 @@ class LLMHandler(Handler):
             str: generated text
         """  
         pass
+
+    def stop(self):
+        """Stop the generation"""
+        self.running = False
 
     def send_message(self, window, message:str) -> str:
         """Send a message to the bot

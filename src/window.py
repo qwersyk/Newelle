@@ -1989,6 +1989,7 @@ class MainWindow(Adw.ApplicationWindow):
 
     def stop_chat(self, button=None):
         """Stop generating the message"""
+        self.model.stop()
         self.status = True
         self.stream_number_variable += 1
         self.chat_stop_button.set_visible(False)
@@ -2446,7 +2447,7 @@ class MainWindow(Adw.ApplicationWindow):
         self.messages_box.pop()
         self.streaming_box.set_overflow(Gtk.Overflow.VISIBLE)
 
-    def update_message(self, message, stream_number_variable):
+    def update_message(self, message, stream_number_variable, *args):
         """Update message label when streaming
 
         Args:
