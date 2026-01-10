@@ -3,7 +3,7 @@ from .handlers.llm import ClaudeHandler, DeepseekHandler, GroqHandler, OllamaHan
 from .handlers.tts import ElevenLabs, gTTSHandler, EspeakHandler, CustomTTSHandler, KokoroTTSHandler, CustomOpenAITTSHandler, OpenAITTSHandler, GroqTTSHandler
 from .handlers.stt import GroqSRHandler, OpenAISRHandler, SphinxHandler, GoogleSRHandler, WhisperCPPHandler, WitAIHandler, VoskHandler, CustomSRHandler
 from .handlers.embeddings import WordLlamaHandler, OpenAIEmbeddingHandler, GeminiEmbeddingHanlder, OllamaEmbeddingHandler, Model2VecHandler
-from .handlers.memory import MemoripyHandler, UserSummaryHandler, SummaryMemoripyHanlder
+from .handlers.memory import MemoripyHandler, UserSummaryHandler, SummaryMemoripyHanlder, LlamaIndexMemoryHandler
 from .handlers.rag import LlamaIndexHanlder
 from .handlers.websearch import SearXNGHandler, DDGSeachHandler, TavilyHandler
 from .integrations.website_reader import WebsiteReader
@@ -248,6 +248,12 @@ AVAILABLE_MEMORIES = {
         "description": _("Generate a summary of the user's conversation"),
         "class": UserSummaryHandler,
     },
+    "llamaindex": {
+        "key": "llamaindex",
+        "title": _("Semantic Memory"),
+        "description": _("Long term memory using LlamaIndex. Stores conversations in a vector store. Uses semantic search to retrieve memories."),
+        "class": LlamaIndexMemoryHandler,
+    },
     "memoripy": {
         "key": "memoripy",
         "title": _("Memoripy"),
@@ -259,7 +265,7 @@ AVAILABLE_MEMORIES = {
         "title": _("User Summary + Memoripy"),
         "description": _("Use both technologies for long term memory"),
         "class": SummaryMemoripyHanlder,
-    }
+    },
 }
 
 AVAILABLE_RAGS = {
