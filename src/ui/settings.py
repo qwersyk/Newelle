@@ -492,63 +492,131 @@ class Settings(Adw.PreferencesWindow):
         self.refresh_mcp_servers_list()
         
         # Add server form
-        add_row = Adw.ExpanderRow(title=_("Add Server"), subtitle=_("Add a new MCP server"))
+        add_row = Adw.ExpanderRow(title=_("Add Server"), subtitle=_("Add a new MCP server"), icon_name="list-add-symbolic")
         
-        # Title entry (optional)
-        title_row = Adw.ActionRow(title=_("Title"), subtitle=_("Optional display name for the server"))
-        self.mcp_title_entry = Gtk.Entry(valign=Gtk.Align.CENTER, placeholder_text=_("My MCP Server"))
-        title_row.add_suffix(self.mcp_title_entry)
-        add_row.add_row(title_row)
-        
-        # URL entry (required)
-        url_row = Adw.ActionRow(title=_("URL"), subtitle=_("Server endpoint URL"))
-        self.mcp_url_entry = Gtk.Entry(valign=Gtk.Align.CENTER, placeholder_text="http://localhost:8000/sse")
+        # URL entry (required) - Most important, so first
+        url_row = Adw.ActionRow(title=_("URL"), subtitle=_("Server endpoint URL (required)"))
+        url_row.add_css_class("property")
+        self.mcp_url_entry = Gtk.Entry(valign=Gtk.Align.CENTER, placeholder_text="http://localhost:8000/mcp", hexpand=True, width_chars=30)
         url_row.add_suffix(self.mcp_url_entry)
         add_row.add_row(url_row)
         
-        # Bearer token entry (optional)
-        token_row = Adw.ActionRow(title=_("Bearer Token"), subtitle=_("Optional authentication token"))
-        self.mcp_token_entry = Gtk.Entry(valign=Gtk.Align.CENTER, placeholder_text=_("Token"), visibility=False)
+        # Title entry (optional)
+        title_row = Adw.ActionRow(title=_("Title"), subtitle=_("Display name for the server"))
+        title_row.add_css_class("property")
+        self.mcp_title_entry = Gtk.Entry(valign=Gtk.Align.CENTER, placeholder_text=_("My MCP Server"), hexpand=True, width_chars=30)
+        title_row.add_suffix(self.mcp_title_entry)
+        add_row.add_row(title_row)
+        
+        # Authentication section (nested expander for optional auth settings)
+        auth_row = Adw.ExpanderRow(title=_("Authentication"), subtitle=_("Optional authentication settings"), icon_name="dialog-password-symbolic")
+        
+        # Bearer token entry
+        token_row = Adw.ActionRow(title=_("Bearer Token"), subtitle=_("Authentication token"))
+        self.mcp_token_entry = Gtk.Entry(valign=Gtk.Align.CENTER, placeholder_text=_("Token"), visibility=False, hexpand=True, width_chars=25)
         token_row.add_suffix(self.mcp_token_entry)
         # Show/hide token button
-        show_token_btn = Gtk.Button(icon_name="view-show", valign=Gtk.Align.CENTER, css_classes=["flat"])
+        show_token_btn = Gtk.Button(icon_name="view-reveal-symbolic", valign=Gtk.Align.CENTER, css_classes=["flat"], tooltip_text=_("Show/Hide token"))
         show_token_btn.connect("clicked", lambda btn: self.mcp_token_entry.set_visibility(not self.mcp_token_entry.get_visibility()))
         token_row.add_suffix(show_token_btn)
-        add_row.add_row(token_row)
+        auth_row.add_row(token_row)
         
-        # Add button
+        # Client ID entry (optional)
+        client_id_row = Adw.ActionRow(title=_("Client ID"), subtitle=_("OAuth client identifier"))
+        self.mcp_client_id_entry = Gtk.Entry(valign=Gtk.Align.CENTER, placeholder_text=_("client-id"), hexpand=True, width_chars=25)
+        client_id_row.add_suffix(self.mcp_client_id_entry)
+        auth_row.add_row(client_id_row)
+        
+        add_row.add_row(auth_row)
+        
+        # Advanced section (nested expander for headers)
+        advanced_row = Adw.ExpanderRow(title=_("Advanced"), subtitle=_("Custom headers and advanced settings"), icon_name="preferences-other-symbolic")
+        
+        # Custom headers (optional) - text view for JSON
+        headers_row = Adw.ActionRow(title=_("Custom Headers"), subtitle=_("JSON format, e.g. {\"X-Api-Key\": \"value\"}"))
+        headers_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6, margin_top=6, margin_bottom=6)
+        
+        # ScrolledWindow for text view
+        headers_scroll = Gtk.ScrolledWindow(vexpand=False, hexpand=True, min_content_height=60, max_content_height=100)
+        headers_scroll.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
+        
+        self.mcp_headers_text = Gtk.TextView(wrap_mode=Gtk.WrapMode.WORD_CHAR, monospace=True)
+        self.mcp_headers_text.set_size_request(250, 60)
+        self.mcp_headers_text.get_buffer().set_text("{}")
+        headers_scroll.set_child(self.mcp_headers_text)
+        headers_box.append(headers_scroll)
+        
+        headers_row.add_suffix(headers_box)
+        advanced_row.add_row(headers_row)
+        
+        add_row.add_row(advanced_row)
+        
+        # Add button row with spinner
+        add_btn_row = Adw.ActionRow()
+        add_btn_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12, halign=Gtk.Align.END, margin_top=6, margin_bottom=6)
+        
+        self.mcp_add_spinner = Gtk.Spinner()
+        add_btn_box.append(self.mcp_add_spinner)
+        
         self.mcp_add_button = Gtk.Button(label=_("Add Server"), valign=Gtk.Align.CENTER)
         self.mcp_add_button.add_css_class("suggested-action")
-        add_row.add_suffix(self.mcp_add_button)
+        self.mcp_add_button.add_css_class("pill")
+        add_btn_box.append(self.mcp_add_button)
+        
+        add_btn_row.add_suffix(add_btn_box)
+        add_row.add_row(add_btn_row)
         
         def add_server(btn):
-            url = self.mcp_url_entry.get_text()
+            url = self.mcp_url_entry.get_text().strip()
             if not url:
                 return
             
-            title = self.mcp_title_entry.get_text() or None
-            bearer_token = self.mcp_token_entry.get_text() or None
+            title = self.mcp_title_entry.get_text().strip() or None
+            bearer_token = self.mcp_token_entry.get_text().strip() or None
+            client_id = self.mcp_client_id_entry.get_text().strip() or None
+            
+            # Parse custom headers
+            headers_buffer = self.mcp_headers_text.get_buffer()
+            headers_text = headers_buffer.get_text(headers_buffer.get_start_iter(), headers_buffer.get_end_iter(), False).strip()
+            custom_headers = None
+            if headers_text and headers_text != "{}":
+                try:
+                    custom_headers = json.loads(headers_text)
+                    if not isinstance(custom_headers, dict):
+                        self.app.win.show_error_dialog(_("Error"), _("Custom headers must be a JSON object"))
+                        return
+                except json.JSONDecodeError as e:
+                    self.app.win.show_error_dialog(_("Error"), _("Invalid JSON in custom headers: ") + str(e))
+                    return
             
             self.mcp_add_button.set_sensitive(False)
+            self.mcp_add_spinner.start()
             self.mcp_url_entry.set_sensitive(False)
             self.mcp_title_entry.set_sensitive(False)
             self.mcp_token_entry.set_sensitive(False)
+            self.mcp_client_id_entry.set_sensitive(False)
+            self.mcp_headers_text.set_sensitive(False)
             
             def add_thread():
                 mcp_handler = self.controller.get_mcp_integration()
-                added = mcp_handler.add_mcp_server(url, title=title, bearer_token=bearer_token)
+                added = mcp_handler.add_mcp_server(url, title=title, bearer_token=bearer_token, client_id=client_id, custom_headers=custom_headers)
                 self.settings.set_string("mcp-servers", json.dumps(mcp_handler.mcp_servers))
                 if not added:
                     GLib.idle_add(self.app.win.show_error_dialog, _("Error"), _("Failed to add MCP server"))
                 GLib.idle_add(self.refresh_mcp_servers_list)
                 GLib.idle_add(self.refresh_tools_list)
                 GLib.idle_add(self.mcp_add_button.set_sensitive, True)
+                GLib.idle_add(self.mcp_add_spinner.stop)
                 GLib.idle_add(self.mcp_url_entry.set_sensitive, True)
                 GLib.idle_add(self.mcp_title_entry.set_sensitive, True)
                 GLib.idle_add(self.mcp_token_entry.set_sensitive, True)
+                GLib.idle_add(self.mcp_client_id_entry.set_sensitive, True)
+                GLib.idle_add(self.mcp_headers_text.set_sensitive, True)
                 GLib.idle_add(self.mcp_url_entry.set_text, "")
                 GLib.idle_add(self.mcp_title_entry.set_text, "")
                 GLib.idle_add(self.mcp_token_entry.set_text, "")
+                GLib.idle_add(self.mcp_client_id_entry.set_text, "")
+                GLib.idle_add(lambda: self.mcp_headers_text.get_buffer().set_text("{}"))
             t = threading.Thread(target=add_thread)
             t.start()
         self.mcp_add_button.connect("clicked", add_server)

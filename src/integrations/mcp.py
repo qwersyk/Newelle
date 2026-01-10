@@ -17,17 +17,29 @@ class MCPIntegration(NewelleExtension):
     def _get_server_info(self, server):
         """Extract server info from both old (string) and new (dict) formats"""
         if isinstance(server, str):
-            return {"url": server, "title": None, "bearer_token": None}
+            return {"url": server, "title": None, "bearer_token": None, "client_id": None, "custom_headers": None}
         return {
             "url": server.get("url", ""),
             "title": server.get("title"),
-            "bearer_token": server.get("bearer_token")
+            "bearer_token": server.get("bearer_token"),
+            "client_id": server.get("client_id"),
+            "custom_headers": server.get("custom_headers")
         }
 
-    def add_mcp_server(self, url, title=None, bearer_token=None):
+    def _build_headers(self, bearer_token=None, custom_headers=None):
+        """Build headers dict combining bearer token and custom headers"""
+        headers = {}
+        if bearer_token:
+            headers["Authorization"] = f"Bearer {bearer_token}"
+        if custom_headers and isinstance(custom_headers, dict):
+            headers.update(custom_headers)
+        return headers
+
+    def add_mcp_server(self, url, title=None, bearer_token=None, client_id=None, custom_headers=None):
         try:
-            tools = self.sync_get_tools(url, bearer_token=bearer_token)
-            server_info = {"url": url, "title": title, "bearer_token": bearer_token}
+            headers = self._build_headers(bearer_token, custom_headers)
+            tools = self.sync_get_tools(url, headers=headers, client_id=client_id)
+            server_info = {"url": url, "title": title, "bearer_token": bearer_token, "client_id": client_id, "custom_headers": custom_headers}
             self.tools.extend(tools)
             for tool in tools:
                 self.tools_dict[tool.name] = server_info
@@ -36,7 +48,7 @@ class MCPIntegration(NewelleExtension):
             print(e)
             return False
         # Store as new format dict
-        self.mcp_servers.append({"url": url, "title": title, "bearer_token": bearer_token})
+        self.mcp_servers.append({"url": url, "title": title, "bearer_token": bearer_token, "client_id": client_id, "custom_headers": custom_headers})
         return True
 
     def remove_mcp_server(self, url):
@@ -65,7 +77,8 @@ class MCPIntegration(NewelleExtension):
             server_info = self._get_server_info(server)
             print(server_info["url"])
             try:
-                tools = self.sync_get_tools(server_info["url"], bearer_token=server_info["bearer_token"])
+                headers = self._build_headers(server_info["bearer_token"], server_info["custom_headers"])
+                tools = self.sync_get_tools(server_info["url"], headers=headers, client_id=server_info["client_id"])
                 print(tools)
                 self.tools.extend(tools)
                 for tool in tools:
@@ -84,11 +97,12 @@ class MCPIntegration(NewelleExtension):
         def get_answer():
             server_info = self.tools_dict.get(tool_name, {})
             url = server_info.get("url") if server_info else None
-            bearer_token = server_info.get("bearer_token") if server_info else None
             if not url:
                 result.set_output("Error: Tool server not found")
                 return
-            out = self.sync_call_tool(url, tool_name, arguments, bearer_token=bearer_token)
+            headers = self._build_headers(server_info.get("bearer_token"), server_info.get("custom_headers"))
+            client_id = server_info.get("client_id")
+            out = self.sync_call_tool(url, tool_name, arguments, headers=headers, client_id=client_id)
             result.set_output(out)
         t = threading.Thread(target=get_answer)
         t.start()
@@ -116,37 +130,41 @@ class MCPIntegration(NewelleExtension):
         result = self.sync_call_tool(tool_name, args)
         return result
 
-    def sync_get_tools(self, url, bearer_token=None):
+    def sync_get_tools(self, url, headers=None, client_id=None):
         """Synchronous wrapper to get available tools"""
         import asyncio
         from mcp.client.stdio import stdio_client
         from mcp import ClientSession
         from mcp.client.streamable_http import streamablehttp_client
         
-        headers = {}
-        if bearer_token:
-            headers["Authorization"] = f"Bearer {bearer_token}"
+        if headers is None:
+            headers = {}
         
         async def _async_get_tools():
-            async with streamablehttp_client(url, headers=headers) as (read, write, _):
+            client_kwargs = {"url": url, "headers": headers}
+            if client_id:
+                client_kwargs["client_id"] = client_id
+            async with streamablehttp_client(**client_kwargs) as (read, write, _):
                 async with ClientSession(read, write) as session:
                     await session.initialize()
                     tools = await session.list_tools()
                     return tools.tools 
         return asyncio.run(_async_get_tools())
 
-    def sync_call_tool(self, url, tool_name, arguments, bearer_token=None):
+    def sync_call_tool(self, url, tool_name, arguments, headers=None, client_id=None):
         """Synchronous wrapper to call a tool"""
         import asyncio
         from mcp import ClientSession
         from mcp.client.streamable_http import streamablehttp_client
         
-        headers = {}
-        if bearer_token:
-            headers["Authorization"] = f"Bearer {bearer_token}"
+        if headers is None:
+            headers = {}
         
         async def _async_call_tool():
-            async with streamablehttp_client(url, headers=headers) as (read, write, _):
+            client_kwargs = {"url": url, "headers": headers}
+            if client_id:
+                client_kwargs["client_id"] = client_id
+            async with streamablehttp_client(**client_kwargs) as (read, write, _):
                 async with ClientSession(read, write) as session:
                     await session.initialize()
                     result = await session.call_tool(tool_name, arguments=arguments)
