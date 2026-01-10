@@ -87,7 +87,7 @@
             <default>"{}"</default>
         </key>
         <key name="websearch-on" type="b">
-          <default>false</default>
+          <default>true</default>
         </key>
         <key name="websearch-settings" type="s">
           <default>"{}"</default>

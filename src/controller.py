@@ -261,6 +261,30 @@ class NewelleController:
         self.tools = ToolRegistry()
         self.extensionloader.add_tools(self.tools)
         self.integrationsloader.add_tools(self.tools)
+    
+    def get_enabled_tools(self) -> list:
+        """Get the list of enabled tools
+        
+        Returns:
+            list[Tool]: List of enabled tools
+        """
+        enabled_tools = []
+        tools_settings = self.newelle_settings.tools_settings_dict
+        
+        for tool in self.tools.get_all_tools():
+            # Check if tool is explicitly enabled/disabled in settings
+            is_enabled = tool.default_on
+            if tool.name in tools_settings and "enabled" in tools_settings[tool.name]:
+                is_enabled = tools_settings[tool.name]["enabled"]
+            
+            # Special case: search tool is disabled if websearch is off
+            if tool.name == "search" and not self.newelle_settings.websearch_on:
+                is_enabled = False
+            
+            if is_enabled:
+                enabled_tools.append(tool)
+        
+        return enabled_tools
         
     def load_extensions(self):
         """Load extensions"""

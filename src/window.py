@@ -2192,6 +2192,13 @@ class MainWindow(Adw.ApplicationWindow):
             ).start()
 
     def get_variable(self, name:str):
+        tools = self.controller.tools.get_all_tools()
+        for tool in tools:
+            if tool.name == name:
+                if tool in self.controller.get_enabled_tools():
+                    return True
+                else:
+                    return False
         if name == "tts_on":
             return self.tts_enabled
         elif name == "virtualization_on":
