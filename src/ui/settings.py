@@ -491,38 +491,68 @@ class Settings(Adw.PreferencesWindow):
         self.mcp_server_rows = []
         self.refresh_mcp_servers_list()
         
-        # Add server row
-        row = Adw.ActionRow(title=_("Add Server"), subtitle=_("Add a new MCP server URL"))
-        entry = Gtk.Entry(valign=Gtk.Align.CENTER, placeholder_text="http://localhost:8000/sse")
-        row.add_suffix(entry)
-        button = Gtk.Button(icon_name="list-add-symbolic", valign=Gtk.Align.CENTER)
-        button.add_css_class("suggested-action")
-        row.add_suffix(button)
+        # Add server form
+        add_row = Adw.ExpanderRow(title=_("Add Server"), subtitle=_("Add a new MCP server"))
+        
+        # Title entry (optional)
+        title_row = Adw.ActionRow(title=_("Title"), subtitle=_("Optional display name for the server"))
+        self.mcp_title_entry = Gtk.Entry(valign=Gtk.Align.CENTER, placeholder_text=_("My MCP Server"))
+        title_row.add_suffix(self.mcp_title_entry)
+        add_row.add_row(title_row)
+        
+        # URL entry (required)
+        url_row = Adw.ActionRow(title=_("URL"), subtitle=_("Server endpoint URL"))
+        self.mcp_url_entry = Gtk.Entry(valign=Gtk.Align.CENTER, placeholder_text="http://localhost:8000/sse")
+        url_row.add_suffix(self.mcp_url_entry)
+        add_row.add_row(url_row)
+        
+        # Bearer token entry (optional)
+        token_row = Adw.ActionRow(title=_("Bearer Token"), subtitle=_("Optional authentication token"))
+        self.mcp_token_entry = Gtk.Entry(valign=Gtk.Align.CENTER, placeholder_text=_("Token"), visibility=False)
+        token_row.add_suffix(self.mcp_token_entry)
+        # Show/hide token button
+        show_token_btn = Gtk.Button(icon_name="view-show", valign=Gtk.Align.CENTER, css_classes=["flat"])
+        show_token_btn.connect("clicked", lambda btn: self.mcp_token_entry.set_visibility(not self.mcp_token_entry.get_visibility()))
+        token_row.add_suffix(show_token_btn)
+        add_row.add_row(token_row)
+        
+        # Add button
+        self.mcp_add_button = Gtk.Button(label=_("Add Server"), valign=Gtk.Align.CENTER)
+        self.mcp_add_button.add_css_class("suggested-action")
+        add_row.add_suffix(self.mcp_add_button)
         
         def add_server(btn):
-            url = entry.get_text()
+            url = self.mcp_url_entry.get_text()
             if not url:
                 return
             
-            button.set_sensitive(False)
-            entry.set_sensitive(False)
+            title = self.mcp_title_entry.get_text() or None
+            bearer_token = self.mcp_token_entry.get_text() or None
+            
+            self.mcp_add_button.set_sensitive(False)
+            self.mcp_url_entry.set_sensitive(False)
+            self.mcp_title_entry.set_sensitive(False)
+            self.mcp_token_entry.set_sensitive(False)
             
             def add_thread():
                 mcp_handler = self.controller.get_mcp_integration()
-                added = mcp_handler.add_mcp_server(url)
+                added = mcp_handler.add_mcp_server(url, title=title, bearer_token=bearer_token)
                 self.settings.set_string("mcp-servers", json.dumps(mcp_handler.mcp_servers))
                 if not added:
                     GLib.idle_add(self.app.win.show_error_dialog, _("Error"), _("Failed to add MCP server"))
-                    return
                 GLib.idle_add(self.refresh_mcp_servers_list)
                 GLib.idle_add(self.refresh_tools_list)
-                GLib.idle_add(button.set_sensitive, True)
-                GLib.idle_add(entry.set_sensitive, True)
-                GLib.idle_add(entry.set_text, "")
+                GLib.idle_add(self.mcp_add_button.set_sensitive, True)
+                GLib.idle_add(self.mcp_url_entry.set_sensitive, True)
+                GLib.idle_add(self.mcp_title_entry.set_sensitive, True)
+                GLib.idle_add(self.mcp_token_entry.set_sensitive, True)
+                GLib.idle_add(self.mcp_url_entry.set_text, "")
+                GLib.idle_add(self.mcp_title_entry.set_text, "")
+                GLib.idle_add(self.mcp_token_entry.set_text, "")
             t = threading.Thread(target=add_thread)
             t.start()
-        button.connect("clicked", add_server)
-        self.mcp_group.add(row)
+        self.mcp_add_button.connect("clicked", add_server)
+        self.mcp_group.add(add_row)
 
     def refresh_mcp_servers_list(self):
         for row in self.mcp_server_rows:
@@ -531,21 +561,31 @@ class Settings(Adw.PreferencesWindow):
 
         servers = json.loads(self.settings.get_string("mcp-servers"))
         self.controller.newelle_settings.mcp_servers_dict = servers
-        for url in servers:
-            row = Adw.ActionRow(title=url[:30])
+        for server in servers:
+            # Handle both old format (string URL) and new format (dict with url, title, bearer_token)
+            if isinstance(server, str):
+                url = server
+                title = url[:30]
+            else:
+                url = server.get("url", "")
+                title = server.get("title") or url[:30]
+            
+            row = Adw.ActionRow(title=title, subtitle=url if title != url[:30] else None)
             delete_btn = Gtk.Button(icon_name="user-trash-symbolic", valign=Gtk.Align.CENTER)
             delete_btn.add_css_class("destructive-action")
-            delete_btn.connect("clicked", self.remove_mcp_server, url)
+            delete_btn.connect("clicked", self.remove_mcp_server, server)
             row.add_suffix(delete_btn)
             self.servers_list_group.add_row(row)
             self.mcp_server_rows.append(row)
 
-    def remove_mcp_server(self, btn, url):
+    def remove_mcp_server(self, btn, server):
         servers = self.controller.newelle_settings.mcp_servers_dict
-        servers.remove(url)
+        servers.remove(server)
         self.settings.set_string("mcp-servers", json.dumps(servers))
         self.controller.newelle_settings.mcp_servers_dict = servers
         mcp_handler = self.controller.get_mcp_integration()
+        # Get URL from server (handle both old and new format)
+        url = server if isinstance(server, str) else server.get("url", "")
         mcp_handler.remove_mcp_server(url)
         self.refresh_mcp_servers_list()
         self.refresh_tools_list()
