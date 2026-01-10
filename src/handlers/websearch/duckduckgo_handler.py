@@ -20,6 +20,9 @@ class DDGSeachHandler(WebSearchHandler):
     def get_extra_requirements() -> list:
         return ["ddgs"]
 
+    def supports_streaming_query(self) -> bool:
+        return True
+
     def get_extra_settings(self) -> list:
         return [
             ExtraSettings.ScaleSetting("results", _("Max Results"), _("Number of results to consider"), 2, 1, 10, 0),
