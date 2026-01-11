@@ -2285,7 +2285,12 @@ class MainWindow(Adw.ApplicationWindow):
         history = self.get_history()
         edited_messages = get_edited_messages(history, old_history)
         if edited_messages is None:
-            GLib.idle_add(self.show_chat)
+            # Messages were added or removed - only reload if removed or if chat UI needs rebuilding
+            # If messages were added, they'll be displayed via show_message, so no need to reload
+            if len(history) < len(old_history):
+                # Messages were removed, need to reload
+                GLib.idle_add(self.show_chat)
+            # If messages were added (len increased), don't reload - they'll be added via show_message
         else:
             for message in edited_messages:
                 GLib.idle_add(self.reload_message, message)
@@ -2354,7 +2359,12 @@ class MainWindow(Adw.ApplicationWindow):
             # Edit messages that require to be updated
             edited_messages = get_edited_messages(history, old_history)
             if edited_messages is None:
-                GLib.idle_add(self.show_chat)
+                # Messages were added or removed - only reload if removed or if chat UI needs rebuilding
+                # If messages were added, they'll be displayed via show_message, so no need to reload
+                if len(history) < len(old_history):
+                    # Messages were removed, need to reload
+                    GLib.idle_add(self.show_chat)
+                # If messages were added (len increased), don't reload - they'll be added via show_message
             else:
                 for message in edited_messages:
                     GLib.idle_add(self.reload_message, message)
@@ -2548,8 +2558,8 @@ class MainWindow(Adw.ApplicationWindow):
     def show_chat(self, animate=False):
         """Show a chat"""
         self.last_error_box = None
-        self.messages_box = [] 
         if not self.check_streams["chat"]:
+            self.messages_box = []
             self.check_streams["chat"] = True
             try:
                 if not animate:
@@ -3492,6 +3502,15 @@ class MainWindow(Adw.ApplicationWindow):
             return box
 
         self.add_message(user_type, box, state["original_id"], state["editable"])
+
+        # Update lazy_loaded_end when a message is displayed beyond the current range
+        # This handles both new messages (restore=False) and user messages (restore=True but already in chat)
+        if self.lazy_load_enabled:
+            message_index = state["original_id"]
+            # If message is beyond current lazy-loaded range, update the range
+            # This prevents duplicates when show_chat reloads messages
+            if message_index >= self.lazy_loaded_end:
+                self.lazy_loaded_end = message_index + 1
 
         if not state["has_terminal_command"]:
             if not restore:
