@@ -2323,8 +2323,15 @@ class MainWindow(Adw.ApplicationWindow):
             GLib.idle_add(self.remove_send_button_spinner)
 
             def remove_streaming_box():
-                if self.model.stream_enabled() and hasattr(self, "streaming_box"):
-                    self.streaming_box.unparent()
+                try:
+                    if self.model.stream_enabled() and hasattr(self, "streaming_box"):
+                        if self.streaming_box is not None:
+                            parent = self.streaming_box.get_parent()
+                            if parent is not None:
+                                self.streaming_box.unparent()
+                except (AttributeError, RuntimeError):
+                    # Widget may have been destroyed or unparented already
+                    pass
 
             GLib.timeout_add(250, remove_streaming_box)
             return
@@ -2341,16 +2348,29 @@ class MainWindow(Adw.ApplicationWindow):
             else:
                 for message in edited_messages:
                     GLib.idle_add(self.reload_message, message)
-            GLib.idle_add(
-                self.show_message,
-                message_label,
-                False,
-                -1,
-                False,
-                False,
-                False,
-                "\n".join(prompts),
-            )
+        GLib.idle_add(
+            self.show_message,
+            message_label,
+            False,
+            -1,
+            False,
+            False,
+            False,
+            "\n".join(prompts),
+        )
+
+        # Clean up streaming_box after message is displayed
+        def cleanup_streaming_box():
+            try:
+                if self.model.stream_enabled() and hasattr(self, "streaming_box"):
+                    if self.streaming_box is not None:
+                        parent = self.streaming_box.get_parent()
+                        if parent is not None:
+                            self.streaming_box.unparent()
+            except (AttributeError, RuntimeError):
+                pass
+
+        GLib.idle_add(cleanup_streaming_box)
         GLib.idle_add(self.remove_send_button_spinner)
         # Generate chat name
         self.update_memory(message_label)
@@ -2394,8 +2414,17 @@ class MainWindow(Adw.ApplicationWindow):
             self.streaming_box.append(self.reading)
 
     def remove_reading_widget(self):
-        if hasattr(self, "reading"):
-            self.streaming_box.remove(self.reading)
+        try:
+            if hasattr(self, "reading") and hasattr(self, "streaming_box"):
+                # Check if streaming_box still exists and reading is a child of it
+                if self.streaming_box is not None and self.reading is not None:
+                    # Check if reading is still attached to streaming_box
+                    parent = self.reading.get_parent()
+                    if parent == self.streaming_box:
+                        self.streaming_box.remove(self.reading)
+        except (AttributeError, TypeError, RuntimeError):
+            # Widget may have been destroyed or unparented already
+            pass
 
     def create_streaming_message_label(self):
         """Create a label for message streaming"""
@@ -2430,7 +2459,12 @@ class MainWindow(Adw.ApplicationWindow):
         # Create the message label
         self.streaming_message_box.append(scrolled_window)
         self.streaming_box = self.add_message("Assistant", self.streaming_message_box)
-        self.messages_box.pop()
+        # Safely remove the last element from messages_box
+        try:
+            if hasattr(self, "messages_box") and len(self.messages_box) > 0:
+                self.messages_box.pop()
+        except (AttributeError, IndexError):
+            pass
         self.streaming_box.set_overflow(Gtk.Overflow.VISIBLE)
 
     def update_message(self, message, stream_number_variable, *args):
@@ -2442,6 +2476,11 @@ class MainWindow(Adw.ApplicationWindow):
         """
         if self.stream_number_variable != stream_number_variable:
             return
+        # Safety check: ensure streaming_box and streaming_label still exist and are valid
+        if not hasattr(self, "streaming_box") or self.streaming_box is None:
+            return
+        if not hasattr(self, "streaming_label") or self.streaming_label is None:
+            return
         self.streamed_message = message
         last_update_checked = False
         if self.streamed_message.startswith("<think>") and not self.stream_thinking:
@@ -2451,9 +2490,13 @@ class MainWindow(Adw.ApplicationWindow):
             message = text[1] if len(text) > 1 else ""
             self.streaming_thought = thinking
             def idle():
-                self.thinking_box = ThinkingWidget() 
-                self.streaming_message_box.prepend(self.thinking_box)
-                self.thinking_box.start_thinking(thinking)
+                try:
+                    if hasattr(self, "streaming_message_box") and self.streaming_message_box is not None:
+                        self.thinking_box = ThinkingWidget()
+                        self.streaming_message_box.prepend(self.thinking_box)
+                        self.thinking_box.start_thinking(thinking)
+                except (AttributeError, RuntimeError):
+                    pass
             GLib.idle_add(idle)
         elif self.stream_thinking:
 
@@ -2467,7 +2510,10 @@ class MainWindow(Adw.ApplicationWindow):
             message = text[1] if len(text) > 1 else ""
             added_thinking = thinking[len(self.streaming_thought) :]
             self.streaming_thought += added_thinking
-            self.thinking_box.append_thinking(added_thinking)
+            try:
+                self.thinking_box.append_thinking(added_thinking)
+            except (AttributeError, RuntimeError):
+                pass
         if self.streaming_label is not None:
             # Find the differences between the messages
             t = time.time()
@@ -2478,9 +2524,13 @@ class MainWindow(Adw.ApplicationWindow):
 
             # Edit the label on the main thread
             def idle_edit():
-                self.streaming_label.set_markup(
-                    simple_markdown_to_pango(self.curr_label)
-                )
+                try:
+                    if self.streaming_label is not None:
+                        self.streaming_label.set_markup(
+                            simple_markdown_to_pango(self.curr_label)
+                        )
+                except (AttributeError, RuntimeError):
+                    pass
 
             GLib.idle_add(idle_edit)
 
