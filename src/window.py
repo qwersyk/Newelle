@@ -66,6 +66,7 @@ class MainWindow(Adw.ApplicationWindow):
             max_sidebar_width=10000
         )
         # UI things
+        self.automatic_stt_status = False
         self.model_loading_spinner_button = None
         self.model_loading_spinner_separator = None
         self.model_loading_status = False
