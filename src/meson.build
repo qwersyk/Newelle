@@ -153,6 +153,7 @@ memory_sources = [
   'handlers/memory/memoripy_handler.py',
   'handlers/memory/summary_memoripy_handler.py',
   'handlers/memory/user_summary_handler.py',
+  'handlers/memory/llamaindex_memory_handler.py',
 ]
 
 rag_sources = [  

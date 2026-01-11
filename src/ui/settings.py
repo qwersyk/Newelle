@@ -14,7 +14,7 @@ from ..constants import AVAILABLE_EMBEDDINGS, AVAILABLE_LLMS, AVAILABLE_MEMORIES
 from ..utility.pip import install_module
 from .widgets import ComboRowHelper, CopyBox 
 from .widgets import MultilineEntry
-from ..utility.system import can_escape_sandbox, get_spawn_command, open_website, open_folder 
+from ..utility.system import can_escape_sandbox, get_spawn_command, open_website, open_folder, is_flatpak 
 
 from ..controller import NewelleController
 
@@ -340,52 +340,116 @@ class Settings(Adw.PreferencesWindow):
         # Get all tools
         tools = self.controller.tools.get_all_tools()
         
+        # Organize tools by group
+        groups = {}
+        orphans = []
         for tool in tools:
-            # Default values - use tool's default_on attribute
-            is_enabled = tool.default_on
-            custom_prompt = None
+            if hasattr(tool, "tools_group") and tool.tools_group:
+                if tool.tools_group not in groups:
+                    groups[tool.tools_group] = []
+                groups[tool.tools_group].append(tool)
+            else:
+                orphans.append(tool)
+        
+        # Create group rows
+        for group_name, group_tools in groups.items():
+            tool_count = len(group_tools)
+            group_row = Adw.ExpanderRow(
+                title=group_name,
+                subtitle=("{} tools").format(tool_count) if tool_count != 1 else _("1 tool")
+            )
+            # Add folder icon to distinguish groups from individual tools
+            group_icon = Gtk.Image(icon_name="folder-symbolic", css_classes=["dim-label"])
+            group_row.add_prefix(group_icon)
             
-            if tool.name in tools_settings:
-                if "enabled" in tools_settings[tool.name]:
-                    is_enabled = tools_settings[tool.name]["enabled"]
-                if "custom_prompt" in tools_settings[tool.name]:
-                    custom_prompt = tools_settings[tool.name]["custom_prompt"]
+            tool_switches = []
             
-            # Create row
-            row = Adw.ExpanderRow(title=tool.title, subtitle=tool.description)
-            
-            # Toggle
-            toggle = Gtk.Switch(valign=Gtk.Align.CENTER)
-            toggle.set_active(is_enabled)
-            toggle.connect("state-set", self.toggle_tool, tool.name)
-            row.add_suffix(toggle)
-            
-            # Generate default prompt for this tool
-            default_prompt_obj = {
-                "name": tool.name,
-                "description": tool.description,
-                "parameters": tool.schema
-            }
-            default_prompt = json.dumps(default_prompt_obj, indent=2)
-            
-            entry = MultilineEntry()
-            entry.set_text(custom_prompt if custom_prompt else default_prompt)
-            entry.tool_name = tool.name
-            entry.default_prompt = default_prompt
-            entry.set_on_change(self.update_tool_prompt)
+            # Add tools to group
+            for tool in group_tools:
+                row, toggle = self.create_tool_row(tool, tools_settings)
+                group_row.add_row(row)
+                tool_switches.append(toggle)
 
-            box = Gtk.Box(spacing=6)
-            box.append(entry)
+            # Check if all enabled to set group toggle state
+            all_enabled = all(t.get_active() for t in tool_switches)
             
-            # Star button to reset
-            reset_button = Gtk.Button(icon_name="star-filled-rounded-symbolic", css_classes=["flat"], valign=Gtk.Align.CENTER)
-            reset_button.connect("clicked", self.reset_tool_prompt, entry)
-            box.append(reset_button)
+            group_toggle = Gtk.Switch(valign=Gtk.Align.CENTER)
+            group_toggle.set_active(all_enabled)
+            group_toggle.connect("state-set", self.toggle_group, group_tools, tool_switches)
+            group_row.add_suffix(group_toggle)
             
-            row.add_row(box)
-            
-            self.tools_group.add(row)
-            self.tool_rows.append(row)
+            self.tools_group.add(group_row)
+            self.tool_rows.append(group_row)
+
+        # Add orphans
+        if orphans:
+            if groups:
+                # Add a separator to distinguish if there are groups
+                sep = Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL)
+                sep.set_margin_top(12)
+                sep.set_margin_bottom(12)
+                self.tools_group.add(sep)
+                self.tool_rows.append(sep)
+
+            for tool in orphans:
+                row, _ = self.create_tool_row(tool, tools_settings)
+                self.tools_group.add(row)
+                self.tool_rows.append(row)
+
+    def create_tool_row(self, tool, tools_settings):
+        # Default values - use tool's default_on attribute
+        is_enabled = tool.default_on
+        custom_prompt = None
+        
+        if tool.name in tools_settings:
+            if "enabled" in tools_settings[tool.name]:
+                is_enabled = tools_settings[tool.name]["enabled"]
+            if "custom_prompt" in tools_settings[tool.name]:
+                custom_prompt = tools_settings[tool.name]["custom_prompt"]
+        
+        # Create row
+        row = Adw.ExpanderRow(title=tool.title, subtitle=tool.description)
+        # Add tool icon to distinguish from groups
+        tool_icon = Gtk.Image(icon_name="tools-symbolic", css_classes=["dim-label"])
+        row.add_prefix(tool_icon)
+        
+        # Toggle
+        toggle = Gtk.Switch(valign=Gtk.Align.CENTER)
+        toggle.set_active(is_enabled)
+        toggle.connect("state-set", self.toggle_tool, tool.name)
+        row.add_suffix(toggle)
+        
+        # Generate default prompt for this tool
+        default_prompt_obj = {
+            "name": tool.name,
+            "description": tool.description,
+            "parameters": tool.schema
+        }
+        default_prompt = json.dumps(default_prompt_obj, indent=2)
+        
+        entry = MultilineEntry()
+        entry.set_text(custom_prompt if custom_prompt else default_prompt)
+        entry.tool_name = tool.name
+        entry.default_prompt = default_prompt
+        entry.set_on_change(self.update_tool_prompt)
+
+        box = Gtk.Box(spacing=6)
+        box.append(entry)
+        
+        # Star button to reset
+        reset_button = Gtk.Button(icon_name="star-filled-rounded-symbolic", css_classes=["flat"], valign=Gtk.Align.CENTER)
+        reset_button.connect("clicked", self.reset_tool_prompt, entry)
+        box.append(reset_button)
+        
+        row.add_row(box)
+        
+        return row, toggle
+
+    def toggle_group(self, switch, state, tools, tool_switches):
+        # Update UI first (this will trigger toggle_tool for each switch)
+        for s in tool_switches:
+            if s.get_active() != state:
+                s.set_active(state)
 
     def toggle_tool(self, switch, state, tool_name):
         tools_settings = self.controller.newelle_settings.tools_settings_dict
@@ -427,38 +491,291 @@ class Settings(Adw.PreferencesWindow):
         self.mcp_server_rows = []
         self.refresh_mcp_servers_list()
         
-        # Add server row
-        row = Adw.ActionRow(title=_("Add Server"), subtitle=_("Add a new MCP server URL"))
-        entry = Gtk.Entry(valign=Gtk.Align.CENTER, placeholder_text="http://localhost:8000/sse")
-        row.add_suffix(entry)
-        button = Gtk.Button(icon_name="list-add-symbolic", valign=Gtk.Align.CENTER)
-        button.add_css_class("suggested-action")
-        row.add_suffix(button)
+        # Add server form
+        add_row = Adw.ExpanderRow(title=_("Add Server"), subtitle=_("Add a new MCP server"), icon_name="list-add-symbolic")
+        
+        # Server type selector (only show stdio option if not in flatpak)
+        self.mcp_server_type = "http"
+        can_use_stdio = not is_flatpak()
+        
+        if can_use_stdio:
+            type_row = Adw.ActionRow(title=_("Server Type"), subtitle=_("HTTP or local command (stdio)"))
+            type_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6, valign=Gtk.Align.CENTER)
+            
+            self.mcp_type_http = Gtk.ToggleButton(label="HTTP", active=True)
+            self.mcp_type_http.add_css_class("flat")
+            self.mcp_type_stdio = Gtk.ToggleButton(label="Stdio", group=self.mcp_type_http)
+            self.mcp_type_stdio.add_css_class("flat")
+            
+            type_box.append(self.mcp_type_http)
+            type_box.append(self.mcp_type_stdio)
+            type_row.add_suffix(type_box)
+            add_row.add_row(type_row)
+        
+        # Title entry (optional) - common to both types
+        title_row = Adw.ActionRow(title=_("Title"), subtitle=_("Display name for the server"))
+        title_row.add_css_class("property")
+        self.mcp_title_entry = Gtk.Entry(valign=Gtk.Align.CENTER, placeholder_text=_("My MCP Server"), hexpand=True, width_chars=30)
+        title_row.add_suffix(self.mcp_title_entry)
+        add_row.add_row(title_row)
+        
+        # === HTTP-specific fields ===
+        self.mcp_http_rows = []
+        
+        # URL entry (required for HTTP)
+        url_row = Adw.ActionRow(title=_("URL"), subtitle=_("Server endpoint URL (required)"))
+        url_row.add_css_class("property")
+        self.mcp_url_entry = Gtk.Entry(valign=Gtk.Align.CENTER, placeholder_text="http://localhost:8000/mcp", hexpand=True, width_chars=30)
+        url_row.add_suffix(self.mcp_url_entry)
+        add_row.add_row(url_row)
+        self.mcp_http_rows.append(url_row)
+        
+        # Authentication section (nested expander for optional auth settings)
+        auth_row = Adw.ExpanderRow(title=_("Authentication"), subtitle=_("Optional authentication settings"), icon_name="dialog-password-symbolic")
+        
+        # Bearer token entry
+        token_row = Adw.ActionRow(title=_("Bearer Token"), subtitle=_("Authentication token"))
+        self.mcp_token_entry = Gtk.Entry(valign=Gtk.Align.CENTER, placeholder_text=_("Token"), visibility=False, hexpand=True, width_chars=25)
+        token_row.add_suffix(self.mcp_token_entry)
+        # Show/hide token button
+        show_token_btn = Gtk.Button(icon_name="view-reveal-symbolic", valign=Gtk.Align.CENTER, css_classes=["flat"], tooltip_text=_("Show/Hide token"))
+        show_token_btn.connect("clicked", lambda btn: self.mcp_token_entry.set_visibility(not self.mcp_token_entry.get_visibility()))
+        token_row.add_suffix(show_token_btn)
+        auth_row.add_row(token_row)
+        
+        # Client ID entry (optional)
+        client_id_row = Adw.ActionRow(title=_("Client ID"), subtitle=_("OAuth client identifier"))
+        self.mcp_client_id_entry = Gtk.Entry(valign=Gtk.Align.CENTER, placeholder_text=_("client-id"), hexpand=True, width_chars=25)
+        client_id_row.add_suffix(self.mcp_client_id_entry)
+        auth_row.add_row(client_id_row)
+        
+        add_row.add_row(auth_row)
+        self.mcp_http_rows.append(auth_row)
+        
+        # Advanced section (nested expander for headers)
+        advanced_row = Adw.ExpanderRow(title=_("Advanced"), subtitle=_("Custom headers and advanced settings"), icon_name="preferences-other-symbolic")
+        
+        # Custom headers (optional) - text view for JSON
+        headers_row = Adw.ActionRow(title=_("Custom Headers"), subtitle=_("JSON format, e.g. {\"X-Api-Key\": \"value\"}"))
+        headers_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6, margin_top=6, margin_bottom=6)
+        
+        # ScrolledWindow for text view
+        headers_scroll = Gtk.ScrolledWindow(vexpand=False, hexpand=True, min_content_height=60, max_content_height=100)
+        headers_scroll.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
+        
+        self.mcp_headers_text = Gtk.TextView(wrap_mode=Gtk.WrapMode.WORD_CHAR, monospace=True)
+        self.mcp_headers_text.set_size_request(250, 60)
+        self.mcp_headers_text.get_buffer().set_text("{}")
+        headers_scroll.set_child(self.mcp_headers_text)
+        headers_box.append(headers_scroll)
+        
+        headers_row.add_suffix(headers_box)
+        advanced_row.add_row(headers_row)
+        
+        add_row.add_row(advanced_row)
+        self.mcp_http_rows.append(advanced_row)
+        
+        # === Stdio-specific fields ===
+        self.mcp_stdio_rows = []
+        
+        # Command entry (required for stdio)
+        cmd_row = Adw.ActionRow(title=_("Command"), subtitle=_("Executable path or command name"))
+        cmd_row.add_css_class("property")
+        self.mcp_command_entry = Gtk.Entry(valign=Gtk.Align.CENTER, placeholder_text="npx", hexpand=True, width_chars=30)
+        cmd_row.add_suffix(self.mcp_command_entry)
+        add_row.add_row(cmd_row)
+        self.mcp_stdio_rows.append(cmd_row)
+        cmd_row.set_visible(False)
+        
+        # Arguments entry (optional for stdio)
+        args_row = Adw.ActionRow(title=_("Arguments"), subtitle=_("Space-separated command arguments"))
+        args_row.add_css_class("property")
+        self.mcp_args_entry = Gtk.Entry(valign=Gtk.Align.CENTER, placeholder_text="-y @modelcontextprotocol/server-filesystem /path", hexpand=True, width_chars=30)
+        args_row.add_suffix(self.mcp_args_entry)
+        add_row.add_row(args_row)
+        self.mcp_stdio_rows.append(args_row)
+        args_row.set_visible(False)
+        
+        # Environment variables (optional for stdio)
+        env_row = Adw.ExpanderRow(title=_("Environment Variables"), subtitle=_("Optional environment variables"), icon_name="utilities-terminal-symbolic")
+        env_row.set_visible(False)
+        
+        env_inner_row = Adw.ActionRow(title=_("Variables"), subtitle=_("JSON format, e.g. {\"API_KEY\": \"value\"}"))
+        env_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6, margin_top=6, margin_bottom=6)
+        
+        env_scroll = Gtk.ScrolledWindow(vexpand=False, hexpand=True, min_content_height=60, max_content_height=100)
+        env_scroll.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
+        
+        self.mcp_env_text = Gtk.TextView(wrap_mode=Gtk.WrapMode.WORD_CHAR, monospace=True)
+        self.mcp_env_text.set_size_request(250, 60)
+        self.mcp_env_text.get_buffer().set_text("{}")
+        env_scroll.set_child(self.mcp_env_text)
+        env_box.append(env_scroll)
+        
+        env_inner_row.add_suffix(env_box)
+        env_row.add_row(env_inner_row)
+        
+        add_row.add_row(env_row)
+        self.mcp_stdio_rows.append(env_row)
+        
+        # Toggle visibility based on server type
+        if can_use_stdio:
+            def on_type_changed(btn):
+                is_stdio = self.mcp_type_stdio.get_active()
+                self.mcp_server_type = "stdio" if is_stdio else "http"
+                for row in self.mcp_http_rows:
+                    row.set_visible(not is_stdio)
+                for row in self.mcp_stdio_rows:
+                    row.set_visible(is_stdio)
+            
+            self.mcp_type_http.connect("toggled", on_type_changed)
+            self.mcp_type_stdio.connect("toggled", on_type_changed)
+        
+        # Add button row with spinner
+        add_btn_row = Adw.ActionRow()
+        add_btn_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12, halign=Gtk.Align.END, margin_top=6, margin_bottom=6)
+        
+        self.mcp_add_spinner = Gtk.Spinner()
+        add_btn_box.append(self.mcp_add_spinner)
+        
+        self.mcp_add_button = Gtk.Button(label=_("Add Server"), valign=Gtk.Align.CENTER)
+        self.mcp_add_button.add_css_class("suggested-action")
+        self.mcp_add_button.add_css_class("pill")
+        add_btn_box.append(self.mcp_add_button)
+        
+        add_btn_row.add_suffix(add_btn_box)
+        add_row.add_row(add_btn_row)
         
         def add_server(btn):
-            url = entry.get_text()
-            if not url:
-                return
+            title = self.mcp_title_entry.get_text().strip() or None
             
-            button.set_sensitive(False)
-            entry.set_sensitive(False)
-            
-            def add_thread():
-                mcp_handler = self.controller.get_mcp_integration()
-                added = mcp_handler.add_mcp_server(url)
-                self.settings.set_string("mcp-servers", json.dumps(mcp_handler.mcp_servers))
-                if not added:
-                    GLib.idle_add(self.app.win.show_error_dialog, _("Error"), _("Failed to add MCP server"))
+            if self.mcp_server_type == "stdio":
+                command = self.mcp_command_entry.get_text().strip()
+                if not command:
+                    self.app.win.show_error_dialog(_("Error"), _("Command is required for stdio servers"))
                     return
-                GLib.idle_add(self.refresh_mcp_servers_list)
-                GLib.idle_add(self.refresh_tools_list)
-                GLib.idle_add(button.set_sensitive, True)
-                GLib.idle_add(entry.set_sensitive, True)
-                GLib.idle_add(entry.set_text, "")
-            t = threading.Thread(target=add_thread)
-            t.start()
-        button.connect("clicked", add_server)
-        self.mcp_group.add(row)
+                
+                args_text = self.mcp_args_entry.get_text().strip()
+                args = args_text.split() if args_text else []
+                
+                # Parse environment variables
+                env_buffer = self.mcp_env_text.get_buffer()
+                env_text = env_buffer.get_text(env_buffer.get_start_iter(), env_buffer.get_end_iter(), False).strip()
+                env = None
+                if env_text and env_text != "{}":
+                    try:
+                        env = json.loads(env_text)
+                        if not isinstance(env, dict):
+                            self.app.win.show_error_dialog(_("Error"), _("Environment variables must be a JSON object"))
+                            return
+                    except json.JSONDecodeError as e:
+                        self.app.win.show_error_dialog(_("Error"), _("Invalid JSON in environment variables: ") + str(e))
+                        return
+                
+                self._disable_mcp_form()
+                
+                def add_thread():
+                    mcp_handler = self.controller.get_mcp_integration()
+                    added = mcp_handler.add_mcp_server(
+                        title=title,
+                        server_type="stdio",
+                        command=command,
+                        args=args,
+                        env=env
+                    )
+                    self.settings.set_string("mcp-servers", json.dumps(mcp_handler.mcp_servers))
+                    if not added:
+                        GLib.idle_add(self.app.win.show_error_dialog, _("Error"), _("Failed to add MCP server"))
+                    GLib.idle_add(self.refresh_mcp_servers_list)
+                    GLib.idle_add(self.refresh_tools_list)
+                    GLib.idle_add(self._enable_mcp_form)
+                    GLib.idle_add(self._clear_mcp_form)
+                t = threading.Thread(target=add_thread)
+                t.start()
+            else:
+                url = self.mcp_url_entry.get_text().strip()
+                if not url:
+                    self.app.win.show_error_dialog(_("Error"), _("URL is required for HTTP servers"))
+                    return
+                
+                bearer_token = self.mcp_token_entry.get_text().strip() or None
+                client_id = self.mcp_client_id_entry.get_text().strip() or None
+                
+                # Parse custom headers
+                headers_buffer = self.mcp_headers_text.get_buffer()
+                headers_text = headers_buffer.get_text(headers_buffer.get_start_iter(), headers_buffer.get_end_iter(), False).strip()
+                custom_headers = None
+                if headers_text and headers_text != "{}":
+                    try:
+                        custom_headers = json.loads(headers_text)
+                        if not isinstance(custom_headers, dict):
+                            self.app.win.show_error_dialog(_("Error"), _("Custom headers must be a JSON object"))
+                            return
+                    except json.JSONDecodeError as e:
+                        self.app.win.show_error_dialog(_("Error"), _("Invalid JSON in custom headers: ") + str(e))
+                        return
+                
+                self._disable_mcp_form()
+                
+                def add_thread():
+                    mcp_handler = self.controller.get_mcp_integration()
+                    added = mcp_handler.add_mcp_server(
+                        url=url, 
+                        title=title, 
+                        bearer_token=bearer_token, 
+                        client_id=client_id, 
+                        custom_headers=custom_headers,
+                        server_type="http"
+                    )
+                    self.settings.set_string("mcp-servers", json.dumps(mcp_handler.mcp_servers))
+                    if not added:
+                        GLib.idle_add(self.app.win.show_error_dialog, _("Error"), _("Failed to add MCP server"))
+                    GLib.idle_add(self.refresh_mcp_servers_list)
+                    GLib.idle_add(self.refresh_tools_list)
+                    GLib.idle_add(self._enable_mcp_form)
+                    GLib.idle_add(self._clear_mcp_form)
+                t = threading.Thread(target=add_thread)
+                t.start()
+        
+        self.mcp_add_button.connect("clicked", add_server)
+        self.mcp_group.add(add_row)
+    
+    def _disable_mcp_form(self):
+        """Disable all MCP form fields"""
+        self.mcp_add_button.set_sensitive(False)
+        self.mcp_add_spinner.start()
+        self.mcp_url_entry.set_sensitive(False)
+        self.mcp_title_entry.set_sensitive(False)
+        self.mcp_token_entry.set_sensitive(False)
+        self.mcp_client_id_entry.set_sensitive(False)
+        self.mcp_headers_text.set_sensitive(False)
+        self.mcp_command_entry.set_sensitive(False)
+        self.mcp_args_entry.set_sensitive(False)
+        self.mcp_env_text.set_sensitive(False)
+    
+    def _enable_mcp_form(self):
+        """Enable all MCP form fields"""
+        self.mcp_add_button.set_sensitive(True)
+        self.mcp_add_spinner.stop()
+        self.mcp_url_entry.set_sensitive(True)
+        self.mcp_title_entry.set_sensitive(True)
+        self.mcp_token_entry.set_sensitive(True)
+        self.mcp_client_id_entry.set_sensitive(True)
+        self.mcp_headers_text.set_sensitive(True)
+        self.mcp_command_entry.set_sensitive(True)
+        self.mcp_args_entry.set_sensitive(True)
+        self.mcp_env_text.set_sensitive(True)
+    
+    def _clear_mcp_form(self):
+        """Clear all MCP form fields"""
+        self.mcp_url_entry.set_text("")
+        self.mcp_title_entry.set_text("")
+        self.mcp_token_entry.set_text("")
+        self.mcp_client_id_entry.set_text("")
+        self.mcp_headers_text.get_buffer().set_text("{}")
+        self.mcp_command_entry.set_text("")
+        self.mcp_args_entry.set_text("")
+        self.mcp_env_text.get_buffer().set_text("{}")
 
     def refresh_mcp_servers_list(self):
         for row in self.mcp_server_rows:
@@ -467,22 +784,49 @@ class Settings(Adw.PreferencesWindow):
 
         servers = json.loads(self.settings.get_string("mcp-servers"))
         self.controller.newelle_settings.mcp_servers_dict = servers
-        for url in servers:
-            row = Adw.ActionRow(title=url[:30])
+        for server in servers:
+            # Handle old format (string URL), HTTP, and stdio servers
+            if isinstance(server, str):
+                identifier = server
+                title = server[:30]
+                subtitle = None
+                server_type = "http"
+            else:
+                server_type = server.get("type", "http")
+                if server_type == "stdio":
+                    command = server.get("command", "")
+                    args = server.get("args", [])
+                    identifier = f"stdio:{command}:{':'.join(args)}"
+                    title = server.get("title") or command
+                    subtitle = f"stdio: {command} {' '.join(args)}"[:50]
+                else:
+                    identifier = server.get("url", "")
+                    title = server.get("title") or identifier[:30]
+                    subtitle = identifier if title != identifier[:30] else None
+            
+            # Add type badge
+            row = Adw.ActionRow(title=title, subtitle=subtitle)
+            
+            # Type indicator
+            type_label = Gtk.Label(label=server_type.upper(), valign=Gtk.Align.CENTER)
+            type_label.add_css_class("dim-label")
+            type_label.add_css_class("caption")
+            row.add_suffix(type_label)
+            
             delete_btn = Gtk.Button(icon_name="user-trash-symbolic", valign=Gtk.Align.CENTER)
             delete_btn.add_css_class("destructive-action")
-            delete_btn.connect("clicked", self.remove_mcp_server, url)
+            delete_btn.connect("clicked", self.remove_mcp_server, server, identifier)
             row.add_suffix(delete_btn)
             self.servers_list_group.add_row(row)
             self.mcp_server_rows.append(row)
 
-    def remove_mcp_server(self, btn, url):
+    def remove_mcp_server(self, btn, server, identifier):
         servers = self.controller.newelle_settings.mcp_servers_dict
-        servers.remove(url)
+        servers.remove(server)
         self.settings.set_string("mcp-servers", json.dumps(servers))
         self.controller.newelle_settings.mcp_servers_dict = servers
         mcp_handler = self.controller.get_mcp_integration()
-        mcp_handler.remove_mcp_server(url)
+        mcp_handler.remove_mcp_server(identifier)
         self.refresh_mcp_servers_list()
         self.refresh_tools_list()
 
