@@ -4,6 +4,9 @@ class ToolWidget(Gtk.ListBox):
     def __init__(self, tool_name, chunk_text=""):
         super().__init__()
         self.add_css_class("boxed-list")
+        self.set_margin_top(10)
+        self.set_margin_bottom(10)
+        self.set_margin_end(10)
         self.expander_row = Adw.ExpanderRow(
             title=tool_name,
             subtitle="Running...",
