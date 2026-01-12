@@ -2332,6 +2332,10 @@ class MainWindow(Adw.ApplicationWindow):
                     pass
             else:
                 message_label = self.send_message_to_bot(self.chat[-1]["Message"])
+            
+            if self.stream_number_variable != stream_number_variable:
+                return
+
             self.last_generation_time = time.time() - t1
             
             input_tokens = 0
@@ -2381,61 +2385,61 @@ class MainWindow(Adw.ApplicationWindow):
             else:
                 for message in edited_messages:
                     GLib.idle_add(self.reload_message, message)
-        GLib.idle_add(
-            self.show_message,
-            message_label,
-            False,
-            -1,
-            False,
-            False,
-            False,
-            "\n".join(prompts),
-        )
+            GLib.idle_add(
+                self.show_message,
+                message_label,
+                False,
+                -1,
+                False,
+                False,
+                False,
+                "\n".join(prompts),
+            )
 
-        # Clean up streaming_box after message is displayed
-        def cleanup_streaming_box():
-            try:
-                if self.model.stream_enabled() and hasattr(self, "streaming_box"):
-                    if self.streaming_box is not None:
-                        parent = self.streaming_box.get_parent()
-                        if parent is not None:
-                            self.streaming_box.unparent()
-            except (AttributeError, RuntimeError):
-                pass
+            # Clean up streaming_box after message is displayed
+            def cleanup_streaming_box():
+                try:
+                    if self.model.stream_enabled() and hasattr(self, "streaming_box"):
+                        if self.streaming_box is not None:
+                            parent = self.streaming_box.get_parent()
+                            if parent is not None:
+                                self.streaming_box.unparent()
+                except (AttributeError, RuntimeError):
+                    pass
 
-        GLib.idle_add(cleanup_streaming_box)
-        GLib.idle_add(self.remove_send_button_spinner)
-        # Generate chat name
-        self.update_memory(message_label)
-        if self.controller.newelle_settings.auto_generate_name and len(self.chat) == 1:
-            GLib.idle_add(self.generate_chat_name, Gtk.Button(name=str(self.chat_id)))
-        # TTS
-        tts_thread = None
-        if self.tts_enabled:
-            message_label = convert_think_codeblocks(message_label)
-            message = re.sub(r"```.*?```", "", message_label, flags=re.DOTALL)
-            message = remove_markdown(message)
-            message = remove_emoji(message)
-            if not (
-                not message.strip()
-                or message.isspace()
-                or all(char == "\n" for char in message)
-            ):
-                tts_thread = threading.Thread(
-                    target=self.tts.play_audio, args=(message,)
-                )
-                tts_thread.start()
+            GLib.idle_add(cleanup_streaming_box)
+            GLib.idle_add(self.remove_send_button_spinner)
+            # Generate chat name
+            self.update_memory(message_label)
+            if self.controller.newelle_settings.auto_generate_name and len(self.chat) == 1:
+                GLib.idle_add(self.generate_chat_name, Gtk.Button(name=str(self.chat_id)))
+            # TTS
+            tts_thread = None
+            if self.tts_enabled:
+                message_label = convert_think_codeblocks(message_label)
+                message = re.sub(r"```.*?```", "", message_label, flags=re.DOTALL)
+                message = remove_markdown(message)
+                message = remove_emoji(message)
+                if not (
+                    not message.strip()
+                    or message.isspace()
+                    or all(char == "\n" for char in message)
+                ):
+                    tts_thread = threading.Thread(
+                        target=self.tts.play_audio, args=(message,)
+                    )
+                    tts_thread.start()
 
-        # Wait for tts to finish to restart recording
-        def restart_recording():
-            if not self.automatic_stt_status:
-                return
-            if tts_thread is not None:
-                tts_thread.join()
-            GLib.idle_add(self.start_recording, self.recording_button)
+            # Wait for tts to finish to restart recording
+            def restart_recording():
+                if not self.automatic_stt_status:
+                    return
+                if tts_thread is not None:
+                    tts_thread.join()
+                GLib.idle_add(self.start_recording, self.recording_button)
 
-        if self.controller.newelle_settings.automatic_stt:
-            threading.Thread(target=restart_recording).start()
+            if self.controller.newelle_settings.automatic_stt:
+                threading.Thread(target=restart_recording).start()
 
     def add_reading_widget(self, documents):
         d = [document.replace("file:", "") for document in documents if document.startswith("file:")]
