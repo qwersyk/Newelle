@@ -126,6 +126,15 @@ class MyApp(Adw.Application):
         action = Gio.SimpleAction.new("extension", None)
         action.connect('activate', self.extension_action)
         self.add_action(action)
+        action = Gio.SimpleAction.new("export_current_chat", None)
+        action.connect('activate', self.export_current_chat_action)
+        self.add_action(action)
+        action = Gio.SimpleAction.new("export_all_chats", None)
+        action.connect('activate', self.export_all_chats_action)
+        self.add_action(action)
+        action = Gio.SimpleAction.new("import_chats", None)
+        action.connect('activate', self.import_chats_action)
+        self.add_action(action)
     
     def create_action(self, name, callback, shortcuts=None):
         action = Gio.SimpleAction.new(name, None)
@@ -187,6 +196,21 @@ class MyApp(Adw.Application):
             return True
         extension.connect("close-request", close) 
         extension.present()
+    
+    def export_current_chat_action(self, *a):
+        """Export the current chat"""
+        if hasattr(self, "win"):
+            self.win.export_chat(export_all=False)
+    
+    def export_all_chats_action(self, *a):
+        """Export all chats"""
+        if hasattr(self, "win"):
+            self.win.export_chat(export_all=True)
+    
+    def import_chats_action(self, *a):
+        """Import chats from a file"""
+        if hasattr(self, "win"):
+            self.win.import_chat(None)
     
     def stdout_monitor_action(self, *a):
         """Show the stdout monitor dialog"""

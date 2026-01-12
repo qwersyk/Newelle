@@ -12,6 +12,7 @@ import copy
 import uuid 
 import inspect 
 import gettext
+import datetime
 from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject, GLib, GdkPixbuf
 
 from .ui.settings import Settings
@@ -134,6 +135,18 @@ class MainWindow(Adw.ApplicationWindow):
         menu.append(_("Extensions"), "app.extension")
         menu.append(_("Settings"), "app.settings")
         menu.append(_("Keyboard shorcuts"), "app.shortcuts")
+        
+        # Add export/import section as a submenu
+        export_import_menu = Gio.Menu()
+        export_current = Gio.MenuItem.new(_("Export current chat"), "app.export_current_chat")
+        export_all = Gio.MenuItem.new(_("Export all chats"), "app.export_all_chats")
+        import_chats = Gio.MenuItem.new(_("Import chats"), "app.import_chats")
+        export_import_menu.append_item(export_current)
+        export_import_menu.append_item(export_all)
+        export_import_menu.append_item(import_chats)
+        
+        menu.append_submenu(_("Export/Import"), export_import_menu)
+        
         menu.append(_("About"), "app.about")
         menu_button.set_menu_model(menu)
         
@@ -4371,6 +4384,120 @@ class MainWindow(Adw.ApplicationWindow):
                 target=self.generate_chat_name, args=[button, True]
             ).start()
 
+    def export_chat(self, export_all=False):
+        """Export chat(s) to a JSON file
+
+        Args:
+            export_all: If True, export all chats; if False, export only current chat
+        """
+        # Get export data
+        if export_all:
+            export_data = self.controller.export_all_chats()
+            default_filename = f"newelle_chats_export_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+        else:
+            export_data = self.controller.export_single_chat(self.chat_id)
+            if export_data is None:
+                self.notification_block.add_toast(
+                    Adw.Toast(title=_("Failed to export chat"), timeout=2)
+                )
+                return
+            default_filename = f"newelle_chat_{self.chat_id}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+
+        # Save to file
+        dialog = Gtk.FileDialog(
+            title=_("Export Chat"),
+            modal=True
+        )
+        dialog.set_initial_name(default_filename)
+
+        dialog.save(self, None, self._export_chat_finish, export_data)
+
+    def _export_chat_finish(self, dialog, result, export_data):
+        """Finish the export operation after file selection
+
+        Args:
+            dialog: The file dialog
+            result: The async result
+            export_data: The export data to save
+        """
+        try:
+            file = dialog.save_finish(result)
+        except Exception as e:
+            print(f"Export failed: {e}")
+            return
+
+        if file is None:
+            return
+
+        file_path = file.get_path()
+        try:
+            with open(file_path, 'w', encoding='utf-8') as f:
+                json.dump(export_data, f, indent=2, ensure_ascii=False)
+            self.notification_block.add_toast(
+                Adw.Toast(title=_("Chat exported successfully"), timeout=2)
+            )
+        except Exception as e:
+            self.notification_block.add_toast(
+                Adw.Toast(title=_("Export failed: {0}").format(str(e)), timeout=2)
+            )
+
+    def import_chat(self, button):
+        """Import chat(s) from a JSON file"""
+        dialog = Gtk.FileDialog(
+            title=_("Import Chat"),
+            modal=True
+        )
+
+        dialog.open(self, None, self._import_chat_finish)
+
+    def _import_chat_finish(self, dialog, result):
+        """Finish the import operation after file selection
+
+        Args:
+            dialog: The file dialog
+            result: The async result
+        """
+        try:
+            file = dialog.open_finish(result)
+        except Exception as e:
+            print(f"Import failed: {e}")
+            return
+
+        if file is None:
+            return
+
+        file_path = file.get_path()
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+
+            # Import the chat(s)
+            success, message, count = self.controller.import_chat(data)
+
+            if success:
+                self.notification_block.add_toast(
+                    Adw.Toast(title=message, timeout=3)
+                )
+                # Update the UI to show imported chats
+                self.update_history()
+                # Switch to the first imported chat if we imported at least one
+                if count > 0:
+                    self.chat_id = len(self.chats) - count
+                    self.chat = self.chats[self.chat_id]["chat"]
+                    self.show_chat()
+            else:
+                self.notification_block.add_toast(
+                    Adw.Toast(title=message, timeout=3)
+                )
+        except json.JSONDecodeError:
+            self.notification_block.add_toast(
+                Adw.Toast(title=_("Invalid JSON file"), timeout=2)
+            )
+        except Exception as e:
+            self.notification_block.add_toast(
+                Adw.Toast(title=_("Import failed: {0}").format(str(e)), timeout=2)
+            )
+
     def _init_stdout_monitoring(self):
         """Initialize stdout monitoring from program start""" 
         # Create the dialog but don't show it yet
@@ -4406,5 +4533,3 @@ class MainWindow(Adw.ApplicationWindow):
                 
             # Start the display update timer for the dialog
             GLib.timeout_add(100, self.stdout_monitor_dialog._update_stdout_display)
-
-
