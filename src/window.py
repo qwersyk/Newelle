@@ -12,6 +12,7 @@ import copy
 import uuid 
 import inspect 
 import gettext
+import datetime
 from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject, GLib, GdkPixbuf
 
 from .ui.settings import Settings
@@ -134,6 +135,18 @@ class MainWindow(Adw.ApplicationWindow):
         menu.append(_("Extensions"), "app.extension")
         menu.append(_("Settings"), "app.settings")
         menu.append(_("Keyboard shorcuts"), "app.shortcuts")
+        
+        # Add export/import section as a submenu
+        export_import_menu = Gio.Menu()
+        export_current = Gio.MenuItem.new(_("Export current chat"), "app.export_current_chat")
+        export_all = Gio.MenuItem.new(_("Export all chats"), "app.export_all_chats")
+        import_chats = Gio.MenuItem.new(_("Import chats"), "app.import_chats")
+        export_import_menu.append_item(export_current)
+        export_import_menu.append_item(export_all)
+        export_import_menu.append_item(import_chats)
+        
+        menu.append_submenu(_("Export/Import"), export_import_menu)
+        
         menu.append(_("About"), "app.about")
         menu_button.set_menu_model(menu)
         
@@ -1987,7 +2000,7 @@ class MainWindow(Adw.ApplicationWindow):
         self.chats[self.chat_id]["chat"] = self.chat
         self.show_chat()
         self.stream_number_variable += 1
-        threading.Thread(target=self.update_button_text).start()
+        GLib.idle_add(self.update_button_text)
 
     def stop_chat(self, button=None):
         """Stop generating the message"""
@@ -2285,7 +2298,12 @@ class MainWindow(Adw.ApplicationWindow):
         history = self.get_history()
         edited_messages = get_edited_messages(history, old_history)
         if edited_messages is None:
-            GLib.idle_add(self.show_chat)
+            # Messages were added or removed - only reload if removed or if chat UI needs rebuilding
+            # If messages were added, they'll be displayed via show_message, so no need to reload
+            if len(history) < len(old_history):
+                # Messages were removed, need to reload
+                GLib.idle_add(self.show_chat)
+            # If messages were added (len increased), don't reload - they'll be added via show_message
         else:
             for message in edited_messages:
                 GLib.idle_add(self.reload_message, message)
@@ -2314,6 +2332,10 @@ class MainWindow(Adw.ApplicationWindow):
                     pass
             else:
                 message_label = self.send_message_to_bot(self.chat[-1]["Message"])
+            
+            if self.stream_number_variable != stream_number_variable:
+                return
+
             self.last_generation_time = time.time() - t1
             
             input_tokens = 0
@@ -2354,65 +2376,70 @@ class MainWindow(Adw.ApplicationWindow):
             # Edit messages that require to be updated
             edited_messages = get_edited_messages(history, old_history)
             if edited_messages is None:
-                GLib.idle_add(self.show_chat)
+                # Messages were added or removed - only reload if removed or if chat UI needs rebuilding
+                # If messages were added, they'll be displayed via show_message, so no need to reload
+                if len(history) < len(old_history):
+                    # Messages were removed, need to reload
+                    GLib.idle_add(self.show_chat)
+                # If messages were added (len increased), don't reload - they'll be added via show_message
             else:
                 for message in edited_messages:
                     GLib.idle_add(self.reload_message, message)
-        GLib.idle_add(
-            self.show_message,
-            message_label,
-            False,
-            -1,
-            False,
-            False,
-            False,
-            "\n".join(prompts),
-        )
+            GLib.idle_add(
+                self.show_message,
+                message_label,
+                False,
+                -1,
+                False,
+                False,
+                False,
+                "\n".join(prompts),
+            )
 
-        # Clean up streaming_box after message is displayed
-        def cleanup_streaming_box():
-            try:
-                if self.model.stream_enabled() and hasattr(self, "streaming_box"):
-                    if self.streaming_box is not None:
-                        parent = self.streaming_box.get_parent()
-                        if parent is not None:
-                            self.streaming_box.unparent()
-            except (AttributeError, RuntimeError):
-                pass
+            # Clean up streaming_box after message is displayed
+            def cleanup_streaming_box():
+                try:
+                    if self.model.stream_enabled() and hasattr(self, "streaming_box"):
+                        if self.streaming_box is not None:
+                            parent = self.streaming_box.get_parent()
+                            if parent is not None:
+                                self.streaming_box.unparent()
+                except (AttributeError, RuntimeError):
+                    pass
 
-        GLib.idle_add(cleanup_streaming_box)
-        GLib.idle_add(self.remove_send_button_spinner)
-        # Generate chat name
-        self.update_memory(message_label)
-        if self.controller.newelle_settings.auto_generate_name and len(self.chat) == 1:
-            GLib.idle_add(self.generate_chat_name, Gtk.Button(name=str(self.chat_id)))
-        # TTS
-        tts_thread = None
-        if self.tts_enabled:
-            message_label = convert_think_codeblocks(message_label)
-            message = re.sub(r"```.*?```", "", message_label, flags=re.DOTALL)
-            message = remove_markdown(message)
-            message = remove_emoji(message)
-            if not (
-                not message.strip()
-                or message.isspace()
-                or all(char == "\n" for char in message)
-            ):
-                tts_thread = threading.Thread(
-                    target=self.tts.play_audio, args=(message,)
-                )
-                tts_thread.start()
+            GLib.idle_add(cleanup_streaming_box)
+            GLib.idle_add(self.remove_send_button_spinner)
+            # Generate chat name
+            self.update_memory(message_label)
+            if self.controller.newelle_settings.auto_generate_name and len(self.chat) == 1:
+                GLib.idle_add(self.generate_chat_name, Gtk.Button(name=str(self.chat_id)))
+            # TTS
+            tts_thread = None
+            if self.tts_enabled:
+                message_label = convert_think_codeblocks(message_label)
+                message = re.sub(r"```.*?```", "", message_label, flags=re.DOTALL)
+                message = remove_markdown(message)
+                message = remove_emoji(message)
+                if not (
+                    not message.strip()
+                    or message.isspace()
+                    or all(char == "\n" for char in message)
+                ):
+                    tts_thread = threading.Thread(
+                        target=self.tts.play_audio, args=(message,)
+                    )
+                    tts_thread.start()
 
-        # Wait for tts to finish to restart recording
-        def restart_recording():
-            if not self.automatic_stt_status:
-                return
-            if tts_thread is not None:
-                tts_thread.join()
-            GLib.idle_add(self.start_recording, self.recording_button)
+            # Wait for tts to finish to restart recording
+            def restart_recording():
+                if not self.automatic_stt_status:
+                    return
+                if tts_thread is not None:
+                    tts_thread.join()
+                GLib.idle_add(self.start_recording, self.recording_button)
 
-        if self.controller.newelle_settings.automatic_stt:
-            threading.Thread(target=restart_recording).start()
+            if self.controller.newelle_settings.automatic_stt:
+                threading.Thread(target=restart_recording).start()
 
     def add_reading_widget(self, documents):
         d = [document.replace("file:", "") for document in documents if document.startswith("file:")]
@@ -2548,8 +2575,8 @@ class MainWindow(Adw.ApplicationWindow):
     def show_chat(self, animate=False):
         """Show a chat"""
         self.last_error_box = None
-        self.messages_box = [] 
         if not self.check_streams["chat"]:
+            self.messages_box = []
             self.check_streams["chat"] = True
             try:
                 if not animate:
@@ -2960,6 +2987,7 @@ class MainWindow(Adw.ApplicationWindow):
             "has_terminal_command": False,
             "running_threads": [],
             "tool_call_counter": 0,  # Counter for multiple tool calls in same message
+            "should_continue": False,
         }
 
         # Process each chunk
@@ -3132,11 +3160,17 @@ class MainWindow(Adw.ApplicationWindow):
         def get_response():
             if not is_restore:
                 response = ext.get_answer(val, lng)
-                code = (True, response) if response is not None else (False, "Error:")
+                if response is None:
+                    code = (False, _("Stopped"))
+                else:
+                    state["should_continue"] = True
+                    code = (True, response)
+                    self.chat.append({"User": "Console", "Message": " " + str(code[1])})
             else:
                 code = (True, console_reply)
-            self.chat.append({"User": "Console", "Message": " " + str(code[1])})
-            GLib.idle_add(on_result, code)
+            
+            if not is_restore or code[1] is not None:
+                GLib.idle_add(on_result, code)
 
         t = threading.Thread(target=get_response)
         t.start()
@@ -3339,16 +3373,21 @@ class MainWindow(Adw.ApplicationWindow):
             def get_response():
                 if not is_restore:
                     response = tool_result.get_output()
-                    code = (True, response) if response is not None else (False, "Error:")
-                    # Store tool response with identifiable format directly in message
-                    formatted_response = f"[Tool: {t_name}, ID: {t_uuid}]\n{code[1]}"
-                    self.chat.append({
-                        "User": "Console",
-                        "Message": formatted_response,
-                    })
+                    if response is None:
+                        code = (True, None)
+                    else:
+                        state["should_continue"] = True
+                        code = (True, response)
+                        # Store tool response with identifiable format directly in message
+                        formatted_response = f"[Tool: {t_name}, ID: {t_uuid}]\n{code[1]}"
+                        self.chat.append({
+                            "User": "Console",
+                            "Message": formatted_response,
+                        })
                 else:
                     code = (True, console_reply)
-                GLib.idle_add(callback, code)
+                if not is_restore or code[1] is not None:
+                    GLib.idle_add(callback, code)
 
             t = threading.Thread(target=get_response)
             # Restore expects all tools to return things instantly and do not take any action, so we run them in parallel
@@ -3493,6 +3532,15 @@ class MainWindow(Adw.ApplicationWindow):
 
         self.add_message(user_type, box, state["original_id"], state["editable"])
 
+        # Update lazy_loaded_end when a message is displayed beyond the current range
+        # This handles both new messages (restore=False) and user messages (restore=True but already in chat)
+        if self.lazy_load_enabled:
+            message_index = state["original_id"]
+            # If message is beyond current lazy-loaded range, update the range
+            # This prevents duplicates when show_chat reloads messages
+            if message_index >= self.lazy_loaded_end:
+                self.lazy_loaded_end = message_index + 1
+
         if not state["has_terminal_command"]:
             if not restore:
                 self._finalize_message_display()
@@ -3511,8 +3559,10 @@ class MainWindow(Adw.ApplicationWindow):
                     else:
                         for t in threads:
                             t.join()
-                    if threads:
+                    if threads and state.get("should_continue", False):
                         self.send_message(manual=False)
+                    else:
+                        GLib.idle_add(self._finalize_message_display)
 
                 self.chats[self.chat_id]["chat"] = self.chat
                 threading.Thread(target=wait_and_continue).start()
@@ -4352,6 +4402,120 @@ class MainWindow(Adw.ApplicationWindow):
                 target=self.generate_chat_name, args=[button, True]
             ).start()
 
+    def export_chat(self, export_all=False):
+        """Export chat(s) to a JSON file
+
+        Args:
+            export_all: If True, export all chats; if False, export only current chat
+        """
+        # Get export data
+        if export_all:
+            export_data = self.controller.export_all_chats()
+            default_filename = f"newelle_chats_export_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+        else:
+            export_data = self.controller.export_single_chat(self.chat_id)
+            if export_data is None:
+                self.notification_block.add_toast(
+                    Adw.Toast(title=_("Failed to export chat"), timeout=2)
+                )
+                return
+            default_filename = f"newelle_chat_{self.chat_id}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+
+        # Save to file
+        dialog = Gtk.FileDialog(
+            title=_("Export Chat"),
+            modal=True
+        )
+        dialog.set_initial_name(default_filename)
+
+        dialog.save(self, None, self._export_chat_finish, export_data)
+
+    def _export_chat_finish(self, dialog, result, export_data):
+        """Finish the export operation after file selection
+
+        Args:
+            dialog: The file dialog
+            result: The async result
+            export_data: The export data to save
+        """
+        try:
+            file = dialog.save_finish(result)
+        except Exception as e:
+            print(f"Export failed: {e}")
+            return
+
+        if file is None:
+            return
+
+        file_path = file.get_path()
+        try:
+            with open(file_path, 'w', encoding='utf-8') as f:
+                json.dump(export_data, f, indent=2, ensure_ascii=False)
+            self.notification_block.add_toast(
+                Adw.Toast(title=_("Chat exported successfully"), timeout=2)
+            )
+        except Exception as e:
+            self.notification_block.add_toast(
+                Adw.Toast(title=_("Export failed: {0}").format(str(e)), timeout=2)
+            )
+
+    def import_chat(self, button):
+        """Import chat(s) from a JSON file"""
+        dialog = Gtk.FileDialog(
+            title=_("Import Chat"),
+            modal=True
+        )
+
+        dialog.open(self, None, self._import_chat_finish)
+
+    def _import_chat_finish(self, dialog, result):
+        """Finish the import operation after file selection
+
+        Args:
+            dialog: The file dialog
+            result: The async result
+        """
+        try:
+            file = dialog.open_finish(result)
+        except Exception as e:
+            print(f"Import failed: {e}")
+            return
+
+        if file is None:
+            return
+
+        file_path = file.get_path()
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+
+            # Import the chat(s)
+            success, message, count = self.controller.import_chat(data)
+
+            if success:
+                self.notification_block.add_toast(
+                    Adw.Toast(title=message, timeout=3)
+                )
+                # Update the UI to show imported chats
+                self.update_history()
+                # Switch to the first imported chat if we imported at least one
+                if count > 0:
+                    self.chat_id = len(self.chats) - count
+                    self.chat = self.chats[self.chat_id]["chat"]
+                    self.show_chat()
+            else:
+                self.notification_block.add_toast(
+                    Adw.Toast(title=message, timeout=3)
+                )
+        except json.JSONDecodeError:
+            self.notification_block.add_toast(
+                Adw.Toast(title=_("Invalid JSON file"), timeout=2)
+            )
+        except Exception as e:
+            self.notification_block.add_toast(
+                Adw.Toast(title=_("Import failed: {0}").format(str(e)), timeout=2)
+            )
+
     def _init_stdout_monitoring(self):
         """Initialize stdout monitoring from program start""" 
         # Create the dialog but don't show it yet
@@ -4387,5 +4551,3 @@ class MainWindow(Adw.ApplicationWindow):
                 
             # Start the display update timer for the dialog
             GLib.timeout_add(100, self.stdout_monitor_dialog._update_stdout_display)
-
-

@@ -450,15 +450,6 @@ AVAILABLE_PROMPTS = [
         "default": False
     },
     {
-        "key": "show_image",
-        "title": _("Show image"),
-        "description": _("Show image in chat"),
-        "setting_name": "show_image",
-        "editable": True,
-        "show_in_settings": True,
-        "default": True,
-    },
-    {
         "key": "tools",
         "title": _("Tools"),
         "description": _("List tools available to the LLM"),
