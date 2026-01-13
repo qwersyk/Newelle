@@ -2987,6 +2987,7 @@ class MainWindow(Adw.ApplicationWindow):
             "has_terminal_command": False,
             "running_threads": [],
             "tool_call_counter": 0,  # Counter for multiple tool calls in same message
+            "should_continue": False,
         }
 
         # Process each chunk
@@ -3159,11 +3160,17 @@ class MainWindow(Adw.ApplicationWindow):
         def get_response():
             if not is_restore:
                 response = ext.get_answer(val, lng)
-                code = (True, response) if response is not None else (False, "Error:")
+                if response is None:
+                    code = (False, _("Stopped"))
+                else:
+                    state["should_continue"] = True
+                    code = (True, response)
+                    self.chat.append({"User": "Console", "Message": " " + str(code[1])})
             else:
                 code = (True, console_reply)
-            self.chat.append({"User": "Console", "Message": " " + str(code[1])})
-            GLib.idle_add(on_result, code)
+            
+            if not is_restore or code[1] is not None:
+                GLib.idle_add(on_result, code)
 
         t = threading.Thread(target=get_response)
         t.start()
@@ -3366,16 +3373,21 @@ class MainWindow(Adw.ApplicationWindow):
             def get_response():
                 if not is_restore:
                     response = tool_result.get_output()
-                    code = (True, response) if response is not None else (False, "Error:")
-                    # Store tool response with identifiable format directly in message
-                    formatted_response = f"[Tool: {t_name}, ID: {t_uuid}]\n{code[1]}"
-                    self.chat.append({
-                        "User": "Console",
-                        "Message": formatted_response,
-                    })
+                    if response is None:
+                        code = (True, None)
+                    else:
+                        state["should_continue"] = True
+                        code = (True, response)
+                        # Store tool response with identifiable format directly in message
+                        formatted_response = f"[Tool: {t_name}, ID: {t_uuid}]\n{code[1]}"
+                        self.chat.append({
+                            "User": "Console",
+                            "Message": formatted_response,
+                        })
                 else:
                     code = (True, console_reply)
-                GLib.idle_add(callback, code)
+                if not is_restore or code[1] is not None:
+                    GLib.idle_add(callback, code)
 
             t = threading.Thread(target=get_response)
             # Restore expects all tools to return things instantly and do not take any action, so we run them in parallel
@@ -3547,8 +3559,10 @@ class MainWindow(Adw.ApplicationWindow):
                     else:
                         for t in threads:
                             t.join()
-                    if threads:
+                    if threads and state.get("should_continue", False):
                         self.send_message(manual=False)
+                    else:
+                        GLib.idle_add(self._finalize_message_display)
 
                 self.chats[self.chat_id]["chat"] = self.chat
                 threading.Thread(target=wait_and_continue).start()
