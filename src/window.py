@@ -2000,7 +2000,7 @@ class MainWindow(Adw.ApplicationWindow):
         self.chats[self.chat_id]["chat"] = self.chat
         self.show_chat()
         self.stream_number_variable += 1
-        threading.Thread(target=self.update_button_text).start()
+        GLib.idle_add(self.update_button_text)
 
     def stop_chat(self, button=None):
         """Stop generating the message"""
