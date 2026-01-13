@@ -106,7 +106,6 @@ class DefaultToolsIntegration(NewelleExtension):
                 func=self.show_image,
                 title="Show Image",
                 default_on=True,
-                icon_name="image-x-generic",
                 restore_func=self.show_image,
                 tools_group=_("Media Display")
 
@@ -117,7 +116,6 @@ class DefaultToolsIntegration(NewelleExtension):
                 func=self.show_video,
                 title="Show Video",
                 default_on=True,
-                icon_name="video-x-generic",
                 restore_func=self.show_video,
                 tools_group=_("Media Display")
 
