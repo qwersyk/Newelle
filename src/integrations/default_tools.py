@@ -7,7 +7,8 @@ import json
 from ..ui.widgets import CopyBox
 import subprocess
 from ..utility.system import is_flatpak
-
+from gi.repository import Gtk, Gio
+from ..ui import load_image_with_callback
 
 class DefaultToolsIntegration(NewelleExtension):
     id = "default_tools"
@@ -62,6 +63,32 @@ class DefaultToolsIntegration(NewelleExtension):
         result.set_output(output)
         return result
 
+    def show_image(self, image_path_or_url: str):
+        image_path = image_path_or_url
+        image = Gtk.Image(css_classes=["image"])
+        if image_path.startswith("http"):
+            img = image
+            load_image_with_callback(
+                img,
+                lambda pixbuf_loader, i=img: i.set_from_pixbuf(pixbuf_loader.get_pixbuf())
+            )
+        else:
+            image.set_from_file(image_path)
+
+        result = ToolResult()
+        result.set_widget(image)
+        result.set_output(None)
+        return result
+    
+    def show_video(self, video_path: str):
+            result = ToolResult() 
+            video = Gtk.Video(css_classes=["video"], vexpand=True, hexpand=True)
+            video.set_size_request(-1, 400)
+            video.set_file(Gio.File.new_for_path(video_path))
+            result.set_widget(video)
+            result.set_output(None)
+            return result
+    
     def get_tools(self) -> list:
         return [
             Tool(
@@ -72,5 +99,23 @@ class DefaultToolsIntegration(NewelleExtension):
                 restore_func=self.execute_command_restore,
                 default_on=True,
                 icon_name="gnome-terminal-symbolic",
-            )
+            ),
+            Tool(
+                name="show_image",
+                description="Show an image from a given file path or URL.",
+                func=self.show_image,
+                title="Show Image",
+                default_on=True,
+                icon_name="image-x-generic-symbolic",
+                restore_func=self.show_image,
+            ),
+            Tool(
+                name="show_video",
+                description="Show a video from a given file path.",
+                func=self.show_video,
+                title="Show Video",
+                default_on=True,
+                icon_name="video-x-generic-symbolic",
+                restore_func=self.show_video,
+            ),
         ]
