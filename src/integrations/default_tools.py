@@ -70,7 +70,7 @@ class DefaultToolsIntegration(NewelleExtension):
                 func=self.execute_command_widget,
                 title="Execute Command",
                 restore_func=self.execute_command_restore,
-                default_on=False,
-
+                default_on=True,
+                icon_name="gnome-terminal-symbolic",
             )
         ]

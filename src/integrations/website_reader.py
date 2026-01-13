@@ -36,7 +36,7 @@ class WebsiteReader(NewelleExtension):
         return result 
 
     def get_tools(self) -> list:
-        return [Tool("website", "Read a website content", self.read_website, title="Read Websites", restore_func=self.restore_read_website)]           
+        return [Tool("website", "Read a website content", self.read_website, title="Read Websites", restore_func=self.restore_read_website, icon_name="internet-symbolic")]           
     def get_replace_codeblocks_langs(self) -> list:
         return ["website"]
    

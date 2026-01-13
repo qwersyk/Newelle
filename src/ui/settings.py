@@ -410,7 +410,8 @@ class Settings(Adw.PreferencesWindow):
         # Create row
         row = Adw.ExpanderRow(title=tool.title, subtitle=tool.description)
         # Add tool icon to distinguish from groups
-        tool_icon = Gtk.Image(icon_name="tools-symbolic", css_classes=["dim-label"])
+        icon_name = tool.icon_name if tool.icon_name else "tools-symbolic"
+        tool_icon = Gtk.Image(icon_name=icon_name, css_classes=["dim-label"])
         row.add_prefix(tool_icon)
         
         # Toggle
@@ -455,7 +456,9 @@ class Settings(Adw.PreferencesWindow):
         tools_settings = self.controller.newelle_settings.tools_settings_dict
         
         if tool_name not in tools_settings:
-            tools_settings[tool_name] = {"enabled": True, "custom_prompt": None}
+            tool = self.controller.tools.get_tool(tool_name)
+            default_on = tool.default_on if tool else True
+            tools_settings[tool_name] = {"enabled": default_on, "custom_prompt": None}
             
         tools_settings[tool_name]["enabled"] = state
         self.settings.set_string("tools-settings", json.dumps(tools_settings))
@@ -467,7 +470,9 @@ class Settings(Adw.PreferencesWindow):
         tools_settings = self.controller.newelle_settings.tools_settings_dict
             
         if tool_name not in tools_settings:
-            tools_settings[tool_name] = {"enabled": True, "custom_prompt": None}
+            tool = self.controller.tools.get_tool(tool_name)
+            default_on = tool.default_on if tool else True
+            tools_settings[tool_name] = {"enabled": default_on, "custom_prompt": None}
 
         if text == entry.default_prompt:
             tools_settings[tool_name]["custom_prompt"] = None
