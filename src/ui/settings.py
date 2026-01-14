@@ -356,7 +356,7 @@ class Settings(Adw.PreferencesWindow):
             tool_count = len(group_tools)
             group_row = Adw.ExpanderRow(
                 title=group_name,
-                subtitle=("{} tools").format(tool_count) if tool_count != 1 else _("1 tool")
+                subtitle=("{} tools").format(tool_count) if tool_count != 1 else "1 tool"
             )
             # Add folder icon to distinguish groups from individual tools
             group_icon = Gtk.Image(icon_name="folder-symbolic", css_classes=["dim-label"])
