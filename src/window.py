@@ -2014,7 +2014,7 @@ class MainWindow(Adw.ApplicationWindow):
                 title=_("The message generation was stopped"), timeout=2
             )
         )
-        self.show_chat()
+        GLib.idle_add(self.show_chat)
         self.remove_send_button_spinner()
 
     def update_button_text(self):
