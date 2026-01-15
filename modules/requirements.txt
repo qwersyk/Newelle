@@ -20,6 +20,8 @@ faiss-cpu
 llama-index-core
 llama-index-readers-file
 llama-index-vector-stores-faiss
+llama-index-retrievers-bm25
+docx2txt
 speechrecognition
 gtts
 
