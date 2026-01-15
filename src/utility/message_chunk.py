@@ -319,62 +319,93 @@ def find_tool_calls(text: str) -> List[MessageChunk]:
 def get_message_chunks(message: str, allow_latex: bool = True) -> List[MessageChunk]:
     """
     Main function to parse message into chunks.
-    Priority: CodeBlocks (checked for Tools) -> Naked Tools -> Markdown/Latex.
+    Priority: Thinking Blocks OR CodeBlocks (by order of appearance) -> Naked Tools -> Markdown/Latex.
     """
-    
     flat_chunks = []
-    last_end = 0
     
-    for match in _CODEBLOCK_PATTERN.finditer(message):
-        start, end = match.span()
+    # We will iterate through the message looking for the next "Major" chunk
+    # Major chunks are: CodeBlocks, ThinkingBlocks.
+    # While iterating, we process the text BETWEEN major chunks using standard text processing.
+    
+    pos = 0
+    length = len(message)
+    
+    while pos < length:
+        # Search for next CodeBlock starting at or after pos
+        code_match = _CODEBLOCK_PATTERN.search(message, pos)
         
-        # 1. Process text BEFORE the code block
-        if start > last_end:
-            pre_text = message[last_end:start]
-            
-            # Find "naked" tool calls in this text segment
-            naked_tool_chunks = find_tool_calls(pre_text)
-            
-            for chunk in naked_tool_chunks:
-                if chunk.type == "tool_call":
-                    flat_chunks.append(chunk)
-                else:
-                    # Normal text: process for Tables, Latex, Thinking
-                    flat_chunks.extend(process_text_segment(chunk.text, allow_latex))
-
-        # 2. Process the CODE BLOCK content
-        lang = match.group(1).strip() if match.group(1) else ""
-        code_content = match.group(2)
+        # Search for next ThinkBlock starting at or after pos
+        think_match = _THINK_PATTERN.search(message, pos)
         
-        # Check if this code block is actually a tool call
-        tool_obj = parse_potential_tool_json(code_content)
+        # Determine which comes first
+        next_match = None
+        match_type = None # "code" or "think"
         
-        if tool_obj:
-            # It IS a tool call. Return as ToolCall chunk (removing codeblock formatting)
-            tool_name = tool_obj.get("name", tool_obj.get("tool", tool_obj.get("function", "unknown")))
-            tool_args = tool_obj.get("arguments", tool_obj.get("arguements", tool_obj.get("parameters", {})))
-            flat_chunks.append(MessageChunk(
-                type="tool_call",
-                text=code_content,
-                tool_name=tool_name,
-                tool_args=tool_args
-            ))
-        else:
-            # It is a regular code block
-            flat_chunks.append(MessageChunk(type="codeblock", text=code_content, lang=lang))
-            
-        last_end = end
-
-    # 3. Process remaining text after the last code block
-    if last_end < len(message):
-        post_text = message[last_end:]
-        naked_tool_chunks = find_tool_calls(post_text)
-        
-        for chunk in naked_tool_chunks:
-            if chunk.type == "tool_call":
-                flat_chunks.append(chunk)
+        if code_match and think_match:
+            if code_match.start() < think_match.start():
+                next_match = code_match
+                match_type = "code"
             else:
-                flat_chunks.extend(process_text_segment(chunk.text, allow_latex))
+                next_match = think_match
+                match_type = "think"
+        elif code_match:
+            next_match = code_match
+            match_type = "code"
+        elif think_match:
+            next_match = think_match
+            match_type = "think"
+            
+        if next_match:
+            start, end = next_match.span()
+            
+            # Process text BEFORE the match
+            if start > pos:
+                pre_text = message[pos:start]
+                
+                # Check for "naked" tool calls in pre_text
+                naked_tool_chunks = find_tool_calls(pre_text)
+                for chunk in naked_tool_chunks:
+                    if chunk.type == "tool_call":
+                        flat_chunks.append(chunk)
+                    else:
+                        flat_chunks.extend(process_text_segment(chunk.text, allow_latex))
+            
+            # Process the MATCH content
+            if match_type == "think":
+                think_content = next_match.group(1).strip()
+                # User Requirement: Everything inside thinking should not be chunked.
+                flat_chunks.append(MessageChunk(type="thinking", text=think_content))
+                
+            elif match_type == "code":
+                lang = next_match.group(1).strip() if next_match.group(1) else ""
+                code_content = next_match.group(2)
+                
+                # Check if this code block is actually a tool call
+                tool_obj = parse_potential_tool_json(code_content)
+                if tool_obj:
+                    tool_name = tool_obj.get("name", tool_obj.get("tool", tool_obj.get("function", "unknown")))
+                    tool_args = tool_obj.get("arguments", tool_obj.get("arguements", tool_obj.get("parameters", {})))
+                    flat_chunks.append(MessageChunk(
+                        type="tool_call",
+                        text=code_content,
+                        tool_name=tool_name,
+                        tool_args=tool_args
+                    ))
+                else:
+                    flat_chunks.append(MessageChunk(type="codeblock", text=code_content, lang=lang))
+            
+            pos = end
+        else:
+            # No more matches, process remainder
+            remaining_text = message[pos:]
+            if remaining_text:
+                naked_tool_chunks = find_tool_calls(remaining_text)
+                for chunk in naked_tool_chunks:
+                    if chunk.type == "tool_call":
+                        flat_chunks.append(chunk)
+                    else:
+                        flat_chunks.extend(process_text_segment(chunk.text, allow_latex))
+            pos = length
 
     return _group_inline_chunks(flat_chunks)
 
