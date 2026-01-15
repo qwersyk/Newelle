@@ -31,6 +31,7 @@ class LlamaIndexHanlder(RAGHandler):
     def get_extra_settings(self) -> list:
         r = [
             ExtraSettings.ScaleSetting("chunk_size", "Chunk Size", "Split text in chunks of the given size (in tokens). Requires a reindex", 512, 64, 2048, 0), 
+            ExtraSettings.ButtonSetting("update_index", "Update Index", "Update the index with new/modified files instead of reindexing everything", self.update_index_button_pressed, label="Update"),
             ExtraSettings.ScaleSetting("return_documents", "Documents to return", "Maximum number of documents to return", 3,1,20, 0), 
             ExtraSettings.ScaleSetting("similarity_threshold", "Similarity of the document to be returned", "Set the percentage similarity of a document to get returned", 0.1,0,1, 2), 
             ExtraSettings.ScaleSetting("oversample_factor", "Oversample Factor", "Factor to multiply the documents to return before filtering with Otsu's thresholding", 2.0, 1.0, 10.0, 1, update_settings=True),
@@ -58,6 +59,18 @@ class LlamaIndexHanlder(RAGHandler):
         ]
         return r
 
+    def get_index_row(self):
+        """Get the exta settings corresponding to the index row to be get in Settings
+
+        Returns:
+            ExtraSettings.DownloadSetting: The extra settings for the index row 
+        """
+        return ExtraSettings.DownloadSetting("index", 
+                                             _("Index your documents"), 
+                                             _("Index all the documents in your document folder. You have to run this operation every time you change document analyzer or change embedding model. If you add/delete/edit documents, run the refresh."), 
+                                             self.index_exists(), 
+                                             self.index_button_pressed, lambda _: self.indexing_status, download_icon="text-x-generic",
+                                             refresh=self.update_index_button_pressed)
     def wait_for_loading(self):
         if self.loading_thread is not None:
             self.loading_thread.join()
@@ -363,10 +376,10 @@ class LlamaIndexHanlder(RAGHandler):
             Settings.embed_model = self.get_embedding_adapter(self.embedding)
             chunk_size = int(self.get_setting("chunk_size"))
             Settings.chunk_size = chunk_size 
-            documents = SimpleDirectoryReader(documents_path, recursive=True, required_exts=self.get_supported_formats(), exclude_hidden=False).load_data() 
+            documents = SimpleDirectoryReader(documents_path, recursive=True, required_exts=self.get_supported_formats(), exclude_hidden=False, filename_as_id=True).load_data() 
             custom_folders = self.get_custom_folders()
             for folder in custom_folders:
-                documents.extend(SimpleDirectoryReader(folder, recursive=True, required_exts=self.get_supported_formats(), exclude_hidden=True).load_data())
+                documents.extend(SimpleDirectoryReader(folder, recursive=True, required_exts=self.get_supported_formats(), exclude_hidden=True, filename_as_id=True).load_data())
             self.indexing_status = 0
             faiss_index = faiss.IndexFlatL2(self.embedding.get_embedding_size())
             vector_store = FaissVectorStore(faiss_index=faiss_index)
@@ -400,6 +413,93 @@ class LlamaIndexHanlder(RAGHandler):
             self.indexing = False
             self.indexing_status = 1
         self.set_setting("last_index_created", time())
+
+    def update_index_button_pressed(self, button=None):
+        if self.indexing:
+            return
+        t = threading.Thread(target=self.update_index, args=(button, ))
+        t.start()
+
+    def update_index(self, button=None):
+        if not self.is_installed():
+            return
+        if not self.index_exists():
+            self.create_index(button)
+            return
+
+        from llama_index.core.settings import Settings
+        from llama_index.core import SimpleDirectoryReader
+        
+        documents_path, data_path = self.get_paths()
+        try:
+            self.llm.load_model(None)
+            self.embedding.load_model()
+            print("Updating index")
+            
+            # Ensure index is loaded
+            if self.index is None:
+                self.load_index()
+                self.wait_for_loading()
+            
+            if self.index is None:
+                print("Failed to load index for update")
+                return
+
+            self.indexing = True
+            self.indexing_status = 0
+            
+            Settings.embed_model = self.get_embedding_adapter(self.embedding)
+            chunk_size = int(self.get_setting("chunk_size"))
+            Settings.chunk_size = chunk_size 
+            
+            reader = SimpleDirectoryReader(
+                documents_path, 
+                recursive=True, 
+                required_exts=self.get_supported_formats(), 
+                exclude_hidden=False,
+                filename_as_id=True
+            )
+            documents = reader.load_data()
+            
+            custom_folders = self.get_custom_folders()
+            for folder in custom_folders:
+                documents.extend(SimpleDirectoryReader(
+                    folder, 
+                    recursive=True, 
+                    required_exts=self.get_supported_formats(), 
+                    exclude_hidden=True,
+                    filename_as_id=True
+                ).load_data())
+            
+            print(f"Refreshing {len(documents)} documents...")
+            self.index.refresh_ref_docs(documents)
+            
+            self.index.storage_context.persist(data_path)
+            
+            # Update BM25 Index if needed
+            if self.get_setting("use_bm25"):
+                try:
+                    from llama_index.retrievers.bm25 import BM25Retriever
+                    nodes = list(self.index.docstore.docs.values())
+                    print("Updating BM25 Index...")
+                    bm25_retriever = BM25Retriever.from_defaults(nodes=nodes, similarity_top_k=int(self.get_setting("return_documents")))
+                    bm25_path = os.path.join(data_path, "bm25_retriever")
+                    bm25_retriever.persist(bm25_path)
+                    
+                    # Refresh the current retriever
+                    self.load_index()
+                    self.wait_for_loading()
+                except Exception as e:
+                    print(f"Failed to update BM25 index: {e}")
+
+            self.indexing = False
+            self.indexing_status = 1
+        except Exception as e:
+            print(f"Error updating index: {e}")
+            self.indexing = False
+            self.indexing_status = 1
+        self.set_setting("last_index_created", time())
+        self.settings_update()
 
     @staticmethod 
     def parse_document_list(documents: list[str]):

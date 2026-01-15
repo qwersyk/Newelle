@@ -961,12 +961,6 @@ class Settings(Adw.PreferencesWindow):
         folder.add_suffix(folder_button)
         document_folder.add_row(folder)
         
-        self.rag_handler = self.get_object(AVAILABLE_RAGS, selected) 
-        self.rag_handler.set_handlers(self.handlers.llm, self.handlers.embedding)
-        self.rag_index = self.create_extra_setting(self.rag_handler.get_index_row(), self.rag_handler, AVAILABLE_RAGS) 
-        document_folder.add_row(self.rag_index)
-        self.document_folder = document_folder
-
         # Custom folders management
         self.custom_folders_list = self.settings.get_strv("custom-document-folders")
         
@@ -982,6 +976,12 @@ class Settings(Adw.PreferencesWindow):
         # Container for custom folder rows
         self.custom_folder_rows = []
         self.refresh_custom_folders_list(self.custom_folders_row)
+        
+        self.rag_handler = self.get_object(AVAILABLE_RAGS, selected) 
+        self.rag_handler.set_handlers(self.handlers.llm, self.handlers.embedding)
+        self.rag_index = self.create_extra_setting(self.rag_handler.get_index_row(), self.rag_handler, AVAILABLE_RAGS) 
+        document_folder.add_row(self.rag_index)
+        self.document_folder = document_folder
 
         self.RAG.add(document_folder)
         self.MemoryPage.add(self.RAG)
