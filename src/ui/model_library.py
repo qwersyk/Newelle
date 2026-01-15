@@ -281,7 +281,7 @@ class ModelLibraryWindow(Adw.Window):
         status_stack = Gtk.Stack()
         
         # Download Button
-        download_btn = Gtk.Button(icon_name="folder-download-symbolic", css_classes=["flat", "suggested-action"])
+        download_btn = Gtk.Button(icon_name="folder-download-symbolic", css_classes=["flat", "accent"])
         download_btn.set_tooltip_text("Download Model")
         download_btn.connect("clicked", lambda b: self.install_model(key))
         
