@@ -354,9 +354,10 @@ class Settings(Adw.PreferencesWindow):
         # Create group rows
         for group_name, group_tools in groups.items():
             tool_count = len(group_tools)
+            tools_string = _("tools") if tool_count != 1 else _("tool")
             group_row = Adw.ExpanderRow(
                 title=group_name,
-                subtitle=("{} tools").format(tool_count) if tool_count != 1 else _("1 tool")
+                subtitle=("{} {}").format(tool_count, tools_string)
             )
             # Add folder icon to distinguish groups from individual tools
             group_icon = Gtk.Image(icon_name="folder-symbolic", css_classes=["dim-label"])
@@ -392,7 +393,7 @@ class Settings(Adw.PreferencesWindow):
                 self.tool_rows.append(sep)
 
             for tool in orphans:
-                row, _ = self.create_tool_row(tool, tools_settings)
+                row, unused_toggle = self.create_tool_row(tool, tools_settings)
                 self.tools_group.add(row)
                 self.tool_rows.append(row)
 
