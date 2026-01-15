@@ -254,6 +254,9 @@ class LlamaIndexHanlder(RAGHandler):
             chunk_size = int(self.get_setting("chunk_size"))
             Settings.chunk_size = chunk_size 
             documents = SimpleDirectoryReader(documents_path, recursive=True, required_exts=self.get_supported_formats(), exclude_hidden=False).load_data() 
+            custom_folders = self.get_custom_folders()
+            for folder in custom_folders:
+                documents.extend(SimpleDirectoryReader(folder, recursive=True, required_exts=self.get_supported_formats(), exclude_hidden=True).load_data())
             self.indexing_status = 0
             faiss_index = faiss.IndexFlatL2(self.embedding.get_embedding_size())
             vector_store = FaissVectorStore(faiss_index=faiss_index)

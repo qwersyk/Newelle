@@ -191,5 +191,8 @@
         <key name="parallel-tool-execution" type="b">
             <default>false</default>
         </key>
+        <key name="custom-document-folders" type="as">
+            <default>[]</default>
+        </key>
 	</schema>
 </schemalist>
