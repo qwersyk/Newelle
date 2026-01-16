@@ -46,10 +46,12 @@ class DefaultToolsIntegration(NewelleExtension):
             result.set_output(output)
             return output
 
-        widget = CopyBox(command, "console", execution_request=True, run_callback=execute_callback)
+        widget = CopyBox(command, "console", execution_request=True, run_callback=execute_callback, parent=self.ui_controller.window)
         if self.settings.get_boolean("auto-run"):
             widget._on_execution_run_clicked(None)
+        widget.connect("command-complete", lambda _, output: result.set_output(output))
         result.set_widget(widget)
+
         return result
 
     def execute_command_restore(self, tool_uuid: str, command: str):

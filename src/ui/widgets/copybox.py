@@ -128,6 +128,13 @@ class CopyBox(Gtk.Box):
         )
         header_box.append(title_label)
         
+        # Terminal button
+        self.terminal_button = Gtk.Button(css_classes=["flat"], valign=Gtk.Align.CENTER)
+        self.terminal_button.set_icon_name("gnome-terminal-symbolic")
+        self.terminal_button.set_tooltip_text("Open in Terminal")
+        self.terminal_button.connect("clicked", self._on_execution_terminal_clicked)
+        header_box.append(self.terminal_button)
+        
         # Skip button
         self.skip_button = Gtk.Button(label="Skip", css_classes=["flat"], valign=Gtk.Align.CENTER)
         self.skip_button.connect("clicked", self._on_skip_clicked)
@@ -391,6 +398,55 @@ class CopyBox(Gtk.Box):
         
         if self.parent is not None:
             self.run_console_terminal(widget)
+
+    def _on_execution_terminal_clicked(self, widget):
+        """Handle terminal button click in execution_request mode."""
+        from ...utility.strings import quote_string, add_S_to_sudo
+        from ...utility.system import get_spawn_command
+        from .terminal_dialog import TerminalDialog
+        
+        if self.has_responded:
+            return
+            
+        icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="object-select-symbolic"))
+        icon.set_icon_size(Gtk.IconSize.INHERIT)
+        widget.set_child(icon)
+        widget.set_sensitive(False)
+        
+        command = "cd " + quote_string(os.getcwd()) + "; " + self.txt + "; exec bash"
+        
+        terminal = TerminalDialog()
+        
+        def save_output(save):
+            widget.set_sensitive(True)
+            widget.set_icon_name("gnome-terminal-symbolic")
+            if save is not None:
+                # Mark as responded
+                self.has_responded = True
+                self.run_button.set_sensitive(False)
+                self.skip_button.set_sensitive(False)
+                
+                # Show output
+                self.output_label.set_text(save)
+                self.output_expander.set_visible(True)
+                self.output_expander.set_expanded(True)
+                
+                self.status_label.set_visible(False)
+                
+                # Emit signal
+                self.emit('command-complete', save)
+            else:
+                return
+        
+        if self.parent is not None and hasattr(self.parent, 'virtualization') and not self.parent.virtualization:
+            command = add_S_to_sudo(command)
+            command = get_spawn_command() + ["bash", "-c", "export TERM=xterm-256color;alias sudo=\"sudo -S\";" + command]
+        else:
+            command = ["bash", "-c", "export TERM=xterm-256color;" + command]
+            
+        terminal.load_terminal(command)
+        terminal.save_output_func(save_output)
+        terminal.present()
     
     def _on_execution_run_clicked(self, button):
         """Handle run click in execution_request mode."""

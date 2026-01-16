@@ -354,9 +354,10 @@ class Settings(Adw.PreferencesWindow):
         # Create group rows
         for group_name, group_tools in groups.items():
             tool_count = len(group_tools)
+            tools_string = _("tools") if tool_count != 1 else _("tool")
             group_row = Adw.ExpanderRow(
                 title=group_name,
-                subtitle=("{} tools").format(tool_count) if tool_count != 1 else _("1 tool")
+                subtitle=("{} {}").format(tool_count, tools_string)
             )
             # Add folder icon to distinguish groups from individual tools
             group_icon = Gtk.Image(icon_name="folder-symbolic", css_classes=["dim-label"])
@@ -392,7 +393,7 @@ class Settings(Adw.PreferencesWindow):
                 self.tool_rows.append(sep)
 
             for tool in orphans:
-                row, _ = self.create_tool_row(tool, tools_settings)
+                row, unused_toggle = self.create_tool_row(tool, tools_settings)
                 self.tools_group.add(row)
                 self.tool_rows.append(row)
 
@@ -961,6 +962,22 @@ class Settings(Adw.PreferencesWindow):
         folder.add_suffix(folder_button)
         document_folder.add_row(folder)
         
+        # Custom folders management
+        self.custom_folders_list = self.settings.get_strv("custom-document-folders")
+        
+        # Add custom folders expander
+        self.custom_folders_row = Adw.ExpanderRow(title=_("Custom Document Folders"), subtitle=_("Add additional folders to index for document analysis"))
+        document_folder.add_row(self.custom_folders_row)
+        
+        # Add folder button as suffix of expander
+        add_folder_button = Gtk.Button(label=_("Add Folder"), css_classes=["suggested-action"], valign=Gtk.Align.CENTER)
+        add_folder_button.connect("clicked", self.on_add_custom_folder)
+        self.custom_folders_row.add_suffix(add_folder_button)
+        
+        # Container for custom folder rows
+        self.custom_folder_rows = []
+        self.refresh_custom_folders_list(self.custom_folders_row)
+        
         self.rag_handler = self.get_object(AVAILABLE_RAGS, selected) 
         self.rag_handler.set_handlers(self.handlers.llm, self.handlers.embedding)
         self.rag_index = self.create_extra_setting(self.rag_handler.get_index_row(), self.rag_handler, AVAILABLE_RAGS) 
@@ -976,6 +993,80 @@ class Settings(Adw.PreferencesWindow):
         self.document_folder.remove(self.rag_index)
         self.rag_index = self.create_extra_setting(self.rag_handler.get_index_row(), self.rag_handler, AVAILABLE_RAGS)
         self.document_folder.add_row(self.rag_index)
+
+    def on_add_custom_folder(self, button):
+        """Callback for adding a custom folder"""
+        dialog = Gtk.FileChooserDialog(
+            title=_("Select Folder"),
+            action=Gtk.FileChooserAction.SELECT_FOLDER,
+            transient_for=self
+        )
+        dialog.add_button(_("_Cancel"), Gtk.ResponseType.CANCEL)
+        dialog.add_button(_("_Add"), Gtk.ResponseType.ACCEPT)
+        
+        def on_response(dialog_widget, response_id):
+            if response_id == Gtk.ResponseType.ACCEPT:
+                folder_path = dialog.get_file().get_path()
+                if folder_path and folder_path not in self.custom_folders_list:
+                    self.custom_folders_list.append(folder_path)
+                    self.settings.set_strv("custom-document-folders", self.custom_folders_list)
+                    # Refresh the list to show the new folder
+                    self.refresh_custom_folders_list(self.custom_folders_row)
+            dialog.destroy()
+        
+        dialog.connect("response", on_response)
+        dialog.show()
+
+
+    def on_remove_custom_folder(self, button, folder_path, parent_row):
+        """Callback for removing a custom folder"""
+        if folder_path in self.custom_folders_list:
+            self.custom_folders_list.remove(folder_path)
+            self.settings.set_strv("custom-document-folders", self.custom_folders_list)
+            # Find and remove the row from the UI
+            for row in self.custom_folder_rows:
+                if hasattr(row, 'folder_path') and row.folder_path == folder_path:
+                    # Get the parent expander and remove the row
+                    parent = row.get_parent()
+                    if parent:
+                        parent.remove(row)
+                    self.custom_folder_rows.remove(row)
+                    break
+
+    def on_open_custom_folder(self, button, folder_path):
+        """Callback for opening a custom folder"""
+        open_folder(folder_path)
+
+    def refresh_custom_folders_list(self, parent_expander):
+        """Refresh the UI to show current custom folders"""
+        # Clear existing folder rows
+        for row in self.custom_folder_rows:
+            parent = row.get_parent()
+            if parent:
+                parent.remove(row)
+        self.custom_folder_rows.clear()
+        
+        # Add rows for each custom folder
+        for folder_path in self.custom_folders_list:
+            folder_row = Adw.ActionRow(
+                title=_("Custom Folder"),
+                subtitle=folder_path
+            )
+            folder_row.folder_path = folder_path  # Store path for removal
+            
+            # Open button
+            open_button = Gtk.Button(icon_name="folder-symbolic", css_classes=["flat"])
+            open_button.connect("clicked", lambda b, path=folder_path: self.on_open_custom_folder(b, path))
+            
+            # Remove button
+            remove_button = Gtk.Button(icon_name="user-trash-symbolic", css_classes=["flat"])
+            remove_button.connect("clicked", lambda b, path=folder_path, row=folder_row: self.on_remove_custom_folder(b, path, row))
+            
+            folder_row.add_suffix(open_button)
+            folder_row.add_suffix(remove_button)
+            
+            parent_expander.add_row(folder_row)
+            self.custom_folder_rows.append(folder_row)
 
     def build_auto_stt(self):
         auto_stt_enabled = Gtk.Switch(valign=Gtk.Align.CENTER)

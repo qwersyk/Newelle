@@ -2014,7 +2014,7 @@ class MainWindow(Adw.ApplicationWindow):
                 title=_("The message generation was stopped"), timeout=2
             )
         )
-        self.show_chat()
+        GLib.idle_add(self.show_chat)
         self.remove_send_button_spinner()
 
     def update_button_text(self):
@@ -4366,38 +4366,43 @@ class MainWindow(Adw.ApplicationWindow):
     def generate_chat_name(self, button, multithreading=False):
         """Generate the name of the chat using llm. Reloaunches on another thread if not already in one"""
         if multithreading:
-            if len(self.chats[int(button.get_name())]["chat"]) < 2:
-                self.notification_block.add_toast(
-                    Adw.Toast(title=_("Chat is empty"), timeout=2)
-                )
-                return False
-            spinner = Gtk.Spinner(spinning=True)
-            button.set_child(spinner)
-            button.set_can_target(False)
-            button.set_has_frame(True)
-
             self.secondary_model.set_history(
                 [], self.get_history(self.chats[int(button.get_name())]["chat"])
             )
             name = self.secondary_model.generate_chat_name(
                 self.prompts["generate_name_prompt"]
             )
-            if name is None:
-                button.set_icon_name("warning-outline-symbolic")
-                button.can_target = True
-                button.remove_css_class("suggested-action")
-                button.add_css_class("error")
-                GLib.timeout_add(2000, self.update_history)
-            else:
-                name = remove_thinking_blocks(name)
+            
+            def on_complete():
                 if name is None:
+                    button.set_icon_name("warning-outline-symbolic")
+                    button.set_can_target(True)
+                    button.remove_css_class("suggested-action")
+                    button.add_css_class("error")
+                    GLib.timeout_add(2000, self.update_history)
+                else:
+                    clean_name = remove_thinking_blocks(name)
+                    if clean_name is None:
+                        self.update_history()
+                        return
+                    clean_name = remove_markdown(clean_name)
+                    if clean_name != "Chat has been stopped":
+                        self.chats[int(button.get_name())]["name"] = clean_name
                     self.update_history()
-                    return
-                name = remove_markdown(name)
-                if name != "Chat has been stopped":
-                    self.chats[int(button.get_name())]["name"] = name
-                self.update_history()
+
+            GLib.idle_add(on_complete)
         else:
+            if len(self.chats[int(button.get_name())]["chat"]) < 2:
+                self.notification_block.add_toast(
+                    Adw.Toast(title=_("Chat is empty"), timeout=2)
+                )
+                return False
+                
+            spinner = Gtk.Spinner(spinning=True)
+            button.set_child(spinner)
+            button.set_can_target(False)
+            button.set_has_frame(True)
+            
             threading.Thread(
                 target=self.generate_chat_name, args=[button, True]
             ).start()

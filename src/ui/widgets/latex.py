@@ -36,7 +36,7 @@ class InlineLatex(Gtk.Box):
 
     def __init__(self, latex: str, size: int) -> None:
         super().__init__()
-        self.color = self.get_style_context().lookup_color("window_fg_color")[1]
+        self.color = self.get_style_context().get_color()
         self.latex = latex
         self.size = size
         self.picture = LatexCanvas(latex, self.size, self.color, inline=True)
@@ -58,7 +58,7 @@ class DisplayLatex(Gtk.Box):
 
 
         self.latex = latex 
-        self.color = self.get_style_context().lookup_color("window_fg_color")[1]
+        self.color = self.get_style_context().get_color()
         # Create Gtk.Picture
         self.picture = LatexCanvas(latex, self.size, self.color, inline)
         if not inline:
