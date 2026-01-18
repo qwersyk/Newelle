@@ -19,8 +19,9 @@ class ToolWidget(Gtk.ListBox):
         self.expander_row.set_subtitle("Completed" if success else "Error")
         content_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         full_text = self.chunk_text + "\n" + str(result_text)
+        display_text = full_text[:8000] if len(full_text) > 8000 else full_text
         label = Gtk.Label(
-            label=full_text,
+            label=display_text,
             wrap=True,
             wrap_mode=Pango.WrapMode.WORD_CHAR,
             selectable=True,

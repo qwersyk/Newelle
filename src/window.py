@@ -3257,11 +3257,12 @@ class MainWindow(Adw.ApplicationWindow):
                 text = f"[User {path}]:$ {cmd}\n{code[1]}"
 
                 def apply_result():
+                    display_text = text[:8000] if len(text) > 8000 else text
                     expander.set_child(
                         Gtk.Label(
                             wrap=True,
                             wrap_mode=Pango.WrapMode.WORD_CHAR,
-                            label=text,
+                            label=display_text,
                             selectable=True,
                         )
                     )
