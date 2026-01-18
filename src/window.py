@@ -448,6 +448,13 @@ class MainWindow(Adw.ApplicationWindow):
             self.chat_header.set_title_widget(self.build_model_popup())
 
         self.stream_number_variable = 0
+        self.streaming_pending = False
+        self.streaming_lock = threading.Lock()
+        self.streamed_content = ""
+        self.is_thinking = False
+        self.thinking_text = ""
+        self.main_text = ""
+
         GLib.idle_add(self.update_history)
         GLib.idle_add(self.show_chat)
         if not self.settings.get_boolean("welcome-screen-shown"):
@@ -2365,7 +2372,7 @@ class MainWindow(Adw.ApplicationWindow):
                     # Widget may have been destroyed or unparented already
                     pass
 
-            GLib.timeout_add(250, remove_streaming_box)
+            GLib.idle_add(remove_streaming_box)
             return
         if self.stream_number_variable == stream_number_variable:
             old_history = copy.deepcopy(self.chat)
@@ -2465,7 +2472,14 @@ class MainWindow(Adw.ApplicationWindow):
 
     def create_streaming_message_label(self):
         """Create a label for message streaming"""
-        # Create a scrolledwindow for the text view
+        # Reset streaming state
+        self.streamed_content = ""
+        self.is_thinking = False
+        self.thinking_text = ""
+        self.main_text = ""
+        self.streaming_pending = False
+        self.thinking_box = None
+
         self.streaming_message_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         scrolled_window = Gtk.ScrolledWindow(
             margin_top=10, margin_start=10, margin_bottom=10, margin_end=10
@@ -2505,71 +2519,77 @@ class MainWindow(Adw.ApplicationWindow):
         self.streaming_box.set_overflow(Gtk.Overflow.VISIBLE)
 
     def update_message(self, message, stream_number_variable, *args):
-        """Update message label when streaming
-
-        Args:
-            message (): new message text
-            stream_number_variable (): stream number, avoid conflicting streams
-        """
+        """Update message label when streaming (thread-safe)"""
         if self.stream_number_variable != stream_number_variable:
             return
-        # Safety check: ensure streaming_box and streaming_label still exist and are valid
-        if not hasattr(self, "streaming_box") or self.streaming_box is None:
+
+        with self.streaming_lock:
+            self.streamed_content = message
+            if not self.streaming_pending:
+                self.streaming_pending = True
+                GLib.idle_add(self.refresh_streaming_ui, stream_number_variable)
+
+    def refresh_streaming_ui(self, stream_number_variable):
+        """Update the UI with the latest streamed content (main thread)"""
+        if self.stream_number_variable != stream_number_variable:
             return
-        if not hasattr(self, "streaming_label") or self.streaming_label is None:
-            return
-        self.streamed_message = message
-        last_update_checked = False
-        if self.streamed_message.startswith("<think>") and not self.stream_thinking:
-            self.stream_thinking = True
-            text = self.streamed_message.split("</think>")
-            thinking = text[0].replace("<think>", "")
-            message = text[1] if len(text) > 1 else ""
-            self.streaming_thought = thinking
-            def idle():
-                try:
-                    if hasattr(self, "streaming_message_box") and self.streaming_message_box is not None:
+
+        with self.streaming_lock:
+            content = self.streamed_content
+            self.streaming_pending = False
+
+        # Process <think> blocks
+        if "<think>" in content:
+            parts = content.split("<think>", 1)
+            before_think = parts[0]
+            after_start = parts[1]
+            
+            if "</think>" in after_start:
+                think_parts = after_start.split("</think>", 1)
+                thinking = think_parts[0]
+                after_think = think_parts[1]
+                self.thinking_text = thinking
+                self.main_text = before_think + after_think
+                
+                # Stop thinking if we were thinking
+                if self.is_thinking:
+                    self.is_thinking = False
+                    if self.thinking_box:
+                        self.thinking_box.stop_thinking()
+            else:
+                # Still thinking
+                self.thinking_text = after_start
+                self.main_text = before_think
+                
+                if not self.is_thinking:
+                    self.is_thinking = True
+                    if self.thinking_box is None:
                         self.thinking_box = ThinkingWidget()
                         self.streaming_message_box.prepend(self.thinking_box)
-                        self.thinking_box.start_thinking(thinking)
-                except (AttributeError, RuntimeError):
-                    pass
-            GLib.idle_add(idle)
-        elif self.stream_thinking:
+                        self.thinking_box.start_thinking(self.thinking_text)
+                    else:
+                        self.thinking_box.set_thinking(self.thinking_text)
+                else:
+                    if self.thinking_box:
+                        self.thinking_box.set_thinking(self.thinking_text)
+        else:
+            # No think block
+            self.main_text = content
+            if self.is_thinking:
+                self.is_thinking = False
+                if self.thinking_box:
+                    self.thinking_box.stop_thinking()
 
-            t = time.time()
-            if t - self.last_update < 0.05:
-                return
-            last_update_checked = True
-            self.last_update = t
-            text = self.streamed_message.split("</think>")
-            thinking = text[0].replace("<think>", "")
-            message = text[1] if len(text) > 1 else ""
-            added_thinking = thinking[len(self.streaming_thought) :]
-            self.streaming_thought += added_thinking
-            try:
-                self.thinking_box.append_thinking(added_thinking)
-            except (AttributeError, RuntimeError):
-                pass
+        # Update the main label
         if self.streaming_label is not None:
-            # Find the differences between the messages
-            t = time.time()
-            if t - self.last_update < 0.05 and not last_update_checked:
-                return
-            self.last_update = t
-            self.curr_label = message
+            try:
+                self.streaming_label.set_markup(
+                    simple_markdown_to_pango(self.main_text)
+                )
+            except Exception:
+                self.streaming_label.set_text(self.main_text)
 
-            # Edit the label on the main thread
-            def idle_edit():
-                try:
-                    if self.streaming_label is not None:
-                        self.streaming_label.set_markup(
-                            simple_markdown_to_pango(self.curr_label)
-                        )
-                except (AttributeError, RuntimeError):
-                    pass
-
-            GLib.idle_add(idle_edit)
+        return GLib.SOURCE_REMOVE
 
     # Show messages in chat
     def show_chat(self, animate=False):
