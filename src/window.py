@@ -449,6 +449,7 @@ class MainWindow(Adw.ApplicationWindow):
 
         self.active_tool_results = []
         self.stream_number_variable = 0
+        self.stream_tools = False
         self.streaming_pending = False
         self.streaming_lock = threading.Lock()
         self.streamed_content = ""
@@ -1961,8 +1962,8 @@ class MainWindow(Adw.ApplicationWindow):
         self.stream_number_variable += 1
         self.chat_id = len(self.chats) - 1
         self.chat = self.chats[self.chat_id]["chat"]
-        self.update_history()
-        self.show_chat()
+        self.update_history() 
+        self.show_chat(animate=True)
         GLib.idle_add(self.update_button_text)
 
     def copy_chat(self, button, *a):
@@ -2367,19 +2368,6 @@ class MainWindow(Adw.ApplicationWindow):
             # Show error messsage
             GLib.idle_add(self.show_message, str(e), False, -1, False, False, True)
             GLib.idle_add(self.remove_send_button_spinner)
-
-            def remove_streaming_box():
-                try:
-                    if self.model.stream_enabled() and hasattr(self, "streaming_box"):
-                        if self.streaming_box is not None:
-                            parent = self.streaming_box.get_parent()
-                            if parent is not None:
-                                self.streaming_box.unparent()
-                except (AttributeError, RuntimeError):
-                    # Widget may have been destroyed or unparented already
-                    pass
-
-            GLib.idle_add(remove_streaming_box)
             return
         if self.stream_number_variable == stream_number_variable:
             old_history = copy.deepcopy(self.chat)
@@ -2410,18 +2398,6 @@ class MainWindow(Adw.ApplicationWindow):
                 "\n".join(prompts),
             )
 
-            # Clean up streaming_box after message is displayed
-            def cleanup_streaming_box():
-                try:
-                    if self.model.stream_enabled() and hasattr(self, "streaming_box"):
-                        if self.streaming_box is not None:
-                            parent = self.streaming_box.get_parent()
-                            if parent is not None:
-                                self.streaming_box.unparent()
-                except (AttributeError, RuntimeError):
-                    pass
-
-            GLib.idle_add(cleanup_streaming_box)
             GLib.idle_add(self.remove_send_button_spinner)
             # Generate chat name
             self.update_memory(message_label)
@@ -2601,6 +2577,7 @@ class MainWindow(Adw.ApplicationWindow):
     # Show messages in chat
     def show_chat(self, animate=False):
         """Show a chat"""
+        self.stream_tools = False
         self.last_error_box = None
         if not self.check_streams["chat"]:
             self.messages_box = []
@@ -3580,10 +3557,10 @@ class MainWindow(Adw.ApplicationWindow):
     def _finalize_show_message(self, box, state, restore, is_user, return_widget):
         """Finalize message display and handle thread completion."""
         user_type = "User" if is_user else "Assistant"
-
+        if not restore and state["tool_call_counter"] > 0:
+            self.stream_tools = True
         if return_widget:
             return box
-
         self.add_message(user_type, box, state["original_id"], state["editable"])
 
         # Update lazy_loaded_end when a message is displayed beyond the current range
