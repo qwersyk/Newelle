@@ -25,6 +25,13 @@
         <img width="200" alt="Wiki for Newelle" src="https://raw.githubusercontent.com/qwersyk/Assets/main/newelle-wiki.svg"/>
       </picture>
     </a>
+	<a href="https://newelle.qsk.me/discord">
+      <picture>
+        <source srcset="https://raw.githubusercontent.com/qwersyk/Assets/main/discord.svg" media="(prefers-color-scheme: light)">
+        <source srcset="https://raw.githubusercontent.com/qwersyk/Assets/main/discord-dark.svg" media="(prefers-color-scheme: dark)">
+        <img width="200" alt="Join our discord" src="https://raw.githubusercontent.com/qwersyk/Assets/main/discord.svg"/>
+      </picture>
+    </a>
     <br>
 </p>
 
