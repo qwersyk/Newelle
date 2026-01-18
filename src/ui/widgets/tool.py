@@ -16,6 +16,8 @@ class ToolWidget(Gtk.ListBox):
         self.chunk_text = chunk_text
 
     def set_result(self, success, result_text):
+        if not self.get_display():
+            return
         self.expander_row.set_subtitle("Completed" if success else "Error")
         content_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         full_text = self.chunk_text + "\n" + str(result_text)

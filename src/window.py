@@ -447,6 +447,7 @@ class MainWindow(Adw.ApplicationWindow):
         def build_model_popup():
             self.chat_header.set_title_widget(self.build_model_popup())
 
+        self.active_tool_results = []
         self.stream_number_variable = 0
         self.streaming_pending = False
         self.streaming_lock = threading.Lock()
@@ -2005,6 +2006,9 @@ class MainWindow(Adw.ApplicationWindow):
         )
         self.chat = []
         self.chats[self.chat_id]["chat"] = self.chat
+        for tool_result in self.active_tool_results:
+            tool_result.cancel()
+        self.active_tool_results = []
         self.show_chat()
         self.stream_number_variable += 1
         GLib.idle_add(self.update_button_text)
@@ -2012,6 +2016,9 @@ class MainWindow(Adw.ApplicationWindow):
     def stop_chat(self, button=None):
         """Stop generating the message"""
         self.model.stop()
+        for tool_result in self.active_tool_results:
+            tool_result.cancel()
+        self.active_tool_results = []
         self.status = True
         self.stream_number_variable += 1
         self.chat_stop_button.set_visible(False)
@@ -3160,7 +3167,12 @@ class MainWindow(Adw.ApplicationWindow):
             # Capture chunk text in closure
             chunk_text = value
 
-            def on_result(code, expander=text_expander, text=chunk_text):
+            # Capture stream number to check for stale callbacks
+            current_stream = self.stream_number_variable
+
+            def on_result(code, expander=text_expander, text=chunk_text, stream=current_stream):
+                if self.stream_number_variable != stream:
+                    return GLib.SOURCE_REMOVE
                 expander.set_child(
                     Gtk.Label(
                         wrap=True,
@@ -3276,7 +3288,12 @@ class MainWindow(Adw.ApplicationWindow):
 
                 text = f"[User {path}]:$ {cmd}\n{code[1]}"
 
-                def apply_result():
+                # Capture stream number to check for stale callbacks
+                current_stream = self.stream_number_variable
+
+                def apply_result(stream=current_stream):
+                    if self.stream_number_variable != stream:
+                        return GLib.SOURCE_REMOVE
                     display_text = text[:8000] if len(text) > 8000 else text
                     expander.set_child(
                         Gtk.Label(
@@ -3366,6 +3383,10 @@ class MainWindow(Adw.ApplicationWindow):
                 result = tool.restore(msg_id=state["id_message"], tool_uuid=tool_uuid, **args)
             else:
                 result = tool.execute(**args)
+            
+            if not restore:
+                self.active_tool_results.append(result)
+            
             widget = result.widget
 
             if widget is not None:
@@ -3377,7 +3398,12 @@ class MainWindow(Adw.ApplicationWindow):
                 # Create ToolWidget for display
                 tool_widget = ToolWidget(tool.name, chunk.text)
 
-                def on_result(code, tw=tool_widget):
+                # Capture stream number to check for stale callbacks
+                current_stream = self.stream_number_variable
+
+                def on_result(code, tw=tool_widget, stream=current_stream):
+                    if self.stream_number_variable != stream:
+                        return GLib.SOURCE_REMOVE
                     tw.set_result(code[0], code[1])
                 widget = tool_widget
 
@@ -3394,6 +3420,13 @@ class MainWindow(Adw.ApplicationWindow):
             def get_response():
                 if not is_restore:
                     response = tool_result.get_output()
+                    if not is_restore:
+                        try:
+                            self.active_tool_results.remove(tool_result)
+                        except (ValueError, AttributeError):
+                            pass
+                    if tool_result.is_cancelled:
+                        return
                     if response is None:
                         code = (True, None)
                     else:
@@ -3572,7 +3605,10 @@ class MainWindow(Adw.ApplicationWindow):
                 threads = state["running_threads"]
                 parallel = self.controller.newelle_settings.parallel_tool_execution
 
-                def wait_and_continue():
+                # Capture current stream number
+                current_stream = self.stream_number_variable
+
+                def wait_and_continue(stream=current_stream):
                     if not parallel:
                         for t in threads:
                             t.start()
@@ -3580,6 +3616,10 @@ class MainWindow(Adw.ApplicationWindow):
                     else:
                         for t in threads:
                             t.join()
+                    
+                    if self.stream_number_variable != stream:
+                        return
+
                     if threads and state.get("should_continue", False):
                         self.send_message(manual=False)
                     else:

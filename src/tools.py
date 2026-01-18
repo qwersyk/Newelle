@@ -14,11 +14,13 @@ class ToolResult:
     """
     output: Any = None
     widget: Any = None
+    is_cancelled: bool = False
     output_semaphore : threading.Semaphore
 
     def __init__(self, output=None, widget=None) -> None:
         self.output = output 
-        self.widget = output
+        self.widget = widget
+        self.is_cancelled = False
         self.output_semaphore = threading.Semaphore()
         self.output_semaphore.acquire()
 
@@ -27,12 +29,20 @@ class ToolResult:
         self.output_semaphore.release()
         return self.output
 
+    def cancel(self):
+        self.is_cancelled = True
+        self.set_output(None)
+
     def set_widget(self, widget):
         self.widget = widget
 
     def set_output(self, output):
         self.output = output
-        self.output_semaphore.release() 
+        try:
+            self.output_semaphore.release()
+        except ValueError:
+            # Semaphore already released
+            pass
 
 
 class Tool:
