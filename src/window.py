@@ -2312,7 +2312,7 @@ class MainWindow(Adw.ApplicationWindow):
             GLib.idle_add(self.show_chat)
             return
         if self.chat[-1]["Message"] != old_user_prompt:
-            self.reload_message(len(self.chat) - 1)
+            GLib.idle_add(self.reload_message, len(self.chat) - 1)
 
         self.model.set_history(prompts, history)
         try:
