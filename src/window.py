@@ -775,6 +775,8 @@ class MainWindow(Adw.ApplicationWindow):
         else:
             # Update the send on enter setting
             self.input_panel.set_enter_on_ctrl(not self.controller.newelle_settings.send_on_enter)
+            for entry in self.edit_entries.values():
+                entry.set_enter_on_ctrl(not self.controller.newelle_settings.send_on_enter)
         # Basic settings
         self.offers = self.controller.newelle_settings.offers
         self.current_profile = self.controller.newelle_settings.current_profile
@@ -3115,7 +3117,7 @@ class MainWindow(Adw.ApplicationWindow):
         if old_message is None:
             return
 
-        entry = MultilineEntry()
+        entry = MultilineEntry(not self.controller.newelle_settings.send_on_enter)
         self.edit_entries[int(gesture.get_name())] = entry
         # Infer size from the size of the old message
         wmax = old_message.get_size(Gtk.Orientation.HORIZONTAL)
@@ -3188,6 +3190,7 @@ class MainWindow(Adw.ApplicationWindow):
                 return_widget=True,
             )
         )
+        del self.edit_entries[int(gesture.get_name())]
 
     def cancel_edit_message(self, gesture, box: Gtk.Box, apply_edit_stack: Gtk.Stack):
         """Restore the old message
@@ -3210,6 +3213,7 @@ class MainWindow(Adw.ApplicationWindow):
                 return_widget=True,
             )
         )
+        del self.edit_entries[int(gesture.get_name())]
 
     def delete_message(self, gesture, box):
         """Delete a message from the chat
