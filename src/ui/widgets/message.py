@@ -312,6 +312,7 @@ class Message(Gtk.Box):
                     font_size = int(5 + (self.controller.newelle_settings.zoom / 100 * 4))
                     latex = InlineLatex(subchunk.text, font_size)
                     latex_overlay = Gtk.Overlay()
+                    latex_overlay.set_hexpand(False)
                     latex_overlay.add_overlay(latex)
                     spacer = Gtk.Box()
                     spacer.set_size_request(latex.picture.dims[0], latex.picture.dims[1] + 1)
