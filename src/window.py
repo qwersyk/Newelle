@@ -3066,60 +3066,6 @@ class MainWindow(Adw.ApplicationWindow):
                     return str(uuid.uuid4())[:8]
         return str(uuid.uuid4())[:8]  # Fallback for new calls
 
-    def _finalize_show_message(self, box, state, restore, is_user, return_widget):
-        """Finalize message display and handle thread completion."""
-        user_type = "User" if is_user else "Assistant"
-        if not restore and state["tool_call_counter"] > 0:
-            self.stream_tools = True
-        if return_widget:
-            return box
-        self.add_message(user_type, box, state["original_id"], state["editable"])
-
-        # Update lazy_loaded_end when a message is displayed beyond the current range
-        # This handles both new messages (restore=False) and user messages (restore=True but already in chat)
-        if self.lazy_load_enabled:
-            message_index = state["original_id"]
-            # If message is beyond current lazy-loaded range, update the range
-            # This prevents duplicates when show_chat reloads messages
-            if message_index >= self.lazy_loaded_end:
-                self.lazy_loaded_end = message_index + 1
-
-        if not state["has_terminal_command"]:
-            if not restore:
-                self._finalize_message_display()
-                self.chats[self.chat_id]["chat"] = self.chat
-        else:
-            if not restore and not is_user:
-                # Wait for all threads to complete, then send follow-up
-                threads = state["running_threads"]
-                parallel = self.controller.newelle_settings.parallel_tool_execution
-
-                # Capture current stream number
-                current_stream = self.stream_number_variable
-
-                def wait_and_continue(stream=current_stream):
-                    if not parallel:
-                        for t in threads:
-                            t.start()
-                            t.join()
-                    else:
-                        for t in threads:
-                            t.join()
-                    
-                    if self.stream_number_variable != stream:
-                        return
-
-                    if threads and state.get("should_continue", False):
-                        self.send_message(manual=False)
-                    else:
-                        GLib.idle_add(self._finalize_message_display)
-
-                self.chats[self.chat_id]["chat"] = self.chat
-                threading.Thread(target=wait_and_continue).start()
-
-        GLib.idle_add(self.scrolled_chat)
-        self.save_chat()
-        return None
 
     def create_table(self, table):
         """Create a table
@@ -3542,6 +3488,11 @@ class MainWindow(Adw.ApplicationWindow):
             halign=Gtk.Align.FILL,
         )
         self.messages_box.append(box)
+
+        # Update lazy_loaded_end when a message is displayed beyond the current range
+        if self.lazy_load_enabled:
+            if id_message >= self.lazy_loaded_end:
+                self.lazy_loaded_end = id_message + 1
 
         # Create overlay for branch button positioning
         overlay = Gtk.Overlay(hexpand=True, vexpand=True)
