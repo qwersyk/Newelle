@@ -100,6 +100,16 @@ class MyApp(Adw.Application):
           animation-timing-function: ease-in-out;
           animation-iteration-count: infinite;
         }
+
+        /* Chat history row styling */
+        .navigation-sidebar row.chat-row-selected {
+          background-color: alpha(@accent_bg_color, 0.15);
+          border-radius: 6px;
+        }
+        
+        .navigation-sidebar row.chat-row-selected:hover {
+          background-color: alpha(@accent_bg_color, 0.25);
+        }
         '''
         css_provider = Gtk.CssProvider()
         css_provider.load_from_data(css, -1)

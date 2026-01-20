@@ -84,6 +84,7 @@ widgets_sources = [
   'ui/widgets/code_editor.py',
   'ui/widgets/tool.py',
   'ui/widgets/message.py',
+  'ui/widgets/chatrow.py',
 ]
 
 handler_sources = [

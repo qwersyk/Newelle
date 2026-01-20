@@ -24,7 +24,7 @@ from .ui.presentation import PresentationWindow
 from .ui.widgets import File, CopyBox, BarChartBox, MarkupTextView, DocumentReaderWidget, TipsCarousel, BrowserWidget, Terminal, CodeEditorWidget, ToolWidget
 from .ui import apply_css_to_widget, load_image_with_callback
 from .ui.explorer import ExplorerPanel
-from .ui.widgets import MultilineEntry, ProfileRow, DisplayLatex, InlineLatex, ThinkingWidget, Message
+from .ui.widgets import MultilineEntry, ProfileRow, DisplayLatex, InlineLatex, ThinkingWidget, Message, ChatRow
 from .ui.stdout_monitor import StdoutMonitorDialog
 from .utility.stdout_capture import StdoutMonitor
 from .constants import AVAILABLE_LLMS, SCHEMA_ID, SETTINGS_GROUPS
@@ -192,7 +192,7 @@ class MainWindow(Adw.ApplicationWindow):
         self.chats_main_box = Gtk.Box(hexpand_set=True)
         self.chats_main_box.set_size_request(300, -1)
         self.chats_secondary_box = Gtk.Box(
-            orientation=Gtk.Orientation.VERTICAL, hexpand=True
+            orientation=Gtk.Orientation.VERTICAL, hexpand=True, css_classes=["background"]
         )
         self.chat_panel_header = Adw.HeaderBar(
             css_classes=["flat"], show_end_title_buttons=False, show_start_title_buttons=True
@@ -201,27 +201,34 @@ class MainWindow(Adw.ApplicationWindow):
             Gtk.Label(label=_("History"), css_classes=["title"])
         )
         self.chats_secondary_box.append(self.chat_panel_header)
-        self.chats_secondary_box.append(Gtk.Separator())
         self.chat_panel_header.pack_end(menu_button)
-        self.chats_buttons_block = Gtk.ListBox(css_classes=["separators", "background"])
-        self.chats_buttons_block.set_selection_mode(Gtk.SelectionMode.NONE)
+        
+        # Chat list with navigation-sidebar styling for Adwaita look
+        self.chats_buttons_block = Gtk.ListBox(css_classes=["navigation-sidebar"])
+        self.chats_buttons_block.set_selection_mode(Gtk.SelectionMode.SINGLE)
         self.chats_buttons_scroll_block = Gtk.ScrolledWindow(vexpand=True)
         self.chats_buttons_scroll_block.set_policy(
             Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC
         )
         self.chats_buttons_scroll_block.set_child(self.chats_buttons_block)
         self.chats_secondary_box.append(self.chats_buttons_scroll_block)
-        button = Gtk.Button(
+        
+        # New chat button with Adwaita pill style
+        new_chat_button = Gtk.Button(
             valign=Gtk.Align.END,
-            css_classes=["suggested-action"],
-            margin_start=7,
-            margin_end=7,
-            margin_top=7,
-            margin_bottom=7,
+            css_classes=["suggested-action", "pill"],
+            margin_start=12,
+            margin_end=12,
+            margin_top=12,
+            margin_bottom=12,
         )
-        button.set_child(Gtk.Label(label=_("Create a chat")))
-        button.connect("clicked", self.new_chat)
-        self.chats_secondary_box.append(button)
+        new_chat_button_content = Adw.ButtonContent(
+            icon_name="list-add-symbolic",
+            label=_("New Chat"),
+        )
+        new_chat_button.set_child(new_chat_button_content)
+        new_chat_button.connect("clicked", self.new_chat)
+        self.chats_secondary_box.append(new_chat_button)
         self.chats_main_box.append(self.chats_secondary_box)
         self.chats_main_box.append(Gtk.Separator())
         self.main.set_sidebar(Adw.NavigationPage(child=self.chats_main_box, title=_("Chats")))
@@ -1806,97 +1813,61 @@ class MainWindow(Adw.ApplicationWindow):
             self.last_error_box = None
 
     def update_history(self):
-        """Reload chats panel"""
+        """Reload chats panel with Adwaita-styled ChatRow widgets"""
         # Focus input to avoid removing a focused child
         # This avoids scroll up
         self.focus_input()
 
-        # Update UI
-        list_box = Gtk.ListBox(css_classes=["separators", "background"])
-        list_box.set_selection_mode(Gtk.SelectionMode.NONE)
+        # Create new list box with Adwaita navigation sidebar styling
+        list_box = Gtk.ListBox(css_classes=["navigation-sidebar"])
+        list_box.set_selection_mode(Gtk.SelectionMode.SINGLE)
         self.chats_list_box = list_box
         self.chats_buttons_scroll_block.set_child(list_box)
+        
         chat_range = (
             range(len(self.chats)).__reversed__()
             if self.controller.newelle_settings.reverse_order
             else range(len(self.chats))
         )
+        
         for i in chat_range:
-            box = Gtk.Box(
-                spacing=6, margin_top=3, margin_bottom=3, margin_start=3, margin_end=3
-            )
-            stack = Gtk.Stack(transition_type=Gtk.StackTransitionType.SLIDE_UP, transition_duration=100)
-            generate_chat_name_button = Gtk.Button(
-                css_classes=["flat", "accent"],
-                valign=Gtk.Align.CENTER,
-                icon_name="magic-wand-symbolic",
-                width_request=36,
-            )
-            generate_chat_name_button.set_name(str(i))
-            generate_chat_name_button.connect("clicked", self.generate_chat_name)
-            stack.add_named(generate_chat_name_button, "generate")
-
-            edit_chat_name_button = Gtk.Button(
-                css_classes=["flat", "accent"],
-                valign=Gtk.Align.CENTER,
-                icon_name="document-edit-symbolic",
-                width_request=36,
-            )
-            edit_chat_name_button.connect("clicked", self.edit_chat_name, stack)
-            edit_chat_name_button.set_name(str(i))
-            stack.add_named(edit_chat_name_button, "edit")
-            stack.set_visible_child_name("edit")
-
-
-            create_chat_clone_button = Gtk.Button(
-                css_classes=["flat", "success"], valign=Gtk.Align.CENTER
-            )
-            create_chat_clone_button.connect("clicked", self.copy_chat)
-            icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="edit-copy-symbolic"))
-            icon.set_icon_size(Gtk.IconSize.INHERIT)
-            create_chat_clone_button.set_child(icon)
-            create_chat_clone_button.set_name(str(i))
-
-            delete_chat_button = Gtk.Button(
-                css_classes=["error", "flat"], valign=Gtk.Align.CENTER
-            )
-            delete_chat_button.connect("clicked", self.remove_chat)
-            icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="user-trash-symbolic"))
-            icon.set_icon_size(Gtk.IconSize.INHERIT)
-            delete_chat_button.set_child(icon)
-            delete_chat_button.set_name(str(i))
-            button = Gtk.Button(css_classes=["flat"], hexpand=True)
             name = self.chats[i]["name"]
-            if len(name) > 30:
-                # name = name[0:27] + "…"
-                button.set_tooltip_text(name)
-            button.set_child(
-                Gtk.Label(
-                    label=name,
-                    wrap=False,
-                    wrap_mode=Pango.WrapMode.WORD_CHAR,
-                    xalign=0,
-                    ellipsize=Pango.EllipsizeMode.END,
-                    width_chars=22,
-                    single_line_mode=True,
-                )
+            is_selected = (i == self.chat_id)
+            
+            # Create ChatRow widget
+            chat_row = ChatRow(
+                chat_name=name,
+                chat_index=i,
+                is_selected=is_selected
             )
-            button.set_name(str(i))
-
-            if i == self.chat_id:
-                button.connect("clicked", self.return_to_chat_panel)
-                delete_chat_button.set_css_classes([""])
-                delete_chat_button.set_sensitive(False)
-                delete_chat_button.set_can_target(False)
-                delete_chat_button.set_has_frame(False)
-                button.set_has_frame(True)
+            
+            # Connect signals
+            if is_selected:
+                chat_row.connect("activate", lambda row: self.return_to_chat_panel(row))
             else:
-                button.connect("clicked", self.chose_chat)
-            box.append(button)
-            box.append(create_chat_clone_button)
-            box.append(stack)
-            box.append(delete_chat_button)
-            list_box.append(box)
+                chat_row.connect("activate", lambda row: self.chose_chat_from_row(row))
+            
+            chat_row.generate_button.connect("clicked", self.generate_chat_name)
+            chat_row.edit_button.connect("clicked", lambda btn, row=chat_row: self.edit_chat_name(btn, row.get_edit_stack()))
+            chat_row.clone_button.connect("clicked", self.copy_chat)
+            chat_row.delete_button.connect("clicked", self.remove_chat)
+            
+            list_box.append(chat_row)
+            
+            # Select the current chat row
+            if is_selected:
+                list_box.select_row(chat_row)
+    
+    def chose_chat_from_row(self, row):
+        """Handle chat selection from ChatRow activation"""
+        if hasattr(row, 'chat_index'):
+            # Create a mock button with the name set to the chat index
+            class MockButton:
+                def __init__(self, name):
+                    self._name = name
+                def get_name(self):
+                    return self._name
+            self.chose_chat(MockButton(str(row.chat_index)))
 
     def remove_chat(self, button):
         """Remove a chat"""
@@ -1934,29 +1905,35 @@ class MainWindow(Adw.ApplicationWindow):
         if row is None:
             return
             
-        # Get the box containing the buttons
-        box = row.get_child()
-        if box is None:
-            return
-            
-        # Get the chat name button (first child)
-        name_button = box.get_first_child()
-        if name_button is None:
+        # Get the ChatRow's main_box containing the widgets
+        if not hasattr(row, 'main_box') or not hasattr(row, 'name_label'):
             return
             
         # Create an entry to replace the label
         entry = Gtk.Entry()
         entry.set_text(self.chats[chat_index]["name"])
         entry.set_hexpand(True)
-        entry.set_margin_top(3)
-        entry.set_margin_bottom(3)
         
-        # Store original button for restoration
-        original_button = name_button
+        # Store original label for restoration
+        original_label = row.name_label
         
-        # Replace the button with the entry
-        box.remove(name_button)
-        box.prepend(entry)
+        # Find the position of the label in the box and replace it
+        # The label is between the icon and the actions revealer
+        siblings = []
+        child = row.main_box.get_first_child()
+        while child:
+            siblings.append(child)
+            child = child.get_next_sibling()
+        
+        # Find and replace the name_label
+        label_index = siblings.index(original_label) if original_label in siblings else -1
+        if label_index >= 0:
+            row.main_box.remove(original_label)
+            # Insert entry at the same position
+            if label_index == 0:
+                row.main_box.prepend(entry)
+            else:
+                row.main_box.insert_child_after(entry, siblings[label_index - 1])
         
         # Focus the entry
         entry.grab_focus()
