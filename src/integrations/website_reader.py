@@ -22,7 +22,7 @@ class WebsiteReader(NewelleExtension):
         widget = self.get_gtk_widget(url, "website")
         result = ToolResult() 
         def get_answer():
-            out = self.get_article_content(url)
+            out = self.get_article_content(url).get_text()
             result.set_output(out)
         result.set_widget(widget)
         t = threading.Thread(target=get_answer)

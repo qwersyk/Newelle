@@ -40,7 +40,7 @@ class MessageChunk:
 
 # Matches ```lang\ncontent``` (non-greedy content).
 # Relaxed to allow codeblocks that don't end with a newline before the closing fence.
-_CODEBLOCK_PATTERN = re.compile(r'```(\w*)\s*\n(.*?)\n\s*```', re.DOTALL)
+_CODEBLOCK_PATTERN = re.compile(r'```(\w*)\s*\n(.*?)(?:\n\s*```|\Z)', re.DOTALL)
 
 _DISPLAY_LATEX_PATTERN = re.compile(r'(\$\$(.+?)\$\$)|(\\\[(.+?)\\\])', re.DOTALL)
 
@@ -49,7 +49,7 @@ _INLINE_LATEX_PATTERN = re.compile(
     r'\\\((.+?)\\\)'                              
 )
 
-_THINK_PATTERN = re.compile(r'<think>(.*?)</think>', re.DOTALL)
+_THINK_PATTERN = re.compile(r'<think>(.*?)(?:</think>|\Z)', re.DOTALL)
 
 _TOOL_START_PATTERN = re.compile(r'\{\s*"(?:tool|name|function)"\s*:', re.MULTILINE)
 
@@ -422,9 +422,6 @@ def _group_inline_chunks(flat_chunks: List[MessageChunk]) -> List[MessageChunk]:
              merged_flat_chunks[-1].text += "\n" + chunk.text
          elif chunk.type == "text" and chunk.text == "" and merged_flat_chunks and merged_flat_chunks[-1].type == "text":
              merged_flat_chunks[-1].text += "\n"
-         elif chunk.type == "text" and chunk.text == "":
-             if not merged_flat_chunks or merged_flat_chunks[-1].type != "text":
-                  merged_flat_chunks.append(chunk)
          else:
              merged_flat_chunks.append(chunk)
              
@@ -441,44 +438,31 @@ def _group_inline_chunks(flat_chunks: List[MessageChunk]) -> List[MessageChunk]:
             grouped_chunks.append(current_inline_sequence[0])
         current_inline_sequence.clear()
 
-    # Second pass: group into InlineChunks
-    i = 0
-    while i < len(merged_flat_chunks):
-        chunk = merged_flat_chunks[i]
-        append_next = None
-        is_inline_constituent = chunk.type in ("text", "latex_inline")
-
-        if chunk.type == "text":
-            # Heuristic: if next is latex_inline, and text ends with newline, maybe split it?
-            # Replicating original logic: if next is latex_inline, check if text has multiple lines.
-            if i + 1 < len(merged_flat_chunks):
-                next_chunk = merged_flat_chunks[i+1]
-                if next_chunk.type == "latex_inline":
-                    lines = chunk.text.split("\n")
-                    # If we have content lines, keep them in text, put last line as start of inline sequence?
-                    non_empty_lines = [l for l in lines if l != ""]
-                    if len(non_empty_lines) > 1:
-                        # Original logic: "if len([line for line in lines if line != "" ]) > 1"
-                        # It splits off the LAST line into `append_next`.
-                        # The MAIN part (lines[:-1]) is modified in `chunk.text`.
-                        # `is_inline_constituent` becomes False (so the main part is pushed to grouped_chunks immediately).
-                        # `append_next` (the last line) is added to `current_inline_sequence`.
-                        
-                        chunk.text = "\n".join(lines[:-1])
-                        append_next = MessageChunk(type="text", text=lines[-1])
-                        is_inline_constituent = False
-                        
-        if is_inline_constituent:
+    # Second pass: group into InlineChunks, splitting at newlines
+    for chunk in merged_flat_chunks:
+        if chunk.type == "latex_inline":
             current_inline_sequence.append(chunk)
+        elif chunk.type == "text":
+            if "\n" not in chunk.text:
+                current_inline_sequence.append(chunk)
+            else:
+                lines = chunk.text.split("\n")
+                # First segment continues current sequence
+                if lines[0]:
+                    current_inline_sequence.append(MessageChunk(type="text", text=lines[0]))
+                _finalize_sequence()
+                
+                # Intermediate segments are standalone text blocks
+                for line in lines[1:-1]:
+                    grouped_chunks.append(MessageChunk(type="text", text=line))
+                
+                # Last segment starts a new sequence
+                if lines[-1]:
+                    current_inline_sequence.append(MessageChunk(type="text", text=lines[-1]))
         else:
             _finalize_sequence()
             grouped_chunks.append(chunk)
-            
-            if append_next:
-                current_inline_sequence.append(append_next)
-                
-        i += 1
 
     _finalize_sequence()
 
-    return grouped_chunks
+    return [c for c in grouped_chunks if c.type != "text" or c.text != ""]

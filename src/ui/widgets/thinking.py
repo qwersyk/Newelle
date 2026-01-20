@@ -82,12 +82,11 @@ class ThinkingWidget(Gtk.Box):
         GLib.idle_add(self._update_ui_start_thinking, initial_message)
         self.emit('thinking-started')
 
-    def stop_thinking(self, final_title="LLM Thought Process"):
+    def stop_thinking(self, final_title="Thoughts"):
         """Stops the thinking process indication."""
         if not self._is_thinking:
             return # Not thinking
 
-        print("ThinkingWidget: Stopping thinking...")
         self._is_thinking = False
         # Use GLib.idle_add to ensure UI updates happen on the main thread
         GLib.idle_add(self._update_ui_stop_thinking, final_title)
@@ -116,6 +115,8 @@ class ThinkingWidget(Gtk.Box):
         return self._is_thinking
 
     def _update_ui_start_thinking(self, initial_message):
+        if not self.get_display():
+            return GLib.SOURCE_REMOVE
         self.spinner.set_visible(True)
         self.spinner.start()
         self.finished_icon.set_visible(False)  # Hide the finished icon
@@ -126,6 +127,8 @@ class ThinkingWidget(Gtk.Box):
         return GLib.SOURCE_REMOVE 
 
     def _update_ui_stop_thinking(self, final_title):
+        if not self.get_display():
+            return GLib.SOURCE_REMOVE
         self.spinner.stop()
         self.spinner.set_visible(False)
         self.finished_icon.set_visible(True)  # Show the finished icon
@@ -137,6 +140,8 @@ class ThinkingWidget(Gtk.Box):
         return GLib.SOURCE_REMOVE # Remove the idle source
 
     def _update_ui_append_text(self, text):
+        if not self.get_display():
+            return GLib.SOURCE_REMOVE
         end_iter = self.textbuffer.get_end_iter()
         self.textbuffer.insert(end_iter, text, -1)
         # Auto-scroll to the end only if the user hasn't scrolled up manually
@@ -145,6 +150,8 @@ class ThinkingWidget(Gtk.Box):
         return GLib.SOURCE_REMOVE # Remove the idle source
 
     def _update_ui_set_text(self, text):
+        if not self.get_display():
+            return GLib.SOURCE_REMOVE
         self.textbuffer.set_text(text, -1)
         # Scroll to the beginning after setting text
         start_iter = self.textbuffer.get_start_iter()
@@ -153,6 +160,8 @@ class ThinkingWidget(Gtk.Box):
 
     def _scroll_to_end(self):
         """Scrolls the TextView to the end."""
+        if not self.get_display():
+            return
         end_iter = self.textbuffer.get_end_iter()
         # Mark ensures the view scrolls down even if text added rapidly
         end_mark = self.textbuffer.create_mark("end_mark", end_iter, False)
