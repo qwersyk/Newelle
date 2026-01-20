@@ -7,10 +7,11 @@ from gi.repository import Adw, Gtk, Gio, Pango
 class ChatRow(Gtk.ListBoxRow):
     """A chat row widget styled according to Adwaita HIG"""
     
-    def __init__(self, chat_name: str, chat_index: int, is_selected: bool = False):
+    def __init__(self, chat_name: str, chat_index: int, is_selected: bool = False, level: int = 0):
         super().__init__()
         self.chat_index = chat_index
         self.is_selected = is_selected
+        self.level = level
         
         # Process chat name: Remove new lines and limit to 8 words
         processed_name = chat_name.replace("\n", " ").strip()
@@ -41,12 +42,13 @@ class ChatRow(Gtk.ListBoxRow):
             display_name = processed_name
 
         # Create main container
+        margin_start = 12 + (level * 20)
         self.main_box = Gtk.Box(
             orientation=Gtk.Orientation.HORIZONTAL,
             spacing=6,
             margin_top=6,
             margin_bottom=6,
-            margin_start=12,
+            margin_start=margin_start,
             margin_end=6,
         )
         self.set_child(self.main_box)

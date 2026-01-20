@@ -90,6 +90,14 @@ class MainWindow(Adw.ApplicationWindow):
         # Set basic vars
         self.path = self.controller.config_dir
         self.chats = self.controller.chats
+        
+        # Ensure all chats have unique IDs and handle branching fields
+        for chat_entry in self.chats:
+            if "id" not in chat_entry:
+                chat_entry["id"] = str(uuid.uuid4())
+            if "branched_from" not in chat_entry:
+                chat_entry["branched_from"] = None
+        
         self.chat = self.controller.chat
         # RAG Indexes to documents for each chat
         self.chat_documents_index = {}
@@ -1806,10 +1814,42 @@ class MainWindow(Adw.ApplicationWindow):
             self.chat_list_block.remove(error_row)
             self.last_error_box = None
 
+            list_box.append(chat_row)
+            
+    def create_branch(self, message_id: int):
+        """Create a new chat branching from a specific message ID in the current chat"""
+        if self.chat_id < 0 or self.chat_id >= len(self.chats):
+            return
+            
+        parent_chat = self.chats[self.chat_id]
+        parent_id = parent_chat.get("id")
+        
+        # Copy messages up to message_id (inclusive)
+        branched_messages = parent_chat["chat"][:message_id + 1]
+        
+        new_chat_entry = {
+            "name": parent_chat["name"],
+            "chat": copy.deepcopy(branched_messages),
+            "id": str(uuid.uuid4()),
+            "branched_from": parent_id
+        }
+        
+        # Insert the new chat after the parent (or at the end if we want)
+        # For now, append to the end and let update_history handle the ordering
+        self.chats.append(new_chat_entry)
+        
+        # Switch to the new chat
+        self.chat_id = len(self.chats) - 1
+        self.chat = self.chats[self.chat_id]["chat"]
+        
+        self.save_chat()
+        self.update_history()
+        self.show_chat(animate=True)
+        GLib.idle_add(self.update_button_text)
+
     def update_history(self):
-        """Reload chats panel with Adwaita-styled ChatRow widgets"""
+        """Reload chats panel with Adwaita-styled ChatRow widgets, supporting branching hierarchy"""
         # Focus input to avoid removing a focused child
-        # This avoids scroll up
         self.focus_input()
 
         # Create new list box with Adwaita navigation sidebar styling
@@ -1820,36 +1860,60 @@ class MainWindow(Adw.ApplicationWindow):
         
         list_box.connect("row-activated", self.on_chat_row_activated)
         
-        chat_range = (
-            range(len(self.chats)).__reversed__()
-            if self.controller.newelle_settings.reverse_order
-            else range(len(self.chats))
-        )
+        # Build hierarchy map
+        id_to_index = {chat.get("id"): i for i, chat in enumerate(self.chats)}
+        children_map = {}
+        top_level_indices = []
         
-        for i in chat_range:
-            name = self.chats[i]["name"]
-            is_selected = (i == self.chat_id)
+        for i, chat in enumerate(self.chats):
+            parent_id = chat.get("branched_from")
+            if parent_id and parent_id in id_to_index:
+                if parent_id not in children_map:
+                    children_map[parent_id] = []
+                children_map[parent_id].append(i)
+            else:
+                top_level_indices.append(i)
+        
+        # Handle reverse order if needed for top-level chats
+        if self.controller.newelle_settings.reverse_order:
+            top_level_indices.reverse()
             
-            # Create ChatRow widget
+        def add_chat_recursive(index, level=0):
+            chat_entry = self.chats[index]
+            name = chat_entry["name"]
+            is_selected = (index == self.chat_id)
+            
+            # Create ChatRow widget with indentation level
             chat_row = ChatRow(
                 chat_name=name,
-                chat_index=i,
-                is_selected=is_selected
+                chat_index=index,
+                is_selected=is_selected,
+                level=level
             )
             
             # Connect signals
             chat_row.connect_signals(
                 on_generate=self.generate_chat_name,
-                on_edit= lambda btn, row=chat_row: self.edit_chat_name(btn, row.get_edit_stack()),
+                on_edit=lambda btn, row=chat_row: self.edit_chat_name(btn, row.get_edit_stack()),
                 on_clone=self.copy_chat,
                 on_delete=self.remove_chat
             ) 
             
             list_box.append(chat_row)
-            
-            # Select the current chat row
             if is_selected:
                 list_box.select_row(chat_row)
+                
+            # Add offspring
+            chat_id = chat_entry.get("id")
+            if chat_id in children_map:
+                # Keep children in the same order as they appear in self.chats (chronological)
+                # unless specifically reversed, but usually branches are chronological
+                children = children_map[chat_id]
+                for child_index in children:
+                    add_chat_recursive(child_index, level + 1)
+        
+        for i in top_level_indices:
+            add_chat_recursive(i)
     
     def on_chat_row_activated(self, listbox, row):
         """Handle chat row activation to switch chats"""
@@ -3354,6 +3418,14 @@ class MainWindow(Adw.ApplicationWindow):
         apply_box.append(apply_button)
         apply_box.append(cancel_button)
 
+        branch_button = Gtk.Button(
+            icon_name="branch-symbolic",
+            css_classes=["flat", "warning"],
+            valign=Gtk.Align.CENTER,
+            name=id,
+        )
+        branch_button.connect("clicked", lambda box: self.create_branch(int(id)))
+        buttons_box.append(branch_button)
         # Edit box
         button = Gtk.Button(
             icon_name="document-edit-symbolic",
