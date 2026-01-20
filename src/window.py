@@ -227,6 +227,7 @@ class MainWindow(Adw.ApplicationWindow):
         self.main.set_sidebar(Adw.NavigationPage(child=self.chats_main_box, title=_("Chats")))
         self.main.set_content(Adw.NavigationPage(child=self.chat_panel, title=_("Chat")))
         self.main.set_show_sidebar(not self.settings.get_boolean("hide-history-on-launch"))
+        self.main.set_name("visible" if self.main.get_show_sidebar() else "hide")
         self.main.connect("notify::show-sidebar", lambda x, _ : self.left_panel_toggle_button.set_active(self.main.get_show_sidebar()))
         # Canvas panel
         self.build_canvas()
@@ -440,8 +441,12 @@ class MainWindow(Adw.ApplicationWindow):
         self.input_panel.set_on_enter(self.on_entry_activate)
         self.send_button.connect("clicked", self.on_entry_button_clicked)
         self.main.connect("notify::show-sidebar", self.handle_main_block_change)
+        self.main.connect("notify::collapsed", self.handle_main_block_change)
         self.main_program_block.connect(
             "notify::show-sidebar", self.handle_second_block_change
+        )
+        self.main_program_block.connect(
+            "notify::collapsed", self.handle_second_block_change
         )
 
         def build_model_popup():
@@ -1547,8 +1552,10 @@ class MainWindow(Adw.ApplicationWindow):
     # Flap management
     def on_chat_panel_toggled(self, button: Gtk.ToggleButton):
         if button.get_active():
+            self.main.set_name("visible")
             self.main.set_show_sidebar(True)
         else:
+            self.main.set_name("hide")
             self.main.set_show_sidebar(False)
    
     def return_to_chat_panel(self, button):
@@ -1558,10 +1565,13 @@ class MainWindow(Adw.ApplicationWindow):
     def handle_second_block_change(self, *a):
         """Handle flaps reveal/hide"""
         status = self.main_program_block.get_show_sidebar()
-        if self.main_program_block.get_name() == "hide" and status:
+        name = self.main_program_block.get_name()
+        collapsed = self.main_program_block.get_collapsed()
+
+        if name == "hide" and status:
             self.main_program_block.set_show_sidebar(False)
             return True
-        elif (self.main_program_block.get_name() == "visible") and (not status):
+        elif name == "visible" and not status and not collapsed:
             self.main_program_block.set_show_sidebar(True)
             return True
         status = self.main_program_block.get_show_sidebar()
@@ -1584,15 +1594,12 @@ class MainWindow(Adw.ApplicationWindow):
     def on_flap_button_toggled(self, toggle_button: Gtk.ToggleButton):
         """Handle flap button toggle"""
         self.focus_input()
-        self.flap_button_left.set_active(True)
-        if self.main_program_block.get_name() == "visible":
-            self.main_program_block.set_name("hide")
-            self.main_program_block.set_show_sidebar(False)
-            toggle_button.set_active(False)
-        else:
+        if toggle_button.get_active():
             self.main_program_block.set_name("visible")
             self.main_program_block.set_show_sidebar(True)
-            toggle_button.set_active(True)
+        else:
+            self.main_program_block.set_name("hide")
+            self.main_program_block.set_show_sidebar(False)
 
     # UI Functions for chat management
     def send_button_start_spinner(self):
@@ -1731,6 +1738,15 @@ class MainWindow(Adw.ApplicationWindow):
         self.hide_placeholder()
 
     def handle_main_block_change(self, *data):
+        status = self.main.get_show_sidebar()
+        name = self.main.get_name()
+        collapsed = self.main.get_collapsed()
+
+        if name == "hide" and status:
+            self.main.set_show_sidebar(False)
+        elif name == "visible" and not status and not collapsed:
+            self.main.set_show_sidebar(True)
+
         if self.main.get_show_sidebar():
             self.chat_panel_header.set_show_end_title_buttons(
                 not self.main_program_block.get_show_sidebar()
