@@ -1,8 +1,7 @@
 """Chat row widget for Adwaita-styled chat history"""
 import gettext
+import unicodedata
 from gi.repository import Adw, Gtk, Gio, Pango
-
-_ = gettext.gettext
 
 
 class ChatRow(Gtk.ListBoxRow):
@@ -11,9 +10,36 @@ class ChatRow(Gtk.ListBoxRow):
     def __init__(self, chat_name: str, chat_index: int, is_selected: bool = False):
         super().__init__()
         self.chat_index = chat_index
-        self.chat_name = chat_name
         self.is_selected = is_selected
         
+        # Process chat name: Remove new lines and limit to 8 words
+        processed_name = chat_name.replace("\n", " ").strip()
+        words = processed_name.split()
+        if len(words) > 8:
+            processed_name = " ".join(words[:8]) + "..."
+        else:
+            processed_name = " ".join(words)
+        
+        self.chat_name = processed_name
+        
+        # Check for emoji/symbol at the beginning using unicodedata
+        first_emoji = None
+        if processed_name:
+            first_char = processed_name[0]
+            # 'So' is Symbol, Other (includes most emojis)
+            # We also check if it's high-surrogate or special char by looking at category
+            if unicodedata.category(first_char) in ["So", "Sk"]:
+                first_emoji = first_char
+                display_name = processed_name[1:].strip()
+                # Handle cases where the symbol might be multi-character/combined
+                # (Simple approach: just take the first code point for now as is common)
+                if not display_name and len(words) > 1:
+                    display_name = processed_name
+            else:
+                display_name = processed_name
+        else:
+            display_name = processed_name
+
         # Create main container
         self.main_box = Gtk.Box(
             orientation=Gtk.Orientation.HORIZONTAL,
@@ -26,19 +52,24 @@ class ChatRow(Gtk.ListBoxRow):
         self.set_child(self.main_box)
         
         # Chat icon/indicator
-        self.chat_icon = Gtk.Image.new_from_icon_name("user-available-symbolic")
+        if first_emoji:
+            self.chat_icon = Gtk.Label(label=first_emoji)
+            self.chat_icon.set_size_request(16, 16)
+        else:
+            self.chat_icon = Gtk.Image.new_from_icon_name("chat-bubbles-text-symbolic")
+        
         self.chat_icon.add_css_class("dim-label")
         self.main_box.append(self.chat_icon)
         
         # Chat name label
         self.name_label = Gtk.Label(
-            label=chat_name,
+            label=display_name,
             xalign=0,
             hexpand=True,
             ellipsize=Pango.EllipsizeMode.END,
             max_width_chars=30,
         )
-        if len(chat_name) > 30:
+        if chat_name != display_name:
             self.set_tooltip_text(chat_name)
         self.main_box.append(self.name_label)
         
@@ -67,7 +98,7 @@ class ChatRow(Gtk.ListBoxRow):
         # Generate name button
         self.generate_button = Gtk.Button(
             icon_name="magic-wand-symbolic",
-            css_classes=["flat", "circular"],
+            css_classes=["flat", "circular", "success"],
             valign=Gtk.Align.CENTER,
             tooltip_text=_("Generate name"),
         )
@@ -77,7 +108,7 @@ class ChatRow(Gtk.ListBoxRow):
         # Edit name button
         self.edit_button = Gtk.Button(
             icon_name="document-edit-symbolic",
-            css_classes=["flat", "circular"],
+            css_classes=["flat", "circular", "success"],
             valign=Gtk.Align.CENTER,
             tooltip_text=_("Edit name"),
         )
@@ -88,7 +119,7 @@ class ChatRow(Gtk.ListBoxRow):
         # Clone button
         self.clone_button = Gtk.Button(
             icon_name="edit-copy-symbolic",
-            css_classes=["flat", "circular"],
+            css_classes=["flat", "circular", "accent"],
             valign=Gtk.Align.CENTER,
             tooltip_text=_("Duplicate chat"),
         )
@@ -98,7 +129,7 @@ class ChatRow(Gtk.ListBoxRow):
         # Delete button
         self.delete_button = Gtk.Button(
             icon_name="user-trash-symbolic",
-            css_classes=["flat", "circular"],
+            css_classes=["flat", "circular", "error"],
             valign=Gtk.Align.CENTER,
             tooltip_text=_("Delete chat"),
         )
@@ -108,7 +139,8 @@ class ChatRow(Gtk.ListBoxRow):
         # Apply selected styling
         if is_selected:
             self.add_css_class("chat-row-selected")
-            self.chat_icon.set_from_icon_name("chat-symbolic")
+            if isinstance(self.chat_icon, Gtk.Image):
+                self.chat_icon.set_from_icon_name("chat-bubbles-text-symbolic")
             self.chat_icon.remove_css_class("dim-label")
             self.chat_icon.add_css_class("accent")
             self.name_label.add_css_class("heading")
@@ -144,12 +176,9 @@ class ChatRow(Gtk.ListBoxRow):
         """Get the edit/generate stack for external control"""
         return self.edit_stack
     
-    def connect_signals(self, on_select, on_generate, on_edit, on_clone, on_delete):
+    def connect_signals(self, on_generate, on_edit, on_clone, on_delete):
         """Connect all signal handlers"""
-        # For selected chat, just return to panel
-        # For non-selected chats, handle selection
-        self.connect("activate", on_select)
         self.generate_button.connect("clicked", on_generate)
-        self.edit_button.connect("clicked", lambda btn: on_edit(btn, self.edit_stack))
+        self.edit_button.connect("clicked", on_edit)
         self.clone_button.connect("clicked", on_clone)
         self.delete_button.connect("clicked", on_delete)

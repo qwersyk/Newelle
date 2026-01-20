@@ -1,3 +1,4 @@
+from select import select
 from tldextract.tldextract import update
 from pylatexenc.latex2text import LatexNodes2Text
 import time
@@ -10,25 +11,20 @@ import json
 import base64
 import copy
 import uuid 
-import inspect 
 import gettext
 import datetime
 from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject, GLib, GdkPixbuf
 
 from .ui.settings import Settings
 
-from .utility.message_chunk import get_message_chunks
-
 from .ui.profile import ProfileDialog
 from .ui.presentation import PresentationWindow
 from .ui.widgets import File, CopyBox, BarChartBox, MarkupTextView, DocumentReaderWidget, TipsCarousel, BrowserWidget, Terminal, CodeEditorWidget, ToolWidget
-from .ui import apply_css_to_widget, load_image_with_callback
 from .ui.explorer import ExplorerPanel
 from .ui.widgets import MultilineEntry, ProfileRow, DisplayLatex, InlineLatex, ThinkingWidget, Message, ChatRow
 from .ui.stdout_monitor import StdoutMonitorDialog
 from .utility.stdout_capture import StdoutMonitor
 from .constants import AVAILABLE_LLMS, SCHEMA_ID, SETTINGS_GROUPS
-from .tools import ToolResult
 from .utility.system import get_spawn_command, open_website
 from .utility.strings import (
     clean_bot_response,
@@ -51,8 +47,6 @@ from .handlers import ErrorSeverity
 from .controller import NewelleController, ReloadType
 from .ui_controller import UIController
 
-# Add gettext function
-_ = gettext.gettext
 
 class MainWindow(Adw.ApplicationWindow):
     def __init__(self, *args, **kwargs):
@@ -1824,6 +1818,8 @@ class MainWindow(Adw.ApplicationWindow):
         self.chats_list_box = list_box
         self.chats_buttons_scroll_block.set_child(list_box)
         
+        list_box.connect("row-activated", self.on_chat_row_activated)
+        
         chat_range = (
             range(len(self.chats)).__reversed__()
             if self.controller.newelle_settings.reverse_order
@@ -1842,15 +1838,12 @@ class MainWindow(Adw.ApplicationWindow):
             )
             
             # Connect signals
-            if is_selected:
-                chat_row.connect("activate", lambda row: self.return_to_chat_panel(row))
-            else:
-                chat_row.connect("activate", lambda row: self.chose_chat_from_row(row))
-            
-            chat_row.generate_button.connect("clicked", self.generate_chat_name)
-            chat_row.edit_button.connect("clicked", lambda btn, row=chat_row: self.edit_chat_name(btn, row.get_edit_stack()))
-            chat_row.clone_button.connect("clicked", self.copy_chat)
-            chat_row.delete_button.connect("clicked", self.remove_chat)
+            chat_row.connect_signals(
+                on_generate=self.generate_chat_name,
+                on_edit= lambda btn, row=chat_row: self.edit_chat_name(btn, row.get_edit_stack()),
+                on_clone=self.copy_chat,
+                on_delete=self.remove_chat
+            ) 
             
             list_box.append(chat_row)
             
@@ -1858,17 +1851,16 @@ class MainWindow(Adw.ApplicationWindow):
             if is_selected:
                 list_box.select_row(chat_row)
     
-    def chose_chat_from_row(self, row):
-        """Handle chat selection from ChatRow activation"""
-        if hasattr(row, 'chat_index'):
-            # Create a mock button with the name set to the chat index
-            class MockButton:
-                def __init__(self, name):
-                    self._name = name
-                def get_name(self):
-                    return self._name
-            self.chose_chat(MockButton(str(row.chat_index)))
-
+    def on_chat_row_activated(self, listbox, row):
+        """Handle chat row activation to switch chats"""
+        if not hasattr(row, 'chat_index'):
+            return
+            
+        if row.chat_index == self.chat_id:
+            self.return_to_chat_panel(row)
+        else:
+            self.chose_chat(row.chat_index)
+    
     def remove_chat(self, button):
         """Remove a chat"""
         if int(button.get_name()) < self.chat_id:
@@ -1971,14 +1963,14 @@ class MainWindow(Adw.ApplicationWindow):
         )
         self.update_history()
 
-    def chose_chat(self, button, *a):
+    def chose_chat(self, id, *a):
         """Switch to another chat"""
         self.return_to_chat_panel(None)
         if not self.status:
             self.stop_chat()
         self.stream_number_variable += 1
         old_chat_id = self.chat_id
-        self.chat_id = int(button.get_name())
+        self.chat_id = int(id)
         self.chat = self.chats[self.chat_id]["chat"]
         # Change profile 
         if self.controller.newelle_settings.remember_profile and "profile" in self.chats[self.chat_id]:
