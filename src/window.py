@@ -67,6 +67,7 @@ class MainWindow(Adw.ApplicationWindow):
         self.model_loading_status = False
         self.last_generation_time = None
         self.last_token_num = None
+        self.last_update = 0
         # Breakpoint - Collapse the sidebar when the window is too narrow
         breakpoint = Adw.Breakpoint(condition=Adw.BreakpointCondition.new_length(Adw.BreakpointConditionLengthType.MAX_WIDTH, 1000, Adw.LengthUnit.PX))
         breakpoint.add_setter(self.main_program_block, "collapsed", True)
@@ -2580,7 +2581,9 @@ class MainWindow(Adw.ApplicationWindow):
         if self.stream_number_variable != stream_number_variable:
             return
 
-        GLib.idle_add(self.refresh_streaming_ui, message, stream_number_variable)
+        if time.time() - self.last_update >= 0.1:
+            self.last_update = time.time()
+            GLib.idle_add(self.refresh_streaming_ui, message, stream_number_variable)
 
     def refresh_streaming_ui(self, message, stream_number_variable):
         """Update the UI with the latest streamed content (main thread)"""
@@ -3418,6 +3421,7 @@ class MainWindow(Adw.ApplicationWindow):
         apply_box.append(apply_button)
         apply_box.append(cancel_button)
 
+        # Edit box
         branch_button = Gtk.Button(
             icon_name="branch-symbolic",
             css_classes=["flat", "warning"],
@@ -3425,8 +3429,6 @@ class MainWindow(Adw.ApplicationWindow):
             name=id,
         )
         branch_button.connect("clicked", lambda box: self.create_branch(int(id)))
-        buttons_box.append(branch_button)
-        # Edit box
         button = Gtk.Button(
             icon_name="document-edit-symbolic",
             css_classes=["flat", "success"],
@@ -3443,7 +3445,8 @@ class MainWindow(Adw.ApplicationWindow):
             name=id,
         )
         remove_button.connect("clicked", self.delete_message, box)
-        edit_box.append(button)
+        buttons_box.append(button)
+        edit_box.append(branch_button)
         edit_box.append(remove_button)
         buttons_box.append(edit_box)
         if has_prompt:
