@@ -2797,12 +2797,20 @@ class MainWindow(Adw.ApplicationWindow):
             margin_end=10,
             halign=Gtk.Align.START,
         )
-        
+
+        # Create overlay for branch button positioning
+        overlay = Gtk.Overlay(hexpand=True, vexpand=True)
+        wrapper_box.append(overlay)
+
+        # Create content box to hold message content (horizontal layout)
+        inner_content_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, hexpand=True, vexpand=True)
+        overlay.set_child(inner_content_box)
+
         # Create edit controls if editable
         stack = None
         apply_edit_stack = None
         if editable:
-            apply_edit_stack = self.build_edit_box(wrapper_box, str(id_message))
+            apply_edit_stack, branch_button = self.build_edit_box(wrapper_box, str(id_message))
             evk = Gtk.GestureClick.new()
             evk.connect("pressed", self.edit_message, wrapper_box, apply_edit_stack)
             evk.set_name(str(id_message))
@@ -2810,10 +2818,18 @@ class MainWindow(Adw.ApplicationWindow):
             wrapper_box.add_controller(evk)
             ev = Gtk.EventControllerMotion.new()
             stack = Gtk.Stack()
-            ev.connect("enter", lambda x, y, data: stack.set_visible_child_name("edit"))
-            ev.connect("leave", lambda data: stack.set_visible_child_name("label"))
+            ev.connect("enter", lambda x, y, data: (stack.set_visible_child_name("edit"), branch_button.set_visible(True)))
+            ev.connect("leave", lambda data: (stack.set_visible_child_name("label"), branch_button.set_visible(False)))
             wrapper_box.add_controller(ev)
-        
+
+            # Add branch button to overlay (bottom right positioning)
+            branch_button.set_visible(False)
+            branch_button.set_halign(Gtk.Align.END)
+            branch_button.set_valign(Gtk.Align.END)
+            branch_button.set_margin_end(10)
+            branch_button.set_margin_bottom(10)
+            overlay.add_overlay(branch_button)
+
         # Add user label
         if user_type == "User":
             label = Gtk.Label(
@@ -2828,9 +2844,9 @@ class MainWindow(Adw.ApplicationWindow):
                 stack.add_named(label, "label")
                 stack.add_named(apply_edit_stack, "edit")
                 stack.set_visible_child_name("label")
-                wrapper_box.append(stack)
+                inner_content_box.append(stack)
             else:
-                wrapper_box.append(label)
+                inner_content_box.append(label)
             wrapper_box.set_css_classes(["card", "user"])
         elif user_type == "Assistant":
             label = Gtk.Label(
@@ -2847,12 +2863,12 @@ class MainWindow(Adw.ApplicationWindow):
                 stack.add_named(label, "label")
                 stack.add_named(apply_edit_stack, "edit")
                 stack.set_visible_child_name("label")
-                wrapper_box.append(stack)
+                inner_content_box.append(stack)
             else:
-                wrapper_box.append(label)
+                inner_content_box.append(label)
             wrapper_box.set_css_classes(["card", "assistant"])
         elif user_type == "File":
-            wrapper_box.append(
+            inner_content_box.append(
                 Gtk.Label(
                     label=self.controller.newelle_settings.username + ": ",
                     margin_top=10,
@@ -2864,7 +2880,7 @@ class MainWindow(Adw.ApplicationWindow):
             )
             wrapper_box.set_css_classes(["card", "file"])
         elif user_type == "Folder":
-            wrapper_box.append(
+            inner_content_box.append(
                 Gtk.Label(
                     label=self.controller.newelle_settings.username + ": ",
                     margin_top=10,
@@ -2875,10 +2891,10 @@ class MainWindow(Adw.ApplicationWindow):
                 )
             )
             wrapper_box.set_css_classes(["card", "folder"])
-        
+
         # Add content
-        wrapper_box.append(content_box)
-        
+        inner_content_box.append(content_box)
+
         return wrapper_box
 
     def _load_newer_messages(self):
@@ -3165,7 +3181,14 @@ class MainWindow(Adw.ApplicationWindow):
             )
             return False
 
-        old_message = box.get_last_child()
+        overlay = box.get_first_child()
+        if overlay is None:
+            return
+        content_box = overlay.get_child()
+        if content_box is None:
+            return
+
+        old_message = content_box.get_last_child()
         if old_message is None:
             return
 
@@ -3186,8 +3209,8 @@ class MainWindow(Adw.ApplicationWindow):
         entry.set_on_enter(
             lambda entry: self.apply_edit_message(gesture, box, apply_edit_stack)
         )
-        box.remove(old_message)
-        box.append(entry)
+        content_box.remove(old_message)
+        content_box.append(entry)
 
     def reload_message(self, message_id: int):
         """Reload a message
@@ -3200,11 +3223,17 @@ class MainWindow(Adw.ApplicationWindow):
         if self.chat[message_id]["User"] == "Console":
             return
         message_box = self.messages_box[message_id + 1]  # +1 to fix message warning
-        old_label = message_box.get_last_child()
+        overlay = message_box.get_first_child()
+        if overlay is None:
+            return
+        content_box = overlay.get_child()
+        if content_box is None:
+            return
+        old_label = content_box.get_last_child()
         if old_label is not None:
 
-            message_box.remove(old_label)
-            message_box.append(
+            content_box.remove(old_label)
+            content_box.append(
                 self.show_message(
                     self.chat[message_id]["Message"],
                     id_message=message_id,
@@ -3229,11 +3258,18 @@ class MainWindow(Adw.ApplicationWindow):
             self.delete_message(gesture, box)
             return
 
+        overlay = box.get_first_child()
+        if overlay is None:
+            return
+        content_box = overlay.get_child()
+        if content_box is None:
+            return
+
         apply_edit_stack.set_visible_child_name("edit")
         self.chat[int(gesture.get_name())]["Message"] = entry.get_text()
         self.save_chat()
-        box.remove(entry)
-        box.append(
+        content_box.remove(entry)
+        content_box.append(
             self.show_message(
                 entry.get_text(),
                 restore=True,
@@ -3254,9 +3290,17 @@ class MainWindow(Adw.ApplicationWindow):
         """
         entry = self.edit_entries[int(gesture.get_name())]
         self.focus_input()
+
+        overlay = box.get_first_child()
+        if overlay is None:
+            return
+        content_box = overlay.get_child()
+        if content_box is None:
+            return
+
         apply_edit_stack.set_visible_child_name("edit")
-        box.remove(entry)
-        box.append(
+        content_box.remove(entry)
+        content_box.append(
             self.show_message(
                 self.chat[int(gesture.get_name())]["Message"],
                 restore=True,
@@ -3390,7 +3434,7 @@ class MainWindow(Adw.ApplicationWindow):
             id (): id of the message
 
         Returns:
-            Gtk.Stack
+            tuple: (Gtk.Stack, Gtk.Button branch_button)
         """
         edit_box = Gtk.Box()
         buttons_box = Gtk.Box(
@@ -3421,14 +3465,18 @@ class MainWindow(Adw.ApplicationWindow):
         apply_box.append(apply_button)
         apply_box.append(cancel_button)
 
-        # Edit box
+        # Branch button (overlay)
         branch_button = Gtk.Button(
             icon_name="branch-symbolic",
             css_classes=["flat", "warning"],
-            valign=Gtk.Align.CENTER,
+            valign=Gtk.Align.END,
+            halign=Gtk.Align.END,
             name=id,
         )
-        branch_button.connect("clicked", lambda box: self.create_branch(int(id)))
+        branch_button.set_tooltip_text("Branch chat")
+        branch_button.connect("clicked", lambda btn: self.create_branch(int(id)))
+
+        # Edit box
         button = Gtk.Button(
             icon_name="document-edit-symbolic",
             css_classes=["flat", "success"],
@@ -3445,8 +3493,7 @@ class MainWindow(Adw.ApplicationWindow):
             name=id,
         )
         remove_button.connect("clicked", self.delete_message, box)
-        buttons_box.append(button)
-        edit_box.append(branch_button)
+        edit_box.append(button)
         edit_box.append(remove_button)
         buttons_box.append(edit_box)
         if has_prompt:
@@ -3472,7 +3519,7 @@ class MainWindow(Adw.ApplicationWindow):
         apply_edit_stack.add_named(apply_box, "apply")
         apply_edit_stack.add_named(buttons_box, "edit")
         apply_edit_stack.set_visible_child_name("edit")
-        return apply_edit_stack
+        return apply_edit_stack, branch_button
 
     def add_message(self, user, message=None, id_message=0, editable=False):
         """Add a message to the chat and return the box
@@ -3495,9 +3542,18 @@ class MainWindow(Adw.ApplicationWindow):
             halign=Gtk.Align.FILL,
         )
         self.messages_box.append(box)
+
+        # Create overlay for branch button positioning
+        overlay = Gtk.Overlay(hexpand=True, vexpand=True)
+        box.append(overlay)
+
+        # Create content box to hold message content (horizontal layout)
+        content_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, hexpand=True, vexpand=True)
+        overlay.set_child(content_box)
+
         # Create edit controls
         if editable:
-            apply_edit_stack = self.build_edit_box(box, str(id_message), user == "Assistant")
+            apply_edit_stack, branch_button = self.build_edit_box(box, str(id_message), user == "Assistant")
             evk = Gtk.GestureClick.new()
             evk.connect("pressed", self.edit_message, box, apply_edit_stack)
             evk.set_name(str(id_message))
@@ -3506,9 +3562,17 @@ class MainWindow(Adw.ApplicationWindow):
             ev = Gtk.EventControllerMotion.new()
 
             stack = Gtk.Stack()
-            ev.connect("enter", lambda x, y, data: stack.set_visible_child_name("edit"))
-            ev.connect("leave", lambda data: stack.set_visible_child_name("label"))
+            ev.connect("enter", lambda x, y, data: (stack.set_visible_child_name("edit"), branch_button.set_visible(True)))
+            ev.connect("leave", lambda data: (stack.set_visible_child_name("label"), branch_button.set_visible(False)))
             box.add_controller(ev)
+
+            # Add branch button to overlay (bottom right positioning)
+            branch_button.set_visible(False)
+            branch_button.set_halign(Gtk.Align.END)
+            branch_button.set_valign(Gtk.Align.END)
+            branch_button.set_margin_end(10)
+            branch_button.set_margin_bottom(10)
+            overlay.add_overlay(branch_button)
 
         if user == "User":
             label = Gtk.Label(
@@ -3523,9 +3587,9 @@ class MainWindow(Adw.ApplicationWindow):
                 stack.add_named(label, "label")
                 stack.add_named(apply_edit_stack, "edit")
                 stack.set_visible_child_name("label")
-                box.append(stack)
+                content_box.append(stack)
             else:
-                box.append(label)
+                content_box.append(label)
             box.set_css_classes(["card", "user"])
         if user == "Assistant":
             label = Gtk.Label(
@@ -3542,12 +3606,12 @@ class MainWindow(Adw.ApplicationWindow):
                 stack.add_named(label, "label")
                 stack.add_named(apply_edit_stack, "edit")
                 stack.set_visible_child_name("label")
-                box.append(stack)
+                content_box.append(stack)
             else:
-                box.append(label)
+                content_box.append(label)
             box.set_css_classes(["card", "assistant"])
         if user == "Done":
-            box.append(
+            content_box.append(
                 Gtk.Label(
                     label="Assistant: ",
                     margin_top=10,
@@ -3559,7 +3623,7 @@ class MainWindow(Adw.ApplicationWindow):
             )
             box.set_css_classes(["card", "done"])
         if user == "Error":
-            box.append(
+            content_box.append(
                 Gtk.Label(
                     label="Error: ",
                     margin_top=10,
@@ -3571,7 +3635,7 @@ class MainWindow(Adw.ApplicationWindow):
             )
             box.set_css_classes(["card", "failed"])
         if user == "File":
-            box.append(
+            content_box.append(
                 Gtk.Label(
                     label=self.controller.newelle_settings.username + ": ",
                     margin_top=10,
@@ -3583,7 +3647,7 @@ class MainWindow(Adw.ApplicationWindow):
             )
             box.set_css_classes(["card", "file"])
         if user == "Folder":
-            box.append(
+            content_box.append(
                 Gtk.Label(
                     label=self.controller.newelle_settings.username + ": ",
                     margin_top=10,
@@ -3620,7 +3684,7 @@ class MainWindow(Adw.ApplicationWindow):
             )
 
             box_warning.append(label)
-            box.append(box_warning)
+            content_box.append(box_warning)
             box.set_halign(Gtk.Align.CENTER)
             box.set_css_classes(["card", "message-warning"])
         elif user == "Disclaimer":
@@ -3649,11 +3713,11 @@ class MainWindow(Adw.ApplicationWindow):
             )
 
             box_warning.append(label)
-            box.append(box_warning)
+            content_box.append(box_warning)
             box.set_halign(Gtk.Align.CENTER)
             box.set_css_classes(["card"])
         elif message is not None:
-            box.append(message)
+            content_box.append(message)
         self.chat_list_block.append(box)
         return box
 
