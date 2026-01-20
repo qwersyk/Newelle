@@ -40,7 +40,7 @@ class InlineLatex(Gtk.Box):
         self.color = self.get_style_context().get_color()
         self.latex = latex
         self.size = size
-        self.picture = LatexCanvas(latex, self.size, self.color, inline=True)
+        self.picture = LatexCanvas(latex, self.size+1, self.color, inline=True)
         if self.picture.dims[0] > 300:
             scroll = Gtk.ScrolledWindow(vscrollbar_policy=Gtk.PolicyType.NEVER, propagate_natural_height=True, hscrollbar_policy=Gtk.PolicyType.AUTOMATIC, propagate_natural_width=True)
             scroll.set_child(self.picture)

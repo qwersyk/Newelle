@@ -188,7 +188,6 @@ class Message(Gtk.Box):
     # --- Process Methods (Copied & Adapted from window.py) ---
 
     def _process_text(self, chunk, box):
-        if chunk.text == ".": return
         box.append(Gtk.Label(
             label=markwon_to_pango(chunk.text),
             wrap=True,
