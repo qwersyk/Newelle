@@ -2037,6 +2037,7 @@ class MainWindow(Adw.ApplicationWindow):
         old_chat_id = self.chat_id
         self.chat_id = int(id)
         self.chat = self.chats[self.chat_id]["chat"]
+        self.controller.chat = self.chat
         # Change profile 
         if self.controller.newelle_settings.remember_profile and "profile" in self.chats[self.chat_id]:
             self.switch_profile(self.chats[self.chat_id]["profile"])
@@ -2059,6 +2060,7 @@ class MainWindow(Adw.ApplicationWindow):
         )
         self.chat = []
         self.chats[self.chat_id]["chat"] = self.chat
+        self.controller.chat = self.chat
         for tool_result in self.active_tool_results:
             tool_result.cancel()
         self.active_tool_results = []
@@ -2361,6 +2363,8 @@ class MainWindow(Adw.ApplicationWindow):
         old_user_prompt = self.chat[-1]["Message"]
         self.chat, prompts = self.controller.integrationsloader.preprocess_history(self.chat, prompts)
         self.chat, prompts = self.extensionloader.preprocess_history(self.chat, prompts)
+        self.controller.chat = self.chat
+        self.chats[self.chat_id]["chat"] = self.chat
         # Edit messages that require to be updated
         history = self.get_history()
         edited_messages = get_edited_messages(history, old_history)
@@ -2494,7 +2498,7 @@ class MainWindow(Adw.ApplicationWindow):
             GLib.idle_add(self.remove_send_button_spinner)
             # Generate chat name
             self.update_memory(message_label)
-            if self.controller.newelle_settings.auto_generate_name and len(self.chat) == 1:
+            if self.controller.newelle_settings.auto_generate_name and len(self.chat) == 2:
                 GLib.idle_add(self.generate_chat_name, Gtk.Button(name=str(self.chat_id)))
             # TTS
             tts_thread = None
