@@ -165,9 +165,9 @@ class CopyBox(Gtk.Box):
         self.buffer.set_style_scheme(style_scheme)
         
         self.sourceview = GtkSource.View(
-            monospace=True,
-            width_request=min(12 * len(longest_line), 600)
+            monospace=True
         )
+        self.sourceview.set_hexpand(True)
         self.sourceview.set_buffer(self.buffer)
         self.sourceview.set_editable(False)
         self.sourceview.set_cursor_visible(False)
@@ -229,7 +229,8 @@ class CopyBox(Gtk.Box):
         self.copy_button.connect("clicked", self.copy_button_clicked)
         
         # Source view setup
-        self.sourceview = GtkSource.View(width_request=12 * len(longest_line), monospace=True)
+        self.sourceview = GtkSource.View(monospace=True) # width_request removed
+        self.sourceview.set_hexpand(True) # Added hexpand
         self.scroll = Gtk.ScrolledWindow(
             propagate_natural_width=True,
             hscrollbar_policy=Gtk.PolicyType.AUTOMATIC,
@@ -277,7 +278,7 @@ class CopyBox(Gtk.Box):
         # Header with language label
         main = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         main.set_homogeneous(True)
-        label = Gtk.Label(
+        self.header_label = Gtk.Label(
             label=lang,
             halign=Gtk.Align.START,
             margin_start=10,
@@ -285,7 +286,7 @@ class CopyBox(Gtk.Box):
             wrap=False,
             ellipsize=Pango.EllipsizeMode.END
         )
-        main.append(label)
+        main.append(self.header_label)
         self.append(main)
         self.scroll.set_child(self.sourceview)
         self.append(self.scroll)
@@ -765,6 +766,54 @@ class CopyBox(Gtk.Box):
     def set_run_callback(self, callback):
         """Set the callback for command execution."""
         self.run_callback = callback
+        
+    def update_code(self, new_code: str):
+        """Update code content efficiently."""
+        if self.txt == new_code:
+            return
+            
+        if new_code.startswith(self.txt):
+            # Append new content
+            new_part = new_code[len(self.txt):]
+            self.txt = new_code
+            
+            # Use append to buffer if possible
+            # But GtkSourceBuffer doesn't support 'append' directly, we insert at end
+            end_iter = self.buffer.get_end_iter()
+            self.buffer.insert(end_iter, new_part)
+        else:
+            # Full replacement
+            self.txt = new_code
+            self.buffer.set_text(new_code)
+            
+    def set_language(self, lang: str):
+        """Update the language."""
+        if self.original_lang == lang:
+            return
+            
+        self.original_lang = lang
+        # Normalize language
+        lang = lang.replace(" ", "")
+        display_lang = lang
+        replace_lang = [
+            (["py", "py3"], "python"),
+            (["bash", "shell", "console"], "sh"),
+            (["javascript"], "js")
+        ]
+        for rep in replace_lang:
+            if display_lang in rep[0]:
+                display_lang = rep[1]
+                
+        self.lang = display_lang
+        
+        manager = GtkSource.LanguageManager.new()
+        language = manager.get_language(display_lang)
+        if language:
+            self.buffer.set_language(language)
+            
+        if hasattr(self, 'header_label'):
+             self.header_label.set_label(self.lang) 
+
     
     def complete_execution(self, output: str | None):
         """

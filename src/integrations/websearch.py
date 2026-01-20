@@ -32,7 +32,7 @@ class WebsearchIntegration(NewelleExtension):
     
     def restore_search(self, msg_id, query:str, only_links: bool = False, max_results: int = 5):
         widget = self.restore_gtk_widget(query, "", msg_id)
-        return ToolResult(widget)
+        return ToolResult(widget=widget)
 
     def get_tools(self) -> list:
         return [Tool(

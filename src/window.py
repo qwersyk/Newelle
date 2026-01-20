@@ -24,7 +24,7 @@ from .ui.presentation import PresentationWindow
 from .ui.widgets import File, CopyBox, BarChartBox, MarkupTextView, DocumentReaderWidget, TipsCarousel, BrowserWidget, Terminal, CodeEditorWidget, ToolWidget
 from .ui import apply_css_to_widget, load_image_with_callback
 from .ui.explorer import ExplorerPanel
-from .ui.widgets import MultilineEntry, ProfileRow, DisplayLatex, InlineLatex, ThinkingWidget
+from .ui.widgets import MultilineEntry, ProfileRow, DisplayLatex, InlineLatex, ThinkingWidget, Message
 from .ui.stdout_monitor import StdoutMonitorDialog
 from .utility.stdout_capture import StdoutMonitor
 from .constants import AVAILABLE_LLMS, SCHEMA_ID, SETTINGS_GROUPS
@@ -2339,12 +2339,7 @@ class MainWindow(Adw.ApplicationWindow):
                     self.update_message,
                     [stream_number_variable],
                 )
-                try:
-                    parent = self.streaming_box.get_parent()
-                    if parent is not None:
-                        parent.set_visible(False)
-                except Exception as _:
-                    pass
+
             else:
                 message_label = self.send_message_to_bot(self.chat[-1]["Message"])
             
@@ -2387,16 +2382,62 @@ class MainWindow(Adw.ApplicationWindow):
             else:
                 for message in edited_messages:
                     GLib.idle_add(self.reload_message, message)
-            GLib.idle_add(
-                self.show_message,
-                message_label,
-                False,
-                -1,
-                False,
-                False,
-                False,
-                "\n".join(prompts),
-            )
+            if hasattr(self, "current_streaming_message") and self.current_streaming_message:
+                # Streaming was active, finalize the existing widget
+                streaming_widget = self.current_streaming_message
+                self.chat.append({"User": "Assistant", "Message": message_label, "UUID": streaming_widget.chunk_uuid})
+                self.add_prompt("\n".join(prompts))
+                
+                def finalize_stream():
+                    streaming_widget.update_content(message_label, is_streaming=False)
+                    streaming_widget.finish_streaming()
+                    # Re-enable editability or other final states if needed
+                    self._finalize_message_display()
+                    self.save_chat()
+
+                    # Handle deferred tool execution and continuation
+                    if streaming_widget.state.get("has_terminal_command", False):
+                         threads = streaming_widget.state.get("running_threads", [])
+                         parallel = self.controller.newelle_settings.parallel_tool_execution
+                         current_stream = self.stream_number_variable
+
+                         def wait_and_continue():
+                            if not parallel:
+                                for t in threads:
+                                    if not t.is_alive(): t.start()
+                                    t.join()
+                            else:
+                                for t in threads:
+                                    t.join()
+                            
+                            if self.stream_number_variable != current_stream:
+                                return
+
+                            if threads and streaming_widget.state.get("should_continue", False):
+                                self.send_message(manual=False)
+                            else:
+                                GLib.idle_add(self.scrolled_chat)
+
+                         threading.Thread(target=wait_and_continue).start()
+                    else:
+                         GLib.idle_add(self.scrolled_chat)
+
+                GLib.idle_add(finalize_stream)
+                
+                # Cleanup reference
+                self.current_streaming_message = None
+            else:
+                # No streaming (e.g. quick response or non-streaming model), standard display
+                GLib.idle_add(
+                    self.show_message,
+                    message_label,
+                    False,
+                    -1,
+                    False,
+                    False,
+                    False,
+                    "\n".join(prompts),
+                )
 
             GLib.idle_add(self.remove_send_button_spinner)
             # Generate chat name
@@ -2457,42 +2498,24 @@ class MainWindow(Adw.ApplicationWindow):
         """Create a label for message streaming"""
         # Reset streaming state
         self.streamed_content = ""
-        self.is_thinking = False
-        self.thinking_text = ""
-        self.main_text = ""
         self.streaming_pending = False
-        self.thinking_box = None
 
-        self.streaming_message_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        scrolled_window = Gtk.ScrolledWindow(
-            margin_top=10, margin_start=10, margin_bottom=10, margin_end=10
+        # The streamed assistant message is the next message index in the chat.
+        # Create it inside the same editable wrapper used by non-streamed messages,
+        # so edit/delete/info/copy controls exist once streaming completes.
+        next_message_id = len(self.chat)
+        self.current_streaming_message = Message(
+            "",
+            is_user=False,
+            parent_window=self,
+            id_message=next_message_id,
         )
-        scrolled_window.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.NEVER)
-        scrolled_window.set_overflow(Gtk.Overflow.HIDDEN)
-        scrolled_window.set_max_content_width(200)
-        # Create a label for the message that will be streamed
-        self.streaming_label = Gtk.Label(
-            wrap=True,
-            wrap_mode=Pango.WrapMode.WORD_CHAR,
-            hexpand=True,
-            xalign=0,
-            selectable=True,
-            valign=Gtk.Align.START,
+        self.streaming_box = self.add_message(
+            "Assistant",
+            self.current_streaming_message,
+            id_message=next_message_id,
+            editable=True,
         )
-        # Remove background color from window and label
-        scrolled_window.add_css_class("scroll")
-        self.streaming_label.add_css_class("scroll")
-        apply_css_to_widget(
-            scrolled_window, ".scroll { background-color: rgba(0,0,0,0);}"
-        )
-        apply_css_to_widget(
-            self.streaming_label, ".scroll { background-color: rgba(0,0,0,0);}"
-        )
-        # Add the label to the scrolledwindow
-        scrolled_window.set_child(self.streaming_label)
-        # Create the message label
-        self.streaming_message_box.append(scrolled_window)
-        self.streaming_box = self.add_message("Assistant", self.streaming_message_box)
         # Safely remove the last element from messages_box
         try:
             if hasattr(self, "messages_box") and len(self.messages_box) > 0:
@@ -2506,71 +2529,15 @@ class MainWindow(Adw.ApplicationWindow):
         if self.stream_number_variable != stream_number_variable:
             return
 
-        with self.streaming_lock:
-            self.streamed_content = message
-            if not self.streaming_pending:
-                self.streaming_pending = True
-                GLib.idle_add(self.refresh_streaming_ui, stream_number_variable)
+        GLib.idle_add(self.refresh_streaming_ui, message, stream_number_variable)
 
-    def refresh_streaming_ui(self, stream_number_variable):
+    def refresh_streaming_ui(self, message, stream_number_variable):
         """Update the UI with the latest streamed content (main thread)"""
         if self.stream_number_variable != stream_number_variable:
-            return
+            return GLib.SOURCE_REMOVE
 
-        with self.streaming_lock:
-            content = self.streamed_content
-            self.streaming_pending = False
-
-        # Process <think> blocks
-        if "<think>" in content:
-            parts = content.split("<think>", 1)
-            before_think = parts[0]
-            after_start = parts[1]
-            
-            if "</think>" in after_start:
-                think_parts = after_start.split("</think>", 1)
-                thinking = think_parts[0]
-                after_think = think_parts[1]
-                self.thinking_text = thinking
-                self.main_text = before_think + after_think
-                
-                # Stop thinking if we were thinking
-                if self.is_thinking:
-                    self.is_thinking = False
-                    if self.thinking_box:
-                        self.thinking_box.stop_thinking()
-            else:
-                # Still thinking
-                self.thinking_text = after_start
-                self.main_text = before_think
-                
-                if not self.is_thinking:
-                    self.is_thinking = True
-                    if self.thinking_box is None:
-                        self.thinking_box = ThinkingWidget()
-                        self.streaming_message_box.prepend(self.thinking_box)
-                        self.thinking_box.start_thinking(self.thinking_text)
-                    else:
-                        self.thinking_box.set_thinking(self.thinking_text)
-                else:
-                    if self.thinking_box:
-                        self.thinking_box.set_thinking(self.thinking_text)
-        else:
-            # No think block
-            self.main_text = content
-            if self.is_thinking:
-                self.is_thinking = False
-                if self.thinking_box:
-                    self.thinking_box.stop_thinking()
-
-        # Update the main label
-        if self.streaming_label is not None:
-            try:
-                self.streaming_label.set_markup(
-                    simple_markdown_to_pango(self.main_text)
-                )
-            except Exception:
-                self.streaming_label.set_text(self.main_text)
+        if hasattr(self, 'current_streaming_message') and self.current_streaming_message:
+            self.current_streaming_message.update_content(message, is_streaming=True)
 
         return GLib.SOURCE_REMOVE
 
@@ -2911,20 +2878,7 @@ class MainWindow(Adw.ApplicationWindow):
         newelle_error=False,
         prompt: str | None = None,
     ):
-        """Show a message in the chat.
-
-        Args:
-            message_label: Text content of the message
-            restore: Whether the chat is being restored from history
-            id_message: ID of the message (-1 for new messages)
-            is_user: True if it's a user message
-            return_widget: If True, return the widget instead of adding it
-            newelle_error: If True, display as an error message
-            prompt: Optional prompt to add to history
-
-        Returns:
-            Gtk.Widget | None: The message widget if return_widget is True
-        """
+        """Show a message in the chat."""
         if id_message == -1:
             id_message = len(self.chat)
 
@@ -2968,545 +2922,33 @@ class MainWindow(Adw.ApplicationWindow):
             else:
                 msg_uuid = self.chat[id_message].get("UUID", 0)
 
-        # Parse message into chunks
-        chunks = get_message_chunks(
-            message_label, self.controller.newelle_settings.display_latex
+        # Create Message widget
+        # Note: Message widget acts as the 'box' that was previously built manually
+        message_widget = Message(
+            message_label, 
+            is_user, 
+            self, 
+            id_message=id_message, 
+            chunk_uuid=msg_uuid, 
+            restore=restore
         )
 
-        # Build the message container
-        box = Gtk.Box(
-            margin_top=10,
-            margin_start=10,
-            margin_bottom=10,
-            margin_end=10,
-            orientation=Gtk.Orientation.VERTICAL,
-        )
+        if return_widget:
+            return message_widget
+            
+        self.add_message("User" if is_user else "Assistant", message_widget, id_message=id_message, editable=True)
 
-        # Process state
-        state = {
-            "codeblock_id": -1,
-            "id_message": id_message,
-            "original_id": id_message,
-            "editable": True,
-            "has_terminal_command": False,
-            "running_threads": [],
-            "tool_call_counter": 0,  # Counter for multiple tool calls in same message
-            "should_continue": False,
-        }
-
-        # Process each chunk
-        for chunk in chunks:
-            self._process_chunk(
-                chunk, box, state, restore, is_user, msg_uuid
-            )
-
-        # Finalize and display the message
-        return self._finalize_show_message(
-            box, state, restore, is_user, return_widget
-        )
+        if not restore:
+            self._finalize_message_display()
+            self.save_chat()
+            
+        return None
 
     def _finalize_message_display(self):
         """Update UI state after message display."""
         GLib.idle_add(self.update_button_text)
         self.status = True
         self.chat_stop_button.set_visible(False)
-
-    def _process_chunk(self, chunk, box, state, restore, is_user, msg_uuid):
-        """Process a single message chunk and add appropriate widget to box."""
-        if chunk.type == "codeblock":
-            self._process_codeblock(chunk, box, state, restore, is_user, msg_uuid)
-        elif chunk.type == "tool_call":
-            self._process_tool_call(chunk, box, state, restore)
-        elif chunk.type == "table":
-            self._process_table(chunk, box)
-        elif chunk.type == "inline_chunks":
-            self._process_inline_chunks(chunk, box)
-        elif chunk.type in ("latex", "latex_inline"):
-            self._process_latex(chunk, box)
-        elif chunk.type == "thinking":
-            think = ThinkingWidget()
-            think.set_thinking(chunk.text)
-            box.append(think)
-        elif chunk.type == "text":
-            self._process_text(chunk, box)
-
-    def _process_codeblock(self, chunk, box, state, restore, is_user, msg_uuid):
-        """Process a codeblock chunk."""
-        state["codeblock_id"] += 1
-        codeblock_id = state["codeblock_id"]
-        lang = chunk.lang
-        text = chunk.text
-
-        # Check for extension/integration codeblocks
-        codeblocks = {
-            **self.extensionloader.codeblocks,
-            **self.controller.integrationsloader.codeblocks
-        }
-
-        if lang in codeblocks:
-            self._process_extension_codeblock(
-                chunk, box, state, restore, msg_uuid, codeblocks[lang]
-            )
-        elif lang == "think":
-            think = ThinkingWidget()
-            think.set_thinking(text)
-            box.append(think)
-        elif lang == "image":
-            self._process_image_codeblock(text, box)
-        elif lang == "video":
-            self._process_video_codeblock(text, box)
-        elif lang == "console" and not is_user:
-            self._process_console_codeblock(chunk, box, state, restore)
-        elif lang in ("file", "folder"):
-            for obj in text.split("\n"):
-                box.append(self.get_file_button(obj))
-        elif lang == "chart" and not is_user:
-            self._process_chart_codeblock(chunk, box)
-        elif lang == "latex":
-            try:
-                box.append(DisplayLatex(text, 16, self.controller.cache_dir))
-            except Exception as e:
-                print(e)
-                box.append(CopyBox(text, lang, parent=self))
-        else:
-            box.append(CopyBox(
-                text, lang, parent=self,
-                id_message=state["id_message"],
-                id_codeblock=codeblock_id,
-                allow_edit=state["editable"]
-            ))
-
-    def _process_extension_codeblock(self, chunk, box, state, restore, msg_uuid, extension):
-        """Process a codeblock handled by an extension."""
-        lang = chunk.lang
-        value = chunk.text
-
-        try:
-            # Check if extension supports UUID parameter (retrocompatibility)
-            sig = inspect.signature(extension.get_gtk_widget)
-            supports_uuid = len(sig.parameters) == 3
-
-            if restore:
-                widget = (extension.restore_gtk_widget(value, lang, msg_uuid)
-                          if supports_uuid else extension.restore_gtk_widget(value, lang))
-            else:
-                widget = (extension.get_gtk_widget(value, lang, msg_uuid)
-                          if supports_uuid else extension.get_gtk_widget(value, lang))
-
-            if widget is not None:
-                box.append(widget)
-
-            # Check if extension provides both widget and answer
-            if widget is None or extension.provides_both_widget_and_answer(value, lang):
-                self._setup_extension_async_response(
-                    chunk, box, state, restore, extension, widget
-                )
-
-        except Exception as e:
-            print(f"Extension error {extension.id}: {e}")
-            box.append(CopyBox(
-                chunk.text, lang, parent=self,
-                id_message=state["id_message"],
-                id_codeblock=state["codeblock_id"],
-                allow_edit=state["editable"]
-            ))
-
-    def _setup_extension_async_response(self, chunk, box, state, restore, extension, widget):
-        """Set up async response handling for extension codeblocks."""
-        lang = chunk.lang
-        value = chunk.text
-        # state["editable"] = False
-        state["has_terminal_command"] = True
-
-        # Get console reply if restoring
-        state["id_message"] += 1
-        reply_from_console = self._get_console_reply(state["id_message"])
-
-        # Create result handler and UI widget
-        if widget is not None:
-            # Widget handles its own display, just show errors
-            def on_result(code):
-                if not code[0]:
-                    self.add_message("Error", code[1])
-        else:
-            # Create expander to show result
-            text_expander = Gtk.Expander(
-                label=lang,
-                css_classes=["toolbar", "osd"],
-                margin_top=10,
-                margin_start=10,
-                margin_bottom=10,
-                margin_end=10,
-            )
-            text_expander.set_expanded(False)
-            box.append(text_expander)
-
-            # Capture chunk text in closure
-            chunk_text = value
-
-            # Capture stream number to check for stale callbacks
-            current_stream = self.stream_number_variable
-
-            def on_result(code, expander=text_expander, text=chunk_text, stream=current_stream):
-                if self.stream_number_variable != stream:
-                    return GLib.SOURCE_REMOVE
-                expander.set_child(
-                    Gtk.Label(
-                        wrap=True,
-                        wrap_mode=Pango.WrapMode.WORD_CHAR,
-                        label=f"{text}\n{code[1]}",
-                        selectable=True,
-                    )
-                )
-
-        # Create and start thread - capture variables in closure
-        ext = extension
-        val = value
-        lng = lang
-        is_restore = restore
-        console_reply = reply_from_console
-
-        def get_response():
-            if not is_restore:
-                response = ext.get_answer(val, lng)
-                if response is None:
-                    code = (False, _("Stopped"))
-                else:
-                    state["should_continue"] = True
-                    code = (True, response)
-                    self.chat.append({"User": "Console", "Message": " " + str(code[1])})
-            else:
-                code = (True, console_reply)
-            
-            if not is_restore or code[1] is not None:
-                GLib.idle_add(on_result, code)
-
-        t = threading.Thread(target=get_response)
-        t.start()
-        state["running_threads"].append(t)
-
-    def _process_image_codeblock(self, text, box):
-        """Process an image codeblock."""
-        for line in text.split("\n"):
-            if not line.strip():
-                continue
-            image = Gtk.Image(css_classes=["image"])
-            if line.startswith("data:image/jpeg;base64,"):
-                data = line[len("data:image/jpeg;base64,"):]
-                raw_data = base64.b64decode(data)
-                loader = GdkPixbuf.PixbufLoader()
-                loader.write(raw_data)
-                loader.close()
-                image.set_from_pixbuf(loader.get_pixbuf())
-            elif line.startswith(("https://", "http://")):
-                # Capture image in closure
-                img = image
-                load_image_with_callback(
-                    line,
-                    lambda pixbuf_loader, i=img: i.set_from_pixbuf(pixbuf_loader.get_pixbuf())
-                )
-            else:
-                image.set_from_file(line)
-            box.append(image)
-
-    def _process_video_codeblock(self, text, box):
-        """Process a video codeblock."""
-        for line in text.split("\n"):
-            if not line.strip():
-                continue
-            video = Gtk.Video(css_classes=["video"], vexpand=True, hexpand=True)
-            video.set_size_request(-1, 400)
-            video.set_file(Gio.File.new_for_path(line))
-            box.append(video)
-
-    def _process_console_codeblock(self, chunk, box, state, restore):
-        """Process a console command codeblock."""
-        # state["editable"] = False
-        state["id_message"] += 1
-        command = chunk.text
-
-        # Check if auto-run is allowed
-        dangerous_commands = ["rm ", "apt ", "sudo ", "yum ", "mkfs "]
-        can_auto_run = (
-            self.controller.newelle_settings.auto_run
-            and not any(cmd in command for cmd in dangerous_commands)
-            and self.auto_run_times < self.controller.newelle_settings.max_run_times
-        )
-
-        if can_auto_run:
-            state["has_terminal_command"] = True
-            text_expander = Gtk.Expander(
-                label="Console",
-                css_classes=["toolbar", "osd"],
-                margin_top=10,
-                margin_start=10,
-                margin_bottom=10,
-                margin_end=10,
-            )
-            text_expander.set_expanded(False)
-            box.append(text_expander)
-
-            reply_from_console = self._get_console_reply(state["id_message"])
-
-            # Capture variables in closure
-            cmd = command
-            is_restore = restore
-            console_reply = reply_from_console
-            expander = text_expander
-
-            def run_command():
-                if not is_restore:
-                    path = os.path.normpath(self.main_path)
-                    code = self.execute_terminal_command(cmd)
-                    self.chat.append({"User": "Console", "Message": " " + str(code[1])})
-                else:
-                    path = self.main_path
-                    code = (True, console_reply)
-
-                text = f"[User {path}]:$ {cmd}\n{code[1]}"
-
-                # Capture stream number to check for stale callbacks
-                current_stream = self.stream_number_variable
-
-                def apply_result(stream=current_stream):
-                    if self.stream_number_variable != stream:
-                        return GLib.SOURCE_REMOVE
-                    display_text = text[:8000] if len(text) > 8000 else text
-                    expander.set_child(
-                        Gtk.Label(
-                            wrap=True,
-                            wrap_mode=Pango.WrapMode.WORD_CHAR,
-                            label=display_text,
-                            selectable=True,
-                        )
-                    )
-                    if not code[0]:
-                        self.add_message("Error", expander)
-
-                GLib.idle_add(apply_result)
-
-            t = threading.Thread(target=run_command)
-            if self.controller.newelle_settings.parallel_tool_execution:
-                t.start()
-            state["running_threads"].append(t)
-
-            if not restore:
-                self.auto_run_times += 1
-        else:
-            if not restore:
-                self.chat.append({"User": "Console", "Message": "None"})
-            box.append(CopyBox(
-                command, "console", self,
-                state["id_message"],
-                id_codeblock=state["codeblock_id"],
-                allow_edit=state["editable"]
-            ))
-
-    def _process_chart_codeblock(self, chunk, box):
-        """Process a chart codeblock."""
-        result = {}
-        percentages = False
-
-        for line in chunk.text.split("\n"):
-            parts = line.split("-")
-            if len(parts) != 2:
-                box.append(CopyBox(chunk.text, "chart", parent=self))
-                return
-
-            key = parts[0].strip()
-            percentages = "%" in parts[1]
-            value_str = "".join(c for c in parts[1] if c.isdigit() or c == ".")
-            try:
-                result[key] = float(value_str)
-            except ValueError:
-                result[key] = 0
-
-        if result:
-            box.append(BarChartBox(result, percentages))
-
-    def _process_tool_call(self, chunk, box, state, restore):
-        """Process a tool call chunk."""
-        tool_name = chunk.tool_name
-        args = chunk.tool_args
-        tool = self.controller.tools.get_tool(tool_name)
-
-        state["id_message"] += 1
-        if not restore:
-            self.controller.msgid = state["id_message"]
-
-        if not tool:
-            widget = CopyBox(chunk.text, "tool_call", parent=self)
-            box.append(widget)
-            return
-
-        # Generate or retrieve tool call UUID
-        tool_call_id = state.get("tool_call_counter", 0)
-        state["tool_call_counter"] = tool_call_id + 1
-        
-        if not restore:
-            tool_uuid = str(uuid.uuid4())[:8]  # Short UUID for readability
-        else:
-            # Retrieve UUID from existing console reply
-            tool_uuid = self._get_tool_call_uuid(state["id_message"], tool_name, tool_call_id)
-        # state["editable"] = False
-        state["has_terminal_command"] = True
-
-        # Make tool UUID accessible via ui_controller during execution
-        self.controller.current_tool_uuid = tool_uuid
-
-        try:
-            # Pass tool_uuid to restore function
-            if restore:
-                result = tool.restore(msg_id=state["id_message"], tool_uuid=tool_uuid, **args)
-            else:
-                result = tool.execute(**args)
-            
-            if not restore:
-                self.active_tool_results.append(result)
-            
-            widget = result.widget
-
-            if widget is not None:
-                # Tool provides its own widget
-                def on_result(code, w=widget):
-                    if not code[0]:
-                        self.add_message("Error", code[1])
-            else:
-                # Create ToolWidget for display
-                tool_widget = ToolWidget(tool.name, chunk.text)
-
-                # Capture stream number to check for stale callbacks
-                current_stream = self.stream_number_variable
-
-                def on_result(code, tw=tool_widget, stream=current_stream):
-                    if self.stream_number_variable != stream:
-                        return GLib.SOURCE_REMOVE
-                    tw.set_result(code[0], code[1])
-                widget = tool_widget
-
-            reply_from_console = self._get_tool_response(state["id_message"], tool_name, tool_uuid)
-
-            # Capture variables in closure
-            is_restore = restore
-            console_reply = reply_from_console
-            tool_result = result
-            callback = on_result
-            t_name = tool_name
-            t_uuid = tool_uuid
-
-            def get_response():
-                if not is_restore:
-                    response = tool_result.get_output()
-                    if not is_restore:
-                        try:
-                            self.active_tool_results.remove(tool_result)
-                        except (ValueError, AttributeError):
-                            pass
-                    if tool_result.is_cancelled:
-                        return
-                    if response is None:
-                        code = (True, None)
-                    else:
-                        state["should_continue"] = True
-                        code = (True, response)
-                        # Store tool response with identifiable format directly in message
-                        formatted_response = f"[Tool: {t_name}, ID: {t_uuid}]\n{code[1]}"
-                        self.chat.append({
-                            "User": "Console",
-                            "Message": formatted_response,
-                        })
-                else:
-                    code = (True, console_reply)
-                if not is_restore or code[1] is not None:
-                    GLib.idle_add(callback, code)
-
-            t = threading.Thread(target=get_response)
-            # Restore expects all tools to return things instantly and do not take any action, so we run them in parallel
-            # They are not considered for the response
-            if self.controller.newelle_settings.parallel_tool_execution or (restore):
-                t.start()
-            state["running_threads"].append(t)
-            box.append(widget)
-
-        except Exception as e:
-            print(f"Tool error {tool.name}: {e}")
-
-    def _process_table(self, chunk, box):
-        """Process a table chunk."""
-        try:
-            box.append(self.create_table(chunk.text.split("\n")))
-        except Exception as e:
-            print(e)
-            box.append(CopyBox(chunk.text, "table", parent=self))
-
-    def _process_inline_chunks(self, chunk, box):
-        """Process inline chunks (text with inline LaTeX)."""
-        if not chunk.subchunks:
-            return
-
-        # Create overlay with hidden label for sizing
-        overlay = Gtk.Overlay()
-        label = Gtk.Label(
-            label=" ".join(ch.text for ch in chunk.subchunks),
-            wrap=True
-        )
-        label.set_opacity(0)
-        overlay.set_child(label)
-
-        # Create textview for content
-        textview = MarkupTextView()
-        textview.set_valign(Gtk.Align.START)
-        textview.set_hexpand(True)
-        overlay.add_overlay(textview)
-        overlay.set_measure_overlay(textview, True)
-
-        buffer = textview.get_buffer()
-        text_iter = buffer.get_start_iter()
-
-        for subchunk in chunk.subchunks:
-            if subchunk.type == "text":
-                textview.add_markup_text(text_iter, markwon_to_pango(subchunk.text))
-            elif subchunk.type == "latex_inline":
-                try:
-                    anchor = buffer.create_child_anchor(text_iter)
-                    font_size = int(5 + (self.controller.newelle_settings.zoom / 100 * 4))
-                    latex = InlineLatex(subchunk.text, font_size)
-
-                    # Embed in overlay to avoid misalignment
-                    latex_overlay = Gtk.Overlay()
-                    latex_overlay.add_overlay(latex)
-                    spacer = Gtk.Box()
-                    spacer.set_size_request(latex.picture.dims[0], latex.picture.dims[1] + 1)
-                    latex_overlay.set_child(spacer)
-                    latex.set_margin_top(5)
-                    textview.add_child_at_anchor(latex_overlay, anchor)
-                except Exception:
-                    buffer.insert(text_iter, LatexNodes2Text().latex_to_text(subchunk.text))
-
-        box.append(overlay)
-
-    def _process_latex(self, chunk, box):
-        """Process a LaTeX chunk."""
-        try:
-            box.append(DisplayLatex(chunk.text, 16, self.controller.cache_dir))
-        except Exception:
-            box.append(CopyBox(chunk.text, "latex", parent=self))
-
-    def _process_text(self, chunk, box):
-        """Process a text chunk."""
-        if chunk.text == ".":
-            return
-        box.append(
-            Gtk.Label(
-                label=markwon_to_pango(chunk.text),
-                wrap=True,
-                halign=Gtk.Align.START,
-                wrap_mode=Pango.WrapMode.WORD_CHAR,
-                width_chars=1,
-                selectable=True,
-                use_markup=True,
-            )
-        )
 
     def _get_console_reply(self, id_message):
         """Get existing console reply from chat history if available."""
@@ -3884,7 +3326,7 @@ class MainWindow(Adw.ApplicationWindow):
         button.set_icon_name("object-select-symbolic")
         GLib.timeout_add(2000, lambda: button.set_icon_name("edit-copy-symbolic"))
 
-    def build_edit_box(self, box, id):
+    def build_edit_box(self, box, id, has_prompt: bool = True):
         """Create the box and the stack with the edit buttons
 
         Args:
@@ -3894,7 +3336,6 @@ class MainWindow(Adw.ApplicationWindow):
         Returns:
             Gtk.Stack
         """
-        has_prompt = len(self.chat) > int(id) and "Prompt" in self.chat[int(id)]
         edit_box = Gtk.Box()
         buttons_box = Gtk.Box(
             orientation=Gtk.Orientation.VERTICAL,
@@ -3944,17 +3385,17 @@ class MainWindow(Adw.ApplicationWindow):
         edit_box.append(button)
         edit_box.append(remove_button)
         buttons_box.append(edit_box)
-        # Prompt box
         if has_prompt:
             prompt_box = Gtk.Box(halign=Gtk.Align.CENTER)
-            button = Gtk.Button(
+            info_button = Gtk.Button(
                 icon_name="question-round-outline-symbolic",
                 css_classes=["flat", "accent"],
                 valign=Gtk.Align.CENTER,
                 halign=Gtk.Align.CENTER,
             )
-            button.connect("clicked", self.show_prompt, int(id))
-            prompt_box.append(button)
+            info_button.connect("clicked", self.show_prompt, int(id))
+            prompt_box.append(info_button)
+
             copy_button = Gtk.Button(
                 icon_name="edit-copy-symbolic",
                 css_classes=["flat"],
@@ -3992,7 +3433,7 @@ class MainWindow(Adw.ApplicationWindow):
         self.messages_box.append(box)
         # Create edit controls
         if editable:
-            apply_edit_stack = self.build_edit_box(box, str(id_message))
+            apply_edit_stack = self.build_edit_box(box, str(id_message), user == "Assistant")
             evk = Gtk.GestureClick.new()
             evk.connect("pressed", self.edit_message, box, apply_edit_stack)
             evk.set_name(str(id_message))
@@ -4594,3 +4035,4 @@ class MainWindow(Adw.ApplicationWindow):
                 
             # Start the display update timer for the dialog
             GLib.timeout_add(100, self.stdout_monitor_dialog._update_stdout_display)
+

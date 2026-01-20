@@ -40,7 +40,7 @@ class MessageChunk:
 
 # Matches ```lang\ncontent``` (non-greedy content).
 # Relaxed to allow codeblocks that don't end with a newline before the closing fence.
-_CODEBLOCK_PATTERN = re.compile(r'```(\w*)\s*\n(.*?)\n\s*```', re.DOTALL)
+_CODEBLOCK_PATTERN = re.compile(r'```(\w*)\s*\n(.*?)(?:\n\s*```|\Z)', re.DOTALL)
 
 _DISPLAY_LATEX_PATTERN = re.compile(r'(\$\$(.+?)\$\$)|(\\\[(.+?)\\\])', re.DOTALL)
 
@@ -49,7 +49,7 @@ _INLINE_LATEX_PATTERN = re.compile(
     r'\\\((.+?)\\\)'                              
 )
 
-_THINK_PATTERN = re.compile(r'<think>(.*?)</think>', re.DOTALL)
+_THINK_PATTERN = re.compile(r'<think>(.*?)(?:</think>|\Z)', re.DOTALL)
 
 _TOOL_START_PATTERN = re.compile(r'\{\s*"(?:tool|name|function)"\s*:', re.MULTILINE)
 

@@ -66,17 +66,53 @@ def markwon_to_pango(markdown_text):
         flags=re.MULTILINE
     )
     
-    # Convert bold text
-    processed_text = re.sub(r'\*\*(?!\s)(.*?)(?<!\s)\*\*', r'<b>\1</b>', processed_text)
-
-    # Convert italic text
-    processed_text = re.sub(r'(?<!\*)\*(?!\s|\*)(.*?)(?<!\s|\*)\*(?!\*)', r'<i>\1</i>', processed_text)
-
-    # Convert monospace text
-    processed_text = re.sub(r'`(.*?)`', r'<tt>\1</tt>', processed_text)
+    # Use placeholders to protect monospace and strikethrough from nested formatting
+    placeholders = {}
+    placeholder_counter = [0]
+    
+    def make_placeholder(match, tag_start, tag_end):
+        placeholder_counter[0] += 1
+        key = f"PLACEHOLDER_{placeholder_counter[0]}_"
+        placeholders[key] = f"{tag_start}{match.group(1)}{tag_end}"
+        return key
+    
+    # Convert monospace text first (to protect code from other formatting)
+    processed_text = re.sub(r'`([^`]*?)`', 
+                           lambda m: make_placeholder(m, '<tt>', '</tt>'), 
+                           processed_text)
 
     # Convert strikethrough text
-    processed_text = re.sub(r'~(.*?)~', r'<span strikethrough="true">\1</span>', processed_text)
+    processed_text = re.sub(r'~([^~]*?)~', 
+                           lambda m: make_placeholder(m, '<span strikethrough="true">', '</span>'), 
+                           processed_text)
+    
+    # Handle *** (bold+italic) first
+    processed_text = re.sub(r'\*\*\*(?!\s)((?:(?!\*\*\*)[^<>])*?)(?<!\s)\*\*\*', r'<b><i>\1</i></b>', processed_text)
+    
+    # Multiple passes for proper nesting (using safer patterns):
+    # Pass 1: italic without any tags
+    processed_text = re.sub(r'(?<!\*)\*(?!\s|\*)((?:(?!\*)[^<>])*?)(?<!\s|\*)\*(?!\*)', r'<i>\1</i>', processed_text)
+    
+    # Pass 2: bold which may contain <i> tags
+    processed_text = re.sub(r'\*\*(?!\s)((?:(?!\*\*).)*?)(?<!\s)\*\*', r'<b>\1</b>', processed_text)
+    
+    # Pass 3: italic again but allow content with <b></b> tags (complete pairs only)
+    # This handles *italic with <b>bold</b> text* after bold conversion
+    processed_text = re.sub(
+        r'(?<!\*)\*(?!\s|\*)(' + # Start italic
+        r'(?:' + # Content can be:
+            r'(?:(?!\*|<).)+' + #   - regular text (no * or <)
+            r'|<b>(?:(?!\*).)*?</b>' + #   - or complete <b></b> pairs
+            r'|<tt>(?:(?!\*).)*?</tt>' + #   - or complete <tt></tt> pairs
+        r')*?' + # Repeat non-greedy
+        r')(?<!\s|\*)\*(?!\*)',  # End italic
+        r'<i>\1</i>', 
+        processed_text
+    )
+    
+    # Restore placeholders
+    for key, value in placeholders.items():
+        processed_text = processed_text.replace(key, value)
 
     # Convert exponents and subscripts (handle digits or parenthesized text)
     processed_text = re.sub(r'_(\d+|\([^)]+\))\b', lambda m: f'<sub>{m.group(1).strip("()")}</sub>', processed_text)
@@ -122,11 +158,29 @@ def simple_markdown_to_pango(markdown_text):
 
     processed_text = escaped_text
  
-    # Convert bold text
-    processed_text = re.sub(r'\*\*(?!\s)(.*?)(?<!\s)\*\*', r'<b>\1</b>', processed_text)
-
-    # Convert italic text
-    processed_text = re.sub(r'(?<!\*)\*(?!\s|\*)(.*?)(?<!\s|\*)\*(?!\*)', r'<i>\1</i>', processed_text)
+    # Handle *** (bold+italic) first
+    processed_text = re.sub(r'\*\*\*(?!\s)((?:(?!\*\*\*)[^<>])*?)(?<!\s)\*\*\*', r'<b><i>\1</i></b>', processed_text)
+    
+    # Multiple passes for proper nesting (using safer patterns):
+    # Pass 1: italic without any tags
+    processed_text = re.sub(r'(?<!\*)\*(?!\s|\*)((?:(?!\*)[^<>])*?)(?<!\s|\*)\*(?!\*)', r'<i>\1</i>', processed_text)
+    
+    # Pass 2: bold which may contain <i> tags
+    processed_text = re.sub(r'\*\*(?!\s)((?:(?!\*\*).)*?)(?<!\s)\*\*', r'<b>\1</b>', processed_text)
+    
+    # Pass 3: italic again but allow content with <b></b> tags (complete pairs only)
+    # This handles *italic with <b>bold</b> text* after bold conversion
+    processed_text = re.sub(
+        r'(?<!\*)\*(?!\s|\*)(' + # Start italic
+        r'(?:' + # Content can be:
+            r'(?:(?!\*|<).)+' + #   - regular text (no * or <)
+            r'|<b>(?:(?!\*).)*?</b>' + #   - or complete <b></b> pairs
+            r'|<tt>(?:(?!\*).)*?</tt>' + #   - or complete <tt></tt> pairs
+        r')*?' + # Repeat non-greedy
+        r')(?<!\s|\*)\*(?!\*)',  # End italic
+        r'<i>\1</i>', 
+        processed_text
+    )
 
     # Convert links
     processed_text = re.sub(r'\[(.*?)\]\((.*?)\)', r'<a href="\2">\1</a>', processed_text)

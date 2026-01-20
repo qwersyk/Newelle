@@ -15,5 +15,5 @@ from .browser import BrowserWidget
 from .terminal_dialog import Terminal, TerminalDialog
 from .code_editor import CodeEditorWidget
 from .tool import ToolWidget
-
-__all__ = ["ProfileRow", "MultilineEntry", "BarChartBox", "ComboRowHelper", "CopyBox", "File", "DisplayLatex", "LatexCanvas", "MarkupTextView", "InlineLatex",  "WebsiteButton", "WebSearchWidget", "ThinkingWidget", "DocumentReaderWidget", "TipsCarousel", "BrowserWidget", "Terminal", "TerminalDialog", "CodeEditorWidget", "ToolWidget"]
+from .message import Message
+__all__ = ["ProfileRow", "MultilineEntry", "BarChartBox", "ComboRowHelper", "CopyBox", "File", "DisplayLatex", "LatexCanvas", "MarkupTextView", "InlineLatex",  "WebsiteButton", "WebSearchWidget", "ThinkingWidget", "DocumentReaderWidget", "TipsCarousel", "BrowserWidget", "Terminal", "TerminalDialog", "CodeEditorWidget", "ToolWidget", "Message"]
