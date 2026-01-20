@@ -3428,7 +3428,7 @@ class MainWindow(Adw.ApplicationWindow):
             margin_start=10,
             margin_bottom=10,
             margin_end=10,
-            halign=Gtk.Align.START,
+            halign=Gtk.Align.FILL,
         )
         self.messages_box.append(box)
         # Create edit controls
