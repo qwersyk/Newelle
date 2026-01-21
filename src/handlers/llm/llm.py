@@ -178,10 +178,22 @@ class LLMHandler(Handler):
             str: name of the chat
         """
         try:
-             t = self.generate_text(request_prompt, self.history)
-             return t
-        except Exception as e:          
+            # Prepare history without images and with capped message length
+            processed_history = []
+            for message in self.history:
+                image, text = extract_image(message["Message"])
+                # Cap message length to 500 characters
+                capped_text = text[:500]
+                processed_message = {
+                    "User": message["User"],
+                    "Message": capped_text
+                }
+                processed_history.append(processed_message)
+            
+            t = self.generate_text(request_prompt, processed_history)
+            return t
+        except Exception as e:
             print(e)
-            return None 
+            return None
 
 
