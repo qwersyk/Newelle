@@ -133,8 +133,7 @@ def markwon_to_pango(markdown_text):
     )
 
     try:
-        check_text = processed_text.replace('&', '&')
-        xml.dom.minidom.parseString(f"<span>{check_text}</span>")
+        xml.dom.minidom.parseString(f"<span>{processed_text}</span>")
         return processed_text
     except Exception as e:
         print(f"Pango conversion warning: Generated markup might be invalid. Error: {e}")
@@ -197,8 +196,7 @@ def simple_markdown_to_pango(markdown_text):
     )
 
     try:
-        check_text = processed_text.replace('&', '&')
-        xml.dom.minidom.parseString(f"<span>{check_text}</span>")
+        xml.dom.minidom.parseString(f"<span>{processed_text}</span>")
         return processed_text
     except Exception as e:
         print(f"Pango conversion warning (Simple): Generated markup might be invalid. Error: {e}")

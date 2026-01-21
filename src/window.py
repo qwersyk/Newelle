@@ -2444,8 +2444,9 @@ class MainWindow(Adw.ApplicationWindow):
                 self.chat.append({"User": "Assistant", "Message": message_label, "UUID": streaming_widget.chunk_uuid})
                 self.add_prompt("\n".join(prompts))
                 
+                final_message = message_label
                 def finalize_stream():
-                    streaming_widget.update_content(message_label, is_streaming=False)
+                    streaming_widget.update_content(final_message, is_streaming=False)
                     streaming_widget.finish_streaming()
                     # Re-enable editability or other final states if needed
                     self._finalize_message_display()
