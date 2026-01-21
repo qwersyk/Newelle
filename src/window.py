@@ -2980,6 +2980,7 @@ class MainWindow(Adw.ApplicationWindow):
                     margin_end=10,
                     margin_bottom=10,
                     margin_start=10,
+                    selectable=True
                 ),
             )
             GLib.idle_add(self.scrolled_chat)
