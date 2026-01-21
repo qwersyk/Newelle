@@ -124,7 +124,7 @@ class OpenAIHandler(LLMHandler):
                 "thinking_effort",
                 _("Thinking Effort"),
                 _("Amount of reasoning effort to allocate for the model"),
-                (("none", "None"), ("minimal", "Minimal"), ("low", "Low"), ("medium", "Medium"), ("high", "High"), ("xhigh", "Extra High")),
+                (("none", "none"), ("minimal", "minimal"), ("low", "low"), ("medium", "medium"), ("high", "high"), ("xhigh", "xhigh")),
                 "medium"
             )
         ]
