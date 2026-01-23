@@ -17,10 +17,10 @@ class SearXNGHandler(WebSearchHandler):
     def supports_streaming_query(self) -> bool:
         return self.get_setting("streaming")
 
-    def query(self, keywords: str, max_results: int = None) -> tuple[str, list]:
-        return self.query_streaming(keywords, lambda title, link, favicon: None, max_results=max_results)
+    def query(self, keywords: str) -> tuple[str, list]:
+        return self.query_streaming(keywords, lambda title, link, favicon: None)
 
-    def query_streaming(self, keywords: str, add_website, max_results: int = None) -> tuple[str, list]:
+    def query_streaming(self, keywords: str, add_website) -> tuple[str, list]:
         try:
            results = self.get_links(keywords)
         except Exception as e:
@@ -30,7 +30,7 @@ class SearXNGHandler(WebSearchHandler):
             if len(results) == 0:
                 self.throw("Failed to query SearXNG: " + str(e), ErrorSeverity.WARNING)
                 return "No results found", []
-        content, urls = self.scrape_websites(results, add_website, max_results=max_results)
+        content, urls = self.scrape_websites(results, add_website)
         text = ""
         for result in content:
             text += "\nSource: " + result["url"] + "\n"
@@ -125,9 +125,8 @@ class SearXNGHandler(WebSearchHandler):
         result_links = self.extract_links_from_html(response.text)
         return result_links
 
-    def scrape_websites(self, result_links, update, max_results=None):
-        if max_results is None:
-            max_results = self.get_setting("results")
+    def scrape_websites(self, result_links, update):
+        max_results = self.get_setting("results")
         lang = self.get_setting("lang")
         if not result_links:
             print("No result links found on the SearXNG page.")

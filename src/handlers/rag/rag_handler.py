@@ -90,25 +90,6 @@ class RAGHandler(Handler):
         if not os.path.exists(self.documents_path):
             os.mkdir(self.documents_path)
 
-    def get_custom_folders(self) -> list[str]:
-        """Return the list of user-defined custom document folders.
-
-        The folders are read from the GSettings key ``custom-document-folders``
-        and filtered to include only existing directories.
-        """
-        folders: list[str] = []
-        folders = self.settings.get_strv("custom-document-folders")
-
-        # Expand ~ and filter out non-existing paths
-        valid_folders: list[str] = []
-        for folder in folders:
-            if not isinstance(folder, str):
-                continue
-            expanded = os.path.expanduser(folder)
-            if os.path.isdir(expanded):
-                valid_folders.append(expanded)
-        return valid_folders
-
     def set_handlers(self, llm: LLMHandler, embeddings: EmbeddingHandler):
         self.llm = llm
         self.embedding = embeddings

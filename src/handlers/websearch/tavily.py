@@ -32,22 +32,20 @@ class TavilyHandler(WebSearchHandler):
 
         ]
 
-    def query(self, keywords: str, max_results: int = None) -> tuple[str, list]:
-        return self.query_streaming(keywords, lambda title, link, favicon: None, max_results=max_results)
+    def query(self, keywords: str) -> tuple[str, list]:
+        return self.query_streaming(keywords, lambda title, link, favicon: None)
 
-    def query_streaming(self, keywords: str, add_website, max_results: int = None) -> tuple[str, list]:
+    def query_streaming(self, keywords: str, add_website) -> tuple[str, list]:
         from tavily import TavilyClient
         import re
         if not (token:=self.get_setting("token")):
             return "Tavily API token not provided. Please enter your token in the settings to continue.", []
         client = TavilyClient(api_key=token)
-        if max_results is None:
-            max_results = self.get_setting("results")
         try:
             results = client.search(
                     query= keywords,
                     search_depth= self.get_setting("search_depth"),
-                    max_results= max_results,
+                    max_results= self.get_setting("results"),
                     topic = self.get_setting("topic"),
                     chunks_per_source = self.get_setting("chunks_per_source"),
                     days = self.get_setting("days"),

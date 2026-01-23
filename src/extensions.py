@@ -379,8 +379,6 @@ class ExtensionLoader:
     def add_tools(self, tool_registry):
         for extension in self.extensions:
             for tool in extension.get_tools():
-                if extension in self.disabled_extensions:
-                    continue
                 tool_registry.register_tool(tool)
     
     def remove_tools(self, tool_registry, extension: NewelleExtension):

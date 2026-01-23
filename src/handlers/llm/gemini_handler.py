@@ -85,9 +85,9 @@ class GeminiHandler(LLMHandler):
     def is_installed(self) -> bool:
         try:
             from google import genai
-            return True
         except Exception as e:
             return False
+        return True
 
     def get_extra_settings(self) -> list:
         r = [

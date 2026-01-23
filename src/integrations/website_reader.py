@@ -22,7 +22,7 @@ class WebsiteReader(NewelleExtension):
         widget = self.get_gtk_widget(url, "website")
         result = ToolResult() 
         def get_answer():
-            out = self.get_article_content(url).get_text()
+            out = self.get_article_content(url)
             result.set_output(out)
         result.set_widget(widget)
         t = threading.Thread(target=get_answer)
@@ -36,7 +36,7 @@ class WebsiteReader(NewelleExtension):
         return result 
 
     def get_tools(self) -> list:
-        return [Tool("website", "Read a website content", self.read_website, title="Read Websites", restore_func=self.restore_read_website, icon_name="internet-symbolic")]           
+        return [Tool("website", "Read a website content", self.read_website, title="Read Websites", restore_func=self.restore_read_website)]           
     def get_replace_codeblocks_langs(self) -> list:
         return ["website"]
    

@@ -10,7 +10,7 @@ class DeepseekHandler(OpenAIHandler):
 
     def supports_vision(self) -> bool:
         return False 
-    
+
     def get_extra_settings(self) -> list:
         return self.build_extra_settings("Deepseek", True, True, False, True, True, None, "https://api-docs.deepseek.com/quick_start/pricing", False, True)
 

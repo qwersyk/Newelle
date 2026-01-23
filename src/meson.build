@@ -46,7 +46,6 @@ integrations_sources = [
   'integrations/website_reader.py',
   'integrations/websearch.py',
   'integrations/mcp.py',
-  'integrations/default_tools.py'
 ]
 
 ui_sources = [
@@ -61,7 +60,6 @@ ui_sources = [
   'ui/mini_window.py',
   'ui/explorer.py',
   'ui/stdout_monitor.py',
-  'ui/model_library.py',
 ]
 
 widgets_sources = [
@@ -82,9 +80,6 @@ widgets_sources = [
   'ui/widgets/tipscarousel.py',
   'ui/widgets/browser.py',
   'ui/widgets/code_editor.py',
-  'ui/widgets/tool.py',
-  'ui/widgets/message.py',
-  'ui/widgets/chatrow.py',
 ]
 
 handler_sources = [
@@ -102,6 +97,7 @@ llm_sources = [
   'handlers/llm/g4f_handler.py',
   'handlers/llm/gemini_handler.py',
   'handlers/llm/gpt3any_handler.py',
+  'handlers/llm/gpt4all_handler.py',
   'handlers/llm/groq_handler.py',
   'handlers/llm/mistral_handler.py',
   'handlers/llm/newelle_handler.py',
@@ -109,7 +105,6 @@ llm_sources = [
   'handlers/llm/openai_handler.py',
   'handlers/llm/openrouter_handler.py',
   'handlers/llm/deepseek_handler.py',
-  'handlers/llm/llama_cpp_handler.py',
   ]
 
 tts_sources = [
@@ -146,7 +141,6 @@ embedding_sources = [
   'handlers/embeddings/openai_handler.py',
   'handlers/embeddings/gemini_handler.py',
   'handlers/embeddings/ollama_handler.py',
-  'handlers/embeddings/model2vec.py',
 ]
 
 memory_sources = [  
@@ -155,7 +149,6 @@ memory_sources = [
   'handlers/memory/memoripy_handler.py',
   'handlers/memory/summary_memoripy_handler.py',
   'handlers/memory/user_summary_handler.py',
-  'handlers/memory/llamaindex_memory_handler.py',
 ]
 
 rag_sources = [  

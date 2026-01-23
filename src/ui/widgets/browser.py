@@ -39,16 +39,13 @@ class BrowserWidget(Gtk.Box):
         self.loading = threading.Semaphore(1)
 
         self.favicon_pixbuf : GdkPixbuf.Pixbuf | None = None
-
-        # Setup Webview with Persistent Session
-        self._setup_webview()
         self._build_ui()
+        self._setup_webview()
         
         # Load the starting URL
         if self.session_file:
-            self.load_session(self.session_file, lambda: self.webview.load_uri(self.starting_url))
-        else:
-            self.webview.load_uri(self.starting_url)
+            self.load_session(self.session_file)
+        self.webview.load_uri(self.starting_url)
     
     def _build_ui(self):
         """Build the user interface."""
@@ -106,8 +103,6 @@ class BrowserWidget(Gtk.Box):
         self.scrolled_window.set_vexpand(True)
         self.scrolled_window.set_hexpand(True)
         self.append(self.scrolled_window)
-        # Add webview to scrolled window
-        self.scrolled_window.set_child(self.webview)
     
     def _setup_webview(self):
         """Set up the WebKit webview."""
@@ -121,28 +116,13 @@ class BrowserWidget(Gtk.Box):
         self.settings.set_enable_html5_local_storage(True)
         self.settings.set_enable_developer_extras(False)
         self.settings.set_enable_page_cache(True)
-        self.settings.set_user_agent("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
         
-        # Create network session
-        if self.session_file:
-            data_dir = self.session_file + "_data"
-            cache_dir = self.session_file + "_cache"
-            self.network_session = WebKit.NetworkSession.new(data_dir, cache_dir)
-            
-            # Explicitly configure cookie persistence
-            cookie_manager = self.network_session.get_cookie_manager()
-            cookie_file = os.path.join(data_dir, "cookies.sqlite")
-            cookie_manager.set_persistent_storage(cookie_file, WebKit.CookiePersistentStorage.SQLITE)
-        else:
-             self.network_session = WebKit.NetworkSession.new(None, None)
-
         # Create user content manager for potential script injection
         self.user_content_manager = WebKit.UserContentManager()
         
         # Create the webview
         self.webview = WebKit.WebView(
-            network_session=self.network_session,
-            user_content_manager=self.user_content_manager
+            web_context=self.web_context, user_content_manager=self.user_content_manager
         )
         self.webview.set_settings(self.settings)
         
@@ -151,6 +131,8 @@ class BrowserWidget(Gtk.Box):
         self.webview.connect("notify::uri", self._on_uri_changed)
         self.webview.connect("notify::title", self._on_title_changed)
         
+        # Add webview to scrolled window
+        self.scrolled_window.set_child(self.webview)
     
     def _on_back_clicked(self, button):
         """Handle back button click."""
@@ -354,7 +336,7 @@ class BrowserWidget(Gtk.Box):
 
     def save_session(self, file_path):
         """
-        Save current session information to a file.
+        Save current session information and cookies to a file.
         
         Args:
             file_path (str): Path where to save the session data
@@ -362,6 +344,9 @@ class BrowserWidget(Gtk.Box):
         try:
             # Create directory if it doesn't exist
             os.makedirs(os.path.dirname(file_path), exist_ok=True)
+            
+            # Get cookie manager
+            cookie_manager = self.webview.get_network_session().get_cookie_manager()
             
             # Create session data dictionary
             session_data = {
@@ -375,52 +360,28 @@ class BrowserWidget(Gtk.Box):
             with open(file_path, 'w', encoding='utf-8') as f:
                 json.dump(session_data, f, indent=2, ensure_ascii=False)
             
-            # Manually save all cookies (including session cookies) to a JSON file
-            # This is necessary because set_persistent_storage might drop session cookies
-            cookie_manager = self.network_session.get_cookie_manager()
+            # Save cookies to a separate file
+            cookie_file = file_path + '.cookies'
+            cookie_manager.set_persistent_storage(
+                cookie_file,
+                WebKit.CookiePersistentStorage.SQLITE
+            )
             
-            def on_cookies_retrieved(manager, result):
-                try:
-                    cookies = manager.get_all_cookies_finish(result)
-                    cookie_list = []
-                    for cookie in cookies:
-                        cookie_dict = {
-                            "name": cookie.get_name(),
-                            "value": cookie.get_value(),
-                            "domain": cookie.get_domain(),
-                            "path": cookie.get_path(),
-                            "secure": cookie.get_secure(),
-                            "http_only": cookie.get_http_only(),
-                            "expires": cookie.get_expires().format_iso8601() if cookie.get_expires() else None
-                        }
-                        cookie_list.append(cookie_dict)
-                    
-                    cookies_json_path = file_path + ".cookies.json"
-                    with open(cookies_json_path, 'w', encoding='utf-8') as f:
-                        json.dump(cookie_list, f, indent=2)
-                        
-                except Exception as e:
-                    print(f"Error saving cookies to JSON: {e}")
-
-            cookie_manager.get_all_cookies(None, on_cookies_retrieved)
             
         except Exception as e:
             print(f"Error saving session: {e}")
 
-    def load_session(self, file_path, on_loaded_callback=None):
+    def load_session(self, file_path):
         """
-        Load session information from a file.
+        Load session information and cookies from a file.
         
         Args:
             file_path (str): Path to the session data file
-            on_loaded_callback (callable): Function to call when loading (including cookies) is complete
         """
         try:
             # Check if session file exists
             if not os.path.exists(file_path):
                 print(f"Session file not found: {file_path}")
-                if on_loaded_callback:
-                    on_loaded_callback()
                 return
             
             # Load session data from JSON file
@@ -431,66 +392,14 @@ class BrowserWidget(Gtk.Box):
             if 'search_string' in session_data:
                 self.search_string = session_data['search_string']
             
-            # Manually load cookies from JSON file
-            cookies_json_path = file_path + ".cookies.json"
-            if os.path.exists(cookies_json_path):
-                with open(cookies_json_path, 'r', encoding='utf-8') as f:
-                    cookie_list = json.load(f)
-                    
-                cookie_manager = self.network_session.get_cookie_manager()
-                from gi.repository import Soup
-                
-                # Counter for cookies processed
-                cookies_to_process = 0
-                processed_cookies = 0
-                
-                valid_cookies = []
-                
-                for c_data in cookie_list:
-                    try:
-                        name = c_data.get("name")
-                        value = c_data.get("value")
-                        domain = c_data.get("domain")
-                        path = c_data.get("path")
-                        
-                        if name and value and domain and path:
-                            cookie = Soup.Cookie.new(name, value, domain, path, -1)
-                            if c_data.get("secure"):
-                                cookie.set_secure(True)
-                            if c_data.get("http_only"):
-                                cookie.set_http_only(True)
-                            if c_data.get("expires"):
-                                try:
-                                    date = GLib.DateTime.new_from_iso8601(c_data["expires"], None)
-                                    cookie.set_expires(date)
-                                except:
-                                    pass # Ignore expiry parsing errors, treat as session cookie
-                            valid_cookies.append(cookie)        
-                    except Exception as e:
-                        print(f"Error restoring cookie: {e}")
-
-                cookies_to_process = len(valid_cookies)
-                
-                if cookies_to_process == 0:
-                    if on_loaded_callback:
-                        on_loaded_callback()
-                    return
-
-                def on_cookie_added(manager, output):
-                   nonlocal processed_cookies
-                   processed_cookies += 1
-                   if processed_cookies >= cookies_to_process:
-                       if on_loaded_callback:
-                           on_loaded_callback()
-                           
-                for cookie in valid_cookies:
-                    cookie_manager.add_cookie(cookie, None, on_cookie_added)
-                    
-            else:
-                 if on_loaded_callback:
-                    on_loaded_callback()
-
+            # Load cookies from file
+            cookie_file = file_path + '.cookies'
+            if os.path.exists(cookie_file):
+                cookie_manager = self.webview.get_network_session().get_cookie_manager()
+                cookie_manager.set_persistent_storage(
+                    cookie_file,
+                    WebKit.CookiePersistentStorage.SQLITE
+                )  
+            
         except Exception as e:
             print(f"Error loading session: {e}")
-            if on_loaded_callback:
-                on_loaded_callback()

@@ -1,15 +1,11 @@
 from subprocess import check_output
-import threading
 
 from .tts import TTSHandler
 from ...utility.system import can_escape_sandbox, get_spawn_command 
-from gi.repository import GLib
-
 
 class EspeakHandler(TTSHandler):
     
     key = "espeak"
-    is_installed_check = False 
 
     @staticmethod
     def requires_sandbox_escape() -> bool:
@@ -44,14 +40,11 @@ class EspeakHandler(TTSHandler):
     def is_installed(self):
         if not can_escape_sandbox():
             return False
-        GLib.idle_add(threading.Thread(target=self.check_install).start) 
-        return self.is_installed_check
-
-    def check_install(self):
         output = check_output(get_spawn_command() + ["whereis", "espeak"]).decode("utf-8")
         paths = []
         if ":" in output:
             paths = output.split(":")[1].split()
         if len(paths) > 0:
-            self.is_installed_check = True
-        self.is_installed_check = False
+            return True
+        return False
+

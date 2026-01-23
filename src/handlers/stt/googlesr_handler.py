@@ -1,11 +1,9 @@
+import speech_recognition as sr
 from .stt import STTHandler
 
 class GoogleSRHandler(STTHandler):
     
     key = "google_sr"
-
-    def get_extra_requirements(self) -> list:
-        return ["speechrecognition"]
 
     def get_extra_settings(self) -> list:
         return [
@@ -29,7 +27,6 @@ class GoogleSRHandler(STTHandler):
         ]
 
     def recognize_file(self, path):
-        import speech_recognition as sr
         r = sr.Recognizer()
         with sr.AudioFile(path) as source:
             audio = r.record(source)

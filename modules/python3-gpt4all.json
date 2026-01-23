@@ -1,0 +1,19 @@
+{
+    "name": "python3-gpt4all",
+    "buildsystem": "simple",
+    "build-commands": [
+        "pip3 install --verbose --exists-action=i --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} \"gpt4all\" --no-build-isolation"
+    ],
+    "sources": [
+        {
+            "type": "file",
+            "url": "https://files.pythonhosted.org/packages/93/60/ef1efd83c5757a69e8ed842b8a12b091e94a9bb2ceacc8b6e1c2e6487a77/gpt4all-2.8.2-py3-none-manylinux1_x86_64.whl",
+            "sha256": "c61e977afa72475c076211fd9b59a88334fc0062615be8c2f7716363a21fbafa"
+        },
+        {
+              "type": "file",
+              "url": "https://files.pythonhosted.org/packages/18/eb/fdb7eb9e48b7b02554e1664afd3bd3f117f6b6d6c5881438a0b055554f9b/tqdm-4.66.4-py3-none-any.whl",
+              "sha256": "b75ca56b413b030bc3f00af51fd2c1a1a5eac6a0c1cca83cbb37a5c52abce644"
+         }
+    ]
+}
