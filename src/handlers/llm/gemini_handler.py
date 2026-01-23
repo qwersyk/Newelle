@@ -84,8 +84,8 @@ class GeminiHandler(LLMHandler):
 
     def is_installed(self) -> bool:
         try:
-            module = find_module("google")
-            return False if module is None else True
+            from google import genai
+            return True
         except Exception as e:
             return False
 
