@@ -16,7 +16,6 @@ class Shortcuts(Gtk.Window):
         gr.append(Gtk.ShortcutsShortcut(title=_("Paste Image"), accelerator='<primary>v'))
         gr.append(Gtk.ShortcutsShortcut(title=_("Focus message box"), accelerator='<primary>l'))
         gr.append(Gtk.ShortcutsShortcut(title=_("Start/stop recording"), accelerator='<primary>g'))
-        gr.append(Gtk.ShortcutsShortcut(title=_("Stop generation"), accelerator='<primary>q'))
         gr.append(Gtk.ShortcutsShortcut(title=_("Save"), accelerator='<primary>s'))
         gr.append(Gtk.ShortcutsShortcut(title=_("Stop TTS"), accelerator='<primary>k'))
         gr.append(Gtk.ShortcutsShortcut(title=_("Zoom in"), accelerator='<primary>plus'))

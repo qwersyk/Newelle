@@ -20,7 +20,7 @@ def convert_history_openai(history: list, prompts: list, vision_support : bool =
         if message["User"] == "Console":
             result.append({
                 "role": "user",
-                "content": "Console: " + message["Message"],
+                "content": "Console: " + message["Message"]
             })
         else:
             image, text = extract_image(message["Message"])
@@ -44,60 +44,7 @@ def convert_history_openai(history: list, prompts: list, vision_support : bool =
                     "role": "user" if message["User"] == "User" else "assistant",
                     "content": message["Message"]
                 })
-    return aggregate_messages(result, "openai")
-
-def aggregate_messages(messages: list, format="newelle"):
-    """Aggregate multiple consecutive messages from the same role into a single message.
-
-    Args:
-        messages (list): List of messages to aggregate.
-        format (str): Message format ("newelle" or "openai").
-
-    Returns:
-        list: Aggregated messages.
-    """
-    if not messages:
-        return []
-
-    # Format configuration
-    formats = {
-        "newelle": {"role": "User", "content": "Message"},
-        "openai": {"role": "role", "content": "content"}
-    }
-
-    if format not in formats:
-        return messages
-
-    role_key = formats[format]["role"]
-    content_key = formats[format]["content"]
-
-    aggregated_messages = []
-    current_message = None
-
-    for message in messages:
-        if current_message is None:
-            current_message = message.copy()
-            continue
-
-        if current_message[role_key] == message[role_key]:
-            content1 = current_message[content_key]
-            content2 = message[content_key]
-
-            # Handle multimodal content (lists)
-            if isinstance(content1, list) or isinstance(content2, list):
-                c1 = content1 if isinstance(content1, list) else [{"type": "text", "text": str(content1)}]
-                c2 = content2 if isinstance(content2, list) else [{"type": "text", "text": str(content2)}]
-                current_message[content_key] = c1 + c2
-            else:
-                current_message[content_key] = str(content1) + "\n" + str(content2)
-        else:
-            aggregated_messages.append(current_message)
-            current_message = message.copy()
-
-    if current_message:
-        aggregated_messages.append(current_message)
-
-    return aggregated_messages
+    return result
 
 def embed_image(text: str, image: str):
     """

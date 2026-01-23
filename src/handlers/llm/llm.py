@@ -15,7 +15,6 @@ class LLMHandler(Handler):
         super().__init__(settings, path)
         self.settings = settings
         self.path = path
-        self.running = False
 
     def get_models_list(self):
         return tuple()
@@ -96,10 +95,6 @@ class LLMHandler(Handler):
         """  
         pass
 
-    def stop(self):
-        """Stop the generation"""
-        self.running = False
-
     def send_message(self, window, message:str) -> str:
         """Send a message to the bot
 
@@ -178,22 +173,10 @@ class LLMHandler(Handler):
             str: name of the chat
         """
         try:
-            # Prepare history without images and with capped message length
-            processed_history = []
-            for message in self.history:
-                image, text = extract_image(message["Message"])
-                # Cap message length to 500 characters
-                capped_text = text[:500]
-                processed_message = {
-                    "User": message["User"],
-                    "Message": capped_text
-                }
-                processed_history.append(processed_message)
-            
-            t = self.generate_text(request_prompt, processed_history)
-            return t
-        except Exception as e:
+             t = self.generate_text(request_prompt, self.history)
+             return t
+        except Exception as e:          
             print(e)
-            return None
+            return None 
 
 

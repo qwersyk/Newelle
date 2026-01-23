@@ -1,3 +1,4 @@
+import speech_recognition as sr
 from .stt import STTHandler
 
 class SphinxHandler(STTHandler):
@@ -5,10 +6,9 @@ class SphinxHandler(STTHandler):
     
     @staticmethod
     def get_extra_requirements() -> list:
-        return ["pocketsphinx", "speechrecognition"]
+        return ["pocketsphinx"]
 
     def recognize_file(self, path):
-        import speech_recognition as sr
         r = sr.Recognizer()
         with sr.AudioFile(path) as source:
             audio = r.record(source)

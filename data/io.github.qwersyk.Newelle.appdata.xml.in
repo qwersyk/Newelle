@@ -32,22 +32,6 @@
 	<url type="bugtracker">https://github.com/qwersyk/Newelle/issues</url>
 	<content_rating type="oars-1.0" />
 	<releases>
-	    <release version="1.2.0" date="2026-01-17">
-            <description>
-                <ul>
-                    <li>Added llama.cpp integration with options to recompile using different backends</li>
-                    <li>Implemented a new model library for Ollama and llama.cpp</li>
-                    <li>Implemented hybrid search to improve document reading</li>
-                    <li>Added command execution tool</li>
-                    <li>Added tool groups</li>
-                    <li>Improved MCP server adding, including STDIO support for non-Flatpak setups</li>
-                    <li>Added semantic memory handler</li>
-                    <li>Added chat import/export</li>
-                    <li>Added custom folders support for the RAG index</li>
-                    <li>Improved message info menu (token count + token speed), plus multiple minor improvements and fixes</li>
-                </ul>
-            </description>
-        </release>
 	    <release version="1.1.0" date="2026-01-05">
             <description>
                 <ul>

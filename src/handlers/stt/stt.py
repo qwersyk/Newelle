@@ -11,8 +11,6 @@ class STTHandler(Handler):
     def is_installed(self) -> bool:
         """If the handler is installed"""
         for module in self.get_extra_requirements():
-            if module == "speechrecognition":
-                module = "speech_recognition"
             if find_module(module) is None:
                 return False
         return True

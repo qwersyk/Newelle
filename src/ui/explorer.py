@@ -27,7 +27,6 @@ class ExplorerPanel(Gtk.Box):
         # Extra vars
         self.check_streams = {"folder": False, "chat": False}
         self.main_path = starting_path
-        self.flow_box = None
         self.get_current_path()
         self.context_menu_target = None  # Store the target file/folder for context menu
 
@@ -37,15 +36,6 @@ class ExplorerPanel(Gtk.Box):
         # Headerbar
         self.explorer_panel_header = Adw.HeaderBar(css_classes=["flat"], show_start_title_buttons=False, show_end_title_buttons=False)
         self.main_content.append(self.explorer_panel_header)
-
-        # Search bar
-        self.search_bar = Gtk.SearchBar()
-        self.search_entry = Gtk.SearchEntry()
-        self.search_bar.set_child(self.search_entry)
-        self.search_bar.connect_entry(self.search_entry)
-        self.search_bar.set_key_capture_widget(self)
-        self.search_entry.connect('search-changed', self.on_search_changed)
-        self.main_content.append(self.search_bar)
 
         # Folders
         self.folder_blocks_panel = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -59,11 +49,10 @@ class ExplorerPanel(Gtk.Box):
         self.build_explorer_panel_buttons()
         self.update_folder()
 
-    def go_to_path(self, path): 
-        self.set_main_path(path)
-        os.chdir(os.path.expanduser(self.main_path))
+    def go_to_path(self, path):
+        self.main_path = path
         self.get_current_path()
-        GLib.idle_add(self.update_folder)
+        self.update_folder()
 
     def build_explorer_panel_buttons(self):
         box = Gtk.Box(halign=Gtk.Align.CENTER)
@@ -102,48 +91,17 @@ class ExplorerPanel(Gtk.Box):
         button_reload.set_child(box)
         button_reload.connect("clicked", self.update_folder)
 
-        # Search explorer panel button
-        button_search = Gtk.Button(css_classes=["flat"])
-        icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="system-search-symbolic"))
-        icon.set_icon_size(Gtk.IconSize.INHERIT)
-        box = Gtk.Box(halign=Gtk.Align.CENTER)
-        box.append(icon)
-        button_search.set_child(box)
-        button_search.connect("clicked", self.on_search_button_clicked)
-
         box = Gtk.Box(spacing=6)
         box.append(button_folder_back)
         box.append(button_folder_forward)
         box.append(button_home)
         self.explorer_panel_header.pack_start(box)
         box = Gtk.Box(spacing=6)
-        box.append(button_search)
         box.append(button_reload)
 
         # Box containing explorer panel specific buttons
         self.explorer_panel_headerbox = box
         self.explorer_panel_header.pack_end(box)
-
-    def on_search_button_clicked(self, button):
-        if self.search_bar.get_search_mode():
-            self.search_bar.set_search_mode(False)
-        else:
-            self.search_bar.set_search_mode(True)
-            self.search_entry.grab_focus()
-
-    def on_search_changed(self, entry):
-        if self.flow_box:
-            self.flow_box.invalidate_filter()
-
-    def filter_files(self, child):
-        query = self.search_entry.get_text().lower()
-        if not query:
-            return True
-        button = child.get_child()
-        if not button:
-            return False
-        filename = button.get_name()
-        return query in filename.lower()
 
     def get_current_path(self):
         home_dir = os.path.expanduser("~")
@@ -159,8 +117,6 @@ class ExplorerPanel(Gtk.Box):
     def set_main_path(self, new_path):
         if self.main_path != new_path:
             self.main_path = new_path
-            self.search_bar.set_search_mode(False)
-            self.search_entry.set_text("")
             self.emit('path-changed', self.main_path)
 
     def go_back_in_explorer_panel(self, *a):
@@ -248,9 +204,8 @@ class ExplorerPanel(Gtk.Box):
                     )
                     self.main_content.append(self.folder_blocks_panel)
 
-                    self.flow_box = Gtk.FlowBox(vexpand=True)
-                    self.flow_box.set_valign(Gtk.Align.START)
-                    self.flow_box.set_filter_func(self.filter_files)
+                    flow_box = Gtk.FlowBox(vexpand=True)
+                    flow_box.set_valign(Gtk.Align.START)
                     
                     # Add right-click gesture for empty space
                     empty_space_right_click = Gtk.GestureClick()
@@ -293,7 +248,7 @@ class ExplorerPanel(Gtk.Box):
                         file_box.append(file_label)
                         button.set_child(file_box)
 
-                        self.flow_box.append(button)
+                        flow_box.append(button)
                     for file_info in os.listdir(os.path.expanduser(self.main_path)):
                         if (
                             file_info[0] == "."
@@ -331,12 +286,12 @@ class ExplorerPanel(Gtk.Box):
                         file_box.append(file_label)
                         button.set_child(file_box)
 
-                        self.flow_box.append(button)
+                        flow_box.append(button)
                     scrolled_window = Gtk.ScrolledWindow()
                     scrolled_window.set_policy(
                         Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC
                     )
-                    scrolled_window.set_child(self.flow_box)
+                    scrolled_window.set_child(flow_box)
                     
                     # Add the right-click gesture to the scrolled window for empty space clicks
                     scrolled_window.add_controller(empty_space_right_click)

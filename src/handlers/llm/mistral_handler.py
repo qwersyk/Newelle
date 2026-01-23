@@ -10,3 +10,4 @@ class MistralHandler(OpenAIHandler):
 
     def get_extra_settings(self) -> list:
         return self.build_extra_settings("Mistral", True, True, False, True, True, None, "https://docs.mistral.ai/getting-started/models/models_overview/", False, True)
+

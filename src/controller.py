@@ -25,8 +25,6 @@ from .constants import AVAILABLE_INTEGRATIONS, AVAILABLE_WEBSEARCH, DIR_NAME, SC
 import threading
 import pickle
 import json
-import datetime
-import uuid as uuid_lib
 from .extensions import ExtensionLoader
 from .utility import override_prompts
 from enum import Enum
@@ -191,14 +189,6 @@ class NewelleController:
                 self.reload(r)
         return reload
 
-    def close_application(self):
-        self.handlers.destroy()
-
-    def wait_llm_loading(self):
-        GLib.idle_add(self.ui_controller.set_model_loading, True)
-        self.handlers.llm.load_model(None)
-        GLib.idle_add(self.ui_controller.set_model_loading, False)
-
     def reload(self, reload_type: ReloadType):
         """Reload the specified settings
 
@@ -220,9 +210,8 @@ class NewelleController:
             self.extensionloader.set_ui_controller(self.ui_controller)
             print("Extensions reload")
         elif reload_type == ReloadType.LLM:
-            self.handlers.llm.destroy()
             self.handlers.select_handlers(self.newelle_settings)
-            GLib.idle_add(threading.Thread(target=self.wait_llm_loading).start)
+            threading.Thread(target=self.handlers.llm.load_model, args=(None,)).start()
         elif reload_type == ReloadType.SECONDARY_LLM:
             self.handlers.select_handlers(self.newelle_settings)
             if self.newelle_settings.use_secondary_language_model:
@@ -273,31 +262,7 @@ class NewelleController:
         self.tools = ToolRegistry()
         self.extensionloader.add_tools(self.tools)
         self.integrationsloader.add_tools(self.tools)
-    
-    def get_enabled_tools(self) -> list:
-        """Get the list of enabled tools
-        
-        Returns:
-            list[Tool]: List of enabled tools
-        """
-        enabled_tools = []
-        tools_settings = self.newelle_settings.tools_settings_dict
-        
-        for tool in self.tools.get_all_tools():
-            # Check if tool is explicitly enabled/disabled in settings
-            is_enabled = tool.default_on
-            if tool.name in tools_settings and "enabled" in tools_settings[tool.name]:
-                is_enabled = tools_settings[tool.name]["enabled"]
-            
-            # Special case: search tool is disabled if websearch is off
-            if tool.name == "search" and not self.newelle_settings.websearch_on:
-                is_enabled = False
-            
-            if is_enabled:
-                enabled_tools.append(tool)
-        
-        return enabled_tools
-        
+
     def load_extensions(self):
         """Load extensions"""
         # Load extensions
@@ -462,179 +427,6 @@ class NewelleController:
 
         self.settings.set_string("profiles", json.dumps(self.newelle_settings.profile_settings))
 
-    def export_single_chat(self, chat_index):
-        """Export a single chat to JSON format
-
-        Args:
-            chat_index: Index of the chat to export
-
-        Returns:
-            dict: Export data in JSON format
-        """
-        if chat_index < 0 or chat_index >= len(self.chats):
-            return None
-
-        chat_data = self.chats[chat_index]
-        export_data = {
-            "version": "1.0",
-            "export_metadata": {
-                "exported_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-                "exported_by": "Newelle",
-                "exported_from_version": "1.0.0",
-                "format_version": "1.0",
-                "export_type": "single_chat",
-                "export_id": str(uuid_lib.uuid4())
-            },
-            "chat": {
-                "name": chat_data["name"],
-                "profile": chat_data.get("profile", None),
-                "created_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-                "last_modified": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-                "message_count": len(chat_data["chat"]),
-                "messages": chat_data["chat"]
-            }
-        }
-        return export_data
-
-    def export_all_chats(self):
-        """Export all chats to JSON format
-
-        Returns:
-            dict: Export data in JSON format
-        """
-        chats_list = []
-        for chat_data in self.chats:
-            chat_entry = {
-                "name": chat_data["name"],
-                "profile": chat_data.get("profile", None),
-                "created_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-                "last_modified": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-                "message_count": len(chat_data["chat"]),
-                "messages": chat_data["chat"]
-            }
-            chats_list.append(chat_entry)
-
-        export_data = {
-            "version": "1.0",
-            "export_metadata": {
-                "exported_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-                "exported_by": "Newelle",
-                "exported_from_version": "1.0.0",
-                "format_version": "1.0",
-                "export_type": "multiple_chats",
-                "chat_count": len(chats_list),
-                "export_id": str(uuid_lib.uuid4())
-            },
-            "chats": chats_list
-        }
-        return export_data
-
-    def import_chat(self, data):
-        """Import chat(s) from JSON format
-
-        Args:
-            data: Dictionary containing chat export data
-
-        Returns:
-            tuple: (success: bool, message: str, imported_count: int)
-        """
-        # Validate required fields
-        if "version" not in data or "export_metadata" not in data:
-            return False, _("Invalid export format: missing required fields"), 0
-
-        export_metadata = data["export_metadata"]
-        export_type = export_metadata.get("export_type")
-
-        if export_type == "single_chat":
-            return self._import_single_chat(data)
-        elif export_type == "multiple_chats":
-            return self._import_multiple_chats(data)
-        else:
-            return False, _("Unknown export type"), 0
-
-    def _import_single_chat(self, data):
-        """Import a single chat from export data"""
-        try:
-            chat = data["chat"]
-            name = chat.get("name", "Imported Chat")
-            messages = chat.get("messages", [])
-            profile = chat.get("profile")
-
-            # Ensure name is unique
-            counter = 1
-            original_name = name
-            while any(c["name"] == name for c in self.chats):
-                name = f"{original_name} ({counter})"
-                counter += 1
-
-            # Create new chat
-            new_chat = {
-                "name": name,
-                "chat": messages[:]
-            }
-
-            # Set profile if provided
-            if profile is not None:
-                new_chat["profile"] = profile
-
-            self.chats.append(new_chat)
-            self.save_chats()
-            return True, _("Imported 1 chat successfully"), 1
-        except Exception as e:
-            return False, _("Error importing chat: {0}").format(str(e)), 0
-
-    def _import_multiple_chats(self, data):
-        """Import multiple chats from export data"""
-        try:
-            chats = data["chats"]
-            imported_count = 0
-            skipped_count = 0
-
-            # Track existing chat names
-            existing_names = {c["name"] for c in self.chats}
-
-            for chat in chats:
-                try:
-                    name = chat.get("name", "Imported Chat")
-                    messages = chat.get("messages", [])
-                    profile = chat.get("profile")
-
-                    # Ensure name is unique
-                    if name in existing_names:
-                        counter = 1
-                        original_name = name
-                        while name in existing_names:
-                            name = f"{original_name} ({counter})"
-                            counter += 1
-
-                    # Create new chat
-                    new_chat = {
-                        "name": name,
-                        "chat": messages[:]
-                    }
-
-                    # Set profile if provided
-                    if profile is not None:
-                        new_chat["profile"] = profile
-
-                    self.chats.append(new_chat)
-                    existing_names.add(name)
-                    imported_count += 1
-                except Exception:
-                    skipped_count += 1
-                    continue
-
-            if imported_count > 0:
-                self.save_chats()
-
-            message = _("Imported {0} chat(s)").format(imported_count)
-            if skipped_count > 0:
-                message += _(" (skipped {0})").format(skipped_count)
-
-            return True, message, imported_count
-        except Exception as e:
-            return False, _("Error importing chats: {0}").format(str(e)), 0
-
 
 class NewelleSettings:
 
@@ -701,7 +493,7 @@ class NewelleSettings:
         self.websearch_on = self.settings.get_boolean("websearch-on")
         self.websearch_model = self.settings.get_string("websearch-model")
         self.websearch_settings = self.settings.get_string("websearch-settings")
-        self.parallel_tool_execution = settings.get_boolean("parallel-tool-execution")
+
         self.external_browser = settings.get_boolean("external-browser")
         self.initial_browser_page = settings.get_string("initial-browser-page")
         self.browser_search_string = settings.get_string("browser-search-string")
@@ -812,10 +604,6 @@ class HandlersManager:
         self.integrationsloader = integrations
         self.installing_handlers = installing_handlers
 
-    def destroy(self):
-        for handler in self.handlers.values():
-            handler.destroy()
-
     def fix_handlers_integrity(self, newelle_settings: NewelleSettings):
         """Select available handlers if not available handlers in settings
 
@@ -884,7 +672,7 @@ class HandlersManager:
 
     def load_handlers(self):
         """Load handlers"""
-        threading.Thread(target=self.llm.load_model, args=(None,)).start()
+        self.llm.load_model(None)
         if self.settings.get_boolean("secondary-llm-on"):
             self.secondary_llm.load_model(None)
         self.embedding.load_model()

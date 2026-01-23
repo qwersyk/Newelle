@@ -72,9 +72,6 @@ class ReplaceHelper:
         for tool_name, settings in tools_settings.items():
              if "enabled" in settings:
                  enabled_tools[tool_name] = settings["enabled"]
-        # Link websearch setting with the search tool
-        if not ReplaceHelper.controller.newelle_settings.websearch_on:
-            enabled_tools["search"] = False
         return ReplaceHelper.controller.tools.get_tools_prompt(enabled_tools_dict=enabled_tools, tools_settings=tools_settings)
 
 def replace_variables(text: str) -> str:

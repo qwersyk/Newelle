@@ -101,16 +101,6 @@ class MyApp(Adw.Application):
           animation-timing-function: ease-in-out;
           animation-iteration-count: infinite;
         }
-
-        /* Chat history row styling */
-        .navigation-sidebar row.chat-row-selected {
-          background-color: alpha(@accent_bg_color, 0.15);
-          border-radius: 6px;
-        }
-        
-        .navigation-sidebar row.chat-row-selected:hover {
-          background-color: alpha(@accent_bg_color, 0.25);
-        }
                 .window-bar-label {
                         color: @view_fg_color;
                         font-weight: 600;
@@ -183,16 +173,6 @@ class MyApp(Adw.Application):
         action = Gio.SimpleAction.new("extension", None)
         action.connect('activate', self.extension_action)
         self.add_action(action)
-        action = Gio.SimpleAction.new("export_current_chat", None)
-        action.connect('activate', self.export_current_chat_action)
-        self.add_action(action)
-        action = Gio.SimpleAction.new("export_all_chats", None)
-        action.connect('activate', self.export_all_chats_action)
-        self.add_action(action)
-        action = Gio.SimpleAction.new("import_chats", None)
-        action.connect('activate', self.import_chats_action)
-        self.add_action(action)
-    
         # Window management actions
         self.create_action('new_window', self.create_window)
         self.create_action('close_window', self.close_active_window)
@@ -271,22 +251,7 @@ class MyApp(Adw.Application):
 
         extension.connect("close-request", close)
         extension.present()
-    
-    def export_current_chat_action(self, *a):
-        """Export the current chat"""
-        if hasattr(self, "win"):
-            self.win.export_chat(export_all=False)
-    
-    def export_all_chats_action(self, *a):
-        """Export all chats"""
-        if hasattr(self, "win"):
-            self.win.export_chat(export_all=True)
-    
-    def import_chats_action(self, *a):
-        """Import chats from a file"""
-        if hasattr(self, "win"):
-            self.win.import_chat(None)
-    
+
     def stdout_monitor_action(self, *a):
         """Show the stdout monitor dialog"""
         self.win.show_stdout_monitor_dialog()
@@ -303,9 +268,10 @@ class MyApp(Adw.Application):
         streams = getattr(window, "streams", [])
         if all(element.poll() is not None for element in streams):
             settings = Gio.Settings.new('io.github.qwersyk.Newelle')
-            settings.set_int("window-width", self.win.get_width())
-            settings.set_int("window-height", self.win.get_height())
-            self.win.controller.close_application()
+            settings.set_int("window-width", window.get_width())
+            settings.set_int("window-height", window.get_height())
+            if window is self.window:
+                self.quit()
             return False
         else:
             dialog = Adw.MessageDialog(
@@ -327,9 +293,10 @@ class MyApp(Adw.Application):
         if status == "close":
             for i in getattr(window, "streams", []):
                 i.terminate()
-            self.win.controller.close_application()
-            self.win.destroy()
-    
+            window.destroy()
+            if window is self.window:
+                self.quit()
+
     def do_command_line(self, command_line):
         options = command_line.get_options_dict()
         if options.contains("run-action"):
@@ -637,10 +604,6 @@ class MyApp(Adw.Application):
     def stop_tts(self, *a):
         self.win.mute_tts(self.win.mute_tts_button)
 
-    def stop_chat(self, *a):
-        if hasattr(self, "win") and not self.win.status:
-            self.win.stop_chat()
-    
     def do_shutdown(self):
         self.win.save_chat()
         settings = Gio.Settings.new('io.github.qwersyk.Newelle')
@@ -661,11 +624,6 @@ class MyApp(Adw.Application):
 
     def save(self, *a):
         self.win.save()
-    def pretty_print_chat(self, *a):
-        for msg in self.win.chat:
-            print(msg["User"], msg["Message"])
-    def debug(self, *a):
-        self.pretty_print_chat()
 
 
 def main(version):
@@ -675,13 +633,11 @@ def main(version):
     app.create_action('new_chat', app.new_chat, ['<primary>t'])
     app.create_action('focus_message', app.focus_message, ['<primary>l'])
     app.create_action('start_recording', app.start_recording, ['<primary>g'])
-    app.create_action('stop_chat', app.stop_chat, ['<primary>q'])
     app.create_action('stop_tts', app.stop_tts, ['<primary>k'])
     app.create_action('save', app.save, ['<primary>s'])
     app.create_action('zoom', app.zoom, ['<primary>plus'])
     app.create_action('zoom', app.zoom, ['<primary>equal'])
     app.create_action('zoom_out', app.zoom_out, ['<primary>minus'])
-    app.create_action('debug', app.debug, ['<primary>b'])
     app.create_action('new_window', app.create_window, ['<primary><shift>n'])
     app.create_action('close_window', app.close_active_window, ['<primary><shift>w'])
     for i in range(1, 10):

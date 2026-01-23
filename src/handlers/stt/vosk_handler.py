@@ -1,3 +1,4 @@
+import speech_recognition as sr
 import json
 from .stt import STTHandler
 
@@ -7,7 +8,7 @@ class VoskHandler(STTHandler):
 
     @staticmethod
     def get_extra_requirements() -> list:
-        return ["vosk", "speechrecognition"]
+        return ["vosk"]
 
     def get_extra_settings(self) -> list:
         return [
@@ -22,7 +23,6 @@ class VoskHandler(STTHandler):
         ]
 
     def recognize_file(self, path):
-        import speech_recognition as sr
         from vosk import Model
         r = sr.Recognizer()
         with sr.AudioFile(path) as source:
