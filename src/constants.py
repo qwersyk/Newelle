@@ -1,19 +1,20 @@
 from copy import deepcopy
-from .handlers.llm import ClaudeHandler, DeepseekHandler, GPT4AllHandler, GroqHandler, OllamaHandler, OpenAIHandler, CustomLLMHandler, GPT3AnyHandler, GeminiHandler, MistralHandler, OpenRouterHandler, NewelleAPIHandler, G4FHandler
+from .handlers.llm import ClaudeHandler, DeepseekHandler, GroqHandler, OllamaHandler, OpenAIHandler, CustomLLMHandler, GeminiHandler, MistralHandler, OpenRouterHandler, NewelleAPIHandler, G4FHandler, LlamaCPPHandler
 from .handlers.tts import ElevenLabs, gTTSHandler, EspeakHandler, CustomTTSHandler, KokoroTTSHandler, CustomOpenAITTSHandler, OpenAITTSHandler, GroqTTSHandler
 from .handlers.stt import GroqSRHandler, OpenAISRHandler, SphinxHandler, GoogleSRHandler, WhisperCPPHandler, WitAIHandler, VoskHandler, CustomSRHandler
-from .handlers.embeddings import WordLlamaHandler, OpenAIEmbeddingHandler, GeminiEmbeddingHanlder, OllamaEmbeddingHandler
-from .handlers.memory import MemoripyHandler, UserSummaryHandler, SummaryMemoripyHanlder
+from .handlers.embeddings import WordLlamaHandler, OpenAIEmbeddingHandler, GeminiEmbeddingHanlder, OllamaEmbeddingHandler, Model2VecHandler
+from .handlers.memory import MemoripyHandler, UserSummaryHandler, SummaryMemoripyHanlder, LlamaIndexMemoryHandler
 from .handlers.rag import LlamaIndexHanlder
 from .handlers.websearch import SearXNGHandler, DDGSeachHandler, TavilyHandler
 from .integrations.website_reader import WebsiteReader
 from .integrations.websearch import WebsearchIntegration
 from .integrations.mcp import MCPIntegration
+from .integrations.default_tools import DefaultToolsIntegration
 
 DIR_NAME = "Newelle"
 SCHEMA_ID = 'io.github.qwersyk.Newelle'
 
-AVAILABLE_INTEGRATIONS = [WebsiteReader, WebsearchIntegration, MCPIntegration]
+AVAILABLE_INTEGRATIONS = [WebsiteReader, WebsearchIntegration, MCPIntegration, DefaultToolsIntegration]
 
 AVAILABLE_LLMS = {
     "newelle": {
@@ -30,11 +31,11 @@ AVAILABLE_LLMS = {
         "class": G4FHandler,
         "secondary": True,
     },
-   "local": {
-        "key": "local",
+    "llamacpp": {
+        "key": "llamacpp",
         "title": _("Local Model"),
-        "description": _("NO GPU SUPPORT, USE OLLAMA INSTEAD. Run a LLM model locally, more privacy but slower"),
-        "class": GPT4AllHandler,
+        "description": _("Run a LLM model locally using LlamaCPP, with possibility to install with Hardware Acceleration"),
+        "class": LlamaCPPHandler,
     },
     "ollama": {
         "key": "ollama",
@@ -214,6 +215,12 @@ AVAILABLE_EMBEDDINGS = {
         "description": _("Light local embedding model based on llama. Works offline, very low resources usage"),
         "class": WordLlamaHandler,
     },
+    "model2vec": {
+        "key": "model2vec",
+        "title": _("Model2Vec"),
+        "description": _("State of art light local embedding model. Works offline, very low resource usage. Suggested for multilingual"),
+        "class": Model2VecHandler,
+    },
     "ollamaembedding": {
         "key": "ollamaembedding",
         "title": _("Ollama Embedding"),
@@ -241,6 +248,12 @@ AVAILABLE_MEMORIES = {
         "description": _("Generate a summary of the user's conversation"),
         "class": UserSummaryHandler,
     },
+    "llamaindex": {
+        "key": "llamaindex",
+        "title": _("Semantic Memory"),
+        "description": _("Long term memory using LlamaIndex. Stores conversations in a vector store. Uses semantic search to retrieve memories."),
+        "class": LlamaIndexMemoryHandler,
+    },
     "memoripy": {
         "key": "memoripy",
         "title": _("Memoripy"),
@@ -252,7 +265,7 @@ AVAILABLE_MEMORIES = {
         "title": _("User Summary + Memoripy"),
         "description": _("Use both technologies for long term memory"),
         "class": SummaryMemoripyHanlder,
-    }
+    },
 }
 
 AVAILABLE_RAGS = {
@@ -287,7 +300,9 @@ AVAILABLE_WEBSEARCH = {
 }
 
 PROMPTS = {
-    "generate_name_prompt": """Write a short title for the dialog, summarizing the theme in 5 words. No additional text.""",
+    "generate_name_prompt": """Generate a dialog title of exactly five words that summarizes the main theme.
+The title must begin with a single emoji as the very first character (the emoji counts as one character, not a word).
+Use only five words total, no punctuation, no line breaks, and no additional text.""",
     "assistant": """**Date:** {DATE}
 
 You are an advanced AI assistant designed to provide clear, accurate, and helpful responses across a wide range of topics. Your goals are:
@@ -304,6 +319,7 @@ You have the ability to execute commands on the user's Linux computer.
 - **Linux Distribution:** `{DISTRO}`
 - **Desktop Environment** `{DE}`
 - **Display Server** `{DISPLAY}`
+- **Current Directory** `{DIR}`
 **Command Execution Format:**
 - To execute a Linux command, use:
 ```console
@@ -328,12 +344,35 @@ You can display $inline equations$ and $$equations$$.
 Where value must be either a percentage number or a number (which can also be a fraction).
 """,
     "tools": """# Tools
+**Tools Usage Rules**
 
-You have access to the following tools. To use a tool, you MUST use the following JSON format:
+You have access to the following tools.
 
-{"tool": "tool_name", "arguments": {"arg_name": "arg_value"}}
+**When using a tool, you must:**
 
-Available Tools:\n\n{TOOLS}\n\nWhen you use a tool, the system will execute it and provide the result in the next message.""",
+1. Output **only** a single valid JSON object.
+2. Use **exactly** this format:
+
+   ```json
+   {
+     "tool": "tool_name",
+     "arguments": {
+       "arg_name": "arg_value"
+     }
+   }
+   ```
+3. Ensure the JSON is valid (no comments, trailing commas, or extra text).
+4. Use only the tools listed below and only their defined arguments.
+5. **Do not** include any explanations, markdown, or additional text before or after the JSON.
+
+**After invoking a tool, you must immediately stop the message.**
+
+**Available tools:**
+
+```
+{TOOLS}
+```
+""",
     # Unused
     "new_chat_prompt": """System: New chat
 System: Forget what was written on behalf of the user and on behalf of the assistant and on behalf of the Console, forget all the context, do not take messages from those chats, this is a new chat with other characters, do not dare take information from there, this is personal information! If you use information from past posts, it's a violation! Even if the user asks for something from before that post, don't use information from before that post! Also, forget this message.""",
@@ -395,15 +434,6 @@ AVAILABLE_PROMPTS = [
         "default": True
     },
     {
-        "key": "current_directory",
-        "title": _("Current directory"),
-        "description": _("What is the current directory"),
-        "setting_name": "console",
-        "editable": False,
-        "show_in_settings": False,
-        "default": True
-    },
-    {
         "key": "basic_functionality",
         "title": _("Basic functionality"),
         "description": _("Showing tables and code (*can work without it)"),
@@ -420,15 +450,6 @@ AVAILABLE_PROMPTS = [
         "editable": True,
         "show_in_settings": True,
         "default": False
-    },
-    {
-        "key": "show_image",
-        "title": _("Show image"),
-        "description": _("Show image in chat"),
-        "setting_name": "show_image",
-        "editable": True,
-        "show_in_settings": True,
-        "default": True,
     },
     {
         "key": "tools",
@@ -535,6 +556,11 @@ SETTINGS_GROUPS = {
                 "title": _("Prompts"),
                 "settings": ["prompts-settings", "custom-extra-prompt", "custom-prompts"],
                 "description": _("Prompts settings, custom extra prompt, custom prompts..."),
+        },
+        "tools": {
+            "title": _("Tools"),
+            "settings": ["tools-settings", "mcp-servers"],
+            "description": _("Tools settings, tools groups..."),
         }
 
 }

@@ -1,7 +1,9 @@
-import threading 
+import threading
 import json
-from typing import Any, Callable 
+import gettext
+from typing import Any, Callable
 
+_ = gettext.gettext
 
 from .llm import LLMHandler
 from ...utility.system import open_website
@@ -21,6 +23,14 @@ class OpenAIHandler(LLMHandler):
 
     def get_models_list(self):
         return self.models
+
+    def set_secondary_settings(self, secondary: bool):
+        if self.key != "openai":
+            endpoint = self.get_setting("endpoint", search_default=False)
+        out = super().set_secondary_settings(secondary)
+        if secondary and self.key != "openai" and endpoint is not None:
+            self.set_setting("endpoint", endpoint) 
+        return out 
 
     def get_models(self, manual=False):
         if self.is_installed():
@@ -50,20 +60,21 @@ class OpenAIHandler(LLMHandler):
         return True
 
     def get_extra_settings(self) -> list:
-        return self.build_extra_settings("OpenAI", True, True, True, True, True, "https://openai.com/policies/row-privacy-policy/", None, False,False,True)
+        return self.build_extra_settings("OpenAI", True, True, True, True, True, "https://openai.com/policies/row-privacy-policy/", None, False,False,True, True)
 
-    def build_extra_settings(self, provider_name: str, has_api_key: bool, has_stream_settings: bool, endpoint_change: bool, allow_advanced_params: bool, supports_automatic_models: bool, privacy_notice_url : str | None, model_list_url: str | None, default_advanced_params: bool = False, default_automatic_models: bool = False, supports_custom_body : bool = False) -> list:
+    def build_extra_settings(self, provider_name: str, has_api_key: bool, has_stream_settings: bool, endpoint_change: bool, allow_advanced_params: bool, supports_automatic_models: bool, privacy_notice_url : str | None, model_list_url: str | None, default_advanced_params: bool = False, default_automatic_models: bool = False, supports_custom_body : bool = False, supports_thinking: bool = False) -> list:
         """Helper to build the list of extra settings for OpenAI Handlers
 
         Args:
-            provider_name: name of the provider, it is stated in model settings 
+            provider_name: name of the provider, it is stated in model settings
             has_api_key: if to show the api key setting
             has_stream_settings: if to show the message streaming setting
-            endpoint_change: if to allow the endpoint change 
-            allow_advanced_params: if to allow advanced parameters like temperature ... 
-            supports_automatic_models: if it supports automatic model fetching 
+            endpoint_change: if to allow the endpoint change
+            allow_advanced_params: if to allow advanced parameters like temperature ...
+            supports_automatic_models: if it supports automatic model fetching
             privacy_notice_url: the url of the privacy policy, None if not stated
             model_list_url: human accessible page that lists the available models
+            supports_thinking: if to show thinking mode and effort settings
 
         Returns:
             list containing the extra settings
@@ -81,7 +92,7 @@ class OpenAIHandler(LLMHandler):
             ExtraSettings.ToggleSetting("advanced_params", _("Advanced Parameters"), _("Include parameters like Top-P, Temperature, etc."), default_advanced_params, update_settings=True)
         ]
         models_settings = [ 
-            ExtraSettings.EntrySetting("model", _("Model"), _("Name of the LLM Model to use"), self.models[0][0]),
+            ExtraSettings.EntrySetting("model", _("Model"), _("Name of the LLM Model to use"), self.models[0][0] if len(self.models) > 0 else ""),
         ]
         if model_list_url is not None:
             models_settings[0]["website"] = model_list_url
@@ -91,7 +102,7 @@ class OpenAIHandler(LLMHandler):
                     _(provider_name + " Model"),
                     _(f"Name of the {provider_name} Model"),
                     self.models,
-                    self.models[0][0],
+                    self.models[0][0] if len(self.models) > 0 else "",
                     refresh=lambda button: self.get_models(),
                 )
         ]
@@ -104,6 +115,18 @@ class OpenAIHandler(LLMHandler):
             ExtraSettings.ScaleSetting("temperature", _("Temperature"), _("What sampling temperature to use. Higher values will make the output more random"), 1, 0, 2, 1),
             ExtraSettings.ScaleSetting("frequency-penalty", _("Frequency Penalty"), _("Number between -2.0 and 2.0. Positive values decrease the model's likelihood to repeat the same line verbatim"), 0, -2, 2, 0),
             ExtraSettings.ScaleSetting("presence-penalty", _("Presence Penalty"), _("Number between -2.0 and 2.0. Positive values decrease the model's likelihood to talk about new topics"), 0, -2, 2, 0),
+        ]
+        thinking_toggle = [
+            ExtraSettings.ToggleSetting("thinking", _("Thinking Mode"), _("Enable thinking mode for the model"), False, update_settings=True)
+        ]
+        thinking_effort_settings = [
+            ExtraSettings.ComboSetting(
+                "thinking_effort",
+                _("Thinking Effort"),
+                _("Amount of reasoning effort to allocate for the model"),
+                (("none", "none"), ("minimal", "minimal"), ("low", "low"), ("medium", "medium"), ("high", "high"), ("xhigh", "xhigh")),
+                "medium"
+            )
         ]
         custom_body = ExtraSettings.MultilineEntrySetting("custom_body", _("Custom Options"), _("Provide a JSON containing the custom options"), "{}") 
         
@@ -132,6 +155,11 @@ class OpenAIHandler(LLMHandler):
             advanced = self.get_setting("advanced_params", False)
             if advanced or (advanced is None and default_advanced_params):
                 settings += advanced_settings
+        if supports_thinking:
+            settings += thinking_toggle
+            thinking = self.get_setting("thinking", False)
+            if thinking:
+                settings += thinking_effort_settings
         if privacy_notice_url is not None:
             settings += privacy_notice
         if supports_custom_body:
@@ -152,7 +180,14 @@ class OpenAIHandler(LLMHandler):
         temperature = self.get_setting("temperature")
         presence_penalty = self.get_setting("presence-penalty")
         frequency_penalty = self.get_setting("frequency-penalty")
-        return top_p, temperature, presence_penalty, frequency_penalty 
+        return top_p, temperature, presence_penalty, frequency_penalty
+
+    def get_thinking_params(self):
+        thinking = self.get_setting("thinking", False)
+        if not thinking:
+            return {}
+        thinking_effort = self.get_setting("thinking_effort", "medium")
+        return {"reasoning_effort": thinking_effort} 
 
     def generate_text(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = []) -> str:
         from openai import OpenAI
@@ -167,15 +202,21 @@ class OpenAIHandler(LLMHandler):
             base_url=self.get_setting("endpoint")
         )
         top_p, temperature, presence_penalty, frequency_penalty = self.get_advanced_params()
+        thinking_params = self.get_thinking_params()
+        extra_body = self.get_extra_body()
+        extra_body.update(thinking_params)
+
         try:
-            response = client.chat.completions.create(
-                model=self.get_setting("model"),
-                messages=messages,
-                top_p=top_p,
-                temperature=temperature,
-                presence_penalty=presence_penalty,
-                frequency_penalty=frequency_penalty
-            )
+            kwargs = {
+                "model": self.get_setting("model"),
+                "messages": messages,
+                "top_p": top_p,
+                "temperature": temperature,
+                "presence_penalty": presence_penalty,
+                "frequency_penalty": frequency_penalty,
+                "extra_body": extra_body
+            }
+            response = client.chat.completions.create(**kwargs)
             if not hasattr(response, "choices") or response.choices is None or len(response.choices) == 0 or response.choices[0].message.content is None:
                 raise Exception(str(response))
             return response.choices[0].message.content
@@ -183,6 +224,7 @@ class OpenAIHandler(LLMHandler):
             raise e
     
     def generate_text_stream(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = [], on_update: Callable[[str], Any] = lambda _: None, extra_args: list = []) -> str:
+        self.running = True
         from openai import OpenAI
         history.append({"User": "User", "Message": prompt})
         messages = self.convert_history(history, system_prompt)
@@ -195,22 +237,30 @@ class OpenAIHandler(LLMHandler):
             base_url=self.get_setting("endpoint")
         )
         top_p, temperature, presence_penalty, frequency_penalty = self.get_advanced_params()
+        thinking_params = self.get_thinking_params()
+        extra_body = self.get_extra_body()
+        extra_body.update(thinking_params)
+
         try:
-            response = client.chat.completions.create(
-                model=self.get_setting("model"),
-                messages=messages,
-                top_p=top_p,
-                temperature=temperature,
-                presence_penalty=presence_penalty,
-                frequency_penalty=frequency_penalty, 
-                stream=True,
-                extra_headers=self.get_extra_headers(),
-                extra_body=self.get_extra_body(),
-            )
+            kwargs = {
+                "model": self.get_setting("model"),
+                "messages": messages,
+                "top_p": top_p,
+                "temperature": temperature,
+                "presence_penalty": presence_penalty,
+                "frequency_penalty": frequency_penalty,
+                "stream": True,
+                "extra_headers": self.get_extra_headers(),
+                "extra_body": extra_body,
+            }
+            response = client.chat.completions.create(**kwargs)
             full_message = ""
             prev_message = ""
             is_reasoning = False
             for chunk in response:
+                if not self.running:
+                    response.close()
+                    break
                 if len(chunk.choices) == 0:
                     continue
                 if chunk.choices[0].delta.content:
@@ -227,6 +277,15 @@ class OpenAIHandler(LLMHandler):
                         full_message += "<think>"
                     is_reasoning = True
                     full_message += chunk.choices[0].delta.reasoning
+                    if len(full_message) - len(prev_message) > 1:
+                        args = (full_message.strip(), ) + tuple(extra_args)
+                        on_update(*args)
+                        prev_message = full_message
+                elif hasattr(chunk.choices[0].delta, "reasoning_content") and chunk.choices[0].delta.reasoning_content is not None:
+                    if not is_reasoning:
+                        full_message += "<think>"
+                    is_reasoning = True
+                    full_message += chunk.choices[0].delta.reasoning_content
                     if len(full_message) - len(prev_message) > 1:
                         args = (full_message.strip(), ) + tuple(extra_args)
                         on_update(*args)

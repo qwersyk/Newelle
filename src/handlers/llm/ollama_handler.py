@@ -1,26 +1,35 @@
 import threading 
 import json 
 import requests 
+import os
 from subprocess import Popen 
 from typing import Any, Callable
 import time
+import gettext
+from gi.repository import GLib
+
+_ = gettext.gettext
 
 from ..handler import ErrorSeverity
 
 from .llm import LLMHandler
-from ...utility.system import can_escape_sandbox, get_spawn_command
+from ...utility.system import can_escape_sandbox, get_spawn_command, is_flatpak
 from ...utility.media import extract_image
 from ...utility import get_streaming_extra_setting
 from ...handlers import ExtraSettings
 
 class OllamaHandler(LLMHandler):
     key = "ollama"
-    default_models = (("llama3.1:8b", "llama3.1:8b"), )
+    default_models = (("gemma3:8b", "gemma3:8b"), )
     model_library = []
     # Url where to get the available models info
-    library_url = "https://nyarchlinux.moe/available_models.json"
+    library_url = "https://raw.githubusercontent.com/FrancescoCaracciolo/llm-library-scraper/refs/heads/main/ollama/available_models.json"
     # List of models to be included in the library by default
-    listed_models = ["qwen3:4b", "qwen3:8b", "deepseek-r1:8b", "qwen3:14b", "llama3.2-vision:11b", "deepseek-r1:1.5b", "deepseek-r1:7b", "deepseek-r1:14b", "llama3.2:3b", "llama3.1:8b", "qwq:32b", "qwen2.5:1.5b", "qwen2.5:3b", "qwen2.5:7b", "qwen2.5:14b", "gemma2:2b", "gemma2:9b", "qwen2.5-coder:3b", "qwen2.5-coder:7b", "qwen2.5-coder:14b", "llama3.3:70b", "phi4:14b"]
+    pinned_models = ["qwen3:4b", "qwen3:8b", "deepseek-r1:8b", "qwen3:14b", "llama3.2-vision:11b", "deepseek-r1:1.5b", "deepseek-r1:7b", "deepseek-r1:14b", "llama3.2:3b", "llama3.1:8b", "qwq:32b", "qwen2.5:1.5b", "qwen2.5:3b", "qwen2.5:7b", "qwen2.5:14b", "gemma2:2b", "gemma2:9b", "qwen2.5-coder:3b", "qwen2.5-coder:7b", "qwen2.5-coder:14b", "llama3.3:70b", "phi4:14b"]
+
+    def get_cache_path(self):
+        cache_dir = self.path
+        return os.path.join(cache_dir, "ollama_models.json")
 
     def __init__(self, settings, path):
         super().__init__(settings, path)
@@ -37,7 +46,17 @@ class OllamaHandler(LLMHandler):
         else:
             self.models = json.loads(models)
         if self.get_setting("models-info", False) is not None:
-            self.models_info = self.get_setting("models-info", False)
+            self.set_setting("model-info", None)
+        
+        cache_path = self.get_cache_path()
+        if os.path.exists(cache_path):
+            try:
+                with open(cache_path, "r") as f:
+                    self.models_info = json.load(f)
+            except Exception as e:
+                print(f"Error loading cached models info: {e}")
+                self.models_info = {}
+                threading.Thread(target=self.get_models_infomation, args=()).start()
         else:
             self.models_info = {}
             threading.Thread(target=self.get_models_infomation, args=()).start()
@@ -50,20 +69,23 @@ class OllamaHandler(LLMHandler):
         if self.is_installed(): 
             try:
                 info = requests.get(self.library_url).json()
-                self.set_setting("models-info", info)
+                cache_path = self.get_cache_path()
+                with open(cache_path, "w") as f:
+                    json.dump(info, f)
                 print(info)
                 self.models_info = info
                 self.add_library_information()
                 self.settings_update()
+                print("Got models information")
             except Exception as e:
                 print("Error getting ollama get_models_infomation" + str(e))
    
     def get_info_for_library(self, model):
         """Get information about a model in the library
-
+        
         Args:
             model (): name of the model 
-
+        
         Returns:
            dict - information to be added to the library 
         """
@@ -79,16 +101,111 @@ class OllamaHandler(LLMHandler):
                     description += "\nSize: " + "".join([t[1] for t in self.models_info[name]["tags"] if t[0] == tag])
                 return {"key": model, "title": title, "description": description}
         return {"key": model, "title": model, "description": "User added model"}
+        
+    def get_display_tags(self, key):
+        parts = key.split(":")
+        family = parts[0]
+        
+        extra_tags = []
+        if family in self.models_info:
+            raw_info = self.models_info[family]
+            if "tags" in raw_info:
+                for t in raw_info["tags"]:
+                    if len(parts) > 1 and t[0] == parts[1]:
+                         if len(t) > 1:
+                             extra_tags.append(t[1])
+            
+            if "categories" in raw_info:
+                extra_tags.extend(raw_info["categories"])
+            if "languages" in raw_info:
+                 langs = raw_info["languages"]
+                 if len(langs) > 3:
+                     extra_tags.append(f"{len(langs)} languages")
+                 else:
+                     extra_tags.extend(langs)
+        return extra_tags
+
+    def fetch_models(self):
+        from ...ui.model_library import LibraryModel
+        models = []
+        unique_keys = set()
+        
+        pinned = self.pinned_models
+        models_info = self.models_info
+        model_library = self.model_library
+        
+        # Helper to create model object
+        def create_model_obj(key, info_source=None, pinned=False):
+            if key in unique_keys: return None
+            
+            # Default info
+            title = key
+            desc = ""
+            
+            if info_source:
+                title = info_source.get("title", key)
+                desc = info_source.get("description", "")
+            else:
+                 # Fallback to handler lookup
+                 info = self.get_info_for_library(key)
+                 title = info.get("title", key)
+                 desc = info.get("description", "")
+                 
+            tags = self.get_display_tags(key)
+            is_installed = self.model_installed(key)
+            
+            return LibraryModel(
+                id=key,
+                name=title,
+                description=desc,
+                tags=tags,
+                is_installed=is_installed,
+                is_pinned=pinned
+            )
+
+        # 1. Pinned Models
+        for key in pinned:
+            m = create_model_obj(key, pinned=True)
+            if m:
+                models.append(m)
+                unique_keys.add(key)
+                
+        # 2. User Library (Custom models)
+        for model in model_library:
+            key = model["key"]
+            m = create_model_obj(key, info_source=model)
+            if m:
+                models.append(m)
+                unique_keys.add(key)
+
+        # 3. All models from library JSON
+        for family, info in models_info.items():
+            tags = info.get("tags", [])
+            for tag_data in tags:
+                if len(tag_data) >= 1:
+                    tag_name = tag_data[0]
+                    if "q" in tag_name or "fp" in tag_name or "bf" in tag_name:
+                        continue
+                    full_key = f"{family}:{tag_name}"
+                    
+                    # We need to construct title/desc logic similar to handler if we want consistency,
+                    # or rely on create_model_obj doing it via handler.
+                    m = create_model_obj(full_key)
+                    if m:
+                        models.append(m)
+                        unique_keys.add(full_key)
+                        
+        return models
 
     def add_library_information(self):
         """Get information about models added by the user or in the library"""
         if len(self.models_info) == 0:
             return
         new_library = []
-        for model in self.listed_models:
+        for model in self.pinned_models:
             new_library.append(self.get_info_for_library(model))
         for model in self.model_library:
-            if model["key"] not in self.listed_models:
+            if model["key"] not in self.pinned_models:
                 new_library.append(self.get_info_for_library(model["key"]))
         self.model_library = new_library
         self.set_setting("model-library", self.model_library)
@@ -98,6 +215,7 @@ class OllamaHandler(LLMHandler):
         if not self.is_installed():
             return
         from ollama import Client 
+        threading.Thread(target=self.get_models_infomation, args=()).start()
         client = Client(
             host=self.get_setting("endpoint")
         )
@@ -146,7 +264,18 @@ class OllamaHandler(LLMHandler):
 
     def get_extra_settings(self) -> list:
         default = self.models[0][1] if len(self.models) > 0 else ""
-        settings = [
+        settings = []
+        if self.is_installed():
+            settings.append(
+                ExtraSettings.ButtonSetting(
+                    "open_library",
+                    _("Open model library"),
+                    _("Open the model library to download or remove models"),
+                    self.open_library,
+                    label="Open Library"
+                )
+            )
+        settings += [
             ExtraSettings.EntrySetting("endpoint", _("API Endpoint"), _("API base url, change this to use interference APIs"), "http://localhost:11434"),
             ExtraSettings.ToggleSetting("serve", _("Automatically Serve"), _("Automatically run ollama serve in background when needed if it's not running. You can kill it with killall ollama"), False),
             ExtraSettings.ToggleSetting("thinking", _("Enable Thinking"), _("Allow thinking in the model, only some models are supported"), True, website="https://ollama.com/search?c=thinking"),
@@ -167,26 +296,16 @@ class OllamaHandler(LLMHandler):
             settings.append(
                 ExtraSettings.EntrySetting("model", _("Ollama Model"), _("Name of the Ollama Model"), default)
             )
-        if self.is_installed():
-            settings.append(
-                ExtraSettings.NestedSetting("model_manager", _("Model Manager"), _("List of models available"),
-                    [
-                        ExtraSettings.EntrySetting(
-                            "extra_model_name",
-                            _("Add custom model"),
-                            _("Add any model to this list by putting name:size\nOr any gguf from hf with hf.co/username/model"),
-                            "",
-                            refresh=self.pull_model,
-                            refresh_icon="plus-symbolic",
-                            website="https://ollama.com/library"
-                        )
-                    ] + self.get_model_library(), refresh=lambda x : self.get_models_infomation
-                )
-            )
         settings.append(get_streaming_extra_setting())
         settings.append(ExtraSettings.ButtonSetting("update", _("Update Ollama"), _("Update Ollama"), lambda x: self.install(), _("Update Ollama")))
         return settings
 
+    def open_library(self, button):
+        from ...ui.model_library import ModelLibraryWindow
+        root = button.get_root()
+        win = ModelLibraryWindow(self, root)
+        win.present()
+    
     def pull_model(self, model: str):
         """Check if a model given by the user is downloadable, then add it to the library
 
@@ -238,6 +357,8 @@ class OllamaHandler(LLMHandler):
             host=self.get_setting("endpoint")
         )
         self.auto_serve(client)
+        start_time = time.time()
+        client.generate(self.get_setting("model"), "test", options={"num_predict": 1})
         return True
 
     def get_model_library(self) -> list:
@@ -249,7 +370,7 @@ class OllamaHandler(LLMHandler):
         res = []
         for model in self.model_library:
             s = ExtraSettings.DownloadSetting(model["key"], model["title"], model["description"], self.model_installed(model["key"]), self.install_model, self.get_percentage) 
-            if not self.model_installed(model["key"]) and model["key"] not in self.listed_models:
+            if not self.model_installed(model["key"]) and model["key"] not in self.pinned_models:
                 s["refresh"] = lambda x,m=model['key']: self.remove_model_from_library(m)
                 s["refresh_icon"] = "minus-symbolic"
             res.append(s)
@@ -324,6 +445,8 @@ class OllamaHandler(LLMHandler):
                 if message["User"] == "User" and image is not None:
                     if image.startswith("data:image/png;base64,"):
                         image = image[len("data:image/png;base64,"):]
+                    elif image.startswith("data:image/jpeg;base64,"):
+                        image = image[len("data:image/jpeg;base64,"):]
                     msg["images"] = [image]
                 result.append(msg)
         return result

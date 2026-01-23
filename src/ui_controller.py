@@ -1,3 +1,4 @@
+import re
 from gi.repository import Adw, Gtk
 
 from .utility.system import open_website
@@ -10,8 +11,37 @@ class UIController:
     def require_tool_update(self):
         self.window.controller.require_tool_update()
 
+    def set_model_loading(self, status):
+        self.window.set_model_loading_spinner(status)
+
     def get_current_message_id(self):
         return self.window.controller.msgid
+
+    def get_current_tool_call_id(self):
+        """Get the UUID of the currently executing tool call."""
+        return getattr(self.window.controller, 'current_tool_uuid', None)
+
+    def get_tool_result_by_id(self, tool_uuid: str) -> str | None:
+        """Get the result of a tool call by its UUID from the current chat.
+
+        Args:
+            tool_uuid: The UUID of the tool call to look up
+
+        Returns:
+            The tool result text, or None if not found
+        """
+        chat = self.window.chat
+        for entry in chat:
+            if entry.get("User") != "Console":
+                continue
+            msg = entry.get("Message", "")
+            # Parse tool header: [Tool: name, ID: uuid]
+            match = re.match(r'\[Tool: [^,]+, ID: ([^\]]+)\]\n?(.*)', msg, re.DOTALL)
+            if match:
+                parsed_uuid, result = match.groups()
+                if parsed_uuid == tool_uuid:
+                    return result
+        return None
 
     def add_tab(self, child: Gtk.Widget, focus=True) -> Adw.TabPage:
         """Add a custom Adw.TabPage

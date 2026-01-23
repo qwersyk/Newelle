@@ -2,6 +2,7 @@ from typing import Any, Callable, Dict, List, Optional
 import inspect
 import threading
 import json
+from gi.repository import GLib
 
 class ToolResult:
     """
@@ -13,11 +14,13 @@ class ToolResult:
     """
     output: Any = None
     widget: Any = None
+    is_cancelled: bool = False
     output_semaphore : threading.Semaphore
 
     def __init__(self, output=None, widget=None) -> None:
         self.output = output 
-        self.widget = output
+        self.widget = widget
+        self.is_cancelled = False
         self.output_semaphore = threading.Semaphore()
         self.output_semaphore.acquire()
 
@@ -26,16 +29,24 @@ class ToolResult:
         self.output_semaphore.release()
         return self.output
 
+    def cancel(self):
+        self.is_cancelled = True
+        self.set_output(None)
+
     def set_widget(self, widget):
         self.widget = widget
 
     def set_output(self, output):
         self.output = output
-        self.output_semaphore.release() 
+        try:
+            self.output_semaphore.release()
+        except ValueError:
+            # Semaphore already released
+            pass
 
 
 class Tool:
-    def __init__(self, name: str, description: str, func: Callable, schema: Dict[str, Any] = None, run_on_main_thread: bool = False, title: str = None, prompt_editable: bool = True, restore_func: Callable = None):
+    def __init__(self, name: str, description: str, func: Callable, schema: Dict[str, Any] = None, run_on_main_thread: bool = False, title: str = None, prompt_editable: bool = True, restore_func: Callable = None, default_on: bool = True, tools_group: str = None, icon_name: str = None):
         self.name = name
         self.description = description
         self.func = func
@@ -44,9 +55,17 @@ class Tool:
         self.title = title or name.replace("_", " ").title()
         self.prompt_editable = prompt_editable
         self.restore_func = restore_func
+        self.default_on = default_on
+        self.tools_group = tools_group
+        self.icon_name = icon_name
 
     def restore(self, **kwargs):
         if self.restore_func is not None:
+            # Filter out internal parameters if restore_func doesn't accept them
+            sig = inspect.signature(self.restore_func)
+            for param in ['msg_id', 'tool_uuid']:
+                if param not in sig.parameters and 'kwargs' not in str(sig.parameters):
+                    kwargs.pop(param, None)
             return self.restore_func(**kwargs)
         t = ToolResult()
         t.set_output(None)
@@ -84,9 +103,10 @@ class Tool:
 
     def execute(self, **kwargs):
         sig = inspect.signature(self.func)
-        if 'msg_id' not in sig.parameters and 'kwargs' not in sig.parameters:
-            if 'msg_id' in kwargs:
-                del kwargs['msg_id']
+        # Filter out internal parameters if function doesn't accept them
+        for param in ['msg_id', 'tool_uuid']:
+            if param not in sig.parameters and 'kwargs' not in str(sig.parameters):
+                kwargs.pop(param, None)
         return self.func(**kwargs)
 
 class ToolRegistry:
@@ -126,10 +146,10 @@ class ToolRegistry:
         available_tools = []
         for tool_name, tool_obj in self._tools.items():
             # If enabled_tools_dict is provided, check if the tool is explicitly disabled (False)
-            # Default to True if not in the dictionary (new tools are enabled by default)
-            is_enabled = True
+            # Default to tool's default_on value if not in the dictionary
+            is_enabled = tool_obj.default_on
             if enabled_tools_dict is not None:
-                is_enabled = enabled_tools_dict.get(tool_name, True)
+                is_enabled = enabled_tools_dict.get(tool_name, tool_obj.default_on)
             
             if is_enabled:
                 tool_def = None
@@ -154,22 +174,23 @@ class ToolRegistry:
         return tools_json
 
 
-def tool(name: str, description: str, run_on_main_thread: bool = False, title: str = None, prompt_editable: bool = True, restore_func: Callable = None):
+def tool(name: str, description: str, run_on_main_thread: bool = False, title: str = None, prompt_editable: bool = True, restore_func: Callable = None, default_on: bool = True, tools_group: str = None, icon_name: str = None):
     """Decorator to register a function as a tool."""
     def decorator(func):
-        t = Tool(name, description, func, run_on_main_thread=run_on_main_thread, title=title, prompt_editable=prompt_editable, restore_func=restore_func)
+        t = Tool(name, description, func, run_on_main_thread=run_on_main_thread, title=title, prompt_editable=prompt_editable, restore_func=restore_func, default_on=default_on, tools_group=tools_group, icon_name=icon_name)
         return t
     return decorator
 
-def create_io_tool(name: str, description: str, func: Callable, title: str = None) -> Tool:
+def create_io_tool(name: str, description: str, func: Callable, title: str = None, create_separate_process=False, default_on: bool = True, tools_group: str = None, icon_name: str = None) -> Tool:
     def wrapper(**kwargs):
         result = ToolResult()
         def th():
             result.set_output(func(**kwargs))
         t = threading.Thread(target=th)
-        t.start()
+        GLib.idle_add(t.start)
         return result
-    t = Tool(name, description, wrapper, title=title)
+
+    t = Tool(name, description, wrapper, title=title, default_on=default_on, tools_group=tools_group, icon_name=icon_name)
     schema = t._generate_schema_from_func(func)
     t.schema = schema
     return t

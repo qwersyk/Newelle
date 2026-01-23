@@ -1,10 +1,11 @@
-import speech_recognition as sr
 from .stt import STTHandler
 
 class WitAIHandler(STTHandler):
     
     key = "witai"
-    
+    def get_extra_requirements(self) -> list:
+        return ["speechrecognition"]
+
     def get_extra_settings(self) -> list:
         return [
             {
@@ -18,6 +19,7 @@ class WitAIHandler(STTHandler):
         ]
  
     def recognize_file(self, path):
+        import speech_recognition as sr
         r = sr.Recognizer()
         with sr.AudioFile(path) as source:
             audio = r.record(source)

@@ -39,7 +39,7 @@ class MarkupTextView(Gtk.TextView):
             'a': self.buffer.create_tag("link", foreground="blue", underline=Pango.Underline.SINGLE)
         }
 
-    def add_markup_text(self, iter, text: str):
+    def add_markup_text(self, iter, text: str, widgets: dict = None):
         wrapped_markup = f"<root>{text}</root>"
         try:
             root = ET.fromstring(wrapped_markup)
@@ -47,9 +47,9 @@ class MarkupTextView(Gtk.TextView):
             print("Parse error:", e)
             self.buffer.insert(iter, text)
             return
-        self._insert_markup_recursive(root, iter, [])
+        self._insert_markup_recursive(root, iter, [], widgets)
 
-    def set_markup(self, markup: str):
+    def set_markup(self, markup: str, widgets: dict = None):
         # Wrap in a root tag for parsing
         wrapped_markup = f"<root>{markup}</root>"
         try:
@@ -59,9 +59,9 @@ class MarkupTextView(Gtk.TextView):
             return
 
         self.buffer.set_text("")
-        self._insert_markup_recursive(root, self.buffer.get_start_iter(), [])
+        self._insert_markup_recursive(root, self.buffer.get_start_iter(), [], widgets)
 
-    def _insert_markup_recursive(self, elem, iter, active_tags):
+    def _insert_markup_recursive(self, elem, iter, active_tags, widgets: dict = None):
         # Add text before children
         if elem.text:
             self.buffer.insert_with_tags(iter, elem.text, *active_tags)
@@ -69,14 +69,21 @@ class MarkupTextView(Gtk.TextView):
         # Process children recursively
         for child in elem:
             tag_name = child.tag.lower()
-            tags_to_apply = list(active_tags)
+            
+            if tag_name == "widget" and widgets and "id" in child.attrib:
+                widget_id = child.attrib["id"]
+                if widget_id in widgets:
+                    anchor = self.buffer.create_child_anchor(iter)
+                    self.add_child_at_anchor(widgets[widget_id], anchor)
+            else:
+                tags_to_apply = list(active_tags)
 
-            if tag_name == "a":
-                tags_to_apply.append(self.tags["a"])
-            elif tag_name in self.tags:
-                tags_to_apply.append(self.tags[tag_name])
+                if tag_name == "a":
+                    tags_to_apply.append(self.tags["a"])
+                elif tag_name in self.tags:
+                    tags_to_apply.append(self.tags[tag_name])
 
-            self._insert_markup_recursive(child, iter, tags_to_apply)
+                self._insert_markup_recursive(child, iter, tags_to_apply, widgets)
 
             # Tail text after this child
             if child.tail:

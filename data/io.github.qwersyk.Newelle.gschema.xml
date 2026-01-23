@@ -72,7 +72,7 @@
 	        <default>"{}"</default>
         </key>
 	      <key name="embedding-model" type="s">
-            <default>"wordllama"</default>
+            <default>"model2vec"</default>
         </key>
 	      <key name="embedding-settings" type="s">
             <default>"{}"</default>
@@ -87,13 +87,13 @@
             <default>"{}"</default>
         </key>
         <key name="websearch-on" type="b">
-          <default>false</default>
+          <default>true</default>
         </key>
         <key name="websearch-settings" type="s">
           <default>"{}"</default>
         </key>
         <key name="websearch-model" type="s">
-          <default>"searxng"</default>
+          <default>"ddgsearch"</default>
         </key>
         <key name="rag-on" type="b">
           <default>false</default>
@@ -105,7 +105,7 @@
             <default>"{}"</default>
         </key>
 	      <key name="rag-on-documents" type="b">
-            <default>false</default>
+            <default>true</default>
         </key>
         <key name="documents-context-limit" type="i">
           <default>5000</default>
@@ -184,6 +184,15 @@
         </key> 
         <key name="remember-profile" type="b">
           <default>false</default>
+        </key>
+        <key name="hide-history-on-launch" type="b">
+            <default>false</default>
+        </key>
+        <key name="parallel-tool-execution" type="b">
+            <default>false</default>
+        </key>
+        <key name="custom-document-folders" type="as">
+            <default>[]</default>
         </key>
 	</schema>
 </schemalist>

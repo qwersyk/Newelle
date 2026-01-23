@@ -1,7 +1,7 @@
 import re
 import json
 from dataclasses import dataclass, field
-from typing import List, Optional, Tuple, Any
+from typing import List, Optional, Any
 
 @dataclass
 class MessageChunk:
@@ -35,17 +35,40 @@ class MessageChunk:
             return f"<{self.type}>{self.text}</{self.type}>"
 
 # ============================================================
+# Constants & Patterns
+# ============================================================
+
+# Matches ```lang\ncontent``` (non-greedy content).
+# Relaxed to allow codeblocks that don't end with a newline before the closing fence.
+_CODEBLOCK_PATTERN = re.compile(r'```(\w*)\s*\n(.*?)(?:\n\s*```|\Z)', re.DOTALL)
+
+_DISPLAY_LATEX_PATTERN = re.compile(r'(\$\$(.+?)\$\$)|(\\\[(.+?)\\\])', re.DOTALL)
+
+_INLINE_LATEX_PATTERN = re.compile(
+    r'(?<![\$\\])\$(?!\$)(.+?)(?<![\$\\])\$(?!\$)|' 
+    r'\\\((.+?)\\\)'                              
+)
+
+_THINK_PATTERN = re.compile(r'<think>(.*?)(?:</think>|\Z)', re.DOTALL)
+
+_TOOL_START_PATTERN = re.compile(r'\{\s*"(?:tool|name|function)"\s*:', re.MULTILINE)
+
+# ============================================================
 # Chunk Processing Logic
 # ============================================================
 
 def append_chunk(chunks: List[MessageChunk], new_chunk: MessageChunk):
     """Appends a chunk, merging consecutive text chunks."""
-    if new_chunk.type == "text" and chunks and chunks[-1].type == "text":
-        chunks[-1].text += "\n" + new_chunk.text
-    elif new_chunk.type == "text" and new_chunk.text == "" and chunks and chunks[-1].type == "text":
-         chunks[-1].text += "\n"
-    elif new_chunk.type == "text" and new_chunk.text == "":
-         chunks.append(new_chunk)
+    if not chunks:
+        chunks.append(new_chunk)
+        return
+
+    last_chunk = chunks[-1]
+    if new_chunk.type == "text" and last_chunk.type == "text":
+        if new_chunk.text:
+            last_chunk.text += "\n" + new_chunk.text
+        else:
+            last_chunk.text += "\n"
     else:
         chunks.append(new_chunk)
 
@@ -109,15 +132,13 @@ def extract_tables(text: str) -> List[MessageChunk]:
     return [c for c in chunks if c.type != "text" or c.text != ""]
 
 
-_display_latex_pattern = re.compile(r'(\$\$(.+?)\$\$)|(\\\[(.+?)\\\])', re.DOTALL)
-
 def process_text_with_display_latex(text: str, allow_latex: bool) -> List[MessageChunk]:
     if not allow_latex:
         return process_inline_elements(text, allow_latex=False)
 
     chunks = []
     last_index = 0
-    for match in _display_latex_pattern.finditer(text):
+    for match in _DISPLAY_LATEX_PATTERN.finditer(text):
         start, end = match.span()
         if start > last_index:
             intermediate_text = text[last_index:start]
@@ -146,13 +167,8 @@ def process_inline_elements(text: str, allow_latex: bool) -> List[MessageChunk]:
             chunks.append(MessageChunk(type="text", text=text))
         return chunks
 
-    inline_latex_pattern = re.compile(
-        r'(?<![\$\\])\$(?!\$)(.+?)(?<![\$\\])\$(?!\$)|' 
-        r'\\\((.+?)\\\)'                              
-    )
-
     last_index = 0
-    for m in inline_latex_pattern.finditer(text):
+    for m in _INLINE_LATEX_PATTERN.finditer(text):
         start, end = m.span()
         if start > last_index:
             plain_text = text[last_index:start]
@@ -193,10 +209,9 @@ def process_text_segment_no_think(text: str, allow_latex: bool) -> List[MessageC
 def process_text_segment(text: str, allow_latex: bool) -> List[MessageChunk]:
     """Processes text segment potentially containing <think> tags."""
     flat_chunks = []
-    think_pattern = re.compile(r'<think>(.*?)</think>', re.DOTALL)
     last_index = 0
 
-    for m in think_pattern.finditer(text):
+    for m in _THINK_PATTERN.finditer(text):
         start, end = m.span()
         if start > last_index:
             pre_text = text[last_index:start]
@@ -240,12 +255,13 @@ def find_tool_calls(text: str) -> List[MessageChunk]:
     Handles { "name": ... } or { "tool": ... }
     """
     chunks = []
-    # Updated regex to look for "name" as well as "tool"
-    start_pattern = re.compile(r'\{\s*"(?:tool|name|function)"\s*:', re.MULTILINE)
-    
     last_end = 0
-    for match in start_pattern.finditer(text):
+    
+    for match in _TOOL_START_PATTERN.finditer(text):
         start_index = match.start()
+        
+        if start_index < last_end:
+            continue
         
         if start_index > last_end:
             chunks.append(MessageChunk(type="text", text=text[last_end:start_index]))
@@ -275,8 +291,21 @@ def find_tool_calls(text: str) -> List[MessageChunk]:
                         found = True
                         break
         
-        if not found:
-            pass
+        if not found and stack > 0:
+            candidate = text[start_index:] + "}" * stack
+            tool_obj = parse_potential_tool_json(candidate)
+            if tool_obj:
+                tool_name = tool_obj.get("name", tool_obj.get("tool", tool_obj.get("function")))
+                tool_args = tool_obj.get("arguments", tool_obj.get("arguements", tool_obj.get("parameters", {})))
+                
+                chunks.append(MessageChunk(
+                    type="tool_call",
+                    text=candidate,
+                    tool_name=tool_name,
+                    tool_args=tool_args
+                ))
+                last_end = len(text)
+                found = True
 
     if last_end < len(text):
         chunks.append(MessageChunk(type="text", text=text[last_end:]))
@@ -290,124 +319,150 @@ def find_tool_calls(text: str) -> List[MessageChunk]:
 def get_message_chunks(message: str, allow_latex: bool = True) -> List[MessageChunk]:
     """
     Main function to parse message into chunks.
-    Priority: CodeBlocks (checked for Tools) -> Naked Tools -> Markdown/Latex.
+    Priority: Thinking Blocks OR CodeBlocks (by order of appearance) -> Naked Tools -> Markdown/Latex.
     """
-    
     flat_chunks = []
     
-    # Step 1: Parse Code Blocks first
-    # This allows us to inspect the content of code blocks to see if they are actually tools.
-    codeblock_pattern = re.compile(r'^\s*```(\w*)\s*\n(.*?)\n^\s*```\s*$', re.DOTALL | re.MULTILINE)
+    # We will iterate through the message looking for the next "Major" chunk
+    # Major chunks are: CodeBlocks, ThinkingBlocks.
+    # While iterating, we process the text BETWEEN major chunks using standard text processing.
     
-    last_end = 0
+    pos = 0
+    length = len(message)
     
-    for match in codeblock_pattern.finditer(message):
-        start, end = match.span()
+    while pos < length:
+        # Search for next CodeBlock starting at or after pos
+        code_match = _CODEBLOCK_PATTERN.search(message, pos)
         
-        # 1. Process text BEFORE the code block
-        if start > last_end:
-            pre_text = message[last_end:start]
-            
-            # Find "naked" tool calls in this text segment
-            naked_tool_chunks = find_tool_calls(pre_text)
-            
-            for chunk in naked_tool_chunks:
-                if chunk.type == "tool_call":
-                    flat_chunks.append(chunk)
-                else:
-                    # Normal text: process for Tables, Latex, Thinking
-                    flat_chunks.extend(process_text_segment(chunk.text, allow_latex))
-
-        # 2. Process the CODE BLOCK content
-        lang = match.group(1).strip() if match.group(1) else ""
-        code_content = match.group(2)
+        # Search for next ThinkBlock starting at or after pos
+        think_match = _THINK_PATTERN.search(message, pos)
         
-        # Check if this code block is actually a tool call
-        tool_obj = parse_potential_tool_json(code_content)
+        # Determine which comes first
+        next_match = None
+        match_type = None # "code" or "think"
         
-        if tool_obj:
-            # It IS a tool call. Return as ToolCall chunk (removing codeblock formatting)
-            tool_name = tool_obj.get("name", tool_obj.get("tool", tool_obj.get("function", "unknown")))
-            tool_args = tool_obj.get("arguments", tool_obj.get("arguements", tool_obj.get("parameters", {})))
-            flat_chunks.append(MessageChunk(
-                type="tool_call",
-                text=code_content,
-                tool_name=tool_name,
-                tool_args=tool_args
-            ))
-        else:
-            # It is a regular code block
-            flat_chunks.append(MessageChunk(type="codeblock", text=code_content, lang=lang))
-            
-        last_end = end
-
-    # 3. Process remaining text after the last code block
-    if last_end < len(message):
-        post_text = message[last_end:]
-        naked_tool_chunks = find_tool_calls(post_text)
-        
-        for chunk in naked_tool_chunks:
-            if chunk.type == "tool_call":
-                flat_chunks.append(chunk)
+        if code_match and think_match:
+            if code_match.start() < think_match.start():
+                next_match = code_match
+                match_type = "code"
             else:
-                flat_chunks.extend(process_text_segment(chunk.text, allow_latex))
+                next_match = think_match
+                match_type = "think"
+        elif code_match:
+            next_match = code_match
+            match_type = "code"
+        elif think_match:
+            next_match = think_match
+            match_type = "think"
+            
+        if next_match:
+            start, end = next_match.span()
+            
+            # Process text BEFORE the match
+            if start > pos:
+                pre_text = message[pos:start]
+                
+                # Check for "naked" tool calls in pre_text
+                naked_tool_chunks = find_tool_calls(pre_text)
+                for chunk in naked_tool_chunks:
+                    if chunk.type == "tool_call":
+                        flat_chunks.append(chunk)
+                    else:
+                        flat_chunks.extend(process_text_segment(chunk.text, allow_latex))
+            
+            # Process the MATCH content
+            if match_type == "think":
+                think_content = next_match.group(1).strip()
+                # User Requirement: Everything inside thinking should not be chunked.
+                flat_chunks.append(MessageChunk(type="thinking", text=think_content))
+                
+            elif match_type == "code":
+                lang = next_match.group(1).strip() if next_match.group(1) else ""
+                code_content = next_match.group(2)
+                
+                # Check if this code block is actually a tool call
+                tool_obj = parse_potential_tool_json(code_content)
+                if tool_obj:
+                    tool_name = tool_obj.get("name", tool_obj.get("tool", tool_obj.get("function", "unknown")))
+                    tool_args = tool_obj.get("arguments", tool_obj.get("arguements", tool_obj.get("parameters", {})))
+                    flat_chunks.append(MessageChunk(
+                        type="tool_call",
+                        text=code_content,
+                        tool_name=tool_name,
+                        tool_args=tool_args
+                    ))
+                else:
+                    flat_chunks.append(MessageChunk(type="codeblock", text=code_content, lang=lang))
+            
+            pos = end
+        else:
+            # No more matches, process remainder
+            remaining_text = message[pos:]
+            if remaining_text:
+                naked_tool_chunks = find_tool_calls(remaining_text)
+                for chunk in naked_tool_chunks:
+                    if chunk.type == "tool_call":
+                        flat_chunks.append(chunk)
+                    else:
+                        flat_chunks.extend(process_text_segment(chunk.text, allow_latex))
+            pos = length
 
-    # Step 2: Group consecutive Text and LatexInline chunks into InlineChunks
-    # (Same logic as original)
+    return _group_inline_chunks(flat_chunks)
+
+
+def _group_inline_chunks(flat_chunks: List[MessageChunk]) -> List[MessageChunk]:
+    """Groups consecutive Text and LatexInline chunks."""
     grouped_chunks = []
     current_inline_sequence = []
 
+    # First pass: merge adjacent text chunks
     merged_flat_chunks = []
     for chunk in flat_chunks:
          if chunk.type == "text" and merged_flat_chunks and merged_flat_chunks[-1].type == "text":
              merged_flat_chunks[-1].text += "\n" + chunk.text
          elif chunk.type == "text" and chunk.text == "" and merged_flat_chunks and merged_flat_chunks[-1].type == "text":
              merged_flat_chunks[-1].text += "\n"
-         elif chunk.type == "text" and chunk.text == "":
-             if not merged_flat_chunks or merged_flat_chunks[-1].type != "text":
-                  merged_flat_chunks.append(chunk)
          else:
              merged_flat_chunks.append(chunk)
              
     merged_flat_chunks = [c for c in merged_flat_chunks if c.type != "text" or c.text != ""]
 
-    for chunk in merged_flat_chunks:
-        append_next = None
-        is_inline_constituent = chunk.type in ("text", "latex_inline")
-
-        if chunk.type == "text":
-            current_index = merged_flat_chunks.index(chunk)
-            if current_index < len(merged_flat_chunks) - 2:
-                next_chunk = merged_flat_chunks[current_index + 1]
-                if next_chunk.type == "latex_inline":
-                    lines = chunk.text.split("\n")
-                    if len([line for line in lines if line != "" ]) > 1:
-                        chunk.text = "\n".join(lines[:-1])
-                        append_next = MessageChunk(type="text", text=lines[-1])
-                        is_inline_constituent = False
-        if is_inline_constituent:
-            current_inline_sequence.append(chunk)
-        else:
-            if current_inline_sequence:
-                is_mixed_or_multiple = (len(current_inline_sequence) > 1 or
-                                        any(c.type == "latex_inline" for c in current_inline_sequence))
-
-                if is_mixed_or_multiple:
-                    grouped_chunks.append(MessageChunk(type="inline_chunks", text="", subchunks=current_inline_sequence))
-                else:
-                    grouped_chunks.append(current_inline_sequence[0])
-                current_inline_sequence = []
-            if append_next is not None:
-                current_inline_sequence.append(append_next)
-                
-            grouped_chunks.append(chunk)
-
-    if current_inline_sequence:
+    def _finalize_sequence():
+        if not current_inline_sequence:
+            return
         is_mixed_or_multiple = (len(current_inline_sequence) > 1 or
                                 any(c.type == "latex_inline" for c in current_inline_sequence))
         if is_mixed_or_multiple:
-            grouped_chunks.append(MessageChunk(type="inline_chunks", text="", subchunks=current_inline_sequence))
+            grouped_chunks.append(MessageChunk(type="inline_chunks", text="", subchunks=list(current_inline_sequence)))
         else:
             grouped_chunks.append(current_inline_sequence[0])
+        current_inline_sequence.clear()
 
-    return grouped_chunks
+    # Second pass: group into InlineChunks, splitting at newlines
+    for chunk in merged_flat_chunks:
+        if chunk.type == "latex_inline":
+            current_inline_sequence.append(chunk)
+        elif chunk.type == "text":
+            if "\n" not in chunk.text:
+                current_inline_sequence.append(chunk)
+            else:
+                lines = chunk.text.split("\n")
+                # First segment continues current sequence
+                if lines[0]:
+                    current_inline_sequence.append(MessageChunk(type="text", text=lines[0]))
+                _finalize_sequence()
+                
+                # Intermediate segments are standalone text blocks
+                for line in lines[1:-1]:
+                    grouped_chunks.append(MessageChunk(type="text", text=line))
+                
+                # Last segment starts a new sequence
+                if lines[-1]:
+                    current_inline_sequence.append(MessageChunk(type="text", text=lines[-1]))
+        else:
+            _finalize_sequence()
+            grouped_chunks.append(chunk)
+
+    _finalize_sequence()
+
+    return [c for c in grouped_chunks if c.type != "text" or c.text != ""]

@@ -1,0 +1,14 @@
+{
+    "name": "llama.cpp",
+    "buildsystem": "simple",
+    "build-commands": [
+        "cp -R * /app/bin/"
+    ],
+    "sources": [
+        {
+            "type": "archive",
+            "url": "https://github.com/ggml-org/llama.cpp/releases/download/b7662/llama-b7662-bin-ubuntu-x64.tar.gz",
+            "sha256": "fc6df5fef28510ed10d857db75b7a68e2dcfadfe7e5a6d061ff61b0bd38bb363"
+        }
+    ]
+}

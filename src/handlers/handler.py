@@ -1,7 +1,47 @@
-import os, json
+import os
+import json
 from ..utility.pip import find_module, install_module
 from typing import Any
 from enum import Enum
+
+
+class SettingsCache:
+    _instances = {}
+
+    @staticmethod
+    def get_instance(settings):
+        if settings not in SettingsCache._instances:
+            SettingsCache._instances[settings] = SettingsCache(settings)
+        return SettingsCache._instances[settings]
+
+    def __init__(self, settings):
+        self.settings = settings
+        self.cache = {}
+        self._updating = False
+        if hasattr(self.settings, 'connect'):
+            self.settings.connect("changed", self.on_changed)
+    
+    def on_changed(self, settings, key):
+        if self._updating:
+            return
+        if key in self.cache:
+            try:
+                self.cache[key] = json.loads(self.settings.get_string(key))
+            except Exception as e:
+                print(f"Error reloading settings: {e}")
+
+    def get_json(self, key):
+        if key not in self.cache:
+            self.cache[key] = json.loads(self.settings.get_string(key))
+        return self.cache[key]
+    
+    def set_json(self, key, value):
+        self.cache[key] = value
+        self._updating = True
+        try:
+            self.settings.set_string(key, json.dumps(value))
+        finally:
+            self._updating = False
 
 
 class ErrorSeverity(Enum):
@@ -124,7 +164,7 @@ class Handler():
         Returns:
             object: value of the setting
         """        
-        j = json.loads(self.settings.get_string(self.schema_key))
+        j = SettingsCache.get_instance(self.settings).get_json(self.schema_key)
         if self.key not in j or key not in j[self.key]:
             if search_default:
                 return self.get_default_setting(key)
@@ -139,11 +179,12 @@ class Handler():
             key (str): key of the setting
             value (object): value of the setting
         """        
-        j = json.loads(self.settings.get_string(self.schema_key))
+        cache = SettingsCache.get_instance(self.settings)
+        j = cache.get_json(self.schema_key)
         if self.key not in j:
             j[self.key] = {}
         j[self.key][key] = value
-        self.settings.set_string(self.schema_key, json.dumps(j))
+        cache.set_json(self.schema_key, j)
 
     def get_default_setting(self, key) -> object:
         """Get the default setting from a certain key
@@ -165,7 +206,7 @@ class Handler():
         return None
 
     def get_all_settings(self) -> dict:
-        j = json.loads(self.settings.get_string(self.schema_key))
+        j = SettingsCache.get_instance(self.settings).get_json(self.schema_key)
         return j[self.key] if self.key in j else {}
 
     def set_extra_settings_update(self, callback):
@@ -177,3 +218,6 @@ class Handler():
                 self.on_extra_settings_update("")
             except Exception as e:
                 print(e)
+
+    def destroy(self):
+        pass
