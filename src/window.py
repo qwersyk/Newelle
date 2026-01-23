@@ -160,29 +160,9 @@ class MainWindow(Adw.ApplicationWindow):
         self.chat_header.pack_start(self.left_panel_toggle_button)
         self.left_panel_toggle_button.connect("clicked", self.on_chat_panel_toggled)
         self.chat_block.append(self.chat_header)
-        # Window switcher bar placeholder (visible only when multiple windows exist)
-        self.window_bar = Gtk.Box(
-            orientation=Gtk.Orientation.HORIZONTAL,
-            spacing=6,
-            margin_start=6,
-            margin_end=6,
-            margin_top=6,
-            margin_bottom=6,
-            css_classes=["toolbar"],
-            hexpand=True,
-        )
-        self.window_bar_scroll = Gtk.ScrolledWindow(
-            hscrollbar_policy=Gtk.PolicyType.AUTOMATIC,
-            vscrollbar_policy=Gtk.PolicyType.NEVER,
-            propagate_natural_height=True,
-            propagate_natural_width=True,
-            hexpand=True,
-            min_content_height=48,
-        )
-        self.window_bar_scroll.set_child(self.window_bar)
-        self.window_bar.set_visible(False)
-        self.window_bar_scroll.set_visible(False)
-        self.chat_block.append(self.window_bar_scroll)
+        # Container for shared window_bar (managed by MyApp)
+        self.window_bar_container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        self.chat_block.append(self.window_bar_container)
         self.chat_block.append(Gtk.Separator())
         self.chat_panel.append(self.chat_block)
         self.chat_panel.append(Gtk.Separator())
@@ -1286,17 +1266,14 @@ class MainWindow(Adw.ApplicationWindow):
         if self.current_profile == profile:
             return
         print(f"Switching profile to {profile}")
-        groups = self.profile_settings[self.current_profile].get("settings_groups", [])
-        old_settings = get_settings_dict_by_groups(self.settings, groups, SETTINGS_GROUPS,
-                                                   ["current-profile", "profiles"])
-        self.profile_settings = json.loads(self.settings.get_string("profiles"))
-        self.profile_settings[self.current_profile]["settings"] = old_settings
-
-        new_settings = self.profile_settings[profile]["settings"]
-        groups = self.profile_settings[profile].get("settings_groups", [])
-        restore_settings_from_dict_by_groups(self.settings, new_settings, groups, SETTINGS_GROUPS)
-        self.settings.set_string("profiles", json.dumps(self.profile_settings))
-        self.settings.set_string("current-profile", profile)
+        # Save current profile snapshot before switching
+        self.controller.save_profile_snapshot(self.current_profile)
+        # Apply new profile settings into Gio.Settings
+        if not self.controller.apply_profile(profile):
+            return
+        # Update in-memory references
+        self.profile_settings = self.controller.newelle_settings.profile_settings
+        self.current_profile = profile
         self.focus_input()
         self.update_settings()
 
@@ -1903,61 +1880,6 @@ class MainWindow(Adw.ApplicationWindow):
 
         if self.app is not None:
             self.app.refresh_window_bar()
-
-    def set_window_bar(self, windows, active_win, on_switch, on_close):
-        """Render the window switcher bar."""
-        child = self.window_bar.get_first_child()
-        while child is not None:
-            next_child = child.get_next_sibling()
-            self.window_bar.remove(child)
-            child = next_child
-
-        if len(windows) <= 1:
-            self.window_bar.set_visible(False)
-            self.window_bar_scroll.set_visible(False)
-            return
-
-        self.window_bar.set_visible(True)
-        self.window_bar_scroll.set_visible(True)
-
-        fill_width = len(windows) <= 3
-        self.window_bar.set_homogeneous(fill_width)
-
-        for win in windows:
-            name = _("Window")
-            if 0 <= win.chat_id < len(win.chats):
-                name = win.chats[win.chat_id]["name"]
-
-            label_text = name if not (win is active_win) else name + " •"
-            switch_btn = Gtk.Button(css_classes=["flat"], hexpand=fill_width)
-            switch_btn.set_child(
-                Gtk.Label(
-                    label=label_text,
-                    ellipsize=Pango.EllipsizeMode.END,
-                    xalign=0.5 if fill_width else 0,
-                    width_chars=18,
-                    single_line_mode=True,
-                    css_classes=["window-bar-label"],
-                )
-            )
-
-            if win is active_win:
-                switch_btn.add_css_class("suggested-action")
-                switch_btn.set_sensitive(False)
-                switch_btn.set_can_target(False)
-                switch_btn.set_tooltip_text(_("Current window"))
-            else:
-                switch_btn.connect("clicked", lambda _b, w=win: on_switch(w))
-
-            close_btn = Gtk.Button(css_classes=["flat"], icon_name="window-close-symbolic")
-            close_btn.set_tooltip_text(_("Close window"))
-            close_btn.connect("clicked", lambda _b, w=win: on_close(w))
-
-            item_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=2, css_classes=["linked"],
-                               hexpand=fill_width)
-            item_box.append(switch_btn)
-            item_box.append(close_btn)
-            self.window_bar.append(item_box)
 
     def remove_chat(self, button):
         """Remove a chat"""
@@ -4030,5 +3952,4 @@ class MainWindow(Adw.ApplicationWindow):
 
             # Start the display update timer for the dialog
             GLib.timeout_add(100, self.stdout_monitor_dialog._update_stdout_display)
-
 

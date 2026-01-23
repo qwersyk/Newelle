@@ -1034,7 +1034,7 @@ class Settings(Adw.PreferencesWindow):
             setting_info = {}
 
         if force_change or "update_settings" in setting_info and setting_info["update_settings"]:
-            # remove all the elements in the specified expander row 
+            # remove all the elements in the specified expander row
             row = self.settingsrows[(handler.key, self.convert_constants(constants), handler.is_secondary())]["row"]
             setting_list = self.settingsrows[(handler.key, self.convert_constants(constants), handler.is_secondary())][
                 "extra_settings"]
@@ -1045,7 +1045,7 @@ class Settings(Adw.PreferencesWindow):
             self.add_extra_settings(constants, handler, row)
 
     def setting_change_entry(self, entry, constants, handler: Handler):
-        """ Called when an entry handler setting is changed 
+        """ Called when an entry handler setting is changed
 
         Args:
             entry (): the entry whose contents are changed
@@ -1057,7 +1057,7 @@ class Settings(Adw.PreferencesWindow):
         self.on_setting_change(constants, handler, name)
 
     def setting_change_multilinentry(self, entry):
-        """ Called when an entry handler setting is changed 
+        """ Called when an entry handler setting is changed
 
         Args:
             entry (): the entry whose contents are changed
@@ -1071,7 +1071,7 @@ class Settings(Adw.PreferencesWindow):
         """Called when a toggle for the handler setting is triggered
 
         Args:
-            toggle (): the specified toggle 
+            toggle (): the specified toggle
             state (): state of the toggle
             constants (): The constants for the specified handler, can be AVAILABLE_TTS, AVAILABLE_STT...
             handler (): an instance of the handler
@@ -1086,7 +1086,7 @@ class Settings(Adw.PreferencesWindow):
         Args:
             scale (): the changed scale
             scroll (): scroll value
-            value (): the value 
+            value (): the value
             constants (): The constants for the specified handler, can be AVAILABLE_TTS, AVAILABLE_STT...
             handler (): an instance of the handler
         """
@@ -1101,7 +1101,7 @@ class Settings(Adw.PreferencesWindow):
         """Called when a combo for the handler setting is changed
 
         Args:
-            helper (): combo row helper 
+            helper (): combo row helper
             value (): chosen value
             constants (): The constants for the specified handler, can be AVAILABLE_TTS, AVAILABLE_STT...
             handler (): an instance of the handler
@@ -1173,7 +1173,7 @@ class Settings(Adw.PreferencesWindow):
         """Install the model dependencies, called on another thread
 
         Args:
-            button (): button  
+            button (): button
             model (): a handler instance
         """
         self.controller.installing_handlers[(model.key, model.schema_key)] = True
@@ -1186,8 +1186,8 @@ class Settings(Adw.PreferencesWindow):
         """Update the UI after a model installation
 
         Args:
-            button (): button 
-            model (): a handler instance 
+            button (): button
+            model (): a handler instance
         """
         if model.is_installed():
             self.on_setting_change(self.get_constants_from_object(model), model, "", True)
@@ -1277,7 +1277,7 @@ class Settings(Adw.PreferencesWindow):
         """Create a MessageDialog that explains the issue with missing permissions on flatpak
 
         Args:
-            el (): 
+            el ():
         """
         # Create a modal window with the warning
         dialog = Adw.MessageDialog(

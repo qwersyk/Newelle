@@ -6,7 +6,7 @@ import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('GtkSource', '5')
 gi.require_version('Adw', '1')
-from gi.repository import Gtk, Adw, Gio, Gdk, GLib
+from gi.repository import Gtk, Adw, Gio, Gdk, GLib, Pango
 from .ui.settings import Settings
 from .window import MainWindow
 from .ui.shortcuts import Shortcuts
@@ -101,19 +101,24 @@ class MyApp(Adw.Application):
           animation-timing-function: ease-in-out;
           animation-iteration-count: infinite;
         }
-        .window-bar-label {
-                color: @view_fg_color;
-                font-weight: 600;
-        }
-        @keyframes chat_locked_pulse {
-            0% { background-color: alpha(@view_fg_color, 0.06); }
-            50% { background-color: alpha(@view_fg_color, 0.12); }
-            100% { background-color: alpha(@view_fg_color, 0.06); }
-        }
-        .chat-locked {
-                background-color: alpha(@view_fg_color, 0.06);
-                animation: chat_locked_pulse 1.6s ease-in-out infinite;
-        }
+                .window-bar-label {
+                        color: @view_fg_color;
+                        font-weight: 600;
+                }
+                @keyframes chat_locked_wave {
+                    0% {
+                        box-shadow: inset -400px 0 40px -60px transparent;
+                    }
+                    50% {
+                        box-shadow: inset 0 0 40px -60px alpha(@view_fg_color, 0.15);
+                    }
+                    100% {
+                        box-shadow: inset 400px 0 40px -60px transparent;
+                    }
+                }
+                .chat-locked {
+                        animation: chat_locked_wave 3s ease-in-out infinite;
+                }
         '''
         self.windows = []
         self.shared_chats = None
@@ -121,6 +126,28 @@ class MyApp(Adw.Application):
         self.left_sidebar_visible = None
         self.right_sidebar_visible = None
         self.right_sidebar_name = None
+        # Create shared window_bar (one for all windows)
+        self.window_bar = Gtk.Box(
+            orientation=Gtk.Orientation.HORIZONTAL,
+            spacing=6,
+            margin_start=6,
+            margin_end=6,
+            margin_top=6,
+            margin_bottom=6,
+            css_classes=["toolbar"],
+            hexpand=True,
+        )
+        self.window_bar_scroll = Gtk.ScrolledWindow(
+            hscrollbar_policy=Gtk.PolicyType.AUTOMATIC,
+            vscrollbar_policy=Gtk.PolicyType.NEVER,
+            propagate_natural_height=True,
+            propagate_natural_width=True,
+            hexpand=True,
+            min_content_height=48,
+        )
+        self.window_bar_scroll.set_child(self.window_bar)
+        self.window_bar.set_visible(False)
+        self.window_bar_scroll.set_visible(False)
         css_provider = Gtk.CssProvider()
         css_provider.load_from_data(css, -1)
         display = Gdk.Display.get_default()
@@ -201,8 +228,13 @@ class MyApp(Adw.Application):
         settings = Gio.Settings.new('io.github.qwersyk.Newelle')
         settings.set_int("chat", self.win.chat_id)
         settings.set_string("path", os.path.normpath(self.win.main_path))
-        for win in self.windows:
-            win.update_settings()
+        # Persist current profile snapshot before other windows sync
+        if hasattr(self, "win") and hasattr(self.win, "controller"):
+            active_profile = self.win.current_profile
+            self.win.controller.save_profile_snapshot(active_profile)
+            for win in self.windows:
+                if win.current_profile == active_profile:
+                    win.update_settings()
         self.settingswindow.destroy()
         return True
 
@@ -226,6 +258,8 @@ class MyApp(Adw.Application):
 
     def close_window(self, *a):
         window = a[0] if len(a) > 0 and isinstance(a[0], MainWindow) else getattr(self, "win", None)
+        if window is not None and hasattr(window, "controller"):
+            window.controller.save_profile_snapshot(window.current_profile)
         if window in self.window_chat_usage:
             self.window_chat_usage.pop(window, None)
         if hasattr(self, "mini_win") and window is self.window:
@@ -285,6 +319,9 @@ class MyApp(Adw.Application):
             self._attach_shared_chats(self.win)
             self.update_chat_ownership(self.win)
             self.store_sidebar_state(self.win)
+            # First window becomes active controller
+            if hasattr(self.win, "controller"):
+                self.win.controller.settings_proxy.set_active(True)
 
         if self.settings.get_string("startup-mode") == "mini":
             if hasattr(self, "mini_win"):
@@ -396,15 +433,63 @@ class MyApp(Adw.Application):
                 window.chat = window.chats[new_cid]["chat"]
                 window.controller.chat = window.chat
 
-    def refresh_window_bar(self):
-        """Refresh window switcher bars in all windows."""
+    def update_window_bar(self):
+        """Update the shared window_bar content."""
+        # Clear existing children
+        child = self.window_bar.get_first_child()
+        while child is not None:
+            next_child = child.get_next_sibling()
+            self.window_bar.remove(child)
+            child = next_child
+
+        if len(self.windows) <= 1:
+            self.window_bar.set_visible(False)
+            self.window_bar_scroll.set_visible(False)
+            return
+
+        self.window_bar.set_visible(True)
+        self.window_bar_scroll.set_visible(True)
+
+        self.window_bar.set_homogeneous(True)
+
         for win in self.windows:
-            win.set_window_bar(
-                self.windows,
-                self.win,
-                self.switch_to_window,
-                self.close_window_entry,
+            name = _("Window")
+            if 0 <= win.chat_id < len(win.chats):
+                name = win.chats[win.chat_id]["name"]
+
+            is_active = win is self.win
+            label_text = name
+            switch_btn = Gtk.Button(css_classes=[] if is_active else ["flat"], hexpand=True)
+            switch_btn.set_child(
+                Gtk.Label(
+                    label=label_text,
+                    ellipsize=Pango.EllipsizeMode.END,
+                    xalign=0.5,
+                    width_chars=10,
+                    single_line_mode=True,
+                    css_classes=["window-bar-label"],
+                )
             )
+
+            if is_active:
+                switch_btn.set_sensitive(False)
+                switch_btn.set_can_target(False)
+                switch_btn.set_tooltip_text(_("Current window"))
+            else:
+                switch_btn.connect("clicked", lambda _b, w=win: self.switch_to_window(w))
+
+            close_btn = Gtk.Button(css_classes=["flat"], icon_name="window-close-symbolic")
+            close_btn.set_tooltip_text(_("Close window"))
+            close_btn.connect("clicked", lambda _b, w=win: self.close_window_entry(w))
+
+            item_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=2, css_classes=["linked"], hexpand=True)
+            item_box.append(switch_btn)
+            item_box.append(close_btn)
+            self.window_bar.append(item_box)
+
+    def refresh_window_bar(self):
+        """Refresh window switcher bar."""
+        self.update_window_bar()
 
     def create_window(self, *a):
         """Create a new window and switch to it."""
@@ -455,15 +540,40 @@ class MyApp(Adw.Application):
 
     def set_win(self, win):
         prev_win = getattr(self, "win", None)
+        # Save settings of the window we are leaving
+        if prev_win is not None and hasattr(prev_win, "controller"):
+            prev_win.controller.save_profile_snapshot(prev_win.current_profile)
+            prev_win.controller.settings_proxy.set_active(False)
+
+        # Detach window_bar_scroll from previous window if exists
+        if prev_win is not None and hasattr(prev_win, 'window_bar_container'):
+            parent = self.window_bar_scroll.get_parent()
+            if parent is not None:
+                parent.remove(self.window_bar_scroll)
+
         if prev_win is not None and prev_win is not win:
             self._attach_shared_chats(win, preserve_active=True)
         else:
             self._attach_shared_chats(win)
         self._ensure_chat_available(win)
+        # Apply the target window profile into Gio.Settings and refresh its state
+        if hasattr(win, "controller"):
+            win.controller.settings_proxy.set_active(True)
+            win.controller.apply_profile(win.current_profile)
+            win.update_settings()
         self.apply_sidebar_state(win)
         self.win = win
         self.win.main_program_block.unparent()
         self.window.set_content(self.win.main_program_block)
+
+        # Attach window_bar_scroll to new window
+        if hasattr(self.win, 'window_bar_container'):
+            self.win.window_bar_container.append(self.window_bar_scroll)
+
+        # Update model display in header
+        if hasattr(self.win, 'update_model_popup'):
+            self.win.update_model_popup()
+
         self.win.update_history()
         self.update_chat_ownership(self.win)
         self.refresh_window_bar()
