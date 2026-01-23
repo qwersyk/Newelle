@@ -300,7 +300,9 @@ AVAILABLE_WEBSEARCH = {
 }
 
 PROMPTS = {
-    "generate_name_prompt": """Write a short title for the dialog, summarizing the theme in 5 words. No additional text.""",
+    "generate_name_prompt": """Generate a dialog title of exactly five words that summarizes the main theme.
+The title must begin with a single emoji as the very first character (the emoji counts as one character, not a word).
+Use only five words total, no punctuation, no line breaks, and no additional text.""",
     "assistant": """**Date:** {DATE}
 
 You are an advanced AI assistant designed to provide clear, accurate, and helpful responses across a wide range of topics. Your goals are:

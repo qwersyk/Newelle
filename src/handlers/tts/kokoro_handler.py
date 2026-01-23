@@ -16,7 +16,7 @@ class KokoroTTSHandler(TTSHandler):
     def install(self):
         cache_dir = os.path.join(self.path, "kokoro_cache")
         os.makedirs(cache_dir, exist_ok=True)
-        extra_deps = "fugashi jaconv mojimoji mecab-python3 unidic-lite"
+        extra_deps = "fugashi jaconv mecab-python3 unidic-lite"
         install_module(
             "kokoro-onnx soundfile espeakng-loader misaki " + extra_deps,
             self.pip_path,

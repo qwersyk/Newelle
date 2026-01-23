@@ -445,6 +445,8 @@ class OllamaHandler(LLMHandler):
                 if message["User"] == "User" and image is not None:
                     if image.startswith("data:image/png;base64,"):
                         image = image[len("data:image/png;base64,"):]
+                    elif image.startswith("data:image/jpeg;base64,"):
+                        image = image[len("data:image/jpeg;base64,"):]
                     msg["images"] = [image]
                 result.append(msg)
         return result

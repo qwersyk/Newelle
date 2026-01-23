@@ -390,11 +390,20 @@ class LlamaCPPHandler(OpenAIHandler):
         hbox.append(right_box)
         main_container.append(hbox)
             
+        button_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
+        button_box.set_halign(Gtk.Align.CENTER)
+        button_box.set_margin_top(12)
+        
+        btn_cancel1 = Gtk.Button(label="Cancel")
+        btn_cancel1.add_css_class("destructive-action")
+        btn_cancel1.connect("clicked", lambda x: win.close())
+        button_box.append(btn_cancel1)
+        
         btn_next1 = Gtk.Button(label="Next")
-        btn_next1.set_halign(Gtk.Align.CENTER)
-        btn_next1.set_margin_top(12)
         btn_next1.connect("clicked", lambda x: content.scroll_to(content.get_nth_page(1), True))
-        main_container.append(btn_next1)
+        button_box.append(btn_next1)
+        
+        main_container.append(button_box)
             
         page1.set_child(main_container)
         content.append(page1)

@@ -38,6 +38,8 @@ install_data (
     'emblem-default-symbolic.svg',
     'tools-symbolic.svg',
     'user-bookmarks-symbolic.svg',
+    'chat-bubbles-text-symbolic.svg',
+    'branch-symbolic.svg',
     install_dir: symbolic_dir
 )
 install_data (
