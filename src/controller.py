@@ -17,8 +17,11 @@ from .handlers.websearch import WebSearchHandler
 
 from .utility.system import is_flatpak
 from .utility.pip import install_module
-from .utility.profile_settings import get_settings_dict_by_groups
-from .constants import AVAILABLE_INTEGRATIONS, AVAILABLE_WEBSEARCH, DIR_NAME, SCHEMA_ID, PROMPTS, AVAILABLE_STT, AVAILABLE_TTS, AVAILABLE_LLMS, AVAILABLE_RAGS, AVAILABLE_PROMPTS, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS, SETTINGS_GROUPS, restore_handlers
+from .utility.profile_settings import get_settings_dict_by_groups, restore_settings_from_dict_by_groups, \
+    ProfileSettingsProxy
+from .constants import AVAILABLE_INTEGRATIONS, AVAILABLE_WEBSEARCH, DIR_NAME, SCHEMA_ID, PROMPTS, AVAILABLE_STT, \
+    AVAILABLE_TTS, AVAILABLE_LLMS, AVAILABLE_RAGS, AVAILABLE_PROMPTS, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS, \
+    SETTINGS_GROUPS, restore_handlers
 import threading
 import pickle
 import json
@@ -26,27 +29,29 @@ import datetime
 import uuid as uuid_lib
 from .extensions import ExtensionLoader
 from .utility import override_prompts
-from enum import Enum 
+from enum import Enum
 from .handlers import Handler
 from .ui_controller import UIController
+
 """
 Manage Newelle Application, create handlers, check integrity, manage settings...
 """
+
 
 class ReloadType(Enum):
     """
     Enum for reload type
 
-    Attributes: 
-        NONE: Nothing to realod  
+    Attributes:
+        NONE: Nothing to realod
         LLM: Reload LLM
-        TTS: Reload TTS 
-        STT: Reload STT 
-        PROMPTS: Reload PROMPTS 
-        RAG: Reload RAG 
-        MEMORIES: Reload MEMORIES 
-        EMBEDDINGS: Reload EMBEDDINGS 
-EXTENSIONS: Reload EXTENSIONS 
+        TTS: Reload TTS
+        STT: Reload STT
+        PROMPTS: Reload PROMPTS
+        RAG: Reload RAG
+        MEMORIES: Reload MEMORIES
+        EMBEDDINGS: Reload EMBEDDINGS
+EXTENSIONS: Reload EXTENSIONS
         SECONDARY_LLM: Reload SECONDARY_LLM
         RELOAD_CHAT: Reload RELOAD_CHAT
     """
@@ -64,31 +69,34 @@ EXTENSIONS: Reload EXTENSIONS
     RELOAD_CHAT_LIST = 11
     WEBSEARCH = 12
     OFFERS = 13
-    TOOLS = 14 
+    TOOLS = 14
+
 
 class NewelleController:
     """Main controller, manages the application
 
-    Attributes: 
-        settings: Gio Settings 
-        python_path: Path for python sources 
-        newelle_settings: current NewelleSettings object 
-        handlers: HandlersManager object 
-        config_dir: Config dir of the application 
-        data_dir: data dir of the application 
-        cache_dir: cache dir of the application 
-        pip_path: Path for the runtime pip dependencies  
-        models_dir: Path for the models 
-        extension_path: Path for the extensions 
-        extensions_cache: Path for the extensions cache 
-        filename: Chat object filename 
-        chat: current chat 
-        extensionloader: Extensionloader object 
+    Attributes:
+        settings: Gio Settings
+        python_path: Path for python sources
+        newelle_settings: current NewelleSettings object
+        handlers: HandlersManager object
+        config_dir: Config dir of the application
+        data_dir: data dir of the application
+        cache_dir: cache dir of the application
+        pip_path: Path for the runtime pip dependencies
+        models_dir: Path for the models
+        extension_path: Path for the extensions
+        extensions_cache: Path for the extensions cache
+        filename: Chat object filename
+        chat: current chat
+        extensionloader: Extensionloader object
     """
+
     def __init__(self, python_path) -> None:
         self.settings = Gio.Settings.new(SCHEMA_ID)
+        self.settings_proxy = ProfileSettingsProxy(self.settings, SETTINGS_GROUPS)
         self.python_path = python_path
-        self.ui_controller : UIController | None = None
+        self.ui_controller: UIController | None = None
         self.installing_handlers = {}
         self.tools = ToolRegistry()
         self.msgid = 0
@@ -101,8 +109,10 @@ class NewelleController:
         self.load_extensions()
         self.newelle_settings = NewelleSettings()
         self.newelle_settings.load_settings(self.settings)
+        self.settings_proxy.set_profile(self.newelle_settings.current_profile, self.newelle_settings.profile_settings)
         self.load_chats(self.newelle_settings.chat_id)
-        self.handlers = HandlersManager(self.settings, self.extensionloader, self.models_dir, self.integrationsloader, self.installing_handlers)
+        self.handlers = HandlersManager(self.settings_proxy, self.extensionloader, self.models_dir,
+                                        self.integrationsloader, self.installing_handlers)
         self.handlers.select_handlers(self.newelle_settings)
         threading.Thread(target=self.handlers.cache_handlers).start()
 
@@ -140,7 +150,7 @@ class NewelleController:
         else:
             self.chats = [{"name": _("Chat ") + "1", "chat": []}]
         self.chat = self.chats[min(chat_id, len(self.chats) - 1)]["chat"]
-   
+
     def save_chats(self):
         """Save chats"""
         with open(self.chats_path, 'wb') as f:
@@ -200,7 +210,8 @@ class NewelleController:
                                                    extension_cache=self.extensions_cache, settings=self.settings)
             self.extensionloader.load_extensions()
             restore_handlers()
-            self.extensionloader.add_handlers(AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS, AVAILABLE_RAGS, AVAILABLE_WEBSEARCH)
+            self.extensionloader.add_handlers(AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_MEMORIES,
+                                              AVAILABLE_EMBEDDINGS, AVAILABLE_RAGS, AVAILABLE_WEBSEARCH)
             self.extensionloader.add_prompts(PROMPTS, AVAILABLE_PROMPTS)
             self.newelle_settings.load_prompts()
             self.extensionloader.add_tools(self.tools)
@@ -231,13 +242,12 @@ class NewelleController:
             self.handlers.select_handlers(self.newelle_settings)
             self.newelle_settings.save_prompts()
             self.newelle_settings.load_prompts()
-            
 
     def set_extensionsloader(self, extensionloader):
         """Change extension loader
 
         Args:
-            extensionloader (): new extension loader 
+            extensionloader (): new extension loader
         """
         self.extensionloader = extensionloader
         self.handlers.extensionloader = extensionloader
@@ -252,7 +262,7 @@ class NewelleController:
                 if integration.id == "mcp":
                     return integration
         return None
-    
+
     def update_mcp_tools(self):
         mcp_integration = self.get_mcp_integration()
         if mcp_integration is not None:
@@ -294,14 +304,16 @@ class NewelleController:
         self.extensionloader = ExtensionLoader(self.extension_path, pip_path=self.pip_path,
                                                extension_cache=self.extensions_cache, settings=self.settings)
         self.extensionloader.load_extensions()
-        self.extensionloader.add_handlers(AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS, AVAILABLE_RAGS, AVAILABLE_WEBSEARCH)
+        self.extensionloader.add_handlers(AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_MEMORIES,
+                                          AVAILABLE_EMBEDDINGS, AVAILABLE_RAGS, AVAILABLE_WEBSEARCH)
         self.extensionloader.add_prompts(PROMPTS, AVAILABLE_PROMPTS)
         self.extensionloader.add_tools(self.tools)
         self.set_ui_controller(self.ui_controller)
 
     def load_integrations(self):
         """Load integrations"""
-        self.integrationsloader = ExtensionLoader(self.extension_path, pip_path=self.pip_path, settings=self.settings, extension_cache=self.extensions_cache)
+        self.integrationsloader = ExtensionLoader(self.extension_path, pip_path=self.pip_path, settings=self.settings,
+                                                  extension_cache=self.extensions_cache)
         self.integrationsloader.load_integrations(AVAILABLE_INTEGRATIONS)
         self.integrationsloader.add_tools(self.tools)
         self.set_ui_controller(self.ui_controller)
@@ -310,18 +322,19 @@ class NewelleController:
         """Create a profile
 
         Args:
-            profile_name (): name of the profile 
-            picture (): path to the profile picture 
-            settings (): settings to override for that profile 
+            profile_name (): name of the profile
+            picture (): path to the profile picture
+            settings (): settings to override for that profile
         """
-        self.newelle_settings.profile_settings[profile_name] = {"picture": picture, "settings": settings, "settings_groups": settings_groups}
+        self.newelle_settings.profile_settings[profile_name] = {"picture": picture, "settings": settings,
+                                                                "settings_groups": settings_groups}
         self.settings.set_string("profiles", json.dumps(self.newelle_settings.profile_settings))
 
     def delete_profile(self, profile_name):
         """Delete a profile
 
         Args:
-            profile_name (): name of the profile to delete 
+            profile_name (): name of the profile to delete
         """
         if profile_name == "Assistant" or profile_name == self.settings.get_string("current-profile"):
             return
@@ -329,16 +342,87 @@ class NewelleController:
         self.settings.set_string("profiles", json.dumps(self.newelle_settings.profile_settings))
         self.update_settings()
 
+    def save_profile_snapshot(self, profile_name: str | None = None) -> bool:
+        """Persist current GSettings values into the given profile.
+
+        Args:
+            profile_name: profile to snapshot; defaults to current-profile key.
+
+        Returns:
+            True if saved, False if profile missing.
+        """
+        if profile_name is None:
+            profile_name = self.settings.get_string("current-profile")
+
+        profiles = json.loads(self.settings.get_string("profiles"))
+        if profile_name not in profiles:
+            return False
+
+        groups = profiles[profile_name].get("settings_groups", [])
+        # Decide source of truth: if this proxy is on the same profile and active -> Gio.Settings; if inactive -> proxy cache; otherwise keep existing stored settings.
+        if self.settings_proxy.profile_name == profile_name:
+            if self.settings_proxy.active:
+                snapshot = get_settings_dict_by_groups(
+                    self.settings,
+                    groups,
+                    SETTINGS_GROUPS,
+                    ["current-profile", "profiles"],
+                )
+            else:
+                snapshot = self.settings_proxy.get_cached_snapshot(groups)
+        else:
+            snapshot = profiles[profile_name].get("settings", {})
+
+        profiles[profile_name]["settings"] = snapshot
+        self.settings.set_string("profiles", json.dumps(profiles))
+        # keep cache in memory
+        if hasattr(self, "newelle_settings"):
+            self.newelle_settings.profile_settings = profiles
+        # keep active proxy cache up to date
+        if self.settings_proxy.profile_name == profile_name:
+            self.settings_proxy.cache = snapshot.copy()
+        return True
+
+    def apply_profile(self, profile_name: str) -> bool:
+        """Load stored settings of the profile into GSettings and set it active.
+
+        Args:
+            profile_name: profile to activate.
+
+        Returns:
+            True if applied, False if profile missing.
+        """
+        profiles = json.loads(self.settings.get_string("profiles"))
+        profile = profiles.get(profile_name)
+        if profile is None:
+            return False
+
+        groups = profile.get("settings_groups", [])
+        settings_dict = profile.get("settings", {})
+        restore_settings_from_dict_by_groups(
+            self.settings,
+            settings_dict,
+            groups,
+            SETTINGS_GROUPS,
+        )
+        self.settings.set_string("current-profile", profile_name)
+        if hasattr(self, "newelle_settings"):
+            self.newelle_settings.profile_settings = profiles
+            self.newelle_settings.current_profile = profile_name
+        self.settings_proxy.set_profile(profile_name, profiles)
+        return True
+
     def update_current_profile(self):
         """Update the current profile"""
         self.current_profile = self.settings.get_string("current-profile")
         self.profile_settings = self.newelle_settings.profile_settings
         groups = self.profile_settings[self.current_profile].get("settings_groups", [])
-        old_settings = get_settings_dict_by_groups(self.settings, groups, SETTINGS_GROUPS, ["current-profile", "profiles"] )
+        old_settings = get_settings_dict_by_groups(self.settings, groups, SETTINGS_GROUPS,
+                                                   ["current-profile", "profiles"])
         self.profile_settings = json.loads(self.settings.get_string("profiles"))
         self.profile_settings[self.current_profile]["settings"] = old_settings
         self.settings.set_string("profiles", json.dumps(self.profile_settings))
-    
+
     def export_profile(self, profile_name, remove_passwords=False, export_propic=False):
         """Export a profile
 
@@ -558,7 +642,7 @@ class NewelleSettings:
         """Basic settings loading
 
         Args:
-            settings (): settings manager object 
+            settings (): settings manager object
         """
         self.settings = settings
         self.profile_settings = json.loads(self.settings.get_string("profiles"))
@@ -569,7 +653,7 @@ class NewelleSettings:
         # Init variables
         self.automatic_stt_status = False
         settings = self.settings
-       
+
         # Get settings variables
         self.offers = settings.get_int("offers")
         self.virtualization = settings.get_boolean("virtualization")
@@ -608,7 +692,7 @@ class NewelleSettings:
         self.secondary_language_model_settings = self.settings.get_string("llm-secondary-settings")
         self.use_secondary_language_model = self.settings.get_boolean("secondary-llm-on")
         self.custom_prompts = json.loads(self.settings.get_string("custom-prompts"))
-        self.prompts_settings = json.loads(self.settings.get_string("prompts-settings")) 
+        self.prompts_settings = json.loads(self.settings.get_string("prompts-settings"))
         self.extensions_settings = self.settings.get_string("extensions-settings")
         self.username = self.settings.get_string("user-name")
         self.zoom = self.settings.get_int("zoom")
@@ -652,7 +736,7 @@ class NewelleSettings:
         """Find the difference between two NewelleSettings
 
         Args:
-            new_settings (NewelleSettings): settings to compare   
+            new_settings (NewelleSettings): settings to compare
 
         Returns:
             list[ReloadType]: list of ReloadType to reload
@@ -662,7 +746,7 @@ class NewelleSettings:
             reloads.append(ReloadType.LLM)
         if self.secondary_language_model != new_settings.secondary_language_model or self.use_secondary_language_model != new_settings.use_secondary_language_model or self.secondary_language_model_settings != new_settings.secondary_language_model_settings:
             reloads.append(ReloadType.SECONDARY_LLM)
-        
+
         if self.tts_program != new_settings.tts_program:
             reloads.append(ReloadType.TTS)
 
@@ -678,7 +762,8 @@ class NewelleSettings:
         if self.rag_on != new_settings.rag_on or self.rag_model != new_settings.rag_model or self.rag_settings != new_settings.rag_settings:
             reloads.append(ReloadType.RAG)
         if self.extensions_settings != new_settings.extensions_settings:
-            reloads += [ReloadType.EXTENSIONS, ReloadType.LLM, ReloadType.SECONDARY_LLM, ReloadType.EMBEDDINGS, ReloadType.EMBEDDINGS, ReloadType.MEMORIES, ReloadType.RAG, ReloadType.WEBSEARCH]
+            reloads += [ReloadType.EXTENSIONS, ReloadType.LLM, ReloadType.SECONDARY_LLM, ReloadType.EMBEDDINGS,
+                        ReloadType.EMBEDDINGS, ReloadType.MEMORIES, ReloadType.RAG, ReloadType.WEBSEARCH]
         if self.username != new_settings.username:
             reloads.append(ReloadType.RELOAD_CHAT)
         if self.reverse_order != new_settings.reverse_order:
@@ -702,23 +787,26 @@ class NewelleSettings:
 class HandlersManager:
     """Manage handlers
 
-    Attributes: 
-        settings: Gio.Settings 
-        extensionloader: ExtensionLoader 
-        directory: Models direcotry 
-        handlers: Cached handlers 
-        llm: LLM Handler 
-        stt: STT Handler 
+    Attributes:
+        settings: Gio.Settings
+        extensionloader: ExtensionLoader
+        directory: Models direcotry
+        handlers: Cached handlers
+        llm: LLM Handler
+        stt: STT Handler
         tts: TTS Handler
-        embedding: Embedding Handler 
+        embedding: Embedding Handler
         memory: Memory Handler
-        rag: RAG Handler 
+        rag: RAG Handler
     """
-    def __init__(self, settings: Gio.Settings, extensionloader : ExtensionLoader, models_path, integrations: ExtensionLoader, installing_handlers: dict):
+
+    def __init__(self, settings: Any, extensionloader: ExtensionLoader, models_path, integrations: ExtensionLoader,
+                 installing_handlers: dict):
+        # settings can be Gio.Settings or ProfileSettingsProxy (we only rely on get/set_* interface)
         self.settings = settings
         self.extensionloader = extensionloader
         self.directory = models_path
-        self.handlers =  {}
+        self.handlers = {}
         self.handlers_cached = threading.Semaphore()
         self.handlers_cached.acquire()
         self.integrationsloader = integrations
@@ -750,7 +838,7 @@ class HandlersManager:
             newelle_settings.stt_engine = list(AVAILABLE_STT.keys())[0]
         if newelle_settings.websearch_model not in AVAILABLE_WEBSEARCH:
             newelle_settings.websearch_model = list(AVAILABLE_WEBSEARCH.keys())[0]
-      
+
     def set_ui_controller(self, ui_controller):
         self.ui_controller = ui_controller
 
@@ -758,25 +846,28 @@ class HandlersManager:
         """Assign the selected handlers
 
         Args:
-            newelle_settings: Newelle settings 
+            newelle_settings: Newelle settings
         """
         self.fix_handlers_integrity(newelle_settings)
-        # Get LLM 
-        self.llm : LLMHandler = self.get_object(AVAILABLE_LLMS, newelle_settings.language_model)
+        # Get LLM
+        self.llm: LLMHandler = self.get_object(AVAILABLE_LLMS, newelle_settings.language_model)
         if newelle_settings.use_secondary_language_model:
-            self.secondary_llm : LLMHandler = self.get_object(AVAILABLE_LLMS, newelle_settings.secondary_language_model, True)
+            self.secondary_llm: LLMHandler = self.get_object(AVAILABLE_LLMS, newelle_settings.secondary_language_model,
+                                                             True)
         else:
-            self.secondary_llm : LLMHandler = self.llm
-        self.stt : STTHandler = self.get_object(AVAILABLE_STT, newelle_settings.stt_engine)
-        self.tts : TTSHandler = self.get_object(AVAILABLE_TTS, newelle_settings.tts_program)
-        self.embedding : EmbeddingHandler= self.get_object(AVAILABLE_EMBEDDINGS, newelle_settings.embedding_model)
-        self.memory : MemoryHandler = self.get_object(AVAILABLE_MEMORIES, newelle_settings.memory_model)
+            self.secondary_llm: LLMHandler = self.llm
+        self.stt: STTHandler = self.get_object(AVAILABLE_STT, newelle_settings.stt_engine)
+        self.tts: TTSHandler = self.get_object(AVAILABLE_TTS, newelle_settings.tts_program)
+        self.embedding: EmbeddingHandler = self.get_object(AVAILABLE_EMBEDDINGS, newelle_settings.embedding_model)
+        self.memory: MemoryHandler = self.get_object(AVAILABLE_MEMORIES, newelle_settings.memory_model)
         self.memory.set_memory_size(newelle_settings.memory)
-        self.rag : RAGHandler = self.get_object(AVAILABLE_RAGS, newelle_settings.rag_model)
-        self.websearch : WebSearchHandler = self.get_object(AVAILABLE_WEBSEARCH, newelle_settings.websearch_model)
-        # Assign handlers 
-        self.integrationsloader.set_handlers(self.llm, self.stt, self.tts, self.secondary_llm, self.embedding, self.rag, self.memory, self.websearch)
-        self.extensionloader.set_handlers(self.llm, self.stt, self.tts, self.secondary_llm, self.embedding, self.rag, self.memory, self.websearch)
+        self.rag: RAGHandler = self.get_object(AVAILABLE_RAGS, newelle_settings.rag_model)
+        self.websearch: WebSearchHandler = self.get_object(AVAILABLE_WEBSEARCH, newelle_settings.websearch_model)
+        # Assign handlers
+        self.integrationsloader.set_handlers(self.llm, self.stt, self.tts, self.secondary_llm, self.embedding, self.rag,
+                                             self.memory, self.websearch)
+        self.extensionloader.set_handlers(self.llm, self.stt, self.tts, self.secondary_llm, self.embedding, self.rag,
+                                          self.memory, self.websearch)
         self.memory.set_handlers(self.secondary_llm, self.embedding)
 
         self.rag.set_handlers(self.llm, self.embedding)
@@ -788,6 +879,7 @@ class HandlersManager:
             self.handlers_cached.release()
             for handler in self.handlers.values():
                 handler.set_error_func(func)
+
         threading.Thread(target=async_set).start()
 
     def load_handlers(self):
@@ -800,8 +892,8 @@ class HandlersManager:
             self.rag.load()
 
     def install_missing_handlers(self):
-        """Install selected handlers that are not installed. Assumes that select_handlers has been called""" 
-        handlers = [self.llm, self.stt, self.tts, self.memory, 
+        """Install selected handlers that are not installed. Assumes that select_handlers has been called"""
+        handlers = [self.llm, self.stt, self.tts, self.memory,
                     self.embedding, self.rag, self.websearch]
         for handler in handlers:
             if not handler.is_installed():
@@ -824,17 +916,21 @@ class HandlersManager:
             self.handlers[(key, self.convert_constants(AVAILABLE_LLMS), False)] = self.get_object(AVAILABLE_LLMS, key)
         # Secondary LLMs
         for key in AVAILABLE_LLMS:
-            self.handlers[(key, self.convert_constants(AVAILABLE_LLMS), True)] = self.get_object(AVAILABLE_LLMS, key, True)
+            self.handlers[(key, self.convert_constants(AVAILABLE_LLMS), True)] = self.get_object(AVAILABLE_LLMS, key,
+                                                                                                 True)
         for key in AVAILABLE_MEMORIES:
-            self.handlers[(key, self.convert_constants(AVAILABLE_MEMORIES), False)] = self.get_object(AVAILABLE_MEMORIES, key)
+            self.handlers[(key, self.convert_constants(AVAILABLE_MEMORIES), False)] = self.get_object(
+                AVAILABLE_MEMORIES, key)
         for key in AVAILABLE_RAGS:
             self.handlers[(key, self.convert_constants(AVAILABLE_RAGS), False)] = self.get_object(AVAILABLE_RAGS, key)
         for key in AVAILABLE_EMBEDDINGS:
-            self.handlers[(key, self.convert_constants(AVAILABLE_EMBEDDINGS), False)] = self.get_object(AVAILABLE_EMBEDDINGS, key)
+            self.handlers[(key, self.convert_constants(AVAILABLE_EMBEDDINGS), False)] = self.get_object(
+                AVAILABLE_EMBEDDINGS, key)
         for key in AVAILABLE_WEBSEARCH:
-            self.handlers[(key, self.convert_constants(AVAILABLE_WEBSEARCH), False)] = self.get_object(AVAILABLE_WEBSEARCH, key)
+            self.handlers[(key, self.convert_constants(AVAILABLE_WEBSEARCH), False)] = self.get_object(
+                AVAILABLE_WEBSEARCH, key)
         self.handlers_cached.release()
-    
+
     def convert_constants(self, constants: str | dict[str, Any]) -> (str | dict):
         """Get an handler instance for the specified handler key
 
@@ -843,10 +939,10 @@ class HandlersManager:
             key: key of the specified handler
 
         Raises:
-            Exception: if the constant is not valid 
+            Exception: if the constant is not valid
 
         Returns:
-            The created handler           
+            The created handler
         """
         if type(constants) is str:
             match constants:
@@ -888,7 +984,7 @@ class HandlersManager:
             else:
                 raise Exception("Unknown constants")
 
-    def get_object(self, constants: dict[str, Any], key:str, secondary=False) -> (Handler):
+    def get_object(self, constants: dict[str, Any], key: str, secondary=False) -> (Handler):
         """Get an handler instance for the specified handler key
 
         Args:
@@ -897,10 +993,10 @@ class HandlersManager:
             secondary: if to use secondary settings
 
         Raises:
-            Exception: if the constant is not valid 
+            Exception: if the constant is not valid
 
         Returns:
-            The created handler           
+            The created handler
         """
         if (key, self.convert_constants(constants), secondary) in self.handlers:
             return self.handlers[(key, self.convert_constants(constants), secondary)]
@@ -908,7 +1004,7 @@ class HandlersManager:
             model = constants[key]["class"](self.settings, self.directory)
             model.set_secondary_settings(secondary)
         elif constants == AVAILABLE_STT:
-            model = constants[key]["class"](self.settings,self.directory)
+            model = constants[key]["class"](self.settings, self.directory)
         elif constants == AVAILABLE_TTS:
             model = constants[key]["class"](self.settings, self.directory)
         elif constants == AVAILABLE_MEMORIES:
@@ -931,12 +1027,12 @@ class HandlersManager:
         """Get the constants from an hander
 
         Args:
-            handler: the handler 
+            handler: the handler
 
         Raises:
             Exception: if the handler is not known
 
-        Returns: AVAILABLE_LLMS, AVAILABLE_STT, AVAILABLE_TTS based on the type of the handler 
+        Returns: AVAILABLE_LLMS, AVAILABLE_STT, AVAILABLE_TTS based on the type of the handler
         """
         if issubclass(type(handler), TTSHandler):
             return AVAILABLE_TTS
@@ -956,10 +1052,10 @@ class HandlersManager:
             return AVAILABLE_WEBSEARCH
         else:
             raise Exception("Unknown handler")
-    
+
     def remove_passwords(self, settings_dict):
         for key, handler in self.handlers.items():
-            h : Handler = handler
+            h: Handler = handler
             settings = h.get_extra_settings_list()
             if h.schema_key not in settings_dict:
                 continue
@@ -969,6 +1065,6 @@ class HandlersManager:
             for setting in settings:
                 key = setting.get("key", "")
                 if setting.get("password", False) or key in ["api", "token"]:
-                     schema_settings[h.key][setting["key"]] = setting["default"]
+                    schema_settings[h.key][setting["key"]] = setting["default"]
             settings_dict[h.schema_key] = json.dumps(schema_settings)
         return settings_dict
