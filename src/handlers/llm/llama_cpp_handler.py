@@ -10,7 +10,7 @@ import time
 import json
 import shutil
 import atexit
-from gi.repository import Gtk, Adw, GLib
+from gi.repository import Gtk, Adw, GLib, Gdk
 from ...ui.model_library import ModelLibraryWindow, LibraryModel
 import requests
 
@@ -357,13 +357,46 @@ class LlamaCPPHandler(OpenAIHandler):
         page1 = Adw.StatusPage(title="Select Hardware", description="Choose your acceleration backend", icon_name="brain-augemnted-symbolic")
         main_container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12, hexpand=True, vexpand=True)
         main_container.set_halign(Gtk.Align.CENTER)
-        
+
+        # Show Flatpak warning if needed - at the top of page 1
+        if not can_escape_sandbox():
+            warning_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
+            warning_box.set_margin_bottom(16)
+            warning_box.add_css_class("warning")
+
+            warning_label = Gtk.Label(label="⚠️ Flatpak Sandbox Warning")
+            warning_label.add_css_class("heading")
+            warning_label.set_halign(Gtk.Align.CENTER)
+            warning_box.append(warning_label)
+
+            warning_text = Gtk.Label(label="To build llama.cpp with hardware acceleration in Flatpak,\nyou need to grant sandbox escape permissions.\nRun the following command in a terminal:")
+            warning_text.set_halign(Gtk.Align.CENTER)
+            warning_text.set_wrap(True)
+            warning_box.append(warning_text)
+
+            command_entry = Gtk.Entry()
+            command_entry.set_text("flatpak --user override --talk-name=org.freedesktop.Flatpak --filesystem=home io.github.qwersyk.Newelle")
+            command_entry.set_editable(False)
+            command_entry.set_halign(Gtk.Align.CENTER)
+            command_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
+            command_box.set_halign(Gtk.Align.CENTER)
+            command_box.append(command_entry)
+            warning_box.append(command_box)
+
+            copy_btn = Gtk.Button(label="Copy Command")
+            copy_btn.set_halign(Gtk.Align.CENTER)
+            copy_btn.connect("clicked", lambda btn: self.copy_to_clipboard("flatpak --user override --talk-name=org.freedesktop.Flatpak --filesystem=home io.github.qwersyk.Newelle"))
+            warning_box.append(copy_btn)
+
+            main_container.append(warning_box)
+            main_container.append(Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL))
+
         # Horizontal box for hardware options and CMake flags
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=24, hexpand=True)
         hbox.set_halign(Gtk.Align.CENTER)
         hbox.set_margin_start(24)
         hbox.set_margin_end(24)
-        
+
         # Left side: Hardware options
         left_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
         self.hw_options = {}
@@ -375,36 +408,41 @@ class LlamaCPPHandler(OpenAIHandler):
                 btn.set_active(True)
             self.hw_options[hw] = btn
             left_box.append(btn)
-        
+
         # Right side: CMake flags
         right_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12, valign=Gtk.Align.CENTER)
         lbl_flags = Gtk.Label(label="Custom CMake Flags (Optional)")
         lbl_flags.set_halign(Gtk.Align.START)
         right_box.append(lbl_flags)
-        
+
         self.entry_cmake = Gtk.Entry()
         self.entry_cmake.set_placeholder_text("-DGGML_AVX2=off ...")
         right_box.append(self.entry_cmake)
-        
+
         hbox.append(left_box)
         hbox.append(right_box)
         main_container.append(hbox)
-            
+
         button_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
         button_box.set_halign(Gtk.Align.CENTER)
         button_box.set_margin_top(12)
-        
+
         btn_cancel1 = Gtk.Button(label="Cancel")
         btn_cancel1.add_css_class("destructive-action")
         btn_cancel1.connect("clicked", lambda x: win.close())
         button_box.append(btn_cancel1)
-        
+
         btn_next1 = Gtk.Button(label="Next")
-        btn_next1.connect("clicked", lambda x: content.scroll_to(content.get_nth_page(1), True))
+        # Block Next button if Flatpak permissions are not set
+        if not can_escape_sandbox():
+            btn_next1.set_sensitive(False)
+            btn_next1.set_tooltip_text("Please run the Flatpak override command first")
+        else:
+            btn_next1.connect("clicked", lambda x: content.scroll_to(content.get_nth_page(1), True))
         button_box.append(btn_next1)
-        
+
         main_container.append(button_box)
-            
+
         page1.set_child(main_container)
         content.append(page1)
 
@@ -412,7 +450,7 @@ class LlamaCPPHandler(OpenAIHandler):
         page2 = Adw.StatusPage(title="Ready to Build", description="Click start to begin compilation", icon_name="tools-symbolic")
         box2 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12, hexpand=True, vexpand=True)
         box2.set_halign(Gtk.Align.CENTER)
-        
+
         btn_start = Gtk.Button(label="Start Build")
         btn_start.set_halign(Gtk.Align.CENTER)
         btn_start.connect("clicked", lambda x: self.start_installation(content))
@@ -611,6 +649,11 @@ class LlamaCPPHandler(OpenAIHandler):
     def finish_install(self, win):
         win.close()
         self.settings_update()
+
+    def copy_to_clipboard(self, text):
+        """Copy text to system clipboard"""
+        clipboard = Gdk.Display.get_default().get_clipboard()
+        clipboard.set(text)
 
     # Override get_setting and set_setting to avoid reloading the model
     def get_setting(self, key: str, search_default = True, return_value = None):
