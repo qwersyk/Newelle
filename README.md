@@ -42,9 +42,11 @@ https://github.com/user-attachments/assets/909edf0e-5a79-40c2-a3ef-cb5b2b18abfc
 
 - 🎨 **Advanced Customization**: Tailor the application with a wide range of settings
 - 🚀 **Flexible Model Support**: Choose from mutliple AI models and providers to fit your specific needs
+- 📚 **Local models**: Download local models directly from Newelle, and run them using Llama.cpp or Ollama.
 - 💻 **Terminal Command Exection**: Execute commands suggested by the AI on the fly
 - 🧩 **Extensions**: Add your own functionalities and models to Newelle
-- 🗣 **Voice support**: Chat hands free with Newelle, supporting many Speech To Text and TTS models, with translation options
+- 🛠 **Tools & MCP support**: Add tools via MCP servers or extensions 
+- 🗣 **Voice support**: Chat hands free with Newelle, supporting many Speech To Text and TTS models
 - 🧠 **Long Term Memory**: Remember conversations from previous chats
 - 💼 **Chat with documents**: Chat with your own documents
 - 🔎 **Web Search**: Provide reliable answers using Web Search
@@ -52,6 +54,7 @@ https://github.com/user-attachments/assets/909edf0e-5a79-40c2-a3ef-cb5b2b18abfc
 - 👤 **Profile Manager**: Create settings profiles and switch between them
 - 📁 **Builtin File Manager**: Manage you files with the help of AI
 - 📝 **Rich Formatting**: Supports both Markdown and LaTeX
+- 🌳 **Chat Branching**: Create alternative versions of your chats strating from any message in one click
 - ✏️ **Chat editing**: Edit or remove any message and manage your prompts easily
 
 <picture>

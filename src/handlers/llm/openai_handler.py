@@ -290,6 +290,14 @@ class OpenAIHandler(LLMHandler):
                         args = (full_message.strip(), ) + tuple(extra_args)
                         on_update(*args)
                         prev_message = full_message
+                elif hasattr(chunk.choices[0].delta, "tool_calls") and chunk.choices[0].delta.tool_calls is not None:
+                    if is_reasoning:
+                        full_message += "</think>"
+                        is_reasoning = False
+                    for tool_call in chunk.choices[0].delta.tool_calls:
+                        tool = tool_call.function
+                        tool_call_dict = {"tool": tool.name, "arguments": json.loads(tool.arguments) if tool.arguments else ""}
+                        full_message += "```json\n" + json.dumps(tool_call_dict) + "\n```\n"
             return full_message.strip()
         except Exception as e:
             raise e
