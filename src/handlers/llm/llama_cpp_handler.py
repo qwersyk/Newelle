@@ -35,6 +35,7 @@ class LlamaCPPHandler(OpenAIHandler):
     
     def get_models(self, manual=False):
         self.set_setting("models", json.dumps(["custom"]))
+        self.update_library_cache()
 
     def __init__(self, settings, path):
         super().__init__(settings, path)
