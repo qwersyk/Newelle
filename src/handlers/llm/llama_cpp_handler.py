@@ -114,8 +114,14 @@ class LlamaCPPHandler(OpenAIHandler):
         else:
             settings.extend([
                 ExtraSettings.ToggleSetting("gpu_acceleration", "Hardware Acceleration", "Enable hardware acceleration", False),
-                ExtraSettings.ButtonSetting("reinstall", "Reinstall", "Rebuild llama.cpp", self.show_install_dialog, label="Reinstall")
             ])
+            if is_flatpak():
+                settings.append(
+                    ExtraSettings.ToggleSetting("use_system_server", "Use System llama-server", "Use system-installed llama-server instead of built-in (requires llama-server on host and sandbox escape)", False)
+                )
+            settings.append(
+                ExtraSettings.ButtonSetting("reinstall", "Reinstall", "Rebuild llama.cpp", self.show_install_dialog, label="Reinstall")
+            )
         extra_settings = self.build_extra_settings("LlamaCPP", False, True, False, True, False, None, None, False, False, True)
         extra_settings.extend([
             ExtraSettings.SpinSetting("ctx", "Context Size", "Context size to use, 0 = load from model", default=0, min=0, max=1200000, page=1024, step=512),
@@ -142,14 +148,19 @@ class LlamaCPPHandler(OpenAIHandler):
         self.kill_server()
         
         self.port = self.get_free_port()
-        
+
         # Use built llama.cpp server if hardware acceleration is enabled and available
-        if self.get_setting("gpu_acceleration", False, False) and self.is_gpu_installed():
+        # Or use system server if specified (for Flatpak)
+        use_system_server = is_flatpak() and self.get_setting("use_system_server", False, False)
+        if use_system_server:
+            cmd_path = "llama-server"
+        elif self.get_setting("gpu_acceleration", False, False) and self.is_gpu_installed():
             cmd_path = self.llama_server_path
         else:
             cmd_path = "llama-server"
         cmd = [cmd_path, "--model", path, "--port", str(self.port), "--host", "127.0.0.1", "-c", str(ctx), "--reasoning-format", "none" ]
-        if is_flatpak() and self.is_gpu_installed() and self.get_setting("gpu_acceleration", False, False):
+        # Use flatpak-spawn when running built llama.cpp in Flatpak
+        if (is_flatpak() and self.is_gpu_installed() and self.get_setting("gpu_acceleration", False, False)) or use_system_server:
             cmd = get_spawn_command() + cmd
         self.server_process = subprocess.Popen(cmd)
         self.loaded_model = model
