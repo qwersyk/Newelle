@@ -493,16 +493,7 @@ class OllamaHandler(LLMHandler):
             prev_message = ""
             thinking = False
             for chunk in response:
-                print(chunk)
-                if len(chunk["message"]["content"]):
-                    full_message += chunk["message"]["content"]
-                    if thinking is True:
-                        thinking = False
-                        full_message += "</think>"
-                    args = (full_message.strip(), ) + tuple(extra_args)
-                    on_update(*args)
-                    prev_message = full_message
-                elif "thinking" in chunk["message"] and chunk["message"]["thinking"] is not None:
+                if "thinking" in chunk["message"] and chunk["message"]["thinking"] is not None:
                     if not thinking:
                         full_message += "<think>"
                         thinking = True
@@ -511,7 +502,15 @@ class OllamaHandler(LLMHandler):
                     if len(full_message) - len(prev_message) > 1:
                         on_update(*args)
                         prev_message = full_message
-                elif "tool_calls" in chunk["message"] and chunk["message"]["tool_calls"] is not None:
+                if len(chunk["message"]["content"]):
+                    if thinking is True:
+                        thinking = False
+                        full_message += "</think>"
+                    full_message += chunk["message"]["content"]
+                    args = (full_message.strip(), ) + tuple(extra_args)
+                    on_update(*args)
+                    prev_message = full_message
+                if "tool_calls" in chunk["message"] and chunk["message"]["tool_calls"] is not None:
                     if thinking:
                         thinking = False
                         full_message += "</think>"
