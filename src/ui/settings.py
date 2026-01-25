@@ -261,21 +261,28 @@ class Settings(Adw.PreferencesWindow):
         self.neural_network = Adw.PreferencesGroup(title=_('Neural Network Control'))
         self.general_page.add(self.neural_network)
 
-        row = Adw.ActionRow(title=_("Command virtualization"), subtitle=_("Run commands in a virtual machine"))
+        # Only show virtualization option if running in Flatpak
+        if is_flatpak():
+            row = Adw.ActionRow(title=_("Command virtualization"), subtitle=_("Run commands in a virtual machine"))
+            switch = Gtk.Switch(valign=Gtk.Align.CENTER)
+            row.add_suffix(switch)
+            # Set default value for the switch
+            if not self.sandbox:
+                switch.set_active(True)
+                self.settings.set_boolean("virtualization", True)
+            else:
+                switch.set_active(self.settings.get_boolean("virtualization"))
+            # Connect the function
+            switch.connect("state-set", self.toggle_virtualization)
+            self.neural_network.add(row)
+        
+        row = Adw.ActionRow(title=_("Parallel Tool Execution"), subtitle=_("Allow the model to execute multiple tools in parallel"))
         switch = Gtk.Switch(valign=Gtk.Align.CENTER)
         row.add_suffix(switch)
-        # Set default value for the switch
-        if not self.sandbox:
-            switch.set_active(True)
-            self.settings.set_boolean("virtualization", True)
-        else:
-            switch.set_active(self.settings.get_boolean("virtualization"))
-        # Connect the function
-        switch.connect("state-set", self.toggle_virtualization)
+        self.settings.bind("parallel-tool-execution", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
         self.neural_network.add(row)
-
-        row = Adw.ExpanderRow(title=_("External Terminal"),
-                              subtitle=_("Choose the external terminal where to run the console commands"))
+        
+        row = Adw.ExpanderRow(title=_("External Terminal"), subtitle=_("Choose the external terminal where to run the console commands"))
         terminal_enabled = Gtk.Switch(valign=Gtk.Align.CENTER)
         self.settings.bind("external-terminal-on", terminal_enabled, 'active', Gio.SettingsBindFlags.DEFAULT)
         row.add_suffix(terminal_enabled)

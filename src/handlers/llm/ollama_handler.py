@@ -368,12 +368,34 @@ class OllamaHandler(LLMHandler):
             )
             full_message = ""
             prev_message = ""
+            thinking = False
             for chunk in response:
-                full_message += chunk["message"]["content"]
-                args = (full_message.strip(), ) + tuple(extra_args)
-                if len(full_message) - len(prev_message) > 1:
+                if "thinking" in chunk["message"] and chunk["message"]["thinking"] is not None:
+                    if not thinking:
+                        full_message += "<think>"
+                        thinking = True
+                    full_message += chunk["message"]["thinking"]
+                    args = (full_message.strip(), ) + tuple(extra_args)
+                    if len(full_message) - len(prev_message) > 1:
+                        on_update(*args)
+                        prev_message = full_message
+                if len(chunk["message"]["content"]):
+                    if thinking is True:
+                        thinking = False
+                        full_message += "</think>"
+                    full_message += chunk["message"]["content"]
+                    args = (full_message.strip(), ) + tuple(extra_args)
                     on_update(*args)
                     prev_message = full_message
+                if "tool_calls" in chunk["message"] and chunk["message"]["tool_calls"] is not None:
+                    if thinking:
+                        thinking = False
+                        full_message += "</think>"
+                    for tool in chunk["message"]["tool_calls"]:
+                        tool_name = tool.function.name 
+                        arguments = tool.function.arguments
+                        call = "```json\n" + json.dumps({"tool": tool_name, "arguments": arguments}) + "\n```\n"
+                        full_message += call
             return full_message.strip()
         except Exception as e:
             raise e

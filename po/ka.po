@@ -1,0 +1,2610 @@
+# Georgian translation for newelle.
+# Copyright (C) 2026 newelle's authors
+# This file is distributed under the same license as the newelle package.
+# Temuri Doghonadze <temuri.doghonadze@gmail.com>, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: newelle\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-08-11 01:45+0800\n"
+"PO-Revision-Date: 2026-01-25 06:25+0100\n"
+"Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
+"Language-Team: Georgian <(nothing)>\n"
+"Language: ka\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.8\n"
+
+#: src/handlers/embeddings/ollama_handler.py:32
+#: src/handlers/embeddings/openai_handler.py:38
+#: src/handlers/llm/ollama_handler.py:150 src/handlers/llm/openai_handler.py:75
+#: src/handlers/stt/openaisr_handler.py:10
+msgid "API Endpoint"
+msgstr "API-ის ბოლოწერტილი"
+
+#: src/handlers/embeddings/ollama_handler.py:32
+#: src/handlers/llm/ollama_handler.py:150 src/handlers/llm/openai_handler.py:75
+msgid "API base url, change this to use interference APIs"
+msgstr "API-ის საბაზისო URL. შეცვალეთ ეს Inference API-ების გამოსაყენებლად"
+
+#: src/handlers/embeddings/ollama_handler.py:33
+#: src/handlers/llm/ollama_handler.py:151
+msgid "Automatically Serve"
+msgstr "ავტომატური გაშვება"
+
+#: src/handlers/embeddings/ollama_handler.py:33
+#: src/handlers/llm/ollama_handler.py:151
+msgid ""
+"Automatically run ollama serve in background when needed if it's not "
+"running. You can kill it with killall ollama"
+msgstr ""
+"ollama-ის სერვერის ავტომატური გაშვება ფონში, როცა საჭიროა, ან როცა გაშვებული "
+"არაა. მისი მოკვლა შეგიძლიათ ბრძანებით killall ollama"
+
+#: src/handlers/embeddings/ollama_handler.py:34
+#: src/handlers/llm/ollama_handler.py:153
+msgid "Custom Model"
+msgstr "მომხმარებლის მოდელი"
+
+#: src/handlers/embeddings/ollama_handler.py:34
+#: src/handlers/embeddings/openai_handler.py:41
+#: src/handlers/llm/claude_handler.py:85 src/handlers/llm/ollama_handler.py:153
+#: src/handlers/llm/openai_handler.py:78
+msgid "Use a custom model"
+msgstr "მომხმარებლის მოდელის გამოყენება"
+
+#: src/handlers/embeddings/ollama_handler.py:40
+#: src/handlers/embeddings/ollama_handler.py:49
+#: src/handlers/llm/ollama_handler.py:159
+#: src/handlers/llm/ollama_handler.py:168
+msgid "Ollama Model"
+msgstr "Ollama-ის მოდელი"
+
+#: src/handlers/embeddings/ollama_handler.py:41
+#: src/handlers/embeddings/ollama_handler.py:49
+#: src/handlers/llm/ollama_handler.py:160
+#: src/handlers/llm/ollama_handler.py:168
+msgid "Name of the Ollama Model"
+msgstr "Ollama-ის მოდელის სახელი"
+
+#: src/handlers/embeddings/openai_handler.py:35
+#: src/handlers/llm/claude_handler.py:84 src/handlers/llm/openai_handler.py:72
+#: src/handlers/stt/googlesr_handler.py:13
+#: src/handlers/stt/groqsr_handler.py:13
+#: src/handlers/stt/openaisr_handler.py:17 src/handlers/stt/witai_handler.py:12
+#: src/handlers/tts/custom_openai_tts.py:18
+#: src/handlers/tts/groq_tts_handler.py:32
+#: src/handlers/tts/openai_tts_handler.py:18
+#: src/handlers/tts/elevenlabs_handler.py:10
+msgid "API Key"
+msgstr "API-ის გასაღები"
+
+#: src/handlers/embeddings/openai_handler.py:35
+#: src/handlers/llm/openai_handler.py:72
+msgid "API Key for "
+msgstr "API გასაღები მოდელისთვის "
+
+#: src/handlers/embeddings/openai_handler.py:38
+msgid "API base url, change this to use different APIs"
+msgstr "API-ის საბაზისო URL. შეცვალეთ ეს სხვა API-ებსი გამოსაყენებლად"
+
+#: src/handlers/embeddings/openai_handler.py:41
+#: src/handlers/llm/openai_handler.py:78
+msgid "Use Custom Model"
+msgstr "მომხმარებლის მოდელის გამოყენება"
+
+#: src/handlers/embeddings/openai_handler.py:44
+#: src/handlers/llm/claude_handler.py:89 src/handlers/llm/claude_handler.py:93
+#: src/handlers/llm/g4f_handler.py:44 src/handlers/llm/gemini_handler.py:97
+#: src/handlers/llm/openai_handler.py:84 src/handlers/stt/whisper_handler.py:15
+#: src/handlers/stt/whispercpp_handler.py:40
+#: src/handlers/tts/custom_openai_tts.py:20
+#: src/handlers/tts/groq_tts_handler.py:34
+#: src/handlers/tts/openai_tts_handler.py:20
+#: src/handlers/tts/elevenlabs_handler.py:25
+msgid "Model"
+msgstr "მოდელი"
+
+#: src/handlers/embeddings/openai_handler.py:44
+msgid "Name of the Embedding Model to use"
+msgstr "გამოსაყენებელი ჩაშენებული მოდელის სახელი"
+
+#: src/handlers/embeddings/openai_handler.py:51
+#: src/handlers/llm/openai_handler.py:91
+msgid " Model"
+msgstr " მოდელი"
+
+#: src/handlers/llm/claude_handler.py:84
+#: src/handlers/tts/custom_openai_tts.py:18
+#: src/handlers/tts/groq_tts_handler.py:32
+#: src/handlers/tts/openai_tts_handler.py:18
+msgid "The API key to use"
+msgstr "API-ის გასაღები გამოსაყენებლად"
+
+#: src/handlers/llm/claude_handler.py:89 src/handlers/llm/claude_handler.py:93
+#: src/handlers/tts/custom_openai_tts.py:20
+#: src/handlers/tts/groq_tts_handler.py:34
+#: src/handlers/tts/openai_tts_handler.py:20
+msgid "The model to use"
+msgstr "მოდელი გამოსაყენებლად"
+
+#: src/handlers/llm/claude_handler.py:96
+msgid "Max Tokens"
+msgstr "მაქს. კოდები"
+
+#: src/handlers/llm/claude_handler.py:96
+msgid "The maximum number of tokens to generate"
+msgstr "დასაგენერირებელი ტოკენების მაქს. რაოდენობა"
+
+#: src/handlers/llm/custom_handler.py:20
+#: src/handlers/llm/gpt4all_handler.py:153
+#: src/handlers/llm/newelle_handler.py:27
+#: src/handlers/llm/gemini_handler.py:119 src/utility/util.py:136
+msgid "Message Streaming"
+msgstr "შეტყობინებების ნაკადი"
+
+#: src/handlers/llm/custom_handler.py:20
+#: src/handlers/llm/gpt4all_handler.py:153
+#: src/handlers/llm/newelle_handler.py:28
+#: src/handlers/llm/gemini_handler.py:120 src/utility/util.py:137
+msgid "Gradually stream message output"
+msgstr "შეტყობინების გამოტანის თანდათანობითი ნაკადი"
+
+#: src/handlers/llm/custom_handler.py:21
+msgid "Command to execute to get bot output"
+msgstr "ბოტისაგან პასუხის მისაღებად შესასრულებელი ბრძანება"
+
+#: src/handlers/llm/custom_handler.py:21
+#, python-brace-format
+msgid ""
+"Command to execute to get bot response, {0} will be replaced with a JSON "
+"file containing the chat, {1} with the system prompt"
+msgstr ""
+"ბრძანება ბოტის პასუხის მისაღებად. {0} ჩანაცვლდება ჩატის შემცველი JSON "
+"ფაილით, {1} კი სისტემური მინიშნებით"
+
+#: src/handlers/llm/custom_handler.py:22
+msgid "Command to execute to get bot's suggestions"
+msgstr "ბოტის რჩევების მისაღებად შესასრულებელი ბრძანება"
+
+#: src/handlers/llm/custom_handler.py:22
+#, python-brace-format
+msgid ""
+"Command to execute to get chat suggestions, {0} will be replaced with a JSON "
+"file containing the chat, {1} with the extra prompts, {2} with the numer of "
+"suggestions to generate. Must return a JSON array containing the suggestions "
+"as strings"
+msgstr ""
+"ბრძანება ჩატის მინიშნებების მისაღებად. {0} ჩანაცვლდება ჩატის შემცველი JSON "
+"ფაილით, {1} დამატებითი მინიშნებებით, {2} დასაგენერირებელი მინიშნებების "
+"რაოდენობით. უნდა დააბრუნოს JSON მასივი, რომელიც სტრიქონებად მინიშნებებს "
+"შეიცავს"
+
+#: src/handlers/llm/gpt4all_handler.py:67
+msgid "RAM Required: "
+msgstr "საჭირო RAM: "
+
+#: src/handlers/llm/gpt4all_handler.py:68
+msgid "Parameters: "
+msgstr "პარამეტრები: "
+
+#: src/handlers/llm/gpt4all_handler.py:69
+msgid "Size: "
+msgstr "ზომა: "
+
+#: src/handlers/llm/gpt4all_handler.py:154 src/handlers/llm/g4f_handler.py:44
+msgid "Model to use"
+msgstr "გამოსაყენებელი მოდელი"
+
+#: src/handlers/llm/gpt4all_handler.py:154
+#: src/handlers/tts/elevenlabs_handler.py:26
+msgid "Name of the model to use"
+msgstr "გამოსაყენებელი მოდელის სახელი"
+
+#: src/handlers/llm/gpt4all_handler.py:155
+#: src/handlers/llm/ollama_handler.py:172
+msgid "Model Manager"
+msgstr "მოდელების მმართველი"
+
+#: src/handlers/llm/gpt4all_handler.py:155
+#: src/handlers/llm/ollama_handler.py:172
+msgid "List of models available"
+msgstr "ხელმისაწვდომი მოდელების სია"
+
+#: src/handlers/llm/g4f_handler.py:45
+msgid "Update G4F"
+msgstr "G4F-ის განახლება"
+
+#: src/handlers/llm/newelle_handler.py:18
+#: src/handlers/llm/gemini_handler.py:131
+#: src/handlers/llm/openai_handler.py:112
+msgid "Privacy Policy"
+msgstr "კონფიდენციალობის პოლიტიკა"
+
+#: src/handlers/llm/newelle_handler.py:19
+#: src/handlers/llm/gemini_handler.py:132
+#: src/handlers/llm/openai_handler.py:112
+msgid "Open privacy policy website"
+msgstr "კონფიდენციალობის პოლიტიკის ვებგვერდის გახსნა"
+
+#: src/handlers/llm/ollama_handler.py:152
+#: src/handlers/llm/gemini_handler.py:110
+msgid "Enable Thinking"
+msgstr "აზროვნების ჩართვა"
+
+#: src/handlers/llm/ollama_handler.py:152
+msgid "Allow thinking in the model, only some models are supported"
+msgstr "მოდელში ფიქრის დაშვება. მხარდაჭერილია, მხოლოდ, ზოგიერთი მოდელი"
+
+#: src/handlers/llm/ollama_handler.py:176
+msgid "Add custom model"
+msgstr "მორგებული მოდელის დამატება"
+
+#: src/handlers/llm/ollama_handler.py:177
+msgid ""
+"Add any model to this list by putting name:size\n"
+"Or any gguf from hf with hf.co/username/model"
+msgstr ""
+"დაამატეთ ნებისმიერი მოდელი სიაში სახით სახელი:ზომა\n"
+"ან ნებისმიერი gguf hf-დან ფორმატში hf.co/username/model"
+
+#: src/handlers/llm/ollama_handler.py:187
+msgid "Update Ollama"
+msgstr "Ollama-ის განახლება"
+
+#: src/handlers/llm/gemini_handler.py:94
+msgid "API Key (required)"
+msgstr "API-ის გასაღები (აუცილებელია)"
+
+#: src/handlers/llm/gemini_handler.py:94
+msgid "API key got from ai.google.dev"
+msgstr "ai.google.dev-დან მიღებული API-ის გასაღები"
+
+#: src/handlers/llm/gemini_handler.py:98
+msgid "AI Model to use"
+msgstr "ხი-ის მოდელი გამოსაყენებლად"
+
+#: src/handlers/llm/gemini_handler.py:103
+msgid "Enable System Prompt"
+msgstr "სისტემური მინიშნების ჩართვა"
+
+#: src/handlers/llm/gemini_handler.py:103
+msgid ""
+"Some models don't support system prompt (or developers instructions), "
+"disable it if you get errors about it"
+msgstr ""
+"ზოგიერთ მოდელს სისტემური მინიშნების (ან პროგრამისტის ინსტრუქციების) "
+"მხარდაჭერა არ აქვს. გამორთეთ, თუ ამის შესახებ შეცდომებს ნახავთ"
+
+#: src/handlers/llm/gemini_handler.py:107
+msgid "Inject system prompt"
+msgstr "სისტემური მინიშნების ჩაშენება"
+
+#: src/handlers/llm/gemini_handler.py:107
+msgid ""
+"Even if the model doesn't support system prompts, put the prompts on top of "
+"the user message"
+msgstr ""
+"მაშინაც კი, თუ მოდელს სისტემური მინიშნებების მხარდაჭერა არ აქვს, "
+"მინიშნებების დადება მომხმარებლის შეტყობინების ზემოდან"
+
+#: src/handlers/llm/gemini_handler.py:109
+msgid "Thinking Settings"
+msgstr "მსჯელობის მორგება"
+
+#: src/handlers/llm/gemini_handler.py:109
+msgid "Settings about thinking models"
+msgstr "მსჯელობის მოდელების მორგება"
+
+#: src/handlers/llm/gemini_handler.py:110
+msgid "Show thinking, disable it if your model does not support it"
+msgstr "ფიქრის ჩვენება. გამორთეთ, თუ თქვენს მოდელს მისი მხარდაჭერა არ აქვს"
+
+#: src/handlers/llm/gemini_handler.py:111
+msgid "Enable Thinking Budget"
+msgstr "მსჯელობის ბიუჯეტის ჩართვა"
+
+#: src/handlers/llm/gemini_handler.py:111
+msgid "If to enable thinking budget"
+msgstr "ჩაირთვება, თუ არა მსჯელობის ბიუჯეტი"
+
+#: src/handlers/llm/gemini_handler.py:112
+msgid "Thinking Budget"
+msgstr "მსჯელობის ბიუჯეტი"
+
+#: src/handlers/llm/gemini_handler.py:112
+msgid "How much time to spend thinking"
+msgstr "რამდენი ხანი ვიფიქრო"
+
+#: src/handlers/llm/gemini_handler.py:116
+msgid "Image Output"
+msgstr "გამოსახულების გამოტანა"
+
+#: src/handlers/llm/gemini_handler.py:116
+msgid "Enable image output, only supported by gemini-2.0-flash-exp"
+msgstr ""
+"გამოსახულების გამოტანის დაშვება. მხარდაჭერილია, მხოლოდ, gemini-2.0-flash-exp-"
+"ის მიერ"
+
+#: src/handlers/llm/gemini_handler.py:125
+msgid "Enable safety settings"
+msgstr "უსაფრთხოების პარამეტრების ჩართვა"
+
+#: src/handlers/llm/gemini_handler.py:126
+msgid "Enable google safety settings to avoid generating harmful content"
+msgstr ""
+"Google-ის უსაფრთხოების პარამეტრების ჩართვა მავნე შემცველობის გენერაციის "
+"თავიდან ასაცილებლად"
+
+#: src/handlers/llm/gemini_handler.py:135 src/handlers/llm/openai_handler.py:81
+msgid "Advanced Parameters"
+msgstr "დამატებითი პარამეტრები"
+
+#: src/handlers/llm/gemini_handler.py:135
+msgid "Enable advanced parameters"
+msgstr "დამატებითი პარამეტრების ჩართვა"
+
+#: src/handlers/llm/openai_handler.py:81
+msgid "Include parameters like Top-P, Temperature, etc."
+msgstr "ისეთი პარამეტრების ჩასმა, როგორიცაა Top-P, ტემპერატურა და ა.შ."
+
+#: src/handlers/llm/openai_handler.py:84
+msgid "Name of the LLM Model to use"
+msgstr "გამოსაყენებელი LLM მოდელის სახელი"
+
+#: src/handlers/llm/openai_handler.py:103
+msgid "Top-P"
+msgstr "Top-P"
+
+#: src/handlers/llm/openai_handler.py:103
+msgid "An alternative to sampling with temperature, called nucleus sampling"
+msgstr ""
+"ტემპერატურით სინჯის აღების ალტერნატივა, რომელსაც ბირთვის სინჯის აღება ჰქვია"
+
+#: src/handlers/llm/openai_handler.py:104
+#: src/handlers/stt/whispercpp_handler.py:50
+msgid "Temperature"
+msgstr "ტემპერატურა"
+
+#: src/handlers/llm/openai_handler.py:104
+msgid ""
+"What sampling temperature to use. Higher values will make the output more "
+"random"
+msgstr ""
+"რომელი სინჯის ტემპერატურა იქნება გამოყენებული. რაც მეტია მნიშვნელობა, მით "
+"შემთხვევითია გამოტანილი ტექსტი"
+
+#: src/handlers/llm/openai_handler.py:105
+msgid "Frequency Penalty"
+msgstr "სიხშირის ჯარიმა"
+
+#: src/handlers/llm/openai_handler.py:105
+msgid ""
+"Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
+"to repeat the same line verbatim"
+msgstr ""
+"რიცხვი შუალედიდან -2.0-2.0. დადებითი მნიშვნელობები ამცირებენ შანსს, რომ "
+"მოდელი იგივე სტრიქონს სიტყვასიტყვით გაიმეორებს"
+
+#: src/handlers/llm/openai_handler.py:106
+msgid "Presence Penalty"
+msgstr "არსებობის ჯარიმა"
+
+#: src/handlers/llm/openai_handler.py:106
+msgid ""
+"Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
+"to talk about new topics"
+msgstr ""
+"რიცხვი შუალედიდან -2.0-2.0. დადებითი მნიშვნელობები ამცირებენ შანსს, რომ "
+"მოდელი ახალ თემებზე დაიწყებს ლაპარაკს"
+
+#: src/handlers/llm/openai_handler.py:108
+msgid "Custom Options"
+msgstr "ხელით მითითებული პარამეტრები"
+
+#: src/handlers/llm/openai_handler.py:108
+msgid "Provide a JSON containing the custom options"
+msgstr "მოგვაწოდეთ მორგებული პარამეტრების შემცველი JSON ფაილი"
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Provider Sorting"
+msgstr "მომწოდებლების დალაგება"
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Choose providers based on pricing/throughput or latency"
+msgstr "აირჩიეთ მომწოდებლები ფასით/გამტარობით ან დაყოვნებით"
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Price"
+msgstr "ფასი"
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Throughput"
+msgstr "გამტარუნარიანობა"
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Latency"
+msgstr "დაყოვნება"
+
+#: src/handlers/llm/openrouter_handler.py:15
+msgid "Providers Order"
+msgstr "მომწოდებლების მიმდევრობა"
+
+#: src/handlers/llm/openrouter_handler.py:15
+msgid ""
+"Add order of providers to use, names separated by a comma.\n"
+"Empty to not specify"
+msgstr ""
+"დაამატეთ მომწოდებლები. სახელები გამოჰყავით მძიმით.\n"
+"ცარიელი არმისათითებლად"
+
+#: src/handlers/llm/openrouter_handler.py:16
+msgid "Allow Fallbacks"
+msgstr "უკუგადართვის დაშვება"
+
+#: src/handlers/llm/openrouter_handler.py:16
+msgid "Allow fallbacks to other providers"
+msgstr "სხვა პროვაიდერებზე უკუგადართვის დაშვება"
+
+#: src/handlers/rag/rag_handler.py:104
+msgid "Index your documents"
+msgstr "თქვენი დოკუმენტების დაინდექსება"
+
+#: src/handlers/rag/rag_handler.py:105
+msgid ""
+"Index all the documents in your document folder. You have to run this "
+"operation every time you edit/create a document, change document analyzer or "
+"change embedding model"
+msgstr ""
+"ყველა დოკუმენტის დაინდექსება თქვენი დოკუმენტების საქაღალდეში. ეს ოპერაცია "
+"ყოველ ჯერზე უნდა გაუშვათ, როცა დოკუმენტს ჩაასწორებთ/შექმნით, შეცვლით "
+"დოკუმენტის ანალიზატორს, ან შეცვლით ჩაშენებულ მოდელს"
+
+#: src/handlers/stt/custom_handler.py:13 src/handlers/tts/custom_handler.py:17
+msgid "Command to execute"
+msgstr "შესასრულებელი ბრძანება"
+
+#: src/handlers/stt/custom_handler.py:14
+#, python-brace-format
+msgid "{0} will be replaced with the model fullpath"
+msgstr "{0} მოდელის სრული ბილიკით ჩანაცვლდება"
+
+#: src/handlers/stt/googlesr_handler.py:14
+msgid "API Key for Google SR, write 'default' to use the default one"
+msgstr ""
+"API-ის გასაღები Google SR-ისთვის. ნაგულისხმევის გამოსაყენებლად ჩაწერეთ "
+"'default'"
+
+#: src/handlers/stt/googlesr_handler.py:21
+#: src/handlers/stt/groqsr_handler.py:29
+#: src/handlers/stt/openaisr_handler.py:32
+#: src/handlers/stt/whispercpp_handler.py:47
+msgid "Language"
+msgstr "ენა"
+
+#: src/handlers/stt/googlesr_handler.py:22
+msgid "The language of the text to recgnize in IETF"
+msgstr "ტექსტის ენა ამოსაცნობად IETF ფორმატში"
+
+#: src/handlers/stt/groqsr_handler.py:14
+msgid "API Key for Groq SR, write 'default' to use the default one"
+msgstr ""
+"API-ის გასაღები Groq SR-ისთვის. ნაგულისხმევის გამოსაყენებლად ჩაწერეთ "
+"'default'"
+
+#: src/handlers/stt/groqsr_handler.py:21
+msgid "Groq Model"
+msgstr "Groq-ის მოდელი"
+
+#: src/handlers/stt/groqsr_handler.py:22
+msgid "Name of the Groq Model"
+msgstr "Groq-ის მოდელის სახელი"
+
+#: src/handlers/stt/groqsr_handler.py:30
+msgid ""
+"Specify the language for transcription. Use ISO 639-1 language codes (e.g. "
+"\"en\" for English, \"fr\" for French, etc.). "
+msgstr ""
+"მიუთითეთ ენა ტრანსკრიპციისთვის. გამოიყენეთ ISO 639-1 ენის კოდები (ანუ \"ka\" "
+"ქართულისთვის, \"en\" ინგლისურისთვის და ა.შ.. "
+
+#: src/handlers/stt/openaisr_handler.py:11
+msgid "Endpoint for OpenAI requests"
+msgstr "ბოლოწერტილი OpenAI-ის მოთხოვნებისთვის"
+
+#: src/handlers/stt/openaisr_handler.py:18
+msgid "API Key for OpenAI"
+msgstr "API-ის გასაღები OpenAI-ისთვის"
+
+#: src/handlers/stt/openaisr_handler.py:25
+msgid "Whisper Model"
+msgstr "მოდელი Whisper"
+
+#: src/handlers/stt/openaisr_handler.py:26
+msgid "Name of the OpenAI model"
+msgstr "OpenAI-ის მოდელის სახელი"
+
+#: src/handlers/stt/openaisr_handler.py:33
+msgid ""
+"Optional: Specify the language for transcription. Use ISO 639-1 language "
+"codes (e.g. \"en\" for English, \"fr\" for French, etc.). "
+msgstr ""
+"არასავალდებულო: მიუთითეთ ენა ტრანსკრიპციისთვის. გამოიყენეთ ISO 639-1 ენის "
+"კოდები (ანუ \"ka\" ქართულისთვის, \"en\" ინგლისურისთვის და ა.შ.. "
+
+#: src/handlers/stt/vosk_handler.py:17
+msgid "Model Path"
+msgstr "მოდელის ბილიკი"
+
+#: src/handlers/stt/vosk_handler.py:18
+msgid "Absolute path to the VOSK model (unzipped)"
+msgstr "აბსოლუტური ბილიკი VOSK-ის მოდელამდე (გაშლილი zip)"
+
+#: src/handlers/stt/whisper_handler.py:16
+#: src/handlers/stt/whispercpp_handler.py:41
+msgid "Name of the Whisper model"
+msgstr "Whisper-ის მოდელის სახელი"
+
+#: src/handlers/stt/witai_handler.py:13
+msgid "Server Access Token for wit.ai"
+msgstr "სერვერის წვდომის ტოკენი wit.ai-ისთვის"
+
+#: src/handlers/stt/sphinx_handler.py:19
+msgid "Could not understand the audio"
+msgstr "აუდიო ვერ გავიგე"
+
+#: src/handlers/stt/whispercpp_handler.py:47
+msgid "Language of the recognition. For example en, it..."
+msgstr "ენა ამოსაცნობად. მაგ: ka, en, it..."
+
+#: src/handlers/stt/whispercpp_handler.py:48
+msgid "Model Library"
+msgstr "მოდელის ბიბლიოთეკა"
+
+#: src/handlers/stt/whispercpp_handler.py:48
+msgid "Manage Whisper models"
+msgstr "Whisper-ის მოდელების მართვა"
+
+#: src/handlers/stt/whispercpp_handler.py:49
+msgid "Advanced Settings"
+msgstr "დამატებითი პარამეტრები"
+
+#: src/handlers/stt/whispercpp_handler.py:49
+msgid "More advanced settings"
+msgstr "მეტი დამატებითი პარამეტრი"
+
+#: src/handlers/stt/whispercpp_handler.py:50
+msgid "Temperature to use"
+msgstr "გამოსაყენებელი ტემპერატურა"
+
+#: src/handlers/stt/whispercpp_handler.py:51
+msgid "Prompt for the recognition"
+msgstr "მინიშნება ამოსაცნობად"
+
+#: src/handlers/stt/whispercpp_handler.py:51
+msgid "Prompt to use for the recognition"
+msgstr "ამოსაცნობად გამოყენებული მინიშნება"
+
+#: src/handlers/tts/custom_openai_tts.py:17
+msgid "Endpoint"
+msgstr "ბოლოწერტილი"
+
+#: src/handlers/tts/custom_openai_tts.py:17
+msgid "Custom endpoint of the service to use"
+msgstr "სერვისის მორგებული ბოლოწერტილი"
+
+#: src/handlers/tts/custom_openai_tts.py:19
+#: src/handlers/tts/groq_tts_handler.py:33
+#: src/handlers/tts/openai_tts_handler.py:19
+#: src/handlers/tts/elevenlabs_handler.py:18 src/handlers/tts/tts.py:33
+#: src/ui/settings.py:129
+msgid "Voice"
+msgstr "ხმა"
+
+#: src/handlers/tts/custom_openai_tts.py:19
+#: src/handlers/tts/groq_tts_handler.py:33
+#: src/handlers/tts/openai_tts_handler.py:19
+msgid "The voice to use"
+msgstr "ხმა გამოსაყენებლად"
+
+#: src/handlers/tts/custom_openai_tts.py:21
+#: src/handlers/tts/openai_tts_handler.py:21
+msgid "Instructions"
+msgstr "ინსტრუქციები"
+
+#: src/handlers/tts/custom_openai_tts.py:21
+#: src/handlers/tts/openai_tts_handler.py:21
+msgid ""
+"Instructions for the voice generation. Leave it blank to avoid this field"
+msgstr ""
+"ინსტრუქციები ხმის გენერაციისთვის. დატოვეთ ცარიელი ამ ველის თავიდან "
+"ასაცილებლად"
+
+#: src/handlers/tts/custom_handler.py:17
+#, python-brace-format
+msgid "{0} will be replaced with the file fullpath, {1} with the text"
+msgstr "{0} ჩანაცვლდება ფაილის სრული ბილიკით, {1} კი ტექსტით"
+
+#: src/handlers/tts/elevenlabs_handler.py:11
+msgid "API Key for ElevenLabs"
+msgstr "API-ის გასაღები ElevenLabs-ისთვის"
+
+#: src/handlers/tts/elevenlabs_handler.py:19
+msgid "Voice ID to use"
+msgstr "გამოსაყენებელი ხმის ID"
+
+#: src/handlers/tts/elevenlabs_handler.py:33
+msgid "Stability"
+msgstr "სტაბილურობა"
+
+#: src/handlers/tts/elevenlabs_handler.py:34
+msgid "stability of the voice"
+msgstr "ხმის სტაბილურობა"
+
+#: src/handlers/tts/elevenlabs_handler.py:43
+msgid "Similarity boost"
+msgstr "მსგავსებების გაძლიერება"
+
+#: src/handlers/tts/elevenlabs_handler.py:44
+msgid "Boosts overall voice clarity and speaker similarity"
+msgstr "ზრდის ხმის სისუფთავეს და მოლაპარაკის მსგავსებას"
+
+#: src/handlers/tts/elevenlabs_handler.py:53
+msgid "Style exaggeration"
+msgstr "სტილის გაზვიადება"
+
+#: src/handlers/tts/elevenlabs_handler.py:54
+msgid ""
+"High values are reccomended if the style of the speech must be exaggerated"
+msgstr ""
+"რეკომენდებულია მაღალი მნიშვნელობები, თუ საუბრის სტილი გადაჭარბებული უნდა იყოს"
+
+#: src/handlers/tts/tts.py:34
+msgid "Choose the preferred voice"
+msgstr "აირჩიეთ სასურველი ხმა"
+
+#: src/handlers/websearch/tavily.py:20
+msgid "Token"
+msgstr "ტოკენი"
+
+#: src/handlers/websearch/tavily.py:20
+msgid "Tavily API key"
+msgstr "Tavily API-ის გასაღები"
+
+#: src/handlers/websearch/tavily.py:21
+#: src/handlers/websearch/duckduckgo_handler.py:14
+msgid "Max Results"
+msgstr "მაქს. შედეგები"
+
+#: src/handlers/websearch/tavily.py:21
+#: src/handlers/websearch/duckduckgo_handler.py:14
+msgid "Number of results to consider"
+msgstr "გასათვალისწინებელი შედეგების რაოდენობა"
+
+#: src/handlers/websearch/tavily.py:22
+msgid "The depth of the search"
+msgstr "ძებნის სიღრმე"
+
+#: src/handlers/websearch/tavily.py:22
+msgid ""
+"The depth of the search. Advanced search is tailored to retrieve the most "
+"relevant sources and content snippets for your query, while basic search "
+"provides generic content snippets from each source. A basic search costs 1 "
+"API Credit, while an advanced search costs 2 API Credits."
+msgstr ""
+
+#: src/handlers/websearch/tavily.py:23
+msgid "The category of the search"
+msgstr "ძებნის კატეგორია"
+
+#: src/handlers/websearch/tavily.py:23
+msgid ""
+"The category of the search. News is useful for retrieving real-time updates, "
+"particularly about politics, sports, and major current events covered by "
+"mainstream media sources. General is for broader, more general-purpose "
+"searches that may include a wide range of sources."
+msgstr ""
+
+#: src/handlers/websearch/tavily.py:24
+msgid "Chunks per source"
+msgstr "ბლოკი თიტოეული წყაროსთვის"
+
+#: src/handlers/websearch/tavily.py:24
+msgid ""
+"The number of content chunks to retrieve from each source. Each chunk's "
+"length is maximum 500 characters. Available only when search depth is "
+"advanced."
+msgstr ""
+
+#: src/handlers/websearch/tavily.py:25
+msgid "Number of days back from the current date to include"
+msgstr "მიმდინარე თარიღიდან დღეების რაოდენობა წარსულში, ჩასასმელად"
+
+#: src/handlers/websearch/tavily.py:25
+msgid "Available only if topic is news."
+msgstr "ხელმისაწვდომია, მხოლოდ, თუ თემა - სიახლეებია."
+
+#: src/handlers/websearch/tavily.py:26
+msgid "Include answer"
+msgstr "პასუხის ჩასმა"
+
+#: src/handlers/websearch/tavily.py:26
+msgid ""
+"Include an LLM-generated answer to the provided query. Basic search returns "
+"a quick answer. Advanced returns a more detailed answer."
+msgstr ""
+
+#: src/handlers/websearch/tavily.py:27
+msgid "Include raw content"
+msgstr "დაუმუშავებელი შემცველობის ჩასმა"
+
+#: src/handlers/websearch/tavily.py:27
+msgid "Include the cleaned and parsed HTML content of each search result."
+msgstr ""
+"თითოეული ძებნის შედეგის გასუფთავებული და დამუშავებული HTML შემცველობის ჩასმა."
+
+#: src/handlers/websearch/tavily.py:28
+msgid "Include images"
+msgstr "გამოსახულებების ჩათვლით"
+
+#: src/handlers/websearch/tavily.py:28
+msgid "Perform an image search and include the results in the response."
+msgstr "გამოსახულების ძებნის შესრულება და შედეგების პასუხში ჩასმა."
+
+#: src/handlers/websearch/tavily.py:29
+msgid "Include image descriptions"
+msgstr "გამოსახულების აღწერების ჩასმა"
+
+#: src/handlers/websearch/tavily.py:29
+msgid ""
+"When Include images is enabled, also add a descriptive text for each image."
+msgstr ""
+"როცა გამოსახულებების ჩასმა ჩართულია, თითოეული გამოსახულებისთვის ასევე "
+"დაემატება აღმწერი ტექსტი."
+
+#: src/handlers/websearch/tavily.py:30
+msgid "Include domains"
+msgstr "დომენების ჩასმა"
+
+#: src/handlers/websearch/tavily.py:30
+msgid "A list of domains to specifically include in the search results."
+msgstr "დომენების სია ძებნის შედეგებში ჩასასმელად."
+
+#: src/handlers/websearch/tavily.py:31
+msgid "Exclude domains"
+msgstr "დომენების ამოღება"
+
+#: src/handlers/websearch/tavily.py:31
+msgid "A list of domains to specifically exclude from the search results."
+msgstr "დომენების სია ძებნის შედეგებიდან ამოსაღებად."
+
+#: src/handlers/websearch/duckduckgo_handler.py:15
+msgid "Region"
+msgstr "რეგიონი"
+
+#: src/handlers/websearch/duckduckgo_handler.py:15
+msgid "Region for the search results"
+msgstr "რეგიონი ძებნის შედეგებისთვის"
+
+#: src/ui/profile.py:33 src/window.py:119
+msgid "Settings"
+msgstr "მორგება"
+
+#: src/ui/profile.py:53
+msgid "Profile Name"
+msgstr "პროფილის სახელი"
+
+#: src/ui/profile.py:58
+msgid "Copied Settings"
+msgstr "დაკოპირებული პარამეტრები"
+
+#: src/ui/profile.py:58
+msgid "Settings that will be copied to the new profile"
+msgstr "პარამეტრები, რომლებიც ახალ პროფილში დაკოპირდება"
+
+#: src/ui/profile.py:70
+msgid "Create Profile"
+msgstr "პროფილის შექმნა"
+
+#: src/ui/profile.py:72 src/ui/profile.py:74 src/ui/profile.py:129
+msgid "Import Profile"
+msgstr "პროფილის შემოტანა"
+
+#: src/ui/profile.py:79 src/ui/widgets/profilerow.py:43
+msgid "Edit Profile"
+msgstr "პროფილის ჩასწორება"
+
+#: src/ui/profile.py:84 src/ui/profile.py:99 src/ui/profile.py:123
+msgid "Export Profile"
+msgstr "პროფილის გატანა"
+
+#: src/ui/profile.py:87
+msgid "Export Passwords"
+msgstr "პაროლების გატანა"
+
+#: src/ui/profile.py:87
+msgid "Also export password-like fields"
+msgstr "ასევე გატანილი იქნება პაროლის მსგავსი ველებიც"
+
+#: src/ui/profile.py:89
+msgid "Export Propic"
+msgstr "პროფილის სურათის გატანა"
+
+#: src/ui/profile.py:89
+msgid "Also export the profile picture"
+msgstr "ასევე გატანილი იქნება პროფილის სურათიც"
+
+#: src/ui/profile.py:109 src/ui/explorer.py:692
+msgid "Create"
+msgstr "შექმნა"
+
+#: src/ui/profile.py:109
+msgid "Apply"
+msgstr "გადატარება"
+
+#: src/ui/profile.py:116
+msgid "The settings of the current profile will be copied into the new one"
+msgstr "მიმდინარე პროფილის პარამეტრები დაკოპირდება ახალში"
+
+#: src/ui/profile.py:122 src/ui/profile.py:128
+msgid "Newelle Profiles"
+msgstr "Newelle-ის პროფილები"
+
+#: src/ui/profile.py:123
+msgid "Export"
+msgstr "გატანა"
+
+#: src/ui/profile.py:129
+msgid "Import"
+msgstr "შემოტანა"
+
+#: src/ui/profile.py:197
+msgid "Set profile picture"
+msgstr "პროფილის სურათის დაყენება"
+
+#: src/ui/thread_editing.py:6 src/window.py:117
+msgid "Thread editing"
+msgstr "ნაკადის ჩასწორება"
+
+#: src/ui/thread_editing.py:36
+msgid "No threads are running"
+msgstr "გაშვებული ნაკადების გარეშე"
+
+#: src/ui/thread_editing.py:42
+msgid "Thread number: "
+msgstr "ნაკადის ნომერი: "
+
+#: src/ui/widgets/profilerow.py:26
+msgid "Select profile"
+msgstr "აირჩიეთ პროფილი"
+
+#: src/ui/widgets/profilerow.py:53
+msgid "Delete Profile"
+msgstr "პროფილის წაშლა"
+
+#: src/ui/widgets/thinking.py:26
+msgid "Thoughts"
+msgstr "ფიქრები"
+
+#: src/ui/widgets/thinking.py:27 src/ui/widgets/thinking.py:134
+msgid "Expand to see details"
+msgstr "ჩამოშლა დეტალების სანახავად"
+
+#: src/ui/widgets/thinking.py:122
+msgid "Thinking..."
+msgstr "ვფიქრობ..."
+
+#: src/ui/widgets/thinking.py:123
+msgid "The LLM is thinking... Expand to see thought process"
+msgstr "LLM ფიქრობს... ჩამოშალეთ ფიქრის პროცესის სანახავად"
+
+#: src/ui/widgets/thinking.py:136
+msgid "No thought process recorded"
+msgstr "მსჯელობის პროცესი ჩაწერილი არაა"
+
+#: src/ui/widgets/tipscarousel.py:41
+msgid "Newelle Tips"
+msgstr "Newelle-ის რჩევები"
+
+#: src/ui/explorer.py:192
+msgid "Folder is Empty"
+msgstr "საქაღალდე ცარიელია"
+
+#: src/ui/explorer.py:340 src/window.py:1580
+msgid "File not found"
+msgstr "ფაილი ვერ მოიძებნა"
+
+#: src/ui/explorer.py:355
+msgid "Open in new tab"
+msgstr "ახალ ჩანართში გახსნა"
+
+#: src/ui/explorer.py:357
+msgid "Open in integrated editor"
+msgstr "გახსნა ჩაშენებულ რედაქტორში"
+
+#: src/ui/explorer.py:360 src/ui/explorer.py:589
+msgid "Open in file manager"
+msgstr "გახსნა ფაილების მმართველში"
+
+#: src/ui/explorer.py:363 src/ui/explorer.py:451
+msgid "Rename"
+msgstr "სახელის გადარქმევა"
+
+#: src/ui/explorer.py:366 src/ui/explorer.py:502 src/ui/settings.py:276
+#: src/ui/settings.py:362
+msgid "Delete"
+msgstr "წაშლა"
+
+#: src/ui/explorer.py:369
+msgid "Copy full path"
+msgstr "სრული ბილიკის კოპირება"
+
+#: src/ui/explorer.py:420 src/ui/explorer.py:657
+msgid "Failed to open file manager"
+msgstr "ფაილების მმართველის გახსნა ჩავარდა"
+
+#: src/ui/explorer.py:436
+msgid "New name:"
+msgstr "ახალი სახელი:"
+
+#: src/ui/explorer.py:448 src/ui/explorer.py:501 src/ui/explorer.py:689
+#: src/main.py:209
+msgid "Cancel"
+msgstr "გაუქმება"
+
+#: src/ui/explorer.py:471
+msgid "Renamed successfully"
+msgstr "სახელის გადარქმევა წარმატებულია"
+
+#: src/ui/explorer.py:476
+#, python-brace-format
+msgid "Failed to rename: {}"
+msgstr "სახელის გადარქმევა ჩავარდა: {}"
+
+#: src/ui/explorer.py:497
+msgid "Delete File?"
+msgstr "წავშალო ფაილი?"
+
+#: src/ui/explorer.py:499
+#, python-brace-format
+msgid "Are you sure you want to delete \"{}\"?"
+msgstr "მართლა გნებავთ, წაშალოთ '{}'?"
+
+#: src/ui/explorer.py:520
+msgid "Deleted successfully"
+msgstr "წარმატებით წაიშალა"
+
+#: src/ui/explorer.py:525
+#, python-brace-format
+msgid "Failed to delete: {}"
+msgstr "წაშლის შეცდომა: {}"
+
+#: src/ui/explorer.py:538
+msgid "Path copied to clipboard"
+msgstr "ბილიკი დაკოპირდა ბუფერში"
+
+#: src/ui/explorer.py:542
+msgid "Failed to copy path"
+msgstr "ბილიკის კოპირების შეცდომა"
+
+#: src/ui/explorer.py:580
+msgid "Create new folder"
+msgstr "ახალი საქაღალდის შექმნა"
+
+#: src/ui/explorer.py:583
+msgid "Create new file"
+msgstr "ახალი ფაილის შექმნა"
+
+#: src/ui/explorer.py:586
+msgid "Open Terminal Here"
+msgstr "ტერმინალის გახსნა აქ"
+
+#: src/ui/explorer.py:640
+msgid "Create New Folder"
+msgstr "ახალი საქაღალდის შექმნა"
+
+#: src/ui/explorer.py:640
+msgid "Folder name:"
+msgstr "საქაღალდის სახელი:"
+
+#: src/ui/explorer.py:644
+msgid "Create New File"
+msgstr "ახალი ფაილის შექმნა"
+
+#: src/ui/explorer.py:644
+msgid "File name:"
+msgstr "ფაილის სახელი:"
+
+#: src/ui/explorer.py:713
+msgid "Folder created successfully"
+msgstr "საქაღალდე წარმატებით შეიქმნა"
+
+#: src/ui/explorer.py:720
+msgid "File created successfully"
+msgstr "ფაილი წარმატებით შეიქმნა"
+
+#: src/ui/explorer.py:725
+msgid "A file or folder with that name already exists"
+msgstr "ფაილი, ან საქაღალდე ამ სახელით უკვე არსებობს"
+
+#: src/ui/explorer.py:728
+msgid "folder"
+msgstr "საქაღალდე"
+
+#: src/ui/explorer.py:728
+msgid "file"
+msgstr "ფაილი"
+
+#: src/ui/explorer.py:730
+#, python-brace-format
+msgid "Failed to create {}: {}"
+msgstr "{}-ის შექმნა ჩავარდა: {}"
+
+#: src/ui/shortcuts.py:6
+msgid "Help"
+msgstr "დახმარება"
+
+#: src/ui/shortcuts.py:12
+msgid "Shortcuts"
+msgstr "მალსახმობები"
+
+#: src/ui/shortcuts.py:13
+msgid "Reload chat"
+msgstr "ჩატის გადატვირთვა"
+
+#: src/ui/shortcuts.py:14
+msgid "Reload folder"
+msgstr "საქაღალდის თავიდან ჩატვირთვა"
+
+#: src/ui/shortcuts.py:15
+msgid "New tab"
+msgstr "ახალი ჩანართი"
+
+#: src/ui/shortcuts.py:16
+msgid "Paste Image"
+msgstr "გამოსახულების ჩასმა"
+
+#: src/ui/shortcuts.py:17
+msgid "Focus message box"
+msgstr "ფოკუსი შეტყობინებების ველზე"
+
+#: src/ui/shortcuts.py:18
+msgid "Start/stop recording"
+msgstr "ჩაწერის გაშვება/გაჩერება"
+
+#: src/ui/shortcuts.py:19
+msgid "Save"
+msgstr "შენახვა"
+
+#: src/ui/shortcuts.py:20
+msgid "Stop TTS"
+msgstr "TTS-ის გაჩერება"
+
+#: src/ui/shortcuts.py:21
+msgid "Zoom in"
+msgstr "გადიდება"
+
+#: src/ui/shortcuts.py:22
+msgid "Zoom out"
+msgstr "დაპატარავება"
+
+#: src/ui/stdout_monitor.py:31 src/ui/stdout_monitor.py:41
+#: src/ui/settings.py:269
+msgid "Program Output Monitor"
+msgstr "პროგრამის გამოტანილი ინფორმაციის მონიტორინგი"
+
+#: src/ui/stdout_monitor.py:48
+msgid "Clear output"
+msgstr "გამოტანის გასუფთავება"
+
+#: src/ui/stdout_monitor.py:61
+msgid "Start/Stop monitoring"
+msgstr "მონიტორინგის გაშვება/გაჩერება"
+
+#: src/ui/stdout_monitor.py:109 src/ui/stdout_monitor.py:182
+#: src/ui/stdout_monitor.py:191 src/window.py:3702
+msgid "Monitoring: Active"
+msgstr "მონიტორინგი: აქტიურია"
+
+#: src/ui/stdout_monitor.py:109 src/ui/stdout_monitor.py:208
+msgid "Monitoring: Stopped"
+msgstr "მონიტორინგი: გათიშულია"
+
+#: src/ui/stdout_monitor.py:116 src/ui/stdout_monitor.py:252
+#, python-brace-format
+msgid "Lines: {}"
+msgstr "ხაზები: {}"
+
+#: src/ui/stdout_monitor.py:267
+msgid "Lines: 0"
+msgstr "ხაზები: 0"
+
+#: src/ui/extension.py:17 src/ui/presentation.py:131 src/constants.py:513
+#: src/window.py:118
+msgid "Extensions"
+msgstr "გაფართოებები"
+
+#: src/ui/extension.py:50
+msgid "Installed Extensions"
+msgstr "დაყენებული გაფართოებები"
+
+#: src/ui/extension.py:86
+msgid "User guide to Extensions"
+msgstr "მომხმარებლის სახელმძღვანელო გაფართოებების შესახებ"
+
+#: src/ui/extension.py:89
+msgid "Download new Extensions"
+msgstr "ახალი გაფართოებების გადმოწერა"
+
+#: src/ui/extension.py:92
+msgid "Install extension from file..."
+msgstr "გაფართოების დაყენება ფაილიდან..."
+
+#: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.appdata.xml.in:7
+#: data/io.github.qwersyk.Newelle.desktop.in:2
+msgid "Newelle"
+msgstr "Newelle"
+
+#: src/ui/mini_window.py:20
+msgid "Chat is opened in mini window"
+msgstr "ჩატი ღიაა მინიფანჯარაში"
+
+#: src/ui/presentation.py:93
+msgid "Welcome to Newelle"
+msgstr "მოგესალმებათ Newelle"
+
+#: src/ui/presentation.py:94
+msgid "Your ultimate virtual assistant."
+msgstr "თქვენი იდეალური ვირტუალური დამხმარე."
+
+#: src/ui/presentation.py:98
+msgid "Github Page"
+msgstr "Github-ის გვერდი"
+
+#: src/ui/presentation.py:105
+msgid "Choose your favourite AI Language Model"
+msgstr "აირჩიეთ თქვენი რჩეული ხი ენის მოდელი"
+
+#: src/ui/presentation.py:106
+msgid ""
+"Newelle can be used with mutiple models and providers!\n"
+"<b>Note: It is strongly suggested to read the Guide to LLM page</b>"
+msgstr ""
+
+#: src/ui/presentation.py:110
+msgid "Guide to LLM"
+msgstr "LLM-ის სახელმძღვანელო"
+
+#: src/ui/presentation.py:117
+msgid "Chat with your documents"
+msgstr "ჩატი თქვენს დოკუმენტებტან"
+
+#: src/ui/presentation.py:118
+msgid ""
+"Newelle can retrieve relevant information from documents you send in the "
+"chat or from your own files! Information relevant to your query will be sent "
+"to the LLM."
+msgstr ""
+
+#: src/ui/presentation.py:124 src/ui/settings.py:237 src/window.py:649
+msgid "Command virtualization"
+msgstr "ბრძანების ვირტუალიზაცია"
+
+#: src/ui/presentation.py:125
+msgid ""
+"Newelle can be used to run commands on your system, but pay attention at "
+"what you run! <b>The LLM is not under our control, so it might generate "
+"malicious code!</b>\n"
+"By default, your commands will be <b>virtualized in the Flatpak environment</"
+"b>, but pay attention!"
+msgstr ""
+
+#: src/ui/presentation.py:132
+msgid "You can extend Newelle's functionalities using extensions!"
+msgstr "Newelle-ის ფუნქციონალი, შეგიძლიათ, გაფართოებებით გაზარდოთ!"
+
+#: src/ui/presentation.py:136
+msgid "Download extensions"
+msgstr "გაფართოებების გადმოწერა"
+
+#: src/ui/presentation.py:146
+msgid "Permission Error"
+msgstr "წვდომის შეცდომა"
+
+#: src/ui/presentation.py:147
+msgid ""
+"Newelle does not have enough permissions to run commands on your system."
+msgstr ""
+"Newelle-ს არ აქვს საკმარისი წვდომები თქვენს სისტემაზე ბრძანებების გასაშვებად."
+
+#: src/ui/presentation.py:158
+msgid "Begin using the app"
+msgstr "აპის გამოყენების დაწყება"
+
+#: src/ui/presentation.py:163
+msgid "Start chatting"
+msgstr "საუბრის დაწყება"
+
+#: src/ui/settings.py:47 src/constants.py:523
+msgid "General"
+msgstr "ზოგადი"
+
+#: src/ui/settings.py:48 src/constants.py:478
+msgid "LLM"
+msgstr "LLM"
+
+#: src/ui/settings.py:49 src/constants.py:528
+msgid "Prompts"
+msgstr "მინიშნებები"
+
+#: src/ui/settings.py:50
+msgid "Knowledge"
+msgstr "ცოდნა"
+
+#: src/ui/settings.py:54
+msgid "Language Model"
+msgstr "ენის მოდელი"
+
+#: src/ui/settings.py:63 src/ui/settings.py:83
+msgid "Other LLMs"
+msgstr "სხვა LLM-ები"
+
+#: src/ui/settings.py:63 src/ui/settings.py:83
+msgid "Other available LLM providers"
+msgstr "სხვა ხელმისაწვდომი LLM-ის მომწოდებლები"
+
+#: src/ui/settings.py:73
+msgid "Advanced LLM Settings"
+msgstr "LLM-ის დამატებითი პარამეტრები"
+
+#: src/ui/settings.py:77
+msgid "Secondary Language Model"
+msgstr "მეორადი ენის მოდელი"
+
+#: src/ui/settings.py:77
+msgid ""
+"Model used for secondary tasks, like offer, chat name and memory generation"
+msgstr ""
+"მოდელი ისეთი მეორადი ამოცანებისთვის, როგორიცაა შეთავაზება, ჩატის სახელი და "
+"მეხსიერების გენერაცია"
+
+#: src/ui/settings.py:94
+msgid "Embedding Model"
+msgstr "მოდელის ჩაშენება"
+
+#: src/ui/settings.py:94
+msgid ""
+"Embedding is used to trasform text into vectors. Used by Long Term Memory "
+"and RAG. Changing it might require you to re-index documents or reset memory."
+msgstr ""
+
+#: src/ui/settings.py:105 src/window.py:647
+msgid "Long Term Memory"
+msgstr "გრძელვადიანი მეხსიერება"
+
+#: src/ui/settings.py:105
+msgid "Keep memory of old conversations"
+msgstr "ძველი საუბრების მეხსიერების შენარჩუნება"
+
+#: src/ui/settings.py:117 src/constants.py:401
+msgid "Web Search"
+msgstr "ვებში ძებნა"
+
+#: src/ui/settings.py:117
+msgid "Search information on the Web"
+msgstr "ინფორმაციის ძებნა ვებში"
+
+#: src/ui/settings.py:133
+msgid "Text To Speech Program"
+msgstr "ტექსტის წარმოთქმის პროგრამა"
+
+#: src/ui/settings.py:133
+msgid "Choose which text to speech to use"
+msgstr "აირჩიეთ ტექსტის წარმოთქმის პროგრამა"
+
+#: src/ui/settings.py:142
+msgid "Speech To Text Engine"
+msgstr "საუბრის ამოცნობის ძრავა"
+
+#: src/ui/settings.py:142
+msgid "Choose which speech recognition engine you want"
+msgstr "აირჩიეთ, რომელი საუბრის ამოცნობის ძრავა გნებავთ, გამოიყენოთ"
+
+#: src/ui/settings.py:150
+msgid "Automatic Speech To Text"
+msgstr "ავტომატური საუბრის ამოცნობა"
+
+#: src/ui/settings.py:150
+msgid "Automatically restart speech to text at the end of a text/TTS"
+msgstr "საუბრის ამოცნობის ავტომატური გადატვირთვა ტექსტის/TTS-ის ბოლოში"
+
+#: src/ui/settings.py:154
+msgid "Prompt control"
+msgstr "მინიშნებების კონტროლი"
+
+#: src/ui/settings.py:159
+msgid "Interface"
+msgstr "ინტერფეისი"
+
+#: src/ui/settings.py:162
+msgid "Interface Size"
+msgstr "ინტერფეისის ზომა"
+
+#: src/ui/settings.py:162
+msgid "Adjust the size of the interface"
+msgstr "ინტერფეისის ზომის მორგება"
+
+#: src/ui/settings.py:174
+msgid "Editor color scheme"
+msgstr "რედაქტორის ფერის სქემა"
+
+#: src/ui/settings.py:174
+msgid "Change the color scheme of the editor and codeblocks"
+msgstr "რედაქტორის და კოდის ბლოკების ფერების სქემის შეცვლა"
+
+#: src/ui/settings.py:181
+msgid "Hidden files"
+msgstr "დამალული ფაილები"
+
+#: src/ui/settings.py:181
+msgid "Show hidden files"
+msgstr "დამალული ფაილების ჩვენება"
+
+#: src/ui/settings.py:187
+msgid "Send with ENTER"
+msgstr "ღილაკი Enter გასაგზავნად"
+
+#: src/ui/settings.py:187
+msgid ""
+"If enabled, messages will be sent with ENTER, to go to a new line use "
+"CTRL+ENTER. If disabled, messages will be sent with SHIFT+ENTER, and newline "
+"with enter"
+msgstr ""
+
+#: src/ui/settings.py:193
+msgid "Remove thinking from history"
+msgstr "ფიქრის წაშლა ისტორიიდან"
+
+#: src/ui/settings.py:193
+msgid ""
+"Do not send old thinking blocks for reasoning models in order to reduce "
+"token usage"
+msgstr ""
+
+#: src/ui/settings.py:199
+msgid "Display LaTeX"
+msgstr "LaTeX-ის ჩვენება"
+
+#: src/ui/settings.py:199
+msgid "Display LaTeX formulas in chat"
+msgstr "LaTeX-ის ფორმულების ჩვენება ჩატში"
+
+#: src/ui/settings.py:205
+msgid "Reverse Chat Order"
+msgstr "ჩატის მიმდევრობის შებრუნება"
+
+#: src/ui/settings.py:205
+msgid "Show most recent chats on top in chat list (change chat to apply)"
+msgstr ""
+"უახლესი ჩატების ჩატების სიის თავში ჩვენება (გადასატარებლად შეცვალეთ ჩატი)"
+
+#: src/ui/settings.py:211
+msgid "Automatically Generate Chat Names"
+msgstr "ჩატის სახელების ავტომატური გენერაცია"
+
+#: src/ui/settings.py:211
+msgid "Generate chat names automatically after the first two messages"
+msgstr "ჩატის სახელების ავტომატური გენერაცია პირველი ორი შეტყობინების შემდეგ"
+
+#: src/ui/settings.py:217
+msgid "Number of offers"
+msgstr "შეთავაზებების რაოდენობა"
+
+#: src/ui/settings.py:217
+msgid "Number of message suggestions to send to chat "
+msgstr "შეტყობინების შეთავაზებების რაოდენობა ჩატში გასაგზავნად "
+
+#: src/ui/settings.py:224
+msgid "Username"
+msgstr "მომხმარებლის სახელი"
+
+#: src/ui/settings.py:224
+#, python-brace-format
+msgid ""
+"Change the label that appears before your message\n"
+"This information is not sent to the LLM by default\n"
+"You can add it to a prompt using the {USER} variable"
+msgstr ""
+
+#: src/ui/settings.py:234
+msgid "Neural Network Control"
+msgstr "ნეირონული ქსელის კონტროლი"
+
+#: src/ui/settings.py:237
+msgid "Run commands in a virtual machine"
+msgstr "ბრძანებების გაშვება ვირტუალურ მანქანაში"
+
+#: src/ui/settings.py:250
+msgid "External Terminal"
+msgstr "გარე ტერმინალი"
+
+#: src/ui/settings.py:250
+msgid "Choose the external terminal where to run the console commands"
+msgstr "აირჩიეთ გარე ტერმინალი, სადაც კონსოლის ბრძანებების გაშვება მოხდება"
+
+#: src/ui/settings.py:259
+msgid "Program memory"
+msgstr "პროგრამის მეხსიერება"
+
+#: src/ui/settings.py:259
+msgid "How long the program remembers the chat "
+msgstr "რამდენ ხანს დაიმახსოვრებს პროგრამა ჩატს "
+
+#: src/ui/settings.py:266
+msgid "Developer"
+msgstr "პროგრამისტი"
+
+#: src/ui/settings.py:269
+msgid ""
+"Monitor the program output in real-time, useful for debugging and seeing "
+"downloads progress"
+msgstr ""
+"პროგრამის გამოტანილი ინფორმაციის მონიტორინგი რეალურ დროში. სასარგებლოა "
+"გამართვისთვის და გადმოწერის პროცესების დასანახად"
+
+#: src/ui/settings.py:270
+msgid "Open"
+msgstr "გახსნა"
+
+#: src/ui/settings.py:275
+msgid "Delete pip path"
+msgstr "pip-ის ბილიკის წაშლა"
+
+#: src/ui/settings.py:275
+msgid "Remove the extra dependencies installed"
+msgstr "დაყენებული დამატებითი დამოკიდებულებების წაშლა"
+
+#: src/ui/settings.py:281
+msgid "Install pip module"
+msgstr "pip-ის მოდულის დაყენება"
+
+#: src/ui/settings.py:281
+msgid "Manually install pip module"
+msgstr "pip-ის მოდულის ხელით დაყენება"
+
+#: src/ui/settings.py:310
+msgid "Auto-run commands"
+msgstr "ბრძანებების ავტოგაშვება"
+
+#: src/ui/settings.py:310
+msgid "Commands that the bot will write will automatically run"
+msgstr "ბრძანებები, რომლებსაც ბოტი დაწერს, ავტომატურად გაეშვება"
+
+#: src/ui/settings.py:313
+msgid "Max number of commands"
+msgstr "ბრძანებების მაქს რაოდენობა"
+
+#: src/ui/settings.py:313
+msgid ""
+"Maximum number of commands that the bot will write after a single user "
+"request"
+msgstr ""
+"ბრძანებების მაქსიმალური რაოდენობა, რომელსაც ბოტი ერთი მომხმარებლის მოთხოვნის "
+"შემდეგ დაწერს"
+
+#: src/ui/settings.py:344
+msgid "Browser"
+msgstr "ბრაუზერი"
+
+#: src/ui/settings.py:344
+msgid "Settings for the browser"
+msgstr "პარამეტრები ბრაუზერისთვის"
+
+#: src/ui/settings.py:349
+msgid "Use external browser"
+msgstr "გარე ბრაუზერის გამოყენება"
+
+#: src/ui/settings.py:349
+msgid "Use an external browser to open links instead of integrated one"
+msgstr "გარე ბრაუზერის გამოყენება ბმულების გასახსნელად ჩაშენებულის მაგიერ"
+
+#: src/ui/settings.py:356
+msgid "Persist browser session"
+msgstr "ბრაუზერის სესიის შენარჩუნება"
+
+#: src/ui/settings.py:356
+msgid ""
+"Persist browser session between restarts. Turning this off requires "
+"restarting the program"
+msgstr ""
+"სესიების შენარჩუნება ბრაუზერის თავიდან გაშვებებს შორის. ამის გამორთვას "
+"პროგრამის გადატვირთვა სჭირდება"
+
+#: src/ui/settings.py:361
+msgid "Delete browser data"
+msgstr "ბრაუზერის მონაცემების წაშლა"
+
+#: src/ui/settings.py:361
+msgid "Delete browser session and data"
+msgstr "ბრაუზერის სესიის და მონაცემების წაშლა"
+
+#: src/ui/settings.py:368
+msgid "Initial browser page"
+msgstr "ბრაუზერის საწყისი გვერდი"
+
+#: src/ui/settings.py:368
+msgid "The page where the browser will start"
+msgstr "გვერდი, სადაც ბრაუზერი გაეშვება"
+
+#: src/ui/settings.py:375
+msgid "Search string"
+msgstr "საძებნი სტრიქონი"
+
+#: src/ui/settings.py:375
+#, python-format
+msgid "The search string used in the browser, %s is replaced with the query"
+msgstr "ბრაუზერში გამოყენებული ძებნის სტრიქონი. %s მოთხოვნით შეიცვლება"
+
+#: src/ui/settings.py:396
+msgid "Document Sources (RAG)"
+msgstr "დოკუმენტის წყაროები (RAG)"
+
+#: src/ui/settings.py:396
+msgid "Include content from your documents in the responses"
+msgstr "პასუხებში შემცველობის ჩასმა თქვენი დოკუმენტებიდან"
+
+#: src/ui/settings.py:397
+msgid "Document Analyzer"
+msgstr "დოკუმენტის ანალიზატორი"
+
+#: src/ui/settings.py:397
+msgid ""
+"The document analyzer uses multiple techniques to extract relevant "
+"information about your documents"
+msgstr ""
+"დოკუმენტის ანალიზატორი თქვენი დოკუმენტების შესახებ შესაბამისი ინფორმაციის "
+"ამოსაღებად მრავალ მიდგომას იყენებს"
+
+#: src/ui/settings.py:408
+msgid "Read documents if unsupported"
+msgstr "დოკუმენტების წაკითხვა, თუ მხარდაჭერილი არაა"
+
+#: src/ui/settings.py:408
+msgid ""
+"If the LLM does not support reading documents, relevant information about "
+"documents sent in the chat will be given to the LLM using your Document "
+"Analyzer."
+msgstr ""
+"თუ LLM-ს დოკუმენტების წაკითხვის მხარდაჭერა არ აქვს, შესაბამისი ინფორმაცია "
+"დოკუმენტების შესახებ, რომელსაც ჩატში გააგზავნით, LLM-ს თქვენი დოკუმენტის "
+"ანალიზატორის გამოყენებით გადაეცემა."
+
+#: src/ui/settings.py:412
+msgid "Maximum tokens for RAG"
+msgstr "მაქს. ტოკენები RAG-ისთვის"
+
+#: src/ui/settings.py:412
+msgid ""
+"The maximum amount of tokens to be used for RAG. If the documents do not "
+"exceed this token count,\n"
+"dump all of them in the context"
+msgstr ""
+
+#: src/ui/settings.py:429
+msgid "Document Folder"
+msgstr "დოკუმენტის საქაღალდე"
+
+#: src/ui/settings.py:429
+msgid ""
+"Put the documents you want to query in your document folder. The document "
+"analyzer will find relevant information in them if this option is enabled"
+msgstr ""
+
+#: src/ui/settings.py:432
+msgid "Put all the documents you want to index in this folder"
+msgstr "მოათავსეთ ყველა დოკუმენტი, რომელთა ინდექსირებაც გსურთ, ამ საქაღალდეში"
+
+#: src/ui/settings.py:468
+msgid "Silence threshold"
+msgstr "სიჩუმის ზღვარი"
+
+#: src/ui/settings.py:468
+msgid ""
+"Silence threshold in seconds, percentage of the volume to be considered "
+"silence"
+msgstr ""
+
+#: src/ui/settings.py:481
+msgid "Silence time"
+msgstr "სიჩუმის დრო"
+
+#: src/ui/settings.py:481
+msgid "Silence time in seconds before recording stops automatically"
+msgstr "სიჩუმე წამებში, სანამ ჩაწერა ავტომატურად გაჩერდება"
+
+#: src/ui/settings.py:1061
+msgid "Not enough permissions"
+msgstr "არასაკმარისი წვდომები"
+
+#: src/ui/settings.py:1065
+msgid ""
+"Newelle does not have enough permissions to run commands on your system, "
+"please run the following command"
+msgstr ""
+
+#: src/ui/settings.py:1066 src/ui/settings.py:1079
+msgid "Understood"
+msgstr "გავიგე"
+
+#: src/ui/settings.py:1078
+msgid "Pip path deleted"
+msgstr "pip-ის ბილიკი წაიშალა"
+
+#: src/ui/settings.py:1078
+msgid ""
+"The pip path has been deleted, you can now reinstall the dependencies. This "
+"operation requires a restart of the application."
+msgstr ""
+
+#: src/constants.py:20
+msgid "Newelle Demo API"
+msgstr "Newelle API-ის დემო"
+
+#: src/constants.py:26
+msgid "GPT4Free"
+msgstr "GPT4Free"
+
+#: src/constants.py:34
+msgid "Local Model"
+msgstr "ლოკალური მოდელი"
+
+#: src/constants.py:35
+msgid ""
+"NO GPU SUPPORT, USE OLLAMA INSTEAD. Run a LLM model locally, more privacy "
+"but slower"
+msgstr ""
+
+#: src/constants.py:40
+msgid "Ollama Instance"
+msgstr "Ollama-ის გაშვებული ასლი"
+
+#: src/constants.py:41
+msgid "Easily run multiple LLM models on your own hardware"
+msgstr "გაუშვით ადვილად ერთზე მეტი LLM მოდელი თქვენს აპარატურაზე"
+
+#: src/constants.py:47
+msgid "Groq"
+msgstr "Groq"
+
+#: src/constants.py:54 src/constants.py:230
+msgid "Google Gemini API"
+msgstr "Google Gemini API"
+
+#: src/constants.py:60 src/constants.py:224 src/constants.py:225
+msgid "OpenAI API"
+msgstr "OpenAI API"
+
+#: src/constants.py:61
+msgid "OpenAI API. Custom endpoints supported. Use this for custom providers"
+msgstr ""
+"OpenAI API. მორგებული ბოლოწერტილები მხარდაჭერილია. გამოიყენეთ ეს მორგებული "
+"მომწოდებლებისთვის"
+
+#: src/constants.py:66
+msgid "Anthropic Claude"
+msgstr "Anthropic Claude"
+
+#: src/constants.py:67
+msgid ""
+"Official APIs for Anthropic Claude's models, with image and file support, "
+"requires an API key"
+msgstr ""
+"ოფიციალური API-ები Anthropic Claude-ის მოდელებისთვის გამოსახულებებისა და "
+"ფაილების მხარდაჭერით. სჭირდება API-ის გასაღები"
+
+#: src/constants.py:73
+msgid "Mistral"
+msgstr "Mistral"
+
+#: src/constants.py:74
+msgid "Mistral API"
+msgstr "Mistral API"
+
+#: src/constants.py:80
+msgid "OpenRouter"
+msgstr "OpenRouter"
+
+#: src/constants.py:81
+msgid "Openrouter.ai API, supports lots of models"
+msgstr "Openrouter.ai API. აქვს ბევრი მოდელის მხარდაჭერა"
+
+#: src/constants.py:87
+msgid "Deepseek"
+msgstr "Deepseek"
+
+#: src/constants.py:88
+msgid "Deepseek API, strongest open source models"
+msgstr "Deepseek API. უძლიერესი ღია კოდის მოდელები"
+
+#: src/constants.py:94 src/constants.py:203
+msgid "Custom Command"
+msgstr "ხელით შეყვანილი ბრძანება"
+
+#: src/constants.py:95
+msgid "Use the output of a custom command"
+msgstr "მორგებული ბრძანების გამოტანილი ინფორმაციის გამოყენება"
+
+#: src/constants.py:104
+msgid "Whisper C++"
+msgstr "Whisper C++"
+
+#: src/constants.py:105
+msgid "Works offline. Optimized Whisper impelementation written in C++"
+msgstr ""
+"მუშაობს ინტერნეტის გარეშე. მორგებული Whisper-ის განხორციელება, დაწერილი C++-"
+"ში"
+
+#: src/constants.py:111
+msgid "CMU Sphinx"
+msgstr "CMU Sphinx"
+
+#: src/constants.py:112
+msgid "Works offline. Only English supported"
+msgstr "მუშაობს ინტერნეტის გარეშე. მხარდაჭერილია, მხოლოდ, ინგლისური"
+
+#: src/constants.py:118
+msgid "Google Speech Recognition"
+msgstr "Google-ის საუბრის ამოცნობის ძრავა"
+
+#: src/constants.py:119 src/constants.py:125
+msgid "Google Speech Recognition online"
+msgstr "Google-ის საუბრის ამოცნობის ძრავა ინტერნეტში"
+
+#: src/constants.py:124
+msgid "Groq Speech Recognition"
+msgstr "Groq-ის საუბრის ამოცნობის ძრავა"
+
+#: src/constants.py:130
+msgid "Wit AI"
+msgstr "Wit AI"
+
+#: src/constants.py:131
+msgid "wit.ai speech recognition free API (language chosen on the website)"
+msgstr "wit.ai-ის საუბრის ამოცნობის უფასო API (ენას საიტზე ირჩევთ)"
+
+#: src/constants.py:137
+msgid "Vosk API"
+msgstr "Vosk API"
+
+#: src/constants.py:138
+msgid "Works Offline"
+msgstr "მუშაობს ინტერნეტის გარეშე"
+
+#: src/constants.py:144
+msgid "Whisper API"
+msgstr "Whisper-ის API"
+
+#: src/constants.py:145
+msgid "Uses OpenAI Whisper API"
+msgstr "იყენებს OpenAI-ის Whisper API-ს"
+
+#: src/constants.py:151
+msgid "Custom command"
+msgstr "ხელით შეყვანილი ბრძანება"
+
+#: src/constants.py:152
+msgid "Runs a custom command"
+msgstr "გაუშვებს მორგებულ ბრძანებას"
+
+#: src/constants.py:161
+msgid "Google TTS"
+msgstr "Google TTS"
+
+#: src/constants.py:162
+msgid "Google's text to speech"
+msgstr "Google-ის ტექსტის წარმოთქმის ძრავა"
+
+#: src/constants.py:167
+msgid "Kokoro TTS"
+msgstr "Kokoro TTS"
+
+#: src/constants.py:168
+msgid ""
+"Lightweight and fast open source TTS engine. ~3GB dependencies, 400MB model"
+msgstr ""
+"მსუბუქი და სწრაფი, ღია კოდის მქონე TTS ძრავა. ~3GB დამოკიდებულებები, 400MB "
+"მოდელი"
+
+#: src/constants.py:173
+msgid "ElevenLabs TTS"
+msgstr "ElevenLabs TTS"
+
+#: src/constants.py:174
+msgid "Natural sounding TTS"
+msgstr "Natural sounding TTS"
+
+#: src/constants.py:179 src/constants.py:180
+msgid "OpenAI TTS"
+msgstr "OpenAI TTS"
+
+#: src/constants.py:185
+msgid "Groq TTS"
+msgstr "Groq TTS"
+
+#: src/constants.py:186
+msgid "Groq TTS API"
+msgstr "Groq TTS-ის API"
+
+#: src/constants.py:191 src/constants.py:192
+msgid "Custom OpenAI TTS"
+msgstr "მომხმარებლის OpenAI TTS"
+
+#: src/constants.py:197
+msgid "Espeak TTS"
+msgstr "Espeak TTS"
+
+#: src/constants.py:198
+msgid "Offline TTS"
+msgstr "TTS ინტერნეტის გარეშე"
+
+#: src/constants.py:204
+#, python-brace-format
+msgid "Use a custom command as TTS, {0} will be replaced with the text"
+msgstr "მორგებული ბრძანების გამოყენება TTS-ად. {0} ტექსტით ჩანაცვლდება"
+
+#: src/constants.py:212
+msgid "WordLlama"
+msgstr "WordLlama"
+
+#: src/constants.py:213
+msgid ""
+"Light local embedding model based on llama. Works offline, very low "
+"resources usage"
+msgstr ""
+"llama-ზე დაფუძნებული მსუბუქი ლოკალური ჩაშენებადი მოდელი ძალიან დაბალი "
+"რესურსების მოთხოვნით"
+
+#: src/constants.py:218
+msgid "Ollama Embedding"
+msgstr "Ollama-ის ჩაშენება"
+
+#: src/constants.py:219
+msgid ""
+"Use Ollama models for Embedding. Works offline, very low resources usage"
+msgstr ""
+"Ollama-ის მოდელების გამოყენება ჩასაშენებლად. მუშაობს ინტერნეტის გარეშეც და "
+"სჭირდება ძალიან ცოტა რესურსი"
+
+#: src/constants.py:231
+msgid "Use Google Gemini API to get embeddings"
+msgstr "Google Gemini-ის API-ის გამოყენება ჩაშენებების მისაღებად"
+
+#: src/constants.py:239
+msgid "User Summary"
+msgstr "მომხმარებლის შეჯამება"
+
+#: src/constants.py:240
+msgid "Generate a summary of the user's conversation"
+msgstr "მომხმარებლის საუბრის შეჯამების გენერაცია"
+
+#: src/constants.py:245
+msgid "Memoripy"
+msgstr "Memoripy"
+
+#: src/constants.py:246
+msgid ""
+"Extract messages from previous conversations using contextual memory "
+"retrivial, memory decay, concept extraction and other advanced techniques. "
+"Does 1 llm call per message."
+msgstr ""
+
+#: src/constants.py:251
+msgid "User Summary + Memoripy"
+msgstr "შეჯამების + Memoripy-ის გამოყენება"
+
+#: src/constants.py:252
+msgid "Use both technologies for long term memory"
+msgstr "ორივე ტექნოლოგიის გამოყენება გრძელვადიანი მეხსიერებისთვის"
+
+#: src/constants.py:260
+msgid "Document reader"
+msgstr "დოკუმენტების კითხვა"
+
+#: src/constants.py:261
+msgid ""
+"Classic RAG approach - chunk documents and embed them, then compare them to "
+"the query and return the most relevant documents"
+msgstr ""
+
+#: src/constants.py:269
+msgid "SearXNG"
+msgstr "SearXNG"
+
+#: src/constants.py:270
+msgid "SearXNG - Private and selfhostable search engine"
+msgstr "SearXNG - პირადი და თვითდაჰოსტვადი საძიებო სისტემა"
+
+#: src/constants.py:275
+msgid "DuckDuckGo"
+msgstr "DuckDuckGo"
+
+#: src/constants.py:276
+msgid "DuckDuckGo search"
+msgstr "DuckDuckGo-ით ძებნა"
+
+#: src/constants.py:281
+msgid "Tavily"
+msgstr "Tavily"
+
+#: src/constants.py:282
+msgid "Tavily search"
+msgstr "Tavily-ით ძებნა"
+
+#: src/constants.py:375
+msgid "Helpful assistant"
+msgstr "სასარგებლო დამხმარე"
+
+#: src/constants.py:376
+msgid "General purpose prompt to enhance the LLM answers and give more context"
+msgstr ""
+"ზოგადი დანიშნულების მინიშნება LLM-ის პასუხების გასაფართოებლად და მეტი "
+"კონტექსტის მისაცემად"
+
+#: src/constants.py:384
+msgid "Console access"
+msgstr "კონსოლთან წვდომა"
+
+#: src/constants.py:385
+msgid "Can the program run terminal commands on the computer"
+msgstr "შეუძლია, თუ არა პროგრამას ამ კომპიუტერზე ტერმინალში ბრძანებები გაუშვას"
+
+#: src/constants.py:392
+msgid "Current directory"
+msgstr "მიმდინარე საქაღალდე"
+
+#: src/constants.py:393
+msgid "What is the current directory"
+msgstr "რომელია მიმდინარე საქაღალდე"
+
+#: src/constants.py:402
+msgid "Allow the LLM to search on the internet"
+msgstr "LLM-სთვის ინტერნეტში ძებნის უფლების მიცემა"
+
+#: src/constants.py:410
+msgid "Basic functionality"
+msgstr "საბაზისო ფუნქციონალი"
+
+#: src/constants.py:411
+msgid "Showing tables and code (*can work without it)"
+msgstr "ცხრილების და კოდის ჩვენება (*მუშაობა მის გარეშეც შეუძლია)"
+
+#: src/constants.py:419
+msgid "Graphs access"
+msgstr "წვდომა გრაფიკებთან"
+
+#: src/constants.py:420
+msgid "Can the program display graphs"
+msgstr "შეუძლია, თუ არა პროგრამას გრაფიკების ჩვენება"
+
+#: src/constants.py:428
+msgid "Show image"
+msgstr "გამოსახულების ჩვენება"
+
+#: src/constants.py:429
+msgid "Show image in chat"
+msgstr "გამოსახულების ჩვენება ჩატში"
+
+#: src/constants.py:437
+msgid "Custom Prompt"
+msgstr "მორგებული მინიშნება"
+
+#: src/constants.py:438
+msgid "Add your own custom prompt"
+msgstr "დაამატეთ თქვენი საკუთარი მორგებული მინიშნება"
+
+#: src/constants.py:480
+msgid "LLM and Secondary LLM settings"
+msgstr "LLM-ის და მეორადი LLM-ის მორგება"
+
+#: src/constants.py:483 src/window.py:648
+msgid "TTS"
+msgstr "TTS ხმა"
+
+#: src/constants.py:485
+msgid "Text to Speech settings"
+msgstr "ტექსტის წარმოთქმის მორგება"
+
+#: src/constants.py:488
+msgid "STT"
+msgstr "STT"
+
+#: src/constants.py:490
+msgid "Speech to Text settings"
+msgstr "საუბრის ამოცნობის მორგება"
+
+#: src/constants.py:493
+msgid "Embedding"
+msgstr "ჩაშენება"
+
+#: src/constants.py:495
+msgid "Embedding settings"
+msgstr "ჩაშენების მორგება"
+
+#: src/constants.py:498
+msgid "Memory"
+msgstr "მეხსიერება"
+
+#: src/constants.py:500
+msgid "Memory settings"
+msgstr "მეხსიერების მორგება"
+
+#: src/constants.py:503
+msgid "Websearch"
+msgstr "ძებნა ვებში"
+
+#: src/constants.py:505
+msgid "Websearch settings"
+msgstr "ვებში ძებნის მორგება"
+
+#: src/constants.py:508
+msgid "RAG"
+msgstr "RAG"
+
+#: src/constants.py:510
+msgid "Document analyzer settings"
+msgstr "დოკუმენტის ანალიზატორის მორგება"
+
+#: src/constants.py:515
+msgid "Extensions settings"
+msgstr "გაფართოებების მორგება"
+
+#: src/constants.py:518
+msgid "Inteface"
+msgstr "ინტერფეისი"
+
+#: src/constants.py:520
+msgid "Interface settings, hidden files, reverse order, zoom..."
+msgstr ""
+"ინტერფეისი პარამეტრები, დამალული ფაილები, მიმდევრობის შებრუნება, გადიდება ..."
+
+#: src/constants.py:525
+msgid ""
+"General settings, virtualization, offers, memory length, automatically "
+"generate chat name, current folder..."
+msgstr ""
+"ზოგადი პარამეტრები, ვირტუალიზაცია, შეთავაზებები, მეხსიერების სიგრძე, ჩატის "
+"სახელის ავტომატური გენერაცია, მიმდინარე საქარალდე..."
+
+#: src/constants.py:530
+msgid "Prompts settings, custom extra prompt, custom prompts..."
+msgstr ""
+"მინიშნების მორგება, დამატებითი მორგებული მინიშნება, მორგებული მინიშნებები..."
+
+#: src/controller.py:135 src/window.py:1852
+msgid "Chat "
+msgstr "ჩატი "
+
+#: src/main.py:205
+msgid "Terminal threads are still running in the background"
+msgstr "ტერმინალის ნაკადები ჯერ კიდევ გაშვებულია ფონურად"
+
+#: src/main.py:206
+msgid "When you close the window, they will be automatically terminated"
+msgstr "როცა ფანჯარას დახურავთ, ისინი ავტომატურად შეწყდება"
+
+#: src/main.py:210
+msgid "Close"
+msgstr "დახურვა"
+
+#: src/main.py:244
+msgid "Chat is rebooted"
+msgstr "ჩატი გადაიტვირთა"
+
+#: src/main.py:249
+msgid "Folder is rebooted"
+msgstr "საქაღალდე გადაიტვირთა"
+
+#: src/main.py:254
+msgid "Chat is created"
+msgstr "ჩატი შეიქმნა"
+
+#: src/window.py:120
+msgid "Keyboard shorcuts"
+msgstr "კლავიატურის მალსახმობები"
+
+#: src/window.py:121
+msgid "About"
+msgstr "შესახებ"
+
+#: src/window.py:128 src/window.py:197
+msgid "Chat"
+msgstr "ჩატი"
+
+#: src/window.py:170
+msgid "History"
+msgstr "ისტორია"
+
+#: src/window.py:191
+msgid "Create a chat"
+msgstr "ჩატის შექმნა"
+
+#: src/window.py:196
+msgid "Chats"
+msgstr "საუბრები"
+
+#: src/window.py:267
+msgid " Stop"
+msgstr " გაჩერება"
+
+#: src/window.py:282
+msgid " Clear"
+msgstr " გასუფთავება"
+
+#: src/window.py:297
+msgid " Continue"
+msgstr " გაგრძელება"
+
+#: src/window.py:310
+msgid " Regenerate"
+msgstr " თავიდან გენერაცია"
+
+#: src/window.py:376
+msgid "Send a message..."
+msgstr "შეტყობინების გაგზავნა..."
+
+#: src/window.py:467
+msgid "Explorer Tab"
+msgstr "Explorer-ის ჩანართი"
+
+#: src/window.py:468
+msgid "Terminal Tab"
+msgstr "ტერმინალის ჩანართი"
+
+#: src/window.py:469
+msgid "Browser Tab"
+msgstr "ბრაუზერის ჩანართი"
+
+#: src/window.py:589
+msgid "Ask about a website"
+msgstr "კითხვა ვებსაიტის შესახებ"
+
+#: src/window.py:589
+msgid "Write #https://website.com in chat to ask information about a website"
+msgstr ""
+"დაწერეთ ჩატში #https://website.com ვებსაიტის შესახებ ინფორმაციის საკითხავად"
+
+#: src/window.py:590
+msgid "Check out our Extensions!"
+msgstr "გაეცანით ჩვენს გაფართოებებს!"
+
+#: src/window.py:590
+msgid "We have a lot of extensions for different things. Check it out!"
+msgstr ""
+"ჩვენ ბევრი გაფართოება გვაქვს სხვადასხვა რაღაცებისთვის. ნუ გაუშვებთ მათ "
+"ხელიდან!"
+
+#: src/window.py:591
+msgid "Chat with documents!"
+msgstr "დაელაპარაკეთ დოკუმენტებს!"
+
+#: src/window.py:591
+msgid ""
+"Add your documents to your documents folder and chat using the information "
+"contained in them!"
+msgstr ""
+"დაამატეთ დოკუმენტები თქვენს დოკუმენტების საქაღალდეში და ისაუბრეთ იმ "
+"ინფორმაციის გამოყენებით, რომლებსაც ისინი შეიცავენ!"
+
+#: src/window.py:592
+msgid "Surf the web!"
+msgstr "იმოგზაურეთ ვებში!"
+
+#: src/window.py:592
+msgid ""
+"Enable web search to allow the LLM to surf the web and provide up to date "
+"answers"
+msgstr ""
+"ჩართეთ ვებში ძებნა, რომ საშუალება მისცეთ LLM-ს, ვებში ეძებოს და უახლესი "
+"შედეგები მოგაწოდოთ"
+
+#: src/window.py:593
+msgid "Mini Window"
+msgstr "მინი ფანჯარა"
+
+#: src/window.py:593
+msgid "Ask questions on the fly using the mini window mode"
+msgstr "დასვით კითხვები როცა გნებავთ მინიფანჯრის რეჟიმის გამოყენებით"
+
+#: src/window.py:594
+msgid "Text to Speech"
+msgstr "ტექსტიდან-საუბრამდე"
+
+#: src/window.py:594
+msgid "Newelle supports text-to-speech! Enable it in the settings"
+msgstr "Newelle-ს ტექსტის წარმოთქმის მხარდაჭერა აქვს! ჩართეთ ის პარამეტრებში"
+
+#: src/window.py:595
+msgid "Keyboard Shortcuts"
+msgstr "კლავიატურის მალსახმობები"
+
+#: src/window.py:595
+msgid "Control Newelle using Keyboard Shortcuts"
+msgstr "აკონტროლეთ Newelle კლავიატურის მალსახმობებით"
+
+#: src/window.py:596
+msgid "Prompt Control"
+msgstr "მინიშნებების კონტროლი"
+
+#: src/window.py:596
+msgid "Newelle gives you 100% prompt control. Tune your prompts for your use."
+msgstr ""
+"Nowelle მინიშნების 100% კონტროლს გაძლევთ. მოირგეთ თქვენი მინიშნება თქვენი "
+"სურვილისამებრ."
+
+#: src/window.py:597
+msgid "Thread Editing"
+msgstr "ნაკადის ჩასწორება"
+
+#: src/window.py:597
+msgid "Check the programs and processes you run from Newelle"
+msgstr "შეამოწმეთ პროგრამები და პროცესები, რომლებიც Newelle-დან გაუშვით"
+
+#: src/window.py:598
+msgid "Programmable Prompts"
+msgstr "პროგრამირებადი მინიშნებები"
+
+#: src/window.py:598
+msgid ""
+"You can add dynamic prompts to Newelle, with conditions and probabilities"
+msgstr ""
+"Newelle-ს, შეგიძლიათ, დინამიკური მინიშნებები დაამატოთ პირობებით და "
+"ალბათობებით"
+
+#: src/window.py:605
+msgid "New Chat"
+msgstr "ახალი ჩატი"
+
+#: src/window.py:623
+msgid "Provider Errror"
+msgstr "მომწოდებლის შეცდომა"
+
+#: src/window.py:646
+msgid "Local Documents"
+msgstr "ლოკალური დოკუმენტები"
+
+#: src/window.py:650
+msgid "Web search"
+msgstr "ვებში ძებნა"
+
+#: src/window.py:896
+msgid "This provider does not have a model list"
+msgstr "ამ მომწოდებელს მოდელების სია არ აქვს"
+
+#: src/window.py:901
+msgid " Models"
+msgstr " მოდელები"
+
+#: src/window.py:904
+msgid "Search Models..."
+msgstr "მოდელების ძებნა..."
+
+#: src/window.py:1132
+msgid "Create new profile"
+msgstr "ახალი პროფილის შექმნა"
+
+#: src/window.py:1266
+msgid "Could not recognize your voice"
+msgstr "თქვენი საუბრის ამოცნობა შეუძლებელია"
+
+#: src/window.py:1303
+msgid "Images"
+msgstr "გამოსახულებები"
+
+#: src/window.py:1307
+msgid "LLM Supported Files"
+msgstr "LLM-ის მიერ მხარდაჭერილი ფაილები"
+
+#: src/window.py:1315
+msgid "RAG Supported files"
+msgstr "RAG-ის მიერ მხარდაჭერილი ფაილები"
+
+#: src/window.py:1333
+msgid "Supported Files"
+msgstr "მხარდაჭერილი ფაილები"
+
+#: src/window.py:1337
+msgid "All Files"
+msgstr "ყველა ფაილი"
+
+#: src/window.py:1343
+msgid "Attach file"
+msgstr "ფაილის მიმაგრება"
+
+#: src/window.py:1598
+msgid "The file cannot be sent until the program is finished"
+msgstr "ფაილის გაგზავნა შეუძლებელია პროგრამის დასრულებამდე"
+
+#: src/window.py:1620
+msgid "The file is not recognized"
+msgstr "ფაილი ამოცნობილი არაა"
+
+#: src/window.py:1639
+msgid "You can no longer continue the message."
+msgstr "შეტყობინებას ვეღარ გააგრძელებთ."
+
+#: src/window.py:1664
+msgid "You can no longer regenerate the message."
+msgstr "შეტყობინების რეგენერაციას ვეღარ მოახდენთ."
+
+#: src/window.py:1896
+msgid "Chat is cleared"
+msgstr "ჩატი გასუფთავებულია"
+
+#: src/window.py:1921
+msgid "The message was canceled and deleted from history"
+msgstr "შეტყობინება გაუქმდა და წაიშალა ისტორიიდან"
+
+#: src/window.py:1965
+msgid "The message cannot be sent until the program is finished"
+msgstr "პროგრამის დასრულებამდე შეტყობინების გაგზავნა შეუძლებელია"
+
+#: src/window.py:2954
+msgid "You can't edit a message while the program is running."
+msgstr "სამა პროგრამა გაშვებულია, შეტყობინებას ვერ ჩაასწორებთ."
+
+#: src/window.py:3080
+msgid "Prompt content"
+msgstr "მინიშნების შემცველობა"
+
+#: src/window.py:3339
+msgid ""
+"The neural network has access to your computer and any data in this chat and "
+"can run commands, be careful, we are not responsible for the neural network. "
+"Do not share any sensitive information."
+msgstr ""
+
+#: src/window.py:3368
+msgid ""
+"The neural network has access to any data in this chat, be careful, we are "
+"not responsible for the neural network. Do not share any sensitive "
+"information."
+msgstr ""
+
+#: src/window.py:3417
+msgid "Wrong folder path"
+msgstr "არასწორი საქაღალდის ბილიკი"
+
+#: src/window.py:3450
+msgid "Thread has not been completed, thread number: "
+msgstr "ნაკადი არ დასრულებულა. ნაკადის ნომერი: "
+
+#: src/window.py:3462
+msgid "Failed to open the folder"
+msgstr "საქაღალდის გახსნის შეცდომა"
+
+#: src/window.py:3641
+msgid "Chat is empty"
+msgstr "ჩატი ცარიელია"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:9
+msgid ""
+"Train Newelle to do more with custom extensions and new AI modules, giving "
+"your chatbot endless possibilities."
+msgstr ""
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:11
+msgid "AI chatbot"
+msgstr "ჩატბოტი ხი-ით"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:15
+msgid "Quick profile selection"
+msgstr "პროფილის სწრაფი არჩევანი"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:19
+msgid "Message Editing"
+msgstr "შეტყობინების ჩასწორება"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:23
+msgid "More than 10 standard AI providers"
+msgstr "10-ზე მეტი სტანდარტული ხი-ის პროვაიდერი"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:38
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:62
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:85
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:147
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:152
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:157
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:162
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:167
+msgid "Bug fixes"
+msgstr "შეცდომების გასწორება"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:45
+msgid ""
+"Mini Apps support! Extensions can now show custom mini apps on the sidebar"
+msgstr ""
+"მინიპროგრამების მხარდაჭერა! გაფართოებებს ახლა საკუთარი მინიპროგრამების "
+"ჩვენება შეუძლიათ გვერდით პანელზე"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:46
+msgid ""
+"Added integrated browser Mini App: browse the web directly in Newelle and "
+"attach web pages"
+msgstr ""
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:47
+msgid "Improved integrated file manager, supporting multiple file operations"
+msgstr ""
+"გაუმჯობესდა ჩაშენებული ფაილების მმართველი. ახლა მას ერთზე მეტ ფაილზე შეუძლია "
+"ოპერაციები"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:48
+msgid "Integrated file editor: edit files and codeblocks directly in Newelle"
+msgstr ""
+"ჩაშენებული ფაილის რედაქტორი: ჩაასწორეთ ფაილები და კოდის ბლოკები პირდაპირ "
+"Newelle-ში"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:49
+msgid "Integrated Terminal mini app: open the terminal directly in Newelle"
+msgstr ""
+"ჩაშენდა ტერმინალის მინიპროგრამა. გახსენით ტერმინალი პირდაპირ Newelle-ში"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:50
+msgid ""
+"Programmable prompts: add dynamic content to prompts with conditionals and "
+"random strings"
+msgstr ""
+"პროგრამირებადი მინიშნებები: დაამატეთ დინამიკური შემცველობა მოთხოვნებს "
+"პირობებითა და შემთხვევითი სტრიქონებით"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:51
+msgid "Add ability to manually edit chat name"
+msgstr "დაემატა ჩატის სახელის ხელით გადარქმევის შესაძლებლობა"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:52
+msgid "Minor bug fixes"
+msgstr "მცირე შეცდომების გამოსწორება"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:53
+msgid "Added support for multiple languages for Kokoro TTS and Whisper.CPP"
+msgstr "დაემატა ბევრი ენის მხარდაჭერა Kokoro TTS-ისთვის და Whisper.CPP-ისთვის"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:54
+msgid "Run HTML/CSS/JS websites directly in app"
+msgstr "გაუშვით HTML/CSS/JS ვებსაიტები პირდაპირ აპში"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:55
+msgid "New animation on chat change"
+msgstr "ახალი ანიმაცია ჩატის ცვლილებაზე"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:63
+msgid "Small improvements"
+msgstr "მცირე გაუმჯობესებები"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:70
+msgid "Improve local documents reading and loading performances"
+msgstr "გაუმჯობესდა ლოკალური დოკუმენტების წაკითხვისა და ჩატვირთვის წარმადობები"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:71
+msgid "Add option to send with CTRL+Enter"
+msgstr "დაემატა არჩევანი Ctrl+Enter-ით გასაგზავნად"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:72
+msgid "Improve codeblocks"
+msgstr "გაუმჯობესდა კოდის ბლოკები"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:73
+msgid "Fix Kokoro TTS"
+msgstr "გასწორდა Kokoro TTS"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:74
+msgid "Remove emoji from TTS"
+msgstr "ემოჯის წაშლა TTS-დან"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:75
+msgid "Set API keys as password fields"
+msgstr "API-ის გასაღებების დაყენება პაროლის ველების სახით"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:76
+msgid "Add thinking support for Gemini"
+msgstr "დაემატა ფიქრის მხარდაჭერა Gemini-ისთვის"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:77
+msgid "Updated translations"
+msgstr "განახლებული თარგმანები"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:84
+msgid "Added new features"
+msgstr "დაემატა ახალი ფუნქციები"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:92
+msgid "Website reading and web search with SearXNG, DuckDuckGo, and Tavily"
+msgstr ""
+"ვებსაიტების წაკითხვა და ვებში ძებნა SearXNG-ით, DuckDuckGo-ით და Tavily-ით"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:93
+msgid "Improved LaTeX rendering and document management"
+msgstr "გაუმჯობესდა LaTeX-ის რენდერი და დოკუმენტების მართვა"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:94
+msgid "New Thinking Widget and OpenRouter handler"
+msgstr "ახალი ფიქრის ვიჯეტი და OpenRouter-ის დამმუშავებელი"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:95
+msgid "Vision support for Llama4 on Groq"
+msgstr "ხედვის მხარდაჭერა Llama4-ისთვის Groq-ზე"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:96
+msgid "New translations (Traditional Chinese, Bengali, Hindi)"
+msgstr "ახალი თარგმანები (ტრადიციული ჩინური, ბენგალური, ინდური)"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:102
+msgid "Fixed many bugs, added some features!"
+msgstr "გასწორდა ბევრი შეცდომა და დაემატა რამდენიმე ფუნქცია!"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:107
+msgid "Support for new features and bug fixes"
+msgstr "ახალი ფუნქციების მხარდაჭერა და შეცდომების გასწორება"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:112
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:117
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:122
+msgid "Added many new features and bug fixes"
+msgstr "დაემატა ბევრი ახალი ფუნქცია და გასწორდა შეცდომები"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:127
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:132
+msgid "Added new features and bug fixes"
+msgstr "დაემატა ახალი ფუნქციები და გასწორდა შეცდომები"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:137
+msgid ""
+"Updated the g4f library with versioning, added user guides, improved "
+"extension browsing, and enhanced model handling."
+msgstr ""
+"განახლდა ბიბლიოთეკა g4k ვერსიებით, დაემატა მომხმარებლის გიდები, გაუმჯობესდა "
+"გაფართოებების დათვალიერება და მოდელების დამუშავება."
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:142
+msgid ""
+"Bug fixes and new features have been implemented. We've modified the "
+"extension architecture, added new models, and introduced vision support, "
+"along with more capabilities."
+msgstr ""
+"განხორციელდა ხარვეზების გასწორება და ახალი ფუნქციების დამატება. შეიცვალა "
+"გაფართოების არქიტექტურა, დაემატა ახალი მოდელები და ვიზუალური მხარდაჭერა, "
+"სხვა შესაძლებლობებთან ერთად."
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:172
+msgid "Stable version"
+msgstr "სტაბილური ვერსია"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:177
+msgid "Added extension"
+msgstr "დაემატა გაფარტოება"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:182
+msgid "Blacklist of commands"
+msgstr "ბრძანებების შავი სია"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:187
+msgid "Localization"
+msgstr "ლოკალიზაცია"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:192
+msgid "Redesign"
+msgstr "რედიზაინი"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:196
+msgid "Qwersyk"
+msgstr "კვერსიკი"
+
+#: data/io.github.qwersyk.Newelle.desktop.in:3
+msgid "Newelle: Your advanced chat bot"
+msgstr "Newelle: თქვენი განვითარებული ჩატბოტი"
+
+#: data/io.github.qwersyk.Newelle.desktop.in:10
+msgid "ai;assistant;chat;chatgpt;gpt;llm;ollama;"
+msgstr "ai;assistant;chat;chatgpt;gpt;llm;ollama;"

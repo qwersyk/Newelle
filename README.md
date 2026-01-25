@@ -35,9 +35,11 @@ https://github.com/user-attachments/assets/909edf0e-5a79-40c2-a3ef-cb5b2b18abfc
 
 - 🎨 **Advanced Customization**: Tailor the application with a wide range of settings
 - 🚀 **Flexible Model Support**: Choose from mutliple AI models and providers to fit your specific needs
+- 📚 **Local models**: Download local models directly from Newelle, and run them using Llama.cpp or Ollama.
 - 💻 **Terminal Command Exection**: Execute commands suggested by the AI on the fly
 - 🧩 **Extensions**: Add your own functionalities and models to Newelle
-- 🗣 **Voice support**: Chat hands free with Newelle, supporting many Speech To Text and TTS models, with translation options
+- 🛠 **Tools & MCP support**: Add tools via MCP servers or extensions 
+- 🗣 **Voice support**: Chat hands free with Newelle, supporting many Speech To Text and TTS models
 - 🧠 **Long Term Memory**: Remember conversations from previous chats
 - 💼 **Chat with documents**: Chat with your own documents
 - 🔎 **Web Search**: Provide reliable answers using Web Search
@@ -45,12 +47,13 @@ https://github.com/user-attachments/assets/909edf0e-5a79-40c2-a3ef-cb5b2b18abfc
 - 👤 **Profile Manager**: Create settings profiles and switch between them
 - 📁 **Builtin File Manager**: Manage you files with the help of AI
 - 📝 **Rich Formatting**: Supports both Markdown and LaTeX
+- 🌳 **Chat Branching**: Create alternative versions of your chats strating from any message in one click
 - ✏️ **Chat editing**: Edit or remove any message and manage your prompts easily
 
 <picture>
-  <source srcset="https://raw.githubusercontent.com/qwersyk/Newelle/master/screenshots/3w.png" media="(prefers-color-scheme: light)">
-  <source srcset="https://raw.githubusercontent.com/qwersyk/Newelle/master/screenshots/3b.png" media="(prefers-color-scheme: dark)">
-  <img src="https://raw.githubusercontent.com/qwersyk/Newelle/master/screenshots/3w.png" alt="screenshot">
+  <source srcset="https://raw.githubusercontent.com/qwersyk/Newelle/master/screenshots/7.png" media="(prefers-color-scheme: light)">
+  <source srcset="https://raw.githubusercontent.com/qwersyk/Newelle/master/screenshots/7b.png" media="(prefers-color-scheme: dark)">
+  <img src="https://raw.githubusercontent.com/qwersyk/Newelle/master/screenshots/7.png" alt="screenshot">
 </picture>
 
 # Extensions
@@ -60,9 +63,9 @@ use [existing extensions](https://github.com/topics/newelle-extension) or create
 application.
 
 <picture>
-  <source srcset="https://raw.githubusercontent.com/qwersyk/Newelle/master/screenshots/2w.png" media="(prefers-color-scheme: light)">
-  <source srcset="https://raw.githubusercontent.com/qwersyk/Newelle/master/screenshots/2b.png" media="(prefers-color-scheme: dark)">
-  <img src="https://raw.githubusercontent.com/qwersyk/Newelle/master/screenshots/2w.png" alt="screenshot">
+  <source srcset="https://raw.githubusercontent.com/qwersyk/Newelle/master/screenshots/6.png" media="(prefers-color-scheme: light)">
+  <source srcset="https://raw.githubusercontent.com/qwersyk/Newelle/master/screenshots/6b.png" media="(prefers-color-scheme: dark)">
+  <img src="https://raw.githubusercontent.com/qwersyk/Newelle/master/screenshots/6.png" alt="screenshot">
 </picture>
 
 ## Mini Window Mode
@@ -86,9 +89,9 @@ gsettings set org.gnome.mutter center-new-windows true
 ```
 
 <picture>
-  <source srcset="https://raw.githubusercontent.com/qwersyk/Newelle/master/screenshots/4w.png" media="(prefers-color-scheme: light)">
-  <source srcset="https://raw.githubusercontent.com/qwersyk/Newelle/master/screenshots/4b.png" media="(prefers-color-scheme: dark)">
-  <img src="https://raw.githubusercontent.com/qwersyk/Newelle/master/screenshots/4w.png" alt="screenshot">
+  <source srcset="https://raw.githubusercontent.com/qwersyk/Newelle/master/screenshots/5.png" media="(prefers-color-scheme: light)">
+  <source srcset="https://raw.githubusercontent.com/qwersyk/Newelle/master/screenshots/5b.png" media="(prefers-color-scheme: dark)">
+  <img src="https://raw.githubusercontent.com/qwersyk/Newelle/master/screenshots/5.png" alt="screenshot">
 </picture>
 
 # Installation
@@ -100,6 +103,7 @@ gsettings set org.gnome.mutter center-new-windows true
     <img src="https://raw.githubusercontent.com/qwersyk/Assets/main/builder.svg" alt="builder">
   </picture>
 </a>
+
 There are two ways of doing this
 
   * `install.sh`

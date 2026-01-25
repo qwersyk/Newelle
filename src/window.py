@@ -28,8 +28,7 @@ from .ui.widgets import MultilineEntry, ProfileRow, DisplayLatex, InlineLatex, T
 from .ui.stdout_monitor import StdoutMonitorDialog
 from .utility.stdout_capture import StdoutMonitor
 from .constants import AVAILABLE_LLMS, SCHEMA_ID, SETTINGS_GROUPS
-from .tools import ToolResult
-from .utility.system import get_spawn_command, open_website
+from .utility.system import get_spawn_command, open_website, is_flatpak
 from .utility.strings import (
     clean_bot_response,
     convert_think_codeblocks,
@@ -687,9 +686,12 @@ class MainWindow(Adw.ApplicationWindow):
             {"setting_name": "rag-on", "title": _("Local Documents")},
             {"setting_name": "memory-on", "title": _("Long Term Memory")},
             {"setting_name": "tts-on", "title": _("TTS")},
-            {"setting_name": "virtualization", "title": _("Command virtualization")},
             {"setting_name": "websearch-on", "title": _("Web search")},
         ]
+        
+        # Only add virtualization option if running in Flatpak
+        if is_flatpak():
+            entries.append({"setting_name": "virtualization", "title": _("Command virtualization")})
 
         container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
         container.set_margin_start(12)
