@@ -11,16 +11,20 @@
 	<summary>AI chatbot</summary>
 	<screenshots>
 		<screenshot type="default">
-			<image>https://raw.githubusercontent.com/qwersyk/Newelle/master/data/screenshots/screenshot1.png</image>
-			<caption>Quick profile selection</caption>
+			<image>https://raw.githubusercontent.com/qwersyk/Newelle/master/data/screenshots/1.png</image>
+			<caption>RAG over uploaded files. Messages render in a live stream</caption>
 		</screenshot>
 		<screenshot>
-			<image>https://raw.githubusercontent.com/qwersyk/Newelle/master/data/screenshots/screenshot2.png</image>
-			<caption>Message Editing</caption>
+			<image>https://raw.githubusercontent.com/qwersyk/Newelle/master/data/screenshots/2.png</image>
+			<caption>Sending an email via an extension from inside the chat UI</caption>
 		</screenshot>
  		<screenshot>
-			<image>https://raw.githubusercontent.com/qwersyk/Newelle/master/data/screenshots/screenshot3.png</image>
-			<caption>More than 10 standard AI providers</caption>
+			<image>https://raw.githubusercontent.com/qwersyk/Newelle/master/data/screenshots/3.png</image>
+			<caption>Web search to find the date then the calendar extension adds the event</caption>
+		</screenshot>
+		<screenshot>
+			<image>https://raw.githubusercontent.com/qwersyk/Newelle/master/data/screenshots/4.png</image>
+			<caption>Using an MCP server to fetch Cloudflare Vectorize docs</caption>
 		</screenshot>
 	</screenshots>
   	<branding>
@@ -32,6 +36,18 @@
 	<url type="bugtracker">https://github.com/qwersyk/Newelle/issues</url>
 	<content_rating type="oars-1.0" />
 	<releases>
+	    <release version="1.2.5" date="2026-01-25">
+            <description>
+                <ul>
+                    <li>Live message rendering while streaming</li>
+                    <li>Redesigned chat history</li>
+                    <li>Chat branching from any message</li>
+                    <li>Native tool calling for OpenAI and Ollama</li>
+                    <li>Improved llama.cpp install (cancel button) and option to use system llama.cpp</li>
+                    <li>Stability improvements and bug fixes (Ollama JPEG paste, Google import)</li>
+                </ul>
+            </description>
+        </release>
 	    <release version="1.2.0" date="2026-01-17">
             <description>
                 <ul>
