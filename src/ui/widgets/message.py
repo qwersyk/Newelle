@@ -162,7 +162,7 @@ class Message(Gtk.Box):
             self.thinking_widget = think
             think.start_thinking(chunk.text)
             box.append(think)
-            self._queue_execution(lambda: GLib.idle_add(think.stop_thinking()))
+            self._queue_execution(lambda: GLib.idle_add(think.stop_thinking))
         elif chunk.type == "text":
             self._process_text(chunk, box)
             
