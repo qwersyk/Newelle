@@ -2155,16 +2155,6 @@ class MainWindow(Adw.ApplicationWindow):
         self.send_button_start_spinner()
 
     # LLM functions
-    def send_message_to_bot(self, message):
-        """Send a message to the bot
-
-        Args:
-            message (): text of the message
-
-        Returns:
-           the message
-        """
-        return self.model.send_message(self, message)
 
     def send_bot_response(self, button):
         """Add message to the chat, display the user message and the spiner and launch a thread to get response
@@ -2181,10 +2171,10 @@ class MainWindow(Adw.ApplicationWindow):
 
     def generate_suggestions(self):
         """Create the suggestions and update the UI when it's finished"""
-        self.model.set_history([], self.controller.get_history())
         suggestions = self.secondary_model.get_suggestions(
             self.controller.newelle_settings.prompts["get_suggestions_prompt"],
             self.offers,
+            self.controller.get_history()
         )
         GLib.idle_add(self.populate_suggestions, suggestions)
 
@@ -3755,11 +3745,9 @@ class MainWindow(Adw.ApplicationWindow):
     def generate_chat_name(self, button, multithreading=False):
         """Generate the name of the chat using llm. Reloaunches on another thread if not already in one"""
         if multithreading:
-            self.secondary_model.set_history(
-                [], self.controller.get_history(self.chats[int(button.get_name())]["chat"])
-            )
             name = self.secondary_model.generate_chat_name(
-                self.prompts["generate_name_prompt"]
+                self.prompts["generate_name_prompt"],
+                self.controller.get_history(self.chats[int(button.get_name())]["chat"])
             )
             
             def on_complete():

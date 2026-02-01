@@ -56,16 +56,6 @@ class LLMHandler(Handler):
         """ Load the specified model """
         return True
 
-    def set_history(self, prompts : list[str], history: list[dict[str, str]]):
-        """Set the current history and prompts
-
-        Args:
-            prompts (list[str]): list of sytem prompts
-            window : Application window
-        """        
-        self.prompts = prompts
-        self.history = history
-
     @abstractmethod
     def generate_text(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = []) -> str:
         """Generate test from the given prompt, history and system prompt
@@ -100,19 +90,20 @@ class LLMHandler(Handler):
         """Stop the generation"""
         self.running = False
 
-    def send_message(self, window, message:str) -> str:
+    def send_message(self, message:str, history: list[dict[str, str]] = [], system_prompt: list[str] = []) -> str:
         """Send a message to the bot
 
         Args:
-            window: The window
             message: Text of the message
+            history: History of the chat
+            system_prompt: System prompt
 
         Returns:
             str: Response of the bot
         """        
-        return self.generate_text(message, self.history, self.prompts)
+        return self.generate_text(message, history, system_prompt)
 
-    def send_message_stream(self, window, message:str, on_update: Callable[[str], Any] = (), extra_args : list = []) -> str:
+    def send_message_stream(self, message:str, history: list[dict[str, str]] = [], system_prompt: list[str] = [], on_update: Callable[[str], Any] = (), extra_args : list = []) -> str:
         """Send a message to the bot
 
         Args:
@@ -124,9 +115,9 @@ class LLMHandler(Handler):
         Returns:
             str: Response of the bot
         """        
-        return self.generate_text_stream(message, self.history, self.prompts, on_update, extra_args)
+        return self.generate_text_stream(message, history, system_prompt, on_update, extra_args)
  
-    def get_suggestions(self, request_prompt:str = "", amount:int=1) -> list[str]:
+    def get_suggestions(self, request_prompt:str = "", amount:int=1, history: list[dict[str, str]] = []) -> list[str]:
         """Get suggestions for the current chat. The default implementation expects the result as a JSON Array containing the suggestions
 
         Args:
@@ -141,7 +132,7 @@ class LLMHandler(Handler):
         req = 0
         history = ""
         # Only get the last four elements and reconstruct partial history
-        for message in self.history[-4:] if len(self.history) >= 4 else self.history:
+        for message in history[-4:] if len(history) >= 4 else history:
             image, text = extract_image(message["Message"])
             history += message["User"] + ": " + text + "\n"
         for i in range(0, amount):
@@ -168,7 +159,7 @@ class LLMHandler(Handler):
                 break
         return result
 
-    def generate_chat_name(self, request_prompt:str = "") -> str | None:
+    def generate_chat_name(self, request_prompt:str = "", history: list[dict[str, str]] = []) -> str | None:
         """Generate name of the current chat
 
         Args:
@@ -180,7 +171,7 @@ class LLMHandler(Handler):
         try:
             # Prepare history without images and with capped message length
             processed_history = []
-            for message in self.history:
+            for message in history:
                 image, text = extract_image(message["Message"])
                 # Cap message length to 500 characters
                 capped_text = text[:500]

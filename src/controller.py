@@ -746,20 +746,20 @@ class NewelleController:
         if self.chat[-1]["Message"] != old_user_prompt:
              yield ('reload_message', len(self.chat) - 1)
 
-        self.handlers.llm.set_history(prompts, new_history)
         
         message_label = ""
         try:
             t1 = time.time()
             if self.handlers.llm.stream_enabled():
                 message_label = self.handlers.llm.send_message_stream(
-                    self,
                     self.chat[-1]["Message"],
+                    new_history,
+                    prompts,
                     update_callback,
-                    [stream_number_variable] 
+                    [stream_number_variable], 
                 )
             else:
-                 message_label = self.handlers.llm.send_message(self.chat[-1]["Message"])
+                 message_label = self.handlers.llm.send_message(self.chat[-1]["Message"], prompts, new_history)
             
             # Post-generation logic
             last_generation_time = time.time() - t1
