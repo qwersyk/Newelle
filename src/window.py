@@ -50,6 +50,7 @@ from .ui_controller import UIController
 
 class MainWindow(Adw.ApplicationWindow):
     def __init__(self, *args, **kwargs):
+
         super().__init__(*args, **kwargs)
         self.app = self.get_application()
         
@@ -90,23 +91,27 @@ class MainWindow(Adw.ApplicationWindow):
         ReplaceHelper.set_controller(self.controller)
         # Set basic vars
         self.path = self.controller.config_dir
-        self.chats = self.controller.chats
+        self.path = self.controller.config_dir
         
         # Ensure all chats have unique IDs and handle branching fields
+
         for chat_entry in self.chats:
             if "id" not in chat_entry:
                 chat_entry["id"] = str(uuid.uuid4())
             if "branched_from" not in chat_entry:
                 chat_entry["branched_from"] = None
         
-        self.chat = self.controller.chat
+                chat_entry["branched_from"] = None
+        
         # RAG Indexes to documents for each chat
+
         self.chat_documents_index = {}
         self.settings = self.controller.settings
         self.extensionloader = self.controller.extensionloader
-        self.chat_id = self.controller.newelle_settings.chat_id
         self.main_path = self.controller.newelle_settings.main_path
+        
         # Set window default size
+
         self.set_default_size(self.settings.get_int("window-width"), self.settings.get_int("window-height"))
         # Set zoom
         self.set_zoom(self.controller.newelle_settings.zoom)
@@ -2016,8 +2021,8 @@ class MainWindow(Adw.ApplicationWindow):
             self.stop_chat()
         self.stream_number_variable += 1
         self.chat_id = len(self.chats) - 1
-        self.chat = self.chats[self.chat_id]["chat"]
-        self.update_history() 
+        self.update_history()
+ 
         self.show_chat(animate=True)
         GLib.idle_add(self.update_button_text)
 
@@ -2039,8 +2044,6 @@ class MainWindow(Adw.ApplicationWindow):
         self.stream_number_variable += 1
         old_chat_id = self.chat_id
         self.chat_id = int(id)
-        self.chat = self.chats[self.chat_id]["chat"]
-        self.controller.chat = self.chat
         # Change profile 
         if self.controller.newelle_settings.remember_profile and "profile" in self.chats[self.chat_id]:
             self.switch_profile(self.chats[self.chat_id]["profile"])
@@ -2062,8 +2065,6 @@ class MainWindow(Adw.ApplicationWindow):
             Adw.Toast(title=_("Chat is cleared"), timeout=2)
         )
         self.chat = []
-        self.chats[self.chat_id]["chat"] = self.chat
-        self.controller.chat = self.chat
         for tool_result in self.active_tool_results:
             tool_result.cancel()
         self.active_tool_results = []
@@ -2180,7 +2181,7 @@ class MainWindow(Adw.ApplicationWindow):
 
     def generate_suggestions(self):
         """Create the suggestions and update the UI when it's finished"""
-        self.model.set_history([], self.get_history())
+        self.model.set_history([], self.controller.get_history())
         suggestions = self.secondary_model.get_suggestions(
             self.controller.newelle_settings.prompts["get_suggestions_prompt"],
             self.offers,
@@ -2209,140 +2210,17 @@ class MainWindow(Adw.ApplicationWindow):
         self.chat_stop_button.set_visible(False)
         GLib.idle_add(self.scrolled_chat)
 
-    def get_history(
-        self, chat=None, include_last_message=False, copy_chat=True
-    ) -> list[dict[str, str]]:
-        """Format the history excluding none messages and picking the right context size
-
-        Args:
-            chat (): chat history, if None current is taken
-
-        Returns:
-           chat history
-        """
-        if chat is None:
-            chat = self.chat
-        if copy_chat:
-            chat = copy.deepcopy(chat)
-        history = []
-        count = self.controller.newelle_settings.memory
-        msgs = chat[:-1] if not include_last_message else chat
-        msgs.reverse()
-        for msg in msgs:
-            if count == 0:
-                break
-            if msg["User"] == "Console" and msg["Message"] == "None":
-                continue
-            if self.controller.newelle_settings.remove_thinking:
-                msg["Message"] = remove_thinking_blocks(msg["Message"])
-            if msg["User"] == "File" or msg["User"] == "Folder":
-                msg["Message"] = f"```{msg['User'].lower()}\n{msg['Message'].strip()}\n```"
-                msg["User"] = "User"
-            history.insert(0,msg)
-            count -= 1
-        return history
-
-    def get_memory_prompt(self):
-        r = []
-        if self.memory_on:
-            r += self.memory_handler.get_context(
-                self.chat[-1]["Message"], self.get_history()
-            )
-        if self.rag_on:
-            r += self.rag_handler.get_context(
-                self.chat[-1]["Message"], self.get_history()
-            )
-        if (
-            self.controller.newelle_settings.rag_on_documents
-            and self.rag_handler is not None
-        ):
-            documents = extract_supported_files(
-                self.get_history(include_last_message=True),
-                self.rag_handler.get_supported_files_reading(),
-                self.model.get_supported_files()
-            )
-            if len(documents) > 0:
-                existing_index = self.chat_documents_index.get(self.chat_id, None)
-                if existing_index is None:
-                    GLib.idle_add(self.add_reading_widget, documents)
-                    existing_index = self.rag_handler.build_index(documents)
-                    self.chat_documents_index[self.chat_id] = existing_index
-                else:
-                    GLib.idle_add(self.add_reading_widget,documents)
-                    existing_index.update_index(documents)
-                if existing_index.get_index_size() > self.controller.newelle_settings.rag_limit: 
-                    r += existing_index.query(
-                        self.chat[-1]["Message"]
-                    )
-                else:
-                    r += existing_index.get_all_contexts()
-                GLib.idle_add(self.remove_reading_widget)
-        return r
-
-    def update_memory(self, bot_response):
-        if self.memory_on:
-            threading.Thread(
-                target=self.memory_handler.register_response,
-                args=(bot_response, self.chat),
-            ).start()
-
-    def get_variable(self, name:str):
-        tools = self.controller.tools.get_all_tools()
-        for tool in tools:
-            if tool.name == name:
-                if tool in self.controller.get_enabled_tools():
-                    return True
-                else:
-                    return False
-        if name == "tts_on":
-            return self.tts_enabled
-        elif name == "virtualization_on":
-            return self.virtualization
-        elif name == "auto_run":
-            return self.controller.newelle_settings.auto_run
-        elif name == "websearch_on":
-            return self.controller.newelle_settings.websearch_on
-        elif name == "rag_on":
-            return self.rag_on_documents
-        elif name == "local_folder":
-            return self.rag_on
-        elif name == "automatic_stt":
-            return self.controller.newelle_settings.automatic_stt
-        elif name == "profile_name":
-            return self.controller.newelle_settings.current_profile
-        elif name == "external_browser":
-            return self.controller.newelle_settings.external_browser
-        elif name == "history":
-            return "\n".join([f"{msg['User']}: {msg['Message']}" for msg in self.get_history()])
-        elif name == "message":
-            return self.chat[-1]["Message"]
-        else:
-            rep = replace_variables_dict()
-            var = "{" + name.upper() + "}"
-            if var in rep:
-                return rep[var]
-            else:
-                return None
 
     def send_message(self, manual=True):
         """Send a message in the chat and get bot answer, handle TTS etc"""
-        # Save profile for generation 
-        self.chats[self.chat_id]["profile"] = self.current_profile
-
-        GLib.idle_add(self.hide_placeholder)
         if manual:
             self.auto_run_times = 0
         self.stream_number_variable += 1
         stream_number_variable = self.stream_number_variable
         self.status = False
         GLib.idle_add(self.update_button_text)
-
-        # Append extensions prompts
-        prompts = []
-        formatter = PromptFormatter(replace_variables_dict(), self.get_variable)
-        for prompt in self.controller.newelle_settings.bot_prompts:
-            prompts.append(formatter.format(prompt))
-
+        GLib.idle_add(self.hide_placeholder)
+        
         # Start creating the message
         if self.model.stream_enabled():
             self.streamed_message = ""
@@ -2351,117 +2229,61 @@ class MainWindow(Adw.ApplicationWindow):
             self.last_update = time.time()
             self.stream_thinking = False
             GLib.idle_add(self.create_streaming_message_label)
-        # Append memory
-        if (
-            self.memory_on
-            or self.rag_on
-            or self.controller.newelle_settings.rag_on_documents
-        ):
-            prompts += self.get_memory_prompt()
-
-        # Set the history for the model
-        history = self.get_history()
-        # Let extensions preprocess the history
-        old_history = copy.deepcopy(history)
-        old_user_prompt = self.chat[-1]["Message"]
-        self.chat, prompts = self.controller.integrationsloader.preprocess_history(self.chat, prompts)
-        self.chat, prompts = self.extensionloader.preprocess_history(self.chat, prompts)
-        self.controller.chat = self.chat
-        self.chats[self.chat_id]["chat"] = self.chat
-        # Edit messages that require to be updated
-        history = self.get_history()
-        edited_messages = get_edited_messages(history, old_history)
-        if edited_messages is None:
-            # Messages were added or removed - only reload if removed or if chat UI needs rebuilding
-            # If messages were added, they'll be displayed via show_message, so no need to reload
-            if len(history) < len(old_history):
-                # Messages were removed, need to reload
-                GLib.idle_add(self.show_chat)
-            # If messages were added (len increased), don't reload - they'll be added via show_message
-        else:
-            for message in edited_messages:
-                GLib.idle_add(self.reload_message, message)
-        if len(self.chat) == 0:
-            GLib.idle_add(self.remove_send_button_spinner)
-            GLib.idle_add(self.show_chat)
-            return
-        if self.chat[-1]["Message"] != old_user_prompt:
-            GLib.idle_add(self.reload_message, len(self.chat) - 1)
-
-        self.model.set_history(prompts, history)
-        try:
-            t1 = time.time()
-            if self.model.stream_enabled():
-                message_label = self.model.send_message_stream(
-                    self,
-                    self.chat[-1]["Message"],
-                    self.update_message,
-                    [stream_number_variable],
-                )
-
-            else:
-                message_label = self.send_message_to_bot(self.chat[-1]["Message"])
             
-            if self.stream_number_variable != stream_number_variable:
-                return
-
-            self.last_generation_time = time.time() - t1
-            
-            input_tokens = 0
-            for prompt in prompts:
-                input_tokens += count_tokens(prompt)
-            for message in history:
-                input_tokens += count_tokens(message.get("User", "")) + count_tokens(message.get("Message", ""))
-            input_tokens += count_tokens(self.chat[-1]["Message"])
-            
-            output_tokens = count_tokens(message_label)
-            self.last_token_num = (input_tokens, output_tokens)
-            
-            message_label = clean_bot_response(message_label) 
-        except Exception as e:
-            # Show error messsage
-            GLib.idle_add(self.show_message, str(e), False, -1, False, False, True)
-            GLib.idle_add(self.remove_send_button_spinner)
-            return
-        if self.stream_number_variable == stream_number_variable:
-            old_history = copy.deepcopy(self.chat)
-            history, message_label = self.controller.integrationsloader.postprocess_history(self.chat, message_label)
-            history, message_label = self.extensionloader.postprocess_history(
-                self.chat, message_label
-            )
-            # Edit messages that require to be updated
-            edited_messages = get_edited_messages(history, old_history)
-            if edited_messages is None:
-                # Messages were added or removed - only reload if removed or if chat UI needs rebuilding
-                # If messages were added, they'll be displayed via show_message, so no need to reload
-                if len(history) < len(old_history):
-                    # Messages were removed, need to reload
-                    GLib.idle_add(self.show_chat)
-                # If messages were added (len increased), don't reload - they'll be added via show_message
-            else:
-                for message in edited_messages:
-                    GLib.idle_add(self.reload_message, message)
-            if hasattr(self, "current_streaming_message") and self.current_streaming_message:
-                # Streaming was active, finalize the existing widget
-                streaming_widget = self.current_streaming_message
-                self.chat.append({"User": "Assistant", "Message": message_label, "UUID": streaming_widget.chunk_uuid})
-                self.add_prompt("\n".join(prompts))
+        def run_generation():
+            for status, data in self.controller.generate_response(stream_number_variable, self.update_message):
+                if self.stream_number_variable != stream_number_variable:
+                    break
                 
-                final_message = message_label
-                def finalize_stream():
-                    streaming_widget.update_content(final_message, is_streaming=False)
-                    streaming_widget.finish_streaming()
-                    # Re-enable editability or other final states if needed
-                    self._finalize_message_display()
-                    self.save_chat()
+                if status == 'reload_chat':
+                    def reload_chat_safe():
+                        self.chat = self.controller.chat
+                        self.show_chat()
+                    GLib.idle_add(reload_chat_safe)
+                elif status == 'reload_message':
+                    GLib.idle_add(self.reload_message, data)
+                elif status == 'error':
+                    GLib.idle_add(self.show_message, data, False, -1, False, False, True)
+                    GLib.idle_add(self.remove_send_button_spinner)
+                elif status == 'done':
+                    GLib.idle_add(self.remove_send_button_spinner)
+                    GLib.idle_add(self.show_chat)
+                elif status == 'finished':
+                    # Run finish logic in main thread to avoid races with chat list
+                    def finish_safe():
+                        self.chat = self.controller.chat
+                        self._handle_generation_finished(data, stream_number_variable)
+                    GLib.idle_add(finish_safe)
 
-                    # Handle deferred tool execution and continuation
-                    if streaming_widget.state.get("has_terminal_command", False):
-                         threads = streaming_widget.state.get("running_threads", [])
-                         parallel = self.controller.newelle_settings.parallel_tool_execution
-                         current_stream = self.stream_number_variable
+        threading.Thread(target=run_generation).start()
 
-                         def wait_and_continue():
+    def _handle_generation_finished(self, data, stream_number_variable):
+        message_label = data['message']
+        prompts = data['prompts']
+        self.last_generation_time = data['time']
+        self.last_token_num = (data['input_tokens'], data['output_tokens'])
+
+        if hasattr(self, "current_streaming_message") and self.current_streaming_message:
+            # Streaming was active, finalize the existing widget
+            streaming_widget = self.current_streaming_message
+            self.chat.append({"User": "Assistant", "Message": message_label, "UUID": streaming_widget.chunk_uuid})
+            self.add_prompt("\n".join(prompts))
+            
+            final_message = message_label
+            def finalize_stream():
+                streaming_widget.update_content(final_message, is_streaming=False)
+                streaming_widget.finish_streaming()
+                # Re-enable editability or other final states if needed
+                self._finalize_message_display()
+                self.save_chat()
+
+                # Handle deferred tool execution and continuation
+                if streaming_widget.state.get("has_terminal_command", False):
+                        threads = streaming_widget.state.get("running_threads", [])
+                        parallel = self.controller.newelle_settings.parallel_tool_execution
+                        current_stream = self.stream_number_variable
+
+                        def wait_and_continue():
                             if not parallel:
                                 for t in threads:
                                     if not t.is_alive(): t.start()
@@ -2478,59 +2300,59 @@ class MainWindow(Adw.ApplicationWindow):
                             else:
                                 GLib.idle_add(self.scrolled_chat)
 
-                         threading.Thread(target=wait_and_continue).start()
-                    else:
-                         GLib.idle_add(self.scrolled_chat)
+                        threading.Thread(target=wait_and_continue).start()
+                else:
+                        GLib.idle_add(self.scrolled_chat)
 
-                GLib.idle_add(finalize_stream)
-                
-                # Cleanup reference
-                self.current_streaming_message = None
-            else:
-                # No streaming (e.g. quick response or non-streaming model), standard display
-                GLib.idle_add(
-                    self.show_message,
-                    message_label,
-                    False,
-                    -1,
-                    False,
-                    False,
-                    False,
-                    "\n".join(prompts),
+            # Already in main thread via idle_add wrapper in run_generation
+            finalize_stream()
+            
+            # Cleanup reference
+            self.current_streaming_message = None
+        else:
+            # No streaming (e.g. quick response or non-streaming model), standard display
+            # Already in main thread
+            self.show_message(
+                message_label,
+                False,
+                -1,
+                False,
+                False,
+                False,
+                "\n".join(prompts),
+            )
+
+        GLib.idle_add(self.remove_send_button_spinner)
+        # Generate chat name
+        if self.controller.newelle_settings.auto_generate_name and len(self.chat) == 2:
+            GLib.idle_add(self.generate_chat_name, Gtk.Button(name=str(self.chat_id)))
+        # TTS
+        tts_thread = None
+        if self.tts_enabled:
+            message_label = convert_think_codeblocks(message_label)
+            message = re.sub(r"```.*?```", "", message_label, flags=re.DOTALL)
+            message = remove_markdown(message)
+            message = remove_emoji(message)
+            if not (
+                not message.strip()
+                or message.isspace()
+                or all(char == "\n" for char in message)
+            ):
+                tts_thread = threading.Thread(
+                    target=self.tts.play_audio, args=(message,)
                 )
+                tts_thread.start()
 
-            GLib.idle_add(self.remove_send_button_spinner)
-            # Generate chat name
-            self.update_memory(message_label)
-            if self.controller.newelle_settings.auto_generate_name and len(self.chat) == 2:
-                GLib.idle_add(self.generate_chat_name, Gtk.Button(name=str(self.chat_id)))
-            # TTS
-            tts_thread = None
-            if self.tts_enabled:
-                message_label = convert_think_codeblocks(message_label)
-                message = re.sub(r"```.*?```", "", message_label, flags=re.DOTALL)
-                message = remove_markdown(message)
-                message = remove_emoji(message)
-                if not (
-                    not message.strip()
-                    or message.isspace()
-                    or all(char == "\n" for char in message)
-                ):
-                    tts_thread = threading.Thread(
-                        target=self.tts.play_audio, args=(message,)
-                    )
-                    tts_thread.start()
+        # Wait for tts to finish to restart recording
+        def restart_recording():
+            if not self.automatic_stt_status:
+                return
+            if tts_thread is not None:
+                tts_thread.join()
+            GLib.idle_add(self.start_recording, self.recording_button)
 
-            # Wait for tts to finish to restart recording
-            def restart_recording():
-                if not self.automatic_stt_status:
-                    return
-                if tts_thread is not None:
-                    tts_thread.join()
-                GLib.idle_add(self.start_recording, self.recording_button)
-
-            if self.controller.newelle_settings.automatic_stt:
-                threading.Thread(target=restart_recording).start()
+        if self.controller.newelle_settings.automatic_stt:
+            threading.Thread(target=restart_recording).start()
 
     def add_reading_widget(self, documents):
         d = [document.replace("file:", "") for document in documents if document.startswith("file:")]
@@ -3934,7 +3756,7 @@ class MainWindow(Adw.ApplicationWindow):
         """Generate the name of the chat using llm. Reloaunches on another thread if not already in one"""
         if multithreading:
             self.secondary_model.set_history(
-                [], self.get_history(self.chats[int(button.get_name())]["chat"])
+                [], self.controller.get_history(self.chats[int(button.get_name())]["chat"])
             )
             name = self.secondary_model.generate_chat_name(
                 self.prompts["generate_name_prompt"]
@@ -4073,7 +3895,6 @@ class MainWindow(Adw.ApplicationWindow):
                 # Switch to the first imported chat if we imported at least one
                 if count > 0:
                     self.chat_id = len(self.chats) - count
-                    self.chat = self.chats[self.chat_id]["chat"]
                     self.show_chat()
             else:
                 self.notification_block.add_toast(
@@ -4124,3 +3945,33 @@ class MainWindow(Adw.ApplicationWindow):
             # Start the display update timer for the dialog
             GLib.timeout_add(100, self.stdout_monitor_dialog._update_stdout_display)
 
+
+    @property
+    def chats(self):
+        """Get the chats list from the controller"""
+        return self.controller.chats
+
+    @chats.setter
+    def chats(self, value):
+        """Set the chats list in the controller"""
+        self.controller.chats = value
+
+    @property
+    def chat(self):
+        """Get the current chat from the controller"""
+        return self.controller.chat
+
+    @chat.setter
+    def chat(self, value):
+        """Set the current chat in the controller"""
+        self.controller.chat = value
+
+    @property
+    def chat_id(self):
+        """Get the current chat ID from the controller's settings"""
+        return self.controller.newelle_settings.chat_id
+
+    @chat_id.setter
+    def chat_id(self, value):
+        """Set the current chat ID in the controller's settings"""
+        self.controller.newelle_settings.chat_id = value
