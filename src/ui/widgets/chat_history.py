@@ -12,7 +12,19 @@ from ...ui.widgets import Message, MultilineEntry
 
 _ = gettext.gettext
 SCHEMA_ID = "io.github.qwersyk.Newelle"
+
+
 class ChatHistory(Gtk.Box):
+    __gsignals__ = {
+        "focus-input": (GObject.SignalFlags.RUN_LAST, None, ()),
+        "branch-requested": (GObject.SignalFlags.RUN_LAST, None, (GObject.TYPE_INT,)),
+        "clear-requested": (GObject.SignalFlags.RUN_LAST, None, ()),
+        "continue-requested": (GObject.SignalFlags.RUN_LAST, None, ()),
+        "regenerate-requested": (GObject.SignalFlags.RUN_LAST, None, ()),
+        "stop-requested": (GObject.SignalFlags.RUN_LAST, None, ()),
+        "files-dropped": (GObject.SignalFlags.RUN_LAST, None, (GObject.TYPE_PYOBJECT,)),
+    }
+
     def __init__(self, window, chat, chat_id):
         super().__init__(orientation=Gtk.Orientation.VERTICAL, css_classes=["background", "view"], vexpand=True)
         self.window = window
@@ -61,7 +73,7 @@ class ChatHistory(Gtk.Box):
         # Add placeholder
         self.build_placeholder()
         self.history_block.add_named(self.empty_chat_placeholder, "placeholder")
-        self.history_block.set_visible_child_name("history") 
+        self.history_block.set_visible_child_name("history" if len(self.chat) > 0 else "placeholder") 
         self.append(self.history_block)
         # Chat controls
         self.chat_controls_entry_block = Gtk.Box(
@@ -77,6 +89,15 @@ class ChatHistory(Gtk.Box):
         # Add buttons
         self._build_buttons()
 
+    def show_placeholder(self):
+        self.history_block.set_visible_child_name("placeholder")
+        self.tips_section.shuffle_tips()
+
+    def hide_placeholder(self):
+        self.history_block.set_visible_child_name("history")
+
+    def focus_input(self):
+        self.emit("focus-input")
     def populate_chat(self):
         if not self.controller.newelle_settings.virtualization:
             self.add_message("WarningNoVirtual")
@@ -143,11 +164,16 @@ class ChatHistory(Gtk.Box):
 
     def _add_drag_and_drop(self):
         drop_target = Gtk.DropTarget.new(GObject.TYPE_STRING, Gdk.DragAction.COPY)
-        drop_target.connect("drop", self.handle_file_drag)
+        drop_target.connect("drop", self._on_drop)
         self.history_block.add_controller(drop_target)
         drop_target = Gtk.DropTarget.new(Gdk.FileList, Gdk.DragAction.COPY)
-        drop_target.connect("drop", self.handle_file_drag)
+        drop_target.connect("drop", self._on_drop)
         self.history_block.add_controller(drop_target)
+
+    def _on_drop(self, drop_target, value, x, y):
+        """Handle drop event and emit files-dropped signal for the window to process."""
+        self.emit("files-dropped", value)
+        return True
 
     def build_offers(self):
         """Build offers buttons, called by update_settings to update the number of buttons"""
@@ -176,7 +202,7 @@ class ChatHistory(Gtk.Box):
         label = Gtk.Label(label=_(" Stop"))
         box.append(label)
         self.chat_stop_button.set_child(box)
-        self.chat_stop_button.connect("clicked", self.stop_chat)
+        self.chat_stop_button.connect("clicked", lambda btn: self.emit("stop-requested"))
         self.chat_stop_button.set_visible(False)
 
         self.chat_controls_entry_block.append(self.chat_stop_button)
@@ -190,7 +216,7 @@ class ChatHistory(Gtk.Box):
         label = Gtk.Label(label=_(" Clear"))
         box.append(label)
         self.button_clear.set_child(box)
-        self.button_clear.connect("clicked", self.clear_chat)
+        self.button_clear.connect("clicked", lambda btn: self.emit("clear-requested"))
         self.button_clear.set_visible(False)
         self.chat_controls_entry_block.append(self.button_clear)
 
@@ -205,7 +231,7 @@ class ChatHistory(Gtk.Box):
         label = Gtk.Label(label=_(" Continue"))
         box.append(label)
         self.button_continue.set_child(box)
-        self.button_continue.connect("clicked", self.continue_message)
+        self.button_continue.connect("clicked", lambda btn: self.emit("continue-requested"))
         self.button_continue.set_visible(False)
         self.chat_controls_entry_block.append(self.button_continue)
 
@@ -218,25 +244,10 @@ class ChatHistory(Gtk.Box):
         label = Gtk.Label(label=_(" Regenerate"))
         box.append(label)
         self.regenerate_message_button.set_child(box)
-        self.regenerate_message_button.connect("clicked", self.regenerate_message)
+        self.regenerate_message_button.connect("clicked", lambda btn: self.emit("regenerate-requested"))
         self.regenerate_message_button.set_visible(False)
         self.chat_controls_entry_block.append(self.regenerate_message_button)
 
-    def regenerate_message(self, button):
-        pass
-
-    def continue_message(self, button):
-        pass
-
-    def clear_chat(self, button):
-        pass
-
-    def stop_chat(self, button):
-        pass
-
-    def handle_file_drag(self, *args, **kwargs):
-        pass
-   
     def build_placeholder(self):
         tips = [
             {"title": _("Ask about a website"), "subtitle": _("Write #https://website.com in chat to ask information about a website"), "on_click": lambda : self.send_bot_response(Gtk.Button(label="#https://github.com/qwersyk/Newelle\nWhat is Newelle?"))},
@@ -293,7 +304,7 @@ class ChatHistory(Gtk.Box):
         """Show a message in the chat."""
         if id_message == -1:
             id_message = len(self.chat)
-
+        self.hide_placeholder()
         # Handle empty/whitespace messages
         if message_label == " " * len(message_label) and not is_user:
             if not restore:
@@ -301,7 +312,7 @@ class ChatHistory(Gtk.Box):
                 self.add_prompt(prompt)
                 self._finalize_message_display()
             GLib.idle_add(self.scrolled_chat)
-            self.save_chat()
+            self.controller.save_chats()
             return None
 
         # Handle error messages
@@ -322,7 +333,7 @@ class ChatHistory(Gtk.Box):
                 ),
             )
             GLib.idle_add(self.scrolled_chat)
-            self.save_chat()
+            self.controller.save_chats()
             return None
 
         # Initialize message UUID for assistant messages
@@ -353,7 +364,7 @@ class ChatHistory(Gtk.Box):
 
         if not restore:
             self._finalize_message_display()
-            self.save_chat()
+            self.controller.save_chats()
             
         return None
     
@@ -610,7 +621,7 @@ class ChatHistory(Gtk.Box):
             name=id,
         )
         branch_button.set_tooltip_text("Branch chat")
-        branch_button.connect("clicked", lambda btn: self.create_branch(int(id)))
+        branch_button.connect("clicked", lambda btn: self.emit("branch-requested", int(id)))
 
         # Edit box
         button = Gtk.Button(
@@ -682,7 +693,7 @@ class ChatHistory(Gtk.Box):
 
         apply_edit_stack.set_visible_child_name("edit")
         self.chat[int(gesture.get_name())]["Message"] = entry.get_text()
-        self.save_chat()
+        self.controller.save_chats()
         content_box.remove(entry)
         content_box.append(
             self.show_message(
@@ -747,7 +758,7 @@ class ChatHistory(Gtk.Box):
             self.messages_box.remove(box)
         except Exception:
             pass
-        self.save_chat()
+        self.controller.save_chats()
         self.show_chat()
 
     def show_prompt(self, button, id):
@@ -1218,3 +1229,41 @@ class ChatHistory(Gtk.Box):
         return self.get_file_button(
             self.chat[message_idx]["Message"][1 : len(self.chat[message_idx]["Message"])]
         )
+
+    def show_chat(self):
+        """Reload and display all messages from the chat"""
+        # Clear existing messages from UI
+        self.chat_list_block.remove_all()
+        self.messages_box.clear()
+        self.last_error_box = None
+        if len(self.chat) == 0:
+            self.show_placeholder()
+        else:
+            self.hide_placeholder()
+        # Add warning or disclaimer first (matching populate_chat behavior)
+        if not self.controller.newelle_settings.virtualization:
+            self.add_message("WarningNoVirtual")
+        else:
+            self.add_message("Disclaimer")
+
+        # Re-populate the chat with all messages
+        for i in range(len(self.chat)):
+            if self.chat[i]["User"] == "User":
+                self.show_message(self.chat[i]["Message"], True, id_message=i, is_user=True)
+            elif self.chat[i]["User"] == "Assistant":
+                self.show_message(self.chat[i]["Message"], True, id_message=i)
+            elif self.chat[i]["User"] in ["File", "Folder"]:
+                self.add_message(self.chat[i]["User"], self.get_file_button(self.chat[i]["Message"][1 : len(self.chat[i]["Message"])]))
+
+        # Reset lazy loading state
+        total_messages = len(self.chat)
+        if self.lazy_load_enabled and total_messages > self.lazy_load_batch_size:
+            self.lazy_loaded_start = max(0, total_messages - self.lazy_load_batch_size)
+            self.lazy_loaded_end = total_messages
+        else:
+            self.lazy_loaded_start = 0
+            self.lazy_loaded_end = total_messages
+
+        # Update UI state
+        GLib.idle_add(self.scrolled_chat)
+        GLib.idle_add(self.update_button_text)

@@ -263,6 +263,13 @@ class MainWindow(Adw.ApplicationWindow):
             orientation=Gtk.Orientation.VERTICAL, css_classes=["background", "view"]
         )
         self.chat_history = ChatHistory(self, self.chat, self.chat_id)
+        self.chat_history.connect("focus-input", lambda _: self.focus_input())
+        self.chat_history.connect("branch-requested", self._on_branch_requested)
+        self.chat_history.connect("clear-requested", self._on_clear_requested)
+        self.chat_history.connect("continue-requested", self._on_continue_requested)
+        self.chat_history.connect("regenerate-requested", self._on_regenerate_requested)
+        self.chat_history.connect("stop-requested", self._on_stop_requested)
+        self.chat_history.connect("files-dropped", self._on_files_dropped)
         self.chat_history.populate_chat()
         self.chat_scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
         # Scroll monitoring will be connected in show_chat after listbox is created
@@ -603,46 +610,6 @@ class MainWindow(Adw.ApplicationWindow):
                 self.main_path = child.main_path 
                 os.chdir(os.path.expanduser(child.main_path))
 
-    def show_placeholder(self):
-        self.history_block.set_visible_child_name("placeholder")
-        self.tips_section.shuffle_tips()
-
-    def hide_placeholder(self):
-        self.history_block.set_visible_child_name("history")
-    
-    def build_placeholder(self):
-        tips = [
-            {"title": _("Ask about a website"), "subtitle": _("Write #https://website.com in chat to ask information about a website"), "on_click": lambda : self.send_bot_response(Gtk.Button(label="#https://github.com/qwersyk/Newelle\nWhat is Newelle?"))},
-            {"title": _("Check out our Extensions!"), "subtitle": _("We have a lot of extensions for different things. Check it out!"), "on_click": lambda: self.app.extension_action()},
-            {"title": _("Chat with documents!"), "subtitle": _("Add your documents to your documents folder and chat using the information contained in them!"), "on_click": lambda : self.app.settings_action_paged("Memory")},
-            {"title": _("Surf the web!"), "subtitle": _("Enable web search to allow the LLM to surf the web and provide up to date answers"), "on_click": lambda : self.app.settings_action_paged("Memory")},
-            {"title": _("Mini Window"), "subtitle": _("Ask questions on the fly using the mini window mode"), "on_click": lambda : open_website("https://github.com/qwersyk/Newelle/?tab=readme-ov-file#mini-window-mode")},
-            {"title": _("Text to Speech"), "subtitle": _("Newelle supports text-to-speech! Enable it in the settings"), "on_click": lambda : self.app.settings_action_paged("General")},
-            {"title": _("Keyboard Shortcuts"), "subtitle": _("Control Newelle using Keyboard Shortcuts"), "on_click": lambda : self.app.on_shortcuts_action()},
-            {"title": _("Prompt Control"), "subtitle": _("Newelle gives you 100% prompt control. Tune your prompts for your use."), "on_click": lambda : self.app.settings_action_paged("Prompts")},
-            {"title": _("Thread Editing"), "subtitle": _("Check the programs and processes you run from Newelle"), "on_click": lambda : self.app.thread_editing_action()},
-            {"title": _("Programmable Prompts"), "subtitle": _("You can add dynamic prompts to Newelle, with conditions and probabilities"), "on_click": lambda : open_website("https://github.com/qwersyk/Newelle/wiki/Prompt-variables")},
-        ]
-        self.empty_chat_placeholder = Gtk.Box(hexpand=True, vexpand=True, orientation=Gtk.Orientation.VERTICAL)
-        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, halign=Gtk.Align.CENTER, valign=Gtk.Align.CENTER, spacing=20, vexpand=True)    
-        application_logo = Gtk.Image(icon_name=SCHEMA_ID)
-        application_logo.set_pixel_size(128)
-        box.append(application_logo)
-        title_label = Gtk.Label(label=_("New Chat"), css_classes=["title-1"])
-        box.append(title_label)
-        self.tips_section = TipsCarousel(tips, 5)
-        box.append(self.tips_section)
-        self.empty_chat_placeholder.append(box)
-        # Placeholder offers 
-        self.offers_entry_block_placeholder = Gtk.Box(
-            orientation=Gtk.Orientation.VERTICAL,
-            spacing=6,
-            valign=Gtk.Align.END,
-            halign=Gtk.Align.CENTER,
-            margin_bottom=6,
-        )
-        self.offers_entry_block_placeholder.set_size_request(-1, 36*self.offers)
-        self.empty_chat_placeholder.append(self.offers_entry_block_placeholder)
 
     def handle_error(self, message: str, error: ErrorSeverity):
         if error == ErrorSeverity.ERROR:
@@ -1582,85 +1549,6 @@ class MainWindow(Adw.ApplicationWindow):
         self.on_entry_activate(self.input_panel)
 
     # Explorer code
-    def get_file_button(self, path):
-        """Get the button for the file
-
-        Args:
-            path (): path of the file
-
-        Returns:
-           the button for the file
-        """
-        if path[0:2] == "./":
-            path = self.main_path + path[1 : len(path)]
-        path = os.path.expanduser(os.path.normpath(path))
-        button = Gtk.Button(
-            css_classes=["flat"],
-            margin_top=5,
-            margin_start=5,
-            margin_bottom=5,
-            margin_end=5,
-        )
-        button.connect("clicked", self.run_file_on_button_click)
-        button.set_name(path)
-        box = Gtk.Box()
-        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        file_name = path.split("/")[-1]
-        if os.path.exists(path):
-            if os.path.isdir(path):
-                name = "folder"
-            else:
-                if file_name[len(file_name) - 4 : len(file_name)] in [".png", ".jpg"]:
-                    name = "image-x-generic"
-                else:
-                    name = "text-x-generic"
-        else:
-            name = "image-missing"
-        icon = Gtk.Image(icon_name=name)
-        icon.set_css_classes(["large"])
-        box.append(icon)
-        box.append(vbox)
-        vbox.set_size_request(250, -1)
-        vbox.append(
-            Gtk.Label(
-                label=path.split("/")[-1],
-                css_classes=["title-3"],
-                halign=Gtk.Align.START,
-                wrap=True,
-                wrap_mode=Pango.WrapMode.WORD_CHAR,
-            )
-        )
-        vbox.append(
-            Gtk.Label(
-                label="/".join(path.split("/")[0:-1]),
-                halign=Gtk.Align.START,
-                wrap=True,
-                wrap_mode=Pango.WrapMode.WORD_CHAR,
-            )
-        )
-        button.set_child(box)
-        return button
-
-    def run_file_on_button_click(self, button, *a):
-        """Opens the file when the file button is clicked
-
-        Args:
-            button ():
-            *a:
-        """
-        if os.path.exists(button.get_name()):
-            if os.path.isdir(
-                os.path.join(os.path.expanduser(self.main_path), button.get_name())
-            ):
-                self.main_path = button.get_name()
-                self.ui_controller.new_explorer_tab(self.main_path, False)
-            else:
-                subprocess.run(["xdg-open", os.path.expanduser(button.get_name())])
-        else:
-            self.notification_block.add_toast(
-                Adw.Toast(title=_("File not found"), timeout=2)
-            )
-
     def handle_file_drag(self, DropTarget, data, x, y):
         """Handle file drag and drop
 
@@ -1688,19 +1576,19 @@ class MainWindow(Adw.ApplicationWindow):
             data = "\n".join(paths)
         for path in data.split("\n"):
             if os.path.exists(path):
-                message_label = self.get_file_button(path)
+                message_label = self.chat_history.get_file_button(path)
                 if os.path.isdir(path):
                     self.chat.append({"User": "Folder", "Message": " " + path})
-                    self.add_message("Folder", message_label)
+                    self.chat_history.add_message("Folder", message_label)
                 else:
                     self.chat.append({"User": "File", "Message": " " + path})
-                    self.add_message("File", message_label)
+                    self.chat_history.add_message("File", message_label)
                 self.chats[self.chat_id]["chat"] = self.chat
+                self.chat_history.hide_placeholder()
             else:
                 self.notification_block.add_toast(
                     Adw.Toast(title=_("The file is not recognized"), timeout=2)
                 )
-        self.hide_placeholder()
 
     def handle_main_block_change(self, *data):
         status = self.main.get_show_sidebar()
@@ -1763,15 +1651,38 @@ class MainWindow(Adw.ApplicationWindow):
         """
         if not idle:
             GLib.idle_add(self.remove_error, True)
-        if self.last_error_box is not None:
-            error_row = self.chat_list_block.get_last_child()
+        if self.chat_history.last_error_box is not None:
+            error_row = self.chat_history.chat_list_block.get_last_child()
             if error_row is None:
                 return
-            self.chat_list_block.remove(error_row)
+            self.chat_history.chat_list_block.remove(error_row)
+            self.chat_history.last_error_box = None
             self.last_error_box = None
-
-            list_box.append(chat_row)
             
+    def _on_branch_requested(self, chat_history, message_id: int):
+        """Handle branch-requested signal from ChatHistory."""
+        self.create_branch(message_id)
+
+    def _on_clear_requested(self, chat_history):
+        """Handle clear-requested signal from ChatHistory."""
+        self.clear_chat(None)
+
+    def _on_continue_requested(self, chat_history):
+        """Handle continue-requested signal from ChatHistory."""
+        self.continue_message(None)
+
+    def _on_regenerate_requested(self, chat_history):
+        """Handle regenerate-requested signal from ChatHistory."""
+        self.regenerate_message(None)
+
+    def _on_stop_requested(self, chat_history):
+        """Handle stop-requested signal from ChatHistory."""
+        self.stop_chat(None)
+
+    def _on_files_dropped(self, chat_history, data):
+        """Handle files-dropped signal from ChatHistory (file drag and drop)."""
+        self.handle_file_drag(None, data, 0, 0)
+
     def create_branch(self, message_id: int):
         """Create a new chat branching from a specific message ID in the current chat"""
         if self.chat_id < 0 or self.chat_id >= len(self.chats):
@@ -2001,11 +1912,6 @@ class MainWindow(Adw.ApplicationWindow):
         self.chat_stack.set_transition_type(Gtk.StackTransitionType.SLIDE_DOWN)
         GLib.idle_add(self.chat_history.update_button_text)
 
-    def scrolled_chat(self):
-        """Scroll at the bottom of the chat"""
-        adjustment = self.chat_scroll.get_vadjustment()
-        adjustment.set_value(100000)
-
     def clear_chat(self, button):
         """Delete current chat history"""
         self.notification_block.add_toast(
@@ -2017,7 +1923,7 @@ class MainWindow(Adw.ApplicationWindow):
         self.active_tool_results = []
         self.show_chat()
         self.stream_number_variable += 1
-        GLib.idle_add(self.update_button_text)
+        GLib.idle_add(self.chat_history.update_button_text)
 
     def stop_chat(self, button=None):
         """Stop generating the message"""
@@ -2028,7 +1934,7 @@ class MainWindow(Adw.ApplicationWindow):
         self.status = True
         self.stream_number_variable += 1
         self.chat_stop_button.set_visible(False)
-        GLib.idle_add(self.update_button_text)
+        GLib.idle_add(self.chat_history.update_button_text)
         self.notification_block.add_toast(
             Adw.Toast(
                 title=_("The message generation was stopped"), timeout=2
@@ -2067,8 +1973,8 @@ class MainWindow(Adw.ApplicationWindow):
                     text = "```file\n" + self.attached_image_data + "\n```\n" + text
                 self.delete_attachment(self.attach_button)
             self.chat.append({"User": "User", "Message": text})
-            self.show_message(text, True, id_message=len(self.chat) - 1, is_user=True)
-        self.scrolled_chat()
+            self.chat_history.show_message(text, True, id_message=len(self.chat) - 1, is_user=True)
+        self.chat_history.scrolled_chat()
         threading.Thread(target=self.send_message).start()
         self.send_button_start_spinner()
 
@@ -2083,7 +1989,7 @@ class MainWindow(Adw.ApplicationWindow):
         self.send_button_start_spinner()
         text = button.get_child().get_label()
         self.chat.append({"User": "User", "Message": text})
-        self.show_message(text, id_message=len(self.chat) - 1, is_user=True)
+        self.chat_history.show_message(text, id_message=len(self.chat) - 1, is_user=True)
         
         threading.Thread(target=self.send_message).start()
 
@@ -2113,10 +2019,10 @@ class MainWindow(Adw.ApplicationWindow):
                 btn_placeholder.get_child().set_label(message)
                 btn_placeholder.set_visible(True)
 
-                GLib.idle_add(self.scrolled_chat)
+                GLib.idle_add(self.chat_history.scrolled_chat)
             i += 1
         self.chat_stop_button.set_visible(False)
-        GLib.idle_add(self.scrolled_chat)
+        GLib.idle_add(self.chat_history.scrolled_chat)
 
 
     def send_message(self, manual=True):
@@ -2126,8 +2032,7 @@ class MainWindow(Adw.ApplicationWindow):
         self.stream_number_variable += 1
         stream_number_variable = self.stream_number_variable
         self.status = False
-        GLib.idle_add(self.update_button_text)
-        GLib.idle_add(self.hide_placeholder)
+        GLib.idle_add(self.chat_history.update_button_text)
         
         # Start creating the message
         if self.model.stream_enabled():
@@ -2151,7 +2056,7 @@ class MainWindow(Adw.ApplicationWindow):
                 elif status == 'reload_message':
                     GLib.idle_add(self.reload_message, data)
                 elif status == 'error':
-                    GLib.idle_add(self.show_message, data, False, -1, False, False, True)
+                    GLib.idle_add(self.chat_history.show_message, data, False, -1, False, False, True)
                     GLib.idle_add(self.remove_send_button_spinner)
                 elif status == 'done':
                     GLib.idle_add(self.remove_send_button_spinner)
@@ -2182,7 +2087,7 @@ class MainWindow(Adw.ApplicationWindow):
                 streaming_widget.update_content(final_message, is_streaming=False)
                 streaming_widget.finish_streaming()
                 # Re-enable editability or other final states if needed
-                self._finalize_message_display()
+                self.chat_history._finalize_message_display()
                 self.save_chat()
 
                 # Handle deferred tool execution and continuation
@@ -2206,11 +2111,11 @@ class MainWindow(Adw.ApplicationWindow):
                             if threads and streaming_widget.state.get("should_continue", False):
                                 self.send_message(manual=False)
                             else:
-                                GLib.idle_add(self.scrolled_chat)
+                                GLib.idle_add(self.chat_history.scrolled_chat)
 
                         threading.Thread(target=wait_and_continue).start()
                 else:
-                        GLib.idle_add(self.scrolled_chat)
+                        GLib.idle_add(self.chat_history.scrolled_chat)
 
             # Already in main thread via idle_add wrapper in run_generation
             finalize_stream()
@@ -2220,7 +2125,7 @@ class MainWindow(Adw.ApplicationWindow):
         else:
             # No streaming (e.g. quick response or non-streaming model), standard display
             # Already in main thread
-            self.show_message(
+            self.chat_history.show_message(
                 message_label,
                 False,
                 -1,
@@ -2300,7 +2205,7 @@ class MainWindow(Adw.ApplicationWindow):
             parent_window=self,
             id_message=next_message_id,
         )
-        self.streaming_box = self.add_message(
+        self.streaming_box = self.chat_history.add_message(
             "Assistant",
             self.current_streaming_message,
             id_message=next_message_id,
@@ -2308,8 +2213,8 @@ class MainWindow(Adw.ApplicationWindow):
         )
         # Safely remove the last element from messages_box
         try:
-            if hasattr(self, "messages_box") and len(self.messages_box) > 0:
-                self.messages_box.pop()
+            if hasattr(self.chat_history, "messages_box") and len(self.chat_history.messages_box) > 0:
+                self.chat_history.messages_box.pop()
         except (AttributeError, IndexError):
             pass
         self.streaming_box.set_overflow(Gtk.Overflow.VISIBLE)
@@ -2346,6 +2251,13 @@ class MainWindow(Adw.ApplicationWindow):
                     self.chat_stack.set_transition_duration(0)
                 old_chat_history = self.chat_history
                 self.chat_history = ChatHistory(self, self.chat, self.chat_id)
+                self.chat_history.connect("focus-input", lambda _: self.focus_input())
+                self.chat_history.connect("branch-requested", self._on_branch_requested)
+                self.chat_history.connect("clear-requested", self._on_clear_requested)
+                self.chat_history.connect("continue-requested", self._on_continue_requested)
+                self.chat_history.connect("regenerate-requested", self._on_regenerate_requested)
+                self.chat_history.connect("stop-requested", self._on_stop_requested)
+                self.chat_history.connect("files-dropped", self._on_files_dropped)
                 self.chat_stack.add_child(self.chat_history)
                 self.chat_history.populate_chat()
                 self.chat_stack.set_visible_child(self.chat_history)
@@ -2362,108 +2274,17 @@ class MainWindow(Adw.ApplicationWindow):
         self.chat[-1]["InputTokens"] = self.last_token_num[0]
         self.chat[-1]["OutputTokens"] = self.last_token_num[1]
 
-    def create_table(self, table):
-        """Create a table
-
-        Args:
-            table (): markdown table code
-
-        Returns:
-           table widget
-        """
-        data = []
-        for row in table:
-            cells = row.strip("|").split("|")
-            data.append([cell.strip() for cell in cells])
-        model = Gtk.ListStore(*[str] * len(data[0]))
-        for row in data[1:]:
-            if not all(
-                len(element.replace(":", "").replace(" ", "").replace("-", "").strip())
-                == 0
-                for element in row
-            ):
-                r = []
-                for element in row: 
-                    r.append(simple_markdown_to_pango(LatexNodes2Text().latex_to_text(element)))
-                model.append(r)
-        self.treeview = Gtk.TreeView(
-            model=model, css_classes=["toolbar", "view", "transparent"]
-        )
-
-        for i, title in enumerate(data[0]):
-            renderer = Gtk.CellRendererText()
-            column = Gtk.TreeViewColumn(title, renderer, markup=i)
-            self.treeview.append_column(column)
-        scroll = Gtk.ScrolledWindow(child=self.treeview, propagate_natural_height=True, propagate_natural_width=True, vscrollbar_policy=Gtk.PolicyType.NEVER,)
-        return scroll
-
-    def edit_message(
-        self, gesture, data, x, y, box: Gtk.Box, apply_edit_stack: Gtk.Stack
-    ):
-        """Edit message on right click or button click
-
-        Args:
-            gesture (): widget with the id of the message to edit as name
-            data (): ignored
-            x (): ignored
-            y (): ignored
-            box: box of the message
-            apply_edit_stack: stack with the edit controls
-
-        Returns:
-
-        """
-        if not self.status:
-            self.notification_block.add_toast(
-                Adw.Toast(
-                    title=_("You can't edit a message while the program is running."),
-                    timeout=2,
-                )
-            )
-            return False
-
-        overlay = box.get_first_child()
-        if overlay is None:
-            return
-        content_box = overlay.get_child()
-        if content_box is None:
-            return
-
-        old_message = content_box.get_last_child()
-        if old_message is None:
-            return
-
-        entry = MultilineEntry(not self.controller.newelle_settings.send_on_enter)
-        self.edit_entries[int(gesture.get_name())] = entry
-        # Infer size from the size of the old message
-        wmax = old_message.get_size(Gtk.Orientation.HORIZONTAL)
-        hmax = old_message.get_size(Gtk.Orientation.VERTICAL)
-        # Create the entry to edit the message
-        entry.set_text(self.chat[int(gesture.get_name())]["Message"])
-        entry.set_margin_end(10)
-        entry.set_margin_top(10)
-        entry.set_margin_start(10)
-        entry.set_margin_bottom(10)
-        entry.set_size_request(wmax, hmax)
-        # Change the stack to edit controls
-        apply_edit_stack.set_visible_child_name("apply")
-        entry.set_on_enter(
-            lambda entry: self.apply_edit_message(gesture, box, apply_edit_stack)
-        )
-        content_box.remove(old_message)
-        content_box.append(entry)
-
     def reload_message(self, message_id: int):
         """Reload a message
 
         Args:
             message_id (int): the id of the message to reload
         """
-        if len(self.messages_box) < message_id:
+        if len(self.chat_history.messages_box) < message_id:
             return
         if self.chat[message_id]["User"] == "Console":
             return
-        message_box = self.messages_box[message_id + 1]  # +1 to fix message warning
+        message_box = self.chat_history.messages_box[message_id + 1]  # +1 to fix message warning
         overlay = message_box.get_first_child()
         if overlay is None:
             return
@@ -2475,7 +2296,7 @@ class MainWindow(Adw.ApplicationWindow):
 
             content_box.remove(old_label)
             content_box.append(
-                self.show_message(
+                self.chat_history.show_message(
                     self.chat[message_id]["Message"],
                     id_message=message_id,
                     is_user=self.chat[message_id]["User"] == "User",
@@ -2483,488 +2304,6 @@ class MainWindow(Adw.ApplicationWindow):
                     restore=True
                 )
             )
-
-    def apply_edit_message(self, gesture, box: Gtk.Box, apply_edit_stack: Gtk.Stack):
-        """Apply edit for a message
-
-        Args:
-            gesture (): widget with the id of the message to edit as name
-            box: box of the message
-            apply_edit_stack: stack with the edit controls
-        """
-        entry = self.edit_entries[int(gesture.get_name())]
-        self.focus_input()
-        # Delete message
-        if entry.get_text() == "":
-            self.delete_message(gesture, box)
-            return
-
-        overlay = box.get_first_child()
-        if overlay is None:
-            return
-        content_box = overlay.get_child()
-        if content_box is None:
-            return
-
-        apply_edit_stack.set_visible_child_name("edit")
-        self.chat[int(gesture.get_name())]["Message"] = entry.get_text()
-        self.save_chat()
-        content_box.remove(entry)
-        content_box.append(
-            self.show_message(
-                entry.get_text(),
-                restore=True,
-                id_message=int(gesture.get_name()),
-                is_user=self.chat[int(gesture.get_name())]["User"] == "User",
-                return_widget=True,
-            )
-        )
-        del self.edit_entries[int(gesture.get_name())]
-
-    def cancel_edit_message(self, gesture, box: Gtk.Box, apply_edit_stack: Gtk.Stack):
-        """Restore the old message
-
-        Args:
-            gesture (): widget with the id of the message to edit as name
-            box: box of the message
-            apply_edit_stack: stack with the edit controls
-        """
-        entry = self.edit_entries[int(gesture.get_name())]
-        self.focus_input()
-
-        overlay = box.get_first_child()
-        if overlay is None:
-            return
-        content_box = overlay.get_child()
-        if content_box is None:
-            return
-
-        apply_edit_stack.set_visible_child_name("edit")
-        content_box.remove(entry)
-        content_box.append(
-            self.show_message(
-                self.chat[int(gesture.get_name())]["Message"],
-                restore=True,
-                id_message=int(gesture.get_name()),
-                is_user=self.chat[int(gesture.get_name())]["User"] == "User",
-                return_widget=True,
-            )
-        )
-        del self.edit_entries[int(gesture.get_name())]
-
-    def delete_message(self, gesture, box):
-        """Delete a message from the chat
-
-        Args:
-            gesture (): widget with the id of the message to edit as name
-            box (): box of the message
-        """
-        idx = int(gesture.get_name())
-        if idx < len(self.chat):
-            del self.chat[idx]
-        
-        # Also delete subsequent Console messages
-        while idx < len(self.chat) and self.chat[idx].get("User") == "Console":
-            del self.chat[idx]
-
-        try:
-            self.chat_list_block.remove(box.get_parent())
-            self.messages_box.remove(box)
-        except Exception:
-            pass
-        self.save_chat()
-        self.show_chat()
-
-    def show_prompt(self, button, id):
-        """Show a prompt
-
-        Args:
-            id (): id of the prompt to show
-        """
-        # Retrieve prompt data
-        prompt_data = self.chat[id]
-        prompt_text = prompt_data.get("Prompt", "")
-        input_tokens = prompt_data.get("InputTokens", 0)
-        output_tokens = prompt_data.get("OutputTokens", 0)
-        elapsed = prompt_data.get("enlapsed", 0.0)
-
-        speed = 0.0
-        if elapsed > 0:
-            speed = output_tokens / elapsed
-
-        dialog = Adw.Dialog(can_close=True)
-        dialog.set_title(_("Prompt Details"))
-
-        content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        content.append(
-            Adw.HeaderBar(css_classes=["flat"], show_start_title_buttons=True)
-        )
-
-        scroll = Gtk.ScrolledWindow(propagate_natural_width=True)
-        scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
-        scroll.set_vexpand(True)
-        
-        clamp = Adw.Clamp(maximum_size=600, margin_top=24, margin_bottom=24, margin_start=12, margin_end=12)
-        scroll.set_child(clamp)
-
-        inner_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=24)
-        clamp.set_child(inner_box)
-
-        # Statistics
-        stats_group = Adw.PreferencesGroup(title=_("Statistics"))
-        inner_box.append(stats_group)
-
-        row_input = Adw.ActionRow(title=_("Input Tokens"), subtitle=str(input_tokens))
-        stats_group.add(row_input)
-
-        row_output = Adw.ActionRow(title=_("Output Tokens"), subtitle=str(output_tokens))
-        stats_group.add(row_output)
-
-        row_speed = Adw.ActionRow(title=_("Generation Speed"), subtitle=f"{speed:.2f} tokens/s")
-        stats_group.add(row_speed)
-
-        # Prompt
-        prompt_group = Adw.PreferencesGroup(title=_("Prompt"))
-        inner_box.append(prompt_group)
-
-        prompt_card = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        prompt_card.add_css_class("card")
-        
-        label = Gtk.Label(
-            label=prompt_text,
-            wrap=True,
-            wrap_mode=Pango.WrapMode.WORD,
-            selectable=True,
-            halign=Gtk.Align.START,
-            xalign=0,
-            margin_top=12,
-            margin_bottom=12,
-            margin_start=12,
-            margin_end=12
-        )
-        prompt_card.append(label)
-        prompt_group.add(prompt_card)
-
-        content.append(scroll)
-        dialog.set_child(content)
-        dialog.set_content_width(500)
-        dialog.set_content_height(600)
-        dialog.present()
-
-    def copy_message(self, button, id):
-        """Copy a message
-
-        Args:
-            id (): id of the message to copy
-        """
-        display = Gdk.Display.get_default()
-        if display is None or len(self.chat) <= id:
-            return
-        clipboard = display.get_clipboard()
-        clipboard.set_content(
-            Gdk.ContentProvider.new_for_value(self.chat[id]["Message"])
-        )
-        button.set_icon_name("object-select-symbolic")
-        GLib.timeout_add(2000, lambda: button.set_icon_name("edit-copy-symbolic"))
-
-    def build_edit_box(self, box, id, has_prompt: bool = True):
-        """Create the box and the stack with the edit buttons
-
-        Args:
-            box (): box of the message
-            id (): id of the message
-
-        Returns:
-            tuple: (Gtk.Stack, Gtk.Button branch_button)
-        """
-        edit_box = Gtk.Box()
-        buttons_box = Gtk.Box(
-            orientation=Gtk.Orientation.VERTICAL,
-            valign=Gtk.Align.CENTER,
-            halign=Gtk.Align.CENTER,
-        )
-        apply_box = Gtk.Box()
-
-        # Apply box
-        apply_edit_stack = Gtk.Stack()
-        apply_button = Gtk.Button(
-            icon_name="check-plain-symbolic",
-            css_classes=["flat", "success"],
-            valign=Gtk.Align.CENTER,
-            name=id,
-        )
-        apply_button.connect("clicked", self.apply_edit_message, box, apply_edit_stack)
-        cancel_button = Gtk.Button(
-            icon_name="circle-crossed-symbolic",
-            css_classes=["flat", "destructive-action"],
-            valign=Gtk.Align.CENTER,
-            name=id,
-        )
-        cancel_button.connect(
-            "clicked", self.cancel_edit_message, box, apply_edit_stack
-        )
-        apply_box.append(apply_button)
-        apply_box.append(cancel_button)
-
-        # Branch button (overlay)
-        branch_button = Gtk.Button(
-            icon_name="branch-symbolic",
-            css_classes=["flat", "warning"],
-            valign=Gtk.Align.END,
-            halign=Gtk.Align.END,
-            name=id,
-        )
-        branch_button.set_tooltip_text("Branch chat")
-        branch_button.connect("clicked", lambda btn: self.create_branch(int(id)))
-
-        # Edit box
-        button = Gtk.Button(
-            icon_name="document-edit-symbolic",
-            css_classes=["flat", "success"],
-            valign=Gtk.Align.CENTER,
-            name=id,
-        )
-        button.connect(
-            "clicked", self.edit_message, None, None, None, box, apply_edit_stack
-        )
-        remove_button = Gtk.Button(
-            icon_name="user-trash-symbolic",
-            css_classes=["flat", "destructive-action"],
-            valign=Gtk.Align.CENTER,
-            name=id,
-        )
-        remove_button.connect("clicked", self.delete_message, box)
-        edit_box.append(button)
-        edit_box.append(remove_button)
-        buttons_box.append(edit_box)
-        if has_prompt:
-            prompt_box = Gtk.Box(halign=Gtk.Align.CENTER)
-            info_button = Gtk.Button(
-                icon_name="question-round-outline-symbolic",
-                css_classes=["flat", "accent"],
-                valign=Gtk.Align.CENTER,
-                halign=Gtk.Align.CENTER,
-            )
-            info_button.connect("clicked", self.show_prompt, int(id))
-            prompt_box.append(info_button)
-
-            copy_button = Gtk.Button(
-                icon_name="edit-copy-symbolic",
-                css_classes=["flat"],
-                valign=Gtk.Align.CENTER,
-            )
-            copy_button.connect("clicked", self.copy_message, int(id))
-            prompt_box.append(copy_button)
-            buttons_box.append(prompt_box)
-
-        apply_edit_stack.add_named(apply_box, "apply")
-        apply_edit_stack.add_named(buttons_box, "edit")
-        apply_edit_stack.set_visible_child_name("edit")
-        return apply_edit_stack, branch_button
-
-    def add_message(self, user, message=None, id_message=0, editable=False):
-        """Add a message to the chat and return the box
-
-        Args:
-            user (): if the message is send by a user
-            message (): message label
-            id_message (): id of the message
-            editable (): if the message is editable
-        Returns:
-           message box
-        """
-        box = Gtk.Box(
-            css_classes=["card"],
-            margin_top=10,
-            margin_start=10,
-            margin_bottom=10,
-            margin_end=10,
-            halign=Gtk.Align.FILL,
-        )
-        self.messages_box.append(box)
-
-        # Update lazy_loaded_end when a message is displayed beyond the current range
-        if self.lazy_load_enabled:
-            if id_message >= self.lazy_loaded_end:
-                self.lazy_loaded_end = id_message + 1
-
-        # Create overlay for branch button positioning
-        overlay = Gtk.Overlay(hexpand=True, vexpand=True)
-        box.append(overlay)
-
-        # Create content box to hold message content (horizontal layout)
-        content_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, hexpand=True, vexpand=True)
-        overlay.set_child(content_box)
-
-        # Create edit controls
-        if editable:
-            apply_edit_stack, branch_button = self.build_edit_box(box, str(id_message), user == "Assistant")
-            evk = Gtk.GestureClick.new()
-            evk.connect("pressed", self.edit_message, box, apply_edit_stack)
-            evk.set_name(str(id_message))
-            evk.set_button(3)
-            box.add_controller(evk)
-            ev = Gtk.EventControllerMotion.new()
-
-            stack = Gtk.Stack()
-            ev.connect("enter", lambda x, y, data: (stack.set_visible_child_name("edit"), branch_button.set_visible(True)))
-            ev.connect("leave", lambda data: (stack.set_visible_child_name("label"), branch_button.set_visible(False)))
-            box.add_controller(ev)
-
-            # Add branch button to overlay (bottom right positioning)
-            branch_button.set_visible(False)
-            branch_button.set_halign(Gtk.Align.END)
-            branch_button.set_valign(Gtk.Align.END)
-            branch_button.set_margin_end(10)
-            branch_button.set_margin_bottom(10)
-            overlay.add_overlay(branch_button)
-
-        if user == "User":
-            label = Gtk.Label(
-                label=self.controller.newelle_settings.username + ": ",
-                margin_top=10,
-                margin_start=10,
-                margin_bottom=10,
-                margin_end=0,
-                css_classes=["accent", "heading"],
-            )
-            if editable:
-                stack.add_named(label, "label")
-                stack.add_named(apply_edit_stack, "edit")
-                stack.set_visible_child_name("label")
-                content_box.append(stack)
-            else:
-                content_box.append(label)
-            box.set_css_classes(["card", "user"])
-        if user == "Assistant":
-            label = Gtk.Label(
-                label=self.current_profile + ": ",
-                margin_top=10,
-                margin_start=10,
-                margin_bottom=10,
-                margin_end=0,
-                css_classes=["warning", "heading"],
-                wrap=True,
-                ellipsize=Pango.EllipsizeMode.END,
-            )
-            if editable:
-                stack.add_named(label, "label")
-                stack.add_named(apply_edit_stack, "edit")
-                stack.set_visible_child_name("label")
-                content_box.append(stack)
-            else:
-                content_box.append(label)
-            box.set_css_classes(["card", "assistant"])
-        if user == "Done":
-            content_box.append(
-                Gtk.Label(
-                    label="Assistant: ",
-                    margin_top=10,
-                    margin_start=10,
-                    margin_bottom=10,
-                    margin_end=0,
-                    css_classes=["success", "heading"],
-                )
-            )
-            box.set_css_classes(["card", "done"])
-        if user == "Error":
-            content_box.append(
-                Gtk.Label(
-                    label="Error: ",
-                    margin_top=10,
-                    margin_start=10,
-                    margin_bottom=10,
-                    margin_end=0,
-                    css_classes=["error", "heading"],
-                )
-            )
-            box.set_css_classes(["card", "failed"])
-        if user == "File":
-            content_box.append(
-                Gtk.Label(
-                    label=self.controller.newelle_settings.username + ": ",
-                    margin_top=10,
-                    margin_start=10,
-                    margin_bottom=10,
-                    margin_end=0,
-                    css_classes=["accent", "heading"],
-                )
-            )
-            box.set_css_classes(["card", "file"])
-        if user == "Folder":
-            content_box.append(
-                Gtk.Label(
-                    label=self.controller.newelle_settings.username + ": ",
-                    margin_top=10,
-                    margin_start=10,
-                    margin_bottom=10,
-                    margin_end=0,
-                    css_classes=["accent", "heading"],
-                )
-            )
-            box.set_css_classes(["card", "folder"])
-        if user == "WarningNoVirtual":
-            icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="dialog-warning"))
-            icon.set_icon_size(Gtk.IconSize.LARGE)
-            icon.set_properties(
-                margin_top=10, margin_start=20, margin_bottom=10, margin_end=10
-            )
-            box_warning = Gtk.Box(
-                halign=Gtk.Align.CENTER,
-                orientation=Gtk.Orientation.HORIZONTAL,
-                css_classes=["warning", "heading"],
-            )
-            box_warning.append(icon)
-
-            label = Gtk.Label(
-                label=_(
-                    "The neural network has access to your computer and any data in this chat and can run commands, be careful, we are not responsible for the neural network. Do not share any sensitive information."
-                ),
-                margin_top=10,
-                margin_start=10,
-                margin_bottom=10,
-                margin_end=10,
-                wrap=True,
-                wrap_mode=Pango.WrapMode.WORD_CHAR,
-            )
-
-            box_warning.append(label)
-            content_box.append(box_warning)
-            box.set_halign(Gtk.Align.CENTER)
-            box.set_css_classes(["card", "message-warning"])
-        elif user == "Disclaimer":
-            icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="user-info-symbolic"))
-            icon.set_icon_size(Gtk.IconSize.LARGE)
-            icon.set_properties(
-                margin_top=10, margin_start=20, margin_bottom=10, margin_end=10
-            )
-            box_warning = Gtk.Box(
-                halign=Gtk.Align.CENTER,
-                orientation=Gtk.Orientation.HORIZONTAL,
-                css_classes=["heading"],
-            )
-            box_warning.append(icon)
-
-            label = Gtk.Label(
-                label=_(
-                    "The neural network has access to any data in this chat, be careful, we are not responsible for the neural network. Do not share any sensitive information."
-                ),
-                margin_top=10,
-                margin_start=10,
-                margin_bottom=10,
-                margin_end=10,
-                wrap=True,
-                wrap_mode=Pango.WrapMode.WORD_CHAR,
-            )
-
-            box_warning.append(label)
-            content_box.append(box_warning)
-            box.set_halign(Gtk.Align.CENTER)
-            box.set_css_classes(["card"])
-        elif message is not None:
-            content_box.append(message)
-        self.chat_list_block.append(box)
-        return box
 
     def save_chat(self):
         """Save the chat to a file"""
@@ -3131,8 +2470,7 @@ class MainWindow(Adw.ApplicationWindow):
     def _on_attach_clicked(self, browser):
         text = "```website\n" + browser.get_current_url() + "\n```"
         self.chat.append({"User": "User", "Message": text})
-        self.hide_placeholder()
-        self.show_message(text, False, is_user=True)
+        self.chat_history.show_message(text, False, is_user=True)
     
     def add_explorer_tab(self, tabview=None, path=None):
         """Add an explorer tab
@@ -3192,9 +2530,9 @@ class MainWindow(Adw.ApplicationWindow):
             editor.saved()
         
     def add_file_to_chat(self, widget, path):
-        message_label = self.get_file_button(path)
+        message_label = self.chat_history.get_file_button(path)
         self.chat.append({"User": "File", "Message": " " + path})
-        self.add_message("File", message_label)
+        self.chat_history.add_message("File", message_label)
         self.chats[self.chat_id]["chat"] = self.chat
 
     def _on_editor_modified(self, editor, param, tab, base_title):

@@ -106,6 +106,53 @@ class NewelleController:
             index = min(chat_id, len(self.chats) - 1)
             self.chats[index]["chat"] = value
 
+    def get_console_reply(self, chat_id, id_message):
+        """Get existing console reply from chat history if available."""
+        if not hasattr(self, 'chats') or not self.chats:
+            return None
+        chat = self.chats[min(chat_id, len(self.chats) - 1)]["chat"]
+        idx = min(id_message, len(chat) - 1)
+        if idx >= 0 and chat[idx].get("User") == "Console":
+            return chat[idx]["Message"]
+        return None
+
+    def get_tool_response(self, chat_id, id_message, tool_name, tool_uuid):
+        """Get existing tool response from chat history by tool name and UUID."""
+        if not hasattr(self, 'chats') or not self.chats:
+            return None
+        chat = self.chats[min(chat_id, len(self.chats) - 1)]["chat"]
+        for i in range(id_message, len(chat)):
+            entry = chat[i]
+            if entry.get("User") == "Console":
+                msg = entry.get("Message", "")
+                if msg.startswith(f"[Tool: {tool_name}, ID: {tool_uuid}]"):
+                    lines = msg.split("\n", 1)
+                    return lines[1] if len(lines) > 1 else ""
+                if not msg.startswith("[Tool:"):
+                    return msg
+        return None
+
+    def get_tool_call_uuid(self, chat_id, id_message, tool_name, tool_call_index):
+        """Get tool call UUID from chat history during restore."""
+        if not hasattr(self, 'chats') or not self.chats:
+            return str(uuid_lib.uuid4())[:8]
+        chat = self.chats[min(chat_id, len(self.chats) - 1)]["chat"]
+        count = 0
+        for i in range(id_message, len(chat)):
+            entry = chat[i]
+            if entry.get("User") == "Console":
+                msg = entry.get("Message", "")
+                match = re.match(r'\[Tool: ([^,]+), ID: ([^\]]+)\]', msg)
+                if match:
+                    parsed_name, parsed_uuid = match.groups()
+                    if parsed_name == tool_name:
+                        if count == tool_call_index:
+                            return parsed_uuid
+                        count += 1
+                elif not msg.startswith("[Tool:"):
+                    return str(uuid_lib.uuid4())[:8]
+        return str(uuid_lib.uuid4())[:8]
+
     def __init__(self, python_path) -> None:
         self.settings = Gio.Settings.new(SCHEMA_ID)
         self.python_path = python_path
