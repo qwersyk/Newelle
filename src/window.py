@@ -183,8 +183,8 @@ class MainWindow(Adw.ApplicationWindow):
         self.chat_header.pack_end(self.headerbox)
     
         self.left_panel_toggle_button = Gtk.ToggleButton(css_classes=["flat"], active=True, icon_name="sidebar-show-left-symbolic")
-        self.chat_header.pack_start(self.left_panel_toggle_button)
         self.left_panel_toggle_button.connect("clicked", self.on_chat_panel_toggled)
+
         self.chat_block.append(self.chat_header)
         self.chat_block.append(Gtk.Separator())
         self.chat_panel.append(self.chat_block)
@@ -277,16 +277,23 @@ class MainWindow(Adw.ApplicationWindow):
         self.notification_block.set_child(self.chat_tab_overview)
         self.secondary_message_chat_block.append(self.notification_block)
         
-        # Tab button in header for tab overview
+        # Header controls on the left: History - Profile - Tab Overview - Add Tab
+        self.chat_header.pack_start(self.left_panel_toggle_button)
+        
+        self.profiles_box = None
+        self.refresh_profiles_box()
+
         self.chat_tab_button = Adw.TabButton(view=self.chat_tabs)
         self.chat_tab_button.connect("clicked", lambda x: self.chat_tab_overview.set_open(not self.chat_tab_overview.get_open()))
         self.chat_header.pack_start(self.chat_tab_button)
 
+        self.add_chat_button = Gtk.Button(css_classes=["flat"], icon_name="list-add-symbolic")
+        self.add_chat_button.set_tooltip_text(_("New Tab"))
+        self.add_chat_button.connect("clicked", lambda *_: self._on_create_chat_tab(None))
+        self.chat_header.pack_start(self.add_chat_button)
+
         # Explorer panel 
         self.main_program_block.set_show_sidebar(False)
-        
-        self.profiles_box = None
-        self.refresh_profiles_box()
 
         # Add the initial chat tab
         self.add_chat_tab(self.chat_id)

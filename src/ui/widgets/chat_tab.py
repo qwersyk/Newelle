@@ -875,9 +875,8 @@ class ChatTab(Gtk.Box):
 
     def generate_suggestions(self):
         """Create the suggestions and update the UI when it's finished"""
-        if not self.status: # Don't generate if currently generating a message
+        if not self.status or self.chat_history.has_suggestions(): # Don't generate if currently generating a message or suggestions are already shown
              return
-        print("ae")
 
         def generate():
             try:

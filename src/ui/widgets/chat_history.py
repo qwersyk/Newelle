@@ -1328,6 +1328,13 @@ class ChatHistory(Gtk.Box):
                 GLib.idle_add(self.scrolled_chat)
             i += 1
         self.chat_stop_button.set_visible(False)
+
+    def has_suggestions(self):
+        """Check if any suggestions are currently visible"""
+        for btn in self.message_suggestion_buttons_array + self.message_suggestion_buttons_array_placeholder:
+            if btn.get_visible():
+                return True
+        return False
         GLib.idle_add(self.scrolled_chat)
 
     def update_chat(self, chat, chat_id):
