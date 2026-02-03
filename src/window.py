@@ -21,7 +21,7 @@ from .ui.profile import ProfileDialog
 from .ui.presentation import PresentationWindow
 from .ui.widgets import File, CopyBox, BarChartBox, MarkupTextView, DocumentReaderWidget, TipsCarousel, BrowserWidget, Terminal, CodeEditorWidget, ToolWidget
 from .ui.explorer import ExplorerPanel
-from .ui.widgets import MultilineEntry, ProfileRow, DisplayLatex, InlineLatex, ThinkingWidget, Message, ChatRow, ChatHistory
+from .ui.widgets import MultilineEntry, ProfileRow, DisplayLatex, InlineLatex, ThinkingWidget, Message, ChatRow, ChatHistory, ChatTab
 from .ui.stdout_monitor import StdoutMonitorDialog
 from .utility.stdout_capture import StdoutMonitor
 from .constants import AVAILABLE_LLMS, SCHEMA_ID, SETTINGS_GROUPS
@@ -251,32 +251,33 @@ class MainWindow(Adw.ApplicationWindow):
         )
 
         self.chat_block.append(self.secondary_message_chat_block)
-        self.chat_list_block = Gtk.ListBox(
-            css_classes=["separators", "background", "view"]
+        
+        # Chat tabs system - Adw.TabView for multi-tab chat support
+        self.chat_tabs = Adw.TabView()
+        self.chat_tabs.connect("notify::selected-page", self._on_chat_tab_switched)
+        self.chat_tabs.connect("close-page", self._on_chat_tab_close_requested)
+        
+        # Tab bar - shows tabs when more than one is open
+        self.chat_tab_bar = Adw.TabBar(autohide=True, view=self.chat_tabs, css_classes=["inline"])
+        self.secondary_message_chat_block.append(self.chat_tab_bar)
+        
+        # Tab overview for managing tabs
+        self.chat_tab_overview = Adw.TabOverview(
+            view=self.chat_tabs, 
+            child=self.chat_tabs, 
+            enable_new_tab=True
         )
-        self.chat_list_block.set_selection_mode(Gtk.SelectionMode.NONE)
-        self.chat_scroll = Gtk.ScrolledWindow(vexpand=True)
-        # Chat stack - In order to create animation on chat switch
-        self.chat_stack = Gtk.Stack(transition_type=Gtk.StackTransitionType.SLIDE_UP, transition_duration=500)
-        self.chat_scroll_window = Gtk.Box(
-            orientation=Gtk.Orientation.VERTICAL, css_classes=["background", "view"]
-        )
-        self.chat_history = ChatHistory(self, self.chat, self.chat_id)
-        self.chat_history.connect("focus-input", lambda _: self.focus_input())
-        self.chat_history.connect("branch-requested", self._on_branch_requested)
-        self.chat_history.connect("clear-requested", self._on_clear_requested)
-        self.chat_history.connect("continue-requested", self._on_continue_requested)
-        self.chat_history.connect("regenerate-requested", self._on_regenerate_requested)
-        self.chat_history.connect("stop-requested", self._on_stop_requested)
-        self.chat_history.connect("files-dropped", self._on_files_dropped)
-        self.chat_history.populate_chat()
-        self.chat_scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
-        # Scroll monitoring will be connected in show_chat after listbox is created
-        self.chat_stack.add_child(self.chat_history)
-        self.chat_stack.set_visible_child(self.chat_history)
-        self.notification_block = Adw.ToastOverlay() 
-        self.notification_block.set_child(self.chat_stack)
+        self.chat_tab_overview.connect("create-tab", self._on_create_chat_tab)
+        
+        # Notification block wraps the tab overview
+        self.notification_block = Adw.ToastOverlay()
+        self.notification_block.set_child(self.chat_tab_overview)
         self.secondary_message_chat_block.append(self.notification_block)
+        
+        # Tab button in header for tab overview
+        self.chat_tab_button = Adw.TabButton(view=self.chat_tabs)
+        self.chat_tab_button.connect("clicked", lambda x: self.chat_tab_overview.set_open(not self.chat_tab_overview.get_open()))
+        self.chat_header.pack_start(self.chat_tab_button)
 
         # Explorer panel 
         self.main_program_block.set_show_sidebar(False)
@@ -284,97 +285,13 @@ class MainWindow(Adw.ApplicationWindow):
         self.profiles_box = None
         self.refresh_profiles_box()
 
-        # Input message box
-        self.input_box = Gtk.Box(
-            halign=Gtk.Align.FILL,
-            margin_start=6,
-            margin_end=6,
-            margin_top=6,
-            margin_bottom=6,
-            spacing=6,
-        )
-        self.input_box.set_valign(Gtk.Align.CENTER)
-        self.build_quick_toggles()
-        # Attach icon
-        button = Gtk.Button(
-            css_classes=["flat", "circular"], icon_name="attach-symbolic"
-        )
-        button.connect("clicked", self.attach_file)
-        # Attached image
-        self.attached_image = Gtk.Image(visible=False)
-        self.attached_image.set_size_request(36, 36)
-        self.attached_image_data = None
-        self.attach_button = button
-        self.input_box.append(button)
-        self.input_box.append(self.attached_image)
-        if (
-            not self.model.supports_vision()
-            and not self.model.supports_video_vision()
-            and (
-                len(self.model.get_supported_files())
-                + (
-                    len(self.rag_handler.get_supported_files())
-                    if self.rag_handler is not None
-                    else 0
-                )
-                == 0
-            )
-        ):
-            self.attach_button.set_visible(False)
-        else:
-            self.attach_button.set_visible(True)
+        # Add the initial chat tab
+        self.add_chat_tab(self.chat_id)
 
-        # Add screen recording button
-        self.screen_record_button = Gtk.Button(
-            icon_name="media-record-symbolic",
-            css_classes=["flat"],
-            halign=Gtk.Align.CENTER,
-        )
-        self.screen_record_button.connect("clicked", self.start_screen_recording)
-        self.input_box.append(self.screen_record_button)
+        def build_model_popup():
+            self.chat_header.set_title_widget(self.build_model_popup())
 
-        if not self.model.supports_video_vision():
-            self.screen_record_button.set_visible(False)
-        self.video_recorder = None
-
-        # Text Entry
-        self.input_panel = MultilineEntry(not self.controller.newelle_settings.send_on_enter)
-        self.input_panel.set_on_image_pasted(self.image_pasted)
-        self.input_box.append(self.input_panel)
-        self.input_panel.set_placeholder(_("Send a message..."))
-
-        # Buttons on the right
-        self.secondary_message_chat_block.append(Gtk.Separator())
-        self.secondary_message_chat_block.append(self.input_box)
-
-        # Mic button
-        self.mic_button = Gtk.Button(
-            css_classes=["suggested-action"],
-            icon_name="audio-input-microphone-symbolic",
-            width_request=36,
-            height_request=36,
-        )
-        self.mic_button.set_vexpand(False)
-        self.mic_button.set_valign(Gtk.Align.CENTER)
-        self.mic_button.connect("clicked", self.start_recording)
-        self.recording_button = self.mic_button
-        self.input_box.append(self.mic_button)
-
-        # Send button
-        box = Gtk.Box()
-        box.set_vexpand(False)
-        self.send_button = Gtk.Button(
-            css_classes=["suggested-action"],
-            icon_name="go-next-symbolic",
-            width_request=36,
-            height_request=36,
-        )
-        self.send_button.set_vexpand(False)
-        self.send_button.set_valign(Gtk.Align.CENTER)
-        box.append(self.send_button)
-        self.input_box.append(box)
-        self.input_panel.set_on_enter(self.on_entry_activate)
-        self.send_button.connect("clicked", self.on_entry_button_clicked)
+        # Connect sidebar handlers
         self.main.connect("notify::show-sidebar", self.handle_main_block_change)
         self.main.connect("notify::collapsed", self.handle_main_block_change)
         self.main_program_block.connect(
@@ -384,18 +301,10 @@ class MainWindow(Adw.ApplicationWindow):
             "notify::collapsed", self.handle_second_block_change
         )
 
-        def build_model_popup():
-            self.chat_header.set_title_widget(self.build_model_popup())
-
+        # Legacy streaming state - kept for compatibility but delegated to active tab
         self.active_tool_results = []
         self.stream_number_variable = 0
         self.stream_tools = False
-        self.streaming_pending = False
-        self.streaming_lock = threading.Lock()
-        self.streamed_content = ""
-        self.is_thinking = False
-        self.thinking_text = ""
-        self.main_text = ""
 
         GLib.idle_add(self.update_history)
         GLib.idle_add(self.show_chat)
@@ -558,6 +467,180 @@ class MainWindow(Adw.ApplicationWindow):
                 self.main_path = child.main_path 
                 os.chdir(os.path.expanduser(child.main_path))
 
+    # Chat Tab Management
+    def add_chat_tab(self, chat_id: int) -> Adw.TabPage | None:
+        """Add a new chat tab for the given chat_id.
+        
+        If a tab for this chat already exists, switch to it instead.
+        
+        Args:
+            chat_id: The ID of the chat to open in a new tab
+            
+        Returns:
+            The created or existing tab page, or None if failed
+        """
+        # Check if tab for this chat already exists
+        existing_tab = self.get_tab_for_chat(chat_id)
+        if existing_tab is not None:
+            self.chat_tabs.set_selected_page(existing_tab)
+            return existing_tab
+        
+        # Validate chat_id
+        if chat_id < 0 or chat_id >= len(self.chats):
+            return None
+        
+        # Create new ChatTab widget
+        chat_tab = ChatTab(self, chat_id)
+        chat_tab.connect("chat-name-changed", self._on_chat_name_changed)
+        
+        # Add to tab view
+        tab_page = self.chat_tabs.append(chat_tab)
+        tab_page.set_title(chat_tab.chat_name)
+        # No icon by default - only show when generating
+        
+        # Store reference in widget
+        chat_tab.set_tab_page(tab_page)
+        
+        # Select the new tab
+        self.chat_tabs.set_selected_page(tab_page)
+        
+        return tab_page
+    
+    def get_tab_for_chat(self, chat_id: int) -> Adw.TabPage | None:
+        """Get the tab page for a given chat_id, if it exists.
+        
+        Args:
+            chat_id: The chat ID to find
+            
+        Returns:
+            The tab page if found, None otherwise
+        """
+        n_pages = self.chat_tabs.get_n_pages()
+        for i in range(n_pages):
+            page = self.chat_tabs.get_nth_page(i)
+            child = page.get_child()
+            if isinstance(child, ChatTab) and child.chat_id == chat_id:
+                return page
+        return None
+    
+    def get_active_chat_tab(self) -> ChatTab | None:
+        """Get the currently active ChatTab widget.
+        
+        Returns:
+            The active ChatTab, or None if no tab is active
+        """
+        page = self.chat_tabs.get_selected_page()
+        if page is not None:
+            child = page.get_child()
+            if isinstance(child, ChatTab):
+                return child
+        return None
+    
+    def _on_chat_tab_switched(self, tab_view, param):
+        """Handle chat tab selection changes."""
+        tab = self.get_active_chat_tab()
+        if tab is not None:
+            # Update global chat_id to match selected tab
+            self.chat_id = tab.chat_id
+            # Update chat list selection
+            self.update_history()
+    
+    def _on_chat_tab_close_requested(self, tab_view, page) -> bool:
+        """Handle chat tab close request.
+        
+        Args:
+            tab_view: The TabView
+            page: The page being closed
+            
+        Returns:
+            True to prevent closing, False to allow
+        """
+        child = page.get_child()
+        if isinstance(child, ChatTab):
+            # Don't allow closing if generation is in progress
+            if not child.status:
+                self.notification_block.add_toast(
+                    Adw.Toast(title=_("Cannot close tab while generating"), timeout=2)
+                )
+                return True  # Prevent close
+            
+            # If this is the last tab, create a new one for the current chat first
+            if self.chat_tabs.get_n_pages() == 1:
+                # Just switch to a new chat tab instead of closing
+                self.new_chat(None)
+                return True  # Prevent close, we'll handle it via new_chat
+        
+        return False  # Allow close
+    
+    def _on_create_chat_tab(self, tab_overview) -> Adw.TabPage:
+        """Handle new tab creation from tab overview."""
+        # Create a new chat and force open it in a new tab
+        return self._create_new_chat_internal(force_new_tab=True)
+    
+    def _on_chat_name_changed(self, chat_tab, name):
+        """Handle chat name change signal from ChatTab."""
+        # Update history list
+        self.update_history()
+    
+    def _create_new_chat_internal(self, force_new_tab: bool = False):
+        """Internal method to create a new chat and potentially open it in a new tab.
+        
+        Args:
+            force_new_tab: If True, always creates a new tab instead of switching current
+            
+        Returns:
+            The Adw.TabPage if created/switched to
+        """
+        new_chat_entry = {
+            "name": _("Chat %d") % (len(self.chats) + 1),
+            "chat": [],
+            "id": str(uuid.uuid4()),
+            "branched_from": None
+        }
+        self.chats.append(new_chat_entry)
+        # Update all existing tab chat_ids since we inserted at 0
+        self._update_tab_chat_ids_after_insert(len(self.chats) - 1)
+        self.chat_id = len(self.chats) - 1
+        self.save_chat()
+        self.update_history()
+        
+        if force_new_tab:
+            return self.add_chat_tab(self.chat_id)
+        else:
+            # Switch current tab to the new chat instead of creating new tab
+            current_tab = self.get_active_chat_tab()
+            if current_tab is not None:
+                current_tab.switch_to_chat(self.chat_id)
+                return current_tab.tab_page
+            else:
+                # No tabs exist, create one
+                return self.add_chat_tab(self.chat_id)
+    
+    def _update_tab_chat_ids_after_insert(self, inserted_at: int):
+        """Update chat_ids in all tabs after a chat was inserted.
+        
+        Args:
+            inserted_at: The index where a new chat was inserted
+        """
+        n_pages = self.chat_tabs.get_n_pages()
+        for i in range(n_pages):
+            page = self.chat_tabs.get_nth_page(i)
+            child = page.get_child()
+            if isinstance(child, ChatTab) and child._chat_id >= inserted_at:
+                child._chat_id += 1
+    
+    def _update_tab_chat_ids_after_delete(self, deleted_at: int):
+        """Update chat_ids in all tabs after a chat was deleted.
+        
+        Args:
+            deleted_at: The index where a chat was deleted
+        """
+        n_pages = self.chat_tabs.get_n_pages()
+        for i in range(n_pages):
+            page = self.chat_tabs.get_nth_page(i)
+            child = page.get_child()
+            if isinstance(child, ChatTab) and child._chat_id > deleted_at:
+                child._chat_id -= 1
 
     def handle_error(self, message: str, error: ErrorSeverity):
         if error == ErrorSeverity.ERROR:
@@ -577,57 +660,6 @@ class MainWindow(Adw.ApplicationWindow):
                 "gtk-xft-dpi", settings.get_property("gtk-xft-dpi") + (zoom - 100) * 400
             )
             self.controller.newelle_settings.zoom = zoom
-
-    def build_quick_toggles(self):
-        self.quick_toggles = Gtk.MenuButton(
-            css_classes=["flat"], icon_name="controls-big"
-        )
-        self.quick_toggles_popover = Gtk.Popover()
-        entries = [  
-            {"setting_name": "rag-on", "title": _("Local Documents")},
-            {"setting_name": "memory-on", "title": _("Long Term Memory")},
-            {"setting_name": "tts-on", "title": _("TTS")},
-            {"setting_name": "websearch-on", "title": _("Web search")},
-        ]
-        
-        # Only add virtualization option if running in Flatpak
-        if is_flatpak():
-            entries.append({"setting_name": "virtualization", "title": _("Command virtualization")})
-
-        container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
-        container.set_margin_start(12)
-        container.set_margin_end(12)
-        container.set_margin_top(6)
-        container.set_margin_bottom(6)
-
-        for entry in entries:
-            title = entry["title"]
-            setting_key = entry["setting_name"]
-            # Create row container
-            row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
-            row.set_margin_top(6)
-            row.set_margin_bottom(6)
-            # Label with title
-            label = Gtk.Label(label=title, xalign=0)
-            label.set_hexpand(True)  # Expand horizontally to push switch right
-            # Create the Switch
-            switch = Gtk.Switch()
-            # Bind to settings
-            self.settings.bind(
-                setting_key, switch, "active", Gio.SettingsBindFlags.DEFAULT
-            )
-            # Pack row items
-            row.append(label)
-            row.append(switch)
-            # Add row to vertical container
-            container.append(row)
-
-        # Apply to UI
-        self.quick_toggles_popover.set_child(container)
-        self.quick_toggles.set_popover(self.quick_toggles_popover)
-        self.input_box.append(self.quick_toggles)
-        self.quick_toggles_popover.connect("closed", self.update_toggles)
-
 
     def update_toggles(self, *_):
         """Update the quick toggles"""
@@ -660,10 +692,16 @@ class MainWindow(Adw.ApplicationWindow):
                 threading.Thread(target=self.controller.handlers.load_handlers).start()
             GLib.timeout_add(1000, load_handlers_async)
         else:
-            # Update the send on enter setting
-            self.input_panel.set_enter_on_ctrl(not self.controller.newelle_settings.send_on_enter)
-            for entry in self.edit_entries.values():
-                entry.set_enter_on_ctrl(not self.controller.newelle_settings.send_on_enter)
+            # Update the send on enter setting for all chat tabs
+            send_on_enter = not self.controller.newelle_settings.send_on_enter
+            n_pages = self.chat_tabs.get_n_pages()
+            for i in range(n_pages):
+                page = self.chat_tabs.get_nth_page(i)
+                child = page.get_child()
+                if isinstance(child, ChatTab):
+                    child.input_panel.set_enter_on_ctrl(send_on_enter)
+                    for entry in child.chat_history.edit_entries.values():
+                        entry.set_enter_on_ctrl(send_on_enter)
         # Basic settings
         self.offers = self.controller.newelle_settings.offers
         self.current_profile = self.controller.newelle_settings.current_profile
@@ -700,31 +738,21 @@ class MainWindow(Adw.ApplicationWindow):
             self.model_popup_settings.refresh_tools_list()
 
     def reload_buttons(self):
-        """Reload offers and buttons on LLM change"""
+        """Reload offers and buttons on LLM change for all chat tabs"""
         if not self.first_load:
-            if (
-                not self.model.supports_vision()
-                and not self.model.supports_video_vision()
-                and len(self.model.get_supported_files())
-                + (
-                    len(self.rag_handler.get_supported_files())
-                    if self.rag_handler is not None
-                    else 0
-                )
-                == 0
-            ):
-                if self.attached_image_data is not None:
-                    self.delete_attachment(self.attach_button)
-                self.attach_button.set_visible(False)
-            else:
-                self.attach_button.set_visible(True)
-            if not self.model.supports_video_vision():
-                if self.video_recorder is not None:
-                    self.video_recorder.stop()
-                    self.video_recorder = None
-            self.screen_record_button.set_visible(
-                self.model.supports_video_vision() and not self.attached_image_data
-            )
+            n_pages = self.chat_tabs.get_n_pages()
+            for i in range(n_pages):
+                page = self.chat_tabs.get_nth_page(i)
+                child = page.get_child()
+                if isinstance(child, ChatTab):
+                    child._update_attach_visibility()
+                    if not self.model.supports_video_vision():
+                        if child.video_recorder is not None:
+                            child.video_recorder.stop()
+                            child.video_recorder = None
+                    child.screen_record_button.set_visible(
+                        self.model.supports_video_vision() and not child.attached_image_data
+                    )
             self.chat_header.set_title_widget(self.build_model_popup())
 
     # Model popup
@@ -1021,15 +1049,20 @@ class MainWindow(Adw.ApplicationWindow):
         return False
 
     def focus_input(self):
-        """Focus the input box. Often used to avoid removing focues objects"""
-        self.input_panel.input_panel.grab_focus()
+        """Focus the input box of the active chat tab."""
+        tab = self.get_active_chat_tab()
+        if tab is not None:
+            tab.focus_input()
     
     def add_text_to_input(self, text, focus_input=False):
-        txt = self.input_panel.get_text()
-        txt += "\n" + text 
-        self.input_panel.set_text(txt)
-        if focus_input:
-            self.focus_input()
+        """Add text to the input of the active chat tab."""
+        tab = self.get_active_chat_tab()
+        if tab is not None:
+            txt = tab.input_panel.get_text()
+            txt += "\n" + text 
+            tab.input_panel.set_text(txt)
+            if focus_input:
+                self.focus_input()
     # Profiles
     def refresh_profiles_box(self):
         """Changes the profile switch button on the header"""
@@ -1483,18 +1516,22 @@ class MainWindow(Adw.ApplicationWindow):
 
     # UI Functions for chat management
     def send_button_start_spinner(self):
-        """Show a spinner when you click on send button"""
-        spinner = Gtk.Spinner(spinning=True)
-        self.send_button.set_child(spinner)
+        """Show a spinner on the active tab's send button"""
+        tab = self.get_active_chat_tab()
+        if tab is not None:
+            tab.send_button_start_spinner()
 
     def remove_send_button_spinner(self):
-        """Remove the spinner in the send button when the message is received"""
-        self.send_button.set_child(None)
-        self.send_button.set_icon_name("go-next-symbolic")
+        """Remove the spinner in the active tab's send button"""
+        tab = self.get_active_chat_tab()
+        if tab is not None:
+            tab.remove_send_button_spinner()
 
     def on_entry_button_clicked(self, *a):
         """When the send message button is clicked activate the input panel"""
-        self.on_entry_activate(self.input_panel)
+        tab = self.get_active_chat_tab()
+        if tab is not None:
+            tab.on_entry_button_clicked()
 
     # Explorer code
     def handle_file_drag(self, DropTarget, data, x, y):
@@ -1509,7 +1546,10 @@ class MainWindow(Adw.ApplicationWindow):
         Returns:
 
         """
-        if not self.status:
+        tab = self.get_active_chat_tab()
+        if tab is None:
+            return False
+        if not tab.status:
             self.notification_block.add_toast(
                 Adw.Toast(
                     title=_("The file cannot be sent until the program is finished"),
@@ -1524,15 +1564,15 @@ class MainWindow(Adw.ApplicationWindow):
             data = "\n".join(paths)
         for path in data.split("\n"):
             if os.path.exists(path):
-                message_label = self.chat_history.get_file_button(path)
+                message_label = tab.chat_history.get_file_button(path)
                 if os.path.isdir(path):
-                    self.chat.append({"User": "Folder", "Message": " " + path})
-                    self.chat_history.add_message("Folder", message_label)
+                    tab.chat.append({"User": "Folder", "Message": " " + path})
+                    tab.chat_history.add_message("Folder", message_label)
                 else:
-                    self.chat.append({"User": "File", "Message": " " + path})
-                    self.chat_history.add_message("File", message_label)
-                self.chats[self.chat_id]["chat"] = self.chat
-                self.chat_history.hide_placeholder()
+                    tab.chat.append({"User": "File", "Message": " " + path})
+                    tab.chat_history.add_message("File", message_label)
+                self.chats[tab.chat_id]["chat"] = tab.chat
+                tab.chat_history.hide_placeholder()
             else:
                 self.notification_block.add_toast(
                     Adw.Toast(title=_("The file is not recognized"), timeout=2)
@@ -1559,37 +1599,16 @@ class MainWindow(Adw.ApplicationWindow):
 
     # Chat management
     def continue_message(self, button):
-        """Continue last message"""
-        if self.chat_history.chat[-1]["User"] not in ["Assistant", "Console", "User"]:
-            self.notification_block.add_toast(
-                Adw.Toast(title=_("You can no longer continue the message."), timeout=2)
-            )
-        else:
-            threading.Thread(target=self.send_message).start()
-            self.send_button_start_spinner()
+        """Continue last message in the active tab"""
+        tab = self.get_active_chat_tab()
+        if tab is not None:
+            tab.continue_message()
 
     def regenerate_message(self, *a):
-        """Regenerate last message"""
-        if self.chat_history.chat[-1]["User"] in ["Assistant", "Console"]:
-            for i in range(len(self.chat) - 1, -1, -1):
-                if self.chat[i]["User"] in ["Assistant", "Console"]:
-                    self.chat.pop(i)
-                else:
-                    break
-            self.show_chat()
-            threading.Thread(target=self.send_message).start()
-            self.send_button_start_spinner()
-        elif self.last_error_box is not None:
-            #self.remove_error(True)
-            self.show_chat()
-            threading.Thread(target=self.send_message).start()
-            self.send_button_start_spinner()
-        else:
-            self.notification_block.add_toast(
-                Adw.Toast(
-                    title=_("You can no longer regenerate the message."), timeout=2
-                )
-            )
+        """Regenerate last message in the active tab"""
+        tab = self.get_active_chat_tab()
+        if tab is not None:
+            tab.regenerate_message()
 
     def remove_error(self, idle=False):
         """Remove the last error shown in chat
@@ -1599,13 +1618,14 @@ class MainWindow(Adw.ApplicationWindow):
         """
         if not idle:
             GLib.idle_add(self.remove_error, True)
-        if self.chat_history.last_error_box is not None:
-            error_row = self.chat_history.chat_list_block.get_last_child()
+        tab = self.get_active_chat_tab()
+        if tab is not None and tab.chat_history.last_error_box is not None:
+            error_row = tab.chat_history.chat_list_block.get_last_child()
             if error_row is None:
                 return
-            self.chat_history.chat_list_block.remove(error_row)
-            self.chat_history.last_error_box = None
-            self.last_error_box = None
+            tab.chat_history.chat_list_block.remove(error_row)
+            tab.chat_history.last_error_box = None
+            tab.last_error_box = None
             
     def _on_branch_requested(self, chat_history, message_id: int):
         """Handle branch-requested signal from ChatHistory."""
@@ -1616,27 +1636,35 @@ class MainWindow(Adw.ApplicationWindow):
         self.clear_chat(None)
 
     def _on_continue_requested(self, chat_history):
-        """Handle continue-requested signal from ChatHistory."""
-        self.continue_message(None)
+        """Handle continue-requested signal from ChatHistory - deprecated, now handled by ChatTab."""
+        pass
 
     def _on_regenerate_requested(self, chat_history):
-        """Handle regenerate-requested signal from ChatHistory."""
-        self.regenerate_message(None)
+        """Handle regenerate-requested signal from ChatHistory - deprecated, now handled by ChatTab."""
+        pass
 
     def _on_stop_requested(self, chat_history):
-        """Handle stop-requested signal from ChatHistory."""
-        self.stop_chat(None)
+        """Handle stop-requested signal from ChatHistory - deprecated, now handled by ChatTab."""
+        pass
 
     def _on_files_dropped(self, chat_history, data):
         """Handle files-dropped signal from ChatHistory (file drag and drop)."""
         self.handle_file_drag(None, data, 0, 0)
 
-    def create_branch(self, message_id: int):
-        """Create a new chat branching from a specific message ID in the current chat"""
-        if self.chat_id < 0 or self.chat_id >= len(self.chats):
+    def create_branch(self, message_id: int, source_chat_id: int = None):
+        """Create a new chat branching from a specific message ID
+        
+        Args:
+            message_id: The message ID to branch from
+            source_chat_id: The chat ID to branch from (defaults to current chat_id)
+        """
+        if source_chat_id is None:
+            source_chat_id = self.chat_id
+            
+        if source_chat_id < 0 or source_chat_id >= len(self.chats):
             return
             
-        parent_chat = self.chats[self.chat_id]
+        parent_chat = self.chats[source_chat_id]
         parent_id = parent_chat.get("id")
         
         # Copy messages up to message_id (inclusive)
@@ -1649,18 +1677,20 @@ class MainWindow(Adw.ApplicationWindow):
             "branched_from": parent_id
         }
         
-        # Insert the new chat after the parent (or at the end if we want)
-        # For now, append to the end and let update_history handle the ordering
+        # Append to end
         self.chats.append(new_chat_entry)
         
-        # Switch to the new chat
-        self.chat_id = len(self.chats) - 1
-        self.chat = self.chats[self.chat_id]["chat"]
+        # Switch to the new chat - open in new tab
+        new_chat_id = len(self.chats) - 1
+        self.chat_id = new_chat_id
         
         self.save_chat()
         self.update_history()
-        self.show_chat(animate=True)
-        GLib.idle_add(self.chat_history.update_button_text)
+        # Open in new tab
+        self.add_chat_tab(new_chat_id)
+        tab = self.get_active_chat_tab()
+        if tab is not None:
+            GLib.idle_add(tab.chat_history.update_button_text)
 
     def update_history(self):
         """Reload chats panel with Adwaita-styled ChatRow widgets, supporting branching hierarchy"""
@@ -1816,21 +1846,20 @@ class MainWindow(Adw.ApplicationWindow):
             if new_name:
                 self.chats[chat_index]["name"] = new_name
                 self.save_chat()
+                
+                # Update tab title if this chat is open in a tab
+                tab_page = self.get_tab_for_chat(chat_index)
+                if tab_page:
+                    tab_page.set_title(new_name)
+                    
             self.update_history()
              
         entry.connect("activate", on_entry_activate)
         
     def new_chat(self, button, *a):
-        """Create a new chat and switch to it"""
-        self.chats.append({"name": _("Chat ") + str(len(self.chats) + 1), "chat": []})
-        if not self.status:
-            self.stop_chat()
-        self.stream_number_variable += 1
-        self.chat_id = len(self.chats) - 1
-        self.update_history()
- 
-        self.show_chat(animate=True)
-        GLib.idle_add(self.chat_history.update_button_text)
+        """Create a new chat and open it in a new tab"""
+        # Use internal method for consistency
+        self._create_new_chat_internal()
 
     def copy_chat(self, button, *a):
         """Copy a chat into a new chat"""
@@ -1843,114 +1872,80 @@ class MainWindow(Adw.ApplicationWindow):
         self.update_history()
 
     def chose_chat(self, id, *a):
-        """Switch to another chat"""
+        """Switch to another chat - switches current tab or focuses existing tab"""
         self.return_to_chat_panel(None)
-        if not self.status:
-            self.stop_chat()
-        self.stream_number_variable += 1
-        old_chat_id = self.chat_id
-        self.chat_id = int(id)
+        chat_id = int(id)
+        
+        # Check if this chat is already open in a tab
+        existing_tab = self.get_tab_for_chat(chat_id)
+        if existing_tab is not None:
+            # Switch to existing tab
+            self.chat_tabs.set_selected_page(existing_tab)
+        else:
+            # Switch current tab to the new chat
+            current_tab = self.get_active_chat_tab()
+            if current_tab is not None and current_tab.status:
+                # Current tab is idle, switch its chat
+                current_tab.switch_to_chat(chat_id)
+            else:
+                # Current tab is generating, open in new tab
+                self.add_chat_tab(chat_id)
+        
+        # Update global chat_id
+        self.chat_id = chat_id
+        
         # Change profile 
-        if self.controller.newelle_settings.remember_profile and "profile" in self.chats[self.chat_id]:
-            self.switch_profile(self.chats[self.chat_id]["profile"])
+        if self.controller.newelle_settings.remember_profile and "profile" in self.chats[chat_id]:
+            self.switch_profile(self.chats[chat_id]["profile"])
+        
         self.update_history()
-        if old_chat_id > self.chat_id:
-            self.chat_stack.set_transition_type(Gtk.StackTransitionType.SLIDE_UP)
-        self.show_chat(animate=True)
-        self.chat_stack.set_transition_type(Gtk.StackTransitionType.SLIDE_DOWN)
-        GLib.idle_add(self.chat_history.update_button_text)
+        tab = self.get_active_chat_tab()
+        if tab is not None:
+            GLib.idle_add(tab.chat_history.update_button_text)
 
     def clear_chat(self, button):
-        """Delete current chat history"""
-        self.notification_block.add_toast(
-            Adw.Toast(title=_("Chat is cleared"), timeout=2)
-        )
-        self.chat = []
-        for tool_result in self.active_tool_results:
-            tool_result.cancel()
-        self.active_tool_results = []
-        self.show_chat()
-        self.stream_number_variable += 1
-        GLib.idle_add(self.chat_history.update_button_text)
+        """Delete current chat history in the active tab"""
+        tab = self.get_active_chat_tab()
+        if tab is not None:
+            tab.clear_chat()
 
     def stop_chat(self, button=None):
-        """Stop generating the message"""
-        self.model.stop()
-        for tool_result in self.active_tool_results:
-            tool_result.cancel()
-        self.active_tool_results = []
-        self.status = True
-        self.stream_number_variable += 1
-        GLib.idle_add(self.chat_history.update_button_text)
-        self.notification_block.add_toast(
-            Adw.Toast(
-                title=_("The message generation was stopped"), timeout=2
-            )
-        )
-        GLib.idle_add(self.show_chat)
-        self.remove_send_button_spinner()
+        """Stop generating the message in the active tab"""
+        tab = self.get_active_chat_tab()
+        if tab is not None:
+            tab.stop_chat()
 
     def on_entry_activate(self, entry):
-        """Send a message when input is pressed
-
-        Args:
-            entry (): Message input entry
-        """
-        if not self.status:
-            self.notification_block.add_toast(
-                Adw.Toast(
-                    title=_("The message cannot be sent until the program is finished"),
-                    timeout=2,
-                )
-            )
-            return False
-        text = entry.get_text()
-        entry.set_text("")
-        if not text == " " * len(text):
-            if self.attached_image_data is not None:
-                if self.attached_image_data.endswith(
-                    (".png", ".jpg", ".jpeg", ".webp")
-                ) or self.attached_image_data.startswith("data:image/jpeg;base64,"):
-                    text = "```image\n" + self.attached_image_data + "\n```\n" + text
-                elif self.attached_image_data.endswith(
-                    (".mp4", ".mkv", ".webm", ".avi")
-                ):
-                    text = "```video\n" + self.attached_image_data + "\n```\n" + text
-                else:
-                    text = "```file\n" + self.attached_image_data + "\n```\n" + text
-                self.delete_attachment(self.attach_button)
-            self.chat.append({"User": "User", "Message": text})
-            self.chat_history.show_message(text, True, id_message=len(self.chat) - 1, is_user=True)
-        self.chat_history.scrolled_chat()
-        threading.Thread(target=self.send_message).start()
-        self.send_button_start_spinner()
+        """Send a message when input is pressed - delegates to active tab"""
+        tab = self.get_active_chat_tab()
+        if tab is not None:
+            tab.on_entry_activate(tab.input_panel)
 
     # LLM functions
 
     def send_bot_response(self, button):
-        """Add message to the chat, display the user message and the spiner and launch a thread to get response
-
-        Args:
-            button (): send message button
-        """
-        self.send_button_start_spinner()
-        text = button.get_child().get_label()
-        self.chat.append({"User": "User", "Message": text})
-        self.chat_history.show_message(text, id_message=len(self.chat) - 1, is_user=True)
-        
-        threading.Thread(target=self.send_message).start()
+        """Add message to the chat, display the user message and launch a thread to get response"""
+        tab = self.get_active_chat_tab()
+        if tab is not None:
+            tab.send_bot_response(button)
 
     def generate_suggestions(self):
         """Create the suggestions and update the UI when it's finished"""
+        tab = self.get_active_chat_tab()
+        if tab is None:
+            return
         suggestions = self.secondary_model.get_suggestions(
             self.controller.newelle_settings.prompts["get_suggestions_prompt"],
             self.offers,
-            self.controller.get_history()
+            self.controller.get_history(chat_id=tab.chat_id)
         )
         GLib.idle_add(self.populate_suggestions, suggestions)
 
     def populate_suggestions(self, suggestions):
         """Update the UI with the generated suggestions"""
+        tab = self.get_active_chat_tab()
+        if tab is None:
+            return
         i = 0
         # Convert to tuple to remove duplicates
         for suggestion in tuple(suggestions):
@@ -1958,298 +1953,55 @@ class MainWindow(Adw.ApplicationWindow):
                 break
             else:
                 message = suggestion.replace("\n", "")
-                btn = self.message_suggestion_buttons_array[i]
-                btn.get_child().set_label(message)
-                btn.set_visible(True)
-                # Placeholder buttons 
-                btn_placeholder = self.message_suggestion_buttons_array_placeholder[i]
-                btn_placeholder.get_child().set_label(message)
-                btn_placeholder.set_visible(True)
-
-                GLib.idle_add(self.chat_history.scrolled_chat)
+                if i < len(tab.chat_history.message_suggestion_buttons_array):
+                    btn = tab.chat_history.message_suggestion_buttons_array[i]
+                    btn.get_child().set_label(message)
+                    btn.set_visible(True)
+                if i < len(tab.chat_history.message_suggestion_buttons_array_placeholder):
+                    btn_placeholder = tab.chat_history.message_suggestion_buttons_array_placeholder[i]
+                    btn_placeholder.get_child().set_label(message)
+                    btn_placeholder.set_visible(True)
+                GLib.idle_add(tab.chat_history.scrolled_chat)
             i += 1
-        self.chat_stop_button.set_visible(False)
-        GLib.idle_add(self.chat_history.scrolled_chat)
-
+        tab.chat_history.chat_stop_button.set_visible(False)
+        GLib.idle_add(tab.chat_history.scrolled_chat)
 
     def send_message(self, manual=True):
-        """Send a message in the chat and get bot answer, handle TTS etc"""
-        if manual:
-            self.auto_run_times = 0
-        self.stream_number_variable += 1
-        stream_number_variable = self.stream_number_variable
-        self.status = False
-        GLib.idle_add(self.chat_history.set_generating, True)
-        
-        # Start creating the message
-        if self.model.stream_enabled():
-            self.streamed_message = ""
-            self.curr_label = ""
-            self.streaming_label = None
-            self.last_update = time.time()
-            self.stream_thinking = False
-            GLib.idle_add(self.create_streaming_message_label)
-            
-        def run_generation():
-            for status, data in self.controller.generate_response(stream_number_variable, self.update_message):
-                if self.stream_number_variable != stream_number_variable:
-                    break
-                
-                if status == 'reload_chat':
-                    def reload_chat_safe():
-                        self.show_chat()
-                    GLib.idle_add(reload_chat_safe)
-                elif status == 'reload_message':
-                    GLib.idle_add(self.reload_message, data)
-                elif status == 'error':
-                    GLib.idle_add(self.chat_history.show_message, data, False, -1, False, False, True)
-                    GLib.idle_add(self.remove_send_button_spinner)
-                elif status == 'done':
-                    GLib.idle_add(self.remove_send_button_spinner)
-                    GLib.idle_add(self.show_chat)
-                elif status == 'finished':
-                    # Run finish logic in main thread to avoid races with chat list
-                    def finish_safe():
-                        self._handle_generation_finished(data, stream_number_variable)
-                    GLib.idle_add(finish_safe)
-
-        threading.Thread(target=run_generation).start()
-
-    def _handle_generation_finished(self, data, stream_number_variable):
-        message_label = data['message']
-        prompts = data['prompts']
-        self.last_generation_time = data['time']
-        self.last_token_num = (data['input_tokens'], data['output_tokens'])
-
-        if hasattr(self, "current_streaming_message") and self.current_streaming_message:
-            # Streaming was active, finalize the existing widget
-            streaming_widget = self.current_streaming_message
-            self.chat.append({"User": "Assistant", "Message": message_label, "UUID": streaming_widget.chunk_uuid})
-            self.chat_history.update_history(self.chat)
-            self.add_prompt("\n".join(prompts))
-            
-            final_message = message_label
-            def finalize_stream():
-                streaming_widget.update_content(final_message, is_streaming=False)
-                streaming_widget.finish_streaming()
-                # Re-enable editability or other final states if needed
-                self.chat_history._finalize_message_display()
-                self.save_chat()
-
-                # Handle deferred tool execution and continuation
-                if streaming_widget.state.get("has_terminal_command", False):
-                        threads = streaming_widget.state.get("running_threads", [])
-                        parallel = self.controller.newelle_settings.parallel_tool_execution
-                        current_stream = self.stream_number_variable
-
-                        def wait_and_continue():
-                            if not parallel:
-                                for t in threads:
-                                    if not t.is_alive(): t.start()
-                                    t.join()
-                            else:
-                                for t in threads:
-                                    t.join()
-                            
-                            if self.stream_number_variable != current_stream:
-                                return
-
-                            if threads and streaming_widget.state.get("should_continue", False):
-                                self.send_message(manual=False)
-                            else:
-                                GLib.idle_add(self.chat_history.scrolled_chat)
-
-                        threading.Thread(target=wait_and_continue).start()
-                else:
-                        GLib.idle_add(self.chat_history.scrolled_chat)
-
-            # Already in main thread via idle_add wrapper in run_generation
-            finalize_stream()
-            # Cleanup reference
-            self.current_streaming_message = None
-        else:
-            # No streaming (e.g. quick response or non-streaming model), standard display
-            # Already in main thread
-            self.chat_history.show_message(
-                message_label,
-                False,
-                -1,
-                False,
-                False,
-                False,
-                "\n".join(prompts),
-            )
-
-        GLib.idle_add(self.chat_history.set_generating, False)
-        GLib.idle_add(self.remove_send_button_spinner)
-        # Generate chat name
-        if self.controller.newelle_settings.auto_generate_name and len(self.chat) == 2:
-            GLib.idle_add(self.generate_chat_name, Gtk.Button(name=str(self.chat_id)))
-        # TTS
-        tts_thread = None
-        if self.tts_enabled:
-            message_label = convert_think_codeblocks(message_label)
-            message = re.sub(r"```.*?```", "", message_label, flags=re.DOTALL)
-            message = remove_markdown(message)
-            message = remove_emoji(message)
-            if not (
-                not message.strip()
-                or message.isspace()
-                or all(char == "\n" for char in message)
-            ):
-                tts_thread = threading.Thread(
-                    target=self.tts.play_audio, args=(message,)
-                )
-                tts_thread.start()
-
-        # Wait for tts to finish to restart recording
-        def restart_recording():
-            if not self.automatic_stt_status:
-                return
-            if tts_thread is not None:
-                tts_thread.join()
-            GLib.idle_add(self.start_recording, self.recording_button)
-
-        if self.controller.newelle_settings.automatic_stt:
-            threading.Thread(target=restart_recording).start()
+        """Send a message in the active chat tab - delegates to ChatTab"""
+        tab = self.get_active_chat_tab()
+        if tab is not None:
+            tab.send_message(manual)
 
     def add_reading_widget(self, documents):
-        d = [document.replace("file:", "") for document in documents if document.startswith("file:")]
-        documents = d
-        if self.model.stream_enabled():
-            self.reading = DocumentReaderWidget()
-            for document in documents:
-                self.reading.add_document(document)
-            self.streaming_box.append(self.reading)
+        """Add reading widget to active chat tab"""
+        tab = self.get_active_chat_tab()
+        if tab is not None:
+            tab.add_reading_widget(documents)
 
     def remove_reading_widget(self):
-        try:
-            if hasattr(self, "reading") and hasattr(self, "streaming_box"):
-                # Check if streaming_box still exists and reading is a child of it
-                if self.streaming_box is not None and self.reading is not None:
-                    # Check if reading is still attached to streaming_box
-                    parent = self.reading.get_parent()
-                    if parent == self.streaming_box:
-                        self.streaming_box.remove(self.reading)
-        except (AttributeError, TypeError, RuntimeError):
-            # Widget may have been destroyed or unparented already
-            pass
-
-    def create_streaming_message_label(self):
-        """Create a label for message streaming"""
-        # Reset streaming state
-        self.streamed_content = ""
-        self.streaming_pending = False
-
-        # The streamed assistant message is the next message index in the chat.
-        # Create it inside the same editable wrapper used by non-streamed messages,
-        # so edit/delete/info/copy controls exist once streaming completes.
-        next_message_id = len(self.chat)
-        self.current_streaming_message = Message(
-            "",
-            is_user=False,
-            parent_window=self,
-            id_message=next_message_id,
-        )
-        self.streaming_box = self.chat_history.add_message(
-            "Assistant",
-            self.current_streaming_message,
-            id_message=next_message_id,
-            editable=True,
-        )
-        # Safely remove the last element from messages_box
-        try:
-            if hasattr(self.chat_history, "messages_box") and len(self.chat_history.messages_box) > 0:
-                self.chat_history.messages_box.pop()
-        except (AttributeError, IndexError):
-            pass
-        self.streaming_box.set_overflow(Gtk.Overflow.VISIBLE)
-
-    def update_message(self, message, stream_number_variable, *args):
-        """Update message label when streaming (thread-safe)"""
-        if self.stream_number_variable != stream_number_variable:
-            return
-
-        if time.time() - self.last_update >= 0.2:
-            self.last_update = time.time()
-            GLib.idle_add(self.refresh_streaming_ui, message, stream_number_variable)
-
-    def refresh_streaming_ui(self, message, stream_number_variable):
-        """Update the UI with the latest streamed content (main thread)"""
-        if self.stream_number_variable != stream_number_variable:
-            return GLib.SOURCE_REMOVE
-
-        if hasattr(self, 'current_streaming_message') and self.current_streaming_message:
-            self.current_streaming_message.update_content(message, is_streaming=True)
-
-        return GLib.SOURCE_REMOVE
+        """Remove reading widget from active chat tab"""
+        tab = self.get_active_chat_tab()
+        if tab is not None:
+            tab.remove_reading_widget()
 
     # Show messages in chat
     def show_chat(self, animate=False):
-        """Show a chat"""
-        self.stream_tools = False
-        self.last_error_box = None
-        if True:
-            self.messages_box = []
-            self.check_streams["chat"] = True
-            try:
-                if not animate:
-                    self.chat_stack.set_transition_duration(0)
-                old_chat_history = self.chat_history
-                self.chat_history = ChatHistory(self, self.chat, self.chat_id)
-                self.chat_history.connect("focus-input", lambda _: self.focus_input())
-                self.chat_history.connect("branch-requested", self._on_branch_requested)
-                self.chat_history.connect("clear-requested", self._on_clear_requested)
-                self.chat_history.connect("continue-requested", self._on_continue_requested)
-                self.chat_history.connect("regenerate-requested", self._on_regenerate_requested)
-                self.chat_history.connect("stop-requested", self._on_stop_requested)
-                self.chat_history.connect("files-dropped", self._on_files_dropped)
-                self.chat_stack.add_child(self.chat_history)
-                self.chat_history.populate_chat()
-                self.chat_stack.set_visible_child(self.chat_history)
-                self.chat_stack.set_transition_duration(300)
-                GLib.timeout_add(1000, self.chat_stack.remove, old_chat_history)
-            except Exception as e:
-                self.notification_block.add_toast(Adw.Toast(title=str(e)))
+        """Reload chat in the active tab"""
+        tab = self.get_active_chat_tab()
+        if tab is not None:
+            tab.show_chat()
      
     def add_prompt(self, prompt: str | None):
-        if prompt is None:
-            return
-        self.chat[-1]["enlapsed"] = self.last_generation_time
-        self.chat[-1]["Prompt"] = prompt
-        self.chat[-1]["InputTokens"] = self.last_token_num[0]
-        self.chat[-1]["OutputTokens"] = self.last_token_num[1]
+        """Add prompt metadata - delegates to active tab"""
+        tab = self.get_active_chat_tab()
+        if tab is not None:
+            tab.add_prompt(prompt)
 
     def reload_message(self, message_id: int):
-        """Reload a message
-
-        Args:
-            message_id (int): the id of the message to reload
-        """
-        if len(self.chat_history.messages_box) < message_id:
-            return
-        if self.chat[message_id]["User"] == "Console":
-            return
-        message_box = self.chat_history.messages_box[message_id + 1]  # +1 to fix message warning
-        overlay = message_box.get_first_child()
-        if overlay is None:
-            return
-        content_box = overlay.get_child()
-        if content_box is None:
-            return
-        old_label = content_box.get_last_child()
-        if old_label is not None:
-
-            content_box.remove(old_label)
-            content_box.append(
-                self.chat_history.show_message(
-                    self.chat[message_id]["Message"],
-                    id_message=message_id,
-                    is_user=self.chat[message_id]["User"] == "User",
-                    return_widget=True,
-                    restore=True
-                )
-            )
+        """Reload a message in the active tab"""
+        tab = self.get_active_chat_tab()
+        if tab is not None:
+            tab.reload_message(message_id)
 
     def save_chat(self):
         """Save the chat to a file"""
@@ -2521,7 +2273,14 @@ class MainWindow(Adw.ApplicationWindow):
                         return
                     clean_name = remove_markdown(clean_name)
                     if clean_name != "Chat has been stopped":
-                        self.chats[int(button.get_name())]["name"] = clean_name
+                        chat_idx = int(button.get_name())
+                        self.chats[chat_idx]["name"] = clean_name
+                        
+                        # Update tab title if this chat is open in a tab
+                        tab_page = self.get_tab_for_chat(chat_idx)
+                        if tab_page:
+                            tab_page.set_title(clean_name)
+                            
                     self.update_history()
 
             GLib.idle_add(on_complete)
@@ -2723,10 +2482,15 @@ class MainWindow(Adw.ApplicationWindow):
 
     @property
     def status(self):
-        """Get the status of the window"""
-        return self.chat_history.status
+        """Get the status of the active chat tab (True = ready, False = generating)"""
+        tab = self.get_active_chat_tab()
+        if tab is not None:
+            return tab.status
+        return True
 
     @status.setter
     def status(self, value):
-        """Set the status of the window"""
-        self.chat_history.status = value
+        """Set the status of the active chat tab"""
+        tab = self.get_active_chat_tab()
+        if tab is not None:
+            tab.status = value

@@ -105,6 +105,30 @@ class NewelleController:
             chat_id = self.newelle_settings.chat_id
             index = min(chat_id, len(self.chats) - 1)
             self.chats[index]["chat"] = value
+    
+    def get_chat_by_id(self, chat_id):
+        """Get chat messages list by explicit chat_id.
+        
+        Args:
+            chat_id: The chat ID to get messages for
+            
+        Returns:
+            The chat messages list for the specified chat_id
+        """
+        if hasattr(self, 'chats') and self.chats:
+            return self.chats[min(chat_id, len(self.chats) - 1)]["chat"]
+        return []
+    
+    def set_chat_by_id(self, chat_id, value):
+        """Set chat messages list by explicit chat_id.
+        
+        Args:
+            chat_id: The chat ID to set messages for
+            value: The new chat messages list
+        """
+        if hasattr(self, 'chats') and self.chats:
+            index = min(chat_id, len(self.chats) - 1)
+            self.chats[index]["chat"] = value
 
     def get_console_reply(self, chat_id, id_message):
         """Get existing console reply from chat history if available."""
@@ -691,27 +715,37 @@ class NewelleController:
             count -= 1
         return history
 
-    def get_memory_prompt(self):
+    def get_memory_prompt(self, chat=None, chat_id=None):
+        """Get memory and RAG context prompts.
+        
+        Args:
+            chat: Optional chat messages list. If None, uses current chat.
+            chat_id: Optional chat ID for document indexing. If None, uses current chat_id.
+        """
+        if chat is None:
+            chat = self.chat
+        if chat_id is None:
+            chat_id = self.newelle_settings.chat_id
+            
         r = []
         if self.newelle_settings.memory_on:
             r += self.handlers.memory.get_context(
-                self.chat[-1]["Message"], self.get_history()
+                chat[-1]["Message"], self.get_history(chat=chat)
             )
         if self.newelle_settings.rag_on:
             r += self.handlers.rag.get_context(
-                self.chat[-1]["Message"], self.get_history()
+                chat[-1]["Message"], self.get_history(chat=chat)
             )
         if (
             self.newelle_settings.rag_on_documents
             and self.handlers.rag is not None
         ):
             documents = extract_supported_files(
-                self.get_history(include_last_message=True),
+                self.get_history(chat=chat, include_last_message=True),
                 self.handlers.rag.get_supported_files_reading(),
                 self.handlers.llm.get_supported_files()
             )
             if len(documents) > 0:
-                chat_id = self.newelle_settings.chat_id
                 existing_index = self.chat_documents_index.get(chat_id, None)
                 
                 if self.ui_controller:
@@ -725,7 +759,7 @@ class NewelleController:
                 
                 if existing_index.get_index_size() > self.newelle_settings.rag_limit: 
                     r += existing_index.query(
-                        self.chat[-1]["Message"]
+                        chat[-1]["Message"]
                     )
                 else:
                     r += existing_index.get_all_contexts()
@@ -735,17 +769,36 @@ class NewelleController:
 
         return r
 
-    def update_memory(self, bot_response):
+    def update_memory(self, bot_response, chat=None):
+        """Update memory with bot response.
+        
+        Args:
+            bot_response: The bot's response message
+            chat: Optional chat messages list. If None, uses current chat.
+        """
+        if chat is None:
+            chat = self.chat
         if self.newelle_settings.memory_on:
             threading.Thread(
                 target=self.handlers.memory.register_response,
-                args=(bot_response, self.chat),
+                args=(bot_response, chat),
             ).start()
 
-    def prepare_generation(self):
-        """Prepare contexts and prompts for generation"""
+    def prepare_generation(self, chat_id=None):
+        """Prepare contexts and prompts for generation.
+        
+        Args:
+            chat_id: Optional chat ID to use. If None, uses current chat_id from settings.
+            
+        Returns:
+            Tuple of (prompts, history, old_history, old_user_prompt, chat, effective_chat_id)
+        """
+        # Use explicit chat_id or fall back to current
+        effective_chat_id = chat_id if chat_id is not None else self.newelle_settings.chat_id
+        chat = self.get_chat_by_id(effective_chat_id)
+        
         # Save profile for generation 
-        self.chats[self.newelle_settings.chat_id]["profile"] = self.newelle_settings.current_profile
+        self.chats[effective_chat_id]["profile"] = self.newelle_settings.current_profile
 
         # Append extensions prompts
         prompts = []
@@ -754,29 +807,37 @@ class NewelleController:
             prompts.append(formatter.format(prompt))
             
         # Append memory
-        prompts += self.get_memory_prompt()
+        prompts += self.get_memory_prompt(chat=chat, chat_id=effective_chat_id)
 
         # Set the history for the model
-        history = self.get_history()
+        history = self.get_history(chat=chat)
         # Let extensions preprocess the history
         old_history = copy.deepcopy(history)
-        old_user_prompt = self.chat[-1]["Message"]
-        processed_chat, prompts = self.integrationsloader.preprocess_history(self.chat, prompts)
-        self.chat, prompts = self.extensionloader.preprocess_history(processed_chat, prompts)
+        old_user_prompt = chat[-1]["Message"] if chat else ""
+        processed_chat, prompts = self.integrationsloader.preprocess_history(chat, prompts)
+        chat, prompts = self.extensionloader.preprocess_history(processed_chat, prompts)
         
-        return prompts, history, old_history, old_user_prompt
+        # Update the chat in storage if it was modified
+        self.set_chat_by_id(effective_chat_id, chat)
+        
+        return prompts, history, old_history, old_user_prompt, chat, effective_chat_id
 
 
-    def generate_response(self, stream_number_variable, update_callback):
+    def generate_response(self, stream_number_variable, update_callback, chat_id=None):
         """
         Generator for the response. 
         Yields (status, data) tuples.
         status can be: 'stream', 'error', 'done', 'edited_messages'
+        
+        Args:
+            stream_number_variable: Variable to track stream number for cancellation
+            update_callback: Callback for streaming updates
+            chat_id: Optional chat ID to use. If None, uses current chat_id from settings.
         """
-        prompts, history, old_history, old_user_prompt = self.prepare_generation()
+        prompts, history, old_history, old_user_prompt, chat, effective_chat_id = self.prepare_generation(chat_id=chat_id)
         
         # Check for edited messages
-        new_history = self.get_history()
+        new_history = self.get_history(chat=chat)
         edited_messages = get_edited_messages(new_history, old_history)
         
         if edited_messages is None:
@@ -786,12 +847,12 @@ class NewelleController:
              for message in edited_messages:
                  yield ('reload_message', message)
                  
-        if len(self.chat) == 0:
+        if len(chat) == 0:
             yield ('done', None)
             return
 
-        if self.chat[-1]["Message"] != old_user_prompt:
-             yield ('reload_message', len(self.chat) - 1)
+        if chat[-1]["Message"] != old_user_prompt:
+             yield ('reload_message', len(chat) - 1)
 
         
         message_label = ""
@@ -799,14 +860,14 @@ class NewelleController:
             t1 = time.time()
             if self.handlers.llm.stream_enabled():
                 message_label = self.handlers.llm.send_message_stream(
-                    self.chat[-1]["Message"],
+                    chat[-1]["Message"],
                     new_history,
                     prompts,
                     update_callback,
                     [stream_number_variable], 
                 )
             else:
-                 message_label = self.handlers.llm.send_message(self.chat[-1]["Message"], prompts, new_history)
+                 message_label = self.handlers.llm.send_message(chat[-1]["Message"], prompts, new_history)
             
             # Post-generation logic
             last_generation_time = time.time() - t1
@@ -816,7 +877,7 @@ class NewelleController:
                 input_tokens += count_tokens(prompt)
             for message in new_history:
                 input_tokens += count_tokens(message.get("User", "")) + count_tokens(message.get("Message", ""))
-            input_tokens += count_tokens(self.chat[-1]["Message"])
+            input_tokens += count_tokens(chat[-1]["Message"])
             
             output_tokens = count_tokens(message_label)
             
@@ -827,21 +888,24 @@ class NewelleController:
             return
 
         # Post-processing
-        old_history = copy.deepcopy(self.chat)
-        history, message_label = self.integrationsloader.postprocess_history(self.chat, message_label)
-        history, message_label = self.extensionloader.postprocess_history(self.chat, message_label)
+        old_history = copy.deepcopy(chat)
+        chat, message_label = self.integrationsloader.postprocess_history(chat, message_label)
+        chat, message_label = self.extensionloader.postprocess_history(chat, message_label)
+        
+        # Update the chat in storage if it was modified
+        self.set_chat_by_id(effective_chat_id, chat)
         
         # Check for edited messages again
-        edited_messages = get_edited_messages(history, old_history)
+        edited_messages = get_edited_messages(chat, old_history)
         if edited_messages is None:
-             if len(history) < len(old_history):
+             if len(chat) < len(old_history):
                  yield ('reload_chat', None)
         else:
              for message in edited_messages:
                  yield ('reload_message', message)
 
         # Update memory
-        self.update_memory(message_label)
+        self.update_memory(message_label, chat=chat)
         
         # Return final message and tokens
         yield ('finished', {

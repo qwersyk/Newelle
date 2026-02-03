@@ -18,6 +18,7 @@ from .tool import ToolWidget
 from .message import Message
 from .chatrow import ChatRow
 from .chat_history import ChatHistory
+from .chat_tab import ChatTab
 
 __all__ = [
     "ProfileRow",
@@ -43,4 +44,5 @@ __all__ = [
     "Message",
     "ChatRow",
     "ChatHistory",
+    "ChatTab",
 ]

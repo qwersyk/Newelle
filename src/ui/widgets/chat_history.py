@@ -1293,6 +1293,34 @@ class ChatHistory(Gtk.Box):
     def update_history(self, chat):
         self.chat = chat
 
+    def update_chat(self, chat, chat_id):
+        """Update the chat history to display a different chat.
+        
+        Args:
+            chat: The new chat data
+            chat_id: The new chat ID
+        """
+        self.chat_id = chat_id
+        # Clear existing messages
+        self._clear_messages()
+        # Repopulate with new chat
+        self.populate_chat()
+        # Update the stack to show history or placeholder
+        self.history_block.set_visible_child_name("history" if len(chat) > 0 else "placeholder")
+    
+    def _clear_messages(self):
+        """Clear all message widgets from the chat list."""
+        # Remove all children except first (disclaimer/warning)
+        while True:
+            child = self.chat_list_block.get_last_child()
+            if child is None:
+                break
+            self.chat_list_block.remove(child)
+        self.messages_box = []
+        self.edit_entries = {}
+        self.lazy_loaded_start = 0
+        self.lazy_loaded_end = 0
+
     @property
     def chat(self):
         return self.window.chat
@@ -1300,3 +1328,11 @@ class ChatHistory(Gtk.Box):
     @chat.setter
     def chat(self, value):
         self.window.chat = value
+    
+    @property
+    def app(self):
+        """Get the application instance, works with both MainWindow and ChatTab parent"""
+        # If window is ChatTab, go through window.window to get MainWindow
+        if hasattr(self.window, 'window'):
+            return self.window.window.app
+        return self.window.app
