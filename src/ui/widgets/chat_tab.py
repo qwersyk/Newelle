@@ -75,6 +75,9 @@ class ChatTab(Gtk.Box):
         # Error tracking
         self.last_error_box = None
         
+        self.suggestions_timer_id = None
+        self.connect("map", self._on_map)
+
         # Build UI
         self._build_ui()
         
@@ -379,6 +382,8 @@ class ChatTab(Gtk.Box):
         self.history_stack.add_child(self.chat_history)
         self.history_stack.set_visible_child(self.chat_history)
         
+        self.start_suggestions_timer()
+
         # Remove old history after animation
         def remove_old():
             self.history_stack.remove(old_history)
@@ -563,6 +568,9 @@ class ChatTab(Gtk.Box):
         GLib.idle_add(self.update_tab_indicator)
         self.emit("generation-stopped")
         
+        # Generate suggestions
+        self.generate_suggestions()
+
         # Generate chat name
         if self.controller.newelle_settings.auto_generate_name and len(self.chat) == 2:
             GLib.idle_add(self.generate_chat_name)
@@ -845,3 +853,43 @@ class ChatTab(Gtk.Box):
         self.chat.append({"User": "User", "Message": text})
         self.chat_history.show_message(text, id_message=len(self.chat) - 1, is_user=True)
         threading.Thread(target=self.send_message).start()
+
+    # Suggestions
+    def _on_map(self, widget):
+        """Handle map event (when tab is shown)."""
+        self.start_suggestions_timer()
+
+    def start_suggestions_timer(self):
+        """Start timer to generate suggestions if tab remains active."""
+        if self.suggestions_timer_id is not None:
+            GLib.source_remove(self.suggestions_timer_id)
+        self.suggestions_timer_id = GLib.timeout_add(2000, self._on_suggestions_timer)
+
+    def _on_suggestions_timer(self):
+        """Timer callback to generate suggestions."""
+        self.suggestions_timer_id = None
+        # Check if tab is active (mapped and selected)
+        if self.window.get_active_chat_tab() == self and self.get_mapped():
+             self.generate_suggestions()
+        return False
+
+    def generate_suggestions(self):
+        """Create the suggestions and update the UI when it's finished"""
+        if not self.status: # Don't generate if currently generating a message
+             return
+        print("ae")
+
+        def generate():
+            try:
+                suggestions = self.controller.handlers.secondary_llm.get_suggestions(
+                    self.controller.newelle_settings.prompts["get_suggestions_prompt"],
+                    self.controller.newelle_settings.offers,
+                    self.controller.get_history(chat=self.chat_history.chat)
+                )
+                GLib.idle_add(self.chat_history.populate_suggestions, suggestions)
+            except Exception as e:
+                print(e)
+                pass
+        
+        threading.Thread(target=generate).start()
+

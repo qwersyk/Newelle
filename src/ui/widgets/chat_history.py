@@ -51,25 +51,29 @@ class ChatHistory(Gtk.Box):
         self.history_block = Gtk.Stack(transition_type=Gtk.StackTransitionType.SLIDE_DOWN, transition_duration=300)
         self._add_drag_and_drop()
 
+        # Add history
+        self.chat_scroll = Gtk.ScrolledWindow(vexpand=True)
+        self.history_block.add_named(self.chat_scroll, "history")
+        
+        self.chat_scroll_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        self.chat_list_block = Gtk.ListBox(
+            css_classes=["separators", "background", "view"]
+        )
+        self.chat_list_block.set_selection_mode(Gtk.SelectionMode.NONE)
+        self.chat_scroll_box.append(self.chat_list_block)
+        
         # Offers
         self.offers_entry_block = Gtk.Box(
             orientation=Gtk.Orientation.VERTICAL,
             spacing=6,
             valign=Gtk.Align.END,
             halign=Gtk.Align.FILL,
+            vexpand=True,
             margin_bottom=6,
         )
-
-        self.append(self.offers_entry_block)
-
-        # Add history
-        self.chat_scroll = Gtk.ScrolledWindow(vexpand=True)
-        self.history_block.add_named(self.chat_scroll, "history")
-        self.chat_list_block = Gtk.ListBox(
-            css_classes=["separators", "background", "view"]
-        )
-        self.chat_list_block.set_selection_mode(Gtk.SelectionMode.NONE)
-        self.chat_scroll.set_child(self.chat_list_block)
+        self.chat_scroll_box.append(self.offers_entry_block)
+        self.chat_scroll.set_child(self.chat_scroll_box)
+        
         # Add placeholder
         self.build_placeholder()
         self.history_block.add_named(self.empty_chat_placeholder, "placeholder")
@@ -88,6 +92,9 @@ class ChatHistory(Gtk.Box):
 
         # Add buttons
         self._build_buttons()
+
+        self.offers = self.controller.newelle_settings.offers
+        self.build_offers()
 
     def show_placeholder(self):
         self.history_block.set_visible_child_name("placeholder")
@@ -132,7 +139,7 @@ class ChatHistory(Gtk.Box):
                     self.show_message(self.chat[i]["Message"], True, id_message=i)
                 elif self.chat[i]["User"] in ["File", "Folder"]:
                     self.add_message(self.chat[i]["User"], self.get_file_button(self.chat[i]["Message"][1 : len(self.chat[i]["Message"])]))
-        GLib.idle_add(self.scrolled_chat)
+        GLib.timeout_add(200, self.scrolled_chat)
         GLib.idle_add(self.update_button_text)
 
     def scrolled_chat(self):
@@ -179,6 +186,9 @@ class ChatHistory(Gtk.Box):
         """Handle drop event and emit files-dropped signal for the window to process."""
         self.emit("files-dropped", value)
         return True
+
+    def send_bot_response(self, button):
+        self.window.send_bot_response(button)
 
     def build_offers(self):
         """Build offers buttons, called by update_settings to update the number of buttons"""
@@ -1292,6 +1302,29 @@ class ChatHistory(Gtk.Box):
 
     def update_history(self, chat):
         self.chat = chat
+
+    def populate_suggestions(self, suggestions):
+        """Update the UI with the generated suggestions"""
+        i = 0
+        offers_count = self.controller.newelle_settings.offers
+        # Convert to tuple to remove duplicates
+        for suggestion in tuple(suggestions):
+            if i + 1 > offers_count:
+                break
+            else:
+                message = suggestion.replace("\n", "")
+                if i < len(self.message_suggestion_buttons_array):
+                    btn = self.message_suggestion_buttons_array[i]
+                    btn.get_child().set_label(message)
+                    btn.set_visible(True)
+                if i < len(self.message_suggestion_buttons_array_placeholder):
+                    btn_placeholder = self.message_suggestion_buttons_array_placeholder[i]
+                    btn_placeholder.get_child().set_label(message)
+                    btn_placeholder.set_visible(True)
+                GLib.idle_add(self.scrolled_chat)
+            i += 1
+        self.chat_stop_button.set_visible(False)
+        GLib.idle_add(self.scrolled_chat)
 
     def update_chat(self, chat, chat_id):
         """Update the chat history to display a different chat.
