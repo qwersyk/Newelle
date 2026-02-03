@@ -223,18 +223,20 @@ class Settings(Adw.PreferencesWindow):
         self.settings.bind("reverse-order", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
         self.interface.add(row)
         
-        row = Adw.ActionRow(title=_("Automatically Generate Chat Names"), subtitle=_("Generate chat names automatically after the first two messages"))
-        switch = Gtk.Switch(valign=Gtk.Align.CENTER)
-        row.add_suffix(switch)
-        self.settings.bind("auto-generate-name", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
-        self.interface.add(row)
+        chat_name_row = Adw.ExpanderRow(title=_("Automatically Generate Chat Names"), subtitle=_("Generate chat names automatically after the first two messages"))
+        chat_name_switch = Gtk.Switch(valign=Gtk.Align.CENTER)
+        chat_name_row.add_suffix(chat_name_switch)
+        self.settings.bind("auto-generate-name", chat_name_switch, 'active', Gio.SettingsBindFlags.DEFAULT)
+        self.add_customize_prompt_content(chat_name_row, "generate_name_prompt")
+        self.interface.add(chat_name_row)
         
-        row = Adw.ActionRow(title=_("Number of offers"), subtitle=_("Number of message suggestions to send to chat "))
+        offers_row = Adw.ExpanderRow(title=_("Number of offers"), subtitle=_("Number of message suggestions to send to chat "))
         int_spin = Gtk.SpinButton(valign=Gtk.Align.CENTER)
         int_spin.set_adjustment(Gtk.Adjustment(lower=0, upper=5, step_increment=1, page_increment=10, page_size=0))
-        row.add_suffix(int_spin)
+        offers_row.add_suffix(int_spin)
         self.settings.bind("offers", int_spin, 'value', Gio.SettingsBindFlags.DEFAULT)
-        self.interface.add(row)
+        self.add_customize_prompt_content(offers_row, "get_suggestions_prompt")
+        self.interface.add(offers_row)
         
         row = Adw.ActionRow(title=_("Username"), subtitle=_("Change the label that appears before your message\nThis information is not sent to the LLM by default\nYou can add it to a prompt using the {USER} variable"))
         entry = Gtk.Entry(text=self.controller.newelle_settings.username, valign=Gtk.Align.CENTER)
@@ -857,7 +859,6 @@ class Settings(Adw.PreferencesWindow):
         self.prompt.add(row)
         self.prompts_rows.append(row)
 
-        self.__prompts_entries = {}
         for prompt in AVAILABLE_PROMPTS:
             is_active = False
             if prompt["setting_name"] in self.prompts_settings:
@@ -1374,21 +1375,20 @@ class Settings(Adw.PreferencesWindow):
             row (): row of the prompt 
             prompt_name (): name of the prompt 
         """
-        box = Gtk.Box()
+        box = Gtk.Box(spacing=6)
         entry = MultilineEntry()
+        entry.set_hexpand(True)
         entry.set_text(self.prompts[prompt_name])
-        self.__prompts_entries[prompt_name] = entry
         entry.set_name(prompt_name)
         entry.set_on_change(self.edit_prompt)
 
-        wbbutton = Gtk.Button(icon_name="star-filled-rounded-symbolic")
-        wbbutton.add_css_class("flat")
-        wbbutton.set_valign(Gtk.Align.CENTER)
-        wbbutton.set_name(prompt_name)
-        wbbutton.connect("clicked", self.restore_prompt)
+        restore_button = Gtk.Button(icon_name="star-filled-rounded-symbolic")
+        restore_button.add_css_class("flat")
+        restore_button.set_valign(Gtk.Align.CENTER)
+        restore_button.connect("clicked", self.restore_prompt, entry)
 
         box.append(entry)
-        box.append(wbbutton)
+        box.append(restore_button)
         row.add_row(box)
 
     def edit_prompt(self, entry):
@@ -1401,21 +1401,23 @@ class Settings(Adw.PreferencesWindow):
         prompt_text = entry.get_text()
 
         if prompt_text == PROMPTS[prompt_name]:
-            del self.custom_prompts[entry.get_name()]
+            if prompt_name in self.custom_prompts:
+                del self.custom_prompts[prompt_name]
+            self.prompts[prompt_name] = PROMPTS[prompt_name]
         else:
             self.custom_prompts[prompt_name] = prompt_text
             self.prompts[prompt_name] = prompt_text
         self.settings.set_string("custom-prompts", json.dumps(self.custom_prompts))
 
-    def restore_prompt(self, button):
+    def restore_prompt(self, button, entry):
         """Called when the prompt restore is called
 
         Args:
             button (): the clicked button 
+            entry (): the MultilineEntry associated with the prompt
         """
-        prompt_name = button.get_name()
-        self.prompts[prompt_name] = PROMPTS[prompt_name]
-        self.__prompts_entries[prompt_name].set_text(self.prompts[prompt_name])
+        prompt_name = entry.get_name()
+        entry.set_text(PROMPTS[prompt_name])
 
 
 
