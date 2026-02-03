@@ -285,19 +285,23 @@ class ChatHistory(Gtk.Box):
         box.append(title_label)
         self.tips_section = TipsCarousel(tips, 5)
         box.append(self.tips_section)
-        self.empty_chat_placeholder.append(box)
-        # Placeholder offers 
+        
+        # Offers for placeholder
         self.offers_entry_block_placeholder = Gtk.Box(
             orientation=Gtk.Orientation.VERTICAL,
             spacing=6,
             valign=Gtk.Align.END,
             halign=Gtk.Align.CENTER,
-            margin_bottom=6,
+            margin_bottom=12,
         )
-        self.offers_entry_block_placeholder.set_size_request(-1, 36*self.controller.newelle_settings.offers)
-        self.empty_chat_placeholder.append(self.offers_entry_block_placeholder)
-
-
+        self.offers_entry_block_placeholder.set_size_request(-1, 40 * self.controller.newelle_settings.offers)
+        
+        # Use a scrolled window for the placeholder to ensure everything is reachable
+        self.empty_chat_placeholder = Gtk.ScrolledWindow(hexpand=True, vexpand=True, hscrollbar_policy=Gtk.PolicyType.NEVER)
+        placeholder_layout = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, hexpand=True, vexpand=True)
+        placeholder_layout.append(box)
+        placeholder_layout.append(self.offers_entry_block_placeholder)
+        self.empty_chat_placeholder.set_child(placeholder_layout)
 
     def _finalize_message_display(self):
         """Update UI state after message display."""

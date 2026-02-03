@@ -110,6 +110,20 @@ class MyApp(Adw.Application):
         .navigation-sidebar row.chat-row-selected:hover {
           background-color: alpha(@accent_bg_color, 0.25);
         }
+
+        .window-bar-label {
+                color: @view_fg_color;
+                font-weight: 600;
+        }
+        @keyframes chat_locked_pulse {
+            0% { background-color: alpha(@view_fg_color, 0.06); }
+            50% { background-color: alpha(@view_fg_color, 0.12); }
+            100% { background-color: alpha(@view_fg_color, 0.06); }
+        }
+        .chat-locked {
+                background-color: alpha(@view_fg_color, 0.06);
+                animation: chat_locked_pulse 1.6s ease-in-out infinite;
+        }
         '''
         css_provider = Gtk.CssProvider()
         css_provider.load_from_data(css, -1)

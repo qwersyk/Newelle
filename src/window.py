@@ -163,7 +163,7 @@ class MainWindow(Adw.ApplicationWindow):
         )
         self.chat_header = Adw.HeaderBar(css_classes=["flat", "view"], show_start_title_buttons=False, show_end_title_buttons=True)
         self.chat_header.set_title_widget(
-            Gtk.Label(label=_("Chat"), css_classes=["title"])
+            Gtk.Label(label=_("Chat"), css_classes=["title", "window-bar-label"])
         )
 
         # Header box - Contains the buttons that must go in the left side of the header
@@ -256,6 +256,7 @@ class MainWindow(Adw.ApplicationWindow):
         self.chat_tabs = Adw.TabView()
         self.chat_tabs.connect("notify::selected-page", self._on_chat_tab_switched)
         self.chat_tabs.connect("close-page", self._on_chat_tab_close_requested)
+        self.chat_tabs.connect("page-detached", lambda *_: self.update_history())
         
         # Tab bar - shows tabs when more than one is open
         self.chat_tab_bar = Adw.TabBar(autohide=True, view=self.chat_tabs, css_classes=["inline"])
@@ -265,7 +266,9 @@ class MainWindow(Adw.ApplicationWindow):
         self.chat_tab_overview = Adw.TabOverview(
             view=self.chat_tabs, 
             child=self.chat_tabs, 
-            enable_new_tab=True
+            enable_new_tab=True,
+            show_end_title_buttons=False,
+            show_start_title_buttons=False
         )
         self.chat_tab_overview.connect("create-tab", self._on_create_chat_tab)
         
@@ -1727,13 +1730,15 @@ class MainWindow(Adw.ApplicationWindow):
             chat_entry = self.chats[index]
             name = chat_entry["name"]
             is_selected = (index == self.chat_id)
+            is_open = self.get_tab_for_chat(index) is not None
             
             # Create ChatRow widget with indentation level
             chat_row = ChatRow(
                 chat_name=name,
                 chat_index=index,
                 is_selected=is_selected,
-                level=level
+                level=level,
+                is_open=is_open
             )
             
             # Connect signals
