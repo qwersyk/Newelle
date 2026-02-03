@@ -131,7 +131,7 @@ class Message(Gtk.Box):
     def _update_widget(self, widget, w_type, new_chunk):
         if w_type == "text":
             if widget.get_label() != new_chunk.text:
-                widget.set_markup(markwon_to_pango(new_chunk.text))
+                widget.set_markup(markwon_to_pango(new_chunk.text, validate=not self.streaming))
         elif w_type == "codeblock":
             if isinstance(widget, CopyBox):
                 widget.update_code(new_chunk.text)
@@ -189,7 +189,7 @@ class Message(Gtk.Box):
 
     def _process_text(self, chunk, box):
         box.append(Gtk.Label(
-            label=markwon_to_pango(chunk.text),
+            label=markwon_to_pango(chunk.text, validate=not self.streaming),
             wrap=True,
             halign=Gtk.Align.START,
             wrap_mode=Pango.WrapMode.WORD_CHAR,
@@ -324,7 +324,7 @@ class Message(Gtk.Box):
                     full_markdown = full_markdown[:-len(placeholder)]
                     full_markdown += LatexNodes2Text().latex_to_text(subchunk.text)
         
-        full_markup = markwon_to_pango(full_markdown)
+        full_markup = markwon_to_pango(full_markdown, validate=not self.streaming)
         
         # Replace placeholders with <widget> tags in the pango markup
         # Note: we use regex to find placeholders because they might be inside tags
