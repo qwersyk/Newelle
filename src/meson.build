@@ -85,6 +85,8 @@ widgets_sources = [
   'ui/widgets/tool.py',
   'ui/widgets/message.py',
   'ui/widgets/chatrow.py',
+  'ui/widgets/chat_history.py',
+  'ui/widgets/chat_tab.py',
 ]
 
 handler_sources = [

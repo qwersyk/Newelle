@@ -389,7 +389,7 @@ Consider the context, user interests, and any unresolved topics from the chat hi
 
 Output the suggestions as a JSON array, where each element is a string representing a question.
 
-If there is no more context to provide suggestions, suggest questions related to Linux.
+If there is no more context to provide suggestions, suggest questions related to Linux, otherwise suggest questions related to the current context.
 Example output:
 
 [

@@ -131,7 +131,7 @@ class Message(Gtk.Box):
     def _update_widget(self, widget, w_type, new_chunk):
         if w_type == "text":
             if widget.get_label() != new_chunk.text:
-                widget.set_markup(markwon_to_pango(new_chunk.text))
+                widget.set_markup(markwon_to_pango(new_chunk.text, validate=not self.streaming))
         elif w_type == "codeblock":
             if isinstance(widget, CopyBox):
                 widget.update_code(new_chunk.text)
@@ -162,7 +162,7 @@ class Message(Gtk.Box):
             self.thinking_widget = think
             think.start_thinking(chunk.text)
             box.append(think)
-            self._queue_execution(lambda: think.stop_thinking())
+            self._queue_execution(lambda: GLib.idle_add(think.stop_thinking))
         elif chunk.type == "text":
             self._process_text(chunk, box)
             
@@ -189,7 +189,7 @@ class Message(Gtk.Box):
 
     def _process_text(self, chunk, box):
         box.append(Gtk.Label(
-            label=markwon_to_pango(chunk.text),
+            label=markwon_to_pango(chunk.text, validate=not self.streaming),
             wrap=True,
             halign=Gtk.Align.START,
             wrap_mode=Pango.WrapMode.WORD_CHAR,
@@ -324,7 +324,7 @@ class Message(Gtk.Box):
                     full_markdown = full_markdown[:-len(placeholder)]
                     full_markdown += LatexNodes2Text().latex_to_text(subchunk.text)
         
-        full_markup = markwon_to_pango(full_markdown)
+        full_markup = markwon_to_pango(full_markdown, validate=not self.streaming)
         
         # Replace placeholders with <widget> tags in the pango markup
         # Note: we use regex to find placeholders because they might be inside tags
@@ -367,7 +367,7 @@ class Message(Gtk.Box):
             text_expander.set_expanded(False)
             box.append(text_expander)
             
-            reply_from_console = self.parent_window._get_console_reply(state["id_message"]) # Keep helper in parent?
+            reply_from_console = self.controller.get_console_reply(self.parent_window.chat_id, state["id_message"])
             
             # Logic for deferred execution
             self._queue_execution(lambda: self._run_console_command(command, restore, reply_from_console, text_expander, state))
@@ -396,7 +396,7 @@ class Message(Gtk.Box):
         if not restore:
             tool_uuid = str(uuid.uuid4())[:8]
         else:
-            tool_uuid = self.parent_window._get_tool_call_uuid(state["id_message"], tool_name, tool_call_id)
+            tool_uuid = self.controller.get_tool_call_uuid(self.parent_window.chat_id, state["id_message"], tool_name, tool_call_id)
         
         state["has_terminal_command"] = True
         self.controller.current_tool_uuid = tool_uuid
@@ -446,7 +446,7 @@ class Message(Gtk.Box):
                     def on_result(code):
                         placeholder.set_result(code[0], code[1])
                 
-                reply_from_console = self.parent_window._get_tool_response(state["id_message"], tool.name, tool_uuid)
+                reply_from_console = self.controller.get_tool_response(self.parent_window.chat_id, state["id_message"], tool.name, tool_uuid)
                 def get_response(reply_from_console):
                     if not restore:
                         response = result.get_output()
@@ -561,7 +561,7 @@ class Message(Gtk.Box):
         value = chunk.text
         state["has_terminal_command"] = True
         state["id_message"] += 1
-        reply_from_console = self.parent_window._get_console_reply(state["id_message"])
+        reply_from_console = self.controller.get_console_reply(self.parent_window.chat_id, state["id_message"])
         
         if widget:
              def on_result(code):

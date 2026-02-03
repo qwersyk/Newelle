@@ -2,9 +2,12 @@ from typing import Any
 from gi.repository import GLib, Gio, Adw
 import os
 import base64
+import time
+import re
+import copy
 
 from .tools import ToolRegistry
-from .utility.media import get_image_base64, get_image_path
+from .utility.media import get_image_base64, get_image_path, extract_supported_files
 
 from .extensions import NewelleExtension
 from .handlers.llm import LLMHandler
@@ -26,6 +29,8 @@ import datetime
 import uuid as uuid_lib
 from .extensions import ExtensionLoader
 from .utility import override_prompts
+from .utility.strings import clean_bot_response, count_tokens, remove_thinking_blocks, get_edited_messages
+from .utility.replacehelper import PromptFormatter, replace_variables_dict
 from enum import Enum 
 from .handlers import Handler
 from .ui_controller import UIController
@@ -85,6 +90,93 @@ class NewelleController:
         chat: current chat 
         extensionloader: Extensionloader object 
     """
+    @property
+    def chat(self):
+        """Get the current chat messages list"""
+        if hasattr(self, 'chats') and hasattr(self, 'newelle_settings'):
+            chat_id = self.newelle_settings.chat_id
+            return self.chats[min(chat_id, len(self.chats) - 1)]["chat"]
+        return []
+
+    @chat.setter
+    def chat(self, value):
+        """Set the current chat messages list"""
+        if hasattr(self, 'chats') and hasattr(self, 'newelle_settings'):
+            chat_id = self.newelle_settings.chat_id
+            index = min(chat_id, len(self.chats) - 1)
+            self.chats[index]["chat"] = value
+    
+    def get_chat_by_id(self, chat_id):
+        """Get chat messages list by explicit chat_id.
+        
+        Args:
+            chat_id: The chat ID to get messages for
+            
+        Returns:
+            The chat messages list for the specified chat_id
+        """
+        if hasattr(self, 'chats') and self.chats:
+            return self.chats[min(chat_id, len(self.chats) - 1)]["chat"]
+        return []
+    
+    def set_chat_by_id(self, chat_id, value):
+        """Set chat messages list by explicit chat_id.
+        
+        Args:
+            chat_id: The chat ID to set messages for
+            value: The new chat messages list
+        """
+        if hasattr(self, 'chats') and self.chats:
+            index = min(chat_id, len(self.chats) - 1)
+            self.chats[index]["chat"] = value
+
+    def get_console_reply(self, chat_id, id_message):
+        """Get existing console reply from chat history if available."""
+        if not hasattr(self, 'chats') or not self.chats:
+            return None
+        chat = self.chats[min(chat_id, len(self.chats) - 1)]["chat"]
+        idx = min(id_message, len(chat) - 1)
+        if idx >= 0 and chat[idx].get("User") == "Console":
+            return chat[idx]["Message"]
+        return None
+
+    def get_tool_response(self, chat_id, id_message, tool_name, tool_uuid):
+        """Get existing tool response from chat history by tool name and UUID."""
+        if not hasattr(self, 'chats') or not self.chats:
+            return None
+        chat = self.chats[min(chat_id, len(self.chats) - 1)]["chat"]
+        for i in range(id_message, len(chat)):
+            entry = chat[i]
+            if entry.get("User") == "Console":
+                msg = entry.get("Message", "")
+                if msg.startswith(f"[Tool: {tool_name}, ID: {tool_uuid}]"):
+                    lines = msg.split("\n", 1)
+                    return lines[1] if len(lines) > 1 else ""
+                if not msg.startswith("[Tool:"):
+                    return msg
+        return None
+
+    def get_tool_call_uuid(self, chat_id, id_message, tool_name, tool_call_index):
+        """Get tool call UUID from chat history during restore."""
+        if not hasattr(self, 'chats') or not self.chats:
+            return str(uuid_lib.uuid4())[:8]
+        chat = self.chats[min(chat_id, len(self.chats) - 1)]["chat"]
+        count = 0
+        for i in range(id_message, len(chat)):
+            entry = chat[i]
+            if entry.get("User") == "Console":
+                msg = entry.get("Message", "")
+                match = re.match(r'\[Tool: ([^,]+), ID: ([^\]]+)\]', msg)
+                if match:
+                    parsed_name, parsed_uuid = match.groups()
+                    if parsed_name == tool_name:
+                        if count == tool_call_index:
+                            return parsed_uuid
+                        count += 1
+                elif not msg.startswith("[Tool:"):
+                    return str(uuid_lib.uuid4())[:8]
+        return str(uuid_lib.uuid4())[:8]
+
     def __init__(self, python_path) -> None:
         self.settings = Gio.Settings.new(SCHEMA_ID)
         self.python_path = python_path
@@ -92,6 +184,7 @@ class NewelleController:
         self.installing_handlers = {}
         self.tools = ToolRegistry()
         self.msgid = 0
+        self.chat_documents_index = {}
 
     def ui_init(self):
         """Init necessary variables for the UI and load models and handlers"""
@@ -139,7 +232,7 @@ class NewelleController:
                 self.chats = pickle.load(f)
         else:
             self.chats = [{"name": _("Chat ") + "1", "chat": []}]
-        self.chat = self.chats[min(chat_id, len(self.chats) - 1)]["chat"]
+
    
     def save_chats(self):
         """Save chats"""
@@ -550,6 +643,278 @@ class NewelleController:
             return True, message, imported_count
         except Exception as e:
             return False, _("Error importing chats: {0}").format(str(e)), 0
+
+    def get_variable(self, name:str):
+        tools = self.tools.get_all_tools()
+        for tool in tools:
+            if tool.name == name:
+                if tool in self.get_enabled_tools():
+                    return True
+                else:
+                    return False
+        if name == "tts_on":
+            return self.newelle_settings.tts_enabled
+        elif name == "virtualization_on":
+            return self.newelle_settings.virtualization
+        elif name == "auto_run":
+            return self.newelle_settings.auto_run
+        elif name == "websearch_on":
+            return self.newelle_settings.websearch_on
+        elif name == "rag_on":
+            return self.newelle_settings.rag_on_documents
+        elif name == "local_folder":
+            return self.newelle_settings.rag_on
+        elif name == "automatic_stt":
+            return self.newelle_settings.automatic_stt
+        elif name == "profile_name":
+            return self.newelle_settings.current_profile
+        elif name == "external_browser":
+            return self.newelle_settings.external_browser
+        elif name == "history":
+            return "\n".join([f"{msg['User']}: {msg['Message']}" for msg in self.get_history()])
+        elif name == "message":
+            return self.chat[-1]["Message"]
+        else:
+            rep = replace_variables_dict()
+            var = "{" + name.upper() + "}"
+            if var in rep:
+                return rep[var]
+            else:
+                return None
+
+    def get_history(
+        self, chat=None, include_last_message=False, copy_chat=True
+    ) -> list[dict[str, str]]:
+        """Format the history excluding none messages and picking the right context size
+
+        Args:
+            chat (): chat history, if None current is taken
+
+        Returns:
+           chat history
+        """
+        if chat is None:
+            chat = self.chat
+        if copy_chat:
+            chat = copy.deepcopy(chat)
+        history = []
+        count = self.newelle_settings.memory
+        msgs = chat[:-1] if not include_last_message else chat
+        msgs.reverse()
+        for msg in msgs:
+            if count == 0:
+                break
+            if msg["User"] == "Console" and msg["Message"] == "None":
+                continue
+            if self.newelle_settings.remove_thinking:
+                msg["Message"] = remove_thinking_blocks(msg["Message"])
+            if msg["User"] == "File" or msg["User"] == "Folder":
+                msg["Message"] = f"```{msg['User'].lower()}\n{msg['Message'].strip()}\n```"
+                msg["User"] = "User"
+            history.insert(0,msg)
+            count -= 1
+        return history
+
+    def get_memory_prompt(self, chat=None, chat_id=None):
+        """Get memory and RAG context prompts.
+        
+        Args:
+            chat: Optional chat messages list. If None, uses current chat.
+            chat_id: Optional chat ID for document indexing. If None, uses current chat_id.
+        """
+        if chat is None:
+            chat = self.chat
+        if chat_id is None:
+            chat_id = self.newelle_settings.chat_id
+            
+        r = []
+        if self.newelle_settings.memory_on:
+            r += self.handlers.memory.get_context(
+                chat[-1]["Message"], self.get_history(chat=chat)
+            )
+        if self.newelle_settings.rag_on:
+            r += self.handlers.rag.get_context(
+                chat[-1]["Message"], self.get_history(chat=chat)
+            )
+        if (
+            self.newelle_settings.rag_on_documents
+            and self.handlers.rag is not None
+        ):
+            documents = extract_supported_files(
+                self.get_history(chat=chat, include_last_message=True),
+                self.handlers.rag.get_supported_files_reading(),
+                self.handlers.llm.get_supported_files()
+            )
+            if len(documents) > 0:
+                existing_index = self.chat_documents_index.get(chat_id, None)
+                
+                if self.ui_controller:
+                     GLib.idle_add(self.ui_controller.add_reading_widget, documents)
+
+                if existing_index is None:
+                    existing_index = self.handlers.rag.build_index(documents)
+                    self.chat_documents_index[chat_id] = existing_index
+                else:
+                    existing_index.update_index(documents)
+                
+                if existing_index.get_index_size() > self.newelle_settings.rag_limit: 
+                    r += existing_index.query(
+                        chat[-1]["Message"]
+                    )
+                else:
+                    r += existing_index.get_all_contexts()
+                
+                if self.ui_controller:
+                    GLib.idle_add(self.ui_controller.remove_reading_widget)
+
+        return r
+
+    def update_memory(self, bot_response, chat=None):
+        """Update memory with bot response.
+        
+        Args:
+            bot_response: The bot's response message
+            chat: Optional chat messages list. If None, uses current chat.
+        """
+        if chat is None:
+            chat = self.chat
+        if self.newelle_settings.memory_on:
+            threading.Thread(
+                target=self.handlers.memory.register_response,
+                args=(bot_response, chat),
+            ).start()
+
+    def prepare_generation(self, chat_id=None):
+        """Prepare contexts and prompts for generation.
+        
+        Args:
+            chat_id: Optional chat ID to use. If None, uses current chat_id from settings.
+            
+        Returns:
+            Tuple of (prompts, history, old_history, old_user_prompt, chat, effective_chat_id)
+        """
+        # Use explicit chat_id or fall back to current
+        effective_chat_id = chat_id if chat_id is not None else self.newelle_settings.chat_id
+        chat = self.get_chat_by_id(effective_chat_id)
+        
+        # Save profile for generation 
+        self.chats[effective_chat_id]["profile"] = self.newelle_settings.current_profile
+
+        # Append extensions prompts
+        prompts = []
+        formatter = PromptFormatter(replace_variables_dict(), self.get_variable)
+        for prompt in self.newelle_settings.bot_prompts:
+            prompts.append(formatter.format(prompt))
+            
+        # Append memory
+        prompts += self.get_memory_prompt(chat=chat, chat_id=effective_chat_id)
+
+        # Set the history for the model
+        history = self.get_history(chat=chat)
+        # Let extensions preprocess the history
+        old_history = copy.deepcopy(history)
+        old_user_prompt = chat[-1]["Message"] if chat else ""
+        processed_chat, prompts = self.integrationsloader.preprocess_history(chat, prompts)
+        chat, prompts = self.extensionloader.preprocess_history(processed_chat, prompts)
+        
+        # Update the chat in storage if it was modified
+        self.set_chat_by_id(effective_chat_id, chat)
+        
+        return prompts, history, old_history, old_user_prompt, chat, effective_chat_id
+
+
+    def generate_response(self, stream_number_variable, update_callback, chat_id=None):
+        """
+        Generator for the response. 
+        Yields (status, data) tuples.
+        status can be: 'stream', 'error', 'done', 'edited_messages'
+        
+        Args:
+            stream_number_variable: Variable to track stream number for cancellation
+            update_callback: Callback for streaming updates
+            chat_id: Optional chat ID to use. If None, uses current chat_id from settings.
+        """
+        prompts, history, old_history, old_user_prompt, chat, effective_chat_id = self.prepare_generation(chat_id=chat_id)
+        
+        # Check for edited messages
+        new_history = self.get_history(chat=chat)
+        edited_messages = get_edited_messages(new_history, old_history)
+        
+        if edited_messages is None:
+             if len(new_history) < len(old_history):
+                 yield ('reload_chat', None)
+        else:
+             for message in edited_messages:
+                 yield ('reload_message', message)
+                 
+        if len(chat) == 0:
+            yield ('done', None)
+            return
+
+        if chat[-1]["Message"] != old_user_prompt:
+             yield ('reload_message', len(chat) - 1)
+
+        
+        message_label = ""
+        try:
+            t1 = time.time()
+            if self.handlers.llm.stream_enabled():
+                message_label = self.handlers.llm.send_message_stream(
+                    chat[-1]["Message"],
+                    new_history,
+                    prompts,
+                    update_callback,
+                    [stream_number_variable], 
+                )
+            else:
+                 message_label = self.handlers.llm.send_message(chat[-1]["Message"], prompts, new_history)
+            
+            # Post-generation logic
+            last_generation_time = time.time() - t1
+            
+            input_tokens = 0
+            for prompt in prompts:
+                input_tokens += count_tokens(prompt)
+            for message in new_history:
+                input_tokens += count_tokens(message.get("User", "")) + count_tokens(message.get("Message", ""))
+            input_tokens += count_tokens(chat[-1]["Message"])
+            
+            output_tokens = count_tokens(message_label)
+            
+            message_label = clean_bot_response(message_label)
+
+        except Exception as e:
+            yield ('error', str(e))
+            return
+
+        # Post-processing
+        old_history = copy.deepcopy(chat)
+        chat, message_label = self.integrationsloader.postprocess_history(chat, message_label)
+        chat, message_label = self.extensionloader.postprocess_history(chat, message_label)
+        
+        # Update the chat in storage if it was modified
+        self.set_chat_by_id(effective_chat_id, chat)
+        
+        # Check for edited messages again
+        edited_messages = get_edited_messages(chat, old_history)
+        if edited_messages is None:
+             if len(chat) < len(old_history):
+                 yield ('reload_chat', None)
+        else:
+             for message in edited_messages:
+                 yield ('reload_message', message)
+
+        # Update memory
+        self.update_memory(message_label, chat=chat)
+        
+        # Return final message and tokens
+        yield ('finished', {
+            'message': message_label,
+            'prompts': prompts,
+            'input_tokens': input_tokens,
+            'output_tokens': output_tokens,
+            'time': last_generation_time
+        })
 
 
 class NewelleSettings:

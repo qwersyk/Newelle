@@ -25,7 +25,7 @@ def quote_string(s):
     else:
         return "'" + s + "'"
 
-def markwon_to_pango(markdown_text):
+def markwon_to_pango(markdown_text, validate=True):
     """
     Converts a subset of Markdown text to Pango markup.
 
@@ -98,14 +98,9 @@ def markwon_to_pango(markdown_text):
     
     # Pass 3: italic again but allow content with <b></b> tags (complete pairs only)
     # This handles *italic with <b>bold</b> text* after bold conversion
+    # Simpler and faster version
     processed_text = re.sub(
-        r'(?<!\*)\*(?!\s|\*)(' + # Start italic
-        r'(?:' + # Content can be:
-            r'(?:(?!\*|<).)+' + #   - regular text (no * or <)
-            r'|<b>(?:(?!\*).)*?</b>' + #   - or complete <b></b> pairs
-            r'|<tt>(?:(?!\*).)*?</tt>' + #   - or complete <tt></tt> pairs
-        r')*?' + # Repeat non-greedy
-        r')(?<!\s|\*)\*(?!\*)',  # End italic
+        r'(?<!\*)\*(?!\s|\*)((?:(?!\*).)+?)(?<!\s|\*)\*(?!\*)',
         r'<i>\1</i>', 
         processed_text
     )
@@ -132,13 +127,13 @@ def markwon_to_pango(markdown_text):
         flags=re.MULTILINE
     )
 
-    try:
-        xml.dom.minidom.parseString(f"<span>{processed_text}</span>")
-        return processed_text
-    except Exception as e:
-        print(f"Pango conversion warning: Generated markup might be invalid. Error: {e}")
-        print("Problematic Markup:\n", processed_text)
-        return simple_markdown_to_pango(initial_string)
+    if validate:
+        try:
+            xml.dom.minidom.parseString(f"<span>{processed_text}</span>")
+            return processed_text
+        except Exception:
+            return simple_markdown_to_pango(initial_string)
+    return processed_text
 
 def simple_markdown_to_pango(markdown_text):
     """
@@ -169,14 +164,9 @@ def simple_markdown_to_pango(markdown_text):
     
     # Pass 3: italic again but allow content with <b></b> tags (complete pairs only)
     # This handles *italic with <b>bold</b> text* after bold conversion
+    # Simpler and faster version
     processed_text = re.sub(
-        r'(?<!\*)\*(?!\s|\*)(' + # Start italic
-        r'(?:' + # Content can be:
-            r'(?:(?!\*|<).)+' + #   - regular text (no * or <)
-            r'|<b>(?:(?!\*).)*?</b>' + #   - or complete <b></b> pairs
-            r'|<tt>(?:(?!\*).)*?</tt>' + #   - or complete <tt></tt> pairs
-        r')*?' + # Repeat non-greedy
-        r')(?<!\s|\*)\*(?!\*)',  # End italic
+        r'(?<!\*)\*(?!\s|\*)((?:(?!\*).)+?)(?<!\s|\*)\*(?!\*)',
         r'<i>\1</i>', 
         processed_text
     )
@@ -198,9 +188,7 @@ def simple_markdown_to_pango(markdown_text):
     try:
         xml.dom.minidom.parseString(f"<span>{processed_text}</span>")
         return processed_text
-    except Exception as e:
-        print(f"Pango conversion warning (Simple): Generated markup might be invalid. Error: {e}")
-        print("Problematic Markup (Simple):\n", processed_text)
+    except Exception:
         return initial_string
 
 def human_readable_size(size: float, decimal_places:int =2) -> str:

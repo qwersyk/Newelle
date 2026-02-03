@@ -7,11 +7,12 @@ from gi.repository import Adw, Gtk, Gio, Pango
 class ChatRow(Gtk.ListBoxRow):
     """A chat row widget styled according to Adwaita HIG"""
     
-    def __init__(self, chat_name: str, chat_index: int, is_selected: bool = False, level: int = 0):
+    def __init__(self, chat_name: str, chat_index: int, is_selected: bool = False, level: int = 0, is_open: bool = False):
         super().__init__()
         self.chat_index = chat_index
         self.is_selected = is_selected
         self.level = level
+        self.is_open = is_open
         
         # Process chat name: Remove new lines and limit to 8 words
         processed_name = chat_name.replace("\n", " ").strip()
@@ -151,6 +152,9 @@ class ChatRow(Gtk.ListBoxRow):
             self.delete_button.set_tooltip_text(_("Cannot delete current chat"))
         else:
             self.add_css_class("chat-row")
+            if is_open:
+                self.add_css_class("chat-locked")
+                self.name_label.add_css_class("window-bar-label")
         
         # Add hover controllers
         hover_controller = Gtk.EventControllerMotion()
