@@ -84,14 +84,6 @@ class NewelleAPIHandler(LLMHandler):
             raise Exception(self.error_message + " " + str(e))
 
 
-    def generate_chat_name(self, request_prompt:str = "") -> str | None:
-        """Generate name of the current chat
-
-        Args:
-            request_prompt (str, optional): Extra prompt to generate the name. Defaults to None.
-
-        Returns:
-            str: name of the chat
-        """
+    def generate_chat_name(self, request_prompt: str = "", history: list[dict[str, str]] = ...) -> str | None:
         request_prompt = "/chatname" + request_prompt
-        return super().generate_chat_name(request_prompt)
+        return super().generate_chat_name(request_prompt, history)

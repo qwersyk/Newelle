@@ -27,8 +27,8 @@ class ChatHistory(Gtk.Box):
 
     def __init__(self, window, chat, chat_id):
         super().__init__(orientation=Gtk.Orientation.VERTICAL, css_classes=["background", "view"], vexpand=True)
+        self.status = True
         self.window = window
-        self.chat = chat
         self.chat_id = chat_id
         self.controller = window.controller
         
@@ -98,6 +98,11 @@ class ChatHistory(Gtk.Box):
 
     def focus_input(self):
         self.emit("focus-input")
+
+    def set_generating(self, generating: bool):
+        self.status = not generating
+        self.update_button_text()
+
     def populate_chat(self):
         if not self.controller.newelle_settings.virtualization:
             self.add_message("WarningNoVirtual")
@@ -1128,6 +1133,23 @@ class ChatHistory(Gtk.Box):
         # Restore scroll position (adjust for new content height)
         GLib.idle_add(lambda: self._restore_scroll_position(current_value, current_upper))
         self.lazy_loading_in_progress = False
+    
+    def _load_newer_messages(self):
+        """Load newer messages (higher indices) when user scrolls down"""
+        if self.lazy_loading_in_progress or self.lazy_loaded_end >= len(self.chat):
+            return
+        
+        self.lazy_loading_in_progress = True
+        
+        # Calculate how many messages to load
+        load_count = min(self.lazy_load_batch_size, len(self.chat) - self.lazy_loaded_end)
+        new_end = min(len(self.chat), self.lazy_loaded_end + load_count)
+        
+        # Load messages and append to list
+        self._load_message_range(self.lazy_loaded_end, new_end)
+        
+        self.lazy_loaded_end = new_end
+        self.lazy_loading_in_progress = False 
     # File button
     def get_file_button(self, path):
         """Get the button for the file
@@ -1267,3 +1289,14 @@ class ChatHistory(Gtk.Box):
         # Update UI state
         GLib.idle_add(self.scrolled_chat)
         GLib.idle_add(self.update_button_text)
+
+    def update_history(self, chat):
+        self.chat = chat
+
+    @property
+    def chat(self):
+        return self.window.chat
+
+    @chat.setter
+    def chat(self, value):
+        self.window.chat = value

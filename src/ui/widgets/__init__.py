@@ -17,4 +17,30 @@ from .code_editor import CodeEditorWidget
 from .tool import ToolWidget
 from .message import Message
 from .chatrow import ChatRow
-__all__ = ["ProfileRow", "MultilineEntry", "BarChartBox", "ComboRowHelper", "CopyBox", "File", "DisplayLatex", "LatexCanvas", "MarkupTextView", "InlineLatex",  "WebsiteButton", "WebSearchWidget", "ThinkingWidget", "DocumentReaderWidget", "TipsCarousel", "BrowserWidget", "Terminal", "TerminalDialog", "CodeEditorWidget", "ToolWidget", "Message", "ChatRow"]
+from .chat_history import ChatHistory
+
+__all__ = [
+    "ProfileRow",
+    "MultilineEntry",
+    "BarChartBox",
+    "ComboRowHelper",
+    "CopyBox",
+    "File",
+    "DisplayLatex",
+    "LatexCanvas",
+    "MarkupTextView",
+    "InlineLatex",
+    "WebsiteButton",
+    "WebSearchWidget",
+    "ThinkingWidget",
+    "DocumentReaderWidget",
+    "TipsCarousel",
+    "BrowserWidget",
+    "Terminal",
+    "TerminalDialog",
+    "CodeEditorWidget",
+    "ToolWidget",
+    "Message",
+    "ChatRow",
+    "ChatHistory",
+]

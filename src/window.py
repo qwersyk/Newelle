@@ -53,7 +53,6 @@ class MainWindow(Adw.ApplicationWindow):
 
         super().__init__(*args, **kwargs)
         self.app = self.get_application()
-        self.status = False        
         # Main program block - On the right Canvas tabs, Chat as content
         self.main_program_block = Adw.OverlaySplitView(
             enable_hide_gesture=False,
@@ -281,57 +280,6 @@ class MainWindow(Adw.ApplicationWindow):
 
         # Explorer panel 
         self.main_program_block.set_show_sidebar(False)
-        # Stop chat button
-        self.chat_stop_button = Gtk.Button(css_classes=["flat"])
-        icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="media-playback-stop"))
-        icon.set_icon_size(Gtk.IconSize.INHERIT)
-        box = Gtk.Box(halign=Gtk.Align.CENTER)
-        box.append(icon)
-        label = Gtk.Label(label=_(" Stop"))
-        box.append(label)
-        self.chat_stop_button.set_child(box)
-        self.chat_stop_button.connect("clicked", self.stop_chat)
-        self.chat_stop_button.set_visible(False)
-
-        self.status = True
-        # Clear chat button
-        self.button_clear = Gtk.Button(css_classes=["flat"])
-        icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="edit-clear-all-symbolic"))
-        icon.set_icon_size(Gtk.IconSize.INHERIT)
-        box = Gtk.Box(halign=Gtk.Align.CENTER)
-        box.append(icon)
-        label = Gtk.Label(label=_(" Clear"))
-        box.append(label)
-        self.button_clear.set_child(box)
-        self.button_clear.connect("clicked", self.clear_chat)
-        self.button_clear.set_visible(False)
-
-        # Continue button
-        self.button_continue = Gtk.Button(css_classes=["flat"])
-        icon = Gtk.Image.new_from_gicon(
-            Gio.ThemedIcon(name="media-seek-forward-symbolic")
-        )
-        icon.set_icon_size(Gtk.IconSize.INHERIT)
-        box = Gtk.Box(halign=Gtk.Align.CENTER)
-        box.append(icon)
-        label = Gtk.Label(label=_(" Continue"))
-        box.append(label)
-        self.button_continue.set_child(box)
-        self.button_continue.connect("clicked", self.continue_message)
-        self.button_continue.set_visible(False)
-
-        # Regenerate message button
-        self.regenerate_message_button = Gtk.Button(css_classes=["flat"])
-        icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="view-refresh-symbolic"))
-        icon.set_icon_size(Gtk.IconSize.INHERIT)
-        box = Gtk.Box(halign=Gtk.Align.CENTER)
-        box.append(icon)
-        label = Gtk.Label(label=_(" Regenerate"))
-        box.append(label)
-        self.regenerate_message_button.set_child(box)
-        self.regenerate_message_button.connect("clicked", self.regenerate_message)
-        self.regenerate_message_button.set_visible(False)
-        
         
         self.profiles_box = None
         self.refresh_profiles_box()
@@ -1612,7 +1560,7 @@ class MainWindow(Adw.ApplicationWindow):
     # Chat management
     def continue_message(self, button):
         """Continue last message"""
-        if self.chat[-1]["User"] not in ["Assistant", "Console", "User"]:
+        if self.chat_history.chat[-1]["User"] not in ["Assistant", "Console", "User"]:
             self.notification_block.add_toast(
                 Adw.Toast(title=_("You can no longer continue the message."), timeout=2)
             )
@@ -1622,7 +1570,7 @@ class MainWindow(Adw.ApplicationWindow):
 
     def regenerate_message(self, *a):
         """Regenerate last message"""
-        if self.chat[-1]["User"] in ["Assistant", "Console"]:
+        if self.chat_history.chat[-1]["User"] in ["Assistant", "Console"]:
             for i in range(len(self.chat) - 1, -1, -1):
                 if self.chat[i]["User"] in ["Assistant", "Console"]:
                     self.chat.pop(i)
@@ -1933,7 +1881,6 @@ class MainWindow(Adw.ApplicationWindow):
         self.active_tool_results = []
         self.status = True
         self.stream_number_variable += 1
-        self.chat_stop_button.set_visible(False)
         GLib.idle_add(self.chat_history.update_button_text)
         self.notification_block.add_toast(
             Adw.Toast(
@@ -2032,7 +1979,7 @@ class MainWindow(Adw.ApplicationWindow):
         self.stream_number_variable += 1
         stream_number_variable = self.stream_number_variable
         self.status = False
-        GLib.idle_add(self.chat_history.update_button_text)
+        GLib.idle_add(self.chat_history.set_generating, True)
         
         # Start creating the message
         if self.model.stream_enabled():
@@ -2050,7 +1997,6 @@ class MainWindow(Adw.ApplicationWindow):
                 
                 if status == 'reload_chat':
                     def reload_chat_safe():
-                        self.chat = self.controller.chat
                         self.show_chat()
                     GLib.idle_add(reload_chat_safe)
                 elif status == 'reload_message':
@@ -2064,7 +2010,6 @@ class MainWindow(Adw.ApplicationWindow):
                 elif status == 'finished':
                     # Run finish logic in main thread to avoid races with chat list
                     def finish_safe():
-                        self.chat = self.controller.chat
                         self._handle_generation_finished(data, stream_number_variable)
                     GLib.idle_add(finish_safe)
 
@@ -2080,6 +2025,7 @@ class MainWindow(Adw.ApplicationWindow):
             # Streaming was active, finalize the existing widget
             streaming_widget = self.current_streaming_message
             self.chat.append({"User": "Assistant", "Message": message_label, "UUID": streaming_widget.chunk_uuid})
+            self.chat_history.update_history(self.chat)
             self.add_prompt("\n".join(prompts))
             
             final_message = message_label
@@ -2119,7 +2065,6 @@ class MainWindow(Adw.ApplicationWindow):
 
             # Already in main thread via idle_add wrapper in run_generation
             finalize_stream()
-            
             # Cleanup reference
             self.current_streaming_message = None
         else:
@@ -2135,6 +2080,7 @@ class MainWindow(Adw.ApplicationWindow):
                 "\n".join(prompts),
             )
 
+        GLib.idle_add(self.chat_history.set_generating, False)
         GLib.idle_add(self.remove_send_button_spinner)
         # Generate chat name
         if self.controller.newelle_settings.auto_generate_name and len(self.chat) == 2:
@@ -2224,7 +2170,7 @@ class MainWindow(Adw.ApplicationWindow):
         if self.stream_number_variable != stream_number_variable:
             return
 
-        if time.time() - self.last_update >= 0.1:
+        if time.time() - self.last_update >= 0.2:
             self.last_update = time.time()
             GLib.idle_add(self.refresh_streaming_ui, message, stream_number_variable)
 
@@ -2774,3 +2720,13 @@ class MainWindow(Adw.ApplicationWindow):
     def chat_id(self, value):
         """Set the current chat ID in the controller's settings"""
         self.controller.newelle_settings.chat_id = value
+
+    @property
+    def status(self):
+        """Get the status of the window"""
+        return self.chat_history.status
+
+    @status.setter
+    def status(self, value):
+        """Set the status of the window"""
+        self.chat_history.status = value
