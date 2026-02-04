@@ -8,6 +8,7 @@ from ...handlers.embeddings.embedding import EmbeddingHandler
 from ...handlers import ExtraSettings 
 from .rag_handler import RAGHandler, RAGIndex 
 from ...utility.pip import find_module, install_module
+from ...tools import Tool, create_io_tool
 import os
 
 class LlamaIndexHanlder(RAGHandler):
@@ -585,6 +586,73 @@ class LlamaIndexHanlder(RAGHandler):
                 embeddings = self._embedding_model.get_embedding(texts)
                 return embeddings
         return CustomEmbedding(embedding)
+    
+    def get_tools(self) -> list:
+        """Get tools provided by the RAG handler
+
+        Returns:
+            list: List of tools for semantic search
+        """
+        r= [
+            create_io_tool(
+                name="rag_search_files",
+                description="Perform semantic search over specified files or documents. Documents can be file paths (file:path/to/file), text content (text:content), or URLs (url:https://example.com). Returns relevant passages based on semantic similarity.",
+                func=self._tool_search_files,
+                title="RAG Search Files",
+                default_on=True,
+                tools_group="RAG"
+            ),
+        ]
+        if self.settings.get_boolean("rag-on"):
+            r += [
+                create_io_tool(
+                    name="rag_search_index",
+                    description="Perform semantic search over the existing indexed documents. Searches the pre-built index of user documents and returns relevant passages based on semantic similarity.",
+                    func=self._tool_search_index,
+                    title="RAG Search Index",
+                    default_on=True,
+                    tools_group="RAG"
+                ),
+            ]
+        return r
+
+    def _tool_search_files(self, query: str, documents: list[str]) -> str:
+        """Tool function to perform semantic search over arbitrary files
+
+        Args:
+            query: The semantic search query
+            documents: List of documents to search. Format:
+                file:path/to/file - for local files
+                text:content - for direct text content
+                url:https://url - for URLs
+
+        Returns:
+            Relevant passages from the documents
+        """
+        if type(documents) is not list:
+            documents = [documents]
+        try:
+            results = self.query_document(query, documents)
+            return "\n".join(results) if results else "No relevant results found."
+        except Exception as e:
+            return f"Error performing semantic search: {str(e)}"
+
+    def _tool_search_index(self, query: str) -> str:
+        """Tool function to perform semantic search over the existing index
+
+        Args:
+            query: The semantic search query
+
+        Returns:
+            Relevant passages from the indexed documents
+        """
+        try:
+            if not self.index_exists():
+                return "No index exists. Please create an index first."
+            results = self.get_context(query, [])
+            return "\n".join(results) if results else "No relevant results found in index."
+        except Exception as e:
+            return f"Error searching index: {str(e)}"
 
     def get_llm_adapter(self):
         from llama_index.core.llms import (

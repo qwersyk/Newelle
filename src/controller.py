@@ -198,7 +198,7 @@ class NewelleController:
         self.handlers = HandlersManager(self.settings, self.extensionloader, self.models_dir, self.integrationsloader, self.installing_handlers)
         self.handlers.select_handlers(self.newelle_settings)
         threading.Thread(target=self.handlers.cache_handlers).start()
-
+        self.handlers.add_tools(self.tools)
     def init_paths(self) -> None:
         """Define paths for the application"""
         self.config_dir = GLib.get_user_config_dir()
@@ -310,11 +310,14 @@ class NewelleController:
             if self.newelle_settings.use_secondary_language_model:
                 threading.Thread(target=self.handlers.secondary_llm.load_model, args=(None,)).start()
         elif reload_type in [ReloadType.TTS, ReloadType.STT, ReloadType.MEMORIES]:
+            if ReloadType.MEMORIES:
+                self.require_tool_update()
             self.handlers.select_handlers(self.newelle_settings)
         elif reload_type == ReloadType.RAG:
             self.handlers.select_handlers(self.newelle_settings)
             if self.newelle_settings.rag_on:
                 threading.Thread(target=self.handlers.rag.load).start()
+            self.require_tool_update()
         elif reload_type == ReloadType.EMBEDDINGS:
             self.handlers.select_handlers(self.newelle_settings)
             threading.Thread(target=self.handlers.embedding.load_model).start()
@@ -356,6 +359,8 @@ class NewelleController:
         self.tools = ToolRegistry()
         self.extensionloader.add_tools(self.tools)
         self.integrationsloader.add_tools(self.tools)
+        # Add tools from memory and rag handlers
+        self.handlers.add_tools(self.tools)
     
     def get_enabled_tools(self) -> list:
         """Get the list of enabled tools
@@ -1042,6 +1047,7 @@ class NewelleSettings:
 
         if self.rag_on != new_settings.rag_on or self.rag_model != new_settings.rag_model or self.rag_settings != new_settings.rag_settings:
             reloads.append(ReloadType.RAG)
+            
         if self.extensions_settings != new_settings.extensions_settings:
             reloads += [ReloadType.EXTENSIONS, ReloadType.LLM, ReloadType.SECONDARY_LLM, ReloadType.EMBEDDINGS, ReloadType.EMBEDDINGS, ReloadType.MEMORIES, ReloadType.RAG, ReloadType.WEBSEARCH]
         if self.username != new_settings.username:
@@ -1155,6 +1161,13 @@ class HandlersManager:
                 handler.set_error_func(func)
         threading.Thread(target=async_set).start()
 
+    def add_tools(self, tools: ToolRegistry):
+        if self.memory is not None:
+            for tool in self.memory.get_tools():
+                tools.register_tool(tool)
+        for tool in self.rag.get_tools():
+            tools.register_tool(tool)
+
     def load_handlers(self):
         """Load handlers"""
         threading.Thread(target=self.llm.load_model, args=(None,)).start()
@@ -1163,6 +1176,7 @@ class HandlersManager:
         self.embedding.load_model()
         if self.settings.get_boolean("rag-on"):
             self.rag.load()
+        
 
     def install_missing_handlers(self):
         """Install selected handlers that are not installed. Assumes that select_handlers has been called""" 

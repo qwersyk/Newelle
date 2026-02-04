@@ -2,6 +2,7 @@ from ...handlers import Handler
 from ...handlers.embeddings import EmbeddingHandler
 from ...handlers.llm import LLMHandler
 from ...handlers import ExtraSettings
+from ...tools import create_io_tool
 from abc import abstractmethod
 import os
 
@@ -217,3 +218,5 @@ class RAGHandler(Handler):
             self.indexing = True
             self.create_index()
 
+    def get_tools(self) -> list:
+        return []
