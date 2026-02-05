@@ -774,7 +774,7 @@ class ChatTab(Gtk.Box):
         """Generate a name for the chat based on content."""
         def generate():
             try:
-                name = self.controller.secondary_model.generate_chat_name(
+                name = self.window.secondary_model.generate_chat_name(
                     self.controller.newelle_settings.prompts["generate_name_prompt"],
                     self.controller.get_history(chat_id=self._chat_id)
                 )

@@ -1148,7 +1148,7 @@ class HandlersManager:
         # Assign handlers 
         self.integrationsloader.set_handlers(self.llm, self.stt, self.tts, self.secondary_llm, self.embedding, self.rag, self.memory, self.websearch)
         self.extensionloader.set_handlers(self.llm, self.stt, self.tts, self.secondary_llm, self.embedding, self.rag, self.memory, self.websearch)
-        self.memory.set_handlers(self.secondary_llm, self.embedding)
+        self.memory.set_handlers(self.secondary_llm, self.embedding, self.rag)
 
         self.rag.set_handlers(self.llm, self.embedding)
         threading.Thread(target=self.install_missing_handlers).start()

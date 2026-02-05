@@ -410,7 +410,7 @@ class ChatHistory(Gtk.Box):
         self.messages_box.append(box)
 
         # Update lazy_loaded_end when a message is displayed beyond the current range
-        if False and self.lazy_load_enabled:
+        if self.lazy_load_enabled:
             if id_message >= self.lazy_loaded_end:
                 self.lazy_loaded_end = id_message + 1
 

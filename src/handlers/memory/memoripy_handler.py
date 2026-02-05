@@ -1,12 +1,14 @@
 import numpy as np
 import os
+from typing import Optional
 from .memory_handler import MemoryHandler
 from ...handlers.embeddings.embedding import EmbeddingHandler
 from ...handlers.llm.llm import LLMHandler
+from ...handlers.rag.rag_handler import RAGHandler
 from ...handlers import Handler
 from ...handlers import ExtraSettings
 from ...utility.util import convert_history_newelle
-from ...utility.strings import extract_json
+from ...utility.strings import extract_json, remove_thinking_blocks
 from ...utility.pip import find_module, install_module
 
 
@@ -32,7 +34,14 @@ class MemoripyHandler(MemoryHandler):
         storage = os.path.join(self.path, "memory2.json")
         if os.path.exists(storage):
             os.remove(storage)
- 
+
+    def set_handlers(self, llm: LLMHandler, embedding: EmbeddingHandler, rag: Optional[RAGHandler] = None):
+        """Set handlers and load the memory manager"""
+        self.llm = llm
+        self.embedding = embedding
+        self.rag = rag
+        #self.load(embedding, llm)
+
     def load(self, embedding, llm):
         from memoripy import JSONStorage
         from memoripy import MemoryManager
@@ -91,6 +100,8 @@ class MemoripyHandler(MemoryHandler):
 
     def register_response(self, bot_response, history):
         if self.memory_manager is not None:
+            # Remove thinking blocks from bot response before storing
+            bot_response = remove_thinking_blocks(bot_response)
             combined_text = " ".join([history[-1]["Message"], bot_response])
             concepts = self.memory_manager.extract_concepts(combined_text)
             new_embedding = self.embedding.get_embedding([combined_text])[0]

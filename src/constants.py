@@ -3,7 +3,7 @@ from .handlers.llm import ClaudeHandler, DeepseekHandler, GroqHandler, OllamaHan
 from .handlers.tts import ElevenLabs, gTTSHandler, EspeakHandler, CustomTTSHandler, KokoroTTSHandler, CustomOpenAITTSHandler, OpenAITTSHandler, GroqTTSHandler
 from .handlers.stt import GroqSRHandler, OpenAISRHandler, SphinxHandler, GoogleSRHandler, WhisperCPPHandler, WitAIHandler, VoskHandler, CustomSRHandler
 from .handlers.embeddings import WordLlamaHandler, OpenAIEmbeddingHandler, GeminiEmbeddingHanlder, OllamaEmbeddingHandler, Model2VecHandler
-from .handlers.memory import MemoripyHandler, UserSummaryHandler, SummaryMemoripyHanlder, LlamaIndexMemoryHandler
+from .handlers.memory import MemoripyHandler, UserSummaryHandler, SummaryMemoripyHanlder, LlamaIndexMemoryHandler, AgenticMemoryHandler
 from .handlers.rag import LlamaIndexHanlder
 from .handlers.websearch import SearXNGHandler, DDGSeachHandler, TavilyHandler
 from .integrations.website_reader import WebsiteReader
@@ -247,6 +247,12 @@ AVAILABLE_MEMORIES = {
         "title": _("User Summary"),
         "description": _("Generate a summary of the user's conversation"),
         "class": UserSummaryHandler,
+    },
+    "agentic_memory_handler": {
+        "key": "agentic_memory_handler",
+        "title": _("Agentic Memory"),
+        "description": _("Long term memory using Agentic Memory. Stores conversations in a vector store. Uses semantic search to retrieve memories."),
+        "class": AgenticMemoryHandler,
     },
     "llamaindex": {
         "key": "llamaindex",
