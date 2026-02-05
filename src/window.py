@@ -646,16 +646,22 @@ class MainWindow(Adw.ApplicationWindow):
     
     def _update_tab_chat_ids_after_delete(self, deleted_at: int):
         """Update chat_ids in all tabs after a chat was deleted.
-        
+
         Args:
             deleted_at: The index where a chat was deleted
         """
         n_pages = self.chat_tabs.get_n_pages()
-        for i in range(n_pages):
+        # Go backwards to safely close tabs
+        for i in range(n_pages - 1, -1, -1):
             page = self.chat_tabs.get_nth_page(i)
             child = page.get_child()
-            if isinstance(child, ChatTab) and child._chat_id > deleted_at:
-                child._chat_id -= 1
+            if isinstance(child, ChatTab):
+                if child._chat_id == deleted_at:
+                    # Close tab showing the deleted chat
+                    self.chat_tabs.close_page(page)
+                elif child._chat_id > deleted_at:
+                    # Update chat_id for tabs after the deleted one
+                    child._chat_id -= 1
 
     def handle_error(self, message: str, error: ErrorSeverity):
         if error == ErrorSeverity.ERROR:
@@ -1757,11 +1763,15 @@ class MainWindow(Adw.ApplicationWindow):
     
     def remove_chat(self, button):
         """Remove a chat"""
-        if int(button.get_name()) < self.chat_id:
+        deleted_index = int(button.get_name())
+        if deleted_index < self.chat_id:
             self.chat_id -= 1
-        elif int(button.get_name()) == self.chat_id:
+        elif deleted_index == self.chat_id:
             return False
-        self.chats.pop(int(button.get_name()))
+        self.chats.pop(deleted_index)
+        # Update chat_ids in all tabs after deletion
+        self._update_tab_chat_ids_after_delete(deleted_index)
+        self.save_chat()
         self.update_history()
 
     def edit_chat_name(self, button, stack, multithreading=False):
@@ -1922,7 +1932,7 @@ class MainWindow(Adw.ApplicationWindow):
         suggestions = self.secondary_model.get_suggestions(
             self.controller.newelle_settings.prompts["get_suggestions_prompt"],
             self.offers,
-            self.controller.get_history(chat_id=tab.chat_id)
+            self.controller.get_history(chat=tab.chat)
         )
         GLib.idle_add(self.populate_suggestions, suggestions)
 

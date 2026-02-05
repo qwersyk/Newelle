@@ -108,27 +108,26 @@ class NewelleController:
     
     def get_chat_by_id(self, chat_id):
         """Get chat messages list by explicit chat_id.
-        
+
         Args:
             chat_id: The chat ID to get messages for
-            
+
         Returns:
-            The chat messages list for the specified chat_id
+            The chat messages list for the specified chat_id, or empty list if invalid
         """
-        if hasattr(self, 'chats') and self.chats:
-            return self.chats[min(chat_id, len(self.chats) - 1)]["chat"]
+        if hasattr(self, 'chats') and self.chats and 0 <= chat_id < len(self.chats):
+            return self.chats[chat_id]["chat"]
         return []
     
     def set_chat_by_id(self, chat_id, value):
         """Set chat messages list by explicit chat_id.
-        
+
         Args:
             chat_id: The chat ID to set messages for
             value: The new chat messages list
         """
-        if hasattr(self, 'chats') and self.chats:
-            index = min(chat_id, len(self.chats) - 1)
-            self.chats[index]["chat"] = value
+        if hasattr(self, 'chats') and self.chats and 0 <= chat_id < len(self.chats):
+            self.chats[chat_id]["chat"] = value
 
     def get_console_reply(self, chat_id, id_message):
         """Get existing console reply from chat history if available."""
@@ -791,18 +790,25 @@ class NewelleController:
 
     def prepare_generation(self, chat_id=None):
         """Prepare contexts and prompts for generation.
-        
+
         Args:
             chat_id: Optional chat ID to use. If None, uses current chat_id from settings.
-            
+
         Returns:
             Tuple of (prompts, history, old_history, old_user_prompt, chat, effective_chat_id)
+            Returns (None, None, None, None, None, None) if chat_id is invalid
         """
         # Use explicit chat_id or fall back to current
         effective_chat_id = chat_id if chat_id is not None else self.newelle_settings.chat_id
+
+        # Validate chat_id is within bounds
+        if not self.chats or effective_chat_id < 0 or effective_chat_id >= len(self.chats):
+            print(f"prepare_generation: Invalid chat_id {effective_chat_id}, chats length: {len(self.chats) if self.chats else 0}")
+            return None, None, None, None, None, None
+
         chat = self.get_chat_by_id(effective_chat_id)
-        
-        # Save profile for generation 
+
+        # Save profile for generation
         self.chats[effective_chat_id]["profile"] = self.newelle_settings.current_profile
 
         # Append extensions prompts
@@ -810,7 +816,7 @@ class NewelleController:
         formatter = PromptFormatter(replace_variables_dict(), self.get_variable)
         for prompt in self.newelle_settings.bot_prompts:
             prompts.append(formatter.format(prompt))
-            
+
         # Append memory
         prompts += self.get_memory_prompt(chat=chat, chat_id=effective_chat_id)
 
@@ -821,25 +827,30 @@ class NewelleController:
         old_user_prompt = chat[-1]["Message"] if chat else ""
         processed_chat, prompts = self.integrationsloader.preprocess_history(chat, prompts)
         chat, prompts = self.extensionloader.preprocess_history(processed_chat, prompts)
-        
+
         # Update the chat in storage if it was modified
         self.set_chat_by_id(effective_chat_id, chat)
-        
+
         return prompts, history, old_history, old_user_prompt, chat, effective_chat_id
 
 
     def generate_response(self, stream_number_variable, update_callback, chat_id=None):
         """
-        Generator for the response. 
+        Generator for the response.
         Yields (status, data) tuples.
         status can be: 'stream', 'error', 'done', 'edited_messages'
-        
+
         Args:
             stream_number_variable: Variable to track stream number for cancellation
             update_callback: Callback for streaming updates
             chat_id: Optional chat ID to use. If None, uses current chat_id from settings.
         """
         prompts, history, old_history, old_user_prompt, chat, effective_chat_id = self.prepare_generation(chat_id=chat_id)
+
+        # Handle invalid chat_id
+        if prompts is None:
+            yield ('error', 'Invalid chat ID: the chat may have been deleted')
+            return
         
         # Check for edited messages
         new_history = self.get_history(chat=chat)
