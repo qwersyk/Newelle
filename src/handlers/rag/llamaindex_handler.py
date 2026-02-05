@@ -332,6 +332,7 @@ class LlamaIndexHanlder(RAGHandler):
         if self.index is None:
             return []
         r = []
+        prompt = clean_prompt(prompt)
 
         if self.get_setting("use_llm"):
             query_engine = self.index.as_query_engine()
