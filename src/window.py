@@ -1242,11 +1242,16 @@ class MainWindow(Adw.ApplicationWindow):
         if os.path.exists(path):
             os.remove(path)
         self.recording = True
+        self.recording_button = button  # Store the button for auto_stop_recording
         if self.controller.newelle_settings.automatic_stt:
             self.automatic_stt_status = True
         # button.set_child(Gtk.Spinner(spinning=True))
         button.set_icon_name("media-playback-stop-symbolic")
-        button.disconnect_by_func(self.start_recording)
+        try:
+            button.disconnect_by_func(self.start_recording)
+        except TypeError:
+            # Handler was not connected to this function
+            pass
         button.remove_css_class("suggested-action")
         button.add_css_class("error")
         button.connect("clicked", self.stop_recording)
@@ -1281,8 +1286,14 @@ class MainWindow(Adw.ApplicationWindow):
         button.set_icon_name("audio-input-microphone-symbolic")
         button.add_css_class("suggested-action")
         button.remove_css_class("error")
-        button.disconnect_by_func(self.stop_recording)
-        button.connect("clicked", self.start_recording)
+        try:
+            button.disconnect_by_func(self.stop_recording)
+        except TypeError:
+            pass
+        # Reconnect to the active chat tab's start_recording method
+        tab = self.get_active_chat_tab()
+        if tab is not None:
+            button.connect("clicked", tab.start_recording)
 
     def stop_recording_async(self, button=False):
         """Stop recording and save the file"""
@@ -1292,13 +1303,16 @@ class MainWindow(Adw.ApplicationWindow):
         )
 
         def idle_record():
+            tab = self.get_active_chat_tab()
+            if tab is None:
+                return
             if (
                 result is not None
                 and "stop" not in result.lower()
                 and len(result.replace(" ", "")) > 2
             ):
-                self.input_panel.set_text(result)
-                self.on_entry_activate(self.input_panel)
+                tab.input_panel.set_text(result)
+                tab.on_entry_activate(tab.input_panel)
             else:
                 self.notification_block.add_toast(
                     Adw.Toast(title=_("Could not recognize your voice"), timeout=2)
