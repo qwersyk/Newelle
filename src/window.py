@@ -1410,67 +1410,21 @@ class MainWindow(Adw.ApplicationWindow):
         self.add_file(file_data=image)
 
     def delete_attachment(self, button):
-        """Delete file attachment"""
-        self.attached_image_data = None
-        self.attach_button.set_icon_name("attach-symbolic")
-        self.attach_button.set_css_classes(["circular", "flat"])
-        self.attach_button.disconnect_by_func(self.delete_attachment)
-        self.attach_button.connect("clicked", self.attach_file)
-        self.attached_image.set_visible(False)
-        self.screen_record_button.set_visible(self.model.supports_video_vision())
-        # self.screen_record_button.set_visible("mp4" in self.model.get_supported_files())
+        """Delete file attachment - delegates to the active chat tab"""
+        tab = self.get_active_chat_tab()
+        if tab is not None:
+            tab.delete_attachment(button)
 
     def add_file(self, file_path=None, file_data=None):
-        """Add a file and update the UI, also generates thumbnail for videos
+        """Add a file and update the UI - delegates to the active chat tab
 
         Args:
             file_path (): file path for the file
             file_data (): file data for the file
         """
-        if file_path is not None:
-            if file_path.lower().endswith((".mp4", ".avi", ".mov")):
-                cmd = [
-                    "ffmpeg",
-                    "-i",
-                    file_path,
-                    "-vframes",
-                    "1",
-                    "-f",
-                    "image2pipe",
-                    "-vcodec",
-                    "png",
-                    "-",
-                ]
-                frame_data = subprocess.run(cmd, capture_output=True).stdout
-
-                if frame_data:
-                    loader = GdkPixbuf.PixbufLoader()
-                    loader.write(frame_data)
-                    loader.close()
-                    self.attached_image.set_from_pixbuf(loader.get_pixbuf())
-                else:
-                    self.attached_image.set_from_icon_name("video-x-generic")
-            elif file_path.lower().endswith((".png", ".jpg", ".jpeg", ".webp")):
-                self.attached_image.set_from_file(file_path)
-            else:
-                self.attached_image.set_from_icon_name("text-x-generic")
-
-            self.attached_image_data = file_path
-            self.attached_image.set_visible(True)
-        elif file_data is not None:
-            base64_image = base64.b64encode(file_data).decode("utf-8")
-            self.attached_image_data = f"data:image/jpeg;base64,{base64_image}"
-            loader = GdkPixbuf.PixbufLoader()
-            loader.write(file_data)
-            loader.close()
-            self.attached_image.set_from_pixbuf(loader.get_pixbuf())
-            self.attached_image.set_visible(True)
-
-        self.attach_button.set_icon_name("user-trash-symbolic")
-        self.attach_button.set_css_classes(["destructive-action", "circular"])
-        self.attach_button.connect("clicked", self.delete_attachment)
-        self.attach_button.disconnect_by_func(self.attach_file)
-        self.screen_record_button.set_visible(False)
+        tab = self.get_active_chat_tab()
+        if tab is not None:
+            tab.add_file(file_path, file_data)
 
     # Flap management
     def on_chat_panel_toggled(self, button: Gtk.ToggleButton):

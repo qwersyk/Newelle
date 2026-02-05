@@ -8,11 +8,13 @@ Each ChatTab owns its own:
 - Message sending and generation lifecycle
 """
 
-from gi.repository import Gtk, Adw, Gio, Gdk, GObject, GLib
+from gi.repository import Gtk, Adw, Gio, Gdk, GObject, GLib, GdkPixbuf
 import threading
 import time
 import re
 import gettext
+import subprocess
+import base64
 
 from .chat_history import ChatHistory
 from .multiline import MultilineEntry
@@ -828,13 +830,67 @@ class ChatTab(Gtk.Box):
     def delete_attachment(self, button):
         """Delete the current attachment."""
         self.attached_image_data = None
+        self.attach_button.set_icon_name("attach-symbolic")
+        self.attach_button.set_css_classes(["circular", "flat"])
+        self.attach_button.disconnect_by_func(self.delete_attachment)
+        self.attach_button.connect("clicked", self.attach_file)
         self.attached_image.set_visible(False)
-        self.attached_image.set_from_icon_name("image-missing")
+        self.screen_record_button.set_visible(self.window.model.supports_video_vision())
         
     def add_file(self, file_path=None, file_data=None):
-        """Add a file attachment."""
-        # Delegate to window for now, can be moved here later
-        self.window.add_file(file_path, file_data)
+        """Add a file attachment and update the UI, also generates thumbnail for videos
+
+        Args:
+            file_path (): file path for the file
+            file_data (): file data for the file
+        """
+        if file_path is not None:
+            if file_path.lower().endswith((".mp4", ".avi", ".mov")):
+                cmd = [
+                    "ffmpeg",
+                    "-i",
+                    file_path,
+                    "-vframes",
+                    "1",
+                    "-f",
+                    "image2pipe",
+                    "-vcodec",
+                    "png",
+                    "-",
+                ]
+                frame_data = subprocess.run(cmd, capture_output=True).stdout
+
+                if frame_data:
+                    loader = GdkPixbuf.PixbufLoader()
+                    loader.write(frame_data)
+                    loader.close()
+                    self.attached_image.set_from_pixbuf(loader.get_pixbuf())
+                else:
+                    self.attached_image.set_from_icon_name("video-x-generic")
+            elif file_path.lower().endswith((".png", ".jpg", ".jpeg", ".webp")):
+                self.attached_image.set_from_file(file_path)
+            else:
+                self.attached_image.set_from_icon_name("text-x-generic")
+
+            self.attached_image_data = file_path
+            self.attached_image.set_visible(True)
+        elif file_data is not None:
+            base64_image = base64.b64encode(file_data).decode("utf-8")
+            self.attached_image_data = f"data:image/jpeg;base64,{base64_image}"
+            loader = GdkPixbuf.PixbufLoader()
+            loader.write(file_data)
+            loader.close()
+            self.attached_image.set_from_pixbuf(loader.get_pixbuf())
+            self.attached_image.set_visible(True)
+
+        self.attach_button.set_icon_name("user-trash-symbolic")
+        self.attach_button.set_css_classes(["destructive-action", "circular"])
+        self.attach_button.connect("clicked", self.delete_attachment)
+        # Disconnect the attach_file handler - we need to get the handler ID
+        # The attach_file was connected in _build_ui, so we need to disconnect it here
+        # Since we can't directly disconnect by func in this case, we'll rebuild the button state
+        self.attach_button.disconnect_by_func(self.attach_file)
+        self.screen_record_button.set_visible(False)
         
     # Recording
     def start_recording(self, button):
