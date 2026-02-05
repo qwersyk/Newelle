@@ -429,8 +429,8 @@ class ChatTab(Gtk.Box):
             
             self.chat.append({"User": "User", "Message": text})
             self.chat_history.show_message(text, True, id_message=len(self.chat) - 1, is_user=True)
-        
-        self.chat_history.scrolled_chat()
+
+        GLib.timeout_add(200, self.chat_history.scrolled_chat)
         threading.Thread(target=self.send_message).start()
         self.send_button_start_spinner()
         
