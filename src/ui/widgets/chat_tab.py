@@ -649,20 +649,22 @@ class ChatTab(Gtk.Box):
         """Add document reading widget during streaming."""
         d = [doc.replace("file:", "") for doc in documents if doc.startswith("file:")]
         documents = d
-        if self.model.stream_enabled():
-            self.reading = DocumentReaderWidget()
-            for document in documents:
-                self.reading.add_document(document)
-            self.streaming_box.append(self.reading)
+        if self.model.stream_enabled() and hasattr(self, "current_streaming_message"):
+            if self.current_streaming_message is not None:
+                self.reading = DocumentReaderWidget()
+                for document in documents:
+                    self.reading.add_document(document)
+                self.current_streaming_message.append(self.reading)
             
     def remove_reading_widget(self):
         """Remove document reading widget."""
         try:
-            if hasattr(self, "reading") and hasattr(self, "streaming_box"):
-                if self.streaming_box is not None and self.reading is not None:
+            if hasattr(self, "reading") and hasattr(self, "current_streaming_message"):
+                if self.current_streaming_message is not None and self.reading is not None:
                     parent = self.reading.get_parent()
-                    if parent == self.streaming_box:
-                        self.streaming_box.remove(self.reading)
+                    if parent == self.current_streaming_message:
+                        self.current_streaming_message.remove(self.reading)
+                    self.reading = None
         except (AttributeError, TypeError, RuntimeError):
             pass
             

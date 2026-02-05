@@ -120,3 +120,15 @@ class UIController:
             text (): text to add
         """
         self.window.add_text_to_input(text, focus_input)
+
+    def add_reading_widget(self, documents):
+        """Add a reading widget to the UI
+        
+        Args:
+            documents: list of documents being read
+        """
+        self.window.add_reading_widget(documents)
+
+    def remove_reading_widget(self):
+        """Remove the reading widget from the UI"""
+        self.window.remove_reading_widget()
