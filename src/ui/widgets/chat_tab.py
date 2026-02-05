@@ -429,6 +429,10 @@ class ChatTab(Gtk.Box):
             
             self.chat.append({"User": "User", "Message": text})
             self.chat_history.show_message(text, True, id_message=len(self.chat) - 1, is_user=True)
+            
+            # Store current profile in chat data
+            if self._chat_id < len(self.controller.chats):
+                self.controller.chats[self._chat_id]["profile"] = self.window.current_profile
 
         GLib.timeout_add(200, self.chat_history.scrolled_chat)
         threading.Thread(target=self.send_message).start()
@@ -912,6 +916,11 @@ class ChatTab(Gtk.Box):
         text = button.get_child().get_label()
         self.chat.append({"User": "User", "Message": text})
         self.chat_history.show_message(text, id_message=len(self.chat) - 1, is_user=True)
+        
+        # Store current profile in chat data
+        if self._chat_id < len(self.controller.chats):
+            self.controller.chats[self._chat_id]["profile"] = self.window.current_profile
+        
         threading.Thread(target=self.send_message).start()
 
     # Suggestions

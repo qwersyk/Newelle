@@ -44,7 +44,7 @@ from .utility.audio_recorder import AudioRecorder
 from .utility.media import extract_supported_files
 from .ui.screenrecorder import ScreenRecorder
 from .handlers import ErrorSeverity
-from .controller import NewelleController, ReloadType
+from .controller import NewelleController, ReloadType, NewelleSettings
 from .ui_controller import UIController
 
 
@@ -552,6 +552,13 @@ class MainWindow(Adw.ApplicationWindow):
         if tab is not None:
             # Update global chat_id to match selected tab
             self.chat_id = tab.chat_id
+            
+            # Change profile if remember_profile is enabled and chat has a stored profile
+            if self.controller.newelle_settings.remember_profile and "profile" in self.chats[tab.chat_id]:
+                target_profile = self.chats[tab.chat_id]["profile"]
+                if target_profile != self.current_profile:
+                    self.switch_profile(target_profile)
+            
             # Update chat list selection
             self.update_history()
     
@@ -1236,10 +1243,103 @@ class MainWindow(Adw.ApplicationWindow):
         restore_settings_from_dict_by_groups(self.settings, new_settings, groups, SETTINGS_GROUPS)
         self.settings.set_string("profiles", json.dumps(self.profile_settings))
         self.settings.set_string("current-profile", profile)
+        
+        self._update_profile_state(profile, groups)
+        
         self.focus_input()
-        self.update_settings()
-
         self.refresh_profiles_box()
+    
+    def _update_profile_state(self, profile: str, groups: list):
+        """Update application state for profile switch (optimized - only reloads what changed)
+        
+        Args:
+            profile: The new profile name
+            groups: List of settings groups that were changed
+        """
+        self.current_profile = profile
+        
+        if len(groups) == 0:
+            groups = list(SETTINGS_GROUPS.keys())
+        
+        reload_types = set()
+        for group in groups:
+            if group == "LLM":
+                reload_types.add(ReloadType.LLM)
+                reload_types.add(ReloadType.SECONDARY_LLM)
+            elif group == "TTS":
+                reload_types.add(ReloadType.TTS)
+            elif group == "STT":
+                reload_types.add(ReloadType.STT)
+            elif group == "Embedding":
+                reload_types.add(ReloadType.EMBEDDINGS)
+            elif group == "memory":
+                reload_types.add(ReloadType.MEMORIES)
+            elif group == "websearch":
+                reload_types.add(ReloadType.WEBSEARCH)
+            elif group == "rag":
+                reload_types.add(ReloadType.RAG)
+            elif group == "extensions":
+                reload_types.add(ReloadType.EXTENSIONS)
+            elif group == "prompts":
+                reload_types.add(ReloadType.PROMPTS)
+            elif group == "tools":
+                reload_types.add(ReloadType.TOOLS)
+            elif group == "interface":
+                reload_types.add(ReloadType.RELOAD_CHAT_LIST)
+            elif group == "general":
+                reload_types.add(ReloadType.RELOAD_CHAT_LIST)
+        
+        newsettings = NewelleSettings()
+        newsettings.load_settings(self.settings)
+        self.newelle_settings = newsettings
+        self.profile_settings = newsettings.profile_settings
+        
+        for reload_type in reload_types:
+            self.controller.reload(reload_type)
+        
+        self.offers = self.controller.newelle_settings.offers
+        self.memory_on = self.controller.newelle_settings.memory_on
+        self.rag_on = self.controller.newelle_settings.rag_on
+        self.tts_enabled = self.controller.newelle_settings.tts_enabled
+        self.virtualization = self.controller.newelle_settings.virtualization
+        self.prompts = self.controller.newelle_settings.prompts
+        
+        self.tts = self.controller.handlers.tts
+        self.stt = self.controller.handlers.stt
+        self.model = self.controller.handlers.llm
+        self.secondary_model = self.controller.handlers.secondary_llm
+        self.embeddings = self.controller.handlers.embedding
+        self.memory_handler = self.controller.handlers.memory
+        self.rag_handler = self.controller.handlers.rag
+        self.extensionloader = self.controller.extensionloader
+        
+        if ReloadType.RELOAD_CHAT in reload_types:
+            self.show_chat()
+        if ReloadType.RELOAD_CHAT_LIST in reload_types:
+            self.update_history()
+        if ReloadType.LLM in reload_types:
+            self.reload_buttons()
+            self.update_model_popup()
+        if ReloadType.TOOLS in reload_types:
+            self.model_popup_settings.refresh_tools_list()
+        
+        self.tts.connect(
+            "start", lambda: GLib.idle_add(self.mute_tts_button.set_visible, True)
+        )
+        self.tts.connect(
+            "stop", lambda: GLib.idle_add(self.mute_tts_button.set_visible, False)
+        )
+        
+        if ReloadType.LLM in reload_types:
+            send_on_enter = not self.controller.newelle_settings.send_on_enter
+            n_pages = self.chat_tabs.get_n_pages()
+            for i in range(n_pages):
+                page = self.chat_tabs.get_nth_page(i)
+                child = page.get_child()
+                if isinstance(child, ChatTab):
+                    child.input_panel.set_enter_on_ctrl(send_on_enter)
+                    for entry in child.chat_history.edit_entries.values():
+                        entry.set_enter_on_ctrl(send_on_enter)
 
     def reload_profiles(self):
         """Reload the profiles"""
@@ -1663,7 +1763,8 @@ class MainWindow(Adw.ApplicationWindow):
             "name": parent_chat["name"],
             "chat": copy.deepcopy(branched_messages),
             "id": str(uuid.uuid4()),
-            "branched_from": parent_id
+            "branched_from": parent_id,
+            "profile": parent_chat.get("profile", self.current_profile)
         }
         
         # Append to end
@@ -1858,10 +1959,14 @@ class MainWindow(Adw.ApplicationWindow):
 
     def copy_chat(self, button, *a):
         """Copy a chat into a new chat"""
+        source_chat = self.chats[int(button.get_name())]
         self.chats.append(
             {
-                "name": self.chats[int(button.get_name())]["name"],
-                "chat": self.chats[int(button.get_name())]["chat"][:],
+                "name": source_chat["name"],
+                "chat": source_chat["chat"][:],
+                "id": str(uuid.uuid4()),
+                "branched_from": source_chat.get("id"),
+                "profile": source_chat.get("profile", self.current_profile)
             }
         )
         self.update_history()
