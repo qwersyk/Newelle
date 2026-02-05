@@ -5,6 +5,15 @@ import xml.dom.minidom
 import json
 from gi.repository import GLib
 import tiktoken
+from .media import extract_file, extract_image, extract_video
+
+def clean_prompt(prompt: str) -> str:
+    prompt = remove_thinking_blocks(prompt)
+    _, message = extract_file(prompt)
+    _, message = extract_image(message)
+    _, message = extract_video(message)
+    
+    return message 
 
 def count_tokens(text: str, model: str = "gpt-4o-mini") -> int:
     """

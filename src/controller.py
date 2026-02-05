@@ -29,7 +29,7 @@ import datetime
 import uuid as uuid_lib
 from .extensions import ExtensionLoader
 from .utility import override_prompts
-from .utility.strings import clean_bot_response, count_tokens, remove_thinking_blocks, get_edited_messages
+from .utility.strings import clean_bot_response, clean_prompt, count_tokens, remove_thinking_blocks, get_edited_messages
 from .utility.replacehelper import PromptFormatter, replace_variables_dict
 from enum import Enum 
 from .handlers import Handler
@@ -764,7 +764,7 @@ class NewelleController:
                 
                 if existing_index.get_index_size() > self.newelle_settings.rag_limit: 
                     r += existing_index.query(
-                        chat[-1]["Message"]
+                        clean_prompt(chat[-1]["Message"])
                     )
                 else:
                     r += existing_index.get_all_contexts()

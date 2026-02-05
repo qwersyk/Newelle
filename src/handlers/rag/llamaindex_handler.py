@@ -3,6 +3,7 @@ import threading
 from time import time
 import numpy as np
 
+from ...utility.strings import clean_prompt
 from ...handlers.llm import LLMHandler 
 from ...handlers.embeddings.embedding import EmbeddingHandler 
 from ...handlers import ExtraSettings 
@@ -331,6 +332,7 @@ class LlamaIndexHanlder(RAGHandler):
         if self.index is None:
             return []
         r = []
+
         if self.get_setting("use_llm"):
             query_engine = self.index.as_query_engine()
             response = query_engine.query(prompt)
