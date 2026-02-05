@@ -777,22 +777,19 @@ class ChatTab(Gtk.Box):
     def generate_chat_name(self):
         """Generate a name for the chat based on content."""
         def generate():
-            try:
-                name = self.window.secondary_model.generate_chat_name(
-                    self.controller.newelle_settings.prompts["generate_name_prompt"],
-                    self.controller.get_history(chat_id=self._chat_id)
-                )
-                if name:
-                    name = name.strip().strip('"').strip("'")
-                    if self._chat_id < len(self.controller.chats):
-                        self.controller.chats[self._chat_id]["name"] = name
-                        self.save_chat()
-                        GLib.idle_add(self._update_tab_title)
-                        GLib.idle_add(self.window.update_history)
-                        self.emit("chat-name-changed", name)
-            except Exception:
-                pass
-        
+            name = self.window.secondary_model.generate_chat_name(
+                self.controller.newelle_settings.prompts["generate_name_prompt"],
+                self.controller.get_history(chat=self.chat)
+            )
+            if name:
+                name = name.strip().strip('"').strip("'")
+                if self._chat_id < len(self.controller.chats):
+                    self.controller.chats[self._chat_id]["name"] = name
+                    self.save_chat()
+                    GLib.idle_add(self._update_tab_title)
+                    GLib.idle_add(self.window.update_history)
+                    GLib.idle_add(self.emit,"chat-name-changed", name)
+
         threading.Thread(target=generate).start()
         
     # Signal handlers from ChatHistory
