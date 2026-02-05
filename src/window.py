@@ -612,19 +612,24 @@ class MainWindow(Adw.ApplicationWindow):
         self._update_tab_chat_ids_after_insert(len(self.chats) - 1)
         self.chat_id = len(self.chats) - 1
         self.save_chat()
-        self.update_history()
-        
+
         if force_new_tab:
-            return self.add_chat_tab(self.chat_id)
+            tab_page = self.add_chat_tab(self.chat_id)
+            self.update_history()
+            return tab_page
         else:
             # Switch current tab to the new chat instead of creating new tab
             current_tab = self.get_active_chat_tab()
             if current_tab is not None:
                 current_tab.switch_to_chat(self.chat_id)
+                # Update history AFTER switching so the UI shows correct open state
+                self.update_history()
                 return current_tab.tab_page
             else:
                 # No tabs exist, create one
-                return self.add_chat_tab(self.chat_id)
+                tab_page = self.add_chat_tab(self.chat_id)
+                self.update_history()
+                return tab_page
     
     def _update_tab_chat_ids_after_insert(self, inserted_at: int):
         """Update chat_ids in all tabs after a chat was inserted.
