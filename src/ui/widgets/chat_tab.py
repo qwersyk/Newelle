@@ -894,7 +894,11 @@ class ChatTab(Gtk.Box):
     # Recording
     def start_recording(self, button):
         """Start voice recording."""
-        button.disconnect_by_func(self.start_recording)
+        try:
+            button.disconnect_by_func(self.start_recording)
+        except TypeError:
+            # Handler was not connected to this function
+            pass
         self.window.start_recording(button)
         
     def start_screen_recording(self, button):
