@@ -303,11 +303,11 @@ class NewelleController:
         elif reload_type == ReloadType.LLM:
             self.handlers.llm.destroy()
             self.handlers.select_handlers(self.newelle_settings)
-            GLib.idle_add(threading.Thread(target=self.wait_llm_loading).start)
+            GLib.timeout_add(50, threading.Thread(target=self.wait_llm_loading).start)
         elif reload_type == ReloadType.SECONDARY_LLM:
             self.handlers.select_handlers(self.newelle_settings)
             if self.newelle_settings.use_secondary_language_model:
-                threading.Thread(target=self.handlers.secondary_llm.load_model, args=(None,)).start()
+                GLib.timeout_add(100,threading.Thread(target=self.handlers.secondary_llm.load_model, args=(None,)).start)
         elif reload_type in [ReloadType.TTS, ReloadType.STT, ReloadType.MEMORIES]:
             if ReloadType.MEMORIES:
                 self.require_tool_update()
@@ -315,11 +315,11 @@ class NewelleController:
         elif reload_type == ReloadType.RAG:
             self.handlers.select_handlers(self.newelle_settings)
             if self.newelle_settings.rag_on:
-                threading.Thread(target=self.handlers.rag.load).start()
+                GLib.timeout_add(400, threading.Thread(target=self.handlers.rag.load).start)
             self.require_tool_update()
         elif reload_type == ReloadType.EMBEDDINGS:
             self.handlers.select_handlers(self.newelle_settings)
-            threading.Thread(target=self.handlers.embedding.load_model).start()
+            GLib.timeout_add(300, threading.Thread(target=self.handlers.embedding.load_model).start)
         elif reload_type == ReloadType.PROMPTS:
             return
         elif reload_type == ReloadType.WEBSEARCH:
