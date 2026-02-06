@@ -1,2 +1,5 @@
+__pycache__/
+.pytest_cache/
+.ruff_cache/
 .flatpak-builder
 flatpak-pip-generator
