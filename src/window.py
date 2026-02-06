@@ -552,15 +552,16 @@ class MainWindow(Adw.ApplicationWindow):
         if tab is not None:
             # Update global chat_id to match selected tab
             self.chat_id = tab.chat_id
-            
-            # Change profile if remember_profile is enabled and chat has a stored profile
+
+            # Update UI FIRST before profile switch for instant visual feedback
+            self.update_history()
+
+            # Schedule profile switch to happen after UI renders
+            # This makes the tab switch feel instant
             if self.controller.newelle_settings.remember_profile and "profile" in self.chats[tab.chat_id]:
                 target_profile = self.chats[tab.chat_id]["profile"]
                 if target_profile != self.current_profile:
-                    self.switch_profile(target_profile)
-            
-            # Update chat list selection
-            self.update_history()
+                    GLib.timeout_add(50, lambda: self.switch_profile(target_profile) and False)
     
     def _on_chat_tab_close_requested(self, tab_view, page) -> bool:
         """Handle chat tab close request.
@@ -1099,6 +1100,34 @@ class MainWindow(Adw.ApplicationWindow):
         self.profiles_box = self.get_profiles_box()
         self.chat_header.pack_start(self.profiles_box)
 
+    def _update_profile_avatar(self, profile: str):
+        """Fast update of just the profile avatar without rebuilding the entire menu"""
+        if self.profiles_box is None:
+            return
+        # Find the profile button (first child of the box)
+        profile_button = self.profiles_box.get_first_child()
+        if profile_button is None:
+            return
+        # Update just the avatar
+        if self.profile_settings[profile]["picture"] is not None:
+            avatar = Adw.Avatar(
+                custom_image=Gdk.Texture.new_from_filename(
+                    self.profile_settings[profile]["picture"]
+                ),
+                text=profile,
+                show_initials=True,
+                size=20,
+            )
+            # Set avatar image at the correct size
+            ch = avatar.get_last_child()
+            if ch is not None:
+                ch = ch.get_last_child()
+                if ch is not None and type(ch) is Gtk.Image:
+                    ch.set_icon_size(Gtk.IconSize.NORMAL)
+        else:
+            avatar = Adw.Avatar(text=profile, show_initials=True, size=20)
+        profile_button.set_child(avatar)
+
     def create_profile(self, profile_name, picture=None, settings={}, settings_groups=[]):
         """Create a profile
 
@@ -1233,35 +1262,69 @@ class MainWindow(Adw.ApplicationWindow):
         if self.current_profile == profile:
             return
         print(f"Switching profile to {profile}")
-        groups = self.profile_settings[self.current_profile].get("settings_groups", [])
-        old_settings = get_settings_dict_by_groups(self.settings, groups, SETTINGS_GROUPS, ["current-profile", "profiles"] )
-        self.profile_settings = json.loads(self.settings.get_string("profiles"))
-        self.profile_settings[self.current_profile]["settings"] = old_settings
 
-        new_settings = self.profile_settings[profile]["settings"]
-        groups = self.profile_settings[profile].get("settings_groups", [])
+        # Store the old profile before we change anything
+        old_profile = self.current_profile
+
+        # Update UI immediately for fast visual feedback
+        self.settings.set_string("current-profile", profile)
+        self.current_profile = profile
+        self._update_profile_avatar(profile)
+
+        # Process pending GTK events to ensure UI updates are rendered
+        # Then start the heavy lifting in background thread
+        GLib.timeout_add(20, lambda: self._switch_profile_async(old_profile, profile) and False)
+
+    def _switch_profile_async(self, old_profile: str, new_profile: str):
+        """Async part of profile switching - spawns background thread for heavy work"""
+        # Spawn thread for the heavy lifting
+        threading.Thread(target=self._do_profile_switch_work, args=(old_profile, new_profile), daemon=True).start()
+        return False  # For GLib.timeout_add
+
+    def _do_profile_switch_work(self, old_profile: str, new_profile: str):
+        """Do the actual profile switch work in background thread"""
+        # Save old profile's settings before switching
+        groups = self.profile_settings[old_profile].get("settings_groups", [])
+        old_settings = get_settings_dict_by_groups(self.settings, groups, SETTINGS_GROUPS, ["current-profile", "profiles"] )
+
+        # Reload profiles to ensure we have the latest data
+        self.profile_settings = json.loads(self.settings.get_string("profiles"))
+        self.profile_settings[old_profile]["settings"] = old_settings
+
+        # Get new profile's settings
+        new_settings = self.profile_settings[new_profile]["settings"]
+        groups = self.profile_settings[new_profile].get("settings_groups", [])
+
+        # Schedule settings restoration on main thread
+        GLib.idle_add(self._restore_profile_settings, new_settings, groups, new_profile)
+
+    def _restore_profile_settings(self, new_settings: dict, groups: list, profile: str):
+        """Restore profile settings and update state"""
         restore_settings_from_dict_by_groups(self.settings, new_settings, groups, SETTINGS_GROUPS)
         self.settings.set_string("profiles", json.dumps(self.profile_settings))
-        self.settings.set_string("current-profile", profile)
-        
-        self._update_profile_state(profile, groups)
-        
-        self.focus_input()
-        self.refresh_profiles_box()
+        # Schedule the UI update on the next iteration of the main loop
+        # This gives GTK a chance to render the changes
+        GLib.idle_add(lambda: self._update_profile_state(profile, groups) and False)
     
     def _update_profile_state(self, profile: str, groups: list):
         """Update application state for profile switch (optimized - only reloads what changed)
-        
+
         Args:
             profile: The new profile name
             groups: List of settings groups that were changed
         """
-        self.current_profile = profile
-        
+        # Load new settings and compare with old to determine what actually changed
+        newsettings = NewelleSettings()
+        newsettings.load_settings(self.settings)
+        actual_reloads = self.controller.newelle_settings.compare_settings(newsettings)
+
+        # Convert actual_reloads to set for faster lookup
+        reload_types = set(actual_reloads)
+
+        # Add group-based reloads, but skip EXTENSIONS if it's not in actual_reloads
         if len(groups) == 0:
             groups = list(SETTINGS_GROUPS.keys())
-        
-        reload_types = set()
+
         for group in groups:
             if group == "LLM":
                 reload_types.add(ReloadType.LLM)
@@ -1279,7 +1342,9 @@ class MainWindow(Adw.ApplicationWindow):
             elif group == "rag":
                 reload_types.add(ReloadType.RAG)
             elif group == "extensions":
-                reload_types.add(ReloadType.EXTENSIONS)
+                # Only reload extensions if they actually changed (checked via compare_settings)
+                if ReloadType.EXTENSIONS in actual_reloads:
+                    reload_types.add(ReloadType.EXTENSIONS)
             elif group == "prompts":
                 reload_types.add(ReloadType.PROMPTS)
             elif group == "tools":
@@ -1288,22 +1353,30 @@ class MainWindow(Adw.ApplicationWindow):
                 reload_types.add(ReloadType.RELOAD_CHAT_LIST)
             elif group == "general":
                 reload_types.add(ReloadType.RELOAD_CHAT_LIST)
-        
-        newsettings = NewelleSettings()
-        newsettings.load_settings(self.settings)
+
+        # Update both window and controller settings references FIRST
+        # This must happen before any UI updates
+        self.controller.newelle_settings = newsettings
         self.newelle_settings = newsettings
         self.profile_settings = newsettings.profile_settings
-        
-        for reload_type in reload_types:
-            self.controller.reload(reload_type)
-        
-        self.offers = self.controller.newelle_settings.offers
-        self.memory_on = self.controller.newelle_settings.memory_on
-        self.rag_on = self.controller.newelle_settings.rag_on
-        self.tts_enabled = self.controller.newelle_settings.tts_enabled
-        self.virtualization = self.controller.newelle_settings.virtualization
-        self.prompts = self.controller.newelle_settings.prompts
-        
+
+        # Update local references from the NEW settings
+        self.offers = newsettings.offers
+        self.memory_on = newsettings.memory_on
+        self.rag_on = newsettings.rag_on
+        self.tts_enabled = newsettings.tts_enabled
+        self.virtualization = newsettings.virtualization
+        self.prompts = newsettings.prompts
+
+        # Update UI components that depend on settings BEFORE reloading handlers
+        if ReloadType.LLM in reload_types:
+            self.reload_buttons()
+            self.update_model_popup()
+
+        # Now batch reload operations to avoid redundant select_handlers calls
+        self._batch_reload(reload_types)
+
+        # Update handler references after reload
         self.tts = self.controller.handlers.tts
         self.stt = self.controller.handlers.stt
         self.model = self.controller.handlers.llm
@@ -1312,26 +1385,23 @@ class MainWindow(Adw.ApplicationWindow):
         self.memory_handler = self.controller.handlers.memory
         self.rag_handler = self.controller.handlers.rag
         self.extensionloader = self.controller.extensionloader
-        
+
         if ReloadType.RELOAD_CHAT in reload_types:
             self.show_chat()
         if ReloadType.RELOAD_CHAT_LIST in reload_types:
             self.update_history()
-        if ReloadType.LLM in reload_types:
-            self.reload_buttons()
-            self.update_model_popup()
         if ReloadType.TOOLS in reload_types:
             self.model_popup_settings.refresh_tools_list()
-        
+
         self.tts.connect(
             "start", lambda: GLib.idle_add(self.mute_tts_button.set_visible, True)
         )
         self.tts.connect(
             "stop", lambda: GLib.idle_add(self.mute_tts_button.set_visible, False)
         )
-        
+
         if ReloadType.LLM in reload_types:
-            send_on_enter = not self.controller.newelle_settings.send_on_enter
+            send_on_enter = not newsettings.send_on_enter
             n_pages = self.chat_tabs.get_n_pages()
             for i in range(n_pages):
                 page = self.chat_tabs.get_nth_page(i)
@@ -1340,6 +1410,73 @@ class MainWindow(Adw.ApplicationWindow):
                     child.input_panel.set_enter_on_ctrl(send_on_enter)
                     for entry in child.chat_history.edit_entries.values():
                         entry.set_enter_on_ctrl(send_on_enter)
+
+        # Rebuild profile box to update the selection and refresh the UI
+        self.refresh_profiles_box()
+
+    def _batch_reload(self, reload_types: set):
+        """Batch reload operations to avoid redundant select_handlers calls
+
+        Args:
+            reload_types: Set of ReloadType values to reload
+        """
+        # Handle EXTENSIONS separately (it recreates everything)
+        if ReloadType.EXTENSIONS in reload_types:
+            self.controller.reload(ReloadType.EXTENSIONS)
+            reload_types.discard(ReloadType.EXTENSIONS)
+            # EXTENSIONS reload already handles LLM, SECONDARY_LLM, etc.
+            reload_types.discard(ReloadType.LLM)
+            reload_types.discard(ReloadType.SECONDARY_LLM)
+            reload_types.discard(ReloadType.EMBEDDINGS)
+            reload_types.discard(ReloadType.MEMORIES)
+            reload_types.discard(ReloadType.RAG)
+            reload_types.discard(ReloadType.WEBSEARCH)
+
+        # Handle LLM (destroys and recreates)
+        if ReloadType.LLM in reload_types:
+            self.controller.handlers.llm.destroy()
+            reload_types.discard(ReloadType.LLM)
+
+        # Call select_handlers ONCE for all remaining handler types
+        handler_types = {ReloadType.SECONDARY_LLM, ReloadType.TTS, ReloadType.STT,
+                        ReloadType.MEMORIES, ReloadType.EMBEDDINGS, ReloadType.RAG,
+                        ReloadType.WEBSEARCH}
+        if reload_types & handler_types:
+            self.controller.handlers.select_handlers(self.controller.newelle_settings)
+
+        # Now do the specific reloads in background threads
+        if ReloadType.LLM in reload_types or ReloadType.SECONDARY_LLM in reload_types:
+            if ReloadType.SECONDARY_LLM in reload_types:
+                if self.controller.newelle_settings.use_secondary_language_model:
+                    GLib.timeout_add(50, threading.Thread(
+                        target=self.controller.handlers.secondary_llm.load_model,
+                        args=(None,)
+                    ).start)
+                reload_types.discard(ReloadType.SECONDARY_LLM)
+
+            if ReloadType.LLM in reload_types:
+                GLib.timeout_add(50, threading.Thread(target=self.controller.wait_llm_loading).start)
+                reload_types.discard(ReloadType.LLM)
+
+        if ReloadType.RAG in reload_types:
+            if self.controller.newelle_settings.rag_on:
+                GLib.timeout_add(200, threading.Thread(target=self.controller.handlers.rag.load).start)
+            self.controller.require_tool_update()
+            reload_types.discard(ReloadType.RAG)
+
+        if ReloadType.EMBEDDINGS in reload_types:
+            GLib.timeout_add(200, threading.Thread(target=self.controller.handlers.embedding.load_model).start)
+            reload_types.discard(ReloadType.EMBEDDINGS)
+
+        if ReloadType.MEMORIES in reload_types:
+            self.controller.require_tool_update()
+            reload_types.discard(ReloadType.MEMORIES)
+
+        # Handle any remaining reload types
+        for reload_type in reload_types:
+            if reload_type not in {ReloadType.RELOAD_CHAT, ReloadType.RELOAD_CHAT_LIST,
+                                  ReloadType.PROMPTS, ReloadType.OFFERS, ReloadType.TOOLS}:
+                self.controller.reload(reload_type)
 
     def reload_profiles(self):
         """Reload the profiles"""
@@ -1993,15 +2130,17 @@ class MainWindow(Adw.ApplicationWindow):
         
         # Update global chat_id
         self.chat_id = chat_id
-        
-        # Change profile 
-        if self.controller.newelle_settings.remember_profile and "profile" in self.chats[chat_id]:
-            self.switch_profile(self.chats[chat_id]["profile"])
-        
+
+        # Update UI FIRST before profile switch for instant visual feedback
         self.update_history()
         tab = self.get_active_chat_tab()
         if tab is not None:
             GLib.idle_add(tab.chat_history.update_button_text)
+
+        # Schedule profile switch to happen after UI renders
+        if self.controller.newelle_settings.remember_profile and "profile" in self.chats[chat_id]:
+            target_profile = self.chats[chat_id]["profile"]
+            GLib.timeout_add(500, lambda: self.switch_profile(target_profile) and False)
 
     def clear_chat(self, button):
         """Delete current chat history in the active tab"""
