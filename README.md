@@ -183,17 +183,6 @@ or adjust the permissions permanently using [Flatseal](https://flathub.org/apps/
 
 # Honorable Mentions of Newelle's forks
 
-<a href="https://github.com/qwersyk/Newelle/tree/aarch64">
-  <picture>
-    <source srcset="https://raw.githubusercontent.com/qwersyk/Assets/main/aarch64.svg" media="(prefers-color-scheme: light)">
-    <source srcset="https://raw.githubusercontent.com/qwersyk/Assets/main/aarch64-dark.svg" media="(prefers-color-scheme: dark)">
-    <img src="https://raw.githubusercontent.com/qwersyk/Assets/main/aarch64.svg" alt="aarch64">
-  </picture>
-</a>
-
-
-**[Newelle Lite](https://github.com/qwersyk/Newelle/tree/aarch64)** - Your Virtual Assistant for aarch64
-
 <a href="https://github.com/NyarchLinux/NyarchAssistant">
   <picture>
     <source srcset="https://raw.githubusercontent.com/qwersyk/Assets/main/nyarch.svg" media="(prefers-color-scheme: light)">
