@@ -4,5 +4,6 @@ from .openai_handler import OpenAIEmbeddingHandler
 from .gemini_handler import GeminiEmbeddingHanlder
 from .ollama_handler import OllamaEmbeddingHandler
 from .model2vec import Model2VecHandler
+from .llama_cpp_handler import LlamaCPPEmbeddingHandler
 
-__ALL__ = ["EmbeddingHandler", "WordLlamaHandler",  "OpenAIEmbeddingHandler", "GeminiEmbeddingHanlder", "OllamaEmbeddingHandler", "Model2VecHandler"]
+__ALL__ = ["EmbeddingHandler", "WordLlamaHandler",  "OpenAIEmbeddingHandler", "GeminiEmbeddingHanlder", "OllamaEmbeddingHandler", "Model2VecHandler", "LlamaCPPEmbeddingHandler"]
