@@ -147,10 +147,85 @@ class Settings(Adw.PreferencesWindow):
         for stt_key in AVAILABLE_STT:
             row = self.build_row(AVAILABLE_STT, stt_key, selected, group)
             stt_engine.add_row(row)
-        # Automatic STT settings 
+        # Automatic STT settings
         self.auto_stt = Adw.ExpanderRow(title=_('Automatic Speech To Text'), subtitle=_("Automatically restart speech to text at the end of a text/TTS"))
         self.build_auto_stt()
         self.Voicegroup.add(self.auto_stt)
+        # Wakeword Detection
+        self.wakeword_row = Adw.ExpanderRow(
+            title=_('Wakeword Detection'),
+            subtitle=_("Detect wakeword to send voice commands")
+        )
+        wakeword_enabled = Gtk.Switch(valign=Gtk.Align.CENTER)
+        self.settings.bind("wakeword-on", wakeword_enabled, 'active',
+                           Gio.SettingsBindFlags.DEFAULT)
+        self.wakeword_row.add_action(wakeword_enabled)
+
+        # Wakeword text entry
+        wakeword_entry = Adw.EntryRow(title=_('Wakeword'))
+        wakeword_entry.set_tooltip_text(_("Word or phrase to detect (multiple separated by comma)"))
+        self.settings.bind("wakeword", wakeword_entry, 'text',
+                           Gio.SettingsBindFlags.DEFAULT)
+        self.wakeword_row.add_row(wakeword_entry)
+
+        # VAD Aggressiveness (sensitivity)
+        vad_agg_row = Adw.ComboRow(title=_('Detection Sensitivity'),
+                                   subtitle=_("Higher = more sensitive, may trigger on noise"))
+        vad_options = (
+            ("Low - Least sensitive", "0"),
+            ("Medium-Low", "1"),
+            ("Medium (Recommended)", "2"),
+            ("High - Most sensitive", "3"),
+        )
+        vad_helper = ComboRowHelper(vad_agg_row, vad_options,
+                                    str(self.settings.get_int("wakeword-vad-aggressiveness")))
+        vad_helper.connect("changed",
+                           lambda x, y: self.settings.set_int("wakeword-vad-aggressiveness", int(y)))
+        self.wakeword_row.add_row(vad_agg_row)
+
+        # Pre-buffer duration
+        pre_buffer_row = Adw.SpinRow(
+            title=_('Pre-buffer Duration'),
+            subtitle=_("Seconds of audio to capture before speech"),
+            adjustment=Gtk.Adjustment(lower=0.1, upper=2.0,
+                                      value=self.settings.get_double("wakeword-pre-buffer-duration"),
+                                      step_increment=0.1, page_increment=0.5)
+        )
+        def update_pre_buffer(spin, input):
+            self.settings.set_double("wakeword-pre-buffer-duration", spin.get_value())
+            return False
+        pre_buffer_row.connect("input", update_pre_buffer)
+        self.wakeword_row.add_row(pre_buffer_row)
+
+        # Silence duration
+        silence_row = Adw.SpinRow(
+            title=_('Silence Timeout'),
+            subtitle=_("Seconds of silence to end speech segment"),
+            adjustment=Gtk.Adjustment(lower=0.5, upper=5.0,
+                                      value=self.settings.get_double("wakeword-silence-duration"),
+                                      step_increment=0.5, page_increment=1.0)
+        )
+        def update_silence(spin, input):
+            self.settings.set_double("wakeword-silence-duration", spin.get_value())
+            return False
+        silence_row.connect("input", update_silence)
+        self.wakeword_row.add_row(silence_row)
+
+        # Energy threshold
+        energy_row = Adw.SpinRow(
+            title=_('Noise Threshold'),
+            subtitle=_("Audio energy level to ignore (higher = less sensitive, 0-1000)"),
+            adjustment=Gtk.Adjustment(lower=0, upper=1000,
+                                      value=self.settings.get_int("wakeword-energy-threshold"),
+                                      step_increment=50, page_increment=100)
+        )
+        def update_energy(spin, input):
+            self.settings.set_int("wakeword-energy-threshold", int(spin.get_value()))
+            return False
+        energy_row.connect("input", update_energy)
+        self.wakeword_row.add_row(energy_row)
+
+        self.Voicegroup.add(self.wakeword_row)
         # Build prompts settings 
         self.prompt = Adw.PreferencesGroup(title=_('Prompt control'))
         self.PromptsPage.add(self.prompt)

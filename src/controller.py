@@ -1008,6 +1008,12 @@ class NewelleSettings:
         self.tools_settings_dict = json.loads(self.tools_settings)
         self.mcp_servers = self.settings.get_string("mcp-servers")
         self.mcp_servers_dict = json.loads(self.mcp_servers)
+        self.wakeword_enabled = settings.get_boolean("wakeword-on")
+        self.wakeword = settings.get_string("wakeword")
+        self.wakeword_vad_aggressiveness = settings.get_int("wakeword-vad-aggressiveness")
+        self.wakeword_pre_buffer_duration = settings.get_double("wakeword-pre-buffer-duration")
+        self.wakeword_silence_duration = settings.get_double("wakeword-silence-duration")
+        self.wakeword_energy_threshold = settings.get_int("wakeword-energy-threshold")
         self.load_prompts()
         # Adjust paths
         if os.path.exists(os.path.expanduser(self.main_path)):

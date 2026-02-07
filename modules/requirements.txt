@@ -1,9 +1,10 @@
-# List of Python requirements 
+# List of Python requirements
 requests
 expandvars
 pillow
 pyaudio
 pydub
+webrtcvad-wheels
 openai
 tiktoken
 newspaper3k

@@ -149,6 +149,7 @@ embedding_sources = [
   'handlers/embeddings/gemini_handler.py',
   'handlers/embeddings/ollama_handler.py',
   'handlers/embeddings/model2vec.py',
+  'handlers/embeddings/llama_cpp_handler.py',
 ]
 
 memory_sources = [  
@@ -188,6 +189,7 @@ utility_sources = [
   'utility/message_chunk.py',
   'utility/website_scraper.py',
   'utility/stdout_capture.py',
+  'utility/wakeword_detector.py',
 ]
 
 install_data(newelle_sources, install_dir: moduledir)

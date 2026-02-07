@@ -194,5 +194,24 @@
         <key name="custom-document-folders" type="as">
             <default>[]</default>
         </key>
+        <!-- Wakeword settings -->
+        <key name="wakeword-on" type="b">
+            <default>false</default>
+        </key>
+        <key name="wakeword" type="s">
+            <default>"hey newelle"</default>
+        </key>
+        <key name="wakeword-vad-aggressiveness" type="i">
+            <default>1</default>
+        </key>
+        <key name="wakeword-pre-buffer-duration" type="d">
+            <default>0.5</default>
+        </key>
+        <key name="wakeword-silence-duration" type="d">
+            <default>1.0</default>
+        </key>
+        <key name="wakeword-energy-threshold" type="i">
+            <default>500</default>
+        </key>
 	</schema>
 </schemalist>

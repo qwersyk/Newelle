@@ -2,7 +2,7 @@ from copy import deepcopy
 from .handlers.llm import ClaudeHandler, DeepseekHandler, GroqHandler, OllamaHandler, OpenAIHandler, CustomLLMHandler, GeminiHandler, MistralHandler, OpenRouterHandler, NewelleAPIHandler, G4FHandler, LlamaCPPHandler
 from .handlers.tts import ElevenLabs, gTTSHandler, EspeakHandler, CustomTTSHandler, KokoroTTSHandler, CustomOpenAITTSHandler, OpenAITTSHandler, GroqTTSHandler
 from .handlers.stt import GroqSRHandler, OpenAISRHandler, SphinxHandler, GoogleSRHandler, WhisperCPPHandler, WitAIHandler, VoskHandler, CustomSRHandler
-from .handlers.embeddings import WordLlamaHandler, OpenAIEmbeddingHandler, GeminiEmbeddingHanlder, OllamaEmbeddingHandler, Model2VecHandler
+from .handlers.embeddings import WordLlamaHandler, OpenAIEmbeddingHandler, GeminiEmbeddingHanlder, OllamaEmbeddingHandler, Model2VecHandler, LlamaCPPEmbeddingHandler
 from .handlers.memory import MemoripyHandler, UserSummaryHandler, SummaryMemoripyHanlder, LlamaIndexMemoryHandler, AgenticMemoryHandler
 from .handlers.rag import LlamaIndexHanlder
 from .handlers.websearch import SearXNGHandler, DDGSeachHandler, TavilyHandler
@@ -226,6 +226,12 @@ AVAILABLE_EMBEDDINGS = {
         "title": _("Ollama Embedding"),
         "description": _("Use Ollama models for Embedding. Works offline, very low resources usage"),
         "class": OllamaEmbeddingHandler,
+    },
+    "llamacppembedding": {
+        "key": "llamacppembedding",
+        "title": _("LlamaCPP Embedding"),
+        "description": _("Run embedding models locally using LlamaCPP with hardware acceleration support"),
+        "class": LlamaCPPEmbeddingHandler,
     },
     "openaiembedding": {
         "key": "openaiembedding",
@@ -567,6 +573,12 @@ SETTINGS_GROUPS = {
             "title": _("Tools"),
             "settings": ["tools-settings", "mcp-servers"],
             "description": _("Tools settings, tools groups..."),
+        },
+        "wakeword": {
+            "title": _("Wakeword"),
+            "settings": ["wakeword-on", "wakeword", "wakeword-vad-aggressiveness",
+                         "wakeword-pre-buffer-duration", "wakeword-silence-duration", "wakeword-energy-threshold"],
+            "description": _("Wakeword detection settings"),
         }
 
 }
