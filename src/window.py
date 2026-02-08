@@ -68,6 +68,9 @@ class MainWindow(Adw.ApplicationWindow):
         self.last_generation_time = None
         self.last_token_num = None
         self.last_update = 0
+        # Wakeword detector
+        self.wakeword_detector = None
+        self.wakeword_listening = False
         # Breakpoint - Collapse the sidebar when the window is too narrow
         breakpoint = Adw.Breakpoint(condition=Adw.BreakpointCondition.new_length(Adw.BreakpointConditionLengthType.MAX_WIDTH, 1000, Adw.LengthUnit.PX))
         breakpoint.add_setter(self.main_program_block, "collapsed", True)
@@ -328,6 +331,8 @@ class MainWindow(Adw.ApplicationWindow):
 
     def _cleanup_on_destroy(self, window):
         """Clean up resources when window is destroyed"""
+        # Stop wakeword detection
+        self.stop_wakeword_detection()
         # Stop stdout monitoring
         if self.stdout_monitor_dialog:
             self.stdout_monitor_dialog.stop_monitoring_external()
@@ -760,6 +765,18 @@ class MainWindow(Adw.ApplicationWindow):
         self.tts.connect(
             "stop", lambda: GLib.idle_add(self.mute_tts_button.set_visible, False)
         )
+        # Handle wakeword detection
+        # Check if we need to restart wakeword detector
+        should_be_listening = self.controller.newelle_settings.wakeword_enabled
+        is_listening = self.wakeword_listening
+
+        if should_be_listening != is_listening or (ReloadType.STT in reloads and should_be_listening):
+            # State changed or STT reloaded - restart detector
+            if is_listening:
+                self.stop_wakeword_detection()
+
+            if should_be_listening:
+                self.start_wakeword_detection()
         if ReloadType.LLM in reloads:
             self.reload_buttons() 
             self.update_model_popup()
@@ -1076,6 +1093,85 @@ class MainWindow(Adw.ApplicationWindow):
         if self.tts_enabled:
             self.tts.stop()
         return False
+
+    def start_wakeword_detection(self):
+        """Start continuous wakeword detection"""
+        if self.wakeword_detector is not None:
+            return  # Already running
+
+        try:
+            from .utility.wakeword_detector import WakewordDetector
+        except ImportError as e:
+            print(f"WakewordDetector: Cannot import - {e}")
+            self.notification_block.add_toast(
+                Adw.Toast(title=_("Wakeword detection requires pysilero-vad and pyaudio"), timeout=5)
+            )
+            return
+
+        try:
+            self.wakeword_detector = WakewordDetector(
+                stt_handler=self.stt,
+                wakeword=self.controller.newelle_settings.wakeword,
+                vad_aggressiveness=self.controller.newelle_settings.wakeword_vad_aggressiveness,
+                pre_buffer_duration=self.controller.newelle_settings.wakeword_pre_buffer_duration,
+                silence_duration=self.controller.newelle_settings.wakeword_silence_duration,
+                energy_threshold=self.controller.newelle_settings.wakeword_energy_threshold,
+                callback=self.on_wakeword_detected
+            )
+
+            # Start in background thread
+            t = threading.Thread(target=self.wakeword_detector.start, daemon=True)
+            t.start()
+            self.wakeword_listening = True
+
+            # Update UI
+            def update_ui():
+                if hasattr(self, 'recording_button'):
+                    self.recording_button.set_icon_name("audio-input-microphone-symbolic")
+                    self.recording_button.add_css_class("success")
+                    self.recording_button.set_tooltip_text(_("Wakeword detection active"))
+
+            GLib.idle_add(update_ui)
+        except Exception as e:
+            print(f"WakewordDetector: Failed to start - {e}")
+            self.notification_block.add_toast(
+                Adw.Toast(title=_("Failed to start wakeword detection: {}").format(str(e)), timeout=5)
+            )
+
+    def stop_wakeword_detection(self):
+        """Stop wakeword detection"""
+        if self.wakeword_detector is not None:
+            self.wakeword_detector.stop()
+            self.wakeword_detector = None
+            self.wakeword_listening = False
+
+        # Reset UI
+        def update_ui():
+            if hasattr(self, 'recording_button'):
+                self.recording_button.remove_css_class("success")
+                self.recording_button.set_tooltip_text("")
+
+        GLib.idle_add(update_ui)
+
+    def on_wakeword_detected(self, command_text):
+        """Callback when wakeword is detected
+
+        Args:
+            command_text: The transcribed text with wakeword removed
+        """
+        tab = self.get_active_chat_tab()
+        if tab is None:
+            return
+
+        if command_text and len(command_text.strip()) > 0:
+            # Set text and send
+            tab.input_panel.set_text(command_text)
+            tab.on_entry_activate(tab.input_panel)
+        else:
+            # Just wakeword, no command
+            self.notification_block.add_toast(
+                Adw.Toast(title=_("Wakeword detected, no command"), timeout=2)
+            )
 
     def focus_input(self):
         """Focus the input box of the active chat tab."""

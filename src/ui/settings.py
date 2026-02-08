@@ -168,21 +168,6 @@ class Settings(Adw.PreferencesWindow):
                            Gio.SettingsBindFlags.DEFAULT)
         self.wakeword_row.add_row(wakeword_entry)
 
-        # VAD Aggressiveness (sensitivity)
-        vad_agg_row = Adw.ComboRow(title=_('Detection Sensitivity'),
-                                   subtitle=_("Higher = more sensitive, may trigger on noise"))
-        vad_options = (
-            ("Low - Least sensitive", "0"),
-            ("Medium-Low", "1"),
-            ("Medium (Recommended)", "2"),
-            ("High - Most sensitive", "3"),
-        )
-        vad_helper = ComboRowHelper(vad_agg_row, vad_options,
-                                    str(self.settings.get_int("wakeword-vad-aggressiveness")))
-        vad_helper.connect("changed",
-                           lambda x, y: self.settings.set_int("wakeword-vad-aggressiveness", int(y)))
-        self.wakeword_row.add_row(vad_agg_row)
-
         # Pre-buffer duration
         pre_buffer_row = Adw.SpinRow(
             title=_('Pre-buffer Duration'),
@@ -201,9 +186,9 @@ class Settings(Adw.PreferencesWindow):
         silence_row = Adw.SpinRow(
             title=_('Silence Timeout'),
             subtitle=_("Seconds of silence to end speech segment"),
-            adjustment=Gtk.Adjustment(lower=0.5, upper=5.0,
+            adjustment=Gtk.Adjustment(lower=0.1, upper=5.0,
                                       value=self.settings.get_double("wakeword-silence-duration"),
-                                      step_increment=0.5, page_increment=1.0)
+                                      step_increment=0.05, page_increment=0.5)
         )
         def update_silence(spin, input):
             self.settings.set_double("wakeword-silence-duration", spin.get_value())

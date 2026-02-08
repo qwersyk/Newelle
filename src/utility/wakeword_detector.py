@@ -1,8 +1,8 @@
-"""Wakeword Detection System using WebRTC VAD
+"""Wakeword Detection System using Silero VAD
 
 This module provides continuous wakeword detection by:
 1. Listening to microphone continuously
-2. Using webrtcvad to detect voice activity
+2. Using pysilero-vad to detect voice activity
 3. Transcribing speech segments using existing STT handler
 4. Checking for wakeword and triggering callback
 """
@@ -17,7 +17,7 @@ from gi.repository import GLib
 
 try:
     import pyaudio
-    import webrtcvad
+    from pysilero_vad import SileroVoiceActivityDetector
     import array
     DEPENDENCIES_AVAILABLE = True
 except ImportError:
@@ -25,7 +25,7 @@ except ImportError:
 
 
 class WakewordDetector:
-    """Continuous wakeword detector using VAD and STT"""
+    """Continuous wakeword detector using Silero VAD and STT"""
 
     def __init__(self, stt_handler, wakeword, vad_aggressiveness=1,
                  pre_buffer_duration=0.5, silence_duration=1.0, energy_threshold=500, callback=None):
@@ -34,36 +34,32 @@ class WakewordDetector:
         Args:
             stt_handler: STTHandler instance for transcription
             wakeword: Word or phrase to detect (case-insensitive)
-            vad_aggressiveness: VAD aggressiveness (0-3, higher = more sensitive)
+            vad_aggressiveness: Kept for compatibility (not used by Silero VAD)
             pre_buffer_duration: Seconds of audio to capture before speech (0.1-2.0)
             silence_duration: Seconds of silence to end speech segment (0.5-5.0)
             energy_threshold: Audio energy threshold to filter noise (0-1000)
             callback: Function to call when wakeword detected (receives command text)
         """
         if not DEPENDENCIES_AVAILABLE:
-            raise ImportError("webrtcvad, pyaudio, or numpy not available")
+            raise ImportError("pysilero-vad, pyaudio, or numpy not available")
 
         self.stt_handler = stt_handler
         self.wakewords = self._parse_wakewords(wakeword)
-        self.vad_aggressiveness = vad_aggressiveness
+        self.vad_aggressiveness = vad_aggressiveness  # Kept for compatibility
         self.pre_buffer_duration = pre_buffer_duration
         self.silence_duration = silence_duration
         self.energy_threshold = energy_threshold
         self.callback = callback
 
         # Audio settings
-        self.sample_rate = 16000  # WebRTC VAD works best at 16kHz
-        # Frame duration must be 10, 20, or 30 ms for webrtcvad
-        # We use 30ms for best results: 16000 Hz * 0.03s = 480 frames
-        self.frame_duration_ms = 30
-        self.chunk_size = int(self.sample_rate * self.frame_duration_ms / 1000)  # 480 frames
+        self.sample_rate = 16000  # Silero VAD works at 16kHz
         self.channels = 1
 
         # Noise reduction settings
         # Minimum speech frames: consecutive speech frames required to start detecting
-        self.min_speech_frames = 3  # Require 90ms of continuous speech
+        self.min_speech_frames = 1  # Require ~32ms of continuous speech (512 samples / 16000Hz)
         # Minimum speech ratio: percentage of frames that must be speech in a segment
-        self.min_speech_ratio = 0.4  # 40% of frames must be speech
+        self.min_speech_ratio = 0.2  # 20% of frames must be speech (less strict for faster response)
 
         # State
         self.running = False
@@ -71,6 +67,7 @@ class WakewordDetector:
         self.audio = None
         self.stream = None
         self.vad = None
+        self.chunk_size = None  # Will be set by VAD
 
     def is_running(self):
         """Check if detector is running"""
@@ -116,9 +113,12 @@ class WakewordDetector:
             return 0
 
     def _init_audio(self):
-        """Initialize PyAudio and VAD"""
+        """Initialize PyAudio and Silero VAD"""
         self.audio = pyaudio.PyAudio()
-        self.vad = webrtcvad.Vad(self.vad_aggressiveness)
+
+        # Initialize Silero VAD and get required chunk size
+        self.vad = SileroVoiceActivityDetector()
+        self.chunk_size = self.vad.chunk_samples()  # Returns 512 for 16kHz
 
         # Try to find a working input device
         device_index = None
@@ -185,6 +185,7 @@ class WakewordDetector:
         Returns:
             Transcribed text or None
         """
+        print("recognizing")
         try:
             result = self.stt_handler.recognize_file(temp_file)
             return result
@@ -298,9 +299,11 @@ class WakewordDetector:
                             consecutive_speech_frames = 0
                         continue
 
-                    # Run VAD on frame - wrap in try/except for VAD errors
+                    # Run VAD on frame - Silero VAD returns probability (0-1)
+                    # Speech is detected when probability >= 0.5
                     try:
-                        is_speech = self.vad.is_speech(frame, self.sample_rate)
+                        speech_probability = self.vad(frame)
+                        is_speech = speech_probability >= 0.5
                     except Exception as vad_error:
                         print(f"WakewordDetector: VAD error: {vad_error}")
                         # Skip this frame on VAD error
@@ -325,21 +328,16 @@ class WakewordDetector:
                             consecutive_speech_frames = max(0, consecutive_speech_frames - 1)
 
                         if in_speech:
-                            speech_frames.append(frame)
                             silence_frames += 1
 
-                            # Check for silence timeout
+                            # Check for silence timeout - STOP recording immediately
                             if silence_frames >= silence_threshold:
-                                # Check if enough of the segment is actual speech
+                                # Don't append silence frames - process what we have
                                 if len(speech_frames) > 0:
+                                    # Calculate speech ratio (consecutive speech / total frames captured)
                                     speech_ratio = consecutive_speech_frames / len(speech_frames)
-                                    if speech_ratio >= self.min_speech_ratio:
-                                        print(f"WakewordDetector: Speech ended, processing... (speech ratio: {speech_ratio:.2f}, frames: {len(speech_frames)})")
-                                        self._process_speech(speech_frames)
-                                    else:
-                                        print(f"WakewordDetector: Segment rejected (speech ratio {speech_ratio:.2f} < {self.min_speech_ratio})")
-                                in_speech = False
-
+                                    print(f"WakewordDetector: Speech ended, processing... (speech ratio: {speech_ratio:.2f}, frames: {len(speech_frames)})")
+                                    self._process_speech(speech_frames)
                                 in_speech = False
                                 speech_frames = []
                                 consecutive_speech_frames = 0

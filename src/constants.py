@@ -576,7 +576,7 @@ SETTINGS_GROUPS = {
         },
         "wakeword": {
             "title": _("Wakeword"),
-            "settings": ["wakeword-on", "wakeword", "wakeword-vad-aggressiveness",
+            "settings": ["wakeword-on", "wakeword",
                          "wakeword-pre-buffer-duration", "wakeword-silence-duration", "wakeword-energy-threshold"],
             "description": _("Wakeword detection settings"),
         }
