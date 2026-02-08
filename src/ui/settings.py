@@ -169,12 +169,18 @@ class Settings(Adw.PreferencesWindow):
         self.wakeword_row.add_row(wakeword_entry)
 
         # Pre-buffer duration
+        pre_buffer_adj = Gtk.Adjustment(
+            lower=0.1,
+            upper=2.0,
+            step_increment=0.1,
+            page_increment=0.5
+        )
+        pre_buffer_adj.set_value(self.settings.get_double("wakeword-pre-buffer-duration"))
         pre_buffer_row = Adw.SpinRow(
             title=_('Pre-buffer Duration'),
             subtitle=_("Seconds of audio to capture before speech"),
-            adjustment=Gtk.Adjustment(lower=0.1, upper=2.0,
-                                      value=self.settings.get_double("wakeword-pre-buffer-duration"),
-                                      step_increment=0.1, page_increment=0.5)
+            adjustment=pre_buffer_adj,
+            digits=1
         )
         def update_pre_buffer(spin, input):
             self.settings.set_double("wakeword-pre-buffer-duration", spin.get_value())
@@ -183,12 +189,18 @@ class Settings(Adw.PreferencesWindow):
         self.wakeword_row.add_row(pre_buffer_row)
 
         # Silence duration
+        silence_adj = Gtk.Adjustment(
+            lower=0.1,
+            upper=5.0,
+            step_increment=0.05,
+            page_increment=0.5
+        )
+        silence_adj.set_value(self.settings.get_double("wakeword-silence-duration"))
         silence_row = Adw.SpinRow(
             title=_('Silence Timeout'),
             subtitle=_("Seconds of silence to end speech segment"),
-            adjustment=Gtk.Adjustment(lower=0.1, upper=5.0,
-                                      value=self.settings.get_double("wakeword-silence-duration"),
-                                      step_increment=0.05, page_increment=0.5)
+            adjustment=silence_adj,
+            digits=2
         )
         def update_silence(spin, input):
             self.settings.set_double("wakeword-silence-duration", spin.get_value())
@@ -197,12 +209,18 @@ class Settings(Adw.PreferencesWindow):
         self.wakeword_row.add_row(silence_row)
 
         # Energy threshold
+        energy_adj = Gtk.Adjustment(
+            lower=0,
+            upper=1000,
+            step_increment=50,
+            page_increment=100
+        )
+        energy_adj.set_value(self.settings.get_int("wakeword-energy-threshold"))
         energy_row = Adw.SpinRow(
             title=_('Noise Threshold'),
             subtitle=_("Audio energy level to ignore (higher = less sensitive, 0-1000)"),
-            adjustment=Gtk.Adjustment(lower=0, upper=1000,
-                                      value=self.settings.get_int("wakeword-energy-threshold"),
-                                      step_increment=50, page_increment=100)
+            adjustment=energy_adj,
+            digits=0
         )
         def update_energy(spin, input):
             self.settings.set_int("wakeword-energy-threshold", int(spin.get_value()))
