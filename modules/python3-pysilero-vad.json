@@ -1,0 +1,14 @@
+{
+    "name": "python3-pysilero-vad",
+    "buildsystem": "simple",
+    "build-commands": [
+        "pip3 install --verbose --exists-action=i --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} \"pysilero-vad\" --no-build-isolation"
+    ],
+    "sources": [
+        {
+            "type": "file",
+            "url": "https://files.pythonhosted.org/packages/32/1c/7542c9e4e7e9137d429402d7b9d9f9de8a700b75032e8ff4528a64dc8428/pysilero_vad-3.2.0.tar.gz",
+            "sha256": "ef1161b65b50cd25b63676d1119a6fb434c25f3aab3117e1d435e8eaf698e160"
+        }
+    ]
+}
