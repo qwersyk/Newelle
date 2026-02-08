@@ -904,6 +904,22 @@ class ChatTab(Gtk.Box):
             # Handler was not connected to this function
             pass
         self.window.start_recording(button)
+
+    def set_mic_warning(self):
+        """Set mic button to warning state (yellow) when speech is detected."""
+        self.mic_button.add_css_class("warning")
+
+    def set_mic_transcribing(self):
+        """Set mic button to transcribing state (spinner)."""
+        self.mic_button.remove_css_class("warning")
+        spinner = Gtk.Spinner(spinning=True)
+        self.mic_button.set_child(spinner)
+
+    def set_mic_normal(self):
+        """Reset mic button to normal state."""
+        self.mic_button.remove_css_class("warning")
+        self.mic_button.set_child(None)
+        self.mic_button.set_icon_name("audio-input-microphone-symbolic")
         
     def start_screen_recording(self, button):
         """Start screen recording."""

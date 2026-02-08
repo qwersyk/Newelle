@@ -1116,7 +1116,10 @@ class MainWindow(Adw.ApplicationWindow):
                 pre_buffer_duration=self.controller.newelle_settings.wakeword_pre_buffer_duration,
                 silence_duration=self.controller.newelle_settings.wakeword_silence_duration,
                 energy_threshold=self.controller.newelle_settings.wakeword_energy_threshold,
-                callback=self.on_wakeword_detected
+                callback=self.on_wakeword_detected,
+                on_speech_started=self.on_wakeword_speech_started,
+                on_transcribing=self.on_wakeword_transcribing,
+                on_transcribing_done=self.on_wakeword_transcribing_done
             )
 
             # Start in background thread
@@ -1172,6 +1175,24 @@ class MainWindow(Adw.ApplicationWindow):
             self.notification_block.add_toast(
                 Adw.Toast(title=_("Wakeword detected, no command"), timeout=2)
             )
+
+    def on_wakeword_speech_started(self):
+        """Callback when speech is detected during wakeword listening."""
+        tab = self.get_active_chat_tab()
+        if tab is not None:
+            GLib.idle_add(tab.set_mic_warning)
+
+    def on_wakeword_transcribing(self):
+        """Callback when transcription starts during wakeword listening."""
+        tab = self.get_active_chat_tab()
+        if tab is not None:
+            GLib.idle_add(tab.set_mic_transcribing)
+
+    def on_wakeword_transcribing_done(self):
+        """Callback when transcription completes during wakeword listening."""
+        tab = self.get_active_chat_tab()
+        if tab is not None:
+            GLib.idle_add(tab.set_mic_normal)
 
     def focus_input(self):
         """Focus the input box of the active chat tab."""

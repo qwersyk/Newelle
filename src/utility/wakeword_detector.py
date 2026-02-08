@@ -28,7 +28,8 @@ class WakewordDetector:
     """Continuous wakeword detector using Silero VAD and STT"""
 
     def __init__(self, stt_handler, wakeword, vad_aggressiveness=1,
-                 pre_buffer_duration=0.5, silence_duration=1.0, energy_threshold=500, callback=None):
+                 pre_buffer_duration=0.5, silence_duration=1.0, energy_threshold=500, callback=None,
+                 on_speech_started=None, on_transcribing=None, on_transcribing_done=None):
         """Initialize wakeword detector
 
         Args:
@@ -39,6 +40,9 @@ class WakewordDetector:
             silence_duration: Seconds of silence to end speech segment (0.5-5.0)
             energy_threshold: Audio energy threshold to filter noise (0-1000)
             callback: Function to call when wakeword detected (receives command text)
+            on_speech_started: Callback when speech detection starts
+            on_transcribing: Callback when transcription starts
+            on_transcribing_done: Callback when transcription completes
         """
         if not DEPENDENCIES_AVAILABLE:
             raise ImportError("pysilero-vad, pyaudio, or numpy not available")
@@ -50,6 +54,9 @@ class WakewordDetector:
         self.silence_duration = silence_duration
         self.energy_threshold = energy_threshold
         self.callback = callback
+        self.on_speech_started = on_speech_started
+        self.on_transcribing = on_transcribing
+        self.on_transcribing_done = on_transcribing_done
 
         # Audio settings
         self.sample_rate = 16000  # Silero VAD works at 16kHz
@@ -205,6 +212,10 @@ class WakewordDetector:
         # Save to temp file in GLib cache directory
         temp_file_path = None
         try:
+            # Notify UI that transcription is starting
+            if self.on_transcribing:
+                GLib.idle_add(self.on_transcribing)
+
             # Use GLib cache directory for temp files
             cache_dir = GLib.get_user_cache_dir()
             wakeword_cache_dir = os.path.join(cache_dir, "newelle", "wakeword")
@@ -244,6 +255,9 @@ class WakewordDetector:
             import traceback
             traceback.print_exc()
         finally:
+            # Notify UI that transcription is done
+            if self.on_transcribing_done:
+                GLib.idle_add(self.on_transcribing_done)
             # Cleanup temp file
             if temp_file_path and os.path.exists(temp_file_path):
                 try:
@@ -318,6 +332,9 @@ class WakewordDetector:
                             in_speech = True
                             speech_frames = list(pre_buffer)
                             print("WakewordDetector: Speech started")
+                            # Notify UI that speech detection started
+                            if self.on_speech_started:
+                                GLib.idle_add(self.on_speech_started)
 
                         if in_speech:
                             speech_frames.append(frame)
