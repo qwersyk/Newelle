@@ -770,8 +770,14 @@ class MainWindow(Adw.ApplicationWindow):
         should_be_listening = self.controller.newelle_settings.wakeword_enabled
         is_listening = self.wakeword_listening
 
-        if should_be_listening != is_listening or (ReloadType.STT in reloads and should_be_listening):
-            # State changed or STT reloaded - restart detector
+        needs_restart = (
+            should_be_listening != is_listening or
+            (ReloadType.STT in reloads and should_be_listening) or
+            (ReloadType.WAKEWORD in reloads and should_be_listening)
+        )
+
+        if needs_restart:
+            # State changed, STT reloaded, or wakeword settings changed - restart detector
             if is_listening:
                 self.stop_wakeword_detection()
 

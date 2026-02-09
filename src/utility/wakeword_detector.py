@@ -97,6 +97,22 @@ class WakewordDetector:
         """Update wakeword at runtime"""
         self.wakewords = self._parse_wakewords(word)
 
+    def set_pre_buffer_duration(self, duration):
+        """Update pre-buffer duration at runtime"""
+        self.pre_buffer_duration = duration
+
+    def set_silence_duration(self, duration):
+        """Update silence duration at runtime"""
+        self.silence_duration = duration
+
+    def set_energy_threshold(self, threshold):
+        """Update energy threshold at runtime"""
+        self.energy_threshold = threshold
+
+    def set_stt_handler(self, stt_handler):
+        """Update STT handler at runtime"""
+        self.stt_handler = stt_handler
+
     def _calculate_rms_energy(self, frame):
         """Calculate RMS (root mean square) energy of audio frame
 

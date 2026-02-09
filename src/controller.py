@@ -69,7 +69,8 @@ EXTENSIONS: Reload EXTENSIONS
     RELOAD_CHAT_LIST = 11
     WEBSEARCH = 12
     OFFERS = 13
-    TOOLS = 14 
+    TOOLS = 14
+    WAKEWORD = 15 
 
 class NewelleController:
     """Main controller, manages the application
@@ -1075,6 +1076,14 @@ class NewelleSettings:
             reloads.append(ReloadType.WEBSEARCH)
         if self.mcp_servers != new_settings.mcp_servers or self.tools_settings != new_settings.tools_settings:
             reloads.append(ReloadType.TOOLS)
+        # Check wakeword settings
+        if (self.wakeword_enabled != new_settings.wakeword_enabled or
+            self.wakeword != new_settings.wakeword or
+            self.wakeword_vad_aggressiveness != new_settings.wakeword_vad_aggressiveness or
+            self.wakeword_pre_buffer_duration != new_settings.wakeword_pre_buffer_duration or
+            self.wakeword_silence_duration != new_settings.wakeword_silence_duration or
+            self.wakeword_energy_threshold != new_settings.wakeword_energy_threshold):
+            reloads.append(ReloadType.WAKEWORD)
         # Check prompts
         if len(self.prompts) != len(new_settings.prompts):
             reloads.append(ReloadType.PROMPTS)
