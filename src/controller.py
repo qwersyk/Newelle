@@ -970,6 +970,9 @@ class NewelleSettings:
         self.tts_voice = settings.get_string("tts-voice")
         self.stt_engine = settings.get_string("stt-engine")
         self.stt_settings = settings.get_string("stt-settings")
+        self.secondary_stt_engine = settings.get_string("secondary-stt-engine")
+        self.secondary_stt_settings = settings.get_string("stt-secondary-settings")
+        self.secondary_stt_on = settings.get_boolean("secondary-stt-on")
         self.external_terminal = settings.get_string("external-terminal")
         self.automatic_stt = settings.get_boolean("automatic-stt")
         self.stt_silence_detection_threshold = settings.get_double("stt-silence-detection-threshold")
@@ -1056,6 +1059,8 @@ class NewelleSettings:
 
         if self.stt_engine != new_settings.stt_engine:
             reloads.append(ReloadType.STT)
+        if self.secondary_stt_engine != new_settings.secondary_stt_engine or self.secondary_stt_on != new_settings.secondary_stt_on or self.secondary_stt_settings != new_settings.secondary_stt_settings:
+            reloads.append(ReloadType.STT)
 
         if self.embedding_model != new_settings.embedding_model or self.embedding_settings != new_settings.embedding_settings:
             reloads.append(ReloadType.EMBEDDINGS)
@@ -1120,6 +1125,7 @@ class HandlersManager:
         self.handlers_cached.acquire()
         self.integrationsloader = integrations
         self.installing_handlers = installing_handlers
+        self.secondary_stt = None
 
     def destroy(self):
         for handler in self.handlers.values():
@@ -1145,6 +1151,15 @@ class HandlersManager:
             newelle_settings.tts_program = list(AVAILABLE_TTS.keys())[0]
         if newelle_settings.stt_engine not in AVAILABLE_STT:
             newelle_settings.stt_engine = list(AVAILABLE_STT.keys())[0]
+        if newelle_settings.secondary_stt_engine not in AVAILABLE_STT:
+            # Find first secondary-capable STT
+            for key in AVAILABLE_STT:
+                if "secondary" in AVAILABLE_STT[key] and AVAILABLE_STT[key]["secondary"]:
+                    newelle_settings.secondary_stt_engine = key
+                    break
+            else:
+                # Fallback to first STT if none are marked as secondary
+                newelle_settings.secondary_stt_engine = list(AVAILABLE_STT.keys())[0]
         if newelle_settings.websearch_model not in AVAILABLE_WEBSEARCH:
             newelle_settings.websearch_model = list(AVAILABLE_WEBSEARCH.keys())[0]
       
@@ -1155,16 +1170,20 @@ class HandlersManager:
         """Assign the selected handlers
 
         Args:
-            newelle_settings: Newelle settings 
+            newelle_settings: Newelle settings
         """
         self.fix_handlers_integrity(newelle_settings)
-        # Get LLM 
+        # Get LLM
         self.llm : LLMHandler = self.get_object(AVAILABLE_LLMS, newelle_settings.language_model)
         if newelle_settings.use_secondary_language_model:
             self.secondary_llm : LLMHandler = self.get_object(AVAILABLE_LLMS, newelle_settings.secondary_language_model, True)
         else:
             self.secondary_llm : LLMHandler = self.llm
         self.stt : STTHandler = self.get_object(AVAILABLE_STT, newelle_settings.stt_engine)
+        if newelle_settings.secondary_stt_on:
+            self.secondary_stt : STTHandler = self.get_object(AVAILABLE_STT, newelle_settings.secondary_stt_engine, True)
+        else:
+            self.secondary_stt : STTHandler = None
         self.tts : TTSHandler = self.get_object(AVAILABLE_TTS, newelle_settings.tts_program)
         self.embedding : EmbeddingHandler= self.get_object(AVAILABLE_EMBEDDINGS, newelle_settings.embedding_model)
         self.memory : MemoryHandler = self.get_object(AVAILABLE_MEMORIES, newelle_settings.memory_model)
@@ -1230,6 +1249,9 @@ class HandlersManager:
         # Secondary LLMs
         for key in AVAILABLE_LLMS:
             self.handlers[(key, self.convert_constants(AVAILABLE_LLMS), True)] = self.get_object(AVAILABLE_LLMS, key, True)
+        # Secondary STTs
+        for key in AVAILABLE_STT:
+            self.handlers[(key, self.convert_constants(AVAILABLE_STT), True)] = self.get_object(AVAILABLE_STT, key, True)
         for key in AVAILABLE_MEMORIES:
             self.handlers[(key, self.convert_constants(AVAILABLE_MEMORIES), False)] = self.get_object(AVAILABLE_MEMORIES, key)
         for key in AVAILABLE_RAGS:
@@ -1314,6 +1336,7 @@ class HandlersManager:
             model.set_secondary_settings(secondary)
         elif constants == AVAILABLE_STT:
             model = constants[key]["class"](self.settings,self.directory)
+            model.set_secondary_settings(secondary)
         elif constants == AVAILABLE_TTS:
             model = constants[key]["class"](self.settings, self.directory)
         elif constants == AVAILABLE_MEMORIES:

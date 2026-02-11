@@ -147,6 +147,25 @@ class Settings(Adw.PreferencesWindow):
         for stt_key in AVAILABLE_STT:
             row = self.build_row(AVAILABLE_STT, stt_key, selected, group)
             stt_engine.add_row(row)
+
+        # Secondary STT for wakeword detection
+        secondary_stt_enabled = Gtk.Switch(valign=Gtk.Align.CENTER)
+        self.settings.bind("secondary-stt-on", secondary_stt_enabled, 'active', Gio.SettingsBindFlags.DEFAULT)
+        secondary_stt_engine = Adw.ExpanderRow(
+            title=_('Secondary STT for Wakeword'),
+            subtitle=_("Faster STT for quick wakeword detection (first 2s of speech)")
+        )
+        secondary_stt_engine.add_action(secondary_stt_enabled)
+
+        # Add secondary STTs
+        self.Voicegroup.add(secondary_stt_engine)
+        group = Gtk.CheckButton()
+        selected = self.settings.get_string("secondary-stt-engine")
+        for stt_key in AVAILABLE_STT:
+            if "secondary" in AVAILABLE_STT[stt_key] and AVAILABLE_STT[stt_key]["secondary"]:
+                row = self.build_row(AVAILABLE_STT, stt_key, selected, group, True)
+                secondary_stt_engine.add_row(row)
+
         # Automatic STT settings
         self.auto_stt = Adw.ExpanderRow(title=_('Automatic Speech To Text'), subtitle=_("Automatically restart speech to text at the end of a text/TTS"))
         self.build_auto_stt()
@@ -1285,7 +1304,10 @@ class Settings(Adw.PreferencesWindow):
         elif constants == AVAILABLE_TTS:
             setting_name = "tts"
         elif constants == AVAILABLE_STT:
-            setting_name = "stt-engine"
+            if secondary:
+                setting_name = "secondary-stt-engine"
+            else:
+                setting_name = "stt-engine"
         elif constants == AVAILABLE_MEMORIES:
             setting_name = "memory-model"
         elif constants == AVAILABLE_EMBEDDINGS:

@@ -5,6 +5,12 @@ This module provides continuous wakeword detection by:
 2. Using pysilero-vad to detect voice activity
 3. Transcribing speech segments using existing STT handler
 4. Checking for wakeword and triggering callback
+
+When secondary STT is enabled:
+1. Records the full speech segment
+2. Takes the first N seconds (default 2s) and uses secondary STT to transcribe
+3. Checks for wakeword in the secondary transcription
+4. If wakeword detected, uses the normal STT to transcribe the full audio
 """
 
 import os
@@ -29,7 +35,8 @@ class WakewordDetector:
 
     def __init__(self, stt_handler, wakeword, vad_aggressiveness=1,
                  pre_buffer_duration=0.5, silence_duration=1.0, energy_threshold=500, callback=None,
-                 on_speech_started=None, on_transcribing=None, on_transcribing_done=None):
+                 on_speech_started=None, on_transcribing=None, on_transcribing_done=None,
+                 secondary_stt_handler=None, secondary_stt_check_duration=2.0):
         """Initialize wakeword detector
 
         Args:
@@ -43,11 +50,15 @@ class WakewordDetector:
             on_speech_started: Callback when speech detection starts
             on_transcribing: Callback when transcription starts
             on_transcribing_done: Callback when transcription completes
+            secondary_stt_handler: Optional secondary STTHandler for quick wakeword check
+            secondary_stt_check_duration: Seconds of audio to check with secondary STT (default 2.0)
         """
         if not DEPENDENCIES_AVAILABLE:
             raise ImportError("pysilero-vad, pyaudio, or numpy not available")
 
         self.stt_handler = stt_handler
+        self.secondary_stt_handler = secondary_stt_handler
+        self.secondary_stt_check_duration = secondary_stt_check_duration
         self.wakewords = self._parse_wakewords(wakeword)
         self.vad_aggressiveness = vad_aggressiveness  # Kept for compatibility
         self.pre_buffer_duration = pre_buffer_duration
@@ -112,6 +123,14 @@ class WakewordDetector:
     def set_stt_handler(self, stt_handler):
         """Update STT handler at runtime"""
         self.stt_handler = stt_handler
+
+    def set_secondary_stt_handler(self, secondary_stt_handler):
+        """Update secondary STT handler at runtime"""
+        self.secondary_stt_handler = secondary_stt_handler
+
+    def set_secondary_stt_check_duration(self, duration):
+        """Update secondary STT check duration at runtime"""
+        self.secondary_stt_check_duration = duration
 
     def _calculate_rms_energy(self, frame):
         """Calculate RMS (root mean square) energy of audio frame
@@ -216,6 +235,23 @@ class WakewordDetector:
             print(f"WakewordDetector: Transcription error: {e}")
             return None
 
+    def _transcribe_audio_secondary(self, temp_file):
+        """Transcribe audio file using secondary STT handler
+
+        Args:
+            temp_file: Path to WAV file
+
+        Returns:
+            Transcribed text or None
+        """
+        print("recognizing with secondary STT")
+        try:
+            result = self.secondary_stt_handler.recognize_file(temp_file)
+            return result
+        except Exception as e:
+            print(f"WakewordDetector: Secondary transcription error: {e}")
+            return None
+
     def _process_speech(self, frames):
         """Process detected speech segment
 
@@ -227,6 +263,7 @@ class WakewordDetector:
 
         # Save to temp file in GLib cache directory
         temp_file_path = None
+        temp_file_secondary = None
         try:
             # Notify UI that transcription is starting
             if self.on_transcribing:
@@ -244,8 +281,42 @@ class WakewordDetector:
             if not self._save_to_wav(frames, temp_file_path):
                 return
 
-            # Transcribe
-            result = self._transcribe_audio(temp_file_path)
+            # Secondary STT workflow: check first N seconds for wakeword
+            if self.secondary_stt_handler is not None:
+                # Calculate how many frames for the check duration
+                check_frames_count = int(self.secondary_stt_check_duration * self.sample_rate / self.chunk_size)
+                check_frames = frames[:check_frames_count]
+
+                # Save first N seconds to temp file
+                temp_file_secondary = os.path.join(wakeword_cache_dir, f"secondary_{uuid.uuid4().hex}.wav")
+                if not self._save_to_wav(check_frames, temp_file_secondary):
+                    # Fall back to normal workflow if secondary fails
+                    self.secondary_stt_handler = None
+                else:
+                    # Transcribe with secondary STT
+                    print(f"WakewordDetector: Checking first {self.secondary_stt_check_duration}s with secondary STT")
+                    secondary_result = self._transcribe_audio_secondary(temp_file_secondary)
+
+                    # Check for wakeword in secondary transcription
+                    wakeword_detected = False
+                    if secondary_result:
+                        result_lower = secondary_result.lower()
+                        for wakeword in self.wakewords:
+                            if wakeword in result_lower:
+                                wakeword_detected = True
+                                print(f"WakewordDetector: Wakeword '{wakeword}' detected in secondary check!")
+                                break
+
+                    # Only transcribe full audio if wakeword was detected
+                    if wakeword_detected:
+                        print(f"WakewordDetector: Wakeword found, transcribing full audio with primary STT")
+                        result = self._transcribe_audio(temp_file_path)
+                    else:
+                        print(f"WakewordDetector: No wakeword in secondary check, skipping full transcription")
+                        return
+            else:
+                # Normal workflow: transcribe full audio
+                result = self._transcribe_audio(temp_file_path)
 
             result_lower = result.lower() if result else ""
             matched_wakeword = None
@@ -274,12 +345,13 @@ class WakewordDetector:
             # Notify UI that transcription is done
             if self.on_transcribing_done:
                 GLib.idle_add(self.on_transcribing_done)
-            # Cleanup temp file
-            if temp_file_path and os.path.exists(temp_file_path):
-                try:
-                    os.remove(temp_file_path)
-                except Exception as e:
-                    print(f"WakewordDetector: Error removing temp file: {e}")
+            # Cleanup temp files
+            for temp_file in [temp_file_path, temp_file_secondary]:
+                if temp_file and os.path.exists(temp_file):
+                    try:
+                        os.remove(temp_file)
+                    except Exception as e:
+                        print(f"WakewordDetector: Error removing temp file: {e}")
 
     def _detection_loop(self):
         """Main detection loop (runs in daemon thread)"""

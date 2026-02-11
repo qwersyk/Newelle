@@ -1125,7 +1125,8 @@ class MainWindow(Adw.ApplicationWindow):
                 callback=self.on_wakeword_detected,
                 on_speech_started=self.on_wakeword_speech_started,
                 on_transcribing=self.on_wakeword_transcribing,
-                on_transcribing_done=self.on_wakeword_transcribing_done
+                on_transcribing_done=self.on_wakeword_transcribing_done,
+                secondary_stt_handler=self.controller.handlers.secondary_stt
             )
 
             # Start in background thread

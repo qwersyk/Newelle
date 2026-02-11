@@ -107,13 +107,15 @@ AVAILABLE_STT = {
         "description": _("Works offline. Optimized Whisper impelementation written in C++"),
         "website": "https://github.com/ggerganov/whisper.cpp",
         "class": WhisperCPPHandler,
+        "secondary": True,
     },
-    "Sphinx": {
+    "sphinx": {
         "key": "sphinx",
         "title": _("CMU Sphinx"),
         "description": _("Works offline. Only English supported"),
         "website": "https://cmusphinx.github.io/wiki/",
         "class": SphinxHandler,
+        "secondary": True,
     },
     "google_sr": {
         "key": "google_sr",
@@ -140,6 +142,7 @@ AVAILABLE_STT = {
         "description": _("Works Offline"),
         "website": "https://github.com/alphacep/vosk-api/",
         "class": VoskHandler,
+        "secondary": True,
     },
     "openai_sr": {
         "key": "openai_sr",
@@ -152,7 +155,8 @@ AVAILABLE_STT = {
         "key": "custom_command",
         "title": _("Custom command"),
         "description": _("Runs a custom command"),
-        "class": CustomSRHandler,     
+        "class": CustomSRHandler,
+        "secondary": True,
     }
 }
 
@@ -526,7 +530,7 @@ SETTINGS_GROUPS = {
         },
         "STT": {
             "title": _("STT"),
-            "settings": ["stt-engine", "stt-settings","automatic-stt", "stt-silence-detection-threshold", "stt-silence-detection-duration"],
+            "settings": ["stt-engine", "stt-settings", "secondary-stt-on", "secondary-stt-engine", "stt-secondary-settings", "automatic-stt", "stt-silence-detection-threshold", "stt-silence-detection-duration"],
             "description": _("Speech to Text settings"),
         },
         "Embedding": {
@@ -577,7 +581,8 @@ SETTINGS_GROUPS = {
         "wakeword": {
             "title": _("Wakeword"),
             "settings": ["wakeword-on", "wakeword",
-                         "wakeword-pre-buffer-duration", "wakeword-silence-duration", "wakeword-energy-threshold"],
+                         "wakeword-pre-buffer-duration", "wakeword-silence-duration", "wakeword-energy-threshold",
+                         "secondary-stt-on", "secondary-stt-engine"],
             "description": _("Wakeword detection settings"),
         }
 

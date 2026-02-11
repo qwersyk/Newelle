@@ -213,5 +213,14 @@
         <key name="wakeword-energy-threshold" type="i">
             <default>300</default>
         </key>
+        <key name="secondary-stt-on" type="b">
+            <default>false</default>
+        </key>
+        <key name="secondary-stt-engine" type="s">
+            <default>"sphinx"</default>
+        </key>
+        <key name="stt-secondary-settings" type="s">
+            <default>"{}"</default>
+        </key>
 	</schema>
 </schemalist>
