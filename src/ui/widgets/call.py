@@ -224,10 +224,12 @@ class CallPanel(Gtk.Box):
         )
         
         # Avatar using Adw.Avatar wrapped in ring container
-        avatar_ring = Gtk.Box(
+        self.avatar_ring = Gtk.Box(
             css_classes=["call-avatar-ring"],
-            halign=Gtk.Align.CENTER
+            halign=Gtk.Align.CENTER,
+            valign=Gtk.Align.CENTER
         )
+        self.avatar_ring.set_size_request(128, 128)
         
         if self.profile_picture and os.path.exists(self.profile_picture):
             try:
@@ -250,8 +252,8 @@ class CallPanel(Gtk.Box):
                 size=120
             )
         
-        avatar_ring.append(self.avatar)
-        avatar_container.append(avatar_ring)
+        self.avatar_ring.append(self.avatar)
+        avatar_container.append(self.avatar_ring)
         
         # Name label
         self.name_label = Gtk.Label(
@@ -483,7 +485,7 @@ class CallPanel(Gtk.Box):
         self.activity_indicator.set_visible(False)
         self.mute_button.set_sensitive(False)
         self.speaker_button.set_sensitive(False)
-        self.avatar.remove_css_class("call-avatar-ring-speaking")
+        self.avatar_ring.remove_css_class("call-avatar-ring-speaking")
         
         if self.tab:
             self.tab.set_title(_("Call"))
@@ -591,7 +593,7 @@ class CallPanel(Gtk.Box):
         """Called when speech is detected"""
         self.user_speaking = True
         self._update_activity_indicator()
-        self.avatar.add_css_class("call-avatar-ring-speaking")
+        self.avatar_ring.add_css_class("call-avatar-ring-speaking")
         
         # Interrupt TTS if playing
         if self.assistant_speaking:
@@ -603,7 +605,7 @@ class CallPanel(Gtk.Box):
         """Called when speech ends"""
         self.user_speaking = False
         self._update_activity_indicator()
-        self.avatar.remove_css_class("call-avatar-ring-speaking")
+        self.avatar_ring.remove_css_class("call-avatar-ring-speaking")
     
     def _update_activity_indicator(self):
         """Update the activity indicator label"""
@@ -677,28 +679,39 @@ class CallPanel(Gtk.Box):
             print(f"Recognition error: {e}")
     
     def _get_ai_response(self, user_message):
-        """Get AI response and play TTS"""
+        """Get AI response and play TTS using run_llm_with_tools"""
         try:
-            llm = self.controller.handlers.llm
-            
-            # Get prompts from user preferences
-            prompts = []
-            
-            prompts.append(
+            prompts = [
                 "You are in a voice call. Keep responses concise and conversational. "
                 "Avoid long explanations unless asked. Be natural and friendly."
+            ]
+            
+            streaming_text = ""
+            
+            def on_message_callback(text):
+                nonlocal streaming_text
+                streaming_text += text
+            
+            def on_tool_result_callback(tool_name, result):
+                tool_output = result.get_output() if result else "Tool executed"
+                GLib.idle_add(
+                    self._show_transcript,
+                    f"[Tool: {tool_name}] {tool_output}",
+                    False
+                )
+            
+            response = self.controller.run_llm_with_tools(
+                message=user_message,
+                history=[],
+                system_prompt=prompts,
+                on_message_callback=on_message_callback,
+                on_tool_result_callback=on_tool_result_callback,
+                max_tool_calls=5
             )
             
-            response = llm.send_message(user_message, [], prompts)
-            
             if response:
-                # Clean response for display and TTS
                 response = self._clean_response(response)
-                
-                # Update transcript
                 GLib.idle_add(self._show_transcript, f"Assistant: {response}", False)
-                
-                # Play TTS if still in call
                 if self.call_active:
                     self._play_tts(response)
         
@@ -747,9 +760,9 @@ class CallPanel(Gtk.Box):
         self.assistant_speaking = speaking
         self._update_activity_indicator()
         if speaking:
-            self.avatar.add_css_class("call-avatar-ring-speaking")
+            self.avatar_ring.add_css_class("call-avatar-ring-speaking")
         else:
-            self.avatar.remove_css_class("call-avatar-ring-speaking")
+            self.avatar_ring.remove_css_class("call-avatar-ring-speaking")
     
     def _show_transcript(self, text, is_error=False):
         """Show transcript in UI"""
