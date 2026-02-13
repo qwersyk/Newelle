@@ -87,6 +87,7 @@ widgets_sources = [
   'ui/widgets/chatrow.py',
   'ui/widgets/chat_history.py',
   'ui/widgets/chat_tab.py',
+  'ui/widgets/call.py',
 ]
 
 handler_sources = [
@@ -190,6 +191,7 @@ utility_sources = [
   'utility/website_scraper.py',
   'utility/stdout_capture.py',
   'utility/wakeword_detector.py',
+  'utility/vad.py',
 ]
 
 install_data(newelle_sources, install_dir: moduledir)

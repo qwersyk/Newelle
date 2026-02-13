@@ -23,18 +23,19 @@ from gi.repository import GLib
 
 try:
     import pyaudio
-    from pysilero_vad import SileroVoiceActivityDetector
     import array
     DEPENDENCIES_AVAILABLE = True
 except ImportError:
     DEPENDENCIES_AVAILABLE = False
+
+from .vad import VoiceActivityDetector
 
 
 class WakewordDetector:
     """Continuous wakeword detector using Silero VAD and STT"""
 
     def __init__(self, stt_handler, wakeword, vad_aggressiveness=1,
-                 pre_buffer_duration=0.5, silence_duration=1.0, energy_threshold=500, callback=None,
+                 pre_buffer_duration=0.5, silence_duration=0.5, energy_threshold=500, callback=None,
                  on_speech_started=None, on_transcribing=None, on_transcribing_done=None,
                  secondary_stt_handler=None, secondary_stt_check_duration=2.0):
         """Initialize wakeword detector
@@ -155,12 +156,12 @@ class WakewordDetector:
             return 0
 
     def _init_audio(self):
-        """Initialize PyAudio and Silero VAD"""
+        """Initialize PyAudio and unified VAD"""
         self.audio = pyaudio.PyAudio()
 
-        # Initialize Silero VAD and get required chunk size
-        self.vad = SileroVoiceActivityDetector()
-        self.chunk_size = self.vad.chunk_samples()  # Returns 512 for 16kHz
+        # Initialize unified VAD and get required chunk size
+        self.vad = VoiceActivityDetector(sample_rate=self.sample_rate)
+        self.chunk_size = self.vad.chunk_samples()
 
         # Try to find a working input device
         device_index = None
@@ -394,17 +395,29 @@ class WakewordDetector:
                     # Calculate audio energy to filter out low-level noise
                     energy = self._calculate_rms_energy(frame)
 
-                    # Skip low-energy frames (noise)
+                    # Skip low-energy frames (noise) but still count silence
                     if energy < self.energy_threshold:
                         # Reset consecutive speech counter on low energy
                         if not in_speech:
                             consecutive_speech_frames = 0
+                        # Still count silence to end speech
+                        if in_speech:
+                            silence_frames += 1
+                            if silence_frames >= silence_threshold:
+                                if len(speech_frames) > 0:
+                                    speech_ratio = consecutive_speech_frames / len(speech_frames)
+                                    print(f"WakewordDetector: Speech ended (low energy), processing... (speech ratio: {speech_ratio:.2f}, frames: {len(speech_frames)})")
+                                    self._process_speech(speech_frames)
+                                in_speech = False
+                                speech_frames = []
+                                consecutive_speech_frames = 0
+                                pre_buffer.clear()
                         continue
 
-                    # Run VAD on frame - Silero VAD returns probability (0-1)
+                    # Run VAD on frame - unified VAD returns probability (0-1)
                     # Speech is detected when probability >= 0.5
                     try:
-                        speech_probability = self.vad(frame)
+                        speech_probability = self.vad.get_speech_probability(frame)
                         is_speech = speech_probability >= 0.5
                     except Exception as vad_error:
                         print(f"WakewordDetector: VAD error: {vad_error}")

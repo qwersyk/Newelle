@@ -19,7 +19,7 @@ from .ui.settings import Settings
 
 from .ui.profile import ProfileDialog
 from .ui.presentation import PresentationWindow
-from .ui.widgets import File, CopyBox, BarChartBox, MarkupTextView, DocumentReaderWidget, TipsCarousel, BrowserWidget, Terminal, CodeEditorWidget, ToolWidget
+from .ui.widgets import File, CopyBox, BarChartBox, MarkupTextView, DocumentReaderWidget, TipsCarousel, BrowserWidget, Terminal, CodeEditorWidget, ToolWidget, CallPanel
 from .ui.explorer import ExplorerPanel
 from .ui.widgets import MultilineEntry, ProfileRow, DisplayLatex, InlineLatex, ThinkingWidget, Message, ChatRow, ChatHistory, ChatTab
 from .ui.stdout_monitor import StdoutMonitorDialog
@@ -371,7 +371,8 @@ class MainWindow(Adw.ApplicationWindow):
         menu_entries = [
             (_("Explorer Tab"), "folder-symbolic", self.add_explorer_tab),
             (_("Terminal Tab"), "gnome-terminal-symbolic", self.add_terminal_tab),
-            (_("Browser Tab"), "internet-symbolic", self.add_browser_tab)
+            (_("Browser Tab"), "internet-symbolic", self.add_browser_tab),
+            (_("Start Call"), "call-start-symbolic", self.start_call_tab),
         ]
         menu_entries += self.extensionloader.get_add_tab_buttons()
         
@@ -2581,6 +2582,27 @@ class MainWindow(Adw.ApplicationWindow):
         self.canvas_tabs.set_selected_page(tab)
         self.show_sidebar()
         return tab
+    
+    def start_call_tab(self, tabview=None, file=None):
+        profile_name = self.current_profile
+        profile_picture = self.profile_settings.get(profile_name, {}).get("picture")
+        
+        call_panel = CallPanel(self.controller, profile_name, profile_picture)
+        
+        tab = self.canvas_tabs.append(call_panel)
+        tab.set_title(_("Call"))
+        tab.set_icon(Gio.ThemedIcon(name="call-start-symbolic"))
+        
+        def on_call_ended():
+            page = call_panel.get_parent()
+            if page:
+                self.canvas_tabs.close_page(page)
+        
+        call_panel.connect("call-ended", on_call_ended)
+        
+        self.show_sidebar()
+        self.canvas_tabs.set_selected_page(tab)
+        return tab 
 
     def edit_copybox(self, id_message, id_codeblock, new_content, editor=None):
         message_content = self.chat[id_message]["Message"]
@@ -2663,6 +2685,7 @@ class MainWindow(Adw.ApplicationWindow):
                 target=self.generate_chat_name, args=[button, True]
             ).start()
 
+    # Chat Export
     def export_chat(self, export_all=False):
         """Export chat(s) to a JSON file
 
