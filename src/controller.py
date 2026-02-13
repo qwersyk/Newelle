@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Callable
 from gi.repository import GLib, Gio, Adw
 import os
 import base64
@@ -6,8 +6,9 @@ import time
 import re
 import copy
 
-from .tools import ToolRegistry
+from .tools import ToolRegistry, ToolResult
 from .utility.media import get_image_base64, get_image_path, extract_supported_files
+from .utility.message_chunk import get_message_chunks
 
 from .extensions import NewelleExtension
 from .handlers.llm import LLMHandler
@@ -932,6 +933,115 @@ class NewelleController:
             'output_tokens': output_tokens,
             'time': last_generation_time
         })
+
+    def run_llm_with_tools(
+        self,
+        message: str,
+        history: list[dict[str, str]] = None,
+        system_prompt: list[str] = None,
+        on_message_callback: Callable[[str], None] = None,
+        on_tool_result_callback: Callable[[str, ToolResult], None] = None,
+        max_tool_calls: int = 10,
+        chat_id: int = None
+    ) -> str:
+        """Run LLM with tool support integration.
+        
+        Args:
+            message: The user message to send
+            history: Chat history (uses current chat if None)
+            system_prompt: System prompts (uses prepared prompts if None)
+            on_message_callback: Callback for streaming message updates
+            on_tool_result_callback: Callback for tool results, receives (tool_name, ToolResult)
+            max_tool_calls: Maximum number of tool calls to execute (prevents infinite loops)
+            chat_id: Chat ID to use (uses current if None)
+            
+        Returns:
+            Final message from the LLM
+        """
+        if history is None:
+            history = self.get_history(chat=self.chat)
+        if system_prompt is None:
+            _, _, _, _, _, effective_chat_id = self.prepare_generation(chat_id=chat_id)
+            system_prompt = []
+            formatter = PromptFormatter(replace_variables_dict(), self.get_variable)
+            for prompt in self.newelle_settings.bot_prompts:
+                system_prompt.append(formatter.format(prompt))
+            system_prompt += self.get_memory_prompt(chat_id=effective_chat_id)
+        
+        current_history = history.copy()
+        current_history.append({"User": "User", "Message": message})
+        
+        for iteration in range(max_tool_calls):
+            full_response = ""
+            
+            def stream_callback(text: str):
+                nonlocal full_response
+                full_response += text
+                if on_message_callback:
+                    on_message_callback(text)
+            
+            if self.handlers.llm.stream_enabled():
+                response = self.handlers.llm.send_message_stream(
+                    message if iteration == 0 else "",
+                    current_history,
+                    system_prompt,
+                    stream_callback
+                )
+            else:
+                response = self.handlers.llm.send_message(
+                    message if iteration == 0 else "",
+                    system_prompt,
+                    current_history
+                )
+                if on_message_callback:
+                    on_message_callback(response)
+            
+            chunks = get_message_chunks(response)
+            
+            text_content = ""
+            tool_calls = []
+            
+            for chunk in chunks:
+                if chunk.type == "tool_call":
+                    tool_calls.append({"name": chunk.tool_name, "args": chunk.tool_args})
+                elif chunk.type in ("text", "markdown"):
+                    text_content += chunk.text
+            
+            if not tool_calls:
+                current_history.append({"User": "Assistant", "Message": text_content})
+                return text_content
+            
+            for tool_call in tool_calls:
+                tool_name = tool_call["name"]
+                tool_args = tool_call["args"]
+                
+                try:
+                    result = self.tools.execute_tool(tool_name, tool_args)
+                    if isinstance(result, ToolResult):
+                        if on_tool_result_callback:
+                            on_tool_result_callback(tool_name, result)
+                        tool_result_output = result.get_output()
+                    else:
+                        tool_result_output = str(result)
+                        if on_tool_result_callback:
+                            tr = ToolResult(output=tool_result_output)
+                            on_tool_result_callback(tool_name, tr)
+                except Exception as e:
+                    tool_result_output = f"Error: {str(e)}"
+                    if on_tool_result_callback:
+                        tr = ToolResult(output=tool_result_output)
+                        on_tool_result_callback(tool_name, tr)
+                
+                current_history.append({
+                    "User": "Assistant",
+                    "Message": f"```json\n{{\"name\": \"{tool_name}\", \"arguments\": {json.dumps(tool_args)}}}\n```"
+                })
+                current_history.append({
+                    "User": "Tool",
+                    "Message": f"[Tool: {tool_name}]\n{tool_result_output}"
+                })
+        
+        return text_content
 
 
 class NewelleSettings:
