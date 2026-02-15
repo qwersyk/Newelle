@@ -8,6 +8,8 @@ import math
 import gettext
 import pyaudio
 import re
+
+from ...utility.strings import remove_emoji, remove_markdown, remove_thinking_blocks
 from ...utility.vad import VoiceActivityDetector
 
 
@@ -742,9 +744,9 @@ class CallPanel(Gtk.Box):
             self.controller.is_call_request = False
             
             if response:
-                response = self._clean_response(response)
                 GLib.idle_add(self._show_transcript, f"Assistant: {response}", False)
                 if self.call_active:
+                    response = self._clean_response(response)
                     self._play_tts(response)
         
         except Exception as e:
@@ -754,15 +756,11 @@ class CallPanel(Gtk.Box):
     
     def _clean_response(self, response):
         """Clean response for TTS"""
-        # Remove code blocks
-        response = re.sub(r'```.*?```', '', response, flags=re.DOTALL)
-        # Remove markdown
-        response = re.sub(r'\*\*([^*]+)\*\*', r'\1', response)
-        response = re.sub(r'\*([^*]+)\*', r'\1', response)
-        response = re.sub(r'`([^`]+)`', r'\1', response)
+        response = remove_thinking_blocks(response)
+        response = remove_markdown(response)
         response = re.sub(r'\[([^\]]+)\]\([^\)]+\)', r'\1', response)
-        # Remove thinking blocks
-        response = re.sub(r'<think>.*?</think>', '', response, flags=re.DOTALL)
+        # Remove emoji 
+        response = remove_emoji(response) 
         return response.strip()
     
     def _play_tts(self, text):

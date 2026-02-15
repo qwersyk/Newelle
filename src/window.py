@@ -2594,19 +2594,13 @@ class MainWindow(Adw.ApplicationWindow):
         tab = self.canvas_tabs.append(call_panel)
         tab.set_title(_("Call"))
         tab.set_icon(Gio.ThemedIcon(name="call-start-symbolic"))
-        
-        def on_call_ended():
-            page = call_panel.get_parent()
-            if page:
-                self.canvas_tabs.close_page(page)
-        
+         
         def on_convert_to_chat(call_panel):
             self.controller.chats[call_panel.chat_id]["call"] = False
             self.controller.save_chats()
             self.update_history()
             self.show_sidebar()
         
-        call_panel.connect("call-ended", on_call_ended)
         call_panel.connect("convert-to-chat", on_convert_to_chat)
         
         self.show_sidebar()

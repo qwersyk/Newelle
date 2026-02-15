@@ -126,6 +126,7 @@ tts_sources = [
   'handlers/tts/openai_tts_handler.py',
   'handlers/tts/custom_openai_tts.py',
   'handlers/tts/groq_tts_handler.py',
+  'handlers/tts/edge_handler.py',
 ]
 
 stt_sources = [  
@@ -192,6 +193,7 @@ utility_sources = [
   'utility/stdout_capture.py',
   'utility/wakeword_detector.py',
   'utility/vad.py',
+  'utility/force_sync.py',
 ]
 
 install_data(newelle_sources, install_dir: moduledir)
