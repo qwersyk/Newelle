@@ -2063,6 +2063,8 @@ class MainWindow(Adw.ApplicationWindow):
         top_level_indices = []
         
         for i, chat in enumerate(self.chats):
+            if chat.get("call", False):
+                continue
             parent_id = chat.get("branched_from")
             if parent_id and parent_id in id_to_index:
                 if parent_id not in children_map:

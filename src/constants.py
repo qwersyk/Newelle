@@ -350,7 +350,9 @@ command
 /path/to/file
 ```
 Ensure that commands are safe, relevant, and do not cause unintended system modifications unless explicitly requested by the user.""",
-
+    "call": """{COND: 
+[call] You are in a voice call. Keep responses concise and conversational. Avoid long explanations unless asked. Be natural and friendly.
+}""",
     "basic_functionality": """You can write markdown tables, use **bold**, *italic*, ~strikethrough~, `monospace`, [linkname](https://link.com) and ## headers in markdown.
 You can display $inline equations$ and $$equations$$.
 """,
@@ -472,6 +474,15 @@ AVAILABLE_PROMPTS = [
         "title": _("Tools"),
         "description": _("List tools available to the LLM"),
         "setting_name": "tools",
+        "editable": True,
+        "show_in_settings": True,
+        "default": True
+    },
+    {
+        "key": "call",
+        "title": _("Call prompt"),
+        "description": _("Prompt made to only be actived in calls"),
+        "setting_name": "call",
         "editable": True,
         "show_in_settings": True,
         "default": True

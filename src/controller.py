@@ -186,6 +186,7 @@ class NewelleController:
         self.tools = ToolRegistry()
         self.msgid = 0
         self.chat_documents_index = {}
+        self.is_call_request = False
 
     def ui_init(self):
         """Init necessary variables for the UI and load models and handlers"""
@@ -239,6 +240,17 @@ class NewelleController:
         """Save chats"""
         with open(self.chats_path, 'wb') as f:
             pickle.dump(self.chats, f)
+
+    def create_call_chat(self):
+        """Create a new call chat that won't be displayed in the chat list"""
+        new_chat = {
+            "name": _("Call " + str(len(self.chats))),
+            "chat": [],
+            "call": True
+        }
+        self.chats.append(new_chat)
+        self.save_chats()
+        return len(self.chats) - 1
 
     def check_path_integrity(self):
         """Create missing directories"""
@@ -676,6 +688,8 @@ class NewelleController:
             return self.newelle_settings.current_profile
         elif name == "external_browser":
             return self.newelle_settings.external_browser
+        elif name == "call":
+            return self.is_call_request
         elif name == "history":
             return "\n".join([f"{msg['User']}: {msg['Message']}" for msg in self.get_history()])
         elif name == "message":
@@ -937,12 +951,11 @@ class NewelleController:
     def run_llm_with_tools(
         self,
         message: str,
-        history: list[dict[str, str]] = None,
+        chat_id: int,
         system_prompt: list[str] = None,
         on_message_callback: Callable[[str], None] = None,
         on_tool_result_callback: Callable[[str, ToolResult], None] = None,
         max_tool_calls: int = 10,
-        chat_id: int = None
     ) -> str:
         """Run LLM with tool support integration.
         
@@ -958,8 +971,8 @@ class NewelleController:
         Returns:
             Final message from the LLM
         """
-        if history is None:
-            history = self.get_history(chat=self.chat)
+        self.chats[chat_id]["chat"].append({"User": "User", "Message": message})
+        history = self.get_history(chat=self.chats[chat_id]["chat"], include_last_message=True)
         if system_prompt is None:
             _, _, _, _, _, effective_chat_id = self.prepare_generation(chat_id=chat_id)
             system_prompt = []
@@ -969,7 +982,6 @@ class NewelleController:
             system_prompt += self.get_memory_prompt(chat_id=effective_chat_id)
         
         current_history = history.copy()
-        current_history.append({"User": "User", "Message": message})
         
         for iteration in range(max_tool_calls):
             full_response = ""

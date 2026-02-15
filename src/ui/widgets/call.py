@@ -146,6 +146,7 @@ class CallPanel(Gtk.Box):
     
     def __init__(self, controller, profile_name=None, profile_picture=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.chat_id = None
         
         self.controller = controller
         self.profile_name = profile_name or "AI Assistant"
@@ -681,13 +682,9 @@ class CallPanel(Gtk.Box):
     def _get_ai_response(self, user_message):
         """Get AI response and play TTS using run_llm_with_tools"""
         try:
-            prompts = [
-                "You are in a voice call. Keep responses concise and conversational. "
-                "Avoid long explanations unless asked. Be natural and friendly."
-            ]
-            
+            if self.chat_id is None:
+                self.chat_id = self.controller.create_call_chat()
             streaming_text = ""
-            
             def on_message_callback(text):
                 nonlocal streaming_text
                 streaming_text += text
@@ -696,18 +693,19 @@ class CallPanel(Gtk.Box):
                 tool_output = result.get_output() if result else "Tool executed"
                 GLib.idle_add(
                     self._show_transcript,
-                    f"[Tool: {tool_name}] {tool_output}",
+                    f"[Tool: {tool_name}] {tool_output[:300]}",
                     False
                 )
             
+            self.controller.is_call_request = True 
             response = self.controller.run_llm_with_tools(
                 message=user_message,
-                history=[],
-                system_prompt=prompts,
+                chat_id = self.chat_id,
                 on_message_callback=on_message_callback,
                 on_tool_result_callback=on_tool_result_callback,
                 max_tool_calls=5
             )
+            self.controller.is_call_request = False
             
             if response:
                 response = self._clean_response(response)
@@ -716,6 +714,8 @@ class CallPanel(Gtk.Box):
                     self._play_tts(response)
         
         except Exception as e:
+            import traceback
+            print(traceback.format_exc())
             print(f"LLM error: {e}")
     
     def _clean_response(self, response):
