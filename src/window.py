@@ -2600,7 +2600,14 @@ class MainWindow(Adw.ApplicationWindow):
             if page:
                 self.canvas_tabs.close_page(page)
         
+        def on_convert_to_chat(call_panel):
+            self.controller.chats[call_panel.chat_id]["call"] = False
+            self.controller.save_chats()
+            self.update_history()
+            self.show_sidebar()
+        
         call_panel.connect("call-ended", on_call_ended)
+        call_panel.connect("convert-to-chat", on_convert_to_chat)
         
         self.show_sidebar()
         self.canvas_tabs.set_selected_page(tab)

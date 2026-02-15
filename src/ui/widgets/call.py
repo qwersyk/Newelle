@@ -133,6 +133,19 @@ CALL_CSS = """
     font-size: 13px;
     font-weight: 600;
 }
+
+.call-button-convert {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-width: 72px;
+    min-height: 72px;
+    border-radius: 50%;
+    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+}
+
+.call-button-convert:hover {
+    background: linear-gradient(135deg, #7688eb 0%, #865cb3 100%);
+    box-shadow: 0 6px 25px rgba(102, 126, 234, 0.5);
+}
 """
 
 
@@ -142,6 +155,7 @@ class CallPanel(Gtk.Box):
     __gsignals__ = {
         'call-ended': (GObject.SignalFlags.RUN_FIRST, None, ()),
         'transcript-updated': (GObject.SignalFlags.RUN_FIRST, None, (str,)),
+        'convert-to-chat': (GObject.SignalFlags.RUN_FIRST, None, ()),
     }
     
     def __init__(self, controller, profile_name=None, profile_picture=None, *args, **kwargs):
@@ -379,7 +393,20 @@ class CallPanel(Gtk.Box):
         self.speaker_button.set_sensitive(False)
         controls_box.append(self.speaker_button)
         
+        # Convert to chat button (shown after call ends)
+        self.convert_button = Gtk.Button(
+            css_classes=["call-button-convert"],
+            label=_("Convert to Chat"),
+            visible=False,
+            halign=Gtk.Align.CENTER
+        )
+        convert_icon = Gtk.Image.new_from_icon_name("chat-bubbles-text-symbolic")
+        convert_icon.set_pixel_size(20)
+        self.convert_button.set_child(convert_icon)
+        self.convert_button.connect("clicked", self._on_convert_to_chat_clicked)
+        self.convert_button.set_tooltip_text(_("Convert to chat")) 
         main_box.append(controls_box)
+        main_box.append(self.convert_button)
         
         self.append(main_box)
     
@@ -414,6 +441,11 @@ class CallPanel(Gtk.Box):
         # Stop TTS playback
         if hasattr(self.controller, 'handlers') and self.controller.handlers.tts:
             self.controller.handlers.tts.stop()
+    
+    def _on_convert_to_chat_clicked(self, button):
+        """Handle convert to chat button click"""
+        if self.chat_id is not None:
+            self.emit('convert-to-chat')
     
     def start_call(self):
         """Start the voice call"""
@@ -487,6 +519,7 @@ class CallPanel(Gtk.Box):
         self.mute_button.set_sensitive(False)
         self.speaker_button.set_sensitive(False)
         self.avatar_ring.remove_css_class("call-avatar-ring-speaking")
+        self.convert_button.set_visible(True)
         
         if self.tab:
             self.tab.set_title(_("Call"))
@@ -703,7 +736,8 @@ class CallPanel(Gtk.Box):
                 chat_id = self.chat_id,
                 on_message_callback=on_message_callback,
                 on_tool_result_callback=on_tool_result_callback,
-                max_tool_calls=5
+                max_tool_calls=5,
+                save_chat=True,
             )
             self.controller.is_call_request = False
             

@@ -956,6 +956,7 @@ class NewelleController:
         on_message_callback: Callable[[str], None] = None,
         on_tool_result_callback: Callable[[str, ToolResult], None] = None,
         max_tool_calls: int = 10,
+        save_chat: bool = False,
     ) -> str:
         """Run LLM with tool support integration.
         
@@ -967,6 +968,7 @@ class NewelleController:
             on_tool_result_callback: Callback for tool results, receives (tool_name, ToolResult)
             max_tool_calls: Maximum number of tool calls to execute (prevents infinite loops)
             chat_id: Chat ID to use (uses current if None)
+            save_chat: If True, assistant messages are added to chat history
             
         Returns:
             Final message from the LLM
@@ -1021,6 +1023,8 @@ class NewelleController:
             
             if not tool_calls:
                 current_history.append({"User": "Assistant", "Message": text_content})
+                if save_chat:
+                    self.chats[chat_id]["chat"].append({"User": "Assistant", "Message": text_content})
                 return text_content
             
             for tool_call in tool_calls:
@@ -1053,6 +1057,8 @@ class NewelleController:
                     "Message": f"[Tool: {tool_name}]\n{tool_result_output}"
                 })
         
+        if save_chat:
+            self.chats[chat_id]["chat"].append({"User": "Assistant", "Message": text_content})
         return text_content
 
 
