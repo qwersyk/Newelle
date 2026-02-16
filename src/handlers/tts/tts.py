@@ -108,4 +108,22 @@ class TTSHandler(Handler):
         """Set the given voice"""
         self.set_setting("voice", voice)
 
+    def play(self, text):
+        """Automatically plays with either stream or regular TTS"""
+        if self.streaming_enabled():
+            self.play_audio_stream(text)
+        else:
+            self.play_audio(text)
+    def streaming_enabled(self) -> bool:
+        """Return True if the TTS handler supports streaming audio playback."""
+        return False
+
+    def play_audio_stream(self, message):
+        """Play audio from the given message using streaming if supported.
+        
+        By default, falls back to regular play_audio for backwards compatibility.
+        Override this in subclasses to implement true streaming playback.
+        """
+        self.play_audio(message)
+
 

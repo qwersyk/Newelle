@@ -782,7 +782,7 @@ class CallPanel(Gtk.Box):
         tts.connect("stop", on_tts_stop)
         
         try:
-            tts.play_audio(text)
+            tts.play(text)
         except Exception as e:
             print(f"TTS error: {e}")
             GLib.idle_add(self._set_assistant_speaking, False)

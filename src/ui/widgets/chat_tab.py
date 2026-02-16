@@ -589,14 +589,9 @@ class ChatTab(Gtk.Box):
             message = remove_markdown(message)
             message = remove_emoji(message)
             if message.strip() and not message.isspace():
-                if self.tts.streaming_enabled():
-                    tts_thread = threading.Thread(
-                        target=self.tts.play_audio_stream, args=(message,)
-                    )
-                else:
-                    tts_thread = threading.Thread(
-                        target=self.tts.play_audio, args=(message,)
-                    )
+                tts_thread = threading.Thread(
+                    target=self.tts.play, args=(message,)
+                )
                 tts_thread.start()
         
         # Wait for TTS to finish before restarting recording
