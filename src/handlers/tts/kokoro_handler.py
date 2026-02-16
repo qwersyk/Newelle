@@ -1,6 +1,8 @@
 import os
 import re
 import urllib.request
+import subprocess
+from subprocess import Popen
 
 from .tts import TTSHandler
 from ...utility.pip import install_module, find_module
@@ -13,8 +15,20 @@ class KokoroTTSHandler(TTSHandler):
     MODEL_URL = "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/kokoro-v1.0.onnx"
     VOICES_URL = "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/voices-v1.0.bin"
 
+    LANG_MAP = {
+        "a": "en-us",
+        "b": "en-gb",
+        "e": "es",
+        "f": "fr-fr",
+        "h": "hi",
+        "i": "it",
+        "p": "pt-br",
+        "j": "ja",
+        "z": "cmn",
+    }
+
     def install(self):
-        cache_dir = os.path.join(self.path, "kokoro_cache")
+        cache_dir = self._get_cache_dir()
         os.makedirs(cache_dir, exist_ok=True)
         extra_deps = "fugashi jaconv mecab-python3 unidic-lite"
         install_module(
@@ -53,15 +67,10 @@ class KokoroTTSHandler(TTSHandler):
             v += ((flags.get(nationality, "") + genders.get(gender, "") + " " + name.capitalize(), voice),)
         return v
 
-    def save_audio(self, message, file):
-        import numpy as np
-        import soundfile as sf
-        from kokoro_onnx import Kokoro
+    def _get_cache_dir(self):
+        return os.path.join(self.path, "kokoro_cache")
 
-        cache_dir = os.path.join(self.path, "kokoro_cache")
-        os.makedirs(cache_dir, exist_ok=True)
-        self._ensure_model_files(cache_dir)
-
+    def _get_voice_and_lang(self):
         voice_setting = self.get_current_voice()
         if isinstance(voice_setting, (tuple, list)):
             voice_id = voice_setting[1] if len(voice_setting) > 1 else voice_setting[0]
@@ -71,22 +80,28 @@ class KokoroTTSHandler(TTSHandler):
         if not isinstance(voice_id, str) or not voice_id or "_" not in voice_id:
             voice_id = "af_sarah"
 
-        lang_map = {
-            "a": "en-us",
-            "b": "en-gb",
-            "e": "es",
-            "f": "fr-fr",
-            "h": "hi",
-            "i": "it",
-            "p": "pt-br",
-            "j": "ja",
-            "z": "cmn",
-        }
-        lang_code = lang_map.get(voice_id[0], "en-us")
+        lang_code = self.LANG_MAP.get(voice_id[0], "en-us")
+        return voice_id, lang_code
 
-        kokoro = Kokoro(self._model_path, self._voices_path)
+    def _get_kokoro(self):
+        from kokoro_onnx import Kokoro
 
-        parts = [p.strip() for p in re.split(r"\n+", message or "") if p.strip()]
+        cache_dir = self._get_cache_dir()
+        os.makedirs(cache_dir, exist_ok=True)
+        self._ensure_model_files(cache_dir)
+        return Kokoro(self._model_path, self._voices_path)
+
+    def _split_text(self, message):
+        return [p.strip() for p in re.split(r"\n+", message or "") if p.strip()]
+
+    def save_audio(self, message, file):
+        import numpy as np
+        import soundfile as sf
+
+        kokoro = self._get_kokoro()
+        voice_id, lang_code = self._get_voice_and_lang()
+        parts = self._split_text(message)
+
         if not parts:
             self.throw("No text to synthesize", ErrorSeverity.WARNING)
             return
@@ -97,9 +112,7 @@ class KokoroTTSHandler(TTSHandler):
             try:
                 samples, sr = kokoro.create(part, voice=voice_id, speed=1.0, lang=lang_code)
             except Exception:
-                voice_id = "af_sarah"
-                lang_code = "en-us"
-                samples, sr = kokoro.create(part, voice=voice_id, speed=1.0, lang=lang_code)
+                samples, sr = kokoro.create(part, voice="af_sarah", speed=1.0, lang="en-us")
             if sample_rate is None:
                 sample_rate = sr
             chunks.append(samples)
@@ -132,3 +145,93 @@ class KokoroTTSHandler(TTSHandler):
             except Exception:
                 pass
             self.throw(f"Failed to download Kokoro asset: {e}", ErrorSeverity.ERROR)
+
+    def streaming_enabled(self) -> bool:
+        return True
+
+    def play_audio_stream(self, message):
+        import numpy as np
+        import asyncio
+        import threading
+
+        kokoro = self._get_kokoro()
+        voice_id, lang_code = self._get_voice_and_lang()
+        parts = self._split_text(message)
+
+        if not parts:
+            return
+
+        self.stop()
+        self._play_lock.acquire()
+        self.on_start()
+
+        ffmpeg_process = None
+        ffplay_process = None
+        stop_streaming = threading.Event()
+
+        def monitor_ffplay():
+            if ffplay_process:
+                ffplay_process.wait()
+                if not stop_streaming.is_set():
+                    stop_streaming.set()
+
+        try:
+            ffmpeg_process = Popen(
+                ["ffmpeg", "-f", "s16le", "-ar", "24000", "-ac", "1", "-i", "-", "-f", "wav", "-"],
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.DEVNULL
+            )
+
+            ffplay_process = Popen(
+                ["ffplay", "-nodisp", "-autoexit", "-hide_banner", "-i", "pipe:0"],
+                stdin=ffmpeg_process.stdout,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL
+            )
+
+            self.play_process = ffplay_process
+
+            threading.Thread(target=monitor_ffplay, daemon=True).start()
+
+            if ffmpeg_process.stdout:
+                ffmpeg_process.stdout.close()
+
+            async def stream_audio():
+                for part in parts:
+                    if stop_streaming.is_set():
+                        break
+                    stream = kokoro.create_stream(part, voice=voice_id, speed=1.0, lang=lang_code)
+                    async for samples, _ in stream:
+                        if stop_streaming.is_set():
+                            break
+                        if ffmpeg_process and ffmpeg_process.stdin:
+                            try:
+                                audio_int16 = (samples * 32767).astype(np.int16)
+                                ffmpeg_process.stdin.write(audio_int16.tobytes())
+                            except BrokenPipeError:
+                                break
+
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            loop.run_until_complete(stream_audio())
+            loop.close()
+
+            if ffmpeg_process.stdin:
+                try:
+                    ffmpeg_process.stdin.close()
+                except Exception:
+                    pass
+
+        except Exception as e:
+            print("Error playing streaming audio: " + str(e))
+        finally:
+            stop_streaming.set()
+            if ffmpeg_process:
+                ffmpeg_process.terminate()
+                ffmpeg_process.wait()
+            if ffplay_process:
+                ffplay_process.wait()
+                ffplay_process.terminate()
+            self.on_stop()
+            self._play_lock.release()
