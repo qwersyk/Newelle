@@ -589,9 +589,14 @@ class ChatTab(Gtk.Box):
             message = remove_markdown(message)
             message = remove_emoji(message)
             if message.strip() and not message.isspace():
-                tts_thread = threading.Thread(
-                    target=self.tts.play_audio, args=(message,)
-                )
+                if self.tts.streaming_enabled():
+                    tts_thread = threading.Thread(
+                        target=self.tts.play_audio_stream, args=(message,)
+                    )
+                else:
+                    tts_thread = threading.Thread(
+                        target=self.tts.play_audio, args=(message,)
+                    )
                 tts_thread.start()
         
         # Wait for TTS to finish before restarting recording
@@ -787,6 +792,7 @@ class ChatTab(Gtk.Box):
             )
             if name:
                 name = name.strip().strip('"').strip("'")
+                name = remove_markdown(name)
                 if self._chat_id < len(self.controller.chats):
                     self.controller.chats[self._chat_id]["name"] = name
                     self.save_chat()
