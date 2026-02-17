@@ -145,8 +145,9 @@ class Settings(Adw.PreferencesWindow):
         group = Gtk.CheckButton()
         selected = self.settings.get_string("stt-engine")
         for stt_key in AVAILABLE_STT:
-            row = self.build_row(AVAILABLE_STT, stt_key, selected, group)
-            stt_engine.add_row(row)
+            if AVAILABLE_STT[stt_key].get("primary", True):
+                row = self.build_row(AVAILABLE_STT, stt_key, selected, group)
+                stt_engine.add_row(row)
 
         # Secondary STT for wakeword detection
         secondary_stt_enabled = Gtk.Switch(valign=Gtk.Align.CENTER)

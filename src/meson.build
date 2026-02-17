@@ -141,6 +141,7 @@ stt_sources = [
   'handlers/stt/whispercpp_handler.py',
   'handlers/stt/custom_handler.py',
   'handlers/stt/vosk_handler.py',
+  'handlers/stt/openwakeword_handler.py',
 ]
 
 embedding_sources = [  

@@ -1,7 +1,7 @@
 from copy import deepcopy
 from .handlers.llm import ClaudeHandler, DeepseekHandler, GroqHandler, OllamaHandler, OpenAIHandler, CustomLLMHandler, GeminiHandler, MistralHandler, OpenRouterHandler, NewelleAPIHandler, G4FHandler, LlamaCPPHandler
 from .handlers.tts import ElevenLabs, gTTSHandler, EspeakHandler, CustomTTSHandler, KokoroTTSHandler, CustomOpenAITTSHandler, OpenAITTSHandler, GroqTTSHandler, EdgeTTSHandler
-from .handlers.stt import GroqSRHandler, OpenAISRHandler, SphinxHandler, GoogleSRHandler, WhisperCPPHandler, WitAIHandler, VoskHandler, CustomSRHandler
+from .handlers.stt import GroqSRHandler, OpenAISRHandler, SphinxHandler, GoogleSRHandler, WhisperCPPHandler, WitAIHandler, VoskHandler, CustomSRHandler, OpenWakeWordHandler
 from .handlers.embeddings import WordLlamaHandler, OpenAIEmbeddingHandler, GeminiEmbeddingHanlder, OllamaEmbeddingHandler, Model2VecHandler, LlamaCPPEmbeddingHandler
 from .handlers.memory import MemoripyHandler, UserSummaryHandler, SummaryMemoripyHanlder, LlamaIndexMemoryHandler, AgenticMemoryHandler
 from .handlers.rag import LlamaIndexHanlder
@@ -108,6 +108,14 @@ AVAILABLE_STT = {
         "website": "https://github.com/ggerganov/whisper.cpp",
         "class": WhisperCPPHandler,
         "secondary": True,
+    },
+    "openwakeword": {
+        "key": "openwakeword",
+        "title": _("OpenWakeWord"),
+        "description": _("Works offline. Model optimized for wakeword detection. Will output any wakeword listed if detected by the model"),
+        "class": OpenWakeWordHandler,
+        "secondary": True,
+        "primary": False,
     },
     "sphinx": {
         "key": "sphinx",
