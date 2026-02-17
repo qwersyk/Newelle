@@ -1,7 +1,7 @@
 import re
 from unittest import result
 from ..extensions import NewelleExtension
-from ..tools import Tool, ToolResult 
+from ..tools import Tool, ToolResult, create_io_tool 
 import threading 
 import json 
 from ..ui.widgets import CopyBox
@@ -90,7 +90,29 @@ class DefaultToolsIntegration(NewelleExtension):
             result.set_widget(video)
             result.set_output(None)
             return result
-    
+
+    def speech_to_text(self, file_path: str):
+        return self.stt.recognize_file(file_path)
+
+    def text_to_speech(self, text: str, file_path: str = None, speak: bool = True):
+        if self.tts is None:
+            return "TTS is not enabled. Please enable TTS in settings."
+        
+        result_messages = []
+        
+        if file_path:
+            self.tts.save_audio(text, file_path)
+            result_messages.append(f"Audio saved to: {file_path}")
+        
+        if speak:
+            self.tts.play(text)
+            result_messages.append("Audio played.")
+        
+        if not result_messages:
+            return "No action taken. Provide a file_path to save or set speak=True."
+        
+        return "\n".join(result_messages)
+
     def get_tools(self) -> list:
         return [
             Tool(
@@ -122,4 +144,6 @@ class DefaultToolsIntegration(NewelleExtension):
                 tools_group=_("Media Display")
 
             ),
+            create_io_tool("speech_to_text","Recognize audio files and return their text.",  self.speech_to_text, default_on=False, tools_group=_("Audio")),
+            create_io_tool("text_to_speech", "Convert text to speech. Can save to a file and/or speak aloud.", self.text_to_speech, default_on=False, tools_group=_("Audio")),
         ]
