@@ -15,6 +15,7 @@ class CustomOpenAITTSHandler(TTSHandler):
         install_module("openai",self.pip_path)
         if not self.is_installed():
             self.throw("OpenAI installation failed", ErrorSeverity.ERROR)
+        self._is_installed_cache = None
 
     def get_extra_settings(self) -> list:
         return [

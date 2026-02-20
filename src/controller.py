@@ -1478,8 +1478,9 @@ class HandlersManager:
         Returns:
             The created handler           
         """
-        if (key, self.convert_constants(constants), secondary) in self.handlers:
-            return self.handlers[(key, self.convert_constants(constants), secondary)]
+        cache_key = (key, self.convert_constants(constants), secondary)
+        if cache_key in self.handlers:
+            return self.handlers[cache_key]
         if constants == AVAILABLE_LLMS:
             model = constants[key]["class"](self.settings, self.directory)
             model.set_secondary_settings(secondary)
@@ -1502,6 +1503,7 @@ class HandlersManager:
                 raise Exception("Extension not found")
         else:
             raise Exception("Unknown constants")
+        self.handlers[cache_key] = model
         return model
 
     def get_constants_from_object(self, handler: Handler) -> dict[str, Any]:

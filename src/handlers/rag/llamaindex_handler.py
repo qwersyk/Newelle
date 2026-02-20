@@ -105,6 +105,7 @@ class LlamaIndexHanlder(RAGHandler):
        if not find_module("llama_index") and not find_module("faiss"): 
            dependencies = "tiktoken faiss-cpu llama-index-core llama-index-readers-file llama-index-vector-stores-faiss llama-index-retrievers-bm25"
            install_module(dependencies, self.pip_path)
+       self._is_installed_cache = None
 
     def is_installed(self) -> bool:
         return find_module("llama_index") is not None and find_module("tiktoken") is not None and find_module("faiss") is not None and find_module("llama_index.vector_stores") is not None and find_module("llama_index.retrievers.bm25") is not None

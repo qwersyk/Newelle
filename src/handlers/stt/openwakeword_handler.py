@@ -37,6 +37,7 @@ class OpenWakeWordHandler(STTHandler):
             self.throw("OpenWakeWord installation failed", ErrorSeverity.ERROR)
         from openwakeword import utils
         utils.download_models()
+        self._is_installed_cache = None
 
     def is_installed(self) -> bool:
         return find_module("openwakeword") is not None

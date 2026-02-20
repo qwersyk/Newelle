@@ -60,6 +60,7 @@ class Handler():
         self.path = path
         self.pip_path = os.path.join(os.path.abspath(os.path.join(self.path, os.pardir)), "pip")
         self.error_func = None
+        self._is_installed_cache = None
 
     def set_error_func(self, func):
         """Set the error function for the handler. The function must take the error message and ErrorSeverity as arguments"""
@@ -146,12 +147,21 @@ class Handler():
         pip_path = os.path.join(os.path.abspath(os.path.join(self.path, os.pardir)), "pip")
         for module in self.get_extra_requirements():
             install_module(module, pip_path)
+        self._is_installed_cache = None
+
+    def on_installed(self):
+        """Hook called after installation. Override to invalidate custom caches."""
+        pass
 
     def is_installed(self) -> bool:
         """Return if the handler is installed"""
+        if self._is_installed_cache is not None:
+            return self._is_installed_cache
         for module in self.get_extra_requirements():
             if find_module(module) is None:
+                self._is_installed_cache = False
                 return False
+        self._is_installed_cache = True
         return True
 
     def get_setting(self, key: str, search_default = True, return_value = None) -> Any:

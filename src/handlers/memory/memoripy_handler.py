@@ -25,6 +25,7 @@ class MemoripyHandler(MemoryHandler):
     def install(self):
         pip_path = os.path.join(os.path.abspath(os.path.join(self.path, os.pardir)), "pip")
         install_module("git+https://github.com/FrancescoCaracciolo/Memoripy.git", pip_path)
+        self._is_installed_cache = None
 
     def get_extra_settings(self) -> list:
         return [

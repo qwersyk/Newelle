@@ -40,6 +40,7 @@ class KokoroTTSHandler(TTSHandler):
         self._ensure_model_files(cache_dir)
         if not self.is_installed():
             self.throw("Kokoro installation failed", ErrorSeverity.ERROR)
+        self._is_installed_cache = None
 
     def is_installed(self) -> bool:
         return find_module("kokoro_onnx") is not None and find_module("soundfile") is not None

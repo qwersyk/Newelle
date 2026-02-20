@@ -195,6 +195,7 @@ class WhisperCPPHandler(STTHandler):
         exec_path = os.path.join(path, "whisper.cpp/build/bin/whisper-cli")
         if not os.path.exists(exec_path):
             self.throw("Error installing Whisper: " + out.decode("utf-8"), ErrorSeverity.ERROR)
+        self._is_installed_cache = None
 
     def _start_process(self):
         """Start the persistent whisper-server process with model loaded"""

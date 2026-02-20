@@ -61,7 +61,7 @@ class AgenticMemoryHandler(MemoryHandler):
 
     def install(self):
         # No special dependencies needed - RAG handler manages its own dependencies
-        pass
+        self._is_installed_cache = None
 
 
     def get_extra_settings(self) -> list:

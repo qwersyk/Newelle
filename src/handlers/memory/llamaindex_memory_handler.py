@@ -39,6 +39,7 @@ class LlamaIndexMemoryHandler(MemoryHandler):
        if not self.is_installed(): 
            dependencies = "tiktoken faiss-cpu llama-index-core llama-index-readers-file llama-index-vector-stores-faiss"
            install_module(dependencies, self.pip_path)
+       self._is_installed_cache = None
 
     def get_extra_settings(self) -> list:
         return [
