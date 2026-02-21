@@ -13,8 +13,6 @@ import json
 from gi.repository import Gtk, Adw, GLib, Gdk
 import requests
 
-_ = gettext.gettext
-
 WHISPER_MODELS = [
     {"model_name": "tiny", "display_name": "Tiny", "size": "75 MiB", "size_bytes": 78643200},
     {"model_name": "tiny.en", "display_name": "Tiny (English)", "size": "75 MiB", "size_bytes": 78643200},
@@ -73,7 +71,6 @@ class WhisperCPPHandler(STTHandler):
                 "website": "https://github.com/openai/whisper/blob/main/model-card.md#model-details",
             },
             ExtraSettings.EntrySetting("language", _("Language"), _("Language of the recognition. For example en, it..."), "auto"),
-            ExtraSettings.NestedSetting("model_library", _("Model Library"), _("Manage Whisper models"), self.get_model_library()),
             ExtraSettings.NestedSetting("advanced_settings", _("Advanced Settings"), _("More advanced settings"), [
                 ExtraSettings.ScaleSetting("temperature", _("Temperature"), _("Temperature to use"), 0.0, 0.0, 1.0, 2),
                 ExtraSettings.MultilineEntrySetting("prompt", _("Prompt for the recognition"), _("Prompt to use for the recognition"), "")
