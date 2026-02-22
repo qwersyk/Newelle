@@ -14,7 +14,7 @@ lxml_html_clean
 pylatexenc
 matplotlib
 markdownify
-pysiler-vad
+pysilero-vad
 # If you are packaging the application, you can ignore these requirements
 # (better if you install them)
 model2vec
@@ -26,7 +26,7 @@ llama-index-retrievers-bm25
 docx2txt
 speechrecognition
 gtts
-
+openwakeword
 # list of non-python requirements
 # - git
 # - vte4
