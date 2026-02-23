@@ -307,7 +307,7 @@ class WakewordDetector:
 
             # Wakeword handler workflow: use specialized wakeword detection model
             if self.wakeword_handler is not None:
-                print(f"WakewordDetector: Checking with wakeword handler")
+                print("WakewordDetector: Checking with wakeword handler")
                 wakeword_result = self._transcribe_audio_wakeword(temp_file_path)
                 
                 # Check if wakeword was detected by the specialized model
@@ -317,7 +317,7 @@ class WakewordDetector:
                     result_lower = wakeword_result.lower()
                     # The wakeword handler returns the detected wakewords
                     # Check if any of our configured wakewords match
-                    for wakeword in self.wakewords:
+                    for wakeword in self.wakewords + self.wakeword_handler.get_setting("wakeword").split(","):
                         if wakeword in result_lower:
                             wakeword_detected = True
                             matched_wakeword = wakeword

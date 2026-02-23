@@ -33,7 +33,7 @@ class OpenWakeWordHandler(STTHandler):
             models += ((name, value),)
         if os.path.exists(self.wakewords_dir):
             for f in os.listdir(self.wakewords_dir):
-                if f.endswith('.tflite'):
+                if f.endswith('.onnx'):
                     name = os.path.splitext(f)[0]
                     models += ((f"{name}", os.path.join(self.wakewords_dir, f)),)
         if up:
@@ -45,12 +45,14 @@ class OpenWakeWordHandler(STTHandler):
             ExtraSettings.ComboSetting(
                 "wakeword_model",
                 _("Wakeword Model"),
-                _("Select a pre-trained or custom wakeword model"),
+                _("Select a pre-trained or custom wakeword model. Wakewords must be in onnx format."),
                 self.get_wakeword_models(),
                 "hey_jarvis",
                 folder=self.wakewords_dir,
-                refresh=lambda x: self.get_wakeword_models(True)
+                refresh=lambda x: self.get_wakeword_models(True), update_settings=True
             ),
+            ExtraSettings.EntrySetting("wakeword", "Wakeword", "Wakewords to remove from the transcription, comma separated", "hey jarvis, jarvis"),
+            ExtraSettings.ScaleSetting("sensitivity", _("Sensitivity"), _("Minimum score for detection. You can see the score given to recorded audio in the console when launching Newelle"), 0.5, 0.0, 1.0, 2),
         ]
      
     def install(self):
@@ -67,7 +69,7 @@ class OpenWakeWordHandler(STTHandler):
     def _get_model_path(self, model_name: str) -> str:
         import openwakeword
         if model_name in self.PRETRAINED_MODELS:
-            pretrained_paths = openwakeword.get_pretrained_model_paths("tflite")
+            pretrained_paths = openwakeword.get_pretrained_model_paths()
             for path in pretrained_paths:
                 if model_name in path:
                     return path
@@ -112,12 +114,18 @@ class OpenWakeWordHandler(STTHandler):
             model = self._get_model()
             audio_data, rate = self._read_audio_file(path)
             
-            predictions = model.predict(audio_data)
+            predictions_list = model.predict_clip(audio_data, padding=1)
+            
+            max_scores = {}
+            for frame_preds in predictions_list:
+                for word, score in frame_preds.items():
+                    if word not in max_scores or score > max_scores[word]:
+                        max_scores[word] = score
             
             detected_words = []
-            for word, score in predictions.items():
+            for word, score in max_scores.items():
                 print(word, score)
-                if score > 0.5:
+                if score > self.get_setting("sensitivity"):
                     detected_words.append(word)
  
             if detected_words:
@@ -126,4 +134,18 @@ class OpenWakeWordHandler(STTHandler):
             return ""
         except Exception as e:
             print(f"OpenWakeWord error: {e}")
-            return "" 
+            return ""
+
+
+    def set_setting(self, key: str, value):
+        super().set_setting(key, value)
+        if key == "wakeword_model":
+            self.model = None
+            if not value.endswith(".onnx"):
+                wakeword_txt = value.split("_")
+            else:
+                wakeword_txt = value.split(".onnx")[0].split("/")[-1].split("_") 
+            self.set_setting("wakeword", ", ".join(wakeword_txt))
+
+    def get_wakewords(self):
+        return self.get_setting("wakeword")
