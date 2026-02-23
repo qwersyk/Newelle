@@ -1190,6 +1190,9 @@ class NewelleSettings:
         if self.stt_engine != new_settings.stt_engine:
             reloads.append(ReloadType.STT)
 
+        if self.automatic_stt != new_settings.automatic_stt:
+            reloads.append(ReloadType.WAKEWORD)
+
         if self.embedding_model != new_settings.embedding_model or self.embedding_settings != new_settings.embedding_settings:
             reloads.append(ReloadType.EMBEDDINGS)
 

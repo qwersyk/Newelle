@@ -131,12 +131,14 @@ AVAILABLE_STT = {
         "title": _("Google Speech Recognition"),
         "description": _("Google Speech Recognition online"),
         "class": GoogleSRHandler,
+        "secondary": True,
     },
     "groq_sr": {
         "key": "groq_sr",
         "title": _("Groq Speech Recognition"),
-        "description": _("Google Speech Recognition online"),
+        "description": _("Speech regnition on Groq"),
         "class": GroqSRHandler,
+        "secondary": True,
     },
     "witai": {
         "key": "witai",
@@ -144,6 +146,7 @@ AVAILABLE_STT = {
         "description": _("wit.ai speech recognition free API (language chosen on the website)"),
         "website": "https://wit.ai",
         "class": WitAIHandler,
+        "secondary": True,
     },
     "vosk": {
         "key": "vosk",
@@ -159,6 +162,7 @@ AVAILABLE_STT = {
         "description": _("Uses OpenAI Whisper API"),
         "website": "https://platform.openai.com/docs/guides/speech-to-text",
         "class": OpenAISRHandler,
+        "secondary": True,
     },
    "custom_command": {
         "key": "custom_command",
