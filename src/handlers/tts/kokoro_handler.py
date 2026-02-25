@@ -1,8 +1,6 @@
 import os
 import re
 import urllib.request
-import subprocess
-from subprocess import Popen
 
 from .tts import TTSHandler
 from ...utility.pip import install_module, find_module
@@ -150,89 +148,43 @@ class KokoroTTSHandler(TTSHandler):
     def streaming_enabled(self) -> bool:
         return True
 
-    def play_audio_stream(self, message):
+    def get_stream_format_args(self) -> list:
+        return ["-f", "s16le", "-ar", "24000", "-ac", "1"]
+
+    def get_audio_stream(self, message):
         import numpy as np
         import asyncio
-        import threading
+        import queue as _queue
 
         kokoro = self._get_kokoro()
         voice_id, lang_code = self._get_voice_and_lang()
         parts = self._split_text(message)
 
-        if not parts:
-            return
+        q = _queue.Queue()
 
-        self.stop()
-        self._play_lock.acquire()
-        self.on_start()
+        async def _produce():
+            for part in parts:
+                stream = kokoro.create_stream(part, voice=voice_id, speed=1.0, lang=lang_code)
+                async for samples, _ in stream:
+                    audio_int16 = (samples * 32767).astype(np.int16)
+                    q.put(audio_int16.tobytes())
 
-        ffmpeg_process = None
-        ffplay_process = None
-        stop_streaming = threading.Event()
-
-        def monitor_ffplay():
-            if ffplay_process:
-                ffplay_process.wait()
-                if not stop_streaming.is_set():
-                    stop_streaming.set()
-
-        try:
-            ffmpeg_process = Popen(
-                ["ffmpeg", "-f", "s16le", "-ar", "24000", "-ac", "1", "-i", "-", "-f", "wav", "-"],
-                stdin=subprocess.PIPE,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.DEVNULL
-            )
-
-            ffplay_process = Popen(
-                ["ffplay", "-nodisp", "-autoexit", "-hide_banner", "-i", "pipe:0"],
-                stdin=ffmpeg_process.stdout,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL
-            )
-
-            self.play_process = ffplay_process
-
-            threading.Thread(target=monitor_ffplay, daemon=True).start()
-
-            if ffmpeg_process.stdout:
-                ffmpeg_process.stdout.close()
-
-            async def stream_audio():
-                for part in parts:
-                    if stop_streaming.is_set():
-                        break
-                    stream = kokoro.create_stream(part, voice=voice_id, speed=1.0, lang=lang_code)
-                    async for samples, _ in stream:
-                        if stop_streaming.is_set():
-                            break
-                        if ffmpeg_process and ffmpeg_process.stdin:
-                            try:
-                                audio_int16 = (samples * 32767).astype(np.int16)
-                                ffmpeg_process.stdin.write(audio_int16.tobytes())
-                            except BrokenPipeError:
-                                break
-
+        def _run():
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
-            loop.run_until_complete(stream_audio())
-            loop.close()
+            try:
+                loop.run_until_complete(_produce())
+            except Exception as e:
+                print(f"Kokoro get_audio_stream error: {e}")
+            finally:
+                loop.close()
+                q.put(None)  # Always signal completion, even on error
 
-            if ffmpeg_process.stdin:
-                try:
-                    ffmpeg_process.stdin.close()
-                except Exception:
-                    pass
+        import threading as _threading
+        _threading.Thread(target=_run, daemon=True).start()
 
-        except Exception as e:
-            print("Error playing streaming audio: " + str(e))
-        finally:
-            stop_streaming.set()
-            if ffmpeg_process:
-                ffmpeg_process.terminate()
-                ffmpeg_process.wait()
-            if ffplay_process:
-                ffplay_process.wait()
-                ffplay_process.terminate()
-            self.on_stop()
-            self._play_lock.release()
+        while True:
+            chunk = q.get()
+            if chunk is None:
+                break
+            yield chunk

@@ -1,8 +1,5 @@
 import threading
 import asyncio
-import io
-import subprocess
-from subprocess import Popen
 from pydub import AudioSegment
 
 from .tts import TTSHandler
@@ -79,45 +76,16 @@ class EdgeTTSHandler(TTSHandler):
     def streaming_enabled(self) -> bool:
         return True
 
-    def play_audio_stream(self, message):
+    def get_stream_format_args(self) -> list:
+        return ["-f", "mp3"]
+
+    def get_audio_stream(self, message):
         import edge_tts
-        import os
-
-        self.stop()
-        self._play_lock.acquire()
-        self.on_start()
-
-        try:
-            ffplay_process = None
-            try:
-                ffplay_process = Popen(
-                    ["ffplay", "-nodisp", "-autoexit", "-hide_banner", "-f", "mp3", "-i", "-"],
-                    stdin=subprocess.PIPE,
-                    stdout=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL
-                )
-                self.play_process = ffplay_process
-                communicate = edge_tts.Communicate(
-                    message,
-                    self.get_setting("voice"),
-                    pitch="+{}Hz".format(round(self.get_setting("pitch")))
-                )
-
-                for chunk in communicate.stream_sync():
-                    if chunk["type"] == "audio" and ffplay_process.stdin:
-                        ffplay_process.stdin.write(chunk["data"])
-
-                if ffplay_process.stdin:
-                    ffplay_process.stdin.close()
-
-            finally:
-                if ffplay_process is not None:
-                    ffplay_process.wait()
-                    ffplay_process.terminate()
-
-        except Exception as e:
-            print("Error playing streaming audio: " + str(e))
-            pass
-
-        self.on_stop()
-        self._play_lock.release()
+        communicate = edge_tts.Communicate(
+            message,
+            self.get_setting("voice"),
+            pitch="+{}Hz".format(round(self.get_setting("pitch")))
+        )
+        for chunk in communicate.stream_sync():
+            if chunk["type"] == "audio":
+                yield chunk["data"]
