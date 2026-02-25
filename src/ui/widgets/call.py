@@ -148,6 +148,70 @@ CALL_CSS = """
     background: linear-gradient(135deg, #7688eb 0%, #865cb3 100%);
     box-shadow: 0 6px 25px rgba(102, 126, 234, 0.5);
 }
+
+.call-history-panel {
+    background: rgba(0, 0, 0, 0.85);
+    border-radius: 16px;
+    margin: 16px;
+    padding: 16px;
+    min-width: 300px;
+    max-width: 400px;
+}
+
+.call-history-scroll {
+    background: transparent;
+}
+
+.call-history-box {
+    spacing: 12px;
+}
+
+.call-message-user {
+    background: rgba(0, 217, 255, 0.2);
+    border-radius: 12px;
+    padding: 10px 14px;
+    margin: 4px 0;
+    border-left: 3px solid #00d9ff;
+}
+
+.call-message-assistant {
+    background: rgba(102, 126, 234, 0.2);
+    border-radius: 12px;
+    padding: 10px 14px;
+    margin: 4px 0;
+    border-left: 3px solid #667eea;
+}
+
+.call-message-label {
+    color: rgba(255, 255, 255, 0.95);
+    font-size: 14px;
+    line-height: 1.4;
+    wrap: true;
+}
+
+.call-message-sender {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.call-button-history {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 50%;
+    min-width: 56px;
+    min-height: 56px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.call-button-history:hover {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+.call-button-history-active {
+    background: rgba(102, 126, 234, 0.4);
+    border: 1px solid rgba(102, 126, 234, 0.6);
+}
 """
 
 
@@ -176,6 +240,10 @@ class CallPanel(Gtk.Box):
         self.current_transcript = ""
         self.assistant_speaking = False
         self.user_speaking = False
+        self.history_visible = False
+
+        # Get username
+        self.username = self.controller.newelle_settings.username
         
         # Audio settings
         self.sample_rate = 16000
@@ -195,6 +263,9 @@ class CallPanel(Gtk.Box):
         self.recording_thread = None
         self.timer_thread = None
         self.processing_thread = None
+
+        # Chat history storage
+        self.chat_history_messages = []
         
         # Waveform visualization
         self.wave_bars = []
@@ -220,7 +291,13 @@ class CallPanel(Gtk.Box):
     
     def _build_ui(self):
         """Build the call screen UI"""
-        # Main container with vertical centering
+        # Main overlay container
+        self.overlay = Gtk.Overlay(
+            hexpand=True,
+            vexpand=True
+        )
+
+        # Background container
         main_box = Gtk.Box(
             orientation=Gtk.Orientation.VERTICAL,
             halign=Gtk.Align.CENTER,
@@ -229,17 +306,17 @@ class CallPanel(Gtk.Box):
             hexpand=True,
             spacing=24
         )
-        
+
         # Top spacer
         main_box.append(Gtk.Box(vexpand=True))
-        
+
         # Avatar section
         avatar_container = Gtk.Box(
             orientation=Gtk.Orientation.VERTICAL,
             halign=Gtk.Align.CENTER,
             spacing=16
         )
-        
+
         # Avatar using Adw.Avatar wrapped in ring container
         self.avatar_ring = Gtk.Box(
             css_classes=["call-avatar-ring"],
@@ -247,7 +324,7 @@ class CallPanel(Gtk.Box):
             valign=Gtk.Align.CENTER
         )
         self.avatar_ring.set_size_request(128, 128)
-        
+
         if self.profile_picture and os.path.exists(self.profile_picture):
             try:
                 self.avatar = Adw.Avatar(
@@ -268,24 +345,24 @@ class CallPanel(Gtk.Box):
                 show_initials=True,
                 size=120
             )
-        
+
         self.avatar_ring.append(self.avatar)
         avatar_container.append(self.avatar_ring)
-        
+
         # Name label
         self.name_label = Gtk.Label(
             label=self.profile_name,
             css_classes=["call-name-label"]
         )
         avatar_container.append(self.name_label)
-        
+
         # Status label
         self.status_label = Gtk.Label(
             label=_("Ready to call"),
             css_classes=["call-status-label"]
         )
         avatar_container.append(self.status_label)
-        
+
         # Timer
         self.timer_label = Gtk.Label(
             label="00:00",
@@ -293,9 +370,9 @@ class CallPanel(Gtk.Box):
             visible=False
         )
         avatar_container.append(self.timer_label)
-        
+
         main_box.append(avatar_container)
-        
+
         # Waveform visualization
         self.waveform_box = Gtk.Box(
             orientation=Gtk.Orientation.HORIZONTAL,
@@ -310,7 +387,7 @@ class CallPanel(Gtk.Box):
             self.wave_bars.append(bar)
             self.waveform_box.append(bar)
         main_box.append(self.waveform_box)
-        
+
         # Listening/Speaking indicator
         self.activity_indicator = Gtk.Label(
             label="",
@@ -318,48 +395,77 @@ class CallPanel(Gtk.Box):
             visible=False
         )
         main_box.append(self.activity_indicator)
-        
-        # Transcript area
-        transcript_scroll = Gtk.ScrolledWindow(
-            hexpand=True,
-            vexpand=False,
-            min_content_height=100,
-            max_content_height=150,
-            margin_start=32,
-            margin_end=32,
-            visible=False
-        )
-        transcript_scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
-        
-        self.transcript_box = Gtk.Box(
-            orientation=Gtk.Orientation.VERTICAL,
-            css_classes=["call-transcript-box"],
-            spacing=8
-        )
-        
-        self.transcript_label = Gtk.Label(
-            label="",
-            css_classes=["call-transcript-label"],
-            wrap=True,
-            xalign=0,
-            selectable=True
-        )
-        self.transcript_box.append(self.transcript_label)
-        transcript_scroll.set_child(self.transcript_box)
-        self.transcript_scroll = transcript_scroll
-        main_box.append(transcript_scroll)
-        
+
         # Bottom spacer
         main_box.append(Gtk.Box(vexpand=True))
-        
-        # Control buttons
+
+        self.overlay.set_child(main_box)
+
+        # Right side: Chat history panel (initially hidden)
+        self._build_history_panel()
+
+        # Bottom: Controls overlay
+        self._build_controls_overlay()
+
+        self.append(self.overlay)
+
+    def _build_history_panel(self):
+        """Build toggleable chat history panel"""
+        self.history_panel = Gtk.Box(
+            orientation=Gtk.Orientation.VERTICAL,
+            halign=Gtk.Align.END,
+            valign=Gtk.Align.FILL,
+            margin_end=16,
+            margin_top=80,
+            margin_bottom=200,
+            css_classes=["call-history-panel"],
+            visible=False,
+            width_request=320
+        )
+
+        # Header
+        history_header = Gtk.Label(
+            label=_("Chat History"),
+            css_classes=["call-status-label"],
+            margin_bottom=8
+        )
+        self.history_panel.append(history_header)
+
+        # Scrollable message list
+        scroll = Gtk.ScrolledWindow(
+            hscrollbar_policy=Gtk.PolicyType.NEVER,
+            vscrollbar_policy=Gtk.PolicyType.AUTOMATIC,
+            css_classes=["call-history-scroll"],
+            vexpand=True
+        )
+
+        self.history_box = Gtk.Box(
+            orientation=Gtk.Orientation.VERTICAL,
+            css_classes=["call-history-box"],
+            spacing=8
+        )
+        scroll.set_child(self.history_box)
+        self.history_panel.append(scroll)
+
+        self.overlay.add_overlay(self.history_panel)
+
+    def _build_controls_overlay(self):
+        """Build call controls overlay at bottom"""
+        controls_container = Gtk.Box(
+            orientation=Gtk.Orientation.VERTICAL,
+            halign=Gtk.Align.CENTER,
+            valign=Gtk.Align.END,
+            margin_bottom=32,
+            homogeneous=False
+        )
+
         controls_box = Gtk.Box(
             orientation=Gtk.Orientation.HORIZONTAL,
             halign=Gtk.Align.CENTER,
             spacing=32,
             margin_bottom=48
         )
-        
+
         # Mute button
         self.mute_button = Gtk.Button(
             css_classes=["call-button-mute"],
@@ -371,7 +477,7 @@ class CallPanel(Gtk.Box):
         self.mute_button.connect("clicked", self._on_mute_clicked)
         self.mute_button.set_sensitive(False)
         controls_box.append(self.mute_button)
-        
+
         # Start/End call button
         self.call_button = Gtk.Button(
             css_classes=["call-button-start"]
@@ -382,7 +488,7 @@ class CallPanel(Gtk.Box):
         self.call_button.set_child(call_icon)
         self.call_button.connect("clicked", self._on_call_button_clicked)
         controls_box.append(self.call_button)
-        
+
         # Speaker button (to mute TTS)
         self.speaker_button = Gtk.Button(
             css_classes=["call-button-mute"],
@@ -394,7 +500,20 @@ class CallPanel(Gtk.Box):
         self.speaker_button.connect("clicked", self._on_speaker_clicked)
         self.speaker_button.set_sensitive(False)
         controls_box.append(self.speaker_button)
-        
+
+        # History toggle button
+        self.history_button = Gtk.Button(
+            css_classes=["call-button-history"],
+            tooltip_text=_("Show/Hide chat history")
+        )
+        history_icon = Gtk.Image.new_from_icon_name("chat-bubbles-text-symbolic")
+        history_icon.set_pixel_size(24)
+        self.history_button.set_child(history_icon)
+        self.history_button.connect("clicked", self._on_history_clicked)
+        controls_box.append(self.history_button)
+
+        controls_container.append(controls_box)
+
         # Convert to chat button (shown after call ends)
         self.convert_button = Gtk.Button(
             css_classes=["call-button-convert"],
@@ -406,11 +525,10 @@ class CallPanel(Gtk.Box):
         convert_icon.set_pixel_size(20)
         self.convert_button.set_child(convert_icon)
         self.convert_button.connect("clicked", self._on_convert_to_chat_clicked)
-        self.convert_button.set_tooltip_text(_("Convert to chat")) 
-        main_box.append(controls_box)
-        main_box.append(self.convert_button)
-        
-        self.append(main_box)
+        self.convert_button.set_tooltip_text(_("Convert to chat"))
+        controls_container.append(self.convert_button)
+
+        self.overlay.add_overlay(controls_container)
     
     def set_tab(self, tab):
         """Set the tab reference"""
@@ -443,6 +561,16 @@ class CallPanel(Gtk.Box):
         # Stop TTS playback
         if hasattr(self.controller, 'handlers') and self.controller.handlers.tts:
             self.controller.handlers.tts.stop()
+
+    def _on_history_clicked(self, button):
+        """Handle history toggle button click"""
+        self.history_visible = not self.history_visible
+        self.history_panel.set_visible(self.history_visible)
+
+        if self.history_visible:
+            button.add_css_class("call-button-history-active")
+        else:
+            button.remove_css_class("call-button-history-active")
     
     def _on_convert_to_chat_clicked(self, button):
         """Handle convert to chat button click"""
@@ -455,8 +583,13 @@ class CallPanel(Gtk.Box):
         self.call_start_time = time.time()
         self.current_transcript = ""
         self.speech_buffer = []
+        self.chat_history_messages = []
         self.vad.reset()
-        
+
+        # Clear history box
+        while self.history_box.get_first_child():
+            self.history_box.remove(self.history_box.get_first_child())
+
         # Update UI
         self.call_button_icon.set_from_icon_name("call-stop-symbolic")
         self.call_button.remove_css_class("call-button-start")
@@ -469,14 +602,15 @@ class CallPanel(Gtk.Box):
         self.activity_indicator.set_label(_("Listening..."))
         self.mute_button.set_sensitive(True)
         self.speaker_button.set_sensitive(True)
-        
+        self.convert_button.set_visible(False)
+
         if self.tab:
             self.tab.set_title(_("Call - Active"))
-        
+
         # Start threads
         self.recording_thread = threading.Thread(target=self._recording_loop, daemon=True)
         self.recording_thread.start()
-        
+
         self.timer_thread = threading.Thread(target=self._timer_loop, daemon=True)
         self.timer_thread.start()
     
@@ -554,39 +688,69 @@ class CallPanel(Gtk.Box):
                 input=True,
                 frames_per_buffer=self.chunk_size
             )
-            
+
+            consecutive_errors = 0
+            max_consecutive_errors = 10
+
             while self.call_active:
                 if self.is_muted:
                     time.sleep(0.03)
+                    consecutive_errors = 0
                     continue
-                
+
                 try:
                     audio_data = self.audio_stream.read(self.chunk_size, exception_on_overflow=False)
-                except Exception:
+                    consecutive_errors = 0  # Reset error counter on successful read
+                except OSError as e:
+                    consecutive_errors += 1
+                    print(f"Audio stream error ({consecutive_errors}/{max_consecutive_errors}): {e}")
+
+                    if consecutive_errors >= max_consecutive_errors:
+                        print("Too many consecutive audio errors, stopping call")
+                        GLib.idle_add(self.end_call)
+                        break
+
+                    # Try to recover by continuing
+                    time.sleep(0.1)
                     continue
-                
+                except Exception as e:
+                    print(f"Unexpected audio error: {e}")
+                    time.sleep(0.1)
+                    continue
+
                 # Update waveform visualization
                 self._update_waveform(audio_data)
-                
+
                 # Process VAD
                 is_speech, speech_started, speech_ended = self.vad.process_chunk(audio_data)
-                
+
                 if speech_started:
                     GLib.idle_add(self._on_speech_started)
-                
+
                 if is_speech or self.vad.is_speaking:
                     self.speech_buffer.append(audio_data)
-                
+
                 if speech_ended:
                     GLib.idle_add(self._on_speech_ended)
                     # Process the speech buffer
                     if len(self.speech_buffer) > 0:
                         self._process_speech()
                     self.speech_buffer = []
-        
+
         except Exception as e:
-            print(f"Recording error: {e}")
+            import traceback
+            print(f"Recording loop error: {e}")
+            print(traceback.format_exc())
             GLib.idle_add(self.end_call)
+        finally:
+            # Ensure stream is closed
+            if self.audio_stream:
+                try:
+                    self.audio_stream.stop_stream()
+                    self.audio_stream.close()
+                except Exception:
+                    pass
+                self.audio_stream = None
     
     def _update_waveform(self, audio_data):
         """Update waveform visualization"""
@@ -650,7 +814,7 @@ class CallPanel(Gtk.Box):
             self.activity_indicator.remove_css_class("call-speaking-indicator")
             self.activity_indicator.add_css_class("call-listening-indicator")
         elif self.assistant_speaking:
-            self.activity_indicator.set_label(_("Assistant speaking..."))
+            self.activity_indicator.set_label(self.profile_name + _(" speaking..."))
             self.activity_indicator.remove_css_class("call-listening-indicator")
             self.activity_indicator.add_css_class("call-speaking-indicator")
         elif self.user_speaking:
@@ -694,25 +858,34 @@ class CallPanel(Gtk.Box):
             stt = self.controller.handlers.stt
             if not stt or not stt.is_installed():
                 GLib.idle_add(
-                    self._show_transcript,
+                    self._add_message_to_history,
+                    "System",
                     _("Speech recognition not available"),
                     True
                 )
                 return
-            
+
             # Recognize
             text = stt.recognize_file(audio_path)
             if not text or text.strip() == "":
                 return
-            
-            # Update transcript with user message
-            GLib.idle_add(self._show_transcript, f"You: {text}", False)
-            
+
+            # Add user message to history
+            GLib.idle_add(self._add_message_to_history, self.username, text, False)
+
             # Get LLM response
             self._get_ai_response(text)
-            
+
         except Exception as e:
+            import traceback
             print(f"Recognition error: {e}")
+            print(traceback.format_exc())
+            GLib.idle_add(
+                self._add_message_to_history,
+                "System",
+                _("Recognition error. Please try again."),
+                True
+            )
     
     def _get_ai_response(self, user_message):
         """Get AI response and play TTS using run_llm_with_tools"""
@@ -723,36 +896,47 @@ class CallPanel(Gtk.Box):
             def on_message_callback(text):
                 nonlocal streaming_text
                 streaming_text += text
-            
+
             def on_tool_result_callback(tool_name, result):
                 tool_output = result.get_output() if result else "Tool executed"
                 GLib.idle_add(
-                    self._show_transcript,
-                    f"[Tool: {tool_name}] {tool_output[:300]}",
+                    self._add_message_to_history,
+                    "Tool",
+                    f"[{tool_name}] {tool_output[:300]}",
                     False
                 )
-            
-            self.controller.is_call_request = True 
-            response = self.controller.run_llm_with_tools(
-                message=user_message,
-                chat_id = self.chat_id,
-                on_message_callback=on_message_callback,
-                on_tool_result_callback=on_tool_result_callback,
-                max_tool_calls=5,
-                save_chat=True,
-            )
-            self.controller.is_call_request = False
-            
+
+            self.controller.is_call_request = True
+            try:
+                response = self.controller.run_llm_with_tools(
+                    message=user_message,
+                    chat_id=self.chat_id,
+                    on_message_callback=on_message_callback,
+                    on_tool_result_callback=on_tool_result_callback,
+                    max_tool_calls=5,
+                    save_chat=True,
+                )
+            finally:
+                self.controller.is_call_request = False
+
             if response:
-                GLib.idle_add(self._show_transcript, f"Assistant: {response}", False)
+                GLib.idle_add(self._add_message_to_history, self.profile_name, response, False)
                 if self.call_active:
                     response = self._clean_response(response)
                     self._play_tts(response)
-        
+
         except Exception as e:
             import traceback
             print(traceback.format_exc())
             print(f"LLM error: {e}")
+            # Ensure flag is reset
+            self.controller.is_call_request = False
+            GLib.idle_add(
+                self._add_message_to_history,
+                "System",
+                _("Error getting response. Please try again."),
+                True
+            )
     
     def _clean_response(self, response):
         """Clean response for TTS"""
@@ -767,24 +951,28 @@ class CallPanel(Gtk.Box):
         """Play TTS for the response"""
         if not text or not self.call_active:
             return
-        
+
         tts = self.controller.handlers.tts
         if not tts:
             return
-        
+
         def on_tts_start():
-            GLib.idle_add(self._set_assistant_speaking, True)
-        
+            if self.call_active:
+                GLib.idle_add(self._set_assistant_speaking, True)
+
         def on_tts_stop():
-            GLib.idle_add(self._set_assistant_speaking, False)
-        
+            if self.call_active:
+                GLib.idle_add(self._set_assistant_speaking, False)
+
         tts.connect("start", on_tts_start)
         tts.connect("stop", on_tts_stop)
-        
+
         try:
             tts.play(text)
         except Exception as e:
+            import traceback
             print(f"TTS error: {e}")
+            print(traceback.format_exc())
             GLib.idle_add(self._set_assistant_speaking, False)
     
     def _set_assistant_speaking(self, speaking):
@@ -796,22 +984,53 @@ class CallPanel(Gtk.Box):
         else:
             self.avatar_ring.remove_css_class("call-avatar-ring-speaking")
     
-    def _show_transcript(self, text, is_error=False):
-        """Show transcript in UI"""
-        self.transcript_scroll.set_visible(True)
-        
-        if is_error:
-            self.transcript_label.set_label(text)
-        else:
-            current = self.transcript_label.get_label()
-            if current:
-                self.transcript_label.set_label(current + "\n" + text)
-            else:
-                self.transcript_label.set_label(text)
-        
-        # Scroll to bottom
-        adj = self.transcript_scroll.get_vadjustment()
-        adj.set_value(adj.get_upper())
-        
-        self.emit('transcript-updated', text)
+    def _add_message_to_history(self, sender, text, is_error=False):
+        """Add a message to the chat history panel"""
+        # Create message box
+        is_user = sender == self.username
+        message_box = Gtk.Box(
+            orientation=Gtk.Orientation.VERTICAL,
+            css_classes=["call-message-user" if is_user else "call-message-assistant"]
+        )
 
+        # Sender label
+        sender_label = Gtk.Label(
+            label=sender,
+            css_classes=["call-message-sender"],
+            xalign=0
+        )
+        message_box.append(sender_label)
+
+        # Message text
+        message_label = Gtk.Label(
+            label=text,
+            css_classes=["call-message-label"],
+            wrap=True,
+            xalign=0,
+            selectable=True
+        )
+        message_box.append(message_label)
+
+        self.history_box.append(message_box)
+
+        # Scroll to bottom
+        if self.history_visible:
+            GLib.idle_add(self._scroll_history_to_bottom)
+
+        # Store in history
+        self.chat_history_messages.append({
+            "sender": sender,
+            "text": text,
+            "is_error": is_error
+        })
+
+        self.emit('transcript-updated', f"{sender}: {text}")
+
+    def _scroll_history_to_bottom(self):
+        """Scroll history panel to bottom"""
+        # Find the scrolled window parent
+        parent = self.history_box.get_parent()
+        if parent and isinstance(parent, Gtk.ScrolledWindow):
+            adj = parent.get_vadjustment()
+            if adj:
+                adj.set_value(adj.get_upper())
