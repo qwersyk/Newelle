@@ -683,11 +683,16 @@ class ChatTab(Gtk.Box):
         
     def reload_message(self, message_id: int):
         """Reload a message in the chat history."""
-        if len(self.chat_history.messages_box) < message_id:
+        if message_id < 0 or message_id >= len(self.chat):
             return
         if self.chat[message_id]["User"] == "Console":
             return
-        message_box = self.chat_history.messages_box[message_id + 1]
+
+        message_box_index = message_id + 1
+        if message_box_index < 0 or message_box_index >= len(self.chat_history.messages_box):
+            return
+
+        message_box = self.chat_history.messages_box[message_box_index]
         overlay = message_box.get_first_child()
         if overlay is None:
             return
