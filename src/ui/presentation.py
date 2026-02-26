@@ -209,7 +209,7 @@ class PresentationWindow(Adw.Window):
             
         """
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=20, hexpand=False)
-        copy = CopyBox("flatpak --user override --talk-name=org.freedesktop.Flatpak --filesystem=home io.github.qwersyk.Newelle", "bash", parent=box)
+        copy = CopyBox("flatpak --user override --talk-name=org.freedesktop.Flatpak --filesystem=home io.github.qwersyk.Newelle", "bash")
         copy.set_hexpand(False)
         copy.set_vexpand(True)
         img = Gtk.Image.new_from_icon_name("warning-outline-symbolic")

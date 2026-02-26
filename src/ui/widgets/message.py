@@ -5,10 +5,13 @@ import base64
 import json
 import os
 import re
+import tempfile
+import socket
 from gi.repository import Gtk, GLib, Pango, GdkPixbuf, Gio, Gdk
 
 from ...utility.message_chunk import get_message_chunks, MessageChunk
-from ...utility.strings import markwon_to_pango, remove_thinking_blocks, simple_markdown_to_pango
+from ...utility.strings import markwon_to_pango, remove_thinking_blocks, simple_markdown_to_pango, quote_string, add_S_to_sudo
+from ...utility.system import get_spawn_command
 from pylatexenc.latex2text import LatexNodes2Text
 
 from .copybox import CopyBox
@@ -30,6 +33,9 @@ class Message(Gtk.Box):
         self.chunk_uuid = chunk_uuid if chunk_uuid else (uuid.uuid4().int if not restore else 0)
         self.restore = restore
         self.thinking_widget = None
+        self.pending_execution_copyboxes = set()
+        self._copybox_auto_send_sent = False
+        self._tracked_copyboxes_seen = 0
         # State tracking
         self.widgets_map = [] # List of tuples (chunk_type, widget, chunk_data)
         self.streaming = False
@@ -110,9 +116,75 @@ class Message(Gtk.Box):
             w_type, widget_or_list, _ = self.widgets_map.pop()
             if isinstance(widget_or_list, list):
                 for w in widget_or_list:
+                    self._unregister_execution_copybox(w)
                     self.remove(w)
             else:
+                self._unregister_execution_copybox(widget_or_list)
                 self.remove(widget_or_list)
+
+    def _register_execution_copybox(self, widget):
+        if not isinstance(widget, CopyBox):
+            return
+
+        track_copybox = False
+        if widget.execution_request:
+            track_copybox = True
+        elif hasattr(widget, "run_button") and widget.run_callback is not None:
+            track_copybox = True
+
+        if not track_copybox:
+            return
+        if widget in self.pending_execution_copyboxes:
+            return
+
+        self._tracked_copyboxes_seen += 1
+
+        if widget.execution_request and widget.is_responded():
+            self._try_auto_send_after_copyboxes()
+            return
+
+        self.pending_execution_copyboxes.add(widget)
+        widget.connect("command-complete", self._on_execution_copybox_done)
+        if widget.execution_request:
+            widget.connect("skip-clicked", self._on_execution_copybox_skipped)
+
+    def _unregister_execution_copybox(self, widget):
+        if widget in self.pending_execution_copyboxes:
+            self.pending_execution_copyboxes.discard(widget)
+
+    def _trigger_auto_send_message(self):
+        chat_tab = self._get_chat_tab()
+        chat_history = self._get_chat_history()
+        if not chat_tab.status:
+            return
+
+        chat_tab.status = False
+        if chat_history is not None:
+            chat_history.update_button_text()
+            chat_history.scrolled_chat()
+        threading.Thread(target=chat_tab.send_message).start()
+
+    def _try_auto_send_after_copyboxes(self):
+        if self._copybox_auto_send_sent:
+            return
+        if self.restore:
+            return
+        if self._tracked_copyboxes_seen == 0:
+            return
+        if len(self.pending_execution_copyboxes) != 0:
+            return
+        self._copybox_auto_send_sent = True
+        self._trigger_auto_send_message()
+
+    def _mark_execution_copybox_done(self, copybox):
+        self.pending_execution_copyboxes.discard(copybox)
+        self._try_auto_send_after_copyboxes()
+
+    def _on_execution_copybox_done(self, copybox, output):
+        self._mark_execution_copybox_done(copybox)
+
+    def _on_execution_copybox_skipped(self, copybox):
+        self._mark_execution_copybox_done(copybox)
 
     def _can_update_widget(self, w_type, widget_or_list, new_chunk):
         if w_type == "complex": return False
@@ -198,6 +270,141 @@ class Message(Gtk.Box):
             use_markup=True,
         ))
 
+    def _get_chat_tab(self):
+        if hasattr(self.parent_window, "chat_history") and hasattr(self.parent_window, "chat_id"):
+            return self.parent_window
+        if hasattr(self.parent_window, "window") and hasattr(self.parent_window.window, "chat_id"):
+            return self.parent_window.window
+        return self.parent_window
+
+    def _get_chat_history(self):
+        if hasattr(self.parent_window, "get_file_button") and hasattr(self.parent_window, "scrolled_chat"):
+            return self.parent_window
+        if hasattr(self.parent_window, "chat_history"):
+            return self.parent_window.chat_history
+        return None
+
+    def _get_main_window(self):
+        chat_tab = self._get_chat_tab()
+        if hasattr(chat_tab, "window"):
+            return chat_tab.window
+        return chat_tab
+
+    def _create_copybox(self, text, lang, state=None, codeblock_id=-1, allow_edit=False, enable_run_callback=False):
+        id_message = state["id_message"] if state is not None else -1
+        copybox = CopyBox(
+            text,
+            lang,
+            id_message=id_message,
+            id_codeblock=codeblock_id,
+            allow_edit=allow_edit,
+            color_scheme=self.controller.newelle_settings.editor_color_scheme,
+        )
+        copybox.connect("edit-clicked", self._on_copybox_edit_clicked)
+        copybox.connect("terminal-clicked", self._on_copybox_terminal_clicked)
+        if enable_run_callback:
+            copybox.set_run_callback(lambda command, cb=copybox: self._on_copybox_run_requested(cb, command))
+        self._register_execution_copybox(copybox)
+        return copybox
+
+    def _on_copybox_edit_clicked(self, copybox, id_message, id_codeblock, text, lang):
+        self._get_main_window().add_editor_tab_inline(id_message, id_codeblock, text, lang)
+
+    def _on_copybox_terminal_clicked(self, copybox, command, execution_request_mode):
+        from .terminal_dialog import TerminalDialog
+
+        shell_command = "cd " + quote_string(os.getcwd()) + "; " + command + "; exec bash"
+
+        if not self.controller.newelle_settings.virtualization:
+            shell_command = add_S_to_sudo(shell_command)
+            terminal_command = get_spawn_command() + ["bash", "-c", "export TERM=xterm-256color;alias sudo=\"sudo -S\";" + shell_command]
+        else:
+            terminal_command = ["bash", "-c", "export TERM=xterm-256color;" + shell_command]
+
+        terminal = TerminalDialog()
+
+        def save_output(save):
+            if save is None:
+                return
+            copybox.complete_execution(save)
+            self._persist_console_output(copybox, save)
+            self._mark_execution_copybox_done(copybox)
+
+        terminal.load_terminal(terminal_command)
+        terminal.save_output_func(save_output)
+        terminal.present()
+
+    def _persist_console_output(self, copybox, output):
+        if output is None:
+            return
+
+        chat = self._get_chat_tab().chat
+        id_message = copybox.id_message
+
+        if id_message < len(chat) and chat[id_message]["User"] == "Console":
+            chat[id_message]["Message"] = output
+        else:
+            chat.append({"User": "Console", "Message": " " + output})
+
+    def _run_web_preview_code(self, copybox):
+        codeblocks = [
+            chunk
+            for chunk in get_message_chunks(self.parent_window.chat[copybox.id_message]["Message"])
+            if chunk.type == "codeblock"
+        ]
+        files = {"html": "", "css": "", "js": ""}
+
+        for codeblock in codeblocks:
+            codeblock_lang = codeblock.lang.lower()
+            if codeblock_lang == "html":
+                files["html"] = codeblock.text
+            elif codeblock_lang == "css":
+                files["css"] = codeblock.text
+            elif codeblock_lang in ["js", "javascript"]:
+                files["js"] = codeblock.text
+
+        lang = copybox.get_language().lower()
+        if lang == "html":
+            files["html"] = copybox.get_code()
+        elif lang == "css":
+            files["css"] = copybox.get_code()
+        elif lang in ["js", "javascript"]:
+            files["js"] = copybox.get_code()
+
+        temp_dir = tempfile.mkdtemp(dir=self.controller.cache_dir)
+        with open(os.path.join(temp_dir, "index.html"), "w") as html_file:
+            html_file.write(files["html"])
+        with open(os.path.join(temp_dir, "style.css"), "w") as css_file:
+            css_file.write(files["css"])
+        with open(os.path.join(temp_dir, "script.js"), "w") as js_file:
+            js_file.write(files["js"])
+
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            sock.bind(("", 0))
+            _, port = sock.getsockname()
+
+        main_window = self._get_main_window()
+
+        def open_browser_later():
+            main_window.ui_controller.new_browser_tab(f"http://localhost:{port}", new=False)
+            return GLib.SOURCE_REMOVE
+
+        GLib.timeout_add(100, open_browser_later)
+        return main_window.execute_terminal_command(
+            "cd {} && python3 -m http.server {}".format(quote_string(temp_dir), port)
+        )
+
+    def _on_copybox_run_requested(self, copybox, command):
+        lang = copybox.get_language().lower()
+        if lang in ["html", "css", "js", "javascript"]:
+            code = self._run_web_preview_code(copybox)
+        else:
+            code = self._get_main_window().execute_terminal_command(command)
+
+        output = code[1]
+        self._persist_console_output(copybox, output)
+        return output
+
     def _process_codeblock(self, chunk, box, state, restore, is_user, msg_uuid):
         state["codeblock_id"] += 1
         codeblock_id = state["codeblock_id"]
@@ -219,18 +426,20 @@ class Message(Gtk.Box):
         elif lang == "console" and not is_user:
             self._process_console_codeblock(chunk, box, state, restore)
         elif lang in ("file", "folder"):
+            chat_history = self._get_chat_history()
             for obj in text.split("\n"):
                 if obj.strip():
-                     box.append(self.parent_window.get_file_button(obj))
+                     if chat_history is not None:
+                         box.append(chat_history.get_file_button(obj))
         elif lang == "chart" and not is_user:
             self._process_chart_codeblock(chunk, box)
         elif lang == "latex":
             try:
                 box.append(DisplayLatex(text, 16, self.controller.cache_dir))
             except Exception:
-                box.append(CopyBox(text, lang, parent=self.parent_window, id_message=state["id_message"], id_codeblock=codeblock_id, allow_edit=state["editable"]))
+                box.append(self._create_copybox(text, lang, state=state, codeblock_id=codeblock_id, allow_edit=state["editable"], enable_run_callback=True))
         else:
-            box.append(CopyBox(text, lang, parent=self.parent_window, id_message=state["id_message"], id_codeblock=codeblock_id, allow_edit=state["editable"]))
+            box.append(self._create_copybox(text, lang, state=state, codeblock_id=codeblock_id, allow_edit=state["editable"], enable_run_callback=True))
 
     def _process_image_codeblock(self, text, box):
         for line in text.split("\n"):
@@ -268,7 +477,7 @@ class Message(Gtk.Box):
         for line in chunk.text.split("\n"):
             parts = line.split("-")
             if len(parts) != 2:
-                box.append(CopyBox(chunk.text, "chart", parent=self.parent_window))
+                box.append(self._create_copybox(chunk.text, "chart"))
                 return
             key = parts[0].strip()
             percentages = "%" in parts[1]
@@ -282,7 +491,7 @@ class Message(Gtk.Box):
         try:
             box.append(DisplayLatex(chunk.text, 16, self.controller.cache_dir))
         except Exception:
-            box.append(CopyBox(chunk.text, "latex", parent=self.parent_window))
+            box.append(self._create_copybox(chunk.text, "latex"))
 
     def _process_inline_chunks(self, chunk, box):
         if not chunk.subchunks: return
@@ -352,14 +561,15 @@ class Message(Gtk.Box):
             if widget is None or extension.provides_both_widget_and_answer(value, lang):
                  self._setup_extension_async_response(chunk, box, state, restore, extension, widget)
         except Exception as e:
-            box.append(CopyBox(chunk.text, lang, parent=self.parent_window, id_message=state["id_message"], id_codeblock=state["codeblock_id"], allow_edit=state["editable"]))
+            box.append(self._create_copybox(chunk.text, lang, state=state, codeblock_id=state["codeblock_id"], allow_edit=state["editable"], enable_run_callback=True))
 
     def _process_console_codeblock(self, chunk, box, state, restore):
         # Defer execution if streaming
         state["id_message"] += 1
         command = chunk.text
         dangerous_commands = ["rm ", "apt ", "sudo ", "yum ", "mkfs "]
-        can_auto_run = (self.controller.newelle_settings.auto_run and not any(cmd in command for cmd in dangerous_commands) and self.parent_window.auto_run_times < self.controller.newelle_settings.max_run_times)
+        chat_tab = self._get_chat_tab()
+        can_auto_run = (self.controller.newelle_settings.auto_run and not any(cmd in command for cmd in dangerous_commands) and chat_tab.auto_run_times < self.controller.newelle_settings.max_run_times)
         
         if can_auto_run:
             state["has_terminal_command"] = True
@@ -367,17 +577,17 @@ class Message(Gtk.Box):
             text_expander.set_expanded(False)
             box.append(text_expander)
             
-            reply_from_console = self.controller.get_console_reply(self.parent_window.chat_id, state["id_message"])
+            reply_from_console = self.controller.get_console_reply(chat_tab.chat_id, state["id_message"])
             
             # Logic for deferred execution
             self._queue_execution(lambda: self._run_console_command(command, restore, reply_from_console, text_expander, state))
             
             if not restore:
-                self.parent_window.auto_run_times += 1
+                chat_tab.auto_run_times += 1
         else:
             if not restore:
                  self.controller.chat.append({"User": "Console", "Message": "None"})
-            box.append(CopyBox(command, "console", self.parent_window, state["id_message"], id_codeblock=state["codeblock_id"], allow_edit=state["editable"]))
+            box.append(self._create_copybox(command, "console", state=state, codeblock_id=state["codeblock_id"], allow_edit=state["editable"], enable_run_callback=True))
 
     def _process_tool_call(self, chunk, box, state, restore):
         tool_name = chunk.tool_name
@@ -387,7 +597,7 @@ class Message(Gtk.Box):
         if not restore: self.controller.msgid = state["id_message"]
         
         if not tool:
-            box.append(CopyBox(chunk.text, "tool_call", parent=self.parent_window))
+            box.append(self._create_copybox(chunk.text, "tool_call"))
             return
 
         tool_call_id = state.get("tool_call_counter", 0)
@@ -396,7 +606,7 @@ class Message(Gtk.Box):
         if not restore:
             tool_uuid = str(uuid.uuid4())[:8]
         else:
-            tool_uuid = self.controller.get_tool_call_uuid(self.parent_window.chat_id, state["id_message"], tool_name, tool_call_id)
+            tool_uuid = self.controller.get_tool_call_uuid(self._get_chat_tab().chat_id, state["id_message"], tool_name, tool_call_id)
         
         state["has_terminal_command"] = True
         self.controller.current_tool_uuid = tool_uuid
@@ -425,7 +635,7 @@ class Message(Gtk.Box):
                 
                 if not restore:
                     # Append result to active tool results in main thread if needed
-                    self.parent_window.active_tool_results.append(result)
+                    self._get_chat_tab().active_tool_results.append(result)
                 
                 widget = result.widget
                 if widget:
@@ -435,6 +645,7 @@ class Message(Gtk.Box):
                         if parent and parent.get_display():
                             parent.remove(placeholder)
                             parent.append(widget)
+                            self._register_execution_copybox(widget)
                     GLib.idle_add(swap_widget)
                     
                     # Handle result closure
@@ -446,12 +657,12 @@ class Message(Gtk.Box):
                     def on_result(code):
                         placeholder.set_result(code[0], code[1])
                 
-                reply_from_console = self.controller.get_tool_response(self.parent_window.chat_id, state["id_message"], tool.name, tool_uuid)
+                reply_from_console = self.controller.get_tool_response(self._get_chat_tab().chat_id, state["id_message"], tool.name, tool_uuid)
                 def get_response(reply_from_console):
                     if not restore:
                         response = result.get_output()
                         if not restore:
-                            try: self.parent_window.active_tool_results.remove(result)
+                            try: self._get_chat_tab().active_tool_results.remove(result)
                             except: pass
                         if result.is_cancelled: return
                         if response is None: code = (True, None)
@@ -480,7 +691,7 @@ class Message(Gtk.Box):
             box.append(self.create_table(chunk.text.split("\n")))
         except Exception as e:
             print(e)
-            box.append(CopyBox(chunk.text, "table", parent=self.parent_window))
+            box.append(self._create_copybox(chunk.text, "table"))
 
     def create_table(self, table):
         data = []
@@ -537,12 +748,12 @@ class Message(Gtk.Box):
          # Logic from window.py _process_console_codeblock closure
          def run_command():
             if not restore:
-                code = self.parent_window.execute_terminal_command(cmd)
+                code = self._get_main_window().execute_terminal_command(cmd)
                 self.controller.chat.append({"User": "Console", "Message": " " + str(code[1])})
             else:
                  code = (True, console_reply)
             
-            text = f"[User {self.parent_window.main_path}]:$ {cmd}\n{code[1]}"
+            text = f"[User {self._get_main_window().main_path}]:$ {cmd}\n{code[1]}"
             def apply_result():
                  expander.set_child(Gtk.Label(wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR, label=text[:8000], selectable=True))
                  if not code[0]:
@@ -561,7 +772,7 @@ class Message(Gtk.Box):
         value = chunk.text
         state["has_terminal_command"] = True
         state["id_message"] += 1
-        reply_from_console = self.controller.get_console_reply(self.parent_window.chat_id, state["id_message"])
+        reply_from_console = self.controller.get_console_reply(self._get_chat_tab().chat_id, state["id_message"])
         
         if widget:
              def on_result(code):

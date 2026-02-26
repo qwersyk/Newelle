@@ -1,8 +1,4 @@
 import threading
-import subprocess
-import os
-import tempfile
-import socket
 from gi.repository import GLib, Gtk, GtkSource, Gio, Pango, Gdk, GObject
 
 
@@ -14,14 +10,14 @@ class CopyBox(Gtk.Box):
     
     Signals:
         run-clicked: Emitted when the run button is clicked. Returns (command: str, language: str)
+        terminal-clicked: Emitted when terminal execution is requested. Returns (command: str, execution_request_mode: bool)
         skip-clicked: Emitted when the skip button is clicked (execution_request mode only)
         command-complete: Emitted when command execution completes. Returns (output: str)
-        edit-clicked: Emitted when the edit button is clicked
+        edit-clicked: Emitted when the edit button is clicked. Returns (id_message: int, id_codeblock: int, command: str, language: str)
     
     Args:
         txt: The code text to display
         lang: The language for syntax highlighting
-        parent: Optional parent window (for legacy compatibility)
         id_message: Optional message ID for chat integration
         id_codeblock: Optional codeblock ID
         allow_edit: Whether to show an edit button
@@ -33,9 +29,10 @@ class CopyBox(Gtk.Box):
     
     __gsignals__ = {
         'run-clicked': (GObject.SignalFlags.RUN_FIRST, None, (str, str)),
+        'terminal-clicked': (GObject.SignalFlags.RUN_FIRST, None, (str, bool)),
         'skip-clicked': (GObject.SignalFlags.RUN_FIRST, None, ()),
         'command-complete': (GObject.SignalFlags.RUN_FIRST, None, (str,)),
-        'edit-clicked': (GObject.SignalFlags.RUN_FIRST, None, (str, str)),
+        'edit-clicked': (GObject.SignalFlags.RUN_FIRST, None, (int, int, str, str)),
     }
     
     # Default runnable languages
@@ -46,7 +43,6 @@ class CopyBox(Gtk.Box):
         self,
         txt: str,
         lang: str,
-        parent=None,
         id_message: int = -1,
         id_codeblock: int = -1,
         allow_edit: bool = False,
@@ -68,7 +64,6 @@ class CopyBox(Gtk.Box):
         
         # Store parameters
         self.txt = txt
-        self.parent = parent
         self.id_message = id_message
         self.id_codeblock = id_codeblock
         self.execution_request = execution_request
@@ -76,10 +71,7 @@ class CopyBox(Gtk.Box):
         self.has_responded = False
         
         # Set color scheme
-        if color_scheme is None and parent is not None and hasattr(parent, "controller"):
-            self.color_scheme = parent.controller.newelle_settings.editor_color_scheme
-        else:
-            self.color_scheme = color_scheme if color_scheme is not None else "Adwaita-dark"
+        self.color_scheme = color_scheme if color_scheme is not None else "Adwaita-dark"
         
         # Set executable languages
         if executable_languages is not None:
@@ -356,13 +348,7 @@ class CopyBox(Gtk.Box):
             margin_end=10
         )
         
-        # Get console output from parent if available
         console = "None"
-        if (self.parent is not None and 
-            hasattr(self.parent, 'chat') and 
-            self.id_message < len(self.parent.chat) and 
-            self.parent.chat[self.id_message]["User"] == "Console"):
-            console = self.parent.chat[self.id_message]["Message"]
         
         self.text_expander.set_child(
             Gtk.Label(wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR, label=console, selectable=True)
@@ -377,77 +363,26 @@ class CopyBox(Gtk.Box):
     def _on_run_button_clicked(self, widget, language):
         """Handle run button click - emit signal and optionally execute."""
         self.emit('run-clicked', self.txt, language)
-        
-        # If we have a parent with execute capability, use it (legacy mode)
-        if self.parent is not None and hasattr(self.parent, 'execute_terminal_command'):
-            self.run_code(widget, language)
-        elif self.run_callback is not None:
+
+        if self.run_callback is not None:
             self._execute_with_callback(widget, language)
     
     def _on_console_run_clicked(self, widget):
         """Handle console run button click."""
         self.emit('run-clicked', self.txt, 'console')
-        
-        if self.parent is not None and hasattr(self.parent, 'execute_terminal_command'):
-            self.run_console(widget)
-        elif self.run_callback is not None:
+
+        if self.run_callback is not None:
             self._execute_console_with_callback(widget)
     
     def _on_terminal_button_clicked(self, widget):
         """Handle terminal button click."""
-        self.emit('run-clicked', self.txt, 'terminal')
-        
-        if self.parent is not None:
-            self.run_console_terminal(widget)
+        self.emit('terminal-clicked', self.txt, False)
 
     def _on_execution_terminal_clicked(self, widget):
         """Handle terminal button click in execution_request mode."""
-        from ...utility.strings import quote_string, add_S_to_sudo
-        from ...utility.system import get_spawn_command
-        from .terminal_dialog import TerminalDialog
-        
         if self.has_responded:
             return
-            
-        icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="object-select-symbolic"))
-        icon.set_icon_size(Gtk.IconSize.INHERIT)
-        widget.set_child(icon)
-        widget.set_sensitive(False)
-        
-        command = "cd " + quote_string(os.getcwd()) + "; " + self.txt + "; exec bash"
-        
-        terminal = TerminalDialog()
-        
-        def save_output(save):
-            widget.set_sensitive(True)
-            widget.set_icon_name("gnome-terminal-symbolic")
-            if save is not None:
-                # Mark as responded
-                self.has_responded = True
-                self.run_button.set_sensitive(False)
-                self.skip_button.set_sensitive(False)
-                
-                # Show output
-                self.output_label.set_text(save)
-                self.output_expander.set_visible(True)
-                self.output_expander.set_expanded(True)
-                
-                self.status_label.set_visible(False)
-                
-                # Emit signal
-                self.emit('command-complete', save)
-            else:
-                return
-        
-        if self.parent is not None and hasattr(self.parent, 'virtualization') and not self.parent.virtualization:
-            command = add_S_to_sudo(command)
-            command = get_spawn_command() + ["bash", "-c", "export TERM=xterm-256color;alias sudo=\"sudo -S\";" + command]
-        else:
-            command = ["bash", "-c", "export TERM=xterm-256color;" + command]
-            
-        terminal.load_terminal(command)
-        terminal.save_output_func(save_output)
-        terminal.present()
+        self.emit('terminal-clicked', self.txt, True)
     
     def _on_execution_run_clicked(self, button):
         """Handle run click in execution_request mode."""
@@ -576,7 +511,7 @@ class CopyBox(Gtk.Box):
         
         self.emit('command-complete', output if output else "")
 
-    # === Legacy methods (for parent window compatibility) ===
+    # === UI methods ===
     
     def copy_button_clicked(self, widget):
         """Copy code to clipboard."""
@@ -588,166 +523,14 @@ class CopyBox(Gtk.Box):
         self.copy_button.set_icon_name("object-select-symbolic")
         GLib.timeout_add(2000, lambda: self.copy_button.set_icon_name("edit-copy-symbolic"))
     
-    def run_console(self, widget, multithreading=False):
-        """Run console command (legacy mode with parent)."""
-        if multithreading:
-            code = self.parent.execute_terminal_command(self.txt)
-            self.set_output(code[1])
-            
-            def update_ui():
-                icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="media-playback-start-symbolic"))
-                icon.set_icon_size(Gtk.IconSize.INHERIT)
-                widget.set_child(icon)
-                widget.set_sensitive(True)
-            GLib.idle_add(update_ui)
-        else:
-            icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="object-select-symbolic"))
-            icon.set_icon_size(Gtk.IconSize.INHERIT)
-            widget.set_child(icon)
-            widget.set_sensitive(False)
-            threading.Thread(target=self.run_console, args=[widget, True]).start()
-    
     def set_output(self, output):
-        """Set output in the expander and optionally update parent chat."""
-        if self.parent is not None and hasattr(self.parent, 'chat'):
-            if self.id_message < len(self.parent.chat) and self.parent.chat[self.id_message]["User"] == "Console":
-                self.parent.chat[self.id_message]["Message"] = output
-            else:
-                self.parent.chat.append({"User": "Console", "Message": " " + output})
-        
+        """Set output in the expander."""
         self.text_expander.set_child(
             Gtk.Label(wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR, label=output, selectable=True)
         )
-        
-        if (self.parent is not None and 
-            hasattr(self.parent, 'status') and 
-            self.parent.status and 
-            len(self.parent.chat) - 1 == self.id_message and 
-            self.id_message < len(self.parent.chat) and 
-            self.parent.chat[self.id_message]["User"] == "Console"):
-            self.parent.status = False
-            self.parent.update_button_text()
-            self.parent.scrolled_chat()
-            threading.Thread(target=self.parent.send_message).start()
-    
-    def run_console_terminal(self, widget, multithreading=False):
-        """Run command in external terminal (legacy mode with parent)."""
-        from ...utility.strings import quote_string, add_S_to_sudo
-        from ...utility.system import get_spawn_command
-        from .terminal_dialog import TerminalDialog
-        
-        icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="object-select-symbolic"))
-        icon.set_icon_size(Gtk.IconSize.INHERIT)
-        widget.set_child(icon)
-        widget.set_sensitive(False)
-        command = "cd " + quote_string(os.getcwd()) + "; " + self.txt + "; exec bash"
-        external_terminal = False
-        
-        if external_terminal:
-            cmd = self.parent.external_terminal.split()
-            arguments = [s.replace("{0}", command) for s in cmd]
-            subprocess.Popen(get_spawn_command() + arguments)
-        else:
-            terminal = TerminalDialog()
-            
-            def save_output(save):
-                widget.set_sensitive(True)
-                widget.set_icon_name("gnome-terminal-symbolic")
-                if save is not None:
-                    self.set_output(save)
-                else:
-                    return
-            
-            if self.parent is not None and hasattr(self.parent, 'virtualization') and not self.parent.virtualization:
-                command = add_S_to_sudo(command)
-                command = get_spawn_command() + ["bash", "-c", "export TERM=xterm-256color;alias sudo=\"sudo -S\";" + command]
-            else:
-                command = ["bash", "-c", "export TERM=xterm-256color;" + command]
-            terminal.load_terminal(command)
-            terminal.save_output_func(save_output)
-            terminal.present()
-    
-    def run_code(self, widget, language, multithreading=False):
-        """Run code (legacy mode with parent)."""
-        from ...utility.strings import quote_string
-        
-        if multithreading:
-            if language.lower() in ["python", "python3", "py"]:
-                code = self.parent.execute_terminal_command("python3 -c {}".format(quote_string(self.txt)))
-            elif language.lower() in ["html", "css", "js", "javascript"]:
-                codeblocks = self.get_codeblocks()
-                files = {
-                    "html": None,
-                    "css": None,
-                    "js": None
-                }
-                for codeblock in codeblocks:
-                    if codeblock.lang.lower() == "html":
-                        files["html"] = codeblock.text
-                    elif codeblock.lang.lower() == "css":
-                        files["css"] = codeblock.text
-                    elif codeblock.lang.lower() in ["js", "javascript"]:
-                        files["js"] = codeblock.text
-                
-                # Create a random directory in the cache directory
-                cache_dir = self.parent.controller.cache_dir
-                temp_dir = tempfile.mkdtemp(dir=cache_dir)
-                
-                # Write the code to temporary files
-                with open(os.path.join(temp_dir, "index.html"), "w") as f:
-                    f.write(files["html"] or "")
-                with open(os.path.join(temp_dir, "style.css"), "w") as f:
-                    f.write(files["css"] or "")
-                with open(os.path.join(temp_dir, "script.js"), "w") as f:
-                    f.write(files["js"] or "")
-                
-                # Start HTTP server on random port
-                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                    s.bind(("", 0))
-                    _, port = s.getsockname()
-                
-                command = "cd {} && python3 -m http.server {}".format(quote_string(temp_dir), port)
-                
-                def open_browser_later():
-                    if self.parent is not None:
-                        self.parent.ui_controller.new_browser_tab("http://localhost:{}".format(port), new=False)
-                        return GLib.SOURCE_REMOVE
-                GLib.timeout_add(100, open_browser_later)
-                code = self.parent.execute_terminal_command(command)
-            else:
-                code = "ae"
-            self.set_output(code[1])
-            
-            def update_ui():
-                icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="media-playback-start-symbolic"))
-                icon.set_icon_size(Gtk.IconSize.INHERIT)
-                widget.set_child(icon)
-                widget.set_sensitive(True)
-            GLib.idle_add(update_ui)
-        else:
-            self.text_expander.set_visible(True)
-            icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="object-select-symbolic"))
-            icon.set_icon_size(Gtk.IconSize.INHERIT)
-            widget.set_child(icon)
-            widget.set_sensitive(False)
-            threading.Thread(target=self.run_code, args=[widget, language, True]).start()
-    
     def edit_button_clicked(self, button):
         """Handle edit button click."""
-        self.emit('edit-clicked', self.txt, self.lang)
-        
-        if self.parent is not None and hasattr(self.parent, 'add_editor_tab_inline'):
-            self.parent.add_editor_tab_inline(self.id_message, self.id_codeblock, self.txt, self.lang)
-    
-    def get_codeblocks(self):
-        """Get codeblocks from parent message (legacy mode)."""
-        if self.parent is None or not hasattr(self.parent, 'chat'):
-            return []
-        
-        from ...utility.message_chunk import get_message_chunks
-        chunks = get_message_chunks(self.parent.chat[self.id_message]["Message"])
-        codeblocks = [chunk for chunk in chunks if chunk.type == "codeblock"]
-        return codeblocks
+        self.emit('edit-clicked', self.id_message, self.id_codeblock, self.txt, self.lang)
     
     # === Public API for standalone usage ===
     

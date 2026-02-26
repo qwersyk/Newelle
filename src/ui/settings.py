@@ -1944,7 +1944,7 @@ class Settings(Adw.PreferencesWindow):
         dialog.set_body(_("Newelle does not have enough permissions to run commands on your system, please run the following command"))
         dialog.add_response("close", _("Understood"))
         dialog.set_default_response("close")
-        dialog.set_extra_child(CopyBox("flatpak --user override --talk-name=org.freedesktop.Flatpak --filesystem=home io.github.qwersyk.Newelle", "bash", parent = self))
+        dialog.set_extra_child(CopyBox("flatpak --user override --talk-name=org.freedesktop.Flatpak --filesystem=home io.github.qwersyk.Newelle", "bash"))
         dialog.set_close_response("close")
         dialog.set_response_appearance("close", Adw.ResponseAppearance.DESTRUCTIVE)
         dialog.connect('response', lambda dialog, response_id: dialog.destroy())
