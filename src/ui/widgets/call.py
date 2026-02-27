@@ -9,7 +9,7 @@ import gettext
 import pyaudio
 import re
 
-from ...utility.strings import remove_emoji, remove_markdown, remove_thinking_blocks
+from ...utility.strings import clean_message_tts, remove_emoji, remove_markdown, remove_thinking_blocks
 from ...utility.vad import VoiceActivityDetector
 
 
@@ -922,7 +922,7 @@ class CallPanel(Gtk.Box):
             if response:
                 GLib.idle_add(self._add_message_to_history, self.profile_name, response, False)
                 if self.call_active:
-                    response = self._clean_response(response)
+                    response = clean_message_tts(response) 
                     self._play_tts(response)
 
         except Exception as e:

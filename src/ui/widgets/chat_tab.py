@@ -21,6 +21,7 @@ from .multiline import MultilineEntry
 from .documents_reader import DocumentReaderWidget
 from .message import Message
 from ...utility.strings import (
+    clean_message_tts,
     convert_think_codeblocks,
     remove_markdown,
     remove_emoji,
@@ -584,10 +585,7 @@ class ChatTab(Gtk.Box):
         # TTS
         tts_thread = None
         if self.tts_enabled:
-            message_label = convert_think_codeblocks(message_label)
-            message = re.sub(r"```.*?```", "", message_label, flags=re.DOTALL)
-            message = remove_markdown(message)
-            message = remove_emoji(message)
+            message = clean_message_tts(message_label)
             if message.strip() and not message.isspace():
                 tts_thread = threading.Thread(
                     target=self.tts.play, args=(message,)

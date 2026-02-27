@@ -15,6 +15,62 @@ def clean_prompt(prompt: str) -> str:
     
     return message 
 
+def clean_message_tts(text: str) -> str:
+    """Clean a message for text-to-speech (TTS) readability.
+
+    This function removes various formatting elements that would make text
+    difficult to read when spoken aloud, including:
+    - Tables (markdown pipe tables and HTML tables)
+    - LaTeX equations (display math, block equations)
+    - Thinking blocks
+    - Markdown formatting (bold, italic, code blocks, etc.)
+    - Markdown links (keeps the text)
+    - Emojis
+
+    Args:
+        text: The text to clean for TTS
+
+    Returns:
+        The cleaned text suitable for TTS playback
+    """
+    # Remove markdown tables (pipe-based)
+    # Match table rows and separators
+    text = re.sub(r'^\|[^\n]+\|$', '', text, flags=re.MULTILINE)
+    text = re.sub(r'^\|?[-: ]+\|[-: ]+\|.*$', '', text, flags=re.MULTILINE)
+
+    # Remove HTML tables
+    text = re.sub(r'<table[^>]*>.*?</table>', '', text, flags=re.DOTALL | re.IGNORECASE)
+    text = re.sub(r'<tr[^>]*>.*?</tr>', '', text, flags=re.DOTALL | re.IGNORECASE)
+    text = re.sub(r'<t[dh][^>]*>.*?</t[dh]>', '', text, flags=re.DOTALL | re.IGNORECASE)
+
+    # Remove LaTeX display math and long equations
+    # Block equations: \[ ... \]
+    text = re.sub(r'\\\[.*?\\\]', '', text, flags=re.DOTALL)
+
+    # LaTeX equations in $$...$$
+    text = re.sub(r'\$\$.*?\$\$', '', text, flags=re.DOTALL)
+
+    # Environments: \begin{...} ... \end{...}
+    text = re.sub(r'\\begin\{(equation|align|gather|multline)\}.*?\\end\{\1\}', '', text, flags=re.DOTALL)
+
+    # Remove thinking blocks
+    text = remove_thinking_blocks(text)
+
+    # Remove markdown formatting
+    text = remove_markdown(text)
+
+    # Remove markdown links, keep the text
+    text = re.sub(r'\[([^\]]+)\]\([^\)]+\)', r'\1', text)
+
+    # Remove emojis
+    text = remove_emoji(text)
+
+    # Clean up extra whitespace
+    text = re.sub(r'\n{3,}', '\n\n', text)
+    text = text.strip()
+
+    return text
+
 def count_tokens(text: str, model: str = "gpt-4o-mini") -> int:
     """
     Count the number of tokens in a string
