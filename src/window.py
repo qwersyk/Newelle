@@ -721,6 +721,8 @@ class MainWindow(Adw.ApplicationWindow):
     def update_settings(self):
         """Update settings, run every time the program is started or settings dialog closed"""
         reloads = self.controller.update_settings()
+        if ReloadType.WAKEWORD in reloads:
+            self.controller.handlers.select_handlers(self.controller.newelle_settings)
         if self.first_load:
             # Load handlers with a timeout in order to not freeze the program
             def load_handlers_async():
@@ -1565,8 +1567,8 @@ class MainWindow(Adw.ApplicationWindow):
 
         # Call select_handlers ONCE for all remaining handler types
         handler_types = {ReloadType.SECONDARY_LLM, ReloadType.TTS, ReloadType.STT,
-                        ReloadType.MEMORIES, ReloadType.EMBEDDINGS, ReloadType.RAG,
-                        ReloadType.WEBSEARCH}
+                ReloadType.MEMORIES, ReloadType.EMBEDDINGS, ReloadType.RAG,
+                ReloadType.WEBSEARCH, ReloadType.WAKEWORD}
         if reload_types & handler_types:
             self.controller.handlers.select_handlers(self.controller.newelle_settings)
 
