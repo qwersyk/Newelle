@@ -76,6 +76,7 @@ class AgenticMemoryHandler(MemoryHandler):
             ExtraSettings.ScaleSetting("extract_freq", "Extract Frequency", "Number of messages between automatic memory extractions (0=disabled, only manual tool usage)", 0, 0, 50, 0),
             ExtraSettings.ToggleSetting("auto_add_context", "Auto-add to Context", "Automatically add relevant memories to the conversation context", True),
             ExtraSettings.ToggleSetting("store_interactions", "Store Interactions", "Store user interactions in separate file for vector search", True),
+            ExtraSettings.ToggleSetting("keepalive_memory", "Always add main memory to prompt", "This option will always add consolidated memory to prompt in any request", False),
             ExtraSettings.MultilineEntrySetting("extract_prompt", "Extract Prompt",
                 "Prompt for extracting important info from conversations. {user} and {assistant} will be replaced.",
                 self._get_default_extract_prompt(), refresh=self._restore_extract_prompt, refresh_icon="star-filled-rounded-symbolic"),
@@ -333,23 +334,28 @@ Recent conversations:
     def get_context(self, prompt: str, history: list[dict[str, str]]) -> list[str]:
         """Get relevant context from memory for the given prompt"""
         # Check if auto-add to context is enabled
+        r = []
+        if self.get_setting("keepalive_memory"):
+            if os.path.exists(self.memory_file):
+                content = open(self.memory_file, 'r').read()
+                r.append("--- Memory.md Content ---\n" + content)
         prompt = clean_prompt(prompt)
         if not self.get_setting("auto_add_context", return_value=True):
-            return []
+            return r
 
         if not self.embedding or not self._index_loaded:
             self._load_index()
 
         if not self.chunks:
-            return []
+            return r
 
         # Get search results using semantic search with context threshold
         context_threshold = float(self.get_setting("context_threshold", return_value=0.7))
         results = self._semantic_search(prompt, threshold=context_threshold)
 
         if results:
-            return ["--- Memory Context ---"] + results
-        return []
+            return r + ["--- Memory Context ---"] + results
+        return r
 
     def register_response(self, bot_response: str, history: list[dict[str, str]]):
         """Extract and store important information from conversation"""
@@ -640,165 +646,3 @@ Recent conversations:
                 similarities.append((chunk, similarity))
 
         # Sort by similarity
-        similarities.sort(key=lambda x: x[1], reverse=True)
-
-        results = []
-        for chunk, similarity in similarities[:max_results]:
-            if similarity >= threshold:
-                # Format result with file info
-                rel_path = os.path.relpath(chunk.file_path, self.memory_dir)
-                result = f"[{rel_path}:{chunk.line_start}-{chunk.line_end}] (similarity: {similarity:.2f})\n{chunk.content}"
-                results.append(result)
-
-        return results
-
-    def memory_search(self, query: str) -> str:
-        """Tool: Semantic search over memory files"""
-        if not self.embedding:
-            return "Error: Embedding handler not configured"
-
-        if not self._index_loaded:
-            self._load_index()
-
-        results = self._semantic_search(query)
-
-        if not results:
-            return "No relevant memories found."
-
-        return "\n\n---\n\n".join(results)
-
-    def memory_get(self, path: Optional[str] = None, line_offset: Optional[int] = None, line_limit: Optional[int] = None) -> str:
-        """Tool: Read specific memory file by path"""
-        if path is None:
-            # If no path specified, read MEMORY.md
-            path_display = "MEMORY.md"
-            file_path = self.memory_file
-        else:
-            path_display = path
-            # Resolve relative path
-            if path.startswith("memory/"):
-                file_path = os.path.join(self.memory_dir, path)
-            elif path == "MEMORY.md":
-                file_path = self.memory_file
-            else:
-                file_path = os.path.join(self.memory_dir, path)
-
-        if not os.path.exists(file_path):
-            return f"Error: Memory file not found: {path_display}"
-
-        try:
-            with open(file_path, 'r') as f:
-                lines = f.readlines()
-
-            if line_offset is not None or line_limit is not None:
-                offset = line_offset if line_offset is not None else 0
-                limit = line_limit if line_limit is not None else len(lines) - offset
-                selected_lines = lines[offset:offset + limit]
-                content = ''.join(selected_lines)
-
-                # Add line numbers for reference
-                line_info = f" (lines {offset + 1}-{min(offset + limit, len(lines))})" if offset > 0 or limit < len(lines) else ""
-                return f"From {path_display}{line_info}:\n\n{content}"
-            else:
-                return f"From {path_display}:\n\n{''.join(lines)}"
-        except Exception as e:
-            return f"Error reading memory file: {e}"
-
-    def memory_write(self, content: str, path: Optional[str] = None) -> str:
-        """Tool: Write content to a memory file"""
-        if path is None:
-            # Default to MEMORY.md
-            path_display = "MEMORY.md"
-            file_path = self.memory_file
-        elif path.startswith("memory/"):
-            path_display = path
-            file_path = os.path.join(self.memory_dir, path)
-        elif path == "MEMORY.md":
-            path_display = path
-            file_path = self.memory_file
-        else:
-            path_display = path
-            file_path = os.path.join(self.memory_dir, path)
-
-        # Ensure directory exists
-        os.makedirs(os.path.dirname(file_path), exist_ok=True)
-
-        try:
-            with open(file_path, 'w') as f:
-                f.write(content)
-
-            # Rebuild index to include new content
-            self._rebuild_index()
-
-            return f"Successfully wrote to {path_display}"
-        except Exception as e:
-            return f"Error writing to memory file: {e}"
-
-    def memory_append(self, content: str, path: Optional[str] = None) -> str:
-        """Tool: Append content to a memory file"""
-        if path is None:
-            # Default to today's daily note
-            path_display = os.path.basename(self._get_daily_note_path())
-            file_path = self._get_daily_note_path()
-        elif path.startswith("memory/"):
-            path_display = path
-            file_path = os.path.join(self.memory_dir, path)
-        elif path == "MEMORY.md":
-            path_display = path
-            file_path = self.memory_file
-        else:
-            path_display = path
-            file_path = os.path.join(self.memory_dir, path)
-
-        # Ensure directory exists
-        os.makedirs(os.path.dirname(file_path), exist_ok=True)
-
-        try:
-            with open(file_path, 'a') as f:
-                f.write(content)
-                if not content.endswith('\n'):
-                    f.write('\n')
-
-            # Rebuild index to include new content
-            self._rebuild_index()
-
-            return f"Successfully appended to {path_display}"
-        except Exception as e:
-            return f"Error appending to memory file: {e}"
-
-    def get_tools(self) -> list:
-        """Get tools provided by the Agentic Memory handler"""
-        return [
-            create_io_tool(
-                "memory_search",
-                "Search memory files (MEMORY.md and daily notes) using semantic vector embeddings. Use this tool when you need to find previously stored information, facts about the user, or context from past conversations. Returns relevant snippets with file paths and line numbers. Examples: 'what are the user interests', 'find information about project goals', 'user preferences mentioned'.",
-                self.memory_search,
-                title="Memory Search",
-                tools_group="Memory",
-                icon_name="system-search-symbolic"
-            ),
-            create_io_tool(
-                "memory_get",
-                "Read a specific memory file by path. Use this tool when you want to read the entire contents of a memory file rather than searching. Use 'MEMORY.md' for long-term consolidated facts or 'memory/YYYY-MM-DD.md' for specific daily notes. Optional parameters: line_offset and line_limit for reading specific ranges.",
-                self.memory_get,
-                title="Memory Read",
-                tools_group="Memory",
-                icon_name="document-open-symbolic"
-            ),
-            create_io_tool(
-                "memory_write",
-                "Write content to a memory file, overwriting any existing content. Use this tool when you need to create a new memory file or completely replace an existing one. For long-term important facts, use path='MEMORY.md'. For daily notes, use path='memory/YYYY-MM-DD.md'. Use memory_append instead to add content without overwriting.",
-                self.memory_write,
-                title="Memory Write",
-                tools_group="Memory",
-                icon_name="document-save-symbolic"
-            ),
-            create_io_tool(
-                "memory_append",
-                "Append content to a memory file without overwriting existing content. Use this tool when you want to add new information to a memory file. If no path specified, defaults to today's daily note (memory/YYYY-MM-DD.md). Use path='MEMORY.md' to append to long-term facts. Use memory_write instead to completely replace file contents.",
-                self.memory_append,
-                title="Memory Append",
-                tools_group="Memory",
-                icon_name="list-add-symbolic"
-            ),
-        ]
