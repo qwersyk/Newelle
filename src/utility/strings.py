@@ -56,6 +56,11 @@ def clean_message_tts(text: str) -> str:
     # Remove thinking blocks
     text = remove_thinking_blocks(text)
 
+    # Remove fenced markdown code blocks (and their content)
+    # Handles both ``` and ~~~ fences, including unclosed trailing fences
+    text = re.sub(r'```[\s\S]*?(?:```|$)', '', text)
+    text = re.sub(r'~~~[\s\S]*?(?:~~~|$)', '', text)
+
     # Remove markdown formatting
     text = remove_markdown(text)
 
