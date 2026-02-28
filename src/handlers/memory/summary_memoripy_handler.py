@@ -12,6 +12,7 @@ class SummaryMemoripyHanlder(MemoryHandler):
         self.user_summary = None
         self.llm = None 
         self.embedding = None
+        self.rag = None
 
     def is_installed(self) -> bool:
         memoripy, user_summary = self.initialize_handlers() 
@@ -21,13 +22,14 @@ class SummaryMemoripyHanlder(MemoryHandler):
         memoripy, user_summary = self.initialize_handlers() 
         memoripy.install()
         user_summary.install()
+        self._is_installed_cache = None
     
     def initialize_handlers(self) -> tuple[MemoryHandler, MemoryHandler]:
         if self.memoripy is None or self.user_summary is None:
             self.memoripy = MemoripyHandler(self.settings, self.path)
             self.user_summary = UserSummaryHandler(self.settings, self.path)
-            self.memoripy.set_handlers(self.llm, self.embedding)
-            self.user_summary.set_handlers(self.llm, self.embedding)
+            self.memoripy.set_handlers(self.llm, self.embedding, self.rag)
+            self.user_summary.set_handlers(self.llm, self.embedding, self.rag)
             self.user_summary.set_memory_size(self.memory_size)
             self.memoripy.set_memory_size(self.memory_size)
         return self.memoripy, self.user_summary

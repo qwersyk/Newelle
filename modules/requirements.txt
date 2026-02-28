@@ -1,9 +1,10 @@
-# List of Python requirements 
+# List of Python requirements
 requests
 expandvars
 pillow
 pyaudio
 pydub
+webrtcvad-wheels
 openai
 tiktoken
 newspaper3k
@@ -13,6 +14,7 @@ lxml_html_clean
 pylatexenc
 matplotlib
 markdownify
+pysilero-vad
 # If you are packaging the application, you can ignore these requirements
 # (better if you install them)
 model2vec
@@ -24,7 +26,7 @@ llama-index-retrievers-bm25
 docx2txt
 speechrecognition
 gtts
-
+openwakeword
 # list of non-python requirements
 # - git
 # - vte4

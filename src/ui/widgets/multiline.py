@@ -48,7 +48,16 @@ class MultilineEntry(Gtk.Box):
         self.add_css_class("card")
         self.add_css_class("frame")
         self.input_panel.add_css_class("multilineentry")
-        apply_css_to_widget(self.input_panel, ".multilineentry { background-color: rgba(0,0,0,0); font-size: 15px;}")
+        apply_css_to_widget(self.input_panel, """
+            .multilineentry {
+                background-color: rgba(0,0,0,0);
+                font-size: 15px;
+                font-family: 'System UI', -apple-system, sans-serif;
+            }
+            .multilineentry text {
+                background-color: transparent;
+            }
+        """)
 
         # Add TextView to the ScrolledWindow
         scroll.set_child(self.input_panel)

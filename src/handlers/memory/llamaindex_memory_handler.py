@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import Any, List, Optional
 import threading
 import os
 import shutil
@@ -7,9 +7,11 @@ import numpy as np
 
 from .memory_handler import MemoryHandler
 from ...handlers.embeddings.embedding import EmbeddingHandler
-from ...handlers.llm import LLMHandler 
-from ...handlers import ExtraSettings 
+from ...handlers.llm import LLMHandler
+from ...handlers.rag.rag_handler import RAGHandler
+from ...handlers import ExtraSettings
 from ...utility.pip import find_module, install_module
+from ...utility.strings import clean_prompt, remove_thinking_blocks
 
 class LlamaIndexMemoryHandler(MemoryHandler):
     key = "llamaindex"
@@ -22,10 +24,12 @@ class LlamaIndexMemoryHandler(MemoryHandler):
         self.loaded = False
         self.embedding = None
         self.llm = None
+        self.rag = None
 
-    def set_handlers(self, llm: LLMHandler, embedding: EmbeddingHandler):
+    def set_handlers(self, llm: LLMHandler, embedding: EmbeddingHandler, rag: Optional[RAGHandler] = None):
         self.llm = llm
         self.embedding = embedding
+        self.rag = rag
         self.load_index()
 
     def is_installed(self) -> bool:
@@ -35,6 +39,7 @@ class LlamaIndexMemoryHandler(MemoryHandler):
        if not self.is_installed(): 
            dependencies = "tiktoken faiss-cpu llama-index-core llama-index-readers-file llama-index-vector-stores-faiss"
            install_module(dependencies, self.pip_path)
+       self._is_installed_cache = None
 
     def get_extra_settings(self) -> list:
         return [
@@ -102,6 +107,7 @@ class LlamaIndexMemoryHandler(MemoryHandler):
             self.loading_thread.join()
 
     def get_context(self, prompt: str, history: list[dict[str, str]]) -> list[str]:
+        prompt = clean_prompt(prompt)
         if not self.is_installed():
             return []
             
@@ -139,14 +145,17 @@ class LlamaIndexMemoryHandler(MemoryHandler):
             return
 
         from llama_index.core import Document
-        
+
         if not history:
             return
-            
+
         last_user_msg = history[-1].get("Message", "")
-        
+
+        # Remove thinking blocks from bot response before storing
+        bot_response = remove_thinking_blocks(bot_response)
+
         interaction = f"User: {last_user_msg}\nAssistant: {bot_response}"
-        
+
         doc = Document(text=interaction)
         self.index.insert(doc)
         self.index.storage_context.persist(self.data_path)

@@ -194,5 +194,42 @@
         <key name="custom-document-folders" type="as">
             <default>[]</default>
         </key>
+        <!-- Wakeword settings -->
+        <key name="wakeword-on" type="b">
+            <default>false</default>
+        </key>
+        <key name="wakeword-mode" type="s">
+            <default>"secondary-stt"</default>
+        </key>
+        <key name="wakeword-engine" type="s">
+            <default>"openwakeword"</default>
+        </key>
+        <key name="wakeword-engine-settings" type="s">
+            <default>"{}"</default>
+        </key>
+        <key name="wakeword" type="s">
+            <default>"hello, hi, newelle, computer"</default>
+        </key>
+        <key name="wakeword-vad-aggressiveness" type="i">
+            <default>1</default>
+        </key>
+        <key name="wakeword-pre-buffer-duration" type="d">
+            <default>0.2</default>
+        </key>
+        <key name="wakeword-silence-duration" type="d">
+            <default>0.15</default>
+        </key>
+        <key name="wakeword-energy-threshold" type="i">
+            <default>300</default>
+        </key>
+        <key name="secondary-stt-on" type="b">
+            <default>false</default>
+        </key>
+        <key name="secondary-stt-engine" type="s">
+            <default>"sphinx"</default>
+        </key>
+        <key name="stt-secondary-settings" type="s">
+            <default>"{}"</default>
+        </key>
 	</schema>
 </schemalist>

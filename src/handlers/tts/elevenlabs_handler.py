@@ -63,6 +63,7 @@ class ElevenLabs(TTSHandler):
 
     def install(self):
         install_module("elevenlabs==2.9.1", self.pip_path, True)
+        self._is_installed_cache = None
     
     def is_installed(self) -> bool:
         return find_module("elevenlabs") is not None

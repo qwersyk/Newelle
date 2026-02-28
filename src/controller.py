@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Callable
 from gi.repository import GLib, Gio, Adw
 import os
 import base64
@@ -6,8 +6,9 @@ import time
 import re
 import copy
 
-from .tools import ToolRegistry
+from .tools import ToolRegistry, ToolResult
 from .utility.media import get_image_base64, get_image_path, extract_supported_files
+from .utility.message_chunk import get_message_chunks
 
 from .extensions import NewelleExtension
 from .handlers.llm import LLMHandler
@@ -29,7 +30,7 @@ import datetime
 import uuid as uuid_lib
 from .extensions import ExtensionLoader
 from .utility import override_prompts
-from .utility.strings import clean_bot_response, count_tokens, remove_thinking_blocks, get_edited_messages
+from .utility.strings import clean_bot_response, clean_prompt, count_tokens, remove_thinking_blocks, get_edited_messages
 from .utility.replacehelper import PromptFormatter, replace_variables_dict
 from enum import Enum 
 from .handlers import Handler
@@ -69,7 +70,8 @@ EXTENSIONS: Reload EXTENSIONS
     RELOAD_CHAT_LIST = 11
     WEBSEARCH = 12
     OFFERS = 13
-    TOOLS = 14 
+    TOOLS = 14
+    WAKEWORD = 15 
 
 class NewelleController:
     """Main controller, manages the application
@@ -108,27 +110,26 @@ class NewelleController:
     
     def get_chat_by_id(self, chat_id):
         """Get chat messages list by explicit chat_id.
-        
+
         Args:
             chat_id: The chat ID to get messages for
-            
+
         Returns:
-            The chat messages list for the specified chat_id
+            The chat messages list for the specified chat_id, or empty list if invalid
         """
-        if hasattr(self, 'chats') and self.chats:
-            return self.chats[min(chat_id, len(self.chats) - 1)]["chat"]
+        if hasattr(self, 'chats') and self.chats and 0 <= chat_id < len(self.chats):
+            return self.chats[chat_id]["chat"]
         return []
     
     def set_chat_by_id(self, chat_id, value):
         """Set chat messages list by explicit chat_id.
-        
+
         Args:
             chat_id: The chat ID to set messages for
             value: The new chat messages list
         """
-        if hasattr(self, 'chats') and self.chats:
-            index = min(chat_id, len(self.chats) - 1)
-            self.chats[index]["chat"] = value
+        if hasattr(self, 'chats') and self.chats and 0 <= chat_id < len(self.chats):
+            self.chats[chat_id]["chat"] = value
 
     def get_console_reply(self, chat_id, id_message):
         """Get existing console reply from chat history if available."""
@@ -185,6 +186,7 @@ class NewelleController:
         self.tools = ToolRegistry()
         self.msgid = 0
         self.chat_documents_index = {}
+        self.is_call_request = False
 
     def ui_init(self):
         """Init necessary variables for the UI and load models and handlers"""
@@ -198,7 +200,7 @@ class NewelleController:
         self.handlers = HandlersManager(self.settings, self.extensionloader, self.models_dir, self.integrationsloader, self.installing_handlers)
         self.handlers.select_handlers(self.newelle_settings)
         threading.Thread(target=self.handlers.cache_handlers).start()
-
+        self.handlers.add_tools(self.tools)
     def init_paths(self) -> None:
         """Define paths for the application"""
         self.config_dir = GLib.get_user_config_dir()
@@ -238,6 +240,17 @@ class NewelleController:
         """Save chats"""
         with open(self.chats_path, 'wb') as f:
             pickle.dump(self.chats, f)
+
+    def create_call_chat(self):
+        """Create a new call chat that won't be displayed in the chat list"""
+        new_chat = {
+            "name": _("Call " + str(len(self.chats))),
+            "chat": [],
+            "call": True
+        }
+        self.chats.append(new_chat)
+        self.save_chats()
+        return len(self.chats) - 1
 
     def check_path_integrity(self):
         """Create missing directories"""
@@ -304,20 +317,23 @@ class NewelleController:
         elif reload_type == ReloadType.LLM:
             self.handlers.llm.destroy()
             self.handlers.select_handlers(self.newelle_settings)
-            GLib.idle_add(threading.Thread(target=self.wait_llm_loading).start)
+            GLib.timeout_add(50, threading.Thread(target=self.wait_llm_loading).start)
         elif reload_type == ReloadType.SECONDARY_LLM:
             self.handlers.select_handlers(self.newelle_settings)
             if self.newelle_settings.use_secondary_language_model:
-                threading.Thread(target=self.handlers.secondary_llm.load_model, args=(None,)).start()
+                GLib.timeout_add(100,threading.Thread(target=self.handlers.secondary_llm.load_model, args=(None,)).start)
         elif reload_type in [ReloadType.TTS, ReloadType.STT, ReloadType.MEMORIES]:
+            if ReloadType.MEMORIES:
+                self.require_tool_update()
             self.handlers.select_handlers(self.newelle_settings)
         elif reload_type == ReloadType.RAG:
             self.handlers.select_handlers(self.newelle_settings)
             if self.newelle_settings.rag_on:
-                threading.Thread(target=self.handlers.rag.load).start()
+                GLib.timeout_add(400, threading.Thread(target=self.handlers.rag.load).start)
+            self.require_tool_update()
         elif reload_type == ReloadType.EMBEDDINGS:
             self.handlers.select_handlers(self.newelle_settings)
-            threading.Thread(target=self.handlers.embedding.load_model).start()
+            GLib.timeout_add(300, threading.Thread(target=self.handlers.embedding.load_model).start)
         elif reload_type == ReloadType.PROMPTS:
             return
         elif reload_type == ReloadType.WEBSEARCH:
@@ -356,6 +372,8 @@ class NewelleController:
         self.tools = ToolRegistry()
         self.extensionloader.add_tools(self.tools)
         self.integrationsloader.add_tools(self.tools)
+        # Add tools from memory and rag handlers
+        self.handlers.add_tools(self.tools)
     
     def get_enabled_tools(self) -> list:
         """Get the list of enabled tools
@@ -670,6 +688,8 @@ class NewelleController:
             return self.newelle_settings.current_profile
         elif name == "external_browser":
             return self.newelle_settings.external_browser
+        elif name == "call":
+            return self.is_call_request
         elif name == "history":
             return "\n".join([f"{msg['User']}: {msg['Message']}" for msg in self.get_history()])
         elif name == "message":
@@ -759,7 +779,7 @@ class NewelleController:
                 
                 if existing_index.get_index_size() > self.newelle_settings.rag_limit: 
                     r += existing_index.query(
-                        chat[-1]["Message"]
+                        clean_prompt(chat[-1]["Message"])
                     )
                 else:
                     r += existing_index.get_all_contexts()
@@ -786,18 +806,25 @@ class NewelleController:
 
     def prepare_generation(self, chat_id=None):
         """Prepare contexts and prompts for generation.
-        
+
         Args:
             chat_id: Optional chat ID to use. If None, uses current chat_id from settings.
-            
+
         Returns:
             Tuple of (prompts, history, old_history, old_user_prompt, chat, effective_chat_id)
+            Returns (None, None, None, None, None, None) if chat_id is invalid
         """
         # Use explicit chat_id or fall back to current
         effective_chat_id = chat_id if chat_id is not None else self.newelle_settings.chat_id
+
+        # Validate chat_id is within bounds
+        if not self.chats or effective_chat_id < 0 or effective_chat_id >= len(self.chats):
+            print(f"prepare_generation: Invalid chat_id {effective_chat_id}, chats length: {len(self.chats) if self.chats else 0}")
+            return None, None, None, None, None, None
+
         chat = self.get_chat_by_id(effective_chat_id)
-        
-        # Save profile for generation 
+
+        # Save profile for generation
         self.chats[effective_chat_id]["profile"] = self.newelle_settings.current_profile
 
         # Append extensions prompts
@@ -805,7 +832,7 @@ class NewelleController:
         formatter = PromptFormatter(replace_variables_dict(), self.get_variable)
         for prompt in self.newelle_settings.bot_prompts:
             prompts.append(formatter.format(prompt))
-            
+
         # Append memory
         prompts += self.get_memory_prompt(chat=chat, chat_id=effective_chat_id)
 
@@ -816,25 +843,30 @@ class NewelleController:
         old_user_prompt = chat[-1]["Message"] if chat else ""
         processed_chat, prompts = self.integrationsloader.preprocess_history(chat, prompts)
         chat, prompts = self.extensionloader.preprocess_history(processed_chat, prompts)
-        
+
         # Update the chat in storage if it was modified
         self.set_chat_by_id(effective_chat_id, chat)
-        
+
         return prompts, history, old_history, old_user_prompt, chat, effective_chat_id
 
 
     def generate_response(self, stream_number_variable, update_callback, chat_id=None):
         """
-        Generator for the response. 
+        Generator for the response.
         Yields (status, data) tuples.
         status can be: 'stream', 'error', 'done', 'edited_messages'
-        
+
         Args:
             stream_number_variable: Variable to track stream number for cancellation
             update_callback: Callback for streaming updates
             chat_id: Optional chat ID to use. If None, uses current chat_id from settings.
         """
         prompts, history, old_history, old_user_prompt, chat, effective_chat_id = self.prepare_generation(chat_id=chat_id)
+
+        # Handle invalid chat_id
+        if prompts is None:
+            yield ('error', 'Invalid chat ID: the chat may have been deleted')
+            return
         
         # Check for edited messages
         new_history = self.get_history(chat=chat)
@@ -916,6 +948,119 @@ class NewelleController:
             'time': last_generation_time
         })
 
+    def run_llm_with_tools(
+        self,
+        message: str,
+        chat_id: int,
+        system_prompt: list[str] = None,
+        on_message_callback: Callable[[str], None] = None,
+        on_tool_result_callback: Callable[[str, ToolResult], None] = None,
+        max_tool_calls: int = 10,
+        save_chat: bool = False,
+    ) -> str:
+        """Run LLM with tool support integration.
+        
+        Args:
+            message: The user message to send
+            history: Chat history (uses current chat if None)
+            system_prompt: System prompts (uses prepared prompts if None)
+            on_message_callback: Callback for streaming message updates
+            on_tool_result_callback: Callback for tool results, receives (tool_name, ToolResult)
+            max_tool_calls: Maximum number of tool calls to execute (prevents infinite loops)
+            chat_id: Chat ID to use (uses current if None)
+            save_chat: If True, assistant messages are added to chat history
+            
+        Returns:
+            Final message from the LLM
+        """
+        self.chats[chat_id]["chat"].append({"User": "User", "Message": message})
+        history = self.get_history(chat=self.chats[chat_id]["chat"], include_last_message=True)
+        if system_prompt is None:
+            _, _, _, _, _, effective_chat_id = self.prepare_generation(chat_id=chat_id)
+            system_prompt = []
+            formatter = PromptFormatter(replace_variables_dict(), self.get_variable)
+            for prompt in self.newelle_settings.bot_prompts:
+                system_prompt.append(formatter.format(prompt))
+            system_prompt += self.get_memory_prompt(chat_id=effective_chat_id)
+        
+        current_history = history.copy()
+        
+        for iteration in range(max_tool_calls):
+            full_response = ""
+            
+            def stream_callback(text: str):
+                nonlocal full_response
+                full_response += text
+                if on_message_callback:
+                    on_message_callback(text)
+            
+            if self.handlers.llm.stream_enabled():
+                response = self.handlers.llm.send_message_stream(
+                    message if iteration == 0 else "",
+                    current_history,
+                    system_prompt,
+                    stream_callback
+                )
+            else:
+                response = self.handlers.llm.send_message(
+                    message if iteration == 0 else "",
+                    system_prompt,
+                    current_history
+                )
+                if on_message_callback:
+                    on_message_callback(response)
+            
+            chunks = get_message_chunks(response)
+            
+            text_content = ""
+            tool_calls = []
+            
+            for chunk in chunks:
+                if chunk.type == "tool_call":
+                    tool_calls.append({"name": chunk.tool_name, "args": chunk.tool_args})
+                elif chunk.type in ("text", "markdown"):
+                    text_content += chunk.text
+            
+            if not tool_calls:
+                current_history.append({"User": "Assistant", "Message": text_content})
+                if save_chat:
+                    self.chats[chat_id]["chat"].append({"User": "Assistant", "Message": text_content})
+                return text_content
+            
+            for tool_call in tool_calls:
+                tool_name = tool_call["name"]
+                tool_args = tool_call["args"]
+                
+                try:
+                    result = self.tools.execute_tool(tool_name, tool_args)
+                    if isinstance(result, ToolResult):
+                        if on_tool_result_callback:
+                            on_tool_result_callback(tool_name, result)
+                        tool_result_output = result.get_output()
+                    else:
+                        tool_result_output = str(result)
+                        if on_tool_result_callback:
+                            tr = ToolResult(output=tool_result_output)
+                            on_tool_result_callback(tool_name, tr)
+                except Exception as e:
+                    tool_result_output = f"Error: {str(e)}"
+                    if on_tool_result_callback:
+                        tr = ToolResult(output=tool_result_output)
+                        on_tool_result_callback(tool_name, tr)
+                
+                current_history.append({
+                    "User": "Assistant",
+                    "Message": f"```json\n{{\"name\": \"{tool_name}\", \"arguments\": {json.dumps(tool_args)}}}\n```"
+                })
+                current_history.append({
+                    "User": "Tool",
+                    "Message": f"[Tool: {tool_name}]\n{tool_result_output}"
+                })
+        
+        if save_chat:
+            self.chats[chat_id]["chat"].append({"User": "Assistant", "Message": text_content})
+        return text_content
+
 
 class NewelleSettings:
 
@@ -953,6 +1098,8 @@ class NewelleSettings:
         self.tts_voice = settings.get_string("tts-voice")
         self.stt_engine = settings.get_string("stt-engine")
         self.stt_settings = settings.get_string("stt-settings")
+        self.secondary_stt_engine = settings.get_string("secondary-stt-engine")
+        self.secondary_stt_settings = settings.get_string("stt-secondary-settings")
         self.external_terminal = settings.get_string("external-terminal")
         self.automatic_stt = settings.get_boolean("automatic-stt")
         self.stt_silence_detection_threshold = settings.get_double("stt-silence-detection-threshold")
@@ -992,6 +1139,15 @@ class NewelleSettings:
         self.tools_settings_dict = json.loads(self.tools_settings)
         self.mcp_servers = self.settings.get_string("mcp-servers")
         self.mcp_servers_dict = json.loads(self.mcp_servers)
+        self.wakeword_enabled = settings.get_boolean("wakeword-on")
+        self.wakeword_mode = settings.get_string("wakeword-mode")
+        self.wakeword_engine = settings.get_string("wakeword-engine")
+        self.wakeword_engine_settings = settings.get_string("wakeword-engine-settings")
+        self.wakeword = settings.get_string("wakeword")
+        self.wakeword_vad_aggressiveness = settings.get_int("wakeword-vad-aggressiveness")
+        self.wakeword_pre_buffer_duration = settings.get_double("wakeword-pre-buffer-duration")
+        self.wakeword_silence_duration = settings.get_double("wakeword-silence-duration")
+        self.wakeword_energy_threshold = settings.get_int("wakeword-energy-threshold")
         self.load_prompts()
         # Adjust paths
         if os.path.exists(os.path.expanduser(self.main_path)):
@@ -1034,6 +1190,10 @@ class NewelleSettings:
         if self.stt_engine != new_settings.stt_engine:
             reloads.append(ReloadType.STT)
 
+        if self.automatic_stt != new_settings.automatic_stt:
+            if self.wakeword_enabled:
+                reloads.append(ReloadType.WAKEWORD)
+
         if self.embedding_model != new_settings.embedding_model or self.embedding_settings != new_settings.embedding_settings:
             reloads.append(ReloadType.EMBEDDINGS)
 
@@ -1042,6 +1202,7 @@ class NewelleSettings:
 
         if self.rag_on != new_settings.rag_on or self.rag_model != new_settings.rag_model or self.rag_settings != new_settings.rag_settings:
             reloads.append(ReloadType.RAG)
+            
         if self.extensions_settings != new_settings.extensions_settings:
             reloads += [ReloadType.EXTENSIONS, ReloadType.LLM, ReloadType.SECONDARY_LLM, ReloadType.EMBEDDINGS, ReloadType.EMBEDDINGS, ReloadType.MEMORIES, ReloadType.RAG, ReloadType.WEBSEARCH]
         if self.username != new_settings.username:
@@ -1052,6 +1213,19 @@ class NewelleSettings:
             reloads.append(ReloadType.WEBSEARCH)
         if self.mcp_servers != new_settings.mcp_servers or self.tools_settings != new_settings.tools_settings:
             reloads.append(ReloadType.TOOLS)
+        # Check wakeword settings
+        if (self.wakeword_enabled != new_settings.wakeword_enabled or
+            self.wakeword != new_settings.wakeword or
+            self.wakeword_mode != new_settings.wakeword_mode or
+            self.wakeword_engine != new_settings.wakeword_engine or
+            self.wakeword_engine_settings != new_settings.wakeword_engine_settings or
+            self.wakeword_vad_aggressiveness != new_settings.wakeword_vad_aggressiveness or
+            self.wakeword_pre_buffer_duration != new_settings.wakeword_pre_buffer_duration or
+            self.wakeword_silence_duration != new_settings.wakeword_silence_duration or
+            self.wakeword_energy_threshold != new_settings.wakeword_energy_threshold or
+            self.secondary_stt_engine != new_settings.secondary_stt_engine or
+            self.secondary_stt_settings != new_settings.secondary_stt_settings):
+            reloads.append(ReloadType.WAKEWORD)
         # Check prompts
         if len(self.prompts) != len(new_settings.prompts):
             reloads.append(ReloadType.PROMPTS)
@@ -1088,6 +1262,8 @@ class HandlersManager:
         self.handlers_cached.acquire()
         self.integrationsloader = integrations
         self.installing_handlers = installing_handlers
+        self.secondary_stt = None
+        self.wakeword_handler = None
 
     def destroy(self):
         for handler in self.handlers.values():
@@ -1113,6 +1289,27 @@ class HandlersManager:
             newelle_settings.tts_program = list(AVAILABLE_TTS.keys())[0]
         if newelle_settings.stt_engine not in AVAILABLE_STT:
             newelle_settings.stt_engine = list(AVAILABLE_STT.keys())[0]
+        if newelle_settings.secondary_stt_engine not in AVAILABLE_STT:
+            # Find first secondary-capable STT
+            for key in AVAILABLE_STT:
+                if "secondary" in AVAILABLE_STT[key] and AVAILABLE_STT[key]["secondary"]:
+                    newelle_settings.secondary_stt_engine = key
+                    break
+            else:
+                # Fallback to first STT if none are marked as secondary
+                newelle_settings.secondary_stt_engine = list(AVAILABLE_STT.keys())[0]
+        if newelle_settings.wakeword_engine not in AVAILABLE_STT:
+            # Find first wakeword-capable STT
+            for key in AVAILABLE_STT:
+                if AVAILABLE_STT[key].get("wakeword", False):
+                    newelle_settings.wakeword_engine = key
+                    break
+            else:
+                # Fallback to openwakeword if available, or first STT
+                if "openwakeword" in AVAILABLE_STT:
+                    newelle_settings.wakeword_engine = "openwakeword"
+                else:
+                    newelle_settings.wakeword_engine = list(AVAILABLE_STT.keys())[0]
         if newelle_settings.websearch_model not in AVAILABLE_WEBSEARCH:
             newelle_settings.websearch_model = list(AVAILABLE_WEBSEARCH.keys())[0]
       
@@ -1123,16 +1320,23 @@ class HandlersManager:
         """Assign the selected handlers
 
         Args:
-            newelle_settings: Newelle settings 
+            newelle_settings: Newelle settings
         """
         self.fix_handlers_integrity(newelle_settings)
-        # Get LLM 
+        # Get LLM
         self.llm : LLMHandler = self.get_object(AVAILABLE_LLMS, newelle_settings.language_model)
         if newelle_settings.use_secondary_language_model:
             self.secondary_llm : LLMHandler = self.get_object(AVAILABLE_LLMS, newelle_settings.secondary_language_model, True)
         else:
             self.secondary_llm : LLMHandler = self.llm
         self.stt : STTHandler = self.get_object(AVAILABLE_STT, newelle_settings.stt_engine)
+        # Set wakeword handler based on mode
+        if newelle_settings.wakeword_mode == "secondary-stt":
+            self.secondary_stt : STTHandler = self.get_object(AVAILABLE_STT, newelle_settings.secondary_stt_engine, True)
+            self.wakeword_handler : STTHandler = None
+        else:  # openwakeword mode
+            self.wakeword_handler : STTHandler = self.get_object(AVAILABLE_STT, newelle_settings.wakeword_engine, True)
+            self.secondary_stt : STTHandler = None
         self.tts : TTSHandler = self.get_object(AVAILABLE_TTS, newelle_settings.tts_program)
         self.embedding : EmbeddingHandler= self.get_object(AVAILABLE_EMBEDDINGS, newelle_settings.embedding_model)
         self.memory : MemoryHandler = self.get_object(AVAILABLE_MEMORIES, newelle_settings.memory_model)
@@ -1142,7 +1346,7 @@ class HandlersManager:
         # Assign handlers 
         self.integrationsloader.set_handlers(self.llm, self.stt, self.tts, self.secondary_llm, self.embedding, self.rag, self.memory, self.websearch)
         self.extensionloader.set_handlers(self.llm, self.stt, self.tts, self.secondary_llm, self.embedding, self.rag, self.memory, self.websearch)
-        self.memory.set_handlers(self.secondary_llm, self.embedding)
+        self.memory.set_handlers(self.secondary_llm, self.embedding, self.rag)
 
         self.rag.set_handlers(self.llm, self.embedding)
         threading.Thread(target=self.install_missing_handlers).start()
@@ -1155,6 +1359,13 @@ class HandlersManager:
                 handler.set_error_func(func)
         threading.Thread(target=async_set).start()
 
+    def add_tools(self, tools: ToolRegistry):
+        if self.memory is not None:
+            for tool in self.memory.get_tools():
+                tools.register_tool(tool)
+        for tool in self.rag.get_tools():
+            tools.register_tool(tool)
+
     def load_handlers(self):
         """Load handlers"""
         threading.Thread(target=self.llm.load_model, args=(None,)).start()
@@ -1163,6 +1374,7 @@ class HandlersManager:
         self.embedding.load_model()
         if self.settings.get_boolean("rag-on"):
             self.rag.load()
+        
 
     def install_missing_handlers(self):
         """Install selected handlers that are not installed. Assumes that select_handlers has been called""" 
@@ -1190,6 +1402,9 @@ class HandlersManager:
         # Secondary LLMs
         for key in AVAILABLE_LLMS:
             self.handlers[(key, self.convert_constants(AVAILABLE_LLMS), True)] = self.get_object(AVAILABLE_LLMS, key, True)
+        # Secondary STTs
+        for key in AVAILABLE_STT:
+            self.handlers[(key, self.convert_constants(AVAILABLE_STT), True)] = self.get_object(AVAILABLE_STT, key, True)
         for key in AVAILABLE_MEMORIES:
             self.handlers[(key, self.convert_constants(AVAILABLE_MEMORIES), False)] = self.get_object(AVAILABLE_MEMORIES, key)
         for key in AVAILABLE_RAGS:
@@ -1267,13 +1482,15 @@ class HandlersManager:
         Returns:
             The created handler           
         """
-        if (key, self.convert_constants(constants), secondary) in self.handlers:
-            return self.handlers[(key, self.convert_constants(constants), secondary)]
+        cache_key = (key, self.convert_constants(constants), secondary)
+        if cache_key in self.handlers:
+            return self.handlers[cache_key]
         if constants == AVAILABLE_LLMS:
             model = constants[key]["class"](self.settings, self.directory)
             model.set_secondary_settings(secondary)
         elif constants == AVAILABLE_STT:
             model = constants[key]["class"](self.settings,self.directory)
+            model.set_secondary_settings(secondary)
         elif constants == AVAILABLE_TTS:
             model = constants[key]["class"](self.settings, self.directory)
         elif constants == AVAILABLE_MEMORIES:
@@ -1290,6 +1507,7 @@ class HandlersManager:
                 raise Exception("Extension not found")
         else:
             raise Exception("Unknown constants")
+        self.handlers[cache_key] = model
         return model
 
     def get_constants_from_object(self, handler: Handler) -> dict[str, Any]:

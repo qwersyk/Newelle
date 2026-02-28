@@ -145,7 +145,16 @@ class ChatHistory(Gtk.Box):
     def scrolled_chat(self):
         """Scroll at the bottom of the chat"""
         adjustment = self.chat_scroll.get_vadjustment()
+        # Scroll to the bottom: upper - page_size gives us the maximum value
+        # Queue a resize and scroll in idle to ensure the widget is fully allocated
+        self.chat_scroll.queue_resize()
+        GLib.timeout_add(200, self._do_scroll)
+
+    def _do_scroll(self):
+        """Actually perform the scroll after widget allocation"""
+        adjustment = self.chat_scroll.get_vadjustment()
         adjustment.set_value(100000)
+        return False
 
     def update_button_text(self):
         """Update clear chat, regenerate message and continue buttons, add offers"""
@@ -410,7 +419,7 @@ class ChatHistory(Gtk.Box):
         self.messages_box.append(box)
 
         # Update lazy_loaded_end when a message is displayed beyond the current range
-        if False and self.lazy_load_enabled:
+        if self.lazy_load_enabled:
             if id_message >= self.lazy_loaded_end:
                 self.lazy_loaded_end = id_message + 1
 

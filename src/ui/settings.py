@@ -8,6 +8,8 @@ from subprocess import Popen
 
 from gi.repository import Gtk, Adw, Gio, GLib, GtkSource
 
+from ..utility.util import PerformanceMonitor
+
 from ..handlers import Handler
 
 from ..constants import AVAILABLE_EMBEDDINGS, AVAILABLE_LLMS, AVAILABLE_MEMORIES, AVAILABLE_PROMPTS, AVAILABLE_TTS, AVAILABLE_STT, PROMPTS, AVAILABLE_RAGS, AVAILABLE_WEBSEARCH
@@ -17,7 +19,6 @@ from .widgets import MultilineEntry
 from ..utility.system import can_escape_sandbox, get_spawn_command, open_website, open_folder, is_flatpak 
 
 from ..controller import NewelleController
-
 
 class Settings(Adw.PreferencesWindow):
     def __init__(self,app, controller: NewelleController,headless=False, startup_page=None, popup=False, *args, **kwargs):
@@ -36,6 +37,8 @@ class Settings(Adw.PreferencesWindow):
         # Load extensions 
         self.extensionloader = controller.extensionloader
         self.model_threads = {}
+        self._pending_download_button_rows = []
+        self._download_button_queue_scheduled = False
         # Load custom prompts
         self.custom_prompts = self.controller.newelle_settings.custom_prompts 
         self.prompts_settings = self.controller.newelle_settings.prompts_settings
@@ -69,7 +72,6 @@ class Settings(Adw.PreferencesWindow):
            else:
                 self.LLM.add(row)
         self.LLM.add(others_row)
-
         # Secondary LLM
         self.SECONDARY_LLM = Adw.PreferencesGroup(title=_('Advanced LLM Settings'))
         # Create row
@@ -145,19 +147,171 @@ class Settings(Adw.PreferencesWindow):
         group = Gtk.CheckButton()
         selected = self.settings.get_string("stt-engine")
         for stt_key in AVAILABLE_STT:
-            row = self.build_row(AVAILABLE_STT, stt_key, selected, group)
-            stt_engine.add_row(row)
-        # Automatic STT settings 
+            if AVAILABLE_STT[stt_key].get("primary", True):
+                row = self.build_row(AVAILABLE_STT, stt_key, selected, group)
+                stt_engine.add_row(row)
+
+        # Automatic STT settings
         self.auto_stt = Adw.ExpanderRow(title=_('Automatic Speech To Text'), subtitle=_("Automatically restart speech to text at the end of a text/TTS"))
         self.build_auto_stt()
         self.Voicegroup.add(self.auto_stt)
+        # Wakeword Detection
+        self.wakeword_row = Adw.ExpanderRow(
+            title=_('Wakeword Detection'),
+            subtitle=_("Detect wakeword to send voice commands")
+        )
+        wakeword_enabled = Gtk.Switch(valign=Gtk.Align.CENTER)
+        self.settings.bind("wakeword-on", wakeword_enabled, 'active',
+                           Gio.SettingsBindFlags.DEFAULT)
+        self.wakeword_row.add_action(wakeword_enabled)
+
+        # Wakeword mode toggle group
+        mode_row = Adw.ActionRow(title=_('Detection Method'), subtitle=_("Choose wakeword detection method"))
+        mode_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6, valign=Gtk.Align.CENTER)
+        
+        current_mode = self.settings.get_string("wakeword-mode")
+        self.wakeword_mode_secondary = Gtk.ToggleButton(label=_("Secondary STT"), active=(current_mode == "secondary-stt"))
+        self.wakeword_mode_secondary.add_css_class("flat")
+        self.wakeword_mode_wakeword = Gtk.ToggleButton(label=_("Wakeword Model"), group=self.wakeword_mode_secondary, active=(current_mode == "openwakeword"))
+        self.wakeword_mode_wakeword.add_css_class("flat")
+        
+        mode_box.append(self.wakeword_mode_secondary)
+        mode_box.append(self.wakeword_mode_wakeword)
+        mode_row.add_suffix(mode_box)
+        self.wakeword_row.add_row(mode_row)
+
+        # Secondary STT mode rows (visible when secondary-stt mode is selected)
+        self.secondary_stt_rows = []
+        
+        # Secondary STT engine selection
+        secondary_stt_engine = Adw.ExpanderRow(
+            title=_('Secondary STT Engine'),
+            subtitle=_("Fast STT for quick wakeword detection")
+        )
+        group = Gtk.CheckButton()
+        selected = self.settings.get_string("secondary-stt-engine")
+        for stt_key in AVAILABLE_STT:
+            if "secondary" in AVAILABLE_STT[stt_key] and AVAILABLE_STT[stt_key]["secondary"]:
+                row = self.build_row(AVAILABLE_STT, stt_key, selected, group, True)
+                secondary_stt_engine.add_row(row)
+        self.wakeword_row.add_row(secondary_stt_engine)
+        self.secondary_stt_rows.append(secondary_stt_engine)
+
+        # Wakeword text entry (for secondary STT mode)
+        wakeword_entry = Adw.EntryRow(title=_('Wakeword'))
+        wakeword_entry.set_tooltip_text(_("Word or phrase to detect (multiple separated by comma)"))
+        self.settings.bind("wakeword", wakeword_entry, 'text',
+                           Gio.SettingsBindFlags.DEFAULT)
+        self.wakeword_row.add_row(wakeword_entry)
+        self.secondary_stt_rows.append(wakeword_entry)
+
+        # Wakeword engine mode rows (visible when openwakeword mode is selected)
+        self.wakeword_engine_rows = []
+        
+        # Wakeword engine selection (handlers with "wakeword": True)
+        wakeword_engine = Adw.ExpanderRow(
+            title=_('Wakeword Engine'),
+            subtitle=_("Model specialized for wakeword detection")
+        )
+        group = Gtk.CheckButton()
+        selected = self.settings.get_string("wakeword-engine")
+        for stt_key in AVAILABLE_STT:
+            if AVAILABLE_STT[stt_key].get("wakeword", False):
+                row = self.build_row(AVAILABLE_STT, stt_key, selected, group, True)
+                wakeword_engine.add_row(row)
+        self.wakeword_row.add_row(wakeword_engine)
+        self.wakeword_engine_rows.append(wakeword_engine)
+
+        # Pre-buffer duration
+        pre_buffer_adj = Gtk.Adjustment(
+            lower=0.1,
+            upper=2.0,
+            step_increment=0.1,
+            page_increment=0.5
+        )
+        pre_buffer_adj.set_value(self.settings.get_double("wakeword-pre-buffer-duration"))
+        pre_buffer_row = Adw.SpinRow(
+            title=_('Pre-buffer Duration'),
+            subtitle=_("Seconds of audio to capture before speech"),
+            adjustment=pre_buffer_adj,
+            digits=1
+        )
+        def update_pre_buffer(spin, input):
+            self.settings.set_double("wakeword-pre-buffer-duration", spin.get_value())
+            return False
+        pre_buffer_row.connect("input", update_pre_buffer)
+        self.wakeword_row.add_row(pre_buffer_row)
+
+        # Silence duration
+        silence_adj = Gtk.Adjustment(
+            lower=0.1,
+            upper=5.0,
+            step_increment=0.05,
+            page_increment=0.5
+        )
+        silence_adj.set_value(self.settings.get_double("wakeword-silence-duration"))
+        silence_row = Adw.SpinRow(
+            title=_('Silence Timeout'),
+            subtitle=_("Seconds of silence to end speech segment"),
+            adjustment=silence_adj,
+            digits=2
+        )
+        def update_silence(spin, input):
+            self.settings.set_double("wakeword-silence-duration", spin.get_value())
+            return False
+        silence_row.connect("input", update_silence)
+        self.wakeword_row.add_row(silence_row)
+
+        # Energy threshold
+        energy_adj = Gtk.Adjustment(
+            lower=0,
+            upper=1000,
+            step_increment=50,
+            page_increment=100
+        )
+        energy_adj.set_value(self.settings.get_int("wakeword-energy-threshold"))
+        energy_row = Adw.SpinRow(
+            title=_('Noise Threshold'),
+            subtitle=_("Audio energy level to ignore (higher = less sensitive, 0-1000)"),
+            adjustment=energy_adj,
+            digits=0
+        )
+        def update_energy(spin, input):
+            self.settings.set_int("wakeword-energy-threshold", int(spin.get_value()))
+            return False
+        energy_row.connect("input", update_energy)
+        self.wakeword_row.add_row(energy_row)
+
+        # Toggle visibility based on mode
+        def on_wakeword_mode_changed(btn):
+            is_wakeword = self.wakeword_mode_wakeword.get_active()
+            mode = "openwakeword" if is_wakeword else "secondary-stt"
+            self.settings.set_string("wakeword-mode", mode)
+            for row in self.secondary_stt_rows:
+                row.set_visible(not is_wakeword)
+            for row in self.wakeword_engine_rows:
+                row.set_visible(is_wakeword)
+        
+        self.wakeword_mode_secondary.connect("toggled", on_wakeword_mode_changed)
+        self.wakeword_mode_wakeword.connect("toggled", on_wakeword_mode_changed)
+        
+        # Set initial visibility
+        is_wakeword_mode = current_mode == "openwakeword"
+        for row in self.secondary_stt_rows:
+            row.set_visible(not is_wakeword_mode)
+        for row in self.wakeword_engine_rows:
+            row.set_visible(is_wakeword_mode)
+
+        self.Voicegroup.add(self.wakeword_row)
         # Build prompts settings 
         self.prompt = Adw.PreferencesGroup(title=_('Prompt control'))
         self.PromptsPage.add(self.prompt)
         self.prompts_rows = []
         self.build_prompts_settings()
-        # Build tools settings
-        self.build_tools_page()
+        # Build tools settings lazily (first time Tools page is opened)
+        self.tools_page_initialized = False
+        self._building_tools_page = False
+        self.tool_rows = []
         # Interface settings
         self.interface = Adw.PreferencesGroup(title=_('Interface'))
         self.general_page.add(self.interface)
@@ -323,19 +477,46 @@ class Settings(Adw.PreferencesWindow):
         self.add(self.ToolsPage)
         self.add(self.MemoryPage)
         self.add(self.general_page)  
+        self.connect("notify::visible-page", self.on_visible_page_changed)
+        if self.popup:
+            # Popup uses tools_group immediately when building its stack.
+            self.ensure_tools_page_initialized()
         if startup_page is not None:
             pages = {"LLM": self.LLMPage, "Prompts": self.PromptsPage, "Memory": self.MemoryPage, "General": self.general_page}
             self.set_visible_page(pages[startup_page])
-    
+    def on_visible_page_changed(self, _window, _pspec):
+        if self.get_visible_page() == self.ToolsPage:
+            self.ensure_tools_page_initialized()
+
+    def ensure_tools_page_initialized(self):
+        if not self.tools_page_initialized:
+            self.build_tools_page()
+
     def build_tools_page(self):
+        if self.tools_page_initialized or self._building_tools_page:
+            return
+        self._building_tools_page = True
+        self.tools_page_initialized = True
         self.tools_group = Adw.PreferencesGroup(title=_("Tools"))
         self.ToolsPage.add(self.tools_group)
-        self.tool_rows = []
         self.refresh_tools_list()
         
         self.build_mcp_settings()
+        self._building_tools_page = False
+
+    def _perf_add(self, name: str):
+        if self.p is not None:
+            self.p.add(name)
+
+    def _perf_print(self):
+        if self.p is not None:
+            self.p.print_differences()
 
     def refresh_tools_list(self):
+        if not self.tools_page_initialized and not self._building_tools_page:
+            self.ensure_tools_page_initialized()
+        if not self.tools_page_initialized:
+            return
         for row in self.tool_rows:
             self.tools_group.remove(row)
         self.tool_rows = []
@@ -1138,21 +1319,28 @@ class Settings(Adw.PreferencesWindow):
         """
         model = constants[key]
         handler = self.get_object(constants, key, secondary)
+        constants_key = self.convert_constants(constants)
+        settings_row_key = (key, constants_key, secondary)
         # Check if the model is the currently selected
         active = False
         if model["key"] == selected:
             active = True
         # Define the type of row
-        self.settingsrows[(key, self.convert_constants(constants), secondary)] = {}
-        if len(handler.get_extra_settings()) > 0:
+        self.settingsrows[settings_row_key] = {}
+        extra_settings = handler.get_extra_settings()
+        if len(extra_settings) > 0:
              row = Adw.ExpanderRow(title=model["title"], subtitle=model["description"])
-             self.add_extra_settings(constants, handler, row)
+             self.settingsrows[settings_row_key]["extra_settings_loaded"] = False
+             self.settingsrows[settings_row_key]["pending_extra_settings"] = extra_settings
+             row.connect("notify::expanded", self.on_row_expanded_build_settings, constants, handler)
         else:
             row = Adw.ActionRow(title=model["title"], subtitle=model["description"])
-        self.settingsrows[(key, self.convert_constants(constants), secondary)]["row"] = row
+            self.settingsrows[settings_row_key]["extra_settings_loaded"] = True
+        self.settingsrows[settings_row_key]["row"] = row
+        self.settingsrows[settings_row_key]["extra_settings"] = []
         
         # Add extra buttons 
-        threading.Thread(target=self.add_download_button, args=(handler, row)).start()
+        self.queue_download_button(handler, row)
         self.add_flatpak_waning_button(handler, row)
        
         # Add copy settings button if it's secondary 
@@ -1163,7 +1351,7 @@ class Settings(Adw.PreferencesWindow):
         # Add check button
         button = Gtk.CheckButton(name=key, group=group, active=active)
         button.connect("toggled", self.choose_row, constants, secondary)
-        self.settingsrows[(key, self.convert_constants(constants), secondary)]["button"] = button 
+        self.settingsrows[settings_row_key]["button"] = button 
         if not self.sandbox and handler.requires_sandbox_escape() or not handler.is_installed():
             button.set_sensitive(False)
         row.add_prefix(button)
@@ -1207,7 +1395,10 @@ class Settings(Adw.PreferencesWindow):
         elif constants == AVAILABLE_TTS:
             setting_name = "tts"
         elif constants == AVAILABLE_STT:
-            setting_name = "stt-engine"
+            if secondary:
+                setting_name = "secondary-stt-engine"
+            else:
+                setting_name = "stt-engine"
         elif constants == AVAILABLE_MEMORIES:
             setting_name = "memory-model"
         elif constants == AVAILABLE_EMBEDDINGS:
@@ -1225,7 +1416,7 @@ class Settings(Adw.PreferencesWindow):
             self.app.win.update_settings()
             self.update_rag_index()
 
-    def add_extra_settings(self, constants : dict[str, Any], handler : Handler, row : Adw.ExpanderRow, nested_settings : list | None = None):
+    def add_extra_settings(self, constants : dict[str, Any], handler : Handler, row : Adw.ExpanderRow, nested_settings : list | None = None, settings : list | None = None):
         """Buld the extra settings for the specified handler. The extra settings are specified by the method get_extra_settings 
             Extra settings format:
             Required parameters:
@@ -1252,14 +1443,42 @@ class Settings(Adw.PreferencesWindow):
         """
         if nested_settings is None: 
             self.settingsrows[(handler.key, self.convert_constants(constants), handler.is_secondary())]["extra_settings"] = []
-            settings = handler.get_extra_settings()
+            settings_to_render = settings if settings is not None else handler.get_extra_settings()
         else:
-            settings = nested_settings
-        for setting in settings:
+            settings_to_render = nested_settings
+        for setting in settings_to_render:
             r = self.create_extra_setting(setting, handler, constants) 
             row.add_row(r)
             self.settingsrows[handler.key, self.convert_constants(constants), handler.is_secondary()]["extra_settings"].append(r)
         handler.set_extra_settings_update(lambda _: GLib.idle_add(self.on_setting_change, constants, handler, handler.key, True))
+
+    def on_row_expanded_build_settings(self, row, _pspec, constants, handler):
+        """Build extra settings lazily the first time the row is expanded."""
+        if not row.get_property("expanded"):
+            return
+        settings_key = (handler.key, self.convert_constants(constants), handler.is_secondary())
+        row_state = self.settingsrows.get(settings_key)
+        if row_state is None or row_state.get("extra_settings_loaded", False):
+            return
+        pending_settings = row_state.pop("pending_extra_settings", None)
+        self.add_extra_settings(constants, handler, row, settings=pending_settings)
+        row_state["extra_settings_loaded"] = True
+
+    def queue_download_button(self, handler: Handler, row: Adw.ActionRow | Adw.ExpanderRow):
+        """Queue download button creation to run incrementally on the GTK main loop."""
+        self._pending_download_button_rows.append((handler, row))
+        if not self._download_button_queue_scheduled:
+            self._download_button_queue_scheduled = True
+            GLib.idle_add(self.process_download_button_queue)
+
+    def process_download_button_queue(self):
+        if not self._pending_download_button_rows:
+            self._download_button_queue_scheduled = False
+            return False
+        handler, row = self._pending_download_button_rows.pop(0)
+        self.add_download_button(handler, row)
+        # Process one row per idle tick to avoid blocking the first render.
+        return True
     
     def create_extra_setting(self, setting : dict, handler: Handler, constants : dict[str, Any]) -> Adw.ExpanderRow | Adw.ActionRow:
         if setting["type"] == "entry":
@@ -1445,9 +1664,15 @@ class Settings(Adw.PreferencesWindow):
             setting_info = {}
 
         if force_change or "update_settings" in setting_info and setting_info["update_settings"]:
+            settings_key = (handler.key, self.convert_constants(constants), handler.is_secondary())
+            row_state = self.settingsrows[settings_key]
+            # If the row hasn't been expanded yet, defer rebuilding until first expansion.
+            if not row_state.get("extra_settings_loaded", True):
+                row_state["pending_extra_settings"] = handler.get_extra_settings()
+                return
             # remove all the elements in the specified expander row 
-            row = self.settingsrows[(handler.key, self.convert_constants(constants), handler.is_secondary())]["row"]
-            setting_list = self.settingsrows[(handler.key, self.convert_constants(constants), handler.is_secondary())]["extra_settings"]
+            row = row_state["row"]
+            setting_list = row_state.get("extra_settings", [])
             if constants == AVAILABLE_RAGS:
                 GLib.idle_add(self.update_rag_index)
             for setting_row in setting_list:
@@ -1719,7 +1944,7 @@ class Settings(Adw.PreferencesWindow):
         dialog.set_body(_("Newelle does not have enough permissions to run commands on your system, please run the following command"))
         dialog.add_response("close", _("Understood"))
         dialog.set_default_response("close")
-        dialog.set_extra_child(CopyBox("flatpak --user override --talk-name=org.freedesktop.Flatpak --filesystem=home io.github.qwersyk.Newelle", "bash", parent = self))
+        dialog.set_extra_child(CopyBox("flatpak --user override --talk-name=org.freedesktop.Flatpak --filesystem=home io.github.qwersyk.Newelle", "bash"))
         dialog.set_close_response("close")
         dialog.set_response_appearance("close", Adw.ResponseAppearance.DESTRUCTIVE)
         dialog.connect('response', lambda dialog, response_id: dialog.destroy())

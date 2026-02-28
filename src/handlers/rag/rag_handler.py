@@ -2,6 +2,7 @@ from ...handlers import Handler
 from ...handlers.embeddings import EmbeddingHandler
 from ...handlers.llm import LLMHandler
 from ...handlers import ExtraSettings
+from ...tools import create_io_tool
 from abc import abstractmethod
 import os
 
@@ -70,7 +71,7 @@ class RAGIndex:
         """Remove documents not in the list from the index and add new documents
 
         Args:
-            documents: List of documents to add 
+            documents: List of documents to add
         """
         for document in self.documents:
             if document not in documents:
@@ -78,6 +79,24 @@ class RAGIndex:
         for document in documents:
             if document not in self.documents:
                 self.insert([document])
+
+    @abstractmethod
+    def persist(self, path: str):
+        """Persist the index to disk
+
+        Args:
+            path: The directory path where to persist the index
+        """
+        pass
+
+    @abstractmethod
+    def load_from_disk(self, path: str):
+        """Load the index from disk
+
+        Args:
+            path: The directory path where the index is persisted
+        """
+        pass
 
 
 class RAGHandler(Handler):
@@ -217,3 +236,5 @@ class RAGHandler(Handler):
             self.indexing = True
             self.create_index()
 
+    def get_tools(self) -> list:
+        return []

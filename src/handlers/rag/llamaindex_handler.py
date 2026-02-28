@@ -3,11 +3,13 @@ import threading
 from time import time
 import numpy as np
 
+from ...utility.strings import clean_prompt
 from ...handlers.llm import LLMHandler 
 from ...handlers.embeddings.embedding import EmbeddingHandler 
 from ...handlers import ExtraSettings 
 from .rag_handler import RAGHandler, RAGIndex 
 from ...utility.pip import find_module, install_module
+from ...tools import Tool, create_io_tool
 import os
 
 class LlamaIndexHanlder(RAGHandler):
@@ -103,6 +105,7 @@ class LlamaIndexHanlder(RAGHandler):
        if not find_module("llama_index") and not find_module("faiss"): 
            dependencies = "tiktoken faiss-cpu llama-index-core llama-index-readers-file llama-index-vector-stores-faiss llama-index-retrievers-bm25"
            install_module(dependencies, self.pip_path)
+       self._is_installed_cache = None
 
     def is_installed(self) -> bool:
         return find_module("llama_index") is not None and find_module("tiktoken") is not None and find_module("faiss") is not None and find_module("llama_index.vector_stores") is not None and find_module("llama_index.retrievers.bm25") is not None
@@ -330,6 +333,8 @@ class LlamaIndexHanlder(RAGHandler):
         if self.index is None:
             return []
         r = []
+        prompt = clean_prompt(prompt)
+
         if self.get_setting("use_llm"):
             query_engine = self.index.as_query_engine()
             response = query_engine.query(prompt)
@@ -401,7 +406,9 @@ class LlamaIndexHanlder(RAGHandler):
                 # We can access them from docstore
                 nodes = list(index.docstore.docs.values())
                 print("Creating BM25 Index...")
-                bm25_retriever = BM25Retriever.from_defaults(nodes=nodes, similarity_top_k=int(self.get_setting("return_documents")))
+                # Ensure similarity_top_k doesn't exceed the number of nodes to avoid warnings
+                similarity_top_k = min(int(self.get_setting("return_documents")), len(nodes)) if nodes else 1
+                bm25_retriever = BM25Retriever.from_defaults(nodes=nodes, similarity_top_k=similarity_top_k)
                 bm25_path = os.path.join(data_path, "bm25_retriever")
                 bm25_retriever.persist(bm25_path)
             except Exception as e:
@@ -482,7 +489,9 @@ class LlamaIndexHanlder(RAGHandler):
                     from llama_index.retrievers.bm25 import BM25Retriever
                     nodes = list(self.index.docstore.docs.values())
                     print("Updating BM25 Index...")
-                    bm25_retriever = BM25Retriever.from_defaults(nodes=nodes, similarity_top_k=int(self.get_setting("return_documents")))
+                    # Ensure similarity_top_k doesn't exceed the number of nodes to avoid warnings
+                    similarity_top_k = min(int(self.get_setting("return_documents")), len(nodes)) if nodes else 1
+                    bm25_retriever = BM25Retriever.from_defaults(nodes=nodes, similarity_top_k=similarity_top_k)
                     bm25_path = os.path.join(data_path, "bm25_retriever")
                     bm25_retriever.persist(bm25_path)
                     
@@ -550,10 +559,12 @@ class LlamaIndexHanlder(RAGHandler):
         
         bm25_retriever = None
         use_bm25 = self.get_setting("use_bm25")
-        if use_bm25:
+        if use_bm25 and document_list:
              try:
                  from llama_index.retrievers.bm25 import BM25Retriever
-                 bm25_retriever = BM25Retriever.from_defaults(nodes=document_list, similarity_top_k=int(self.get_setting("return_documents")))
+                 # Ensure similarity_top_k doesn't exceed the number of nodes to avoid warnings
+                 similarity_top_k = min(int(self.get_setting("return_documents")), len(document_list))
+                 bm25_retriever = BM25Retriever.from_defaults(nodes=document_list, similarity_top_k=similarity_top_k)
              except Exception as e:
                  print(f"Failed to create BM25 retriever: {e}")
 
@@ -585,6 +596,73 @@ class LlamaIndexHanlder(RAGHandler):
                 embeddings = self._embedding_model.get_embedding(texts)
                 return embeddings
         return CustomEmbedding(embedding)
+    
+    def get_tools(self) -> list:
+        """Get tools provided by the RAG handler
+
+        Returns:
+            list: List of tools for semantic search
+        """
+        r= [
+            create_io_tool(
+                name="rag_search_files",
+                description="Perform semantic search over specified files or documents. Use this tool when you need to search through specific documents, files, or URLs for relevant information based on meaning rather than keywords. Supports: file paths (file:path/to/file), direct text content (text:content), and URLs (url:https://example.com). Examples: 'find information about API setup in readme.md', 'search for pricing in documentation.pdf', 'find all mentions of configuration in project files'.",
+                func=self._tool_search_files,
+                title="RAG Search Files",
+                default_on=True,
+                tools_group="RAG"
+            ),
+        ]
+        if self.settings.get_boolean("rag-on"):
+            r += [
+                create_io_tool(
+                    name="rag_search_index",
+                    description="Perform semantic search over the pre-built document index. Use this tool when you need to find information across the user's indexed documents (documents folder and custom folders) without specifying specific files. Returns relevant passages based on semantic similarity to your query. Examples: 'find documentation about authentication', 'search for code examples', 'find information about database setup'. Only use if an index has been created.",
+                    func=self._tool_search_index,
+                    title="RAG Search Index",
+                    default_on=True,
+                    tools_group="RAG"
+                ),
+            ]
+        return r
+
+    def _tool_search_files(self, query: str, documents: list[str]) -> str:
+        """Tool function to perform semantic search over arbitrary files
+
+        Args:
+            query: The semantic search query
+            documents: List of documents to search. Format:
+                file:path/to/file - for local files
+                text:content - for direct text content
+                url:https://url - for URLs
+
+        Returns:
+            Relevant passages from the documents
+        """
+        if type(documents) is not list:
+            documents = [documents]
+        try:
+            results = self.query_document(query, documents)
+            return "\n".join(results) if results else "No relevant results found."
+        except Exception as e:
+            return f"Error performing semantic search: {str(e)}"
+
+    def _tool_search_index(self, query: str) -> str:
+        """Tool function to perform semantic search over the existing index
+
+        Args:
+            query: The semantic search query
+
+        Returns:
+            Relevant passages from the indexed documents
+        """
+        try:
+            if not self.index_exists():
+                return "No index exists. Please create an index first."
+            results = self.get_context(query, [])
+            return "\n".join(results) if results else "No relevant results found in index."
+        except Exception as e:
+            return f"Error searching index: {str(e)}"
 
     def get_llm_adapter(self):
         from llama_index.core.llms import (
@@ -693,4 +771,66 @@ class LlamaIndexIndex(RAGIndex):
             except Exception as e:
                 print("Error deleting document:" + str(e))
         return super().remove(documents)
+
+    def persist(self, path: str):
+        """Persist the index to disk
+
+        Args:
+            path: The directory path where to persist the index
+        """
+        import os
+        from llama_index.core import StorageContext
+
+        # Create directory if it doesn't exist
+        os.makedirs(path, exist_ok=True)
+
+        # Persist the vector store index
+        self.index.storage_context.persist(persist_dir=path)
+
+        # Persist BM25 retriever if used
+        if self.use_bm25 and self.bm25_retriever:
+            try:
+                from llama_index.retrievers.bm25 import BM25Retriever
+                bm25_path = os.path.join(path, "bm25_retriever")
+                self.bm25_retriever.persist(bm25_path)
+            except Exception as e:
+                print(f"Failed to persist BM25 retriever: {e}")
+
+    def load_from_disk(self, path: str):
+        """Load the index from disk
+
+        Args:
+            path: The directory path where the index is persisted
+        """
+        import os
+        from llama_index.core import StorageContext, load_index_from_storage
+        from llama_index.vector_stores.faiss import FaissVectorStore
+        from llama_index.core.retrievers import VectorIndexRetriever
+
+        if not os.path.exists(path):
+            raise FileNotFoundError(f"Index path does not exist: {path}")
+
+        # Load the vector store index
+        vector_store = FaissVectorStore.from_persist_dir(path)
+        storage_context = StorageContext.from_defaults(persist_dir=path, vector_store=vector_store)
+        self.index = load_index_from_storage(storage_context)
+
+        # Recreate retriever
+        similarity_top_k = int(self.return_documents * self.oversample_factor)
+        self.retriever = VectorIndexRetriever(
+            index=self.index,
+            similarity_top_k=similarity_top_k
+        )
+
+        # Load BM25 retriever if it exists
+        if self.use_bm25:
+            try:
+                from llama_index.retrievers.bm25 import BM25Retriever
+                bm25_path = os.path.join(path, "bm25_retriever")
+                if os.path.exists(bm25_path):
+                    self.bm25_retriever = BM25Retriever.from_persist_dir(bm25_path)
+            except Exception as e:
+                print(f"Failed to load BM25 retriever: {e}")
+                self.bm25_retriever = None
+
 

@@ -1,9 +1,9 @@
 from copy import deepcopy
 from .handlers.llm import ClaudeHandler, DeepseekHandler, GroqHandler, OllamaHandler, OpenAIHandler, CustomLLMHandler, GeminiHandler, MistralHandler, OpenRouterHandler, NewelleAPIHandler, G4FHandler, LlamaCPPHandler
-from .handlers.tts import ElevenLabs, gTTSHandler, EspeakHandler, CustomTTSHandler, KokoroTTSHandler, CustomOpenAITTSHandler, OpenAITTSHandler, GroqTTSHandler
-from .handlers.stt import GroqSRHandler, OpenAISRHandler, SphinxHandler, GoogleSRHandler, WhisperCPPHandler, WitAIHandler, VoskHandler, CustomSRHandler
-from .handlers.embeddings import WordLlamaHandler, OpenAIEmbeddingHandler, GeminiEmbeddingHanlder, OllamaEmbeddingHandler, Model2VecHandler
-from .handlers.memory import MemoripyHandler, UserSummaryHandler, SummaryMemoripyHanlder, LlamaIndexMemoryHandler
+from .handlers.tts import ElevenLabs, gTTSHandler, EspeakHandler, CustomTTSHandler, KokoroTTSHandler, CustomOpenAITTSHandler, OpenAITTSHandler, GroqTTSHandler, EdgeTTSHandler
+from .handlers.stt import GroqSRHandler, OpenAISRHandler, SphinxHandler, GoogleSRHandler, WhisperCPPHandler, WitAIHandler, VoskHandler, CustomSRHandler, OpenWakeWordHandler
+from .handlers.embeddings import WordLlamaHandler, OpenAIEmbeddingHandler, GeminiEmbeddingHanlder, OllamaEmbeddingHandler, Model2VecHandler, LlamaCPPEmbeddingHandler
+from .handlers.memory import MemoripyHandler, UserSummaryHandler, SummaryMemoripyHanlder, LlamaIndexMemoryHandler, AgenticMemoryHandler
 from .handlers.rag import LlamaIndexHanlder
 from .handlers.websearch import SearXNGHandler, DDGSeachHandler, TavilyHandler
 from .integrations.website_reader import WebsiteReader
@@ -107,25 +107,38 @@ AVAILABLE_STT = {
         "description": _("Works offline. Optimized Whisper impelementation written in C++"),
         "website": "https://github.com/ggerganov/whisper.cpp",
         "class": WhisperCPPHandler,
+        "secondary": True,
     },
-    "Sphinx": {
+    "openwakeword": {
+        "key": "openwakeword",
+        "title": _("OpenWakeWord"),
+        "description": _("Works offline. Model optimized for wakeword detection. Will output any wakeword listed if detected by the model"),
+        "class": OpenWakeWordHandler,
+        "secondary": False,
+        "primary": False,
+        "wakeword": True,
+    },
+    "sphinx": {
         "key": "sphinx",
         "title": _("CMU Sphinx"),
         "description": _("Works offline. Only English supported"),
         "website": "https://cmusphinx.github.io/wiki/",
         "class": SphinxHandler,
+        "secondary": True,
     },
     "google_sr": {
         "key": "google_sr",
         "title": _("Google Speech Recognition"),
         "description": _("Google Speech Recognition online"),
         "class": GoogleSRHandler,
+        "secondary": True,
     },
     "groq_sr": {
         "key": "groq_sr",
         "title": _("Groq Speech Recognition"),
-        "description": _("Google Speech Recognition online"),
+        "description": _("Speech regnition on Groq"),
         "class": GroqSRHandler,
+        "secondary": True,
     },
     "witai": {
         "key": "witai",
@@ -133,6 +146,7 @@ AVAILABLE_STT = {
         "description": _("wit.ai speech recognition free API (language chosen on the website)"),
         "website": "https://wit.ai",
         "class": WitAIHandler,
+        "secondary": True,
     },
     "vosk": {
         "key": "vosk",
@@ -140,6 +154,7 @@ AVAILABLE_STT = {
         "description": _("Works Offline"),
         "website": "https://github.com/alphacep/vosk-api/",
         "class": VoskHandler,
+        "secondary": True,
     },
     "openai_sr": {
         "key": "openai_sr",
@@ -147,12 +162,14 @@ AVAILABLE_STT = {
         "description": _("Uses OpenAI Whisper API"),
         "website": "https://platform.openai.com/docs/guides/speech-to-text",
         "class": OpenAISRHandler,
+        "secondary": True,
     },
    "custom_command": {
         "key": "custom_command",
         "title": _("Custom command"),
         "description": _("Runs a custom command"),
-        "class": CustomSRHandler,     
+        "class": CustomSRHandler,
+        "secondary": True,
     }
 }
 
@@ -169,6 +186,12 @@ AVAILABLE_TTS = {
         "title": _("Kokoro TTS"),
         "description": _("Lightweight and fast open source TTS engine. ~3GB dependencies, 400MB model"),
         "class": KokoroTTSHandler,
+    },
+    "edge_tts": {
+        "key": "edge_tts",
+        "title": _("Edge TTS"),
+        "description": _("Use Microsoft Edge online TTS without any API Key"),
+        "class": EdgeTTSHandler,
     },
     "elevenlabs": {
         "key": "elevenlabs",
@@ -227,6 +250,12 @@ AVAILABLE_EMBEDDINGS = {
         "description": _("Use Ollama models for Embedding. Works offline, very low resources usage"),
         "class": OllamaEmbeddingHandler,
     },
+    "llamacppembedding": {
+        "key": "llamacppembedding",
+        "title": _("LlamaCPP Embedding"),
+        "description": _("Run embedding models locally using LlamaCPP with hardware acceleration support"),
+        "class": LlamaCPPEmbeddingHandler,
+    },
     "openaiembedding": {
         "key": "openaiembedding",
         "title": _("OpenAI API"),
@@ -247,6 +276,12 @@ AVAILABLE_MEMORIES = {
         "title": _("User Summary"),
         "description": _("Generate a summary of the user's conversation"),
         "class": UserSummaryHandler,
+    },
+    "agentic_memory_handler": {
+        "key": "agentic_memory_handler",
+        "title": _("Agentic Memory"),
+        "description": _("Long term memory using Agentic Memory. Stores conversations in a vector store. Uses semantic search to retrieve memories."),
+        "class": AgenticMemoryHandler,
     },
     "llamaindex": {
         "key": "llamaindex",
@@ -334,7 +369,9 @@ command
 /path/to/file
 ```
 Ensure that commands are safe, relevant, and do not cause unintended system modifications unless explicitly requested by the user.""",
-
+    "call": """{COND: 
+[call] You are in a voice call. Keep responses concise and conversational. Avoid long explanations unless asked. Be natural and friendly.
+}""",
     "basic_functionality": """You can write markdown tables, use **bold**, *italic*, ~strikethrough~, `monospace`, [linkname](https://link.com) and ## headers in markdown.
 You can display $inline equations$ and $$equations$$.
 """,
@@ -461,6 +498,15 @@ AVAILABLE_PROMPTS = [
         "default": True
     },
     {
+        "key": "call",
+        "title": _("Call prompt"),
+        "description": _("Prompt made to only be actived in calls"),
+        "setting_name": "call",
+        "editable": True,
+        "show_in_settings": True,
+        "default": True
+    },
+    {
         "key": "custom_prompt",
         "title": _("Custom Prompt"),
         "description": _("Add your own custom prompt"),
@@ -514,7 +560,7 @@ SETTINGS_GROUPS = {
         },
         "STT": {
             "title": _("STT"),
-            "settings": ["stt-engine", "stt-settings","automatic-stt", "stt-silence-detection-threshold", "stt-silence-detection-duration"],
+            "settings": ["stt-engine", "stt-settings", "automatic-stt", "stt-silence-detection-threshold", "stt-silence-detection-duration"],
             "description": _("Speech to Text settings"),
         },
         "Embedding": {
@@ -534,7 +580,7 @@ SETTINGS_GROUPS = {
         },
         "rag": {
             "title": _("RAG"),
-            "settings": ["rag-on", "rag-model", "rag-settings", "rag-on-documents", "documents-context-limit"],
+            "settings": ["rag-on", "rag-model", "rag-settings", "rag-on-documents", "documents-context-limit", "custom-document-folders"],
             "description": _("Document analyzer settings"),
         },
         "extensions": {
@@ -544,12 +590,12 @@ SETTINGS_GROUPS = {
         },
         "interface": {
             "title": _("Inteface"),
-            "settings": ["hidden-files", "reverse-order", "display-latex", "external-terminal-on", "external-terminal", "zoom","send-on-enter", "initial-browser-page", "external-browser", "browser-search-string", "browser-session-persist", "edit-color-scheme"],
+            "settings": ["hidden-files", "reverse-order", "display-latex", "external-terminal-on", "external-terminal", "zoom","send-on-enter", "initial-browser-page", "external-browser", "browser-search-string", "browser-session-persist", "edit-color-scheme", "hide-history-on-launch"],
             "description": _("Interface settings, hidden files, reverse order, zoom..."),
         },
         "general": {
             "title": _("General"),
-            "settings": ["virtualization", "offers", "memory", "remove-thinking", "auto-generate-name", "path", "auto-run", "max-run-times",],
+            "settings": ["virtualization", "offers", "memory", "remove-thinking", "auto-generate-name", "path", "auto-run", "max-run-times", "parallel-tool-execution"],
             "description": _("General settings, virtualization, offers, memory length, automatically generate chat name, current folder..."),
         },
         "prompts": {
@@ -561,6 +607,13 @@ SETTINGS_GROUPS = {
             "title": _("Tools"),
             "settings": ["tools-settings", "mcp-servers"],
             "description": _("Tools settings, tools groups..."),
+        },
+        "wakeword": {
+            "title": _("Wakeword"),
+            "settings": ["wakeword-on", "wakeword-mode", "wakeword-engine", "wakeword-engine-settings", "wakeword",
+                         "wakeword-pre-buffer-duration", "wakeword-silence-duration", "wakeword-energy-threshold",
+                         "secondary-stt-on", "secondary-stt-engine", "stt-secondary-settings"],
+            "description": _("Wakeword detection settings"),
         }
 
 }

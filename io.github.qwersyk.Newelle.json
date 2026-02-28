@@ -53,6 +53,9 @@
         "modules/python3-model2vec.json",
         "modules/llama-cpp-prebuilt.json",
         "modules/python3-ddgs.json",
+        "modules/python3-pysilero-vad.json",
+        "modules/python3-openwakeword.json",
+
         {
             "name" : "newelle",
             "builddir" : true,

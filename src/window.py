@@ -19,7 +19,7 @@ from .ui.settings import Settings
 
 from .ui.profile import ProfileDialog
 from .ui.presentation import PresentationWindow
-from .ui.widgets import File, CopyBox, BarChartBox, MarkupTextView, DocumentReaderWidget, TipsCarousel, BrowserWidget, Terminal, CodeEditorWidget, ToolWidget
+from .ui.widgets import File, CopyBox, BarChartBox, MarkupTextView, DocumentReaderWidget, TipsCarousel, BrowserWidget, Terminal, CodeEditorWidget, ToolWidget, CallPanel
 from .ui.explorer import ExplorerPanel
 from .ui.widgets import MultilineEntry, ProfileRow, DisplayLatex, InlineLatex, ThinkingWidget, Message, ChatRow, ChatHistory, ChatTab
 from .ui.stdout_monitor import StdoutMonitorDialog
@@ -44,7 +44,7 @@ from .utility.audio_recorder import AudioRecorder
 from .utility.media import extract_supported_files
 from .ui.screenrecorder import ScreenRecorder
 from .handlers import ErrorSeverity
-from .controller import NewelleController, ReloadType
+from .controller import NewelleController, ReloadType, NewelleSettings
 from .ui_controller import UIController
 
 
@@ -68,6 +68,9 @@ class MainWindow(Adw.ApplicationWindow):
         self.last_generation_time = None
         self.last_token_num = None
         self.last_update = 0
+        # Wakeword detector
+        self.wakeword_detector = None
+        self.wakeword_listening = False
         # Breakpoint - Collapse the sidebar when the window is too narrow
         breakpoint = Adw.Breakpoint(condition=Adw.BreakpointCondition.new_length(Adw.BreakpointConditionLengthType.MAX_WIDTH, 1000, Adw.LengthUnit.PX))
         breakpoint.add_setter(self.main_program_block, "collapsed", True)
@@ -328,6 +331,8 @@ class MainWindow(Adw.ApplicationWindow):
 
     def _cleanup_on_destroy(self, window):
         """Clean up resources when window is destroyed"""
+        # Stop wakeword detection
+        self.stop_wakeword_detection()
         # Stop stdout monitoring
         if self.stdout_monitor_dialog:
             self.stdout_monitor_dialog.stop_monitoring_external()
@@ -366,7 +371,8 @@ class MainWindow(Adw.ApplicationWindow):
         menu_entries = [
             (_("Explorer Tab"), "folder-symbolic", self.add_explorer_tab),
             (_("Terminal Tab"), "gnome-terminal-symbolic", self.add_terminal_tab),
-            (_("Browser Tab"), "internet-symbolic", self.add_browser_tab)
+            (_("Browser Tab"), "internet-symbolic", self.add_browser_tab),
+            (_("Start Call"), "call-start-symbolic", self.start_call_tab),
         ]
         menu_entries += self.extensionloader.get_add_tab_buttons()
         
@@ -552,8 +558,16 @@ class MainWindow(Adw.ApplicationWindow):
         if tab is not None:
             # Update global chat_id to match selected tab
             self.chat_id = tab.chat_id
-            # Update chat list selection
+
+            # Update UI FIRST before profile switch for instant visual feedback
             self.update_history()
+
+            # Schedule profile switch to happen after UI renders
+            # This makes the tab switch feel instant
+            if self.controller.newelle_settings.remember_profile and "profile" in self.chats[tab.chat_id]:
+                target_profile = self.chats[tab.chat_id]["profile"]
+                if target_profile != self.current_profile:
+                    GLib.timeout_add(50, lambda: self.switch_profile(target_profile) and False)
     
     def _on_chat_tab_close_requested(self, tab_view, page) -> bool:
         """Handle chat tab close request.
@@ -612,19 +626,24 @@ class MainWindow(Adw.ApplicationWindow):
         self._update_tab_chat_ids_after_insert(len(self.chats) - 1)
         self.chat_id = len(self.chats) - 1
         self.save_chat()
-        self.update_history()
-        
+
         if force_new_tab:
-            return self.add_chat_tab(self.chat_id)
+            tab_page = self.add_chat_tab(self.chat_id)
+            self.update_history()
+            return tab_page
         else:
             # Switch current tab to the new chat instead of creating new tab
             current_tab = self.get_active_chat_tab()
             if current_tab is not None:
                 current_tab.switch_to_chat(self.chat_id)
+                # Update history AFTER switching so the UI shows correct open state
+                self.update_history()
                 return current_tab.tab_page
             else:
                 # No tabs exist, create one
-                return self.add_chat_tab(self.chat_id)
+                tab_page = self.add_chat_tab(self.chat_id)
+                self.update_history()
+                return tab_page
     
     def _update_tab_chat_ids_after_insert(self, inserted_at: int):
         """Update chat_ids in all tabs after a chat was inserted.
@@ -641,16 +660,22 @@ class MainWindow(Adw.ApplicationWindow):
     
     def _update_tab_chat_ids_after_delete(self, deleted_at: int):
         """Update chat_ids in all tabs after a chat was deleted.
-        
+
         Args:
             deleted_at: The index where a chat was deleted
         """
         n_pages = self.chat_tabs.get_n_pages()
-        for i in range(n_pages):
+        # Go backwards to safely close tabs
+        for i in range(n_pages - 1, -1, -1):
             page = self.chat_tabs.get_nth_page(i)
             child = page.get_child()
-            if isinstance(child, ChatTab) and child._chat_id > deleted_at:
-                child._chat_id -= 1
+            if isinstance(child, ChatTab):
+                if child._chat_id == deleted_at:
+                    # Close tab showing the deleted chat
+                    self.chat_tabs.close_page(page)
+                elif child._chat_id > deleted_at:
+                    # Update chat_id for tabs after the deleted one
+                    child._chat_id -= 1
 
     def handle_error(self, message: str, error: ErrorSeverity):
         if error == ErrorSeverity.ERROR:
@@ -696,6 +721,8 @@ class MainWindow(Adw.ApplicationWindow):
     def update_settings(self):
         """Update settings, run every time the program is started or settings dialog closed"""
         reloads = self.controller.update_settings()
+        if ReloadType.WAKEWORD in reloads:
+            self.controller.handlers.select_handlers(self.controller.newelle_settings)
         if self.first_load:
             # Load handlers with a timeout in order to not freeze the program
             def load_handlers_async():
@@ -741,6 +768,24 @@ class MainWindow(Adw.ApplicationWindow):
         self.tts.connect(
             "stop", lambda: GLib.idle_add(self.mute_tts_button.set_visible, False)
         )
+        # Handle wakeword detection
+        # Check if we need to restart wakeword detector
+        should_be_listening = self.controller.newelle_settings.wakeword_enabled
+        is_listening = self.wakeword_listening
+
+        needs_restart = (
+            should_be_listening != is_listening or
+            (ReloadType.STT in reloads and should_be_listening) or
+            (ReloadType.WAKEWORD in reloads and should_be_listening)
+        )
+
+        if needs_restart:
+            # State changed, STT reloaded, or wakeword settings changed - restart detector
+            if is_listening:
+                self.stop_wakeword_detection()
+
+            if should_be_listening:
+                self.start_wakeword_detection()
         if ReloadType.LLM in reloads:
             self.reload_buttons() 
             self.update_model_popup()
@@ -1058,6 +1103,108 @@ class MainWindow(Adw.ApplicationWindow):
             self.tts.stop()
         return False
 
+    def start_wakeword_detection(self):
+        """Start continuous wakeword detection"""
+        if self.wakeword_detector is not None:
+            return  # Already running
+
+        try:
+            from .utility.wakeword_detector import WakewordDetector
+        except ImportError as e:
+            print(f"WakewordDetector: Cannot import - {e}")
+            self.notification_block.add_toast(
+                Adw.Toast(title=_("Wakeword detection requires pysilero-vad and pyaudio"), timeout=5)
+            )
+            return
+
+        try:
+            self.wakeword_detector = WakewordDetector(
+                stt_handler=self.stt,
+                wakeword=self.controller.newelle_settings.wakeword,
+                vad_aggressiveness=self.controller.newelle_settings.wakeword_vad_aggressiveness,
+                pre_buffer_duration=self.controller.newelle_settings.wakeword_pre_buffer_duration,
+                silence_duration=self.controller.newelle_settings.wakeword_silence_duration,
+                energy_threshold=self.controller.newelle_settings.wakeword_energy_threshold,
+                callback=self.on_wakeword_detected,
+                on_speech_started=self.on_wakeword_speech_started,
+                on_transcribing=self.on_wakeword_transcribing,
+                on_transcribing_done=self.on_wakeword_transcribing_done,
+                secondary_stt_handler=self.controller.handlers.secondary_stt,
+                wakeword_handler=self.controller.handlers.wakeword_handler
+            )
+
+            # Start in background thread
+            t = threading.Thread(target=self.wakeword_detector.start, daemon=True)
+            t.start()
+            self.wakeword_listening = True
+
+            # Update UI
+            def update_ui():
+                if hasattr(self, 'recording_button'):
+                    self.recording_button.set_icon_name("audio-input-microphone-symbolic")
+                    self.recording_button.add_css_class("success")
+                    self.recording_button.set_tooltip_text(_("Wakeword detection active"))
+
+            GLib.idle_add(update_ui)
+        except Exception as e:
+            print(f"WakewordDetector: Failed to start - {e}")
+            self.notification_block.add_toast(
+                Adw.Toast(title=_("Failed to start wakeword detection: {}").format(str(e)), timeout=5)
+            )
+
+    def stop_wakeword_detection(self):
+        """Stop wakeword detection"""
+        if self.wakeword_detector is not None:
+            self.wakeword_detector.stop()
+            self.wakeword_detector = None
+            self.wakeword_listening = False
+
+        # Reset UI
+        def update_ui():
+            if hasattr(self, 'recording_button'):
+                self.recording_button.remove_css_class("success")
+                self.recording_button.set_tooltip_text("")
+
+        GLib.idle_add(update_ui)
+
+    def on_wakeword_detected(self, command_text):
+        """Callback when wakeword is detected
+
+        Args:
+            command_text: The transcribed text with wakeword removed
+        """
+        tab = self.get_active_chat_tab()
+        if tab is None:
+            return
+
+        if command_text and len(command_text.strip()) > 0:
+            # Set text and send
+            tab.input_panel.set_text(command_text)
+            tab.on_entry_activate(tab.input_panel)
+        else:
+            # Just wakeword, no command
+            self.notification_block.add_toast(
+                Adw.Toast(title=_("Wakeword detected, no command"), timeout=2)
+            )
+
+    def on_wakeword_speech_started(self):
+        """Callback when speech is detected during wakeword listening."""
+        tab = self.get_active_chat_tab()
+        if tab is not None:
+            GLib.idle_add(tab.set_mic_warning)
+
+    def on_wakeword_transcribing(self):
+        """Callback when transcription starts during wakeword listening."""
+        tab = self.get_active_chat_tab()
+        if tab is not None:
+            GLib.idle_add(tab.set_mic_transcribing)
+
+    def on_wakeword_transcribing_done(self):
+        """Callback when transcription completes during wakeword listening."""
+        tab = self.get_active_chat_tab()
+        if tab is not None:
+            GLib.idle_add(tab.set_mic_normal)
+
     def focus_input(self):
         """Focus the input box of the active chat tab."""
         tab = self.get_active_chat_tab()
@@ -1080,6 +1227,34 @@ class MainWindow(Adw.ApplicationWindow):
             self.chat_header.remove(self.profiles_box)
         self.profiles_box = self.get_profiles_box()
         self.chat_header.pack_start(self.profiles_box)
+
+    def _update_profile_avatar(self, profile: str):
+        """Fast update of just the profile avatar without rebuilding the entire menu"""
+        if self.profiles_box is None:
+            return
+        # Find the profile button (first child of the box)
+        profile_button = self.profiles_box.get_first_child()
+        if profile_button is None:
+            return
+        # Update just the avatar
+        if self.profile_settings[profile]["picture"] is not None:
+            avatar = Adw.Avatar(
+                custom_image=Gdk.Texture.new_from_filename(
+                    self.profile_settings[profile]["picture"]
+                ),
+                text=profile,
+                show_initials=True,
+                size=20,
+            )
+            # Set avatar image at the correct size
+            ch = avatar.get_last_child()
+            if ch is not None:
+                ch = ch.get_last_child()
+                if ch is not None and type(ch) is Gtk.Image:
+                    ch.set_icon_size(Gtk.IconSize.NORMAL)
+        else:
+            avatar = Adw.Avatar(text=profile, show_initials=True, size=20)
+        profile_button.set_child(avatar)
 
     def create_profile(self, profile_name, picture=None, settings={}, settings_groups=[]):
         """Create a profile
@@ -1215,20 +1390,221 @@ class MainWindow(Adw.ApplicationWindow):
         if self.current_profile == profile:
             return
         print(f"Switching profile to {profile}")
-        groups = self.profile_settings[self.current_profile].get("settings_groups", [])
-        old_settings = get_settings_dict_by_groups(self.settings, groups, SETTINGS_GROUPS, ["current-profile", "profiles"] )
-        self.profile_settings = json.loads(self.settings.get_string("profiles"))
-        self.profile_settings[self.current_profile]["settings"] = old_settings
 
-        new_settings = self.profile_settings[profile]["settings"]
-        groups = self.profile_settings[profile].get("settings_groups", [])
+        # Store the old profile before we change anything
+        old_profile = self.current_profile
+
+        # Update UI immediately for fast visual feedback
+        self.settings.set_string("current-profile", profile)
+        self.current_profile = profile
+        self._update_profile_avatar(profile)
+
+        # Process pending GTK events to ensure UI updates are rendered
+        # Then start the heavy lifting in background thread
+        GLib.timeout_add(20, lambda: self._switch_profile_async(old_profile, profile) and False)
+
+    def _switch_profile_async(self, old_profile: str, new_profile: str):
+        """Async part of profile switching - spawns background thread for heavy work"""
+        # Spawn thread for the heavy lifting
+        threading.Thread(target=self._do_profile_switch_work, args=(old_profile, new_profile), daemon=True).start()
+        return False  # For GLib.timeout_add
+
+    def _do_profile_switch_work(self, old_profile: str, new_profile: str):
+        """Do the actual profile switch work in background thread"""
+        # Save old profile's settings before switching
+        groups = self.profile_settings[old_profile].get("settings_groups", [])
+        old_settings = get_settings_dict_by_groups(self.settings, groups, SETTINGS_GROUPS, ["current-profile", "profiles"] )
+
+        # Reload profiles to ensure we have the latest data
+        self.profile_settings = json.loads(self.settings.get_string("profiles"))
+        self.profile_settings[old_profile]["settings"] = old_settings
+
+        # Get new profile's settings
+        new_settings = self.profile_settings[new_profile]["settings"]
+        groups = self.profile_settings[new_profile].get("settings_groups", [])
+
+        # Schedule settings restoration on main thread
+        GLib.idle_add(self._restore_profile_settings, new_settings, groups, new_profile)
+
+    def _restore_profile_settings(self, new_settings: dict, groups: list, profile: str):
+        """Restore profile settings and update state"""
         restore_settings_from_dict_by_groups(self.settings, new_settings, groups, SETTINGS_GROUPS)
         self.settings.set_string("profiles", json.dumps(self.profile_settings))
-        self.settings.set_string("current-profile", profile)
-        self.focus_input()
-        self.update_settings()
+        # Schedule the UI update on the next iteration of the main loop
+        # This gives GTK a chance to render the changes
+        GLib.idle_add(lambda: self._update_profile_state(profile, groups) and False)
+    
+    def _update_profile_state(self, profile: str, groups: list):
+        """Update application state for profile switch (optimized - only reloads what changed)
 
+        Args:
+            profile: The new profile name
+            groups: List of settings groups that were changed
+        """
+        # Load new settings and compare with old to determine what actually changed
+        newsettings = NewelleSettings()
+        newsettings.load_settings(self.settings)
+        actual_reloads = self.controller.newelle_settings.compare_settings(newsettings)
+
+        # Convert actual_reloads to set for faster lookup
+        reload_types = set(actual_reloads)
+
+        # Add group-based reloads, but skip EXTENSIONS if it's not in actual_reloads
+        if len(groups) == 0:
+            groups = list(SETTINGS_GROUPS.keys())
+
+        for group in groups:
+            if group == "LLM":
+                reload_types.add(ReloadType.LLM)
+                reload_types.add(ReloadType.SECONDARY_LLM)
+            elif group == "TTS":
+                reload_types.add(ReloadType.TTS)
+            elif group == "STT":
+                reload_types.add(ReloadType.STT)
+            elif group == "Embedding":
+                reload_types.add(ReloadType.EMBEDDINGS)
+            elif group == "memory":
+                reload_types.add(ReloadType.MEMORIES)
+            elif group == "websearch":
+                reload_types.add(ReloadType.WEBSEARCH)
+            elif group == "rag":
+                reload_types.add(ReloadType.RAG)
+            elif group == "extensions":
+                # Only reload extensions if they actually changed (checked via compare_settings)
+                if ReloadType.EXTENSIONS in actual_reloads:
+                    reload_types.add(ReloadType.EXTENSIONS)
+            elif group == "prompts":
+                reload_types.add(ReloadType.PROMPTS)
+            elif group == "tools":
+                reload_types.add(ReloadType.TOOLS)
+            elif group == "interface":
+                reload_types.add(ReloadType.RELOAD_CHAT_LIST)
+            elif group == "general":
+                reload_types.add(ReloadType.RELOAD_CHAT_LIST)
+
+        # Update both window and controller settings references FIRST
+        # This must happen before any UI updates
+        self.controller.newelle_settings = newsettings
+        self.newelle_settings = newsettings
+        self.profile_settings = newsettings.profile_settings
+
+        # Update local references from the NEW settings
+        self.offers = newsettings.offers
+        self.memory_on = newsettings.memory_on
+        self.rag_on = newsettings.rag_on
+        self.tts_enabled = newsettings.tts_enabled
+        self.virtualization = newsettings.virtualization
+        self.prompts = newsettings.prompts
+
+        # Update UI components that depend on settings BEFORE reloading handlers
+        if ReloadType.LLM in reload_types:
+            self.reload_buttons()
+            self.update_model_popup()
+
+        # Now batch reload operations to avoid redundant select_handlers calls
+        self._batch_reload(reload_types)
+
+        # Update handler references after reload
+        self.tts = self.controller.handlers.tts
+        self.stt = self.controller.handlers.stt
+        self.model = self.controller.handlers.llm
+        self.secondary_model = self.controller.handlers.secondary_llm
+        self.embeddings = self.controller.handlers.embedding
+        self.memory_handler = self.controller.handlers.memory
+        self.rag_handler = self.controller.handlers.rag
+        self.extensionloader = self.controller.extensionloader
+
+        if ReloadType.RELOAD_CHAT in reload_types:
+            self.show_chat()
+        if ReloadType.RELOAD_CHAT_LIST in reload_types:
+            self.update_history()
+        if ReloadType.TOOLS in reload_types:
+            self.model_popup_settings.refresh_tools_list()
+
+        self.tts.connect(
+            "start", lambda: GLib.idle_add(self.mute_tts_button.set_visible, True)
+        )
+        self.tts.connect(
+            "stop", lambda: GLib.idle_add(self.mute_tts_button.set_visible, False)
+        )
+
+        if ReloadType.LLM in reload_types:
+            send_on_enter = not newsettings.send_on_enter
+            n_pages = self.chat_tabs.get_n_pages()
+            for i in range(n_pages):
+                page = self.chat_tabs.get_nth_page(i)
+                child = page.get_child()
+                if isinstance(child, ChatTab):
+                    child.input_panel.set_enter_on_ctrl(send_on_enter)
+                    for entry in child.chat_history.edit_entries.values():
+                        entry.set_enter_on_ctrl(send_on_enter)
+
+        # Rebuild profile box to update the selection and refresh the UI
         self.refresh_profiles_box()
+
+    def _batch_reload(self, reload_types: set):
+        """Batch reload operations to avoid redundant select_handlers calls
+
+        Args:
+            reload_types: Set of ReloadType values to reload
+        """
+        # Handle EXTENSIONS separately (it recreates everything)
+        if ReloadType.EXTENSIONS in reload_types:
+            self.controller.reload(ReloadType.EXTENSIONS)
+            reload_types.discard(ReloadType.EXTENSIONS)
+            # EXTENSIONS reload already handles LLM, SECONDARY_LLM, etc.
+            reload_types.discard(ReloadType.LLM)
+            reload_types.discard(ReloadType.SECONDARY_LLM)
+            reload_types.discard(ReloadType.EMBEDDINGS)
+            reload_types.discard(ReloadType.MEMORIES)
+            reload_types.discard(ReloadType.RAG)
+            reload_types.discard(ReloadType.WEBSEARCH)
+
+        # Handle LLM (destroys and recreates)
+        if ReloadType.LLM in reload_types:
+            self.controller.handlers.llm.destroy()
+            reload_types.discard(ReloadType.LLM)
+
+        # Call select_handlers ONCE for all remaining handler types
+        handler_types = {ReloadType.SECONDARY_LLM, ReloadType.TTS, ReloadType.STT,
+                ReloadType.MEMORIES, ReloadType.EMBEDDINGS, ReloadType.RAG,
+                ReloadType.WEBSEARCH, ReloadType.WAKEWORD}
+        if reload_types & handler_types:
+            self.controller.handlers.select_handlers(self.controller.newelle_settings)
+
+        # Now do the specific reloads in background threads
+        if ReloadType.LLM in reload_types or ReloadType.SECONDARY_LLM in reload_types:
+            if ReloadType.SECONDARY_LLM in reload_types:
+                if self.controller.newelle_settings.use_secondary_language_model:
+                    GLib.timeout_add(50, threading.Thread(
+                        target=self.controller.handlers.secondary_llm.load_model,
+                        args=(None,)
+                    ).start)
+                reload_types.discard(ReloadType.SECONDARY_LLM)
+
+            if ReloadType.LLM in reload_types:
+                GLib.timeout_add(50, threading.Thread(target=self.controller.wait_llm_loading).start)
+                reload_types.discard(ReloadType.LLM)
+
+        if ReloadType.RAG in reload_types:
+            if self.controller.newelle_settings.rag_on:
+                GLib.timeout_add(200, threading.Thread(target=self.controller.handlers.rag.load).start)
+            self.controller.require_tool_update()
+            reload_types.discard(ReloadType.RAG)
+
+        if ReloadType.EMBEDDINGS in reload_types:
+            GLib.timeout_add(200, threading.Thread(target=self.controller.handlers.embedding.load_model).start)
+            reload_types.discard(ReloadType.EMBEDDINGS)
+
+        if ReloadType.MEMORIES in reload_types:
+            self.controller.require_tool_update()
+            reload_types.discard(ReloadType.MEMORIES)
+
+        # Handle any remaining reload types
+        for reload_type in reload_types:
+            if reload_type not in {ReloadType.RELOAD_CHAT, ReloadType.RELOAD_CHAT_LIST,
+                                  ReloadType.PROMPTS, ReloadType.OFFERS, ReloadType.TOOLS}:
+                self.controller.reload(reload_type)
 
     def reload_profiles(self):
         """Reload the profiles"""
@@ -1242,11 +1618,16 @@ class MainWindow(Adw.ApplicationWindow):
         if os.path.exists(path):
             os.remove(path)
         self.recording = True
+        self.recording_button = button  # Store the button for auto_stop_recording
         if self.controller.newelle_settings.automatic_stt:
             self.automatic_stt_status = True
         # button.set_child(Gtk.Spinner(spinning=True))
         button.set_icon_name("media-playback-stop-symbolic")
-        button.disconnect_by_func(self.start_recording)
+        try:
+            button.disconnect_by_func(self.start_recording)
+        except TypeError:
+            # Handler was not connected to this function
+            pass
         button.remove_css_class("suggested-action")
         button.add_css_class("error")
         button.connect("clicked", self.stop_recording)
@@ -1281,8 +1662,14 @@ class MainWindow(Adw.ApplicationWindow):
         button.set_icon_name("audio-input-microphone-symbolic")
         button.add_css_class("suggested-action")
         button.remove_css_class("error")
-        button.disconnect_by_func(self.stop_recording)
-        button.connect("clicked", self.start_recording)
+        try:
+            button.disconnect_by_func(self.stop_recording)
+        except TypeError:
+            pass
+        # Reconnect to the active chat tab's start_recording method
+        tab = self.get_active_chat_tab()
+        if tab is not None:
+            button.connect("clicked", tab.start_recording)
 
     def stop_recording_async(self, button=False):
         """Stop recording and save the file"""
@@ -1292,13 +1679,16 @@ class MainWindow(Adw.ApplicationWindow):
         )
 
         def idle_record():
+            tab = self.get_active_chat_tab()
+            if tab is None:
+                return
             if (
                 result is not None
                 and "stop" not in result.lower()
                 and len(result.replace(" ", "")) > 2
             ):
-                self.input_panel.set_text(result)
-                self.on_entry_activate(self.input_panel)
+                tab.input_panel.set_text(result)
+                tab.on_entry_activate(tab.input_panel)
             else:
                 self.notification_block.add_toast(
                     Adw.Toast(title=_("Could not recognize your voice"), timeout=2)
@@ -1410,67 +1800,21 @@ class MainWindow(Adw.ApplicationWindow):
         self.add_file(file_data=image)
 
     def delete_attachment(self, button):
-        """Delete file attachment"""
-        self.attached_image_data = None
-        self.attach_button.set_icon_name("attach-symbolic")
-        self.attach_button.set_css_classes(["circular", "flat"])
-        self.attach_button.disconnect_by_func(self.delete_attachment)
-        self.attach_button.connect("clicked", self.attach_file)
-        self.attached_image.set_visible(False)
-        self.screen_record_button.set_visible(self.model.supports_video_vision())
-        # self.screen_record_button.set_visible("mp4" in self.model.get_supported_files())
+        """Delete file attachment - delegates to the active chat tab"""
+        tab = self.get_active_chat_tab()
+        if tab is not None:
+            tab.delete_attachment(button)
 
     def add_file(self, file_path=None, file_data=None):
-        """Add a file and update the UI, also generates thumbnail for videos
+        """Add a file and update the UI - delegates to the active chat tab
 
         Args:
             file_path (): file path for the file
             file_data (): file data for the file
         """
-        if file_path is not None:
-            if file_path.lower().endswith((".mp4", ".avi", ".mov")):
-                cmd = [
-                    "ffmpeg",
-                    "-i",
-                    file_path,
-                    "-vframes",
-                    "1",
-                    "-f",
-                    "image2pipe",
-                    "-vcodec",
-                    "png",
-                    "-",
-                ]
-                frame_data = subprocess.run(cmd, capture_output=True).stdout
-
-                if frame_data:
-                    loader = GdkPixbuf.PixbufLoader()
-                    loader.write(frame_data)
-                    loader.close()
-                    self.attached_image.set_from_pixbuf(loader.get_pixbuf())
-                else:
-                    self.attached_image.set_from_icon_name("video-x-generic")
-            elif file_path.lower().endswith((".png", ".jpg", ".jpeg", ".webp")):
-                self.attached_image.set_from_file(file_path)
-            else:
-                self.attached_image.set_from_icon_name("text-x-generic")
-
-            self.attached_image_data = file_path
-            self.attached_image.set_visible(True)
-        elif file_data is not None:
-            base64_image = base64.b64encode(file_data).decode("utf-8")
-            self.attached_image_data = f"data:image/jpeg;base64,{base64_image}"
-            loader = GdkPixbuf.PixbufLoader()
-            loader.write(file_data)
-            loader.close()
-            self.attached_image.set_from_pixbuf(loader.get_pixbuf())
-            self.attached_image.set_visible(True)
-
-        self.attach_button.set_icon_name("user-trash-symbolic")
-        self.attach_button.set_css_classes(["destructive-action", "circular"])
-        self.attach_button.connect("clicked", self.delete_attachment)
-        self.attach_button.disconnect_by_func(self.attach_file)
-        self.screen_record_button.set_visible(False)
+        tab = self.get_active_chat_tab()
+        if tab is not None:
+            tab.add_file(file_path, file_data)
 
     # Flap management
     def on_chat_panel_toggled(self, button: Gtk.ToggleButton):
@@ -1684,7 +2028,8 @@ class MainWindow(Adw.ApplicationWindow):
             "name": parent_chat["name"],
             "chat": copy.deepcopy(branched_messages),
             "id": str(uuid.uuid4()),
-            "branched_from": parent_id
+            "branched_from": parent_id,
+            "profile": parent_chat.get("profile", self.current_profile)
         }
         
         # Append to end
@@ -1721,6 +2066,8 @@ class MainWindow(Adw.ApplicationWindow):
         top_level_indices = []
         
         for i, chat in enumerate(self.chats):
+            if chat.get("call", False):
+                continue
             parent_id = chat.get("branched_from")
             if parent_id and parent_id in id_to_index:
                 if parent_id not in children_map:
@@ -1784,11 +2131,15 @@ class MainWindow(Adw.ApplicationWindow):
     
     def remove_chat(self, button):
         """Remove a chat"""
-        if int(button.get_name()) < self.chat_id:
+        deleted_index = int(button.get_name())
+        if deleted_index < self.chat_id:
             self.chat_id -= 1
-        elif int(button.get_name()) == self.chat_id:
+        elif deleted_index == self.chat_id:
             return False
-        self.chats.pop(int(button.get_name()))
+        self.chats.pop(deleted_index)
+        # Update chat_ids in all tabs after deletion
+        self._update_tab_chat_ids_after_delete(deleted_index)
+        self.save_chat()
         self.update_history()
 
     def edit_chat_name(self, button, stack, multithreading=False):
@@ -1875,10 +2226,14 @@ class MainWindow(Adw.ApplicationWindow):
 
     def copy_chat(self, button, *a):
         """Copy a chat into a new chat"""
+        source_chat = self.chats[int(button.get_name())]
         self.chats.append(
             {
-                "name": self.chats[int(button.get_name())]["name"],
-                "chat": self.chats[int(button.get_name())]["chat"][:],
+                "name": source_chat["name"],
+                "chat": source_chat["chat"][:],
+                "id": str(uuid.uuid4()),
+                "branched_from": source_chat.get("id"),
+                "profile": source_chat.get("profile", self.current_profile)
             }
         )
         self.update_history()
@@ -1905,15 +2260,17 @@ class MainWindow(Adw.ApplicationWindow):
         
         # Update global chat_id
         self.chat_id = chat_id
-        
-        # Change profile 
-        if self.controller.newelle_settings.remember_profile and "profile" in self.chats[chat_id]:
-            self.switch_profile(self.chats[chat_id]["profile"])
-        
+
+        # Update UI FIRST before profile switch for instant visual feedback
         self.update_history()
         tab = self.get_active_chat_tab()
         if tab is not None:
             GLib.idle_add(tab.chat_history.update_button_text)
+
+        # Schedule profile switch to happen after UI renders
+        if self.controller.newelle_settings.remember_profile and "profile" in self.chats[chat_id]:
+            target_profile = self.chats[chat_id]["profile"]
+            GLib.timeout_add(500, lambda: self.switch_profile(target_profile) and False)
 
     def clear_chat(self, button):
         """Delete current chat history in the active tab"""
@@ -1949,7 +2306,7 @@ class MainWindow(Adw.ApplicationWindow):
         suggestions = self.secondary_model.get_suggestions(
             self.controller.newelle_settings.prompts["get_suggestions_prompt"],
             self.offers,
-            self.controller.get_history(chat_id=tab.chat_id)
+            self.controller.get_history(chat=tab.chat)
         )
         GLib.idle_add(self.populate_suggestions, suggestions)
 
@@ -2230,6 +2587,28 @@ class MainWindow(Adw.ApplicationWindow):
         self.canvas_tabs.set_selected_page(tab)
         self.show_sidebar()
         return tab
+    
+    def start_call_tab(self, tabview=None, file=None):
+        profile_name = self.current_profile
+        profile_picture = self.profile_settings.get(profile_name, {}).get("picture")
+        
+        call_panel = CallPanel(self.controller, profile_name, profile_picture)
+        
+        tab = self.canvas_tabs.append(call_panel)
+        tab.set_title(_("Call"))
+        tab.set_icon(Gio.ThemedIcon(name="call-start-symbolic"))
+         
+        def on_convert_to_chat(call_panel):
+            self.controller.chats[call_panel.chat_id]["call"] = False
+            self.controller.save_chats()
+            self.update_history()
+            self.show_sidebar()
+        
+        call_panel.connect("convert-to-chat", on_convert_to_chat)
+        
+        self.show_sidebar()
+        self.canvas_tabs.set_selected_page(tab)
+        return tab 
 
     def edit_copybox(self, id_message, id_codeblock, new_content, editor=None):
         message_content = self.chat[id_message]["Message"]
@@ -2312,6 +2691,7 @@ class MainWindow(Adw.ApplicationWindow):
                 target=self.generate_chat_name, args=[button, True]
             ).start()
 
+    # Chat Export
     def export_chat(self, export_all=False):
         """Export chat(s) to a JSON file
 

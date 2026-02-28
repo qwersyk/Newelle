@@ -8,17 +8,20 @@ Each ChatTab owns its own:
 - Message sending and generation lifecycle
 """
 
-from gi.repository import Gtk, Adw, Gio, Gdk, GObject, GLib
+from gi.repository import Gtk, Adw, Gio, Gdk, GObject, GLib, GdkPixbuf
 import threading
 import time
 import re
 import gettext
+import subprocess
+import base64
 
 from .chat_history import ChatHistory
 from .multiline import MultilineEntry
 from .documents_reader import DocumentReaderWidget
 from .message import Message
 from ...utility.strings import (
+    clean_message_tts,
     convert_think_codeblocks,
     remove_markdown,
     remove_emoji,
@@ -427,8 +430,12 @@ class ChatTab(Gtk.Box):
             
             self.chat.append({"User": "User", "Message": text})
             self.chat_history.show_message(text, True, id_message=len(self.chat) - 1, is_user=True)
-        
-        self.chat_history.scrolled_chat()
+            
+            # Store current profile in chat data
+            if self._chat_id < len(self.controller.chats):
+                self.controller.chats[self._chat_id]["profile"] = self.window.current_profile
+
+        GLib.timeout_add(200, self.chat_history.scrolled_chat)
         threading.Thread(target=self.send_message).start()
         self.send_button_start_spinner()
         
@@ -578,13 +585,10 @@ class ChatTab(Gtk.Box):
         # TTS
         tts_thread = None
         if self.tts_enabled:
-            message_label = convert_think_codeblocks(message_label)
-            message = re.sub(r"```.*?```", "", message_label, flags=re.DOTALL)
-            message = remove_markdown(message)
-            message = remove_emoji(message)
+            message = clean_message_tts(message_label)
             if message.strip() and not message.isspace():
                 tts_thread = threading.Thread(
-                    target=self.tts.play_audio, args=(message,)
+                    target=self.tts.play, args=(message,)
                 )
                 tts_thread.start()
         
@@ -647,20 +651,22 @@ class ChatTab(Gtk.Box):
         """Add document reading widget during streaming."""
         d = [doc.replace("file:", "") for doc in documents if doc.startswith("file:")]
         documents = d
-        if self.model.stream_enabled():
-            self.reading = DocumentReaderWidget()
-            for document in documents:
-                self.reading.add_document(document)
-            self.streaming_box.append(self.reading)
+        if self.model.stream_enabled() and hasattr(self, "current_streaming_message"):
+            if self.current_streaming_message is not None:
+                self.reading = DocumentReaderWidget()
+                for document in documents:
+                    self.reading.add_document(document)
+                self.current_streaming_message.append(self.reading)
             
     def remove_reading_widget(self):
         """Remove document reading widget."""
         try:
-            if hasattr(self, "reading") and hasattr(self, "streaming_box"):
-                if self.streaming_box is not None and self.reading is not None:
+            if hasattr(self, "reading") and hasattr(self, "current_streaming_message"):
+                if self.current_streaming_message is not None and self.reading is not None:
                     parent = self.reading.get_parent()
-                    if parent == self.streaming_box:
-                        self.streaming_box.remove(self.reading)
+                    if parent == self.current_streaming_message:
+                        self.current_streaming_message.remove(self.reading)
+                    self.reading = None
         except (AttributeError, TypeError, RuntimeError):
             pass
             
@@ -675,11 +681,16 @@ class ChatTab(Gtk.Box):
         
     def reload_message(self, message_id: int):
         """Reload a message in the chat history."""
-        if len(self.chat_history.messages_box) < message_id:
+        if message_id < 0 or message_id >= len(self.chat):
             return
         if self.chat[message_id]["User"] == "Console":
             return
-        message_box = self.chat_history.messages_box[message_id + 1]
+
+        message_box_index = message_id + 1
+        if message_box_index < 0 or message_box_index >= len(self.chat_history.messages_box):
+            return
+
+        message_box = self.chat_history.messages_box[message_box_index]
         overlay = message_box.get_first_child()
         if overlay is None:
             return
@@ -773,22 +784,20 @@ class ChatTab(Gtk.Box):
     def generate_chat_name(self):
         """Generate a name for the chat based on content."""
         def generate():
-            try:
-                name = self.controller.secondary_model.generate_chat_name(
-                    self.controller.newelle_settings.prompts["generate_name_prompt"],
-                    self.controller.get_history(chat_id=self._chat_id)
-                )
-                if name:
-                    name = name.strip().strip('"').strip("'")
-                    if self._chat_id < len(self.controller.chats):
-                        self.controller.chats[self._chat_id]["name"] = name
-                        self.save_chat()
-                        GLib.idle_add(self._update_tab_title)
-                        GLib.idle_add(self.window.update_history)
-                        self.emit("chat-name-changed", name)
-            except Exception:
-                pass
-        
+            name = self.window.secondary_model.generate_chat_name(
+                self.controller.newelle_settings.prompts["generate_name_prompt"],
+                self.controller.get_history(chat=self.chat)
+            )
+            if name:
+                name = name.strip().strip('"').strip("'")
+                name = remove_markdown(name)
+                if self._chat_id < len(self.controller.chats):
+                    self.controller.chats[self._chat_id]["name"] = name
+                    self.save_chat()
+                    GLib.idle_add(self._update_tab_title)
+                    GLib.idle_add(self.window.update_history)
+                    GLib.idle_add(self.emit,"chat-name-changed", name)
+
         threading.Thread(target=generate).start()
         
     # Signal handlers from ChatHistory
@@ -828,18 +837,93 @@ class ChatTab(Gtk.Box):
     def delete_attachment(self, button):
         """Delete the current attachment."""
         self.attached_image_data = None
+        self.attach_button.set_icon_name("attach-symbolic")
+        self.attach_button.set_css_classes(["circular", "flat"])
+        self.attach_button.disconnect_by_func(self.delete_attachment)
+        self.attach_button.connect("clicked", self.attach_file)
         self.attached_image.set_visible(False)
-        self.attached_image.set_from_icon_name("image-missing")
+        self.screen_record_button.set_visible(self.window.model.supports_video_vision())
         
     def add_file(self, file_path=None, file_data=None):
-        """Add a file attachment."""
-        # Delegate to window for now, can be moved here later
-        self.window.add_file(file_path, file_data)
+        """Add a file attachment and update the UI, also generates thumbnail for videos
+
+        Args:
+            file_path (): file path for the file
+            file_data (): file data for the file
+        """
+        if file_path is not None:
+            if file_path.lower().endswith((".mp4", ".avi", ".mov")):
+                cmd = [
+                    "ffmpeg",
+                    "-i",
+                    file_path,
+                    "-vframes",
+                    "1",
+                    "-f",
+                    "image2pipe",
+                    "-vcodec",
+                    "png",
+                    "-",
+                ]
+                frame_data = subprocess.run(cmd, capture_output=True).stdout
+
+                if frame_data:
+                    loader = GdkPixbuf.PixbufLoader()
+                    loader.write(frame_data)
+                    loader.close()
+                    self.attached_image.set_from_pixbuf(loader.get_pixbuf())
+                else:
+                    self.attached_image.set_from_icon_name("video-x-generic")
+            elif file_path.lower().endswith((".png", ".jpg", ".jpeg", ".webp")):
+                self.attached_image.set_from_file(file_path)
+            else:
+                self.attached_image.set_from_icon_name("text-x-generic")
+
+            self.attached_image_data = file_path
+            self.attached_image.set_visible(True)
+        elif file_data is not None:
+            base64_image = base64.b64encode(file_data).decode("utf-8")
+            self.attached_image_data = f"data:image/jpeg;base64,{base64_image}"
+            loader = GdkPixbuf.PixbufLoader()
+            loader.write(file_data)
+            loader.close()
+            self.attached_image.set_from_pixbuf(loader.get_pixbuf())
+            self.attached_image.set_visible(True)
+
+        self.attach_button.set_icon_name("user-trash-symbolic")
+        self.attach_button.set_css_classes(["destructive-action", "circular"])
+        self.attach_button.connect("clicked", self.delete_attachment)
+        # Disconnect the attach_file handler - we need to get the handler ID
+        # The attach_file was connected in _build_ui, so we need to disconnect it here
+        # Since we can't directly disconnect by func in this case, we'll rebuild the button state
+        self.attach_button.disconnect_by_func(self.attach_file)
+        self.screen_record_button.set_visible(False)
         
     # Recording
     def start_recording(self, button):
         """Start voice recording."""
+        try:
+            button.disconnect_by_func(self.start_recording)
+        except TypeError:
+            # Handler was not connected to this function
+            pass
         self.window.start_recording(button)
+
+    def set_mic_warning(self):
+        """Set mic button to warning state (yellow) when speech is detected."""
+        self.mic_button.add_css_class("warning")
+
+    def set_mic_transcribing(self):
+        """Set mic button to transcribing state (spinner)."""
+        self.mic_button.remove_css_class("warning")
+        spinner = Gtk.Spinner(spinning=True)
+        self.mic_button.set_child(spinner)
+
+    def set_mic_normal(self):
+        """Reset mic button to normal state."""
+        self.mic_button.remove_css_class("warning")
+        self.mic_button.set_child(None)
+        self.mic_button.set_icon_name("audio-input-microphone-symbolic")
         
     def start_screen_recording(self, button):
         """Start screen recording."""
@@ -852,6 +936,11 @@ class ChatTab(Gtk.Box):
         text = button.get_child().get_label()
         self.chat.append({"User": "User", "Message": text})
         self.chat_history.show_message(text, id_message=len(self.chat) - 1, is_user=True)
+        
+        # Store current profile in chat data
+        if self._chat_id < len(self.controller.chats):
+            self.controller.chats[self._chat_id]["profile"] = self.window.current_profile
+        
         threading.Thread(target=self.send_message).start()
 
     # Suggestions

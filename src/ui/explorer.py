@@ -145,20 +145,24 @@ class ExplorerPanel(Gtk.Box):
         filename = button.get_name()
         return query in filename.lower()
 
-    def get_current_path(self):
+    def _normalize_path(self, path):
+        """Normalize path and replace home directory with ~."""
+        abs_path = os.path.normpath(os.path.expanduser(path))
         home_dir = os.path.expanduser("~")
-        if self.main_path.startswith(home_dir):
-            if self.main_path == home_dir:
-                self.main_path = "~"
-            else:
-                self.main_path = "~" + self.main_path[len(home_dir):]
-        else:
-            self.main_path = self.main_path
+        if abs_path == home_dir:
+            return "~"
+        elif abs_path.startswith(home_dir + os.sep):
+            return "~" + abs_path[len(home_dir):]
+        return abs_path
+
+    def get_current_path(self):
+        self.main_path = self._normalize_path(self.main_path)
         return self.main_path
 
     def set_main_path(self, new_path):
-        if self.main_path != new_path:
-            self.main_path = new_path
+        normalized_path = self._normalize_path(new_path)
+        if self.main_path != normalized_path:
+            self.main_path = normalized_path
             self.search_bar.set_search_mode(False)
             self.search_entry.set_text("")
             self.emit('path-changed', self.main_path)
@@ -167,13 +171,6 @@ class ExplorerPanel(Gtk.Box):
         path = os.path.expanduser(self.main_path)
         if os.path.exists(path) and os.path.isdir(path):
             new_path = os.path.dirname(path)
-            # Replace home directory with ~ if the path starts with home directory
-            home_dir = os.path.expanduser("~")
-            if new_path.startswith(home_dir):
-                if new_path == home_dir:
-                    new_path = "~"
-                else:
-                    new_path = "~" + new_path[len(home_dir):]
             self.set_main_path(new_path)
         if self.main_path == "/".join(self.controller.newelle_dir.split("/")[3:]):
             self.set_main_path("~")
@@ -364,22 +361,15 @@ class ExplorerPanel(Gtk.Box):
             return (False, working_directory)
 
     def open_folder(self, button, *a):
-        if os.path.exists(
-            os.path.join(os.path.expanduser(self.main_path), button.get_name())
-        ):
-            if os.path.isdir(
-                os.path.join(os.path.expanduser(self.main_path), button.get_name())
-            ):
-                self.set_main_path(self.main_path + "/" + button.get_name())
+        name = button.get_name()
+        full_path = os.path.join(os.path.expanduser(self.main_path), name)
+        if os.path.exists(full_path):
+            if os.path.isdir(full_path):
+                self.set_main_path(full_path)
                 os.chdir(os.path.expanduser(self.main_path))
                 GLib.idle_add(self.update_folder)
             else:
-                subprocess.run(
-                    [
-                        "xdg-open",
-                        os.path.expanduser(self.main_path + "/" + button.get_name()),
-                    ]
-                )
+                subprocess.run(["xdg-open", full_path])
         else:
             self.notification_block.add_toast(
                 Adw.Toast(title=_("File not found"), timeout=2)

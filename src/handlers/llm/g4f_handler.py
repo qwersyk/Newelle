@@ -38,6 +38,7 @@ class G4FHandler(LLMHandler):
         install_module("g4f nodriver platformdirs", pip_path)
         if not self.is_installed():
             self.throw("g4f installation failed", ErrorSeverity.ERROR)
+        self._is_installed_cache = None
 
     def get_extra_settings(self) -> list:
         return [
