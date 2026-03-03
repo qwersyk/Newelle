@@ -40,6 +40,7 @@ install_data (
     'user-bookmarks-symbolic.svg',
     'chat-bubbles-text-symbolic.svg',
     'branch-symbolic.svg',
+    'call-emergency-symbolic.svg',
     install_dir: symbolic_dir
 )
 install_data (

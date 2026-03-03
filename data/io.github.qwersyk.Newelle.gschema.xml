@@ -226,7 +226,7 @@
             <default>false</default>
         </key>
         <key name="secondary-stt-engine" type="s">
-            <default>whispercpp</default>
+            <default>"whispercpp"</default>
         </key>
         <key name="stt-secondary-settings" type="s">
             <default>"{}"</default>

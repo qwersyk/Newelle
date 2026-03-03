@@ -241,6 +241,7 @@ class CallPanel(Gtk.Box):
         self.assistant_speaking = False
         self.user_speaking = False
         self.history_visible = False
+        self.listen_during_tts = False
 
         # Get username
         self.username = self.controller.newelle_settings.username
@@ -478,6 +479,18 @@ class CallPanel(Gtk.Box):
         self.mute_button.set_sensitive(False)
         controls_box.append(self.mute_button)
 
+        # Auto-listen toggle button
+        self.listen_toggle_button = Gtk.ToggleButton(
+            css_classes=["call-button-history"],
+            tooltip_text=_("Auto-listen while agent speaks")
+        )
+        listen_icon = Gtk.Image.new_from_icon_name("call-emergency-symbolic")
+        listen_icon.set_pixel_size(24)
+        self.listen_toggle_button.set_child(listen_icon)
+        self.listen_toggle_button.set_active(True)
+        self.listen_toggle_button.connect("toggled", self._on_listen_toggle)
+        controls_box.append(self.listen_toggle_button)
+
         # Start/End call button
         self.call_button = Gtk.Button(
             css_classes=["call-button-start"]
@@ -571,6 +584,14 @@ class CallPanel(Gtk.Box):
             button.add_css_class("call-button-history-active")
         else:
             button.remove_css_class("call-button-history-active")
+    
+    def _on_listen_toggle(self, button):
+        """Handle listen during TTS toggle"""
+        self.listen_during_tts = button.get_active()
+        if self.listen_during_tts:
+            button.remove_css_class("call-button-history-active")
+        else:
+            button.add_css_class("call-button-history-active")
     
     def _on_convert_to_chat_clicked(self, button):
         """Handle convert to chat button click"""
@@ -694,6 +715,11 @@ class CallPanel(Gtk.Box):
 
             while self.call_active:
                 if self.is_muted:
+                    time.sleep(0.03)
+                    consecutive_errors = 0
+                    continue
+
+                if not self.listen_during_tts and self.assistant_speaking:
                     time.sleep(0.03)
                     consecutive_errors = 0
                     continue
