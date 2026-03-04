@@ -48,6 +48,7 @@ class LlamaCPPHandler(OpenAIHandler):
         atexit.register(self._atexit_handler)
         self.port = None
         self.loaded_model = None
+        self.loaded_mmproj = None
         self.models = self.get_custom_model_list()
         self.loaded_on = self.get_setting("gpu_acceleration", False, False)
         self.set_setting("api", "no")
@@ -82,8 +83,27 @@ class LlamaCPPHandler(OpenAIHandler):
             for file in files:
                 if file.endswith('.gguf'):
                     file_name = file.rstrip('.gguf')
+                    if "mmproj" in file_name:
+                        continue
                     relative_path = os.path.relpath(os.path.join(root, file), self.model_folder)
                     file_list += ((file_name, relative_path), )
+        if update:
+            self.settings_update()
+        return file_list
+    
+    def get_mmproj_list(self, update=False):
+        """Get mmproj files in the model folder for vision support
+
+        Returns:
+            list: list of mmproj files
+        """
+        file_list = tuple()
+        for root, _, files in os.walk(self.model_folder):
+            for file in files:
+                if 'mmproj' in file.lower() and file.endswith('.gguf'):
+                    file_name = file.rstrip('.gguf')
+                    relative_path = os.path.relpath(os.path.join(root, file), self.model_folder)
+                    file_list+=((file_name, relative_path),)
         if update:
             self.settings_update()
         return file_list
@@ -96,12 +116,19 @@ class LlamaCPPHandler(OpenAIHandler):
 
     def get_extra_settings(self) -> list:
         custom_model_list = self.get_custom_model_list()
+        mmproj_list = self.get_mmproj_list()
         settings =  [
                 ExtraSettings.ComboSetting("model", "Model", "Model to use", self.get_custom_model_list(), 
                 custom_model_list[0][1] if len(custom_model_list) > 0 else "", 
                 refresh=lambda button: self.get_custom_model_list(True),
-                folder=self.model_folder)
+                folder=self.model_folder),
+                ExtraSettings.ToggleSetting("enable_mmproj", "Enable Vision (MMProj)", "Enable vision support using mmproj file", False, update_settings=True),
             ]
+        settings += [ExtraSettings.ComboSetting("mmproj", "MMProj (Vision)", "Multimodal projection file for vision support", 
+                mmproj_list,
+                mmproj_list[0][1] if len(mmproj_list) > 0 else "",
+                refresh=lambda button: self.get_mmproj_list(True),
+                folder=self.model_folder)]
 
         settings.extend(
             [
@@ -139,7 +166,11 @@ class LlamaCPPHandler(OpenAIHandler):
     def load_model(self, model):
         model = self.get_setting("model")
         ctx = self.get_setting("ctx", 2048, 0)
-        if self.loaded_model == model and self.loaded_on == self.get_setting("gpu_acceleration", False, False) and self.loaded_ctx == ctx:
+        enable_mmproj = self.get_setting("enable_mmproj", False, False)
+        mmproj = self.get_setting("mmproj", False, None) if enable_mmproj else ""
+        if mmproj is None and len(self.get_mmproj_list()) > 0:
+            mmproj = self.get_mmproj_list()[0][1]
+        if self.loaded_model == model and self.loaded_on == self.get_setting("gpu_acceleration", False, False) and self.loaded_ctx == ctx and self.loaded_mmproj == mmproj:
             return True
         path = os.path.join(self.model_folder, self.get_setting("model"))
         if not path or not os.path.exists(path):
@@ -159,7 +190,13 @@ class LlamaCPPHandler(OpenAIHandler):
             cmd_path = self.llama_server_path
         else:
             cmd_path = "llama-server"
-        cmd = [cmd_path, "--model", path, "--port", str(self.port), "--host", "127.0.0.1", "-c", str(ctx), "--reasoning-format", "none" ]
+        cmd = [cmd_path, "--model", path, "--port", str(self.port), "--host", "127.0.0.1", "-c", str(ctx), "--reasoning-format", "none"]
+        
+        # Add mmproj for vision support if enabled and configured
+        if self.get_setting("enable_mmproj") and mmproj:
+            mmproj_path = os.path.join(self.model_folder, mmproj)
+            if os.path.exists(mmproj_path):
+                cmd.extend(["--mmproj", mmproj_path])
         # Use flatpak-spawn when running built llama.cpp in Flatpak
         if (is_flatpak() and self.is_gpu_installed() and self.get_setting("gpu_acceleration", False, False)) or use_system_server:
             cmd = get_spawn_command() + cmd
@@ -167,6 +204,7 @@ class LlamaCPPHandler(OpenAIHandler):
         self.loaded_model = model
         self.loaded_on = self.get_setting("gpu_acceleration", False, False)
         self.loaded_ctx = ctx
+        self.loaded_mmproj = mmproj
         # Wait for server to potentially start
         url = f"http://localhost:{self.port}/v1/models"
         start_time = time.time()
