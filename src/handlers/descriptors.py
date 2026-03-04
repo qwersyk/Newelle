@@ -2,14 +2,17 @@ from gi.repository import GdkPixbuf, Gtk
 from .handler import Handler
 
 
-def HandlerDescription(key: str, title: str, description: str, handler_class: Handler, website:str|None=None):
+def HandlerDescription(key: str, title: str, description: str, handler_class: Handler, website:str|None=None, primary=True, secondary=True, wakeword=False):
     """Generate Handler description, used by Newelle to generate settings and use handlers
 
     Args:
         key: unique key of the handler 
         title: Name of the handler 
         description: Small description about the handler
-        handler_class: Hanlder class 
+        handler_class: Hanlder class
+        primary: If the handler should be shown as primary (only works for STT)
+        secondary: If the handler should be available as secondary (only works for LLM and STT)
+        wakeword: If the handler shoud be available for wakeword detection (only works for STT handlers)
 
     Returns:
        dict that contains the description 
@@ -18,7 +21,10 @@ def HandlerDescription(key: str, title: str, description: str, handler_class: Ha
         "key": key,
         "title": title,
         "description": description, 
-        "class": handler_class
+        "class": handler_class,
+        "primary": primary,
+        "secondary": secondary,
+        "wakeword": wakeword
     }
     if website is not None:
         desc["website"] = website 

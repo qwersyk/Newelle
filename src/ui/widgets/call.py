@@ -8,6 +8,7 @@ import math
 import gettext
 import pyaudio
 import re
+from collections import deque
 
 from ...utility.strings import clean_message_tts, remove_emoji, remove_markdown, remove_thinking_blocks
 from ...utility.vad import VoiceActivityDetector
@@ -241,6 +242,7 @@ class CallPanel(Gtk.Box):
         self.assistant_speaking = False
         self.user_speaking = False
         self.history_visible = False
+        self.listen_during_tts = False
 
         # Get username
         self.username = self.controller.newelle_settings.username
@@ -258,6 +260,10 @@ class CallPanel(Gtk.Box):
         self.speech_buffer = []
         self.audio_stream = None
         self.pyaudio_instance = None
+        
+        # Prebuffer for 1 second before speech starts
+        prebuffer_chunks = int(self.sample_rate / self.chunk_size) + 1
+        self.audio_prebuffer = deque(maxlen=prebuffer_chunks)
         
         # Threads
         self.recording_thread = None
@@ -462,6 +468,7 @@ class CallPanel(Gtk.Box):
         controls_box = Gtk.Box(
             orientation=Gtk.Orientation.HORIZONTAL,
             halign=Gtk.Align.CENTER,
+            homogeneous=True,
             spacing=32,
             margin_bottom=48
         )
@@ -501,17 +508,6 @@ class CallPanel(Gtk.Box):
         self.speaker_button.set_sensitive(False)
         controls_box.append(self.speaker_button)
 
-        # History toggle button
-        self.history_button = Gtk.Button(
-            css_classes=["call-button-history"],
-            tooltip_text=_("Show/Hide chat history")
-        )
-        history_icon = Gtk.Image.new_from_icon_name("chat-bubbles-text-symbolic")
-        history_icon.set_pixel_size(24)
-        self.history_button.set_child(history_icon)
-        self.history_button.connect("clicked", self._on_history_clicked)
-        controls_box.append(self.history_button)
-
         controls_container.append(controls_box)
 
         # Convert to chat button (shown after call ends)
@@ -529,6 +525,41 @@ class CallPanel(Gtk.Box):
         controls_container.append(self.convert_button)
 
         self.overlay.add_overlay(controls_container)
+
+        # Right side controls for history and listen toggle
+        right_controls = Gtk.Box(
+            orientation=Gtk.Orientation.VERTICAL,
+            halign=Gtk.Align.END,
+            valign=Gtk.Align.START,
+            spacing=16,
+            margin_end=16,
+            margin_top=16
+        )
+
+        # History toggle button
+        self.history_button = Gtk.Button(
+            css_classes=["call-button-history"],
+            tooltip_text=_("Show/Hide chat history")
+        )
+        history_icon = Gtk.Image.new_from_icon_name("chat-bubbles-text-symbolic")
+        history_icon.set_pixel_size(24)
+        self.history_button.set_child(history_icon)
+        self.history_button.connect("clicked", self._on_history_clicked)
+        right_controls.append(self.history_button)
+
+        # Auto-listen toggle button
+        self.listen_toggle_button = Gtk.ToggleButton(
+            css_classes=["call-button-history"],
+            tooltip_text=_("Auto-listen while agent speaks")
+        )
+        listen_icon = Gtk.Image.new_from_icon_name("call-emergency-symbolic")
+        listen_icon.set_pixel_size(24)
+        self.listen_toggle_button.set_child(listen_icon)
+        self.listen_toggle_button.set_active(True)
+        self.listen_toggle_button.connect("toggled", self._on_listen_toggle)
+        right_controls.append(self.listen_toggle_button)
+
+        self.overlay.add_overlay(right_controls)
     
     def set_tab(self, tab):
         """Set the tab reference"""
@@ -572,6 +603,14 @@ class CallPanel(Gtk.Box):
         else:
             button.remove_css_class("call-button-history-active")
     
+    def _on_listen_toggle(self, button):
+        """Handle listen during TTS toggle"""
+        self.listen_during_tts = button.get_active()
+        if self.listen_during_tts:
+            button.remove_css_class("call-button-history-active")
+        else:
+            button.add_css_class("call-button-history-active")
+    
     def _on_convert_to_chat_clicked(self, button):
         """Handle convert to chat button click"""
         if self.chat_id is not None:
@@ -584,6 +623,7 @@ class CallPanel(Gtk.Box):
         self.current_transcript = ""
         self.speech_buffer = []
         self.chat_history_messages = []
+        self.audio_prebuffer.clear()
         self.vad.reset()
 
         # Clear history box
@@ -698,6 +738,11 @@ class CallPanel(Gtk.Box):
                     consecutive_errors = 0
                     continue
 
+                if not self.listen_during_tts and self.assistant_speaking:
+                    time.sleep(0.03)
+                    consecutive_errors = 0
+                    continue
+
                 try:
                     audio_data = self.audio_stream.read(self.chunk_size, exception_on_overflow=False)
                     consecutive_errors = 0  # Reset error counter on successful read
@@ -721,11 +766,16 @@ class CallPanel(Gtk.Box):
                 # Update waveform visualization
                 self._update_waveform(audio_data)
 
+                # Add to prebuffer (circular buffer for pre-speech audio)
+                self.audio_prebuffer.append(audio_data)
+
                 # Process VAD
                 is_speech, speech_started, speech_ended = self.vad.process_chunk(audio_data)
 
                 if speech_started:
                     GLib.idle_add(self._on_speech_started)
+                    # Prepend prebuffer to speech buffer to capture 1 second before speech
+                    self.speech_buffer = list(self.audio_prebuffer) + self.speech_buffer
 
                 if is_speech or self.vad.is_speaking:
                     self.speech_buffer.append(audio_data)
@@ -736,6 +786,7 @@ class CallPanel(Gtk.Box):
                     if len(self.speech_buffer) > 0:
                         self._process_speech()
                     self.speech_buffer = []
+                    self.audio_prebuffer.clear()
 
         except Exception as e:
             import traceback

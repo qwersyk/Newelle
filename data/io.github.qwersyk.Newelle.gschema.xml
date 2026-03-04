@@ -214,10 +214,10 @@
             <default>1</default>
         </key>
         <key name="wakeword-pre-buffer-duration" type="d">
-            <default>0.2</default>
+            <default>0.8</default>
         </key>
         <key name="wakeword-silence-duration" type="d">
-            <default>0.15</default>
+            <default>0.6</default>
         </key>
         <key name="wakeword-energy-threshold" type="i">
             <default>300</default>
@@ -226,7 +226,7 @@
             <default>false</default>
         </key>
         <key name="secondary-stt-engine" type="s">
-            <default>"sphinx"</default>
+            <default>"whispercpp"</default>
         </key>
         <key name="stt-secondary-settings" type="s">
             <default>"{}"</default>

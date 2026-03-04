@@ -1338,6 +1338,7 @@ class Settings(Adw.PreferencesWindow):
             self.settingsrows[settings_row_key]["extra_settings_loaded"] = True
         self.settingsrows[settings_row_key]["row"] = row
         self.settingsrows[settings_row_key]["extra_settings"] = []
+        handler.set_extra_settings_update(lambda _: GLib.idle_add(self.on_setting_change, constants, handler, handler.key, True))
         
         # Add extra buttons 
         self.queue_download_button(handler, row)
@@ -1450,7 +1451,6 @@ class Settings(Adw.PreferencesWindow):
             r = self.create_extra_setting(setting, handler, constants) 
             row.add_row(r)
             self.settingsrows[handler.key, self.convert_constants(constants), handler.is_secondary()]["extra_settings"].append(r)
-        handler.set_extra_settings_update(lambda _: GLib.idle_add(self.on_setting_change, constants, handler, handler.key, True))
 
     def on_row_expanded_build_settings(self, row, _pspec, constants, handler):
         """Build extra settings lazily the first time the row is expanded."""
@@ -1666,6 +1666,8 @@ class Settings(Adw.PreferencesWindow):
         if force_change or "update_settings" in setting_info and setting_info["update_settings"]:
             settings_key = (handler.key, self.convert_constants(constants), handler.is_secondary())
             row_state = self.settingsrows[settings_key]
+            if constants == AVAILABLE_RAGS:
+                GLib.idle_add(self.update_rag_index)
             # If the row hasn't been expanded yet, defer rebuilding until first expansion.
             if not row_state.get("extra_settings_loaded", True):
                 row_state["pending_extra_settings"] = handler.get_extra_settings()
@@ -1673,8 +1675,6 @@ class Settings(Adw.PreferencesWindow):
             # remove all the elements in the specified expander row 
             row = row_state["row"]
             setting_list = row_state.get("extra_settings", [])
-            if constants == AVAILABLE_RAGS:
-                GLib.idle_add(self.update_rag_index)
             for setting_row in setting_list:
                 row.remove(setting_row)
             self.add_extra_settings(constants, handler, row)

@@ -95,6 +95,31 @@ class LlamaIndexHanlder(RAGHandler):
         return r
     def get_supported_files_reading(self) -> list:
         return self.get_supported_files() + ["plaintext"]
+
+    def _load_documents_from_folder(self, folder: str, exclude_hidden: bool) -> list:
+        from llama_index.core import SimpleDirectoryReader
+
+        if not os.path.isdir(folder):
+            return []
+
+        try:
+            return SimpleDirectoryReader(
+                folder,
+                recursive=True,
+                required_exts=self.get_supported_formats(),
+                exclude_hidden=exclude_hidden,
+                filename_as_id=True,
+            ).load_data()
+        except Exception as e:
+            print(f"Skipping folder {folder}: {e}")
+            return []
+
+    def _collect_documents(self, documents_path: str) -> list:
+        documents = self._load_documents_from_folder(documents_path, exclude_hidden=False)
+        custom_folders = self.get_custom_folders()
+        for folder in custom_folders:
+            documents.extend(self._load_documents_from_folder(folder, exclude_hidden=True))
+        return documents
     
     def load(self):
         if self.index_exists() and ((self.index is None and self.loading_thread is None) or self.loaded_index != self.get_paths()[1]):
@@ -369,7 +394,7 @@ class LlamaIndexHanlder(RAGHandler):
         if not self.is_installed():
             return
         from llama_index.core.settings import Settings
-        from llama_index.core import VectorStoreIndex, SimpleDirectoryReader, StorageContext
+        from llama_index.core import VectorStoreIndex, StorageContext
         from llama_index.vector_stores.faiss import FaissVectorStore
         import faiss
         
@@ -381,10 +406,12 @@ class LlamaIndexHanlder(RAGHandler):
             Settings.embed_model = self.get_embedding_adapter(self.embedding)
             chunk_size = int(self.get_setting("chunk_size"))
             Settings.chunk_size = chunk_size 
-            documents = SimpleDirectoryReader(documents_path, recursive=True, required_exts=self.get_supported_formats(), exclude_hidden=False, filename_as_id=True).load_data() 
-            custom_folders = self.get_custom_folders()
-            for folder in custom_folders:
-                documents.extend(SimpleDirectoryReader(folder, recursive=True, required_exts=self.get_supported_formats(), exclude_hidden=True, filename_as_id=True).load_data())
+            documents = self._collect_documents(documents_path)
+            if not documents:
+                print("No files found in indexed folders.")
+                self.indexing = False
+                self.indexing_status = 1
+                return
             self.indexing_status = 0
             faiss_index = faiss.IndexFlatL2(self.embedding.get_embedding_size())
             vector_store = FaissVectorStore(faiss_index=faiss_index)
@@ -435,7 +462,6 @@ class LlamaIndexHanlder(RAGHandler):
             return
 
         from llama_index.core.settings import Settings
-        from llama_index.core import SimpleDirectoryReader
         
         documents_path, data_path = self.get_paths()
         try:
@@ -458,25 +484,12 @@ class LlamaIndexHanlder(RAGHandler):
             Settings.embed_model = self.get_embedding_adapter(self.embedding)
             chunk_size = int(self.get_setting("chunk_size"))
             Settings.chunk_size = chunk_size 
-            
-            reader = SimpleDirectoryReader(
-                documents_path, 
-                recursive=True, 
-                required_exts=self.get_supported_formats(), 
-                exclude_hidden=False,
-                filename_as_id=True
-            )
-            documents = reader.load_data()
-            
-            custom_folders = self.get_custom_folders()
-            for folder in custom_folders:
-                documents.extend(SimpleDirectoryReader(
-                    folder, 
-                    recursive=True, 
-                    required_exts=self.get_supported_formats(), 
-                    exclude_hidden=True,
-                    filename_as_id=True
-                ).load_data())
+            documents = self._collect_documents(documents_path)
+            if not documents:
+                print("No files found in indexed folders.")
+                self.indexing = False
+                self.indexing_status = 1
+                return
             
             print(f"Refreshing {len(documents)} documents...")
             self.index.refresh_ref_docs(documents)
