@@ -36,6 +36,21 @@
 	<url type="bugtracker">https://github.com/qwersyk/Newelle/issues</url>
 	<content_rating type="oars-1.0" />
 	<releases>
+        <release version="1.3.0" date="2026-03-06">
+            <description>
+                <ul>
+                    <li>Multiple chats: you can now open and use multiple chats at the same time</li>
+                    <li>Added wakeword support: Newelle can now be awakened using a wakeword</li>
+                    <li>Added call mode: you can now call your models in real time</li>
+                    <li>Streaming TTS support: faster responses for EdgeTTS, OpenAI handlers, and Kokoro</li>
+                    <li>Whisper.CPP can now be compiled with hardware acceleration</li>
+                    <li>New handlers: EdgeTTS and Llama.cpp (Embedding)</li>
+                    <li>Added "Agentic Memory", a new memory system using tools and modern techniques to create long-term memory</li>
+                    <li>Memory and RAG handlers can now expose tools; added tools to create TTS and STT</li>
+                    <li>Added vision support for Llama.cpp</li>
+                </ul>
+            </description>
+        </release>
 	    <release version="1.2.5" date="2026-01-25">
             <description>
                 <ul>
