@@ -7,6 +7,7 @@ import re
 import copy
 
 from .tools import ToolRegistry, ToolResult
+from .skills import SkillManager
 from .utility.media import get_image_base64, get_image_path, extract_supported_files
 from .utility.message_chunk import get_message_chunks
 
@@ -192,6 +193,8 @@ class NewelleController:
         """Init necessary variables for the UI and load models and handlers"""
         self.init_paths()
         self.check_path_integrity()
+        self.skill_manager = SkillManager(self.skills_path, self.settings)
+        self.skill_manager.discover()
         self.load_integrations()
         self.load_extensions()
         self.newelle_settings = NewelleSettings()
@@ -218,6 +221,7 @@ class NewelleController:
         self.extension_path = os.path.join(self.config_dir, "extensions")
         self.extensions_cache = os.path.join(self.cache_dir, "extensions_cache")
         self.newelle_dir = os.path.join(self.config_dir, DIR_NAME)
+        self.skills_path = os.path.join(self.config_dir, "skills")
 
     def set_ui_controller(self, ui_controller):
         """Set add tab function"""
@@ -265,6 +269,8 @@ class NewelleController:
             os.makedirs(self.models_dir)
         if not os.path.exists(self.newelle_dir):
             os.makedirs(self.newelle_dir, exist_ok=True)
+        if not os.path.exists(self.skills_path):
+            os.makedirs(self.skills_path, exist_ok=True)
         # Fix Pip environment
         if os.path.isdir(self.pip_path):
             self.python_path.append(self.pip_path)
@@ -336,11 +342,17 @@ class NewelleController:
             GLib.timeout_add(300, threading.Thread(target=self.handlers.embedding.load_model).start)
         elif reload_type == ReloadType.PROMPTS:
             return
+        elif reload_type == ReloadType.TOOLS:
+            self.skill_manager.discover()
+            skills_integration = self.integrationsloader.extensionsmap.get("skills")
+            if skills_integration is not None:
+                skills_integration.set_skill_manager(self.skill_manager)
+            self.require_tool_update()
         elif reload_type == ReloadType.WEBSEARCH:
             self.handlers.select_handlers(self.newelle_settings)
             self.newelle_settings.save_prompts()
             self.newelle_settings.load_prompts()
-            
+
 
     def set_extensionsloader(self, extensionloader):
         """Change extension loader
@@ -414,6 +426,9 @@ class NewelleController:
         """Load integrations"""
         self.integrationsloader = ExtensionLoader(self.extension_path, pip_path=self.pip_path, settings=self.settings, extension_cache=self.extensions_cache)
         self.integrationsloader.load_integrations(AVAILABLE_INTEGRATIONS)
+        skills_integration = self.integrationsloader.extensionsmap.get("skills")
+        if skills_integration is not None and hasattr(self, "skill_manager"):
+            skills_integration.set_skill_manager(self.skill_manager)
         self.integrationsloader.add_tools(self.tools)
         self.set_ui_controller(self.ui_controller)
 
@@ -690,6 +705,10 @@ class NewelleController:
             return self.newelle_settings.external_browser
         elif name == "call":
             return self.is_call_request
+        elif name == "skills_available":
+            if hasattr(self, "skill_manager"):
+                return len(self.skill_manager.get_enabled_skills()) > 0
+            return False
         elif name == "history":
             return "\n".join([f"{msg['User']}: {msg['Message']}" for msg in self.get_history()])
         elif name == "message":
@@ -1137,6 +1156,7 @@ class NewelleSettings:
         self.editor_color_scheme = settings.get_string("editor-color-scheme")
         self.tools_settings = settings.get_string("tools-settings")
         self.tools_settings_dict = json.loads(self.tools_settings)
+        self.skills_settings = settings.get_string("skills-settings")
         self.mcp_servers = self.settings.get_string("mcp-servers")
         self.mcp_servers_dict = json.loads(self.mcp_servers)
         self.wakeword_enabled = settings.get_boolean("wakeword-on")
@@ -1211,7 +1231,7 @@ class NewelleSettings:
             reloads.append(ReloadType.RELOAD_CHAT_LIST)
         if self.websearch_on != new_settings.websearch_on or self.websearch_model != new_settings.websearch_model or self.websearch_settings != new_settings.websearch_settings:
             reloads.append(ReloadType.WEBSEARCH)
-        if self.mcp_servers != new_settings.mcp_servers or self.tools_settings != new_settings.tools_settings:
+        if self.mcp_servers != new_settings.mcp_servers or self.tools_settings != new_settings.tools_settings or self.skills_settings != new_settings.skills_settings:
             reloads.append(ReloadType.TOOLS)
         # Check wakeword settings
         if (self.wakeword_enabled != new_settings.wakeword_enabled or

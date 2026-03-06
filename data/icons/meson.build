@@ -41,6 +41,7 @@ install_data (
     'chat-bubbles-text-symbolic.svg',
     'branch-symbolic.svg',
     'call-emergency-symbolic.svg',
+    'skills-symbolic.svg',
     install_dir: symbolic_dir
 )
 install_data (

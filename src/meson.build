@@ -38,7 +38,8 @@ newelle_sources = [
   'extensions.py',
   'controller.py',
   'ui_controller.py',
-  'tools.py'
+  'tools.py',
+  'skills.py'
 ]
 
 integrations_sources = [
@@ -46,7 +47,8 @@ integrations_sources = [
   'integrations/website_reader.py',
   'integrations/websearch.py',
   'integrations/mcp.py',
-  'integrations/default_tools.py'
+  'integrations/default_tools.py',
+  'integrations/skills.py'
 ]
 
 ui_sources = [

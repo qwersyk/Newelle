@@ -10,11 +10,12 @@ from .integrations.website_reader import WebsiteReader
 from .integrations.websearch import WebsearchIntegration
 from .integrations.mcp import MCPIntegration
 from .integrations.default_tools import DefaultToolsIntegration
+from .integrations.skills import SkillsIntegration
 
 DIR_NAME = "Newelle"
 SCHEMA_ID = 'io.github.qwersyk.Newelle'
 
-AVAILABLE_INTEGRATIONS = [WebsiteReader, WebsearchIntegration, MCPIntegration, DefaultToolsIntegration]
+AVAILABLE_INTEGRATIONS = [WebsiteReader, WebsearchIntegration, MCPIntegration, SkillsIntegration, DefaultToolsIntegration]
 
 AVAILABLE_LLMS = {
     "newelle": {
@@ -410,6 +411,14 @@ You have access to the following tools.
 {TOOLS}
 ```
 """,
+    "skills": """{COND:
+[skills_available] # Skills
+The following skills provide specialized instructions for specific tasks.
+When a task matches a skill's description, use the activate_skill tool to load its full instructions before proceeding.
+
+Available skills:
+{SKILLS}
+}""",
     # Unused
     "new_chat_prompt": """System: New chat
 System: Forget what was written on behalf of the user and on behalf of the assistant and on behalf of the Console, forget all the context, do not take messages from those chats, this is a new chat with other characters, do not dare take information from there, this is personal information! If you use information from past posts, it's a violation! Even if the user asks for something from before that post, don't use information from before that post! Also, forget this message.""",
@@ -493,6 +502,15 @@ AVAILABLE_PROMPTS = [
         "title": _("Tools"),
         "description": _("List tools available to the LLM"),
         "setting_name": "tools",
+        "editable": True,
+        "show_in_settings": True,
+        "default": True
+    },
+    {
+        "key": "skills",
+        "title": _("Skills"),
+        "description": _("Agent skills that provide specialized instructions for specific tasks"),
+        "setting_name": "skills",
         "editable": True,
         "show_in_settings": True,
         "default": True
@@ -605,7 +623,7 @@ SETTINGS_GROUPS = {
         },
         "tools": {
             "title": _("Tools"),
-            "settings": ["tools-settings", "mcp-servers"],
+            "settings": ["tools-settings", "mcp-servers", "skills-settings"],
             "description": _("Tools settings, tools groups..."),
         },
         "wakeword": {

@@ -500,7 +500,8 @@ class Settings(Adw.PreferencesWindow):
         self.tools_group = Adw.PreferencesGroup(title=_("Tools"))
         self.ToolsPage.add(self.tools_group)
         self.refresh_tools_list()
-        
+
+        self.build_skills_settings()
         self.build_mcp_settings()
         self._building_tools_page = False
 
@@ -670,6 +671,121 @@ class Settings(Adw.PreferencesWindow):
     def reset_tool_prompt(self, button, entry):
         entry.set_text(entry.default_prompt)
         self.update_tool_prompt(entry)
+
+    # --- Skills settings ---
+
+    def build_skills_settings(self):
+        self.skills_group = Adw.PreferencesGroup(
+            title=_("Skills"),
+            description=_("Manage Agent Skills (SKILL.md files)")
+        )
+        self.ToolsPage.add(self.skills_group)
+
+        actions_row = Adw.ActionRow(title=_("Skills folder"), subtitle=self.controller.skills_path)
+        open_button = Gtk.Button(icon_name="folder-symbolic", valign=Gtk.Align.CENTER, css_classes=["flat"])
+        open_button.set_tooltip_text(_("Open skills folder"))
+        open_button.connect("clicked", lambda btn: open_folder(self.controller.skills_path))
+        actions_row.add_suffix(open_button)
+
+        add_button = Gtk.Button(icon_name="list-add-symbolic", valign=Gtk.Align.CENTER, css_classes=["flat"])
+        add_button.set_tooltip_text(_("Add skill from folder"))
+        add_button.connect("clicked", self._on_add_skill_clicked)
+        actions_row.add_suffix(add_button)
+
+        refresh_button = Gtk.Button(icon_name="view-refresh-symbolic", valign=Gtk.Align.CENTER, css_classes=["flat"])
+        refresh_button.set_tooltip_text(_("Refresh skills"))
+        refresh_button.connect("clicked", self._on_refresh_skills_clicked)
+        actions_row.add_suffix(refresh_button)
+
+        self.skills_group.add(actions_row)
+
+        self.skills_rows = []
+        self.refresh_skills_list()
+
+    def refresh_skills_list(self):
+        for row in self.skills_rows:
+            self.skills_group.remove(row)
+        self.skills_rows = []
+
+        skill_manager = self.controller.skill_manager
+        for skill in skill_manager.skills.values():
+            row = self._create_skill_row(skill)
+            self.skills_group.add(row)
+            self.skills_rows.append(row)
+
+    def _create_skill_row(self, skill):
+        row = Adw.ExpanderRow(title=skill.name, subtitle=skill.description)
+        icon = Gtk.Image(icon_name="skills-symbolic", css_classes=["dim-label"])
+        row.add_prefix(icon)
+
+        toggle = Gtk.Switch(valign=Gtk.Align.CENTER)
+        toggle.set_active(self.controller.skill_manager.is_skill_enabled(skill.name))
+        toggle.connect("state-set", self._on_skill_toggled, skill.name)
+        row.add_suffix(toggle)
+
+        info_row = Adw.ActionRow(title=_("Location"), subtitle=skill.location)
+        row.add_row(info_row)
+
+        resource_count = len(self.controller.skill_manager._list_resources(skill.base_dir))
+        if resource_count > 0:
+            res_row = Adw.ActionRow(
+                title=_("Bundled resources"),
+                subtitle=str(resource_count) + " " + (_("files") if resource_count != 1 else _("file"))
+            )
+            row.add_row(res_row)
+
+        remove_row = Adw.ActionRow(title=_("Remove skill"))
+        remove_button = Gtk.Button(label=_("Remove"), valign=Gtk.Align.CENTER, css_classes=["destructive-action"])
+        remove_button.connect("clicked", self._on_remove_skill_clicked, skill.name)
+        remove_row.add_suffix(remove_button)
+        row.add_row(remove_row)
+
+        return row
+
+    def _on_skill_toggled(self, switch, state, skill_name):
+        self.controller.skill_manager.set_skill_enabled(skill_name, state)
+
+    def _on_add_skill_clicked(self, button):
+        dialog = Gtk.FileDialog(title=_("Select Skill Folder"))
+        dialog.select_folder(self, None, self._on_skill_folder_selected)
+
+    def _on_skill_folder_selected(self, dialog, result):
+        try:
+            folder = dialog.select_folder_finish(result)
+        except GLib.Error:
+            return
+        if folder is None:
+            return
+
+        path = folder.get_path()
+        skill_md = os.path.join(path, "SKILL.md")
+        if not os.path.isfile(skill_md):
+            toast = Adw.Toast(title=_("Selected folder does not contain a SKILL.md file"))
+            self.add_toast(toast)
+            return
+
+        skill = self.controller.skill_manager.add_skill_from_path(path)
+        if skill is not None:
+            self.refresh_skills_list()
+            toast = Adw.Toast(title=_("Skill '{}' added").format(skill.name))
+            self.add_toast(toast)
+        else:
+            toast = Adw.Toast(title=_("Failed to add skill"))
+            self.add_toast(toast)
+
+    def _on_remove_skill_clicked(self, button, skill_name):
+        if self.controller.skill_manager.remove_skill(skill_name):
+            self.refresh_skills_list()
+            toast = Adw.Toast(title=_("Skill '{}' removed").format(skill_name))
+            self.add_toast(toast)
+
+    def _on_refresh_skills_clicked(self, button):
+        self.controller.skill_manager.discover()
+        self.refresh_skills_list()
+        toast = Adw.Toast(title=_("Skills refreshed"))
+        self.add_toast(toast)
+
+    # --- MCP settings ---
 
     def build_mcp_settings(self):
         self.mcp_group = Adw.PreferencesGroup(title=_("MCP Servers"), description=_("Manage Model Context Protocol servers"))
