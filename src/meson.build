@@ -85,6 +85,7 @@ widgets_sources = [
   'ui/widgets/browser.py',
   'ui/widgets/code_editor.py',
   'ui/widgets/tool.py',
+  'ui/widgets/skill.py',
   'ui/widgets/message.py',
   'ui/widgets/chatrow.py',
   'ui/widgets/chat_history.py',
