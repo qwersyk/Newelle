@@ -2126,7 +2126,7 @@ msgstr "キーボードショートカット"
 
 #: src/window.py:121
 msgid "About"
-msgstr "について"
+msgstr "Newelleについて"
 
 #: src/window.py:128 src/window.py:197
 msgid "Chat"
