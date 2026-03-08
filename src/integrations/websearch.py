@@ -2,7 +2,7 @@ import threading
 from ..utility.message_chunk import get_message_chunks
 from ..extensions import NewelleExtension
 from ..ui.widgets import WebSearchWidget
-from ..tools import ToolResult, Tool
+from ..tools import ToolResult, Tool, Command
 from gi.repository import Gtk, GLib
 import os
 import json 
@@ -18,8 +18,8 @@ class WebsearchIntegration(NewelleExtension):
         self.load_widet_cache()
         self.msgid = 0
 
-    def search(self, query: str, only_links: bool = False, max_results: int = 5):
-        msgid = self.ui_controller.get_current_message_id()
+    def search(self, query: str, msg_uuid: int = None, only_links: bool = False, max_results: int = 5):
+        msgid = msg_uuid if msg_uuid is not None else self.ui_controller.get_current_message_id()
         widget = self.get_gtk_widget(query, "", msgid)
         result = ToolResult()
         result.set_widget(widget)
@@ -30,14 +30,19 @@ class WebsearchIntegration(NewelleExtension):
         th.start()
         return result
     
-    def restore_search(self, msg_id, query:str, only_links: bool = False, max_results: int = 5):
-        widget = self.restore_gtk_widget(query, "", msg_id)
+    def restore_search(self, msg_uuid, query:str, only_links: bool = False, max_results: int = 5):
+        widget = self.restore_gtk_widget(query, "", msg_uuid)
         return ToolResult(widget=widget)
 
     def get_tools(self) -> list:
         return [Tool(
             "search", "Perform a search query on the internet, you can specify the number of results to return and if you want to only return the links and titles.", self.search,title="Search", restore_func=self.restore_search, icon_name="system-search-symbolic"
             )]
+
+    def get_commands(self) -> list:
+        return [Command(
+            "websearch", "Perform a search query on the internet.", self.search, restore_func=self.restore_search, icon_name="system-search-symbolic"
+        )]
 
     def get_replace_codeblocks_langs(self) -> list:
         return ["search"]

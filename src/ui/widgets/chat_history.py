@@ -139,6 +139,25 @@ class ChatHistory(Gtk.Box):
                     self.show_message(self.chat[i]["Message"], True, id_message=i)
                 elif self.chat[i]["User"] == "Console" and self.chat[i].get("skill_name"):
                     self._add_skill_message(i)
+                elif self.chat[i]["User"] == "Command":
+                    text = self.chat[i]["Message"]
+                    if text.startswith("/"):
+                        parts = text[1:].split(" ", 1)
+                        if parts:
+                            cmd_name = parts[0].lower()
+                            args_str = parts[1] if len(parts) > 1 else ""
+                            cmd = self.controller.get_command(cmd_name)
+                            if cmd:
+                                kwargs = {}
+                                if args_str and "properties" in cmd.schema:
+                                    for param_name in cmd.schema.get("properties", {}):
+                                        if cmd.schema["properties"][param_name]["type"] == "string":
+                                            kwargs[param_name] = args_str.strip()
+                                            break
+                                kwargs["msg_uuid"] = self.chat[i].get("UUID")
+                                result = cmd.restore(**kwargs)
+                                if result and result.widget is not None:
+                                    self.add_message("Command", result.widget, id_message=i, editable=True)
                 elif self.chat[i]["User"] in ["File", "Folder"]:
                     self.add_message(self.chat[i]["User"], self.get_file_button(self.chat[i]["Message"][1 : len(self.chat[i]["Message"])]))
         GLib.timeout_add(200, self.scrolled_chat)
@@ -1076,6 +1095,25 @@ class ChatHistory(Gtk.Box):
                 self.show_message(self.chat[i]["Message"], True, id_message=i)
             elif self.chat[i]["User"] == "Console" and self.chat[i].get("skill_name"):
                 self._add_skill_message(i)
+            elif self.chat[i]["User"] == "Command":
+                text = self.chat[i]["Message"]
+                if text.startswith("/"):
+                    parts = text[1:].split(" ", 1)
+                    if parts:
+                        cmd_name = parts[0].lower()
+                        args_str = parts[1] if len(parts) > 1 else ""
+                        cmd = self.controller.get_command(cmd_name)
+                        if cmd:
+                            kwargs = {}
+                            if args_str and "properties" in cmd.schema:
+                                for param_name in cmd.schema.get("properties", {}):
+                                    if cmd.schema["properties"][param_name]["type"] == "string":
+                                        kwargs[param_name] = args_str.strip()
+                                        break
+                            kwargs["msg_uuid"] = self.chat[i].get("UUID")
+                            result = cmd.restore(**kwargs)
+                            if result and result.widget is not None:
+                                self.add_message("Command", result.widget, id_message=i, editable=True)
             elif self.chat[i]["User"] in ["File", "Folder"]:
                 self.add_message(
                     self.chat[i]["User"],

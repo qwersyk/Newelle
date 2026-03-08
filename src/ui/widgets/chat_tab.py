@@ -230,7 +230,7 @@ class ChatTab(Gtk.Box):
     def _on_input_changed(self, buffer):
         text = buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter(), False)
         if text.startswith("/"):
-            query = text[1:].lower()
+            query = text[1:].split(" ", 1)[0].lower()
             self._show_command_hints(query)
         else:
             self._cmd_popover.popdown()
@@ -277,21 +277,47 @@ class ChatTab(Gtk.Box):
     def _on_command_selected(self, listbox, row):
         if row is None:
             return
-        self._cmd_popover.popdown()
         cmd = row.cmd_data
-        self.input_panel.set_text("")
-        self._execute_command(cmd)
+        full_text = self.input_panel.get_text()
+        parts = full_text.split(" ", 1)
+        args_str = parts[1] if len(parts) > 1 else ""
 
-    def _execute_command(self, cmd):
-        result = cmd.execute()
+        required_args = cmd.schema.get("required", [])
+        if required_args and not args_str.strip():
+            self.input_panel.set_text(f"/{cmd.name} ")
+            buffer = self.input_panel.input_panel.get_buffer()
+            buffer.place_cursor(buffer.get_end_iter())
+            self.input_panel.grab_focus()
+            return
+
+        self._cmd_popover.popdown()
+        self.input_panel.set_text("")
+        self._execute_command(cmd, args_str)
+
+    def _execute_command(self, cmd, args_str=""):
+        kwargs = {}
+        if args_str:
+            if "properties" in cmd.schema:
+                for param_name in cmd.schema.get("properties", {}):
+                    if cmd.schema["properties"][param_name]["type"] == "string":
+                        kwargs[param_name] = args_str.strip()
+                        break
+        import uuid
+        msg_uuid = int(uuid.uuid4())
+        kwargs['msg_uuid'] = msg_uuid
+        result = cmd.execute(**kwargs)
         if result is not None and result.widget is not None:
-            self.chat.append({"User": "Command", "Message": cmd.name})
-            if result.get_output() is not None:
-                self.chat.append({"User": "Console", "Message": result.get_output()})
+            display_text = f"/{cmd.name} {args_str}".strip()
+            self.chat.append({"User": "Command", "Message": display_text, "UUID": msg_uuid})
             self.chat_history.hide_placeholder()
             self.chat_history.add_message("Command", result.widget, id_message=len(self.chat) - 1, editable=True)
             self.chat_history._finalize_message_display()
             GLib.idle_add(self.chat_history.scrolled_chat)
+            def async_get_output():
+                if result.get_output() is not None:
+                    self.chat.append({"User": "Console", "Message": result.get_output()})
+            thread = threading.Thread(target=async_get_output)
+            thread.start()
 
     def _build_quick_toggles(self):
         """Build quick toggle buttons for settings."""

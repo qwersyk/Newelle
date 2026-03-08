@@ -222,7 +222,7 @@ class Message(Gtk.Box):
         if chunk.type == "codeblock":
             self._process_codeblock(chunk, box, state, restore, is_user, msg_uuid)
         elif chunk.type == "tool_call":
-            self._process_tool_call(chunk, box, state, restore)
+            self._process_tool_call(chunk, box, state, restore, msg_uuid)
         elif chunk.type == "table":
             self._process_table(chunk, box)
         elif chunk.type == "inline_chunks":
@@ -589,7 +589,7 @@ class Message(Gtk.Box):
                  self.controller.chat.append({"User": "Console", "Message": "None"})
             box.append(self._create_copybox(command, "console", state=state, codeblock_id=state["codeblock_id"], allow_edit=state["editable"], enable_run_callback=True))
 
-    def _process_tool_call(self, chunk, box, state, restore):
+    def _process_tool_call(self, chunk, box, state, restore, msg_uuid):
         tool_name = chunk.tool_name
         args = chunk.tool_args
         tool = self.controller.tools.get_tool(tool_name)
@@ -617,21 +617,21 @@ class Message(Gtk.Box):
              box.append(placeholder)
              
              # We pass placeholder to runner
-             self._queue_execution(lambda: self._run_tool_call_with_placeholder(tool, args, tool_uuid, state, restore, placeholder, chunk))
+             self._queue_execution(lambda: self._run_tool_call_with_placeholder(tool, args, tool_uuid, state, restore, placeholder, chunk, msg_uuid))
              
         except Exception as e:
             print(f"Tool error: {e}")
 
-    def _run_tool_call_with_placeholder(self, tool, args, tool_uuid, state, restore, placeholder, chunk):
+    def _run_tool_call_with_placeholder(self, tool, args, tool_uuid, state, restore, placeholder, chunk, msg_uuid):
         state["has_terminal_command"] = True
         self.controller.msgid = state["id_message"]
         
         def run_tool():
             try:
                 if restore:
-                    result = tool.restore(msg_id=state["id_message"], tool_uuid=tool_uuid, **args)
+                    result = tool.restore(msg_uuid=msg_uuid, tool_uuid=tool_uuid, **args)
                 else:
-                    result = tool.execute(**args)
+                    result = tool.execute(msg_uuid=msg_uuid, **args)
                 
                 if not restore:
                     # Append result to active tool results in main thread if needed

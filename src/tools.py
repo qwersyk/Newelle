@@ -95,9 +95,19 @@ class Command:
         }
 
     def execute(self, **kwargs):
+        sig = inspect.signature(self.func)
+        for param in ['msg_uuid', 'tool_uuid']:
+            if param not in sig.parameters and 'kwargs' not in str(sig.parameters):
+                kwargs.pop(param, None)
         return self.func(**kwargs)
+
     def restore(self, **kwargs):
-        return self.func(**kwargs)
+        func_to_call = self.restore_func if self.restore_func is not None else self.func
+        sig = inspect.signature(func_to_call)
+        for param in ['msg_uuid', 'tool_uuid']:
+            if param not in sig.parameters and 'kwargs' not in str(sig.parameters):
+                kwargs.pop(param, None)
+        return func_to_call(**kwargs)
 
 class Tool:
     def __init__(self, name: str, description: str, func: Callable, schema: Dict[str, Any] = None, run_on_main_thread: bool = False, title: str = None, prompt_editable: bool = True, restore_func: Callable = None, default_on: bool = True, tools_group: str = None, icon_name: str = None):
@@ -117,7 +127,7 @@ class Tool:
         if self.restore_func is not None:
             # Filter out internal parameters if restore_func doesn't accept them
             sig = inspect.signature(self.restore_func)
-            for param in ['msg_id', 'tool_uuid']:
+            for param in ['msg_uuid', 'tool_uuid']:
                 if param not in sig.parameters and 'kwargs' not in str(sig.parameters):
                     kwargs.pop(param, None)
             return self.restore_func(**kwargs)
@@ -158,7 +168,7 @@ class Tool:
     def execute(self, **kwargs):
         sig = inspect.signature(self.func)
         # Filter out internal parameters if function doesn't accept them
-        for param in ['msg_id', 'tool_uuid']:
+        for param in ['msg_uuid', 'tool_uuid']:
             if param not in sig.parameters and 'kwargs' not in str(sig.parameters):
                 kwargs.pop(param, None)
         return self.func(**kwargs)
