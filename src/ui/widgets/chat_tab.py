@@ -227,6 +227,47 @@ class ChatTab(Gtk.Box):
         self._cmd_popover.set_child(scroll)
         self._cmd_selected_index = -1
 
+        key_ctrl = Gtk.EventControllerKey.new()
+        key_ctrl.set_propagation_phase(Gtk.PropagationPhase.CAPTURE)
+        key_ctrl.connect("key-pressed", self._on_cmd_key_pressed)
+        self.input_panel.input_panel.add_controller(key_ctrl)
+
+    def _on_cmd_key_pressed(self, controller, keyval, keycode, state):
+        if not self._cmd_popover.get_visible():
+            return False
+
+        if keyval == Gdk.KEY_Up:
+            self._move_cmd_selection(-1)
+            return True
+        elif keyval == Gdk.KEY_Down:
+            self._move_cmd_selection(1)
+            return True
+        elif keyval in (Gdk.KEY_Return, Gdk.KEY_KP_Enter):
+            selected = self._cmd_list.get_selected_row()
+            if selected is None:
+                selected = self._cmd_list.get_row_at_index(0)
+            if selected is not None:
+                self._on_command_selected(self._cmd_list, selected)
+                return True
+            
+        return False
+
+    def _move_cmd_selection(self, step):
+        selected = self._cmd_list.get_selected_row()
+        current_index = selected.get_index() if selected else (-1 if step > 0 else 0)
+        
+        count = 0
+        while self._cmd_list.get_row_at_index(count) is not None:
+            count += 1
+            
+        if count == 0:
+            return
+            
+        new_index = max(0, min(current_index + step, count - 1))
+        row = self._cmd_list.get_row_at_index(new_index)
+        if row is not None:
+            self._cmd_list.select_row(row)
+
     def _on_input_changed(self, buffer):
         text = buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter(), False)
         if text.startswith("/"):
@@ -271,6 +312,10 @@ class ChatTab(Gtk.Box):
             row.set_child(box)
             row.cmd_data = cmd
             self._cmd_list.append(row)
+
+        first_row = self._cmd_list.get_row_at_index(0)
+        if first_row is not None:
+            self._cmd_list.select_row(first_row)
 
         self._cmd_popover.popup()
 
