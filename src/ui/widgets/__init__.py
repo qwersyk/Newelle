@@ -16,6 +16,7 @@ from .terminal_dialog import Terminal, TerminalDialog
 from .code_editor import CodeEditorWidget
 from .tool import ToolWidget
 from .skill import SkillWidget
+from .subagent import SubagentWidget
 from .message import Message
 from .chatrow import ChatRow
 from .chat_history import ChatHistory
@@ -44,6 +45,7 @@ __all__ = [
     "CodeEditorWidget",
     "ToolWidget",
     "SkillWidget",
+    "SubagentWidget",
     "Message",
     "ChatRow",
     "ChatHistory",

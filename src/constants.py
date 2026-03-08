@@ -11,11 +11,12 @@ from .integrations.websearch import WebsearchIntegration
 from .integrations.mcp import MCPIntegration
 from .integrations.default_tools import DefaultToolsIntegration
 from .integrations.skills import SkillsIntegration
+from .integrations.agent_tools import AgentToolsIntegration
 
 DIR_NAME = "Newelle"
 SCHEMA_ID = 'io.github.qwersyk.Newelle'
 
-AVAILABLE_INTEGRATIONS = [WebsiteReader, WebsearchIntegration, MCPIntegration, SkillsIntegration, DefaultToolsIntegration]
+AVAILABLE_INTEGRATIONS = [WebsiteReader, WebsearchIntegration, MCPIntegration, SkillsIntegration, DefaultToolsIntegration, AgentToolsIntegration]
 
 AVAILABLE_LLMS = {
     "newelle": {

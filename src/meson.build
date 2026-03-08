@@ -48,7 +48,8 @@ integrations_sources = [
   'integrations/websearch.py',
   'integrations/mcp.py',
   'integrations/default_tools.py',
-  'integrations/skills.py'
+  'integrations/skills.py',
+  'integrations/agent_tools.py'
 ]
 
 ui_sources = [
@@ -86,6 +87,7 @@ widgets_sources = [
   'ui/widgets/code_editor.py',
   'ui/widgets/tool.py',
   'ui/widgets/skill.py',
+  'ui/widgets/subagent.py',
   'ui/widgets/message.py',
   'ui/widgets/chatrow.py',
   'ui/widgets/chat_history.py',
