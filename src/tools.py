@@ -169,7 +169,7 @@ class Tool:
         sig = inspect.signature(self.func)
         # Filter out internal parameters if function doesn't accept them
         for param in ['msg_uuid', 'tool_uuid']:
-            if param not in sig.parameters and 'kwargs' not in str(sig.parameters):
+            if param not in sig.parameters:
                 kwargs.pop(param, None)
         return self.func(**kwargs)
 
@@ -254,7 +254,7 @@ def create_io_tool(name: str, description: str, func: Callable, title: str = Non
         GLib.idle_add(t.start)
         return result
 
-    t = Tool(name, description, wrapper, title=title, default_on=default_on, tools_group=tools_group, icon_name=icon_name)
+    t = Tool(name, description, wrapper, title=title, default_on=default_on, tools_group=tools_group, icon_name=icon_name, restore_func=None)
     schema = t._generate_schema_from_func(func)
     t.schema = schema
     return t
