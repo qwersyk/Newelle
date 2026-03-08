@@ -45,6 +45,60 @@ class ToolResult:
             pass
 
 
+class Command:
+    """Represents a slash command that can be executed from the chat input."""
+    
+    def __init__(
+        self,
+        name: str,
+        description: str,
+        func: Callable,
+        icon_name: str = None,
+        schema: Dict[str, Any] = None,
+        restore_func: Callable = None,
+    ):
+        self.name = name
+        self.description = description
+        self.func = func
+        self.icon_name = icon_name or "applications-utilities-symbolic"
+        self.schema = schema or self._generate_schema_from_func(func)
+        self.command = name.lower()
+        self.restore_func = restore_func
+
+    def _generate_schema_from_func(self, func: Callable) -> Dict[str, Any]:
+        sig = inspect.signature(func)
+        params = {}
+        required = []
+        for name, param in sig.parameters.items():
+            if name == "self":
+                continue
+            param_type = "string"
+            if param.annotation == int:
+                param_type = "integer"
+            elif param.annotation == bool:
+                param_type = "boolean"
+            elif param.annotation == float:
+                param_type = "number"
+            elif param.annotation == list:
+                param_type = "array"
+            elif param.annotation == dict:
+                param_type = "object"
+            
+            params[name] = {"type": param_type}
+            if param.default == inspect.Parameter.empty:
+                required.append(name)
+        
+        return {
+            "type": "object",
+            "properties": params,
+            "required": required
+        }
+
+    def execute(self, **kwargs):
+        return self.func(**kwargs)
+    def restore(self, **kwargs):
+        return self.func(**kwargs)
+
 class Tool:
     def __init__(self, name: str, description: str, func: Callable, schema: Dict[str, Any] = None, run_on_main_thread: bool = False, title: str = None, prompt_editable: bool = True, restore_func: Callable = None, default_on: bool = True, tools_group: str = None, icon_name: str = None):
         self.name = name

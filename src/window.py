@@ -509,6 +509,7 @@ class MainWindow(Adw.ApplicationWindow):
         chat_tab = ChatTab(self, chat_id)
         chat_tab.connect("chat-name-changed", self._on_chat_name_changed)
         
+        
         # Add to tab view
         tab_page = self.chat_tabs.append(chat_tab)
         tab_page.set_title(chat_tab.chat_name)

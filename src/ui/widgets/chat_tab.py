@@ -28,6 +28,7 @@ from ...utility.strings import (
 )
 from ...utility.system import is_flatpak
 from ...utility.media import extract_supported_files
+from ...tools import Command
 
 _ = gettext.gettext
 
@@ -198,8 +199,100 @@ class ChatTab(Gtk.Box):
         self.input_panel.set_on_enter(self.on_entry_activate)
         self.send_button.connect("clicked", self.on_entry_button_clicked)
         
+        self._build_command_popover()
+        self.input_panel.input_panel.get_buffer().connect("changed", self._on_input_changed)
+
         self.append(self.input_box)
-        
+
+    def _build_command_popover(self):
+        """Build the slash-command hints popover attached to the input panel."""
+        self._cmd_popover = Gtk.Popover()
+        self._cmd_popover.set_parent(self.input_panel)
+        self._cmd_popover.set_position(Gtk.PositionType.TOP)
+        self._cmd_popover.set_autohide(False)
+        self._cmd_popover.set_has_arrow(False)
+
+        self._cmd_list = Gtk.ListBox()
+        self._cmd_list.set_selection_mode(Gtk.SelectionMode.SINGLE)
+        self._cmd_list.add_css_class("navigation-sidebar")
+        self._cmd_list.connect("row-activated", self._on_command_selected)
+
+        scroll = Gtk.ScrolledWindow(
+            max_content_height=220,
+            propagate_natural_height=True,
+            hscrollbar_policy=Gtk.PolicyType.NEVER,
+        )
+        scroll.set_child(self._cmd_list)
+        scroll.set_size_request(300, -1)
+        self._cmd_popover.set_child(scroll)
+        self._cmd_selected_index = -1
+
+    def _on_input_changed(self, buffer):
+        text = buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter(), False)
+        if text.startswith("/"):
+            query = text[1:].lower()
+            self._show_command_hints(query)
+        else:
+            self._cmd_popover.popdown()
+
+    def _show_command_hints(self, query):
+        while True:
+            row = self._cmd_list.get_row_at_index(0)
+            if row is None:
+                break
+            self._cmd_list.remove(row)
+
+        commands = self.controller.get_commands()
+        matches = [c for c in commands if query == "" or query in c.name.lower() or query in c.description.lower()]
+
+        if not matches:
+            self._cmd_popover.popdown()
+            return
+
+        for cmd in matches:
+            row = Gtk.ListBoxRow()
+            box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10, margin_top=4, margin_bottom=4, margin_start=8, margin_end=8)
+            icon = Gtk.Image(icon_name=cmd.icon_name, pixel_size=18)
+            icon.add_css_class("dim-label")
+            box.append(icon)
+
+            text_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=1)
+            name_label = Gtk.Label(label="/" + cmd.name, halign=Gtk.Align.START, xalign=0)
+            name_label.add_css_class("heading")
+            name_label.add_css_class("caption")
+            text_box.append(name_label)
+
+            desc_label = Gtk.Label(label=cmd.description, halign=Gtk.Align.START, xalign=0, ellipsize=2)
+            desc_label.add_css_class("dim-label")
+            desc_label.add_css_class("caption")
+            text_box.append(desc_label)
+
+            box.append(text_box)
+            row.set_child(box)
+            row.cmd_data = cmd
+            self._cmd_list.append(row)
+
+        self._cmd_popover.popup()
+
+    def _on_command_selected(self, listbox, row):
+        if row is None:
+            return
+        self._cmd_popover.popdown()
+        cmd = row.cmd_data
+        self.input_panel.set_text("")
+        self._execute_command(cmd)
+
+    def _execute_command(self, cmd):
+        result = cmd.execute()
+        if result is not None and result.widget is not None:
+            self.chat.append({"User": "Command", "Message": cmd.name})
+            if result.get_output() is not None:
+                self.chat.append({"User": "Console", "Message": result.get_output()})
+            self.chat_history.hide_placeholder()
+            self.chat_history.add_message("Command", result.widget, id_message=len(self.chat) - 1, editable=True)
+            self.chat_history._finalize_message_display()
+            GLib.idle_add(self.chat_history.scrolled_chat)
+
     def _build_quick_toggles(self):
         """Build quick toggle buttons for settings."""
         self.quick_toggles = Gtk.MenuButton(
@@ -405,6 +498,16 @@ class ChatTab(Gtk.Box):
         
     def on_entry_activate(self, entry):
         """Send a message when input is pressed."""
+        text = entry.get_text()
+
+        if text.startswith("/") and self._cmd_popover.get_visible():
+            selected = self._cmd_list.get_selected_row()
+            if selected is None:
+                selected = self._cmd_list.get_row_at_index(0)
+            if selected is not None:
+                self._on_command_selected(self._cmd_list, selected)
+                return False
+
         if not self.status:
             self.notification_block.add_toast(
                 Adw.Toast(
@@ -414,7 +517,6 @@ class ChatTab(Gtk.Box):
             )
             return False
         
-        text = entry.get_text()
         entry.set_text("")
         
         if text and not text.isspace():

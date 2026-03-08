@@ -379,6 +379,19 @@ class NewelleController:
         if mcp_integration is not None:
             mcp_integration.update_tools()
             self.tools.update_tools(mcp_integration.get_tools())
+    
+    def get_commands(self):
+        commands = []
+        commands.extend(self.integrationsloader.get_commands())
+        commands.extend(self.extensionloader.get_commands())
+        return commands
+    
+    def get_command(self, name):
+        for command in self.get_commands():
+            if command.name == name:
+                return command 
+
+        return None
 
     def require_tool_update(self):
         self.tools = ToolRegistry()
