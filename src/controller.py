@@ -296,7 +296,7 @@ class NewelleController:
         summary = task["task"].strip().splitlines()[0][:48]
         if len(task["task"].strip().splitlines()[0]) > 48:
             summary += "..."
-        return _("Scheduled: {0}").format(summary)
+        return _("⏰ Scheduled: {0}").format(summary)
 
     def _normalize_cron_value(self, value: int, field_name: str) -> int:
         if field_name == "weekday" and value == 7:
@@ -1398,7 +1398,8 @@ class NewelleController:
         Returns:
             Final message from the LLM
         """
-        self.chats[chat_id]["chat"].append({"User": "User", "Message": message})
+        msg_uuid = int(uuid_lib.uuid4())
+        self.chats[chat_id]["chat"].append({"User": "User", "Message": message, "UUID": msg_uuid})
         if save_chat:
             self.save_chats()
         history = self.get_history(chat=self.chats[chat_id]["chat"], include_last_message=True)
@@ -1446,24 +1447,28 @@ class NewelleController:
                 if chunk.type == "tool_call":
                     tool_calls.append({"name": chunk.tool_name, "args": chunk.tool_args})
                 elif chunk.type in ("text", "markdown"):
-                    text_content += chunk.text
+                    text_content += "\n" + chunk.text
             
             if not tool_calls:
-                current_history.append({"User": "Assistant", "Message": text_content})
+                msg_uuid = int(uuid_lib.uuid4())
+                current_history.append({"User": "Assistant", "Message": text_content, "UUID": msg_uuid})
                 if save_chat:
-                    self.chats[chat_id]["chat"].append({"User": "Assistant", "Message": text_content})
+                    self.chats[chat_id]["chat"].append({"User": "Assistant", "Message": response, "UUID": msg_uuid})
                     self.save_chats()
                 return text_content
+            assistant_msg_uuid = int(uuid_lib.uuid4())
             
             for tool_call in tool_calls:
                 tool_name = tool_call["name"]
                 tool_args = tool_call["args"]
+                tool_uuid = str(uuid_lib.uuid4())[:8]
                 
                 try:
+                    tool = self.tools.get_tool(tool_name)
                     if force_tools_on_main_thread and threading.current_thread() is not threading.main_thread():
-                        result = self.execute_tool_on_main_thread(tool_name, tool_args)
+                        result = tool.execute(msg_uuid=msg_uuid, tool_uuid=tool_uuid, **tool_args)
                     else:
-                        result = self.tools.execute_tool(tool_name, tool_args)
+                        result = tool.execute(msg_uuid=msg_uuid, tool_uuid=tool_uuid, **tool_args)
                     if isinstance(result, ToolResult):
                         if on_tool_result_callback:
                             on_tool_result_callback(tool_name, result)
@@ -1479,27 +1484,30 @@ class NewelleController:
                         tr = ToolResult(output=tool_result_output)
                         on_tool_result_callback(tool_name, tr)
                 
+                
+                tool_call_msg = f"```json\n{{\"name\": \"{tool_name}\", \"arguments\": {json.dumps(tool_args)}}}\n```"
+                tool_result_msg = f"[Tool: {tool_name}, ID: {tool_uuid}]\n{tool_result_output}"
+                
                 current_history.append({
                     "User": "Assistant",
-                    "Message": f"```json\n{{\"name\": \"{tool_name}\", \"arguments\": {json.dumps(tool_args)}}}\n```"
-                })
-                current_history.append({
-                    "User": "Tool",
-                    "Message": f"[Tool: {tool_name}]\n{tool_result_output}"
+                    "Message": tool_call_msg,
+                    "UUID": assistant_msg_uuid
                 })
                 if save_chat:
                     self.chats[chat_id]["chat"].append({
                         "User": "Assistant",
-                        "Message": f"```json\n{{\"name\": \"{tool_name}\", \"arguments\": {json.dumps(tool_args)}}}\n```"
+                        "Message": tool_call_msg,
+                        "UUID": assistant_msg_uuid
                     })
                     self.chats[chat_id]["chat"].append({
                         "User": "Console",
-                        "Message": f"[Tool: {tool_name}]\n{tool_result_output}"
+                        "Message": tool_result_msg,
                     })
                     self.save_chats()
         
         if save_chat:
-            self.chats[chat_id]["chat"].append({"User": "Assistant", "Message": text_content})
+            msg_uuid = int(uuid_lib.uuid4())
+            self.chats[chat_id]["chat"].append({"User": "Assistant", "Message": text_content, "UUID": msg_uuid})
             self.save_chats()
         return text_content
 

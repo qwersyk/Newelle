@@ -631,7 +631,7 @@ class Message(Gtk.Box):
                 if restore:
                     result = tool.restore(msg_uuid=msg_uuid, tool_uuid=tool_uuid, **args)
                 else:
-                    result = tool.execute(msg_uuid=msg_uuid, **args)
+                    result = tool.execute(msg_uuid=msg_uuid, tool_uuid=tool_uuid, **args)
                 
                 if not restore:
                     # Append result to active tool results in main thread if needed
