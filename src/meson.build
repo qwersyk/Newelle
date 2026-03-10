@@ -89,6 +89,7 @@ widgets_sources = [
   'ui/widgets/tool.py',
   'ui/widgets/skill.py',
   'ui/widgets/subagent.py',
+  'ui/widgets/scheduled_task.py',
   'ui/widgets/message.py',
   'ui/widgets/chatrow.py',
   'ui/widgets/chat_history.py',

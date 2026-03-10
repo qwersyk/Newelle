@@ -17,6 +17,7 @@ from .code_editor import CodeEditorWidget
 from .tool import ToolWidget
 from .skill import SkillWidget
 from .subagent import SubagentWidget
+from .scheduled_task import ScheduledTaskWidget
 from .message import Message
 from .chatrow import ChatRow
 from .chat_history import ChatHistory
@@ -46,6 +47,7 @@ __all__ = [
     "ToolWidget",
     "SkillWidget",
     "SubagentWidget",
+    "ScheduledTaskWidget",
     "Message",
     "ChatRow",
     "ChatHistory",

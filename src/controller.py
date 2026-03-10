@@ -1412,10 +1412,12 @@ class NewelleController:
             system_prompt += self.get_memory_prompt(chat_id=effective_chat_id)
         
         current_history = history.copy()
-        
+        cont = True 
         for iteration in range(max_tool_calls):
             full_response = ""
-            
+            if not cont:
+                break
+            cont = False
             def stream_callback(text: str):
                 nonlocal full_response
                 full_response += text
@@ -1473,11 +1475,8 @@ class NewelleController:
                         if on_tool_result_callback:
                             on_tool_result_callback(tool_name, result)
                         tool_result_output = result.get_output()
-                    else:
-                        tool_result_output = str(result)
-                        if on_tool_result_callback:
-                            tr = ToolResult(output=tool_result_output)
-                            on_tool_result_callback(tool_name, tr)
+                        if tool_result_output is not None:
+                            cont = True
                 except Exception as e:
                     tool_result_output = f"Error: {str(e)}"
                     if on_tool_result_callback:
@@ -1492,6 +1491,11 @@ class NewelleController:
                     "User": "Assistant",
                     "Message": tool_call_msg,
                     "UUID": assistant_msg_uuid
+                })
+                current_history.append({
+                    "User": "Console",
+                    "Message": tool_result_msg,
+                    "UUID": tool_uuid
                 })
                 if save_chat:
                     self.chats[chat_id]["chat"].append({

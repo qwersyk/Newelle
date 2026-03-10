@@ -3,6 +3,7 @@ import json
 from ..extensions import NewelleExtension
 from ..tools import Tool, ToolResult, create_io_tool
 from ..ui.widgets.subagent import SubagentWidget
+from ..ui.widgets.scheduled_task import ScheduledTaskWidget
 
 
 class AgentToolsIntegration(NewelleExtension):
@@ -102,6 +103,7 @@ class AgentToolsIntegration(NewelleExtension):
                 if self.result is None:
                     result.set_output(final if final else "".join(last_message))
                 else:
+                    print(self.result)
                     result.set_output(self.result)
 
             except Exception as e:
@@ -128,19 +130,78 @@ class AgentToolsIntegration(NewelleExtension):
             run_at=run_at.strip() or None,
             cron=cron.strip() or None,
         )
-        return json.dumps(
-            {
-                "id": scheduled_task["id"],
-                "task": scheduled_task["task"],
-                "schedule_type": scheduled_task["schedule_type"],
-                "run_at": scheduled_task["run_at"],
-                "cron": scheduled_task["cron"],
-                "next_run_at": scheduled_task["next_run_at"],
-                "enabled": scheduled_task["enabled"],
-            },
-            indent=2,
+
+        result = ToolResult()
+
+        # Create and set the widget
+        widget = ScheduledTaskWidget(
+            task=task,
+            schedule_type=scheduled_task["schedule_type"],
+            run_at=scheduled_task.get("run_at"),
+            cron=scheduled_task.get("cron"),
+            next_run_at=scheduled_task.get("next_run_at"),
+            task_id=scheduled_task["id"],
+        )
+        result.set_widget(widget)
+
+        # Set output as JSON for the LLM
+        result.set_output(
+            json.dumps(
+                {
+                    "success": True,
+                    "id": scheduled_task["id"],
+                    "task": scheduled_task["task"],
+                    "schedule_type": scheduled_task["schedule_type"],
+                    "run_at": scheduled_task["run_at"],
+                    "cron": scheduled_task["cron"],
+                    "next_run_at": scheduled_task["next_run_at"],
+                    "enabled": scheduled_task["enabled"],
+                },
+                indent=2,
+            )
         )
 
+        return result
+
+    def _restore_schedule_task(self, tool_uuid: str, task: str, run_at: str = "", cron: str = ""):
+        """Restore the scheduled task widget from chat history."""
+        # Get the saved output from chat history
+        output = self.ui_controller.get_tool_result_by_id(tool_uuid)
+
+        # Parse the saved output to get schedule info
+        schedule_type = "once"
+        saved_run_at = run_at
+        saved_cron = cron
+        next_run_at = None
+
+        if output:
+            try:
+                data = json.loads(output)
+                schedule_type = data.get("schedule_type", "once")
+                saved_run_at = data.get("run_at", run_at)
+                saved_cron = data.get("cron", cron)
+                next_run_at = data.get("next_run_at")
+            except json.JSONDecodeError:
+                pass
+
+        result = ToolResult()
+
+        # Create a completed widget
+        widget = ScheduledTaskWidget(
+            task=task,
+            schedule_type=schedule_type,
+            run_at=saved_run_at,
+            cron=saved_cron,
+            next_run_at=next_run_at,
+            task_id=tool_uuid[:8] if tool_uuid else "",
+        )
+
+        # Mark as completed
+        widget.update_status(_("Task Created"), "success")
+
+        result.set_widget(widget)
+        result.set_output(output)
+        return result
     def get_tools(self) -> list:
         return [
             Tool(
@@ -157,15 +218,16 @@ class AgentToolsIntegration(NewelleExtension):
                 icon_name="system-run-symbolic",
                 tools_group=_("Agent"),
             ),
-            create_io_tool(
+            Tool(
                 name="schedule_task",
                 description=(
                     "Schedule a background agent task that will create a visible chat when it runs. "
                     "Provide either run_at for a one-time run or cron for a recurring schedule."
-                    "The task argument is the prompt to be executed by the agent."
+                    "The task argument is the prompt to be executed by the agent. Give a long and detailed task prompt."
                 ),
                 func=self._schedule_task,
                 title="Schedule Task",
+                restore_func=self._restore_schedule_task,
                 default_on=True,
                 icon_name="alarm-symbolic",
                 tools_group=_("Agent"),
