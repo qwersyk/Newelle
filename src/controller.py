@@ -188,6 +188,9 @@ class NewelleController:
         self.msgid = 0
         self.chat_documents_index = {}
         self.is_call_request = False
+        self.scheduled_tasks = []
+        self.scheduled_tasks_lock = threading.Lock()
+        self.scheduler_source_id = None
 
     def ui_init(self):
         """Init necessary variables for the UI and load models and handlers"""
@@ -204,6 +207,7 @@ class NewelleController:
         self.handlers.select_handlers(self.newelle_settings)
         threading.Thread(target=self.handlers.cache_handlers).start()
         self.handlers.add_tools(self.tools)
+        self.load_scheduled_tasks()
     def init_paths(self) -> None:
         """Define paths for the application"""
         self.config_dir = GLib.get_user_config_dir()
@@ -256,6 +260,392 @@ class NewelleController:
         self.save_chats()
         return len(self.chats) - 1
 
+    def create_visible_chat(self, name: str | None = None, profile: str | None = None):
+        """Create a new visible chat entry and refresh history."""
+        if name is None:
+            name = _("Chat %d") % (len(self.chats) + 1)
+        new_chat = {
+            "name": name,
+            "chat": [],
+            "id": str(uuid_lib.uuid4()),
+            "branched_from": None,
+        }
+        if profile is not None:
+            new_chat["profile"] = profile
+        self.chats.append(new_chat)
+        chat_id = len(self.chats) - 1
+        self.save_chats()
+        if self.ui_controller is not None:
+            GLib.idle_add(self.ui_controller.window.update_history)
+        return chat_id
+
+    def _parse_scheduled_datetime(self, value: str, allow_past: bool = True) -> datetime.datetime:
+        if not isinstance(value, str) or not value.strip():
+            raise ValueError(_("A valid ISO date/time is required."))
+        try:
+            parsed = datetime.datetime.fromisoformat(value.strip())
+        except ValueError as exc:
+            raise ValueError(_("Invalid date/time. Use ISO 8601, for example 2026-03-08T14:30.")) from exc
+        if parsed.tzinfo is None:
+            parsed = parsed.replace(tzinfo=datetime.datetime.now().astimezone().tzinfo)
+        if not allow_past and parsed <= datetime.datetime.now(parsed.tzinfo):
+            raise ValueError(_("Scheduled time must be in the future."))
+        return parsed
+
+    def _format_scheduled_chat_name(self, task: dict) -> str:
+        summary = task["task"].strip().splitlines()[0][:48]
+        if len(task["task"].strip().splitlines()[0]) > 48:
+            summary += "..."
+        return _("Scheduled: {0}").format(summary)
+
+    def _normalize_cron_value(self, value: int, field_name: str) -> int:
+        if field_name == "weekday" and value == 7:
+            return 0
+        return value
+
+    def _parse_cron_field(self, raw_field: str, minimum: int, maximum: int, field_name: str) -> tuple[set[int], bool]:
+        field = raw_field.strip()
+        if not field:
+            raise ValueError(_("Cron fields cannot be empty."))
+        if field == "*":
+            return set(range(minimum, maximum + 1)), True
+
+        values: set[int] = set()
+        for part in field.split(","):
+            token = part.strip()
+            if not token:
+                raise ValueError(_("Cron fields cannot contain empty values."))
+            if "/" in token:
+                base, step_str = token.split("/", 1)
+                try:
+                    step = int(step_str)
+                except ValueError as exc:
+                    raise ValueError(_("Cron step values must be integers.")) from exc
+                if step <= 0:
+                    raise ValueError(_("Cron step values must be greater than zero."))
+            else:
+                base = token
+                step = 1
+
+            if base == "*":
+                start = minimum
+                end = maximum
+            elif "-" in base:
+                start_str, end_str = base.split("-", 1)
+                try:
+                    start = int(start_str)
+                    end = int(end_str)
+                except ValueError as exc:
+                    raise ValueError(_("Cron ranges must contain integers.")) from exc
+            else:
+                try:
+                    start = int(base)
+                    end = start
+                except ValueError as exc:
+                    raise ValueError(_("Cron values must be integers, ranges, steps, or *.")) from exc
+
+            if start > end:
+                raise ValueError(_("Cron ranges must be ascending."))
+            for candidate in range(start, end + 1, step):
+                normalized = self._normalize_cron_value(candidate, field_name)
+                if normalized < minimum or normalized > maximum:
+                    raise ValueError(_("Cron value {0} is out of range.").format(candidate))
+                values.add(normalized)
+
+        if not values:
+            raise ValueError(_("Cron field resolved to an empty set."))
+        return values, False
+
+    def _parse_cron_expression(self, cron_expression: str) -> dict:
+        fields = cron_expression.strip().split()
+        if len(fields) != 5:
+            raise ValueError(_("Cron expressions must contain exactly 5 fields: minute hour day month weekday."))
+
+        minute, minute_any = self._parse_cron_field(fields[0], 0, 59, "minute")
+        hour, hour_any = self._parse_cron_field(fields[1], 0, 23, "hour")
+        day, day_any = self._parse_cron_field(fields[2], 1, 31, "day")
+        month, month_any = self._parse_cron_field(fields[3], 1, 12, "month")
+        weekday, weekday_any = self._parse_cron_field(fields[4], 0, 6, "weekday")
+
+        return {
+            "expression": " ".join(fields),
+            "minute": minute,
+            "hour": hour,
+            "day": day,
+            "month": month,
+            "weekday": weekday,
+            "day_any": day_any,
+            "weekday_any": weekday_any,
+            "minute_any": minute_any,
+            "hour_any": hour_any,
+            "month_any": month_any,
+        }
+
+    def _cron_weekday(self, dt: datetime.datetime) -> int:
+        return (dt.weekday() + 1) % 7
+
+    def _cron_matches(self, parsed_cron: dict, dt: datetime.datetime) -> bool:
+        if dt.minute not in parsed_cron["minute"]:
+            return False
+        if dt.hour not in parsed_cron["hour"]:
+            return False
+        if dt.month not in parsed_cron["month"]:
+            return False
+
+        day_match = dt.day in parsed_cron["day"]
+        weekday_match = self._cron_weekday(dt) in parsed_cron["weekday"]
+        if parsed_cron["day_any"] and parsed_cron["weekday_any"]:
+            day_ok = True
+        elif parsed_cron["day_any"]:
+            day_ok = weekday_match
+        elif parsed_cron["weekday_any"]:
+            day_ok = day_match
+        else:
+            day_ok = day_match or weekday_match
+        return day_ok
+
+    def _get_next_cron_run(self, cron_expression: str, after_dt: datetime.datetime | None = None) -> datetime.datetime:
+        parsed_cron = self._parse_cron_expression(cron_expression)
+        if after_dt is None:
+            after_dt = datetime.datetime.now().astimezone()
+        elif after_dt.tzinfo is None:
+            after_dt = after_dt.replace(tzinfo=datetime.datetime.now().astimezone().tzinfo)
+
+        candidate = after_dt.replace(second=0, microsecond=0) + datetime.timedelta(minutes=1)
+        # One year of minute-level search keeps the implementation dependency-free.
+        for _ in range(366 * 24 * 60):
+            if self._cron_matches(parsed_cron, candidate):
+                return candidate
+            candidate += datetime.timedelta(minutes=1)
+        raise ValueError(_("Unable to compute the next run for this cron expression within one year."))
+
+    def _normalize_scheduled_task(self, task: dict, now: datetime.datetime | None = None) -> dict:
+        if now is None:
+            now = datetime.datetime.now().astimezone()
+        if not isinstance(task, dict):
+            raise ValueError(_("Scheduled task data must be an object."))
+
+        task_text = str(task.get("task", "")).strip()
+        if not task_text:
+            raise ValueError(_("Scheduled tasks require a task description."))
+
+        has_run_at = bool(task.get("run_at"))
+        has_cron = bool(task.get("cron"))
+        if has_run_at == has_cron:
+            raise ValueError(_("Provide either run_at or cron for a scheduled task."))
+
+        normalized = {
+            "id": str(task.get("id") or uuid_lib.uuid4()),
+            "task": task_text,
+            "schedule_type": "once" if has_run_at else "cron",
+            "run_at": None,
+            "cron": None,
+            "enabled": bool(task.get("enabled", True)),
+            "created_at": task.get("created_at") or now.isoformat(),
+            "last_run_at": None,
+            "next_run_at": None,
+            "latest_chat_id": task.get("latest_chat_id"),
+            "last_run_status": task.get("last_run_status"),
+            "last_error": task.get("last_error"),
+            "running": False,
+        }
+
+        if task.get("last_run_at"):
+            normalized["last_run_at"] = self._parse_scheduled_datetime(task["last_run_at"]).isoformat()
+
+        if normalized["schedule_type"] == "once":
+            run_at = self._parse_scheduled_datetime(task["run_at"])
+            normalized["run_at"] = run_at.isoformat()
+            if normalized["enabled"] and run_at > now:
+                normalized["next_run_at"] = run_at.isoformat()
+            else:
+                normalized["enabled"] = False
+        else:
+            parsed = self._parse_cron_expression(str(task["cron"]))
+            normalized["cron"] = parsed["expression"]
+            if normalized["enabled"]:
+                normalized["next_run_at"] = self._get_next_cron_run(parsed["expression"], now).isoformat()
+
+        if normalized["latest_chat_id"] is not None:
+            try:
+                normalized["latest_chat_id"] = int(normalized["latest_chat_id"])
+            except (TypeError, ValueError):
+                normalized["latest_chat_id"] = None
+
+        return normalized
+
+    def _persist_scheduled_tasks(self):
+        with self.scheduled_tasks_lock:
+            payload = json.dumps(self.scheduled_tasks)
+        self.settings.set_string("scheduled-tasks", payload)
+
+    def load_scheduled_tasks(self):
+        raw_value = self.settings.get_string("scheduled-tasks")
+        try:
+            loaded_tasks = json.loads(raw_value) if raw_value else []
+        except json.JSONDecodeError:
+            loaded_tasks = []
+
+        now = datetime.datetime.now().astimezone()
+        normalized_tasks = []
+        for entry in loaded_tasks:
+            try:
+                normalized_tasks.append(self._normalize_scheduled_task(entry, now))
+            except ValueError:
+                continue
+
+        with self.scheduled_tasks_lock:
+            self.scheduled_tasks = normalized_tasks
+        self._persist_scheduled_tasks()
+
+    def get_scheduled_tasks(self) -> list[dict]:
+        with self.scheduled_tasks_lock:
+            tasks = copy.deepcopy(self.scheduled_tasks)
+        tasks.sort(key=lambda task: (task["next_run_at"] is None, task["next_run_at"] or task["created_at"]))
+        return tasks
+
+    def start_scheduler(self):
+        if self.scheduler_source_id is None:
+            self.scheduler_source_id = GLib.timeout_add_seconds(10, self._scheduler_tick)
+        self._scheduler_tick()
+
+    def stop_scheduler(self):
+        if self.scheduler_source_id is not None:
+            GLib.source_remove(self.scheduler_source_id)
+            self.scheduler_source_id = None
+
+    def create_scheduled_task(self, task: str, run_at: str | None = None, cron: str | None = None) -> dict:
+        now = datetime.datetime.now().astimezone()
+        scheduled_task = self._normalize_scheduled_task(
+            {
+                "task": task,
+                "run_at": run_at,
+                "cron": cron,
+                "enabled": True,
+                "created_at": now.isoformat(),
+            },
+            now,
+        )
+        with self.scheduled_tasks_lock:
+            self.scheduled_tasks.append(scheduled_task)
+        self._persist_scheduled_tasks()
+        return copy.deepcopy(scheduled_task)
+
+    def set_scheduled_task_enabled(self, task_id: str, enabled: bool) -> bool:
+        now = datetime.datetime.now().astimezone()
+        changed = False
+        with self.scheduled_tasks_lock:
+            for task in self.scheduled_tasks:
+                if task["id"] != task_id:
+                    continue
+                task["running"] = False
+                if enabled:
+                    task["enabled"] = True
+                    if task["schedule_type"] == "once":
+                        run_at = self._parse_scheduled_datetime(task["run_at"])
+                        if run_at > now:
+                            task["next_run_at"] = run_at.isoformat()
+                        else:
+                            task["enabled"] = False
+                            task["next_run_at"] = None
+                    else:
+                        task["next_run_at"] = self._get_next_cron_run(task["cron"], now).isoformat()
+                else:
+                    task["enabled"] = False
+                    task["next_run_at"] = None
+                changed = True
+                break
+        if changed:
+            self._persist_scheduled_tasks()
+        return changed
+
+    def delete_scheduled_task(self, task_id: str) -> bool:
+        with self.scheduled_tasks_lock:
+            original_len = len(self.scheduled_tasks)
+            self.scheduled_tasks = [task for task in self.scheduled_tasks if task["id"] != task_id]
+            changed = len(self.scheduled_tasks) != original_len
+        if changed:
+            self._persist_scheduled_tasks()
+        return changed
+
+    def _scheduler_tick(self):
+        now = datetime.datetime.now().astimezone()
+        due_tasks = []
+        with self.scheduled_tasks_lock:
+            changed = False
+            for task in self.scheduled_tasks:
+                if not task.get("enabled") or task.get("running") or not task.get("next_run_at"):
+                    continue
+                next_run = self._parse_scheduled_datetime(task["next_run_at"])
+                if next_run > now:
+                    continue
+
+                task["running"] = True
+                task["last_error"] = None
+                due_tasks.append(copy.deepcopy(task))
+                if task["schedule_type"] == "once":
+                    task["enabled"] = False
+                    task["next_run_at"] = None
+                else:
+                    task["next_run_at"] = self._get_next_cron_run(task["cron"], next_run).isoformat()
+                changed = True
+
+            if changed:
+                self.settings.set_string("scheduled-tasks", json.dumps(self.scheduled_tasks))
+
+        for task in due_tasks:
+            threading.Thread(target=self._run_scheduled_task, args=(task,), daemon=True).start()
+        return True
+
+    def _run_scheduled_task(self, task: dict):
+        chat_id = None
+        status = "completed"
+        error_message = None
+        try:
+            chat_id = self.create_visible_chat(
+                name=self._format_scheduled_chat_name(task),
+                profile=self.newelle_settings.current_profile,
+            )
+            self.run_llm_with_tools(
+                message=task["task"],
+                chat_id=chat_id,
+                save_chat=True,
+                force_tools_on_main_thread=True,
+            )
+            if self.ui_controller is not None:
+                GLib.idle_add(self._show_scheduled_task_toast, _("Scheduled task completed"))
+        except Exception as exc:
+            status = "failed"
+            error_message = str(exc)
+            if chat_id is not None:
+                self.chats[chat_id]["chat"].append(
+                    {"User": "Console", "Message": _("Scheduled task error: {0}").format(error_message)}
+                )
+                self.save_chats()
+            if self.ui_controller is not None:
+                GLib.idle_add(self._show_scheduled_task_toast, _("Scheduled task failed"))
+        finally:
+            finished_at = datetime.datetime.now().astimezone().isoformat()
+            with self.scheduled_tasks_lock:
+                for stored_task in self.scheduled_tasks:
+                    if stored_task["id"] != task["id"]:
+                        continue
+                    stored_task["running"] = False
+                    stored_task["last_run_at"] = finished_at
+                    stored_task["latest_chat_id"] = chat_id
+                    stored_task["last_run_status"] = status
+                    stored_task["last_error"] = error_message
+                    break
+                self.settings.set_string("scheduled-tasks", json.dumps(self.scheduled_tasks))
+
+    def _show_scheduled_task_toast(self, title: str):
+        if self.ui_controller is None:
+            return False
+        self.ui_controller.window.notification_block.add_toast(
+            Adw.Toast(title=title, timeout=2)
+        )
+        return False
+
     def check_path_integrity(self):
         """Create missing directories"""
         # Create directories
@@ -294,6 +684,7 @@ class NewelleController:
         return reload
 
     def close_application(self):
+        self.stop_scheduler()
         self.handlers.destroy()
 
     def wait_llm_loading(self):
@@ -989,6 +1380,7 @@ class NewelleController:
         on_tool_result_callback: Callable[[str, ToolResult], None] = None,
         max_tool_calls: int = 10,
         save_chat: bool = False,
+        force_tools_on_main_thread: bool = False,
     ) -> str:
         """Run LLM with tool support integration.
         
@@ -1001,11 +1393,14 @@ class NewelleController:
             max_tool_calls: Maximum number of tool calls to execute (prevents infinite loops)
             chat_id: Chat ID to use (uses current if None)
             save_chat: If True, assistant messages are added to chat history
+            force_tools_on_main_thread: If True, execute tool calls on the GTK main thread.
             
         Returns:
             Final message from the LLM
         """
         self.chats[chat_id]["chat"].append({"User": "User", "Message": message})
+        if save_chat:
+            self.save_chats()
         history = self.get_history(chat=self.chats[chat_id]["chat"], include_last_message=True)
         if system_prompt is None:
             _, _, _, _, _, effective_chat_id = self.prepare_generation(chat_id=chat_id)
@@ -1057,6 +1452,7 @@ class NewelleController:
                 current_history.append({"User": "Assistant", "Message": text_content})
                 if save_chat:
                     self.chats[chat_id]["chat"].append({"User": "Assistant", "Message": text_content})
+                    self.save_chats()
                 return text_content
             
             for tool_call in tool_calls:
@@ -1064,7 +1460,10 @@ class NewelleController:
                 tool_args = tool_call["args"]
                 
                 try:
-                    result = self.tools.execute_tool(tool_name, tool_args)
+                    if force_tools_on_main_thread and threading.current_thread() is not threading.main_thread():
+                        result = self.execute_tool_on_main_thread(tool_name, tool_args)
+                    else:
+                        result = self.tools.execute_tool(tool_name, tool_args)
                     if isinstance(result, ToolResult):
                         if on_tool_result_callback:
                             on_tool_result_callback(tool_name, result)
@@ -1088,10 +1487,41 @@ class NewelleController:
                     "User": "Tool",
                     "Message": f"[Tool: {tool_name}]\n{tool_result_output}"
                 })
+                if save_chat:
+                    self.chats[chat_id]["chat"].append({
+                        "User": "Assistant",
+                        "Message": f"```json\n{{\"name\": \"{tool_name}\", \"arguments\": {json.dumps(tool_args)}}}\n```"
+                    })
+                    self.chats[chat_id]["chat"].append({
+                        "User": "Console",
+                        "Message": f"[Tool: {tool_name}]\n{tool_result_output}"
+                    })
+                    self.save_chats()
         
         if save_chat:
             self.chats[chat_id]["chat"].append({"User": "Assistant", "Message": text_content})
+            self.save_chats()
         return text_content
+
+    def execute_tool_on_main_thread(self, tool_name: str, arguments: dict[str, Any]) -> Any:
+        """Execute a tool from a worker thread while keeping GTK work on the main loop."""
+        done = threading.Event()
+        result_holder: dict[str, Any] = {}
+
+        def run():
+            try:
+                result_holder["result"] = self.tools.execute_tool(tool_name, arguments)
+            except Exception as exc:
+                result_holder["error"] = exc
+            finally:
+                done.set()
+            return False
+
+        GLib.idle_add(run)
+        done.wait()
+        if "error" in result_holder:
+            raise result_holder["error"]
+        return result_holder.get("result")
 
 
 class NewelleSettings:
@@ -1172,6 +1602,7 @@ class NewelleSettings:
         self.skills_settings = settings.get_string("skills-settings")
         self.mcp_servers = self.settings.get_string("mcp-servers")
         self.mcp_servers_dict = json.loads(self.mcp_servers)
+        self.scheduled_tasks = self.settings.get_string("scheduled-tasks")
         self.wakeword_enabled = settings.get_boolean("wakeword-on")
         self.wakeword_mode = settings.get_string("wakeword-mode")
         self.wakeword_engine = settings.get_string("wakeword-engine")

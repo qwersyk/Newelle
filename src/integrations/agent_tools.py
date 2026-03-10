@@ -1,7 +1,7 @@
 import threading
 import json
 from ..extensions import NewelleExtension
-from ..tools import Tool, ToolResult
+from ..tools import Tool, ToolResult, create_io_tool
 from ..ui.widgets.subagent import SubagentWidget
 
 
@@ -121,6 +121,26 @@ class AgentToolsIntegration(NewelleExtension):
         r.set_output(output)
         return r
 
+    def _schedule_task(self, task: str, run_at: str = "", cron: str = ""):
+        """Schedule a future agent run in a visible chat."""
+        scheduled_task = self.controller.create_scheduled_task(
+            task=task,
+            run_at=run_at.strip() or None,
+            cron=cron.strip() or None,
+        )
+        return json.dumps(
+            {
+                "id": scheduled_task["id"],
+                "task": scheduled_task["task"],
+                "schedule_type": scheduled_task["schedule_type"],
+                "run_at": scheduled_task["run_at"],
+                "cron": scheduled_task["cron"],
+                "next_run_at": scheduled_task["next_run_at"],
+                "enabled": scheduled_task["enabled"],
+            },
+            indent=2,
+        )
+
     def get_tools(self) -> list:
         return [
             Tool(
@@ -135,6 +155,19 @@ class AgentToolsIntegration(NewelleExtension):
                 restore_func=self._restore_subagent,
                 default_on=True,
                 icon_name="system-run-symbolic",
+                tools_group=_("Agent"),
+            ),
+            create_io_tool(
+                name="schedule_task",
+                description=(
+                    "Schedule a background agent task that will create a visible chat when it runs. "
+                    "Provide either run_at for a one-time run or cron for a recurring schedule."
+                    "The task argument is the prompt to be executed by the agent."
+                ),
+                func=self._schedule_task,
+                title="Schedule Task",
+                default_on=True,
+                icon_name="alarm-symbolic",
                 tools_group=_("Agent"),
             ),
         ]

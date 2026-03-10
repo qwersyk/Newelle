@@ -185,6 +185,9 @@
         <key name="skills-settings" type="s">
           <default>"{}"</default>
         </key> 
+        <key name="scheduled-tasks" type="s">
+          <default>"[]"</default>
+        </key>
         <key name="remember-profile" type="b">
           <default>false</default>
         </key>

@@ -142,6 +142,7 @@ class MainWindow(Adw.ApplicationWindow):
         menu_button.set_icon_name("open-menu-symbolic")
         menu = Gio.Menu()
         menu.append(_("Thread editing"), "app.thread_editing")
+        menu.append(_("Scheduled tasks"), "app.scheduled_tasks")
         menu.append(_("Extensions"), "app.extension")
         menu.append(_("Settings"), "app.settings")
         menu.append(_("Keyboard shorcuts"), "app.shortcuts")
@@ -321,6 +322,7 @@ class MainWindow(Adw.ApplicationWindow):
 
         GLib.idle_add(self.update_history)
         GLib.idle_add(self.show_chat)
+        self.controller.start_scheduler()
         if not self.settings.get_boolean("welcome-screen-shown"):
             threading.Thread(target=self.show_presentation_window).start()
         GLib.timeout_add(10, build_model_popup)

@@ -59,6 +59,7 @@ ui_sources = [
   'ui/settings.py',
   'ui/presentation.py',
   'ui/thread_editing.py',
+  'ui/scheduled_tasks.py',
   'ui/screenrecorder.py',
   'ui/shortcuts.py',
   'ui/mini_window.py',
