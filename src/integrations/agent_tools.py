@@ -12,18 +12,13 @@ class AgentToolsIntegration(NewelleExtension):
 
     def __init__(self, pip_path, extension_path, settings):
         super().__init__(pip_path, extension_path, settings)
-
-    def send_result(self, result: str):
-        res = ToolResult()
-        self.result = result
-        res.set_output(None)
-        return res
+        self.subagent_results = {}
 
     @property
     def controller(self):
         return self.ui_controller.window.controller
 
-    def _run_subagent(self, task: str, system_prompt: str, tools: str, skills: str = ""):
+    def _run_subagent(self, task: str, system_prompt: str, tools: str, skills: str = "", tool_uuid=None):
         """Run a subagent with the given task, system prompt, tools and skills.
 
         Args:
@@ -35,8 +30,8 @@ class AgentToolsIntegration(NewelleExtension):
         result = ToolResult()
         widget = SubagentWidget(task)
         result.set_widget(widget)
-        subagent_result = result
-
+        self.subagent_results[tool_uuid] = result
+        
         def run():
             try:
                 ctrl = self.controller
@@ -45,11 +40,16 @@ class AgentToolsIntegration(NewelleExtension):
                 sub_registry = ToolRegistry()
                 requested_tools = [t.strip() for t in tools.split(",") if t.strip()]
                 # Add send_result tool
-                self.result = None
+                def send_result(result:str):
+                    self.subagent_results[tool_uuid] = result
+                    res = ToolResult()
+                    res.set_output(None)
+                    return res
+
                 sub_registry.register_tool(Tool(
                     name="send_result",
                     description="Send the result of the subagent to the main agent.",
-                    func=self.send_result,
+                    func=send_result,
                     title="Send Result",
                 ))
                 for tool_name in requested_tools:
@@ -95,16 +95,16 @@ class AgentToolsIntegration(NewelleExtension):
                         system_prompt=prompts,
                         on_message_callback=on_message,
                         on_tool_result_callback=on_tool_result,
+                        force_tools_on_main_thread=True,
                     )
                 finally:
                     ctrl.tools = original_registry
 
                 widget.finish(success=True)
-                if self.result is None:
+                if self.subagent_results[tool_uuid] is None:
                     result.set_output(final if final else "".join(last_message))
                 else:
-                    print(self.result)
-                    result.set_output(self.result)
+                    result.set_output(self.subagent_results[tool_uuid])
 
             except Exception as e:
                 widget.finish(success=False, summary=str(e))

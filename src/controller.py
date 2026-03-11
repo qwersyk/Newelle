@@ -1467,10 +1467,18 @@ class NewelleController:
                 
                 try:
                     tool = self.tools.get_tool(tool_name)
-                    if force_tools_on_main_thread and threading.current_thread() is not threading.main_thread():
-                        result = tool.execute(msg_uuid=msg_uuid, tool_uuid=tool_uuid, **tool_args)
+                    if tool is None:
+                        raise ValueError(f"Tool '{tool_name}' not found")
+
+                    tool_kwargs = {"msg_uuid": msg_uuid, "tool_uuid": tool_uuid, **tool_args}
+                    should_run_on_main_thread = (
+                        force_tools_on_main_thread or tool.run_on_main_thread
+                    )
+
+                    if should_run_on_main_thread:
+                        result = self.execute_tool_on_main_thread(tool_name, tool_kwargs)
                     else:
-                        result = tool.execute(msg_uuid=msg_uuid, tool_uuid=tool_uuid, **tool_args)
+                        result = tool.execute(**tool_kwargs)
                     if isinstance(result, ToolResult):
                         if on_tool_result_callback:
                             on_tool_result_callback(tool_name, result)
@@ -1517,17 +1525,24 @@ class NewelleController:
 
     def execute_tool_on_main_thread(self, tool_name: str, arguments: dict[str, Any]) -> Any:
         """Execute a tool from a worker thread while keeping GTK work on the main loop."""
+        tool = self.tools.get_tool(tool_name)
+        if tool is None:
+            raise ValueError(f"Tool '{tool_name}' not found")
+
+        if threading.current_thread() is threading.main_thread():
+            return tool.execute(**arguments)
+
         done = threading.Event()
         result_holder: dict[str, Any] = {}
 
         def run():
             try:
-                result_holder["result"] = self.tools.execute_tool(tool_name, arguments)
+                result_holder["result"] = tool.execute(**arguments)
             except Exception as exc:
                 result_holder["error"] = exc
             finally:
                 done.set()
-            return False
+            return GLib.SOURCE_REMOVE
 
         GLib.idle_add(run)
         done.wait()

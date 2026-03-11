@@ -1,4 +1,7 @@
-from gi.repository import Gtk, Adw, Pango, GLib
+import threading
+from gettext import gettext as _
+
+from gi.repository import Gtk, Adw, GLib
 from .markuptextview import MarkupTextView
 from .copybox import CopyBox
 from .tool import ToolWidget
@@ -17,7 +20,10 @@ class SubagentWidget(Gtk.ListBox):
 
         self._task_summary = task_summary
         self._current_message = ""
-        self._rendered_chunks_count = 0
+        self.widgets_map = []
+        self._state_lock = threading.Lock()
+        self._pending_message = None
+        self._message_update_queued = False
 
         # Expander row header
         self.expander_row = Adw.ExpanderRow(
@@ -66,22 +72,50 @@ class SubagentWidget(Gtk.ListBox):
 
     def set_status(self, status: str):
         """Update the subtitle status text."""
-        GLib.idle_add(self._ui_set_status, status)
+        self._run_on_main_thread(self._ui_set_status, status)
 
     def update_message(self, full_text: str):
         """Re-render the message content from the full text using chunk parsing."""
-        self._current_message = full_text
-        GLib.idle_add(self._ui_update_message, full_text)
+        with self._state_lock:
+            self._pending_message = full_text
+            if self._message_update_queued:
+                return
+            self._message_update_queued = True
+
+        self._run_on_main_thread(self._drain_message_updates)
 
     def add_tool_widget(self, tool_name: str, tool_result):
         """Add a tool widget showing the result of a tool call."""
-        GLib.idle_add(self._ui_add_tool_widget, tool_name, tool_result)
+        self._run_on_main_thread(self._ui_add_tool_widget, tool_name, tool_result)
 
     def finish(self, success: bool = True, summary: str = ""):
         """Mark the subagent execution as finished."""
-        GLib.idle_add(self._ui_finish, success, summary)
+        self._run_on_main_thread(self._ui_finish, success, summary)
 
     # ---- GTK main-thread helpers ----
+
+    def _run_on_main_thread(self, callback, *args):
+        if threading.current_thread() is threading.main_thread():
+            callback(*args)
+            return
+        GLib.idle_add(callback, *args)
+
+    def _drain_message_updates(self):
+        while True:
+            with self._state_lock:
+                full_text = self._pending_message
+                self._pending_message = None
+
+            if full_text is not None:
+                self._current_message = full_text
+                self._ui_update_message(full_text)
+
+            with self._state_lock:
+                if self._pending_message is None:
+                    self._message_update_queued = False
+                    break
+
+        return GLib.SOURCE_REMOVE
 
     def _ui_set_status(self, status: str):
         if not self.get_display():
@@ -90,71 +124,77 @@ class SubagentWidget(Gtk.ListBox):
         return GLib.SOURCE_REMOVE
 
     def _ui_update_message(self, full_text: str):
-        """Parse the full text into chunks and render them."""
+        """Parse the full text into chunks and update widgets in place."""
         if not self.get_display():
             return GLib.SOURCE_REMOVE
 
         chunks = get_message_chunks(full_text, allow_latex=False)
+        current_widget_idx = 0
 
-        # Update existing widgets where possible, append new ones
-        child_widgets = []
-        child = self.content_box.get_first_child()
-        while child is not None:
-            child_widgets.append(child)
-            child = child.get_next_sibling()
-
-        widget_idx = 0
         for chunk in chunks:
-            if widget_idx < len(child_widgets):
-                existing = child_widgets[widget_idx]
-                if self._can_update_existing(existing, chunk):
-                    self._update_existing_widget(existing, chunk)
-                    widget_idx += 1
+            if current_widget_idx < len(self.widgets_map):
+                widget_type, widget, widget_chunk = self.widgets_map[current_widget_idx]
+                if self._can_update_widget(widget_type, widget, widget_chunk, chunk):
+                    self._update_widget(widget, widget_type, chunk)
+                    self.widgets_map[current_widget_idx] = (widget_type, widget, chunk)
+                    current_widget_idx += 1
                     continue
-                # Mismatch: remove remaining widgets and rebuild from here
-                for w in child_widgets[widget_idx:]:
-                    self.content_box.remove(w)
-                child_widgets = child_widgets[:widget_idx]
 
-            # Create new widget for this chunk
-            new_widget = self._create_chunk_widget(chunk)
-            if new_widget is not None:
-                self.content_box.append(new_widget)
-                child_widgets.append(new_widget)
-            widget_idx = len(child_widgets)
+                self._remove_widgets_from(current_widget_idx)
 
-        # Remove trailing old widgets
-        for w in child_widgets[widget_idx:]:
-            self.content_box.remove(w)
+            self._process_chunk(chunk)
+            current_widget_idx = len(self.widgets_map)
 
-        # Scroll to bottom
+        if current_widget_idx < len(self.widgets_map):
+            self._remove_widgets_from(current_widget_idx)
+
         self._scroll_to_end()
         return GLib.SOURCE_REMOVE
 
-    def _can_update_existing(self, widget, chunk):
-        """Check if an existing widget can be updated in-place for the new chunk."""
-        if chunk.type in ("text", "markdown") and isinstance(widget, MarkupTextView):
+    def _can_update_widget(self, widget_type, widget, previous_chunk, chunk):
+        if widget_type == "tool_result":
+            return chunk.type == "tool_call" and getattr(previous_chunk, "tool_name", None) == getattr(chunk, "tool_name", None)
+
+        if widget_type in ("text", "markdown") and chunk.type in ("text", "markdown") and isinstance(widget, MarkupTextView):
             return True
-        if chunk.type == "codeblock" and isinstance(widget, CopyBox):
+
+        if widget_type == "codeblock" and chunk.type == "codeblock" and isinstance(widget, CopyBox):
             return True
+
+        if widget_type == "tool_call" and chunk.type == "tool_call" and isinstance(widget, ToolWidget):
+            return getattr(previous_chunk, "tool_name", None) == getattr(chunk, "tool_name", None)
+
+        if widget_type == "thinking" and chunk.type == "thinking":
+            from .thinking import ThinkingWidget
+            return isinstance(widget, ThinkingWidget)
+
         return False
 
-    def _update_existing_widget(self, widget, chunk):
-        """Update an existing widget with new chunk content."""
-        if isinstance(widget, MarkupTextView):
+    def _update_widget(self, widget, widget_type, chunk):
+        if widget_type in ("text", "markdown") and isinstance(widget, MarkupTextView):
             buf = widget.get_buffer()
-            buf.set_text(chunk.text, -1)
-        elif isinstance(widget, CopyBox):
+            updated_text = chunk.text.strip()
+            start_iter = buf.get_start_iter()
+            end_iter = buf.get_end_iter()
+            if buf.get_text(start_iter, end_iter, True) != updated_text:
+                buf.set_text(updated_text, -1)
+        elif widget_type == "codeblock" and isinstance(widget, CopyBox):
             widget.update_code(chunk.text)
             if chunk.lang and chunk.lang != widget.get_language():
                 widget.set_language(chunk.lang)
+        elif widget_type == "tool_call" and isinstance(widget, ToolWidget):
+            widget.chunk_text = chunk.text
+        elif widget_type == "thinking":
+            widget.set_thinking(chunk.text)
 
-    def _create_chunk_widget(self, chunk):
-        """Create a GTK widget for a message chunk."""
+    def _process_chunk(self, chunk):
+        start_children = self._observe_children()
+        widget_type = chunk.type
+
         if chunk.type in ("text", "markdown"):
             text = chunk.text.strip()
             if not text:
-                return None
+                return
             tv = MarkupTextView(
                 editable=False,
                 cursor_visible=False,
@@ -167,19 +207,17 @@ class SubagentWidget(Gtk.ListBox):
                 bottom_margin=4,
             )
             tv.get_buffer().set_text(text, -1)
-            return tv
+            self.content_box.append(tv)
         elif chunk.type == "codeblock":
-            return CopyBox(chunk.text, chunk.lang or "")
+            self.content_box.append(CopyBox(chunk.text, chunk.lang or ""))
         elif chunk.type == "tool_call":
-            tw = ToolWidget(chunk.tool_name, chunk.text)
-            return tw
+            self.content_box.append(ToolWidget(chunk.tool_name, chunk.text))
         elif chunk.type == "thinking":
             from .thinking import ThinkingWidget
             tw = ThinkingWidget()
             tw.set_thinking(chunk.text)
-            return tw
-        # For unknown types, render as plain text
-        if chunk.text and chunk.text.strip():
+            self.content_box.append(tw)
+        elif chunk.text and chunk.text.strip():
             tv = MarkupTextView(
                 editable=False,
                 cursor_visible=False,
@@ -191,45 +229,78 @@ class SubagentWidget(Gtk.ListBox):
                 bottom_margin=4,
             )
             tv.get_buffer().set_text(chunk.text, -1)
-            return tv
-        return None
+            self.content_box.append(tv)
+            widget_type = "text"
+        else:
+            return
+
+        end_children = self._observe_children()
+        new_widgets = [child for child in end_children if child not in start_children]
+        if len(new_widgets) == 1:
+            self.widgets_map.append((widget_type, new_widgets[0], chunk))
+        elif len(new_widgets) > 1:
+            self.widgets_map.append(("complex", new_widgets, chunk))
 
     def _ui_add_tool_widget(self, tool_name: str, tool_result):
         """Update or replace the existing ToolWidget for a tool call with its result."""
         if not self.get_display():
             return GLib.SOURCE_REMOVE
 
-        # Find the last ToolWidget matching this tool name
+        widget_idx = self._find_tool_widget_index(tool_name)
         existing_tw = None
-        child = self.content_box.get_first_child()
-        while child is not None:
-            if isinstance(child, ToolWidget):
-                existing_tw = child
-            child = child.get_next_sibling()
+        previous_chunk = None
+        if widget_idx is not None:
+            _, existing_tw, previous_chunk = self.widgets_map[widget_idx]
 
         if tool_result.widget is not None:
-            # Tool provides its own widget — swap out the existing ToolWidget
             if existing_tw is not None:
                 parent = existing_tw.get_parent()
                 if parent:
-                    # Insert the custom widget right before removing the old one
                     parent.insert_child_after(tool_result.widget, existing_tw)
                     parent.remove(existing_tw)
+                    self.widgets_map[widget_idx] = ("tool_result", tool_result.widget, previous_chunk)
             else:
                 self.content_box.append(tool_result.widget)
+                self.widgets_map.append(("tool_result", tool_result.widget, previous_chunk))
         elif existing_tw is not None:
-            # Update the existing ToolWidget in-place with the result
             output = tool_result.output if tool_result.output else ""
-            existing_tw.set_result(True, str(output))
+            if isinstance(existing_tw, ToolWidget):
+                existing_tw.set_result(True, str(output))
         else:
-            # No existing widget found — create a new one
             tw = ToolWidget(tool_name)
             output = tool_result.output if tool_result.output else ""
             tw.set_result(True, str(output))
             self.content_box.append(tw)
+            self.widgets_map.append(("tool_result", tw, previous_chunk))
 
         self._scroll_to_end()
         return GLib.SOURCE_REMOVE
+
+    def _find_tool_widget_index(self, tool_name: str):
+        for index in range(len(self.widgets_map) - 1, -1, -1):
+            widget_type, _, chunk = self.widgets_map[index]
+            if widget_type not in ("tool_call", "tool_result"):
+                continue
+            if getattr(chunk, "tool_name", None) == tool_name:
+                return index
+        return None
+
+    def _observe_children(self):
+        children = []
+        child = self.content_box.get_first_child()
+        while child is not None:
+            children.append(child)
+            child = child.get_next_sibling()
+        return children
+
+    def _remove_widgets_from(self, start_index):
+        while len(self.widgets_map) > start_index:
+            _, widget_or_widgets, _ = self.widgets_map.pop()
+            if isinstance(widget_or_widgets, list):
+                for widget in widget_or_widgets:
+                    self.content_box.remove(widget)
+            else:
+                self.content_box.remove(widget_or_widgets)
 
     def _scroll_to_end(self):
         """Scroll the content area to the bottom."""
