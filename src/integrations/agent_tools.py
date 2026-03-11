@@ -114,8 +114,9 @@ class AgentToolsIntegration(NewelleExtension):
 
     def _restore_subagent(self, tool_uuid: str, task: str, system_prompt: str, tools: str, skills: str = ""):
         widget = SubagentWidget(task)
-        widget.finish(success=True, summary=_("Completed"))
         output = self.ui_controller.get_tool_result_by_id(tool_uuid)
+        widget.update_message(output) 
+        widget.finish(success=True, summary=_("Completed"))
         r = ToolResult()
         r.set_widget(widget)
         r.set_output(output)
