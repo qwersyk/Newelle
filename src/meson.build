@@ -78,6 +78,7 @@ widgets_sources = [
   'ui/widgets/copybox.py',
   'ui/widgets/file.py',
   'ui/widgets/file_read.py',
+  'ui/widgets/file_edit.py',
   'ui/widgets/latex.py',
   'ui/widgets/terminal_dialog.py',
   'ui/widgets/markuptextview.py',
