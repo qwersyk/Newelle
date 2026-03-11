@@ -4,6 +4,7 @@ from .barchart import BarChartBox
 from .comborow import ComboRowHelper
 from .copybox import CopyBox
 from .file import File
+from .file_read import ReadFileWidget
 from .latex import DisplayLatex, LatexCanvas, InlineLatex
 from .markuptextview import MarkupTextView
 from .website import WebsiteButton
@@ -31,6 +32,7 @@ __all__ = [
     "ComboRowHelper",
     "CopyBox",
     "File",
+    "ReadFileWidget",
     "DisplayLatex",
     "LatexCanvas",
     "MarkupTextView",

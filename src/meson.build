@@ -49,7 +49,8 @@ integrations_sources = [
   'integrations/mcp.py',
   'integrations/default_tools.py',
   'integrations/skills.py',
-  'integrations/agent_tools.py'
+  'integrations/agent_tools.py',
+  'integrations/file_editing.py'
 ]
 
 ui_sources = [
@@ -76,6 +77,7 @@ widgets_sources = [
   'ui/widgets/comborow.py',
   'ui/widgets/copybox.py',
   'ui/widgets/file.py',
+  'ui/widgets/file_read.py',
   'ui/widgets/latex.py',
   'ui/widgets/terminal_dialog.py',
   'ui/widgets/markuptextview.py',
