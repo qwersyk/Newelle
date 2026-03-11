@@ -1381,6 +1381,8 @@ class NewelleController:
         max_tool_calls: int = 10,
         save_chat: bool = False,
         force_tools_on_main_thread: bool = False,
+        tool_registry: ToolRegistry | None = None,
+        skill_manager: SkillManager | None = None,
     ) -> str:
         """Run LLM with tool support integration.
         
@@ -1394,10 +1396,22 @@ class NewelleController:
             chat_id: Chat ID to use (uses current if None)
             save_chat: If True, assistant messages are added to chat history
             force_tools_on_main_thread: If True, execute tool calls on the GTK main thread.
+            tool_registry: Optional tool registry to use for this run instead of the controller registry.
+            skill_manager: Optional skill manager to bind for this run, used by skill-related tools.
             
         Returns:
             Final message from the LLM
         """
+        active_tool_registry = tool_registry if tool_registry is not None else self.tools
+        active_skill_manager = skill_manager if skill_manager is not None else getattr(self, "skill_manager", None)
+        skills_integration = None
+        original_skill_manager = None
+        if hasattr(self, "integrationsloader") and skill_manager is not None:
+            skills_integration = self.integrationsloader.extensionsmap.get("skills")
+            if skills_integration is not None:
+                original_skill_manager = getattr(skills_integration, "skill_manager", None)
+                skills_integration.set_skill_manager(active_skill_manager)
+
         msg_uuid = int(uuid_lib.uuid4())
         self.chats[chat_id]["chat"].append({"User": "User", "Message": message, "UUID": msg_uuid})
         if save_chat:
@@ -1412,120 +1426,134 @@ class NewelleController:
             system_prompt += self.get_memory_prompt(chat_id=effective_chat_id)
         
         current_history = history.copy()
-        cont = True 
-        for iteration in range(max_tool_calls):
-            full_response = ""
-            if not cont:
-                break
-            cont = False
-            def stream_callback(text: str):
-                nonlocal full_response
-                full_response += text
-                if on_message_callback:
-                    on_message_callback(text)
-            
-            if self.handlers.llm.stream_enabled():
-                response = self.handlers.llm.send_message_stream(
-                    message if iteration == 0 else "",
-                    current_history,
-                    system_prompt,
-                    stream_callback
-                )
-            else:
-                response = self.handlers.llm.send_message(
-                    message if iteration == 0 else "",
-                    system_prompt,
-                    current_history
-                )
-                if on_message_callback:
-                    on_message_callback(response)
-            
-            chunks = get_message_chunks(response)
-            
-            text_content = ""
-            tool_calls = []
-            
-            for chunk in chunks:
-                if chunk.type == "tool_call":
-                    tool_calls.append({"name": chunk.tool_name, "args": chunk.tool_args})
-                elif chunk.type in ("text", "markdown"):
-                    text_content += "\n" + chunk.text
-            
-            if not tool_calls:
-                msg_uuid = int(uuid_lib.uuid4())
-                current_history.append({"User": "Assistant", "Message": text_content, "UUID": msg_uuid})
-                if save_chat:
-                    self.chats[chat_id]["chat"].append({"User": "Assistant", "Message": response, "UUID": msg_uuid})
-                    self.save_chats()
-                return text_content
-            assistant_msg_uuid = int(uuid_lib.uuid4())
-            
-            for tool_call in tool_calls:
-                tool_name = tool_call["name"]
-                tool_args = tool_call["args"]
-                tool_uuid = str(uuid_lib.uuid4())[:8]
+        cont = True
+        try:
+            for iteration in range(max_tool_calls):
+                full_response = ""
+                if not cont:
+                    break
+                cont = False
+                def stream_callback(text: str):
+                    nonlocal full_response
+                    full_response += text
+                    if on_message_callback:
+                        on_message_callback(text)
                 
-                try:
-                    tool = self.tools.get_tool(tool_name)
-                    if tool is None:
-                        raise ValueError(f"Tool '{tool_name}' not found")
-
-                    tool_kwargs = {"msg_uuid": msg_uuid, "tool_uuid": tool_uuid, **tool_args}
-                    should_run_on_main_thread = (
-                        force_tools_on_main_thread or tool.run_on_main_thread
+                if self.handlers.llm.stream_enabled():
+                    response = self.handlers.llm.send_message_stream(
+                        message if iteration == 0 else "",
+                        current_history,
+                        system_prompt,
+                        stream_callback
                     )
+                else:
+                    response = self.handlers.llm.send_message(
+                        message if iteration == 0 else "",
+                        system_prompt,
+                        current_history
+                    )
+                    if on_message_callback:
+                        on_message_callback(response)
+                
+                chunks = get_message_chunks(response)
+                
+                text_content = ""
+                tool_calls = []
+                
+                for chunk in chunks:
+                    if chunk.type == "tool_call":
+                        tool_calls.append({"name": chunk.tool_name, "args": chunk.tool_args})
+                    elif chunk.type in ("text", "markdown"):
+                        text_content += "\n" + chunk.text
+                
+                if not tool_calls:
+                    msg_uuid = int(uuid_lib.uuid4())
+                    current_history.append({"User": "Assistant", "Message": text_content, "UUID": msg_uuid})
+                    if save_chat:
+                        self.chats[chat_id]["chat"].append({"User": "Assistant", "Message": response, "UUID": msg_uuid})
+                        self.save_chats()
+                    return text_content
+                assistant_msg_uuid = int(uuid_lib.uuid4())
+                
+                for tool_call in tool_calls:
+                    tool_name = tool_call["name"]
+                    tool_args = tool_call["args"]
+                    tool_uuid = str(uuid_lib.uuid4())[:8]
+                    
+                    try:
+                        tool = active_tool_registry.get_tool(tool_name)
+                        if tool is None:
+                            raise ValueError(f"Tool '{tool_name}' not found")
 
-                    if should_run_on_main_thread:
-                        result = self.execute_tool_on_main_thread(tool_name, tool_kwargs)
-                    else:
-                        result = tool.execute(**tool_kwargs)
-                    if isinstance(result, ToolResult):
+                        tool_kwargs = {"msg_uuid": msg_uuid, "tool_uuid": tool_uuid, **tool_args}
+                        should_run_on_main_thread = (
+                            force_tools_on_main_thread or tool.run_on_main_thread
+                        )
+
+                        if should_run_on_main_thread:
+                            result = self.execute_tool_on_main_thread(
+                                tool_name,
+                                tool_kwargs,
+                                tool_registry=active_tool_registry,
+                            )
+                        else:
+                            result = tool.execute(**tool_kwargs)
+                        if isinstance(result, ToolResult):
+                            if on_tool_result_callback:
+                                on_tool_result_callback(tool_name, result)
+                            tool_result_output = result.get_output()
+                            if tool_result_output is not None:
+                                cont = True
+                    except Exception as e:
+                        tool_result_output = f"Error: {str(e)}"
                         if on_tool_result_callback:
-                            on_tool_result_callback(tool_name, result)
-                        tool_result_output = result.get_output()
-                        if tool_result_output is not None:
-                            cont = True
-                except Exception as e:
-                    tool_result_output = f"Error: {str(e)}"
-                    if on_tool_result_callback:
-                        tr = ToolResult(output=tool_result_output)
-                        on_tool_result_callback(tool_name, tr)
-                
-                
-                tool_call_msg = f"```json\n{{\"name\": \"{tool_name}\", \"arguments\": {json.dumps(tool_args)}}}\n```"
-                tool_result_msg = f"[Tool: {tool_name}, ID: {tool_uuid}]\n{tool_result_output}"
-                
-                current_history.append({
-                    "User": "Assistant",
-                    "Message": tool_call_msg,
-                    "UUID": assistant_msg_uuid
-                })
-                current_history.append({
-                    "User": "Console",
-                    "Message": tool_result_msg,
-                    "UUID": tool_uuid
-                })
-                if save_chat:
-                    self.chats[chat_id]["chat"].append({
+                            tr = ToolResult(output=tool_result_output)
+                            on_tool_result_callback(tool_name, tr)
+                    
+                    
+                    tool_call_msg = f"```json\n{{\"name\": \"{tool_name}\", \"arguments\": {json.dumps(tool_args)}}}\n```"
+                    tool_result_msg = f"[Tool: {tool_name}, ID: {tool_uuid}]\n{tool_result_output}"
+                    
+                    current_history.append({
                         "User": "Assistant",
                         "Message": tool_call_msg,
                         "UUID": assistant_msg_uuid
                     })
-                    self.chats[chat_id]["chat"].append({
+                    current_history.append({
                         "User": "Console",
                         "Message": tool_result_msg,
+                        "UUID": tool_uuid
                     })
-                    self.save_chats()
-        
-        if save_chat:
-            msg_uuid = int(uuid_lib.uuid4())
-            self.chats[chat_id]["chat"].append({"User": "Assistant", "Message": text_content, "UUID": msg_uuid})
-            self.save_chats()
-        return text_content
+                    if save_chat:
+                        self.chats[chat_id]["chat"].append({
+                            "User": "Assistant",
+                            "Message": tool_call_msg,
+                            "UUID": assistant_msg_uuid
+                        })
+                        self.chats[chat_id]["chat"].append({
+                            "User": "Console",
+                            "Message": tool_result_msg,
+                        })
+                        self.save_chats()
+            
+            if save_chat:
+                msg_uuid = int(uuid_lib.uuid4())
+                self.chats[chat_id]["chat"].append({"User": "Assistant", "Message": text_content, "UUID": msg_uuid})
+                self.save_chats()
+            return text_content
+        finally:
+            if skills_integration is not None:
+                skills_integration.set_skill_manager(original_skill_manager)
 
-    def execute_tool_on_main_thread(self, tool_name: str, arguments: dict[str, Any]) -> Any:
+    def execute_tool_on_main_thread(
+        self,
+        tool_name: str,
+        arguments: dict[str, Any],
+        tool_registry: ToolRegistry | None = None,
+    ) -> Any:
         """Execute a tool from a worker thread while keeping GTK work on the main loop."""
-        tool = self.tools.get_tool(tool_name)
+        active_tool_registry = tool_registry if tool_registry is not None else self.tools
+        tool = active_tool_registry.get_tool(tool_name)
         if tool is None:
             raise ValueError(f"Tool '{tool_name}' not found")
 

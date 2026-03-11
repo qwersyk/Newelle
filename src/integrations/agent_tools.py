@@ -38,6 +38,7 @@ class AgentToolsIntegration(NewelleExtension):
 
                 from ..tools import ToolRegistry
                 sub_registry = ToolRegistry()
+                skill_manager = getattr(ctrl, "skill_manager", None)
                 requested_tools = [t.strip() for t in tools.split(",") if t.strip()]
                 # Add send_result tool
                 def send_result(result:str):
@@ -58,9 +59,9 @@ class AgentToolsIntegration(NewelleExtension):
                         sub_registry.register_tool(tool_obj)
 
                 prompts = [system_prompt]
-                if skills.strip() and hasattr(ctrl, "skill_manager"):
+                if skills.strip() and skill_manager is not None:
                     for skill_name in [s.strip() for s in skills.split(",") if s.strip()]:
-                        skill_output = ctrl.skill_manager.activate_skill(skill_name)
+                        skill_output = skill_manager.activate_skill(skill_name)
                         prompts.append(skill_output)
 
                 tools_prompt_json = sub_registry.get_tools_prompt()
@@ -86,19 +87,16 @@ class AgentToolsIntegration(NewelleExtension):
                     widget.set_status(_("Tool: ") + tool_name)
                     widget.add_tool_widget(tool_name, tool_result)
 
-                original_registry = ctrl.tools
-                ctrl.tools = sub_registry
-                try:
-                    final = ctrl.run_llm_with_tools(
-                        message=task,
-                        chat_id=chat_id,
-                        system_prompt=prompts,
-                        on_message_callback=on_message,
-                        on_tool_result_callback=on_tool_result,
-                        force_tools_on_main_thread=True,
-                    )
-                finally:
-                    ctrl.tools = original_registry
+                final = ctrl.run_llm_with_tools(
+                    message=task,
+                    chat_id=chat_id,
+                    system_prompt=prompts,
+                    on_message_callback=on_message,
+                    on_tool_result_callback=on_tool_result,
+                    force_tools_on_main_thread=True,
+                    tool_registry=sub_registry,
+                    skill_manager=skill_manager,
+                )
 
                 widget.finish(success=True)
                 if self.subagent_results[tool_uuid] is None:
