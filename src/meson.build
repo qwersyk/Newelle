@@ -80,6 +80,7 @@ widgets_sources = [
   'ui/widgets/file_read.py',
   'ui/widgets/file_edit.py',
   'ui/widgets/glob.py',
+  'ui/widgets/list_directory.py',
   'ui/widgets/latex.py',
   'ui/widgets/terminal_dialog.py',
   'ui/widgets/markuptextview.py',

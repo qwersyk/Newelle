@@ -1,3 +1,4 @@
+import fnmatch
 import glob as glob_module
 import os
 from typing import Optional
@@ -6,6 +7,7 @@ from ..tools import Tool, ToolResult
 from ..ui.widgets.file_read import ReadFileWidget
 from ..ui.widgets.file_edit import FileEditWidget
 from ..ui.widgets.glob import GlobWidget
+from ..ui.widgets.list_directory import ListDirectoryWidget
 
 
 class FileEditingIntegration(NewelleExtension):
@@ -613,6 +615,130 @@ class FileEditingIntegration(NewelleExtension):
 
         return result
 
+    def _should_ignore(self, entry_name: str, ignore_patterns: Optional[list[str]]) -> bool:
+        """Check if an entry matches any of the ignore patterns."""
+        if not ignore_patterns:
+            return False
+        for pattern in ignore_patterns:
+            if fnmatch.fnmatch(entry_name, pattern):
+                return True
+        return False
+
+    def list_directory(self, path: str, ignore: Optional[list[str]] = None):
+        """
+        List the contents of a directory.
+
+        Args:
+            path: The absolute path to the directory to list (must be absolute, not relative)
+            ignore: Optional list of glob patterns to ignore (e.g., ['*.pyc', '.git', '__pycache__'])
+
+        Returns:
+            ToolResult with list of entries and a widget for display
+        """
+        result = ToolResult()
+
+        # Validate path is absolute
+        if not os.path.isabs(path):
+            result.set_output(f"Error: Path must be absolute. Relative paths are not supported: {path}")
+            return result
+
+        # Validate path exists
+        if not os.path.exists(path):
+            result.set_output(f"Error: Directory does not exist: {path}")
+            return result
+
+        # Validate path is a directory
+        if not os.path.isdir(path):
+            result.set_output(f"Error: Path is not a directory: {path}")
+            return result
+
+        # Validate read permission
+        if not os.access(path, os.R_OK):
+            result.set_output(f"Error: Permission denied reading directory: {path}")
+            return result
+
+        try:
+            entries = []
+            for entry in os.listdir(path):
+                if self._should_ignore(entry, ignore):
+                    continue
+                entries.append(entry)
+
+            entries = sorted(entries)
+
+            # Build output for LLM
+            if not entries:
+                output = f"Directory {path} is empty"
+            else:
+                output_lines = [f"Contents of {path} ({len(entries)} entries):", ""]
+                for entry in entries:
+                    full_path = os.path.join(path, entry)
+                    suffix = "/" if os.path.isdir(full_path) else ""
+                    output_lines.append(f"{entry}{suffix}")
+                output = "\n".join(output_lines)
+
+            # Create the widget
+            open_callback = self._get_open_in_editor_callback() if entries else None
+            widget = ListDirectoryWidget(
+                dir_path=path,
+                entries=entries,
+                open_in_editor_callback=open_callback
+            )
+
+            result.set_output(output)
+            result.set_widget(widget)
+
+        except Exception as e:
+            result.set_output(f"Error listing directory {path}: {str(e)}")
+
+        return result
+
+    def list_directory_restore(self, tool_uuid: str, path: str, ignore: Optional[list[str]] = None):
+        """
+        Restore the list_directory widget from chat history.
+
+        Args:
+            tool_uuid: UUID of the tool call
+            path: The directory that was listed
+            ignore: The ignore patterns that were used (optional)
+
+        Returns:
+            ToolResult with restored widget
+        """
+        result = ToolResult()
+
+        if not os.path.isabs(path) or not os.path.exists(path) or not os.path.isdir(path):
+            result.set_output(f"Directory: {path} - Cannot restore (path invalid or inaccessible)")
+            return result
+
+        try:
+            entries = []
+            for entry in os.listdir(path):
+                if self._should_ignore(entry, ignore):
+                    continue
+                entries.append(entry)
+
+            entries = sorted(entries)
+
+            file_count = sum(1 for e in entries if os.path.isfile(os.path.join(path, e)))
+            dir_count = len(entries) - file_count
+            output = f"Directory: {path} - {len(entries)} entries ({file_count} files, {dir_count} directories)"
+
+            open_callback = self._get_open_in_editor_callback() if entries else None
+            widget = ListDirectoryWidget(
+                dir_path=path,
+                entries=entries,
+                open_in_editor_callback=open_callback
+            )
+
+            result.set_output(output)
+            result.set_widget(widget)
+
+        except Exception as e:
+            result.set_output(f"Directory: {path} - Error: {str(e)}")
+
+        return result
+
     def get_tools(self):
         return [
             Tool(
@@ -654,5 +780,30 @@ class FileEditingIntegration(NewelleExtension):
                 default_on=True,
                 icon_name="folder-saved-search-symbolic",
                 tools_group="File Operations"
+            ),
+            Tool(
+                name="list_directory",
+                description="List the contents of a directory. Use the ignore parameter to exclude files matching glob patterns (e.g., ['*.pyc', '.git', '__pycache__']).",
+                func=self.list_directory,
+                title="List Directory",
+                restore_func=self.list_directory_restore,
+                default_on=True,
+                icon_name="folder-open-symbolic",
+                tools_group="File Operations",
+                schema={
+                    "type": "object",
+                    "properties": {
+                        "path": {
+                            "type": "string",
+                            "description": "The absolute path to the directory to list (must be absolute, not relative)"
+                        },
+                        "ignore": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                            "description": "List of glob patterns to ignore (e.g., ['*.pyc', '.git', '__pycache__'])"
+                        }
+                    },
+                    "required": ["path"]
+                }
             ),
         ]
