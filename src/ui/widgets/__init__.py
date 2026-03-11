@@ -5,6 +5,7 @@ from .comborow import ComboRowHelper
 from .copybox import CopyBox
 from .file import File
 from .file_read import ReadFileWidget
+from .glob import GlobWidget
 from .latex import DisplayLatex, LatexCanvas, InlineLatex
 from .markuptextview import MarkupTextView
 from .website import WebsiteButton
@@ -33,6 +34,7 @@ __all__ = [
     "CopyBox",
     "File",
     "ReadFileWidget",
+    "GlobWidget",
     "DisplayLatex",
     "LatexCanvas",
     "MarkupTextView",

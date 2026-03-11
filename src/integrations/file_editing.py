@@ -1,9 +1,11 @@
+import glob as glob_module
 import os
 from typing import Optional
 from ..extensions import NewelleExtension
 from ..tools import Tool, ToolResult
 from ..ui.widgets.file_read import ReadFileWidget
 from ..ui.widgets.file_edit import FileEditWidget
+from ..ui.widgets.glob import GlobWidget
 
 
 class FileEditingIntegration(NewelleExtension):
@@ -13,15 +15,26 @@ class FileEditingIntegration(NewelleExtension):
     def __init__(self, pip_path, extension_path, settings):
         super().__init__(pip_path, extension_path, settings)
 
-    def _get_open_in_editor_callback(self, file_path: str):
-        """Return callback to open file in internal editor, or None if unavailable."""
+    def _get_open_in_editor_callback(self, file_path: str = None):
+        """Return callback to open file in internal editor, or None if unavailable.
+
+        Args:
+            file_path: If provided, returns a callback that opens this specific file.
+                      If None, returns a callback that accepts a file_path argument.
+        """
         if not hasattr(self, 'ui_controller') or self.ui_controller is None:
             return None
 
-        def _open():
-            self.ui_controller.new_editor_tab(file_path)
-
-        return _open
+        if file_path is not None:
+            # Return a callback for a specific file
+            def _open():
+                self.ui_controller.new_editor_tab(file_path)
+            return _open
+        else:
+            # Return a callback that accepts any file path
+            def _open_any(path: str):
+                self.ui_controller.new_editor_tab(path)
+            return _open_any
 
     def _read_file_content(self, absolute_path: str, offset: int = 0, limit: Optional[int] = None) -> tuple[str, str, bool]:
         """
@@ -471,6 +484,135 @@ class FileEditingIntegration(NewelleExtension):
 
         return result
 
+    def glob(self, pattern: str, path: Optional[str] = None):
+        """
+        Search for files matching a glob pattern.
+
+        Args:
+            pattern: The glob pattern to match files against (e.g., '*.py', '**/*.txt')
+            path: The directory to search in. If not specified, the current working directory will be used.
+
+        Returns:
+            ToolResult with list of matching files and a widget for display
+        """
+        result = ToolResult()
+
+        # Validate pattern
+        if not pattern or not pattern.strip():
+            result.set_output("Error: Pattern cannot be empty or whitespace-only")
+            return result
+
+        # Determine search directory
+        if path:
+            # Validate path if provided
+            if not os.path.isabs(path):
+                result.set_output(f"Error: Path must be absolute: {path}")
+                return result
+
+            if not os.path.exists(path):
+                result.set_output(f"Error: Directory does not exist: {path}")
+                return result
+
+            if not os.path.isdir(path):
+                result.set_output(f"Error: Path is not a directory: {path}")
+                return result
+
+            search_dir = path
+        else:
+            # Use current working directory
+            search_dir = os.getcwd()
+
+        # Normalize the pattern
+        pattern = pattern.strip()
+
+        try:
+            # Perform glob search
+            # Use recursive=True to support ** patterns
+            full_pattern = os.path.join(search_dir, pattern)
+            matches = glob_module.glob(full_pattern, recursive=True)
+
+            # Sort matches for consistent output
+            matches = sorted(matches)
+
+            # Build output for LLM
+            if not matches:
+                output = f"No files match the pattern '{pattern}' in {search_dir}"
+            else:
+                output_lines = [f"Found {len(matches)} file(s) matching '{pattern}' in {search_dir}:", ""]
+                for match in matches:
+                    # Show relative paths for cleaner output
+                    try:
+                        rel_path = os.path.relpath(match, search_dir)
+                        output_lines.append(rel_path)
+                    except ValueError:
+                        output_lines.append(match)
+                output = "\n".join(output_lines)
+
+            # Create the widget
+            open_callback = self._get_open_in_editor_callback() if matches else None
+            widget = GlobWidget(
+                pattern=pattern,
+                search_path=search_dir,
+                matches=matches,
+                open_in_editor_callback=open_callback
+            )
+
+            result.set_output(output)
+            result.set_widget(widget)
+
+        except Exception as e:
+            result.set_output(f"Error performing glob search: {str(e)}")
+
+        return result
+
+    def glob_restore(self, tool_uuid: str, pattern: str, path: Optional[str] = None):
+        """
+        Restore the glob widget from chat history.
+
+        Args:
+            tool_uuid: UUID of the tool call
+            pattern: The glob pattern that was used
+            path: The path that was searched (optional)
+
+        Returns:
+            ToolResult with restored widget
+        """
+        result = ToolResult()
+
+        # Determine search directory
+        search_dir = path if path else os.getcwd()
+
+        # Re-run the glob search
+        try:
+            full_pattern = os.path.join(search_dir, pattern)
+            matches = glob_module.glob(full_pattern, recursive=True)
+            matches = sorted(matches)
+
+            # Build output
+            if not matches:
+                output = f"Glob: '{pattern}' in {search_dir} - No matches"
+            else:
+                file_count = sum(1 for m in matches if os.path.isfile(m))
+                dir_count = len(matches) - file_count
+                output = f"Glob: '{pattern}' in {search_dir} - {len(matches)} matches ({file_count} files, {dir_count} directories)"
+
+            # Recreate the widget
+            open_callback = self._get_open_in_editor_callback() if matches else None
+            widget = GlobWidget(
+                pattern=pattern,
+                search_path=search_dir,
+                matches=matches,
+                open_in_editor_callback=open_callback
+            )
+
+            result.set_output(output)
+            result.set_widget(widget)
+
+        except Exception as e:
+            result.set_output(f"Glob: '{pattern}' in {search_dir} - Error: {str(e)}")
+
+        return result
+
     def get_tools(self):
         return [
             Tool(
@@ -501,6 +643,16 @@ class FileEditingIntegration(NewelleExtension):
                 restore_func=self.edit_restore,
                 default_on=True,
                 icon_name="document-edit-symbolic",
+                tools_group="File Operations"
+            ),
+            Tool(
+                name="glob",
+                description="Search for files matching a glob pattern. Supports standard glob patterns like '*.py' and recursive patterns like '**/*.txt'. If path is not specified, searches in the current working directory.",
+                func=self.glob,
+                title="Glob Search",
+                restore_func=self.glob_restore,
+                default_on=True,
+                icon_name="folder-saved-search-symbolic",
                 tools_group="File Operations"
             ),
         ]
