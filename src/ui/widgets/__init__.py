@@ -6,6 +6,7 @@ from .copybox import CopyBox
 from .file import File
 from .file_read import ReadFileWidget
 from .glob import GlobWidget
+from .grep import GrepWidget
 from .list_directory import ListDirectoryWidget
 from .latex import DisplayLatex, LatexCanvas, InlineLatex
 from .markuptextview import MarkupTextView
@@ -36,6 +37,7 @@ __all__ = [
     "File",
     "ReadFileWidget",
     "GlobWidget",
+    "GrepWidget",
     "ListDirectoryWidget",
     "DisplayLatex",
     "LatexCanvas",

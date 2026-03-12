@@ -1,12 +1,14 @@
 import fnmatch
 import glob as glob_module
 import os
+import re
 from typing import Optional
 from ..extensions import NewelleExtension
 from ..tools import Tool, ToolResult
 from ..ui.widgets.file_read import ReadFileWidget
 from ..ui.widgets.file_edit import FileEditWidget
 from ..ui.widgets.glob import GlobWidget
+from ..ui.widgets.grep import GrepWidget
 from ..ui.widgets.list_directory import ListDirectoryWidget
 
 
@@ -739,6 +741,171 @@ class FileEditingIntegration(NewelleExtension):
 
         return result
 
+    def _expand_glob_pattern(self, glob_pattern: str) -> list[str]:
+        """Expand brace patterns like '.{ts,tsx}' to ['*.ts', '*.tsx']."""
+        import itertools
+        # Simple brace expansion: {a,b,c} -> [a, b, c]
+        match = re.search(r'\{([^{}]+)\}', glob_pattern)
+        if not match:
+            # No braces - ensure we have * for fnmatch
+            pattern = glob_pattern.strip()
+            if pattern and not pattern.startswith('*'):
+                pattern = '*' + pattern
+            return [pattern] if pattern else []
+
+        before, brace_content, after = glob_pattern[:match.start()], match.group(1), glob_pattern[match.end():]
+        parts = [p.strip() for p in brace_content.split(',')]
+        results = []
+        for part in parts:
+            expanded = before + part + after
+            if not expanded.startswith('*'):
+                expanded = '*' + expanded
+            results.append(expanded)
+        return results
+
+    def _file_matches_glob(self, filename: str, glob_patterns: list[str]) -> bool:
+        """Check if filename matches any of the glob patterns."""
+        if not glob_patterns:
+            return True
+        for pattern in glob_patterns:
+            if fnmatch.fnmatch(filename, pattern):
+                return True
+        return False
+
+    def grep_search(
+        self,
+        pattern: str,
+        path: Optional[str] = None,
+        glob: Optional[str] = None,
+        limit: Optional[int] = None
+    ):
+        """
+        Search for a regular expression pattern in file contents.
+
+        Args:
+            pattern: The regular expression pattern to search for
+            path: File or directory to search in (defaults to current working directory)
+            glob: Glob pattern to filter files (e.g., "*.py", ".{ts,tsx}")
+            limit: Limit output to first N matches (optional)
+
+        Returns:
+            ToolResult with matching lines and a widget for display
+        """
+        result = ToolResult()
+
+        # Validate pattern
+        if not pattern or not pattern.strip():
+            result.set_output("Error: Pattern cannot be empty or whitespace-only")
+            return result
+
+        try:
+            regex = re.compile(pattern)
+        except re.error as e:
+            result.set_output(f"Error: Invalid regular expression: {e}")
+            return result
+
+        # Determine search path
+        if path:
+            if not os.path.isabs(path):
+                result.set_output(f"Error: Path must be absolute: {path}")
+                return result
+            if not os.path.exists(path):
+                result.set_output(f"Error: Path does not exist: {path}")
+                return result
+            search_path = path
+        else:
+            search_path = os.getcwd()
+
+        # Expand glob patterns
+        glob_patterns = self._expand_glob_pattern(glob) if glob else []
+
+        matches = []
+        match_count = 0
+
+        def search_file(file_path: str) -> bool:
+            """Search a single file. Returns True if limit reached."""
+            nonlocal match_count
+            try:
+                # Skip binary files
+                with open(file_path, 'rb') as f:
+                    if b'\x00' in f.read(8192):
+                        return False
+                with open(file_path, 'r', encoding='utf-8', errors='replace') as f:
+                    for line_num, line in enumerate(f, 1):
+                        if regex.search(line):
+                            matches.append((file_path, line_num, line))
+                            match_count += 1
+                            if limit and match_count >= limit:
+                                return True
+            except (OSError, UnicodeDecodeError):
+                pass
+            return False
+
+        try:
+            if os.path.isfile(search_path):
+                # Single file
+                if not glob_patterns or self._file_matches_glob(os.path.basename(search_path), glob_patterns):
+                    search_file(search_path)
+            else:
+                # Directory - walk recursively
+                for root, dirs, files in os.walk(search_path):
+                    # Skip hidden directories
+                    dirs[:] = [d for d in dirs if not d.startswith('.')]
+                    for filename in files:
+                        if limit and match_count >= limit:
+                            break
+                        if glob_patterns and not self._file_matches_glob(filename, glob_patterns):
+                            continue
+                        file_path = os.path.join(root, filename)
+                        if search_file(file_path):
+                            break
+                    if limit and match_count >= limit:
+                        break
+
+            # Build output for LLM
+            if not matches:
+                output = f"No matches for '{pattern}' in {search_path}"
+            else:
+                output_lines = [f"Found {len(matches)} match(es) for '{pattern}' in {search_path}:", ""]
+                for file_path, line_num, content in matches:
+                    try:
+                        rel_path = os.path.relpath(file_path, search_path)
+                    except ValueError:
+                        rel_path = file_path
+                    output_lines.append(f"{rel_path}:{line_num}:{content.rstrip()}")
+                output = "\n".join(output_lines)
+
+            open_callback = self._get_open_in_editor_callback() if matches else None
+            widget = GrepWidget(
+                pattern=pattern,
+                search_path=search_path,
+                matches=matches,
+                open_in_editor_callback=open_callback
+            )
+
+            result.set_output(output)
+            result.set_widget(widget)
+
+        except Exception as e:
+            result.set_output(f"Error during grep search: {str(e)}")
+
+        return result
+
+    def grep_search_restore(
+        self,
+        tool_uuid: str,
+        pattern: str,
+        path: Optional[str] = None,
+        glob: Optional[str] = None,
+        limit: Optional[int] = None
+    ):
+        """
+        Restore the grep_search widget from chat history.
+        """
+        result = ToolResult()
+        # Re-run the search to restore
+        return self.grep_search(pattern=pattern, path=path, glob=glob, limit=limit)
+
     def get_tools(self):
         return [
             Tool(
@@ -804,6 +971,38 @@ class FileEditingIntegration(NewelleExtension):
                         }
                     },
                     "required": ["path"]
+                }
+            ),
+            Tool(
+                name="grep_search",
+                description="Search for a regular expression pattern in file contents. Supports path (file or directory), glob filter (e.g., '*.py', '.{ts,tsx}'), and optional limit on number of matches.",
+                func=self.grep_search,
+                title="Grep Search",
+                restore_func=self.grep_search_restore,
+                default_on=True,
+                icon_name="edit-find-symbolic",
+                tools_group="File Operations",
+                schema={
+                    "type": "object",
+                    "properties": {
+                        "pattern": {
+                            "type": "string",
+                            "description": "The regular expression pattern to search for in file contents"
+                        },
+                        "path": {
+                            "type": "string",
+                            "description": "File or directory to search in (defaults to current working directory if omitted)"
+                        },
+                        "glob": {
+                            "type": "string",
+                            "description": "Glob pattern to filter files (e.g., '*.py', '.{ts,tsx}')"
+                        },
+                        "limit": {
+                            "type": "number",
+                            "description": "Limit output to first N matches (optional)"
+                        }
+                    },
+                    "required": ["pattern"]
                 }
             ),
         ]
