@@ -79,6 +79,7 @@ widgets_sources = [
   'ui/widgets/file.py',
   'ui/widgets/file_read.py',
   'ui/widgets/file_edit.py',
+  'ui/widgets/file_permission_confirm.py',
   'ui/widgets/glob.py',
   'ui/widgets/grep.py',
   'ui/widgets/list_directory.py',

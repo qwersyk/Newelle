@@ -237,5 +237,8 @@
         <key name="stt-secondary-settings" type="s">
             <default>"{}"</default>
         </key>
+        <key name="file-permissions" type="s">
+            <default>'[{"path": "*", "read": "allow", "write": "ask"}, {"path": "{{main_path}}", "read": "allow", "write": "ask"}]'</default>
+        </key>
 	</schema>
 </schemalist>

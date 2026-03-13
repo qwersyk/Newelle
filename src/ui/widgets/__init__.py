@@ -5,6 +5,7 @@ from .comborow import ComboRowHelper
 from .copybox import CopyBox
 from .file import File
 from .file_read import ReadFileWidget
+from .file_permission_confirm import FilePermissionConfirmWidget
 from .glob import GlobWidget
 from .grep import GrepWidget
 from .list_directory import ListDirectoryWidget
@@ -36,6 +37,7 @@ __all__ = [
     "CopyBox",
     "File",
     "ReadFileWidget",
+    "FilePermissionConfirmWidget",
     "GlobWidget",
     "GrepWidget",
     "ListDirectoryWidget",

@@ -1657,6 +1657,8 @@ class NewelleSettings:
         self.skills_settings = settings.get_string("skills-settings")
         self.mcp_servers = self.settings.get_string("mcp-servers")
         self.mcp_servers_dict = json.loads(self.mcp_servers)
+        self.file_permissions = self.settings.get_string("file-permissions")
+        self.file_permissions_list = json.loads(self.file_permissions)
         self.scheduled_tasks = self.settings.get_string("scheduled-tasks")
         self.wakeword_enabled = settings.get_boolean("wakeword-on")
         self.wakeword_mode = settings.get_string("wakeword-mode")

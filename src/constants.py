@@ -625,7 +625,7 @@ SETTINGS_GROUPS = {
         },
         "tools": {
             "title": _("Tools"),
-            "settings": ["tools-settings", "mcp-servers", "skills-settings"],
+            "settings": ["tools-settings", "mcp-servers", "skills-settings", "file-permissions"],
             "description": _("Tools settings, tools groups..."),
         },
         "wakeword": {

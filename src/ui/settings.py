@@ -501,6 +501,7 @@ class Settings(Adw.PreferencesWindow):
         self.ToolsPage.add(self.tools_group)
         self.refresh_tools_list()
 
+        self.build_file_permissions_settings()
         self.build_skills_settings()
         self.build_mcp_settings()
         self._building_tools_page = False
@@ -671,6 +672,147 @@ class Settings(Adw.PreferencesWindow):
     def reset_tool_prompt(self, button, entry):
         entry.set_text(entry.default_prompt)
         self.update_tool_prompt(entry)
+
+    # --- File Permissions settings ---
+
+    def build_file_permissions_settings(self):
+        self.file_permissions_group = Adw.PreferencesGroup(
+            title=_("File Permissions"),
+            description=_("Control which directories the agent can read from or write to")
+        )
+        self.ToolsPage.add(self.file_permissions_group)
+
+        add_button = Gtk.Button(icon_name="list-add-symbolic", valign=Gtk.Align.CENTER, css_classes=["flat"])
+        add_button.set_tooltip_text(_("Add custom directory rule"))
+        add_button.connect("clicked", self._on_add_file_permission_clicked)
+        self.file_permissions_group.set_header_suffix(add_button)
+
+        self.file_permission_rows = []
+        self._refresh_file_permissions_list()
+
+    def _get_file_permissions(self):
+        try:
+            return json.loads(self.settings.get_string("file-permissions"))
+        except Exception:
+            return [
+                {"path": "*", "read": "allow", "write": "ask"},
+                {"path": "{{main_path}}", "read": "allow", "write": "ask"},
+            ]
+
+    def _save_file_permissions(self, rules):
+        self.settings.set_string("file-permissions", json.dumps(rules))
+
+    def _refresh_file_permissions_list(self):
+        for row in self.file_permission_rows:
+            self.file_permissions_group.remove(row)
+        self.file_permission_rows = []
+
+        rules = self._get_file_permissions()
+        for idx, rule in enumerate(rules):
+            row = self._create_file_permission_row(rule, idx)
+            self.file_permissions_group.add(row)
+            self.file_permission_rows.append(row)
+
+    def _display_name_for_path(self, path):
+        if path == "*":
+            return _("All Files")
+        if path == "{{main_path}}":
+            return _("Current Work Directory")
+        return path
+
+    def _create_file_permission_row(self, rule, idx):
+        path = rule.get("path", "*")
+        display_name = self._display_name_for_path(path)
+        is_builtin = path in ("*", "{{main_path}}")
+
+        if is_builtin:
+            icon_name = "globe-symbolic" if path == "*" else "folder-visiting-symbolic"
+        else:
+            icon_name = "folder-symbolic"
+
+        row = Adw.ExpanderRow(title=display_name)
+        if not is_builtin:
+            row.set_subtitle(path)
+        prefix_icon = Gtk.Image(icon_name=icon_name, css_classes=["dim-label"])
+        row.add_prefix(prefix_icon)
+
+        mode_labels = [_("Block Everything"), _("Ask"), _("Allow Everything")]
+        mode_values = ["block", "ask", "allow"]
+
+        # Read permission combo
+        read_row = Adw.ActionRow(title=_("Read"))
+        read_combo = Gtk.ComboBoxText()
+        for label in mode_labels:
+            read_combo.append_text(label)
+        current_read = rule.get("read", "allow")
+        read_combo.set_active(mode_values.index(current_read) if current_read in mode_values else 2)
+        read_combo.set_valign(Gtk.Align.CENTER)
+        read_combo.connect("changed", self._on_file_permission_changed, idx, "read", mode_values)
+        read_row.add_suffix(read_combo)
+        row.add_row(read_row)
+
+        # Write permission combo
+        write_row = Adw.ActionRow(title=_("Write"))
+        write_combo = Gtk.ComboBoxText()
+        for label in mode_labels:
+            write_combo.append_text(label)
+        current_write = rule.get("write", "ask")
+        write_combo.set_active(mode_values.index(current_write) if current_write in mode_values else 1)
+        write_combo.set_valign(Gtk.Align.CENTER)
+        write_combo.connect("changed", self._on_file_permission_changed, idx, "write", mode_values)
+        write_row.add_suffix(write_combo)
+        row.add_row(write_row)
+
+        if not is_builtin:
+            remove_row = Adw.ActionRow(title=_("Remove rule"))
+            remove_button = Gtk.Button(label=_("Remove"), valign=Gtk.Align.CENTER, css_classes=["destructive-action"])
+            remove_button.connect("clicked", self._on_remove_file_permission_clicked, idx)
+            remove_row.add_suffix(remove_button)
+            row.add_row(remove_row)
+
+        return row
+
+    def _on_file_permission_changed(self, combo, idx, operation, mode_values):
+        rules = self._get_file_permissions()
+        if idx < len(rules):
+            active = combo.get_active()
+            if 0 <= active < len(mode_values):
+                rules[idx][operation] = mode_values[active]
+                self._save_file_permissions(rules)
+
+    def _on_add_file_permission_clicked(self, button):
+        dialog = Gtk.FileDialog(title=_("Select Directory"))
+        dialog.select_folder(self, None, self._on_file_permission_folder_selected)
+
+    def _on_file_permission_folder_selected(self, dialog, result):
+        try:
+            folder = dialog.select_folder_finish(result)
+        except GLib.Error:
+            return
+        if folder is None:
+            return
+
+        path = folder.get_path()
+        rules = self._get_file_permissions()
+
+        for rule in rules:
+            if rule.get("path") == path:
+                toast = Adw.Toast(title=_("A rule for this directory already exists"))
+                self.add_toast(toast)
+                return
+
+        rules.append({"path": path, "read": "allow", "write": "ask"})
+        self._save_file_permissions(rules)
+        self._refresh_file_permissions_list()
+
+    def _on_remove_file_permission_clicked(self, button, idx):
+        rules = self._get_file_permissions()
+        if idx < len(rules):
+            removed = rules.pop(idx)
+            self._save_file_permissions(rules)
+            self._refresh_file_permissions_list()
+            toast = Adw.Toast(title=_("Rule for '{}' removed").format(removed.get("path", "")))
+            self.add_toast(toast)
 
     # --- Skills settings ---
 
