@@ -67,7 +67,7 @@ class FilePermissionConfirmWidget(Gtk.Box):
 
         # Accept button (primary action, mirrors CopyBox Run button)
         self.accept_button = Gtk.Button(css_classes=["suggested-action"], valign=Gtk.Align.CENTER)
-        accept_icon = Gtk.Image.new_from_icon_name("emblem-ok-symbolic")
+        accept_icon = Gtk.Image.new_from_icon_name("emblem-default-symbolic")
         accept_content = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=4)
         accept_content.append(accept_icon)
         accept_content.append(Gtk.Label(label=_("Accept")))

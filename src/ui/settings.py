@@ -726,7 +726,7 @@ class Settings(Adw.PreferencesWindow):
         is_builtin = path in ("*", "{{main_path}}")
 
         if is_builtin:
-            icon_name = "globe-symbolic" if path == "*" else "folder-visiting-symbolic"
+            icon_name = "internet-symbolic" if path == "*" else "folder-visiting-symbolic"
         else:
             icon_name = "folder-symbolic"
 
