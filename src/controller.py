@@ -196,7 +196,8 @@ class NewelleController:
         """Init necessary variables for the UI and load models and handlers"""
         self.init_paths()
         self.check_path_integrity()
-        self.skill_manager = SkillManager(self.skills_path, self.settings)
+        skills_dirs = self._build_skills_dirs()
+        self.skill_manager = SkillManager(skills_dirs, self.settings)
         self.skill_manager.discover()
         self.load_integrations()
         self.load_extensions()
@@ -226,6 +227,33 @@ class NewelleController:
         self.extensions_cache = os.path.join(self.cache_dir, "extensions_cache")
         self.newelle_dir = os.path.join(self.config_dir, DIR_NAME)
         self.skills_path = os.path.join(self.config_dir, "skills")
+
+    def _build_skills_dirs(self):
+        """Build the list of skill directories to search.
+
+        Priority order:
+          1. Project/.newelle/skills/  (client-native project location)
+          2. Project/.agents/skills/   (cross-client project location)
+          3. User~/.newelle/skills/    (client-native user location)
+          4. User~/.agents/skills/     (cross-client user location)
+        """
+        dirs = []
+
+        # Project-level directories (relative to current working directory / main_path)
+        main_path = self.settings.get_string("path")
+        if main_path:
+            project_dir = os.path.expanduser(main_path)
+            if os.path.isdir(project_dir):
+                dirs.append(os.path.join(project_dir, ".newelle", "skills"))
+                dirs.append(os.path.join(project_dir, ".agents", "skills"))
+
+        # User-level directories
+        dirs.append(self.skills_path)  # ~/.config/Newelle/skills (client-native)
+
+        user_home = os.path.expanduser("~")
+        dirs.append(os.path.join(user_home, ".agents", "skills"))  # ~/.agents/skills (cross-client)
+
+        return dirs
 
     def set_ui_controller(self, ui_controller):
         """Set add tab function"""

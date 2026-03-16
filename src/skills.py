@@ -6,12 +6,13 @@ import json
 class Skill:
     """Represents a single Agent Skill discovered from a SKILL.md file."""
 
-    def __init__(self, name, description, location, body, base_dir):
+    def __init__(self, name, description, location, body, base_dir, source_dir=None):
         self.name = name
         self.description = description
         self.location = location
         self.body = body
         self.base_dir = base_dir
+        self.source_dir = source_dir or base_dir
 
 
 SKIP_DIRS = {".git", "node_modules", "__pycache__", ".venv", "venv", ".eggs", "build", "dist"}
@@ -51,10 +52,28 @@ def parse_frontmatter(text):
 
 
 class SkillManager:
-    """Discovers, parses, and manages Agent Skills from a skills directory."""
+    """Discovers, parses, and manages Agent Skills from multiple skills directories.
 
-    def __init__(self, skills_dir, settings):
-        self.skills_dir = skills_dir
+    Searches for SKILL.md files in the following directories (in priority order):
+      1. Project/<project>/.newelle/skills/  (client-native project location)
+      2. Project/<project>/.agents/skills/   (cross-client project location)
+      3. User~/.newelle/skills/              (client-native user location)
+      4. User~/.agents/skills/               (cross-client user location)
+
+    When skills with the same name exist in multiple directories, the first
+    directory in priority order wins.
+    """
+
+    def __init__(self, skills_dirs, settings):
+        """Initialize with one or more skill directories.
+
+        Args:
+            skills_dirs: A single path string or list of paths to search for skills.
+            settings: Application settings object.
+        """
+        if isinstance(skills_dirs, str):
+            skills_dirs = [skills_dirs]
+        self.skills_dirs = list(skills_dirs)
         self.settings = settings
         self.skills = {}
         self.activated_skills = set()
@@ -70,15 +89,19 @@ class SkillManager:
         self.settings.set_string("skills-settings", json.dumps(skills_settings))
 
     def discover(self):
-        """Scan skills_dir for subdirectories containing SKILL.md."""
-        self.skills.clear()
-        if not os.path.isdir(self.skills_dir):
-            return
+        """Scan all skills_dirs for subdirectories containing SKILL.md.
 
-        for entry in self._walk_skills(self.skills_dir, max_depth=4):
-            skill = self._parse_skill(entry)
-            if skill is not None:
-                self.skills[skill.name] = skill
+        Skills discovered earlier in the list take priority over later ones
+        when names collide.
+        """
+        self.skills.clear()
+        for skills_dir in self.skills_dirs:
+            if not os.path.isdir(skills_dir):
+                continue
+            for entry in self._walk_skills(skills_dir, max_depth=4):
+                skill = self._parse_skill(entry, skills_dir)
+                if skill is not None and skill.name not in self.skills:
+                    self.skills[skill.name] = skill
 
     def _walk_skills(self, root, max_depth):
         """Yield paths to SKILL.md files within max_depth levels."""
@@ -101,8 +124,13 @@ class SkillManager:
             else:
                 yield from self._walk_skills(full, max_depth - 1)
 
-    def _parse_skill(self, skill_path):
-        """Parse a SKILL.md file and return a Skill, or None on failure."""
+    def _parse_skill(self, skill_path, source_dir=None):
+        """Parse a SKILL.md file and return a Skill, or None on failure.
+
+        Args:
+            skill_path: Path to the SKILL.md file.
+            source_dir: The skills directory this skill was discovered in.
+        """
         try:
             with open(skill_path, "r", encoding="utf-8") as f:
                 text = f.read()
@@ -128,6 +156,7 @@ class SkillManager:
             location=skill_path,
             body=body,
             base_dir=base_dir,
+            source_dir=source_dir,
         )
 
     def is_skill_enabled(self, skill_name):
@@ -215,10 +244,14 @@ class SkillManager:
         return True
 
     def add_skill_from_path(self, source_dir):
-        """Copy a skill directory into the skills folder and discover it."""
+        """Copy a skill directory into the primary skills folder and discover it."""
         import shutil
+        if not self.skills_dirs:
+            return None
+        primary_dir = self.skills_dirs[0]
+        os.makedirs(primary_dir, exist_ok=True)
         dir_name = os.path.basename(source_dir)
-        dest = os.path.join(self.skills_dir, dir_name)
+        dest = os.path.join(primary_dir, dir_name)
         if os.path.exists(dest):
             counter = 1
             while os.path.exists(f"{dest}_{counter}"):
@@ -227,7 +260,7 @@ class SkillManager:
         shutil.copytree(source_dir, dest)
         skill_path = os.path.join(dest, "SKILL.md")
         if os.path.isfile(skill_path):
-            skill = self._parse_skill(skill_path)
+            skill = self._parse_skill(skill_path, primary_dir)
             if skill is not None:
                 self.skills[skill.name] = skill
                 return skill
