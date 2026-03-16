@@ -27,6 +27,7 @@ class WebSearchWidget(Gtk.Box):
         self._status_label = Gtk.Label(
             label=f"Searching for \"{self._search_term}\"...",
             halign=Gtk.Align.START,
+            wrap=True
         )
         self._status_label.add_css_class("pulsing-label")
         self._status_label.add_css_class("heading")

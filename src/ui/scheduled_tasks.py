@@ -107,7 +107,7 @@ class ScheduledTasksWindow(Gtk.Window):
                 subtitle=subtitle,
             )
 
-            open_button = Gtk.Button(css_classes=["flat"], icon_name="chat-symbolic")
+            open_button = Gtk.Button(css_classes=["flat"], icon_name="chat-bubbles-text-symbolic")
             latest_chat_id = task.get("latest_chat_id")
             open_button.set_tooltip_text(_("Open latest chat"))
             open_button.set_sensitive(
