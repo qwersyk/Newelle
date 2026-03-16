@@ -142,6 +142,7 @@ class MainWindow(Adw.ApplicationWindow):
         menu_button.set_icon_name("open-menu-symbolic")
         menu = Gio.Menu()
         menu.append(_("Thread editing"), "app.thread_editing")
+        menu.append(_("Scheduled tasks"), "app.scheduled_tasks")
         menu.append(_("Extensions"), "app.extension")
         menu.append(_("Settings"), "app.settings")
         menu.append(_("Keyboard shorcuts"), "app.shortcuts")
@@ -321,6 +322,7 @@ class MainWindow(Adw.ApplicationWindow):
 
         GLib.idle_add(self.update_history)
         GLib.idle_add(self.show_chat)
+        self.controller.start_scheduler()
         if not self.settings.get_boolean("welcome-screen-shown"):
             threading.Thread(target=self.show_presentation_window).start()
         GLib.timeout_add(10, build_model_popup)
@@ -508,6 +510,7 @@ class MainWindow(Adw.ApplicationWindow):
         # Create new ChatTab widget
         chat_tab = ChatTab(self, chat_id)
         chat_tab.connect("chat-name-changed", self._on_chat_name_changed)
+        
         
         # Add to tab view
         tab_page = self.chat_tabs.append(chat_tab)
@@ -2059,7 +2062,13 @@ class MainWindow(Adw.ApplicationWindow):
         self.chats_buttons_scroll_block.set_child(list_box)
         
         list_box.connect("row-activated", self.on_chat_row_activated)
-        
+
+        # Middle-click handler to open chat in a new tab
+        middle_click_gesture = Gtk.GestureClick()
+        middle_click_gesture.set_button(2)
+        middle_click_gesture.connect("pressed", self._on_chat_row_middle_clicked, list_box)
+        list_box.add_controller(middle_click_gesture)
+
         # Build hierarchy map
         id_to_index = {chat.get("id"): i for i, chat in enumerate(self.chats)}
         children_map = {}
@@ -2129,6 +2138,12 @@ class MainWindow(Adw.ApplicationWindow):
         else:
             self.chose_chat(row.chat_index)
     
+    def _on_chat_row_middle_clicked(self, gesture, n_press, x, y, list_box):
+        """Handle middle-click on a chat row to open it in a new tab"""
+        row = list_box.get_row_at_y(int(y))
+        if row is not None and hasattr(row, 'chat_index'):
+            self.add_chat_tab(row.chat_index)
+
     def remove_chat(self, button):
         """Remove a chat"""
         deleted_index = int(button.get_name())

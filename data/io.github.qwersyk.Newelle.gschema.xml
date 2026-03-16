@@ -181,7 +181,13 @@
         </key>
         <key name="mcp-servers" type="s">
           <default>"[]"</default>
+        </key>
+        <key name="skills-settings" type="s">
+          <default>"{}"</default>
         </key> 
+        <key name="scheduled-tasks" type="s">
+          <default>"[]"</default>
+        </key>
         <key name="remember-profile" type="b">
           <default>false</default>
         </key>
@@ -230,6 +236,9 @@
         </key>
         <key name="stt-secondary-settings" type="s">
             <default>"{}"</default>
+        </key>
+        <key name="file-permissions" type="s">
+            <default>'[{"path": "*", "read": "allow", "write": "ask"}, {"path": "{{main_path}}", "read": "allow", "write": "ask"}]'</default>
         </key>
 	</schema>
 </schemalist>

@@ -4,6 +4,11 @@ from .barchart import BarChartBox
 from .comborow import ComboRowHelper
 from .copybox import CopyBox
 from .file import File
+from .file_read import ReadFileWidget
+from .file_permission_confirm import FilePermissionConfirmWidget
+from .glob import GlobWidget
+from .grep import GrepWidget
+from .list_directory import ListDirectoryWidget
 from .latex import DisplayLatex, LatexCanvas, InlineLatex
 from .markuptextview import MarkupTextView
 from .website import WebsiteButton
@@ -15,6 +20,9 @@ from .browser import BrowserWidget
 from .terminal_dialog import Terminal, TerminalDialog
 from .code_editor import CodeEditorWidget
 from .tool import ToolWidget
+from .skill import SkillWidget
+from .subagent import SubagentWidget
+from .scheduled_task import ScheduledTaskWidget
 from .message import Message
 from .chatrow import ChatRow
 from .chat_history import ChatHistory
@@ -28,6 +36,11 @@ __all__ = [
     "ComboRowHelper",
     "CopyBox",
     "File",
+    "ReadFileWidget",
+    "FilePermissionConfirmWidget",
+    "GlobWidget",
+    "GrepWidget",
+    "ListDirectoryWidget",
     "DisplayLatex",
     "LatexCanvas",
     "MarkupTextView",
@@ -42,6 +55,9 @@ __all__ = [
     "TerminalDialog",
     "CodeEditorWidget",
     "ToolWidget",
+    "SkillWidget",
+    "SubagentWidget",
+    "ScheduledTaskWidget",
     "Message",
     "ChatRow",
     "ChatHistory",

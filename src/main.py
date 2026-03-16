@@ -10,6 +10,7 @@ from .ui.settings import Settings
 from .window import MainWindow
 from .ui.shortcuts import Shortcuts
 from .ui.thread_editing import ThreadEditing
+from .ui.scheduled_tasks import ScheduledTasksWindow
 from .ui.extension import Extension
 from .ui.mini_window import MiniWindow
 
@@ -147,6 +148,9 @@ class MyApp(Adw.Application):
         action = Gio.SimpleAction.new("thread_editing", None)
         action.connect('activate', self.thread_editing_action)
         self.add_action(action)
+        action = Gio.SimpleAction.new("scheduled_tasks", None)
+        action.connect('activate', self.scheduled_tasks_action)
+        self.add_action(action)
         action = Gio.SimpleAction.new("extension", None)
         action.connect('activate', self.extension_action)
         self.add_action(action)
@@ -188,6 +192,10 @@ class MyApp(Adw.Application):
     def thread_editing_action(self, *a):
         threadediting = ThreadEditing(self)
         threadediting.present()
+
+    def scheduled_tasks_action(self, *a):
+        scheduled_tasks = ScheduledTasksWindow(self)
+        scheduled_tasks.present()
 
     def settings_action(self, *a): 
         settings = Settings(self, self.win.controller)
@@ -318,10 +326,13 @@ class MyApp(Adw.Application):
                 Adw.Toast(title=_('Chat is created')))
 
     def start_recording(self,*a):
+        tab = self.win.get_active_chat_tab()
+        if tab is None:
+            return
         if not self.win.recording:
-            self.win.start_recording(self.win.recording_button)
+            self.win.start_recording(tab.recording_button)
         else:
-            self.win.stop_recording(self.win.recording_button)
+            self.win.stop_recording(tab.recording_button)
 
     def stop_tts(self,*a):
         self.win.mute_tts(self.win.mute_tts_button)

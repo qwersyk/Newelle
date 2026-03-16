@@ -45,6 +45,70 @@ class ToolResult:
             pass
 
 
+class Command:
+    """Represents a slash command that can be executed from the chat input."""
+    
+    def __init__(
+        self,
+        name: str,
+        description: str,
+        func: Callable,
+        icon_name: str = None,
+        schema: Dict[str, Any] = None,
+        restore_func: Callable = None,
+    ):
+        self.name = name
+        self.description = description
+        self.func = func
+        self.icon_name = icon_name or "applications-utilities-symbolic"
+        self.schema = schema or self._generate_schema_from_func(func)
+        self.command = name.lower()
+        self.restore_func = restore_func
+
+    def _generate_schema_from_func(self, func: Callable) -> Dict[str, Any]:
+        sig = inspect.signature(func)
+        params = {}
+        required = []
+        for name, param in sig.parameters.items():
+            if name == "self":
+                continue
+            param_type = "string"
+            if param.annotation == int:
+                param_type = "integer"
+            elif param.annotation == bool:
+                param_type = "boolean"
+            elif param.annotation == float:
+                param_type = "number"
+            elif param.annotation == list:
+                param_type = "array"
+            elif param.annotation == dict:
+                param_type = "object"
+            
+            params[name] = {"type": param_type}
+            if param.default == inspect.Parameter.empty:
+                required.append(name)
+        
+        return {
+            "type": "object",
+            "properties": params,
+            "required": required
+        }
+
+    def execute(self, **kwargs):
+        sig = inspect.signature(self.func)
+        for param in ['msg_uuid', 'tool_uuid']:
+            if param not in sig.parameters and 'kwargs' not in str(sig.parameters):
+                kwargs.pop(param, None)
+        return self.func(**kwargs)
+
+    def restore(self, **kwargs):
+        func_to_call = self.restore_func if self.restore_func is not None else self.func
+        sig = inspect.signature(func_to_call)
+        for param in ['msg_uuid', 'tool_uuid']:
+            if param not in sig.parameters and 'kwargs' not in str(sig.parameters):
+                kwargs.pop(param, None)
+        return func_to_call(**kwargs)
+
 class Tool:
     def __init__(self, name: str, description: str, func: Callable, schema: Dict[str, Any] = None, run_on_main_thread: bool = False, title: str = None, prompt_editable: bool = True, restore_func: Callable = None, default_on: bool = True, tools_group: str = None, icon_name: str = None):
         self.name = name
@@ -63,7 +127,7 @@ class Tool:
         if self.restore_func is not None:
             # Filter out internal parameters if restore_func doesn't accept them
             sig = inspect.signature(self.restore_func)
-            for param in ['msg_id', 'tool_uuid']:
+            for param in ['msg_uuid', 'tool_uuid']:
                 if param not in sig.parameters and 'kwargs' not in str(sig.parameters):
                     kwargs.pop(param, None)
             return self.restore_func(**kwargs)
@@ -104,8 +168,8 @@ class Tool:
     def execute(self, **kwargs):
         sig = inspect.signature(self.func)
         # Filter out internal parameters if function doesn't accept them
-        for param in ['msg_id', 'tool_uuid']:
-            if param not in sig.parameters and 'kwargs' not in str(sig.parameters):
+        for param in ['msg_uuid', 'tool_uuid']:
+            if param not in sig.parameters:
                 kwargs.pop(param, None)
         return self.func(**kwargs)
 
@@ -190,7 +254,7 @@ def create_io_tool(name: str, description: str, func: Callable, title: str = Non
         GLib.idle_add(t.start)
         return result
 
-    t = Tool(name, description, wrapper, title=title, default_on=default_on, tools_group=tools_group, icon_name=icon_name)
+    t = Tool(name, description, wrapper, title=title, default_on=default_on, tools_group=tools_group, icon_name=icon_name, restore_func=None)
     schema = t._generate_schema_from_func(func)
     t.schema = schema
     return t

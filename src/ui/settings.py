@@ -500,7 +500,9 @@ class Settings(Adw.PreferencesWindow):
         self.tools_group = Adw.PreferencesGroup(title=_("Tools"))
         self.ToolsPage.add(self.tools_group)
         self.refresh_tools_list()
-        
+
+        self.build_file_permissions_settings()
+        self.build_skills_settings()
         self.build_mcp_settings()
         self._building_tools_page = False
 
@@ -670,6 +672,262 @@ class Settings(Adw.PreferencesWindow):
     def reset_tool_prompt(self, button, entry):
         entry.set_text(entry.default_prompt)
         self.update_tool_prompt(entry)
+
+    # --- File Permissions settings ---
+
+    def build_file_permissions_settings(self):
+        self.file_permissions_group = Adw.PreferencesGroup(
+            title=_("File Permissions"),
+            description=_("Control which directories the agent can read from or write to")
+        )
+        self.ToolsPage.add(self.file_permissions_group)
+
+        add_button = Gtk.Button(icon_name="list-add-symbolic", valign=Gtk.Align.CENTER, css_classes=["flat"])
+        add_button.set_tooltip_text(_("Add custom directory rule"))
+        add_button.connect("clicked", self._on_add_file_permission_clicked)
+        self.file_permissions_group.set_header_suffix(add_button)
+
+        self.file_permission_rows = []
+        self._refresh_file_permissions_list()
+
+    def _get_file_permissions(self):
+        try:
+            return json.loads(self.settings.get_string("file-permissions"))
+        except Exception:
+            return [
+                {"path": "*", "read": "allow", "write": "ask"},
+                {"path": "{{main_path}}", "read": "allow", "write": "ask"},
+            ]
+
+    def _save_file_permissions(self, rules):
+        self.settings.set_string("file-permissions", json.dumps(rules))
+
+    def _refresh_file_permissions_list(self):
+        for row in self.file_permission_rows:
+            self.file_permissions_group.remove(row)
+        self.file_permission_rows = []
+
+        rules = self._get_file_permissions()
+        for idx, rule in enumerate(rules):
+            row = self._create_file_permission_row(rule, idx)
+            self.file_permissions_group.add(row)
+            self.file_permission_rows.append(row)
+
+    def _display_name_for_path(self, path):
+        if path == "*":
+            return _("All Files")
+        if path == "{{main_path}}":
+            return _("Current Work Directory")
+        return path
+
+    def _create_file_permission_row(self, rule, idx):
+        path = rule.get("path", "*")
+        display_name = self._display_name_for_path(path)
+        is_builtin = path in ("*", "{{main_path}}")
+
+        if is_builtin:
+            icon_name = "internet-symbolic" if path == "*" else "folder-visiting-symbolic"
+        else:
+            icon_name = "folder-symbolic"
+
+        row = Adw.ExpanderRow(title=display_name)
+        if not is_builtin:
+            row.set_subtitle(path)
+        prefix_icon = Gtk.Image(icon_name=icon_name, css_classes=["dim-label"])
+        row.add_prefix(prefix_icon)
+
+        mode_labels = [_("Block Everything"), _("Ask"), _("Allow Everything")]
+        mode_values = ["block", "ask", "allow"]
+
+        # Read permission combo
+        read_row = Adw.ActionRow(title=_("Read"))
+        read_combo = Gtk.ComboBoxText()
+        for label in mode_labels:
+            read_combo.append_text(label)
+        current_read = rule.get("read", "allow")
+        read_combo.set_active(mode_values.index(current_read) if current_read in mode_values else 2)
+        read_combo.set_valign(Gtk.Align.CENTER)
+        read_combo.connect("changed", self._on_file_permission_changed, idx, "read", mode_values)
+        read_row.add_suffix(read_combo)
+        row.add_row(read_row)
+
+        # Write permission combo
+        write_row = Adw.ActionRow(title=_("Write"))
+        write_combo = Gtk.ComboBoxText()
+        for label in mode_labels:
+            write_combo.append_text(label)
+        current_write = rule.get("write", "ask")
+        write_combo.set_active(mode_values.index(current_write) if current_write in mode_values else 1)
+        write_combo.set_valign(Gtk.Align.CENTER)
+        write_combo.connect("changed", self._on_file_permission_changed, idx, "write", mode_values)
+        write_row.add_suffix(write_combo)
+        row.add_row(write_row)
+
+        if not is_builtin:
+            remove_row = Adw.ActionRow(title=_("Remove rule"))
+            remove_button = Gtk.Button(label=_("Remove"), valign=Gtk.Align.CENTER, css_classes=["destructive-action"])
+            remove_button.connect("clicked", self._on_remove_file_permission_clicked, idx)
+            remove_row.add_suffix(remove_button)
+            row.add_row(remove_row)
+
+        return row
+
+    def _on_file_permission_changed(self, combo, idx, operation, mode_values):
+        rules = self._get_file_permissions()
+        if idx < len(rules):
+            active = combo.get_active()
+            if 0 <= active < len(mode_values):
+                rules[idx][operation] = mode_values[active]
+                self._save_file_permissions(rules)
+
+    def _on_add_file_permission_clicked(self, button):
+        dialog = Gtk.FileDialog(title=_("Select Directory"))
+        dialog.select_folder(self, None, self._on_file_permission_folder_selected)
+
+    def _on_file_permission_folder_selected(self, dialog, result):
+        try:
+            folder = dialog.select_folder_finish(result)
+        except GLib.Error:
+            return
+        if folder is None:
+            return
+
+        path = folder.get_path()
+        rules = self._get_file_permissions()
+
+        for rule in rules:
+            if rule.get("path") == path:
+                toast = Adw.Toast(title=_("A rule for this directory already exists"))
+                self.add_toast(toast)
+                return
+
+        rules.append({"path": path, "read": "allow", "write": "ask"})
+        self._save_file_permissions(rules)
+        self._refresh_file_permissions_list()
+
+    def _on_remove_file_permission_clicked(self, button, idx):
+        rules = self._get_file_permissions()
+        if idx < len(rules):
+            removed = rules.pop(idx)
+            self._save_file_permissions(rules)
+            self._refresh_file_permissions_list()
+            toast = Adw.Toast(title=_("Rule for '{}' removed").format(removed.get("path", "")))
+            self.add_toast(toast)
+
+    # --- Skills settings ---
+
+    def build_skills_settings(self):
+        self.skills_group = Adw.PreferencesGroup(
+            title=_("Skills"),
+            description=_("Manage Agent Skills (SKILL.md files)")
+        )
+        self.ToolsPage.add(self.skills_group)
+
+        actions_row = Adw.ActionRow(title=_("Skills folder"), subtitle=self.controller.skills_path)
+        open_button = Gtk.Button(icon_name="folder-symbolic", valign=Gtk.Align.CENTER, css_classes=["flat"])
+        open_button.set_tooltip_text(_("Open skills folder"))
+        open_button.connect("clicked", lambda btn: open_folder(self.controller.skills_path))
+        actions_row.add_suffix(open_button)
+
+        add_button = Gtk.Button(icon_name="list-add-symbolic", valign=Gtk.Align.CENTER, css_classes=["flat"])
+        add_button.set_tooltip_text(_("Add skill from folder"))
+        add_button.connect("clicked", self._on_add_skill_clicked)
+        actions_row.add_suffix(add_button)
+
+        refresh_button = Gtk.Button(icon_name="view-refresh-symbolic", valign=Gtk.Align.CENTER, css_classes=["flat"])
+        refresh_button.set_tooltip_text(_("Refresh skills"))
+        refresh_button.connect("clicked", self._on_refresh_skills_clicked)
+        actions_row.add_suffix(refresh_button)
+
+        self.skills_group.add(actions_row)
+
+        self.skills_rows = []
+        self.refresh_skills_list()
+
+    def refresh_skills_list(self):
+        for row in self.skills_rows:
+            self.skills_group.remove(row)
+        self.skills_rows = []
+
+        skill_manager = self.controller.skill_manager
+        for skill in skill_manager.skills.values():
+            row = self._create_skill_row(skill)
+            self.skills_group.add(row)
+            self.skills_rows.append(row)
+
+    def _create_skill_row(self, skill):
+        row = Adw.ExpanderRow(title=skill.name, subtitle=skill.description)
+        icon = Gtk.Image(icon_name="skills-symbolic", css_classes=["dim-label"])
+        row.add_prefix(icon)
+
+        toggle = Gtk.Switch(valign=Gtk.Align.CENTER)
+        toggle.set_active(self.controller.skill_manager.is_skill_enabled(skill.name))
+        toggle.connect("state-set", self._on_skill_toggled, skill.name)
+        row.add_suffix(toggle)
+
+        info_row = Adw.ActionRow(title=_("Location"), subtitle=skill.location)
+        row.add_row(info_row)
+
+        resource_count = len(self.controller.skill_manager._list_resources(skill.base_dir))
+        if resource_count > 0:
+            res_row = Adw.ActionRow(
+                title=_("Bundled resources"),
+                subtitle=str(resource_count) + " " + (_("files") if resource_count != 1 else _("file"))
+            )
+            row.add_row(res_row)
+
+        remove_row = Adw.ActionRow(title=_("Remove skill"))
+        remove_button = Gtk.Button(label=_("Remove"), valign=Gtk.Align.CENTER, css_classes=["destructive-action"])
+        remove_button.connect("clicked", self._on_remove_skill_clicked, skill.name)
+        remove_row.add_suffix(remove_button)
+        row.add_row(remove_row)
+
+        return row
+
+    def _on_skill_toggled(self, switch, state, skill_name):
+        self.controller.skill_manager.set_skill_enabled(skill_name, state)
+
+    def _on_add_skill_clicked(self, button):
+        dialog = Gtk.FileDialog(title=_("Select Skill Folder"))
+        dialog.select_folder(self, None, self._on_skill_folder_selected)
+
+    def _on_skill_folder_selected(self, dialog, result):
+        try:
+            folder = dialog.select_folder_finish(result)
+        except GLib.Error:
+            return
+        if folder is None:
+            return
+
+        path = folder.get_path()
+        skill_md = os.path.join(path, "SKILL.md")
+        if not os.path.isfile(skill_md):
+            toast = Adw.Toast(title=_("Selected folder does not contain a SKILL.md file"))
+            self.add_toast(toast)
+            return
+
+        skill = self.controller.skill_manager.add_skill_from_path(path)
+        if skill is not None:
+            self.refresh_skills_list()
+            toast = Adw.Toast(title=_("Skill '{}' added").format(skill.name))
+            self.add_toast(toast)
+        else:
+            toast = Adw.Toast(title=_("Failed to add skill"))
+            self.add_toast(toast)
+
+    def _on_remove_skill_clicked(self, button, skill_name):
+        if self.controller.skill_manager.remove_skill(skill_name):
+            self.refresh_skills_list()
+            toast = Adw.Toast(title=_("Skill '{}' removed").format(skill_name))
+            self.add_toast(toast)
+
+    def _on_refresh_skills_clicked(self, button):
+        self.controller.skill_manager.discover()
+        self.refresh_skills_list()
+        toast = Adw.Toast(title=_("Skills refreshed"))
+        self.add_toast(toast)
+
+    # --- MCP settings ---
 
     def build_mcp_settings(self):
         self.mcp_group = Adw.PreferencesGroup(title=_("MCP Servers"), description=_("Manage Model Context Protocol servers"))

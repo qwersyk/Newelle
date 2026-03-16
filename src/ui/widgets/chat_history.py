@@ -6,7 +6,7 @@ import os
 import subprocess
 import gettext
 from ...utility.system import open_website
-from ..widgets import TipsCarousel
+from ..widgets import TipsCarousel, SkillWidget
 from ...utility.strings import markwon_to_pango
 from ...ui.widgets import Message, MultilineEntry
 
@@ -137,6 +137,27 @@ class ChatHistory(Gtk.Box):
                     self.show_message(self.chat[i]["Message"], True, id_message=i, is_user=True)
                 elif self.chat[i]["User"] == "Assistant":
                     self.show_message(self.chat[i]["Message"], True, id_message=i)
+                elif self.chat[i]["User"] == "Console" and self.chat[i].get("skill_name"):
+                    self._add_skill_message(i)
+                elif self.chat[i]["User"] == "Command":
+                    text = self.chat[i]["Message"]
+                    if text.startswith("/"):
+                        parts = text[1:].split(" ", 1)
+                        if parts:
+                            cmd_name = parts[0].lower()
+                            args_str = parts[1] if len(parts) > 1 else ""
+                            cmd = self.controller.get_command(cmd_name)
+                            if cmd:
+                                kwargs = {}
+                                if args_str and "properties" in cmd.schema:
+                                    for param_name in cmd.schema.get("properties", {}):
+                                        if cmd.schema["properties"][param_name]["type"] == "string":
+                                            kwargs[param_name] = args_str.strip()
+                                            break
+                                kwargs["msg_uuid"] = self.chat[i].get("UUID")
+                                result = cmd.restore(**kwargs)
+                                if result and result.widget is not None:
+                                    self.add_message("Command", result.widget, id_message=i, editable=True)
                 elif self.chat[i]["User"] in ["File", "Folder"]:
                     self.add_message(self.chat[i]["User"], self.get_file_button(self.chat[i]["Message"][1 : len(self.chat[i]["Message"])]))
         GLib.timeout_add(200, self.scrolled_chat)
@@ -395,8 +416,20 @@ class ChatHistory(Gtk.Box):
             self.controller.save_chats()
             
         return None
-    
-    
+
+    def _add_skill_message(self, id_message):
+        """Display a skill activation as an Assistant message with SkillWidget."""
+        skill_name = self.chat[id_message].get("skill_name", "")
+        skill = None
+        if hasattr(self.controller, "skill_manager"):
+            skill = self.controller.skill_manager.skills.get(skill_name)
+        if skill is not None:
+            resource_count = len(self.controller.skill_manager._list_resources(skill.base_dir))
+            widget = SkillWidget(skill.name, skill.description, resource_count)
+        else:
+            widget = SkillWidget(skill_name, "", 0)
+        self.add_message("Assistant", widget, id_message=id_message, editable=True)
+
     def add_message(self, user, message=None, id_message=0, editable=False):
         """Add a message to the chat and return the box
 
@@ -471,7 +504,7 @@ class ChatHistory(Gtk.Box):
             else:
                 content_box.append(label)
             box.set_css_classes(["card", "user"])
-        if user == "Assistant":
+        if user == "Assistant" or user=="Command":
             label = Gtk.Label(
                 label=self.controller.newelle_settings.current_profile + ": ",
                 margin_top=10,
@@ -789,6 +822,11 @@ class ChatHistory(Gtk.Box):
         self.controller.save_chats()
         self.show_chat()
 
+    def add_prompt(self, prompt):
+        """Store prompt text on the most recently appended chat entry."""
+        if prompt is not None and self.chat:
+            self.chat[-1]["Prompt"] = prompt
+
     def show_prompt(self, button, id):
         """Show a prompt
 
@@ -1055,6 +1093,27 @@ class ChatHistory(Gtk.Box):
                 )
             elif self.chat[i]["User"] == "Assistant":
                 self.show_message(self.chat[i]["Message"], True, id_message=i)
+            elif self.chat[i]["User"] == "Console" and self.chat[i].get("skill_name"):
+                self._add_skill_message(i)
+            elif self.chat[i]["User"] == "Command":
+                text = self.chat[i]["Message"]
+                if text.startswith("/"):
+                    parts = text[1:].split(" ", 1)
+                    if parts:
+                        cmd_name = parts[0].lower()
+                        args_str = parts[1] if len(parts) > 1 else ""
+                        cmd = self.controller.get_command(cmd_name)
+                        if cmd:
+                            kwargs = {}
+                            if args_str and "properties" in cmd.schema:
+                                for param_name in cmd.schema.get("properties", {}):
+                                    if cmd.schema["properties"][param_name]["type"] == "string":
+                                        kwargs[param_name] = args_str.strip()
+                                        break
+                            kwargs["msg_uuid"] = self.chat[i].get("UUID")
+                            result = cmd.restore(**kwargs)
+                            if result and result.widget is not None:
+                                self.add_message("Command", result.widget, id_message=i, editable=True)
             elif self.chat[i]["User"] in ["File", "Folder"]:
                 self.add_message(
                     self.chat[i]["User"],
@@ -1124,6 +1183,22 @@ class ChatHistory(Gtk.Box):
                 content_box = self.show_message(
                     self.chat[i]["Message"], True, id_message=i, return_widget=True
                 )
+            elif self.chat[i]["User"] == "Console" and self.chat[i].get("skill_name"):
+                skill_name = self.chat[i].get("skill_name", "")
+                skill = None
+                if hasattr(self.controller, "skill_manager"):
+                    skill = self.controller.skill_manager.skills.get(skill_name)
+                if skill is not None:
+                    resource_count = len(self.controller.skill_manager._list_resources(skill.base_dir))
+                    content_box = SkillWidget(skill.name, skill.description, resource_count)
+                else:
+                    content_box = SkillWidget(skill_name, "", 0)
+                wrapper_box = self._wrap_message_box("Assistant", content_box, i, editable=True)
+                new_messages_box_items.append(wrapper_box)
+                row = Gtk.ListBoxRow()
+                row.set_child(wrapper_box)
+                new_rows.append(row)
+                continue
             elif self.chat[i]["User"] in ["File", "Folder"]:
                 # For file/folder messages, create the wrapper box manually
                 content_box = self._create_file_message_wrapper(i)
@@ -1297,9 +1372,19 @@ class ChatHistory(Gtk.Box):
                 self.show_message(self.chat[i]["Message"], True, id_message=i, is_user=True)
             elif self.chat[i]["User"] == "Assistant":
                 self.show_message(self.chat[i]["Message"], True, id_message=i)
+            elif self.chat[i]["User"] == "Console" and self.chat[i].get("skill_name"):
+                self._add_skill_message(i)
             elif self.chat[i]["User"] in ["File", "Folder"]:
                 self.add_message(self.chat[i]["User"], self.get_file_button(self.chat[i]["Message"][1 : len(self.chat[i]["Message"])]))
-
+            elif self.chat[i]["User"] == "Command":
+                cmd_name = self.chat[i]["Message"]
+                cmd = self.controller.get_command(cmd_name)
+                if cmd is not None:
+                    if cmd.restore is not None:
+                        r = cmd.restore()
+                        if r.widget is not None:
+                            self.add_message("Command", r.widget)
+                        
         # Reset lazy loading state
         total_messages = len(self.chat)
         if self.lazy_load_enabled and total_messages > self.lazy_load_batch_size:

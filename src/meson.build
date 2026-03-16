@@ -38,7 +38,8 @@ newelle_sources = [
   'extensions.py',
   'controller.py',
   'ui_controller.py',
-  'tools.py'
+  'tools.py',
+  'skills.py'
 ]
 
 integrations_sources = [
@@ -46,7 +47,10 @@ integrations_sources = [
   'integrations/website_reader.py',
   'integrations/websearch.py',
   'integrations/mcp.py',
-  'integrations/default_tools.py'
+  'integrations/default_tools.py',
+  'integrations/skills.py',
+  'integrations/agent_tools.py',
+  'integrations/file_editing.py'
 ]
 
 ui_sources = [
@@ -56,6 +60,7 @@ ui_sources = [
   'ui/settings.py',
   'ui/presentation.py',
   'ui/thread_editing.py',
+  'ui/scheduled_tasks.py',
   'ui/screenrecorder.py',
   'ui/shortcuts.py',
   'ui/mini_window.py',
@@ -72,6 +77,12 @@ widgets_sources = [
   'ui/widgets/comborow.py',
   'ui/widgets/copybox.py',
   'ui/widgets/file.py',
+  'ui/widgets/file_read.py',
+  'ui/widgets/file_edit.py',
+  'ui/widgets/file_permission_confirm.py',
+  'ui/widgets/glob.py',
+  'ui/widgets/grep.py',
+  'ui/widgets/list_directory.py',
   'ui/widgets/latex.py',
   'ui/widgets/terminal_dialog.py',
   'ui/widgets/markuptextview.py',
@@ -83,6 +94,9 @@ widgets_sources = [
   'ui/widgets/browser.py',
   'ui/widgets/code_editor.py',
   'ui/widgets/tool.py',
+  'ui/widgets/skill.py',
+  'ui/widgets/subagent.py',
+  'ui/widgets/scheduled_task.py',
   'ui/widgets/message.py',
   'ui/widgets/chatrow.py',
   'ui/widgets/chat_history.py',

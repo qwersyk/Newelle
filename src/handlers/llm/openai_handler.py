@@ -143,7 +143,7 @@ class OpenAIHandler(LLMHandler):
             settings += (endpoint_settings)
         if supports_automatic_models:
             settings += (custom_model)
-            custom = self.get_setting("custom_model", False)
+            custom = self.get_setting("custom_model", False, default_automatic_models)
             if (custom is None and not default_automatic_models) or custom:
                 settings += models_settings
             else:
