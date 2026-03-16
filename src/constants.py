@@ -450,6 +450,7 @@ Example output:
 
 Chat History:
 """,
+    "agent.md": "{AGENTSMD}",
     "custom_prompt": "",
 
 }
@@ -463,6 +464,15 @@ Chat History:
     - show_in_settings: if the prompt should be shown in the settings
 """
 AVAILABLE_PROMPTS = [
+    {
+        "key": "agent.md",
+        "setting_name": "agent.md",
+        "title": _("Read AGENT.md file at each execution"),
+        "description": _("Read AGENT.md (Generally made to give indications to agents about the project) file in the current directory at each execution"),
+        "editable": False,
+        "show_in_settings": True,
+        "default": False
+    },
     {
         "key": "assistant",
         "setting_name": "assistant",
