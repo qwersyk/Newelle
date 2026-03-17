@@ -21,7 +21,7 @@ from .ui.profile import ProfileDialog
 from .ui.presentation import PresentationWindow
 from .ui.widgets import File, CopyBox, BarChartBox, MarkupTextView, DocumentReaderWidget, TipsCarousel, BrowserWidget, Terminal, CodeEditorWidget, ToolWidget, CallPanel
 from .ui.explorer import ExplorerPanel
-from .ui.widgets import MultilineEntry, ProfileRow, DisplayLatex, InlineLatex, ThinkingWidget, Message, ChatRow, ChatHistory, ChatTab
+from .ui.widgets import MultilineEntry, ProfileRow, DisplayLatex, InlineLatex, ThinkingWidget, Message, ChatRow, FolderRow, ChatHistory, ChatTab
 from .ui.widgets.context_indicator import ContextIndicator
 from .ui.stdout_monitor import StdoutMonitorDialog
 from .utility.stdout_capture import StdoutMonitor
@@ -226,14 +226,16 @@ class MainWindow(Adw.ApplicationWindow):
         self.chats_buttons_scroll_block.set_child(self.chats_buttons_block)
         self.chats_secondary_box.append(self.chats_buttons_scroll_block)
         
-        # New chat button with Adwaita pill style
+        # Bottom button bar: New Chat + New Folder
+        bottom_buttons = Gtk.Box(
+            orientation=Gtk.Orientation.HORIZONTAL,
+            spacing=6,
+            margin_start=12, margin_end=12, margin_top=12, margin_bottom=12,
+            homogeneous=True,
+        )
         new_chat_button = Gtk.Button(
             valign=Gtk.Align.END,
             css_classes=["suggested-action", "pill"],
-            margin_start=12,
-            margin_end=12,
-            margin_top=12,
-            margin_bottom=12,
         )
         new_chat_button_content = Adw.ButtonContent(
             icon_name="list-add-symbolic",
@@ -241,7 +243,21 @@ class MainWindow(Adw.ApplicationWindow):
         )
         new_chat_button.set_child(new_chat_button_content)
         new_chat_button.connect("clicked", self.new_chat)
-        self.chats_secondary_box.append(new_chat_button)
+        bottom_buttons.append(new_chat_button)
+
+        new_folder_button = Gtk.Button(
+            valign=Gtk.Align.END,
+            css_classes=["pill"],
+        )
+        new_folder_btn_content = Adw.ButtonContent(
+            icon_name="folder-new-symbolic",
+            label=_("New Folder"),
+        )
+        new_folder_button.set_child(new_folder_btn_content)
+        new_folder_button.connect("clicked", self._new_folder)
+        bottom_buttons.append(new_folder_button)
+
+        self.chats_secondary_box.append(bottom_buttons)
         self.chats_main_box.append(self.chats_secondary_box)
         self.chats_main_box.append(Gtk.Separator())
         self.main.set_sidebar(Adw.NavigationPage(child=self.chats_main_box, title=_("Chats")))
@@ -2015,28 +2031,39 @@ class MainWindow(Adw.ApplicationWindow):
             self.context_indicator.update_from_chat(self.controller)
 
     def update_history(self):
-        """Reload chats panel with Adwaita-styled ChatRow widgets, supporting branching hierarchy"""
-        # Focus input to avoid removing a focused child
+        """Reload chats panel with Adwaita-styled ChatRow/FolderRow widgets, supporting folders and branching"""
         self.focus_input()
 
-        # Create new list box with Adwaita navigation sidebar styling
         list_box = Gtk.ListBox(css_classes=["navigation-sidebar"])
         list_box.set_selection_mode(Gtk.SelectionMode.SINGLE)
         self.chats_list_box = list_box
         self.chats_buttons_scroll_block.set_child(list_box)
-        
+
         list_box.connect("row-activated", self.on_chat_row_activated)
 
-        # Middle-click handler to open chat in a new tab
         middle_click_gesture = Gtk.GestureClick()
         middle_click_gesture.set_button(2)
         middle_click_gesture.connect("pressed", self._on_chat_row_middle_clicked, list_box)
         list_box.add_controller(middle_click_gesture)
 
-        # Build hierarchy map (id = UUID for branching, chat_id = incremental dict key)
+        # Drop target on the list box itself to remove a chat from its folder
+        unfolder_drop = Gtk.DropTarget.new(GObject.TYPE_STRING, Gdk.DragAction.MOVE)
+        unfolder_drop.connect("enter", self._on_unfolder_drop_enter)
+        unfolder_drop.connect("leave", self._on_unfolder_drop_leave)
+        unfolder_drop.connect("drop", self._on_unfolder_drop)
+        list_box.add_controller(unfolder_drop)
+
+        # Build hierarchy map
         id_to_chat_id = {chat.get("id"): cid for cid, chat in self.chats.items()}
         children_map = {}
         top_level_ids = []
+
+        # Collect chats that live inside a folder
+        foldered_chat_ids = set()
+        for folder in self.controller.folders.values():
+            for cid in folder.get("chat_ids", []):
+                if cid in self.chats:
+                    foldered_chat_ids.add(cid)
 
         for cid, chat in self.chats.items():
             if chat.get("call", False):
@@ -2046,20 +2073,20 @@ class MainWindow(Adw.ApplicationWindow):
                 if parent_id not in children_map:
                     children_map[parent_id] = []
                 children_map[parent_id].append(cid)
-            else:
+            elif cid not in foldered_chat_ids:
                 top_level_ids.append(cid)
 
-        # Handle reverse order if needed for top-level chats
         if self.controller.newelle_settings.reverse_order:
             top_level_ids.reverse()
 
         def add_chat_recursive(chat_id, level=0):
+            if chat_id not in self.chats:
+                return
             chat_entry = self.chats[chat_id]
             name = chat_entry["name"]
             is_selected = (chat_id == self.chat_id)
             is_open = self.get_tab_for_chat(chat_id) is not None
 
-            # Create ChatRow widget with indentation level
             chat_row = ChatRow(
                 chat_name=name,
                 chat_index=chat_id,
@@ -2067,44 +2094,270 @@ class MainWindow(Adw.ApplicationWindow):
                 level=level,
                 is_open=is_open
             )
-
-            # Connect signals
             chat_row.connect_signals(
                 on_generate=self.generate_chat_name,
                 on_edit=lambda btn, row=chat_row: self.edit_chat_name(btn, row.get_edit_stack()),
                 on_clone=self.copy_chat,
                 on_delete=self.remove_chat
             )
-
             list_box.append(chat_row)
             if is_selected:
                 list_box.select_row(chat_row)
 
-            # Add offspring
             entry_uuid = chat_entry.get("id")
             if entry_uuid in children_map:
-                children = children_map[entry_uuid]
-                for child_id in children:
+                for child_id in children_map[entry_uuid]:
                     add_chat_recursive(child_id, level + 1)
 
+        # Render folders first
+        for fid, folder in self.controller.folders.items():
+            folder_row = FolderRow(
+                folder_id=fid,
+                folder_name=folder["name"],
+                folder_color=folder.get("color", "#3584e4"),
+                folder_icon=folder.get("icon", "folder-symbolic"),
+                expanded=folder.get("expanded", True),
+            )
+            folder_row.connect_signals(
+                on_edit=lambda btn, f_id=fid: self._edit_folder(f_id),
+                on_delete=lambda btn, f_id=fid: self._delete_folder(f_id),
+                on_drop_chat=self._on_chat_dropped_on_folder,
+            )
+            list_box.append(folder_row)
+
+            if folder.get("expanded", True):
+                for cid in folder.get("chat_ids", []):
+                    add_chat_recursive(cid, level=1)
+
+        # Render top-level (unfoldered) chats
         for cid in top_level_ids:
             add_chat_recursive(cid)
     
     def on_chat_row_activated(self, listbox, row):
-        """Handle chat row activation to switch chats"""
+        """Handle chat/folder row activation"""
+        if isinstance(row, FolderRow):
+            self.controller.toggle_folder_expanded(row.folder_id)
+            self.update_history()
+            return
         if not hasattr(row, 'chat_index'):
             return
-            
         if row.chat_index == self.chat_id:
             self.return_to_chat_panel(row)
         else:
             self.chose_chat(row.chat_index)
-    
+
     def _on_chat_row_middle_clicked(self, gesture, n_press, x, y, list_box):
         """Handle middle-click on a chat row to open it in a new tab"""
         row = list_box.get_row_at_y(int(y))
         if row is not None and hasattr(row, 'chat_index'):
             self.add_chat_tab(row.chat_index)
+
+    # -- Folder helpers --
+
+    def _on_chat_dropped_on_folder(self, chat_id: int, folder_id: int):
+        """Handle a chat being drag-dropped onto a folder row."""
+        self.controller.move_chat_to_folder(chat_id, folder_id)
+
+    def _on_unfolder_drop_enter(self, drop_target, x, y):
+        self.chats_list_box.add_css_class("unfolder-drop-area-hover")
+        return Gdk.DragAction.MOVE
+
+    def _on_unfolder_drop_leave(self, drop_target):
+        self.chats_list_box.remove_css_class("unfolder-drop-area-hover")
+
+    def _on_unfolder_drop(self, drop_target, value, x, y):
+        self.chats_list_box.remove_css_class("unfolder-drop-area-hover")
+        if value:
+            try:
+                chat_id = int(value)
+                self.controller.remove_chat_from_folder(chat_id)
+                return True
+            except (ValueError, TypeError):
+                pass
+        return False
+
+    def _edit_folder(self, folder_id: int):
+        """Show a dialog to edit folder name, color, and icon."""
+        if folder_id not in self.controller.folders:
+            return
+        folder = self.controller.folders[folder_id]
+        self._show_folder_dialog(
+            title=_("Edit Folder"),
+            initial_name=folder["name"],
+            initial_color=folder.get("color", "#3584e4"),
+            initial_icon=folder.get("icon", "folder-symbolic"),
+            callback=lambda name, color, icon: self._apply_folder_edit(folder_id, name, color, icon),
+        )
+
+    def _apply_folder_edit(self, folder_id, name, color, icon):
+        self.controller.rename_folder(folder_id, name)
+        self.controller.update_folder_color(folder_id, color)
+        self.controller.update_folder_icon(folder_id, icon)
+        self.update_history()
+
+    def _delete_folder(self, folder_id: int):
+        """Delete a folder after confirmation."""
+        self.controller.delete_folder(folder_id)
+
+    # Candidate icon names; we filter them at runtime using the current icon theme
+    # so we only show icons that actually exist (Adwaita / system theme).
+    FOLDER_ICON_CANDIDATES = [
+        # Folders
+        "folder-symbolic",
+        "folder-documents-symbolic",
+        "folder-download-symbolic",
+        "folder-music-symbolic",
+        "folder-pictures-symbolic",
+        "folder-publicshare-symbolic",
+        "folder-remote-symbolic",
+        "folder-saved-search-symbolic",
+        "folder-templates-symbolic",
+        "folder-videos-symbolic",
+        # Common semantic symbols
+        "bookmark-symbolic",
+        "starred-symbolic",
+        "tag-symbolic",
+        "emblem-favorite-symbolic",
+        # Apps / tools
+        "applications-system-symbolic",
+        "preferences-system-symbolic",
+        "utilities-terminal-symbolic",
+        "system-search-symbolic",
+        "help-browser-symbolic",
+        # Misc
+        "document-open-symbolic",
+        "mail-unread-symbolic",
+        "network-workgroup-symbolic",
+        "web-browser-symbolic",
+        "camera-photo-symbolic",
+        "media-playback-start-symbolic",
+        "audio-x-generic-symbolic",
+        "video-x-generic-symbolic",
+        "image-x-generic-symbolic",
+        "security-high-symbolic",
+        "dialog-information-symbolic",
+        "dialog-warning-symbolic",
+    ]
+
+    def _new_folder(self, button=None):
+        """Open dialog to create a new folder."""
+        self._show_folder_dialog(
+            title=_("New Folder"),
+            initial_name="",
+            initial_color="#3584e4",
+            initial_icon="folder-symbolic",
+            callback=lambda name, color, icon: self.controller.create_folder(name, color, icon),
+        )
+
+    def _show_folder_dialog(self, title: str, initial_name: str, initial_color: str,
+                            initial_icon: str, callback):
+        """Show a dialog with name entry, native color picker, and icon chooser."""
+        dialog = Adw.AlertDialog(heading=title)
+        dialog.add_response("cancel", _("Cancel"))
+        dialog.add_response("ok", _("OK"))
+        dialog.set_response_appearance("ok", Adw.ResponseAppearance.SUGGESTED)
+        dialog.set_default_response("ok")
+        dialog.set_close_response("cancel")
+
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
+
+        # -- Name entry --
+        name_entry = Gtk.Entry(
+            placeholder_text=_("Folder name"),
+            text=initial_name,
+        )
+        box.append(name_entry)
+
+        # -- Color picker row --
+        color_row = Gtk.Box(
+            orientation=Gtk.Orientation.HORIZONTAL,
+            spacing=8,
+            halign=Gtk.Align.CENTER,
+            valign=Gtk.Align.CENTER,
+        )
+        color_label = Gtk.Label(label=_("Color"))
+        color_row.append(color_label)
+
+        initial_rgba = Gdk.RGBA()
+        initial_rgba.parse(initial_color)
+        color_dialog = Gtk.ColorDialog()
+        color_dialog.set_with_alpha(False)
+        color_button = Gtk.ColorDialogButton(dialog=color_dialog)
+        color_button.set_rgba(initial_rgba)
+        color_row.append(color_button)
+        box.append(color_row)
+
+        # -- Icon chooser --
+        icon_label = Gtk.Label(label=_("Icon"), xalign=0)
+        box.append(icon_label)
+
+        selected_icon = [initial_icon]
+        icon_buttons = []
+
+        icon_flow = Gtk.FlowBox(
+            max_children_per_line=8,
+            min_children_per_line=6,
+            selection_mode=Gtk.SelectionMode.NONE,
+            homogeneous=True,
+            row_spacing=4,
+            column_spacing=4,
+        )
+
+        # Only show icons that exist in the current icon theme (Adwaita/system).
+        icon_theme = Gtk.IconTheme.get_for_display(Gdk.Display.get_default())
+        available_icons = [n for n in self.FOLDER_ICON_CANDIDATES if icon_theme.has_icon(n)]
+        if initial_icon and initial_icon not in available_icons and icon_theme.has_icon(initial_icon):
+            available_icons.insert(0, initial_icon)
+        if not available_icons:
+            available_icons = ["folder-symbolic"]
+
+        for icon_name in available_icons:
+            btn = Gtk.ToggleButton(
+                css_classes=["flat", "circular", "folder-icon-picker-btn"],
+                tooltip_text=icon_name.replace("-symbolic", "").replace("-", " ").title(),
+            )
+            btn.set_child(Gtk.Image.new_from_icon_name(icon_name))
+            if icon_name == initial_icon:
+                btn.set_active(True)
+
+            def on_toggled(b, name=icon_name):
+                if b.get_active():
+                    selected_icon[0] = name
+                    for other in icon_buttons:
+                        if other is not b:
+                            other.set_active(False)
+                elif not any(ob.get_active() for ob in icon_buttons):
+                    b.set_active(True)
+
+            btn.connect("toggled", on_toggled)
+            icon_buttons.append(btn)
+            icon_flow.append(btn)
+
+        icon_scroll = Gtk.ScrolledWindow(
+            hscrollbar_policy=Gtk.PolicyType.NEVER,
+            vscrollbar_policy=Gtk.PolicyType.AUTOMATIC,
+            min_content_height=120,
+            max_content_height=200,
+        )
+        icon_scroll.set_child(icon_flow)
+        box.append(icon_scroll)
+
+        dialog.set_extra_child(box)
+
+        def on_response(d, response):
+            if response == "ok":
+                name = name_entry.get_text().strip()
+                if name:
+                    rgba = color_button.get_rgba()
+                    hex_color = "#{:02x}{:02x}{:02x}".format(
+                        int(rgba.red * 255),
+                        int(rgba.green * 255),
+                        int(rgba.blue * 255),
+                    )
+                    callback(name, hex_color, selected_icon[0])
+
+        dialog.connect("response", on_response)
+        dialog.present(self)
 
     def remove_chat(self, button):
         """Remove a chat"""
@@ -2112,12 +2365,11 @@ class MainWindow(Adw.ApplicationWindow):
         if deleted_chat_id not in self.chats:
             return
         if deleted_chat_id == self.chat_id:
-            # Cannot delete current chat
             return
-        # Close tab if it shows the deleted chat
         tab_page = self.get_tab_for_chat(deleted_chat_id)
         if tab_page is not None:
             self.chat_tabs.close_page(tab_page)
+        self.controller.remove_chat_from_folder(deleted_chat_id, save=False)
         del self.chats[deleted_chat_id]
         self.save_chat()
         self.update_history()

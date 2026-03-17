@@ -291,10 +291,14 @@ class NewelleController:
                 "next_chat_id",
                 max(self.chats.keys(), default=0) + 1
             )
+            self.folders = raw.get("folders", {})
+            self.next_folder_id = raw.get("next_folder_id", 0)
             return
         # Old list format
         self.chats = {i: entry for i, entry in enumerate(raw)}
         self.next_chat_id = len(self.chats)
+        self.folders = {}
+        self.next_folder_id = 0
 
     def load_chats(self, chat_id):
         """Load chats"""
@@ -306,6 +310,8 @@ class NewelleController:
         else:
             self.chats = {0: {"name": _("Chat ") + "1", "chat": []}}
             self.next_chat_id = 1
+            self.folders = {}
+            self.next_folder_id = 0
 
         # Validate chat_id: if not in chats, use first available
         if self.chats and hasattr(self, 'newelle_settings'):
@@ -315,7 +321,12 @@ class NewelleController:
     def save_chats(self):
         """Save chats"""
         with open(self.chats_path, 'wb') as f:
-            pickle.dump({"chats": self.chats, "next_chat_id": self.next_chat_id}, f)
+            pickle.dump({
+                "chats": self.chats,
+                "next_chat_id": self.next_chat_id,
+                "folders": self.folders,
+                "next_folder_id": self.next_folder_id,
+            }, f)
 
     def create_call_chat(self):
         """Create a new call chat that won't be displayed in the chat list"""
@@ -349,6 +360,82 @@ class NewelleController:
         if self.ui_controller is not None:
             GLib.idle_add(self.ui_controller.window.update_history)
         return chat_id
+
+    def create_folder(self, name: str, color: str, icon: str = "folder-symbolic") -> int:
+        """Create a new chat folder and return its ID."""
+        folder_id = self.next_folder_id
+        self.next_folder_id += 1
+        self.folders[folder_id] = {
+            "name": name,
+            "color": color,
+            "icon": icon,
+            "chat_ids": [],
+            "expanded": True,
+        }
+        self.save_chats()
+        if self.ui_controller is not None:
+            GLib.idle_add(self.ui_controller.window.update_history)
+        return folder_id
+
+    def rename_folder(self, folder_id: int, name: str):
+        """Rename an existing folder."""
+        if folder_id in self.folders:
+            self.folders[folder_id]["name"] = name
+            self.save_chats()
+
+    def update_folder_color(self, folder_id: int, color: str):
+        """Change the color of a folder."""
+        if folder_id in self.folders:
+            self.folders[folder_id]["color"] = color
+            self.save_chats()
+
+    def update_folder_icon(self, folder_id: int, icon: str):
+        """Change the icon of a folder."""
+        if folder_id in self.folders:
+            self.folders[folder_id]["icon"] = icon
+            self.save_chats()
+
+    def delete_folder(self, folder_id: int):
+        """Delete a folder. Chats inside are moved back to top level."""
+        if folder_id in self.folders:
+            del self.folders[folder_id]
+            self.save_chats()
+            if self.ui_controller is not None:
+                GLib.idle_add(self.ui_controller.window.update_history)
+
+    def toggle_folder_expanded(self, folder_id: int):
+        """Toggle the expanded/collapsed state of a folder."""
+        if folder_id in self.folders:
+            self.folders[folder_id]["expanded"] = not self.folders[folder_id]["expanded"]
+            self.save_chats()
+
+    def move_chat_to_folder(self, chat_id: int, folder_id: int):
+        """Move a chat into a folder, removing it from any previous folder."""
+        self.remove_chat_from_folder(chat_id, save=False)
+        if folder_id in self.folders:
+            if chat_id not in self.folders[folder_id]["chat_ids"]:
+                self.folders[folder_id]["chat_ids"].append(chat_id)
+            self.save_chats()
+            if self.ui_controller is not None:
+                GLib.idle_add(self.ui_controller.window.update_history)
+
+    def remove_chat_from_folder(self, chat_id: int, save: bool = True):
+        """Remove a chat from whichever folder it belongs to."""
+        for folder in self.folders.values():
+            if chat_id in folder["chat_ids"]:
+                folder["chat_ids"].remove(chat_id)
+                if save:
+                    self.save_chats()
+                    if self.ui_controller is not None:
+                        GLib.idle_add(self.ui_controller.window.update_history)
+                return
+
+    def get_folder_for_chat(self, chat_id: int):
+        """Return the folder_id containing this chat, or None."""
+        for fid, folder in self.folders.items():
+            if chat_id in folder["chat_ids"]:
+                return fid
+        return None
 
     def _parse_scheduled_datetime(self, value: str, allow_past: bool = True) -> datetime.datetime:
         if not isinstance(value, str) or not value.strip():

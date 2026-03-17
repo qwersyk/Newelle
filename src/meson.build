@@ -84,6 +84,7 @@ widgets_sources = [
   'ui/widgets/grep.py',
   'ui/widgets/list_directory.py',
   'ui/widgets/context_indicator.py',
+  'ui/widgets/folderrow.py',
   'ui/widgets/latex.py',
   'ui/widgets/terminal_dialog.py',
   'ui/widgets/markuptextview.py',

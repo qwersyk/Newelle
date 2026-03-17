@@ -1,7 +1,7 @@
 """Chat row widget for Adwaita-styled chat history"""
 import gettext
 import unicodedata
-from gi.repository import Adw, Gtk, Gio, Pango
+from gi.repository import Adw, Gtk, Gio, Gdk, GLib, GObject, Pango
 
 
 class ChatRow(Gtk.ListBoxRow):
@@ -161,6 +161,12 @@ class ChatRow(Gtk.ListBoxRow):
         hover_controller.connect("enter", self._on_hover_enter)
         hover_controller.connect("leave", self._on_hover_leave)
         self.add_controller(hover_controller)
+
+        # Drag source so chats can be dragged into folders
+        drag_source = Gtk.DragSource(actions=Gdk.DragAction.MOVE)
+        drag_source.connect("prepare", self._on_drag_prepare)
+        drag_source.connect("drag-begin", self._on_drag_begin)
+        self.add_controller(drag_source)
     
     def _on_hover_enter(self, controller, x, y):
         """Show action buttons on hover"""
@@ -182,6 +188,19 @@ class ChatRow(Gtk.ListBoxRow):
         """Get the edit/generate stack for external control"""
         return self.edit_stack
     
+    def _on_drag_prepare(self, drag_source, x, y):
+        value = GObject.Value(GObject.TYPE_STRING, str(self.chat_index))
+        return Gdk.ContentProvider.new_for_value(value)
+
+    def _on_drag_begin(self, drag_source, drag):
+        icon = Gtk.DragIcon.get_for_drag(drag)
+        label = Gtk.Label(
+            label=self.chat_name,
+            css_classes=["card"],
+            margin_start=8, margin_end=8, margin_top=4, margin_bottom=4,
+        )
+        icon.set_child(label)
+
     def connect_signals(self, on_generate, on_edit, on_clone, on_delete):
         """Connect all signal handlers"""
         self.generate_button.connect("clicked", on_generate)
