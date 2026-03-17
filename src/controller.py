@@ -93,12 +93,28 @@ class NewelleController:
         chat: current chat 
         extensionloader: Extensionloader object 
     """
+    def chat_ids_ordered(self):
+        """Return chat IDs in stable chronological order (sorted by ID)."""
+        if not hasattr(self, 'chats') or not self.chats:
+            return []
+        return sorted(self.chats.keys())
+
+    def _get_fallback_chat_id(self):
+        """Return first available chat_id when current is invalid."""
+        if not self.chats:
+            return None
+        return min(self.chats.keys())
+
     @property
     def chat(self):
         """Get the current chat messages list"""
         if hasattr(self, 'chats') and hasattr(self, 'newelle_settings'):
             chat_id = self.newelle_settings.chat_id
-            return self.chats[min(chat_id, len(self.chats) - 1)]["chat"]
+            if chat_id in self.chats:
+                return self.chats[chat_id]["chat"]
+            fallback = self._get_fallback_chat_id()
+            if fallback is not None:
+                return self.chats[fallback]["chat"]
         return []
 
     @chat.setter
@@ -106,8 +122,12 @@ class NewelleController:
         """Set the current chat messages list"""
         if hasattr(self, 'chats') and hasattr(self, 'newelle_settings'):
             chat_id = self.newelle_settings.chat_id
-            index = min(chat_id, len(self.chats) - 1)
-            self.chats[index]["chat"] = value
+            if chat_id in self.chats:
+                self.chats[chat_id]["chat"] = value
+            else:
+                fallback = self._get_fallback_chat_id()
+                if fallback is not None:
+                    self.chats[fallback]["chat"] = value
     
     def get_chat_by_id(self, chat_id):
         """Get chat messages list by explicit chat_id.
@@ -118,7 +138,7 @@ class NewelleController:
         Returns:
             The chat messages list for the specified chat_id, or empty list if invalid
         """
-        if hasattr(self, 'chats') and self.chats and 0 <= chat_id < len(self.chats):
+        if hasattr(self, 'chats') and self.chats and chat_id in self.chats:
             return self.chats[chat_id]["chat"]
         return []
     
@@ -129,14 +149,14 @@ class NewelleController:
             chat_id: The chat ID to set messages for
             value: The new chat messages list
         """
-        if hasattr(self, 'chats') and self.chats and 0 <= chat_id < len(self.chats):
+        if hasattr(self, 'chats') and self.chats and chat_id in self.chats:
             self.chats[chat_id]["chat"] = value
 
     def get_console_reply(self, chat_id, id_message):
         """Get existing console reply from chat history if available."""
-        if not hasattr(self, 'chats') or not self.chats:
+        if not hasattr(self, 'chats') or not self.chats or chat_id not in self.chats:
             return None
-        chat = self.chats[min(chat_id, len(self.chats) - 1)]["chat"]
+        chat = self.chats[chat_id]["chat"]
         idx = min(id_message, len(chat) - 1)
         if idx >= 0 and chat[idx].get("User") == "Console":
             return chat[idx]["Message"]
@@ -144,9 +164,9 @@ class NewelleController:
 
     def get_tool_response(self, chat_id, id_message, tool_name, tool_uuid):
         """Get existing tool response from chat history by tool name and UUID."""
-        if not hasattr(self, 'chats') or not self.chats:
+        if not hasattr(self, 'chats') or not self.chats or chat_id not in self.chats:
             return None
-        chat = self.chats[min(chat_id, len(self.chats) - 1)]["chat"]
+        chat = self.chats[chat_id]["chat"]
         for i in range(id_message, len(chat)):
             entry = chat[i]
             if entry.get("User") == "Console":
@@ -160,9 +180,9 @@ class NewelleController:
 
     def get_tool_call_uuid(self, chat_id, id_message, tool_name, tool_call_index):
         """Get tool call UUID from chat history during restore."""
-        if not hasattr(self, 'chats') or not self.chats:
+        if not hasattr(self, 'chats') or not self.chats or chat_id not in self.chats:
             return str(uuid_lib.uuid4())[:8]
-        chat = self.chats[min(chat_id, len(self.chats) - 1)]["chat"]
+        chat = self.chats[chat_id]["chat"]
         count = 0
         for i in range(id_message, len(chat)):
             entry = chat[i]
@@ -262,36 +282,59 @@ class NewelleController:
             self.extensionloader.set_ui_controller(ui_controller)
             self.integrationsloader.set_ui_controller(ui_controller)
 
+    def _ensure_chats_dict(self, raw):
+        """Convert loaded data to dict format. Handles retrocompatibility with old list format."""
+        if isinstance(raw, dict) and "chats" in raw:
+            self.chats = raw["chats"]
+            self.next_chat_id = raw.get(
+                "next_chat_id",
+                max(self.chats.keys(), default=0) + 1
+            )
+            return
+        # Old list format
+        self.chats = {i: entry for i, entry in enumerate(raw)}
+        self.next_chat_id = len(self.chats)
+
     def load_chats(self, chat_id):
         """Load chats"""
         self.filename = "chats.pkl"
         if os.path.exists(self.chats_path):
             with open(self.chats_path, 'rb') as f:
-                self.chats = pickle.load(f)
+                raw = pickle.load(f)
+            self._ensure_chats_dict(raw)
         else:
-            self.chats = [{"name": _("Chat ") + "1", "chat": []}]
+            self.chats = {0: {"name": _("Chat ") + "1", "chat": []}}
+            self.next_chat_id = 1
 
-   
+        # Validate chat_id: if not in chats, use first available
+        if self.chats and hasattr(self, 'newelle_settings'):
+            if self.newelle_settings.chat_id not in self.chats:
+                self.newelle_settings.chat_id = min(self.chats.keys())
+
     def save_chats(self):
         """Save chats"""
         with open(self.chats_path, 'wb') as f:
-            pickle.dump(self.chats, f)
+            pickle.dump({"chats": self.chats, "next_chat_id": self.next_chat_id}, f)
 
     def create_call_chat(self):
         """Create a new call chat that won't be displayed in the chat list"""
+        chat_id = self.next_chat_id
+        self.next_chat_id += 1
         new_chat = {
-            "name": _("Call " + str(len(self.chats))),
+            "name": _("Call ") + str(chat_id),
             "chat": [],
             "call": True
         }
-        self.chats.append(new_chat)
+        self.chats[chat_id] = new_chat
         self.save_chats()
-        return len(self.chats) - 1
+        return chat_id
 
     def create_visible_chat(self, name: str | None = None, profile: str | None = None):
         """Create a new visible chat entry and refresh history."""
+        chat_id = self.next_chat_id
+        self.next_chat_id += 1
         if name is None:
-            name = _("Chat %d") % (len(self.chats) + 1)
+            name = _("Chat %d") % chat_id
         new_chat = {
             "name": name,
             "chat": [],
@@ -300,8 +343,7 @@ class NewelleController:
         }
         if profile is not None:
             new_chat["profile"] = profile
-        self.chats.append(new_chat)
-        chat_id = len(self.chats) - 1
+        self.chats[chat_id] = new_chat
         self.save_chats()
         if self.ui_controller is not None:
             GLib.idle_add(self.ui_controller.window.update_history)
@@ -936,19 +978,19 @@ class NewelleController:
 
         self.settings.set_string("profiles", json.dumps(self.newelle_settings.profile_settings))
 
-    def export_single_chat(self, chat_index):
+    def export_single_chat(self, chat_id):
         """Export a single chat to JSON format
 
         Args:
-            chat_index: Index of the chat to export
+            chat_id: The chat ID to export
 
         Returns:
-            dict: Export data in JSON format
+            dict: Export data in JSON format, or None if chat_id invalid
         """
-        if chat_index < 0 or chat_index >= len(self.chats):
+        if chat_id not in self.chats:
             return None
 
-        chat_data = self.chats[chat_index]
+        chat_data = self.chats[chat_id]
         export_data = {
             "version": "1.0",
             "export_metadata": {
@@ -977,7 +1019,7 @@ class NewelleController:
             dict: Export data in JSON format
         """
         chats_list = []
-        for chat_data in self.chats:
+        for _cid, chat_data in self.chats.items():
             chat_entry = {
                 "name": chat_data["name"],
                 "profile": chat_data.get("profile", None),
@@ -1010,11 +1052,11 @@ class NewelleController:
             data: Dictionary containing chat export data
 
         Returns:
-            tuple: (success: bool, message: str, imported_count: int)
+            tuple: (success: bool, message: str, imported_count: int, last_chat_id: int | None)
         """
         # Validate required fields
         if "version" not in data or "export_metadata" not in data:
-            return False, _("Invalid export format: missing required fields"), 0
+            return False, _("Invalid export format: missing required fields"), 0, None
 
         export_metadata = data["export_metadata"]
         export_type = export_metadata.get("export_type")
@@ -1024,48 +1066,33 @@ class NewelleController:
         elif export_type == "multiple_chats":
             return self._import_multiple_chats(data)
         else:
-            return False, _("Unknown export type"), 0
+            return False, _("Unknown export type"), 0, None
 
     def _import_single_chat(self, data):
-        """Import a single chat from export data"""
+        """Import a single chat from export data. Returns (success, message, count, last_chat_id)."""
         try:
             chat = data["chat"]
             name = chat.get("name", "Imported Chat")
             messages = chat.get("messages", [])
             profile = chat.get("profile")
 
-            # Ensure name is unique
-            counter = 1
-            original_name = name
-            while any(c["name"] == name for c in self.chats):
-                name = f"{original_name} ({counter})"
-                counter += 1
-
-            # Create new chat
-            new_chat = {
-                "name": name,
-                "chat": messages[:]
-            }
-
-            # Set profile if provided
-            if profile is not None:
-                new_chat["profile"] = profile
-
-            self.chats.append(new_chat)
+            chat_id = self.create_visible_chat(name=name, profile=profile)
+            self.chats[chat_id]["chat"] = messages[:]
             self.save_chats()
-            return True, _("Imported 1 chat successfully"), 1
+            return True, _("Imported 1 chat successfully"), 1, chat_id
         except Exception as e:
-            return False, _("Error importing chat: {0}").format(str(e)), 0
+            return False, _("Error importing chat: {0}").format(str(e)), 0, None
 
     def _import_multiple_chats(self, data):
-        """Import multiple chats from export data"""
+        """Import multiple chats from export data. Returns (success, message, count, last_chat_id)."""
         try:
             chats = data["chats"]
             imported_count = 0
             skipped_count = 0
+            last_chat_id = None
 
             # Track existing chat names
-            existing_names = {c["name"] for c in self.chats}
+            existing_names = {c["name"] for c in self.chats.values()}
 
             for chat in chats:
                 try:
@@ -1081,19 +1108,11 @@ class NewelleController:
                             name = f"{original_name} ({counter})"
                             counter += 1
 
-                    # Create new chat
-                    new_chat = {
-                        "name": name,
-                        "chat": messages[:]
-                    }
-
-                    # Set profile if provided
-                    if profile is not None:
-                        new_chat["profile"] = profile
-
-                    self.chats.append(new_chat)
+                    chat_id = self.create_visible_chat(name=name, profile=profile)
+                    self.chats[chat_id]["chat"] = messages[:]
                     existing_names.add(name)
                     imported_count += 1
+                    last_chat_id = chat_id
                 except Exception:
                     skipped_count += 1
                     continue
@@ -1105,9 +1124,9 @@ class NewelleController:
             if skipped_count > 0:
                 message += _(" (skipped {0})").format(skipped_count)
 
-            return True, message, imported_count
+            return True, message, imported_count, last_chat_id
         except Exception as e:
-            return False, _("Error importing chats: {0}").format(str(e)), 0
+            return False, _("Error importing chats: {0}").format(str(e)), 0, None
 
     def get_variable(self, name:str):
         tools = self.tools.get_all_tools()
@@ -1268,9 +1287,9 @@ class NewelleController:
         # Use explicit chat_id or fall back to current
         effective_chat_id = chat_id if chat_id is not None else self.newelle_settings.chat_id
 
-        # Validate chat_id is within bounds
-        if not self.chats or effective_chat_id < 0 or effective_chat_id >= len(self.chats):
-            print(f"prepare_generation: Invalid chat_id {effective_chat_id}, chats length: {len(self.chats) if self.chats else 0}")
+        # Validate chat_id exists
+        if not self.chats or effective_chat_id not in self.chats:
+            print(f"prepare_generation: Invalid chat_id {effective_chat_id}, chats: {list(self.chats.keys()) if self.chats else []}")
             return None, None, None, None, None, None
 
         chat = self.get_chat_by_id(effective_chat_id)

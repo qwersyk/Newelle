@@ -61,7 +61,7 @@ class ScheduledTasksWindow(Gtk.Window):
         return _("Disabled")
 
     def _open_latest_chat(self, button, chat_id):
-        if chat_id is None or chat_id < 0 or chat_id >= len(self.app.win.chats):
+        if chat_id is None or chat_id not in self.app.win.chats:
             return
         self.app.win.present()
         self.app.win.chose_chat(chat_id)
@@ -111,7 +111,7 @@ class ScheduledTasksWindow(Gtk.Window):
             latest_chat_id = task.get("latest_chat_id")
             open_button.set_tooltip_text(_("Open latest chat"))
             open_button.set_sensitive(
-                latest_chat_id is not None and 0 <= latest_chat_id < len(self.app.win.chats)
+                latest_chat_id is not None and latest_chat_id in self.app.win.chats
             )
             open_button.connect("clicked", self._open_latest_chat, latest_chat_id)
             row.add_suffix(open_button)

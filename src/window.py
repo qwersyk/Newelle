@@ -97,12 +97,10 @@ class MainWindow(Adw.ApplicationWindow):
         
         # Ensure all chats have unique IDs and handle branching fields
 
-        for chat_entry in self.chats:
+        for chat_entry in self.chats.values():
             if "id" not in chat_entry:
                 chat_entry["id"] = str(uuid.uuid4())
             if "branched_from" not in chat_entry:
-                chat_entry["branched_from"] = None
-        
                 chat_entry["branched_from"] = None
         
         # RAG Indexes to documents for each chat
@@ -504,7 +502,7 @@ class MainWindow(Adw.ApplicationWindow):
             return existing_tab
         
         # Validate chat_id
-        if chat_id < 0 or chat_id >= len(self.chats):
+        if chat_id not in self.chats:
             return None
         
         # Create new ChatTab widget
@@ -618,17 +616,8 @@ class MainWindow(Adw.ApplicationWindow):
         Returns:
             The Adw.TabPage if created/switched to
         """
-        new_chat_entry = {
-            "name": _("Chat %d") % (len(self.chats) + 1),
-            "chat": [],
-            "id": str(uuid.uuid4()),
-            "branched_from": None
-        }
-        self.chats.append(new_chat_entry)
-        # Update all existing tab chat_ids since we inserted at 0
-        self._update_tab_chat_ids_after_insert(len(self.chats) - 1)
-        self.chat_id = len(self.chats) - 1
-        self.save_chat()
+        new_chat_id = self.controller.create_visible_chat()
+        self.chat_id = new_chat_id
 
         if force_new_tab:
             tab_page = self.add_chat_tab(self.chat_id)
@@ -647,38 +636,6 @@ class MainWindow(Adw.ApplicationWindow):
                 tab_page = self.add_chat_tab(self.chat_id)
                 self.update_history()
                 return tab_page
-    
-    def _update_tab_chat_ids_after_insert(self, inserted_at: int):
-        """Update chat_ids in all tabs after a chat was inserted.
-        
-        Args:
-            inserted_at: The index where a new chat was inserted
-        """
-        n_pages = self.chat_tabs.get_n_pages()
-        for i in range(n_pages):
-            page = self.chat_tabs.get_nth_page(i)
-            child = page.get_child()
-            if isinstance(child, ChatTab) and child._chat_id >= inserted_at:
-                child._chat_id += 1
-    
-    def _update_tab_chat_ids_after_delete(self, deleted_at: int):
-        """Update chat_ids in all tabs after a chat was deleted.
-
-        Args:
-            deleted_at: The index where a chat was deleted
-        """
-        n_pages = self.chat_tabs.get_n_pages()
-        # Go backwards to safely close tabs
-        for i in range(n_pages - 1, -1, -1):
-            page = self.chat_tabs.get_nth_page(i)
-            child = page.get_child()
-            if isinstance(child, ChatTab):
-                if child._chat_id == deleted_at:
-                    # Close tab showing the deleted chat
-                    self.chat_tabs.close_page(page)
-                elif child._chat_id > deleted_at:
-                    # Update chat_id for tabs after the deleted one
-                    child._chat_id -= 1
 
     def handle_error(self, message: str, error: ErrorSeverity):
         if error == ErrorSeverity.ERROR:
@@ -2010,38 +1967,31 @@ class MainWindow(Adw.ApplicationWindow):
 
     def create_branch(self, message_id: int, source_chat_id: int = None):
         """Create a new chat branching from a specific message ID
-        
+
         Args:
             message_id: The message ID to branch from
             source_chat_id: The chat ID to branch from (defaults to current chat_id)
         """
         if source_chat_id is None:
             source_chat_id = self.chat_id
-            
-        if source_chat_id < 0 or source_chat_id >= len(self.chats):
+
+        if source_chat_id not in self.chats:
             return
-            
+
         parent_chat = self.chats[source_chat_id]
         parent_id = parent_chat.get("id")
-        
+
         # Copy messages up to message_id (inclusive)
-        branched_messages = parent_chat["chat"][:message_id + 1]
-        
-        new_chat_entry = {
-            "name": parent_chat["name"],
-            "chat": copy.deepcopy(branched_messages),
-            "id": str(uuid.uuid4()),
-            "branched_from": parent_id,
-            "profile": parent_chat.get("profile", self.current_profile)
-        }
-        
-        # Append to end
-        self.chats.append(new_chat_entry)
-        
-        # Switch to the new chat - open in new tab
-        new_chat_id = len(self.chats) - 1
+        branched_messages = copy.deepcopy(parent_chat["chat"][:message_id + 1])
+
+        new_chat_id = self.controller.create_visible_chat(
+            name=parent_chat["name"],
+            profile=parent_chat.get("profile", self.current_profile)
+        )
+        self.chats[new_chat_id]["chat"] = branched_messages
+        self.chats[new_chat_id]["branched_from"] = parent_id
         self.chat_id = new_chat_id
-        
+
         self.save_chat()
         self.update_history()
         # Open in new tab
@@ -2069,64 +2019,62 @@ class MainWindow(Adw.ApplicationWindow):
         middle_click_gesture.connect("pressed", self._on_chat_row_middle_clicked, list_box)
         list_box.add_controller(middle_click_gesture)
 
-        # Build hierarchy map
-        id_to_index = {chat.get("id"): i for i, chat in enumerate(self.chats)}
+        # Build hierarchy map (id = UUID for branching, chat_id = incremental dict key)
+        id_to_chat_id = {chat.get("id"): cid for cid, chat in self.chats.items()}
         children_map = {}
-        top_level_indices = []
-        
-        for i, chat in enumerate(self.chats):
+        top_level_ids = []
+
+        for cid, chat in self.chats.items():
             if chat.get("call", False):
                 continue
             parent_id = chat.get("branched_from")
-            if parent_id and parent_id in id_to_index:
+            if parent_id and parent_id in id_to_chat_id:
                 if parent_id not in children_map:
                     children_map[parent_id] = []
-                children_map[parent_id].append(i)
+                children_map[parent_id].append(cid)
             else:
-                top_level_indices.append(i)
-        
+                top_level_ids.append(cid)
+
         # Handle reverse order if needed for top-level chats
         if self.controller.newelle_settings.reverse_order:
-            top_level_indices.reverse()
-            
-        def add_chat_recursive(index, level=0):
-            chat_entry = self.chats[index]
+            top_level_ids.reverse()
+
+        def add_chat_recursive(chat_id, level=0):
+            chat_entry = self.chats[chat_id]
             name = chat_entry["name"]
-            is_selected = (index == self.chat_id)
-            is_open = self.get_tab_for_chat(index) is not None
-            
+            is_selected = (chat_id == self.chat_id)
+            is_open = self.get_tab_for_chat(chat_id) is not None
+
             # Create ChatRow widget with indentation level
             chat_row = ChatRow(
                 chat_name=name,
-                chat_index=index,
+                chat_index=chat_id,
                 is_selected=is_selected,
                 level=level,
                 is_open=is_open
             )
-            
+
             # Connect signals
             chat_row.connect_signals(
                 on_generate=self.generate_chat_name,
                 on_edit=lambda btn, row=chat_row: self.edit_chat_name(btn, row.get_edit_stack()),
                 on_clone=self.copy_chat,
                 on_delete=self.remove_chat
-            ) 
-            
+            )
+
             list_box.append(chat_row)
             if is_selected:
                 list_box.select_row(chat_row)
-                
+
             # Add offspring
-            chat_id = chat_entry.get("id")
-            if chat_id in children_map:
-                # Keep children in the same order as they appear in self.chats (chronological)
-                # unless specifically reversed, but usually branches are chronological
-                children = children_map[chat_id]
-                for child_index in children:
-                    add_chat_recursive(child_index, level + 1)
-        
-        for i in top_level_indices:
-            add_chat_recursive(i)
+            entry_uuid = chat_entry.get("id")
+            if entry_uuid in children_map:
+                children = children_map[entry_uuid]
+                for child_id in children:
+                    add_chat_recursive(child_id, level + 1)
+
+        for cid in top_level_ids:
+            add_chat_recursive(cid)
     
     def on_chat_row_activated(self, listbox, row):
         """Handle chat row activation to switch chats"""
@@ -2146,51 +2094,53 @@ class MainWindow(Adw.ApplicationWindow):
 
     def remove_chat(self, button):
         """Remove a chat"""
-        deleted_index = int(button.get_name())
-        if deleted_index < self.chat_id:
-            self.chat_id -= 1
-        elif deleted_index == self.chat_id:
-            return False
-        self.chats.pop(deleted_index)
-        # Update chat_ids in all tabs after deletion
-        self._update_tab_chat_ids_after_delete(deleted_index)
+        deleted_chat_id = int(button.get_name())
+        if deleted_chat_id not in self.chats:
+            return
+        if deleted_chat_id == self.chat_id:
+            # Cannot delete current chat
+            return
+        # Close tab if it shows the deleted chat
+        tab_page = self.get_tab_for_chat(deleted_chat_id)
+        if tab_page is not None:
+            self.chat_tabs.close_page(tab_page)
+        del self.chats[deleted_chat_id]
         self.save_chat()
         self.update_history()
 
     def edit_chat_name(self, button, stack, multithreading=False):
         """Allow manual editing of chat name by replacing the title with an entry"""
-        chat_index = int(button.get_name())
+        chat_id = int(button.get_name())
+        if chat_id not in self.chats:
+            return
         # Show the generate chat name button
         stack.set_visible_child_name("generate")
         # Find the chat name button in the current list box
         list_box = self.chats_list_box
         if list_box is None:
             return
-            
-        # Find the correct row
-        row_index = 0
-        chat_range = (
-            range(len(self.chats)).__reversed__()
-            if self.controller.newelle_settings.reverse_order
-            else range(len(self.chats))
-        )
-        
-        for i in chat_range:
-            if i == chat_index:
+
+        # Find the row with this chat_id (iterate until get_row_at_index returns None)
+        row = None
+        i = 0
+        while True:
+            r = list_box.get_row_at_index(i)
+            if r is None:
                 break
-            row_index += 1
-            
-        row = list_box.get_row_at_index(row_index)
+            if hasattr(r, "chat_index") and r.chat_index == chat_id:
+                row = r
+                break
+            i += 1
         if row is None:
             return
-            
+
         # Get the ChatRow's main_box containing the widgets
         if not hasattr(row, 'main_box') or not hasattr(row, 'name_label'):
             return
-            
+
         # Create an entry to replace the label
         entry = Gtk.Entry()
-        entry.set_text(self.chats[chat_index]["name"])
+        entry.set_text(self.chats[chat_id]["name"])
         entry.set_hexpand(True)
         
         # Store original label for restoration
@@ -2222,11 +2172,11 @@ class MainWindow(Adw.ApplicationWindow):
         def on_entry_activate(entry):
             new_name = entry.get_text().strip()
             if new_name:
-                self.chats[chat_index]["name"] = new_name
+                self.chats[chat_id]["name"] = new_name
                 self.save_chat()
-                
+
                 # Update tab title if this chat is open in a tab
-                tab_page = self.get_tab_for_chat(chat_index)
+                tab_page = self.get_tab_for_chat(chat_id)
                 if tab_page:
                     tab_page.set_title(new_name)
                     
@@ -2241,16 +2191,17 @@ class MainWindow(Adw.ApplicationWindow):
 
     def copy_chat(self, button, *a):
         """Copy a chat into a new chat"""
-        source_chat = self.chats[int(button.get_name())]
-        self.chats.append(
-            {
-                "name": source_chat["name"],
-                "chat": source_chat["chat"][:],
-                "id": str(uuid.uuid4()),
-                "branched_from": source_chat.get("id"),
-                "profile": source_chat.get("profile", self.current_profile)
-            }
+        source_chat_id = int(button.get_name())
+        if source_chat_id not in self.chats:
+            return
+        source_chat = self.chats[source_chat_id]
+        new_chat_id = self.controller.create_visible_chat(
+            name=source_chat["name"],
+            profile=source_chat.get("profile", self.current_profile)
         )
+        self.chats[new_chat_id]["chat"] = source_chat["chat"][:]
+        self.chats[new_chat_id]["branched_from"] = source_chat.get("id")
+        self.controller.save_chats()
         self.update_history()
 
     def chose_chat(self, id, *a):
@@ -2679,11 +2630,11 @@ class MainWindow(Adw.ApplicationWindow):
                         return
                     clean_name = remove_markdown(clean_name)
                     if clean_name != "Chat has been stopped":
-                        chat_idx = int(button.get_name())
-                        self.chats[chat_idx]["name"] = clean_name
-                        
+                        chat_id = int(button.get_name())
+                        self.chats[chat_id]["name"] = clean_name
+
                         # Update tab title if this chat is open in a tab
-                        tab_page = self.get_tab_for_chat(chat_idx)
+                        tab_page = self.get_tab_for_chat(chat_id)
                         if tab_page:
                             tab_page.set_title(clean_name)
                             
@@ -2691,22 +2642,22 @@ class MainWindow(Adw.ApplicationWindow):
 
             GLib.idle_add(on_complete)
         else:
-            if len(self.chats[int(button.get_name())]["chat"]) < 2:
+            chat_id = int(button.get_name())
+            if chat_id not in self.chats or len(self.chats[chat_id]["chat"]) < 2:
                 self.notification_block.add_toast(
                     Adw.Toast(title=_("Chat is empty"), timeout=2)
                 )
                 return False
-                
+
             spinner = Gtk.Spinner(spinning=True)
             button.set_child(spinner)
             button.set_can_target(False)
             button.set_has_frame(True)
-            
+
             threading.Thread(
                 target=self.generate_chat_name, args=[button, True]
             ).start()
 
-    # Chat Export
     def export_chat(self, export_all=False):
         """Export chat(s) to a JSON file
 
@@ -2795,7 +2746,7 @@ class MainWindow(Adw.ApplicationWindow):
                 data = json.load(f)
 
             # Import the chat(s)
-            success, message, count = self.controller.import_chat(data)
+            success, message, count, last_chat_id = self.controller.import_chat(data)
 
             if success:
                 self.notification_block.add_toast(
@@ -2803,9 +2754,9 @@ class MainWindow(Adw.ApplicationWindow):
                 )
                 # Update the UI to show imported chats
                 self.update_history()
-                # Switch to the first imported chat if we imported at least one
-                if count > 0:
-                    self.chat_id = len(self.chats) - count
+                # Switch to the last imported chat if we imported at least one
+                if count > 0 and last_chat_id is not None:
+                    self.chat_id = last_chat_id
                     self.show_chat()
             else:
                 self.notification_block.add_toast(
