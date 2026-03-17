@@ -1110,21 +1110,60 @@ class Settings(Adw.PreferencesWindow):
         # Authentication section (nested expander for optional auth settings)
         auth_row = Adw.ExpanderRow(title=_("Authentication"), subtitle=_("Optional authentication settings"), icon_name="dialog-password-symbolic")
         
-        # Bearer token entry
+        # Auth method selector: None, Bearer token, OAuth (automatic)
+        self.mcp_auth_method = "none"
+        auth_method_row = Adw.ActionRow(title=_("Method"), subtitle=_("Authentication method"))
+        auth_method_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6, valign=Gtk.Align.CENTER)
+        self.mcp_auth_none = Gtk.ToggleButton(label=_("None"), active=True)
+        self.mcp_auth_none.add_css_class("flat")
+        self.mcp_auth_bearer = Gtk.ToggleButton(label=_("Bearer Token"), group=self.mcp_auth_none)
+        self.mcp_auth_bearer.add_css_class("flat")
+        self.mcp_auth_oauth = Gtk.ToggleButton(label=_("OAuth (automatic)"), group=self.mcp_auth_none)
+        self.mcp_auth_oauth.add_css_class("flat")
+        auth_method_box.append(self.mcp_auth_none)
+        auth_method_box.append(self.mcp_auth_bearer)
+        auth_method_box.append(self.mcp_auth_oauth)
+        auth_method_row.add_suffix(auth_method_box)
+        auth_row.add_row(auth_method_row)
+        
+        # Bearer token entry (visible when Bearer Token selected)
         token_row = Adw.ActionRow(title=_("Bearer Token"), subtitle=_("Authentication token"))
         self.mcp_token_entry = Gtk.Entry(valign=Gtk.Align.CENTER, placeholder_text=_("Token"), visibility=False, hexpand=True, width_chars=25)
         token_row.add_suffix(self.mcp_token_entry)
-        # Show/hide token button
         show_token_btn = Gtk.Button(icon_name="view-reveal-symbolic", valign=Gtk.Align.CENTER, css_classes=["flat"], tooltip_text=_("Show/Hide token"))
         show_token_btn.connect("clicked", lambda btn: self.mcp_token_entry.set_visibility(not self.mcp_token_entry.get_visibility()))
         token_row.add_suffix(show_token_btn)
         auth_row.add_row(token_row)
+        self.mcp_token_row = token_row
         
-        # Client ID entry (optional)
-        client_id_row = Adw.ActionRow(title=_("Client ID"), subtitle=_("OAuth client identifier"))
+        # Client ID entry (visible when Bearer Token selected, for pre-registered OAuth)
+        client_id_row = Adw.ActionRow(title=_("Client ID"), subtitle=_("OAuth client identifier (pre-registered)"))
         self.mcp_client_id_entry = Gtk.Entry(valign=Gtk.Align.CENTER, placeholder_text=_("client-id"), hexpand=True, width_chars=25)
         client_id_row.add_suffix(self.mcp_client_id_entry)
         auth_row.add_row(client_id_row)
+        self.mcp_client_id_row = client_id_row
+        
+        # OAuth info (visible when OAuth selected)
+        oauth_info_row = Adw.ActionRow(title=_("OAuth"), subtitle=_("Uses Dynamic Client Registration. A browser window will open for authentication."))
+        oauth_info_row.set_visible(False)
+        auth_row.add_row(oauth_info_row)
+        self.mcp_oauth_info_row = oauth_info_row
+        
+        def on_auth_method_changed(btn):
+            if self.mcp_auth_none.get_active():
+                self.mcp_auth_method = "none"
+            elif self.mcp_auth_bearer.get_active():
+                self.mcp_auth_method = "bearer"
+            else:
+                self.mcp_auth_method = "oauth"
+            self.mcp_token_row.set_visible(self.mcp_auth_method == "bearer")
+            self.mcp_client_id_row.set_visible(self.mcp_auth_method == "bearer")
+            self.mcp_oauth_info_row.set_visible(self.mcp_auth_method == "oauth")
+        
+        self.mcp_auth_none.connect("toggled", on_auth_method_changed)
+        self.mcp_auth_bearer.connect("toggled", on_auth_method_changed)
+        self.mcp_auth_oauth.connect("toggled", on_auth_method_changed)
+        on_auth_method_changed(None)
         
         add_row.add_row(auth_row)
         self.mcp_http_rows.append(auth_row)
@@ -1252,21 +1291,26 @@ class Settings(Adw.PreferencesWindow):
                 self._disable_mcp_form()
                 
                 def add_thread():
-                    mcp_handler = self.controller.get_mcp_integration()
-                    added = mcp_handler.add_mcp_server(
-                        title=title,
-                        server_type="stdio",
-                        command=command,
-                        args=args,
-                        env=env
-                    )
-                    self.settings.set_string("mcp-servers", json.dumps(mcp_handler.mcp_servers))
-                    if not added:
-                        GLib.idle_add(self.app.win.show_error_dialog, _("Error"), _("Failed to add MCP server"))
-                    GLib.idle_add(self.refresh_mcp_servers_list)
-                    GLib.idle_add(self.refresh_tools_list)
-                    GLib.idle_add(self._enable_mcp_form)
-                    GLib.idle_add(self._clear_mcp_form)
+                    try:
+                        mcp_handler = self.controller.get_mcp_integration()
+                        added = mcp_handler.add_mcp_server(
+                            title=title,
+                            server_type="stdio",
+                            command=command,
+                            args=args,
+                            env=env
+                        )
+                        self.settings.set_string("mcp-servers", json.dumps(mcp_handler.mcp_servers))
+                        if not added:
+                            GLib.idle_add(self.app.win.show_error_dialog, _("Error"), _("Failed to add MCP server"))
+                        GLib.idle_add(self.refresh_mcp_servers_list)
+                        GLib.idle_add(self.refresh_tools_list)
+                    except Exception as e:
+                        err_msg = str(getattr(e, "__cause__", e) or e)
+                        GLib.idle_add(self.app.win.show_error_dialog, _("Error"), _("Failed to add MCP server: {}").format(err_msg))
+                    finally:
+                        GLib.idle_add(self._enable_mcp_form)
+                        GLib.idle_add(self._clear_mcp_form)
                 t = threading.Thread(target=add_thread)
                 t.start()
             else:
@@ -1277,6 +1321,7 @@ class Settings(Adw.PreferencesWindow):
                 
                 bearer_token = self.mcp_token_entry.get_text().strip() or None
                 client_id = self.mcp_client_id_entry.get_text().strip() or None
+                oauth_mode = self.mcp_auth_method == "oauth"
                 
                 # Parse custom headers
                 headers_buffer = self.mcp_headers_text.get_buffer()
@@ -1295,22 +1340,54 @@ class Settings(Adw.PreferencesWindow):
                 self._disable_mcp_form()
                 
                 def add_thread():
-                    mcp_handler = self.controller.get_mcp_integration()
-                    added = mcp_handler.add_mcp_server(
-                        url=url, 
-                        title=title, 
-                        bearer_token=bearer_token, 
-                        client_id=client_id, 
-                        custom_headers=custom_headers,
-                        server_type="http"
-                    )
-                    self.settings.set_string("mcp-servers", json.dumps(mcp_handler.mcp_servers))
-                    if not added:
-                        GLib.idle_add(self.app.win.show_error_dialog, _("Error"), _("Failed to add MCP server"))
-                    GLib.idle_add(self.refresh_mcp_servers_list)
-                    GLib.idle_add(self.refresh_tools_list)
-                    GLib.idle_add(self._enable_mcp_form)
-                    GLib.idle_add(self._clear_mcp_form)
+                    try:
+                        mcp_handler = self.controller.get_mcp_integration()
+                        if oauth_mode:
+                            from ..integrations.mcp_oauth import run_oauth_flow
+                            config_dir = self.controller.config_dir
+                            success, err_msg = run_oauth_flow(url, config_dir)
+                            if not success:
+                                GLib.idle_add(self.app.win.show_error_dialog, _("OAuth Error"), err_msg or _("Authentication failed"))
+                                return
+                        added = mcp_handler.add_mcp_server(
+                            url=url,
+                            title=title,
+                            bearer_token=bearer_token if not oauth_mode else None,
+                            client_id=client_id if not oauth_mode else None,
+                            custom_headers=custom_headers,
+                            server_type="http",
+                            oauth_mode=oauth_mode
+                        )
+                        self.settings.set_string("mcp-servers", json.dumps(mcp_handler.mcp_servers))
+                        if not added:
+                            GLib.idle_add(self.app.win.show_error_dialog, _("Error"), _("Failed to add MCP server"))
+                        GLib.idle_add(self.refresh_mcp_servers_list)
+                        GLib.idle_add(self.refresh_tools_list)
+                    except Exception as e:
+                        err_msg = str(e)
+                        cause = getattr(e, "__cause__", None)
+                        if cause:
+                            err_msg = str(cause)
+                        for attr in ("exceptions", "__context__"):
+                            inner = getattr(e, attr, None)
+                            if inner and isinstance(inner, (list, tuple)) and len(inner) > 0:
+                                err_msg = str(inner[0])
+                                break
+                            elif inner:
+                                err_msg = str(inner)
+                                break
+                        if "401" in err_msg or "Unauthorized" in err_msg:
+                            err_msg = _(
+                                "This server requires authentication. Select 'OAuth (automatic)' in the "
+                                "Authentication section and try again to sign in with your browser, "
+                                "or provide a Bearer token if you have one."
+                            )
+                        else:
+                            err_msg = _("Failed to add MCP server: {}").format(err_msg)
+                        GLib.idle_add(self.app.win.show_error_dialog, _("Error"), err_msg)
+                    finally:
+                        GLib.idle_add(self._enable_mcp_form)
+                        GLib.idle_add(self._clear_mcp_form)
                 t = threading.Thread(target=add_thread)
                 t.start()
         
@@ -1398,8 +1475,11 @@ class Settings(Adw.PreferencesWindow):
                                 server_info.get("env"),
                             )
                         else:
-                            headers = mcp_handler._build_headers(server_info["bearer_token"], server_info["custom_headers"])
-                            tools = mcp_handler.sync_get_tools(server_info["url"], headers=headers, client_id=server_info["client_id"])
+                            tools = mcp_handler.sync_get_tools(
+                                server_info["url"],
+                                server_info=server_info,
+                                client_id=server_info.get("client_id")
+                            )
                         mcp_handler.tools.extend(tools)
                         for tool in tools:
                             mcp_handler.tools_dict[tool.name] = server_info
@@ -1415,6 +1495,50 @@ class Settings(Adw.PreferencesWindow):
             GLib.idle_add(btn.set_sensitive, True)
 
         threading.Thread(target=refresh_thread, daemon=True).start()
+
+    def _reauth_oauth_mcp_server(self, btn, identifier, url):
+        """Re-run OAuth flow for an OAuth-protected MCP server."""
+        if not url:
+            return
+        btn.set_sensitive(False)
+
+        def reauth_thread():
+            from ..integrations.mcp_oauth import run_oauth_flow
+            config_dir = self.controller.config_dir
+            success, err_msg = run_oauth_flow(url, config_dir)
+            if success:
+                mcp_handler = self.controller.get_mcp_integration()
+                if mcp_handler:
+                    mcp_handler.tools = [
+                        t for t in mcp_handler.tools
+                        if mcp_handler._get_server_identifier(mcp_handler.tools_dict.get(t.name, {})) != identifier
+                    ]
+                    mcp_handler.tools_dict = {
+                        k: v for k, v in mcp_handler.tools_dict.items()
+                        if mcp_handler._get_server_identifier(v) != identifier
+                    }
+                    for server in mcp_handler.mcp_servers:
+                        server_info = mcp_handler._get_server_info(server)
+                        if mcp_handler._get_server_identifier(server_info) == identifier:
+                            try:
+                                tools = mcp_handler.sync_get_tools(url, server_info=server_info)
+                                mcp_handler.tools.extend(tools)
+                                for tool in tools:
+                                    mcp_handler.tools_dict[tool.name] = server_info
+                            except Exception as e:
+                                print(f"Re-auth refresh error: {e}")
+                            break
+                    mcp_handler._save_cache()
+                    if hasattr(mcp_handler, "ui_controller"):
+                        GLib.idle_add(mcp_handler.ui_controller.require_tool_update)
+                GLib.idle_add(self.refresh_mcp_servers_list)
+                GLib.idle_add(self.refresh_tools_list)
+                GLib.idle_add(lambda: self.add_toast(Adw.Toast(title=_("Re-authentication successful"))))
+            else:
+                GLib.idle_add(self.app.win.show_error_dialog, _("OAuth Error"), err_msg or _("Re-authentication failed"))
+            GLib.idle_add(btn.set_sensitive, True)
+
+        threading.Thread(target=reauth_thread, daemon=True).start()
 
     def refresh_mcp_servers_list(self):
         for row in self.mcp_server_rows:
@@ -1468,6 +1592,13 @@ class Settings(Adw.PreferencesWindow):
             refresh_btn = Gtk.Button(icon_name="view-refresh-symbolic", valign=Gtk.Align.CENTER, css_classes=["flat"], tooltip_text=_("Refresh tools"))
             refresh_btn.connect("clicked", self._refresh_single_mcp_server, refresh_spinner, identifier)
             row.add_suffix(refresh_btn)
+            
+            # Re-authenticate button for OAuth servers
+            is_oauth = isinstance(server, dict) and server.get("oauth_mode")
+            if is_oauth:
+                reauth_btn = Gtk.Button(icon_name="emblem-locked-symbolic", valign=Gtk.Align.CENTER, css_classes=["flat"], tooltip_text=_("Re-authenticate"))
+                reauth_btn.connect("clicked", self._reauth_oauth_mcp_server, identifier, server.get("url", ""))
+                row.add_suffix(reauth_btn)
             
             delete_btn = Gtk.Button(icon_name="user-trash-symbolic", valign=Gtk.Align.CENTER)
             delete_btn.add_css_class("destructive-action")

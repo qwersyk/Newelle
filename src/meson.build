@@ -47,6 +47,7 @@ integrations_sources = [
   'integrations/website_reader.py',
   'integrations/websearch.py',
   'integrations/mcp.py',
+  'integrations/mcp_oauth.py',
   'integrations/default_tools.py',
   'integrations/skills.py',
   'integrations/agent_tools.py',

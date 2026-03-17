@@ -662,13 +662,17 @@ class MainWindow(Adw.ApplicationWindow):
                 self.refresh_context_indicator()
                 return tab_page
 
+    def show_error_dialog(self, title: str, message: str):
+        """Show an error dialog with the given title and message."""
+        dialog = Adw.AlertDialog(title=title, body=message)
+        dialog.add_response("close", "Close")
+        dialog.set_response_appearance("close", Adw.ResponseAppearance.DESTRUCTIVE)
+        dialog.connect("response", lambda d, r: d.close())
+        dialog.present(self)
+
     def handle_error(self, message: str, error: ErrorSeverity):
         if error == ErrorSeverity.ERROR:
-            dialog = Adw.AlertDialog(title=_("Provider Errror"), body=message)
-            dialog.add_response("close", "Close")
-            dialog.set_response_appearance("close", Adw.ResponseAppearance.DESTRUCTIVE)
-            dialog.connect("response", lambda d, r: d.close())
-            dialog.present()
+            self.show_error_dialog(_("Provider Errror"), message)
         elif error == ErrorSeverity.WARNING:
             self.notification_block.add_toast(Adw.Toast.new(message))
 
