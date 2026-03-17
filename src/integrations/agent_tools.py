@@ -1,9 +1,12 @@
 import threading
 import json
+from gi.repository import Gtk, Adw, GLib
 from ..extensions import NewelleExtension
 from ..tools import Tool, ToolResult, create_io_tool
 from ..ui.widgets.subagent import SubagentWidget
 from ..ui.widgets.scheduled_task import ScheduledTaskWidget
+from ..ui.widgets.comborow import ComboRowHelper
+
 
 
 class AgentToolsIntegration(NewelleExtension):
@@ -120,7 +123,7 @@ class AgentToolsIntegration(NewelleExtension):
         r = ToolResult()
         r.set_widget(widget)
         r.set_output(output)
-        return r
+        return result
 
     def _schedule_task(self, task: str, run_at: str = "", cron: str = ""):
         """Schedule a future agent run in a visible chat."""
@@ -132,7 +135,6 @@ class AgentToolsIntegration(NewelleExtension):
 
         result = ToolResult()
 
-        # Create and set the widget
         widget = ScheduledTaskWidget(
             task=task,
             schedule_type=scheduled_task["schedule_type"],
@@ -140,10 +142,11 @@ class AgentToolsIntegration(NewelleExtension):
             cron=scheduled_task.get("cron"),
             next_run_at=scheduled_task.get("next_run_at"),
             task_id=scheduled_task["id"],
+            controller=self.controller,
+            folder_id=scheduled_task.get("folder_id"),
         )
         result.set_widget(widget)
 
-        # Set output as JSON for the LLM
         result.set_output(
             json.dumps(
                 {
@@ -155,6 +158,7 @@ class AgentToolsIntegration(NewelleExtension):
                     "cron": scheduled_task["cron"],
                     "next_run_at": scheduled_task["next_run_at"],
                     "enabled": scheduled_task["enabled"],
+                    "folder_id": scheduled_task.get("folder_id"),
                 },
                 indent=2,
             )
@@ -172,6 +176,7 @@ class AgentToolsIntegration(NewelleExtension):
         saved_run_at = run_at
         saved_cron = cron
         next_run_at = None
+        folder_id = None
 
         if output:
             try:
@@ -180,6 +185,7 @@ class AgentToolsIntegration(NewelleExtension):
                 saved_run_at = data.get("run_at", run_at)
                 saved_cron = data.get("cron", cron)
                 next_run_at = data.get("next_run_at")
+                folder_id = data.get("folder_id")
             except json.JSONDecodeError:
                 pass
 
@@ -193,6 +199,8 @@ class AgentToolsIntegration(NewelleExtension):
             cron=saved_cron,
             next_run_at=next_run_at,
             task_id=tool_uuid[:8] if tool_uuid else "",
+            controller=self.controller,
+            folder_id=folder_id,
         )
 
         # Mark as completed

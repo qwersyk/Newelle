@@ -60,6 +60,13 @@ class ScheduledTasksWindow(Gtk.Window):
             return _("Enabled")
         return _("Disabled")
 
+    def _get_folder_name(self, task):
+        """Get the folder name for a task, or default string."""
+        folder_id = task.get("folder_id")
+        if folder_id is not None and folder_id in self.controller.folders:
+            return self.controller.folders[folder_id]["name"]
+        return _("None")
+
     def _open_latest_chat(self, button, chat_id):
         if chat_id is None or chat_id not in self.app.win.chats:
             return
@@ -128,6 +135,7 @@ class ScheduledTasksWindow(Gtk.Window):
             row.add_suffix(delete_button)
 
             self._append_detail_row(row, _("Task"), task["task"])
+            self._append_detail_row(row, _("Folder"), self._get_folder_name(task))
             self._append_detail_row(row, _("Next run"), next_run)
             self._append_detail_row(row, _("Last run"), self._format_timestamp(task.get("last_run_at")))
             self._append_detail_row(row, _("Last status"), task.get("last_run_status") or _("Not run yet"))

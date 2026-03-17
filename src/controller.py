@@ -341,7 +341,7 @@ class NewelleController:
         self.save_chats()
         return chat_id
 
-    def create_visible_chat(self, name: str | None = None, profile: str | None = None):
+    def create_visible_chat(self, name: str | None = None, profile: str | None = None, folder_id: int | None = None):
         """Create a new visible chat entry and refresh history."""
         chat_id = self.next_chat_id
         self.next_chat_id += 1
@@ -357,7 +357,9 @@ class NewelleController:
             new_chat["profile"] = profile
         self.chats[chat_id] = new_chat
         self.save_chats()
-        if self.ui_controller is not None:
+        if folder_id is not None and folder_id in self.folders:
+            self.move_chat_to_folder(chat_id, folder_id)
+        elif self.ui_controller is not None:
             GLib.idle_add(self.ui_controller.window.update_history)
         return chat_id
 
@@ -376,6 +378,14 @@ class NewelleController:
         if self.ui_controller is not None:
             GLib.idle_add(self.ui_controller.window.update_history)
         return folder_id
+
+    def ensure_scheduled_tasks_folder(self) -> int:
+        """Ensure the 'Scheduled Tasks' folder exists, creating it if needed."""
+        folder_name = _("Scheduled Tasks")
+        for folder_id, folder in self.folders.items():
+            if folder["name"] == folder_name:
+                return folder_id
+        return self.create_folder(folder_name, "#3584e4", "alarm-symbolic")
 
     def rename_folder(self, folder_id: int, name: str):
         """Rename an existing folder."""
@@ -606,6 +616,7 @@ class NewelleController:
             "last_run_status": task.get("last_run_status"),
             "last_error": task.get("last_error"),
             "running": False,
+            "folder_id": task.get("folder_id"),
         }
 
         if task.get("last_run_at"):
@@ -672,8 +683,10 @@ class NewelleController:
             GLib.source_remove(self.scheduler_source_id)
             self.scheduler_source_id = None
 
-    def create_scheduled_task(self, task: str, run_at: str | None = None, cron: str | None = None) -> dict:
+    def create_scheduled_task(self, task: str, run_at: str | None = None, cron: str | None = None, folder_id: int | None = None) -> dict:
         now = datetime.datetime.now().astimezone()
+        if folder_id is None:
+            folder_id = self.ensure_scheduled_tasks_folder()
         scheduled_task = self._normalize_scheduled_task(
             {
                 "task": task,
@@ -681,6 +694,7 @@ class NewelleController:
                 "cron": cron,
                 "enabled": True,
                 "created_at": now.isoformat(),
+                "folder_id": folder_id,
             },
             now,
         )
@@ -726,6 +740,29 @@ class NewelleController:
             self._persist_scheduled_tasks()
         return changed
 
+    def set_scheduled_task_folder(self, task_id: str, folder_id: int) -> bool:
+        """Change the folder for a scheduled task."""
+        changed = False
+        with self.scheduled_tasks_lock:
+            for task in self.scheduled_tasks:
+                if task["id"] != task_id:
+                    continue
+                if task.get("folder_id") != folder_id:
+                    task["folder_id"] = folder_id
+                    changed = True
+                break
+        if changed:
+            self._persist_scheduled_tasks()
+        return changed
+
+    def get_scheduled_task_folder_id(self, task_id: str) -> int | None:
+        """Get the folder ID for a scheduled task."""
+        with self.scheduled_tasks_lock:
+            for task in self.scheduled_tasks:
+                if task["id"] == task_id:
+                    return task.get("folder_id")
+        return None
+
     def _scheduler_tick(self):
         now = datetime.datetime.now().astimezone()
         due_tasks = []
@@ -759,10 +796,12 @@ class NewelleController:
         chat_id = None
         status = "completed"
         error_message = None
+        folder_id = task.get("folder_id")
         try:
             chat_id = self.create_visible_chat(
                 name=self._format_scheduled_chat_name(task),
                 profile=self.newelle_settings.current_profile,
+                folder_id=folder_id,
             )
             self.run_llm_with_tools(
                 message=task["task"],
