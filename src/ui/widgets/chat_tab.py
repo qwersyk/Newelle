@@ -681,6 +681,9 @@ class ChatTab(Gtk.Box):
         prompts = data['prompts']
         self.last_generation_time = data['time']
         self.last_token_num = (data['input_tokens'], data['output_tokens'])
+        trim_result = data.get('trim_result')
+        if trim_result is not None and hasattr(self.window, 'context_indicator'):
+            self.window.context_indicator.update_stats(trim_result)
         
         if hasattr(self, "current_streaming_message") and self.current_streaming_message:
             # Streaming was active, finalize the existing widget

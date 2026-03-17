@@ -22,6 +22,7 @@ from .ui.presentation import PresentationWindow
 from .ui.widgets import File, CopyBox, BarChartBox, MarkupTextView, DocumentReaderWidget, TipsCarousel, BrowserWidget, Terminal, CodeEditorWidget, ToolWidget, CallPanel
 from .ui.explorer import ExplorerPanel
 from .ui.widgets import MultilineEntry, ProfileRow, DisplayLatex, InlineLatex, ThinkingWidget, Message, ChatRow, ChatHistory, ChatTab
+from .ui.widgets.context_indicator import ContextIndicator
 from .ui.stdout_monitor import StdoutMonitorDialog
 from .utility.stdout_capture import StdoutMonitor
 from .constants import AVAILABLE_LLMS, SCHEMA_ID, SETTINGS_GROUPS
@@ -170,6 +171,9 @@ class MainWindow(Adw.ApplicationWindow):
 
         # Header box - Contains the buttons that must go in the left side of the header
         self.headerbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, hexpand=True)
+        # Context usage indicator
+        self.context_indicator = ContextIndicator()
+        self.headerbox.append(self.context_indicator)
         # Mute TTS Button
         self.mute_tts_button = Gtk.Button(
             css_classes=["flat"], icon_name="audio-volume-muted-symbolic", visible=False
@@ -299,6 +303,7 @@ class MainWindow(Adw.ApplicationWindow):
 
         # Add the initial chat tab
         self.add_chat_tab(self.chat_id)
+        self.refresh_context_indicator()
 
         def build_model_popup():
             self.chat_header.set_title_widget(self.build_model_popup())
@@ -562,6 +567,7 @@ class MainWindow(Adw.ApplicationWindow):
 
             # Update UI FIRST before profile switch for instant visual feedback
             self.update_history()
+            self.refresh_context_indicator()
 
             # Schedule profile switch to happen after UI renders
             # This makes the tab switch feel instant
@@ -622,6 +628,7 @@ class MainWindow(Adw.ApplicationWindow):
         if force_new_tab:
             tab_page = self.add_chat_tab(self.chat_id)
             self.update_history()
+            self.refresh_context_indicator()
             return tab_page
         else:
             # Switch current tab to the new chat instead of creating new tab
@@ -630,11 +637,13 @@ class MainWindow(Adw.ApplicationWindow):
                 current_tab.switch_to_chat(self.chat_id)
                 # Update history AFTER switching so the UI shows correct open state
                 self.update_history()
+                self.refresh_context_indicator()
                 return current_tab.tab_page
             else:
                 # No tabs exist, create one
                 tab_page = self.add_chat_tab(self.chat_id)
                 self.update_history()
+                self.refresh_context_indicator()
                 return tab_page
 
     def handle_error(self, message: str, error: ErrorSeverity):
@@ -2000,6 +2009,11 @@ class MainWindow(Adw.ApplicationWindow):
         if tab is not None:
             GLib.idle_add(tab.chat_history.update_button_text)
 
+    def refresh_context_indicator(self):
+        """Recompute and display context usage for the current chat."""
+        if hasattr(self, 'context_indicator'):
+            self.context_indicator.update_from_chat(self.controller)
+
     def update_history(self):
         """Reload chats panel with Adwaita-styled ChatRow widgets, supporting branching hierarchy"""
         # Focus input to avoid removing a focused child
@@ -2229,6 +2243,7 @@ class MainWindow(Adw.ApplicationWindow):
 
         # Update UI FIRST before profile switch for instant visual feedback
         self.update_history()
+        self.refresh_context_indicator()
         tab = self.get_active_chat_tab()
         if tab is not None:
             GLib.idle_add(tab.chat_history.update_button_text)

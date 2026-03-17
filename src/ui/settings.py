@@ -434,13 +434,119 @@ class Settings(Adw.PreferencesWindow):
         self.settings.bind("external-terminal", entry, 'text', Gio.SettingsBindFlags.DEFAULT)
         row.add_row(entry)
         self.neural_network.add(row)
-        # Set default value for the switch        
-        row = Adw.ActionRow(title=_("Program memory"), subtitle=_("How long the program remembers the chat "))
-        int_spin = Gtk.SpinButton(valign=Gtk.Align.CENTER)
-        int_spin.set_adjustment(Gtk.Adjustment(lower=0, upper=90, step_increment=1, page_increment=10, page_size=0))
-        row.add_suffix(int_spin)
-        self.settings.bind("memory", int_spin, 'value', Gio.SettingsBindFlags.DEFAULT)
-        self.SECONDARY_LLM.add(row)
+        # Context Management
+        context_expander = Adw.ExpanderRow(
+            title=_("Context Management"),
+            subtitle=_("Control how conversation history is sent to the model"),
+        )
+
+        current_mode = self.settings.get_string("context-mode")
+        context_mode_cm = Gtk.ToggleButton(label=_("Context Manager"))
+        context_mode_fixed = Gtk.ToggleButton(label=_("Fixed message count"))
+        mode_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=0, valign=Gtk.Align.CENTER)
+        mode_box.add_css_class("linked")
+        mode_box.append(context_mode_cm)
+        mode_box.append(context_mode_fixed)
+
+        # Initialize exclusive selection
+        if current_mode == "fixed":
+            context_mode_fixed.set_active(True)
+            context_mode_cm.set_active(False)
+        else:
+            context_mode_cm.set_active(True)
+            context_mode_fixed.set_active(False)
+
+        mode_row = Adw.ActionRow(title=_("Mode"))
+        mode_row.add_suffix(mode_box)
+        context_expander.add_row(mode_row)
+
+        # Fixed mode: message count
+        fixed_row = Adw.ActionRow(title=_("Message count"), subtitle=_("Number of messages to keep in context"))
+        fixed_spin = Gtk.SpinButton(valign=Gtk.Align.CENTER)
+        fixed_spin.set_adjustment(Gtk.Adjustment(lower=0, upper=90, step_increment=1, page_increment=10, page_size=0))
+        fixed_row.add_suffix(fixed_spin)
+        self.settings.bind("memory", fixed_spin, 'value', Gio.SettingsBindFlags.DEFAULT)
+        context_expander.add_row(fixed_row)
+
+        # Context Manager mode: max tokens
+        max_adj = Gtk.Adjustment(lower=1000, upper=1000000, step_increment=1000, page_increment=10000)
+        max_adj.set_value(self.settings.get_int("context-max"))
+        max_row = Adw.SpinRow(
+            title=_("Max Context Size"),
+            subtitle=_("Hard token limit — context will never exceed this"),
+            adjustment=max_adj,
+            digits=0,
+        )
+        def update_context_max(spin, _input):
+            self.settings.set_int("context-max", int(spin.get_value()))
+            return False
+        max_row.connect("input", update_context_max)
+        context_expander.add_row(max_row)
+
+        # Context Manager mode: suggested tokens
+        suggested_adj = Gtk.Adjustment(lower=1000, upper=500000, step_increment=1000, page_increment=10000)
+        suggested_adj.set_value(self.settings.get_int("context-suggested"))
+        suggested_row = Adw.SpinRow(
+            title=_("Suggested Context Size"),
+            subtitle=_("Soft token target — less relevant messages are dropped to stay near this"),
+            adjustment=suggested_adj,
+            digits=0,
+        )
+        def update_context_suggested(spin, _input):
+            self.settings.set_int("context-suggested", int(spin.get_value()))
+            return False
+        suggested_row.connect("input", update_context_suggested)
+        context_expander.add_row(suggested_row)
+
+        # Context Manager mode: summarization toggle
+        summarize_row = Adw.ActionRow(
+            title=_("Summarize dropped messages"),
+            subtitle=_("Use the LLM to summarize messages that were removed from context"),
+        )
+        summarize_switch = Gtk.Switch(valign=Gtk.Align.CENTER)
+        summarize_row.add_suffix(summarize_switch)
+        self.settings.bind("context-summarization", summarize_switch, 'active', Gio.SettingsBindFlags.DEFAULT)
+        context_expander.add_row(summarize_row)
+
+        self.context_cm_rows = [max_row, suggested_row, summarize_row]
+        self.context_fixed_rows = [fixed_row]
+
+        def apply_context_mode(is_cm: bool):
+            mode = "context-manager" if is_cm else "fixed"
+            self.settings.set_string("context-mode", mode)
+            for r in self.context_cm_rows:
+                r.set_visible(is_cm)
+            for r in self.context_fixed_rows:
+                r.set_visible(not is_cm)
+
+        def on_cm_toggled(btn):
+            if btn.get_active():
+                context_mode_fixed.set_active(False)
+                apply_context_mode(True)
+            else:
+                # Keep one option selected at all times
+                if not context_mode_fixed.get_active():
+                    btn.set_active(True)
+
+        def on_fixed_toggled(btn):
+            if btn.get_active():
+                context_mode_cm.set_active(False)
+                apply_context_mode(False)
+            else:
+                # Keep one option selected at all times
+                if not context_mode_cm.get_active():
+                    btn.set_active(True)
+
+        context_mode_cm.connect("toggled", on_cm_toggled)
+        context_mode_fixed.connect("toggled", on_fixed_toggled)
+
+        is_cm = current_mode != "fixed"
+        for r in self.context_cm_rows:
+            r.set_visible(is_cm)
+        for r in self.context_fixed_rows:
+            r.set_visible(not is_cm)
+
+        self.SECONDARY_LLM.add(context_expander)
         # Developer settings
         self.developer = Adw.PreferencesGroup(title=_('Developer'))
         self.general_page.add(self.developer)

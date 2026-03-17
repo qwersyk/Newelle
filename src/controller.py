@@ -32,6 +32,7 @@ import uuid as uuid_lib
 from .extensions import ExtensionLoader
 from .utility import override_prompts
 from .utility.strings import clean_bot_response, clean_prompt, count_tokens, remove_thinking_blocks, get_edited_messages
+from .utility.context_manager import ContextManager, TrimResult
 from .utility.replacehelper import PromptFormatter, replace_variables_dict
 from enum import Enum 
 from .handlers import Handler
@@ -1188,7 +1189,8 @@ class NewelleController:
         if copy_chat:
             chat = copy.deepcopy(chat)
         history = []
-        count = self.newelle_settings.memory
+        use_fixed = self.newelle_settings.context_mode == "fixed"
+        count = self.newelle_settings.memory if use_fixed else -1
         msgs = chat[:-1] if not include_last_message else chat
         msgs.reverse()
         for msg in msgs:
@@ -1202,8 +1204,41 @@ class NewelleController:
                 msg["Message"] = f"```{msg['User'].lower()}\n{msg['Message'].strip()}\n```"
                 msg["User"] = "User"
             history.insert(0,msg)
-            count -= 1
+            if count > 0:
+                count -= 1
         return history
+
+    def _trim_context(
+        self,
+        history: list[dict[str, str]],
+        prompts: list[str],
+        current_message: str,
+    ) -> tuple[list[dict[str, str]], TrimResult | None]:
+        """Trim history using the ContextManager when context-manager mode is active.
+
+        Returns (trimmed_history, trim_result). trim_result is None when using fixed mode.
+        """
+        if self.newelle_settings.context_mode != "context-manager":
+            return history, None
+
+        prompts_token_count = sum(count_tokens(p) for p in prompts)
+
+        embedding = getattr(self.handlers, "embedding", None)
+        if self.newelle_settings.use_secondary_language_model:
+            llm = getattr(self.handlers, "secondary_llm", None)
+        else:
+            llm = getattr(self.handlers, "llm", None)
+
+        cm = ContextManager(
+            max_tokens=self.newelle_settings.context_max,
+            suggested_tokens=self.newelle_settings.context_suggested,
+            embedding_handler=embedding,
+            llm_handler=llm,
+            summarization_enabled=self.newelle_settings.context_summarization,
+        )
+        result = cm.trim(history, prompts_token_count, current_message)
+        self.last_trim_result = result
+        return result.history, result
 
     def get_memory_prompt(self, chat=None, chat_id=None):
         """Get memory and RAG context prompts.
@@ -1308,9 +1343,11 @@ class NewelleController:
 
         # Set the history for the model
         history = self.get_history(chat=chat)
+        current_message = chat[-1]["Message"] if chat else ""
+        history, _ = self._trim_context(history, prompts, current_message)
         # Let extensions preprocess the history
         old_history = copy.deepcopy(history)
-        old_user_prompt = chat[-1]["Message"] if chat else ""
+        old_user_prompt = current_message
         processed_chat, prompts = self.integrationsloader.preprocess_history(chat, prompts)
         chat, prompts = self.extensionloader.preprocess_history(processed_chat, prompts)
 
@@ -1415,7 +1452,8 @@ class NewelleController:
             'prompts': prompts,
             'input_tokens': input_tokens,
             'output_tokens': output_tokens,
-            'time': last_generation_time
+            'time': last_generation_time,
+            'trim_result': getattr(self, 'last_trim_result', None),
         })
 
     def run_llm_with_tools(
@@ -1486,10 +1524,12 @@ class NewelleController:
                     if on_message_callback:
                         on_message_callback(text)
                 
+                send_history, _ = self._trim_context(current_history, system_prompt, message)
+
                 if self.handlers.llm.stream_enabled():
                     response = self.handlers.llm.send_message_stream(
                         message if iteration == 0 else "",
-                        current_history,
+                        send_history,
                         system_prompt,
                         stream_callback
                     )
@@ -1497,7 +1537,7 @@ class NewelleController:
                     response = self.handlers.llm.send_message(
                         message if iteration == 0 else "",
                         system_prompt,
-                        current_history
+                        send_history
                     )
                     if on_message_callback:
                         on_message_callback(response)
@@ -1716,6 +1756,10 @@ class NewelleSettings:
         self.wakeword_pre_buffer_duration = settings.get_double("wakeword-pre-buffer-duration")
         self.wakeword_silence_duration = settings.get_double("wakeword-silence-duration")
         self.wakeword_energy_threshold = settings.get_int("wakeword-energy-threshold")
+        self.context_mode = settings.get_string("context-mode")
+        self.context_max = settings.get_int("context-max")
+        self.context_suggested = settings.get_int("context-suggested")
+        self.context_summarization = settings.get_boolean("context-summarization")
         self.load_prompts()
         # Adjust paths
         if os.path.exists(os.path.expanduser(self.main_path)):
