@@ -2,6 +2,20 @@ from ..extensions import NewelleExtension
 from ..tools import Tool, ToolResult 
 import threading 
 import json 
+import os
+import time
+
+
+class _CachedTool:
+    """Lightweight stand-in for an MCP SDK tool object loaded from the cache."""
+
+    __slots__ = ("name", "description", "inputSchema")
+
+    def __init__(self, name: str, description: str, input_schema: dict):
+        self.name = name
+        self.description = description
+        self.inputSchema = input_schema
+
 
 class MCPIntegration(NewelleExtension):
     id = "mcp"
@@ -13,7 +27,13 @@ class MCPIntegration(NewelleExtension):
         self.tools = []
         self.tools_dict = {}  # Maps tool_name -> server_info dict
         self.stdio_sessions = {}  # Keep stdio sessions alive
-        self.update_tools()
+        self._cache_path = os.path.join(extension_path, "mcp_tool_cache.json")
+
+        if self._load_from_cache():
+            # Cache hit -- refresh in background so next startup stays fresh
+            threading.Thread(target=self._background_refresh, daemon=True).start()
+        else:
+            self.update_tools()
 
     def _get_server_info(self, server):
         """Extract server info from both old (string) and new (dict) formats"""
@@ -55,6 +75,70 @@ class MCPIntegration(NewelleExtension):
         if server_info.get("type") == "stdio":
             return f"stdio:{server_info.get('command')}:{':'.join(server_info.get('args', []))}"
         return server_info.get("url", "")
+
+    # --- Tool metadata cache ---
+
+    def _load_from_cache(self) -> bool:
+        """Populate self.tools and self.tools_dict from the on-disk cache.
+
+        Returns True if at least one server's tools were restored.
+        """
+        if not os.path.exists(self._cache_path):
+            return False
+        try:
+            with open(self._cache_path, "r") as f:
+                cache = json.load(f)
+        except (json.JSONDecodeError, OSError):
+            return False
+
+        loaded_any = False
+        for server in self.mcp_servers:
+            server_info = self._get_server_info(server)
+            identifier = self._get_server_identifier(server_info)
+            entry = cache.get(identifier)
+            if not entry or "tools" not in entry:
+                continue
+            for td in entry["tools"]:
+                stub = _CachedTool(td["name"], td.get("description", ""), td.get("inputSchema", {}))
+                self.tools.append(stub)
+                self.tools_dict[stub.name] = server_info
+            loaded_any = True
+
+        return loaded_any
+
+    def _save_cache(self):
+        """Persist current tool metadata so future startups can skip connections."""
+        cache: dict = {}
+        # Group tools by server identifier
+        for tool in self.tools:
+            server_info = self.tools_dict.get(tool.name, {})
+            identifier = self._get_server_identifier(server_info)
+            if identifier not in cache:
+                cache[identifier] = {"tools": [], "cached_at": time.time()}
+            schema = tool.inputSchema if hasattr(tool, "inputSchema") else {}
+            cache[identifier]["tools"].append({
+                "name": tool.name,
+                "description": tool.description,
+                "inputSchema": schema,
+            })
+        try:
+            os.makedirs(os.path.dirname(self._cache_path), exist_ok=True)
+            with open(self._cache_path, "w") as f:
+                json.dump(cache, f)
+        except OSError as e:
+            print(f"MCP cache write error: {e}")
+
+    def _background_refresh(self):
+        """Re-fetch tools from all servers and update the cache."""
+        old_tools = self.tools
+        old_dict = self.tools_dict
+        self.tools = []
+        self.tools_dict = {}
+        self.async_get_tools()
+        if not self.tools:
+            # Restore from previous state if refresh fails entirely
+            self.tools = old_tools
+            self.tools_dict = old_dict
 
     def add_mcp_server(self, url=None, title=None, bearer_token=None, client_id=None, custom_headers=None, 
                        server_type="http", command=None, args=None, env=None):
@@ -112,6 +196,7 @@ class MCPIntegration(NewelleExtension):
         self.tools = []
         self.tools_dict = {}
         self.update_tools()
+        self._save_cache()
         if hasattr(self, "ui_controller"):
             self.ui_controller.require_tool_update()
         return True
@@ -141,6 +226,7 @@ class MCPIntegration(NewelleExtension):
                     self.tools_dict[tool.name] = server_info
             except Exception as e:
                 print(f"Error fetching tools from {identifier}: {e}")
+        self._save_cache()
         if hasattr(self, "ui_controller"):
             self.ui_controller.require_tool_update()
         return self.tools
@@ -177,13 +263,45 @@ class MCPIntegration(NewelleExtension):
         t.start()
         return result
 
+    def _tool_search(self, tool_name: str) -> ToolResult:
+        """Meta-tool: return the full parameter schema for a given tool."""
+        result = ToolResult()
+        if hasattr(self, "ui_controller") and self.ui_controller is not None:
+            controller = self.ui_controller.window.controller
+            result.set_output(controller.tools.get_tool_schema(tool_name))
+        else:
+            result.set_output(json.dumps({"error": "Controller not available"}))
+        return result
+
     def get_tools(self) -> list:
         tools = []
         for tool in self.tools:
-            # Get server info to use title as tools_group
             server_info = self.tools_dict.get(tool.name, {})
             tools_group = server_info.get("title") or server_info.get("url", "MCP")
-            tools.append(Tool(tool.name, tool.description, self.execute_tool(tool.name), tool.inputSchema, tools_group=tools_group))
+            tools.append(Tool(
+                tool.name, tool.description, self.execute_tool(tool.name),
+                tool.inputSchema, tools_group=tools_group, default_lazy_load=True,
+            ))
+        if tools:
+            tool_search = Tool(
+                "tool_search",
+                "Get the full parameter schema for a tool. Call this before using any tool that is listed without parameters.",
+                lambda tool_name: self._tool_search(tool_name),
+                schema={
+                    "type": "object",
+                    "properties": {
+                        "tool_name": {
+                            "type": "string",
+                            "description": "The name of the tool to look up",
+                        }
+                    },
+                    "required": ["tool_name"],
+                },
+                tools_group="MCP",
+                default_lazy_load=False,
+                icon_name="system-search-symbolic",
+            )
+            tools.append(tool_search)
         return tools
 
     def get_answer(self, codeblock: str, lang: str) -> str | None:

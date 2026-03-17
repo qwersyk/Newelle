@@ -407,6 +407,8 @@ You have access to the following tools.
 
 **After invoking a tool, you must immediately stop the message.**
 
+Some tools below are shown **without parameters** (compact form). Before using one of these tools, call `tool_search` with the tool name to retrieve its full parameter schema.
+
 **Available tools:**
 
 ```

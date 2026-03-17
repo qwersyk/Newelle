@@ -607,6 +607,17 @@ class Settings(Adw.PreferencesWindow):
         toggle.set_active(is_enabled)
         toggle.connect("state-set", self.toggle_tool, tool.name)
         row.add_suffix(toggle)
+
+        # Lazy load toggle
+        is_lazy = tool.default_lazy_load
+        if tool.name in tools_settings and "lazy_load" in tools_settings[tool.name]:
+            is_lazy = tools_settings[tool.name]["lazy_load"]
+        lazy_row = Adw.ActionRow(title=_("Lazy load"), subtitle=_("Show compact description to reduce context usage"))
+        lazy_toggle = Gtk.Switch(valign=Gtk.Align.CENTER)
+        lazy_toggle.set_active(is_lazy)
+        lazy_toggle.connect("state-set", self.toggle_tool_lazy_load, tool.name)
+        lazy_row.add_suffix(lazy_toggle)
+        row.add_row(lazy_row)
         
         # Generate default prompt for this tool
         default_prompt_obj = {
@@ -649,6 +660,17 @@ class Settings(Adw.PreferencesWindow):
             tools_settings[tool_name] = {"enabled": default_on, "custom_prompt": None}
             
         tools_settings[tool_name]["enabled"] = state
+        self.settings.set_string("tools-settings", json.dumps(tools_settings))
+
+    def toggle_tool_lazy_load(self, switch, state, tool_name):
+        tools_settings = self.controller.newelle_settings.tools_settings_dict
+
+        if tool_name not in tools_settings:
+            tool = self.controller.tools.get_tool(tool_name)
+            default_on = tool.default_on if tool else True
+            tools_settings[tool_name] = {"enabled": default_on, "custom_prompt": None}
+
+        tools_settings[tool_name]["lazy_load"] = state
         self.settings.set_string("tools-settings", json.dumps(tools_settings))
 
     def update_tool_prompt(self, entry):
@@ -1226,6 +1248,68 @@ class Settings(Adw.PreferencesWindow):
         self.mcp_args_entry.set_text("")
         self.mcp_env_text.get_buffer().set_text("{}")
 
+    def _get_mcp_cached_tool_count(self, identifier):
+        """Return the number of cached tools for a given server identifier."""
+        mcp_handler = self.controller.get_mcp_integration()
+        if mcp_handler is None:
+            return 0
+        count = 0
+        for tool in mcp_handler.tools:
+            info = mcp_handler.tools_dict.get(tool.name, {})
+            if mcp_handler._get_server_identifier(info) == identifier:
+                count += 1
+        return count
+
+    def _refresh_single_mcp_server(self, btn, spinner, identifier):
+        """Re-fetch tools for a single server and update the cache."""
+        btn.set_sensitive(False)
+        spinner.start()
+
+        def refresh_thread():
+            mcp_handler = self.controller.get_mcp_integration()
+            if mcp_handler is None:
+                GLib.idle_add(spinner.stop)
+                GLib.idle_add(btn.set_sensitive, True)
+                return
+            # Remove old tools for this server
+            mcp_handler.tools = [
+                t for t in mcp_handler.tools
+                if mcp_handler._get_server_identifier(mcp_handler.tools_dict.get(t.name, {})) != identifier
+            ]
+            mcp_handler.tools_dict = {
+                k: v for k, v in mcp_handler.tools_dict.items()
+                if mcp_handler._get_server_identifier(v) != identifier
+            }
+            # Re-fetch for the matching server
+            for server in mcp_handler.mcp_servers:
+                server_info = mcp_handler._get_server_info(server)
+                if mcp_handler._get_server_identifier(server_info) == identifier:
+                    try:
+                        if server_info.get("type") == "stdio":
+                            tools = mcp_handler.sync_get_tools_stdio(
+                                server_info["command"],
+                                server_info.get("args") or [],
+                                server_info.get("env"),
+                            )
+                        else:
+                            headers = mcp_handler._build_headers(server_info["bearer_token"], server_info["custom_headers"])
+                            tools = mcp_handler.sync_get_tools(server_info["url"], headers=headers, client_id=server_info["client_id"])
+                        mcp_handler.tools.extend(tools)
+                        for tool in tools:
+                            mcp_handler.tools_dict[tool.name] = server_info
+                    except Exception as e:
+                        print(f"Refresh error for {identifier}: {e}")
+                    break
+            mcp_handler._save_cache()
+            if hasattr(mcp_handler, "ui_controller"):
+                GLib.idle_add(mcp_handler.ui_controller.require_tool_update)
+            GLib.idle_add(self.refresh_mcp_servers_list)
+            GLib.idle_add(self.refresh_tools_list)
+            GLib.idle_add(spinner.stop)
+            GLib.idle_add(btn.set_sensitive, True)
+
+        threading.Thread(target=refresh_thread, daemon=True).start()
+
     def refresh_mcp_servers_list(self):
         for row in self.mcp_server_rows:
              self.servers_list_group.remove(row)
@@ -1253,14 +1337,31 @@ class Settings(Adw.PreferencesWindow):
                     title = server.get("title") or identifier[:30]
                     subtitle = identifier if title != identifier[:30] else None
             
-            # Add type badge
             row = Adw.ActionRow(title=title, subtitle=subtitle)
             
+            # Cached tool count badge
+            tool_count = self._get_mcp_cached_tool_count(identifier)
+            if tool_count > 0:
+                count_label = Gtk.Label(
+                    label=_("{0} tools").format(tool_count),
+                    valign=Gtk.Align.CENTER,
+                )
+                count_label.add_css_class("dim-label")
+                count_label.add_css_class("caption")
+                row.add_suffix(count_label)
+
             # Type indicator
             type_label = Gtk.Label(label=server_type.upper(), valign=Gtk.Align.CENTER)
             type_label.add_css_class("dim-label")
             type_label.add_css_class("caption")
             row.add_suffix(type_label)
+
+            # Refresh button with spinner
+            refresh_spinner = Gtk.Spinner()
+            row.add_suffix(refresh_spinner)
+            refresh_btn = Gtk.Button(icon_name="view-refresh-symbolic", valign=Gtk.Align.CENTER, css_classes=["flat"], tooltip_text=_("Refresh tools"))
+            refresh_btn.connect("clicked", self._refresh_single_mcp_server, refresh_spinner, identifier)
+            row.add_suffix(refresh_btn)
             
             delete_btn = Gtk.Button(icon_name="user-trash-symbolic", valign=Gtk.Align.CENTER)
             delete_btn.add_css_class("destructive-action")
