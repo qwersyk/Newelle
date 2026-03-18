@@ -284,7 +284,6 @@ class TodoListIntegration(NewelleExtension):
         ]
 
     def preprocess_history(self, history: list, prompts: list) -> tuple[list, list]:
-        print(history)
         for i, prompt in enumerate(prompts):
             if "{TODOLIST}" in prompt:
                 todolist_text = self._format_todolist_for_prompt()

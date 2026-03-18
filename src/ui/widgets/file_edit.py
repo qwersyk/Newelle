@@ -17,7 +17,7 @@ class FileEditWidget(Gtk.Box):
     }
 
     def __init__(self, file_path: str, old_content: str, new_content: str, edit_type: str = "edit",
-                 color_scheme: str = "Adwaita-dark", open_in_editor_callback=None):
+                 color_scheme: str = "Adwaita-dark", open_in_editor_callback=None, undo_callback=None, redo_callback=None):
         """
         Initialize the file edit widget.
 
@@ -28,6 +28,8 @@ class FileEditWidget(Gtk.Box):
             edit_type: Type of edit - "write" (new file), "edit" (modification), or "create"
             color_scheme: GtkSourceView color scheme name
             open_in_editor_callback: Optional callable to open file in internal editor
+            undo_callback: Optional callable(file_path, old_content, edit_type) to undo
+            redo_callback: Optional callable(file_path, new_content, edit_type) to redo
         """
         super().__init__(
             orientation=Gtk.Orientation.VERTICAL,
@@ -45,10 +47,13 @@ class FileEditWidget(Gtk.Box):
         self.edit_type = edit_type
         self.color_scheme = color_scheme
         self.is_expanded = False
+        self.is_undone = False
 
         # Calculate stats
         self.filename = os.path.basename(file_path)
         self.open_in_editor_callback = open_in_editor_callback
+        self.undo_callback = undo_callback
+        self.redo_callback = redo_callback
 
         # Generate diff and track line numbers
         self.diff_content, self.line_numbers = self._generate_diff_with_line_numbers()
@@ -221,6 +226,15 @@ class FileEditWidget(Gtk.Box):
         open_button.set_tooltip_text("Open in external editor")
         open_button.connect("clicked", self._on_open_externally_clicked)
         header_box.append(open_button)
+
+        # Undo/Redo button
+        self.undo_button = None
+        if self.undo_callback is not None:
+            self.undo_button = Gtk.Button(css_classes=["flat"], valign=Gtk.Align.CENTER)
+            self.undo_button.set_icon_name("edit-undo-symbolic")
+            self.undo_button.set_tooltip_text("Undo changes")
+            self.undo_button.connect("clicked", self._on_undo_clicked)
+            header_box.append(self.undo_button)
 
         self.append(header_box)
 
@@ -411,6 +425,36 @@ class FileEditWidget(Gtk.Box):
             print(f"Error opening file: {e}")
 
         self.emit('open-externally-clicked')
+
+    def _on_undo_clicked(self, button):
+        """Undo the file changes by restoring old content."""
+        if self.undo_callback is not None and not self.is_undone:
+            self.undo_callback(self.file_path, self.old_content, self.edit_type)
+            self.is_undone = True
+            self._update_undo_button()
+
+    def _on_redo_clicked(self, button):
+        """Redo the file changes by restoring new content."""
+        if self.redo_callback is not None and self.is_undone:
+            self.redo_callback(self.file_path, self.new_content, self.edit_type)
+            self.is_undone = False
+            self._update_undo_button()
+
+    def _update_undo_button(self):
+        """Update undo button state based on is_undone flag."""
+        if self.undo_button is None:
+            return
+
+        if self.is_undone:
+            self.undo_button.set_icon_name("edit-redo-symbolic")
+            self.undo_button.set_tooltip_text("Redo changes")
+            self.undo_button.disconnect_by_func(self._on_undo_clicked)
+            self.undo_button.connect("clicked", self._on_redo_clicked)
+        else:
+            self.undo_button.set_icon_name("edit-undo-symbolic")
+            self.undo_button.set_tooltip_text("Undo changes")
+            self.undo_button.disconnect_by_func(self._on_redo_clicked)
+            self.undo_button.connect("clicked", self._on_undo_clicked)
 
     def get_diff_content(self) -> str:
         """Get the diff content."""
