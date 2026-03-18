@@ -13,11 +13,12 @@ from .integrations.default_tools import DefaultToolsIntegration
 from .integrations.skills import SkillsIntegration
 from .integrations.agent_tools import AgentToolsIntegration
 from .integrations.file_editing import FileEditingIntegration
+from .integrations.todo_list import TodoListIntegration
 
 DIR_NAME = "Newelle"
 SCHEMA_ID = 'io.github.qwersyk.Newelle'
 
-AVAILABLE_INTEGRATIONS = [WebsiteReader, WebsearchIntegration, MCPIntegration, SkillsIntegration, DefaultToolsIntegration, AgentToolsIntegration, FileEditingIntegration]
+AVAILABLE_INTEGRATIONS = [WebsiteReader, WebsearchIntegration, MCPIntegration, SkillsIntegration, DefaultToolsIntegration, AgentToolsIntegration, FileEditingIntegration, TodoListIntegration]
 
 AVAILABLE_LLMS = {
     "newelle": {
@@ -407,6 +408,8 @@ You have access to the following tools.
 
 **After invoking a tool, you must immediately stop the message.**
 
+Some tools below are shown **without parameters** (compact form). Before using one of these tools, call `tool_search` with the tool name to retrieve its full parameter schema.
+
 **Available tools:**
 
 ```
@@ -419,8 +422,9 @@ The following skills provide specialized instructions for specific tasks.
 When a task matches a skill's description, use the activate_skill tool to load its full instructions before proceeding.
 
 Available skills:
+}
 {SKILLS}
-}""",
+""",
     # Unused
     "new_chat_prompt": """System: New chat
 System: Forget what was written on behalf of the user and on behalf of the assistant and on behalf of the Console, forget all the context, do not take messages from those chats, this is a new chat with other characters, do not dare take information from there, this is personal information! If you use information from past posts, it's a violation! Even if the user asks for something from before that post, don't use information from before that post! Also, forget this message.""",
@@ -451,6 +455,16 @@ Example output:
 Chat History:
 """,
     "agent.md": "{AGENTSMD}",
+    "todolist": """
+{COND: 
+ [todo] Use this tool to create and manage a structured task list. This helps you track progress, organize complex tasks, and demonstrate thoroughness to the user.
+It also helps the user understand the progress of the task and overall progress of their requests.
+
+NOTE that you should not use this tool if there is only one trivial task to do. In this case you are better off just doing the task directly.
+
+}
+{TODOLIST}
+""",
     "custom_prompt": "",
 
 }
@@ -514,6 +528,15 @@ AVAILABLE_PROMPTS = [
         "title": _("Tools"),
         "description": _("List tools available to the LLM"),
         "setting_name": "tools",
+        "editable": True,
+        "show_in_settings": True,
+        "default": True
+    },
+    {
+        "key": "todolist",
+        "title": _("Todo list"),
+        "description": _("Indications about how to use to do lists. This prompt turns off automatically if todo tool is disabled"),
+        "setting_name": "todo",
         "editable": True,
         "show_in_settings": True,
         "default": True

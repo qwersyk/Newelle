@@ -240,5 +240,18 @@
         <key name="file-permissions" type="s">
             <default>'[{"path": "*", "read": "allow", "write": "ask"}, {"path": "{{main_path}}", "read": "allow", "write": "ask"}]'</default>
         </key>
+        <!-- Context Manager settings -->
+        <key name="context-mode" type="s">
+            <default>"context-manager"</default>
+        </key>
+        <key name="context-max" type="i">
+            <default>128000</default>
+        </key>
+        <key name="context-suggested" type="i">
+            <default>30000</default>
+        </key>
+        <key name="context-summarization" type="b">
+            <default>false</default>
+        </key>
 	</schema>
 </schemalist>

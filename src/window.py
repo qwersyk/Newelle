@@ -21,7 +21,8 @@ from .ui.profile import ProfileDialog
 from .ui.presentation import PresentationWindow
 from .ui.widgets import File, CopyBox, BarChartBox, MarkupTextView, DocumentReaderWidget, TipsCarousel, BrowserWidget, Terminal, CodeEditorWidget, ToolWidget, CallPanel
 from .ui.explorer import ExplorerPanel
-from .ui.widgets import MultilineEntry, ProfileRow, DisplayLatex, InlineLatex, ThinkingWidget, Message, ChatRow, ChatHistory, ChatTab
+from .ui.widgets import MultilineEntry, ProfileRow, DisplayLatex, InlineLatex, ThinkingWidget, Message, ChatRow, FolderRow, ChatHistory, ChatTab
+from .ui.widgets.context_indicator import ContextIndicator
 from .ui.stdout_monitor import StdoutMonitorDialog
 from .utility.stdout_capture import StdoutMonitor
 from .constants import AVAILABLE_LLMS, SCHEMA_ID, SETTINGS_GROUPS
@@ -97,12 +98,10 @@ class MainWindow(Adw.ApplicationWindow):
         
         # Ensure all chats have unique IDs and handle branching fields
 
-        for chat_entry in self.chats:
+        for chat_entry in self.chats.values():
             if "id" not in chat_entry:
                 chat_entry["id"] = str(uuid.uuid4())
             if "branched_from" not in chat_entry:
-                chat_entry["branched_from"] = None
-        
                 chat_entry["branched_from"] = None
         
         # RAG Indexes to documents for each chat
@@ -172,6 +171,9 @@ class MainWindow(Adw.ApplicationWindow):
 
         # Header box - Contains the buttons that must go in the left side of the header
         self.headerbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, hexpand=True)
+        # Context usage indicator
+        self.context_indicator = ContextIndicator()
+        self.headerbox.append(self.context_indicator)
         # Mute TTS Button
         self.mute_tts_button = Gtk.Button(
             css_classes=["flat"], icon_name="audio-volume-muted-symbolic", visible=False
@@ -224,14 +226,16 @@ class MainWindow(Adw.ApplicationWindow):
         self.chats_buttons_scroll_block.set_child(self.chats_buttons_block)
         self.chats_secondary_box.append(self.chats_buttons_scroll_block)
         
-        # New chat button with Adwaita pill style
+        # Bottom button bar: New Chat + New Folder
+        bottom_buttons = Gtk.Box(
+            orientation=Gtk.Orientation.HORIZONTAL,
+            spacing=6,
+            margin_start=12, margin_end=12, margin_top=12, margin_bottom=12,
+            homogeneous=True,
+        )
         new_chat_button = Gtk.Button(
             valign=Gtk.Align.END,
             css_classes=["suggested-action", "pill"],
-            margin_start=12,
-            margin_end=12,
-            margin_top=12,
-            margin_bottom=12,
         )
         new_chat_button_content = Adw.ButtonContent(
             icon_name="list-add-symbolic",
@@ -239,7 +243,21 @@ class MainWindow(Adw.ApplicationWindow):
         )
         new_chat_button.set_child(new_chat_button_content)
         new_chat_button.connect("clicked", self.new_chat)
-        self.chats_secondary_box.append(new_chat_button)
+        bottom_buttons.append(new_chat_button)
+
+        new_folder_button = Gtk.Button(
+            valign=Gtk.Align.END,
+            css_classes=["pill"],
+        )
+        new_folder_btn_content = Adw.ButtonContent(
+            icon_name="folder-new-symbolic",
+            label=_("New Folder"),
+        )
+        new_folder_button.set_child(new_folder_btn_content)
+        new_folder_button.connect("clicked", self._new_folder)
+        bottom_buttons.append(new_folder_button)
+
+        self.chats_secondary_box.append(bottom_buttons)
         self.chats_main_box.append(self.chats_secondary_box)
         self.chats_main_box.append(Gtk.Separator())
         self.main.set_sidebar(Adw.NavigationPage(child=self.chats_main_box, title=_("Chats")))
@@ -301,6 +319,7 @@ class MainWindow(Adw.ApplicationWindow):
 
         # Add the initial chat tab
         self.add_chat_tab(self.chat_id)
+        self.refresh_context_indicator()
 
         def build_model_popup():
             self.chat_header.set_title_widget(self.build_model_popup())
@@ -504,7 +523,7 @@ class MainWindow(Adw.ApplicationWindow):
             return existing_tab
         
         # Validate chat_id
-        if chat_id < 0 or chat_id >= len(self.chats):
+        if chat_id not in self.chats:
             return None
         
         # Create new ChatTab widget
@@ -564,6 +583,7 @@ class MainWindow(Adw.ApplicationWindow):
 
             # Update UI FIRST before profile switch for instant visual feedback
             self.update_history()
+            self.refresh_context_indicator()
 
             # Schedule profile switch to happen after UI renders
             # This makes the tab switch feel instant
@@ -618,21 +638,13 @@ class MainWindow(Adw.ApplicationWindow):
         Returns:
             The Adw.TabPage if created/switched to
         """
-        new_chat_entry = {
-            "name": _("Chat %d") % (len(self.chats) + 1),
-            "chat": [],
-            "id": str(uuid.uuid4()),
-            "branched_from": None
-        }
-        self.chats.append(new_chat_entry)
-        # Update all existing tab chat_ids since we inserted at 0
-        self._update_tab_chat_ids_after_insert(len(self.chats) - 1)
-        self.chat_id = len(self.chats) - 1
-        self.save_chat()
+        new_chat_id = self.controller.create_visible_chat()
+        self.chat_id = new_chat_id
 
         if force_new_tab:
             tab_page = self.add_chat_tab(self.chat_id)
             self.update_history()
+            self.refresh_context_indicator()
             return tab_page
         else:
             # Switch current tab to the new chat instead of creating new tab
@@ -641,52 +653,26 @@ class MainWindow(Adw.ApplicationWindow):
                 current_tab.switch_to_chat(self.chat_id)
                 # Update history AFTER switching so the UI shows correct open state
                 self.update_history()
+                self.refresh_context_indicator()
                 return current_tab.tab_page
             else:
                 # No tabs exist, create one
                 tab_page = self.add_chat_tab(self.chat_id)
                 self.update_history()
+                self.refresh_context_indicator()
                 return tab_page
-    
-    def _update_tab_chat_ids_after_insert(self, inserted_at: int):
-        """Update chat_ids in all tabs after a chat was inserted.
-        
-        Args:
-            inserted_at: The index where a new chat was inserted
-        """
-        n_pages = self.chat_tabs.get_n_pages()
-        for i in range(n_pages):
-            page = self.chat_tabs.get_nth_page(i)
-            child = page.get_child()
-            if isinstance(child, ChatTab) and child._chat_id >= inserted_at:
-                child._chat_id += 1
-    
-    def _update_tab_chat_ids_after_delete(self, deleted_at: int):
-        """Update chat_ids in all tabs after a chat was deleted.
 
-        Args:
-            deleted_at: The index where a chat was deleted
-        """
-        n_pages = self.chat_tabs.get_n_pages()
-        # Go backwards to safely close tabs
-        for i in range(n_pages - 1, -1, -1):
-            page = self.chat_tabs.get_nth_page(i)
-            child = page.get_child()
-            if isinstance(child, ChatTab):
-                if child._chat_id == deleted_at:
-                    # Close tab showing the deleted chat
-                    self.chat_tabs.close_page(page)
-                elif child._chat_id > deleted_at:
-                    # Update chat_id for tabs after the deleted one
-                    child._chat_id -= 1
+    def show_error_dialog(self, title: str, message: str):
+        """Show an error dialog with the given title and message."""
+        dialog = Adw.AlertDialog(title=title, body=message)
+        dialog.add_response("close", "Close")
+        dialog.set_response_appearance("close", Adw.ResponseAppearance.DESTRUCTIVE)
+        dialog.connect("response", lambda d, r: d.close())
+        dialog.present(self)
 
     def handle_error(self, message: str, error: ErrorSeverity):
         if error == ErrorSeverity.ERROR:
-            dialog = Adw.AlertDialog(title=_("Provider Errror"), body=message)
-            dialog.add_response("close", "Close")
-            dialog.set_response_appearance("close", Adw.ResponseAppearance.DESTRUCTIVE)
-            dialog.connect("response", lambda d, r: d.close())
-            dialog.present()
+            self.show_error_dialog(_("Provider Errror"), message)
         elif error == ErrorSeverity.WARNING:
             self.notification_block.add_toast(Adw.Toast.new(message))
 
@@ -2010,38 +1996,31 @@ class MainWindow(Adw.ApplicationWindow):
 
     def create_branch(self, message_id: int, source_chat_id: int = None):
         """Create a new chat branching from a specific message ID
-        
+
         Args:
             message_id: The message ID to branch from
             source_chat_id: The chat ID to branch from (defaults to current chat_id)
         """
         if source_chat_id is None:
             source_chat_id = self.chat_id
-            
-        if source_chat_id < 0 or source_chat_id >= len(self.chats):
+
+        if source_chat_id not in self.chats:
             return
-            
+
         parent_chat = self.chats[source_chat_id]
         parent_id = parent_chat.get("id")
-        
+
         # Copy messages up to message_id (inclusive)
-        branched_messages = parent_chat["chat"][:message_id + 1]
-        
-        new_chat_entry = {
-            "name": parent_chat["name"],
-            "chat": copy.deepcopy(branched_messages),
-            "id": str(uuid.uuid4()),
-            "branched_from": parent_id,
-            "profile": parent_chat.get("profile", self.current_profile)
-        }
-        
-        # Append to end
-        self.chats.append(new_chat_entry)
-        
-        # Switch to the new chat - open in new tab
-        new_chat_id = len(self.chats) - 1
+        branched_messages = copy.deepcopy(parent_chat["chat"][:message_id + 1])
+
+        new_chat_id = self.controller.create_visible_chat(
+            name=parent_chat["name"],
+            profile=parent_chat.get("profile", self.current_profile)
+        )
+        self.chats[new_chat_id]["chat"] = branched_messages
+        self.chats[new_chat_id]["branched_from"] = parent_id
         self.chat_id = new_chat_id
-        
+
         self.save_chat()
         self.update_history()
         # Open in new tab
@@ -2050,147 +2029,388 @@ class MainWindow(Adw.ApplicationWindow):
         if tab is not None:
             GLib.idle_add(tab.chat_history.update_button_text)
 
+    def refresh_context_indicator(self):
+        """Recompute and display context usage for the current chat."""
+        if hasattr(self, 'context_indicator'):
+            self.context_indicator.update_from_chat(self.controller)
+
     def update_history(self):
-        """Reload chats panel with Adwaita-styled ChatRow widgets, supporting branching hierarchy"""
-        # Focus input to avoid removing a focused child
+        """Reload chats panel with Adwaita-styled ChatRow/FolderRow widgets, supporting folders and branching"""
         self.focus_input()
 
-        # Create new list box with Adwaita navigation sidebar styling
         list_box = Gtk.ListBox(css_classes=["navigation-sidebar"])
         list_box.set_selection_mode(Gtk.SelectionMode.SINGLE)
         self.chats_list_box = list_box
         self.chats_buttons_scroll_block.set_child(list_box)
-        
+
         list_box.connect("row-activated", self.on_chat_row_activated)
 
-        # Middle-click handler to open chat in a new tab
         middle_click_gesture = Gtk.GestureClick()
         middle_click_gesture.set_button(2)
         middle_click_gesture.connect("pressed", self._on_chat_row_middle_clicked, list_box)
         list_box.add_controller(middle_click_gesture)
 
+        # Drop target on the list box itself to remove a chat from its folder
+        unfolder_drop = Gtk.DropTarget.new(GObject.TYPE_STRING, Gdk.DragAction.MOVE)
+        unfolder_drop.connect("enter", self._on_unfolder_drop_enter)
+        unfolder_drop.connect("leave", self._on_unfolder_drop_leave)
+        unfolder_drop.connect("drop", self._on_unfolder_drop)
+        list_box.add_controller(unfolder_drop)
+
         # Build hierarchy map
-        id_to_index = {chat.get("id"): i for i, chat in enumerate(self.chats)}
+        id_to_chat_id = {chat.get("id"): cid for cid, chat in self.chats.items()}
         children_map = {}
-        top_level_indices = []
-        
-        for i, chat in enumerate(self.chats):
+        top_level_ids = []
+
+        # Collect chats that live inside a folder
+        foldered_chat_ids = set()
+        for folder in self.controller.folders.values():
+            for cid in folder.get("chat_ids", []):
+                if cid in self.chats:
+                    foldered_chat_ids.add(cid)
+
+        for cid, chat in self.chats.items():
             if chat.get("call", False):
                 continue
             parent_id = chat.get("branched_from")
-            if parent_id and parent_id in id_to_index:
+            if parent_id and parent_id in id_to_chat_id:
                 if parent_id not in children_map:
                     children_map[parent_id] = []
-                children_map[parent_id].append(i)
-            else:
-                top_level_indices.append(i)
-        
-        # Handle reverse order if needed for top-level chats
+                children_map[parent_id].append(cid)
+            elif cid not in foldered_chat_ids:
+                top_level_ids.append(cid)
+
         if self.controller.newelle_settings.reverse_order:
-            top_level_indices.reverse()
-            
-        def add_chat_recursive(index, level=0):
-            chat_entry = self.chats[index]
+            top_level_ids.reverse()
+
+        def add_chat_recursive(chat_id, level=0):
+            if chat_id not in self.chats:
+                return
+            chat_entry = self.chats[chat_id]
             name = chat_entry["name"]
-            is_selected = (index == self.chat_id)
-            is_open = self.get_tab_for_chat(index) is not None
-            
-            # Create ChatRow widget with indentation level
+            is_selected = (chat_id == self.chat_id)
+            is_open = self.get_tab_for_chat(chat_id) is not None
+
             chat_row = ChatRow(
                 chat_name=name,
-                chat_index=index,
+                chat_index=chat_id,
                 is_selected=is_selected,
                 level=level,
                 is_open=is_open
             )
-            
-            # Connect signals
             chat_row.connect_signals(
                 on_generate=self.generate_chat_name,
                 on_edit=lambda btn, row=chat_row: self.edit_chat_name(btn, row.get_edit_stack()),
                 on_clone=self.copy_chat,
                 on_delete=self.remove_chat
-            ) 
-            
+            )
             list_box.append(chat_row)
             if is_selected:
                 list_box.select_row(chat_row)
-                
-            # Add offspring
-            chat_id = chat_entry.get("id")
-            if chat_id in children_map:
-                # Keep children in the same order as they appear in self.chats (chronological)
-                # unless specifically reversed, but usually branches are chronological
-                children = children_map[chat_id]
-                for child_index in children:
-                    add_chat_recursive(child_index, level + 1)
-        
-        for i in top_level_indices:
-            add_chat_recursive(i)
+
+            entry_uuid = chat_entry.get("id")
+            if entry_uuid in children_map:
+                for child_id in children_map[entry_uuid]:
+                    add_chat_recursive(child_id, level + 1)
+
+        # Render folders first
+        for fid, folder in self.controller.folders.items():
+            folder_row = FolderRow(
+                folder_id=fid,
+                folder_name=folder["name"],
+                folder_color=folder.get("color", "#3584e4"),
+                folder_icon=folder.get("icon", "folder-symbolic"),
+                expanded=folder.get("expanded", True),
+            )
+            folder_row.connect_signals(
+                on_edit=lambda btn, f_id=fid: self._edit_folder(f_id),
+                on_delete=lambda btn, f_id=fid: self._delete_folder(f_id),
+                on_drop_chat=self._on_chat_dropped_on_folder,
+            )
+            list_box.append(folder_row)
+
+            if folder.get("expanded", True):
+                for cid in folder.get("chat_ids", []):
+                    add_chat_recursive(cid, level=1)
+
+        # Render top-level (unfoldered) chats
+        for cid in top_level_ids:
+            add_chat_recursive(cid)
     
     def on_chat_row_activated(self, listbox, row):
-        """Handle chat row activation to switch chats"""
+        """Handle chat/folder row activation"""
+        if isinstance(row, FolderRow):
+            self.controller.toggle_folder_expanded(row.folder_id)
+            self.update_history()
+            return
         if not hasattr(row, 'chat_index'):
             return
-            
         if row.chat_index == self.chat_id:
             self.return_to_chat_panel(row)
         else:
             self.chose_chat(row.chat_index)
-    
+
     def _on_chat_row_middle_clicked(self, gesture, n_press, x, y, list_box):
         """Handle middle-click on a chat row to open it in a new tab"""
         row = list_box.get_row_at_y(int(y))
         if row is not None and hasattr(row, 'chat_index'):
             self.add_chat_tab(row.chat_index)
 
+    # -- Folder helpers --
+
+    def _on_chat_dropped_on_folder(self, chat_id: int, folder_id: int):
+        """Handle a chat being drag-dropped onto a folder row."""
+        self.controller.move_chat_to_folder(chat_id, folder_id)
+
+    def _on_unfolder_drop_enter(self, drop_target, x, y):
+        self.chats_list_box.add_css_class("unfolder-drop-area-hover")
+        return Gdk.DragAction.MOVE
+
+    def _on_unfolder_drop_leave(self, drop_target):
+        self.chats_list_box.remove_css_class("unfolder-drop-area-hover")
+
+    def _on_unfolder_drop(self, drop_target, value, x, y):
+        self.chats_list_box.remove_css_class("unfolder-drop-area-hover")
+        if value:
+            try:
+                chat_id = int(value)
+                self.controller.remove_chat_from_folder(chat_id)
+                return True
+            except (ValueError, TypeError):
+                pass
+        return False
+
+    def _edit_folder(self, folder_id: int):
+        """Show a dialog to edit folder name, color, and icon."""
+        if folder_id not in self.controller.folders:
+            return
+        folder = self.controller.folders[folder_id]
+        self._show_folder_dialog(
+            title=_("Edit Folder"),
+            initial_name=folder["name"],
+            initial_color=folder.get("color", "#3584e4"),
+            initial_icon=folder.get("icon", "folder-symbolic"),
+            callback=lambda name, color, icon: self._apply_folder_edit(folder_id, name, color, icon),
+        )
+
+    def _apply_folder_edit(self, folder_id, name, color, icon):
+        self.controller.rename_folder(folder_id, name)
+        self.controller.update_folder_color(folder_id, color)
+        self.controller.update_folder_icon(folder_id, icon)
+        self.update_history()
+
+    def _delete_folder(self, folder_id: int):
+        """Delete a folder after confirmation."""
+        self.controller.delete_folder(folder_id)
+
+    # Candidate icon names; we filter them at runtime using the current icon theme
+    # so we only show icons that actually exist (Adwaita / system theme).
+    FOLDER_ICON_CANDIDATES = [
+        # Folders
+        "folder-symbolic",
+        "folder-documents-symbolic",
+        "folder-download-symbolic",
+        "folder-music-symbolic",
+        "folder-pictures-symbolic",
+        "folder-publicshare-symbolic",
+        "folder-remote-symbolic",
+        "folder-saved-search-symbolic",
+        "folder-templates-symbolic",
+        "folder-videos-symbolic",
+        # Common semantic symbols
+        "bookmark-symbolic",
+        "starred-symbolic",
+        "tag-symbolic",
+        "emblem-favorite-symbolic",
+        # Apps / tools
+        "applications-system-symbolic",
+        "preferences-system-symbolic",
+        "utilities-terminal-symbolic",
+        "system-search-symbolic",
+        "help-browser-symbolic",
+        # Misc
+        "document-open-symbolic",
+        "mail-unread-symbolic",
+        "network-workgroup-symbolic",
+        "web-browser-symbolic",
+        "camera-photo-symbolic",
+        "media-playback-start-symbolic",
+        "audio-x-generic-symbolic",
+        "video-x-generic-symbolic",
+        "image-x-generic-symbolic",
+        "security-high-symbolic",
+        "dialog-information-symbolic",
+        "dialog-warning-symbolic",
+    ]
+
+    def _new_folder(self, button=None):
+        """Open dialog to create a new folder."""
+        self._show_folder_dialog(
+            title=_("New Folder"),
+            initial_name="",
+            initial_color="#3584e4",
+            initial_icon="folder-symbolic",
+            callback=lambda name, color, icon: self.controller.create_folder(name, color, icon),
+        )
+
+    def _show_folder_dialog(self, title: str, initial_name: str, initial_color: str,
+                            initial_icon: str, callback):
+        """Show a dialog with name entry, native color picker, and icon chooser."""
+        dialog = Adw.AlertDialog(heading=title)
+        dialog.add_response("cancel", _("Cancel"))
+        dialog.add_response("ok", _("OK"))
+        dialog.set_response_appearance("ok", Adw.ResponseAppearance.SUGGESTED)
+        dialog.set_default_response("ok")
+        dialog.set_close_response("cancel")
+
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
+
+        # -- Name entry --
+        name_entry = Gtk.Entry(
+            placeholder_text=_("Folder name"),
+            text=initial_name,
+        )
+        box.append(name_entry)
+
+        # -- Color picker row --
+        color_row = Gtk.Box(
+            orientation=Gtk.Orientation.HORIZONTAL,
+            spacing=8,
+            halign=Gtk.Align.CENTER,
+            valign=Gtk.Align.CENTER,
+        )
+        color_label = Gtk.Label(label=_("Color"))
+        color_row.append(color_label)
+
+        initial_rgba = Gdk.RGBA()
+        initial_rgba.parse(initial_color)
+        color_dialog = Gtk.ColorDialog()
+        color_dialog.set_with_alpha(False)
+        color_button = Gtk.ColorDialogButton(dialog=color_dialog)
+        color_button.set_rgba(initial_rgba)
+        color_row.append(color_button)
+        box.append(color_row)
+
+        # -- Icon chooser --
+        icon_label = Gtk.Label(label=_("Icon"), xalign=0)
+        box.append(icon_label)
+
+        selected_icon = [initial_icon]
+        icon_buttons = []
+
+        icon_flow = Gtk.FlowBox(
+            max_children_per_line=8,
+            min_children_per_line=6,
+            selection_mode=Gtk.SelectionMode.NONE,
+            homogeneous=True,
+            row_spacing=4,
+            column_spacing=4,
+        )
+
+        # Only show icons that exist in the current icon theme (Adwaita/system).
+        icon_theme = Gtk.IconTheme.get_for_display(Gdk.Display.get_default())
+        available_icons = [n for n in self.FOLDER_ICON_CANDIDATES if icon_theme.has_icon(n)]
+        if initial_icon and initial_icon not in available_icons and icon_theme.has_icon(initial_icon):
+            available_icons.insert(0, initial_icon)
+        if not available_icons:
+            available_icons = ["folder-symbolic"]
+
+        for icon_name in available_icons:
+            btn = Gtk.ToggleButton(
+                css_classes=["flat", "circular", "folder-icon-picker-btn"],
+                tooltip_text=icon_name.replace("-symbolic", "").replace("-", " ").title(),
+            )
+            btn.set_child(Gtk.Image.new_from_icon_name(icon_name))
+            if icon_name == initial_icon:
+                btn.set_active(True)
+
+            def on_toggled(b, name=icon_name):
+                if b.get_active():
+                    selected_icon[0] = name
+                    for other in icon_buttons:
+                        if other is not b:
+                            other.set_active(False)
+                elif not any(ob.get_active() for ob in icon_buttons):
+                    b.set_active(True)
+
+            btn.connect("toggled", on_toggled)
+            icon_buttons.append(btn)
+            icon_flow.append(btn)
+
+        icon_scroll = Gtk.ScrolledWindow(
+            hscrollbar_policy=Gtk.PolicyType.NEVER,
+            vscrollbar_policy=Gtk.PolicyType.AUTOMATIC,
+            min_content_height=120,
+            max_content_height=200,
+        )
+        icon_scroll.set_child(icon_flow)
+        box.append(icon_scroll)
+
+        dialog.set_extra_child(box)
+
+        def on_response(d, response):
+            if response == "ok":
+                name = name_entry.get_text().strip()
+                if name:
+                    rgba = color_button.get_rgba()
+                    hex_color = "#{:02x}{:02x}{:02x}".format(
+                        int(rgba.red * 255),
+                        int(rgba.green * 255),
+                        int(rgba.blue * 255),
+                    )
+                    callback(name, hex_color, selected_icon[0])
+
+        dialog.connect("response", on_response)
+        dialog.present(self)
+
     def remove_chat(self, button):
         """Remove a chat"""
-        deleted_index = int(button.get_name())
-        if deleted_index < self.chat_id:
-            self.chat_id -= 1
-        elif deleted_index == self.chat_id:
-            return False
-        self.chats.pop(deleted_index)
-        # Update chat_ids in all tabs after deletion
-        self._update_tab_chat_ids_after_delete(deleted_index)
+        deleted_chat_id = int(button.get_name())
+        if deleted_chat_id not in self.chats:
+            return
+        if deleted_chat_id == self.chat_id:
+            return
+        tab_page = self.get_tab_for_chat(deleted_chat_id)
+        if tab_page is not None:
+            self.chat_tabs.close_page(tab_page)
+        self.controller.remove_chat_from_folder(deleted_chat_id, save=False)
+        del self.chats[deleted_chat_id]
         self.save_chat()
         self.update_history()
 
     def edit_chat_name(self, button, stack, multithreading=False):
         """Allow manual editing of chat name by replacing the title with an entry"""
-        chat_index = int(button.get_name())
+        chat_id = int(button.get_name())
+        if chat_id not in self.chats:
+            return
         # Show the generate chat name button
         stack.set_visible_child_name("generate")
         # Find the chat name button in the current list box
         list_box = self.chats_list_box
         if list_box is None:
             return
-            
-        # Find the correct row
-        row_index = 0
-        chat_range = (
-            range(len(self.chats)).__reversed__()
-            if self.controller.newelle_settings.reverse_order
-            else range(len(self.chats))
-        )
-        
-        for i in chat_range:
-            if i == chat_index:
+
+        # Find the row with this chat_id (iterate until get_row_at_index returns None)
+        row = None
+        i = 0
+        while True:
+            r = list_box.get_row_at_index(i)
+            if r is None:
                 break
-            row_index += 1
-            
-        row = list_box.get_row_at_index(row_index)
+            if hasattr(r, "chat_index") and r.chat_index == chat_id:
+                row = r
+                break
+            i += 1
         if row is None:
             return
-            
+
         # Get the ChatRow's main_box containing the widgets
         if not hasattr(row, 'main_box') or not hasattr(row, 'name_label'):
             return
-            
+
         # Create an entry to replace the label
         entry = Gtk.Entry()
-        entry.set_text(self.chats[chat_index]["name"])
+        entry.set_text(self.chats[chat_id]["name"])
         entry.set_hexpand(True)
         
         # Store original label for restoration
@@ -2222,11 +2442,11 @@ class MainWindow(Adw.ApplicationWindow):
         def on_entry_activate(entry):
             new_name = entry.get_text().strip()
             if new_name:
-                self.chats[chat_index]["name"] = new_name
+                self.chats[chat_id]["name"] = new_name
                 self.save_chat()
-                
+
                 # Update tab title if this chat is open in a tab
-                tab_page = self.get_tab_for_chat(chat_index)
+                tab_page = self.get_tab_for_chat(chat_id)
                 if tab_page:
                     tab_page.set_title(new_name)
                     
@@ -2241,16 +2461,17 @@ class MainWindow(Adw.ApplicationWindow):
 
     def copy_chat(self, button, *a):
         """Copy a chat into a new chat"""
-        source_chat = self.chats[int(button.get_name())]
-        self.chats.append(
-            {
-                "name": source_chat["name"],
-                "chat": source_chat["chat"][:],
-                "id": str(uuid.uuid4()),
-                "branched_from": source_chat.get("id"),
-                "profile": source_chat.get("profile", self.current_profile)
-            }
+        source_chat_id = int(button.get_name())
+        if source_chat_id not in self.chats:
+            return
+        source_chat = self.chats[source_chat_id]
+        new_chat_id = self.controller.create_visible_chat(
+            name=source_chat["name"],
+            profile=source_chat.get("profile", self.current_profile)
         )
+        self.chats[new_chat_id]["chat"] = source_chat["chat"][:]
+        self.chats[new_chat_id]["branched_from"] = source_chat.get("id")
+        self.controller.save_chats()
         self.update_history()
 
     def chose_chat(self, id, *a):
@@ -2278,6 +2499,7 @@ class MainWindow(Adw.ApplicationWindow):
 
         # Update UI FIRST before profile switch for instant visual feedback
         self.update_history()
+        self.refresh_context_indicator()
         tab = self.get_active_chat_tab()
         if tab is not None:
             GLib.idle_add(tab.chat_history.update_button_text)
@@ -2679,11 +2901,11 @@ class MainWindow(Adw.ApplicationWindow):
                         return
                     clean_name = remove_markdown(clean_name)
                     if clean_name != "Chat has been stopped":
-                        chat_idx = int(button.get_name())
-                        self.chats[chat_idx]["name"] = clean_name
-                        
+                        chat_id = int(button.get_name())
+                        self.chats[chat_id]["name"] = clean_name
+
                         # Update tab title if this chat is open in a tab
-                        tab_page = self.get_tab_for_chat(chat_idx)
+                        tab_page = self.get_tab_for_chat(chat_id)
                         if tab_page:
                             tab_page.set_title(clean_name)
                             
@@ -2691,22 +2913,22 @@ class MainWindow(Adw.ApplicationWindow):
 
             GLib.idle_add(on_complete)
         else:
-            if len(self.chats[int(button.get_name())]["chat"]) < 2:
+            chat_id = int(button.get_name())
+            if chat_id not in self.chats or len(self.chats[chat_id]["chat"]) < 2:
                 self.notification_block.add_toast(
                     Adw.Toast(title=_("Chat is empty"), timeout=2)
                 )
                 return False
-                
+
             spinner = Gtk.Spinner(spinning=True)
             button.set_child(spinner)
             button.set_can_target(False)
             button.set_has_frame(True)
-            
+
             threading.Thread(
                 target=self.generate_chat_name, args=[button, True]
             ).start()
 
-    # Chat Export
     def export_chat(self, export_all=False):
         """Export chat(s) to a JSON file
 
@@ -2795,7 +3017,7 @@ class MainWindow(Adw.ApplicationWindow):
                 data = json.load(f)
 
             # Import the chat(s)
-            success, message, count = self.controller.import_chat(data)
+            success, message, count, last_chat_id = self.controller.import_chat(data)
 
             if success:
                 self.notification_block.add_toast(
@@ -2803,9 +3025,9 @@ class MainWindow(Adw.ApplicationWindow):
                 )
                 # Update the UI to show imported chats
                 self.update_history()
-                # Switch to the first imported chat if we imported at least one
-                if count > 0:
-                    self.chat_id = len(self.chats) - count
+                # Switch to the last imported chat if we imported at least one
+                if count > 0 and last_chat_id is not None:
+                    self.chat_id = last_chat_id
                     self.show_chat()
             else:
                 self.notification_block.add_toast(

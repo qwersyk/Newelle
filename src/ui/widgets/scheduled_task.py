@@ -1,4 +1,5 @@
 from gi.repository import Gtk, Adw, GLib
+from .comborow import ComboRowHelper
 
 
 class ScheduledTaskWidget(Gtk.ListBox):
@@ -12,6 +13,8 @@ class ScheduledTaskWidget(Gtk.ListBox):
         cron: str | None = None,
         next_run_at: str | None = None,
         task_id: str = "",
+        controller=None,
+        folder_id: int | None = None,
     ):
         super().__init__()
         self.add_css_class("boxed-list")
@@ -25,6 +28,8 @@ class ScheduledTaskWidget(Gtk.ListBox):
         self._cron = cron
         self._next_run_at = next_run_at
         self._task_id = task_id
+        self._controller = controller
+        self._folder_id = folder_id
 
         # Main row with expander for details
         self.expander_row = Adw.ExpanderRow(
@@ -114,9 +119,57 @@ class ScheduledTaskWidget(Gtk.ListBox):
 
         self._details_box.append(schedule_group)
 
+        # Folder selection group (only if controller is available)
+        if self._controller is not None:
+            folder_group = Adw.PreferencesGroup(title=_("Folder"))
+            
+            folder_row = Adw.ComboRow(title=_("Task folder"))
+            folder_group.add(folder_row)
+            
+            self._details_box.append(folder_group)
+            
+            # Setup folder selection
+            GLib.idle_add(self._setup_folder_selector, folder_row)
+
         # Add to expander
         self.expander_row.add_row(self._details_box)
         self.append(self.expander_row)
+
+    def _setup_folder_selector(self, folder_row):
+        """Setup the folder selector dropdown."""
+        folder_options = []
+        for folder_id, folder in self._controller.folders.items():
+            folder_options.append((folder["name"], str(folder_id)))
+        
+        if folder_options:
+            current_folder_id = str(self._folder_id) if self._folder_id is not None else str(folder_options[0][1])
+            helper = ComboRowHelper(folder_row, tuple(folder_options), current_folder_id)
+            helper.connect("changed", self._on_folder_changed)
+        else:
+            default_folder_id = self._controller.ensure_scheduled_tasks_folder()
+            for folder_id, folder in self._controller.folders.items():
+                if folder_id == default_folder_id:
+                    folder_options.append((folder["name"], str(folder_id)))
+            helper = ComboRowHelper(folder_row, tuple(folder_options), str(default_folder_id))
+            helper.connect("changed", self._on_folder_changed)
+
+    def _on_folder_changed(self, helper, value):
+        """Handle folder selection change."""
+        try:
+            new_folder_id = int(value)
+            if self._controller.set_scheduled_task_folder(self._task_id, new_folder_id):
+                self._folder_id = new_folder_id
+                self._show_toast(_("Folder updated"))
+        except (ValueError, TypeError):
+            pass
+
+    def _show_toast(self, message: str):
+        """Show a toast message."""
+        if self._controller and self._controller.ui_controller:
+            window = self._controller.ui_controller.window
+            if hasattr(window, 'notification_block'):
+                toast = Adw.Toast(title=message)
+                window.notification_block.add_toast(toast)
 
     @staticmethod
     def _truncate_text(text: str, max_len: int = 60) -> str:

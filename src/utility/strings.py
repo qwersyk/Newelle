@@ -81,13 +81,13 @@ def count_tokens(text: str, model: str = "gpt-4o-mini") -> int:
     """
     Count the number of tokens in a string
     """
-    if False:
+    try:
         try:
             encoding = tiktoken.encoding_for_model(model)
         except KeyError:
             encoding = tiktoken.get_encoding("cl100k_base")
         return len(encoding.encode(text))
-    else:
+    except Exception:
         return len(text) // 4
 
 def quote_string(s):

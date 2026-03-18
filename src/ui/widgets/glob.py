@@ -47,9 +47,11 @@ class GlobWidget(Gtk.Box):
         self.color_scheme = color_scheme
         self.open_in_editor_callback = open_in_editor_callback
 
+        self.loading_spinner = None
+
         # Build the UI
         self._build_header()
-        self._build_matches_view()
+        self._build_loading_view()
         self._build_status()
 
     def _build_header(self):
@@ -81,6 +83,19 @@ class GlobWidget(Gtk.Box):
 
         self.append(header_box)
 
+    def _build_loading_view(self):
+        """Build the loading view with a spinner."""
+        self.loading_spinner = Gtk.Spinner(
+            halign=Gtk.Align.CENTER,
+            valign=Gtk.Align.CENTER,
+            hexpand=True,
+            vexpand=True,
+            width_request=40,
+            height_request=40
+        )
+        self.loading_spinner.start()
+        self.append(self.loading_spinner)
+
     def _build_matches_view(self):
         """Build the list view for displaying matching files."""
         if not self.matches:
@@ -95,6 +110,9 @@ class GlobWidget(Gtk.Box):
             self.append(no_matches_label)
             return
 
+        # Limit to 50 matches
+        display_matches = sorted(self.matches)[:50]
+
         # Create list box for matches
         self.list_box = Gtk.ListBox(
             css_classes=["boxed-list"],
@@ -104,7 +122,7 @@ class GlobWidget(Gtk.Box):
         self.list_box.set_margin_bottom(5)
 
         # Add each match as a row
-        for file_path in sorted(self.matches):
+        for file_path in display_matches:
             self._add_file_row(file_path)
 
         # Scrolled window for the list
@@ -183,6 +201,7 @@ class GlobWidget(Gtk.Box):
         match_count = len(self.matches)
         file_count = sum(1 for m in self.matches if os.path.isfile(m))
         dir_count = match_count - file_count
+        displayed_count = min(match_count, 50)
 
         status_parts = []
         if match_count == 0:
@@ -190,7 +209,8 @@ class GlobWidget(Gtk.Box):
         elif match_count == 1:
             status_parts.append("1 match")
         else:
-            status_parts.append(f"{match_count} matches")
+            status_text = f"{displayed_count} of {match_count} matches" if match_count > 50 else f"{match_count} matches"
+            status_parts.append(status_text)
 
         if file_count > 0:
             status_parts.append(f"{file_count} files")
@@ -247,3 +267,16 @@ class GlobWidget(Gtk.Box):
     def get_search_path(self) -> str:
         """Get the search path used."""
         return self.search_path
+
+    def set_matches(self, matches: list[str]):
+        """Update the matches and rebuild the matches view and status."""
+        self.matches = matches
+
+        # Remove loading spinner, existing content and status
+        for child in list(self):
+            if isinstance(child, (Gtk.Spinner, Gtk.ScrolledWindow, Gtk.Label)):
+                self.remove(child)
+
+        # Rebuild content and status
+        self._build_matches_view()
+        self._build_status()

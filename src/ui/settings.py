@@ -434,13 +434,119 @@ class Settings(Adw.PreferencesWindow):
         self.settings.bind("external-terminal", entry, 'text', Gio.SettingsBindFlags.DEFAULT)
         row.add_row(entry)
         self.neural_network.add(row)
-        # Set default value for the switch        
-        row = Adw.ActionRow(title=_("Program memory"), subtitle=_("How long the program remembers the chat "))
-        int_spin = Gtk.SpinButton(valign=Gtk.Align.CENTER)
-        int_spin.set_adjustment(Gtk.Adjustment(lower=0, upper=90, step_increment=1, page_increment=10, page_size=0))
-        row.add_suffix(int_spin)
-        self.settings.bind("memory", int_spin, 'value', Gio.SettingsBindFlags.DEFAULT)
-        self.SECONDARY_LLM.add(row)
+        # Context Management
+        context_expander = Adw.ExpanderRow(
+            title=_("Context Management"),
+            subtitle=_("Control how conversation history is sent to the model"),
+        )
+
+        current_mode = self.settings.get_string("context-mode")
+        context_mode_cm = Gtk.ToggleButton(label=_("Context Manager"))
+        context_mode_fixed = Gtk.ToggleButton(label=_("Fixed message count"))
+        mode_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=0, valign=Gtk.Align.CENTER)
+        mode_box.add_css_class("linked")
+        mode_box.append(context_mode_cm)
+        mode_box.append(context_mode_fixed)
+
+        # Initialize exclusive selection
+        if current_mode == "fixed":
+            context_mode_fixed.set_active(True)
+            context_mode_cm.set_active(False)
+        else:
+            context_mode_cm.set_active(True)
+            context_mode_fixed.set_active(False)
+
+        mode_row = Adw.ActionRow(title=_("Mode"))
+        mode_row.add_suffix(mode_box)
+        context_expander.add_row(mode_row)
+
+        # Fixed mode: message count
+        fixed_row = Adw.ActionRow(title=_("Message count"), subtitle=_("Number of messages to keep in context"))
+        fixed_spin = Gtk.SpinButton(valign=Gtk.Align.CENTER)
+        fixed_spin.set_adjustment(Gtk.Adjustment(lower=0, upper=90, step_increment=1, page_increment=10, page_size=0))
+        fixed_row.add_suffix(fixed_spin)
+        self.settings.bind("memory", fixed_spin, 'value', Gio.SettingsBindFlags.DEFAULT)
+        context_expander.add_row(fixed_row)
+
+        # Context Manager mode: max tokens
+        max_adj = Gtk.Adjustment(lower=1000, upper=1000000, step_increment=1000, page_increment=10000)
+        max_adj.set_value(self.settings.get_int("context-max"))
+        max_row = Adw.SpinRow(
+            title=_("Max Context Size"),
+            subtitle=_("Hard token limit — context will never exceed this"),
+            adjustment=max_adj,
+            digits=0,
+        )
+        def update_context_max(spin, _input):
+            self.settings.set_int("context-max", int(spin.get_value()))
+            return False
+        max_row.connect("input", update_context_max)
+        context_expander.add_row(max_row)
+
+        # Context Manager mode: suggested tokens
+        suggested_adj = Gtk.Adjustment(lower=1000, upper=500000, step_increment=1000, page_increment=10000)
+        suggested_adj.set_value(self.settings.get_int("context-suggested"))
+        suggested_row = Adw.SpinRow(
+            title=_("Suggested Context Size"),
+            subtitle=_("Soft token target — less relevant messages are dropped to stay near this"),
+            adjustment=suggested_adj,
+            digits=0,
+        )
+        def update_context_suggested(spin, _input):
+            self.settings.set_int("context-suggested", int(spin.get_value()))
+            return False
+        suggested_row.connect("input", update_context_suggested)
+        context_expander.add_row(suggested_row)
+
+        # Context Manager mode: summarization toggle
+        summarize_row = Adw.ActionRow(
+            title=_("Summarize dropped messages"),
+            subtitle=_("Use the LLM to summarize messages that were removed from context"),
+        )
+        summarize_switch = Gtk.Switch(valign=Gtk.Align.CENTER)
+        summarize_row.add_suffix(summarize_switch)
+        self.settings.bind("context-summarization", summarize_switch, 'active', Gio.SettingsBindFlags.DEFAULT)
+        context_expander.add_row(summarize_row)
+
+        self.context_cm_rows = [max_row, suggested_row, summarize_row]
+        self.context_fixed_rows = [fixed_row]
+
+        def apply_context_mode(is_cm: bool):
+            mode = "context-manager" if is_cm else "fixed"
+            self.settings.set_string("context-mode", mode)
+            for r in self.context_cm_rows:
+                r.set_visible(is_cm)
+            for r in self.context_fixed_rows:
+                r.set_visible(not is_cm)
+
+        def on_cm_toggled(btn):
+            if btn.get_active():
+                context_mode_fixed.set_active(False)
+                apply_context_mode(True)
+            else:
+                # Keep one option selected at all times
+                if not context_mode_fixed.get_active():
+                    btn.set_active(True)
+
+        def on_fixed_toggled(btn):
+            if btn.get_active():
+                context_mode_cm.set_active(False)
+                apply_context_mode(False)
+            else:
+                # Keep one option selected at all times
+                if not context_mode_cm.get_active():
+                    btn.set_active(True)
+
+        context_mode_cm.connect("toggled", on_cm_toggled)
+        context_mode_fixed.connect("toggled", on_fixed_toggled)
+
+        is_cm = current_mode != "fixed"
+        for r in self.context_cm_rows:
+            r.set_visible(is_cm)
+        for r in self.context_fixed_rows:
+            r.set_visible(not is_cm)
+
+        self.SECONDARY_LLM.add(context_expander)
         # Developer settings
         self.developer = Adw.PreferencesGroup(title=_('Developer'))
         self.general_page.add(self.developer)
@@ -607,6 +713,17 @@ class Settings(Adw.PreferencesWindow):
         toggle.set_active(is_enabled)
         toggle.connect("state-set", self.toggle_tool, tool.name)
         row.add_suffix(toggle)
+
+        # Lazy load toggle
+        is_lazy = tool.default_lazy_load
+        if tool.name in tools_settings and "lazy_load" in tools_settings[tool.name]:
+            is_lazy = tools_settings[tool.name]["lazy_load"]
+        lazy_row = Adw.ActionRow(title=_("Lazy load"), subtitle=_("Show compact description to reduce context usage"))
+        lazy_toggle = Gtk.Switch(valign=Gtk.Align.CENTER)
+        lazy_toggle.set_active(is_lazy)
+        lazy_toggle.connect("state-set", self.toggle_tool_lazy_load, tool.name)
+        lazy_row.add_suffix(lazy_toggle)
+        row.add_row(lazy_row)
         
         # Generate default prompt for this tool
         default_prompt_obj = {
@@ -649,6 +766,17 @@ class Settings(Adw.PreferencesWindow):
             tools_settings[tool_name] = {"enabled": default_on, "custom_prompt": None}
             
         tools_settings[tool_name]["enabled"] = state
+        self.settings.set_string("tools-settings", json.dumps(tools_settings))
+
+    def toggle_tool_lazy_load(self, switch, state, tool_name):
+        tools_settings = self.controller.newelle_settings.tools_settings_dict
+
+        if tool_name not in tools_settings:
+            tool = self.controller.tools.get_tool(tool_name)
+            default_on = tool.default_on if tool else True
+            tools_settings[tool_name] = {"enabled": default_on, "custom_prompt": None}
+
+        tools_settings[tool_name]["lazy_load"] = state
         self.settings.set_string("tools-settings", json.dumps(tools_settings))
 
     def update_tool_prompt(self, entry):
@@ -982,21 +1110,60 @@ class Settings(Adw.PreferencesWindow):
         # Authentication section (nested expander for optional auth settings)
         auth_row = Adw.ExpanderRow(title=_("Authentication"), subtitle=_("Optional authentication settings"), icon_name="dialog-password-symbolic")
         
-        # Bearer token entry
+        # Auth method selector: None, Bearer token, OAuth (automatic)
+        self.mcp_auth_method = "none"
+        auth_method_row = Adw.ActionRow(title=_("Method"), subtitle=_("Authentication method"))
+        auth_method_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6, valign=Gtk.Align.CENTER)
+        self.mcp_auth_none = Gtk.ToggleButton(label=_("None"), active=True)
+        self.mcp_auth_none.add_css_class("flat")
+        self.mcp_auth_bearer = Gtk.ToggleButton(label=_("Bearer Token"), group=self.mcp_auth_none)
+        self.mcp_auth_bearer.add_css_class("flat")
+        self.mcp_auth_oauth = Gtk.ToggleButton(label=_("OAuth (automatic)"), group=self.mcp_auth_none)
+        self.mcp_auth_oauth.add_css_class("flat")
+        auth_method_box.append(self.mcp_auth_none)
+        auth_method_box.append(self.mcp_auth_bearer)
+        auth_method_box.append(self.mcp_auth_oauth)
+        auth_method_row.add_suffix(auth_method_box)
+        auth_row.add_row(auth_method_row)
+        
+        # Bearer token entry (visible when Bearer Token selected)
         token_row = Adw.ActionRow(title=_("Bearer Token"), subtitle=_("Authentication token"))
         self.mcp_token_entry = Gtk.Entry(valign=Gtk.Align.CENTER, placeholder_text=_("Token"), visibility=False, hexpand=True, width_chars=25)
         token_row.add_suffix(self.mcp_token_entry)
-        # Show/hide token button
         show_token_btn = Gtk.Button(icon_name="view-reveal-symbolic", valign=Gtk.Align.CENTER, css_classes=["flat"], tooltip_text=_("Show/Hide token"))
         show_token_btn.connect("clicked", lambda btn: self.mcp_token_entry.set_visibility(not self.mcp_token_entry.get_visibility()))
         token_row.add_suffix(show_token_btn)
         auth_row.add_row(token_row)
+        self.mcp_token_row = token_row
         
-        # Client ID entry (optional)
-        client_id_row = Adw.ActionRow(title=_("Client ID"), subtitle=_("OAuth client identifier"))
+        # Client ID entry (visible when Bearer Token selected, for pre-registered OAuth)
+        client_id_row = Adw.ActionRow(title=_("Client ID"), subtitle=_("OAuth client identifier (pre-registered)"))
         self.mcp_client_id_entry = Gtk.Entry(valign=Gtk.Align.CENTER, placeholder_text=_("client-id"), hexpand=True, width_chars=25)
         client_id_row.add_suffix(self.mcp_client_id_entry)
         auth_row.add_row(client_id_row)
+        self.mcp_client_id_row = client_id_row
+        
+        # OAuth info (visible when OAuth selected)
+        oauth_info_row = Adw.ActionRow(title=_("OAuth"), subtitle=_("Uses Dynamic Client Registration. A browser window will open for authentication."))
+        oauth_info_row.set_visible(False)
+        auth_row.add_row(oauth_info_row)
+        self.mcp_oauth_info_row = oauth_info_row
+        
+        def on_auth_method_changed(btn):
+            if self.mcp_auth_none.get_active():
+                self.mcp_auth_method = "none"
+            elif self.mcp_auth_bearer.get_active():
+                self.mcp_auth_method = "bearer"
+            else:
+                self.mcp_auth_method = "oauth"
+            self.mcp_token_row.set_visible(self.mcp_auth_method == "bearer")
+            self.mcp_client_id_row.set_visible(self.mcp_auth_method == "bearer")
+            self.mcp_oauth_info_row.set_visible(self.mcp_auth_method == "oauth")
+        
+        self.mcp_auth_none.connect("toggled", on_auth_method_changed)
+        self.mcp_auth_bearer.connect("toggled", on_auth_method_changed)
+        self.mcp_auth_oauth.connect("toggled", on_auth_method_changed)
+        on_auth_method_changed(None)
         
         add_row.add_row(auth_row)
         self.mcp_http_rows.append(auth_row)
@@ -1124,21 +1291,26 @@ class Settings(Adw.PreferencesWindow):
                 self._disable_mcp_form()
                 
                 def add_thread():
-                    mcp_handler = self.controller.get_mcp_integration()
-                    added = mcp_handler.add_mcp_server(
-                        title=title,
-                        server_type="stdio",
-                        command=command,
-                        args=args,
-                        env=env
-                    )
-                    self.settings.set_string("mcp-servers", json.dumps(mcp_handler.mcp_servers))
-                    if not added:
-                        GLib.idle_add(self.app.win.show_error_dialog, _("Error"), _("Failed to add MCP server"))
-                    GLib.idle_add(self.refresh_mcp_servers_list)
-                    GLib.idle_add(self.refresh_tools_list)
-                    GLib.idle_add(self._enable_mcp_form)
-                    GLib.idle_add(self._clear_mcp_form)
+                    try:
+                        mcp_handler = self.controller.get_mcp_integration()
+                        added = mcp_handler.add_mcp_server(
+                            title=title,
+                            server_type="stdio",
+                            command=command,
+                            args=args,
+                            env=env
+                        )
+                        self.settings.set_string("mcp-servers", json.dumps(mcp_handler.mcp_servers))
+                        if not added:
+                            GLib.idle_add(self.app.win.show_error_dialog, _("Error"), _("Failed to add MCP server"))
+                        GLib.idle_add(self.refresh_mcp_servers_list)
+                        GLib.idle_add(self.refresh_tools_list)
+                    except Exception as e:
+                        err_msg = str(getattr(e, "__cause__", e) or e)
+                        GLib.idle_add(self.app.win.show_error_dialog, _("Error"), _("Failed to add MCP server: {}").format(err_msg))
+                    finally:
+                        GLib.idle_add(self._enable_mcp_form)
+                        GLib.idle_add(self._clear_mcp_form)
                 t = threading.Thread(target=add_thread)
                 t.start()
             else:
@@ -1149,6 +1321,7 @@ class Settings(Adw.PreferencesWindow):
                 
                 bearer_token = self.mcp_token_entry.get_text().strip() or None
                 client_id = self.mcp_client_id_entry.get_text().strip() or None
+                oauth_mode = self.mcp_auth_method == "oauth"
                 
                 # Parse custom headers
                 headers_buffer = self.mcp_headers_text.get_buffer()
@@ -1167,22 +1340,54 @@ class Settings(Adw.PreferencesWindow):
                 self._disable_mcp_form()
                 
                 def add_thread():
-                    mcp_handler = self.controller.get_mcp_integration()
-                    added = mcp_handler.add_mcp_server(
-                        url=url, 
-                        title=title, 
-                        bearer_token=bearer_token, 
-                        client_id=client_id, 
-                        custom_headers=custom_headers,
-                        server_type="http"
-                    )
-                    self.settings.set_string("mcp-servers", json.dumps(mcp_handler.mcp_servers))
-                    if not added:
-                        GLib.idle_add(self.app.win.show_error_dialog, _("Error"), _("Failed to add MCP server"))
-                    GLib.idle_add(self.refresh_mcp_servers_list)
-                    GLib.idle_add(self.refresh_tools_list)
-                    GLib.idle_add(self._enable_mcp_form)
-                    GLib.idle_add(self._clear_mcp_form)
+                    try:
+                        mcp_handler = self.controller.get_mcp_integration()
+                        if oauth_mode:
+                            from ..integrations.mcp_oauth import run_oauth_flow
+                            config_dir = self.controller.config_dir
+                            success, err_msg = run_oauth_flow(url, config_dir)
+                            if not success:
+                                GLib.idle_add(self.app.win.show_error_dialog, _("OAuth Error"), err_msg or _("Authentication failed"))
+                                return
+                        added = mcp_handler.add_mcp_server(
+                            url=url,
+                            title=title,
+                            bearer_token=bearer_token if not oauth_mode else None,
+                            client_id=client_id if not oauth_mode else None,
+                            custom_headers=custom_headers,
+                            server_type="http",
+                            oauth_mode=oauth_mode
+                        )
+                        self.settings.set_string("mcp-servers", json.dumps(mcp_handler.mcp_servers))
+                        if not added:
+                            GLib.idle_add(self.app.win.show_error_dialog, _("Error"), _("Failed to add MCP server"))
+                        GLib.idle_add(self.refresh_mcp_servers_list)
+                        GLib.idle_add(self.refresh_tools_list)
+                    except Exception as e:
+                        err_msg = str(e)
+                        cause = getattr(e, "__cause__", None)
+                        if cause:
+                            err_msg = str(cause)
+                        for attr in ("exceptions", "__context__"):
+                            inner = getattr(e, attr, None)
+                            if inner and isinstance(inner, (list, tuple)) and len(inner) > 0:
+                                err_msg = str(inner[0])
+                                break
+                            elif inner:
+                                err_msg = str(inner)
+                                break
+                        if "401" in err_msg or "Unauthorized" in err_msg:
+                            err_msg = _(
+                                "This server requires authentication. Select 'OAuth (automatic)' in the "
+                                "Authentication section and try again to sign in with your browser, "
+                                "or provide a Bearer token if you have one."
+                            )
+                        else:
+                            err_msg = _("Failed to add MCP server: {}").format(err_msg)
+                        GLib.idle_add(self.app.win.show_error_dialog, _("Error"), err_msg)
+                    finally:
+                        GLib.idle_add(self._enable_mcp_form)
+                        GLib.idle_add(self._clear_mcp_form)
                 t = threading.Thread(target=add_thread)
                 t.start()
         
@@ -1226,6 +1431,115 @@ class Settings(Adw.PreferencesWindow):
         self.mcp_args_entry.set_text("")
         self.mcp_env_text.get_buffer().set_text("{}")
 
+    def _get_mcp_cached_tool_count(self, identifier):
+        """Return the number of cached tools for a given server identifier."""
+        mcp_handler = self.controller.get_mcp_integration()
+        if mcp_handler is None:
+            return 0
+        count = 0
+        for tool in mcp_handler.tools:
+            info = mcp_handler.tools_dict.get(tool.name, {})
+            if mcp_handler._get_server_identifier(info) == identifier:
+                count += 1
+        return count
+
+    def _refresh_single_mcp_server(self, btn, spinner, identifier):
+        """Re-fetch tools for a single server and update the cache."""
+        btn.set_sensitive(False)
+        spinner.start()
+
+        def refresh_thread():
+            mcp_handler = self.controller.get_mcp_integration()
+            if mcp_handler is None:
+                GLib.idle_add(spinner.stop)
+                GLib.idle_add(btn.set_sensitive, True)
+                return
+            # Remove old tools for this server
+            mcp_handler.tools = [
+                t for t in mcp_handler.tools
+                if mcp_handler._get_server_identifier(mcp_handler.tools_dict.get(t.name, {})) != identifier
+            ]
+            mcp_handler.tools_dict = {
+                k: v for k, v in mcp_handler.tools_dict.items()
+                if mcp_handler._get_server_identifier(v) != identifier
+            }
+            # Re-fetch for the matching server
+            for server in mcp_handler.mcp_servers:
+                server_info = mcp_handler._get_server_info(server)
+                if mcp_handler._get_server_identifier(server_info) == identifier:
+                    try:
+                        if server_info.get("type") == "stdio":
+                            tools = mcp_handler.sync_get_tools_stdio(
+                                server_info["command"],
+                                server_info.get("args") or [],
+                                server_info.get("env"),
+                            )
+                        else:
+                            tools = mcp_handler.sync_get_tools(
+                                server_info["url"],
+                                server_info=server_info,
+                                client_id=server_info.get("client_id")
+                            )
+                        mcp_handler.tools.extend(tools)
+                        for tool in tools:
+                            mcp_handler.tools_dict[tool.name] = server_info
+                    except Exception as e:
+                        print(f"Refresh error for {identifier}: {e}")
+                    break
+            mcp_handler._save_cache()
+            if hasattr(mcp_handler, "ui_controller"):
+                GLib.idle_add(mcp_handler.ui_controller.require_tool_update)
+            GLib.idle_add(self.refresh_mcp_servers_list)
+            GLib.idle_add(self.refresh_tools_list)
+            GLib.idle_add(spinner.stop)
+            GLib.idle_add(btn.set_sensitive, True)
+
+        threading.Thread(target=refresh_thread, daemon=True).start()
+
+    def _reauth_oauth_mcp_server(self, btn, identifier, url):
+        """Re-run OAuth flow for an OAuth-protected MCP server."""
+        if not url:
+            return
+        btn.set_sensitive(False)
+
+        def reauth_thread():
+            from ..integrations.mcp_oauth import run_oauth_flow
+            config_dir = self.controller.config_dir
+            success, err_msg = run_oauth_flow(url, config_dir)
+            if success:
+                mcp_handler = self.controller.get_mcp_integration()
+                if mcp_handler:
+                    mcp_handler.tools = [
+                        t for t in mcp_handler.tools
+                        if mcp_handler._get_server_identifier(mcp_handler.tools_dict.get(t.name, {})) != identifier
+                    ]
+                    mcp_handler.tools_dict = {
+                        k: v for k, v in mcp_handler.tools_dict.items()
+                        if mcp_handler._get_server_identifier(v) != identifier
+                    }
+                    for server in mcp_handler.mcp_servers:
+                        server_info = mcp_handler._get_server_info(server)
+                        if mcp_handler._get_server_identifier(server_info) == identifier:
+                            try:
+                                tools = mcp_handler.sync_get_tools(url, server_info=server_info)
+                                mcp_handler.tools.extend(tools)
+                                for tool in tools:
+                                    mcp_handler.tools_dict[tool.name] = server_info
+                            except Exception as e:
+                                print(f"Re-auth refresh error: {e}")
+                            break
+                    mcp_handler._save_cache()
+                    if hasattr(mcp_handler, "ui_controller"):
+                        GLib.idle_add(mcp_handler.ui_controller.require_tool_update)
+                GLib.idle_add(self.refresh_mcp_servers_list)
+                GLib.idle_add(self.refresh_tools_list)
+                GLib.idle_add(lambda: self.add_toast(Adw.Toast(title=_("Re-authentication successful"))))
+            else:
+                GLib.idle_add(self.app.win.show_error_dialog, _("OAuth Error"), err_msg or _("Re-authentication failed"))
+            GLib.idle_add(btn.set_sensitive, True)
+
+        threading.Thread(target=reauth_thread, daemon=True).start()
+
     def refresh_mcp_servers_list(self):
         for row in self.mcp_server_rows:
              self.servers_list_group.remove(row)
@@ -1253,14 +1567,38 @@ class Settings(Adw.PreferencesWindow):
                     title = server.get("title") or identifier[:30]
                     subtitle = identifier if title != identifier[:30] else None
             
-            # Add type badge
             row = Adw.ActionRow(title=title, subtitle=subtitle)
             
+            # Cached tool count badge
+            tool_count = self._get_mcp_cached_tool_count(identifier)
+            if tool_count > 0:
+                count_label = Gtk.Label(
+                    label=_("{0} tools").format(tool_count),
+                    valign=Gtk.Align.CENTER,
+                )
+                count_label.add_css_class("dim-label")
+                count_label.add_css_class("caption")
+                row.add_suffix(count_label)
+
             # Type indicator
             type_label = Gtk.Label(label=server_type.upper(), valign=Gtk.Align.CENTER)
             type_label.add_css_class("dim-label")
             type_label.add_css_class("caption")
             row.add_suffix(type_label)
+
+            # Refresh button with spinner
+            refresh_spinner = Gtk.Spinner()
+            row.add_suffix(refresh_spinner)
+            refresh_btn = Gtk.Button(icon_name="view-refresh-symbolic", valign=Gtk.Align.CENTER, css_classes=["flat"], tooltip_text=_("Refresh tools"))
+            refresh_btn.connect("clicked", self._refresh_single_mcp_server, refresh_spinner, identifier)
+            row.add_suffix(refresh_btn)
+            
+            # Re-authenticate button for OAuth servers
+            is_oauth = isinstance(server, dict) and server.get("oauth_mode")
+            if is_oauth:
+                reauth_btn = Gtk.Button(icon_name="emblem-locked-symbolic", valign=Gtk.Align.CENTER, css_classes=["flat"], tooltip_text=_("Re-authenticate"))
+                reauth_btn.connect("clicked", self._reauth_oauth_mcp_server, identifier, server.get("url", ""))
+                row.add_suffix(reauth_btn)
             
             delete_btn = Gtk.Button(icon_name="user-trash-symbolic", valign=Gtk.Align.CENTER)
             delete_btn.add_css_class("destructive-action")

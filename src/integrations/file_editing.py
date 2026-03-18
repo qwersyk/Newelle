@@ -383,7 +383,9 @@ class FileEditingIntegration(NewelleExtension):
                 old_content=old_content,
                 new_content=content,
                 edit_type=edit_type,
-                open_in_editor_callback=self._get_open_in_editor_callback(file_path)
+                open_in_editor_callback=self._get_open_in_editor_callback(file_path),
+                undo_callback=self.undo_file_edit,
+                redo_callback=self.redo_file_edit
             )
 
             if edit_type == "write":
@@ -428,15 +430,18 @@ class FileEditingIntegration(NewelleExtension):
             old_content=old_content,
             new_content=content,
             edit_type=edit_type,
-            open_in_editor_callback=self._get_open_in_editor_callback(file_path)
+            open_in_editor_callback=self._get_open_in_editor_callback(file_path),
+            undo_callback=self.undo_file_edit,
+            redo_callback=self.redo_file_edit
         )
 
-        # Set output
+        # Set output with same format as original write
+        file_size = os.path.getsize(file_path) if os.path.exists(file_path) else 0
         lines_count = content.count('\n') + (1 if content and not content.endswith('\n') else 0)
         if edit_type == "write":
-            output = f"File: {file_path} ({lines_count} lines) - Created"
+            output = f"Successfully created new file: {file_path}\nSize: {file_size} bytes, {lines_count} lines"
         else:
-            output = f"File: {file_path} ({lines_count} lines) - Modified"
+            output = f"Successfully wrote to file: {file_path}\nSize: {file_size} bytes, {lines_count} lines"
 
         result.set_output(output)
         result.set_widget(widget)
@@ -507,7 +512,9 @@ class FileEditingIntegration(NewelleExtension):
                 old_content=old_content,
                 new_content=new_content,
                 edit_type="edit",
-                open_in_editor_callback=self._get_open_in_editor_callback(file_path)
+                open_in_editor_callback=self._get_open_in_editor_callback(file_path),
+                undo_callback=self.undo_file_edit,
+                redo_callback=self.redo_file_edit
             )
 
             replacement_count = occurrences if replace_all else 1
@@ -559,14 +566,69 @@ class FileEditingIntegration(NewelleExtension):
             old_content=original_content,
             new_content=current_content,
             edit_type="edit",
-            open_in_editor_callback=self._get_open_in_editor_callback(file_path)
+            open_in_editor_callback=self._get_open_in_editor_callback(file_path),
+            undo_callback=self.undo_file_edit,
+            redo_callback=self.redo_file_edit
         )
 
-        # Set output
-        result.set_output(f"File: {file_path} - Edited")
+        # Set output with same format as original edit
+        file_size = os.path.getsize(file_path) if os.path.exists(file_path) else 0
+        replacement_count = original_content.count(old_string) if old_string else 1
+        output = f"Successfully edited file: {file_path}\nMade {replacement_count} replacement(s)\nNew size: {file_size} bytes"
+        result.set_output(output)
         result.set_widget(widget)
 
         return result
+
+    def undo_file_edit(self, file_path: str, old_content: str, edit_type: str) -> bool:
+        """
+        Undo a file edit by restoring the old content.
+
+        Args:
+            file_path: Path to the file to undo
+            old_content: The original content to restore
+            edit_type: Type of edit - "write" (new file) or "edit" (modification)
+
+        Returns:
+            True if successful, False otherwise
+        """
+        try:
+            mode = self._get_permission_mode(file_path, "write")
+            if mode == "block":
+                return False
+
+            if edit_type == "write" and not old_content:
+                if os.path.exists(file_path):
+                    os.remove(file_path)
+            else:
+                with open(file_path, 'w', encoding='utf-8') as f:
+                    f.write(old_content)
+            return True
+        except Exception:
+            return False
+
+    def redo_file_edit(self, file_path: str, new_content: str, edit_type: str) -> bool:
+        """
+        Redo a file edit by restoring the new content.
+
+        Args:
+            file_path: Path to the file to redo
+            new_content: The new content to restore
+            edit_type: Type of edit - "write" (new file) or "edit" (modification)
+
+        Returns:
+            True if successful, False otherwise
+        """
+        try:
+            mode = self._get_permission_mode(file_path, "write")
+            if mode == "block":
+                return False
+
+            with open(file_path, 'w', encoding='utf-8') as f:
+                f.write(new_content)
+            return True
+        except Exception:
+            return False
 
     def glob(self, pattern: str, path: Optional[str] = None):
         """Search for files matching a glob pattern, with permission checking."""
@@ -599,10 +661,19 @@ class FileEditingIntegration(NewelleExtension):
 
         pattern = pattern.strip()
 
-        try:
-            full_pattern = os.path.join(search_dir, pattern)
-            matches = glob_module.glob(full_pattern, recursive=True)
-            matches = sorted(matches)
+        def _do_glob_search():
+            try:
+                full_pattern = os.path.join(search_dir, pattern)
+                matches = glob_module.glob(full_pattern, recursive=True)
+                matches = sorted(matches)
+                return matches, None
+            except Exception as e:
+                return None, str(e)
+
+        def _update_widget(matches, error):
+            if error:
+                result.set_output(f"Error performing glob search: {error}")
+                return
 
             if not matches:
                 output = f"No files match the pattern '{pattern}' in {search_dir}"
@@ -616,19 +687,27 @@ class FileEditingIntegration(NewelleExtension):
                         output_lines.append(match)
                 output = "\n".join(output_lines)
 
+            widget.set_matches(matches)
             open_callback = self._get_open_in_editor_callback() if matches else None
-            widget = GlobWidget(
-                pattern=pattern,
-                search_path=search_dir,
-                matches=matches,
-                open_in_editor_callback=open_callback
-            )
+            widget.open_in_editor_callback = open_callback
 
             result.set_output(output)
-            result.set_widget(widget)
 
-        except Exception as e:
-            result.set_output(f"Error performing glob search: {str(e)}")
+        open_callback = self._get_open_in_editor_callback()
+        widget = GlobWidget(
+            pattern=pattern,
+            search_path=search_dir,
+            matches=[],
+            open_in_editor_callback=None
+        )
+        result.set_widget(widget)
+
+        def _run_search_thread():
+            matches, error = _do_glob_search()
+            GLib.idle_add(lambda: _update_widget(matches, error))
+
+        thread = threading.Thread(target=_run_search_thread, daemon=True)
+        thread.start()
 
         return result
 
@@ -649,11 +728,19 @@ class FileEditingIntegration(NewelleExtension):
         # Determine search directory
         search_dir = path if path else os.getcwd()
 
-        # Re-run the glob search
-        try:
-            full_pattern = os.path.join(search_dir, pattern)
-            matches = glob_module.glob(full_pattern, recursive=True)
-            matches = sorted(matches)
+        def _do_glob_search():
+            try:
+                full_pattern = os.path.join(search_dir, pattern)
+                matches = glob_module.glob(full_pattern, recursive=True)
+                matches = sorted(matches)
+                return matches, None
+            except Exception as e:
+                return None, str(e)
+
+        def _update_widget(matches, error):
+            if error:
+                result.set_output(f"Glob: '{pattern}' in {search_dir} - Error: {error}")
+                return
 
             # Build output
             if not matches:
@@ -663,20 +750,27 @@ class FileEditingIntegration(NewelleExtension):
                 dir_count = len(matches) - file_count
                 output = f"Glob: '{pattern}' in {search_dir} - {len(matches)} matches ({file_count} files, {dir_count} directories)"
 
-            # Recreate the widget
+            widget.set_matches(matches)
             open_callback = self._get_open_in_editor_callback() if matches else None
-            widget = GlobWidget(
-                pattern=pattern,
-                search_path=search_dir,
-                matches=matches,
-                open_in_editor_callback=open_callback
-            )
+            widget.open_in_editor_callback = open_callback
 
             result.set_output(output)
-            result.set_widget(widget)
 
-        except Exception as e:
-            result.set_output(f"Glob: '{pattern}' in {search_dir} - Error: {str(e)}")
+        open_callback = self._get_open_in_editor_callback()
+        widget = GlobWidget(
+            pattern=pattern,
+            search_path=search_dir,
+            matches=[],
+            open_in_editor_callback=None
+        )
+        result.set_widget(widget)
+
+        def _run_search_thread():
+            matches, error = _do_glob_search()
+            GLib.idle_add(lambda: _update_widget(matches, error))
+
+        thread = threading.Thread(target=_run_search_thread, daemon=True)
+        thread.start()
 
         return result
 
@@ -872,43 +966,52 @@ class FileEditingIntegration(NewelleExtension):
 
         glob_patterns = self._expand_glob_pattern(glob) if glob else []
 
-        matches = []
-        match_count = 0
+        def _do_grep_search():
+            matches = []
+            match_count = 0
 
-        def search_file(file_path: str) -> bool:
-            nonlocal match_count
+            def search_file(file_path: str) -> bool:
+                nonlocal match_count
+                try:
+                    with open(file_path, 'rb') as f:
+                        if b'\x00' in f.read(8192):
+                            return False
+                    with open(file_path, 'r', encoding='utf-8', errors='replace') as f:
+                        for line_num, line in enumerate(f, 1):
+                            if regex.search(line):
+                                matches.append((file_path, line_num, line))
+                                match_count += 1
+                                if limit and match_count >= limit:
+                                    return True
+                except (OSError, UnicodeDecodeError):
+                    pass
+                return False
+
             try:
-                with open(file_path, 'rb') as f:
-                    if b'\x00' in f.read(8192):
-                        return False
-                with open(file_path, 'r', encoding='utf-8', errors='replace') as f:
-                    for line_num, line in enumerate(f, 1):
-                        if regex.search(line):
-                            matches.append((file_path, line_num, line))
-                            match_count += 1
+                if os.path.isfile(search_path):
+                    if not glob_patterns or self._file_matches_glob(os.path.basename(search_path), glob_patterns):
+                        search_file(search_path)
+                else:
+                    for root, dirs, files in os.walk(search_path):
+                        dirs[:] = [d for d in dirs if not d.startswith('.')]
+                        for filename in files:
                             if limit and match_count >= limit:
-                                return True
-            except (OSError, UnicodeDecodeError):
-                pass
-            return False
-
-        try:
-            if os.path.isfile(search_path):
-                if not glob_patterns or self._file_matches_glob(os.path.basename(search_path), glob_patterns):
-                    search_file(search_path)
-            else:
-                for root, dirs, files in os.walk(search_path):
-                    dirs[:] = [d for d in dirs if not d.startswith('.')]
-                    for filename in files:
+                                break
+                            if glob_patterns and not self._file_matches_glob(filename, glob_patterns):
+                                continue
+                            file_path = os.path.join(root, filename)
+                            if search_file(file_path):
+                                break
                         if limit and match_count >= limit:
                             break
-                        if glob_patterns and not self._file_matches_glob(filename, glob_patterns):
-                            continue
-                        file_path = os.path.join(root, filename)
-                        if search_file(file_path):
-                            break
-                    if limit and match_count >= limit:
-                        break
+                return matches, None
+            except Exception as e:
+                return None, str(e)
+
+        def _update_widget(matches, error):
+            if error:
+                result.set_output(f"Error during grep search: {error}")
+                return
 
             if not matches:
                 output = f"No matches for '{pattern}' in {search_path}"
@@ -922,19 +1025,27 @@ class FileEditingIntegration(NewelleExtension):
                     output_lines.append(f"{rel_path}:{line_num}:{content.rstrip()}")
                 output = "\n".join(output_lines)
 
+            widget.set_matches(matches)
             open_callback = self._get_open_in_editor_callback() if matches else None
-            widget = GrepWidget(
-                pattern=pattern,
-                search_path=search_path,
-                matches=matches,
-                open_in_editor_callback=open_callback
-            )
+            widget.open_in_editor_callback = open_callback
 
             result.set_output(output)
-            result.set_widget(widget)
 
-        except Exception as e:
-            result.set_output(f"Error during grep search: {str(e)}")
+        open_callback = self._get_open_in_editor_callback()
+        widget = GrepWidget(
+            pattern=pattern,
+            search_path=search_path,
+            matches=[],
+            open_in_editor_callback=None
+        )
+        result.set_widget(widget)
+
+        def _run_search_thread():
+            matches, error = _do_grep_search()
+            GLib.idle_add(lambda: _update_widget(matches, error))
+
+        thread = threading.Thread(target=_run_search_thread, daemon=True)
+        thread.start()
 
         return result
 
@@ -949,7 +1060,113 @@ class FileEditingIntegration(NewelleExtension):
         """
         Restore the grep_search widget from chat history.
         """
-        return self._grep_search_impl(pattern=pattern, path=path, glob=glob, limit=limit)
+        result = ToolResult()
+
+        if not pattern or not pattern.strip():
+            result.set_output("Error: Pattern cannot be empty or whitespace-only")
+            return result
+
+        try:
+            regex = re.compile(pattern)
+        except re.error as e:
+            result.set_output(f"Error: Invalid regular expression: {e}")
+            return result
+
+        if path:
+            if not os.path.isabs(path):
+                result.set_output(f"Error: Path must be absolute: {path}")
+                return result
+            if not os.path.exists(path):
+                result.set_output(f"Error: Path does not exist: {path}")
+                return result
+            search_path = path
+        else:
+            search_path = os.getcwd()
+
+        glob_patterns = self._expand_glob_pattern(glob) if glob else []
+
+        def _do_grep_search():
+            matches = []
+            match_count = 0
+
+            def search_file(file_path: str) -> bool:
+                nonlocal match_count
+                try:
+                    with open(file_path, 'rb') as f:
+                        if b'\x00' in f.read(8192):
+                            return False
+                    with open(file_path, 'r', encoding='utf-8', errors='replace') as f:
+                        for line_num, line in enumerate(f, 1):
+                            if regex.search(line):
+                                matches.append((file_path, line_num, line))
+                                match_count += 1
+                                if limit and match_count >= limit:
+                                    return True
+                except (OSError, UnicodeDecodeError):
+                    pass
+                return False
+
+            try:
+                if os.path.isfile(search_path):
+                    if not glob_patterns or self._file_matches_glob(os.path.basename(search_path), glob_patterns):
+                        search_file(search_path)
+                else:
+                    for root, dirs, files in os.walk(search_path):
+                        dirs[:] = [d for d in dirs if not d.startswith('.')]
+                        for filename in files:
+                            if limit and match_count >= limit:
+                                break
+                            if glob_patterns and not self._file_matches_glob(filename, glob_patterns):
+                                continue
+                            file_path = os.path.join(root, filename)
+                            if search_file(file_path):
+                                break
+                        if limit and match_count >= limit:
+                            break
+                return matches, None
+            except Exception as e:
+                return None, str(e)
+
+        def _update_widget(matches, error):
+            if error:
+                result.set_output(f"Error during grep search: {error}")
+                return
+
+            if not matches:
+                output = f"No matches for '{pattern}' in {search_path}"
+            else:
+                output_lines = [f"Found {len(matches)} match(es) for '{pattern}' in {search_path}:", ""]
+                for file_path, line_num, content in matches:
+                    try:
+                        rel_path = os.path.relpath(file_path, search_path)
+                    except ValueError:
+                        rel_path = file_path
+                    output_lines.append(f"{rel_path}:{line_num}:{content.rstrip()}")
+                output = "\n".join(output_lines)
+
+            widget.set_matches(matches)
+            open_callback = self._get_open_in_editor_callback() if matches else None
+            widget.open_in_editor_callback = open_callback
+
+            result.set_output(output)
+
+        open_callback = self._get_open_in_editor_callback()
+        widget = GrepWidget(
+            pattern=pattern,
+            search_path=search_path,
+            matches=[],
+            open_in_editor_callback=None
+        )
+        result.set_widget(widget)
+
+        def _run_search_thread():
+            matches, error = _do_grep_search()
+            GLib.idle_add(lambda: _update_widget(matches, error))
+
+        thread = threading.Thread(target=_run_search_thread, daemon=True)
+        thread.start()
+
+        return result
 
     def get_tools(self):
         return [

@@ -438,20 +438,20 @@ class ChatTab(Gtk.Box):
     @property
     def chat(self) -> list:
         """Get the chat data for this tab."""
-        if self._chat_id < len(self.controller.chats):
+        if self._chat_id in self.controller.chats:
             return self.controller.chats[self._chat_id]["chat"]
         return []
-    
+
     @chat.setter
     def chat(self, value: list):
         """Set the chat data for this tab."""
-        if self._chat_id < len(self.controller.chats):
+        if self._chat_id in self.controller.chats:
             self.controller.chats[self._chat_id]["chat"] = value
-            
+
     @property
     def chat_name(self) -> str:
         """Get the chat name for this tab."""
-        if self._chat_id < len(self.controller.chats):
+        if self._chat_id in self.controller.chats:
             return self.controller.chats[self._chat_id].get("name", _("New Chat"))
         return _("New Chat")
     
@@ -603,9 +603,9 @@ class ChatTab(Gtk.Box):
             
             self.chat.append({"User": "User", "Message": text})
             self.chat_history.show_message(text, True, id_message=len(self.chat) - 1, is_user=True)
-            
+
             # Store current profile in chat data
-            if self._chat_id < len(self.controller.chats):
+            if self._chat_id in self.controller.chats:
                 self.controller.chats[self._chat_id]["profile"] = self.window.current_profile
 
         GLib.timeout_add(200, self.chat_history.scrolled_chat)
@@ -681,6 +681,9 @@ class ChatTab(Gtk.Box):
         prompts = data['prompts']
         self.last_generation_time = data['time']
         self.last_token_num = (data['input_tokens'], data['output_tokens'])
+        trim_result = data.get('trim_result')
+        if trim_result is not None and hasattr(self.window, 'context_indicator'):
+            self.window.context_indicator.update_stats(trim_result)
         
         if hasattr(self, "current_streaming_message") and self.current_streaming_message:
             # Streaming was active, finalize the existing widget
@@ -964,7 +967,7 @@ class ChatTab(Gtk.Box):
             if name:
                 name = name.strip().strip('"').strip("'")
                 name = remove_markdown(name)
-                if self._chat_id < len(self.controller.chats):
+                if self._chat_id in self.controller.chats:
                     self.controller.chats[self._chat_id]["name"] = name
                     self.save_chat()
                     GLib.idle_add(self._update_tab_title)
@@ -1111,7 +1114,7 @@ class ChatTab(Gtk.Box):
         self.chat_history.show_message(text, id_message=len(self.chat) - 1, is_user=True)
         
         # Store current profile in chat data
-        if self._chat_id < len(self.controller.chats):
+        if self._chat_id in self.controller.chats:
             self.controller.chats[self._chat_id]["profile"] = self.window.current_profile
         
         threading.Thread(target=self.send_message).start()

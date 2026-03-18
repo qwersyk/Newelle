@@ -125,6 +125,35 @@ class MyApp(Adw.Application):
                 background-color: alpha(@view_fg_color, 0.06);
                 animation: chat_locked_pulse 1.6s ease-in-out infinite;
         }
+
+        /* Folder row styling */
+        .navigation-sidebar row.folder-row {
+          border-radius: 6px;
+          margin-top: 2px;
+        }
+
+        .navigation-sidebar row.folder-row-drop-hover {
+          background-color: alpha(@accent_bg_color, 0.20);
+          border-radius: 6px;
+        }
+
+        .folder-icon-picker-btn {
+          min-width: 36px;
+          min-height: 36px;
+          padding: 4px;
+        }
+
+        .folder-icon-picker-btn:checked {
+          background-color: alpha(@accent_bg_color, 0.25);
+        }
+
+        .unfolder-drop-area {
+          border-radius: 6px;
+        }
+
+        .unfolder-drop-area-hover {
+          background-color: alpha(@accent_bg_color, 0.12);
+        }
         '''
         css_provider = Gtk.CssProvider()
         css_provider.load_from_data(css, -1)

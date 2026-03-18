@@ -110,7 +110,7 @@ class Command:
         return func_to_call(**kwargs)
 
 class Tool:
-    def __init__(self, name: str, description: str, func: Callable, schema: Dict[str, Any] = None, run_on_main_thread: bool = False, title: str = None, prompt_editable: bool = True, restore_func: Callable = None, default_on: bool = True, tools_group: str = None, icon_name: str = None):
+    def __init__(self, name: str, description: str, func: Callable, schema: Dict[str, Any] = None, run_on_main_thread: bool = False, title: str = None, prompt_editable: bool = True, restore_func: Callable = None, default_on: bool = True, tools_group: str = None, icon_name: str = None, default_lazy_load: bool = False):
         self.name = name
         self.description = description
         self.func = func
@@ -122,6 +122,7 @@ class Tool:
         self.default_on = default_on
         self.tools_group = tools_group
         self.icon_name = icon_name
+        self.default_lazy_load = default_lazy_load
 
     def restore(self, **kwargs):
         if self.restore_func is not None:
@@ -195,22 +196,44 @@ class ToolRegistry:
             raise ValueError(f"Tool '{name}' not found")
         return tool.execute(**arguments)
     
+    def get_tool_schema(self, tool_name: str) -> str:
+        """Return the full JSON schema definition for a single tool.
+
+        Args:
+            tool_name: Name of the tool to look up.
+
+        Returns:
+            JSON string with the tool's name, description and parameters,
+            or an error message if the tool is not found.
+        """
+        tool_obj = self._tools.get(tool_name)
+        if not tool_obj:
+            return json.dumps({"error": f"Tool '{tool_name}' not found"})
+        tool_def = {
+            "name": tool_obj.name,
+            "description": tool_obj.description,
+            "parameters": tool_obj.schema,
+        }
+        return json.dumps(tool_def, indent=2)
+
     def get_tools_prompt(self, enabled_tools_dict: dict[str, bool] = None, tools_settings: dict = None) -> str:
         """
         Generates the system prompt instructions for using the available tools.
         
+        Tools with lazy loading enabled (per-tool setting or default_lazy_load)
+        are emitted in compact form (name + description only, no parameters).
+        The LLM should call ``tool_search`` to retrieve the full schema before
+        invoking a compact tool.
+
         Args:
             enabled_tools_dict: Dictionary mapping tool names to boolean enabled state. 
                                 If None, all registered tools are considered enabled.
-            tools_prompt_template: The template string for the tool instructions. 
-                                   Must contain {TOOLS_JSON}.
-            tools_settings: Dictionary containing tool settings (including custom prompts).
+            tools_settings: Dictionary containing tool settings (including custom prompts
+                            and per-tool lazy_load overrides).
         """
         
         available_tools = []
         for tool_name, tool_obj in self._tools.items():
-            # If enabled_tools_dict is provided, check if the tool is explicitly disabled (False)
-            # Default to tool's default_on value if not in the dictionary
             is_enabled = tool_obj.default_on
             if enabled_tools_dict is not None:
                 is_enabled = enabled_tools_dict.get(tool_name, tool_obj.default_on)
@@ -224,11 +247,21 @@ class ToolRegistry:
                          pass
 
                 if not tool_def:
-                    tool_def = {
-                        "name": tool_obj.name,
-                        "description": tool_obj.description,
-                        "parameters": tool_obj.schema
-                    }
+                    is_lazy = tool_obj.default_lazy_load
+                    if tools_settings and tool_name in tools_settings and "lazy_load" in tools_settings[tool_name]:
+                        is_lazy = tools_settings[tool_name]["lazy_load"]
+
+                    if is_lazy:
+                        tool_def = {
+                            "name": tool_obj.name,
+                            "description": tool_obj.description,
+                        }
+                    else:
+                        tool_def = {
+                            "name": tool_obj.name,
+                            "description": tool_obj.description,
+                            "parameters": tool_obj.schema,
+                        }
                 available_tools.append(tool_def)
         
         if not available_tools:
@@ -245,7 +278,7 @@ def tool(name: str, description: str, run_on_main_thread: bool = False, title: s
         return t
     return decorator
 
-def create_io_tool(name: str, description: str, func: Callable, title: str = None, create_separate_process=False, default_on: bool = True, tools_group: str = None, icon_name: str = None) -> Tool:
+def create_io_tool(name: str, description: str, func: Callable, title: str = None, create_separate_process=False, default_on: bool = True, tools_group: str = None, icon_name: str = None, default_lazy_load: bool = False) -> Tool:
     def wrapper(**kwargs):
         result = ToolResult()
         def th():
@@ -254,7 +287,7 @@ def create_io_tool(name: str, description: str, func: Callable, title: str = Non
         GLib.idle_add(t.start)
         return result
 
-    t = Tool(name, description, wrapper, title=title, default_on=default_on, tools_group=tools_group, icon_name=icon_name, restore_func=None)
+    t = Tool(name, description, wrapper, title=title, default_on=default_on, tools_group=tools_group, icon_name=icon_name, restore_func=None, default_lazy_load=default_lazy_load)
     schema = t._generate_schema_from_func(func)
     t.schema = schema
     return t

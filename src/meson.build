@@ -47,10 +47,12 @@ integrations_sources = [
   'integrations/website_reader.py',
   'integrations/websearch.py',
   'integrations/mcp.py',
+  'integrations/mcp_oauth.py',
   'integrations/default_tools.py',
   'integrations/skills.py',
   'integrations/agent_tools.py',
-  'integrations/file_editing.py'
+  'integrations/file_editing.py',
+  'integrations/todo_list.py'
 ]
 
 ui_sources = [
@@ -83,6 +85,8 @@ widgets_sources = [
   'ui/widgets/glob.py',
   'ui/widgets/grep.py',
   'ui/widgets/list_directory.py',
+  'ui/widgets/context_indicator.py',
+  'ui/widgets/folderrow.py',
   'ui/widgets/latex.py',
   'ui/widgets/terminal_dialog.py',
   'ui/widgets/markuptextview.py',
@@ -209,6 +213,7 @@ utility_sources = [
   'utility/wakeword_detector.py',
   'utility/vad.py',
   'utility/force_sync.py',
+  'utility/context_manager.py',
 ]
 
 install_data(newelle_sources, install_dir: moduledir)

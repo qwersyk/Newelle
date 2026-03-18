@@ -32,6 +32,7 @@ import uuid as uuid_lib
 from .extensions import ExtensionLoader
 from .utility import override_prompts
 from .utility.strings import clean_bot_response, clean_prompt, count_tokens, remove_thinking_blocks, get_edited_messages
+from .utility.context_manager import ContextManager, TrimResult
 from .utility.replacehelper import PromptFormatter, replace_variables_dict
 from enum import Enum 
 from .handlers import Handler
@@ -93,12 +94,28 @@ class NewelleController:
         chat: current chat 
         extensionloader: Extensionloader object 
     """
+    def chat_ids_ordered(self):
+        """Return chat IDs in stable chronological order (sorted by ID)."""
+        if not hasattr(self, 'chats') or not self.chats:
+            return []
+        return sorted(self.chats.keys())
+
+    def _get_fallback_chat_id(self):
+        """Return first available chat_id when current is invalid."""
+        if not self.chats:
+            return None
+        return min(self.chats.keys())
+
     @property
     def chat(self):
         """Get the current chat messages list"""
         if hasattr(self, 'chats') and hasattr(self, 'newelle_settings'):
             chat_id = self.newelle_settings.chat_id
-            return self.chats[min(chat_id, len(self.chats) - 1)]["chat"]
+            if chat_id in self.chats:
+                return self.chats[chat_id]["chat"]
+            fallback = self._get_fallback_chat_id()
+            if fallback is not None:
+                return self.chats[fallback]["chat"]
         return []
 
     @chat.setter
@@ -106,8 +123,12 @@ class NewelleController:
         """Set the current chat messages list"""
         if hasattr(self, 'chats') and hasattr(self, 'newelle_settings'):
             chat_id = self.newelle_settings.chat_id
-            index = min(chat_id, len(self.chats) - 1)
-            self.chats[index]["chat"] = value
+            if chat_id in self.chats:
+                self.chats[chat_id]["chat"] = value
+            else:
+                fallback = self._get_fallback_chat_id()
+                if fallback is not None:
+                    self.chats[fallback]["chat"] = value
     
     def get_chat_by_id(self, chat_id):
         """Get chat messages list by explicit chat_id.
@@ -118,7 +139,7 @@ class NewelleController:
         Returns:
             The chat messages list for the specified chat_id, or empty list if invalid
         """
-        if hasattr(self, 'chats') and self.chats and 0 <= chat_id < len(self.chats):
+        if hasattr(self, 'chats') and self.chats and chat_id in self.chats:
             return self.chats[chat_id]["chat"]
         return []
     
@@ -129,14 +150,14 @@ class NewelleController:
             chat_id: The chat ID to set messages for
             value: The new chat messages list
         """
-        if hasattr(self, 'chats') and self.chats and 0 <= chat_id < len(self.chats):
+        if hasattr(self, 'chats') and self.chats and chat_id in self.chats:
             self.chats[chat_id]["chat"] = value
 
     def get_console_reply(self, chat_id, id_message):
         """Get existing console reply from chat history if available."""
-        if not hasattr(self, 'chats') or not self.chats:
+        if not hasattr(self, 'chats') or not self.chats or chat_id not in self.chats:
             return None
-        chat = self.chats[min(chat_id, len(self.chats) - 1)]["chat"]
+        chat = self.chats[chat_id]["chat"]
         idx = min(id_message, len(chat) - 1)
         if idx >= 0 and chat[idx].get("User") == "Console":
             return chat[idx]["Message"]
@@ -144,9 +165,9 @@ class NewelleController:
 
     def get_tool_response(self, chat_id, id_message, tool_name, tool_uuid):
         """Get existing tool response from chat history by tool name and UUID."""
-        if not hasattr(self, 'chats') or not self.chats:
+        if not hasattr(self, 'chats') or not self.chats or chat_id not in self.chats:
             return None
-        chat = self.chats[min(chat_id, len(self.chats) - 1)]["chat"]
+        chat = self.chats[chat_id]["chat"]
         for i in range(id_message, len(chat)):
             entry = chat[i]
             if entry.get("User") == "Console":
@@ -160,9 +181,9 @@ class NewelleController:
 
     def get_tool_call_uuid(self, chat_id, id_message, tool_name, tool_call_index):
         """Get tool call UUID from chat history during restore."""
-        if not hasattr(self, 'chats') or not self.chats:
+        if not hasattr(self, 'chats') or not self.chats or chat_id not in self.chats:
             return str(uuid_lib.uuid4())[:8]
-        chat = self.chats[min(chat_id, len(self.chats) - 1)]["chat"]
+        chat = self.chats[chat_id]["chat"]
         count = 0
         for i in range(id_message, len(chat)):
             entry = chat[i]
@@ -262,36 +283,70 @@ class NewelleController:
             self.extensionloader.set_ui_controller(ui_controller)
             self.integrationsloader.set_ui_controller(ui_controller)
 
+    def _ensure_chats_dict(self, raw):
+        """Convert loaded data to dict format. Handles retrocompatibility with old list format."""
+        if isinstance(raw, dict) and "chats" in raw:
+            self.chats = raw["chats"]
+            self.next_chat_id = raw.get(
+                "next_chat_id",
+                max(self.chats.keys(), default=0) + 1
+            )
+            self.folders = raw.get("folders", {})
+            self.next_folder_id = raw.get("next_folder_id", 0)
+            return
+        # Old list format
+        self.chats = {i: entry for i, entry in enumerate(raw)}
+        self.next_chat_id = len(self.chats)
+        self.folders = {}
+        self.next_folder_id = 0
+
     def load_chats(self, chat_id):
         """Load chats"""
         self.filename = "chats.pkl"
         if os.path.exists(self.chats_path):
             with open(self.chats_path, 'rb') as f:
-                self.chats = pickle.load(f)
+                raw = pickle.load(f)
+            self._ensure_chats_dict(raw)
         else:
-            self.chats = [{"name": _("Chat ") + "1", "chat": []}]
+            self.chats = {0: {"name": _("Chat ") + "1", "chat": []}}
+            self.next_chat_id = 1
+            self.folders = {}
+            self.next_folder_id = 0
 
-   
+        # Validate chat_id: if not in chats, use first available
+        if self.chats and hasattr(self, 'newelle_settings'):
+            if self.newelle_settings.chat_id not in self.chats:
+                self.newelle_settings.chat_id = min(self.chats.keys())
+
     def save_chats(self):
         """Save chats"""
         with open(self.chats_path, 'wb') as f:
-            pickle.dump(self.chats, f)
+            pickle.dump({
+                "chats": self.chats,
+                "next_chat_id": self.next_chat_id,
+                "folders": self.folders,
+                "next_folder_id": self.next_folder_id,
+            }, f)
 
     def create_call_chat(self):
         """Create a new call chat that won't be displayed in the chat list"""
+        chat_id = self.next_chat_id
+        self.next_chat_id += 1
         new_chat = {
-            "name": _("Call " + str(len(self.chats))),
+            "name": _("Call ") + str(chat_id),
             "chat": [],
             "call": True
         }
-        self.chats.append(new_chat)
+        self.chats[chat_id] = new_chat
         self.save_chats()
-        return len(self.chats) - 1
+        return chat_id
 
-    def create_visible_chat(self, name: str | None = None, profile: str | None = None):
+    def create_visible_chat(self, name: str | None = None, profile: str | None = None, folder_id: int | None = None):
         """Create a new visible chat entry and refresh history."""
+        chat_id = self.next_chat_id
+        self.next_chat_id += 1
         if name is None:
-            name = _("Chat %d") % (len(self.chats) + 1)
+            name = _("Chat %d") % chat_id
         new_chat = {
             "name": name,
             "chat": [],
@@ -300,12 +355,97 @@ class NewelleController:
         }
         if profile is not None:
             new_chat["profile"] = profile
-        self.chats.append(new_chat)
-        chat_id = len(self.chats) - 1
+        self.chats[chat_id] = new_chat
+        self.save_chats()
+        if folder_id is not None and folder_id in self.folders:
+            self.move_chat_to_folder(chat_id, folder_id)
+        elif self.ui_controller is not None:
+            GLib.idle_add(self.ui_controller.window.update_history)
+        return chat_id
+
+    def create_folder(self, name: str, color: str, icon: str = "folder-symbolic") -> int:
+        """Create a new chat folder and return its ID."""
+        folder_id = self.next_folder_id
+        self.next_folder_id += 1
+        self.folders[folder_id] = {
+            "name": name,
+            "color": color,
+            "icon": icon,
+            "chat_ids": [],
+            "expanded": True,
+        }
         self.save_chats()
         if self.ui_controller is not None:
             GLib.idle_add(self.ui_controller.window.update_history)
-        return chat_id
+        return folder_id
+
+    def ensure_scheduled_tasks_folder(self) -> int:
+        """Ensure the 'Scheduled Tasks' folder exists, creating it if needed."""
+        folder_name = _("Scheduled Tasks")
+        for folder_id, folder in self.folders.items():
+            if folder["name"] == folder_name:
+                return folder_id
+        return self.create_folder(folder_name, "#3584e4", "alarm-symbolic")
+
+    def rename_folder(self, folder_id: int, name: str):
+        """Rename an existing folder."""
+        if folder_id in self.folders:
+            self.folders[folder_id]["name"] = name
+            self.save_chats()
+
+    def update_folder_color(self, folder_id: int, color: str):
+        """Change the color of a folder."""
+        if folder_id in self.folders:
+            self.folders[folder_id]["color"] = color
+            self.save_chats()
+
+    def update_folder_icon(self, folder_id: int, icon: str):
+        """Change the icon of a folder."""
+        if folder_id in self.folders:
+            self.folders[folder_id]["icon"] = icon
+            self.save_chats()
+
+    def delete_folder(self, folder_id: int):
+        """Delete a folder. Chats inside are moved back to top level."""
+        if folder_id in self.folders:
+            del self.folders[folder_id]
+            self.save_chats()
+            if self.ui_controller is not None:
+                GLib.idle_add(self.ui_controller.window.update_history)
+
+    def toggle_folder_expanded(self, folder_id: int):
+        """Toggle the expanded/collapsed state of a folder."""
+        if folder_id in self.folders:
+            self.folders[folder_id]["expanded"] = not self.folders[folder_id]["expanded"]
+            self.save_chats()
+
+    def move_chat_to_folder(self, chat_id: int, folder_id: int):
+        """Move a chat into a folder, removing it from any previous folder."""
+        self.remove_chat_from_folder(chat_id, save=False)
+        if folder_id in self.folders:
+            if chat_id not in self.folders[folder_id]["chat_ids"]:
+                self.folders[folder_id]["chat_ids"].append(chat_id)
+            self.save_chats()
+            if self.ui_controller is not None:
+                GLib.idle_add(self.ui_controller.window.update_history)
+
+    def remove_chat_from_folder(self, chat_id: int, save: bool = True):
+        """Remove a chat from whichever folder it belongs to."""
+        for folder in self.folders.values():
+            if chat_id in folder["chat_ids"]:
+                folder["chat_ids"].remove(chat_id)
+                if save:
+                    self.save_chats()
+                    if self.ui_controller is not None:
+                        GLib.idle_add(self.ui_controller.window.update_history)
+                return
+
+    def get_folder_for_chat(self, chat_id: int):
+        """Return the folder_id containing this chat, or None."""
+        for fid, folder in self.folders.items():
+            if chat_id in folder["chat_ids"]:
+                return fid
+        return None
 
     def _parse_scheduled_datetime(self, value: str, allow_past: bool = True) -> datetime.datetime:
         if not isinstance(value, str) or not value.strip():
@@ -476,6 +616,7 @@ class NewelleController:
             "last_run_status": task.get("last_run_status"),
             "last_error": task.get("last_error"),
             "running": False,
+            "folder_id": task.get("folder_id"),
         }
 
         if task.get("last_run_at"):
@@ -542,8 +683,10 @@ class NewelleController:
             GLib.source_remove(self.scheduler_source_id)
             self.scheduler_source_id = None
 
-    def create_scheduled_task(self, task: str, run_at: str | None = None, cron: str | None = None) -> dict:
+    def create_scheduled_task(self, task: str, run_at: str | None = None, cron: str | None = None, folder_id: int | None = None) -> dict:
         now = datetime.datetime.now().astimezone()
+        if folder_id is None:
+            folder_id = self.ensure_scheduled_tasks_folder()
         scheduled_task = self._normalize_scheduled_task(
             {
                 "task": task,
@@ -551,6 +694,7 @@ class NewelleController:
                 "cron": cron,
                 "enabled": True,
                 "created_at": now.isoformat(),
+                "folder_id": folder_id,
             },
             now,
         )
@@ -596,6 +740,29 @@ class NewelleController:
             self._persist_scheduled_tasks()
         return changed
 
+    def set_scheduled_task_folder(self, task_id: str, folder_id: int) -> bool:
+        """Change the folder for a scheduled task."""
+        changed = False
+        with self.scheduled_tasks_lock:
+            for task in self.scheduled_tasks:
+                if task["id"] != task_id:
+                    continue
+                if task.get("folder_id") != folder_id:
+                    task["folder_id"] = folder_id
+                    changed = True
+                break
+        if changed:
+            self._persist_scheduled_tasks()
+        return changed
+
+    def get_scheduled_task_folder_id(self, task_id: str) -> int | None:
+        """Get the folder ID for a scheduled task."""
+        with self.scheduled_tasks_lock:
+            for task in self.scheduled_tasks:
+                if task["id"] == task_id:
+                    return task.get("folder_id")
+        return None
+
     def _scheduler_tick(self):
         now = datetime.datetime.now().astimezone()
         due_tasks = []
@@ -629,10 +796,12 @@ class NewelleController:
         chat_id = None
         status = "completed"
         error_message = None
+        folder_id = task.get("folder_id")
         try:
             chat_id = self.create_visible_chat(
                 name=self._format_scheduled_chat_name(task),
                 profile=self.newelle_settings.current_profile,
+                folder_id=folder_id,
             )
             self.run_llm_with_tools(
                 message=task["task"],
@@ -936,19 +1105,19 @@ class NewelleController:
 
         self.settings.set_string("profiles", json.dumps(self.newelle_settings.profile_settings))
 
-    def export_single_chat(self, chat_index):
+    def export_single_chat(self, chat_id):
         """Export a single chat to JSON format
 
         Args:
-            chat_index: Index of the chat to export
+            chat_id: The chat ID to export
 
         Returns:
-            dict: Export data in JSON format
+            dict: Export data in JSON format, or None if chat_id invalid
         """
-        if chat_index < 0 or chat_index >= len(self.chats):
+        if chat_id not in self.chats:
             return None
 
-        chat_data = self.chats[chat_index]
+        chat_data = self.chats[chat_id]
         export_data = {
             "version": "1.0",
             "export_metadata": {
@@ -977,7 +1146,7 @@ class NewelleController:
             dict: Export data in JSON format
         """
         chats_list = []
-        for chat_data in self.chats:
+        for _cid, chat_data in self.chats.items():
             chat_entry = {
                 "name": chat_data["name"],
                 "profile": chat_data.get("profile", None),
@@ -1010,11 +1179,11 @@ class NewelleController:
             data: Dictionary containing chat export data
 
         Returns:
-            tuple: (success: bool, message: str, imported_count: int)
+            tuple: (success: bool, message: str, imported_count: int, last_chat_id: int | None)
         """
         # Validate required fields
         if "version" not in data or "export_metadata" not in data:
-            return False, _("Invalid export format: missing required fields"), 0
+            return False, _("Invalid export format: missing required fields"), 0, None
 
         export_metadata = data["export_metadata"]
         export_type = export_metadata.get("export_type")
@@ -1024,48 +1193,33 @@ class NewelleController:
         elif export_type == "multiple_chats":
             return self._import_multiple_chats(data)
         else:
-            return False, _("Unknown export type"), 0
+            return False, _("Unknown export type"), 0, None
 
     def _import_single_chat(self, data):
-        """Import a single chat from export data"""
+        """Import a single chat from export data. Returns (success, message, count, last_chat_id)."""
         try:
             chat = data["chat"]
             name = chat.get("name", "Imported Chat")
             messages = chat.get("messages", [])
             profile = chat.get("profile")
 
-            # Ensure name is unique
-            counter = 1
-            original_name = name
-            while any(c["name"] == name for c in self.chats):
-                name = f"{original_name} ({counter})"
-                counter += 1
-
-            # Create new chat
-            new_chat = {
-                "name": name,
-                "chat": messages[:]
-            }
-
-            # Set profile if provided
-            if profile is not None:
-                new_chat["profile"] = profile
-
-            self.chats.append(new_chat)
+            chat_id = self.create_visible_chat(name=name, profile=profile)
+            self.chats[chat_id]["chat"] = messages[:]
             self.save_chats()
-            return True, _("Imported 1 chat successfully"), 1
+            return True, _("Imported 1 chat successfully"), 1, chat_id
         except Exception as e:
-            return False, _("Error importing chat: {0}").format(str(e)), 0
+            return False, _("Error importing chat: {0}").format(str(e)), 0, None
 
     def _import_multiple_chats(self, data):
-        """Import multiple chats from export data"""
+        """Import multiple chats from export data. Returns (success, message, count, last_chat_id)."""
         try:
             chats = data["chats"]
             imported_count = 0
             skipped_count = 0
+            last_chat_id = None
 
             # Track existing chat names
-            existing_names = {c["name"] for c in self.chats}
+            existing_names = {c["name"] for c in self.chats.values()}
 
             for chat in chats:
                 try:
@@ -1081,19 +1235,11 @@ class NewelleController:
                             name = f"{original_name} ({counter})"
                             counter += 1
 
-                    # Create new chat
-                    new_chat = {
-                        "name": name,
-                        "chat": messages[:]
-                    }
-
-                    # Set profile if provided
-                    if profile is not None:
-                        new_chat["profile"] = profile
-
-                    self.chats.append(new_chat)
+                    chat_id = self.create_visible_chat(name=name, profile=profile)
+                    self.chats[chat_id]["chat"] = messages[:]
                     existing_names.add(name)
                     imported_count += 1
+                    last_chat_id = chat_id
                 except Exception:
                     skipped_count += 1
                     continue
@@ -1105,9 +1251,9 @@ class NewelleController:
             if skipped_count > 0:
                 message += _(" (skipped {0})").format(skipped_count)
 
-            return True, message, imported_count
+            return True, message, imported_count, last_chat_id
         except Exception as e:
-            return False, _("Error importing chats: {0}").format(str(e)), 0
+            return False, _("Error importing chats: {0}").format(str(e)), 0, None
 
     def get_variable(self, name:str):
         tools = self.tools.get_all_tools()
@@ -1169,7 +1315,8 @@ class NewelleController:
         if copy_chat:
             chat = copy.deepcopy(chat)
         history = []
-        count = self.newelle_settings.memory
+        use_fixed = self.newelle_settings.context_mode == "fixed"
+        count = self.newelle_settings.memory if use_fixed else -1
         msgs = chat[:-1] if not include_last_message else chat
         msgs.reverse()
         for msg in msgs:
@@ -1183,8 +1330,41 @@ class NewelleController:
                 msg["Message"] = f"```{msg['User'].lower()}\n{msg['Message'].strip()}\n```"
                 msg["User"] = "User"
             history.insert(0,msg)
-            count -= 1
+            if count > 0:
+                count -= 1
         return history
+
+    def _trim_context(
+        self,
+        history: list[dict[str, str]],
+        prompts: list[str],
+        current_message: str,
+    ) -> tuple[list[dict[str, str]], TrimResult | None]:
+        """Trim history using the ContextManager when context-manager mode is active.
+
+        Returns (trimmed_history, trim_result). trim_result is None when using fixed mode.
+        """
+        if self.newelle_settings.context_mode != "context-manager":
+            return history, None
+
+        prompts_token_count = sum(count_tokens(p) for p in prompts)
+
+        embedding = getattr(self.handlers, "embedding", None)
+        if self.newelle_settings.use_secondary_language_model:
+            llm = getattr(self.handlers, "secondary_llm", None)
+        else:
+            llm = getattr(self.handlers, "llm", None)
+
+        cm = ContextManager(
+            max_tokens=self.newelle_settings.context_max,
+            suggested_tokens=self.newelle_settings.context_suggested,
+            embedding_handler=embedding,
+            llm_handler=llm,
+            summarization_enabled=self.newelle_settings.context_summarization,
+        )
+        result = cm.trim(history, prompts_token_count, current_message)
+        self.last_trim_result = result
+        return result.history, result
 
     def get_memory_prompt(self, chat=None, chat_id=None):
         """Get memory and RAG context prompts.
@@ -1268,9 +1448,9 @@ class NewelleController:
         # Use explicit chat_id or fall back to current
         effective_chat_id = chat_id if chat_id is not None else self.newelle_settings.chat_id
 
-        # Validate chat_id is within bounds
-        if not self.chats or effective_chat_id < 0 or effective_chat_id >= len(self.chats):
-            print(f"prepare_generation: Invalid chat_id {effective_chat_id}, chats length: {len(self.chats) if self.chats else 0}")
+        # Validate chat_id exists
+        if not self.chats or effective_chat_id not in self.chats:
+            print(f"prepare_generation: Invalid chat_id {effective_chat_id}, chats: {list(self.chats.keys()) if self.chats else []}")
             return None, None, None, None, None, None
 
         chat = self.get_chat_by_id(effective_chat_id)
@@ -1289,9 +1469,11 @@ class NewelleController:
 
         # Set the history for the model
         history = self.get_history(chat=chat)
+        current_message = chat[-1]["Message"] if chat else ""
+        history, _ = self._trim_context(history, prompts, current_message)
         # Let extensions preprocess the history
         old_history = copy.deepcopy(history)
-        old_user_prompt = chat[-1]["Message"] if chat else ""
+        old_user_prompt = current_message
         processed_chat, prompts = self.integrationsloader.preprocess_history(chat, prompts)
         chat, prompts = self.extensionloader.preprocess_history(processed_chat, prompts)
 
@@ -1396,7 +1578,8 @@ class NewelleController:
             'prompts': prompts,
             'input_tokens': input_tokens,
             'output_tokens': output_tokens,
-            'time': last_generation_time
+            'time': last_generation_time,
+            'trim_result': getattr(self, 'last_trim_result', None),
         })
 
     def run_llm_with_tools(
@@ -1467,10 +1650,12 @@ class NewelleController:
                     if on_message_callback:
                         on_message_callback(text)
                 
+                send_history, _ = self._trim_context(current_history, system_prompt, message)
+
                 if self.handlers.llm.stream_enabled():
                     response = self.handlers.llm.send_message_stream(
                         message if iteration == 0 else "",
-                        current_history,
+                        send_history,
                         system_prompt,
                         stream_callback
                     )
@@ -1478,7 +1663,7 @@ class NewelleController:
                     response = self.handlers.llm.send_message(
                         message if iteration == 0 else "",
                         system_prompt,
-                        current_history
+                        send_history
                     )
                     if on_message_callback:
                         on_message_callback(response)
@@ -1697,6 +1882,10 @@ class NewelleSettings:
         self.wakeword_pre_buffer_duration = settings.get_double("wakeword-pre-buffer-duration")
         self.wakeword_silence_duration = settings.get_double("wakeword-silence-duration")
         self.wakeword_energy_threshold = settings.get_int("wakeword-energy-threshold")
+        self.context_mode = settings.get_string("context-mode")
+        self.context_max = settings.get_int("context-max")
+        self.context_suggested = settings.get_int("context-suggested")
+        self.context_summarization = settings.get_boolean("context-summarization")
         self.load_prompts()
         # Adjust paths
         if os.path.exists(os.path.expanduser(self.main_path)):
