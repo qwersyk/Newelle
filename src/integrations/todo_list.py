@@ -279,7 +279,7 @@ class TodoListIntegration(NewelleExtension):
                 func=self._tool_todo,
                 title="Todo List",
                 restore_func=self._restore_todo,
-                tools_group="Coding"
+                tools_group="Agent"
             )
         ]
 
