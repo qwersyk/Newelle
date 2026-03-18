@@ -105,7 +105,7 @@ class RAGHandler(Handler):
 
     def __init__(self, settings, path):
         super().__init__(settings, path)
-        self.documents_path = os.path.join(os.path.dirname(self.path), "documents")
+        self.documents_path = os.path.join(self.path, "documents")
         if not os.path.exists(self.documents_path):
             os.mkdir(self.documents_path)
 
