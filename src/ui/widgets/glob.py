@@ -47,9 +47,11 @@ class GlobWidget(Gtk.Box):
         self.color_scheme = color_scheme
         self.open_in_editor_callback = open_in_editor_callback
 
+        self.loading_spinner = None
+
         # Build the UI
         self._build_header()
-        self._build_matches_view()
+        self._build_loading_view()
         self._build_status()
 
     def _build_header(self):
@@ -80,6 +82,19 @@ class GlobWidget(Gtk.Box):
         header_box.append(self.copy_button)
 
         self.append(header_box)
+
+    def _build_loading_view(self):
+        """Build the loading view with a spinner."""
+        self.loading_spinner = Gtk.Spinner(
+            halign=Gtk.Align.CENTER,
+            valign=Gtk.Align.CENTER,
+            hexpand=True,
+            vexpand=True,
+            width_request=40,
+            height_request=40
+        )
+        self.loading_spinner.start()
+        self.append(self.loading_spinner)
 
     def _build_matches_view(self):
         """Build the list view for displaying matching files."""
@@ -257,9 +272,9 @@ class GlobWidget(Gtk.Box):
         """Update the matches and rebuild the matches view and status."""
         self.matches = matches
 
-        # Remove existing content and status
+        # Remove loading spinner, existing content and status
         for child in list(self):
-            if isinstance(child, (Gtk.ScrolledWindow, Gtk.Label)):
+            if isinstance(child, (Gtk.Spinner, Gtk.ScrolledWindow, Gtk.Label)):
                 self.remove(child)
 
         # Rebuild content and status

@@ -46,8 +46,10 @@ class GrepWidget(Gtk.Box):
         self.color_scheme = color_scheme
         self.open_in_editor_callback = open_in_editor_callback
 
+        self.loading_spinner = None
+
         self._build_header()
-        self._build_content_view()
+        self._build_loading_view()
         self._build_status()
 
     def _build_header(self):
@@ -83,6 +85,19 @@ class GrepWidget(Gtk.Box):
             header_box.append(open_button)
 
         self.append(header_box)
+
+    def _build_loading_view(self):
+        """Build the loading view with a spinner."""
+        self.loading_spinner = Gtk.Spinner(
+            halign=Gtk.Align.CENTER,
+            valign=Gtk.Align.CENTER,
+            hexpand=True,
+            vexpand=True,
+            width_request=40,
+            height_request=40
+        )
+        self.loading_spinner.start()
+        self.append(self.loading_spinner)
 
     def _build_content_view(self):
         """Build the content view with grep results."""
@@ -200,3 +215,15 @@ class GrepWidget(Gtk.Box):
     def get_search_path(self) -> str:
         """Get the search path used."""
         return self.search_path
+
+    def set_matches(self, matches: list[tuple[str, int, str]]):
+        """Update the matches and rebuild the content view and status."""
+        self.matches = matches
+
+        # Remove loading spinner, existing content and status
+        for child in list(self):
+            if isinstance(child, (Gtk.Spinner, Gtk.ScrolledWindow, Gtk.Label)):
+                self.remove(child)
+
+        self._build_content_view()
+        self._build_status()
