@@ -113,7 +113,7 @@ class ListDirectoryWidget(Gtk.Box):
         self.list_box.set_margin_top(5)
         self.list_box.set_margin_bottom(5)
 
-        for entry_name in sorted(self.entries):
+        for entry_name in sorted(self.entries)[:50]:
             self._add_entry_row(entry_name)
 
         scroll = Gtk.ScrolledWindow(
@@ -185,12 +185,16 @@ class ListDirectoryWidget(Gtk.Box):
         """Build status label showing directory info."""
         file_count = sum(1 for e in self.entries if os.path.isfile(os.path.join(self.dir_path, e)))
         dir_count = len(self.entries) - file_count
+        displayed_count = min(len(self.entries), 50)
 
         status_parts = []
         if len(self.entries) == 0:
             status_parts.append("Empty")
         else:
-            status_parts.append(f"{len(self.entries)} entries")
+            if len(self.entries) > 50:
+                status_parts.append(f"{displayed_count} of {len(self.entries)} entries")
+            else:
+                status_parts.append(f"{len(self.entries)} entries")
         if file_count > 0:
             status_parts.append(f"{file_count} files")
         if dir_count > 0:
@@ -232,3 +236,16 @@ class ListDirectoryWidget(Gtk.Box):
             Gio.AppInfo.launch_default_for_uri(f"file://{file_path}", None)
         except GLib.Error as e:
             print(f"Error opening: {e}")
+
+    def set_entries(self, entries: list[str]):
+        """Update the entries and rebuild the entries view and status."""
+        self.entries = entries
+
+        # Remove existing content and status
+        for child in list(self):
+            if isinstance(child, (Gtk.ScrolledWindow, Gtk.Label)):
+                self.remove(child)
+
+        # Rebuild content and status
+        self._build_entries_view()
+        self._build_status()
