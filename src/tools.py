@@ -278,7 +278,7 @@ def tool(name: str, description: str, run_on_main_thread: bool = False, title: s
         return t
     return decorator
 
-def create_io_tool(name: str, description: str, func: Callable, title: str = None, create_separate_process=False, default_on: bool = True, tools_group: str = None, icon_name: str = None) -> Tool:
+def create_io_tool(name: str, description: str, func: Callable, title: str = None, create_separate_process=False, default_on: bool = True, tools_group: str = None, icon_name: str = None, default_lazy_load: bool = False) -> Tool:
     def wrapper(**kwargs):
         result = ToolResult()
         def th():
@@ -287,7 +287,7 @@ def create_io_tool(name: str, description: str, func: Callable, title: str = Non
         GLib.idle_add(t.start)
         return result
 
-    t = Tool(name, description, wrapper, title=title, default_on=default_on, tools_group=tools_group, icon_name=icon_name, restore_func=None)
+    t = Tool(name, description, wrapper, title=title, default_on=default_on, tools_group=tools_group, icon_name=icon_name, restore_func=None, default_lazy_load=default_lazy_load)
     schema = t._generate_schema_from_func(func)
     t.schema = schema
     return t
