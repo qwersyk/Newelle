@@ -117,6 +117,32 @@ def _fetch_json(url: str, method: str = "GET", body: dict | None = None, headers
             return (None, 0)
 
 
+def _post_form(url: str, form: dict[str, Any], headers: dict | None = None) -> tuple[dict | None, int]:
+    """POST x-www-form-urlencoded and parse JSON response."""
+    req_headers = {"Accept": "application/json", "Content-Type": "application/x-www-form-urlencoded"}
+    if headers:
+        req_headers.update(headers)
+
+    data = urlencode(form).encode("utf-8")
+    if HAS_HTTPX:
+        try:
+            with httpx.Client(timeout=30.0) as client:
+                r = client.post(url, content=data, headers=req_headers)
+                if r.status_code >= 200 and r.status_code < 300:
+                    return (r.json(), r.status_code)
+                return (r.json() if "application/json" in (r.headers.get("content-type") or "") else None, r.status_code)
+        except Exception:
+            return (None, 0)
+
+    req = urllib.request.Request(url, data=data, method="POST", headers=req_headers)
+    try:
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            payload = resp.read().decode()
+            return (json.loads(payload) if payload else {}, resp.status)
+    except Exception:
+        return (None, 0)
+
+
 def _fetch_json_async(url: str, method: str = "GET", body: dict | None = None, headers: dict | None = None):
     """Async fetch JSON. Used when running in asyncio context."""
     import asyncio
@@ -464,7 +490,7 @@ def get_valid_token(mcp_url: str, config_dir: str) -> str | None:
     if client_secret:
         cred = base64.b64encode(f"{client_id}:{client_secret}".encode()).decode()
         headers["Authorization"] = f"Basic {cred}"
-    data, status = _fetch_json(token_endpoint, "POST", body, headers)
+    data, status = _post_form(token_endpoint, body, headers)
     if status != 200 or not data:
         return access_token
     new_access = data.get("access_token")
