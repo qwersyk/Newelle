@@ -36,6 +36,24 @@
 	<url type="bugtracker">https://github.com/qwersyk/Newelle/issues</url>
 	<content_rating type="oars-1.0" />
 	<releases>
+	    <release version="1.3.5" date="2026-03-20">
+            <description>
+                <ul>
+                    <li>Improved Newelle Agent capabilities</li>
+                    <li>Added tools to explore and manage files (write, read, grep, glob, listdir)</li>
+                    <li>Added file permissions: you can now specify for which files allow read, write or ask</li>
+                    <li>Added support for skills, Newelle can now activate skills, supporting huge libraries of existing ones</li>
+                    <li>Subagents: Newelle can now launch subagents to do subtasks. These will run with custom tools and skills</li>
+                    <li>Scheduled Tasks: You can now schedule AI tasks to any moment</li>
+                    <li>Added TODO List tool: Newelle can now keep track of complex task completion using the new TODO tool</li>
+                    <li>Tool lazy loading: choose which tools to lazy load to make context small and load their schemas only when needed</li>
+                    <li>Context Manager: Newelle will now dynamically manage the context in order to keep it within limits</li>
+                    <li>Added support for OAuth login for MCP tools</li>
+                    <li>Added chat folders: organize your chats into folders</li>
+                    <li>Added commands: extensions can now add commands to Newelle</li>
+                </ul>
+            </description>
+        </release>
         <release version="1.3.0" date="2026-03-06">
             <description>
                 <ul>
