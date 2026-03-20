@@ -350,6 +350,7 @@ class ChatTab(Gtk.Box):
         import uuid
         msg_uuid = int(uuid.uuid4())
         kwargs['msg_uuid'] = msg_uuid
+        kwargs['chat_id'] = self._chat_id
         result = cmd.execute(**kwargs)
         if result is not None and result.widget is not None:
             display_text = f"/{cmd.name} {args_str}".strip()

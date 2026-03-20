@@ -155,6 +155,7 @@ class ChatHistory(Gtk.Box):
                                             kwargs[param_name] = args_str.strip()
                                             break
                                 kwargs["msg_uuid"] = self.chat[i].get("UUID")
+                                kwargs["chat_id"] = self.chat_id
                                 result = cmd.restore(**kwargs)
                                 if result and result.widget is not None:
                                     self.add_message("Command", result.widget, id_message=i, editable=True)
@@ -1111,6 +1112,7 @@ class ChatHistory(Gtk.Box):
                                         kwargs[param_name] = args_str.strip()
                                         break
                             kwargs["msg_uuid"] = self.chat[i].get("UUID")
+                            kwargs["chat_id"] = self.chat_id
                             result = cmd.restore(**kwargs)
                             if result and result.widget is not None:
                                 self.add_message("Command", result.widget, id_message=i, editable=True)

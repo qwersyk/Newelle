@@ -1698,7 +1698,7 @@ class NewelleController:
                         if tool is None:
                             raise ValueError(f"Tool '{tool_name}' not found")
 
-                        tool_kwargs = {"msg_uuid": msg_uuid, "tool_uuid": tool_uuid, **tool_args}
+                        tool_kwargs = {"msg_uuid": msg_uuid, "tool_uuid": tool_uuid, "chat_id": chat_id, **tool_args}
                         should_run_on_main_thread = (
                             force_tools_on_main_thread or tool.run_on_main_thread
                         )

@@ -4,6 +4,8 @@ import threading
 import json 
 import os
 import time
+from gi.repository import GLib
+from ..utility.system import is_flatpak
 
 
 class _CachedTool:
@@ -36,8 +38,9 @@ class MCPIntegration(NewelleExtension):
             self.update_tools()
 
     def _get_config_dir(self):
-        """Config dir is parent of extension_path (extension_path is config_dir/extensions)."""
-        return os.path.dirname(self.extension_path)
+        """Return the Newelle config directory (where OAuth creds are stored)."""
+        base = GLib.get_user_config_dir()
+        return base if is_flatpak() else os.path.join(base, "Newelle")
 
     def _get_server_info(self, server):
         """Extract server info from both old (string) and new (dict) formats"""

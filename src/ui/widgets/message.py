@@ -629,9 +629,19 @@ class Message(Gtk.Box):
         def run_tool():
             try:
                 if restore:
-                    result = tool.restore(msg_uuid=msg_uuid, tool_uuid=tool_uuid, **args)
+                    result = tool.restore(
+                        msg_uuid=msg_uuid,
+                        tool_uuid=tool_uuid,
+                        chat_id=self._get_chat_tab().chat_id,
+                        **args,
+                    )
                 else:
-                    result = tool.execute(msg_uuid=msg_uuid, tool_uuid=tool_uuid, **args)
+                    result = tool.execute(
+                        msg_uuid=msg_uuid,
+                        tool_uuid=tool_uuid,
+                        chat_id=self._get_chat_tab().chat_id,
+                        **args,
+                    )
                 
                 if not restore:
                     # Append result to active tool results in main thread if needed

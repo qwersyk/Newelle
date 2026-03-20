@@ -96,7 +96,7 @@ class Command:
 
     def execute(self, **kwargs):
         sig = inspect.signature(self.func)
-        for param in ['msg_uuid', 'tool_uuid']:
+        for param in ['msg_uuid', 'tool_uuid', 'chat_id']:
             if param not in sig.parameters and 'kwargs' not in str(sig.parameters):
                 kwargs.pop(param, None)
         return self.func(**kwargs)
@@ -104,7 +104,7 @@ class Command:
     def restore(self, **kwargs):
         func_to_call = self.restore_func if self.restore_func is not None else self.func
         sig = inspect.signature(func_to_call)
-        for param in ['msg_uuid', 'tool_uuid']:
+        for param in ['msg_uuid', 'tool_uuid', 'chat_id']:
             if param not in sig.parameters and 'kwargs' not in str(sig.parameters):
                 kwargs.pop(param, None)
         return func_to_call(**kwargs)
@@ -128,7 +128,7 @@ class Tool:
         if self.restore_func is not None:
             # Filter out internal parameters if restore_func doesn't accept them
             sig = inspect.signature(self.restore_func)
-            for param in ['msg_uuid', 'tool_uuid']:
+            for param in ['msg_uuid', 'tool_uuid', 'chat_id']:
                 if param not in sig.parameters and 'kwargs' not in str(sig.parameters):
                     kwargs.pop(param, None)
             return self.restore_func(**kwargs)
@@ -169,7 +169,7 @@ class Tool:
     def execute(self, **kwargs):
         sig = inspect.signature(self.func)
         # Filter out internal parameters if function doesn't accept them
-        for param in ['msg_uuid', 'tool_uuid']:
+        for param in ['msg_uuid', 'tool_uuid', 'chat_id']:
             if param not in sig.parameters:
                 kwargs.pop(param, None)
         return self.func(**kwargs)

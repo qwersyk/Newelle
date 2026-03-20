@@ -228,7 +228,7 @@ class TodoListIntegration(NewelleExtension):
             res += f"{i+1}. {icon} {t.get('title', 'No title')}\n"
         return res
     
-    def _tool_todo(self, todos: list) -> ToolResult:
+    def _tool_todo(self, todos: list, chat_id: str = None) -> ToolResult:
         """Tool wrapper for todo that returns both output and widget"""
         result = ToolResult()
         
@@ -237,7 +237,7 @@ class TodoListIntegration(NewelleExtension):
         result.set_output(output)
         
         # Save todos for current chat
-        self._set_chat_todos(self.current_chat_id, todos)
+        self._set_chat_todos(chat_id, todos)
         
         # Create widget after operation completes
         if self.todos:
@@ -246,7 +246,7 @@ class TodoListIntegration(NewelleExtension):
         
         return result
     
-    def _restore_todo(self, todos: list, tool_uuid: str = None) -> ToolResult:
+    def _restore_todo(self, todos: list, tool_uuid: str = None, chat_id: str = None) -> ToolResult:
         """Restore todo widget on chat loading"""
         result = ToolResult()
         output = None
@@ -258,11 +258,11 @@ class TodoListIntegration(NewelleExtension):
         # Update internal state for current chat
         if todos:
             self.todos = todos
-            self._set_chat_todos(self.current_chat_id, todos)
+            self._set_chat_todos(chat_id, todos)
             widget = TodoListWidget(todos, title="Tasks")
             result.set_widget(widget)
         else:
-            self._set_chat_todos(self.current_chat_id, [])
+            self._set_chat_todos(chat_id, [])
         
         result.set_output(output)
         return result
@@ -286,6 +286,8 @@ class TodoListIntegration(NewelleExtension):
     def preprocess_history(self, history: list, prompts: list) -> tuple[list, list]:
         for i, prompt in enumerate(prompts):
             if "{TODOLIST}" in prompt:
+                self.current_chat_id = self.ui_controller.get_current_chat_id()
+                self.todos = self._get_chat_todos(self.current_chat_id)
                 todolist_text = self._format_todolist_for_prompt()
                 prompts[i] = prompt.replace("{TODOLIST}", todolist_text)
         has_tool_execution = False 
