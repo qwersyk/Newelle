@@ -457,10 +457,10 @@ Chat History:
     "agent.md": "{AGENTSMD}",
     "todolist": """
 {COND: 
- [todo] Use this tool to create and manage a structured task list. This helps you track progress, organize complex tasks, and demonstrate thoroughness to the user.
+ [todo] Use the todo tool to create and manage a structured task list. This helps you track progress, organize complex tasks, and demonstrate thoroughness to the user.
 It also helps the user understand the progress of the task and overall progress of their requests.
 
-NOTE that you should not use this tool if there is only one trivial task to do. In this case you are better off just doing the task directly.
+NOTE that you should not use the todo tool if there is only one trivial task to do. In this case you are better off just doing the task directly.
 
 }
 {TODOLIST}

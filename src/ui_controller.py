@@ -14,6 +14,9 @@ class UIController:
     def set_model_loading(self, status):
         self.window.set_model_loading_spinner(status)
 
+    def get_current_chat_id(self):
+        return self.window.chat_id
+    
     def get_current_message_id(self):
         return self.window.controller.msgid
 
