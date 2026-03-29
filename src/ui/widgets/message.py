@@ -19,6 +19,7 @@ from .latex import DisplayLatex, InlineLatex
 from .barchart import BarChartBox
 from .markuptextview import MarkupTextView
 from .tool import ToolWidget
+from ...tools import ToolResult
 from ...ui import apply_css_to_widget, load_image_with_callback
 
 class Message(Gtk.Box):
@@ -627,20 +628,36 @@ class Message(Gtk.Box):
         
         def run_tool():
             try:
+                tool_failed = False
                 if restore:
-                    result = tool.restore(
-                        msg_uuid=msg_uuid,
-                        tool_uuid=tool_uuid,
-                        chat_id=self._get_chat_tab().chat_id,
-                        **args,
-                    )
+                    try:
+                        result = tool.restore(
+                            msg_uuid=msg_uuid,
+                            tool_uuid=tool_uuid,
+                            chat_id=self._get_chat_tab().chat_id,
+                            **args,
+                        )
+                    except Exception as e:
+                        tool_failed = True
+                        result = ToolResult()
+                        result.set_output(f"Error: {e}")
                 else:
-                    result = tool.execute(
-                        msg_uuid=msg_uuid,
-                        tool_uuid=tool_uuid,
-                        chat_id=self._get_chat_tab().chat_id,
-                        **args,
-                    )
+                    try:
+                        result = tool.execute(
+                            msg_uuid=msg_uuid,
+                            tool_uuid=tool_uuid,
+                            chat_id=self._get_chat_tab().chat_id,
+                            **args,
+                        )
+                    except Exception as e:
+                        tool_failed = True
+                        result = ToolResult()
+                        result.set_output(f"Error: {e}")
+
+                if not isinstance(result, ToolResult):
+                    wrapped_result = ToolResult()
+                    wrapped_result.set_output(result)
+                    result = wrapped_result
                 
                 if not restore:
                     # Append result to active tool results in main thread if needed
@@ -688,10 +705,10 @@ class Message(Gtk.Box):
                             try: self._get_chat_tab().active_tool_results.remove(result)
                             except: pass
                         if result.is_cancelled: return
-                        if response is None: code = (True, None)
+                        if response is None: code = (not tool_failed, None)
                         else:
                             state["should_continue"] = True
-                            code = (True, response)
+                            code = (not tool_failed, response)
                             formatted = f"[Tool: {tool.name}, ID: {tool_uuid}]\n{code[1]}"
                             self.controller.chat.append({"User": "Console", "Message": formatted})
                     else:
@@ -705,7 +722,12 @@ class Message(Gtk.Box):
                 if self.controller.newelle_settings.parallel_tool_execution or restore:
                     t.start()
             except Exception as e:
-                print(f"Error running tool: {e}")
+                error_text = f"Error: {e}"
+                if not restore:
+                    state["should_continue"] = True
+                    formatted = f"[Tool: {tool.name}, ID: {tool_uuid}]\n{error_text}"
+                    self.controller.chat.append({"User": "Console", "Message": formatted})
+                GLib.idle_add(placeholder.set_result, False, error_text)
 
         run_tool()
 
