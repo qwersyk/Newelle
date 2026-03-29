@@ -378,6 +378,7 @@ Ensure that commands are safe, relevant, and do not cause unintended system modi
 }""",
     "basic_functionality": """You can write markdown tables, use **bold**, *italic*, ~strikethrough~, `monospace`, [linkname](https://link.com) and ## headers in markdown.
 You can display $inline equations$ and $$equations$$.
+You can display mermaid diagrams using ```mermaid\n diagram code \n```
 """,
     "show_image": """- To show an image\n```image\n/path/to/image\n```\n\n- To show a video using\n```video\n/path/to/video\n```""",
     "graphic": """To show a chart:

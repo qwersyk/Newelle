@@ -194,6 +194,11 @@ class Message(Gtk.Box):
         if w_type == "text": return True
         if w_type == "codeblock":
             if isinstance(widget, CopyBox):
+                # If streaming previously showed an extension block as plain code,
+                # force a full rebuild on the final (non-streaming) pass.
+                codeblocks = {**self.controller.extensionloader.codeblocks, **self.controller.integrationsloader.codeblocks}
+                if not self.streaming and new_chunk.lang in codeblocks:
+                    return False
                 if new_chunk.lang in ["video", "image", "chart", "file", "folder"]: return False
                 return True
             return False
@@ -412,6 +417,12 @@ class Message(Gtk.Box):
         text = chunk.text
         
         codeblocks = {**self.controller.extensionloader.codeblocks, **self.controller.integrationsloader.codeblocks}
+
+        # While streaming, keep extension codeblocks as plain code and render
+        # extension widgets only after the final pass.
+        if self.streaming and lang in codeblocks:
+            box.append(self._create_copybox(text, lang, state=state, codeblock_id=codeblock_id, allow_edit=state["editable"], enable_run_callback=True))
+            return
         
         if lang in codeblocks:
             self._process_extension_codeblock(chunk, box, state, restore, msg_uuid, codeblocks[lang])
