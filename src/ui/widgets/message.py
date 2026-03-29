@@ -647,6 +647,20 @@ class Message(Gtk.Box):
                 if not restore:
                     # Append result to active tool results in main thread if needed
                     self._get_chat_tab().active_tool_results.append(result)
+                    
+                    if getattr(result, "requires_interaction", False):
+                        def _notify_if_unfocused():
+                            try:
+                                window = self._get_main_window()
+                                if window and not window.is_active():
+                                    app = Gio.Application.get_default()
+                                    if app:
+                                        notification = Gio.Notification.new("Action Required")
+                                        notification.set_body(f"The tool '{tool.name}' requires your interaction.")
+                                        app.send_notification("tool-interaction", notification)
+                            except Exception as e:
+                                print(f"Failed to send notification: {e}")
+                        GLib.idle_add(_notify_if_unfocused)
                 
                 widget = result.widget
                 if widget:

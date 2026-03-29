@@ -214,7 +214,7 @@ class AgentToolsIntegration(NewelleExtension):
         parsed_options = [o.strip() for o in options.split(",") if o.strip()] if options.strip() else []
         if mode not in ("open", "choice", "choice_with_custom"):
             mode = "choice_with_custom" if parsed_options else "open"
-        result = ToolResult()
+        result = ToolResult(requires_interaction=True)
         widget = QuestionWidget(question, parsed_options, mode=mode, multiple=multiple)
         result.set_widget(widget)
 

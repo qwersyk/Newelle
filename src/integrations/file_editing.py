@@ -102,7 +102,7 @@ class FileEditingIntegration(NewelleExtension):
 
         # mode == "ask" -- return immediately; ToolResult semaphore blocks
         # the LLM thread at get_output() until the user responds.
-        result = ToolResult()
+        result = ToolResult(requires_interaction=True)
 
         def on_accepted():
             # execute_fn creates GTK widgets, so it must run on the main

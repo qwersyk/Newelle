@@ -40,7 +40,7 @@ class DefaultToolsIntegration(NewelleExtension):
             return f"Error executing command: {str(e)}"
 
     def execute_command_widget(self, command: str):
-        result = ToolResult()
+        result = ToolResult(requires_interaction=not self.settings.get_boolean("auto-run"))
         def execute_callback(command):
             output = self.execute_command(command)
             result.set_output(output)
