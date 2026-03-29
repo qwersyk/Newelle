@@ -1,6 +1,6 @@
 import threading
 import json
-from gi.repository import Gtk, Adw, GLib
+from gi.repository import Gtk, Adw, GLib, Gio
 from ..extensions import NewelleExtension
 from ..tools import Tool, ToolResult, create_io_tool
 from ..ui.widgets.subagent import SubagentWidget
@@ -90,6 +90,20 @@ class AgentToolsIntegration(NewelleExtension):
                 def on_tool_result(tool_name: str, tool_result: ToolResult):
                     widget.set_status(_("Tool: ") + tool_name)
                     widget.add_tool_widget(tool_name, tool_result)
+                    if tool_result.requires_interaction:
+                        widget.expander_row.set_expanded(True)
+                        def _notify_if_unfocused():
+                            try:
+                                window = self.ui_controller.window
+                                if window and not window.is_active():
+                                    app = Gio.Application.get_default()
+                                    if app:
+                                        notification = Gio.Notification.new("Action Required")
+                                        notification.set_body(f"The tool '{tool_name}' requires your interaction.")
+                                        app.send_notification("tool-interaction", notification)
+                            except Exception as e:
+                                print(f"Failed to send notification: {e}")
+                        GLib.idle_add(_notify_if_unfocused) 
 
                 final = ctrl.run_llm_with_tools(
                     message=task,
