@@ -561,6 +561,9 @@ class Message(Gtk.Box):
             if widget is None or extension.provides_both_widget_and_answer(value, lang):
                  self._setup_extension_async_response(chunk, box, state, restore, extension, widget)
         except Exception as e:
+            import traceback
+            traceback.print_exc()
+            print(e)
             box.append(self._create_copybox(chunk.text, lang, state=state, codeblock_id=state["codeblock_id"], allow_edit=state["editable"], enable_run_callback=True))
 
     def _process_console_codeblock(self, chunk, box, state, restore):

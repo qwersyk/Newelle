@@ -10,6 +10,7 @@ from .glob import GlobWidget
 from .grep import GrepWidget
 from .list_directory import ListDirectoryWidget
 from .latex import DisplayLatex, LatexCanvas, InlineLatex
+from .mermaid import MermaidWidget
 from .markuptextview import MarkupTextView
 from .website import WebsiteButton
 from .websearch import WebSearchWidget
@@ -45,6 +46,7 @@ __all__ = [
     "ListDirectoryWidget",
     "DisplayLatex",
     "LatexCanvas",
+    "MermaidWidget",
     "MarkupTextView",
     "InlineLatex",
     "WebsiteButton",
