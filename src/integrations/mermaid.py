@@ -11,7 +11,6 @@ class MermaidIntegration(NewelleExtension):
         super().__init__(pip_path, extension_path, settings)
 
     def get_replace_codeblocks_langs(self) -> list:
-        print("sium")
         return ["mmd", "mermaid"]
 
     def get_gtk_widget(self, codeblock: str, lang: str, msg_uuid=None) -> Gtk.Widget | None:
