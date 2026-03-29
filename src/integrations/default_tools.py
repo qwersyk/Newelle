@@ -6,13 +6,37 @@ import threading
 import json 
 from ..ui.widgets import CopyBox
 import subprocess
+import os
 from ..utility.system import is_flatpak
+from ..utility.system import get_spawn_command
+from ..utility.strings import quote_string, add_S_to_sudo
 from gi.repository import Gtk, Gio
 from ..ui import load_image_with_callback
+from ..ui.widgets.terminal_dialog import TerminalDialog
 
 class DefaultToolsIntegration(NewelleExtension):
     id = "default_tools"
     name = "Default Tools"
+
+    def _on_copybox_terminal_clicked(self, copybox, command, execution_request_mode):
+        shell_command = "cd " + quote_string(os.getcwd()) + "; " + command + "; exec bash"
+
+        if not self.settings.get_boolean("virtualization"):
+            shell_command = add_S_to_sudo(shell_command)
+            terminal_command = get_spawn_command() + ["bash", "-c", "export TERM=xterm-256color;alias sudo=\"sudo -S\";" + shell_command]
+        else:
+            terminal_command = ["bash", "-c", "export TERM=xterm-256color;" + shell_command]
+
+        terminal = TerminalDialog()
+
+        def save_output(save):
+            if save is None:
+                return
+            copybox.complete_execution(save)
+
+        terminal.load_terminal(terminal_command)
+        terminal.save_output_func(save_output)
+        terminal.present()
 
     def _truncate(self, text: str) -> str:
         maxlength = 4000
@@ -47,6 +71,7 @@ class DefaultToolsIntegration(NewelleExtension):
             return output
 
         widget = CopyBox(command, "console", execution_request=True, run_callback=execute_callback)
+        widget.connect("terminal-clicked", self._on_copybox_terminal_clicked)
         if self.settings.get_boolean("auto-run"):
             widget._on_execution_run_clicked(None)
         widget.connect("command-complete", lambda _, output: result.set_output(output))

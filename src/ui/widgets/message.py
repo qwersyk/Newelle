@@ -10,8 +10,7 @@ import socket
 from gi.repository import Gtk, GLib, Pango, GdkPixbuf, Gio, Gdk
 
 from ...utility.message_chunk import get_message_chunks, MessageChunk
-from ...utility.strings import markwon_to_pango, remove_thinking_blocks, simple_markdown_to_pango, quote_string, add_S_to_sudo
-from ...utility.system import get_spawn_command
+from ...utility.strings import markwon_to_pango, remove_thinking_blocks, simple_markdown_to_pango, quote_string
 from pylatexenc.latex2text import LatexNodes2Text
 
 from .copybox import CopyBox
@@ -147,7 +146,6 @@ class Message(Gtk.Box):
         widget.connect("command-complete", self._on_execution_copybox_done)
         if widget.execution_request:
             widget.connect("skip-clicked", self._on_execution_copybox_skipped)
-            widget.connect("terminal-clicked", self._on_copybox_terminal_clicked)
 
     def _unregister_execution_copybox(self, widget):
         if widget in self.pending_execution_copyboxes:
