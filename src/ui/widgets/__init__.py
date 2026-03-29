@@ -23,6 +23,7 @@ from .tool import ToolWidget
 from .skill import SkillWidget
 from .subagent import SubagentWidget
 from .scheduled_task import ScheduledTaskWidget
+from .question import QuestionWidget, RestoredQuestionWidget
 from .message import Message
 from .chatrow import ChatRow
 from .folderrow import FolderRow
@@ -59,6 +60,8 @@ __all__ = [
     "SkillWidget",
     "SubagentWidget",
     "ScheduledTaskWidget",
+    "QuestionWidget",
+    "RestoredQuestionWidget",
     "Message",
     "ChatRow",
     "FolderRow",

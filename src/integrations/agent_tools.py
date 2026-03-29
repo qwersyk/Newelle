@@ -5,6 +5,7 @@ from ..extensions import NewelleExtension
 from ..tools import Tool, ToolResult, create_io_tool
 from ..ui.widgets.subagent import SubagentWidget
 from ..ui.widgets.scheduled_task import ScheduledTaskWidget
+from ..ui.widgets.question import QuestionWidget, RestoredQuestionWidget
 from ..ui.widgets.comborow import ComboRowHelper
 
 
@@ -209,6 +210,33 @@ class AgentToolsIntegration(NewelleExtension):
         result.set_widget(widget)
         result.set_output(output)
         return result
+    def _ask_user(self, question: str, options: str = "", mode: str = "", multiple: bool = False, tool_uuid=None):
+        parsed_options = [o.strip() for o in options.split(",") if o.strip()] if options.strip() else []
+        if mode not in ("open", "choice", "choice_with_custom"):
+            mode = "choice_with_custom" if parsed_options else "open"
+        result = ToolResult()
+        widget = QuestionWidget(question, parsed_options, mode=mode, multiple=multiple)
+        result.set_widget(widget)
+
+        def wait():
+            answer = widget.wait_for_answer()
+            result.set_output(answer if answer else "")
+
+        thread = threading.Thread(target=wait, daemon=True)
+        thread.start()
+        return result
+
+    def _restore_ask_user(self, tool_uuid: str, question: str, options: str = "", mode: str = "", multiple: str = ""):
+        output = self.ui_controller.get_tool_result_by_id(tool_uuid)
+        parsed_options = [o.strip() for o in options.split(",") if o.strip()] if options.strip() else []
+        if mode not in ("open", "choice", "choice_with_custom"):
+            mode = "choice_with_custom" if parsed_options else "open"
+        is_multiple = multiple in (True, "true", "True", "1") if isinstance(multiple, str) else bool(multiple)
+        result = ToolResult()
+        result.set_widget(RestoredQuestionWidget(question, parsed_options, output or "", mode=mode, multiple=is_multiple))
+        result.set_output(output)
+        return result
+
     def get_tools(self) -> list:
         return [
             Tool(
@@ -237,6 +265,48 @@ class AgentToolsIntegration(NewelleExtension):
                 restore_func=self._restore_schedule_task,
                 default_on=True,
                 icon_name="alarm-symbolic",
+                tools_group=_("Agent"),
+            ),
+            Tool(
+                name="ask_user",
+                description=(
+                    "Ask the user a question and wait for their response. "
+                    "Use this when you need clarification, a decision, or user input to proceed.\n"
+                    "Modes:\n"
+                    "- 'open': free-text answer only, no predefined options.\n"
+                    "- 'choice': user must pick from the provided options (no custom text).\n"
+                    "- 'choice_with_custom': user can pick from options or type a custom answer.\n"
+                    "If mode is not specified, it defaults to 'choice_with_custom' when options are provided, 'open' otherwise.\n"
+                    "Set multiple=true to allow selecting more than one option (only for 'choice' and 'choice_with_custom' modes)."
+                ),
+                func=self._ask_user,
+                schema={
+                    "type": "object",
+                    "properties": {
+                        "question": {
+                            "type": "string",
+                            "description": "The question to ask the user.",
+                        },
+                        "options": {
+                            "type": "string",
+                            "description": "Comma-separated list of predefined answer choices.",
+                        },
+                        "mode": {
+                            "type": "string",
+                            "enum": ["open", "choice", "choice_with_custom"],
+                            "description": "Question mode. 'open'=free text, 'choice'=pick from options only, 'choice_with_custom'=options + custom text.",
+                        },
+                        "multiple": {
+                            "type": "boolean",
+                            "description": "Allow the user to select multiple options. Only applies to 'choice' and 'choice_with_custom' modes.",
+                        },
+                    },
+                    "required": ["question"],
+                },
+                title="Ask User",
+                restore_func=self._restore_ask_user,
+                default_on=True,
+                icon_name="dialog-question-symbolic",
                 tools_group=_("Agent"),
             ),
         ]
