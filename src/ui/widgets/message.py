@@ -147,6 +147,7 @@ class Message(Gtk.Box):
         widget.connect("command-complete", self._on_execution_copybox_done)
         if widget.execution_request:
             widget.connect("skip-clicked", self._on_execution_copybox_skipped)
+            widget.connect("terminal-clicked", self._on_copybox_terminal_clicked)
 
     def _unregister_execution_copybox(self, widget):
         if widget in self.pending_execution_copyboxes:
