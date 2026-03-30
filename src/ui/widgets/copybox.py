@@ -388,29 +388,47 @@ class CopyBox(Gtk.Box):
         """Handle run click in execution_request mode."""
         if self.has_responded:
             return
+
+        if self._needs_terminal(self.txt):
+            self.run_button.set_sensitive(False)
+            self.skip_button.set_sensitive(False)
+            self.emit('terminal-clicked', self.txt, True)
+            return
+
         self.has_responded = True
-        
+
         # Update UI to show running state
         self.run_button.set_sensitive(False)
         self.skip_button.set_sensitive(False)
-        
+
         # Show spinner
         spinner = Gtk.Spinner(spinning=True)
         running_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         running_box.append(spinner)
         running_box.append(Gtk.Label(label="Running..."))
         self.run_button.set_child(running_box)
-        
+
         # Emit signal
         self.emit('run-clicked', self.txt, self.lang)
-        
+
         # Execute command if callback provided
         if self.run_callback is not None:
             def execute_command():
                 output = self.run_callback(self.txt)
                 GLib.idle_add(self._on_execution_complete, output)
-            
+
             threading.Thread(target=execute_command, daemon=True).start()
+
+    def _needs_terminal(self, command):
+        """Check if a command requires an interactive terminal."""
+        stripped = command.strip()
+        if stripped.startswith("sudo "):
+            return True
+        if "\n" in command:
+            first_line = command.split("\n")[0].strip()
+            if first_line.startswith("sudo "):
+                return True
+        return "sudo " in stripped
     
     def _on_execution_complete(self, output):
         """Handle command completion in execution_request mode."""

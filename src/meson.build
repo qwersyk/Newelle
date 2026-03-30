@@ -46,6 +46,7 @@ integrations_sources = [
   'integrations/__init__.py',
   'integrations/website_reader.py',
   'integrations/websearch.py',
+  'integrations/mermaid.py',
   'integrations/mcp.py',
   'integrations/mcp_oauth.py',
   'integrations/default_tools.py',
@@ -88,6 +89,7 @@ widgets_sources = [
   'ui/widgets/context_indicator.py',
   'ui/widgets/folderrow.py',
   'ui/widgets/latex.py',
+  'ui/widgets/mermaid.py',
   'ui/widgets/terminal_dialog.py',
   'ui/widgets/markuptextview.py',
   'ui/widgets/website.py',
@@ -106,6 +108,7 @@ widgets_sources = [
   'ui/widgets/chat_history.py',
   'ui/widgets/chat_tab.py',
   'ui/widgets/call.py',
+  'ui/widgets/question.py',
 ]
 
 handler_sources = [

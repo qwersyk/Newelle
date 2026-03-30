@@ -18,11 +18,21 @@ class WebsiteReader(NewelleExtension):
         super().__init__(pip_path, extension_path, settings)
         self.caches = {}
     
-    def read_website(self, url):
+    def read_website(self, url, advanced=False):
         widget = self.get_gtk_widget(url, "website")
         result = ToolResult() 
         def get_answer():
-            out = self.get_article_content(url).get_text()
+            try:
+                out = self.get_article_content(url)
+            except Exception as e:
+                print(f"Error occurred while fetching article from {url}: {e}")
+                out = f"Error fetching the website content. {e}"
+                result.set_output(out)
+                return
+            if not advanced:
+                out = out.get_text()
+            else:
+                out = out.clean_html_to_markdown(out.html, True)
             result.set_output(out)
         result.set_widget(widget)
         t = threading.Thread(target=get_answer)
@@ -36,7 +46,7 @@ class WebsiteReader(NewelleExtension):
         return result 
 
     def get_tools(self) -> list:
-        return [Tool("website", "Read a website content", self.read_website, title="Read Websites", restore_func=self.restore_read_website, icon_name="internet-symbolic")]           
+        return [Tool("website", "Read a website content. The advanced mode will return extra information about the page, including links. Only use it if normal mode has not produced good results.", self.read_website, title="Read Websites", restore_func=self.restore_read_website, icon_name="internet-symbolic")]           
     def get_replace_codeblocks_langs(self) -> list:
         return ["website"]
    

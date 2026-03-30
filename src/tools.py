@@ -11,16 +11,19 @@ class ToolResult:
     Attributes:
         output (Any): The textual/data output to be returned to the LLM (and displayed in Console).
         widget (Any): Optional GTK Widget to be displayed in the chat UI.
+        requires_interaction (bool): Flag indicating if this tool requires user interaction.
     """
     output: Any = None
     widget: Any = None
     is_cancelled: bool = False
+    requires_interaction: bool = False
     output_semaphore : threading.Semaphore
 
-    def __init__(self, output=None, widget=None) -> None:
+    def __init__(self, output=None, widget=None, requires_interaction=False) -> None:
         self.output = output 
         self.widget = widget
         self.is_cancelled = False
+        self.requires_interaction = requires_interaction
         self.output_semaphore = threading.Semaphore()
         self.output_semaphore.acquire()
 

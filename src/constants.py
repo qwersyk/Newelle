@@ -14,11 +14,12 @@ from .integrations.skills import SkillsIntegration
 from .integrations.agent_tools import AgentToolsIntegration
 from .integrations.file_editing import FileEditingIntegration
 from .integrations.todo_list import TodoListIntegration
+from .integrations.mermaid import MermaidIntegration
 
 DIR_NAME = "Newelle"
 SCHEMA_ID = 'io.github.qwersyk.Newelle'
 
-AVAILABLE_INTEGRATIONS = [WebsiteReader, WebsearchIntegration, MCPIntegration, SkillsIntegration, DefaultToolsIntegration, AgentToolsIntegration, FileEditingIntegration, TodoListIntegration]
+AVAILABLE_INTEGRATIONS = [WebsiteReader, WebsearchIntegration, MermaidIntegration, MCPIntegration, SkillsIntegration, DefaultToolsIntegration, AgentToolsIntegration, FileEditingIntegration, TodoListIntegration]
 
 AVAILABLE_LLMS = {
     "newelle": {
@@ -359,11 +360,10 @@ You have the ability to execute commands on the user's Linux computer.
 - **Desktop Environment** `{DE}`
 - **Display Server** `{DISPLAY}`
 - **Current Directory** `{DIR}`
-**Command Execution Format:**
-- To execute a Linux command, use:
-```console
-command
-```
+
+{COND: 
+[virtualization_on] You are running in a sandboxed envirnoment, not on the user's computer. If you need to run a command on the user computer or 
+a command fails because it is not found, ask the user to disable virtualization in the application's settings in order to execute the command.}
 - To display the link to a directory, use:
 ```folder
 /path/to/directory
@@ -378,6 +378,7 @@ Ensure that commands are safe, relevant, and do not cause unintended system modi
 }""",
     "basic_functionality": """You can write markdown tables, use **bold**, *italic*, ~strikethrough~, `monospace`, [linkname](https://link.com) and ## headers in markdown.
 You can display $inline equations$ and $$equations$$.
+You can display mermaid diagrams using ```mermaid\n diagram code \n```
 """,
     "show_image": """- To show an image\n```image\n/path/to/image\n```\n\n- To show a video using\n```video\n/path/to/video\n```""",
     "graphic": """To show a chart:

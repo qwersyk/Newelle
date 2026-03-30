@@ -10,8 +10,7 @@ import socket
 from gi.repository import Gtk, GLib, Pango, GdkPixbuf, Gio, Gdk
 
 from ...utility.message_chunk import get_message_chunks, MessageChunk
-from ...utility.strings import markwon_to_pango, remove_thinking_blocks, simple_markdown_to_pango, quote_string, add_S_to_sudo
-from ...utility.system import get_spawn_command
+from ...utility.strings import markwon_to_pango, remove_thinking_blocks, simple_markdown_to_pango, quote_string
 from pylatexenc.latex2text import LatexNodes2Text
 
 from .copybox import CopyBox
@@ -20,6 +19,7 @@ from .latex import DisplayLatex, InlineLatex
 from .barchart import BarChartBox
 from .markuptextview import MarkupTextView
 from .tool import ToolWidget
+from ...tools import ToolResult
 from ...ui import apply_css_to_widget, load_image_with_callback
 
 class Message(Gtk.Box):
@@ -194,6 +194,11 @@ class Message(Gtk.Box):
         if w_type == "text": return True
         if w_type == "codeblock":
             if isinstance(widget, CopyBox):
+                # If streaming previously showed an extension block as plain code,
+                # force a full rebuild on the final (non-streaming) pass.
+                codeblocks = {**self.controller.extensionloader.codeblocks, **self.controller.integrationsloader.codeblocks}
+                if not self.streaming and new_chunk.lang in codeblocks:
+                    return False
                 if new_chunk.lang in ["video", "image", "chart", "file", "folder"]: return False
                 return True
             return False
@@ -412,6 +417,12 @@ class Message(Gtk.Box):
         text = chunk.text
         
         codeblocks = {**self.controller.extensionloader.codeblocks, **self.controller.integrationsloader.codeblocks}
+
+        # While streaming, keep extension codeblocks as plain code and render
+        # extension widgets only after the final pass.
+        if self.streaming and lang in codeblocks:
+            box.append(self._create_copybox(text, lang, state=state, codeblock_id=codeblock_id, allow_edit=state["editable"], enable_run_callback=True))
+            return
         
         if lang in codeblocks:
             self._process_extension_codeblock(chunk, box, state, restore, msg_uuid, codeblocks[lang])
@@ -561,6 +572,9 @@ class Message(Gtk.Box):
             if widget is None or extension.provides_both_widget_and_answer(value, lang):
                  self._setup_extension_async_response(chunk, box, state, restore, extension, widget)
         except Exception as e:
+            import traceback
+            traceback.print_exc()
+            print(e)
             box.append(self._create_copybox(chunk.text, lang, state=state, codeblock_id=state["codeblock_id"], allow_edit=state["editable"], enable_run_callback=True))
 
     def _process_console_codeblock(self, chunk, box, state, restore):
@@ -628,24 +642,54 @@ class Message(Gtk.Box):
         
         def run_tool():
             try:
+                tool_failed = False
                 if restore:
-                    result = tool.restore(
-                        msg_uuid=msg_uuid,
-                        tool_uuid=tool_uuid,
-                        chat_id=self._get_chat_tab().chat_id,
-                        **args,
-                    )
+                    try:
+                        result = tool.restore(
+                            msg_uuid=msg_uuid,
+                            tool_uuid=tool_uuid,
+                            chat_id=self._get_chat_tab().chat_id,
+                            **args,
+                        )
+                    except Exception as e:
+                        tool_failed = True
+                        result = ToolResult()
+                        result.set_output(f"Error: {e}")
                 else:
-                    result = tool.execute(
-                        msg_uuid=msg_uuid,
-                        tool_uuid=tool_uuid,
-                        chat_id=self._get_chat_tab().chat_id,
-                        **args,
-                    )
+                    try:
+                        result = tool.execute(
+                            msg_uuid=msg_uuid,
+                            tool_uuid=tool_uuid,
+                            chat_id=self._get_chat_tab().chat_id,
+                            **args,
+                        )
+                    except Exception as e:
+                        tool_failed = True
+                        result = ToolResult()
+                        result.set_output(f"Error: {e}")
+
+                if not isinstance(result, ToolResult):
+                    wrapped_result = ToolResult()
+                    wrapped_result.set_output(result)
+                    result = wrapped_result
                 
                 if not restore:
                     # Append result to active tool results in main thread if needed
                     self._get_chat_tab().active_tool_results.append(result)
+                    
+                    if getattr(result, "requires_interaction", False):
+                        def _notify_if_unfocused():
+                            try:
+                                window = self._get_main_window()
+                                if window and not window.is_active():
+                                    app = Gio.Application.get_default()
+                                    if app:
+                                        notification = Gio.Notification.new("Action Required")
+                                        notification.set_body(f"The tool '{tool.name}' requires your interaction.")
+                                        app.send_notification("tool-interaction", notification)
+                            except Exception as e:
+                                print(f"Failed to send notification: {e}")
+                        GLib.idle_add(_notify_if_unfocused)
                 
                 widget = result.widget
                 if widget:
@@ -675,10 +719,10 @@ class Message(Gtk.Box):
                             try: self._get_chat_tab().active_tool_results.remove(result)
                             except: pass
                         if result.is_cancelled: return
-                        if response is None: code = (True, None)
+                        if response is None: code = (not tool_failed, None)
                         else:
                             state["should_continue"] = True
-                            code = (True, response)
+                            code = (not tool_failed, response)
                             formatted = f"[Tool: {tool.name}, ID: {tool_uuid}]\n{code[1]}"
                             self.controller.chat.append({"User": "Console", "Message": formatted})
                     else:
@@ -692,7 +736,12 @@ class Message(Gtk.Box):
                 if self.controller.newelle_settings.parallel_tool_execution or restore:
                     t.start()
             except Exception as e:
-                print(f"Error running tool: {e}")
+                error_text = f"Error: {e}"
+                if not restore:
+                    state["should_continue"] = True
+                    formatted = f"[Tool: {tool.name}, ID: {tool_uuid}]\n{error_text}"
+                    self.controller.chat.append({"User": "Console", "Message": formatted})
+                GLib.idle_add(placeholder.set_result, False, error_text)
 
         run_tool()
 
