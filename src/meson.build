@@ -70,6 +70,7 @@ ui_sources = [
   'ui/explorer.py',
   'ui/stdout_monitor.py',
   'ui/model_library.py',
+  'ui/extra_settings.py',
 ]
 
 widgets_sources = [
