@@ -7,6 +7,7 @@ from .handlers.memory import MemoripyHandler, UserSummaryHandler, SummaryMemorip
 from .handlers.rag import LlamaIndexHanlder
 from .handlers.websearch import SearXNGHandler, DDGSeachHandler, TavilyHandler
 from .handlers.interfaces.interface import Interface
+from .handlers.interfaces.api_handler import APIInterface
 from .integrations.website_reader import WebsiteReader
 from .integrations.websearch import WebsearchIntegration
 from .integrations.mcp import MCPIntegration
@@ -340,7 +341,14 @@ AVAILABLE_WEBSEARCH = {
     }
 }
 
-AVAILABLE_INTERFACES = {}
+AVAILABLE_INTERFACES = {
+    "api": {
+        "key": "api",
+        "title": _("OpenAI Compatible API"),
+        "description": _("Expose the current LLM as an OpenAI-compatible API server"),
+        "class": APIInterface,
+    },
+}
 
 PROMPTS = {
     "generate_name_prompt": """Generate a dialog title of exactly five words that summarizes the main theme.

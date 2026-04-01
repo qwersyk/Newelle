@@ -1,4 +1,5 @@
 import json
+import threading
 
 from gi.repository import Gtk, Adw, Gio, GLib
 
@@ -74,7 +75,7 @@ class InterfacesWindow(Gtk.Window):
         self.main.set_size_request(300, -1)
         self.scrolled_window.set_child(self.main)
 
-        self.interfaces_group = Adw.PreferencesGroup(title=_("Available Interfaces"))
+        self.interfaces_group = Adw.PreferencesGroup(title=_("Available Interfaces"), description=_("Interfaces are background running services that allow third party applications to interact with Newelle"))
         self.main.append(self.interfaces_group)
 
         for key in AVAILABLE_INTERFACES:
@@ -117,11 +118,30 @@ class InterfacesWindow(Gtk.Window):
             play_button.connect("clicked", self._on_play_button_clicked, key, interface)
             self._play_buttons[key] = play_button
 
+            install_button = None
+            if not interface.is_installed():
+                if (interface.key, interface.schema_key) in self.controller.installing_handlers:
+                    install_button = Gtk.Button(css_classes=["flat"], valign=Gtk.Align.CENTER)
+                    install_button.add_css_class("accent")
+                    spinner = Gtk.Spinner(spinning=True)
+                    install_button.set_child(spinner)
+                else:
+                    install_button = Gtk.Button(
+                        css_classes=["flat"], valign=Gtk.Align.CENTER,
+                        icon_name="folder-download-symbolic",
+                    )
+                    install_button.add_css_class("accent")
+                    install_button.connect("clicked", self._on_install_button_clicked, key, interface)
+
             row.add_suffix(play_button)
             row.add_suffix(auto_start_switch)
 
             if not self.sandbox and interface.requires_sandbox_escape() or not interface.is_installed():
                 play_button.set_sensitive(False)
+
+            if install_button is not None:
+                row.add_suffix(install_button)
+                self._interface_rows[key] = row
 
             self._interface_rows[key] = row
             self.interfaces_group.add(row)
@@ -140,6 +160,27 @@ class InterfacesWindow(Gtk.Window):
         else:
             interface.start()
             button.set_icon_name("media-playback-stop-symbolic")
+
+    def _on_install_button_clicked(self, button, key, interface):
+        spinner = Gtk.Spinner(spinning=True)
+        button.set_child(spinner)
+        button.disconnect_by_func(self._on_install_button_clicked)
+        t = threading.Thread(target=self._install_interface_async, args=(button, interface, key))
+        t.start()
+
+    def _install_interface_async(self, button, interface, key):
+        self.controller.installing_handlers[(interface.key, interface.schema_key)] = True
+        interface.install()
+        interface.on_installed()
+        self.controller.installing_handlers[(interface.key, interface.schema_key)] = False
+        GLib.idle_add(self._update_ui_after_install, button, interface, key)
+
+    def _update_ui_after_install(self, button, interface, key):
+        button.set_child(None)
+        button.set_sensitive(False)
+        play_button = self._play_buttons.get(key)
+        if play_button is not None:
+            play_button.set_sensitive(True)
 
     def _on_extra_settings_update(self, interface: Interface, key: str):
         row_state = self.settingsrows.get((key, "interface", False))

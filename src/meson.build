@@ -205,6 +205,7 @@ websearch_sources = [
 interface_sources = [
   'handlers/interfaces/__init__.py',
   'handlers/interfaces/interface.py',
+  'handlers/interfaces/api_handler.py',
 ]
 
 utility_sources = [

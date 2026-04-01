@@ -2094,8 +2094,8 @@ class HandlersManager:
             interface = interface_class(self.settings, self.directory)
             interface.set_controller(self.controller)
             self.interfaces[key] = interface
-            j = SettingsCache.get_instance(self.settings).get_json("interfaces-settings")
-            auto_start = j.get(key, {}).get("auto_start", True) if key in j else True
+            j = json.loads(self.settings.get_string("interfaces-settings"))
+            auto_start = j.get(key, {}).get("auto_start", False) if key in j else False
             if auto_start:
                 interface.start()
         # Assign handlers 
