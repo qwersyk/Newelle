@@ -14,6 +14,7 @@ from ..handlers import Handler
 
 from ..constants import AVAILABLE_EMBEDDINGS, AVAILABLE_LLMS, AVAILABLE_MEMORIES, AVAILABLE_PROMPTS, AVAILABLE_TTS, AVAILABLE_STT, PROMPTS, AVAILABLE_RAGS, AVAILABLE_WEBSEARCH
 from ..utility.pip import install_module
+from .extra_settings import ExtraSettingsBuilder
 from .widgets import ComboRowHelper, CopyBox 
 from .widgets import MultilineEntry
 from ..utility.system import can_escape_sandbox, get_spawn_command, open_website, open_folder, is_flatpak 
@@ -54,6 +55,11 @@ class Settings(Adw.PreferencesWindow):
         self.MemoryPage = Adw.PreferencesPage(icon_name="vcard-symbolic", title=_("Knowledge"))
         # Dictionary containing all the rows for settings update
         self.settingsrows = {}
+        self.extra_settings_builder = ExtraSettingsBuilder(
+            settingsrows=self.settingsrows,
+            convert_constants=self.convert_constants,
+            on_before_rebuild=self._on_extra_settings_rebuild,
+        )
         # Build the LLMs settings
         self.LLM = Adw.PreferencesGroup(title=_('Language Model'))
         # Add Help Button 
@@ -1934,7 +1940,9 @@ class Settings(Adw.PreferencesWindow):
             self.settingsrows[settings_row_key]["extra_settings_loaded"] = True
         self.settingsrows[settings_row_key]["row"] = row
         self.settingsrows[settings_row_key]["extra_settings"] = []
-        handler.set_extra_settings_update(lambda _: GLib.idle_add(self.on_setting_change, constants, handler, handler.key, True))
+        handler.set_extra_settings_update(
+            lambda _: GLib.idle_add(self.on_setting_change, constants, handler, handler.key, True)
+        )
         
         # Add extra buttons 
         self.queue_download_button(handler, row)
@@ -2014,51 +2022,10 @@ class Settings(Adw.PreferencesWindow):
             self.update_rag_index()
 
     def add_extra_settings(self, constants : dict[str, Any], handler : Handler, row : Adw.ExpanderRow, nested_settings : list | None = None, settings : list | None = None):
-        """Buld the extra settings for the specified handler. The extra settings are specified by the method get_extra_settings 
-            Extra settings format:
-            Required parameters:
-            - title: small title for the setting 
-            - description: description for the setting
-            - default: default value for the setting
-            - type: What type of row to create, possible rows:
-                - entry: input text 
-                - toggle: bool
-                - combo: for multiple choice
-                    - values: list of touples of possible values (display_value, actual_value)
-                - range: for number input with a slider 
-                    - min: minimum value
-                    - max: maximum value 
-                    - round: how many digits to round 
-            Optional parameters:
-                - folder: add a button that opens a folder with the specified path
-                - website: add a button that opens a website with the specified path
-                - update_settings (bool) if reload the settings in the settings page for the specified handler after that setting change
-        Args:
-            constants: The constants for the specified handler, can be AVAILABLE_TTS, AVAILABLE_STT...
-            handler: An instance of the handler
-            row: row where to add the settings
-        """
-        if nested_settings is None: 
-            self.settingsrows[(handler.key, self.convert_constants(constants), handler.is_secondary())]["extra_settings"] = []
-            settings_to_render = settings if settings is not None else handler.get_extra_settings()
-        else:
-            settings_to_render = nested_settings
-        for setting in settings_to_render:
-            r = self.create_extra_setting(setting, handler, constants) 
-            row.add_row(r)
-            self.settingsrows[handler.key, self.convert_constants(constants), handler.is_secondary()]["extra_settings"].append(r)
+        self.extra_settings_builder.add_extra_settings(constants, handler, row, nested_settings, settings)
 
     def on_row_expanded_build_settings(self, row, _pspec, constants, handler):
-        """Build extra settings lazily the first time the row is expanded."""
-        if not row.get_property("expanded"):
-            return
-        settings_key = (handler.key, self.convert_constants(constants), handler.is_secondary())
-        row_state = self.settingsrows.get(settings_key)
-        if row_state is None or row_state.get("extra_settings_loaded", False):
-            return
-        pending_settings = row_state.pop("pending_extra_settings", None)
-        self.add_extra_settings(constants, handler, row, settings=pending_settings)
-        row_state["extra_settings_loaded"] = True
+        self.extra_settings_builder.on_row_expanded_build_settings(row, _pspec, constants, handler)
 
     def queue_download_button(self, handler: Handler, row: Adw.ActionRow | Adw.ExpanderRow):
         """Queue download button creation to run incrementally on the GTK main loop."""
@@ -2077,111 +2044,7 @@ class Settings(Adw.PreferencesWindow):
         return True
     
     def create_extra_setting(self, setting : dict, handler: Handler, constants : dict[str, Any]) -> Adw.ExpanderRow | Adw.ActionRow:
-        if setting["type"] == "entry":
-            r = Adw.ActionRow(title=setting["title"], subtitle=setting["description"])
-            value = handler.get_setting(setting["key"])
-            value = str(value)
-            password = setting.get("password", False)
-            entry = Gtk.Entry(valign=Gtk.Align.CENTER, text=value, name=setting["key"], visibility= (not password))
-            entry.connect("changed", self.setting_change_entry, constants, handler)
-            r.add_suffix(entry)
-            if password:
-                button = Gtk.Button(valign=Gtk.Align.CENTER, name=setting["key"], css_classes=["flat"], icon_name="view-show")
-                button.connect("clicked", lambda button, entry: entry.set_visibility(not entry.get_visibility()), entry)
-                r.add_suffix(button)
-        elif setting["type"] == "multilineentry":
-            r = Adw.ExpanderRow(title=setting["title"], subtitle=setting["description"])
-            value = handler.get_setting(setting["key"])
-            value = str(value)
-            entry = MultilineEntry()
-            entry.set_text(value)
-            entry.set_on_change(self.setting_change_multilinentry)
-            entry.name = setting["key"]
-            entry.constants = constants
-            entry.handler = handler
-            r.add_row(entry)
-        elif setting["type"] == "button":
-            r = Adw.ActionRow(title=setting["title"], subtitle=setting["description"])
-            button = Gtk.Button(valign=Gtk.Align.CENTER, name=setting["key"])
-            if "label" in setting:
-                button.set_label(setting["label"])
-            elif "icon" in setting:
-                button.set_icon_name(setting["icon"])
-            button.connect("clicked", setting["callback"])
-            r.add_suffix(button)
-        elif setting["type"] == "toggle":
-            r = Adw.ActionRow(title=setting["title"], subtitle=setting["description"])
-            value = handler.get_setting(setting["key"])
-            value = bool(value)
-            toggle = Gtk.Switch(valign=Gtk.Align.CENTER, active=value, name=setting["key"])
-            toggle.connect("state-set", self.setting_change_toggle, constants, handler)
-            r.add_suffix(toggle)
-        elif setting["type"] == "combo":
-            r = Adw.ComboRow(title=setting["title"], subtitle=setting["description"], name=setting["key"])
-            helper = ComboRowHelper(r, setting["values"], handler.get_setting(setting["key"]))
-            helper.connect("changed", self.setting_change_combo, constants, handler)
-        elif setting["type"] == "range":
-            r = Adw.ActionRow(title=setting["title"], subtitle=setting["description"], valign=Gtk.Align.CENTER)
-            box = Gtk.Box()
-            scale = Gtk.Scale(name=setting["key"], round_digits=setting["round-digits"])
-            scale.set_range(setting["min"], setting["max"]) 
-            scale.set_value(round(handler.get_setting(setting["key"]), setting["round-digits"]))
-            scale.set_size_request(120, -1)
-            scale.connect("change-value", self.setting_change_scale, constants, handler)
-            label = Gtk.Label(label=handler.get_setting(setting["key"]))
-            box.append(label)
-            box.append(scale)
-            self.slider_labels[scale] = label
-            r.add_suffix(box)
-        elif setting["type"] == "spin":
-            adj = Gtk.Adjustment(
-                value=handler.get_setting(setting["key"]),
-                lower=setting["min"],
-                upper=setting["max"],
-                step_increment=setting["step"],
-                page_increment=setting["page"]
-            )
-            r = Adw.SpinRow(
-                title=setting["title"], 
-                subtitle=setting["description"], 
-                adjustment=adj,
-                digits=setting["round-digits"]
-            )
-            r.set_name(setting["key"])
-            r.connect("notify::value", self.setting_change_spin, constants, handler)
-        elif setting["type"] == "nested":
-            r = Adw.ExpanderRow(title=setting["title"], subtitle=setting["description"])
-            self.add_extra_settings(constants, handler, r, setting["extra_settings"])
-        elif setting["type"] == "download":
-            r = Adw.ActionRow(title=setting["title"], subtitle=setting["description"]) 
-            
-            actionbutton = Gtk.Button(css_classes=["flat"],valign=Gtk.Align.CENTER)
-            if setting["is_installed"]:
-                actionbutton.set_icon_name("user-trash-symbolic")
-                actionbutton.connect("clicked", lambda button,cb=setting["callback"],key=setting["key"] : cb(key))
-                actionbutton.add_css_class("error")
-            else:
-                actionbutton.set_icon_name("folder-download-symbolic" if "download-icon" not in setting else setting["download-icon"])
-                actionbutton.connect("clicked", self.download_setting, setting, handler)
-                actionbutton.add_css_class("accent")
-            r.add_suffix(actionbutton)
-        else:
-            return
-        if "website" in setting:
-            wbbutton = self.create_web_button(setting["website"])
-            r.add_suffix(wbbutton)
-        if "folder" in setting:
-            wbbutton = self.create_web_button(setting["folder"], folder=True)
-            r.add_suffix(wbbutton)
-        if "refresh" in setting:
-            refresh_icon = setting.get("refresh_icon", "view-refresh-symbolic")
-            refreshbutton = Gtk.Button(icon_name=refresh_icon, valign=Gtk.Align.CENTER, css_classes=["flat"])
-            def refresh_setting(button, cb=setting["refresh"], refresh_icon=refresh_icon):
-                refreshbutton.set_child(Gtk.Spinner(spinning=True))
-                cb(button)
-            refreshbutton.connect("clicked", refresh_setting)
-            r.add_suffix(refreshbutton)
-        return r 
+        return self.extra_settings_builder.create_extra_setting(setting, handler, constants)
     
     def add_customize_prompt_content(self, row, prompt_name):
         """Add a MultilineEntry to edit a prompt from the given prompt name
@@ -2250,113 +2113,30 @@ class Settings(Adw.PreferencesWindow):
         else:
             self.settings.set_boolean("virtualization", status)
 
-        
+    def _on_extra_settings_rebuild(self, constants: dict[str, Any], _handler: Handler):
+        if constants == AVAILABLE_RAGS:
+            GLib.idle_add(self.update_rag_index)
 
     def on_setting_change(self, constants: dict[str, Any], handler: Handler, key: str, force_change : bool = False):
-        
-        if not force_change:
-            setting_info = [info for info in handler.get_extra_settings_list() if info["key"] == key][0]
-        else:
-            setting_info = {}
-
-        if force_change or "update_settings" in setting_info and setting_info["update_settings"]:
-            settings_key = (handler.key, self.convert_constants(constants), handler.is_secondary())
-            row_state = self.settingsrows[settings_key]
-            if constants == AVAILABLE_RAGS:
-                GLib.idle_add(self.update_rag_index)
-            # If the row hasn't been expanded yet, defer rebuilding until first expansion.
-            if not row_state.get("extra_settings_loaded", True):
-                row_state["pending_extra_settings"] = handler.get_extra_settings()
-                return
-            # remove all the elements in the specified expander row 
-            row = row_state["row"]
-            setting_list = row_state.get("extra_settings", [])
-            for setting_row in setting_list:
-                row.remove(setting_row)
-            self.add_extra_settings(constants, handler, row)
+        self.extra_settings_builder.on_setting_change(constants, handler, key, force_change)
 
     def setting_change_entry(self, entry, constants, handler : Handler):
-        """ Called when an entry handler setting is changed 
-
-        Args:
-            entry (): the entry whose contents are changed
-            constants : The constants for the specified handler, can be AVAILABLE_TTS, AVAILABLE_STT...
-            handler: An instance of the specified handler
-        """
-        name = entry.get_name()
-        handler.set_setting(name, entry.get_text())
-        self.on_setting_change(constants, handler, name)
+        self.extra_settings_builder.setting_change_entry(entry, constants, handler)
 
     def setting_change_multilinentry(self, entry):
-        """ Called when an entry handler setting is changed 
-
-        Args:
-            entry (): the entry whose contents are changed
-            constants : The constants for the specified handler, can be AVAILABLE_TTS, AVAILABLE_STT...
-            handler: An instance of the specified handler
-        """
-        entry.handler.set_setting(entry.name, entry.get_text())
-        self.on_setting_change(entry.constants, entry.handler, entry.name)
+        self.extra_settings_builder.setting_change_multilinentry(entry)
 
     def setting_change_toggle(self, toggle, state, constants, handler):
-        """Called when a toggle for the handler setting is triggered
-
-        Args:
-            toggle (): the specified toggle 
-            state (): state of the toggle
-            constants (): The constants for the specified handler, can be AVAILABLE_TTS, AVAILABLE_STT...
-            handler (): an instance of the handler
-        """
-        enabled = toggle.get_active()
-        handler.set_setting(toggle.get_name(), enabled)
-        self.on_setting_change(constants, handler, toggle.get_name())
+        self.extra_settings_builder.setting_change_toggle(toggle, state, constants, handler)
 
     def setting_change_scale(self, scale, scroll, value, constants, handler):
-        """Called when a scale for the handler setting is changed
-
-        Args:
-            scale (): the changed scale
-            scroll (): scroll value
-            value (): the value 
-            constants (): The constants for the specified handler, can be AVAILABLE_TTS, AVAILABLE_STT...
-            handler (): an instance of the handler
-        """
-        setting = scale.get_name()
-        digits = scale.get_round_digits()
-        value = round(value, digits)
-        self.slider_labels[scale].set_label(str(value))
-        handler.set_setting(setting, value)
-        self.on_setting_change(constants, handler, setting)
+        self.extra_settings_builder.setting_change_scale(scale, scroll, value, constants, handler)
 
     def setting_change_spin(self, row, pspec, constants, handler):
-        """Called when a spin for the handler setting is changed
-
-        Args:
-            row (): the changed spin row
-            pspec (): param spec
-            constants (): The constants for the specified handler, can be AVAILABLE_TTS, AVAILABLE_STT...
-            handler (): an instance of the handler
-        """
-        setting = row.get_name()
-        value = row.get_value()
-        if row.get_digits() == 0:
-            value = int(value)
-        
-        handler.set_setting(setting, value)
-        self.on_setting_change(constants, handler, setting)
+        self.extra_settings_builder.setting_change_spin(row, pspec, constants, handler)
 
     def setting_change_combo(self, helper, value, constants, handler):
-        """Called when a combo for the handler setting is changed
-
-        Args:
-            helper (): combo row helper 
-            value (): chosen value
-            constants (): The constants for the specified handler, can be AVAILABLE_TTS, AVAILABLE_STT...
-            handler (): an instance of the handler
-        """
-        setting = helper.combo.get_name()
-        handler.set_setting(setting, value)
-        self.on_setting_change(constants, handler, setting)
+        self.extra_settings_builder.setting_change_combo(helper, value, constants, handler)
 
     def add_download_button(self, handler : Handler, row : Adw.ActionRow | Adw.ExpanderRow): 
         """Add download button for an handler dependencies. If clicked it will call handler.install()

@@ -252,6 +252,9 @@
         </key>
         <key name="context-summarization" type="b">
             <default>false</default>
-        </key>
+          </key>
+          <key name="interfaces-settings" type="s">
+            <default>"{}"</default>
+          </key>
 	</schema>
 </schemalist>

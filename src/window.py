@@ -143,6 +143,7 @@ class MainWindow(Adw.ApplicationWindow):
         menu.append(_("Thread editing"), "app.thread_editing")
         menu.append(_("Scheduled tasks"), "app.scheduled_tasks")
         menu.append(_("Extensions"), "app.extension")
+        menu.append(_("Interfaces"), "app.interfaces")
         menu.append(_("Settings"), "app.settings")
         menu.append(_("Keyboard shorcuts"), "app.shortcuts")
         

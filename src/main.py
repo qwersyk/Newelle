@@ -12,6 +12,7 @@ from .ui.shortcuts import Shortcuts
 from .ui.thread_editing import ThreadEditing
 from .ui.scheduled_tasks import ScheduledTasksWindow
 from .ui.extension import Extension
+from .ui.interfaces import InterfacesWindow
 from .ui.mini_window import MiniWindow
 
 
@@ -183,6 +184,9 @@ class MyApp(Adw.Application):
         action = Gio.SimpleAction.new("extension", None)
         action.connect('activate', self.extension_action)
         self.add_action(action)
+        action = Gio.SimpleAction.new("interfaces", None)
+        action.connect('activate', self.interfaces_action)
+        self.add_action(action)
         action = Gio.SimpleAction.new("export_current_chat", None)
         action.connect('activate', self.export_current_chat_action)
         self.add_action(action)
@@ -257,6 +261,10 @@ class MyApp(Adw.Application):
             return True
         extension.connect("close-request", close) 
         extension.present()
+
+    def interfaces_action(self, *a):
+        interfaces = InterfacesWindow(self)
+        interfaces.present()
     
     def export_current_chat_action(self, *a):
         """Export the current chat"""

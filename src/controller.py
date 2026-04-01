@@ -19,11 +19,12 @@ from .handlers.rag import RAGHandler
 from .handlers.memory import MemoryHandler
 from .handlers.embeddings import EmbeddingHandler
 from .handlers.websearch import WebSearchHandler
+from .handlers.interfaces.interface import Interface
 
 from .utility.system import is_flatpak
 from .utility.pip import install_module
 from .utility.profile_settings import get_settings_dict_by_groups
-from .constants import AVAILABLE_INTEGRATIONS, AVAILABLE_WEBSEARCH, DIR_NAME, SCHEMA_ID, PROMPTS, AVAILABLE_STT, AVAILABLE_TTS, AVAILABLE_LLMS, AVAILABLE_RAGS, AVAILABLE_PROMPTS, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS, SETTINGS_GROUPS, restore_handlers
+from .constants import AVAILABLE_INTEGRATIONS, AVAILABLE_WEBSEARCH, DIR_NAME, SCHEMA_ID, PROMPTS, AVAILABLE_STT, AVAILABLE_TTS, AVAILABLE_LLMS, AVAILABLE_RAGS, AVAILABLE_PROMPTS, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS, AVAILABLE_INTERFACES, SETTINGS_GROUPS, restore_handlers
 import threading
 import pickle
 import json
@@ -225,7 +226,7 @@ class NewelleController:
         self.newelle_settings = NewelleSettings()
         self.newelle_settings.load_settings(self.settings)
         self.load_chats(self.newelle_settings.chat_id)
-        self.handlers = HandlersManager(self.settings, self.extensionloader, self.models_dir, self.integrationsloader, self.installing_handlers)
+        self.handlers = HandlersManager(self.settings, self.extensionloader, self.models_dir, self.integrationsloader, self.installing_handlers, self)
         self.handlers.select_handlers(self.newelle_settings)
         threading.Thread(target=self.handlers.cache_handlers).start()
         self.handlers.add_tools(self.tools)
@@ -1990,8 +1991,9 @@ class HandlersManager:
         embedding: Embedding Handler 
         memory: Memory Handler
         rag: RAG Handler 
+        interfaces: List of Interface handlers
     """
-    def __init__(self, settings: Gio.Settings, extensionloader : ExtensionLoader, models_path, integrations: ExtensionLoader, installing_handlers: dict):
+    def __init__(self, settings: Gio.Settings, extensionloader : ExtensionLoader, models_path, integrations: ExtensionLoader, installing_handlers: dict, controller):
         self.settings = settings
         self.extensionloader = extensionloader
         self.directory = models_path
@@ -2002,10 +2004,14 @@ class HandlersManager:
         self.installing_handlers = installing_handlers
         self.secondary_stt = None
         self.wakeword_handler = None
+        self.controller = controller
+        self.interfaces = {}
 
     def destroy(self):
         for handler in self.handlers.values():
             handler.destroy()
+        for interface in self.interfaces.values():
+            interface.stop()
 
     def fix_handlers_integrity(self, newelle_settings: NewelleSettings):
         """Select available handlers if not available handlers in settings
@@ -2081,6 +2087,17 @@ class HandlersManager:
         self.memory.set_memory_size(newelle_settings.memory)
         self.rag : RAGHandler = self.get_object(AVAILABLE_RAGS, newelle_settings.rag_model)
         self.websearch : WebSearchHandler = self.get_object(AVAILABLE_WEBSEARCH, newelle_settings.websearch_model)
+        # Initialize interfaces
+        self.interfaces = {}
+        for key in AVAILABLE_INTERFACES:
+            interface_class = AVAILABLE_INTERFACES[key]["class"]
+            interface = interface_class(self.settings, self.directory)
+            interface.set_controller(self.controller)
+            self.interfaces[key] = interface
+            j = SettingsCache.get_instance(self.settings).get_json("interfaces-settings")
+            auto_start = j.get(key, {}).get("auto_start", True) if key in j else True
+            if auto_start:
+                interface.start()
         # Assign handlers 
         self.integrationsloader.set_handlers(self.llm, self.stt, self.tts, self.secondary_llm, self.embedding, self.rag, self.memory, self.websearch)
         self.extensionloader.set_handlers(self.llm, self.stt, self.tts, self.secondary_llm, self.embedding, self.rag, self.memory, self.websearch)
@@ -2151,6 +2168,8 @@ class HandlersManager:
             self.handlers[(key, self.convert_constants(AVAILABLE_EMBEDDINGS), False)] = self.get_object(AVAILABLE_EMBEDDINGS, key)
         for key in AVAILABLE_WEBSEARCH:
             self.handlers[(key, self.convert_constants(AVAILABLE_WEBSEARCH), False)] = self.get_object(AVAILABLE_WEBSEARCH, key)
+        for key in AVAILABLE_INTERFACES:
+            self.handlers[(key, "interface", False)] = self.get_object(AVAILABLE_INTERFACES, key)
         self.handlers_cached.release()
     
     def convert_constants(self, constants: str | dict[str, Any]) -> (str | dict):
@@ -2182,6 +2201,8 @@ class HandlersManager:
                     return AVAILABLE_RAGS
                 case "websearch":
                     return AVAILABLE_WEBSEARCH
+                case "interface":
+                    return AVAILABLE_INTERFACES
                 case "extension":
                     return self.extensionloader.extensionsmap
                 case _:
@@ -2201,6 +2222,8 @@ class HandlersManager:
                 return "rag"
             elif constants == AVAILABLE_WEBSEARCH:
                 return "websearch"
+            elif constants == AVAILABLE_INTERFACES:
+                return "interface"
             elif constants == self.extensionloader.extensionsmap:
                 return "extension"
             else:
@@ -2239,6 +2262,8 @@ class HandlersManager:
             model = constants[key]["class"](self.settings, self.directory)
         elif constants == AVAILABLE_WEBSEARCH:
             model = constants[key]["class"](self.settings, self.directory)
+        elif constants == AVAILABLE_INTERFACES:
+            model = constants[key]["class"](self.settings, self.directory)
         elif constants == self.extensionloader.extensionsmap:
             model = self.extensionloader.extensionsmap[key]
             if model is None:
@@ -2275,6 +2300,8 @@ class HandlersManager:
             return AVAILABLE_RAGS
         elif issubclass(type(handler), WebSearchHandler):
             return AVAILABLE_WEBSEARCH
+        elif issubclass(type(handler), Interface):
+            return AVAILABLE_INTERFACES
         else:
             raise Exception("Unknown handler")
     
