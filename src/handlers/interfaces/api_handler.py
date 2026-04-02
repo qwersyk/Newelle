@@ -65,6 +65,7 @@ class APIInterface(Interface):
     def _create_app(self):
         from fastapi import FastAPI, UploadFile, File, Request, HTTPException
         from fastapi.responses import JSONResponse, StreamingResponse
+        from fastapi.middleware.cors import CORSMiddleware
         from pydantic import BaseModel
         from typing import Optional
         from starlette.middleware.base import BaseHTTPMiddleware
@@ -103,6 +104,13 @@ class APIInterface(Interface):
 
         app = FastAPI()
         app.add_middleware(APIKeyMiddleware)
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=["*"],
+            allow_credentials=True,
+            allow_methods=["*"],
+            allow_headers=["*"],
+        )
 
         @app.get("/v1/models")
         def list_models():

@@ -66,8 +66,9 @@ class GUIAPIInterface(Interface):
     #                        FastAPI app factory                          #
     # ------------------------------------------------------------------ #
     def _create_app(self):
-        from fastapi import FastAPI, HTTPException, UploadFile, File, Query, Request
+        from fastapi import FastAPI, HTTPException, UploadFile, File, Query, Request, Body
         from fastapi.responses import JSONResponse, StreamingResponse, Response
+        from fastapi.middleware.cors import CORSMiddleware
         from pydantic import BaseModel, Field
         from typing import Optional
         from starlette.middleware.base import BaseHTTPMiddleware
@@ -90,6 +91,13 @@ class GUIAPIInterface(Interface):
 
         app = FastAPI(title="Newelle GUI API", version="1.0.0")
         app.add_middleware(APIKeyMiddleware)
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=["*"],
+            allow_credentials=True,
+            allow_methods=["*"],
+            allow_headers=["*"],
+        )
 
         # ---- Pydantic models ---- #
         class CreateChatRequest(BaseModel):
@@ -285,7 +293,7 @@ class GUIAPIInterface(Interface):
             }
 
         @app.put("/api/chats/{chat_id}")
-        def api_set_chat_by_id(chat_id: int, messages: list):
+        def api_set_chat_by_id(chat_id: int, messages: list = Body(...)):
             if chat_id not in controller.chats:
                 raise HTTPException(status_code=404, detail="Chat not found")
             controller.set_chat_by_id(chat_id, messages)
@@ -429,10 +437,11 @@ class GUIAPIInterface(Interface):
                     "name": prompt_info.get("title", key) if isinstance(prompt_info, dict) else key,
                     "active": key in controller.newelle_settings.bot_prompts if hasattr(controller, 'newelle_settings') else False,
                 })
-            for key, prompt_cls in AVAILABLE_PROMPTS.items():
+            for prompt in AVAILABLE_PROMPTS:
+                key = prompt.get("key")
                 result.append({
                     "key": key,
-                    "name": getattr(prompt_cls, 'name', key) if hasattr(prompt_cls, 'name') else key,
+                    "name": prompt.get("title", key),
                     "active": key in controller.newelle_settings.bot_prompts if hasattr(controller, 'newelle_settings') else False,
                 })
             return result
@@ -773,6 +782,156 @@ class GUIAPIInterface(Interface):
             return {"status": "ok"}
 
         # ============================================================ #
+        #                          LLM                                 #
+        # ============================================================ #
+        @app.get("/api/llm/providers")
+        def api_list_llm_providers():
+            from ...constants import AVAILABLE_LLMS
+            result = []
+            for key, info in AVAILABLE_LLMS.items():
+                result.append({
+                    "key": key,
+                    "title": info.get("title", key),
+                    "description": info.get("description", ""),
+                    "secondary": info.get("secondary", False),
+                })
+            return result
+
+        @app.get("/api/llm/status")
+        def api_llm_status():
+            llm = controller.handlers.llm
+            provider = controller.newelle_settings.language_model
+            model = llm.get_selected_model() if hasattr(llm, "get_selected_model") else ""
+            secondary_on = controller.newelle_settings.use_secondary_language_model
+            secondary_provider = controller.newelle_settings.secondary_language_model
+            secondary_model = ""
+            if secondary_on and hasattr(controller.handlers, "secondary_llm") and controller.handlers.secondary_llm:
+                secondary_model = controller.handlers.secondary_llm.get_selected_model() if hasattr(controller.handlers.secondary_llm, "get_selected_model") else ""
+            return {
+                "provider": provider,
+                "model": model,
+                "secondary_on": secondary_on,
+                "secondary_provider": secondary_provider,
+                "secondary_model": secondary_model,
+            }
+
+        @app.get("/api/llm/models")
+        def api_list_llm_models(provider: Optional[str] = None):
+            target = provider or controller.newelle_settings.language_model
+            from ...constants import AVAILABLE_LLMS
+            if target not in AVAILABLE_LLMS:
+                raise HTTPException(status_code=404, detail="Provider not found")
+            handler_class = AVAILABLE_LLMS[target]["class"]
+            handler = handler_class(controller.settings, controller.handlers.directory)
+            models = handler.get_models_list() if hasattr(handler, "get_models_list") else ()
+            return {
+                "provider": target,
+                "models": [{"id": m[0], "name": m[1] if len(m) > 1 else m[0]} for m in models],
+            }
+
+        class SetProviderRequest(BaseModel):
+            provider: str
+
+        class SetModelRequest(BaseModel):
+            model: str
+            provider: Optional[str] = None
+
+        class SetLlmSettingsRequest(BaseModel):
+            provider: Optional[str] = None
+            settings: dict = Field(default_factory=dict)
+
+        @app.post("/api/llm/set-provider")
+        def api_set_llm_provider(req: SetProviderRequest):
+            from ...constants import AVAILABLE_LLMS
+            if req.provider not in AVAILABLE_LLMS:
+                raise HTTPException(status_code=400, detail="Unknown provider")
+            controller.settings.set_string("language-model", req.provider)
+            controller.update_settings()
+            return {"status": "ok"}
+
+        @app.post("/api/llm/set-model")
+        def api_set_llm_model(req: SetModelRequest):
+            target = req.provider or controller.newelle_settings.language_model
+            from ...constants import AVAILABLE_LLMS
+            if target not in AVAILABLE_LLMS:
+                raise HTTPException(status_code=400, detail="Unknown provider")
+            handler_class = AVAILABLE_LLMS[target]["class"]
+            handler = handler_class(controller.settings, controller.handlers.directory)
+            llm_settings = json.loads(controller.settings.get_string("llm-settings"))
+            if target not in llm_settings:
+                llm_settings[target] = {}
+            llm_settings[target]["model"] = req.model
+            controller.settings.set_string("llm-settings", json.dumps(llm_settings))
+            controller.update_settings()
+            return {"status": "ok"}
+
+        @app.get("/api/llm/settings")
+        def api_get_llm_settings(provider: Optional[str] = None):
+            target = provider or controller.newelle_settings.language_model
+            from ...constants import AVAILABLE_LLMS
+            if target not in AVAILABLE_LLMS:
+                raise HTTPException(status_code=404, detail="Provider not found")
+            handler_class = AVAILABLE_LLMS[target]["class"]
+            handler = handler_class(controller.settings, controller.handlers.directory)
+            extra = handler.get_extra_settings() if hasattr(handler, "get_extra_settings") else []
+            llm_settings = json.loads(controller.settings.get_string("llm-settings"))
+            values = llm_settings.get(target, {})
+            result = []
+            for s in extra:
+                if isinstance(s, dict):
+                    entry = {
+                        "key": s.get("key", ""),
+                        "title": s.get("title", ""),
+                        "description": s.get("description", ""),
+                        "type": s.get("type", "entry"),
+                    }
+                    if "default" in s:
+                        entry["default"] = s["default"]
+                    if "values" in s:
+                        entry["values"] = s["values"]
+                    if "password" in s:
+                        entry["password"] = s["password"]
+                    if "min" in s:
+                        entry["min"] = s["min"]
+                    if "max" in s:
+                        entry["max"] = s["max"]
+                    if "step" in s:
+                        entry["step"] = s["step"]
+                    if "round-digits" in s:
+                        entry["round-digits"] = s["round-digits"]
+                else:
+                    entry = {
+                        "key": s.key,
+                        "title": s.title,
+                        "description": s.description,
+                        "type": type(s).__name__,
+                    }
+                    if hasattr(s, "default"):
+                        entry["default"] = s.default
+                    if hasattr(s, "values"):
+                        entry["values"] = s.values
+                    if hasattr(s, "password"):
+                        entry["password"] = s.password
+                entry["value"] = values.get(entry["key"], entry.get("default"))
+                result.append(entry)
+            return {"provider": target, "settings": result}
+
+        @app.post("/api/llm/settings")
+        def api_set_llm_settings(req: SetLlmSettingsRequest):
+            provider = req.provider or controller.newelle_settings.language_model
+            settings_values = req.settings
+            from ...constants import AVAILABLE_LLMS
+            if provider not in AVAILABLE_LLMS:
+                raise HTTPException(status_code=400, detail="Unknown provider")
+            llm_settings = json.loads(controller.settings.get_string("llm-settings"))
+            if provider not in llm_settings:
+                llm_settings[provider] = {}
+            llm_settings[provider].update(settings_values)
+            controller.settings.set_string("llm-settings", json.dumps(llm_settings))
+            controller.update_settings()
+            return {"status": "ok"}
+
+        # ============================================================ #
         #                    SETTINGS HELPERS                           #
         # ============================================================ #
         @app.get("/api/settings")
@@ -792,20 +951,43 @@ class GUIAPIInterface(Interface):
         # ============================================================ #
         @app.get("/api/chats/{chat_id}/stream")
         def api_stream_chat_events(chat_id: int):
-            """SSE endpoint for real-time generation events."""
+            """SSE endpoint for real-time generation with tool support."""
             if chat_id not in controller.chats:
                 raise HTTPException(status_code=404, detail="Chat not found")
 
             q = queue.Queue()
             done_sentinel = object()
 
-            def on_update(full_message: str):
-                q.put(("chunk", full_message))
-
             def run():
+                # Pop the last user message so run_llm_with_tools can re-add it
+                chat = controller.get_chat_by_id(chat_id)
+                if not chat or chat[-1].get("User") != "User":
+                    q.put(("error", "No user message found in chat"))
+                    q.put(done_sentinel)
+                    return
+                message = chat.pop()["Message"]
+                controller.set_chat_by_id(chat_id, chat)
+
+                accumulated = ""
+
+                def on_stream(delta: str):
+                    nonlocal accumulated
+                    accumulated += delta
+                    q.put(("chunk", accumulated))
+
+                def on_tool_result(tool_name: str, result):
+                    output = result.get_output() if hasattr(result, 'get_output') else str(result)
+                    q.put(("tool", {"tool": tool_name, "output": output}))
+
                 try:
-                    for status, data in controller.generate_response(0, on_update, chat_id=chat_id):
-                        q.put((status, data))
+                    controller.run_llm_with_tools(
+                        message=message,
+                        chat_id=chat_id,
+                        on_message_callback=on_stream,
+                        on_tool_result_callback=on_tool_result,
+                        save_chat=True,
+                    )
+                    q.put(("finished", {"message": accumulated}))
                 except Exception as e:
                     q.put(("error", str(e)))
                 finally:
