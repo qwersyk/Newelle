@@ -425,24 +425,33 @@ class GUIAPIInterface(Interface):
         # ============================================================ #
         @app.get("/api/prompts")
         def api_list_prompts():
-            """List all prompts info."""
-            prompts_settings = {}
-            if hasattr(controller, 'newelle_settings'):
-                prompts_settings = getattr(controller.newelle_settings, 'bot_prompts', [])
+            """List prompts shown in settings (one row per key; no duplicates)."""
             from ...constants import PROMPTS, AVAILABLE_PROMPTS
+            ns = getattr(controller, 'newelle_settings', None)
+            ps = (ns.prompts_settings if ns else None) or {}
+            merged = getattr(ns, 'prompts', None) if ns else None
             result = []
-            for key, prompt_info in PROMPTS.items():
-                result.append({
-                    "key": key,
-                    "name": prompt_info.get("title", key) if isinstance(prompt_info, dict) else key,
-                    "active": key in controller.newelle_settings.bot_prompts if hasattr(controller, 'newelle_settings') else False,
-                })
             for prompt in AVAILABLE_PROMPTS:
+                if not prompt.get("show_in_settings", True):
+                    continue
                 key = prompt.get("key")
+                setting_name = prompt.get("setting_name")
+                if setting_name in ps:
+                    is_active = ps[setting_name]
+                else:
+                    is_active = prompt.get("default", False)
+                if isinstance(merged, dict) and key in merged:
+                    text = merged[key]
+                else:
+                    raw = PROMPTS.get(key, "")
+                    text = raw if isinstance(raw, str) else ""
                 result.append({
                     "key": key,
-                    "name": prompt.get("title", key),
-                    "active": key in controller.newelle_settings.bot_prompts if hasattr(controller, 'newelle_settings') else False,
+                    "name": str(prompt.get("title", key)),
+                    "description": str(prompt.get("description", "")),
+                    "active": bool(is_active),
+                    "editable": bool(prompt.get("editable", False)),
+                    "text": text,
                 })
             return result
 
@@ -450,13 +459,19 @@ class GUIAPIInterface(Interface):
         def api_set_prompt_active(req: SetPromptActiveRequest):
             if not hasattr(controller, 'newelle_settings'):
                 raise HTTPException(status_code=503, detail="Settings not loaded")
+            from ...constants import AVAILABLE_PROMPTS
             ns = controller.newelle_settings
-            if req.active:
-                if req.prompt_key not in ns.bot_prompts:
-                    ns.bot_prompts.append(req.prompt_key)
-            else:
-                if req.prompt_key in ns.bot_prompts:
-                    ns.bot_prompts.remove(req.prompt_key)
+            setting_name = None
+            for p in AVAILABLE_PROMPTS:
+                if p.get("key") == req.prompt_key:
+                    setting_name = p.get("setting_name")
+                    break
+            if not setting_name:
+                raise HTTPException(status_code=400, detail="Unknown prompt key")
+            if not isinstance(ns.prompts_settings, dict):
+                ns.prompts_settings = {}
+            ns.prompts_settings[setting_name] = req.active
+            ns.load_prompts()
             ns.save_prompts()
             return {"status": "ok"}
 
@@ -465,20 +480,24 @@ class GUIAPIInterface(Interface):
             if not hasattr(controller, 'newelle_settings'):
                 raise HTTPException(status_code=503, detail="Settings not loaded")
             ns = controller.newelle_settings
-            from ...constants import PROMPTS
-            PROMPTS[req.prompt_key] = req.text
+            if not isinstance(ns.custom_prompts, dict):
+                ns.custom_prompts = {}
+            ns.custom_prompts[req.prompt_key] = req.text
+            ns.settings.set_string("custom-prompts", json.dumps(ns.custom_prompts))
+            ns.load_prompts()
             ns.save_prompts()
             return {"status": "ok"}
 
         @app.post("/api/prompts/delete-custom")
         def api_delete_custom_prompt(req: DeleteCustomPromptRequest):
-            from ...constants import PROMPTS
-            PROMPTS.pop(req.prompt_key, None)
-            if hasattr(controller, 'newelle_settings'):
-                ns = controller.newelle_settings
-                if req.prompt_key in ns.bot_prompts:
-                    ns.bot_prompts.remove(req.prompt_key)
-                ns.save_prompts()
+            if not hasattr(controller, 'newelle_settings'):
+                raise HTTPException(status_code=503, detail="Settings not loaded")
+            ns = controller.newelle_settings
+            if isinstance(ns.custom_prompts, dict):
+                ns.custom_prompts.pop(req.prompt_key, None)
+            ns.settings.set_string("custom-prompts", json.dumps(ns.custom_prompts))
+            ns.load_prompts()
+            ns.save_prompts()
             return {"status": "ok"}
 
         # ============================================================ #
@@ -565,12 +584,17 @@ class GUIAPIInterface(Interface):
         def api_list_interfaces():
             from ...constants import AVAILABLE_INTERFACES
             result = []
+            enabled_map = {}
+            if hasattr(controller, 'newelle_settings'):
+                enabled_map = getattr(controller.newelle_settings, 'interfaces_enabled', {}) or {}
             for key, info in AVAILABLE_INTERFACES.items():
                 iface = controller.handlers.interfaces.get(key) if hasattr(controller.handlers, 'interfaces') else None
                 result.append({
                     "key": key,
+                    "name": info.get("title", key),
                     "title": info.get("title", key),
                     "description": info.get("description", ""),
+                    "enabled": bool(enabled_map.get(key, True)),
                     "running": iface.is_running() if iface else False,
                     "error": getattr(iface, '_error', None) if iface else None,
                 })
@@ -973,7 +997,7 @@ class GUIAPIInterface(Interface):
                 def on_stream(delta: str):
                     nonlocal accumulated
                     accumulated += delta
-                    q.put(("chunk", accumulated))
+                    q.put(("chunk", delta))
 
                 def on_tool_result(tool_name: str, result):
                     output = result.get_output() if hasattr(result, 'get_output') else str(result)
