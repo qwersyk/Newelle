@@ -8,6 +8,7 @@ from .handlers.rag import LlamaIndexHanlder
 from .handlers.websearch import SearXNGHandler, DDGSeachHandler, TavilyHandler
 from .handlers.interfaces.interface import Interface
 from .handlers.interfaces.api_handler import APIInterface
+from .handlers.interfaces.gui_api_handler import GUIAPIInterface
 from .integrations.website_reader import WebsiteReader
 from .integrations.websearch import WebsearchIntegration
 from .integrations.mcp import MCPIntegration
@@ -347,6 +348,12 @@ AVAILABLE_INTERFACES = {
         "title": _("OpenAI Compatible API"),
         "description": _("Expose the current LLM as an OpenAI-compatible API server"),
         "class": APIInterface,
+    },
+    "gui-api": {
+        "key": "gui-api",
+        "title": _("Newelle GUI API"),
+        "description": _("Full REST API for building a WebUI, exposing chats, messages, tools, settings and more"),
+        "class": GUIAPIInterface,
     },
 }
 

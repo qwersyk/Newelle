@@ -33,6 +33,13 @@ class APIInterface(Interface):
                 default=False,
             ),
             ExtraSettings.EntrySetting(
+                key="api_key",
+                title=_("API Key"),
+                description=_("API key required to authenticate requests (leave empty to disable authentication)"),
+                default="",
+                password=True,
+            ),
+            ExtraSettings.EntrySetting(
                 key="host",
                 title=_("Host"),
                 description=_("Host address to bind the API server to"),
@@ -56,12 +63,27 @@ class APIInterface(Interface):
         return self.get_setting("host", search_default=True, return_value="127.0.0.1")
 
     def _create_app(self):
-        from fastapi import FastAPI, UploadFile, File
+        from fastapi import FastAPI, UploadFile, File, Request, HTTPException
         from fastapi.responses import JSONResponse, StreamingResponse
         from pydantic import BaseModel
         from typing import Optional
+        from starlette.middleware.base import BaseHTTPMiddleware
 
         controller = self.controller
+        api_key = self.get_setting("api_key", search_default=True, return_value="")
+
+        class APIKeyMiddleware(BaseHTTPMiddleware):
+            async def dispatch(self, request: Request, call_next):
+                if api_key:
+                    auth_header = request.headers.get("Authorization", "")
+                    bearer = f"Bearer {api_key}"
+                    api_key_param = request.query_params.get("api_key", "")
+                    if auth_header != bearer and api_key_param != api_key:
+                        return JSONResponse(
+                            status_code=401,
+                            content={"error": {"message": "Invalid or missing API key", "type": "authentication_error"}},
+                        )
+                return await call_next(request)
 
         class ChatMessage(BaseModel):
             role: str
@@ -80,6 +102,7 @@ class APIInterface(Interface):
             stream: Optional[bool] = False
 
         app = FastAPI()
+        app.add_middleware(APIKeyMiddleware)
 
         @app.get("/v1/models")
         def list_models():
