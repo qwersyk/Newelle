@@ -1,7 +1,10 @@
 import sys
 import os
+import signal
 import gettext
-import gi 
+import gi
+
+from .ui_controller import HeadlessController 
 gi.require_version('Gtk', '4.0')
 gi.require_version('GtkSource', '5')
 gi.require_version('Adw', '1')
@@ -403,6 +406,50 @@ class MyApp(Adw.Application):
             print(msg["User"], msg["Message"])
     def debug(self, *a):
         self.pretty_print_chat()
+
+def run_headless(interface_key, version):
+    """Start an interface without the GUI."""
+    from .controller import NewelleController
+    from .constants import AVAILABLE_INTERFACES
+
+    if interface_key not in AVAILABLE_INTERFACES:
+        available = ", ".join(AVAILABLE_INTERFACES.keys())
+        print(f"Unknown interface '{interface_key}'. Available: {available}", file=sys.stderr)
+        return 1
+
+    info = AVAILABLE_INTERFACES[interface_key]
+    print(f"Starting {info['title']} (headless)...")
+
+    controller = NewelleController(sys.path)
+    controller.ui_init()
+    controller.handlers.load_handlers()
+    ui_controller = HeadlessController(controller)
+    controller.set_ui_controller(ui_controller)
+
+    from .utility.replacehelper import ReplaceHelper
+    ReplaceHelper.set_controller(controller)
+
+    iface = controller.handlers.interfaces.get(interface_key)
+    if iface is None:
+        print(f"Failed to initialize interface '{interface_key}'", file=sys.stderr)
+        return 1
+
+    iface.start()
+    if not iface.is_running():
+        print(f"Interface '{interface_key}' failed to start", file=sys.stderr)
+        return 1
+
+    print(f"{info['title']} is running. Press Ctrl+C to stop.")
+
+    # Run a GLib MainLoop so GLib.idle_add (used by tool execution, etc.) works
+    loop = GLib.MainLoop()
+    try:
+        loop.run()
+    except KeyboardInterrupt:
+        print("\nStopping interface...")
+        iface.stop()
+    return 0
+
 
 def main(version):
     app = MyApp(application_id="io.github.qwersyk.Newelle", version = version)

@@ -361,7 +361,7 @@ class NewelleController:
         if folder_id is not None and folder_id in self.folders:
             self.move_chat_to_folder(chat_id, folder_id)
         elif self.ui_controller is not None:
-            GLib.idle_add(self.ui_controller.window.update_history)
+            GLib.idle_add(self.ui_controller.update_history)
         return chat_id
 
     def create_folder(self, name: str, color: str, icon: str = "folder-symbolic") -> int:
@@ -377,7 +377,7 @@ class NewelleController:
         }
         self.save_chats()
         if self.ui_controller is not None:
-            GLib.idle_add(self.ui_controller.window.update_history)
+            GLib.idle_add(self.ui_controller.update_history)
         return folder_id
 
     def ensure_scheduled_tasks_folder(self) -> int:
@@ -412,7 +412,7 @@ class NewelleController:
             del self.folders[folder_id]
             self.save_chats()
             if self.ui_controller is not None:
-                GLib.idle_add(self.ui_controller.window.update_history)
+                GLib.idle_add(self.ui_controller.update_history)
 
     def toggle_folder_expanded(self, folder_id: int):
         """Toggle the expanded/collapsed state of a folder."""
@@ -428,7 +428,7 @@ class NewelleController:
                 self.folders[folder_id]["chat_ids"].append(chat_id)
             self.save_chats()
             if self.ui_controller is not None:
-                GLib.idle_add(self.ui_controller.window.update_history)
+                GLib.idle_add(self.ui_controller.update_history)
 
     def remove_chat_from_folder(self, chat_id: int, save: bool = True):
         """Remove a chat from whichever folder it belongs to."""
@@ -438,7 +438,7 @@ class NewelleController:
                 if save:
                     self.save_chats()
                     if self.ui_controller is not None:
-                        GLib.idle_add(self.ui_controller.window.update_history)
+                        GLib.idle_add(self.ui_controller.update_history)
                 return
 
     def get_folder_for_chat(self, chat_id: int):
@@ -839,9 +839,7 @@ class NewelleController:
     def _show_scheduled_task_toast(self, title: str):
         if self.ui_controller is None:
             return False
-        self.ui_controller.window.notification_block.add_toast(
-            Adw.Toast(title=title, timeout=2)
-        )
+        self.ui_controller.send_notification(title)
         return False
 
     def check_path_integrity(self):

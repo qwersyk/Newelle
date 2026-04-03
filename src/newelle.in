@@ -24,6 +24,7 @@ import sys
 import signal
 import locale
 import gettext
+import argparse
 
 VERSION = '@VERSION@'
 pkgdatadir = '@pkgdatadir@'
@@ -35,7 +36,37 @@ locale.bindtextdomain('newelle', localedir)
 locale.textdomain('newelle')
 gettext.install('newelle', localedir)
 
+def parse_args():
+    parser = argparse.ArgumentParser(prog='newelle', add_help=False)
+    parser.add_argument('--interface', '-I', metavar='INTERFACE',
+                        help='Start an interface without the GUI (e.g. api, gui-api)')
+    parser.add_argument('--list-interfaces', action='store_true',
+                        help='List available interfaces and exit')
+    args, remaining = parser.parse_known_args()
+    return args, remaining
+
 if __name__ == '__main__':
+    args, remaining = parse_args()
+
+    if args.list_interfaces:
+        from gi.repository import Gio
+        from newelle.constants import AVAILABLE_INTERFACES
+        print("Available interfaces:")
+        for key, info in AVAILABLE_INTERFACES.items():
+            print(f"  {key:15s} - {info['title']}")
+        sys.exit(0)
+
+    if args.interface:
+        import gi
+        gi.require_version('Gtk', '4.0')
+        gi.require_version('Adw', '1')
+        from gi.repository import Gio
+        resource = Gio.Resource.load(os.path.join(pkgdatadir, 'newelle.gresource'))
+        resource._register()
+
+        from newelle import main
+        sys.exit(main.run_headless(args.interface, VERSION))
+
     import gi
 
     from gi.repository import Gio
