@@ -1,7 +1,6 @@
 import re
-from unittest import result
 from ..extensions import NewelleExtension
-from ..tools import Tool, ToolResult, create_io_tool 
+from ..tools import InteractionOption, Tool, ToolResult, create_io_tool 
 import threading 
 import json 
 from ..ui.widgets import CopyBox
@@ -44,7 +43,7 @@ class DefaultToolsIntegration(NewelleExtension):
             return text[:maxlength] + f"\n... (Output truncated to {maxlength} characters)"
         return text
     
-    def execute_command(self, command: str):
+    def execute_command(self, command: str | None):
         if command is None:
             return "The user skipped the command execution."
         if is_flatpak() and not self.settings.get_boolean("virtualization"):
@@ -74,9 +73,13 @@ class DefaultToolsIntegration(NewelleExtension):
         widget.connect("terminal-clicked", self._on_copybox_terminal_clicked)
         if self.settings.get_boolean("auto-run"):
             widget._on_execution_run_clicked(None)
+        else:
+            result.set_intreaction_options([
+                InteractionOption(_("Accept"), lambda command=command: execute_callback(command)),
+                InteractionOption(_("Skip"), lambda : self.execute_command(None))])
         widget.connect("command-complete", lambda _, output: result.set_output(output))
         result.set_widget(widget)
-
+        result.set_display_text("```bash\n" + command + "\n```")
         return result
 
     def execute_command_restore(self, tool_uuid: str, command: str):
@@ -104,6 +107,7 @@ class DefaultToolsIntegration(NewelleExtension):
 
         result = ToolResult()
         result.set_widget(image)
+        result.set_display_text("```image\n" + image + "\n```")
         result.set_output(None)
         return result
     

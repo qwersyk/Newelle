@@ -76,6 +76,9 @@ class GUIAPIInterface(Interface):
         controller = self.controller
         api_key = self.get_setting("api_key", search_default=True, return_value="")
 
+        # Pending tool interactions: {interaction_id: {options, event, result}}
+        pending_interactions: dict = {}
+
         class APIKeyMiddleware(BaseHTTPMiddleware):
             async def dispatch(self, request: Request, call_next):
                 if api_key:
@@ -198,6 +201,10 @@ class GUIAPIInterface(Interface):
         class CreateBranchRequest(BaseModel):
             message_id: int
             source_chat_id: Optional[int] = None
+
+        class ToolInteractRequest(BaseModel):
+            interaction_id: str
+            option_index: int
 
         class ReloadRequest(BaseModel):
             reload_type: str
@@ -568,6 +575,18 @@ class GUIAPIInterface(Interface):
         @app.post("/api/tools/mcp-update")
         def api_update_mcp_tools():
             controller.update_mcp_tools()
+            return {"status": "ok"}
+
+        @app.post("/api/tools/interact")
+        def api_tool_interact(req: ToolInteractRequest):
+            """Respond to a pending tool interaction (e.g. accept/skip a command)."""
+            entry = pending_interactions.get(req.interaction_id)
+            if entry is None:
+                raise HTTPException(status_code=404, detail="Interaction not found or expired")
+            if req.option_index < 0 or req.option_index >= len(entry["options"]):
+                raise HTTPException(status_code=400, detail="Invalid option index")
+            entry["options"][req.option_index].callback()
+            entry["event"].set()
             return {"status": "ok"}
 
         @app.get("/api/tools/mcp")
@@ -1000,8 +1019,27 @@ class GUIAPIInterface(Interface):
                     q.put(("chunk", delta))
 
                 def on_tool_result(tool_name: str, result):
-                    output = result.get_output() if hasattr(result, 'get_output') else str(result)
-                    q.put(("tool", {"tool": tool_name, "output": output}))
+                    if result.requires_interaction and result.interaction_options:
+                        interaction_id = str(uuid.uuid4())[:8]
+                        options_data = [{"title": opt.title, "index": i} for i, opt in enumerate(result.interaction_options)]
+                        pending_interactions[interaction_id] = {
+                            "options": result.interaction_options,
+                            "event": threading.Event(),
+                        }
+                        q.put(("tool_interaction", {
+                            "interaction_id": interaction_id,
+                            "tool_name": tool_name,
+                            "display_text": result.display_text,
+                            "options": options_data,
+                        }))
+                        # Block until the user responds via POST /api/tools/interact
+                        pending_interactions[interaction_id]["event"].wait()
+                        output = result.get_output() if hasattr(result, 'get_output') else str(result)
+                        del pending_interactions[interaction_id]
+                        q.put(("tool", {"tool": tool_name, "output": output}))
+                    else:
+                        output = result.get_output() if hasattr(result, 'get_output') else str(result)
+                        q.put(("tool", {"tool": tool_name, "output": output}))
 
                 try:
                     controller.run_llm_with_tools(

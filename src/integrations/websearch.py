@@ -23,6 +23,7 @@ class WebsearchIntegration(NewelleExtension):
         widget = self.get_gtk_widget(query, "", tool_uuid)
         result = ToolResult()
         result.set_widget(widget)
+        result.set_display_text(_("Searching for ") + query)
         def get_answer():
             out = self.get_answer(query, "", only_links=only_links, max_results=max_results)
             result.set_output(out)

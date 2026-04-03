@@ -4,10 +4,11 @@ import json
 import os
 import re
 import threading
+from gettext import gettext as _
 from typing import Optional
 from gi.repository import GLib
 from ..extensions import NewelleExtension
-from ..tools import Tool, ToolResult
+from ..tools import Tool, ToolResult, InteractionOption
 from ..ui.widgets.file_read import ReadFileWidget
 from ..ui.widgets.file_edit import FileEditWidget
 from ..ui.widgets.file_permission_confirm import FilePermissionConfirmWidget
@@ -149,6 +150,10 @@ class FileEditingIntegration(NewelleExtension):
         box.append(confirm)
 
         result.set_widget(box)
+        result.set_intreaction_options([
+            InteractionOption(_("Accept"), on_accepted),
+            InteractionOption(_("Reject"), lambda: on_rejected())
+        ])
         return result
 
     def _get_open_in_editor_callback(self, file_path: str = None):
