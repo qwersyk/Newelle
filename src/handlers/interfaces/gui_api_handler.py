@@ -1048,6 +1048,7 @@ class GUIAPIInterface(Interface):
                         on_message_callback=on_stream,
                         on_tool_result_callback=on_tool_result,
                         save_chat=True,
+                        force_tools_on_main_thread=True,
                     )
                     q.put(("finished", {"message": accumulated}))
                 except Exception as e:
