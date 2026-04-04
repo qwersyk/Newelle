@@ -1090,6 +1090,79 @@ class GUIAPIInterface(Interface):
         # ============================================================ #
         #                          TTS                                  #
         # ============================================================ #
+        @app.get("/api/tts/providers")
+        def api_list_tts_providers():
+            from ...constants import AVAILABLE_TTS
+            result = []
+            for key, info in AVAILABLE_TTS.items():
+                result.append({
+                    "key": key,
+                    "title": info.get("title", key),
+                    "description": info.get("description", ""),
+                })
+            return result
+
+        @app.get("/api/tts/status")
+        def api_tts_status():
+            tts = controller.handlers.tts
+            provider = controller.newelle_settings.tts_program
+            voice = tts.get_current_voice() if hasattr(tts, "get_current_voice") else ""
+            return {
+                "provider": provider,
+                "voice": voice,
+            }
+
+        @app.post("/api/tts/set-provider")
+        def api_set_tts_provider(req: SetProviderRequest):
+            from ...constants import AVAILABLE_TTS
+            if req.provider not in AVAILABLE_TTS:
+                raise HTTPException(status_code=400, detail="Unknown provider")
+            controller.settings.set_string("tts", req.provider)
+            controller.update_settings()
+            return {"status": "ok"}
+
+        @app.get("/api/tts/settings")
+        def api_get_tts_settings(provider: Optional[str] = None):
+            target = provider or controller.newelle_settings.tts_program
+            from ...constants import AVAILABLE_TTS
+            if target not in AVAILABLE_TTS:
+                raise HTTPException(status_code=404, detail="Provider not found")
+            handler_class = AVAILABLE_TTS[target]["class"]
+            handler = handler_class(controller.settings, controller.handlers.directory)
+            extra = handler.get_extra_settings_list()
+            result = []
+            for s in extra:
+                entry = {
+                    "key": s.get("key", ""),
+                    "title": s.get("title", ""),
+                    "description": s.get("description", ""),
+                    "type": s.get("type", "entry"),
+                }
+                for field in ("default", "values", "password", "min", "max", "step", "round-digits"):
+                    if field in s:
+                        entry[field] = s[field]
+                entry["value"] = handler.get_setting(entry["key"])
+                result.append(entry)
+            return {"provider": target, "settings": result}
+
+        class SetTtsSettingsRequest(BaseModel):
+            provider: Optional[str] = None
+            settings: dict = Field(default_factory=dict)
+
+        @app.post("/api/tts/settings")
+        def api_set_tts_settings(req: SetTtsSettingsRequest):
+            provider = req.provider or controller.newelle_settings.tts_program
+            settings_values = req.settings
+            from ...constants import AVAILABLE_TTS
+            if provider not in AVAILABLE_TTS:
+                raise HTTPException(status_code=400, detail="Unknown provider")
+            handler_class = AVAILABLE_TTS[provider]["class"]
+            handler = handler_class(controller.settings, controller.handlers.directory)
+            for key, value in settings_values.items():
+                handler.set_setting(key, value)
+            controller.update_settings()
+            return {"status": "ok"}
+
         @app.get("/api/tts/voices")
         def api_get_tts_voices():
             tts = controller.handlers.tts
