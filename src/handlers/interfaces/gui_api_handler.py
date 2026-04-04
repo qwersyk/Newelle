@@ -1012,11 +1012,21 @@ class GUIAPIInterface(Interface):
                 controller.set_chat_by_id(chat_id, chat)
 
                 accumulated = ""
+                last_cumulative = ""
 
-                def on_stream(delta: str):
-                    nonlocal accumulated
+                def on_stream(text: str):
+                    nonlocal accumulated, last_cumulative
+                    # LLM handlers send cumulative text (full response so far).
+                    # Compute the actual delta to send to the frontend.
+                    if text.startswith(last_cumulative):
+                        delta = text[len(last_cumulative):]
+                    else:
+                        # New iteration (e.g. after a tool call) – cumulative text reset
+                        delta = text
+                    last_cumulative = text
                     accumulated += delta
-                    q.put(("chunk", delta))
+                    if delta:
+                        q.put(("chunk", delta))
 
                 def on_tool_result(tool_name: str, result):
                     if result.requires_interaction and result.interaction_options:
