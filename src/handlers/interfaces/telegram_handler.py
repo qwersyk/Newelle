@@ -33,9 +33,9 @@ class TelegramInterface(Interface):
 
     @staticmethod
     def get_extra_requirements() -> list:
-        return ["python-telegram-bot"]
+        return ["python-telegram-bot", "telegramify-markdown[mermaid]"]
     def is_installed(self) -> bool:
-        return find_module("telegram") is not None    
+        return find_module("telegram") is not None and find_module("telegramify_markdown") is not None    
     def get_extra_settings(self) -> list:
         return [
             ExtraSettings.ToggleSetting(
@@ -104,6 +104,7 @@ class TelegramInterface(Interface):
     #                        Bot app builder                              #
     # ------------------------------------------------------------------ #
     def _create_bot_app(self):
+        from telegramify_markdown import convert
         from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
         from telegram.ext import (
             ApplicationBuilder,
@@ -555,33 +556,70 @@ class TelegramInterface(Interface):
         async def handle_callback_query(update: Update, context):
             """Handle inline keyboard button presses for tool interactions."""
             query = update.callback_query
-            await query.answer()
 
             data = query.data
             if not data.startswith("tool_"):
+                print(f"[TG] Callback ignored: not a tool callback")
                 return
 
             parts = data.split("_", 2)
             if len(parts) < 3:
+                print(f"[TG] Callback ignored: bad format, parts={parts}")
                 return
 
             interaction_id = parts[1]
             try:
                 option_index = int(parts[2])
             except ValueError:
+                print(f"[TG] Callback ignored: bad option index")
                 return
 
+            print(f"[TG] Tool callback: interaction_id={interaction_id}, index={option_index}")
+            print(f"[TG] Pending interactions: {list(iface._pending_interactions.keys())}")
             entry = iface._pending_interactions.get(interaction_id)
             if entry is None:
+                print(f"[TG] Interaction not found: {interaction_id}")
                 await query.edit_message_text("⏰ This interaction has expired.")
                 return
 
             if option_index < 0 or option_index >= len(entry["options"]):
+                print(f"[TG] Option index out of range: {option_index}")
                 return
 
-            entry["options"][option_index].callback()
-            entry["event"].set()
-            await query.edit_message_text(f"Selected: {entry['options'][option_index].title}")
+            print(f"[TG] Calling callback for option: {entry['options'][option_index].title}")
+            selected = entry["options"][option_index]
+            iface._pending_interactions.pop(interaction_id, None)
+
+            def _run_callback():
+                try:
+                    selected.callback()
+                except Exception as e:
+                    print(f"Tool callback error: {e}")
+
+            t = threading.Thread(target=_run_callback, daemon=True)
+            t.start()
+            #await query.edit_message_text(f"Selected: {selected.title}")
+
+        async def _safe_send_message(bot, chat_id, text, **kwargs):
+            """Send a message, falling back from markdown to plain text on parse errors."""
+            kwargs.pop("parse_mode", None)
+            try:
+                text, entities = convert(text)
+                entities = [e.to_dict() for e in entities]
+                return await bot.send_message(chat_id=chat_id, text=text, entities=entities, **kwargs)
+            except Exception as e:
+                print(e)
+                return await bot.send_message(chat_id=chat_id, text=text, **kwargs)
+
+        async def _safe_edit_message(message, text, **kwargs):
+            """Edit a message, falling back from markdown to plain text on parse errors."""
+            kwargs.pop("parse_mode", None)
+            try:
+                text, entities = convert(text)
+                entities = [e.to_dict() for e in entities]
+                return await message.edit_text(text=text, entities=entities, **kwargs)
+            except Exception:
+                return await message.edit_text(text=text, **kwargs)
 
         def _strip_thinking(text: str) -> tuple[str, bool]:
             """Remove thinking/reflect blocks from text. Returns (cleaned_text, is_thinking)."""
@@ -615,12 +653,10 @@ class TelegramInterface(Interface):
                 "done": False,
                 "is_thinking": False,
                 "pending_tool": None,
-                "tool_interaction_event": None,
+                "tool_result_ready": threading.Event(),
+                "tool_message_sent": threading.Event(),
             }
             state_lock = threading.Lock()
-
-            tool_called = threading.Event()
-            tool_message_sent = threading.Event()
 
             def on_stream(stream_text: str):
                 with state_lock:
@@ -642,9 +678,7 @@ class TelegramInterface(Interface):
 
             def on_tool_result(tool_name: str, result):
                 display = result.display_text or ""
-                if not display and hasattr(result, "output"):
-                    display = str(result.output) if result.output is not None else ""
-
+                
                 with state_lock:
                     state["pending_tool"] = {
                         "name": tool_name,
@@ -653,15 +687,9 @@ class TelegramInterface(Interface):
                         "interaction_options": result.interaction_options if result.requires_interaction else [],
                     }
 
-                tool_called.set()
-                tool_message_sent.wait(timeout=30)
-                tool_message_sent.clear()
-
-                if result.requires_interaction and result.interaction_options:
-                    with state_lock:
-                        event = state["tool_interaction_event"]
-                    if event:
-                        event.wait(timeout=300)
+                state["tool_result_ready"].set()
+                state["tool_message_sent"].wait(timeout=30)
+                state["tool_message_sent"].clear()
 
                 with state_lock:
                     state["pending_tool"] = None
@@ -694,8 +722,8 @@ class TelegramInterface(Interface):
                 with state_lock:
                     pending_tool = state.get("pending_tool")
 
-                if pending_tool and tool_called.is_set():
-                    tool_called.clear()
+                if pending_tool and state["tool_result_ready"].is_set():
+                    state["tool_result_ready"].clear()
 
                     if use_edit_message and sent_message is not None and state["accumulated"]:
                         try:
@@ -716,15 +744,11 @@ class TelegramInterface(Interface):
                     if pending_tool["display"]:
                         tool_text += f"\n{pending_tool['display'][:500]}"
 
-                    if pending_tool["requires_interaction"] and pending_tool["interaction_options"]:
+                    if len(pending_tool["interaction_options"]) > 0:
                         interaction_id = str(uuid.uuid4())[:8]
-                        event = threading.Event()
                         iface._pending_interactions[interaction_id] = {
                             "options": pending_tool["interaction_options"],
-                            "event": event,
                         }
-                        with state_lock:
-                            state["tool_interaction_event"] = event
 
                         buttons = []
                         for i, opt in enumerate(pending_tool["interaction_options"]):
@@ -733,22 +757,18 @@ class TelegramInterface(Interface):
                             )
                         reply_markup = InlineKeyboardMarkup(buttons)
 
-                        await context.bot.send_message(
-                            chat_id=tg_chat_id,
-                            text=tool_text,
+                        await _safe_send_message(
+                            context.bot, tg_chat_id, tool_text,
                             reply_markup=reply_markup,
-                            parse_mode="markdown",
                         )
                     else:
-                        await context.bot.send_message(
-                            chat_id=tg_chat_id,
-                            text=tool_text,
-                            parse_mode="markdown",
+                        await _safe_send_message(
+                            context.bot, tg_chat_id, tool_text,
                         )
-                        with state_lock:
-                            state["tool_interaction_event"] = None
 
-                    tool_message_sent.set()
+                    with state_lock:
+                        state["pending_tool"] = None
+                    state["tool_message_sent"].set()
                     continue
 
                 with state_lock:
@@ -764,16 +784,11 @@ class TelegramInterface(Interface):
                         text_to_send = display[:4000] if len(display) > 4000 else display
                         if use_edit_message:
                             if sent_message is None:
-                                sent_message = await context.bot.send_message(
-                                    chat_id=tg_chat_id,
-                                    text=text_to_send,
-                                    parse_mode="markdown"
+                                sent_message = await _safe_send_message(
+                                    context.bot, tg_chat_id, text_to_send,
                                 )
                             else:
-                                await sent_message.edit_text(
-                                    text=text_to_send,
-                                    parse_mode="markdown"
-                                )
+                                await _safe_edit_message(sent_message, text_to_send)
                         else:
                             await context.bot.send_message_draft(
                                 chat_id=tg_chat_id,
@@ -800,39 +815,33 @@ class TelegramInterface(Interface):
             if use_edit_message:
                 if sent_message is not None and final_text:
                     if len(final_text) <= 4000:
-                        try:
-                            await sent_message.edit_text(text=final_text, parse_mode="markdown")
-                        except Exception:
-                            pass
+                        await _safe_edit_message(sent_message, final_text)
                     else:
                         chunks = [final_text[i:i + 4000] for i in range(0, len(final_text), 4000)]
-                        try:
-                            await sent_message.edit_text(text=chunks[0], parse_mode="markdown")
-                        except Exception:
-                            pass
+                        await _safe_edit_message(sent_message, chunks[0])
                         for chunk in chunks[1:]:
-                            await context.bot.send_message(chat_id=tg_chat_id, text=chunk, parse_mode="markdown")
+                            await _safe_send_message(context.bot, tg_chat_id, chunk)
                 elif not sent_message and final_text:
                     if len(final_text) > 4000:
                         chunks = [final_text[i:i + 4000] for i in range(0, len(final_text), 4000)]
                         for chunk in chunks:
-                            await context.bot.send_message(chat_id=tg_chat_id, text=chunk, parse_mode="markdown")
+                            await _safe_send_message(context.bot, tg_chat_id, chunk)
                     else:
-                        await context.bot.send_message(chat_id=tg_chat_id, text=final_text, parse_mode="markdown")
+                        await _safe_send_message(context.bot, tg_chat_id, final_text)
             else:
                 if len(final_text) > 4000:
                     chunks = [final_text[i:i + 4000] for i in range(0, len(final_text), 4000)]
                     for chunk in chunks:
-                        await context.bot.send_message(chat_id=tg_chat_id, text=chunk, parse_mode="markdown")
+                        await _safe_send_message(context.bot, tg_chat_id, chunk)
                 else:
-                    await context.bot.send_message(chat_id=tg_chat_id, text=final_text, parse_mode="markdown")
+                    await _safe_send_message(context.bot, tg_chat_id, final_text)
 
         # Build application
         token = self._get_bot_token()
         if not token:
             raise ValueError("Bot token not configured")
 
-        app = ApplicationBuilder().token(token).build()
+        app = ApplicationBuilder().token(token).concurrent_updates(True).build()
 
         # Register handlers
         app.add_handler(CommandHandler("start", start_cmd))
@@ -921,3 +930,5 @@ class TelegramInterface(Interface):
 
     def is_running(self):
         return self._running and self._thread is not None and self._thread.is_alive()
+
+
