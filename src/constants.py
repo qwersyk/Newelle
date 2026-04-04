@@ -9,6 +9,7 @@ from .handlers.websearch import SearXNGHandler, DDGSeachHandler, TavilyHandler
 from .handlers.interfaces.interface import Interface
 from .handlers.interfaces.api_handler import APIInterface
 from .handlers.interfaces.gui_api_handler import GUIAPIInterface
+from .handlers.interfaces.telegram_handler import TelegramInterface
 from .integrations.website_reader import WebsiteReader
 from .integrations.websearch import WebsearchIntegration
 from .integrations.mcp import MCPIntegration
@@ -354,6 +355,12 @@ AVAILABLE_INTERFACES = {
         "title": _("Newelle GUI API"),
         "description": _("Full REST API for building a WebUI, exposing chats, messages, tools, settings and more"),
         "class": GUIAPIInterface,
+    },
+    "telegram": {
+        "key": "telegram",
+        "title": _("Telegram Bot"),
+        "description": _("Use Newelle as a Telegram bot with message streaming, voice transcription, tools and more"),
+        "class": TelegramInterface,
     },
 }
 
