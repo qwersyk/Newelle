@@ -30,6 +30,8 @@ class TelegramInterface(Interface):
         self._error = None
         self._user_chats = {}  # user_id -> chat_id mapping
         self._pending_interactions = {}  # interaction_id -> {options, event}
+        self._telegram_folder_id = None
+        self._chat_counter = 0
 
     @staticmethod
     def get_extra_requirements() -> list:
@@ -81,13 +83,64 @@ class TelegramInterface(Interface):
         except (ValueError, TypeError):
             return False
 
+    def _ensure_telegram_folder(self) -> int:
+        if self._telegram_folder_id is not None:
+            return self._telegram_folder_id
+        for fid, folder in self.controller.folders.items():
+            if folder.get("name") == "Telegram":
+                self._telegram_folder_id = fid
+                self._count_existing_chats()
+                return self._telegram_folder_id
+        self._telegram_folder_id = self.controller.create_folder(
+            name="Telegram", color="#3584e4", icon="folder-symbolic"
+        )
+        self._count_existing_chats()
+        return self._telegram_folder_id
+
+    def _count_existing_chats(self) -> int:
+        folder_id = self._telegram_folder_id
+        if folder_id is None or folder_id not in self.controller.folders:
+            self._chat_counter = 0
+            return 0
+        chat_ids = self.controller.folders[folder_id].get("chat_ids", [])
+        count = 0
+        for cid in chat_ids:
+            if cid in self.controller.chats:
+                name = self.controller.chats[cid].get("name", "")
+                if name.startswith("✈️ Telegram "):
+                    try:
+                        num = int(name.split()[-1])
+                        count = max(count, num)
+                    except (ValueError, IndexError):
+                        pass
+        self._chat_counter = count
+        return count
+
+    def _save_last_chat_id(self, user_id: int, chat_id: int):
+        self.set_setting(f"last_chat_user_{user_id}", chat_id)
+
+    def _load_last_chat_id(self, user_id: int) -> int | None:
+        val = self.get_setting(f"last_chat_user_{user_id}", search_default=True, return_value=None)
+        return val
+
     def _get_or_create_chat(self, user_id: int) -> int:
         if user_id in self._user_chats:
             chat_id = self._user_chats[user_id]
             if chat_id in self.controller.chats:
                 return chat_id
-        chat_id = self.controller.create_visible_chat(name="Telegram")
+
+        last_chat_id = self._load_last_chat_id(user_id)
+        if last_chat_id is not None and last_chat_id in self.controller.chats:
+            self._user_chats[user_id] = last_chat_id
+            return last_chat_id
+
+        folder_id = self._ensure_telegram_folder()
+        self._chat_counter += 1
+        chat_name = f"✈️ Telegram {self._chat_counter}"
+        chat_id = self.controller.create_visible_chat(name=chat_name, folder_id=folder_id)
         self._user_chats[user_id] = chat_id
+        self._save_last_chat_id(user_id, chat_id)
+        self.controller.save_chats()
         return chat_id
 
     def _ensure_controller(self):
@@ -138,6 +191,10 @@ class TelegramInterface(Interface):
                 "🔧 /tools - View/toggle tools\n"
                 "⏰ /scheduled - View scheduled tasks\n"
                 "⚡ /skill <name> - Execute a skill command\n"
+                "📂 /cd [path] - Change working directory\n"
+                "📋 /list_chats - List all chats\n"
+                "👀 /peek <chat_id> - Preview messages from a chat\n"
+                "🔄 /resume <chat_id> - Switch to a different chat\n"
             )
 
         async def new_cmd(update: Update, context):
@@ -147,9 +204,18 @@ class TelegramInterface(Interface):
                 await update.message.reply_text("⏳ Controller not ready.")
                 return
             user_id = update.effective_user.id
-            name = " ".join(context.args) if context.args else "Telegram"
-            chat_id = controller.create_visible_chat(name=name)
+            if context.args:
+                name = " ".join(context.args)
+                folder_id = iface._ensure_telegram_folder()
+                chat_id = controller.create_visible_chat(name=name, folder_id=folder_id)
+            else:
+                folder_id = iface._ensure_telegram_folder()
+                iface._chat_counter += 1
+                name = f"✈️ Telegram {iface._chat_counter}"
+                chat_id = controller.create_visible_chat(name=name, folder_id=folder_id)
+                controller.save_chats()
             iface._user_chats[user_id] = chat_id
+            iface._save_last_chat_id(user_id, chat_id)
             await update.message.reply_text(f"🆕 New chat created: \"{name}\" (ID: {chat_id})")
 
         async def models_cmd(update: Update, context):
@@ -430,6 +496,137 @@ class TelegramInterface(Interface):
                 await update.message.reply_text(output)
             except Exception as e:
                 await update.message.reply_text(f"❌ Error: {e}")
+
+        async def cd_cmd(update: Update, context):
+            if not iface._is_user_allowed(update.effective_user):
+                return
+            if not iface._ensure_controller():
+                await update.message.reply_text("⏳ Controller not ready.")
+                return
+
+            if not context.args:
+                current = controller.settings.get_string("path")
+                await update.message.reply_text(f"📂 Current path: {current}")
+                return
+
+            new_path = " ".join(context.args)
+            expanded = os.path.expanduser(new_path)
+            if not os.path.isdir(expanded):
+                await update.message.reply_text(f"❌ Directory not found: {new_path}")
+                return
+
+            controller.settings.set_string("path", os.path.normpath(new_path))
+            controller.update_settings()
+            os.chdir(expanded)
+            await update.message.reply_text(f"✅ Path changed to: {os.path.normpath(new_path)}")
+
+        async def list_chats_cmd(update: Update, context):
+            if not iface._is_user_allowed(update.effective_user):
+                return
+            if not iface._ensure_controller():
+                await update.message.reply_text("⏳ Controller not ready.")
+                return
+
+            current_chat_id = controller.newelle_settings.chat_id
+            chat_ids = controller.chat_ids_ordered()
+            if controller.newelle_settings.reverse_order:
+                chat_ids = list(reversed(chat_ids))
+            lines = []
+            for cid in chat_ids:
+                chat = controller.chats[cid]
+                if chat.get("call"):
+                    continue
+                marker = "▶" if cid == current_chat_id else " "
+                name = chat.get("name", f"Chat {cid}")
+                msg_count = len(chat.get("chat", []))
+                lines.append(f"{marker} {cid}. {name} ({msg_count} messages)")
+
+            if not lines:
+                await update.message.reply_text("📭 No chats available.")
+                return
+
+
+            lines = [x[:40] for x in lines]
+            text = "📋 *Chats*:\n\n" + "\n".join(lines)
+            if len(text) > 4000:
+                text = text[:4000] + "\n..."
+            await update.message.reply_text(text, parse_mode="markdown")
+
+        async def peek_cmd(update: Update, context):
+            if not iface._is_user_allowed(update.effective_user):
+                return
+            if not iface._ensure_controller():
+                await update.message.reply_text("⏳ Controller not ready.")
+                return
+
+            if not context.args:
+                await update.message.reply_text("📋 Usage: /peek <chat_id>")
+                return
+
+            try:
+                target_id = int(context.args[0])
+            except ValueError:
+                await update.message.reply_text("❌ Chat ID must be a number.")
+                return
+
+            if target_id not in controller.chats:
+                await update.message.reply_text(f"❌ Chat {target_id} not found.")
+                return
+
+            chat = controller.chats[target_id]
+            name = chat.get("name", f"Chat {target_id}")
+            messages = chat.get("chat", [])
+            peek_count = min(5, len(messages))
+            if not messages:
+                await update.message.reply_text(f"📭 Chat \"{name}\" (ID: {target_id}) is empty.")
+                return
+
+            lines = [f"👀 *Peek at \"{name}\"* (ID: {target_id}, {len(messages)} messages):\n"]
+            for msg in messages[-peek_count:]:
+                role = msg.get("User", "Unknown")
+                content = msg.get("Message", "")[:100]
+                if len(msg.get("Message", "")) > 100:
+                    content += "..."
+                content = content.replace("\n", " ")
+                lines.append(f"*{role}*: {content}")
+
+            text = "\n".join(lines)
+            if len(text) > 4000:
+                text = text[:4000] + "\n..."
+            await update.message.reply_text(text, parse_mode="markdown")
+
+        async def resume_cmd(update: Update, context):
+            if not iface._is_user_allowed(update.effective_user):
+                return
+            if not iface._ensure_controller():
+                await update.message.reply_text("⏳ Controller not ready.")
+                return
+
+            if not context.args:
+                current_chat_id = controller.newelle_settings.chat_id
+                current_name = controller.chats.get(current_chat_id, {}).get("name", "unknown")
+                await update.message.reply_text(f"📌 Current chat: \"{current_name}\" (ID: {current_chat_id})\nUsage: /resume <chat_id>")
+                return
+
+            try:
+                target_id = int(context.args[0])
+            except ValueError:
+                await update.message.reply_text("❌ Chat ID must be a number.")
+                return
+
+            if target_id not in controller.chats:
+                await update.message.reply_text(f"❌ Chat {target_id} not found.")
+                return
+
+            chat = controller.chats[target_id]
+            if chat.get("call"):
+                await update.message.reply_text(f"❌ Chat {target_id} is a hidden call chat.")
+                return
+
+            controller.newelle_settings.chat_id = target_id
+            controller.settings.set_int("chat", target_id)
+            name = chat.get("name", f"Chat {target_id}")
+            await update.message.reply_text(f"✅ Resumed chat: \"{name}\" (ID: {target_id})")
 
         async def handle_text_message(update: Update, context):
             if not iface._is_user_allowed(update.effective_user):
@@ -853,6 +1050,10 @@ class TelegramInterface(Interface):
         app.add_handler(CommandHandler("tools", tools_cmd))
         app.add_handler(CommandHandler("scheduled", scheduled_cmd))
         app.add_handler(CommandHandler("skill", skill_cmd))
+        app.add_handler(CommandHandler("cd", cd_cmd))
+        app.add_handler(CommandHandler("list_chats", list_chats_cmd))
+        app.add_handler(CommandHandler("peek", peek_cmd))
+        app.add_handler(CommandHandler("resume", resume_cmd))
         app.add_handler(CallbackQueryHandler(handle_callback_query))
         app.add_handler(MessageHandler(filters.VOICE | filters.AUDIO, handle_voice_message))
         app.add_handler(MessageHandler(filters.PHOTO, handle_photo_message))
