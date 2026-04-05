@@ -40,17 +40,12 @@ class TelegramInterface(Interface):
         return find_module("telegram") is not None and find_module("telegramify_markdown") is not None    
     def get_extra_settings(self) -> list:
         return [
-            ExtraSettings.ToggleSetting(
-                key="auto_start",
-                title=_("Auto Start"),
-                description=_("Automatically start the Telegram bot when Newelle launches"),
-                default=False,
-            ),
             ExtraSettings.EntrySetting(
                 key="bot_token",
                 title=_("Bot Token"),
-                description=_("Telegram bot token obtained from @BotFather"),
+                description=_("Necessary: Telegram bot token obtained from @BotFather"),
                 default="",
+                password=True
             ),
             ExtraSettings.EntrySetting(
                 key="allowed_user",

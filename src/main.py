@@ -423,6 +423,7 @@ def run_headless(interface_key, version):
     controller = NewelleController(sys.path)
     controller.ui_init()
     controller.handlers.load_handlers()
+    controller.handlers.select_handlers(controller.newelle_settings, skip_auto_start_interfaces=True)
     ui_controller = HeadlessController(controller)
     controller.set_ui_controller(ui_controller)
 
@@ -441,7 +442,7 @@ def run_headless(interface_key, version):
 
     print(f"{info['title']} is running. Press Ctrl+C to stop.")
 
-    # Run a GLib MainLoop so GLib.idle_add (used by tool execution, etc.) works
+    # Run a GLib_MainLoop so GLib.idle_add (used by tool execution, etc.) works
     loop = GLib.MainLoop()
     try:
         loop.run()

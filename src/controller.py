@@ -2058,11 +2058,12 @@ class HandlersManager:
     def set_ui_controller(self, ui_controller):
         self.ui_controller = ui_controller
 
-    def select_handlers(self, newelle_settings: NewelleSettings):
+    def select_handlers(self, newelle_settings: NewelleSettings, skip_auto_start_interfaces=False):
         """Assign the selected handlers
 
         Args:
             newelle_settings: Newelle settings
+            skip_auto_start_interfaces: If True, don't auto-start any interfaces (used in headless mode)
         """
         self.fix_handlers_integrity(newelle_settings)
         # Get LLM
@@ -2086,16 +2087,14 @@ class HandlersManager:
         self.rag : RAGHandler = self.get_object(AVAILABLE_RAGS, newelle_settings.rag_model)
         self.websearch : WebSearchHandler = self.get_object(AVAILABLE_WEBSEARCH, newelle_settings.websearch_model)
         # Initialize interfaces
-        self.interfaces = {}
         for key in AVAILABLE_INTERFACES:
-            interface_class = AVAILABLE_INTERFACES[key]["class"]
-            interface = interface_class(self.settings, self.directory)
+            interface = self.get_object(AVAILABLE_INTERFACES, key)
             interface.set_controller(self.controller)
-            self.interfaces[key] = interface
-            j = json.loads(self.settings.get_string("interfaces-settings"))
-            auto_start = j.get(key, {}).get("auto_start", False) if key in j else False
-            if auto_start:
-                interface.start()
+            if not skip_auto_start_interfaces:
+                enabled = interface.get_setting("enabled", False, False) 
+                if enabled:
+                    print("Interface started")
+                    interface.start()
         # Assign handlers 
         self.integrationsloader.set_handlers(self.llm, self.stt, self.tts, self.secondary_llm, self.embedding, self.rag, self.memory, self.websearch)
         self.extensionloader.set_handlers(self.llm, self.stt, self.tts, self.secondary_llm, self.embedding, self.rag, self.memory, self.websearch)
@@ -2145,7 +2144,6 @@ class HandlersManager:
 
     def cache_handlers(self):
         """Cache handlers"""
-        self.handlers = {}
         for key in AVAILABLE_TTS:
             self.handlers[(key, self.convert_constants(AVAILABLE_TTS), False)] = self.get_object(AVAILABLE_TTS, key)
         for key in AVAILABLE_STT:
@@ -2167,7 +2165,7 @@ class HandlersManager:
         for key in AVAILABLE_WEBSEARCH:
             self.handlers[(key, self.convert_constants(AVAILABLE_WEBSEARCH), False)] = self.get_object(AVAILABLE_WEBSEARCH, key)
         for key in AVAILABLE_INTERFACES:
-            self.handlers[(key, "interface", False)] = self.get_object(AVAILABLE_INTERFACES, key)
+            self.handlers[(key, self.convert_constants(AVAILABLE_INTERFACES), False)] = self.get_object(AVAILABLE_INTERFACES, key)
         self.handlers_cached.release()
     
     def convert_constants(self, constants: str | dict[str, Any]) -> (str | dict):

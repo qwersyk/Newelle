@@ -36,7 +36,8 @@ class InterfacesWindow(Gtk.Window):
         )
         self._interface_rows = {}
         self._play_buttons = {}
-        self._auto_start_switches = {}
+        self._enabled_switches = {}
+        self._interfaces = {}
         self._interface_settings = {}
 
         self._load_interface_settings()
@@ -82,6 +83,7 @@ class InterfacesWindow(Gtk.Window):
             model = AVAILABLE_INTERFACES[key]
             interface: Interface = self.controller.handlers.get_object(AVAILABLE_INTERFACES, key)
             interface.set_controller(self.controller)
+            self._interfaces[key] = interface
 
             self.settingsrows[(key, "interface", False)] = {}
             interface.set_extra_settings_update(
@@ -104,12 +106,13 @@ class InterfacesWindow(Gtk.Window):
             self.settingsrows[(key, "interface", False)]["row"] = row
             self.settingsrows[(key, "interface", False)]["extra_settings"] = []
 
-            auto_start = self._get_interface_setting(key, "auto_start", True)
-            auto_start_switch = Gtk.Switch(valign=Gtk.Align.CENTER, active=auto_start)
-            auto_start_switch.connect("notify::active", self._on_auto_start_toggled, key)
-            self._auto_start_switches[key] = auto_start_switch
-
+            enabled = self._get_interface_setting(key, "enabled", False)
             is_running = interface.is_running()
+            print(is_running)
+            enabled_switch = Gtk.Switch(valign=Gtk.Align.CENTER, active=enabled)
+            enabled_switch.connect("notify::active", self._on_enabled_toggled, key)
+            self._enabled_switches[key] = enabled_switch
+
             play_button = Gtk.Button(
                 css_classes=["flat"], valign=Gtk.Align.CENTER,
                 icon_name="media-playback-stop-symbolic" if is_running else "media-playback-start-symbolic",
@@ -134,7 +137,7 @@ class InterfacesWindow(Gtk.Window):
                     install_button.connect("clicked", self._on_install_button_clicked, key, interface)
 
             row.add_suffix(play_button)
-            row.add_suffix(auto_start_switch)
+            row.add_suffix(enabled_switch)
 
             if not self.sandbox and interface.requires_sandbox_escape() or not interface.is_installed():
                 play_button.set_sensitive(False)
@@ -150,8 +153,8 @@ class InterfacesWindow(Gtk.Window):
             empty_row = Adw.ActionRow(title=_("No interfaces available"))
             self.interfaces_group.add(empty_row)
 
-    def _on_auto_start_toggled(self, switch, _pspec, key):
-        self._set_interface_setting(key, "auto_start", switch.get_active())
+    def _on_enabled_toggled(self, switch, _pspec, key):
+        self._set_interface_setting(key, "enabled", switch.get_active())
 
     def _on_play_button_clicked(self, button, key, interface: Interface):
         if interface.is_running():

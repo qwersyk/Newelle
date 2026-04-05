@@ -26,12 +26,6 @@ class APIInterface(Interface):
 
     def get_extra_settings(self) -> list:
         return [
-            ExtraSettings.ToggleSetting(
-                key="auto_start",
-                title=_("Auto Start"),
-                description=_("Automatically start the API server when Newelle launches"),
-                default=False,
-            ),
             ExtraSettings.EntrySetting(
                 key="api_key",
                 title=_("API Key"),
