@@ -65,48 +65,41 @@ class Message(Gtk.Box):
         self.update_content(message)
 
     def update_content(self, message: str, is_streaming: bool = False):
-        """Update the message content, intelligently updating widgets."""
+        """Update the message content safely from any thread."""
         self.message = message
         self.streaming = is_streaming
-        
+        # Schedule the UI update on the Main Thread
+        GLib.idle_add(self._ui_sync_content, message)
+
+    def _ui_sync_content(self, message: str):
+        """Internal method to synchronize UI (Main Thread only)."""
+        if not self.get_display(): 
+            return False
+
         chunks = get_message_chunks(message, allow_latex=self.controller.newelle_settings.display_latex)
-        
         current_widget_idx = 0
-        
-        # Make a copy of state to simulate processing
         temp_state = self.state.copy()
-        temp_state["codeblock_id"] = -1 # Reset for this pass
+        temp_state["codeblock_id"] = -1 
         
-        for i, chunk in enumerate(chunks):
-            # matches existing widget?
+        for chunk in chunks:
             if current_widget_idx < len(self.widgets_map):
                 w_type, widget, w_data = self.widgets_map[current_widget_idx]
-                
-                # Check if we can update
                 if self._can_update_widget(w_type, widget, chunk):
                     self._update_widget(widget, w_type, chunk)
                     self.widgets_map[current_widget_idx] = (chunk.type, widget, chunk)
-                    
-                    # Update state based on this chunk (accumulate side effects)
                     self._simulate_state_update(chunk, temp_state)
-                    
                     current_widget_idx += 1
                     continue
                 else:
-                    # Remove mismatch and following
                     self._remove_widgets_from(current_widget_idx)
             
-            # Create new widget
             self._process_chunk(chunk, self, temp_state, self.restore, self.is_user, self.chunk_uuid)
-            
             current_widget_idx = len(self.widgets_map)
         
-        # Update state
         self.state = temp_state
-        
-        # Remove any remaining widgets if chunk list shorter
         if current_widget_idx < len(self.widgets_map):
              self._remove_widgets_from(current_widget_idx)
+        return False
 
     def append(self, widget):
         super().append(widget)
