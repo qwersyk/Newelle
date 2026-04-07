@@ -614,6 +614,8 @@ class Settings(Adw.PreferencesWindow):
         self.refresh_tools_list()
 
         self.build_file_permissions_settings()
+        self.build_command_permissions_settings()
+        self.build_path_security_settings()
         self.build_skills_settings()
         self.build_mcp_settings()
         self._building_tools_page = False
@@ -945,6 +947,299 @@ class Settings(Adw.PreferencesWindow):
             removed = rules.pop(idx)
             self._save_file_permissions(rules)
             self._refresh_file_permissions_list()
+            toast = Adw.Toast(title=_("Rule for '{}' removed").format(removed.get("path", "")))
+            self.add_toast(toast)
+
+    # --- Command Execution Permissions ---
+
+    def build_command_permissions_settings(self):
+        from ..utility.command_permissions import CommandPermissionManager
+
+        self.cmd_perms_group = Adw.PreferencesGroup(
+            title=_("Command Execution Permissions"),
+            description=_("Control which commands can run automatically via pattern rules")
+        )
+        self.ToolsPage.add(self.cmd_perms_group)
+
+        autorun_row = Adw.ExpanderRow(title=_("Auto-run commands"), subtitle=_("Automatically execute commands (subject to permission rules below)"))
+        autorun_switch = Gtk.Switch(valign=Gtk.Align.CENTER)
+        autorun_row.add_suffix(autorun_switch)
+        autorun_spin = Adw.SpinRow(title=_("Max number of commands"), subtitle=_("Maximum number of commands that the bot will write after a single user request"), adjustment=Gtk.Adjustment(lower=0, upper=30,  page_increment=1, value=self.settings.get_int("max-run-times"), step_increment=1))
+        def update_autorun_spin(spin, input):
+            self.settings.set_int("max-run-times", int(spin.get_value()))
+            return False
+        autorun_spin.connect("input", update_autorun_spin)
+        autorun_row.add_row(autorun_spin)
+        self.settings.bind("auto-run", autorun_switch, 'active', Gio.SettingsBindFlags.DEFAULT)
+        self.cmd_perms_group.add(autorun_row)
+
+        add_button = Gtk.Button(icon_name="list-add-symbolic", valign=Gtk.Align.CENTER, css_classes=["flat"])
+        add_button.set_tooltip_text(_("Add command pattern rule"))
+        add_button.connect("clicked", self._on_add_command_permission_clicked)
+        self.cmd_perms_group.set_header_suffix(add_button)
+
+        self.cmd_permission_rows = []
+        self._refresh_command_permissions_list()
+
+        default_row = Adw.ExpanderRow(title=_("Default behavior for unknown commands"), subtitle=_("Action when no pattern matches"))
+        default_combo = Gtk.ComboBoxText()
+        for label, value in [("Ask", "ask"), ("Allow", "allow"), ("Block", "block")]:
+            default_combo.append(value, label)
+        current_default = self.settings.get_string("default-risk-level")
+        default_combo.set_active_id(current_default if current_default else "ask")
+        default_combo.set_valign(Gtk.Align.CENTER)
+        default_combo.connect("changed", self._on_default_risk_changed)
+        default_row.add_suffix(default_combo)
+        self.cmd_perms_group.add(default_row)
+
+        from ..utility.command_permissions import BUILTIN_RISK_RULES, RiskLevel
+        info_row = Adw.ExpanderRow(title=_("Built-in risk rules"), subtitle=_("Pre-defined patterns that classify commands by risk level"))
+        safe_count = sum(1 for _, r, _ in BUILTIN_RISK_RULES if r == RiskLevel.SAFE)
+        mod_count = sum(1 for _, r, _ in BUILTIN_RISK_RULES if r == RiskLevel.MODERATE)
+        dan_count = sum(1 for _, r, _ in BUILTIN_RISK_RULES if r == RiskLevel.DANGEROUS)
+        crit_count = sum(1 for _, r, _ in BUILTIN_RISK_RULES if r == RiskLevel.CRITICAL)
+
+        for level, count in [(RiskLevel.SAFE, safe_count), (RiskLevel.MODERATE, mod_count), (RiskLevel.DANGEROUS, dan_count), (RiskLevel.CRITICAL, crit_count)]:
+            l_row = Adw.ActionRow(title=level.value.capitalize())
+            actions = {RiskLevel.SAFE: "allow", RiskLevel.MODERATE: "ask", RiskLevel.DANGEROUS: "ask", RiskLevel.CRITICAL: "block"}
+            l_row.set_subtitle(f"{count} patterns — auto-{actions[level]}")
+            info_row.add_row(l_row)
+
+        self.cmd_perms_group.add(info_row)
+
+    def _get_command_permissions(self):
+        try:
+            return json.loads(self.settings.get_string("command-execution-permissions"))
+        except Exception:
+            return []
+
+    def _save_command_permissions(self, rules):
+        self.settings.set_string("command-execution-permissions", json.dumps(rules))
+        from ..utility.command_permissions import CommandPermissionManager
+        CommandPermissionManager.invalidate_cache()
+
+    def _refresh_command_permissions_list(self):
+        for row in self.cmd_permission_rows:
+            self.cmd_perms_group.remove(row)
+        self.cmd_permission_rows = []
+
+        rules = self._get_command_permissions()
+        for idx, rule in enumerate(rules):
+            row = self._create_command_permission_row(rule, idx)
+            self.cmd_perms_group.add(row)
+            self.cmd_permission_rows.append(row)
+
+    def _create_command_permission_row(self, rule, idx):
+        pattern = rule.get("pattern", "")
+        action = rule.get("action", "ask")
+
+        display_pattern = pattern if pattern else _("(empty pattern)")
+        action_labels = {"allow": _("Allow"), "ask": _("Ask"), "block": _("Block")}
+        display_action = action_labels.get(action, action)
+
+        row = Adw.ExpanderRow(title=display_pattern, subtitle=display_action)
+        prefix_icon = Gtk.Image(icon_name="system-run-symbolic", css_classes=["dim-label"])
+        row.add_prefix(prefix_icon)
+
+        pattern_row = Adw.EntryRow(title=_("Pattern (regex)"), text=pattern)
+        pattern_row.connect("changed", self._on_cmd_permission_pattern_changed, idx)
+        row.add_row(pattern_row)
+
+        action_row = Adw.ActionRow(title=_("Action"))
+        action_combo = Gtk.ComboBoxText()
+        for label, value in [("Allow", "allow"), ("Ask", "ask"), ("Block", "block")]:
+            action_combo.append(value, label)
+        action_combo.set_active_id(action if action else "ask")
+        action_combo.set_valign(Gtk.Align.CENTER)
+        action_combo.connect("changed", self._on_cmd_permission_action_changed, idx)
+        action_row.add_suffix(action_combo)
+        row.add_row(action_row)
+
+        remove_row = Adw.ActionRow(title=_("Remove rule"))
+        remove_button = Gtk.Button(label=_("Remove"), valign=Gtk.Align.CENTER, css_classes=["destructive-action"])
+        remove_button.connect("clicked", self._on_remove_cmd_permission_clicked, idx)
+        remove_row.add_suffix(remove_button)
+        row.add_row(remove_row)
+
+        return row
+
+    def _on_cmd_permission_pattern_changed(self, entry, idx):
+        rules = self._get_command_permissions()
+        if idx < len(rules):
+            rules[idx]["pattern"] = entry.get_text()
+            self._save_command_permissions(rules)
+
+    def _on_cmd_permission_action_changed(self, combo, idx):
+        rules = self._get_command_permissions()
+        if idx < len(rules):
+            rules[idx]["action"] = combo.get_active_id()
+            self._save_command_permissions(rules)
+            self._refresh_command_permissions_list()
+
+    def _on_add_command_permission_clicked(self, button):
+        rules = self._get_command_permissions()
+        rules.append({"pattern": "", "action": "ask"})
+        self._save_command_permissions(rules)
+        self._refresh_command_permissions_list()
+
+    def _on_remove_cmd_permission_clicked(self, button, idx):
+        rules = self._get_command_permissions()
+        if idx < len(rules):
+            rules.pop(idx)
+            self._save_command_permissions(rules)
+            self._refresh_command_permissions_list()
+
+    def _on_default_risk_changed(self, combo):
+        self.settings.set_string("default-risk-level", combo.get_active_id() or "ask")
+        from ..utility.command_permissions import CommandPermissionManager
+        CommandPermissionManager.invalidate_cache()
+
+    # --- Path Security Levels ---
+
+    def build_path_security_settings(self):
+        self.path_security_group = Adw.PreferencesGroup(
+            title=_("Path Security Levels"),
+            description=_("Set trust levels for directories — affects auto-run behavior")
+        )
+        self.ToolsPage.add(self.path_security_group)
+
+        add_button = Gtk.Button(icon_name="list-add-symbolic", valign=Gtk.Align.CENTER, css_classes=["flat"])
+        add_button.set_tooltip_text(_("Add path security rule"))
+        add_button.connect("clicked", self._on_add_path_security_clicked)
+        self.path_security_group.set_header_suffix(add_button)
+
+        self.path_security_rows = []
+        self._refresh_path_security_list()
+
+    def _get_path_security(self):
+        try:
+            return json.loads(self.settings.get_string("path-security-levels"))
+        except Exception:
+            return [
+                {"path": "{{main_path}}", "level": "trusted"},
+                {"path": "/tmp", "level": "sandboxed"},
+            ]
+
+    def _save_path_security(self, rules):
+        self.settings.set_string("path-security-levels", json.dumps(rules))
+        from ..utility.command_permissions import CommandPermissionManager
+        CommandPermissionManager.invalidate_cache()
+
+    def _refresh_path_security_list(self):
+        for row in self.path_security_rows:
+            self.path_security_group.remove(row)
+        self.path_security_rows = []
+
+        rules = self._get_path_security()
+        for idx, rule in enumerate(rules):
+            row = self._create_path_security_row(rule, idx)
+            self.path_security_group.add(row)
+            self.path_security_rows.append(row)
+
+    def _display_name_for_security_path(self, path):
+        if path == "{{main_path}}":
+            return _("Current Work Directory")
+        return path
+
+    def _create_path_security_row(self, rule, idx):
+        path = rule.get("path", "")
+        level = rule.get("level", "sandboxed")
+        display_path = self._display_name_for_security_path(path)
+        is_builtin = path == "{{main_path}}"
+        level_labels = {"yolo": _("YOLO"), "trusted": _("Trusted"), "sandboxed": _("Sandboxed"), "restricted": _("Restricted")}
+        display_level = level_labels.get(level, level)
+
+        icon_name = "folder-visiting-symbolic" if is_builtin else "folder-symbolic"
+        row = Adw.ExpanderRow(title=display_path, subtitle=display_level)
+        prefix_icon = Gtk.Image(icon_name=icon_name, css_classes=["dim-label"])
+        row.add_prefix(prefix_icon)
+
+        if not is_builtin:
+            path_row = Adw.EntryRow(title=_("Path"), text=path)
+            path_row.connect("changed", self._on_path_security_path_changed, idx)
+            row.add_row(path_row)
+
+        security_row = Adw.ActionRow(title=_("Security level"))
+        security_combo = Gtk.ComboBoxText()
+        for label, value in [("YOLO", "yolo"), ("Trusted", "trusted"), ("Sandboxed", "sandboxed"), ("Restricted", "restricted")]:
+            security_combo.append(value, label)
+        security_combo.set_active_id(level if level else "sandboxed")
+        security_combo.set_valign(Gtk.Align.CENTER)
+        security_combo.connect("changed", self._on_path_security_level_changed, idx)
+        security_row.add_suffix(security_combo)
+        row.add_row(security_row)
+
+        desc_row = Adw.ActionRow(title=_("Effect"))
+        level_descriptions = {
+            "yolo": _("All commands are auto-executed without confirmation"),
+            "trusted": _("Commands classified as safe are auto-run"),
+            "sandboxed": _("All commands require confirmation"),
+            "restricted": _("No commands are auto-run, even safe ones"),
+        }
+        desc_row.set_subtitle(level_descriptions.get(level, ""))
+        row.add_row(desc_row)
+
+        if not is_builtin:
+            remove_row = Adw.ActionRow(title=_("Remove rule"))
+            remove_button = Gtk.Button(label=_("Remove"), valign=Gtk.Align.CENTER, css_classes=["destructive-action"])
+            remove_button.connect("clicked", self._on_remove_path_security_clicked, idx)
+            remove_row.add_suffix(remove_button)
+            row.add_row(remove_row)
+
+        return row
+
+    def _on_path_security_path_changed(self, entry, idx):
+        rules = self._get_path_security()
+        if idx < len(rules):
+            rules[idx]["path"] = entry.get_text()
+            self._save_path_security(rules)
+            self._refresh_path_security_list()
+
+    def _on_path_security_level_changed(self, combo, idx):
+        rules = self._get_path_security()
+        if idx < len(rules):
+            rules[idx]["level"] = combo.get_active_id()
+            self._save_path_security(rules)
+            self._refresh_path_security_list()
+
+    def _on_add_path_security_clicked(self, button):
+        dialog = Gtk.FileDialog(title=_("Select Directory"))
+        dialog.select_folder(self, None, self._on_path_security_folder_selected)
+
+    def _on_path_security_folder_selected(self, dialog, result):
+        try:
+            folder = dialog.select_folder_finish(result)
+        except GLib.Error:
+            return
+        if folder is None:
+            return
+
+        path = folder.get_path()
+        rules = self._get_path_security()
+
+        for rule in rules:
+            rule_path = rule.get("path", "")
+            if rule_path == "{{main_path}}":
+                try:
+                    main_path = self.settings.get_string("path")
+                    rule_path = os.path.expanduser(main_path)
+                except Exception:
+                    pass
+            if rule_path == path:
+                toast = Adw.Toast(title=_("A rule for this directory already exists"))
+                self.add_toast(toast)
+                return
+
+        rules.append({"path": path, "level": "sandboxed"})
+        self._save_path_security(rules)
+        self._refresh_path_security_list()
+
+    def _on_remove_path_security_clicked(self, button, idx):
+        rules = self._get_path_security()
+        if idx < len(rules):
+            removed = rules.pop(idx)
+            self._save_path_security(rules)
+            self._refresh_path_security_list()
             toast = Adw.Toast(title=_("Rule for '{}' removed").format(removed.get("path", "")))
             self.add_toast(toast)
 
@@ -1629,18 +1924,6 @@ class Settings(Adw.PreferencesWindow):
         for prompt in self.prompts_rows:
             self.prompt.remove(prompt)
         self.prompts_rows = []
-        row = Adw.ExpanderRow(title=_("Auto-run commands"), subtitle=_("Commands that the bot will write will automatically run"))
-        switch = Gtk.Switch(valign=Gtk.Align.CENTER)
-        row.add_suffix(switch)
-        spin = Adw.SpinRow(title=_("Max number of commands"), subtitle=_("Maximum number of commands that the bot will write after a single user request"), adjustment=Gtk.Adjustment(lower=0, upper=30,  page_increment=1, value=self.settings.get_int("max-run-times"), step_increment=1))
-        def update_spin(spin, input):
-            self.settings.set_int("max-run-times", int(spin.get_value()))
-            return False
-        spin.connect("input", update_spin)
-        row.add_row(spin)
-        self.settings.bind("auto-run", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
-        self.prompt.add(row)
-        self.prompts_rows.append(row)
 
         for prompt in AVAILABLE_PROMPTS:
             is_active = False

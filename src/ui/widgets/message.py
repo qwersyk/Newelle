@@ -578,12 +578,21 @@ class Message(Gtk.Box):
             box.append(self._create_copybox(chunk.text, lang, state=state, codeblock_id=state["codeblock_id"], allow_edit=state["editable"], enable_run_callback=True))
 
     def _process_console_codeblock(self, chunk, box, state, restore):
-        # Defer execution if streaming
+        from ...utility.command_permissions import CommandPermissionManager, CommandAction
+
         state["id_message"] += 1
         command = chunk.text
-        dangerous_commands = ["rm ", "apt ", "sudo ", "yum ", "mkfs "]
         chat_tab = self._get_chat_tab()
-        can_auto_run = (self.controller.newelle_settings.auto_run and not any(cmd in command for cmd in dangerous_commands) and chat_tab.auto_run_times < self.controller.newelle_settings.max_run_times)
+
+        perm_manager = CommandPermissionManager.get_instance(self.controller.settings)
+        working_dir = self.controller.settings.get_string("path")
+        action, reason = perm_manager.check_command(command, working_dir)
+
+        can_auto_run = (
+            action == CommandAction.ALLOW and
+            self.controller.newelle_settings.auto_run and
+            chat_tab.auto_run_times < self.controller.newelle_settings.max_run_times
+        )
         
         if can_auto_run:
             state["has_terminal_command"] = True
@@ -599,9 +608,16 @@ class Message(Gtk.Box):
             if not restore:
                 chat_tab.auto_run_times += 1
         else:
-            if not restore:
-                 self.controller.chat.append({"User": "Console", "Message": "None"})
-            box.append(self._create_copybox(command, "console", state=state, codeblock_id=state["codeblock_id"], allow_edit=state["editable"], enable_run_callback=True))
+            if action == CommandAction.BLOCK:
+                if not restore:
+                    self.controller.chat.append({"User": "Console", "Message": f"Command blocked: {reason}"})
+            else:
+                if not restore:
+                    self.controller.chat.append({"User": "Console", "Message": "None"})
+            copybox = self._create_copybox(command, "console", state=state, codeblock_id=state["codeblock_id"], allow_edit=state["editable"], enable_run_callback=True)
+            if action == CommandAction.BLOCK:
+                copybox.complete_execution(None)
+            box.append(copybox)
 
     def _process_tool_call(self, chunk, box, state, restore, msg_uuid):
         tool_name = chunk.tool_name

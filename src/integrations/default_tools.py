@@ -63,7 +63,14 @@ class DefaultToolsIntegration(NewelleExtension):
             return f"Error executing command: {str(e)}"
 
     def execute_command_widget(self, command: str):
-        result = ToolResult(requires_interaction=not self.settings.get_boolean("auto-run"))
+        from ..utility.command_permissions import CommandPermissionManager, CommandAction
+
+        perm_manager = CommandPermissionManager.get_instance(self.settings)
+        working_dir = self.settings.get_string("path")
+        action, reason = perm_manager.check_command(command, working_dir)
+
+        result = ToolResult(requires_interaction=(action != CommandAction.ALLOW))
+
         def execute_callback(command):
             output = self.execute_command(command)
             result.set_output(output)
@@ -71,7 +78,15 @@ class DefaultToolsIntegration(NewelleExtension):
 
         widget = CopyBox(command, "console", execution_request=True, run_callback=execute_callback)
         widget.connect("terminal-clicked", self._on_copybox_terminal_clicked)
-        if self.settings.get_boolean("auto-run"):
+
+        if action == CommandAction.BLOCK:
+            widget.complete_execution(None)
+            result.set_output("Command blocked by security policy: " + reason)
+            result.set_display_text("```bash\n" + command + "\n```\n\n**Blocked:** " + reason)
+            result.set_widget(widget)
+            return result
+
+        if action == CommandAction.ALLOW and self.settings.get_boolean("auto-run"):
             widget._on_execution_run_clicked(None)
         else:
             result.set_intreaction_options([

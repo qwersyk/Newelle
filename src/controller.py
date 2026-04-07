@@ -1265,7 +1265,7 @@ class NewelleController:
         if name == "tts_on":
             return self.newelle_settings.tts_enabled
         elif name == "virtualization_on":
-            return self.newelle_settings.virtualization
+            return self.newelle_settings.virtualization and is_flatpak()
         elif name == "auto_run":
             return self.newelle_settings.auto_run
         elif name == "websearch_on":

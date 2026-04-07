@@ -256,5 +256,14 @@
           <key name="interfaces-settings" type="s">
             <default>"{}"</default>
           </key>
+        <key name="command-execution-permissions" type="s">
+            <default>'[]'</default>
+        </key>
+        <key name="path-security-levels" type="s">
+            <default>'[{"path": "{{main_path}}", "level": "trusted"}, {"path": "/tmp", "level": "sandboxed"}]'</default>
+        </key>
+        <key name="default-risk-level" type="s">
+            <default>"ask"</default>
+        </key>
 	</schema>
 </schemalist>

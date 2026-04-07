@@ -190,6 +190,7 @@ class TelegramInterface(Interface):
                 "📋 /list_chats - List all chats\n"
                 "👀 /peek <chat_id> - Preview messages from a chat\n"
                 "🔄 /resume <chat_id> - Switch to a different chat\n"
+                "⚡ /autoexec - Enable/disable auto command execution\n"
             )
 
         async def new_cmd(update: Update, context):
@@ -623,6 +624,21 @@ class TelegramInterface(Interface):
             name = chat.get("name", f"Chat {target_id}")
             await update.message.reply_text(f"✅ Resumed chat: \"{name}\" (ID: {target_id})")
 
+        async def autoexec_cmd(update: Update, context):
+            if not iface._is_user_allowed(update.effective_user):
+                return
+            if not iface._ensure_controller():
+                await update.message.reply_text("⏳ Controller not ready.")
+                return
+
+            current = controller.settings.get_boolean("auto-run")
+            new_value = not current
+            controller.settings.set_boolean("auto-run", new_value)
+            controller.auto_run = new_value
+            status = "enabled" if new_value else "disabled"
+
+            await update.message.reply_text(f"⚡ Auto command execution {status}")
+
         async def handle_text_message(update: Update, context):
             if not iface._is_user_allowed(update.effective_user):
                 return
@@ -1049,6 +1065,7 @@ class TelegramInterface(Interface):
         app.add_handler(CommandHandler("list_chats", list_chats_cmd))
         app.add_handler(CommandHandler("peek", peek_cmd))
         app.add_handler(CommandHandler("resume", resume_cmd))
+        app.add_handler(CommandHandler("autoexec", autoexec_cmd))
         app.add_handler(CallbackQueryHandler(handle_callback_query))
         app.add_handler(MessageHandler(filters.VOICE | filters.AUDIO, handle_voice_message))
         app.add_handler(MessageHandler(filters.PHOTO, handle_photo_message))

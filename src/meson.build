@@ -227,6 +227,7 @@ utility_sources = [
   'utility/vad.py',
   'utility/force_sync.py',
   'utility/context_manager.py',
+  'utility/command_permissions.py',
 ]
 
 install_data(newelle_sources, install_dir: moduledir)
