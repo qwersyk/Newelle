@@ -76,7 +76,7 @@ class InterfacesWindow(Gtk.Window):
         self.main.set_size_request(300, -1)
         self.scrolled_window.set_child(self.main)
 
-        self.interfaces_group = Adw.PreferencesGroup(title=_("Available Interfaces"), description=_("Interfaces are background running services that allow third party applications to interact with Newelle"))
+        self.interfaces_group = Adw.PreferencesGroup(title=_("Available Interfaces"), description=_("Interfaces are background running services that allow third party applications to interact with Newelle. Enabling an interface means making it auto-start with Newelle."))
         self.main.append(self.interfaces_group)
 
         for key in AVAILABLE_INTERFACES:
