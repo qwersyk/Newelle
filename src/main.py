@@ -4,11 +4,11 @@ import signal
 import gettext
 import gi
 
-from .ui_controller import HeadlessController 
 gi.require_version('Gtk', '4.0')
 gi.require_version('GtkSource', '5')
 gi.require_version('Adw', '1')
 from gi.repository import Gtk, Adw, Gio, Gdk, GLib
+from .ui_controller import HeadlessController 
 from .ui.settings import Settings
 from .window import MainWindow
 from .ui.shortcuts import Shortcuts
