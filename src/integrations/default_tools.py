@@ -92,7 +92,9 @@ class DefaultToolsIntegration(NewelleExtension):
             result.set_intreaction_options([
                 InteractionOption(_("Accept"), lambda command=command: execute_callback(command)),
                 InteractionOption(_("Skip"), lambda : self.execute_command(None))])
+            result.requires_interaction = True 
         widget.connect("command-complete", lambda _, output: result.set_output(output))
+
         result.set_widget(widget)
         result.set_display_text("```bash\n" + command + "\n```")
         return result
