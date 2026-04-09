@@ -434,7 +434,7 @@ def run_headless(interface_key, version):
     from .utility.replacehelper import ReplaceHelper
     ReplaceHelper.set_controller(controller)
 
-    iface = controller.handlers.interfaces.get(interface_key)
+    iface = controller.handlers.get_object(AVAILABLE_INTERFACES, interface_key, False)
     if iface is None:
         print(f"Failed to initialize interface '{interface_key}'", file=sys.stderr)
         return 1
