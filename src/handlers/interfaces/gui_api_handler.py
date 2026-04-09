@@ -669,6 +669,25 @@ class GUIAPIInterface(Interface):
         # ============================================================ #
         #                         PROFILES                              #
         # ============================================================ #
+        @app.get("/api/profiles")
+        def api_list_profiles():
+            profiles = controller.newelle_settings.profile_settings
+            current = controller.settings.get_string("current-profile")
+            result = []
+            for name, data in profiles.items():
+                result.append({
+                    "name": name,
+                    "picture": data.get("picture"),
+                    "settings_groups": data.get("settings_groups", []),
+                    "current": name == current,
+                })
+            return result
+
+        @app.get("/api/profiles/current")
+        def api_get_current_profile():
+            current = controller.settings.get_string("current-profile")
+            return {"profile": current}
+
         @app.post("/api/profiles")
         def api_create_profile(req: CreateProfileRequest):
             controller.create_profile(
@@ -698,12 +717,13 @@ class GUIAPIInterface(Interface):
 
         @app.post("/api/profiles/switch")
         def api_switch_profile(req: SwitchProfileRequest):
+            if req.profile not in controller.newelle_settings.profile_settings:
+                raise HTTPException(status_code=404, detail=f"Profile '{req.profile}' not found")
             window = _get_window(controller)
             if window is not None:
                 window.switch_profile(req.profile)
             else:
-                controller.settings.set_string("current-profile", req.profile)
-                controller.update_settings()
+                controller.switch_profile(req.profile)
             return {"status": "ok"}
 
         # ============================================================ #

@@ -1055,6 +1055,44 @@ class NewelleController:
         self.settings.set_string("profiles", json.dumps(self.newelle_settings.profile_settings))
         self.update_settings()
 
+    def switch_profile(self, profile_name: str):
+        """Switch to a different profile.
+
+        Saves the current profile's settings, restores the target profile's
+        saved settings, and reloads any handlers that changed.
+
+        Args:
+            profile_name: name of the profile to switch to
+
+        Returns:
+            list of ReloadType values that were triggered
+
+        Raises:
+            ValueError: if the profile does not exist
+        """
+        from .utility.profile_settings import restore_settings_from_dict_by_groups
+        if profile_name not in self.newelle_settings.profile_settings:
+            raise ValueError(f"Profile '{profile_name}' not found")
+
+        current = self.settings.get_string("current-profile")
+        if current == profile_name:
+            return []
+
+        # Save current profile settings
+        self.update_current_profile()
+
+        # Restore target profile settings
+        profiles = json.loads(self.settings.get_string("profiles"))
+        profile_data = profiles.get(profile_name, {})
+        groups = profile_data.get("settings_groups", [])
+        saved = profile_data.get("settings", {})
+
+        self.settings.set_string("current-profile", profile_name)
+        restore_settings_from_dict_by_groups(self.settings, saved, groups, SETTINGS_GROUPS)
+
+        reload_types = self.update_settings()
+        return reload_types
+
     def update_current_profile(self):
         """Update the current profile"""
         self.current_profile = self.settings.get_string("current-profile")
