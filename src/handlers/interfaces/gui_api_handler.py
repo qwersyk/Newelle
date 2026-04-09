@@ -328,9 +328,6 @@ class GUIAPIInterface(Interface):
 
         @app.post("/api/chats/{chat_id}/choose")
         def api_choose_chat(chat_id: int):
-            window = _get_window(controller)
-            if window is not None:
-                window.chose_chat(chat_id)
             controller.newelle_settings.chat_id = chat_id
             controller.settings.set_int("chat", chat_id)
             return {"status": "ok"}
