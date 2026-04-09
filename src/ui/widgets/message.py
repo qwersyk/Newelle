@@ -192,6 +192,7 @@ class Message(Gtk.Box):
         widget = widget_or_list
         if w_type != new_chunk.type: return False
         if w_type == "text": return True
+        if w_type == "divider": return True
         if w_type == "codeblock":
             if isinstance(widget, CopyBox):
                 # If streaming previously showed an extension block as plain code,
@@ -242,6 +243,8 @@ class Message(Gtk.Box):
             self._queue_execution(lambda: GLib.idle_add(think.stop_thinking))
         elif chunk.type == "text":
             self._process_text(chunk, box)
+        elif chunk.type == "divider":
+            self._process_divider(box)
             
         # Capture added widgets
         end_children = self.observe_children()
@@ -265,14 +268,23 @@ class Message(Gtk.Box):
     # --- Process Methods (Copied & Adapted from window.py) ---
 
     def _process_text(self, chunk, box):
+        text = re.sub(r'\n{2,}', '\n', chunk.text)
         box.append(Gtk.Label(
-            label=markwon_to_pango(chunk.text, validate=not self.streaming),
+            label=markwon_to_pango(text, validate=not self.streaming),
             wrap=True,
             halign=Gtk.Align.START,
             wrap_mode=Pango.WrapMode.WORD_CHAR,
             width_chars=1,
             selectable=True,
             use_markup=True,
+            css_classes=["message-text"],
+        ))
+
+    def _process_divider(self, box):
+        box.append(Gtk.Separator(
+            orientation=Gtk.Orientation.HORIZONTAL,
+            margin_top=8,
+            margin_bottom=8,
         ))
 
     def _get_chat_tab(self):

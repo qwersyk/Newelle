@@ -158,6 +158,10 @@ class MyApp(Adw.Application):
         .unfolder-drop-area-hover {
           background-color: alpha(@accent_bg_color, 0.12);
         }
+
+        .message-text {
+          line-height: 1.75;
+        }
         '''
         css_provider = Gtk.CssProvider()
         css_provider.load_from_data(css, -1)

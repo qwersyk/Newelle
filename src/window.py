@@ -126,6 +126,7 @@ class MainWindow(Adw.ApplicationWindow):
         
         # Set zoom
         self.set_zoom(self.controller.newelle_settings.zoom)
+        self.update_font_settings()
         # Update the settings
         self.first_load = True
         self.update_settings()
@@ -711,6 +712,36 @@ class MainWindow(Adw.ApplicationWindow):
             )
             self.controller.newelle_settings.zoom = zoom
 
+    def update_font_settings(self):
+        ns = self.controller.newelle_settings
+        parts = []
+
+        lh = ns.line_height
+        parts.append(f'.message-text {{ line-height: {lh}; }}')
+        if ns.font_family:
+            parts.append(f'.message-text {{ font-family: {ns.font_family}; }}')
+        if ns.font_size > 0:
+            parts.append(f'.message-text {{ font-size: {ns.font_size}px; }}')
+
+        mlh = ns.monospace_line_height
+        parts.append(f'.code .sourceview {{ line-height: {mlh}; }}')
+        if ns.monospace_font_family:
+            parts.append(f'.code .sourceview {{ font-family: {ns.monospace_font_family}; }}')
+        if ns.monospace_font_size > 0:
+            parts.append(f'.code .sourceview {{ font-size: {ns.monospace_font_size}px; }}')
+
+        css = '\n'.join(parts)
+        if not hasattr(self, '_font_css_provider'):
+            self._font_css_provider = Gtk.CssProvider()
+            display = Gdk.Display.get_default()
+            if display is not None:
+                Gtk.StyleContext.add_provider_for_display(
+                    display,
+                    self._font_css_provider,
+                    Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+                )
+        self._font_css_provider.load_from_data(css, -1)
+
     def update_toggles(self, *_):
         """Update the quick toggles"""
         reloads = self.controller.update_settings()
@@ -736,6 +767,7 @@ class MainWindow(Adw.ApplicationWindow):
     def update_settings(self):
         """Update settings, run every time the program is started or settings dialog closed"""
         reloads = self.controller.update_settings()
+        self.update_font_settings()
         if ReloadType.WAKEWORD in reloads:
             self.controller.handlers.select_handlers(self.controller.newelle_settings)
         if self.first_load:

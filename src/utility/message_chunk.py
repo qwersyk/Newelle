@@ -5,7 +5,7 @@ from typing import List, Optional, Any
 
 @dataclass
 class MessageChunk:
-    type: str  # "codeblock", "table", "latex", "latex_inline", "inline_chunks", "thinking", "text", "tool_call"
+    type: str  # "codeblock", "table", "latex", "latex_inline", "inline_chunks", "thinking", "text", "tool_call", "divider"
     text: str
     lang: str = ''  # Only used for codeblocks
     tool_name: str = '' # Only used for tool_call
@@ -52,6 +52,8 @@ _INLINE_LATEX_PATTERN = re.compile(
 _THINK_PATTERN = re.compile(r'<think>(.*?)(?:</think>|\Z)', re.DOTALL)
 
 _TOOL_START_PATTERN = re.compile(r'\{\s*"(?:tool|name|function)"\s*:', re.MULTILINE)
+
+_HORIZONTAL_RULE_PATTERN = re.compile(r'^[ \t]*([-*_])[ \t]*\1[ \t]*\1[ \t]*(\1[ \t]*)*$', re.MULTILINE)
 
 # ============================================================
 # Chunk Processing Logic
@@ -132,6 +134,27 @@ def extract_tables(text: str) -> List[MessageChunk]:
     return [c for c in chunks if c.type != "text" or c.text != ""]
 
 
+def extract_dividers(text: str) -> List[MessageChunk]:
+    chunks = []
+    last_index = 0
+
+    for match in _HORIZONTAL_RULE_PATTERN.finditer(text):
+        start, end = match.span()
+        if start > last_index:
+            pre_text = text[last_index:start].strip('\n')
+            if pre_text:
+                append_chunk(chunks, MessageChunk(type="text", text=pre_text))
+        chunks.append(MessageChunk(type="divider", text=""))
+        last_index = end
+
+    if last_index < len(text):
+        remaining = text[last_index:].strip('\n')
+        if remaining:
+            append_chunk(chunks, MessageChunk(type="text", text=remaining))
+
+    return [c for c in chunks if c.type != "text" or c.text != ""]
+
+
 def process_text_with_display_latex(text: str, allow_latex: bool) -> List[MessageChunk]:
     if not allow_latex:
         return process_inline_elements(text, allow_latex=False)
@@ -200,8 +223,13 @@ def process_text_segment_no_think(text: str, allow_latex: bool) -> List[MessageC
         if chunk.type == "table":
             final_chunks.append(chunk) 
         elif chunk.type == "text":
-            latex_processed_parts = process_text_with_display_latex(chunk.text, allow_latex)
-            final_chunks.extend(latex_processed_parts) 
+            divider_parts = extract_dividers(chunk.text)
+            for dc in divider_parts:
+                if dc.type == "divider":
+                    final_chunks.append(dc)
+                elif dc.type == "text":
+                    latex_processed_parts = process_text_with_display_latex(dc.text, allow_latex)
+                    final_chunks.extend(latex_processed_parts)
 
     return final_chunks
 
@@ -452,13 +480,22 @@ def _group_inline_chunks(flat_chunks: List[MessageChunk]) -> List[MessageChunk]:
                     current_inline_sequence.append(MessageChunk(type="text", text=lines[0]))
                 _finalize_sequence()
                 
-                # Intermediate segments are standalone text blocks
+                # Intermediate segments: accumulate newlines and prepend to next non-empty text
+                accumulated_newlines = ""
                 for line in lines[1:-1]:
-                    grouped_chunks.append(MessageChunk(type="text", text=line))
+                    if not line:
+                        accumulated_newlines += "\n"
+                    else:
+                        # Non-empty line: prepend accumulated newlines
+                        grouped_chunks.append(MessageChunk(type="text", text=accumulated_newlines + line))
+                        accumulated_newlines = ""
                 
                 # Last segment starts a new sequence
                 if lines[-1]:
-                    current_inline_sequence.append(MessageChunk(type="text", text=lines[-1]))
+                    current_inline_sequence.append(MessageChunk(type="text", text=accumulated_newlines + lines[-1]))
+                elif accumulated_newlines:
+                    # Last segment empty but we have accumulated newlines
+                    current_inline_sequence.append(MessageChunk(type="text", text=accumulated_newlines))
         else:
             _finalize_sequence()
             grouped_chunks.append(chunk)

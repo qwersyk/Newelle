@@ -1885,6 +1885,12 @@ class NewelleSettings:
         self.context_max = settings.get_int("context-max")
         self.context_suggested = settings.get_int("context-suggested")
         self.context_summarization = settings.get_boolean("context-summarization")
+        self.font_family = settings.get_string("font-family")
+        self.font_size = settings.get_int("font-size")
+        self.line_height = settings.get_double("line-height")
+        self.monospace_font_family = settings.get_string("monospace-font-family")
+        self.monospace_font_size = settings.get_int("monospace-font-size")
+        self.monospace_line_height = settings.get_double("monospace-line-height")
         self.load_prompts()
         # Adjust paths
         if os.path.exists(os.path.expanduser(self.main_path)):

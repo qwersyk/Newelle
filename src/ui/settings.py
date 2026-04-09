@@ -331,6 +331,59 @@ class Settings(Adw.PreferencesWindow):
         spin.connect("input", update_zoom)
         self.interface.add(row)
 
+        # Font customization
+        font_expander = Adw.ExpanderRow(title=_("Font Customization"), subtitle=_("Customize fonts in chat messages"))
+
+        font_entry = Gtk.Entry(text=self.controller.newelle_settings.font_family, valign=Gtk.Align.CENTER)
+        font_entry.set_placeholder_text(_("System default"))
+        font_entry.connect("changed", lambda e: self._update_font_setting("font-family", e.get_text()))
+        font_row = Adw.ActionRow(title=_("Font Family"), subtitle=_("Font family for chat text (empty = system default)"))
+        font_row.add_suffix(font_entry)
+        font_expander.add_row(font_row)
+
+        font_size_spin = Adw.SpinRow(
+            title=_("Font Size"),
+            subtitle=_("Font size for chat text (0 = system default)"),
+            adjustment=Gtk.Adjustment(lower=0, upper=48, value=self.controller.newelle_settings.font_size, step_increment=1, page_increment=5),
+        )
+        font_size_spin.connect("input", lambda s, i: self._update_font_setting_int("font-size", s))
+        font_expander.add_row(font_size_spin)
+
+        line_height_spin = Adw.SpinRow(
+            title=_("Line Height"),
+            subtitle=_("Line height for chat text"),
+            adjustment=Gtk.Adjustment(lower=1.0, upper=3.0, value=self.controller.newelle_settings.line_height, step_increment=0.05, page_increment=0.25),
+            digits=2,
+        )
+        line_height_spin.connect("input", lambda s, i: self._update_font_setting_double("line-height", s))
+        font_expander.add_row(line_height_spin)
+
+        mono_entry = Gtk.Entry(text=self.controller.newelle_settings.monospace_font_family, valign=Gtk.Align.CENTER)
+        mono_entry.set_placeholder_text(_("System default"))
+        mono_entry.connect("changed", lambda e: self._update_font_setting("monospace-font-family", e.get_text()))
+        mono_row = Adw.ActionRow(title=_("Monospace Font Family"), subtitle=_("Font family for code blocks (empty = system default)"))
+        mono_row.add_suffix(mono_entry)
+        font_expander.add_row(mono_row)
+
+        mono_size_spin = Adw.SpinRow(
+            title=_("Monospace Font Size"),
+            subtitle=_("Font size for code blocks (0 = system default)"),
+            adjustment=Gtk.Adjustment(lower=0, upper=48, value=self.controller.newelle_settings.monospace_font_size, step_increment=1, page_increment=5),
+        )
+        mono_size_spin.connect("input", lambda s, i: self._update_font_setting_int("monospace-font-size", s))
+        font_expander.add_row(mono_size_spin)
+
+        mono_lh_spin = Adw.SpinRow(
+            title=_("Monospace Line Height"),
+            subtitle=_("Line height for code blocks"),
+            adjustment=Gtk.Adjustment(lower=1.0, upper=3.0, value=self.controller.newelle_settings.monospace_line_height, step_increment=0.05, page_increment=0.25),
+            digits=2,
+        )
+        mono_lh_spin.connect("input", lambda s, i: self._update_font_setting_double("monospace-line-height", s))
+        font_expander.add_row(mono_lh_spin)
+
+        self.interface.add(font_expander)
+
         style_scheme_manager = GtkSource.StyleSchemeManager.new()
         options = style_scheme_manager.get_scheme_ids()
         if options is not None:
@@ -2256,6 +2309,25 @@ class Settings(Adw.PreferencesWindow):
         for setting in primary.get_all_settings():
             secondary.set_setting(setting, primary.get_setting(setting))
         self.on_setting_change(constants, handler, "", True)
+
+    def _update_font_setting(self, key, value):
+        self.settings.set_string(key, value)
+        setattr(self.controller.newelle_settings, key.replace("-", "_"), value)
+        self.app.win.update_font_settings()
+
+    def _update_font_setting_int(self, key, spin):
+        val = int(spin.get_value())
+        self.settings.set_int(key, val)
+        setattr(self.controller.newelle_settings, key.replace("-", "_"), val)
+        self.app.win.update_font_settings()
+        return False
+
+    def _update_font_setting_double(self, key, spin):
+        val = spin.get_value()
+        self.settings.set_double(key, val)
+        setattr(self.controller.newelle_settings, key.replace("-", "_"), val)
+        self.app.win.update_font_settings()
+        return False
 
     def get_object(self, constants, key, secondary=False):
         return self.handlers.get_object(constants, key, secondary)

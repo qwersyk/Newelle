@@ -126,13 +126,17 @@ def markwon_to_pango(markdown_text, validate=True):
     # --- Block Formatting ---
 
     # Convert Unordered Lists
-    # Looks for lines starting with optional whitespace, then -, *, or +, then a space.
-    # Captures the leading whitespace (indent) and the list item text.
-    # Replaces with the original indent, two spaces, a bullet, and the text.
-    # Using lambda to reconstruct allows preserving original indent before adding list indent.
     processed_text = re.sub(
-        r'^([ \t]*)([-*+])[ \t]+(.*)$',  # Capture: (indent)(marker) (text)
-        lambda match: f'{match.group(1)}  • {match.group(3)}', # Replace: indent + "  • " + text
+        r'^([ \t]*)([-*+])[ \t]+(.*)$',
+        lambda m: '\u00A0' * (2 + len(m.group(1).expandtabs(4)) * 2) + '• ' + m.group(3),
+        processed_text,
+        flags=re.MULTILINE
+    )
+
+    # Convert Ordered Lists
+    processed_text = re.sub(
+        r'^([ \t]*)(\d+\.)[ \t]+(.*)$',
+        lambda m: '\u00A0' * (2 + len(m.group(1).expandtabs(4)) * 2) + m.group(2) + ' ' + m.group(3),
         processed_text,
         flags=re.MULTILINE
     )
@@ -344,6 +348,9 @@ def remove_markdown(text: str) -> str:
 
     # Remove blockquotes
     text = re.sub(r'^>\s*', '', text, flags=re.MULTILINE)
+
+    # Remove horizontal rules
+    text = re.sub(r'^[ \t]*[-*_][ \t]*[-*_][ \t]*[-*_][ \t]*[-*_ ]*$', '', text, flags=re.MULTILINE)
 
     # Remove unordered list markers
     text = re.sub(r'^\s*[-+*]\s+', '', text, flags=re.MULTILINE)
