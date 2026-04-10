@@ -13,8 +13,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: macos-26-intel
-            arch: x86_64
           - os: macos-26
             arch: arm64
 
