@@ -102,7 +102,9 @@ class RuntimeBundler:
         ).resolve()
         self.python_dest_home = self.frameworks_dir / "Python.framework" / "Versions" / python_version
         self.python_dest_main = self.python_dest_home / "Python"
+        self.python_dest_site_packages = self.python_dest_home / "lib" / f"python{python_version}" / "site-packages"
         self.copied_external: dict[Path, Path] = {}
+        self._site_packages_filename_cache: dict[str, Path | None] = {}
 
     def ensure_seed_libraries(self) -> None:
         for name in SEED_LIBRARIES:
@@ -130,9 +132,69 @@ class RuntimeBundler:
         self.copied_external[source] = destination
         return destination
 
+    def _site_packages_relative_path(self, dependency: str) -> Path | None:
+        marker = f"/lib/python{self.python_version}/site-packages/"
+        if marker not in dependency:
+            return None
+        return Path(dependency.split(marker, 1)[1])
+
+    def _candidate_site_package_names(self, filename: str) -> list[str]:
+        parts = filename.split(".")
+        candidates = [filename]
+        for index in range(1, max(1, len(parts) - 2)):
+            candidate = ".".join(parts[index:])
+            if candidate not in candidates:
+                candidates.append(candidate)
+        return candidates
+
+    def _find_site_packages_by_filename(self, filename: str) -> Path | None:
+        if filename not in self._site_packages_filename_cache:
+            match = next(self.python_dest_site_packages.rglob(filename), None)
+            self._site_packages_filename_cache[filename] = match
+        return self._site_packages_filename_cache[filename]
+
+    def resolve_site_packages_target(self, dependency: str) -> Path | None:
+        relative_path = self._site_packages_relative_path(dependency)
+        if relative_path is not None:
+            direct_target = self.python_dest_site_packages / relative_path
+            if direct_target.exists():
+                return direct_target
+
+            target_dir = direct_target.parent
+            if target_dir.exists():
+                for candidate_name in self._candidate_site_package_names(relative_path.name):
+                    candidate = target_dir / candidate_name
+                    if candidate.exists():
+                        return candidate
+
+        filename = dependency.rsplit("/", 1)[-1]
+        for candidate_name in self._candidate_site_package_names(filename):
+            candidate = self._find_site_packages_by_filename(candidate_name)
+            if candidate is not None and candidate.exists():
+                return candidate
+        return None
+
+    def site_packages_install_name(self, binary: Path) -> str | None:
+        binary = binary.resolve()
+        try:
+            relative = binary.relative_to(self.python_dest_site_packages)
+        except ValueError:
+            return None
+
+        package_parts = list(relative.parts[:-1])
+        filename = relative.name
+        package_prefix = ".".join(package_parts)
+        if package_prefix and not filename.startswith(f"{package_prefix}."):
+            filename = f"{package_prefix}.{filename}"
+        return f"@rpath/{filename}"
+
     def resolve_dependency_target(self, dependency: str) -> Path | None:
         if dependency.startswith(SYSTEM_PREFIXES):
             return None
+
+        site_packages_target = self.resolve_site_packages_target(dependency)
+        if site_packages_target is not None:
+            return site_packages_target
 
         if dependency.endswith(f"Python.framework/Versions/{self.python_version}/Python") or dependency == "@rpath/Python":
             return self.python_dest_main
@@ -195,6 +257,10 @@ class RuntimeBundler:
             if sibling_dylib.exists():
                 return f"@loader_path/{sibling_dylib.name}"
             return f"@loader_path/{binary.name}"
+        if binary.suffix == ".so":
+            site_packages_id = self.site_packages_install_name(binary)
+            if site_packages_id is not None:
+                return site_packages_id
         if binary.suffix != ".dylib":
             return None
         if binary.is_relative_to(self.frameworks_dir):
