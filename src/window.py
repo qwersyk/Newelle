@@ -55,12 +55,27 @@ class MainWindow(Adw.ApplicationWindow):
         super().__init__(*args, **kwargs)
         self.app = self.get_application()
         # Main program block - On the right Canvas tabs, Chat as content
+        self.app_stack = Gtk.Stack(transition_duration=500, transition_type=Gtk.StackTransitionType.SLIDE_UP)
         self.main_program_block = Adw.OverlaySplitView(
             enable_hide_gesture=False,
             sidebar_position=Gtk.PackType.END,
             min_sidebar_width=420,
             max_sidebar_width=10000
         )
+
+        self.app_stack.add_named(self.main_program_block, "main")
+        self.app_stack.add_named(self.build_splashscreen(), "splashscreen")
+        self.app_stack.set_visible_child_name("splashscreen")
+        self.controller = NewelleController(sys.path)
+        self.settings = self.controller.settings
+        # Set window default size
+
+        self.set_default_size(self.settings.get_int("window-width"), self.settings.get_int("window-height"))
+        
+        self.set_content(self.app_stack)
+        GLib.idle_add(self.build_main_window)
+
+    def build_main_window(self):
         # UI things
         self.automatic_stt_status = False
         self.model_loading_spinner_button = None
@@ -85,7 +100,6 @@ class MainWindow(Adw.ApplicationWindow):
         self.stdout_monitor_dialog = None
         self._init_stdout_monitoring()
         # Init controller
-        self.controller = NewelleController(sys.path)
         self.controller.ui_init()
         # Init UI controller
         self.ui_controller = UIController(self)
@@ -107,15 +121,12 @@ class MainWindow(Adw.ApplicationWindow):
         # RAG Indexes to documents for each chat
 
         self.chat_documents_index = {}
-        self.settings = self.controller.settings
         self.extensionloader = self.controller.extensionloader
         self.main_path = self.controller.newelle_settings.main_path
         
-        # Set window default size
-
-        self.set_default_size(self.settings.get_int("window-width"), self.settings.get_int("window-height"))
         # Set zoom
         self.set_zoom(self.controller.newelle_settings.zoom)
+        self.update_font_settings()
         # Update the settings
         self.first_load = True
         self.update_settings()
@@ -143,6 +154,7 @@ class MainWindow(Adw.ApplicationWindow):
         menu.append(_("Thread editing"), "app.thread_editing")
         menu.append(_("Scheduled tasks"), "app.scheduled_tasks")
         menu.append(_("Extensions"), "app.extension")
+        menu.append(_("Interfaces"), "app.interfaces")
         menu.append(_("Settings"), "app.settings")
         menu.append(_("Keyboard shorcuts"), "app.shortcuts")
         
@@ -339,16 +351,25 @@ class MainWindow(Adw.ApplicationWindow):
         self.stream_number_variable = 0
         self.stream_tools = False
 
-        GLib.idle_add(self.update_history)
-        GLib.idle_add(self.show_chat)
+        self.controller.handlers.set_error_func(self.handle_error)
         self.controller.start_scheduler()
+        
+        self.connect("destroy", self._cleanup_on_destroy)
+
+        def after_transition():
+            self.update_history()
+            self.show_chat()
+            return False
+
+        def start_transition():
+            self.app_stack.set_visible_child_name("main")
+            return False
+
+        GLib.idle_add(start_transition)
+        GLib.timeout_add(600, after_transition)
         if not self.settings.get_boolean("welcome-screen-shown"):
             threading.Thread(target=self.show_presentation_window).start()
         GLib.timeout_add(10, build_model_popup)
-        self.controller.handlers.set_error_func(self.handle_error)
-        
-        # Connect cleanup on window destroy
-        self.connect("destroy", self._cleanup_on_destroy)
 
     def _cleanup_on_destroy(self, window):
         """Clean up resources when window is destroyed"""
@@ -357,6 +378,13 @@ class MainWindow(Adw.ApplicationWindow):
         # Stop stdout monitoring
         if self.stdout_monitor_dialog:
             self.stdout_monitor_dialog.stop_monitoring_external()
+
+    def build_splashscreen(self):
+        root = Gtk.Box(hexpand=True, vexpand=True, orientation=Gtk.Orientation.VERTICAL,halign=Gtk.Align.CENTER, valign=Gtk.Align.CENTER)
+        logo = Gtk.Image(icon_name=SCHEMA_ID, valign=Gtk.Align.CENTER, halign=Gtk.Align.CENTER)
+        logo.set_pixel_size(120)
+        root.append(logo)
+        return root
 
     def build_canvas(self):
 
@@ -444,7 +472,6 @@ class MainWindow(Adw.ApplicationWindow):
         self.canvas_box.append(self.canvas_tab_bar)
         self.canvas_box.append(self.canvas_overview)
         self.add_explorer_tab(None, self.main_path)
-        self.set_content(self.main_program_block)
         bin = Adw.BreakpointBin(child=self.main, width_request=300, height_request=300)
         breakpoint = Adw.Breakpoint(condition=Adw.BreakpointCondition.new_length(Adw.BreakpointConditionLengthType.MAX_WIDTH, 900, Adw.LengthUnit.PX))
         breakpoint.add_setter(self.main, "collapsed", True)
@@ -685,6 +712,36 @@ class MainWindow(Adw.ApplicationWindow):
             )
             self.controller.newelle_settings.zoom = zoom
 
+    def update_font_settings(self):
+        ns = self.controller.newelle_settings
+        parts = []
+
+        lh = ns.line_height
+        parts.append(f'.message-text {{ line-height: {lh}; }}')
+        if ns.font_family:
+            parts.append(f'.message-text {{ font-family: {ns.font_family}; }}')
+        if ns.font_size > 0:
+            parts.append(f'.message-text {{ font-size: {ns.font_size}px; }}')
+
+        mlh = ns.monospace_line_height
+        parts.append(f'.code .sourceview {{ line-height: {mlh}; }}')
+        if ns.monospace_font_family:
+            parts.append(f'.code .sourceview {{ font-family: {ns.monospace_font_family}; }}')
+        if ns.monospace_font_size > 0:
+            parts.append(f'.code .sourceview {{ font-size: {ns.monospace_font_size}px; }}')
+
+        css = '\n'.join(parts)
+        if not hasattr(self, '_font_css_provider'):
+            self._font_css_provider = Gtk.CssProvider()
+            display = Gdk.Display.get_default()
+            if display is not None:
+                Gtk.StyleContext.add_provider_for_display(
+                    display,
+                    self._font_css_provider,
+                    Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+                )
+        self._font_css_provider.load_from_data(css, -1)
+
     def update_toggles(self, *_):
         """Update the quick toggles"""
         reloads = self.controller.update_settings()
@@ -710,6 +767,7 @@ class MainWindow(Adw.ApplicationWindow):
     def update_settings(self):
         """Update settings, run every time the program is started or settings dialog closed"""
         reloads = self.controller.update_settings()
+        self.update_font_settings()
         if ReloadType.WAKEWORD in reloads:
             self.controller.handlers.select_handlers(self.controller.newelle_settings)
         if self.first_load:

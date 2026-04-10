@@ -1,7 +1,6 @@
 import re
-from unittest import result
 from ..extensions import NewelleExtension
-from ..tools import Tool, ToolResult, create_io_tool 
+from ..tools import InteractionOption, Tool, ToolResult, create_io_tool 
 import threading 
 import json 
 from ..ui.widgets import CopyBox
@@ -44,7 +43,7 @@ class DefaultToolsIntegration(NewelleExtension):
             return text[:maxlength] + f"\n... (Output truncated to {maxlength} characters)"
         return text
     
-    def execute_command(self, command: str):
+    def execute_command(self, command: str | None):
         if command is None:
             return "The user skipped the command execution."
         if is_flatpak() and not self.settings.get_boolean("virtualization"):
@@ -64,7 +63,14 @@ class DefaultToolsIntegration(NewelleExtension):
             return f"Error executing command: {str(e)}"
 
     def execute_command_widget(self, command: str):
-        result = ToolResult(requires_interaction=not self.settings.get_boolean("auto-run"))
+        from ..utility.command_permissions import CommandPermissionManager, CommandAction
+
+        perm_manager = CommandPermissionManager.get_instance(self.settings)
+        working_dir = self.settings.get_string("path")
+        action, reason = perm_manager.check_command(command, working_dir)
+
+        result = ToolResult(requires_interaction=(action != CommandAction.ALLOW))
+
         def execute_callback(command):
             output = self.execute_command(command)
             result.set_output(output)
@@ -72,11 +78,25 @@ class DefaultToolsIntegration(NewelleExtension):
 
         widget = CopyBox(command, "console", execution_request=True, run_callback=execute_callback)
         widget.connect("terminal-clicked", self._on_copybox_terminal_clicked)
-        if self.settings.get_boolean("auto-run"):
-            widget._on_execution_run_clicked(None)
-        widget.connect("command-complete", lambda _, output: result.set_output(output))
-        result.set_widget(widget)
 
+        if action == CommandAction.BLOCK:
+            widget.complete_execution(None)
+            result.set_output("Command blocked by security policy: " + reason)
+            result.set_display_text("```bash\n" + command + "\n```\n\n**Blocked:** " + reason)
+            result.set_widget(widget)
+            return result
+
+        if action == CommandAction.ALLOW and self.settings.get_boolean("auto-run"):
+            widget._on_execution_run_clicked(None)
+        else:
+            result.set_intreaction_options([
+                InteractionOption(_("Accept"), lambda command=command: execute_callback(command)),
+                InteractionOption(_("Skip"), lambda : self.execute_command(None))])
+            result.requires_interaction = True 
+        widget.connect("command-complete", lambda _, output: result.set_output(output))
+
+        result.set_widget(widget)
+        result.set_display_text("```bash\n" + command + "\n```")
         return result
 
     def execute_command_restore(self, tool_uuid: str, command: str):
@@ -104,6 +124,7 @@ class DefaultToolsIntegration(NewelleExtension):
 
         result = ToolResult()
         result.set_widget(image)
+        result.set_display_text("```image\n" + image + "\n```")
         result.set_output(None)
         return result
     

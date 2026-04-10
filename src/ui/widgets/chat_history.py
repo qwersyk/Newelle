@@ -1261,7 +1261,7 @@ class ChatHistory(Gtk.Box):
            the button for the file
         """
         if path[0:2] == "./":
-            path = self.main_path + path[1 : len(path)]
+            path = self.window.main_path + path[1 : len(path)]
         path = os.path.expanduser(os.path.normpath(path))
         button = Gtk.Button(
             css_classes=["flat"],
@@ -1319,10 +1319,10 @@ class ChatHistory(Gtk.Box):
         """
         if os.path.exists(button.get_name()):
             if os.path.isdir(
-                os.path.join(os.path.expanduser(self.main_path), button.get_name())
+                os.path.join(os.path.expanduser(self.window.main_path), button.get_name())
             ):
-                self.main_path = button.get_name()
-                self.ui_controller.new_explorer_tab(self.main_path, False)
+                self.window.main_path = button.get_name()
+                self.ui_controller.new_explorer_tab(self.window.main_path, False)
             else:
                 subprocess.run(["xdg-open", os.path.expanduser(button.get_name())])
         else:

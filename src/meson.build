@@ -70,6 +70,8 @@ ui_sources = [
   'ui/explorer.py',
   'ui/stdout_monitor.py',
   'ui/model_library.py',
+  'ui/extra_settings.py',
+  'ui/interfaces.py',
 ]
 
 widgets_sources = [
@@ -192,12 +194,20 @@ rag_sources = [
   'handlers/rag/llamaindex_handler.py',
 ]
 
-websearch_sources = [  
+websearch_sources = [
   'handlers/websearch/__init__.py',
   'handlers/websearch/websearch.py',
   'handlers/websearch/searxng.py',
   'handlers/websearch/duckduckgo_handler.py',
   'handlers/websearch/tavily.py',
+  ]
+
+interface_sources = [
+  'handlers/interfaces/__init__.py',
+  'handlers/interfaces/interface.py',
+  'handlers/interfaces/api_handler.py',
+  'handlers/interfaces/gui_api_handler.py',
+  'handlers/interfaces/telegram_handler.py',
 ]
 
 utility_sources = [
@@ -217,6 +227,7 @@ utility_sources = [
   'utility/vad.py',
   'utility/force_sync.py',
   'utility/context_manager.py',
+  'utility/command_permissions.py',
 ]
 
 install_data(newelle_sources, install_dir: moduledir)
@@ -229,7 +240,10 @@ install_data(stt_sources, install_dir: moduledir / 'handlers' / 'stt')
 install_data(memory_sources, install_dir: moduledir / 'handlers' / 'memory')
 install_data(rag_sources, install_dir: moduledir / 'handlers' / 'rag')
 install_data(embedding_sources, install_dir: moduledir / 'handlers' / 'embeddings')
+install_data(memory_sources, install_dir: moduledir / 'handlers' / 'memory')
+install_data(rag_sources, install_dir: moduledir / 'handlers' / 'rag')
 install_data(websearch_sources, install_dir: moduledir / 'handlers' / 'websearch')
+install_data(interface_sources, install_dir: moduledir / 'handlers' / 'interfaces')
 install_data(utility_sources, install_dir: moduledir / 'utility')
 install_data(integrations_sources, install_dir: moduledir / 'integrations')
 

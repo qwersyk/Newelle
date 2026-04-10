@@ -243,6 +243,7 @@ class TodoListIntegration(NewelleExtension):
         if self.todos:
             widget = TodoListWidget(self.todos, title="Tasks")
             result.set_widget(widget)
+            result.set_display_text(self._format_todolist_for_prompt())
         
         return result
     

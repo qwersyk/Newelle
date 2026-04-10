@@ -6,6 +6,10 @@ from .handlers.embeddings import WordLlamaHandler, OpenAIEmbeddingHandler, Gemin
 from .handlers.memory import MemoripyHandler, UserSummaryHandler, SummaryMemoripyHanlder, LlamaIndexMemoryHandler, AgenticMemoryHandler
 from .handlers.rag import LlamaIndexHanlder
 from .handlers.websearch import SearXNGHandler, DDGSeachHandler, TavilyHandler
+from .handlers.interfaces.interface import Interface
+from .handlers.interfaces.api_handler import APIInterface
+from .handlers.interfaces.gui_api_handler import GUIAPIInterface
+from .handlers.interfaces.telegram_handler import TelegramInterface
 from .integrations.website_reader import WebsiteReader
 from .integrations.websearch import WebsearchIntegration
 from .integrations.mcp import MCPIntegration
@@ -339,6 +343,27 @@ AVAILABLE_WEBSEARCH = {
     }
 }
 
+AVAILABLE_INTERFACES = {
+    "api": {
+        "key": "api",
+        "title": _("OpenAI Compatible API"),
+        "description": _("Expose the current LLM as an OpenAI-compatible API server"),
+        "class": APIInterface,
+    },
+    "gui-api": {
+        "key": "gui-api",
+        "title": _("Newelle GUI API"),
+        "description": _("Full REST API for building a WebUI, exposing chats, messages, tools, settings and more"),
+        "class": GUIAPIInterface,
+    },
+    "telegram": {
+        "key": "telegram",
+        "title": _("Telegram Bot"),
+        "description": _("Use Newelle as a Telegram bot with message streaming, voice transcription, tools and more"),
+        "class": TelegramInterface,
+    },
+}
+
 PROMPTS = {
     "generate_name_prompt": """Generate a dialog title of exactly five words that summarizes the main theme.
 The title must begin with a single emoji as the very first character (the emoji counts as one character, not a word).
@@ -580,10 +605,11 @@ DEFAULT_AVAILABLE_EMBEDDING = AVAILABLE_EMBEDDINGS.copy()
 DEFAULT_AVAILABLE_MEMORIES = AVAILABLE_MEMORIES.copy()
 DEFAULT_AVAILABLE_RAG = AVAILABLE_RAGS.copy()
 DEFAULT_AVAILABLE_WEBSEARCH = AVAILABLE_WEBSEARCH.copy()
+DEFAULT_AVAILABLE_INTERFACES = AVAILABLE_INTERFACES.copy()
 DEFAULT_AVAILABLE_PROMPTS = AVAILABLE_PROMPTS.copy()
 
 def restore_handlers():
-    global AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_EMBEDDINGS, AVAILABLE_MEMORIES, AVAILABLE_RAGS, AVAILABLE_WEBSEARCH, AVAILABLE_PROMPTS
+    global AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_EMBEDDINGS, AVAILABLE_MEMORIES, AVAILABLE_RAGS, AVAILABLE_WEBSEARCH, AVAILABLE_INTERFACES, AVAILABLE_PROMPTS
     AVAILABLE_PROMPTS.clear()
     AVAILABLE_LLMS.clear()
     AVAILABLE_TTS.clear()
@@ -592,6 +618,7 @@ def restore_handlers():
     AVAILABLE_MEMORIES.clear()
     AVAILABLE_RAGS.clear()
     AVAILABLE_WEBSEARCH.clear()
+    AVAILABLE_INTERFACES.clear()
     AVAILABLE_PROMPTS += deepcopy(DEFAULT_AVAILABLE_PROMPTS)
     AVAILABLE_LLMS.update(deepcopy(DEFAULT_AVAILABLE_LLM))
     AVAILABLE_TTS.update(deepcopy(DEFAULT_AVAILABLE_TTS))
@@ -600,6 +627,7 @@ def restore_handlers():
     AVAILABLE_MEMORIES.update(deepcopy(DEFAULT_AVAILABLE_MEMORIES))
     AVAILABLE_RAGS.update(deepcopy(DEFAULT_AVAILABLE_RAG))
     AVAILABLE_WEBSEARCH.update(deepcopy(DEFAULT_AVAILABLE_WEBSEARCH))
+    AVAILABLE_INTERFACES.update(deepcopy(DEFAULT_AVAILABLE_INTERFACES))
 
 SETTINGS_GROUPS = {
         "LLM": {

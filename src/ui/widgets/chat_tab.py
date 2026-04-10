@@ -1158,3 +1158,6 @@ class ChatTab(Gtk.Box):
         
         threading.Thread(target=generate).start()
 
+    @property 
+    def main_path(self):
+        return self.window.main_path

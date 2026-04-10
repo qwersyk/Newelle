@@ -159,15 +159,30 @@ class NewelleExtension(Handler):
 
     def get_websearch_handlers(self) -> list[dict]:
         """
-        Returns the list of websearch handlers
+        Returns list of websearch handlers
 
         Returns:
             list: list of websearch handlers in this format
             {
-                "key": "key of the handler",
-                "title": "title of the handler",
-                "description": "description of the handler",
-                "class": WebSearchHandler - The class of the handler,
+                "key": "key of handler",
+                "title": "title of handler",
+                "description": "description of handler",
+                "class": WebSearchHandler - The class of handler,
+            }
+        """
+        return []
+
+    def get_interface_handlers(self) -> list[dict]:
+        """
+        Returns list of interface handlers
+
+        Returns:
+            list: list of interface handlers in this format
+            {
+                "key": "key of handler",
+                "title": "title of handler",
+                "description": "description of handler",
+                "class": Interface - The class of handler,
             }
         """
         return []
@@ -413,17 +428,18 @@ class ExtensionLoader:
         for tool in extension.get_tools():
             tool_registry.remove_tool(tool.name)
 
-    def add_handlers(self, AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS, AVAILABLE_RAG, AVAILABLE_WEBSEARCH):
+    def add_handlers(self, AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS, AVAILABLE_RAG, AVAILABLE_WEBSEARCH, AVAILABLE_INTERFACES=None):
         """Add the handlers of each extension to the available handlers
 
         Args:
-            AVAILABLE_LLMS (): list of available llms 
+            AVAILABLE_LLMS (): list of available llms
             AVAILABLE_TTS (): list of available tts
             AVAILABLE_STT (): list of available stt
             AVAILABLE_MEMORIES (): list of available memories
             AVAILABLE_EMBEDDINGS (): list of available embeddings
             AVAILABLE_RAG (): list of available rags
             AVAILABLE_WEBSEARCH (): list of available websearch
+            AVAILABLE_INTERFACES (): list of available interfaces
         """
         for extension in self.extensions:
             if extension in self.disabled_extensions:
@@ -445,10 +461,14 @@ class ExtensionLoader:
                 AVAILABLE_EMBEDDINGS[handler["key"]] = handler
             handlers = extension.get_rag_handlers()
             for handler in handlers:
-                AVAILABLE_RAG[handler["key"]] = handler
+                AVAILABLE_RAGS[handler["key"]] = handler
             handlers = extension.get_websearch_handlers()
             for handler in handlers:
                 AVAILABLE_WEBSEARCH[handler["key"]] = handler
+            if AVAILABLE_INTERFACES is not None:
+                handlers = extension.get_interface_handlers()
+                for handler in handlers:
+                    AVAILABLE_INTERFACES[handler["key"]] = handler
 
     def add_prompts(self, PROMPTS, AVAILABLE_PROMPTS):
         """Add the prompts of each extension to the available prompts

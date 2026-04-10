@@ -168,6 +168,9 @@ class SubagentWidget(Gtk.ListBox):
             from .thinking import ThinkingWidget
             return isinstance(widget, ThinkingWidget)
 
+        if widget_type == "divider" and chunk.type == "divider":
+            return True
+
         return False
 
     def _update_widget(self, widget, widget_type, chunk):
@@ -217,6 +220,12 @@ class SubagentWidget(Gtk.ListBox):
             tw = ThinkingWidget()
             tw.set_thinking(chunk.text)
             self.content_box.append(tw)
+        elif chunk.type == "divider":
+            self.content_box.append(Gtk.Separator(
+                orientation=Gtk.Orientation.HORIZONTAL,
+                margin_top=6,
+                margin_bottom=6,
+            ))
         elif chunk.text and chunk.text.strip():
             tv = MarkupTextView(
                 editable=False,
