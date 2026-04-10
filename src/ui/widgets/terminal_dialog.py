@@ -47,6 +47,7 @@ if sys.platform != 'win32':
 else:
     class Terminal(Gtk.Box):
         def __init__(self, script:list):
+            super().__init__()
             self.append(Gtk.Label(label="Terminal not supported"))
 
         def get_output(self):

@@ -391,8 +391,12 @@ class CodeEditorWidget(Gtk.Box):
     def _on_open_clicked(self, button):
         """Handle open button click."""
         if self.current_file_path:
-            # Open the file in an external editor
-            os.system(f'xdg-open {self.current_file_path}')
+            # Safely open the file using GNOME's native AppInfo
+            from gi.repository import Gio
+            try:
+                Gio.AppInfo.launch_default_for_uri(f"file://{self.current_file_path}", None)
+            except Exception as e:
+                print(f"Error opening file: {e}")
 
     def _on_add_to_chat_clicked(self, button):
         """Handle add to chat button click."""

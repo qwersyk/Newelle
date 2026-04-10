@@ -212,6 +212,7 @@ class NewelleController:
         self.is_call_request = False
         self.scheduled_tasks = []
         self.scheduled_tasks_lock = threading.Lock()
+        self.save_lock = threading.Lock()
         self.scheduler_source_id = None
 
     def ui_init(self):
@@ -321,13 +322,14 @@ class NewelleController:
 
     def save_chats(self):
         """Save chats"""
-        with open(self.chats_path, 'wb') as f:
-            pickle.dump({
-                "chats": self.chats,
-                "next_chat_id": self.next_chat_id,
-                "folders": self.folders,
-                "next_folder_id": self.next_folder_id,
-            }, f)
+        with self.save_lock:
+            with open(self.chats_path, 'wb') as f:
+                pickle.dump({
+                    "chats": self.chats,
+                    "next_chat_id": self.next_chat_id,
+                    "folders": self.folders,
+                    "next_folder_id": self.next_folder_id,
+                }, f)
 
     def create_call_chat(self):
         """Create a new call chat that won't be displayed in the chat list"""
