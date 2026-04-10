@@ -2,7 +2,7 @@ name: macOS Build
 
 on:
   push:
-    branches: [ master ]
+    branches: [ macOS ]
   workflow_dispatch:
 
 jobs:
