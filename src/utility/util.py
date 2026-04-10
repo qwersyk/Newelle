@@ -1,6 +1,36 @@
 from .media import get_image_base64, extract_image
 import time 
 
+def convert_messages_openai_to_newelle(messages: list) -> tuple[str, list[dict], list[str]]:
+    """Convert OpenAI format messages to Newelle format.
+
+    Args:
+        messages (list): List of messages with "role" and "content" keys or attributes.
+
+    Returns:
+        tuple of (last_user_message, history, system_prompt)
+    """
+    system_prompt = []
+    history = []
+    last_user_message = ""
+
+    for msg in messages:
+        if isinstance(msg, dict):
+            role = msg.get("role", "user")
+            content = msg.get("content", "")
+        else:
+            role = getattr(msg, "role", "user")
+            content = getattr(msg, "content", "")
+        if role == "system":
+            system_prompt.append(content)
+        elif role == "user":
+            last_user_message = content
+            history.append({"User": "User", "Message": content})
+        elif role == "assistant":
+            history.append({"User": "Assistant", "Message": content})
+
+    return last_user_message, history, system_prompt
+
 def convert_history_openai(history: list, prompts: list, vision_support : bool = False):
     """Converts Newelle history into OpenAI format
 

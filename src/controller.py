@@ -19,11 +19,12 @@ from .handlers.rag import RAGHandler
 from .handlers.memory import MemoryHandler
 from .handlers.embeddings import EmbeddingHandler
 from .handlers.websearch import WebSearchHandler
+from .handlers.interfaces.interface import Interface
 
 from .utility.system import is_flatpak
 from .utility.pip import install_module
 from .utility.profile_settings import get_settings_dict_by_groups
-from .constants import AVAILABLE_INTEGRATIONS, AVAILABLE_WEBSEARCH, DIR_NAME, SCHEMA_ID, PROMPTS, AVAILABLE_STT, AVAILABLE_TTS, AVAILABLE_LLMS, AVAILABLE_RAGS, AVAILABLE_PROMPTS, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS, SETTINGS_GROUPS, restore_handlers
+from .constants import AVAILABLE_INTEGRATIONS, AVAILABLE_WEBSEARCH, DIR_NAME, SCHEMA_ID, PROMPTS, AVAILABLE_STT, AVAILABLE_TTS, AVAILABLE_LLMS, AVAILABLE_RAGS, AVAILABLE_PROMPTS, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS, AVAILABLE_INTERFACES, SETTINGS_GROUPS, restore_handlers
 import threading
 import pickle
 import json
@@ -211,6 +212,7 @@ class NewelleController:
         self.is_call_request = False
         self.scheduled_tasks = []
         self.scheduled_tasks_lock = threading.Lock()
+        self.save_lock = threading.Lock()
         self.scheduler_source_id = None
 
     def ui_init(self):
@@ -225,7 +227,7 @@ class NewelleController:
         self.newelle_settings = NewelleSettings()
         self.newelle_settings.load_settings(self.settings)
         self.load_chats(self.newelle_settings.chat_id)
-        self.handlers = HandlersManager(self.settings, self.extensionloader, self.models_dir, self.integrationsloader, self.installing_handlers)
+        self.handlers = HandlersManager(self.settings, self.extensionloader, self.models_dir, self.integrationsloader, self.installing_handlers, self)
         self.handlers.select_handlers(self.newelle_settings)
         threading.Thread(target=self.handlers.cache_handlers).start()
         self.handlers.add_tools(self.tools)
@@ -320,13 +322,14 @@ class NewelleController:
 
     def save_chats(self):
         """Save chats"""
-        with open(self.chats_path, 'wb') as f:
-            pickle.dump({
-                "chats": self.chats,
-                "next_chat_id": self.next_chat_id,
-                "folders": self.folders,
-                "next_folder_id": self.next_folder_id,
-            }, f)
+        with self.save_lock:
+            with open(self.chats_path, 'wb') as f:
+                pickle.dump({
+                    "chats": self.chats,
+                    "next_chat_id": self.next_chat_id,
+                    "folders": self.folders,
+                    "next_folder_id": self.next_folder_id,
+                }, f)
 
     def create_call_chat(self):
         """Create a new call chat that won't be displayed in the chat list"""
@@ -360,7 +363,7 @@ class NewelleController:
         if folder_id is not None and folder_id in self.folders:
             self.move_chat_to_folder(chat_id, folder_id)
         elif self.ui_controller is not None:
-            GLib.idle_add(self.ui_controller.window.update_history)
+            GLib.idle_add(self.ui_controller.update_history)
         return chat_id
 
     def create_folder(self, name: str, color: str, icon: str = "folder-symbolic") -> int:
@@ -376,7 +379,7 @@ class NewelleController:
         }
         self.save_chats()
         if self.ui_controller is not None:
-            GLib.idle_add(self.ui_controller.window.update_history)
+            GLib.idle_add(self.ui_controller.update_history)
         return folder_id
 
     def ensure_scheduled_tasks_folder(self) -> int:
@@ -411,7 +414,7 @@ class NewelleController:
             del self.folders[folder_id]
             self.save_chats()
             if self.ui_controller is not None:
-                GLib.idle_add(self.ui_controller.window.update_history)
+                GLib.idle_add(self.ui_controller.update_history)
 
     def toggle_folder_expanded(self, folder_id: int):
         """Toggle the expanded/collapsed state of a folder."""
@@ -427,7 +430,7 @@ class NewelleController:
                 self.folders[folder_id]["chat_ids"].append(chat_id)
             self.save_chats()
             if self.ui_controller is not None:
-                GLib.idle_add(self.ui_controller.window.update_history)
+                GLib.idle_add(self.ui_controller.update_history)
 
     def remove_chat_from_folder(self, chat_id: int, save: bool = True):
         """Remove a chat from whichever folder it belongs to."""
@@ -437,7 +440,7 @@ class NewelleController:
                 if save:
                     self.save_chats()
                     if self.ui_controller is not None:
-                        GLib.idle_add(self.ui_controller.window.update_history)
+                        GLib.idle_add(self.ui_controller.update_history)
                 return
 
     def get_folder_for_chat(self, chat_id: int):
@@ -838,9 +841,7 @@ class NewelleController:
     def _show_scheduled_task_toast(self, title: str):
         if self.ui_controller is None:
             return False
-        self.ui_controller.window.notification_block.add_toast(
-            Adw.Toast(title=title, timeout=2)
-        )
+        self.ui_controller.send_notification(title)
         return False
 
     def check_path_integrity(self):
@@ -1056,6 +1057,44 @@ class NewelleController:
         self.settings.set_string("profiles", json.dumps(self.newelle_settings.profile_settings))
         self.update_settings()
 
+    def switch_profile(self, profile_name: str):
+        """Switch to a different profile.
+
+        Saves the current profile's settings, restores the target profile's
+        saved settings, and reloads any handlers that changed.
+
+        Args:
+            profile_name: name of the profile to switch to
+
+        Returns:
+            list of ReloadType values that were triggered
+
+        Raises:
+            ValueError: if the profile does not exist
+        """
+        from .utility.profile_settings import restore_settings_from_dict_by_groups
+        if profile_name not in self.newelle_settings.profile_settings:
+            raise ValueError(f"Profile '{profile_name}' not found")
+
+        current = self.settings.get_string("current-profile")
+        if current == profile_name:
+            return []
+
+        # Save current profile settings
+        self.update_current_profile()
+
+        # Restore target profile settings
+        profiles = json.loads(self.settings.get_string("profiles"))
+        profile_data = profiles.get(profile_name, {})
+        groups = profile_data.get("settings_groups", [])
+        saved = profile_data.get("settings", {})
+
+        self.settings.set_string("current-profile", profile_name)
+        restore_settings_from_dict_by_groups(self.settings, saved, groups, SETTINGS_GROUPS)
+
+        reload_types = self.update_settings()
+        return reload_types
+
     def update_current_profile(self):
         """Update the current profile"""
         self.current_profile = self.settings.get_string("current-profile")
@@ -1266,7 +1305,7 @@ class NewelleController:
         if name == "tts_on":
             return self.newelle_settings.tts_enabled
         elif name == "virtualization_on":
-            return self.newelle_settings.virtualization
+            return self.newelle_settings.virtualization and is_flatpak()
         elif name == "auto_run":
             return self.newelle_settings.auto_run
         elif name == "websearch_on":
@@ -1886,6 +1925,12 @@ class NewelleSettings:
         self.context_max = settings.get_int("context-max")
         self.context_suggested = settings.get_int("context-suggested")
         self.context_summarization = settings.get_boolean("context-summarization")
+        self.font_family = settings.get_string("font-family")
+        self.font_size = settings.get_int("font-size")
+        self.line_height = settings.get_double("line-height")
+        self.monospace_font_family = settings.get_string("monospace-font-family")
+        self.monospace_font_size = settings.get_int("monospace-font-size")
+        self.monospace_line_height = settings.get_double("monospace-line-height")
         self.load_prompts()
         # Adjust paths
         if os.path.exists(os.path.expanduser(self.main_path)):
@@ -1990,8 +2035,9 @@ class HandlersManager:
         embedding: Embedding Handler 
         memory: Memory Handler
         rag: RAG Handler 
+        interfaces: List of Interface handlers
     """
-    def __init__(self, settings: Gio.Settings, extensionloader : ExtensionLoader, models_path, integrations: ExtensionLoader, installing_handlers: dict):
+    def __init__(self, settings: Gio.Settings, extensionloader : ExtensionLoader, models_path, integrations: ExtensionLoader, installing_handlers: dict, controller):
         self.settings = settings
         self.extensionloader = extensionloader
         self.directory = models_path
@@ -2002,10 +2048,14 @@ class HandlersManager:
         self.installing_handlers = installing_handlers
         self.secondary_stt = None
         self.wakeword_handler = None
+        self.controller = controller
+        self.interfaces = {}
 
     def destroy(self):
         for handler in self.handlers.values():
             handler.destroy()
+        for interface in self.interfaces.values():
+            interface.stop()
 
     def _pick_installed_handler_key(self, registry: dict[str, Any], preferred_key: str, secondary: bool = False) -> str:
         installed_cache: dict[str, bool] = {}
@@ -2081,11 +2131,12 @@ class HandlersManager:
     def set_ui_controller(self, ui_controller):
         self.ui_controller = ui_controller
 
-    def select_handlers(self, newelle_settings: NewelleSettings):
+    def select_handlers(self, newelle_settings: NewelleSettings, skip_auto_start_interfaces=False):
         """Assign the selected handlers
 
         Args:
             newelle_settings: Newelle settings
+            skip_auto_start_interfaces: If True, don't auto-start any interfaces (used in headless mode)
         """
         self.fix_handlers_integrity(newelle_settings)
         self._sync_handler_settings(newelle_settings)
@@ -2109,6 +2160,15 @@ class HandlersManager:
         self.memory.set_memory_size(newelle_settings.memory)
         self.rag : RAGHandler = self.get_object(AVAILABLE_RAGS, newelle_settings.rag_model)
         self.websearch : WebSearchHandler = self.get_object(AVAILABLE_WEBSEARCH, newelle_settings.websearch_model)
+        # Initialize interfaces
+        for key in AVAILABLE_INTERFACES:
+            interface = self.get_object(AVAILABLE_INTERFACES, key)
+            interface.set_controller(self.controller)
+            if not skip_auto_start_interfaces:
+                enabled = interface.get_setting("enabled", False, False) 
+                if enabled:
+                    print("Interface started")
+                    interface.start()
         # Assign handlers 
         self.integrationsloader.set_handlers(self.llm, self.stt, self.tts, self.secondary_llm, self.embedding, self.rag, self.memory, self.websearch)
         self.extensionloader.set_handlers(self.llm, self.stt, self.tts, self.secondary_llm, self.embedding, self.rag, self.memory, self.websearch)
@@ -2158,7 +2218,6 @@ class HandlersManager:
 
     def cache_handlers(self):
         """Cache handlers"""
-        self.handlers = {}
         for key in AVAILABLE_TTS:
             self.handlers[(key, self.convert_constants(AVAILABLE_TTS), False)] = self.get_object(AVAILABLE_TTS, key)
         for key in AVAILABLE_STT:
@@ -2179,6 +2238,8 @@ class HandlersManager:
             self.handlers[(key, self.convert_constants(AVAILABLE_EMBEDDINGS), False)] = self.get_object(AVAILABLE_EMBEDDINGS, key)
         for key in AVAILABLE_WEBSEARCH:
             self.handlers[(key, self.convert_constants(AVAILABLE_WEBSEARCH), False)] = self.get_object(AVAILABLE_WEBSEARCH, key)
+        for key in AVAILABLE_INTERFACES:
+            self.handlers[(key, self.convert_constants(AVAILABLE_INTERFACES), False)] = self.get_object(AVAILABLE_INTERFACES, key)
         self.handlers_cached.release()
     
     def convert_constants(self, constants: str | dict[str, Any]) -> (str | dict):
@@ -2210,6 +2271,8 @@ class HandlersManager:
                     return AVAILABLE_RAGS
                 case "websearch":
                     return AVAILABLE_WEBSEARCH
+                case "interface":
+                    return AVAILABLE_INTERFACES
                 case "extension":
                     return self.extensionloader.extensionsmap
                 case _:
@@ -2229,6 +2292,8 @@ class HandlersManager:
                 return "rag"
             elif constants == AVAILABLE_WEBSEARCH:
                 return "websearch"
+            elif constants == AVAILABLE_INTERFACES:
+                return "interface"
             elif constants == self.extensionloader.extensionsmap:
                 return "extension"
             else:
@@ -2267,6 +2332,8 @@ class HandlersManager:
             model = constants[key]["class"](self.settings, self.directory)
         elif constants == AVAILABLE_WEBSEARCH:
             model = constants[key]["class"](self.settings, self.directory)
+        elif constants == AVAILABLE_INTERFACES:
+            model = constants[key]["class"](self.settings, self.directory)
         elif constants == self.extensionloader.extensionsmap:
             model = self.extensionloader.extensionsmap[key]
             if model is None:
@@ -2303,6 +2370,8 @@ class HandlersManager:
             return AVAILABLE_RAGS
         elif issubclass(type(handler), WebSearchHandler):
             return AVAILABLE_WEBSEARCH
+        elif issubclass(type(handler), Interface):
+            return AVAILABLE_INTERFACES
         else:
             raise Exception("Unknown handler")
     

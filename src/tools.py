@@ -4,6 +4,12 @@ import threading
 import json
 from gi.repository import GLib
 
+
+class InteractionOption:
+    def __init__(self, title:str, callback) -> None:
+        self.title = title 
+        self.callback = callback 
+
 class ToolResult:
     """
     Result returned by a tool execution.
@@ -17,15 +23,19 @@ class ToolResult:
     widget: Any = None
     is_cancelled: bool = False
     requires_interaction: bool = False
+    interaction_options : list
+    display_text : str | None 
     output_semaphore : threading.Semaphore
 
-    def __init__(self, output=None, widget=None, requires_interaction=False) -> None:
+    def __init__(self, output=None, widget=None, requires_interaction=False, interaction_options: list=[], display_text: str | None = None) -> None:
         self.output = output 
         self.widget = widget
+        self.display_text = display_text
         self.is_cancelled = False
         self.requires_interaction = requires_interaction
         self.output_semaphore = threading.Semaphore()
         self.output_semaphore.acquire()
+        self.interaction_options = interaction_options
 
     def get_output(self):
         self.output_semaphore.acquire()
@@ -38,7 +48,7 @@ class ToolResult:
 
     def set_widget(self, widget):
         self.widget = widget
-
+    
     def set_output(self, output):
         self.output = output
         try:
@@ -46,6 +56,12 @@ class ToolResult:
         except ValueError:
             # Semaphore already released
             pass
+    
+    def set_display_text(self, text:str|None):
+        self.display_text = text
+
+    def set_intreaction_options(self, interaction_options : list = []):
+        self.interaction_options = interaction_options
 
 
 class Command:

@@ -7,8 +7,15 @@
     "sources": [
         {
             "type": "archive",
-            "url": "https://github.com/ggml-org/llama.cpp/releases/download/b8194/llama-b8194-bin-ubuntu-x64.tar.gz",
-            "sha256": "1adb1d839b7468b08877bea2268c2949ec8a117b8bbc0dd391920da4686d5943"
+            "url": "https://github.com/ggml-org/llama.cpp/releases/download/b8722/llama-b8722-bin-ubuntu-vulkan-x64.tar.gz",
+            "sha256": "dbfe6848148cd09ebf0174fc5961848c5bb8edbf327b2bd7ce3088750317dd94",
+            "only-arches": ["x86_64"]
+        },
+        {
+            "type": "archive",
+            "url": "https://github.com/ggml-org/llama.cpp/releases/download/b8722/llama-b8722-bin-ubuntu-vulkan-arm64.tar.gz",
+            "sha256": "a84db95c86e4eb8316615060bed321984de8ee0e1b5f55edb9bb8837d39badd8",
+            "only-arches": ["aarch64"]
         }
     ]
 }

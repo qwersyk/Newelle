@@ -13,6 +13,7 @@ from ..handlers import Handler
 
 from ..constants import AVAILABLE_EMBEDDINGS, AVAILABLE_LLMS, AVAILABLE_MEMORIES, AVAILABLE_PROMPTS, AVAILABLE_TTS, AVAILABLE_STT, PROMPTS, AVAILABLE_RAGS, AVAILABLE_WEBSEARCH
 from ..utility.pip import install_module
+from .extra_settings import ExtraSettingsBuilder
 from .widgets import ComboRowHelper, CopyBox 
 from .widgets import MultilineEntry
 from ..utility.system import can_escape_sandbox, install_window_text_input_handlers, open_website, open_folder, is_flatpak 
@@ -56,6 +57,11 @@ class Settings(Adw.PreferencesWindow):
         self.MemoryPage = Adw.PreferencesPage(icon_name="vcard-symbolic", title=_("Knowledge"))
         # Dictionary containing all the rows for settings update
         self.settingsrows = {}
+        self.extra_settings_builder = ExtraSettingsBuilder(
+            settingsrows=self.settingsrows,
+            convert_constants=self.convert_constants,
+            on_before_rebuild=self._on_extra_settings_rebuild,
+        )
         # Build the LLMs settings
         self.LLM = Adw.PreferencesGroup(title=_('Language Model'))
         # Add Help Button 
@@ -326,6 +332,59 @@ class Settings(Adw.PreferencesWindow):
             self.app.win.set_zoom(spin.get_value())
         spin.connect("input", update_zoom)
         self.interface.add(row)
+
+        # Font customization
+        font_expander = Adw.ExpanderRow(title=_("Font Customization"), subtitle=_("Customize fonts in chat messages"))
+
+        font_entry = Gtk.Entry(text=self.controller.newelle_settings.font_family, valign=Gtk.Align.CENTER)
+        font_entry.set_placeholder_text(_("System default"))
+        font_entry.connect("changed", lambda e: self._update_font_setting("font-family", e.get_text()))
+        font_row = Adw.ActionRow(title=_("Font Family"), subtitle=_("Font family for chat text (empty = system default)"))
+        font_row.add_suffix(font_entry)
+        font_expander.add_row(font_row)
+
+        font_size_spin = Adw.SpinRow(
+            title=_("Font Size"),
+            subtitle=_("Font size for chat text (0 = system default)"),
+            adjustment=Gtk.Adjustment(lower=0, upper=48, value=self.controller.newelle_settings.font_size, step_increment=1, page_increment=5),
+        )
+        font_size_spin.connect("input", lambda s, i: self._update_font_setting_int("font-size", s))
+        font_expander.add_row(font_size_spin)
+
+        line_height_spin = Adw.SpinRow(
+            title=_("Line Height"),
+            subtitle=_("Line height for chat text"),
+            adjustment=Gtk.Adjustment(lower=1.0, upper=3.0, value=self.controller.newelle_settings.line_height, step_increment=0.05, page_increment=0.25),
+            digits=2,
+        )
+        line_height_spin.connect("input", lambda s, i: self._update_font_setting_double("line-height", s))
+        font_expander.add_row(line_height_spin)
+
+        mono_entry = Gtk.Entry(text=self.controller.newelle_settings.monospace_font_family, valign=Gtk.Align.CENTER)
+        mono_entry.set_placeholder_text(_("System default"))
+        mono_entry.connect("changed", lambda e: self._update_font_setting("monospace-font-family", e.get_text()))
+        mono_row = Adw.ActionRow(title=_("Monospace Font Family"), subtitle=_("Font family for code blocks (empty = system default)"))
+        mono_row.add_suffix(mono_entry)
+        font_expander.add_row(mono_row)
+
+        mono_size_spin = Adw.SpinRow(
+            title=_("Monospace Font Size"),
+            subtitle=_("Font size for code blocks (0 = system default)"),
+            adjustment=Gtk.Adjustment(lower=0, upper=48, value=self.controller.newelle_settings.monospace_font_size, step_increment=1, page_increment=5),
+        )
+        mono_size_spin.connect("input", lambda s, i: self._update_font_setting_int("monospace-font-size", s))
+        font_expander.add_row(mono_size_spin)
+
+        mono_lh_spin = Adw.SpinRow(
+            title=_("Monospace Line Height"),
+            subtitle=_("Line height for code blocks"),
+            adjustment=Gtk.Adjustment(lower=1.0, upper=3.0, value=self.controller.newelle_settings.monospace_line_height, step_increment=0.05, page_increment=0.25),
+            digits=2,
+        )
+        mono_lh_spin.connect("input", lambda s, i: self._update_font_setting_double("monospace-line-height", s))
+        font_expander.add_row(mono_lh_spin)
+
+        self.interface.add(font_expander)
 
         style_scheme_manager = GtkSource.StyleSchemeManager.new()
         options = style_scheme_manager.get_scheme_ids()
@@ -610,6 +669,8 @@ class Settings(Adw.PreferencesWindow):
         self.refresh_tools_list()
 
         self.build_file_permissions_settings()
+        self.build_command_permissions_settings()
+        self.build_path_security_settings()
         self.build_skills_settings()
         self.build_mcp_settings()
         self._building_tools_page = False
@@ -941,6 +1002,299 @@ class Settings(Adw.PreferencesWindow):
             removed = rules.pop(idx)
             self._save_file_permissions(rules)
             self._refresh_file_permissions_list()
+            toast = Adw.Toast(title=_("Rule for '{}' removed").format(removed.get("path", "")))
+            self.add_toast(toast)
+
+    # --- Command Execution Permissions ---
+
+    def build_command_permissions_settings(self):
+        from ..utility.command_permissions import CommandPermissionManager
+
+        self.cmd_perms_group = Adw.PreferencesGroup(
+            title=_("Command Execution Permissions"),
+            description=_("Control which commands can run automatically via pattern rules")
+        )
+        self.ToolsPage.add(self.cmd_perms_group)
+
+        autorun_row = Adw.ExpanderRow(title=_("Auto-run commands"), subtitle=_("Automatically execute commands (subject to permission rules below)"))
+        autorun_switch = Gtk.Switch(valign=Gtk.Align.CENTER)
+        autorun_row.add_suffix(autorun_switch)
+        autorun_spin = Adw.SpinRow(title=_("Max number of commands"), subtitle=_("Maximum number of commands that the bot will write after a single user request"), adjustment=Gtk.Adjustment(lower=0, upper=30,  page_increment=1, value=self.settings.get_int("max-run-times"), step_increment=1))
+        def update_autorun_spin(spin, input):
+            self.settings.set_int("max-run-times", int(spin.get_value()))
+            return False
+        autorun_spin.connect("input", update_autorun_spin)
+        autorun_row.add_row(autorun_spin)
+        self.settings.bind("auto-run", autorun_switch, 'active', Gio.SettingsBindFlags.DEFAULT)
+        self.cmd_perms_group.add(autorun_row)
+
+        add_button = Gtk.Button(icon_name="list-add-symbolic", valign=Gtk.Align.CENTER, css_classes=["flat"])
+        add_button.set_tooltip_text(_("Add command pattern rule"))
+        add_button.connect("clicked", self._on_add_command_permission_clicked)
+        self.cmd_perms_group.set_header_suffix(add_button)
+
+        self.cmd_permission_rows = []
+        self._refresh_command_permissions_list()
+
+        default_row = Adw.ExpanderRow(title=_("Default behavior for unknown commands"), subtitle=_("Action when no pattern matches"))
+        default_combo = Gtk.ComboBoxText()
+        for label, value in [("Ask", "ask"), ("Allow", "allow"), ("Block", "block")]:
+            default_combo.append(value, label)
+        current_default = self.settings.get_string("default-risk-level")
+        default_combo.set_active_id(current_default if current_default else "ask")
+        default_combo.set_valign(Gtk.Align.CENTER)
+        default_combo.connect("changed", self._on_default_risk_changed)
+        default_row.add_suffix(default_combo)
+        self.cmd_perms_group.add(default_row)
+
+        from ..utility.command_permissions import BUILTIN_RISK_RULES, RiskLevel
+        info_row = Adw.ExpanderRow(title=_("Built-in risk rules"), subtitle=_("Pre-defined patterns that classify commands by risk level"))
+        safe_count = sum(1 for _, r, _ in BUILTIN_RISK_RULES if r == RiskLevel.SAFE)
+        mod_count = sum(1 for _, r, _ in BUILTIN_RISK_RULES if r == RiskLevel.MODERATE)
+        dan_count = sum(1 for _, r, _ in BUILTIN_RISK_RULES if r == RiskLevel.DANGEROUS)
+        crit_count = sum(1 for _, r, _ in BUILTIN_RISK_RULES if r == RiskLevel.CRITICAL)
+
+        for level, count in [(RiskLevel.SAFE, safe_count), (RiskLevel.MODERATE, mod_count), (RiskLevel.DANGEROUS, dan_count), (RiskLevel.CRITICAL, crit_count)]:
+            l_row = Adw.ActionRow(title=level.value.capitalize())
+            actions = {RiskLevel.SAFE: "allow", RiskLevel.MODERATE: "ask", RiskLevel.DANGEROUS: "ask", RiskLevel.CRITICAL: "block"}
+            l_row.set_subtitle(f"{count} patterns — auto-{actions[level]}")
+            info_row.add_row(l_row)
+
+        self.cmd_perms_group.add(info_row)
+
+    def _get_command_permissions(self):
+        try:
+            return json.loads(self.settings.get_string("command-execution-permissions"))
+        except Exception:
+            return []
+
+    def _save_command_permissions(self, rules):
+        self.settings.set_string("command-execution-permissions", json.dumps(rules))
+        from ..utility.command_permissions import CommandPermissionManager
+        CommandPermissionManager.invalidate_cache()
+
+    def _refresh_command_permissions_list(self):
+        for row in self.cmd_permission_rows:
+            self.cmd_perms_group.remove(row)
+        self.cmd_permission_rows = []
+
+        rules = self._get_command_permissions()
+        for idx, rule in enumerate(rules):
+            row = self._create_command_permission_row(rule, idx)
+            self.cmd_perms_group.add(row)
+            self.cmd_permission_rows.append(row)
+
+    def _create_command_permission_row(self, rule, idx):
+        pattern = rule.get("pattern", "")
+        action = rule.get("action", "ask")
+
+        display_pattern = pattern if pattern else _("(empty pattern)")
+        action_labels = {"allow": _("Allow"), "ask": _("Ask"), "block": _("Block")}
+        display_action = action_labels.get(action, action)
+
+        row = Adw.ExpanderRow(title=display_pattern, subtitle=display_action)
+        prefix_icon = Gtk.Image(icon_name="system-run-symbolic", css_classes=["dim-label"])
+        row.add_prefix(prefix_icon)
+
+        pattern_row = Adw.EntryRow(title=_("Pattern (regex)"), text=pattern)
+        pattern_row.connect("changed", self._on_cmd_permission_pattern_changed, idx)
+        row.add_row(pattern_row)
+
+        action_row = Adw.ActionRow(title=_("Action"))
+        action_combo = Gtk.ComboBoxText()
+        for label, value in [("Allow", "allow"), ("Ask", "ask"), ("Block", "block")]:
+            action_combo.append(value, label)
+        action_combo.set_active_id(action if action else "ask")
+        action_combo.set_valign(Gtk.Align.CENTER)
+        action_combo.connect("changed", self._on_cmd_permission_action_changed, idx)
+        action_row.add_suffix(action_combo)
+        row.add_row(action_row)
+
+        remove_row = Adw.ActionRow(title=_("Remove rule"))
+        remove_button = Gtk.Button(label=_("Remove"), valign=Gtk.Align.CENTER, css_classes=["destructive-action"])
+        remove_button.connect("clicked", self._on_remove_cmd_permission_clicked, idx)
+        remove_row.add_suffix(remove_button)
+        row.add_row(remove_row)
+
+        return row
+
+    def _on_cmd_permission_pattern_changed(self, entry, idx):
+        rules = self._get_command_permissions()
+        if idx < len(rules):
+            rules[idx]["pattern"] = entry.get_text()
+            self._save_command_permissions(rules)
+
+    def _on_cmd_permission_action_changed(self, combo, idx):
+        rules = self._get_command_permissions()
+        if idx < len(rules):
+            rules[idx]["action"] = combo.get_active_id()
+            self._save_command_permissions(rules)
+            self._refresh_command_permissions_list()
+
+    def _on_add_command_permission_clicked(self, button):
+        rules = self._get_command_permissions()
+        rules.append({"pattern": "", "action": "ask"})
+        self._save_command_permissions(rules)
+        self._refresh_command_permissions_list()
+
+    def _on_remove_cmd_permission_clicked(self, button, idx):
+        rules = self._get_command_permissions()
+        if idx < len(rules):
+            rules.pop(idx)
+            self._save_command_permissions(rules)
+            self._refresh_command_permissions_list()
+
+    def _on_default_risk_changed(self, combo):
+        self.settings.set_string("default-risk-level", combo.get_active_id() or "ask")
+        from ..utility.command_permissions import CommandPermissionManager
+        CommandPermissionManager.invalidate_cache()
+
+    # --- Path Security Levels ---
+
+    def build_path_security_settings(self):
+        self.path_security_group = Adw.PreferencesGroup(
+            title=_("Path Security Levels"),
+            description=_("Set trust levels for directories — affects auto-run behavior")
+        )
+        self.ToolsPage.add(self.path_security_group)
+
+        add_button = Gtk.Button(icon_name="list-add-symbolic", valign=Gtk.Align.CENTER, css_classes=["flat"])
+        add_button.set_tooltip_text(_("Add path security rule"))
+        add_button.connect("clicked", self._on_add_path_security_clicked)
+        self.path_security_group.set_header_suffix(add_button)
+
+        self.path_security_rows = []
+        self._refresh_path_security_list()
+
+    def _get_path_security(self):
+        try:
+            return json.loads(self.settings.get_string("path-security-levels"))
+        except Exception:
+            return [
+                {"path": "{{main_path}}", "level": "trusted"},
+                {"path": "/tmp", "level": "sandboxed"},
+            ]
+
+    def _save_path_security(self, rules):
+        self.settings.set_string("path-security-levels", json.dumps(rules))
+        from ..utility.command_permissions import CommandPermissionManager
+        CommandPermissionManager.invalidate_cache()
+
+    def _refresh_path_security_list(self):
+        for row in self.path_security_rows:
+            self.path_security_group.remove(row)
+        self.path_security_rows = []
+
+        rules = self._get_path_security()
+        for idx, rule in enumerate(rules):
+            row = self._create_path_security_row(rule, idx)
+            self.path_security_group.add(row)
+            self.path_security_rows.append(row)
+
+    def _display_name_for_security_path(self, path):
+        if path == "{{main_path}}":
+            return _("Current Work Directory")
+        return path
+
+    def _create_path_security_row(self, rule, idx):
+        path = rule.get("path", "")
+        level = rule.get("level", "sandboxed")
+        display_path = self._display_name_for_security_path(path)
+        is_builtin = path == "{{main_path}}"
+        level_labels = {"yolo": _("YOLO"), "trusted": _("Trusted"), "sandboxed": _("Sandboxed"), "restricted": _("Restricted")}
+        display_level = level_labels.get(level, level)
+
+        icon_name = "folder-visiting-symbolic" if is_builtin else "folder-symbolic"
+        row = Adw.ExpanderRow(title=display_path, subtitle=display_level)
+        prefix_icon = Gtk.Image(icon_name=icon_name, css_classes=["dim-label"])
+        row.add_prefix(prefix_icon)
+
+        if not is_builtin:
+            path_row = Adw.EntryRow(title=_("Path"), text=path)
+            path_row.connect("changed", self._on_path_security_path_changed, idx)
+            row.add_row(path_row)
+
+        security_row = Adw.ActionRow(title=_("Security level"))
+        security_combo = Gtk.ComboBoxText()
+        for label, value in [("YOLO", "yolo"), ("Trusted", "trusted"), ("Sandboxed", "sandboxed"), ("Restricted", "restricted")]:
+            security_combo.append(value, label)
+        security_combo.set_active_id(level if level else "sandboxed")
+        security_combo.set_valign(Gtk.Align.CENTER)
+        security_combo.connect("changed", self._on_path_security_level_changed, idx)
+        security_row.add_suffix(security_combo)
+        row.add_row(security_row)
+
+        desc_row = Adw.ActionRow(title=_("Effect"))
+        level_descriptions = {
+            "yolo": _("All commands are auto-executed without confirmation"),
+            "trusted": _("Commands classified as safe are auto-run"),
+            "sandboxed": _("All commands require confirmation"),
+            "restricted": _("No commands are auto-run, even safe ones"),
+        }
+        desc_row.set_subtitle(level_descriptions.get(level, ""))
+        row.add_row(desc_row)
+
+        if not is_builtin:
+            remove_row = Adw.ActionRow(title=_("Remove rule"))
+            remove_button = Gtk.Button(label=_("Remove"), valign=Gtk.Align.CENTER, css_classes=["destructive-action"])
+            remove_button.connect("clicked", self._on_remove_path_security_clicked, idx)
+            remove_row.add_suffix(remove_button)
+            row.add_row(remove_row)
+
+        return row
+
+    def _on_path_security_path_changed(self, entry, idx):
+        rules = self._get_path_security()
+        if idx < len(rules):
+            rules[idx]["path"] = entry.get_text()
+            self._save_path_security(rules)
+            self._refresh_path_security_list()
+
+    def _on_path_security_level_changed(self, combo, idx):
+        rules = self._get_path_security()
+        if idx < len(rules):
+            rules[idx]["level"] = combo.get_active_id()
+            self._save_path_security(rules)
+            self._refresh_path_security_list()
+
+    def _on_add_path_security_clicked(self, button):
+        dialog = Gtk.FileDialog(title=_("Select Directory"))
+        dialog.select_folder(self, None, self._on_path_security_folder_selected)
+
+    def _on_path_security_folder_selected(self, dialog, result):
+        try:
+            folder = dialog.select_folder_finish(result)
+        except GLib.Error:
+            return
+        if folder is None:
+            return
+
+        path = folder.get_path()
+        rules = self._get_path_security()
+
+        for rule in rules:
+            rule_path = rule.get("path", "")
+            if rule_path == "{{main_path}}":
+                try:
+                    main_path = self.settings.get_string("path")
+                    rule_path = os.path.expanduser(main_path)
+                except Exception:
+                    pass
+            if rule_path == path:
+                toast = Adw.Toast(title=_("A rule for this directory already exists"))
+                self.add_toast(toast)
+                return
+
+        rules.append({"path": path, "level": "sandboxed"})
+        self._save_path_security(rules)
+        self._refresh_path_security_list()
+
+    def _on_remove_path_security_clicked(self, button, idx):
+        rules = self._get_path_security()
+        if idx < len(rules):
+            removed = rules.pop(idx)
+            self._save_path_security(rules)
+            self._refresh_path_security_list()
             toast = Adw.Toast(title=_("Rule for '{}' removed").format(removed.get("path", "")))
             self.add_toast(toast)
 
@@ -1625,18 +1979,6 @@ class Settings(Adw.PreferencesWindow):
         for prompt in self.prompts_rows:
             self.prompt.remove(prompt)
         self.prompts_rows = []
-        row = Adw.ExpanderRow(title=_("Auto-run commands"), subtitle=_("Commands that the bot will write will automatically run"))
-        switch = Gtk.Switch(valign=Gtk.Align.CENTER)
-        row.add_suffix(switch)
-        spin = Adw.SpinRow(title=_("Max number of commands"), subtitle=_("Maximum number of commands that the bot will write after a single user request"), adjustment=Gtk.Adjustment(lower=0, upper=30,  page_increment=1, value=self.settings.get_int("max-run-times"), step_increment=1))
-        def update_spin(spin, input):
-            self.settings.set_int("max-run-times", int(spin.get_value()))
-            return False
-        spin.connect("input", update_spin)
-        row.add_row(spin)
-        self.settings.bind("auto-run", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
-        self.prompt.add(row)
-        self.prompts_rows.append(row)
 
         for prompt in AVAILABLE_PROMPTS:
             is_active = False
@@ -1936,7 +2278,9 @@ class Settings(Adw.PreferencesWindow):
             self.settingsrows[settings_row_key]["extra_settings_loaded"] = True
         self.settingsrows[settings_row_key]["row"] = row
         self.settingsrows[settings_row_key]["extra_settings"] = []
-        handler.set_extra_settings_update(lambda _: GLib.idle_add(self.on_setting_change, constants, handler, handler.key, True))
+        handler.set_extra_settings_update(
+            lambda _: GLib.idle_add(self.on_setting_change, constants, handler, handler.key, True)
+        )
         
         # Add extra buttons 
         self.queue_download_button(handler, row)
@@ -1967,6 +2311,25 @@ class Settings(Adw.PreferencesWindow):
         for setting in primary.get_all_settings():
             secondary.set_setting(setting, primary.get_setting(setting))
         self.on_setting_change(constants, handler, "", True)
+
+    def _update_font_setting(self, key, value):
+        self.settings.set_string(key, value)
+        setattr(self.controller.newelle_settings, key.replace("-", "_"), value)
+        self.app.win.update_font_settings()
+
+    def _update_font_setting_int(self, key, spin):
+        val = int(spin.get_value())
+        self.settings.set_int(key, val)
+        setattr(self.controller.newelle_settings, key.replace("-", "_"), val)
+        self.app.win.update_font_settings()
+        return False
+
+    def _update_font_setting_double(self, key, spin):
+        val = spin.get_value()
+        self.settings.set_double(key, val)
+        setattr(self.controller.newelle_settings, key.replace("-", "_"), val)
+        self.app.win.update_font_settings()
+        return False
 
     def get_object(self, constants, key, secondary=False):
         return self.handlers.get_object(constants, key, secondary)
@@ -2016,51 +2379,10 @@ class Settings(Adw.PreferencesWindow):
             self.update_rag_index()
 
     def add_extra_settings(self, constants : dict[str, Any], handler : Handler, row : Adw.ExpanderRow, nested_settings : list | None = None, settings : list | None = None):
-        """Buld the extra settings for the specified handler. The extra settings are specified by the method get_extra_settings 
-            Extra settings format:
-            Required parameters:
-            - title: small title for the setting 
-            - description: description for the setting
-            - default: default value for the setting
-            - type: What type of row to create, possible rows:
-                - entry: input text 
-                - toggle: bool
-                - combo: for multiple choice
-                    - values: list of touples of possible values (display_value, actual_value)
-                - range: for number input with a slider 
-                    - min: minimum value
-                    - max: maximum value 
-                    - round: how many digits to round 
-            Optional parameters:
-                - folder: add a button that opens a folder with the specified path
-                - website: add a button that opens a website with the specified path
-                - update_settings (bool) if reload the settings in the settings page for the specified handler after that setting change
-        Args:
-            constants: The constants for the specified handler, can be AVAILABLE_TTS, AVAILABLE_STT...
-            handler: An instance of the handler
-            row: row where to add the settings
-        """
-        if nested_settings is None: 
-            self.settingsrows[(handler.key, self.convert_constants(constants), handler.is_secondary())]["extra_settings"] = []
-            settings_to_render = settings if settings is not None else handler.get_extra_settings()
-        else:
-            settings_to_render = nested_settings
-        for setting in settings_to_render:
-            r = self.create_extra_setting(setting, handler, constants) 
-            row.add_row(r)
-            self.settingsrows[handler.key, self.convert_constants(constants), handler.is_secondary()]["extra_settings"].append(r)
+        self.extra_settings_builder.add_extra_settings(constants, handler, row, nested_settings, settings)
 
     def on_row_expanded_build_settings(self, row, _pspec, constants, handler):
-        """Build extra settings lazily the first time the row is expanded."""
-        if not row.get_property("expanded"):
-            return
-        settings_key = (handler.key, self.convert_constants(constants), handler.is_secondary())
-        row_state = self.settingsrows.get(settings_key)
-        if row_state is None or row_state.get("extra_settings_loaded", False):
-            return
-        pending_settings = row_state.pop("pending_extra_settings", None)
-        self.add_extra_settings(constants, handler, row, settings=pending_settings)
-        row_state["extra_settings_loaded"] = True
+        self.extra_settings_builder.on_row_expanded_build_settings(row, _pspec, constants, handler)
 
     def queue_download_button(self, handler: Handler, row: Adw.ActionRow | Adw.ExpanderRow):
         """Queue download button creation to run incrementally on the GTK main loop."""
@@ -2079,111 +2401,7 @@ class Settings(Adw.PreferencesWindow):
         return True
     
     def create_extra_setting(self, setting : dict, handler: Handler, constants : dict[str, Any]) -> Adw.ExpanderRow | Adw.ActionRow:
-        if setting["type"] == "entry":
-            r = Adw.ActionRow(title=setting["title"], subtitle=setting["description"])
-            value = handler.get_setting(setting["key"])
-            value = str(value)
-            password = setting.get("password", False)
-            entry = Gtk.Entry(valign=Gtk.Align.CENTER, text=value, name=setting["key"], visibility= (not password))
-            entry.connect("changed", self.setting_change_entry, constants, handler)
-            r.add_suffix(entry)
-            if password:
-                button = Gtk.Button(valign=Gtk.Align.CENTER, name=setting["key"], css_classes=["flat"], icon_name="view-show")
-                button.connect("clicked", lambda button, entry: entry.set_visibility(not entry.get_visibility()), entry)
-                r.add_suffix(button)
-        elif setting["type"] == "multilineentry":
-            r = Adw.ExpanderRow(title=setting["title"], subtitle=setting["description"])
-            value = handler.get_setting(setting["key"])
-            value = str(value)
-            entry = MultilineEntry()
-            entry.set_text(value)
-            entry.set_on_change(self.setting_change_multilinentry)
-            entry.name = setting["key"]
-            entry.constants = constants
-            entry.handler = handler
-            r.add_row(entry)
-        elif setting["type"] == "button":
-            r = Adw.ActionRow(title=setting["title"], subtitle=setting["description"])
-            button = Gtk.Button(valign=Gtk.Align.CENTER, name=setting["key"])
-            if "label" in setting:
-                button.set_label(setting["label"])
-            elif "icon" in setting:
-                button.set_icon_name(setting["icon"])
-            button.connect("clicked", setting["callback"])
-            r.add_suffix(button)
-        elif setting["type"] == "toggle":
-            r = Adw.ActionRow(title=setting["title"], subtitle=setting["description"])
-            value = handler.get_setting(setting["key"])
-            value = bool(value)
-            toggle = Gtk.Switch(valign=Gtk.Align.CENTER, active=value, name=setting["key"])
-            toggle.connect("state-set", self.setting_change_toggle, constants, handler)
-            r.add_suffix(toggle)
-        elif setting["type"] == "combo":
-            r = Adw.ComboRow(title=setting["title"], subtitle=setting["description"], name=setting["key"])
-            helper = ComboRowHelper(r, setting["values"], handler.get_setting(setting["key"]))
-            helper.connect("changed", self.setting_change_combo, constants, handler)
-        elif setting["type"] == "range":
-            r = Adw.ActionRow(title=setting["title"], subtitle=setting["description"], valign=Gtk.Align.CENTER)
-            box = Gtk.Box()
-            scale = Gtk.Scale(name=setting["key"], round_digits=setting["round-digits"])
-            scale.set_range(setting["min"], setting["max"]) 
-            scale.set_value(round(handler.get_setting(setting["key"]), setting["round-digits"]))
-            scale.set_size_request(120, -1)
-            scale.connect("change-value", self.setting_change_scale, constants, handler)
-            label = Gtk.Label(label=handler.get_setting(setting["key"]))
-            box.append(label)
-            box.append(scale)
-            self.slider_labels[scale] = label
-            r.add_suffix(box)
-        elif setting["type"] == "spin":
-            adj = Gtk.Adjustment(
-                value=handler.get_setting(setting["key"]),
-                lower=setting["min"],
-                upper=setting["max"],
-                step_increment=setting["step"],
-                page_increment=setting["page"]
-            )
-            r = Adw.SpinRow(
-                title=setting["title"], 
-                subtitle=setting["description"], 
-                adjustment=adj,
-                digits=setting["round-digits"]
-            )
-            r.set_name(setting["key"])
-            r.connect("notify::value", self.setting_change_spin, constants, handler)
-        elif setting["type"] == "nested":
-            r = Adw.ExpanderRow(title=setting["title"], subtitle=setting["description"])
-            self.add_extra_settings(constants, handler, r, setting["extra_settings"])
-        elif setting["type"] == "download":
-            r = Adw.ActionRow(title=setting["title"], subtitle=setting["description"]) 
-            
-            actionbutton = Gtk.Button(css_classes=["flat"],valign=Gtk.Align.CENTER)
-            if setting["is_installed"]:
-                actionbutton.set_icon_name("user-trash-symbolic")
-                actionbutton.connect("clicked", lambda button,cb=setting["callback"],key=setting["key"] : cb(key))
-                actionbutton.add_css_class("error")
-            else:
-                actionbutton.set_icon_name("folder-download-symbolic" if "download-icon" not in setting else setting["download-icon"])
-                actionbutton.connect("clicked", self.download_setting, setting, handler)
-                actionbutton.add_css_class("accent")
-            r.add_suffix(actionbutton)
-        else:
-            return
-        if "website" in setting:
-            wbbutton = self.create_web_button(setting["website"])
-            r.add_suffix(wbbutton)
-        if "folder" in setting:
-            wbbutton = self.create_web_button(setting["folder"], folder=True)
-            r.add_suffix(wbbutton)
-        if "refresh" in setting:
-            refresh_icon = setting.get("refresh_icon", "view-refresh-symbolic")
-            refreshbutton = Gtk.Button(icon_name=refresh_icon, valign=Gtk.Align.CENTER, css_classes=["flat"])
-            def refresh_setting(button, cb=setting["refresh"], refresh_icon=refresh_icon):
-                refreshbutton.set_child(Gtk.Spinner(spinning=True))
-                cb(button)
-            refreshbutton.connect("clicked", refresh_setting)
-            r.add_suffix(refreshbutton)
-        return r 
+        return self.extra_settings_builder.create_extra_setting(setting, handler, constants)
     
     def add_customize_prompt_content(self, row, prompt_name):
         """Add a MultilineEntry to edit a prompt from the given prompt name
@@ -2252,113 +2470,30 @@ class Settings(Adw.PreferencesWindow):
         else:
             self.settings.set_boolean("virtualization", status)
 
-        
+    def _on_extra_settings_rebuild(self, constants: dict[str, Any], _handler: Handler):
+        if constants == AVAILABLE_RAGS:
+            GLib.idle_add(self.update_rag_index)
 
     def on_setting_change(self, constants: dict[str, Any], handler: Handler, key: str, force_change : bool = False):
-        
-        if not force_change:
-            setting_info = [info for info in handler.get_extra_settings_list() if info["key"] == key][0]
-        else:
-            setting_info = {}
-
-        if force_change or "update_settings" in setting_info and setting_info["update_settings"]:
-            settings_key = (handler.key, self.convert_constants(constants), handler.is_secondary())
-            row_state = self.settingsrows[settings_key]
-            if constants == AVAILABLE_RAGS:
-                GLib.idle_add(self.update_rag_index)
-            # If the row hasn't been expanded yet, defer rebuilding until first expansion.
-            if not row_state.get("extra_settings_loaded", True):
-                row_state["pending_extra_settings"] = handler.get_extra_settings()
-                return
-            # remove all the elements in the specified expander row 
-            row = row_state["row"]
-            setting_list = row_state.get("extra_settings", [])
-            for setting_row in setting_list:
-                row.remove(setting_row)
-            self.add_extra_settings(constants, handler, row)
+        self.extra_settings_builder.on_setting_change(constants, handler, key, force_change)
 
     def setting_change_entry(self, entry, constants, handler : Handler):
-        """ Called when an entry handler setting is changed 
-
-        Args:
-            entry (): the entry whose contents are changed
-            constants : The constants for the specified handler, can be AVAILABLE_TTS, AVAILABLE_STT...
-            handler: An instance of the specified handler
-        """
-        name = entry.get_name()
-        handler.set_setting(name, entry.get_text())
-        self.on_setting_change(constants, handler, name)
+        self.extra_settings_builder.setting_change_entry(entry, constants, handler)
 
     def setting_change_multilinentry(self, entry):
-        """ Called when an entry handler setting is changed 
-
-        Args:
-            entry (): the entry whose contents are changed
-            constants : The constants for the specified handler, can be AVAILABLE_TTS, AVAILABLE_STT...
-            handler: An instance of the specified handler
-        """
-        entry.handler.set_setting(entry.name, entry.get_text())
-        self.on_setting_change(entry.constants, entry.handler, entry.name)
+        self.extra_settings_builder.setting_change_multilinentry(entry)
 
     def setting_change_toggle(self, toggle, state, constants, handler):
-        """Called when a toggle for the handler setting is triggered
-
-        Args:
-            toggle (): the specified toggle 
-            state (): state of the toggle
-            constants (): The constants for the specified handler, can be AVAILABLE_TTS, AVAILABLE_STT...
-            handler (): an instance of the handler
-        """
-        enabled = toggle.get_active()
-        handler.set_setting(toggle.get_name(), enabled)
-        self.on_setting_change(constants, handler, toggle.get_name())
+        self.extra_settings_builder.setting_change_toggle(toggle, state, constants, handler)
 
     def setting_change_scale(self, scale, scroll, value, constants, handler):
-        """Called when a scale for the handler setting is changed
-
-        Args:
-            scale (): the changed scale
-            scroll (): scroll value
-            value (): the value 
-            constants (): The constants for the specified handler, can be AVAILABLE_TTS, AVAILABLE_STT...
-            handler (): an instance of the handler
-        """
-        setting = scale.get_name()
-        digits = scale.get_round_digits()
-        value = round(value, digits)
-        self.slider_labels[scale].set_label(str(value))
-        handler.set_setting(setting, value)
-        self.on_setting_change(constants, handler, setting)
+        self.extra_settings_builder.setting_change_scale(scale, scroll, value, constants, handler)
 
     def setting_change_spin(self, row, pspec, constants, handler):
-        """Called when a spin for the handler setting is changed
-
-        Args:
-            row (): the changed spin row
-            pspec (): param spec
-            constants (): The constants for the specified handler, can be AVAILABLE_TTS, AVAILABLE_STT...
-            handler (): an instance of the handler
-        """
-        setting = row.get_name()
-        value = row.get_value()
-        if row.get_digits() == 0:
-            value = int(value)
-        
-        handler.set_setting(setting, value)
-        self.on_setting_change(constants, handler, setting)
+        self.extra_settings_builder.setting_change_spin(row, pspec, constants, handler)
 
     def setting_change_combo(self, helper, value, constants, handler):
-        """Called when a combo for the handler setting is changed
-
-        Args:
-            helper (): combo row helper 
-            value (): chosen value
-            constants (): The constants for the specified handler, can be AVAILABLE_TTS, AVAILABLE_STT...
-            handler (): an instance of the handler
-        """
-        setting = helper.combo.get_name()
-        handler.set_setting(setting, value)
-        self.on_setting_change(constants, handler, setting)
+        self.extra_settings_builder.setting_change_combo(helper, value, constants, handler)
 
     def add_download_button(self, handler : Handler, row : Adw.ActionRow | Adw.ExpanderRow): 
         """Add download button for an handler dependencies. If clicked it will call handler.install()

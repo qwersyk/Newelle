@@ -392,7 +392,6 @@ class CodeEditorWidget(Gtk.Box):
     def _on_open_clicked(self, button):
         """Handle open button click."""
         if self.current_file_path:
-            # Open the file in an external editor
             open_folder(self.current_file_path)
 
     def _on_add_to_chat_clicked(self, button):

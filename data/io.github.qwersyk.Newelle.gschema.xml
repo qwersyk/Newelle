@@ -252,6 +252,36 @@
         </key>
         <key name="context-summarization" type="b">
             <default>false</default>
+          </key>
+          <key name="interfaces-settings" type="s">
+            <default>"{}"</default>
+          </key>
+        <key name="command-execution-permissions" type="s">
+            <default>'[]'</default>
+        </key>
+        <key name="path-security-levels" type="s">
+            <default>'[{"path": "{{main_path}}", "level": "trusted"}, {"path": "/tmp", "level": "sandboxed"}]'</default>
+        </key>
+        <key name="default-risk-level" type="s">
+            <default>"ask"</default>
+        </key>
+        <key name="font-family" type="s">
+            <default>""</default>
+        </key>
+        <key name="font-size" type="i">
+            <default>0</default>
+        </key>
+        <key name="line-height" type="d">
+            <default>1.45</default>
+        </key>
+        <key name="monospace-font-family" type="s">
+            <default>""</default>
+        </key>
+        <key name="monospace-font-size" type="i">
+            <default>0</default>
+        </key>
+        <key name="monospace-line-height" type="d">
+            <default>1.45</default>
         </key>
 	</schema>
 </schemalist>

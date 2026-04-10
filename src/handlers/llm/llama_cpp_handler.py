@@ -1,14 +1,17 @@
 from .openai_handler import OpenAIHandler
 from ...handlers.extra_settings import ExtraSettings
-from ...utility.system import can_escape_sandbox, is_flatpak, get_spawn_command
+from ...utility.system import can_escape_sandbox, is_flatpak, get_spawn_command, has_backend
 from ...handlers import ErrorSeverity
 import subprocess
 import os
+import platform
 import threading
 import socket
 import time
 import json
 import shutil
+import tarfile
+import tempfile
 import atexit
 from gi.repository import Gtk, Adw, GLib, Gdk
 from ...ui.model_library import ModelLibraryWindow, LibraryModel
@@ -197,9 +200,11 @@ class LlamaCPPHandler(OpenAIHandler):
             mmproj_path = os.path.join(self.model_folder, mmproj)
             if os.path.exists(mmproj_path):
                 cmd.extend(["--mmproj", mmproj_path])
-        # Use flatpak-spawn when running built llama.cpp in Flatpak
-        if (is_flatpak() and self.is_gpu_installed() and self.get_setting("gpu_acceleration", False, False)) or use_system_server:
+        # Use flatpak-spawn when running compiled llama.cpp in Flatpak (not for pre-built)
+        is_prebuilt = self.get_setting("prebuilt", False, False)
+        if (is_flatpak() and not is_prebuilt and self.is_gpu_installed() and self.get_setting("gpu_acceleration", False, False)) or use_system_server:
             cmd = get_spawn_command() + cmd
+
         self.server_process = subprocess.Popen(cmd)
         self.loaded_model = model
         self.loaded_on = self.get_setting("gpu_acceleration", False, False)
@@ -375,11 +380,9 @@ class LlamaCPPHandler(OpenAIHandler):
         win = ModelLibraryWindow(self, root)
         win.present()
 
-        # Llama CPP install dialog
-
     def show_install_dialog(self, button):
-        win = Adw.Window(title="Build llama.cpp")
-        win.set_default_size(600, 600)
+        win = Adw.Window(title="Install llama.cpp")
+        win.set_default_size(700, 620)
         win.set_modal(True)
         try:
             root = button.get_root()
@@ -387,14 +390,14 @@ class LlamaCPPHandler(OpenAIHandler):
                 win.set_transient_for(root)
         except:
             pass
-            
+
         main_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         win.set_content(main_box)
-        
+
         dots = Adw.CarouselIndicatorDots()
         dots.set_margin_top(12)
         main_box.append(dots)
-        
+
         content = Adw.Carousel()
         content.set_allow_mouse_drag(False)
         content.set_allow_scroll_wheel(False)
@@ -402,19 +405,151 @@ class LlamaCPPHandler(OpenAIHandler):
         content.set_vexpand(True)
         dots.set_carousel(content)
         main_box.append(content)
-        
-        # Page 1: Hardware
+
+        # Page 0: Choose Method
+        page0 = Adw.StatusPage(
+            title="Choose Installation Method",
+            description="How would you like to install llama.cpp?",
+            icon_name="system-software-install-symbolic",
+        )
+        page0_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=16, hexpand=True, vexpand=True)
+        page0_box.set_margin_start(24)
+        page0_box.set_margin_end(24)
+        page0_box.set_valign(Gtk.Align.CENTER)
+
+        cards_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=20, homogeneous=True)
+        cards_box.set_halign(Gtk.Align.CENTER)
+
+        # Left card: Compile
+        compile_card = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+        compile_card.add_css_class("card")
+        compile_card.set_margin_top(8)
+        compile_card.set_margin_bottom(8)
+        compile_card.set_margin_start(12)
+        compile_card.set_margin_end(12)
+
+        compile_inner = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+        compile_inner.set_margin_top(16)
+        compile_inner.set_margin_bottom(16)
+        compile_inner.set_margin_start(16)
+        compile_inner.set_margin_end(16)
+        compile_card.append(compile_inner)
+
+        compile_icon = Gtk.Image.new_from_icon_name("tools-symbolic")
+        compile_icon.set_pixel_size(48)
+        compile_icon.set_halign(Gtk.Align.CENTER)
+        compile_inner.append(compile_icon)
+
+        compile_title = Gtk.Label(label="Compile from Source")
+        compile_title.add_css_class("title-4")
+        compile_title.set_halign(Gtk.Align.CENTER)
+        compile_inner.append(compile_title)
+
+        for text in [
+            "Optimized for your specific CPU",
+            "Full customization via CMake flags",
+            "Supports all backends",
+        ]:
+            lbl = Gtk.Label(label="  +  " + text)
+            lbl.set_halign(Gtk.Align.START)
+            lbl.set_margin_start(8)
+            lbl.add_css_class("success")
+            compile_inner.append(lbl)
+
+        for text in [
+            "Takes 5-20 minutes to build",
+            "Requires build tools (cmake, gcc)",
+        ]:
+            lbl = Gtk.Label(label="  -  " + text)
+            lbl.set_halign(Gtk.Align.START)
+            lbl.set_margin_start(8)
+            lbl.add_css_class("dim-label")
+            compile_inner.append(lbl)
+
+        btn_compile = Gtk.Button(label="Compile")
+        btn_compile.add_css_class("suggested-action")
+        btn_compile.set_halign(Gtk.Align.CENTER)
+        btn_compile.set_margin_top(8)
+        btn_compile.connect("clicked", lambda x: content.scroll_to(content.get_nth_page(1), True))
+        compile_inner.append(btn_compile)
+        cards_box.append(compile_card)
+
+        # Right card: Download
+        download_card = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+        download_card.add_css_class("card")
+        download_card.set_margin_top(8)
+        download_card.set_margin_bottom(8)
+        download_card.set_margin_start(12)
+        download_card.set_margin_end(12)
+
+        download_inner = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+        download_inner.set_margin_top(16)
+        download_inner.set_margin_bottom(16)
+        download_inner.set_margin_start(16)
+        download_inner.set_margin_end(16)
+        download_card.append(download_inner)
+
+        download_icon = Gtk.Image.new_from_icon_name("folder-download-symbolic")
+        download_icon.set_pixel_size(48)
+        download_icon.set_halign(Gtk.Align.CENTER)
+        download_inner.append(download_icon)
+
+        download_title = Gtk.Label(label="Download Pre-built")
+        download_title.add_css_class("title-4")
+        download_title.set_halign(Gtk.Align.CENTER)
+        download_inner.append(download_title)
+
+        for text in [
+            "Ready in under a minute",
+            "No build tools required",
+            "Pre-tested official binaries",
+        ]:
+            lbl = Gtk.Label(label="  +  " + text)
+            lbl.set_halign(Gtk.Align.START)
+            lbl.set_margin_start(8)
+            lbl.add_css_class("success")
+            download_inner.append(lbl)
+
+        for text in [
+            "Generic CPU optimizations",
+            "Limited to available releases",
+        ]:
+            lbl = Gtk.Label(label="  -  " + text)
+            lbl.set_halign(Gtk.Align.START)
+            lbl.set_margin_start(8)
+            lbl.add_css_class("dim-label")
+            download_inner.append(lbl)
+
+        btn_download = Gtk.Button(label="Download")
+        btn_download.add_css_class("suggested-action")
+        btn_download.set_halign(Gtk.Align.CENTER)
+        btn_download.set_margin_top(8)
+        btn_download.connect("clicked", lambda x: self._on_prebuilt_selected(content))
+        download_inner.append(btn_download)
+        cards_box.append(download_card)
+
+        page0_box.append(cards_box)
+
+        btn_cancel0 = Gtk.Button(label="Cancel")
+        btn_cancel0.add_css_class("destructive-action")
+        btn_cancel0.set_halign(Gtk.Align.CENTER)
+        btn_cancel0.connect("clicked", lambda x: win.close())
+        page0_box.append(btn_cancel0)
+
+        page0.set_child(page0_box)
+        content.append(page0)
+
+        # Page 1: Hardware Selection (Compile path)
         page1 = Adw.StatusPage(title="Select Hardware", description="Choose your acceleration backend", icon_name="brain-augemnted-symbolic")
         main_container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12, hexpand=True, vexpand=True)
         main_container.set_halign(Gtk.Align.CENTER)
 
-        # Show Flatpak warning if needed - at the top of page 1
         if not can_escape_sandbox():
             warning_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
             warning_box.set_margin_bottom(16)
             warning_box.add_css_class("warning")
 
-            warning_label = Gtk.Label(label="⚠️ Flatpak Sandbox Warning")
+            warning_label = Gtk.Label(label="Flatpak Sandbox Warning")
             warning_label.add_css_class("heading")
             warning_label.set_halign(Gtk.Align.CENTER)
             warning_box.append(warning_label)
@@ -441,13 +576,11 @@ class LlamaCPPHandler(OpenAIHandler):
             main_container.append(warning_box)
             main_container.append(Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL))
 
-        # Horizontal box for hardware options and CMake flags
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=24, hexpand=True)
         hbox.set_halign(Gtk.Align.CENTER)
         hbox.set_margin_start(24)
         hbox.set_margin_end(24)
 
-        # Left side: Hardware options
         left_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
         self.hw_options = {}
         group = None
@@ -459,7 +592,6 @@ class LlamaCPPHandler(OpenAIHandler):
             self.hw_options[hw] = btn
             left_box.append(btn)
 
-        # Right side: CMake flags
         right_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12, valign=Gtk.Align.CENTER)
         lbl_flags = Gtk.Label(label="Custom CMake Flags (Optional)")
         lbl_flags.set_halign(Gtk.Align.START)
@@ -483,12 +615,11 @@ class LlamaCPPHandler(OpenAIHandler):
         button_box.append(btn_cancel1)
 
         btn_next1 = Gtk.Button(label="Next")
-        # Block Next button if Flatpak permissions are not set
         if not can_escape_sandbox():
             btn_next1.set_sensitive(False)
             btn_next1.set_tooltip_text("Please run the Flatpak override command first")
         else:
-            btn_next1.connect("clicked", lambda x: content.scroll_to(content.get_nth_page(1), True))
+            btn_next1.connect("clicked", lambda x: content.scroll_to(content.get_nth_page(3), True))
         button_box.append(btn_next1)
 
         main_container.append(button_box)
@@ -496,50 +627,95 @@ class LlamaCPPHandler(OpenAIHandler):
         page1.set_child(main_container)
         content.append(page1)
 
-        # Page 2: Install Button
-        page2 = Adw.StatusPage(title="Ready to Build", description="Click start to begin compilation", icon_name="tools-symbolic")
-        box2 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12, hexpand=True, vexpand=True)
-        box2.set_halign(Gtk.Align.CENTER)
+        # Page 2: Pre-built Binary Selection (Download path)
+        page2 = Adw.StatusPage(
+            title="Select Pre-built Binary",
+            description="Choose the binary that matches your hardware",
+            icon_name="folder-download-symbolic",
+        )
+        self.prebuilt_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12, hexpand=True, vexpand=True)
+        self.prebuilt_box.set_margin_start(24)
+        self.prebuilt_box.set_margin_end(24)
+        self.prebuilt_box.set_halign(Gtk.Align.CENTER)
+
+        self.prebuilt_spinner = Gtk.Spinner()
+        self.prebuilt_spinner.set_halign(Gtk.Align.CENTER)
+        self.prebuilt_spinner.start()
+        self.prebuilt_box.append(self.prebuilt_spinner)
+
+        self.prebuilt_list_box = Gtk.ListBox()
+        self.prebuilt_list_box.set_selection_mode(Gtk.SelectionMode.NONE)
+        self.prebuilt_list_box.add_css_class("boxed-list")
+        self.prebuilt_list_box.set_hexpand(True)
+        self.prebuilt_box.append(self.prebuilt_list_box)
+
+        self.prebuilt_error_label = Gtk.Label(label="")
+        self.prebuilt_error_label.set_halign(Gtk.Align.CENTER)
+        self.prebuilt_error_label.set_wrap(True)
+        self.prebuilt_box.append(self.prebuilt_error_label)
+
+        prebuilt_buttons = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
+        prebuilt_buttons.set_halign(Gtk.Align.CENTER)
+        prebuilt_buttons.set_margin_top(12)
+
+        btn_back_prebuilt = Gtk.Button(label="Back")
+        btn_back_prebuilt.connect("clicked", lambda x: content.scroll_to(content.get_nth_page(0), True))
+        prebuilt_buttons.append(btn_back_prebuilt)
+
+        self.btn_start_prebuilt = Gtk.Button(label="Download & Install")
+        self.btn_start_prebuilt.add_css_class("suggested-action")
+        self.btn_start_prebuilt.set_sensitive(False)
+        self.btn_start_prebuilt.connect("clicked", lambda x: self._start_prebuilt_install(content))
+        prebuilt_buttons.append(self.btn_start_prebuilt)
+
+        self.prebuilt_box.append(prebuilt_buttons)
+        page2.set_child(self.prebuilt_box)
+        content.append(page2)
+
+        # Page 3: Ready to Build (Compile confirm)
+        page3 = Adw.StatusPage(title="Ready to Build", description="Click start to begin compilation", icon_name="tools-symbolic")
+        box3 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12, hexpand=True, vexpand=True)
+        box3.set_halign(Gtk.Align.CENTER)
 
         btn_start = Gtk.Button(label="Start Build")
         btn_start.set_halign(Gtk.Align.CENTER)
         btn_start.connect("clicked", lambda x: self.start_installation(content))
-        box2.append(btn_start)
-        
-        btn_back2 = Gtk.Button(label="Back")
-        btn_back2.set_halign(Gtk.Align.CENTER)
-        btn_back2.connect("clicked", lambda x: content.scroll_to(content.get_nth_page(0), True))
-        box2.append(btn_back2)
-        
-        page2.set_child(box2)
-        content.append(page2)
-        
-        # Page 3: Progress
-        page3 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
-        page3.set_hexpand(True)
-        page3.set_vexpand(True)
-        page3.set_margin_top(24)
-        page3.set_margin_bottom(24)
-        page3.set_margin_start(24)
-        page3.set_margin_end(24)
+        box3.append(btn_start)
 
-        icon3 = Gtk.Image.new_from_icon_name("magic-wand-symbolic")
-        icon3.set_pixel_size(96)
-        icon3.set_halign(Gtk.Align.CENTER)
-        page3.append(icon3)
-        
-        title3 = Gtk.Label(label="Installing")
-        title3.add_css_class("title-1")
-        title3.set_halign(Gtk.Align.CENTER)
-        page3.append(title3)
-        
-        desc3 = Gtk.Label(label="Please wait...")
-        desc3.set_halign(Gtk.Align.CENTER)
-        page3.append(desc3)
+        btn_back3 = Gtk.Button(label="Back")
+        btn_back3.set_halign(Gtk.Align.CENTER)
+        btn_back3.connect("clicked", lambda x: content.scroll_to(content.get_nth_page(1), True))
+        box3.append(btn_back3)
+
+        page3.set_child(box3)
+        content.append(page3)
+
+        # Page 4: Progress
+        page4 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
+        page4.set_hexpand(True)
+        page4.set_vexpand(True)
+        page4.set_margin_top(24)
+        page4.set_margin_bottom(24)
+        page4.set_margin_start(24)
+        page4.set_margin_end(24)
+
+        icon4 = Gtk.Image.new_from_icon_name("magic-wand-symbolic")
+        icon4.set_pixel_size(96)
+        icon4.set_halign(Gtk.Align.CENTER)
+        page4.append(icon4)
+
+        title4 = Gtk.Label(label="Installing")
+        title4.add_css_class("title-1")
+        title4.set_halign(Gtk.Align.CENTER)
+        page4.append(title4)
+
+        desc4 = Gtk.Label(label="Please wait...")
+        desc4.set_halign(Gtk.Align.CENTER)
+        page4.append(desc4)
 
         self.progress_bar = Gtk.ProgressBar()
-        page3.append(self.progress_bar)
-        
+        page4.append(self.progress_bar)
+
         self.log_view = Gtk.TextView()
         self.log_view.set_editable(False)
         self.log_view.set_monospace(True)
@@ -547,18 +723,318 @@ class LlamaCPPHandler(OpenAIHandler):
         scroll.set_child(self.log_view)
         scroll.set_vexpand(True)
         scroll.set_hexpand(True)
-        page3.append(scroll)
-        content.append(page3)
-        
-        # Page 4: Done
-        page4 = Adw.StatusPage(title="Completed", description="Installation finished successfully", icon_name="emblem-default-symbolic")
+        page4.append(scroll)
+        content.append(page4)
+
+        # Page 5: Done
+        page5 = Adw.StatusPage(title="Completed", description="Installation finished successfully", icon_name="emblem-default-symbolic")
         btn_close = Gtk.Button(label="Close")
         btn_close.set_halign(Gtk.Align.CENTER)
         btn_close.connect("clicked", lambda x: self.finish_install(win))
-        page4.set_child(btn_close)
-        content.append(page4)
-        
+        page5.set_child(btn_close)
+        content.append(page5)
+
         win.present()
+
+    def _on_prebuilt_selected(self, content):
+        content.scroll_to(content.get_nth_page(2), True)
+        if not hasattr(self, '_prebuilt_fetched') or not self._prebuilt_fetched:
+            self._prebuilt_fetched = True
+            threading.Thread(target=self._fetch_prebuilt_releases, args=(content,), daemon=True).start()
+
+    @staticmethod
+    def _detect_arch():
+        machine = platform.machine().lower()
+        if machine in ("x86_64", "amd64"):
+            return "x64"
+        elif machine in ("aarch64", "arm64"):
+            return "arm64"
+        return machine
+
+    @staticmethod
+    def _parse_asset_backend(name):
+        name_lower = name.lower()
+        if "rocm" in name_lower:
+            return "rocm"
+        elif "cuda" in name_lower:
+            return "cuda"
+        elif "vulkan" in name_lower:
+            return "vulkan"
+        elif "openvino" in name_lower:
+            return "openvino"
+        return "cpu"
+
+    @staticmethod
+    def _human_size(size_bytes):
+        for unit in ("B", "KB", "MB", "GB"):
+            if size_bytes < 1024:
+                return f"{size_bytes:.1f} {unit}"
+            size_bytes /= 1024
+        return f"{size_bytes:.1f} TB"
+
+    @staticmethod
+    def _backend_display_name(backend):
+        return {
+            "cpu": "CPU (Basic)",
+            "cuda": "Nvidia CUDA",
+            "rocm": "AMD ROCm",
+            "vulkan": "Any GPU (Vulkan)",
+            "openvino": "Intel OpenVINO",
+        }.get(backend, backend)
+
+    def _fetch_prebuilt_releases(self, carousel):
+        arch = self._detect_arch()
+        available = []
+
+        try:
+            resp = requests.get(
+                "https://api.github.com/repos/ggml-org/llama.cpp/releases/latest",
+                timeout=15,
+            )
+            resp.raise_for_status()
+            release = resp.json()
+            tag = release.get("tag_name", "unknown")
+
+            for asset in release.get("assets", []):
+                name = asset["name"]
+                url = asset["browser_download_url"]
+                size = asset.get("size", 0)
+
+                if not name.endswith(".tar.gz"):
+                    continue
+                if "-bin-ubuntu-" not in name:
+                    continue
+
+                if arch == "x64" and "-x64" not in name and "-arm64" not in name:
+                    if name.count("-") < 5:
+                        continue
+                if arch == "x64" and "-arm64" in name:
+                    continue
+                if arch == "arm64" and "-x64" in name:
+                    continue
+                if arch == "arm64" and "-arm64" not in name:
+                    continue
+
+                backend = self._parse_asset_backend(name)
+                available.append({
+                    "name": name,
+                    "url": url,
+                    "size": size,
+                    "backend": backend,
+                    "tag": tag,
+                    "source": "official",
+                })
+
+            try:
+                resp_cuda = requests.get(
+                    "https://api.github.com/repos/ai-dock/llama.cpp-cuda/releases/latest",
+                    timeout=15,
+                )
+                resp_cuda.raise_for_status()
+                cuda_release = resp_cuda.json()
+                cuda_tag = cuda_release.get("tag_name", "unknown")
+
+                for asset in cuda_release.get("assets", []):
+                    name = asset["name"]
+                    url = asset["browser_download_url"]
+                    size = asset.get("size", 0)
+                    if name.endswith(".tar.gz") and "cuda" in name.lower():
+                        if arch == "x64":
+                            available.append({
+                                "name": name,
+                                "url": url,
+                                "size": size,
+                                "backend": "cuda",
+                                "tag": cuda_tag,
+                                "source": "ai-dock",
+                            })
+            except Exception:
+                pass
+
+        except Exception as e:
+            GLib.idle_add(self._show_prebuilt_error, f"Failed to fetch releases: {e}")
+            return
+
+        if not available:
+            GLib.idle_add(self._show_prebuilt_error, f"No compatible pre-built binaries found for your architecture ({arch}).")
+            return
+
+        backend_checks = {}
+        for b in ("cuda", "rocm", "vulkan", "openvino"):
+            backend_checks[b] = has_backend(b)
+
+        backend_priority = {"cuda": 0, "rocm": 1, "vulkan": 2, "openvino": 3, "cpu": 4}
+
+        for item in available:
+            item["compatible"] = item["backend"] == "cpu" or backend_checks.get(item["backend"], False)
+
+        available.sort(key=lambda x: (0 if x["compatible"] else 1, backend_priority.get(x["backend"], 99)))
+
+        GLib.idle_add(self._populate_prebuilt_list, available)
+
+    def _show_prebuilt_error(self, message):
+        if hasattr(self, 'prebuilt_spinner') and self.prebuilt_spinner:
+            self.prebuilt_spinner.stop()
+            self.prebuilt_spinner.set_visible(False)
+        self.prebuilt_error_label.set_text(message)
+
+    def _populate_prebuilt_list(self, available):
+        if hasattr(self, 'prebuilt_spinner') and self.prebuilt_spinner:
+            self.prebuilt_spinner.stop()
+            self.prebuilt_spinner.set_visible(False)
+
+        child = self.prebuilt_list_box.get_first_child()
+        while child:
+            self.prebuilt_list_box.remove(child)
+            child = self.prebuilt_list_box.get_first_child()
+
+        self.prebuilt_assets = available
+        group = None
+        first_recommended = None
+        first_overall = None
+
+        for i, item in enumerate(available):
+            row = Adw.ActionRow()
+
+            row.set_title(self._backend_display_name(item["backend"]))
+
+            if item["compatible"] and item["backend"] != "cpu":
+                rec = Gtk.Label(label="Recommended")
+                rec.add_css_class("success")
+                rec.add_css_class("caption")
+                rec.set_valign(Gtk.Align.CENTER)
+                row.add_suffix(rec)
+
+            subtitle_parts = []
+            if item["source"] == "ai-dock":
+                subtitle_parts.append("CUDA (ai-dock)")
+            subtitle_parts.append(self._human_size(item["size"]))
+            subtitle_parts.append(item["tag"])
+            row.set_subtitle("  |  ".join(subtitle_parts))
+
+            check = Gtk.CheckButton()
+            if group is None:
+                group = check
+                check.set_active(True)
+            else:
+                check.set_group(group)
+            row.add_prefix(check)
+            row.set_activatable_widget(check)
+
+            if item["compatible"] and first_recommended is None:
+                first_recommended = i
+                check.set_active(True)
+            if first_overall is None:
+                first_overall = i
+
+            self.prebuilt_list_box.append(row)
+
+        self._selected_prebuilt = first_recommended if first_recommended is not None else first_overall
+        self.btn_start_prebuilt.set_sensitive(True)
+
+        def on_row_activated(listbox, row):
+            idx = 0
+            child = listbox.get_first_child()
+            while child:
+                if child == row:
+                    break
+                child = child.get_next_sibling()
+                idx += 1
+            self._selected_prebuilt = idx
+
+        self.prebuilt_list_box.connect("row-activated", on_row_activated)
+
+    def _start_prebuilt_install(self, carousel):
+        if not hasattr(self, '_selected_prebuilt') or self._selected_prebuilt is None:
+            return
+        if not hasattr(self, 'prebuilt_assets') or self._selected_prebuilt >= len(self.prebuilt_assets):
+            return
+
+        asset = self.prebuilt_assets[self._selected_prebuilt]
+        carousel.scroll_to(carousel.get_nth_page(4), True)
+        threading.Thread(target=self._run_prebuilt_install, args=(asset, carousel), daemon=True).start()
+
+    def _run_prebuilt_install(self, asset, carousel):
+        def append_log(text):
+            buf = self.log_view.get_buffer()
+            buf.insert(buf.get_end_iter(), text)
+            return False
+
+        def set_progress(fraction):
+            self.progress_bar.set_fraction(fraction)
+            return False
+
+        try:
+            GLib.idle_add(append_log, f"Downloading {asset['name']}...\n")
+            GLib.idle_add(set_progress, 0.0)
+
+            resp = requests.get(asset["url"], stream=True, timeout=120)
+            resp.raise_for_status()
+            total = int(resp.headers.get("content-length", asset["size"]))
+            downloaded = 0
+
+            tmp_dir = tempfile.mkdtemp()
+            tmp_file = os.path.join(tmp_dir, asset["name"])
+
+            with open(tmp_file, "wb") as f:
+                for chunk in resp.iter_content(chunk_size=8192):
+                    f.write(chunk)
+                    downloaded += len(chunk)
+                    if total > 0:
+                        progress = (downloaded / total) * 0.7
+                        GLib.idle_add(set_progress, progress)
+
+            GLib.idle_add(set_progress, 0.7)
+            GLib.idle_add(append_log, "Download complete. Extracting...\n")
+
+            abs_llama_cpp_path = os.path.abspath(self.llama_cpp_path)
+            if os.path.exists(abs_llama_cpp_path):
+                shutil.rmtree(abs_llama_cpp_path)
+
+            with tarfile.open(tmp_file, "r:gz") as tar:
+                tar.extractall(tmp_dir)
+
+            extracted_dirs = [d for d in os.listdir(tmp_dir)
+                             if os.path.isdir(os.path.join(tmp_dir, d)) and d.startswith("llama-")]
+            if not extracted_dirs:
+                extracted_dirs = [d for d in os.listdir(tmp_dir)
+                                 if os.path.isdir(os.path.join(tmp_dir, d))]
+
+            if not extracted_dirs:
+                raise Exception("Could not find extracted directory in archive")
+
+            extracted_path = os.path.join(tmp_dir, extracted_dirs[0])
+
+            build_bin = os.path.join(abs_llama_cpp_path, "build", "bin")
+            os.makedirs(build_bin, exist_ok=True)
+
+            for item in os.listdir(extracted_path):
+                src = os.path.join(extracted_path, item)
+                dst = os.path.join(build_bin, item)
+                shutil.move(src, dst)
+
+            target = os.path.join(build_bin, "llama-server")
+            if not os.path.exists(target):
+                raise Exception("llama-server binary not found in the archive")
+
+            os.chmod(target, 0o755)
+
+            so_dir = build_bin
+            self.set_setting("prebuilt_so_path", so_dir)
+
+            shutil.rmtree(tmp_dir, ignore_errors=True)
+
+            GLib.idle_add(set_progress, 1.0)
+            GLib.idle_add(append_log, "Installation completed successfully!\n")
+            GLib.idle_add(lambda: carousel.scroll_to(carousel.get_nth_page(5), True))
+            GLib.idle_add(lambda: self.settings_update())
+            self.set_setting("prebuilt", True)
+            self.set_setting("gpu_acceleration", True)
+
+        except Exception as e:
+            GLib.idle_add(append_log, f"\nError: {e}\n")
+            import traceback
+            GLib.idle_add(append_log, traceback.format_exc())
 
     def start_installation(self, carousel):
         backend = "cpu"
@@ -570,12 +1046,12 @@ class LlamaCPPHandler(OpenAIHandler):
             backend = "vulkan"
         elif self.hw_options["CPU (OpenBLAS)"].get_active():
             backend = "cpu_openblas"
-            
+
         custom_flags = self.entry_cmake.get_text()
 
-        carousel.scroll_to(carousel.get_nth_page(2), True)
+        carousel.scroll_to(carousel.get_nth_page(4), True)
         threading.Thread(target=self.run_install_process, args=(backend, carousel, custom_flags)).start()
-        
+
     def run_install_process(self, backend, carousel, custom_flags=""):
         if not can_escape_sandbox():
             self.throw("You have to escape the sandbox to install LlamaCPP", ErrorSeverity.ERROR)
@@ -603,10 +1079,9 @@ class LlamaCPPHandler(OpenAIHandler):
                 cmake_args.append("-DGGML_BLAS_VENDOR=OpenBLAS")
 
             if custom_flags:
-                # Parse custom flags - they might be space-separated or already a list
                 custom_list = custom_flags.split() if isinstance(custom_flags, str) else custom_flags
                 cmake_args.extend(custom_list)
-                
+
             def append_log(text):
                 buffer = self.log_view.get_buffer()
                 buffer.insert(buffer.get_end_iter(), text)
@@ -629,15 +1104,15 @@ class LlamaCPPHandler(OpenAIHandler):
                         env.update(extra_env)
 
                 process = subprocess.Popen(
-                    full_cmd, 
-                    stdout=subprocess.PIPE, 
-                    stderr=subprocess.STDOUT, 
-                    text=True, 
+                    full_cmd,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    text=True,
                     bufsize=1,
                     env=env if not is_flatpak() else None,
                     cwd=cwd
                 )
-                
+
                 while True:
                     line = process.stdout.readline()
                     if not line and process.poll() is not None:
@@ -648,49 +1123,45 @@ class LlamaCPPHandler(OpenAIHandler):
 
             GLib.idle_add(set_progress, 0.1)
             GLib.idle_add(append_log, "Cloning llama.cpp repository...\n")
-            
+
             abs_llama_cpp_path = os.path.abspath(self.llama_cpp_path)
-            
-            # Remove existing directory if it exists
+
             if os.path.exists(abs_llama_cpp_path):
-                shutil.rmtree(abs_llama_cpp_path)
-            
-            # Clone llama.cpp
-            clone_cmd = ["git", "clone", "https://github.com/ggml-org/llama.cpp.git", abs_llama_cpp_path]
+                run_cmd(["rm", "-rf", abs_llama_cpp_path])
+
+            clone_cmd = ["git", "clone", "--depth", "1", "https://github.com/ggml-org/llama.cpp.git", abs_llama_cpp_path]
             if not run_cmd(clone_cmd):
                 raise Exception("Failed to clone llama.cpp repository")
 
             GLib.idle_add(set_progress, 0.2)
             GLib.idle_add(append_log, "Configuring CMake build...\n")
-            
-            # Configure CMake
+
             build_dir = os.path.join(abs_llama_cpp_path, "build")
             cmake_configure = ["cmake", "-B", "build", "-DCMAKE_BUILD_TYPE=Release"] + cmake_args
             if not run_cmd(cmake_configure, cwd=abs_llama_cpp_path):
                 raise Exception("Failed to configure CMake build")
-                 
+
             GLib.idle_add(set_progress, 0.4)
             GLib.idle_add(append_log, f"Building llama.cpp (Backend: {backend})...\n")
             GLib.idle_add(append_log, "This may take several minutes...\n")
-            
-            # Build llama.cpp
+
             import multiprocessing
             num_jobs = multiprocessing.cpu_count()
             cmake_build = ["cmake", "--build", "build", "--config", "Release", "-j", str(num_jobs)]
             if not run_cmd(cmake_build, cwd=abs_llama_cpp_path):
                 raise Exception("Failed to build llama.cpp")
 
-            # Verify server binary was built
             server_binary = os.path.join(build_dir, "bin", "llama-server")
             if not os.path.exists(server_binary):
                 raise Exception("Server binary not found after build")
 
             GLib.idle_add(set_progress, 1.0)
             GLib.idle_add(append_log, "Build completed successfully!\n")
-            GLib.idle_add(lambda: carousel.scroll_to(carousel.get_nth_page(3), True))
+            GLib.idle_add(lambda: carousel.scroll_to(carousel.get_nth_page(5), True))
             GLib.idle_add(lambda: self.settings_update())
+            self.set_setting("prebuilt", False)
             self.set_setting("gpu_acceleration", True)
-            
+
         except Exception as e:
             GLib.idle_add(append_log, f"\nError: {e}\n")
             import traceback
@@ -701,7 +1172,6 @@ class LlamaCPPHandler(OpenAIHandler):
         self.settings_update()
 
     def copy_to_clipboard(self, text):
-        """Copy text to system clipboard"""
         clipboard = Gdk.Display.get_default().get_clipboard()
         clipboard.set(text)
 

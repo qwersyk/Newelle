@@ -331,17 +331,18 @@ class BrowserWidget(Gtk.Box):
         
         result = {'html': None, 'error': None, 'done': False}
         
-        sem = threading.Semaphore()
+        # Initialize semaphore at 0 so acquire() blocks until release() is called
+        sem = threading.Semaphore(0)
         def callback(html_content, error):
             result['html'] = html_content
             result['error'] = error
             result['done'] = True
             sem.release()
-        sem.acquire() 
-        self.get_page_html(callback)
-        # Wait for the result (with timeout)
-        sem.acquire()
-        sem.release()  
+            
+        # Safely execute the WebKit JS evaluation on the GTK Main Thread
+        GLib.idle_add(self.get_page_html, callback)
+        
+        sem.acquire()  
         if result['error']:
             print(f"Error getting HTML: {result['error']}")
             return None

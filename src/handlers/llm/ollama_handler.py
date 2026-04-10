@@ -20,12 +20,12 @@ from ...handlers import ExtraSettings
 
 class OllamaHandler(LLMHandler):
     key = "ollama"
-    default_models = (("gemma3:8b", "gemma3:8b"), )
+    default_models = (("qwen3.5:9b", "qwen3.5:9b"), )
     model_library = []
     # Url where to get the available models info
     library_url = "https://raw.githubusercontent.com/FrancescoCaracciolo/llm-library-scraper/refs/heads/main/ollama/available_models.json"
     # List of models to be included in the library by default
-    pinned_models = ["qwen3:4b", "qwen3:8b", "deepseek-r1:8b", "qwen3:14b", "llama3.2-vision:11b", "deepseek-r1:1.5b", "deepseek-r1:7b", "deepseek-r1:14b", "llama3.2:3b", "llama3.1:8b", "qwq:32b", "qwen2.5:1.5b", "qwen2.5:3b", "qwen2.5:7b", "qwen2.5:14b", "gemma2:2b", "gemma2:9b", "qwen2.5-coder:3b", "qwen2.5-coder:7b", "qwen2.5-coder:14b", "llama3.3:70b", "phi4:14b"]
+    pinned_models = ["qwen3.5:4b", "qwen3.5:9b", "gemma4:e2b", "gemma4:e4b"]
 
     def get_cache_path(self):
         cache_dir = self.path

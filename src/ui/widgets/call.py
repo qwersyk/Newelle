@@ -966,6 +966,7 @@ class CallPanel(Gtk.Box):
                     on_tool_result_callback=on_tool_result_callback,
                     max_tool_calls=5,
                     save_chat=True,
+                    force_tools_on_main_thread=True,
                 )
             finally:
                 self.controller.is_call_request = False

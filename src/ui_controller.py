@@ -135,3 +135,79 @@ class UIController:
     def remove_reading_widget(self):
         """Remove the reading widget from the UI"""
         self.window.remove_reading_widget()
+
+    def update_history(self):
+        return self.window.update_history()
+
+    def send_notification(self, text):
+        self.window.notification_block.add_toast(
+            Adw.Toast(title=text, timeout=2)
+        )
+
+class HeadlessController(UIController):
+    def __init__(self, window): 
+        self.controller = window
+
+    def require_tool_update(self):
+        self.controller.require_tool_update()
+
+    def set_model_loading(self, status):
+        pass
+
+    def get_current_chat_id(self):
+        return self.controller.newelle_settings.chat_id
+    
+    def get_current_message_id(self):
+        return self.controller.msgid
+
+    def get_current_tool_call_id(self):
+        """Get the UUID of the currently executing tool call."""
+        return getattr(self.controller, 'current_tool_uuid', None)
+
+    def get_tool_result_by_id(self, tool_uuid: str) -> str | None:
+        """Get the result of a tool call by its UUID from the current chat.
+
+        Args:
+            tool_uuid: The UUID of the tool call to look up
+
+        Returns:
+            The tool result text, or None if not found
+        """
+        chat = self.controller.chat
+        for entry in chat:
+            if entry.get("User") != "Console":
+                continue
+            msg = entry.get("Message", "")
+            # Parse tool header: [Tool: name, ID: uuid]
+            match = re.match(r'\[Tool: [^,]+, ID: ([^\]]+)\]\n?(.*)', msg, re.DOTALL)
+            if match:
+                parsed_uuid, result = match.groups()
+                if parsed_uuid == tool_uuid:
+                    return result
+        return None
+
+    def add_tab(self, child: Gtk.Widget, focus=True) -> Adw.TabPage:
+        pass
+    def new_browser_tab(self, url:str|None = None, new:bool=True) -> Adw.TabPage:
+        pass
+    def open_link(self, url:str|None, new:bool=False, use_integrated_browser : bool = True):
+        pass
+    def newiexplorer_tab(self, path:str, new:bool=True) -> Adw.TabPage:
+        pass
+    def new_editor_tab(self, file: str) -> Adw.TabPage:
+        pass
+    def new_terminal_tab(self, command: str | None = None) -> Adw.TabPage:
+        pass
+    def add_text_to_input(self, text: str, focus_input: bool = False):
+        pass
+    
+    def add_reading_widget(self, documents):
+        pass
+    def remove_reading_widget(self):
+        pass
+
+    def update_history(self):
+        pass
+
+    def send_notification(self, text):
+        return text

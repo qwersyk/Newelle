@@ -310,3 +310,53 @@ def open_folder(folder):
         folder (): location of the folder 
     """
     open_target(folder)
+
+def has_backend(backend: str, spawn: bool = True) -> bool:
+    """Check if a GPU/compute backend is available on the system.
+
+    Args:
+        backend: One of "cuda", "rocm", "vulkan", "openvino"
+        spawn: If True, use get_spawn_command() prefix for subprocess calls
+
+    Returns:
+        bool: True if the backend appears to be available
+    """
+    cmd_prefix = get_spawn_command() if spawn else []
+
+    def _run_check(cmd):
+        try:
+            result = subprocess.run(
+                cmd_prefix + cmd,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                timeout=5,
+            )
+            return result.returncode == 0
+        except (subprocess.TimeoutExpired, FileNotFoundError, OSError):
+            return False
+
+    def _path_check(path):
+        return os.path.exists(path)
+
+    if backend == "cuda":
+        if _run_check(["nvidia-smi"]):
+            return True
+        return _path_check("/proc/driver/nvidia/version")
+
+    elif backend == "rocm":
+        if _run_check(["rocminfo"]):
+            return True
+        return _path_check("/opt/rocm")
+
+    elif backend == "vulkan":
+        if _run_check(["vulkaninfo"]):
+            return True
+        icd_dir = "/usr/share/vulkan/icd.d"
+        if os.path.isdir(icd_dir):
+            return any(f.endswith(".json") for f in os.listdir(icd_dir))
+        return False
+
+    elif backend == "openvino":
+        return _run_check(["python3", "-c", "import openvino"])
+
+    return False
