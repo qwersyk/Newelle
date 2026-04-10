@@ -5,6 +5,7 @@ import time
 from .system import is_wayland 
 import re 
 import random 
+import sys
 
 class ReplaceHelper:
     DISTRO = None
@@ -22,11 +23,15 @@ class ReplaceHelper:
         Returns:
             str: distribution name
             
-        """
+        """ 
         if ReplaceHelper.DISTRO is None:
             try:
-                ReplaceHelper.DISTRO = subprocess.check_output(get_spawn_command() + ['bash', '-c', 'lsb_release -ds']).decode('utf-8').strip()
-            except subprocess.CalledProcessError:
+                if sys.platform == "darwin":
+                    version = subprocess.check_output(["sw_vers", "-productVersion"]).decode("utf-8").strip()
+                    ReplaceHelper.DISTRO = f"macOS {version}"
+                else:
+                    ReplaceHelper.DISTRO = subprocess.check_output(get_spawn_command() + ['bash', '-c', 'lsb_release -ds']).decode('utf-8').strip()
+            except (subprocess.CalledProcessError, FileNotFoundError):
                 ReplaceHelper.DISTRO = "Unknown"
         
         return ReplaceHelper.DISTRO
@@ -40,13 +45,15 @@ class ReplaceHelper:
             str: server name
             
         """ 
+        if sys.platform == "darwin":
+            return "Quartz"
         return "Wayland" if is_wayland() else "X11"
 
     @staticmethod
     def get_desktop_environment() -> str:
         desktop = os.getenv("XDG_CURRENT_DESKTOP")
         if desktop is None:
-            desktop = "Unknown"
+            desktop = "macOS" if sys.platform == "darwin" else "Unknown"
         return desktop
 
     @staticmethod

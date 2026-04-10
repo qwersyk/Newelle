@@ -1,0 +1,56 @@
+name: macOS Build
+
+on:
+  push:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build (${{ matrix.arch }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-26-intel
+            arch: x86_64
+          - os: macos-26
+            arch: arm64
+
+    env:
+      HOMEBREW_NO_AUTO_UPDATE: 1
+      HOMEBREW_NO_INSTALL_CLEANUP: 1
+      NEWELLE_ARCH: ${{ matrix.arch }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Homebrew dependencies
+        run: |
+          brew install \
+            python@3.13 \
+            gtk4 \
+            libadwaita \
+            gtksourceview5 \
+            pygobject3 \
+            adwaita-icon-theme \
+            vte3 \
+            portaudio \
+            librsvg \
+            ffmpeg \
+            gettext
+
+      - name: Build app
+        run: /usr/bin/env bash macos/build_newelle_app.sh
+
+      - name: Build DMG
+        run: NEWELLE_SKIP_APP_BUILD=1 /usr/bin/env bash macos/build_newelle_dmg.sh
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: Newelle-macos-${{ matrix.arch }}
+          path: |
+            dist/Newelle.app
+            dist/Newelle-*-macos-${{ matrix.arch }}.dmg

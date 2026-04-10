@@ -4,7 +4,6 @@ import os
 import shutil
 import json 
 import time 
-from subprocess import Popen 
 
 from gi.repository import Gtk, Adw, Gio, GLib, GtkSource
 
@@ -16,7 +15,7 @@ from ..constants import AVAILABLE_EMBEDDINGS, AVAILABLE_LLMS, AVAILABLE_MEMORIES
 from ..utility.pip import install_module
 from .widgets import ComboRowHelper, CopyBox 
 from .widgets import MultilineEntry
-from ..utility.system import can_escape_sandbox, get_spawn_command, open_website, open_folder, is_flatpak 
+from ..utility.system import can_escape_sandbox, install_window_text_input_handlers, open_website, open_folder, is_flatpak 
 
 from ..controller import NewelleController
 
@@ -30,7 +29,10 @@ class Settings(Adw.PreferencesWindow):
         self.popup = popup
         if not headless:
             self.set_transient_for(app.win)
-        self.set_modal(True)
+            self.set_modal(True)
+            self.set_default_size(460, 560)
+            self.set_resizable(True)
+            install_window_text_input_handlers(self)
         self.downloading = {}
         self.slider_labels = {}
         self.directory = GLib.get_user_config_dir()
@@ -58,7 +60,7 @@ class Settings(Adw.PreferencesWindow):
         self.LLM = Adw.PreferencesGroup(title=_('Language Model'))
         # Add Help Button 
         help = Gtk.Button(css_classes=["flat"], icon_name="info-outline-symbolic")
-        help.connect("clicked", lambda button : Popen(get_spawn_command() + ["xdg-open", "https://github.com/qwersyk/Newelle/wiki/User-guide-to-the-available-LLMs"]))
+        help.connect("clicked", lambda button : open_website("https://github.com/qwersyk/Newelle/wiki/User-guide-to-the-available-LLMs"))
         self.LLM.set_header_suffix(help)
         # Add LLMs
         self.LLMPage.add(self.LLM)

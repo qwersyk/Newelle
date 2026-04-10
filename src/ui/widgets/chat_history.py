@@ -1324,7 +1324,8 @@ class ChatHistory(Gtk.Box):
                 self.main_path = button.get_name()
                 self.ui_controller.new_explorer_tab(self.main_path, False)
             else:
-                subprocess.run(["xdg-open", os.path.expanduser(button.get_name())])
+                from ...utility.system import open_folder
+                open_folder(os.path.expanduser(button.get_name()))
         else:
             self.notification_block.add_toast(
                 Adw.Toast(title=_("File not found"), timeout=2)

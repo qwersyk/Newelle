@@ -6,6 +6,7 @@ gi.require_version('Adw', '1')
 gi.require_version('GtkSource', '5') # Using GtkSourceView 5
 
 from gi.repository import Gtk, GObject, GtkSource, Gio, GLib, Adw, Gdk
+from ...utility.system import has_primary_modifier, open_folder
 
 class CodeEditorWidget(Gtk.Box):
     """
@@ -392,7 +393,7 @@ class CodeEditorWidget(Gtk.Box):
         """Handle open button click."""
         if self.current_file_path:
             # Open the file in an external editor
-            os.system(f'xdg-open {self.current_file_path}')
+            open_folder(self.current_file_path)
 
     def _on_add_to_chat_clicked(self, button):
         """Handle add to chat button click."""
@@ -411,7 +412,7 @@ class CodeEditorWidget(Gtk.Box):
 
     def _on_key_pressed(self, controller, keyval, keycode, state):
         """Handle key press events."""
-        if state & Gdk.ModifierType.CONTROL_MASK:
+        if has_primary_modifier(state):
             if keyval == Gdk.KEY_s:
                 self._on_save_clicked(None)
                 return Gdk.EVENT_STOP

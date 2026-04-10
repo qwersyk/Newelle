@@ -1,4 +1,5 @@
 from gi.repository import Gtk, Adw
+from ..utility.system import primary_accel
 
 
 class Shortcuts(Gtk.Window):
@@ -10,17 +11,21 @@ class Shortcuts(Gtk.Window):
 
         sect_main = Gtk.Box(margin_top=10,margin_start=10,margin_bottom=10,margin_end=10,valign=Gtk.Align.START,halign=Gtk.Align.CENTER)
         gr = Gtk.ShortcutsGroup(title=_("Shortcuts"))
-        gr.append(Gtk.ShortcutsShortcut(title=_("Reload chat"), accelerator='<primary>r'))
-        gr.append(Gtk.ShortcutsShortcut(title=_("Reload folder"), accelerator='<primary>r'))
-        gr.append(Gtk.ShortcutsShortcut(title=_("New tab"), accelerator='<primary>t'))
-        gr.append(Gtk.ShortcutsShortcut(title=_("Paste Image"), accelerator='<primary>v'))
-        gr.append(Gtk.ShortcutsShortcut(title=_("Focus message box"), accelerator='<primary>l'))
-        gr.append(Gtk.ShortcutsShortcut(title=_("Start/stop recording"), accelerator='<primary>g'))
-        gr.append(Gtk.ShortcutsShortcut(title=_("Stop generation"), accelerator='<primary>q'))
-        gr.append(Gtk.ShortcutsShortcut(title=_("Save"), accelerator='<primary>s'))
-        gr.append(Gtk.ShortcutsShortcut(title=_("Stop TTS"), accelerator='<primary>k'))
-        gr.append(Gtk.ShortcutsShortcut(title=_("Zoom in"), accelerator='<primary>plus'))
-        gr.append(Gtk.ShortcutsShortcut(title=_("Zoom out"), accelerator='<primary>minus'))
+        gr.append(Gtk.ShortcutsShortcut(title=_("New chat"), accelerator=primary_accel("n")))
+        gr.append(Gtk.ShortcutsShortcut(title=_("New tab"), accelerator=primary_accel("t")))
+        gr.append(Gtk.ShortcutsShortcut(title=_("Open mini window"), accelerator=primary_accel("<Shift>m")))
+        gr.append(Gtk.ShortcutsShortcut(title=_("Close window"), accelerator=primary_accel("w")))
+        gr.append(Gtk.ShortcutsShortcut(title=_("Quit app"), accelerator=primary_accel("q")))
+        gr.append(Gtk.ShortcutsShortcut(title=_("Reload chat"), accelerator=primary_accel("r")))
+        gr.append(Gtk.ShortcutsShortcut(title=_("Reload folder"), accelerator=primary_accel("e")))
+        gr.append(Gtk.ShortcutsShortcut(title=_("Paste image"), accelerator=primary_accel("v")))
+        gr.append(Gtk.ShortcutsShortcut(title=_("Focus message box"), accelerator=primary_accel("l")))
+        gr.append(Gtk.ShortcutsShortcut(title=_("Start/stop recording"), accelerator=primary_accel("<Shift>r")))
+        gr.append(Gtk.ShortcutsShortcut(title=_("Stop generation"), accelerator=primary_accel("period")))
+        gr.append(Gtk.ShortcutsShortcut(title=_("Save"), accelerator=primary_accel("s")))
+        gr.append(Gtk.ShortcutsShortcut(title=_("Stop TTS"), accelerator=primary_accel("k")))
+        gr.append(Gtk.ShortcutsShortcut(title=_("Zoom in"), accelerator=primary_accel("plus")))
+        gr.append(Gtk.ShortcutsShortcut(title=_("Zoom out"), accelerator=primary_accel("minus")))
 
         sect_main.append(gr)
         self.set_child(sect_main)

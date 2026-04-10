@@ -2007,49 +2007,76 @@ class HandlersManager:
         for handler in self.handlers.values():
             handler.destroy()
 
+    def _pick_installed_handler_key(self, registry: dict[str, Any], preferred_key: str, secondary: bool = False) -> str:
+        installed_cache: dict[str, bool] = {}
+
+        def is_installed(key: str) -> bool:
+            if key in installed_cache:
+                return installed_cache[key]
+
+            handler = registry[key]["class"](self.settings, self.directory)
+            try:
+                if registry == AVAILABLE_LLMS or registry == AVAILABLE_STT:
+                    handler.set_secondary_settings(secondary)
+                installed_cache[key] = handler.is_installed()
+            finally:
+                handler.destroy()
+            return installed_cache[key]
+
+        if preferred_key in registry and is_installed(preferred_key):
+            return preferred_key
+
+        for key in registry:
+            if is_installed(key):
+                return key
+
+        return list(registry.keys())[0]
+
+    def _sync_handler_settings(self, newelle_settings: NewelleSettings) -> None:
+        self.settings.set_string("language-model", newelle_settings.language_model)
+        self.settings.set_string("secondary-language-model", newelle_settings.secondary_language_model)
+        self.settings.set_string("embedding-model", newelle_settings.embedding_model)
+        self.settings.set_string("memory-model", newelle_settings.memory_model)
+        self.settings.set_string("rag-model", newelle_settings.rag_model)
+        self.settings.set_string("tts", newelle_settings.tts_program)
+        self.settings.set_string("stt-engine", newelle_settings.stt_engine)
+        self.settings.set_string("secondary-stt-engine", newelle_settings.secondary_stt_engine)
+        self.settings.set_string("wakeword-engine", newelle_settings.wakeword_engine)
+        self.settings.set_string("websearch-model", newelle_settings.websearch_model)
+
     def fix_handlers_integrity(self, newelle_settings: NewelleSettings):
         """Select available handlers if not available handlers in settings
 
         Args:
             newelle_settings: Newelle settings
         """
-        if newelle_settings.language_model not in AVAILABLE_LLMS:
-            newelle_settings.language_model = list(AVAILABLE_LLMS.keys())[0]
-        if newelle_settings.secondary_language_model not in AVAILABLE_LLMS:
-            newelle_settings.secondary_language_model = list(AVAILABLE_LLMS.keys())[0]
-        if newelle_settings.embedding_model not in AVAILABLE_EMBEDDINGS:
-            newelle_settings.embedding_model = list(AVAILABLE_EMBEDDINGS.keys())[0]
-        if newelle_settings.memory_model not in AVAILABLE_MEMORIES:
-            newelle_settings.memory_model = list(AVAILABLE_MEMORIES.keys())[0]
-        if newelle_settings.rag_model not in AVAILABLE_RAGS:
-            newelle_settings.rag_model = list(AVAILABLE_RAGS.keys())[0]
-        if newelle_settings.tts_program not in AVAILABLE_TTS:
-            newelle_settings.tts_program = list(AVAILABLE_TTS.keys())[0]
-        if newelle_settings.stt_engine not in AVAILABLE_STT:
-            newelle_settings.stt_engine = list(AVAILABLE_STT.keys())[0]
-        if newelle_settings.secondary_stt_engine not in AVAILABLE_STT:
+        newelle_settings.language_model = self._pick_installed_handler_key(AVAILABLE_LLMS, newelle_settings.language_model)
+        newelle_settings.secondary_language_model = self._pick_installed_handler_key(AVAILABLE_LLMS, newelle_settings.secondary_language_model, True)
+        newelle_settings.embedding_model = self._pick_installed_handler_key(AVAILABLE_EMBEDDINGS, newelle_settings.embedding_model)
+        newelle_settings.memory_model = self._pick_installed_handler_key(AVAILABLE_MEMORIES, newelle_settings.memory_model)
+        newelle_settings.rag_model = self._pick_installed_handler_key(AVAILABLE_RAGS, newelle_settings.rag_model)
+        newelle_settings.tts_program = self._pick_installed_handler_key(AVAILABLE_TTS, newelle_settings.tts_program)
+        newelle_settings.stt_engine = self._pick_installed_handler_key(AVAILABLE_STT, newelle_settings.stt_engine)
+        if newelle_settings.secondary_stt_engine not in AVAILABLE_STT or not self.get_object(AVAILABLE_STT, newelle_settings.secondary_stt_engine, True).is_installed():
             # Find first secondary-capable STT
             for key in AVAILABLE_STT:
-                if "secondary" in AVAILABLE_STT[key] and AVAILABLE_STT[key]["secondary"]:
+                if "secondary" in AVAILABLE_STT[key] and AVAILABLE_STT[key]["secondary"] and self.get_object(AVAILABLE_STT, key, True).is_installed():
                     newelle_settings.secondary_stt_engine = key
                     break
             else:
-                # Fallback to first STT if none are marked as secondary
-                newelle_settings.secondary_stt_engine = list(AVAILABLE_STT.keys())[0]
-        if newelle_settings.wakeword_engine not in AVAILABLE_STT:
+                newelle_settings.secondary_stt_engine = self._pick_installed_handler_key(AVAILABLE_STT, newelle_settings.secondary_stt_engine, True)
+        if newelle_settings.wakeword_engine not in AVAILABLE_STT or not self.get_object(AVAILABLE_STT, newelle_settings.wakeword_engine, True).is_installed():
             # Find first wakeword-capable STT
             for key in AVAILABLE_STT:
-                if AVAILABLE_STT[key].get("wakeword", False):
+                if AVAILABLE_STT[key].get("wakeword", False) and self.get_object(AVAILABLE_STT, key, True).is_installed():
                     newelle_settings.wakeword_engine = key
                     break
             else:
-                # Fallback to openwakeword if available, or first STT
                 if "openwakeword" in AVAILABLE_STT:
                     newelle_settings.wakeword_engine = "openwakeword"
                 else:
-                    newelle_settings.wakeword_engine = list(AVAILABLE_STT.keys())[0]
-        if newelle_settings.websearch_model not in AVAILABLE_WEBSEARCH:
-            newelle_settings.websearch_model = list(AVAILABLE_WEBSEARCH.keys())[0]
+                    newelle_settings.wakeword_engine = self._pick_installed_handler_key(AVAILABLE_STT, newelle_settings.wakeword_engine, True)
+        newelle_settings.websearch_model = self._pick_installed_handler_key(AVAILABLE_WEBSEARCH, newelle_settings.websearch_model)
       
     def set_ui_controller(self, ui_controller):
         self.ui_controller = ui_controller
@@ -2061,6 +2088,7 @@ class HandlersManager:
             newelle_settings: Newelle settings
         """
         self.fix_handlers_integrity(newelle_settings)
+        self._sync_handler_settings(newelle_settings)
         # Get LLM
         self.llm : LLMHandler = self.get_object(AVAILABLE_LLMS, newelle_settings.language_model)
         if newelle_settings.use_secondary_language_model:

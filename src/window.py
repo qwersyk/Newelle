@@ -26,7 +26,7 @@ from .ui.widgets.context_indicator import ContextIndicator
 from .ui.stdout_monitor import StdoutMonitorDialog
 from .utility.stdout_capture import StdoutMonitor
 from .constants import AVAILABLE_LLMS, SCHEMA_ID, SETTINGS_GROUPS
-from .utility.system import get_spawn_command, open_website, is_flatpak
+from .utility.system import get_spawn_command, install_window_text_input_handlers, open_website, is_flatpak
 from .utility.strings import (
     clean_bot_response,
     convert_think_codeblocks,
@@ -54,11 +54,17 @@ class MainWindow(Adw.ApplicationWindow):
 
         super().__init__(*args, **kwargs)
         self.app = self.get_application()
+        install_window_text_input_handlers(self)
+
+        self.chat_panel_width = 380
+        self.history_sidebar_width = 260
+        self.canvas_sidebar_width = 360
+        self._mini_saved_state = None
         # Main program block - On the right Canvas tabs, Chat as content
         self.main_program_block = Adw.OverlaySplitView(
             enable_hide_gesture=False,
             sidebar_position=Gtk.PackType.END,
-            min_sidebar_width=420,
+            min_sidebar_width=self.canvas_sidebar_width,
             max_sidebar_width=10000
         )
         # UI things
@@ -73,7 +79,8 @@ class MainWindow(Adw.ApplicationWindow):
         self.wakeword_detector = None
         self.wakeword_listening = False
         # Breakpoint - Collapse the sidebar when the window is too narrow
-        breakpoint = Adw.Breakpoint(condition=Adw.BreakpointCondition.new_length(Adw.BreakpointConditionLengthType.MAX_WIDTH, 1000, Adw.LengthUnit.PX))
+        canvas_collapse_width = 760
+        breakpoint = Adw.Breakpoint(condition=Adw.BreakpointCondition.new_length(Adw.BreakpointConditionLengthType.MAX_WIDTH, canvas_collapse_width, Adw.LengthUnit.PX))
         breakpoint.add_setter(self.main_program_block, "collapsed", True)
         self.add_breakpoint(breakpoint)
        
@@ -136,15 +143,15 @@ class MainWindow(Adw.ApplicationWindow):
         self.scroll_handler_id = None  # Store scroll handler ID to disconnect when needed
         # Build Window
         self.chat_panel = Gtk.Box(hexpand_set=True, hexpand=True)
-        self.chat_panel.set_size_request(450, -1)
+        self.chat_panel.set_size_request(self.chat_panel_width, -1)
         menu_button = Gtk.MenuButton()
         menu_button.set_icon_name("open-menu-symbolic")
         menu = Gio.Menu()
         menu.append(_("Thread editing"), "app.thread_editing")
         menu.append(_("Scheduled tasks"), "app.scheduled_tasks")
         menu.append(_("Extensions"), "app.extension")
-        menu.append(_("Settings"), "app.settings")
-        menu.append(_("Keyboard shorcuts"), "app.shortcuts")
+        menu.append(_("Settings"), "app.preferences")
+        menu.append(_("Keyboard shortcuts"), "app.shortcuts")
         
         # Add export/import section as a submenu
         export_import_menu = Gio.Menu()
@@ -164,10 +171,12 @@ class MainWindow(Adw.ApplicationWindow):
         self.chat_block = Gtk.Box(
             orientation=Gtk.Orientation.VERTICAL, hexpand=True, css_classes=["view"]
         )
-        self.chat_header = Adw.HeaderBar(css_classes=["flat", "view"], show_start_title_buttons=False, show_end_title_buttons=True)
+        self.chat_header = Adw.HeaderBar(css_classes=["flat", "view"], show_start_title_buttons=False, show_end_title_buttons=False)
         self.chat_header.set_title_widget(
             Gtk.Label(label=_("Chat"), css_classes=["title", "window-bar-label"])
         )
+        self.chat_toolbar_view = Adw.ToolbarView()
+        self.chat_toolbar_view.add_top_bar(self.chat_header)
 
         # Header box - Contains the buttons that must go in the left side of the header
         self.headerbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, hexpand=True)
@@ -190,30 +199,37 @@ class MainWindow(Adw.ApplicationWindow):
     
         self.left_panel_toggle_button = Gtk.ToggleButton(css_classes=["flat"], active=True, icon_name="sidebar-show-left-symbolic")
         self.left_panel_toggle_button.connect("clicked", self.on_chat_panel_toggled)
+        self.chat_header_start = Gtk.Box(
+            orientation=Gtk.Orientation.HORIZONTAL,
+            spacing=0,
+        )
+        self.chat_header_start.append(self.left_panel_toggle_button)
+        self.chat_header.pack_start(self.chat_header_start)
 
-        self.chat_block.append(self.chat_header)
         self.chat_block.append(Gtk.Separator())
-        self.chat_panel.append(self.chat_block)
+        self.chat_toolbar_view.set_content(self.chat_block)
+        self.chat_panel.append(self.chat_toolbar_view)
         self.chat_panel.append(Gtk.Separator())
 
         # Setup main program block
         self.main = Adw.OverlaySplitView(
             collapsed=False,
-            min_sidebar_width=300
+            min_sidebar_width=self.history_sidebar_width
         )
         # Connect toggle button
         self.chats_main_box = Gtk.Box(hexpand_set=True)
-        self.chats_main_box.set_size_request(300, -1)
+        self.chats_main_box.set_size_request(self.history_sidebar_width, -1)
         self.chats_secondary_box = Gtk.Box(
             orientation=Gtk.Orientation.VERTICAL, hexpand=True, css_classes=["background"]
         )
         self.chat_panel_header = Adw.HeaderBar(
-            css_classes=["flat"], show_end_title_buttons=False, show_start_title_buttons=True
+            css_classes=["flat"], show_end_title_buttons=False, show_start_title_buttons=False
         )
+        self.history_toolbar_view = Adw.ToolbarView()
+        self.history_toolbar_view.add_top_bar(self.chat_panel_header)
         self.chat_panel_header.set_title_widget(
             Gtk.Label(label=_("History"), css_classes=["title"])
         )
-        self.chats_secondary_box.append(self.chat_panel_header)
         self.chat_panel_header.pack_end(menu_button)
         
         # Chat list with navigation-sidebar styling for Adwaita look
@@ -258,7 +274,8 @@ class MainWindow(Adw.ApplicationWindow):
         bottom_buttons.append(new_folder_button)
 
         self.chats_secondary_box.append(bottom_buttons)
-        self.chats_main_box.append(self.chats_secondary_box)
+        self.history_toolbar_view.set_content(self.chats_secondary_box)
+        self.chats_main_box.append(self.history_toolbar_view)
         self.chats_main_box.append(Gtk.Separator())
         self.main.set_sidebar(Adw.NavigationPage(child=self.chats_main_box, title=_("Chats")))
         self.main.set_content(Adw.NavigationPage(child=self.chat_panel, title=_("Chat")))
@@ -279,6 +296,7 @@ class MainWindow(Adw.ApplicationWindow):
         self.chat_tabs.connect("notify::selected-page", self._on_chat_tab_switched)
         self.chat_tabs.connect("close-page", self._on_chat_tab_close_requested)
         self.chat_tabs.connect("page-detached", lambda *_: self.update_history())
+        self.mini_mode = False
         
         # Tab bar - shows tabs when more than one is open
         self.chat_tab_bar = Adw.TabBar(autohide=True, view=self.chat_tabs, css_classes=["inline"])
@@ -300,19 +318,22 @@ class MainWindow(Adw.ApplicationWindow):
         self.secondary_message_chat_block.append(self.notification_block)
         
         # Header controls on the left: History - Profile - Tab Overview - Add Tab
-        self.chat_header.pack_start(self.left_panel_toggle_button)
+        self.new_chat_toolbar_button = Gtk.Button(css_classes=["flat"], icon_name="document-new-symbolic")
+        self.new_chat_toolbar_button.set_tooltip_text(_("New Chat"))
+        self.new_chat_toolbar_button.connect("clicked", self.new_chat)
+        self.chat_header_start.append(self.new_chat_toolbar_button)
         
         self.profiles_box = None
         self.refresh_profiles_box()
 
         self.chat_tab_button = Adw.TabButton(view=self.chat_tabs)
         self.chat_tab_button.connect("clicked", lambda x: self.chat_tab_overview.set_open(not self.chat_tab_overview.get_open()))
-        self.chat_header.pack_start(self.chat_tab_button)
+        self.chat_header_start.append(self.chat_tab_button)
 
         self.add_chat_button = Gtk.Button(css_classes=["flat"], icon_name="list-add-symbolic")
         self.add_chat_button.set_tooltip_text(_("New Tab"))
         self.add_chat_button.connect("clicked", lambda *_: self._on_create_chat_tab(None))
-        self.chat_header.pack_start(self.add_chat_button)
+        self.chat_header_start.append(self.add_chat_button)
 
         # Explorer panel 
         self.main_program_block.set_show_sidebar(False)
@@ -343,9 +364,11 @@ class MainWindow(Adw.ApplicationWindow):
         GLib.idle_add(self.show_chat)
         self.controller.start_scheduler()
         if not self.settings.get_boolean("welcome-screen-shown"):
-            threading.Thread(target=self.show_presentation_window).start()
+            GLib.idle_add(self.show_presentation_window)
         GLib.timeout_add(10, build_model_popup)
         self.controller.handlers.set_error_func(self.handle_error)
+        self.handle_main_block_change()
+        self.handle_second_block_change()
         
         # Connect cleanup on window destroy
         self.connect("destroy", self._cleanup_on_destroy)
@@ -360,7 +383,7 @@ class MainWindow(Adw.ApplicationWindow):
 
     def build_canvas(self):
 
-        self.canvas_header = Adw.HeaderBar(css_classes=["flat"], show_start_title_buttons=False)
+        self.canvas_header = Adw.HeaderBar(css_classes=["flat"], show_start_title_buttons=False, show_end_title_buttons=False)
         self.canvas_header.set_title_widget(Gtk.Label())
         self.canvas_headerbox = Gtk.Box(halign=Gtk.Align.CENTER)
         self.canvas_header.pack_start(self.canvas_headerbox)
@@ -439,19 +462,22 @@ class MainWindow(Adw.ApplicationWindow):
         self.canvas_header.pack_end(self.new_tab_button)
         self.canvas_header.pack_end(self.detach_tab_button)
 
+        self.canvas_toolbar_view = Adw.ToolbarView()
+        self.canvas_toolbar_view.add_top_bar(self.canvas_header)
         self.canvas_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        self.canvas_box.append(self.canvas_header)
         self.canvas_box.append(self.canvas_tab_bar)
         self.canvas_box.append(self.canvas_overview)
+        self.canvas_toolbar_view.set_content(self.canvas_box)
         self.add_explorer_tab(None, self.main_path)
         self.set_content(self.main_program_block)
-        bin = Adw.BreakpointBin(child=self.main, width_request=300, height_request=300)
-        breakpoint = Adw.Breakpoint(condition=Adw.BreakpointCondition.new_length(Adw.BreakpointConditionLengthType.MAX_WIDTH, 900, Adw.LengthUnit.PX))
+        bin = Adw.BreakpointBin(child=self.main, width_request=self.history_sidebar_width, height_request=300)
+        history_collapse_width = 680
+        breakpoint = Adw.Breakpoint(condition=Adw.BreakpointCondition.new_length(Adw.BreakpointConditionLengthType.MAX_WIDTH, history_collapse_width, Adw.LengthUnit.PX))
         breakpoint.add_setter(self.main, "collapsed", True)
         bin.add_breakpoint(breakpoint)
 
         self.main_program_block.set_content(bin)
-        self.main_program_block.set_sidebar(self.canvas_box)
+        self.main_program_block.set_sidebar(self.canvas_toolbar_view)
         self.main_program_block.set_name("hide")
    
     def detach_tab(self, button):
@@ -471,11 +497,11 @@ class MainWindow(Adw.ApplicationWindow):
                 tab_title = tab.get_title()
                 title_label = Gtk.Label(label=tab_title)
                 # Create window
-                headerbar = Adw.HeaderBar(css_classes=["flat"], title_widget=title_label)
+                headerbar = Adw.HeaderBar(css_classes=["flat"], title_widget=title_label, show_start_title_buttons=True, show_end_title_buttons=False)
                 content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
                 content.append(headerbar)
                 content.append(otherview)
-                window = Gtk.Window(child=content, decorated=False)
+                window = Gtk.Window(child=content, decorated=True)
                 tab.connect("notify::title", lambda x, title: title_label.set_label(x.get_title()))
                 window.show()
                 window.connect("close-request", self.reattach_tab, tab, otherview)
@@ -618,6 +644,13 @@ class MainWindow(Adw.ApplicationWindow):
                 return True  # Prevent close, we'll handle it via new_chat
         
         return False  # Allow close
+
+    def close_active_chat_tab_or_window(self):
+        selected_page = self.chat_tabs.get_selected_page()
+        if selected_page is not None and self.chat_tabs.get_n_pages() > 1:
+            self.chat_tabs.close_page(selected_page)
+            return
+        self.close()
     
     def _on_create_chat_tab(self, tab_overview) -> Adw.TabPage:
         """Handle new tab creation from tab overview."""
@@ -910,7 +943,7 @@ class MainWindow(Adw.ApplicationWindow):
             css_classes=["flat"],
             icon_name="settings-symbolic"
         )
-        settings_button.connect("clicked", lambda btn: self.get_application().lookup_action("settings").activate(None))
+        settings_button.connect("clicked", lambda btn: self.get_application().activate_action("preferences", None))
         title_box.append(settings_button)
         
         return title_box
@@ -1012,7 +1045,7 @@ class MainWindow(Adw.ApplicationWindow):
         plus_button.get_style_context().add_class("suggested-action")
         plus_button.connect(
             "clicked",
-            lambda btn: self.get_application().lookup_action("settings").activate(None),
+            lambda btn: self.get_application().activate_action("preferences", None),
         )
         group.add(plus_button)  # Add plus button inside the group
 
@@ -1084,6 +1117,7 @@ class MainWindow(Adw.ApplicationWindow):
         self.controller.handlers.handlers_cached.acquire()
         self.controller.handlers.handlers_cached.release()
         GLib.idle_add(show_presentation)
+        return False
 
     def mute_tts(self, button: Gtk.Button):
         """Mute the TTS"""
@@ -1213,9 +1247,9 @@ class MainWindow(Adw.ApplicationWindow):
     def refresh_profiles_box(self):
         """Changes the profile switch button on the header"""
         if self.profiles_box is not None:
-            self.chat_header.remove(self.profiles_box)
+            self.chat_header_start.remove(self.profiles_box)
         self.profiles_box = self.get_profiles_box()
-        self.chat_header.pack_start(self.profiles_box)
+        self.chat_header_start.append(self.profiles_box)
 
     def _update_profile_avatar(self, profile: str):
         """Fast update of just the profile avatar without rebuilding the entire menu"""
@@ -1603,6 +1637,11 @@ class MainWindow(Adw.ApplicationWindow):
     # Voice Recording
     def start_recording(self, button):
         """Start recording voice for Speech to Text"""
+        if self.stt is None or not self.stt.is_installed():
+            self.notification_block.add_toast(
+                Adw.Toast(title=_("Speech recognition is not available"), timeout=3)
+            )
+            return
         path = os.path.join(self.controller.cache_dir, "recording.wav")
         if os.path.exists(path):
             os.remove(path)
@@ -1626,8 +1665,25 @@ class MainWindow(Adw.ApplicationWindow):
             silence_duration=self.controller.newelle_settings.stt_silence_detection_duration,
             silence_threshold_percent=self.controller.newelle_settings.stt_silence_detection_threshold,
         )
-        t = threading.Thread(target=self.recorder.start_recording, args=(path,))
+        t = threading.Thread(target=self._record_audio_thread, args=(path,))
         t.start()
+
+    def _record_audio_thread(self, path):
+        try:
+            self.recorder.start_recording(path)
+        except Exception as exc:
+            GLib.idle_add(self._handle_recording_failure, str(exc))
+
+    def _handle_recording_failure(self, message):
+        self.recording = False
+        self.automatic_stt_status = False
+        if getattr(self, "recording_button", None) is not None:
+            self.stop_recording_ui(self.recording_button)
+        self.notification_block.add_toast(
+            Adw.Toast(title=_("Microphone access failed"), timeout=4)
+        )
+        print(message)
+        return GLib.SOURCE_REMOVE
 
     def auto_stop_recording(self, button=False):
         """Stop recording after an auto stop signal"""
@@ -1663,9 +1719,13 @@ class MainWindow(Adw.ApplicationWindow):
     def stop_recording_async(self, button=False):
         """Stop recording and save the file"""
         recognizer = self.stt
-        result = recognizer.recognize_file(
-            os.path.join(self.controller.cache_dir, "recording.wav")
-        )
+        try:
+            result = recognizer.recognize_file(
+                os.path.join(self.controller.cache_dir, "recording.wav")
+            )
+        except Exception as exc:
+            GLib.idle_add(self._handle_recording_failure, str(exc))
+            return
 
         def idle_record():
             tab = self.get_active_chat_tab()
@@ -1807,6 +1867,9 @@ class MainWindow(Adw.ApplicationWindow):
 
     # Flap management
     def on_chat_panel_toggled(self, button: Gtk.ToggleButton):
+        if self.mini_mode:
+            button.set_active(False)
+            return
         if button.get_active():
             self.main.set_name("visible")
             self.main.set_show_sidebar(True)
@@ -1820,6 +1883,11 @@ class MainWindow(Adw.ApplicationWindow):
 
     def handle_second_block_change(self, *a):
         """Handle flaps reveal/hide"""
+        if self.mini_mode:
+            if self.main_program_block.get_show_sidebar():
+                self.main_program_block.set_show_sidebar(False)
+            self.chat_toolbar_view.set_reveal_top_bars(False)
+            return
         status = self.main_program_block.get_show_sidebar()
         name = self.main_program_block.get_name()
         collapsed = self.main_program_block.get_collapsed()
@@ -1830,25 +1898,20 @@ class MainWindow(Adw.ApplicationWindow):
         elif name == "visible" and not status and not collapsed:
             self.main_program_block.set_show_sidebar(True)
             return True
-        status = self.main_program_block.get_show_sidebar()
-        if status:
-            self.chat_panel_header.set_show_end_title_buttons(False)
-            self.chat_header.set_show_end_title_buttons(False)
-            header_widget = self.canvas_headerbox
-        else:
-            self.chat_panel_header.set_show_end_title_buttons(not self.main.get_show_sidebar())
-            self.chat_header.set_show_end_title_buttons(True)
-            header_widget = self.chat_header
-        # Unparent the headerbox
-        self.headerbox.unparent()
-        # Move the headerbox to the right widget
-        if type(header_widget) is Adw.HeaderBar or type(header_widget) is Gtk.HeaderBar:
-            header_widget.pack_end(self.headerbox)
-        elif type(header_widget) is Gtk.Box:
-            self.canvas_headerbox.append(self.headerbox)
+        header_widget = self.canvas_headerbox if self.main_program_block.get_show_sidebar() else self.chat_header
+        if self.headerbox.get_parent() is not header_widget:
+            if self.headerbox.get_parent() is not None:
+                self.headerbox.unparent()
+            if isinstance(header_widget, (Adw.HeaderBar, Gtk.HeaderBar)):
+                header_widget.pack_end(self.headerbox)
+            else:
+                header_widget.append(self.headerbox)
 
     def on_flap_button_toggled(self, toggle_button: Gtk.ToggleButton):
         """Handle flap button toggle"""
+        if self.mini_mode:
+            toggle_button.set_active(False)
+            return
         self.focus_input()
         if toggle_button.get_active():
             self.main_program_block.set_name("visible")
@@ -1922,6 +1985,11 @@ class MainWindow(Adw.ApplicationWindow):
                 )
 
     def handle_main_block_change(self, *data):
+        if self.mini_mode:
+            if self.main.get_show_sidebar():
+                self.main.set_show_sidebar(False)
+            self.chat_toolbar_view.set_reveal_top_bars(False)
+            return
         status = self.main.get_show_sidebar()
         name = self.main.get_name()
         collapsed = self.main.get_collapsed()
@@ -1930,15 +1998,61 @@ class MainWindow(Adw.ApplicationWindow):
             self.main.set_show_sidebar(False)
         elif name == "visible" and not status and not collapsed:
             self.main.set_show_sidebar(True)
+        show_history = self.main.get_show_sidebar()
+        self.chat_panel_header.set_show_start_title_buttons(show_history)
+        self.chat_header.set_show_start_title_buttons(not show_history)
+        self.chat_header_start.set_margin_start(0)
 
-        if self.main.get_show_sidebar():
-            self.chat_panel_header.set_show_end_title_buttons(
-                not self.main_program_block.get_show_sidebar()
-            )
-            self.chat_header.set_show_start_title_buttons(True)
-        else:
-            self.chat_panel_header.set_show_end_title_buttons(False)
-            self.chat_header.set_show_start_title_buttons(False)
+    def enter_mini_mode(self):
+        if self.mini_mode:
+            self.present()
+            return
+        self._mini_saved_state = {
+            "width": max(self.get_width(), self.settings.get_int("window-width")),
+            "height": max(self.get_height(), self.settings.get_int("window-height")),
+            "history_visible": self.main.get_show_sidebar(),
+            "canvas_visible": self.main_program_block.get_show_sidebar(),
+            "resizable": self.get_resizable(),
+            "decorated": self.get_decorated(),
+        }
+        self.mini_mode = True
+        self.set_default_size(520, 640)
+        self.set_resizable(False)
+        self.set_decorated(False)
+        self.add_css_class("mini-window")
+        self.main.set_name("hide")
+        self.main.set_show_sidebar(False)
+        self.main_program_block.set_name("hide")
+        self.main_program_block.set_show_sidebar(False)
+        self.left_panel_toggle_button.set_active(False)
+        self.flap_button_left.set_active(False)
+        self.chat_toolbar_view.set_reveal_top_bars(False)
+        self.canvas_toolbar_view.set_reveal_top_bars(False)
+        self.chat_tab_bar.set_visible(False)
+        self.chat_header_start.set_margin_start(0)
+        self.present()
+
+    def leave_mini_mode(self):
+        if not self.mini_mode:
+            return
+        self.mini_mode = False
+        saved_state = self._mini_saved_state or {}
+        self.set_resizable(saved_state.get("resizable", True))
+        self.set_decorated(saved_state.get("decorated", True))
+        self.remove_css_class("mini-window")
+        self.chat_toolbar_view.set_reveal_top_bars(True)
+        self.canvas_toolbar_view.set_reveal_top_bars(True)
+        self.chat_tab_bar.set_visible(True)
+        self.set_default_size(saved_state.get("width", self.settings.get_int("window-width")), saved_state.get("height", self.settings.get_int("window-height")))
+        self.main.set_name("visible" if saved_state.get("history_visible", True) else "hide")
+        self.main.set_show_sidebar(saved_state.get("history_visible", True))
+        self.main_program_block.set_name("visible" if saved_state.get("canvas_visible", False) else "hide")
+        self.main_program_block.set_show_sidebar(saved_state.get("canvas_visible", False))
+        self.left_panel_toggle_button.set_active(self.main.get_show_sidebar())
+        self.flap_button_left.set_active(self.main_program_block.get_show_sidebar())
+        self._mini_saved_state = None
+        self.handle_main_block_change()
+        self.handle_second_block_change()
 
     # Chat management
     def continue_message(self, button):
@@ -2714,7 +2828,7 @@ class MainWindow(Adw.ApplicationWindow):
         Returns: the current browser panel 
         """
         tab = self.canvas_tabs.get_selected_page()
-        if tab is not None and hasattr(tab.get_child(), "webview"):
+        if tab is not None and hasattr(tab.get_child(), "navigate_to") and hasattr(tab.get_child(), "get_current_url"):
             return tab.get_child()
 
     def show_sidebar(self):

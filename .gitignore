@@ -3,3 +3,11 @@ __pycache__/
 .ruff_cache/
 .flatpak-builder
 flatpak-pip-generator
+.macos-build/
+.macos-app-build.*/
+.venv-macos/
+.macos-dmg/
+.macos-dmg.*/
+.DS_Store
+.idea/
+dist/

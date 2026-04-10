@@ -1,4 +1,4 @@
-from ...handlers.llm import OpenAIHandler
+from .openai_handler import OpenAIHandler
 from ...handlers.extra_settings import ExtraSettings
 from ...utility.system import can_escape_sandbox, is_flatpak, get_spawn_command
 from ...handlers import ErrorSeverity

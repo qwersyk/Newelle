@@ -1,3 +1,8 @@
+import gi
+
+gi.require_version("Gtk", "4.0")
+gi.require_version("GdkPixbuf", "2.0")
+
 from gi.repository import GdkPixbuf, Gtk
 from .handler import Handler
 

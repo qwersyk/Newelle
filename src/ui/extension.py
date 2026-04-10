@@ -1,8 +1,7 @@
 import os
-import subprocess
 from ..controller import NewelleController
 
-from ..utility.system import get_spawn_command
+from ..utility.system import open_website
 
 from ..constants import AVAILABLE_EMBEDDINGS, AVAILABLE_LLMS, AVAILABLE_MEMORIES, AVAILABLE_PROMPTS, AVAILABLE_RAGS, AVAILABLE_STT, AVAILABLE_TTS, AVAILABLE_WEBSEARCH, PROMPTS
 from .settings import Settings
@@ -84,10 +83,10 @@ class Extension(Gtk.Window):
             settings.add_flatpak_waning_button(extension, row)
             self.extensiongroup.add(row)                            
         download_button = Gtk.Button(label=_("User guide to Extensions"), margin_top=10)
-        download_button.connect("clicked", lambda x : subprocess.Popen(get_spawn_command() + ["xdg-open", "https://github.com/qwersyk/Newelle/wiki/User-guide-to-Extensions"]))
+        download_button.connect("clicked", lambda x : open_website("https://github.com/qwersyk/Newelle/wiki/User-guide-to-Extensions"))
         self.main.append(download_button)
         download_button = Gtk.Button(label=_("Download new Extensions"), margin_top=10)
-        download_button.connect("clicked", lambda x : subprocess.Popen(get_spawn_command() + ["xdg-open", "https://github.com/topics/newelle-extension"]))
+        download_button.connect("clicked", lambda x : open_website("https://github.com/topics/newelle-extension"))
         self.main.append(download_button)
         folder_button = Gtk.Button(label=_("Install extension from file..."), css_classes=["suggested-action"], margin_top=10)
         folder_button.connect("clicked", self.on_folder_button_clicked)

@@ -1,6 +1,6 @@
 from gi.repository import Gtk
 from ..extensions import NewelleExtension
-from ..ui.widgets.mermaid import MermaidWidget
+from ..ui.widgets import MermaidWidget
 
 
 class MermaidIntegration(NewelleExtension):

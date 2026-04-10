@@ -20,6 +20,48 @@ class AudioRecorder:
         self.chunk_size = 1024
         self.silent_chunks = 0
         self.max_rms = 1000  # Max reasonable value for rms 
+        self.input_device_index = None
+        self.last_error = None
+
+    def _create_audio_interface(self):
+        p = pyaudio.PyAudio()
+        self.last_error = None
+        device_info = None
+        try:
+            device_info = p.get_default_input_device_info()
+        except Exception:
+            for index in range(p.get_device_count()):
+                candidate = p.get_device_info_by_index(index)
+                if int(candidate.get("maxInputChannels", 0)) > 0:
+                    device_info = candidate
+                    break
+
+        if device_info is None:
+            p.terminate()
+            raise RuntimeError("No microphone input device available")
+
+        self.input_device_index = device_info["index"]
+        self.channels = max(1, min(int(device_info.get("maxInputChannels", 1)), 1))
+        preferred_rates = [
+            int(device_info.get("defaultSampleRate", self.sample_rate)),
+            48000,
+            44100,
+            32000,
+            16000,
+        ]
+        for rate in preferred_rates:
+            try:
+                if p.is_format_supported(
+                    rate,
+                    input_device=self.input_device_index,
+                    input_channels=self.channels,
+                    input_format=self.sample_format,
+                ):
+                    self.sample_rate = int(rate)
+                    break
+            except Exception:
+                continue
+        return p
 
     def start_recording(self, output_file):
         if os.path.exists(output_file):
@@ -27,35 +69,42 @@ class AudioRecorder:
         self.recording = True
         self.frames = []
         self.silent_chunks = 0
-        p = pyaudio.PyAudio()
-        stream = p.open(format=self.sample_format,
-                       channels=self.channels,
-                       rate=self.sample_rate,
-                       frames_per_buffer=self.chunk_size,
-                       input=True)
-        silence_threshold = self.max_rms * self.silence_threshold_percent
-        required_chunks = math.ceil(self.silence_duration * (self.sample_rate / self.chunk_size))
-        while self.recording:
-            data = stream.read(self.chunk_size)
-            self.frames.append(data)
-            if self.auto_stop:
-                rms = self._calculate_rms(data)
-                if rms < silence_threshold:
-                    self.silent_chunks += 1
-                else:
-                    self.silent_chunks = 0
-                if self.silent_chunks >= required_chunks:
-                    self.recording = False
-        stream.stop_stream()
-        stream.close()
-        p.terminate()
+        p = self._create_audio_interface()
+        stream = None
+        try:
+            stream = p.open(
+                format=self.sample_format,
+                channels=self.channels,
+                rate=self.sample_rate,
+                frames_per_buffer=self.chunk_size,
+                input=True,
+                input_device_index=self.input_device_index,
+            )
+            silence_threshold = self.max_rms * self.silence_threshold_percent
+            required_chunks = math.ceil(self.silence_duration * (self.sample_rate / self.chunk_size))
+            while self.recording:
+                data = stream.read(self.chunk_size, exception_on_overflow=False)
+                self.frames.append(data)
+                if self.auto_stop:
+                    rms = self._calculate_rms(data)
+                    if rms < silence_threshold:
+                        self.silent_chunks += 1
+                    else:
+                        self.silent_chunks = 0
+                    if self.silent_chunks >= required_chunks:
+                        self.recording = False
+        finally:
+            if stream is not None:
+                stream.stop_stream()
+                stream.close()
+            p.terminate()
         self.save_recording(output_file)
 
     def stop_recording(self, output_file):
         self.recording = False
 
     def save_recording(self, output_file):
-        p = pyaudio.PyAudio()
+        p = self._create_audio_interface()
         wf = wave.open(output_file, 'wb')
         wf.setnchannels(self.channels)
         wf.setsampwidth(p.get_sample_size(self.sample_format))

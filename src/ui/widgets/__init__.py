@@ -10,14 +10,20 @@ from .glob import GlobWidget
 from .grep import GrepWidget
 from .list_directory import ListDirectoryWidget
 from .latex import DisplayLatex, LatexCanvas, InlineLatex
-from .mermaid import MermaidWidget
 from .markuptextview import MarkupTextView
 from .website import WebsiteButton
 from .websearch import WebSearchWidget
 from .thinking import ThinkingWidget
 from .documents_reader import DocumentReaderWidget
 from .tipscarousel import TipsCarousel
-from .browser import BrowserWidget
+from .runtime import WEBKIT_AVAILABLE
+
+if WEBKIT_AVAILABLE:
+    from .mermaid import MermaidWidget
+    from .browser import BrowserWidget
+else:
+    from .mermaid_compat import MermaidWidget
+    from .browser_compat import BrowserWidget
 from .terminal_dialog import Terminal, TerminalDialog
 from .code_editor import CodeEditorWidget
 from .tool import ToolWidget

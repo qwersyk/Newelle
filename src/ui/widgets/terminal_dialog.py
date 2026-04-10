@@ -1,13 +1,15 @@
 import gi
 from gi.repository import Gtk, Adw, GLib, Pango, Gdk
-import sys
 
 from gi.repository.GObject import GObject
-if sys.platform != 'win32':
+from .runtime import VTE_AVAILABLE
+from ...utility.system import has_primary_modifier
+
+if VTE_AVAILABLE:
     gi.require_version('Vte', '3.91')
     from gi.repository import Vte
 
-if sys.platform != 'win32':    
+if VTE_AVAILABLE:
     class Terminal(Vte.Terminal):
         def __init__(self, script:list):
             super().__init__(css_classes=["terminal"])
@@ -32,12 +34,10 @@ if sys.platform != 'win32':
             self.add_controller(key_controller)
 
         def on_key_press(self, controller, keyval, keycode, state):
-            ctrl = state & Gdk.ModifierType.CONTROL_MASK
-            shift = state & Gdk.ModifierType.SHIFT_MASK
-            if ctrl and keyval == Gdk.KEY_c:
+            if has_primary_modifier(state) and keyval == Gdk.KEY_c:
                 self.copy_clipboard()
                 return True
-            elif ctrl and keyval == Gdk.KEY_v:
+            elif has_primary_modifier(state) and keyval == Gdk.KEY_v:
                 self.paste_clipboard()
                 return True
             return False
@@ -47,7 +47,8 @@ if sys.platform != 'win32':
 else:
     class Terminal(Gtk.Box):
         def __init__(self, script:list):
-            self.append(Gtk.Label(label="Terminal not supported"))
+            super().__init__()
+            self.append(Gtk.Label(label="Embedded terminal is not supported on this platform"))
 
         def get_output(self):
             return ""

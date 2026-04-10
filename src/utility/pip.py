@@ -70,13 +70,13 @@ def install_module(module, path, update=True, cache_dir=None):
         os.environ["TMPDIR"] = os.path.join(os.getcwd(), "tmp")
     else:
         os.environ["TMPDIR"] = cache_dir
+    python_bin = os.getenv("NEWELLE_PYTHON_BIN") or sys.executable
     try:
         if find_module("pip") is None and not PIP_INSTALLED:
             print("Downloading pip...")
-            subprocess.check_output(["bash", "-c", "cd " + os.path.dirname(path) + " && wget https://bootstrap.pypa.io/get-pip.py && python get-pip.py"])
-            subprocess.check_output(["bash", "-c", "cd " + os.path.dirname(path) + " && rm get-pip.py || true"])
+            subprocess.check_output([python_bin, "-m", "ensurepip", "--upgrade"])
             PIP_INSTALLED = True
-        command = [sys.executable, "-m", "pip", "install","--target", path]
+        command = [python_bin, "-m", "pip", "install","--target", path]
         if update:
             command.append("--upgrade")
         r = subprocess.run(command + module.split(" ") , capture_output=False) 

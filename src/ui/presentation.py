@@ -2,8 +2,7 @@ from gi.repository import Gtk, Adw
 
 from .settings import Settings
 from .widgets import CopyBox
-from ..utility.system import can_escape_sandbox, is_flatpak
-import subprocess
+from ..utility.system import can_escape_sandbox, is_flatpak, open_website
 
 
 class PresentationWindow(Adw.Window):
@@ -19,8 +18,9 @@ class PresentationWindow(Adw.Window):
 
         mainbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         
-        headerbar = Gtk.HeaderBar(css_classes=["flat"])
+        headerbar = Adw.HeaderBar(css_classes=["flat"], show_start_title_buttons=False, show_end_title_buttons=False)
         indicator = Adw.CarouselIndicatorDots()
+        headerbar.pack_start(Gtk.WindowControls(side=Gtk.PackType.START))
         headerbar.set_title_widget(indicator)
         mainbox.append(headerbar)
         
@@ -97,7 +97,7 @@ class PresentationWindow(Adw.Window):
                     {
                         "label": _("Github Page"),
                         "classes": [],
-                        "callback": lambda x: subprocess.Popen(["xdg-open", "https://github.com/qwersyk/Newelle"]), 
+                        "callback": lambda x: open_website("https://github.com/qwersyk/Newelle"), 
                     }
                 ]
             },
@@ -109,7 +109,7 @@ class PresentationWindow(Adw.Window):
                     {
                         "label": _("Guide to LLM"),
                         "classes": ["suggested-action"],
-                        "callback": lambda x: subprocess.Popen(["xdg-open", "https://github.com/qwersyk/Newelle/wiki/User-guide-to-the-available-LLMs"]),
+                        "callback": lambda x: open_website("https://github.com/qwersyk/Newelle/wiki/User-guide-to-the-available-LLMs"),
                     }
                 ] 
             },
@@ -140,7 +140,7 @@ class PresentationWindow(Adw.Window):
                     {
                         "label": _("Download extensions"),
                         "classes": ["suggested-action"],
-                        "callback": lambda x: subprocess.Popen(["xdg-open", "https://github.com/topics/newelle-extension"]),
+                        "callback": lambda x: open_website("https://github.com/topics/newelle-extension"),
                     }
                 ]
             })
@@ -154,7 +154,7 @@ class PresentationWindow(Adw.Window):
                     {
                         "label": "Learn more",
                         "classes": ["suggested-action"],
-                        "callback": lambda x: subprocess.Popen(["xdg-open", "https://github.com/qwersyk/Newelle?tab=readme-ov-file#permission"]),
+                        "callback": lambda x: open_website("https://github.com/qwersyk/Newelle?tab=readme-ov-file#permission"),
                     }
                 ]
             })
@@ -263,4 +263,3 @@ class PresentationWindow(Adw.Window):
         pic = Gtk.Picture()
         pic.set_resource(picture)
         return self.create_page(title, description, pic, actions)
-

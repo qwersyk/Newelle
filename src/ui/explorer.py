@@ -4,6 +4,7 @@ import os
 import posixpath
 import subprocess
 import gettext
+from ..utility.system import open_folder
 
 _ = gettext.gettext
 
@@ -22,7 +23,7 @@ class ExplorerPanel(Gtk.Box):
         self.set_orientation(Gtk.Orientation.VERTICAL)
         self.add_css_class("view")
         self.add_css_class("background")
-        self.set_size_request(420, -1)
+        self.set_size_request(360, -1)
 
         # Extra vars
         self.check_streams = {"folder": False, "chat": False}
@@ -369,7 +370,7 @@ class ExplorerPanel(Gtk.Box):
                 os.chdir(os.path.expanduser(self.main_path))
                 GLib.idle_add(self.update_folder)
             else:
-                subprocess.run(["xdg-open", full_path])
+                open_folder(full_path)
         else:
             self.notification_block.add_toast(
                 Adw.Toast(title=_("File not found"), timeout=2)
@@ -446,10 +447,10 @@ class ExplorerPanel(Gtk.Box):
         try:
             if is_directory:
                 # Open the directory itself
-                subprocess.run(["xdg-open", file_path])
+                open_folder(file_path)
             else:
                 # Open the directory containing the file
-                subprocess.run(["xdg-open", os.path.dirname(file_path)])
+                open_folder(os.path.dirname(file_path))
         except Exception as e:
             self.notification_block.add_toast(
                 Adw.Toast(title=_("Failed to open file manager"), timeout=3)
@@ -686,7 +687,7 @@ class ExplorerPanel(Gtk.Box):
     def on_open_file_manager_here(self, action, parameter):
         """Handler for 'Open in file manager' for current directory"""
         try:
-            subprocess.run(["xdg-open", os.path.expanduser(self.main_path)])
+            open_folder(os.path.expanduser(self.main_path))
         except Exception as e:
             self.notification_block.add_toast(
                 Adw.Toast(title=_("Failed to open file manager"), timeout=3)

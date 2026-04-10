@@ -1,5 +1,6 @@
 from gi.repository import Gtk, Gdk, GLib
 from .. import apply_css_to_widget
+from ...utility.system import handle_text_input_key_pressed, has_primary_modifier
 
 class MultilineEntry(Gtk.Box):
 
@@ -15,10 +16,7 @@ class MultilineEntry(Gtk.Box):
         # Call handle_enter_key only when shift is not pressed
         # shift + enter = new line
         key_controller = Gtk.EventControllerKey.new()
-        key_controller.connect("key-pressed", lambda controller, keyval, keycode, state:
-            self.handle_enter_key() if keyval == Gdk.KEY_Return and (not self.enter_on_ctrl and not (state & (Gdk.ModifierType.SHIFT_MASK | Gdk.ModifierType.CONTROL_MASK)) or self.enter_on_ctrl and (state & (Gdk.ModifierType.SHIFT_MASK | Gdk.ModifierType.CONTROL_MASK))) 
-            else self.handle_paste() if keyval == Gdk.KEY_v and (state & Gdk.ModifierType.CONTROL_MASK) else None
-        )
+        key_controller.connect("key-pressed", self._on_key_pressed)
 
         # Scroll
         scroll = Gtk.ScrolledWindow()
@@ -62,6 +60,26 @@ class MultilineEntry(Gtk.Box):
         # Add TextView to the ScrolledWindow
         scroll.set_child(self.input_panel)
 
+    def _on_key_pressed(self, controller, keyval, keycode, state):
+        shift_pressed = bool(state & Gdk.ModifierType.SHIFT_MASK)
+        primary_pressed = has_primary_modifier(state)
+
+        if keyval in (Gdk.KEY_Return, Gdk.KEY_KP_Enter):
+            if self.enter_on_ctrl:
+                if primary_pressed and not shift_pressed:
+                    self.handle_enter_key()
+                    return True
+            elif not shift_pressed and not primary_pressed:
+                self.handle_enter_key()
+                return True
+            return False
+
+        if keyval == Gdk.KEY_v and primary_pressed:
+            self.handle_paste()
+            return True
+
+        return handle_text_input_key_pressed(self.input_panel, keyval, state)
+
     def set_enter_on_ctrl(self, enter_on_ctrl):
         self.enter_on_ctrl = enter_on_ctrl
 
@@ -73,6 +91,7 @@ class MultilineEntry(Gtk.Box):
         try:
             img : Gdk.MemoryTexture = clipboard.read_texture_finish(texture)
         except Exception as _:
+            self.input_panel.activate_action("clipboard.paste", None)
             return
         self.on_image_pasted(img.save_to_png_bytes().get_data())
 
@@ -121,4 +140,3 @@ class MultilineEntry(Gtk.Box):
     def on_change(self, buffer):
         if self.on_change_func is not None:
             self.on_change_func(self)
-
