@@ -162,6 +162,12 @@ class MyApp(Adw.Application):
         .message-text {
           line-height: 1.75;
         }
+
+        .prompt-drop-target {
+          outline: 2px solid @accent_color;
+          outline-offset: -2px;
+          border-radius: 12px;
+        }
         '''
         css_provider = Gtk.CssProvider()
         css_provider.load_from_data(css, -1)

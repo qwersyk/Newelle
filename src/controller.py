@@ -1943,7 +1943,8 @@ class NewelleSettings:
         self.custom_prompts = json.loads(self.settings.get_string("custom-prompts"))
         self.prompts = override_prompts(self.custom_prompts, PROMPTS)
         self.bot_prompts = []
-        for prompt in AVAILABLE_PROMPTS:
+        ordered_prompts = self._get_ordered_prompts()
+        for prompt in ordered_prompts:
             is_active = False
             if prompt["setting_name"] in self.prompts_settings:
                 is_active = self.prompts_settings[prompt["setting_name"]]
@@ -1951,6 +1952,24 @@ class NewelleSettings:
                 is_active = prompt["default"]
             if is_active:
                 self.bot_prompts.append(self.prompts[prompt["key"]])
+
+    def _get_ordered_prompts(self):
+        """Return AVAILABLE_PROMPTS sorted by the user's custom order."""
+        try:
+            order = json.loads(self.settings.get_string("prompts-order"))
+        except (json.JSONDecodeError, Exception):
+            order = []
+        if not order:
+            return list(AVAILABLE_PROMPTS)
+        ordered = []
+        key_to_prompt = {p["key"]: p for p in AVAILABLE_PROMPTS}
+        for key in order:
+            if key in key_to_prompt:
+                ordered.append(key_to_prompt.pop(key))
+        for prompt in AVAILABLE_PROMPTS:
+            if prompt["key"] in key_to_prompt:
+                ordered.append(prompt)
+        return ordered
 
     def compare_settings(self, new_settings) -> list[ReloadType]:
         """Find the difference between two NewelleSettings

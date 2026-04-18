@@ -38,6 +38,9 @@
         <key name="prompts-settings" type="s">
             <default>"{}"</default>
           </key>
+        <key name="prompts-order" type="s">
+            <default>"[]"</default>
+          </key>
 	  	  <key name="custom-extra-prompt" type="b">
             <default>false</default>
         </key>
