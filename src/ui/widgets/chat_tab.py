@@ -714,8 +714,7 @@ class ChatTab(Gtk.Box):
                     def wait_and_continue():
                         if not parallel:
                             for t in threads:
-                                if not t.is_alive():
-                                    t.start()
+                                t.start()
                                 t.join()
                         else:
                             for t in threads:
