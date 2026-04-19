@@ -1571,7 +1571,7 @@ class NewelleController:
                     [stream_number_variable], 
                 )
             else:
-                 message_label = self.handlers.llm.send_message(chat[-1]["Message"], prompts, new_history)
+                 message_label = self.handlers.llm.send_message(chat[-1]["Message"], new_history, prompts)
             
             # Post-generation logic
             last_generation_time = time.time() - t1

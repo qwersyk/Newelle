@@ -462,16 +462,26 @@ class Message(Gtk.Box):
         for line in text.split("\n"):
             if not line.strip(): continue
             image = Gtk.Image(css_classes=["image"])
-            if line.startswith("data:image/jpeg;base64,"):
+            if line.startswith("data:image/"):
                 try:
-                    data = line[len("data:image/jpeg;base64,"):]
+                    header_end = line.index(",")
+                    data = line[header_end + 1:]
                     raw_data = base64.b64decode(data)
-                    loader = GdkPixbuf.PixbufLoader()
-                    loader.write(raw_data)
-                    loader.close()
-                    image.set_from_pixbuf(loader.get_pixbuf())
+                    texture = Gdk.Texture.new_from_bytes(GLib.Bytes.new(raw_data))
+                    image.set_from_paintable(texture)
                     box.append(image)
-                except: pass
+                except Exception:
+                    try:
+                        header_end = line.index(",")
+                        data = line[header_end + 1:]
+                        raw_data = base64.b64decode(data)
+                        loader = GdkPixbuf.PixbufLoader()
+                        loader.write(raw_data)
+                        loader.close()
+                        image.set_from_pixbuf(loader.get_pixbuf())
+                        box.append(image)
+                    except Exception:
+                        pass
             elif line.startswith(("https://", "http://")):
                 img = image
                 load_image_with_callback(line, lambda pixbuf_loader, i=img: i.set_from_pixbuf(pixbuf_loader.get_pixbuf()))

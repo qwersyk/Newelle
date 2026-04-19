@@ -594,7 +594,7 @@ class ChatTab(Gtk.Box):
         if text and not text.isspace():
             if self.attached_image_data is not None:
                 if self.attached_image_data.endswith((".png", ".jpg", ".jpeg", ".webp")) or \
-                   self.attached_image_data.startswith("data:image/jpeg;base64,"):
+                   self.attached_image_data.startswith("data:image/"):
                     text = "```image\n" + self.attached_image_data + "\n```\n" + text
                 elif self.attached_image_data.endswith((".mp4", ".mkv", ".webm", ".avi")):
                     text = "```video\n" + self.attached_image_data + "\n```\n" + text
@@ -1044,10 +1044,17 @@ class ChatTab(Gtk.Box):
                 frame_data = subprocess.run(cmd, capture_output=True).stdout
 
                 if frame_data:
-                    loader = GdkPixbuf.PixbufLoader()
-                    loader.write(frame_data)
-                    loader.close()
-                    self.attached_image.set_from_pixbuf(loader.get_pixbuf())
+                    try:
+                        texture = Gdk.Texture.new_from_bytes(GLib.Bytes.new(frame_data))
+                        self.attached_image.set_from_paintable(texture)
+                    except Exception:
+                        try:
+                            loader = GdkPixbuf.PixbufLoader()
+                            loader.write(frame_data)
+                            loader.close()
+                            self.attached_image.set_from_pixbuf(loader.get_pixbuf())
+                        except Exception:
+                            self.attached_image.set_from_icon_name("video-x-generic")
                 else:
                     self.attached_image.set_from_icon_name("video-x-generic")
             elif file_path.lower().endswith((".png", ".jpg", ".jpeg", ".webp")):
@@ -1059,11 +1066,19 @@ class ChatTab(Gtk.Box):
             self.attached_image.set_visible(True)
         elif file_data is not None:
             base64_image = base64.b64encode(file_data).decode("utf-8")
-            self.attached_image_data = f"data:image/jpeg;base64,{base64_image}"
-            loader = GdkPixbuf.PixbufLoader()
-            loader.write(file_data)
-            loader.close()
-            self.attached_image.set_from_pixbuf(loader.get_pixbuf())
+            mime_type = "image/png" if file_data[:8] == b'\x89PNG\r\n\x1a\n' else "image/jpeg"
+            self.attached_image_data = f"data:{mime_type};base64,{base64_image}"
+            try:
+                texture = Gdk.Texture.new_from_bytes(GLib.Bytes.new(file_data))
+                self.attached_image.set_from_paintable(texture)
+            except Exception:
+                try:
+                    loader = GdkPixbuf.PixbufLoader()
+                    loader.write(file_data)
+                    loader.close()
+                    self.attached_image.set_from_pixbuf(loader.get_pixbuf())
+                except Exception:
+                    pass
             self.attached_image.set_visible(True)
 
         self.attach_button.set_icon_name("user-trash-symbolic")
