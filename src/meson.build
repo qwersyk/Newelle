@@ -132,6 +132,7 @@ llm_sources = [
   'handlers/llm/mistral_handler.py',
   'handlers/llm/newelle_handler.py',
   'handlers/llm/ollama_handler.py',
+  'handlers/llm/ollama_cloud_handler.py',
   'handlers/llm/openai_handler.py',
   'handlers/llm/openrouter_handler.py',
   'handlers/llm/deepseek_handler.py',

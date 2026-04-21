@@ -214,11 +214,8 @@ class OllamaHandler(LLMHandler):
         """Get the list of installed models in ollama"""
         if not self.is_installed():
             return
-        from ollama import Client 
         threading.Thread(target=self.get_models_infomation, args=()).start()
-        client = Client(
-            host=self.get_setting("endpoint")
-        )
+        client = self.create_client()
         self.auto_serve(client)
         try:
             models = client.list()["models"]
@@ -258,6 +255,17 @@ class OllamaHandler(LLMHandler):
     @staticmethod
     def get_extra_requirements() -> list:
         return ["ollama"]
+
+    def get_client_headers(self) -> dict[str, str]:
+        """Headers passed to the Ollama Python client."""
+        return {}
+
+    def create_client(self):
+        from ollama import Client
+        headers = self.get_client_headers()
+        if len(headers) > 0:
+            return Client(host=self.get_setting("endpoint"), headers=headers)
+        return Client(host=self.get_setting("endpoint"))
 
     def supports_vision(self) -> bool:
         return True
@@ -313,10 +321,7 @@ class OllamaHandler(LLMHandler):
         Args:
             model: name of the model 
         """
-        from ollama import Client
-        client = Client(
-            host=self.get_setting("endpoint")
-        )
+        client = self.create_client()
         self.auto_serve(client)
         model = self.get_setting("extra_model_name")
         try:
@@ -353,10 +358,7 @@ class OllamaHandler(LLMHandler):
     def load_model(self, model):
         if not self.is_installed():
             return
-        from ollama import Client
-        client = Client(
-            host=self.get_setting("endpoint")
-        )
+        client = self.create_client()
         self.auto_serve(client)
         start_time = time.time()
         client.generate(self.get_setting("model"), "test", options={"num_predict": 1})
@@ -389,10 +391,7 @@ class OllamaHandler(LLMHandler):
         Args:
             model: model name 
         """
-        from ollama import Client
-        client = Client(
-            host=self.get_setting("endpoint")
-        )
+        client = self.create_client()
         self.auto_serve(client)
         
         if self.model_installed(model):
@@ -509,9 +508,6 @@ class OllamaHandler(LLMHandler):
         return result
     
     def generate_text(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = []) -> str:
-        from ollama import Client
-        if self.get_setting("thinking") is False:
-            prompt = "/no_think\n" + prompt
         native_tool_calling = self.get_setting("native_tool_calling", False, True)
         if native_tool_calling:
             tools_list, system_prompt = extract_tools_from_prompts(system_prompt)
@@ -524,9 +520,7 @@ class OllamaHandler(LLMHandler):
             user = "User"
         history.append({"User": user, "Message": prompt})
         messages = self.convert_history(history, system_prompt)
-        client = Client(
-            host=self.get_setting("endpoint")
-        )
+        client = self.create_client()
 
         self.auto_serve(client)
         try:
@@ -536,7 +530,7 @@ class OllamaHandler(LLMHandler):
             }
             if tools_list:
                 kwargs["tools"] = tools_list
-            response = client.chat(**kwargs)
+            response = client.chat(**kwargs, think=self.get_setting("thinking"))
             content = response["message"].get("content", "")
             if "tool_calls" in response["message"] and response["message"]["tool_calls"]:
                  for tool in response["message"]["tool_calls"]:
@@ -549,7 +543,6 @@ class OllamaHandler(LLMHandler):
             raise e
     
     def generate_text_stream(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = [], on_update: Callable[[str], Any] = lambda _: None, extra_args: list = []) -> str:
-        from ollama import Client
         if self.get_setting("thinking") is False:
             prompt = "/no_think\n" + prompt
             
@@ -565,9 +558,7 @@ class OllamaHandler(LLMHandler):
             user = "User"
         history.append({"User": user, "Message": prompt})
         messages = self.convert_history(history, system_prompt)
-        client = Client(
-            host=self.get_setting("endpoint")
-        )
+        client = self.create_client()
         
         self.auto_serve(client)
         try:
@@ -575,6 +566,7 @@ class OllamaHandler(LLMHandler):
                 "model": self.get_setting("model"),
                 "messages": messages,
                 "stream": True,
+                "think": self.get_setting("thinking")
             }
             if tools_list:
                 kwargs["tools"] = tools_list

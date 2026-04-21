@@ -1,5 +1,5 @@
 from copy import deepcopy
-from .handlers.llm import ClaudeHandler, DeepseekHandler, GroqHandler, OllamaHandler, OpenAIHandler, CustomLLMHandler, GeminiHandler, MistralHandler, OpenRouterHandler, NewelleAPIHandler, G4FHandler, LlamaCPPHandler
+from .handlers.llm import ClaudeHandler, DeepseekHandler, GroqHandler, OllamaHandler, OllamaCloudHandler, OpenAIHandler, CustomLLMHandler, GeminiHandler, MistralHandler, OpenRouterHandler, NewelleAPIHandler, G4FHandler, LlamaCPPHandler
 from .handlers.tts import ElevenLabs, gTTSHandler, EspeakHandler, CustomTTSHandler, KokoroTTSHandler, CustomOpenAITTSHandler, OpenAITTSHandler, GroqTTSHandler, EdgeTTSHandler
 from .handlers.stt import GroqSRHandler, OpenAISRHandler, SphinxHandler, GoogleSRHandler, WhisperCPPHandler, WitAIHandler, VoskHandler, CustomSRHandler, OpenWakeWordHandler
 from .handlers.embeddings import WordLlamaHandler, OpenAIEmbeddingHandler, GeminiEmbeddingHanlder, OllamaEmbeddingHandler, Model2VecHandler, LlamaCPPEmbeddingHandler
@@ -51,6 +51,13 @@ AVAILABLE_LLMS = {
         "title": _("Ollama Instance"),
         "description": _("Easily run multiple LLM models on your own hardware"),
         "class": OllamaHandler,
+        "website": "https://ollama.com/",
+    },
+    "ollama_cloud": {
+        "key": "ollama_cloud",
+        "title": _("Ollama Cloud"),
+        "description": _("Use Ollama Cloud with API key authentication"),
+        "class": OllamaCloudHandler,
         "website": "https://ollama.com/",
     },
     "groq": {
