@@ -2,20 +2,20 @@ import threading
 import json 
 import requests 
 import os
+import re
 from subprocess import Popen 
 from typing import Any, Callable
 import time
 import gettext
 from gi.repository import GLib
 
-_ = gettext.gettext
 
 from ..handler import ErrorSeverity
 
 from .llm import LLMHandler
 from ...utility.system import can_escape_sandbox, get_spawn_command, is_flatpak
 from ...utility.media import extract_image
-from ...utility import get_streaming_extra_setting
+from ...utility import get_streaming_extra_setting, extract_tools_from_prompts, convert_history_openai
 from ...handlers import ExtraSettings
 
 class OllamaHandler(LLMHandler):
@@ -214,11 +214,8 @@ class OllamaHandler(LLMHandler):
         """Get the list of installed models in ollama"""
         if not self.is_installed():
             return
-        from ollama import Client 
         threading.Thread(target=self.get_models_infomation, args=()).start()
-        client = Client(
-            host=self.get_setting("endpoint")
-        )
+        client = self.create_client()
         self.auto_serve(client)
         try:
             models = client.list()["models"]
@@ -259,6 +256,17 @@ class OllamaHandler(LLMHandler):
     def get_extra_requirements() -> list:
         return ["ollama"]
 
+    def get_client_headers(self) -> dict[str, str]:
+        """Headers passed to the Ollama Python client."""
+        return {}
+
+    def create_client(self):
+        from ollama import Client
+        headers = self.get_client_headers()
+        if len(headers) > 0:
+            return Client(host=self.get_setting("endpoint"), headers=headers)
+        return Client(host=self.get_setting("endpoint"))
+
     def supports_vision(self) -> bool:
         return True
 
@@ -279,6 +287,7 @@ class OllamaHandler(LLMHandler):
             ExtraSettings.EntrySetting("endpoint", _("API Endpoint"), _("API base url, change this to use interference APIs"), "http://localhost:11434"),
             ExtraSettings.ToggleSetting("serve", _("Automatically Serve"), _("Automatically run ollama serve in background when needed if it's not running. You can kill it with killall ollama"), False),
             ExtraSettings.ToggleSetting("thinking", _("Enable Thinking"), _("Allow thinking in the model, only some models are supported"), True, website="https://ollama.com/search?c=thinking"),
+            ExtraSettings.ToggleSetting("native_tool_calling", _("Native Tool Calling"), _("Enable native tool calling (Will use API's tool calling formatting instead of Newelle's. Disable only if you have issues with tool calling or the model you are using does not support it natively)"), True),
             ExtraSettings.ToggleSetting("custom_model", _("Custom Model"), _("Use a custom model"), False, update_settings=True),
         ]
         if not self.get_setting("custom_model", False):
@@ -312,10 +321,7 @@ class OllamaHandler(LLMHandler):
         Args:
             model: name of the model 
         """
-        from ollama import Client
-        client = Client(
-            host=self.get_setting("endpoint")
-        )
+        client = self.create_client()
         self.auto_serve(client)
         model = self.get_setting("extra_model_name")
         try:
@@ -352,10 +358,7 @@ class OllamaHandler(LLMHandler):
     def load_model(self, model):
         if not self.is_installed():
             return
-        from ollama import Client
-        client = Client(
-            host=self.get_setting("endpoint")
-        )
+        client = self.create_client()
         self.auto_serve(client)
         start_time = time.time()
         client.generate(self.get_setting("model"), "test", options={"num_predict": 1})
@@ -388,10 +391,7 @@ class OllamaHandler(LLMHandler):
         Args:
             model: model name 
         """
-        from ollama import Client
-        client = Client(
-            host=self.get_setting("endpoint")
-        )
+        client = self.create_client()
         self.auto_serve(client)
         
         if self.model_installed(model):
@@ -429,13 +429,69 @@ class OllamaHandler(LLMHandler):
             prompts = self.prompts
         result = []
         result.append({"role": "system", "content": "\n".join(prompts)})
-        for message in history:
+        native_tool_calling = self.get_setting("native_tool_calling", False, True)
+        
+        for i, message in enumerate(history):
             if message["User"] == "Console":
+                if native_tool_calling:
+                    match = re.match(r"^\[Tool:\s*(.*?),\s*ID:\s*(.*?)\]\n(.*)", message["Message"], re.DOTALL)
+                    if match:
+                        result.append({
+                            "role": "tool",
+                            "name": match.group(1),
+                            "tool_call_id": match.group(2),
+                            "content": match.group(3)
+                        })
+                        continue
                 result.append({
                     "role": "user",
                     "content": "Console: " + message["Message"]
                 })
             else:
+                if native_tool_calling and message["User"] == "Assistant" and "```json" in message["Message"]:
+                    json_blocks = list(re.finditer(r'```json\s*(.*?)\s*```', message["Message"], re.DOTALL))
+                    if json_blocks:
+                        text_part = message["Message"][:message["Message"].find("```json")].strip()
+                        
+                        console_msgs = [(j, history[j]) for j in range(i + 1, len(history)) if history[j]["User"] == "Console"]
+                        used_console = set()
+                        
+                        tool_calls = []
+                        for block in json_blocks:
+                            try:
+                                tool_data = json.loads(block.group(1).strip())
+                                tool_name = tool_data.get("name", tool_data.get("tool"))
+                                tool_args = tool_data.get("arguments", {})
+                                
+                                tool_id = "unknown"
+                                for cj, cm in console_msgs:
+                                    if cj in used_console:
+                                        continue
+                                    match = re.match(r"^\[Tool:\s*(.*?),\s*ID:\s*(.*?)\]", cm["Message"])
+                                    if match and match.group(1) == tool_name:
+                                        tool_id = match.group(2)
+                                        used_console.add(cj)
+                                        break
+                                
+                                tool_calls.append({
+                                    "id": tool_id,
+                                    "type": "function",
+                                    "function": {
+                                        "name": tool_name,
+                                        "arguments": tool_args
+                                    }
+                                })
+                            except:
+                                pass
+                        
+                        if tool_calls:
+                            ast_msg = {"role": "assistant"}
+                            if text_part:
+                                ast_msg["content"] = text_part
+                            ast_msg["tool_calls"] = tool_calls
+                            result.append(ast_msg)
+                            continue
+                
                 image, text = extract_image(message["Message"])
                 
                 msg = {
@@ -452,43 +508,69 @@ class OllamaHandler(LLMHandler):
         return result
     
     def generate_text(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = []) -> str:
-        from ollama import Client
-        if self.get_setting("thinking") is False:
-            prompt = "/no_think\n" + prompt
-        history.append({"User": "User", "Message": prompt})
+        native_tool_calling = self.get_setting("native_tool_calling", False, True)
+        if native_tool_calling:
+            tools_list, system_prompt = extract_tools_from_prompts(system_prompt)
+        else:
+            tools_list = None
+            
+        if prompt.startswith("[Tool"):
+            user = "Console"
+        else:
+            user = "User"
+        history.append({"User": user, "Message": prompt})
         messages = self.convert_history(history, system_prompt)
-
-        client = Client(
-            host=self.get_setting("endpoint")
-        )
+        client = self.create_client()
 
         self.auto_serve(client)
         try:
-            response = client.chat(
-                model=self.get_setting("model"),
-                messages=messages,
-            )
-            return response["message"]["content"]
+            kwargs = {
+                "model": self.get_setting("model"),
+                "messages": messages,
+            }
+            if tools_list:
+                kwargs["tools"] = tools_list
+            response = client.chat(**kwargs, think=self.get_setting("thinking"))
+            content = response["message"].get("content", "")
+            if "tool_calls" in response["message"] and response["message"]["tool_calls"]:
+                 for tool in response["message"]["tool_calls"]:
+                        tool_name = tool.function.name 
+                        arguments = tool.function.arguments
+                        call = "```json\n" + json.dumps({"tool": tool_name, "arguments": arguments}) + "\n```\n"
+                        content += call
+            return content.strip()
         except Exception as e:
             raise e
     
     def generate_text_stream(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = [], on_update: Callable[[str], Any] = lambda _: None, extra_args: list = []) -> str:
-        from ollama import Client
         if self.get_setting("thinking") is False:
             prompt = "/no_think\n" + prompt
-        history.append({"User": "User", "Message": prompt})
+            
+        native_tool_calling = self.get_setting("native_tool_calling", False, True)
+        if native_tool_calling:
+            tools_list, system_prompt = extract_tools_from_prompts(system_prompt)
+        else:
+            tools_list = None
+            
+        if prompt.startswith("[Tool"):
+            user = "Console"
+        else:
+            user = "User"
+        history.append({"User": user, "Message": prompt})
         messages = self.convert_history(history, system_prompt)
-        client = Client(
-            host=self.get_setting("endpoint")
-        )
+        client = self.create_client()
         
         self.auto_serve(client)
         try:
-            response = client.chat(
-                model=self.get_setting("model"),
-                messages=messages,
-                stream=True,
-            )
+            kwargs = {
+                "model": self.get_setting("model"),
+                "messages": messages,
+                "stream": True,
+                "think": self.get_setting("thinking")
+            }
+            if tools_list:
+                kwargs["tools"] = tools_list
+            response = client.chat(**kwargs)
             full_message = ""
             prev_message = ""
             thinking = False

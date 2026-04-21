@@ -287,7 +287,7 @@ class ToolRegistry:
             return ""
 
         tools_json = json.dumps(available_tools, indent=2)
-        return tools_json
+        return f"<tools>\n{tools_json}\n</tools>"
 
 
 def tool(name: str, description: str, run_on_main_thread: bool = False, title: str = None, prompt_editable: bool = True, restore_func: Callable = None, default_on: bool = True, tools_group: str = None, icon_name: str = None):

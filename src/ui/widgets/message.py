@@ -68,11 +68,13 @@ class Message(Gtk.Box):
         """Update the message content safely from any thread."""
         self.message = message
         self.streaming = is_streaming
-        # Schedule the UI update on the Main Thread
-        GLib.idle_add(self._ui_sync_content, message)
+        self._render_serial = getattr(self, '_render_serial', 0) + 1
+        GLib.idle_add(self._ui_sync_content, message, self._render_serial)
 
-    def _ui_sync_content(self, message: str):
+    def _ui_sync_content(self, message: str, serial: int = -1):
         """Internal method to synchronize UI (Main Thread only)."""
+        if serial != getattr(self, '_render_serial', 0):
+            return False
         if not self.get_display(): 
             return False
 
@@ -188,15 +190,14 @@ class Message(Gtk.Box):
         if w_type == "divider": return True
         if w_type == "codeblock":
             if isinstance(widget, CopyBox):
-                # If streaming previously showed an extension block as plain code,
-                # force a full rebuild on the final (non-streaming) pass.
                 codeblocks = {**self.controller.extensionloader.codeblocks, **self.controller.integrationsloader.codeblocks}
                 if not self.streaming and new_chunk.lang in codeblocks:
                     return False
                 if new_chunk.lang in ["video", "image", "chart", "file", "folder"]: return False
                 return True
-            return False
+            return True
         if w_type == "thinking": return True
+        if w_type == "tool_call": return True
         return False
 
     def _update_widget(self, widget, w_type, new_chunk):
@@ -461,16 +462,26 @@ class Message(Gtk.Box):
         for line in text.split("\n"):
             if not line.strip(): continue
             image = Gtk.Image(css_classes=["image"])
-            if line.startswith("data:image/jpeg;base64,"):
+            if line.startswith("data:image/"):
                 try:
-                    data = line[len("data:image/jpeg;base64,"):]
+                    header_end = line.index(",")
+                    data = line[header_end + 1:]
                     raw_data = base64.b64decode(data)
-                    loader = GdkPixbuf.PixbufLoader()
-                    loader.write(raw_data)
-                    loader.close()
-                    image.set_from_pixbuf(loader.get_pixbuf())
+                    texture = Gdk.Texture.new_from_bytes(GLib.Bytes.new(raw_data))
+                    image.set_from_paintable(texture)
                     box.append(image)
-                except: pass
+                except Exception:
+                    try:
+                        header_end = line.index(",")
+                        data = line[header_end + 1:]
+                        raw_data = base64.b64decode(data)
+                        loader = GdkPixbuf.PixbufLoader()
+                        loader.write(raw_data)
+                        loader.close()
+                        image.set_from_pixbuf(loader.get_pixbuf())
+                        box.append(image)
+                    except Exception:
+                        pass
             elif line.startswith(("https://", "http://")):
                 img = image
                 load_image_with_callback(line, lambda pixbuf_loader, i=img: i.set_from_pixbuf(pixbuf_loader.get_pixbuf()))
@@ -818,6 +829,9 @@ class Message(Gtk.Box):
         if self.thinking_widget:
             self.thinking_widget.stop_thinking()
             self.thinking_widget = None
+        
+        self._render_serial = getattr(self, '_render_serial', 0) + 1
+        self._ui_sync_content(self.message, self._render_serial)
         
         if "pending_executions" in self.state:
             for func in self.state["pending_executions"]:

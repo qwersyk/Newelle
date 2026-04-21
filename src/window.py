@@ -2090,7 +2090,8 @@ class MainWindow(Adw.ApplicationWindow):
     def refresh_context_indicator(self):
         """Recompute and display context usage for the current chat."""
         if hasattr(self, 'context_indicator'):
-            self.context_indicator.update_from_chat(self.controller)
+            t = threading.Thread(target=self.context_indicator.update_from_chat, args=(self.controller,))
+            t.start()
 
     def update_history(self):
         """Reload chats panel with Adwaita-styled ChatRow/FolderRow widgets, supporting folders and branching"""

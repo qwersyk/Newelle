@@ -1,6 +1,7 @@
 import json 
 import threading
 import base64
+import re
 from typing import Callable, Any
 import os 
 import uuid 
@@ -10,6 +11,7 @@ from .llm import LLMHandler
 from ...utility.media import extract_image, extract_video, extract_file
 from ...utility.pip import find_module
 from ...utility.system import open_website
+from ...utility import extract_tools_from_prompts
 from ...handlers import ExtraSettings, ErrorSeverity
 
 class GeminiHandler(LLMHandler):
@@ -126,6 +128,12 @@ class GeminiHandler(LLMHandler):
                 _("Enable google safety settings to avoid generating harmful content"),
                 True
             ),
+            ExtraSettings.ToggleSetting(
+                "native_tool_calling",
+                _("Native Tool Calling"),
+                _("Enable native tool calling (Will use Gemini's tool calling API instead of Newelle's text-based format. Disable only if you have issues with tool calling)"),
+                True
+            ),
             ExtraSettings.ButtonSetting(
                 "privacy",
                 _("Privacy Policy"),
@@ -141,17 +149,121 @@ class GeminiHandler(LLMHandler):
                 ExtraSettings.ScaleSetting("max_tokens", "Max Tokens", "Maximum number of tokens to generate", 8192, 0, 65536, 0),
             ]
         return r
-    def __convert_history(self, history: list):
+
+    @staticmethod
+    def _sanitize_schema(schema: dict) -> dict:
+        """Recursively sanitize a JSON Schema dict to satisfy Gemini's strict validator.
+
+        - ``array`` types must have an ``items`` field → default to ``{"type": "string"}``
+        - Strip keys that Gemini does not support: ``$schema``, ``additionalProperties``,
+          ``default``, ``$defs``, ``$ref``.
+        """
+        if not isinstance(schema, dict):
+            return schema
+
+        UNSUPPORTED_KEYS = {"$schema", "additionalProperties", "default", "$defs", "$ref", "examples"}
+        result = {k: v for k, v in schema.items() if k not in UNSUPPORTED_KEYS}
+
+        # Fix array missing items
+        if result.get("type") == "array" and "items" not in result:
+            result["items"] = {"type": "string"}
+
+        # Recurse into items
+        if "items" in result:
+            result["items"] = GeminiHandler._sanitize_schema(result["items"])
+
+        # Recurse into properties
+        if "properties" in result and isinstance(result["properties"], dict):
+            result["properties"] = {
+                k: GeminiHandler._sanitize_schema(v)
+                for k, v in result["properties"].items()
+            }
+
+        # Recurse into anyOf / oneOf / allOf
+        for key in ("anyOf", "oneOf", "allOf"):
+            if key in result and isinstance(result[key], list):
+                result[key] = [GeminiHandler._sanitize_schema(s) for s in result[key]]
+
+        return result
+
+    def _openai_tools_to_gemini(self, tools_list: list) -> object:
+        """Convert OpenAI-format tools list to a Gemini Tool object."""
+        from google.genai import types
+        declarations = []
+        for tool in tools_list:
+            fn = tool.get("function", {})
+            params = fn.get("parameters", {})
+            sanitized = self._sanitize_schema(params) if params else None
+            decl = types.FunctionDeclaration(
+                name=fn.get("name", ""),
+                description=fn.get("description", ""),
+                parameters=sanitized if sanitized else None,
+            )
+            declarations.append(decl)
+        return types.Tool(function_declarations=declarations)
+
+    def __convert_history(self, history: list, native_tool_calling: bool = False):
         from google.genai import types
         result = []
         for message in history:
             if message["User"] == "Console":
+                if native_tool_calling:
+                    # Try to parse [Tool: <name>, ID: <id>]\n<result>
+                    match = re.match(r"^\[Tool:\s*(.*?),\s*ID:\s*(.*?)\]\n(.*)", message["Message"], re.DOTALL)
+                    if match:
+                        tool_name = match.group(1)
+                        tool_result = match.group(3)
+                        result.append(
+                            types.Content(
+                                role="user",
+                                parts=[
+                                    types.Part.from_function_response(
+                                        name=tool_name,
+                                        response={"result": tool_result}
+                                    )
+                                ]
+                            )
+                        )
+                        continue
+                # Fallback: plain console message
                 result.append(
                     types.Content(
                         role="user",
                         parts=[
                             types.Part.from_text(text="Console: " + message["Message"])
                         ]
+                    )
+                )
+            elif message["User"] == "Assistant" and native_tool_calling and "```json" in message["Message"]:
+                # Convert assistant tool call blocks into function_call parts
+                json_blocks = list(re.finditer(r'```json\s*(.*?)\s*```', message["Message"], re.DOTALL))
+                if json_blocks:
+                    text_before = message["Message"][:message["Message"].find("```json")].strip()
+                    parts = []
+                    if text_before:
+                        parts.append(types.Part.from_text(text=text_before))
+                    for block in json_blocks:
+                        try:
+                            tool_data = json.loads(block.group(1).strip())
+                            tool_name = tool_data.get("name", tool_data.get("tool", ""))
+                            tool_args = tool_data.get("arguments", {})
+                            parts.append(
+                                types.Part.from_function_call(
+                                    name=tool_name,
+                                    args=tool_args if isinstance(tool_args, dict) else {}
+                                )
+                            )
+                        except Exception:
+                            pass
+                    if parts:
+                        result.append(types.Content(role="model", parts=parts))
+                        continue
+                # Fall through to normal assistant message if parsing failed
+                img, text = self.get_gemini_image(message["Message"])
+                result.append(
+                    types.Content(
+                        role="model",
+                        parts=[types.Part.from_text(text=text)] if img is None else [types.Part.from_text(text=text), types.Part.from_uri(file_uri=img.uri, mime_type=img.mime_type)]
                     )
                 )
             else: 
@@ -229,6 +341,15 @@ class GeminiHandler(LLMHandler):
         from google import genai
         from google.genai.types import HarmCategory, HarmBlockThreshold, GenerateContentConfig, Part 
         from google.genai import types
+
+        # --- Native tool calling ---
+        native_tool_calling = self.get_setting("native_tool_calling", False, True)
+        gemini_tools = None
+        if native_tool_calling:
+            tools_list, system_prompt = extract_tools_from_prompts(system_prompt)
+            if tools_list:
+                gemini_tools = self._openai_tools_to_gemini(tools_list)
+
         if self.get_setting("safety"):
             safety = None
         else:
@@ -265,10 +386,15 @@ class GeminiHandler(LLMHandler):
                 thinking_budget=int(self.get_setting("thinking_budget")),
                 include_thoughts=self.get_setting("thinking")
             )
+
+        # Attach tools to config if available
+        if gemini_tools is not None:
+            generate_content_config.tools = [gemini_tools]
+
         history.append({"User": "User", "Message": prompt}) 
         if append_instructions is not None:
             history.insert(0,{"User": "User", "Message": append_instructions})
-        converted_history = self.__convert_history(history)
+        converted_history = self.__convert_history(history, native_tool_calling=native_tool_calling)
         try: 
             response = client.models.generate_content_stream(
                 contents=converted_history,
@@ -278,6 +404,9 @@ class GeminiHandler(LLMHandler):
             full_message = ""
             thoughts = ""
             thinking = False
+            # Collect function calls from all chunks
+            pending_function_calls = []
+
             for chunk in response:
                 if chunk.candidates[0].content.parts is None:
                     continue
@@ -290,6 +419,9 @@ class GeminiHandler(LLMHandler):
                             file_name, part.inline_data.data
                         )
                         full_message += "\n```image\n" + file_name + "\n```\n"
+                    elif native_tool_calling and part.function_call is not None:
+                        # Collect function call parts; they will be appended after streaming
+                        pending_function_calls.append(part.function_call)
                     elif not part.text:
                         continue
                     elif part.thought:
@@ -307,7 +439,15 @@ class GeminiHandler(LLMHandler):
                         full_message += part.text
                         args = (full_message.strip(), ) + tuple(extra_args)
                         on_update(*args)
+
+            # After streaming, serialize any function calls as JSON code blocks
+            if pending_function_calls:
+                if thinking:
+                    full_message += "</think>\n"
+                for fc in pending_function_calls:
+                    tool_call_dict = {"tool": fc.name, "arguments": dict(fc.args) if fc.args else {}}
+                    full_message += "\n```json\n" + json.dumps(tool_call_dict) + "\n```\n"
+
             return full_message.strip()
         except Exception as e:
             raise Exception("Message blocked: " + str(e))
-

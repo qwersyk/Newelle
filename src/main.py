@@ -4,6 +4,8 @@ import signal
 import gettext
 import gi
 
+from .utility.util import convert_history_openai
+
 gi.require_version('Gtk', '4.0')
 gi.require_version('GtkSource', '5')
 gi.require_version('Adw', '1')
@@ -161,6 +163,12 @@ class MyApp(Adw.Application):
 
         .message-text {
           line-height: 1.75;
+        }
+
+        .prompt-drop-target {
+          outline: 2px solid @accent_color;
+          outline-offset: -2px;
+          border-radius: 12px;
         }
         '''
         css_provider = Gtk.CssProvider()
@@ -410,6 +418,7 @@ class MyApp(Adw.Application):
             print(msg["User"], msg["Message"])
     def debug(self, *a):
         self.pretty_print_chat()
+        print(convert_history_openai(self.win.chat, [], True))
 
 def run_headless(interface_key, version):
     """Start an interface without the GUI."""

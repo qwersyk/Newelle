@@ -7,7 +7,7 @@ _ = gettext.gettext
 
 from .llm import LLMHandler
 from ...utility.system import open_website
-from ...utility import convert_history_openai, get_streaming_extra_setting
+from ...utility import convert_history_openai, get_streaming_extra_setting, extract_tools_from_prompts
 from ...handlers import ExtraSettings, ErrorSeverity
 
 class OpenAIHandler(LLMHandler):
@@ -62,7 +62,7 @@ class OpenAIHandler(LLMHandler):
     def get_extra_settings(self) -> list:
         return self.build_extra_settings("OpenAI", True, True, True, True, True, "https://openai.com/policies/row-privacy-policy/", None, False,False,True, True)
 
-    def build_extra_settings(self, provider_name: str, has_api_key: bool, has_stream_settings: bool, endpoint_change: bool, allow_advanced_params: bool, supports_automatic_models: bool, privacy_notice_url : str | None, model_list_url: str | None, default_advanced_params: bool = False, default_automatic_models: bool = False, supports_custom_body : bool = False, supports_thinking: bool = False) -> list:
+    def build_extra_settings(self, provider_name: str, has_api_key: bool, has_stream_settings: bool, endpoint_change: bool, allow_advanced_params: bool, supports_automatic_models: bool, privacy_notice_url : str | None, model_list_url: str | None, default_advanced_params: bool = False, default_automatic_models: bool = False, supports_custom_body : bool = False, supports_thinking: bool = False, supports_tool_calling: bool = True, has_tool_calling_option: bool = True) -> list:
         """Helper to build the list of extra settings for OpenAI Handlers
 
         Args:
@@ -162,6 +162,10 @@ class OpenAIHandler(LLMHandler):
                 settings += thinking_effort_settings
         if privacy_notice_url is not None:
             settings += privacy_notice
+        if has_tool_calling_option:
+            settings += [
+                ExtraSettings.ToggleSetting("native_tool_calling", _("Native Tool Calling"), _("Enable native tool calling (Will use API's tool calling formatting instead of Newelle's. Disable only if you have issues with tool calling or the model you are using does not support it natively)"), supports_tool_calling)
+            ]
         if supports_custom_body:
             settings += [custom_body]
         return settings
@@ -169,7 +173,7 @@ class OpenAIHandler(LLMHandler):
     def convert_history(self, history: list, prompts: list | None = None) -> list:
         if prompts is None:
             prompts = self.prompts
-        return convert_history_openai(history, prompts, self.supports_vision())
+        return convert_history_openai(history, prompts, self.supports_vision(), self.get_setting("native_tool_calling", False, True))
 
     def get_advanced_params(self):
         from openai import NOT_GIVEN
@@ -191,7 +195,18 @@ class OpenAIHandler(LLMHandler):
 
     def generate_text(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = []) -> str:
         from openai import OpenAI
-        history.append({"User": "User", "Message": prompt})
+        
+        native_tool_calling = self.get_setting("native_tool_calling", False, True)
+        if native_tool_calling:
+            tools_list, system_prompt = extract_tools_from_prompts(system_prompt)
+        else:
+            tools_list = None
+            
+        if prompt.startswith("[Tool"):
+            user = "Console"
+        else:
+            user = "User"
+        history.append({"User": user, "Message": prompt})
         messages = self.convert_history(history, system_prompt)
         api = self.get_setting("api")
         if api == "":
@@ -216,18 +231,40 @@ class OpenAIHandler(LLMHandler):
                 "frequency_penalty": frequency_penalty,
                 "extra_body": extra_body
             }
+            if tools_list:
+                kwargs["tools"] = tools_list
             response = client.chat.completions.create(**kwargs)
-            if not hasattr(response, "choices") or response.choices is None or len(response.choices) == 0 or response.choices[0].message.content is None:
+            if not hasattr(response, "choices") or response.choices is None or len(response.choices) == 0:
                 raise Exception(str(response))
-            return response.choices[0].message.content
+            
+            content = response.choices[0].message.content or ""
+            if hasattr(response.choices[0].message, "tool_calls") and response.choices[0].message.tool_calls is not None:
+                for tool_call in response.choices[0].message.tool_calls:
+                    tool = tool_call.function
+                    tool_call_dict = {"tool": tool.name, "arguments": json.loads(tool.arguments) if tool.arguments else {}}
+                    content += "```json\n" + json.dumps(tool_call_dict) + "\n```\n"
+
+            return content.strip()
         except Exception as e:
             raise e
     
     def generate_text_stream(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = [], on_update: Callable[[str], Any] = lambda _: None, extra_args: list = []) -> str:
         self.running = True
         from openai import OpenAI
-        history.append({"User": "User", "Message": prompt})
+        
+        native_tool_calling = self.get_setting("native_tool_calling", False, True)
+        if native_tool_calling:
+            tools_list, system_prompt = extract_tools_from_prompts(system_prompt)
+        else:
+            tools_list = None
+            
+        if prompt.startswith("[Tool"):
+            user = "Console"
+        else:
+            user = "User"
+        history.append({"User": user, "Message": prompt})
         messages = self.convert_history(history, system_prompt)
+        print(messages)
         print([message["role"] for message in messages])
         api = self.get_setting("api")
         if api == "":
@@ -253,51 +290,77 @@ class OpenAIHandler(LLMHandler):
                 "extra_headers": self.get_extra_headers(),
                 "extra_body": extra_body,
             }
+            if tools_list:
+                kwargs["tools"] = tools_list
             response = client.chat.completions.create(**kwargs)
             full_message = ""
             prev_message = ""
             is_reasoning = False
+            # Track ongoing tool calls
+            tool_calls = {}
+
             for chunk in response:
                 if not self.running:
                     response.close()
                     break
                 if len(chunk.choices) == 0:
                     continue
-                if chunk.choices[0].delta.content:
+                
+                delta = chunk.choices[0].delta
+                if delta.content:
                     if is_reasoning:
                         full_message += "</think>\n"
                         is_reasoning = False
-                    full_message += chunk.choices[0].delta.content
+                    full_message += delta.content
                     args = (full_message.strip(), ) + tuple(extra_args)
                     if len(full_message) - len(prev_message) > 1:
                         on_update(*args)
                         prev_message = full_message
-                elif hasattr(chunk.choices[0].delta, "reasoning") and chunk.choices[0].delta.reasoning is not None:
+                elif hasattr(delta, "reasoning") and delta.reasoning is not None:
                     if not is_reasoning:
                         full_message += "<think>"
                     is_reasoning = True
-                    full_message += chunk.choices[0].delta.reasoning
+                    full_message += delta.reasoning
                     if len(full_message) - len(prev_message) > 1:
                         args = (full_message.strip(), ) + tuple(extra_args)
                         on_update(*args)
                         prev_message = full_message
-                elif hasattr(chunk.choices[0].delta, "reasoning_content") and chunk.choices[0].delta.reasoning_content is not None:
+                elif hasattr(delta, "reasoning_content") and delta.reasoning_content is not None:
                     if not is_reasoning:
                         full_message += "<think>"
                     is_reasoning = True
-                    full_message += chunk.choices[0].delta.reasoning_content
+                    full_message += delta.reasoning_content
                     if len(full_message) - len(prev_message) > 1:
                         args = (full_message.strip(), ) + tuple(extra_args)
                         on_update(*args)
                         prev_message = full_message
-                elif hasattr(chunk.choices[0].delta, "tool_calls") and chunk.choices[0].delta.tool_calls is not None:
+                elif hasattr(delta, "tool_calls") and delta.tool_calls is not None:
                     if is_reasoning:
                         full_message += "</think>"
                         is_reasoning = False
-                    for tool_call in chunk.choices[0].delta.tool_calls:
-                        tool = tool_call.function
-                        tool_call_dict = {"tool": tool.name, "arguments": json.loads(tool.arguments) if tool.arguments else ""}
-                        full_message += "```json\n" + json.dumps(tool_call_dict) + "\n```\n"
+                    
+                    for tc_delta in delta.tool_calls:
+                        if tc_delta.index not in tool_calls:
+                            tool_calls[tc_delta.index] = {"name": "", "arguments": ""}
+                        
+                        if tc_delta.function.name:
+                            tool_calls[tc_delta.index]["name"] += tc_delta.function.name
+                        if tc_delta.function.arguments:
+                            tool_calls[tc_delta.index]["arguments"] += tc_delta.function.arguments
+            
+            # After stream finishes, append any tool calls to full_message
+            if tool_calls:
+                if is_reasoning:
+                    full_message += "</think>"
+                for index in sorted(tool_calls.keys()):
+                    tc = tool_calls[index]
+                    try:
+                        args = json.loads(tc["arguments"])
+                    except:
+                        args = tc["arguments"]
+                    tool_call_dict = {"tool": tc["name"], "arguments": args}
+                    full_message += "\n```json\n" + json.dumps(tool_call_dict) + "\n```\n"
+            
             return full_message.strip()
         except Exception as e:
             raise e

@@ -2,8 +2,6 @@ import math
 import gettext
 from gi.repository import Gtk, GLib
 
-_ = gettext.gettext
-
 
 def _format_tokens(n: int) -> str:
     if n >= 1_000_000:
@@ -96,7 +94,7 @@ class ContextIndicator(Gtk.MenuButton):
         history = controller.get_history(chat=chat)
         total = sum(count_tokens(m.get("Message", "")) + 4 for m in history)
 
-        self.update_stats(TrimResult(
+        GLib.idle_add(self.update_stats, TrimResult(
             original_tokens=total,
             trimmed_tokens=min(total, settings.context_suggested),
             suggested_tokens=settings.context_suggested,

@@ -235,3 +235,6 @@ class TTSHandler(Handler):
                 os.remove(path)
             except Exception:
                 pass
+
+    def destroy(self):
+        self.stop()

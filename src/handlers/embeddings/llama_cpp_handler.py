@@ -1,7 +1,7 @@
 from ...handlers.embeddings import EmbeddingHandler
 from ...handlers import ExtraSettings
 from ...handlers import ErrorSeverity
-from ...utility.system import can_escape_sandbox, is_flatpak, get_spawn_command, has_backend
+from ...utility.system import can_escape_sandbox, is_flatpak, get_spawn_command, has_backend, detect_cuda_version
 from ...ui.model_library import ModelLibraryWindow, LibraryModel
 import subprocess
 import os
@@ -50,6 +50,7 @@ class LlamaCPPEmbeddingHandler(EmbeddingHandler):
         self.model_folder = os.path.join(self.path, "custom_models")
         self.server_process = None
         self._atexit_handler = self.kill_server
+        self._killing_server = False
         atexit.register(self._atexit_handler)
         self.port = None
         self.loaded_model = None
@@ -159,12 +160,15 @@ class LlamaCPPEmbeddingHandler(EmbeddingHandler):
         else:
             cmd_path = "llama-server"
         cmd = [cmd_path, "--model", path, "--port", str(self.port), "--host", "127.0.0.1", "--embeddings" ]
-        # Use flatpak-spawn when running compiled llama.cpp in Flatpak (not for pre-built)
+        # Use flatpak-spawn for compiled or prebuilt CUDA binaries in Flatpak
         is_prebuilt = self.get_setting("prebuilt", False, False)
-        if (is_flatpak() and not is_prebuilt and self.is_gpu_installed() and self.get_setting("gpu_acceleration", False, False)) or use_system_server:
+        is_cuda_binary = is_prebuilt and self.get_setting("prebuilt_cuda", False, False)
+        if (is_flatpak() and self.is_gpu_installed() and self.get_setting("gpu_acceleration", False, False) and (is_cuda_binary or not is_prebuilt)) or use_system_server:
             cmd = get_spawn_command() + cmd
 
         self.server_process = subprocess.Popen(cmd)
+        self._killing_server = False
+        threading.Thread(target=self._monitor_server, daemon=True).start()
         self.loaded_model = model
         self.loaded_on = self.get_setting("gpu_acceleration", False, False)
         # Wait for server to potentially start
@@ -199,6 +203,7 @@ class LlamaCPPEmbeddingHandler(EmbeddingHandler):
     
     def kill_server(self):
         self.loaded_model = None
+        self._killing_server = True
         if self.server_process:
             try:
                 self.server_process.terminate()
@@ -214,6 +219,15 @@ class LlamaCPPEmbeddingHandler(EmbeddingHandler):
                 pass
             finally:
                 self.server_process = None
+
+    def _monitor_server(self):
+        proc = self.server_process
+        if proc is None:
+            return
+        proc.wait()
+        if not self._killing_server and self.server_process is None and self.loaded_model is not None:
+            self.loaded_model = None
+            GLib.idle_add(self.throw, "llama-server crashed unexpectedly. Check terminal output for details.", ErrorSeverity.ERROR)
     
     def destroy(self):
         self.kill_server()
@@ -726,6 +740,7 @@ class LlamaCPPEmbeddingHandler(EmbeddingHandler):
 
     @staticmethod
     def _parse_asset_backend(name):
+        import re
         name_lower = name.lower()
         if "rocm" in name_lower:
             return "rocm"
@@ -738,6 +753,14 @@ class LlamaCPPEmbeddingHandler(EmbeddingHandler):
         return "cpu"
 
     @staticmethod
+    def _parse_cuda_version(name):
+        import re
+        match = re.search(r"cuda[-_.]?(\d+)\.(\d+)", name.lower())
+        if match:
+            return float(f"{match.group(1)}.{match.group(2)}")
+        return None
+
+    @staticmethod
     def _human_size(size_bytes):
         for unit in ("B", "KB", "MB", "GB"):
             if size_bytes < 1024:
@@ -746,18 +769,49 @@ class LlamaCPPEmbeddingHandler(EmbeddingHandler):
         return f"{size_bytes:.1f} TB"
 
     @staticmethod
-    def _backend_display_name(backend):
-        return {
+    def _backend_display_name(backend, cuda_version=None):
+        name = {
             "cpu": "CPU (Basic)",
             "cuda": "Nvidia CUDA",
             "rocm": "AMD ROCm",
             "vulkan": "Any GPU (Vulkan)",
             "openvino": "Intel OpenVINO",
         }.get(backend, backend)
+        if backend == "cuda" and cuda_version is not None:
+            name += f" {cuda_version:.1f}"
+        return name
 
     def _fetch_prebuilt_releases(self, carousel):
         arch = self._detect_arch()
         available = []
+
+        def _add_cuda_repo(api_url, source_name):
+            try:
+                resp = requests.get(api_url, timeout=15)
+                resp.raise_for_status()
+                release = resp.json()
+                tag = release.get("tag_name", "unknown")
+                for asset in release.get("assets", []):
+                    name = asset["name"]
+                    url = asset["browser_download_url"]
+                    size = asset.get("size", 0)
+                    if not name.endswith(".tar.gz"):
+                        continue
+                    if "cuda" not in name.lower():
+                        continue
+                    backend = self._parse_asset_backend(name)
+                    cuda_ver = self._parse_cuda_version(name)
+                    available.append({
+                        "name": name,
+                        "url": url,
+                        "size": size,
+                        "backend": backend,
+                        "cuda_version": cuda_ver,
+                        "tag": tag,
+                        "source": source_name,
+                    })
+            except Exception:
+                pass
 
         try:
             resp = requests.get(
@@ -791,35 +845,23 @@ class LlamaCPPEmbeddingHandler(EmbeddingHandler):
                     "url": url,
                     "size": size,
                     "backend": backend,
+                    "cuda_version": None,
                     "tag": tag,
                     "source": "official",
                 })
 
-            try:
-                resp_cuda = requests.get(
-                    "https://api.github.com/repos/ai-dock/llama.cpp-cuda/releases/latest",
-                    timeout=15,
-                )
-                resp_cuda.raise_for_status()
-                cuda_release = resp_cuda.json()
-                cuda_tag = cuda_release.get("tag_name", "unknown")
-
-                for asset in cuda_release.get("assets", []):
-                    name = asset["name"]
-                    url = asset["browser_download_url"]
-                    size = asset.get("size", 0)
-                    if name.endswith(".tar.gz") and "cuda" in name.lower():
-                        if arch == "x64":
-                            available.append({
-                                "name": name,
-                                "url": url,
-                                "size": size,
-                                "backend": "cuda",
-                                "tag": cuda_tag,
-                                "source": "ai-dock",
-                            })
-            except Exception:
-                pass
+            _add_cuda_repo(
+                "https://api.github.com/repos/ai-dock/llama.cpp-cuda/releases/latest",
+                "ai-dock",
+            )
+            _add_cuda_repo(
+                "https://api.github.com/repos/Syrunekai/llama.cpp-cuda/releases/tags/b8702",
+                "syrunekai-cuda13",
+            )
+            _add_cuda_repo(
+                "https://api.github.com/repos/dramaturg/llama.cpp-cuda/releases/tags/b8783",
+                "dramaturg-cuda11",
+            )
 
         except Exception as e:
             GLib.idle_add(self._show_prebuilt_error, f"Failed to fetch releases: {e}")
@@ -833,12 +875,29 @@ class LlamaCPPEmbeddingHandler(EmbeddingHandler):
         for b in ("cuda", "rocm", "vulkan", "openvino"):
             backend_checks[b] = has_backend(b)
 
-        backend_priority = {"cuda": 0, "rocm": 1, "vulkan": 2, "openvino": 3, "cpu": 4}
+        system_cuda = detect_cuda_version()
 
         for item in available:
             item["compatible"] = item["backend"] == "cpu" or backend_checks.get(item["backend"], False)
+            item["cuda_match"] = (
+                system_cuda is not None
+                and item.get("cuda_version") is not None
+                and item["cuda_version"] <= system_cuda
+            )
 
-        available.sort(key=lambda x: (0 if x["compatible"] else 1, backend_priority.get(x["backend"], 99)))
+        def _sort_key(x):
+            is_compatible = 0 if x["compatible"] else 1
+            if x["compatible"] and x["backend"] == "cuda" and x.get("cuda_match"):
+                cuda_priority = 0 if x.get("cuda_version") is not None else 1
+            elif x["compatible"] and x["backend"] != "cpu":
+                cuda_priority = 2
+            else:
+                cuda_priority = 3
+            backend_prio = {"cuda": 0, "rocm": 1, "vulkan": 2, "openvino": 3, "cpu": 4}.get(x["backend"], 99)
+            ver = x.get("cuda_version") or 0
+            return (is_compatible, cuda_priority, backend_prio, -ver)
+
+        available.sort(key=_sort_key)
 
         GLib.idle_add(self._populate_prebuilt_list, available)
 
@@ -866,18 +925,29 @@ class LlamaCPPEmbeddingHandler(EmbeddingHandler):
         for i, item in enumerate(available):
             row = Adw.ActionRow()
 
-            row.set_title(self._backend_display_name(item["backend"]))
+            cuda_ver = item.get("cuda_version")
+            row.set_title(self._backend_display_name(item["backend"], cuda_ver))
 
             if item["compatible"] and item["backend"] != "cpu":
-                rec = Gtk.Label(label="Recommended")
+                if item.get("cuda_match"):
+                    label_text = "Best Match"
+                else:
+                    label_text = "Recommended"
+                rec = Gtk.Label(label=label_text)
                 rec.add_css_class("success")
                 rec.add_css_class("caption")
                 rec.set_valign(Gtk.Align.CENTER)
                 row.add_suffix(rec)
 
             subtitle_parts = []
-            if item["source"] == "ai-dock":
-                subtitle_parts.append("CUDA (ai-dock)")
+            source = item.get("source", "official")
+            if source != "official":
+                source_labels = {
+                    "ai-dock": "CUDA 12 (ai-dock)",
+                    "syrunekai-cuda13": "CUDA 13 (Syrunekai)",
+                    "dramaturg-cuda11": "CUDA 11 (dramaturg)",
+                }
+                subtitle_parts.append(source_labels.get(source, source))
             subtitle_parts.append(self._human_size(item["size"]))
             subtitle_parts.append(item["tag"])
             row.set_subtitle("  |  ".join(subtitle_parts))
@@ -999,6 +1069,7 @@ class LlamaCPPEmbeddingHandler(EmbeddingHandler):
             GLib.idle_add(lambda: carousel.scroll_to(carousel.get_nth_page(5), True))
             GLib.idle_add(lambda: self.settings_update())
             self.set_setting("prebuilt", True)
+            self.set_setting("prebuilt_cuda", asset.get("backend") == "cuda")
             self.set_setting("gpu_acceleration", True)
 
         except Exception as e:
