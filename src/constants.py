@@ -744,7 +744,7 @@ SETTINGS_GROUPS = {
         },
         "prompts": {
                 "title": _("Prompts"),
-                "settings": ["prompts-settings", "custom-extra-prompt", "custom-prompts"],
+                "settings": ["prompts-settings", "custom-extra-prompt", "custom-prompts", "prompts-order", "user-custom-prompts"],
                 "description": _("Prompts settings, custom extra prompt, custom prompts..."),
         },
         "tools": {

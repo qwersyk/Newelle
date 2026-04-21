@@ -1941,6 +1941,25 @@ class NewelleSettings:
     def load_prompts(self):
         """Load prompts and do overrides"""
         self.custom_prompts = json.loads(self.settings.get_string("custom-prompts"))
+        self.user_custom_prompts = json.loads(self.settings.get_string("user-custom-prompts"))
+        for prompt_data in self.user_custom_prompts:
+            key = prompt_data["key"]
+            PROMPTS[key] = prompt_data["text"]
+            existing = next((p for p in AVAILABLE_PROMPTS if p["key"] == key), None)
+            if existing:
+                existing["title"] = prompt_data["title"]
+                existing["description"] = prompt_data["description"]
+            else:
+                AVAILABLE_PROMPTS.append({
+                    "key": key,
+                    "setting_name": key,
+                    "title": prompt_data["title"],
+                    "description": prompt_data["description"],
+                    "editable": True,
+                    "show_in_settings": True,
+                    "default": True,
+                    "user_custom": True,
+                })
         self.prompts = override_prompts(self.custom_prompts, PROMPTS)
         self.bot_prompts = []
         ordered_prompts = self._get_ordered_prompts()

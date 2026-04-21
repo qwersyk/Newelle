@@ -128,6 +128,9 @@
 	      <key name="custom-prompts" type="s">
 	        <default>"{}"</default>
         </key>
+        <key name="user-custom-prompts" type="s">
+          <default>"[]"</default>
+        </key>
         <key name="external-terminal-on" type="b">
           <default>false</default>
         </key>
