@@ -29,6 +29,29 @@ def primary_accel(key: str) -> str:
     """Build a macOS primary accelerator string."""
     return f"<Meta>{key}"
 
+
+def activate_macos_application() -> None:
+    if sys.platform != "darwin":
+        return
+    try:
+        from AppKit import NSApplication, NSRunningApplication, NSApplicationActivateIgnoringOtherApps
+
+        app = NSApplication.sharedApplication()
+        for window in app.windows():
+            try:
+                if window.isMiniaturized():
+                    window.deminiaturize_(None)
+                window.makeKeyAndOrderFront_(None)
+                window.orderFrontRegardless()
+            except Exception:
+                pass
+        app.activateIgnoringOtherApps_(True)
+        NSRunningApplication.currentApplication().activateWithOptions_(
+            NSApplicationActivateIgnoringOtherApps
+        )
+    except Exception:
+        pass
+
 def has_primary_modifier(state) -> bool:
     """Return True when the macOS primary shortcut modifier is pressed."""
     from gi.repository import Gdk

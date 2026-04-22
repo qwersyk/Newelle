@@ -18,7 +18,7 @@ from .ui.shortcuts import Shortcuts
 from .ui.thread_editing import ThreadEditing
 from .ui.scheduled_tasks import ScheduledTasksWindow
 from .ui.extension import Extension
-from .utility.system import primary_accel
+from .utility.system import activate_macos_application, primary_accel
 from .ui.interfaces import InterfacesWindow
 
 
@@ -272,7 +272,7 @@ class MyApp(Adw.Application):
         self.set_menubar(menubar)
 
     def _has_visible_windows(self) -> bool:
-        return any(window.get_visible() for window in self.get_windows())
+        return any(window.get_mapped() for window in self.get_windows())
 
     def _ensure_main_window(self) -> MainWindow:
         if self.win is None:
@@ -283,9 +283,13 @@ class MyApp(Adw.Application):
 
     def _present_main_window(self) -> MainWindow:
         window = self._ensure_main_window()
-        if window.mini_mode:
+        if getattr(window, "mini_mode", False):
             window.leave_mini_mode()
         window.present()
+        if hasattr(window, "stabilize_initial_layout"):
+            GLib.idle_add(window.stabilize_initial_layout)
+        GLib.idle_add(activate_macos_application)
+        GLib.timeout_add(100, lambda: activate_macos_application() or False)
         return window
 
     def _on_mini_window_destroy(self, window):
@@ -585,7 +589,7 @@ def run_headless(interface_key, version):
 
 
 def main(version):
-    app = MyApp(application_id="io.github.qwersyk.Newelle", version = version)
+    app = MyApp(application_id="io.github.qwersyk.Newelle.macos", version = version)
     app.create_action('reload_chat', app.reload_chat, [primary_accel("r")])
     app.create_action('reload_folder', app.reload_folder, [primary_accel("e")])
     app.create_action('new_chat', app.new_chat, [primary_accel("n")])

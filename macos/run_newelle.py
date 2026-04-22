@@ -90,6 +90,20 @@ def configure_macos_process_identity(name: str) -> None:
             print(f"Failed to set macOS process name: {exc}")
 
 
+def configure_macos_activation() -> None:
+    if sys.platform != "darwin":
+        return
+    try:
+        from AppKit import NSApplication, NSApplicationActivationPolicyRegular
+
+        app = NSApplication.sharedApplication()
+        app.setActivationPolicy_(NSApplicationActivationPolicyRegular)
+        app.activateIgnoringOtherApps_(True)
+    except Exception as exc:
+        if os.getenv("NEWELLE_DEBUG_IMPORTS") == "1":
+            print(f"Failed to configure macOS activation: {exc}")
+
+
 def configure_macos_locale() -> None:
     if sys.platform != "darwin":
         return
@@ -169,6 +183,7 @@ def main() -> int:
     if bin_dir and os.path.isdir(bin_dir):
         os.environ["PATH"] = bin_dir + os.pathsep + os.environ.get("PATH", "")
     configure_macos_process_identity(app_name)
+    configure_macos_activation()
     preload_macos_gtk_libraries()
 
     import gi

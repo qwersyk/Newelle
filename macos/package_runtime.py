@@ -192,10 +192,6 @@ class RuntimeBundler:
         if dependency.startswith(SYSTEM_PREFIXES):
             return None
 
-        site_packages_target = self.resolve_site_packages_target(dependency)
-        if site_packages_target is not None:
-            return site_packages_target
-
         if dependency.endswith(f"Python.framework/Versions/{self.python_version}/Python") or dependency == "@rpath/Python":
             return self.python_dest_main
 
@@ -218,6 +214,10 @@ class RuntimeBundler:
                 return bundled
             source = self.resolve_brew_library(name)
             return self.copy_external_library(source) if source else None
+
+        site_packages_target = self.resolve_site_packages_target(dependency)
+        if site_packages_target is not None:
+            return site_packages_target
 
         source = Path(dependency)
         if not source.is_absolute():

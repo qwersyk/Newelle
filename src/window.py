@@ -54,12 +54,15 @@ class MainWindow(Adw.ApplicationWindow):
 
         super().__init__(*args, **kwargs)
         self.app = self.get_application()
+        self.set_title("Newelle")
         install_window_text_input_handlers(self)
 
         self.chat_panel_width = 380
         self.history_sidebar_width = 260
         self.canvas_sidebar_width = 360
+        self.mini_mode = False
         self._mini_saved_state = None
+        self._startup_layout_stabilized = False
         # Main program block - On the right Canvas tabs, Chat as content
         self.app_stack = Gtk.Stack(transition_duration=500, transition_type=Gtk.StackTransitionType.SLIDE_UP)
         self.main_program_block = Adw.OverlaySplitView(
@@ -68,6 +71,8 @@ class MainWindow(Adw.ApplicationWindow):
             min_sidebar_width=self.canvas_sidebar_width,
             max_sidebar_width=10000
         )
+        self.main_program_block.set_name("hide")
+        self.main_program_block.set_show_sidebar(False)
 
         self.app_stack.add_named(self.main_program_block, "main")
         self.app_stack.add_named(self.build_splashscreen(), "splashscreen")
@@ -79,7 +84,7 @@ class MainWindow(Adw.ApplicationWindow):
         self.set_default_size(self.settings.get_int("window-width"), self.settings.get_int("window-height"))
         
         self.set_content(self.app_stack)
-        GLib.idle_add(self.build_main_window)
+        self.build_main_window()
 
     def build_main_window(self):
         # UI things
@@ -377,20 +382,19 @@ class MainWindow(Adw.ApplicationWindow):
         
         self.connect("destroy", self._cleanup_on_destroy)
 
-        def after_transition():
+        def finalize_startup():
+            self.app_stack.set_visible_child_name("main")
             self.update_history()
             self.show_chat()
+            self.handle_main_block_change()
+            self.handle_second_block_change()
+            self.stabilize_initial_layout()
             return False
 
-        def start_transition():
-            self.app_stack.set_visible_child_name("main")
-            return False
-
-        GLib.idle_add(start_transition)
-        GLib.timeout_add(600, after_transition)
+        finalize_startup()
         if not self.settings.get_boolean("welcome-screen-shown"):
             GLib.idle_add(self.show_presentation_window)
-        GLib.timeout_add(10, build_model_popup)
+        GLib.idle_add(build_model_popup)
         self.controller.handlers.set_error_func(self.handle_error)
         self.handle_main_block_change()
         self.handle_second_block_change()
@@ -2065,6 +2069,24 @@ class MainWindow(Adw.ApplicationWindow):
         self.chat_panel_header.set_show_start_title_buttons(show_history)
         self.chat_header.set_show_start_title_buttons(not show_history)
         self.chat_header_start.set_margin_start(0)
+
+    def stabilize_initial_layout(self):
+        if self._startup_layout_stabilized:
+            return False
+        if not hasattr(self, "chat_header"):
+            return False
+        self.handle_main_block_change()
+        self.handle_second_block_change()
+        self.chat_header.queue_allocate()
+        self.chat_panel_header.queue_allocate()
+        self.canvas_header.queue_allocate()
+        self.chat_toolbar_view.queue_allocate()
+        self.history_toolbar_view.queue_allocate()
+        self.canvas_toolbar_view.queue_allocate()
+        self.queue_allocate()
+        self.queue_draw()
+        self._startup_layout_stabilized = True
+        return False
 
     def enter_mini_mode(self):
         if self.mini_mode:

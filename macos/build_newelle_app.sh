@@ -34,6 +34,44 @@ GLIB_COMPILE_SCHEMAS="$BREW_PREFIX/bin/glib-compile-schemas"
 GLIB_COMPILE_RESOURCES="$BREW_PREFIX/bin/glib-compile-resources"
 MSGFMT="$BREW_PREFIX/bin/msgfmt"
 
+list_macho_files() {
+  /usr/bin/python3 - "$1" <<'PY'
+from pathlib import Path
+import sys
+
+MACHO_MAGICS = {
+    b"\xfe\xed\xfa\xce",
+    b"\xce\xfa\xed\xfe",
+    b"\xfe\xed\xfa\xcf",
+    b"\xcf\xfa\xed\xfe",
+    b"\xca\xfe\xba\xbe",
+    b"\xbe\xba\xfe\xca",
+    b"\xca\xfe\xba\xbf",
+    b"\xbf\xba\xfe\xca",
+}
+
+root = Path(sys.argv[1])
+for path in sorted(p for p in root.rglob("*") if p.is_file()):
+    try:
+        with path.open("rb") as handle:
+            if handle.read(4) in MACHO_MAGICS:
+                print(path, end="\0")
+    except OSError:
+        pass
+PY
+}
+
+sign_bundle() {
+  while IFS= read -r -d '' file; do
+    /usr/bin/codesign --force --sign - --timestamp=none "$file"
+  done < <(list_macho_files "$APP_DIR")
+
+  /usr/bin/codesign --force --sign - --timestamp=none "$PYTHON_DEST_VERSION_DIR/Resources/Python.app"
+  /usr/bin/codesign --force --sign - --timestamp=none "$PYTHON_DEST_VERSION_DIR"
+  /usr/bin/codesign --force --sign - --timestamp=none "$FRAMEWORKS_DIR/Python.framework"
+  /usr/bin/codesign --force --sign - --timestamp=none "$APP_DIR"
+}
+
 if [[ ! -d "$PYTHON_FRAMEWORK_SOURCE" ]]; then
   echo "Python framework not found at $PYTHON_FRAMEWORK_SOURCE"
   exit 1
@@ -57,7 +95,7 @@ cp "$ROOT/meson.build" "$APP_ROOT/meson.build"
 cp "$ROOT/macos/run_newelle.py" "$APP_ROOT/macos/run_newelle.py"
 
 rsync -aL --delete --exclude '__pycache__' "$PYTHON_FRAMEWORK_SOURCE/" "$PYTHON_DEST_VERSION_DIR/"
-rm -rf "$PYTHON_DEST_VERSION_DIR/_CodeSignature"
+find "$PYTHON_DEST_VERSION_DIR" \( -name '_CodeSignature' -o -name 'CodeResources' \) -exec rm -rf {} +
 rm -rf "$PYTHON_DEST_VERSION_DIR/lib/python${PYTHON_VERSION}/config-${PYTHON_VERSION}-darwin"
 mkdir -p "$FRAMEWORKS_DIR/Python.framework/Versions"
 ln -sfn "$PYTHON_VERSION" "$FRAMEWORKS_DIR/Python.framework/Versions/Current"
@@ -169,19 +207,13 @@ PLIST
 
 "$BREW_PYTHON_BIN" "$ROOT/macos/package_runtime.py" "$APP_DIR" "$BREW_PREFIX" "$PYTHON_VERSION"
 
-while IFS= read -r -d '' file; do
-  /usr/bin/codesign --force --sign - --timestamp=none "$file"
-done < <(/usr/bin/find "$MACOS_DIR" -type f -perm -111 -print0)
+sign_bundle
 
 while IFS= read -r -d '' file; do
-  if /usr/bin/file -b "$file" | /usr/bin/grep -q 'Mach-O'; then
-    /usr/bin/codesign --force --sign - --timestamp=none "$file"
-  fi
-done < <(/usr/bin/find "$APP_DIR" -type f -print0)
+  /usr/bin/codesign --verify --strict "$file"
+done < <(list_macho_files "$APP_DIR")
 
-/usr/bin/codesign --force --sign - --timestamp=none "$PYTHON_DEST_VERSION_DIR"
-/usr/bin/codesign --force --sign - --timestamp=none "$FRAMEWORKS_DIR/Python.framework"
-/usr/bin/codesign --force --deep --sign - --timestamp=none "$APP_DIR"
+sign_bundle
 /usr/bin/codesign --verify --deep --strict "$APP_DIR"
 touch "$APP_DIR"
 
