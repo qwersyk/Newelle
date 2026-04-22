@@ -28,91 +28,16 @@
     <br>
 </p>
 
-https://github.com/user-attachments/assets/909edf0e-5a79-40c2-a3ef-cb5b2b18abfc
-
-# Features
-
-
-- 🎨 **Advanced Customization**: Tailor the application with a wide range of settings
-- 🚀 **Flexible Model Support**: Choose from mutliple AI models and providers to fit your specific needs
-- 📚 **Local models**: Download local models directly from Newelle, and run them using Llama.cpp or Ollama.
-- 💻 **Terminal Command Exection**: Execute commands suggested by the AI on the fly
-- 🧩 **Extensions**: Add your own functionalities and models to Newelle
-- ✨ **Skills**: Newelle supports skills from Claude, Codex...
-- 🛠 **Tools & MCP support**: Add tools via MCP servers or extensions, supporting tool search 
-- 🗣 **Voice support**: Chat hands free with Newelle, supporting many Speech To Text and TTS models (With wakeword support)
-- 📞 **Call Mode**: Chat in real time with AI models
-- 🧠 **Long Term Memory**: Remember conversations from previous chats
-- 💼 **Chat with documents**: Chat with your own documents
-- 🔎 **Web Search**: Provide reliable answers using Web Search
-- 🌐 **Website Reading**: Scrap informations from websites by appending the prefix #https://.. in the prompt
-- 🖍 **Dynamic Context Management**: Dinamically summarize and remove messages non relevant messages to fit in the context
-- 🔓 **File Permissions**: Set permissions to which files to edit/read
-- ⏰ **Scheduled Tasks**: Schedule tasks to run in the background
-- 👤 **Profile Manager**: Create settings profiles and switch between them
-- 📁 **Builtin File Manager**: Manage you files with the help of AI
-- 📝 **Rich Formatting**: Supports both Markdown and LaTeX
-- 💬 **Multichat**: Run multiple chats at the same time 
-- 🌳 **Chat Branching**: Create alternative versions of your chats strating from any message in one click
-- ✏️ **Chat editing**: Edit or remove any message and manage your prompts easily
-- 🗂 **Chat Folders**: Organize your chats into folders
-
 <picture>
-  <source srcset="https://raw.githubusercontent.com/qwersyk/Newelle/master/screenshots/7.png" media="(prefers-color-scheme: light)">
-  <source srcset="https://raw.githubusercontent.com/qwersyk/Newelle/master/screenshots/7b.png" media="(prefers-color-scheme: dark)">
-  <img src="https://raw.githubusercontent.com/qwersyk/Newelle/master/screenshots/7.png" alt="screenshot">
-</picture>
-
-# Extensions
-
-Newelle supports extensions to extend its functionality. You can either
-use [existing extensions](https://github.com/topics/newelle-extension) or create your own to add new features to the
-application.
-
-<picture>
-  <source srcset="https://raw.githubusercontent.com/qwersyk/Newelle/master/screenshots/6.png" media="(prefers-color-scheme: light)">
-  <source srcset="https://raw.githubusercontent.com/qwersyk/Newelle/master/screenshots/6b.png" media="(prefers-color-scheme: dark)">
-  <img src="https://raw.githubusercontent.com/qwersyk/Newelle/master/screenshots/6.png" alt="screenshot">
-</picture>
-
-## Mini Window Mode
-
-A lightweight version of Newelle that can be opened from the running app.
-
-### Configuration
-
-Use the built-in shortcut:
-
-```bash
-Cmd + Shift + M
-```
-
-<picture>
-  <source srcset="https://raw.githubusercontent.com/qwersyk/Newelle/master/screenshots/5.png" media="(prefers-color-scheme: light)">
-  <source srcset="https://raw.githubusercontent.com/qwersyk/Newelle/master/screenshots/5b.png" media="(prefers-color-scheme: dark)">
-  <img src="https://raw.githubusercontent.com/qwersyk/Newelle/master/screenshots/5.png" alt="screenshot">
+  <source srcset="screenshots/macos.png" media="(prefers-color-scheme: light)">
+  <source srcset="screenshots/macos_b.png" media="(prefers-color-scheme: dark)">
+  <img src="screenshots/macos.png" alt="screenshot">
 </picture>
 
 # Installation
-This branch targets macOS only.
-
-Download:
-
-1. Open the latest workflow artifacts from [GitHub Actions](https://github.com/qwersyk/Newelle/actions).
-2. Open the generated `.dmg` for Apple Silicon or Intel.
-3. Drag `Newelle.app` to `Applications`.
 
 Build from source on macOS:
 
 ```bash
 /usr/bin/env bash macos/build_newelle_dmg.sh
 ```
-
-This creates:
-
-- `dist/Newelle.app`
-- `dist/Newelle-<version>-macos-<arch>.dmg`
-
-# Permission
-
-Newelle runs with the same file and terminal permissions as the current macOS user account. Treat command execution and model outputs with the same care you would use in Terminal.
