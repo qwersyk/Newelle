@@ -1,1 +1,1 @@
-from .util import convert_history_openai, convert_messages_openai_to_newelle, get_streaming_extra_setting, override_prompts
+from .util import convert_history_openai, convert_messages_openai_to_newelle, get_streaming_extra_setting, override_prompts, extract_tools_from_prompts

@@ -41,7 +41,7 @@ def get_image_base64(image_str: str):
     Returns:
        base64 encoded image 
     """
-    if not image_str.startswith("data:image/jpeg;base64,"):
+    if not image_str.startswith("data:image/"):
         image = encode_image_base64(image_str)
         return image
     else:
@@ -57,9 +57,17 @@ def get_image_path(image_str: str):
     Returns:
        image path 
     """
-    if image_str.startswith("data:image/jpeg;base64,"):
-        raw_data = base64.b64decode(image_str[len("data:image/jpeg;base64,"):])
-        saved_image = "/tmp/" + image_str[len("data:image/jpeg;base64,"):][30:] + ".jpg"
+    if image_str.startswith("data:image/"):
+        header_end = image_str.index(",")
+        mime_type = image_str[len("data:"):header_end]
+        ext_map = {
+            "image/png": ".png",
+            "image/jpeg": ".jpg",
+            "image/webp": ".webp",
+        }
+        ext = ext_map.get(mime_type, ".jpg")
+        raw_data = base64.b64decode(image_str[header_end + 1:])
+        saved_image = "/tmp/" + image_str[header_end + 1:][:30] + ext
         with open(saved_image, "wb") as f:
             f.write(raw_data)
         return saved_image

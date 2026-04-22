@@ -7,6 +7,7 @@ from .gpt3any_handler import GPT3AnyHandler
 from .groq_handler import GroqHandler
 from .mistral_handler import MistralHandler
 from .ollama_handler import OllamaHandler
+from .ollama_cloud_handler import OllamaCloudHandler
 from .openai_handler import OpenAIHandler 
 from .openrouter_handler import OpenRouterHandler 
 from .newelle_handler import NewelleAPIHandler
@@ -23,6 +24,7 @@ __all__ = [
     "GroqHandler",
     "MistralHandler",
     "OllamaHandler",
+    "OllamaCloudHandler",
     "OpenAIHandler",
     "OpenRouterHandler",
     "NewelleAPIHandler",

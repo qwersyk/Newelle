@@ -1,5 +1,7 @@
 from .media import get_image_base64, extract_image
 import time 
+import json
+import re
 
 def convert_messages_openai_to_newelle(messages: list) -> tuple[str, list[dict], list[str]]:
     """Convert OpenAI format messages to Newelle format.
@@ -31,7 +33,45 @@ def convert_messages_openai_to_newelle(messages: list) -> tuple[str, list[dict],
 
     return last_user_message, history, system_prompt
 
-def convert_history_openai(history: list, prompts: list, vision_support : bool = False):
+def extract_tools_from_prompts(prompts: list[str], remove_tool_prompt: bool = True) -> tuple[list[dict] | None, list[str]]:
+    """Extract tools JSON wrapped in <tools> tags from prompts and return the parsed JSON and prompts without the JSON."""
+    new_prompts = []
+    tools_json = None
+    for prompt in prompts:
+        if "<tools>" in prompt and "</tools>" in prompt:
+            start_index = prompt.find("<tools>")
+            end_index = prompt.find("</tools>") + len("</tools>")
+            tools_str = prompt[start_index + len("<tools>"):prompt.find("</tools>")].strip()
+            try:
+                extracted = json.loads(tools_str)
+                tools_json = []
+                for tool in extracted:
+                    if "parameters" in tool:
+                        tools_json.append({"type": "function", "function": {
+                            "name": tool["name"],
+                            "description": tool.get("description", ""),
+                            "parameters": tool["parameters"]
+                        }})
+                    else:
+                        tools_json.append({"type": "function", "function": {
+                            "name": tool["name"],
+                            "description": tool.get("description", ""),
+                            "parameters": {"type": "object", "properties": {}}
+                        }})
+            except json.JSONDecodeError as e:
+                print("Failed to decode tools from prompt:", e)
+            if remove_tool_prompt:
+                new_prompt = prompt[:start_index] + prompt[end_index:]
+                if new_prompt.strip():
+                    new_prompts.append(new_prompt.strip())
+            else:
+                new_prompts.append(prompt)
+        else:
+            if prompt.strip():
+                new_prompts.append(prompt)
+    return tools_json, new_prompts
+
+def convert_history_openai(history: list, prompts: list, vision_support : bool = False, native_tool_calling: bool = True):
     """Converts Newelle history into OpenAI format
 
     Args:
@@ -48,11 +88,71 @@ def convert_history_openai(history: list, prompts: list, vision_support : bool =
     
     for message in history:
         if message["User"] == "Console":
-            result.append({
-                "role": "user",
-                "content": "Console: " + message["Message"],
-            })
+            if native_tool_calling:
+                match = re.match(r"^\[Tool:\s*(.*?),\s*ID:\s*(.*?)\]\n(.*)", message["Message"], re.DOTALL)
+                if match:
+                    result.append({
+                        "role": "tool",
+                        "name": match.group(1),
+                        "tool_call_id": match.group(2),
+                        "content": match.group(3)
+                    })
+                else:
+                    result.append({
+                        "role": "user",
+                        "content": "Console: " + message["Message"],
+                    })
+            else:
+                result.append({
+                    "role": "user",
+                    "content": "Console: " + message["Message"],
+                })
         else:
+            if native_tool_calling and message["User"] == "Assistant" and "```json" in message["Message"]:
+                json_blocks = list(re.finditer(r'```json\s*(.*?)\s*```', message["Message"], re.DOTALL))
+                if json_blocks:
+                    text_part = message["Message"][:message["Message"].find("```json")].strip()
+                    
+                    msg_idx = history.index(message)
+                    console_msgs = [(i, m) for i, m in enumerate(history[msg_idx+1:], msg_idx+1) if m["User"] == "Console"]
+                    used_console = set()
+                    
+                    tool_calls = []
+                    for block in json_blocks:
+                        try:
+                            tool_data = json.loads(block.group(1).strip())
+                            tool_name = tool_data.get("name", tool_data.get("tool"))
+                            tool_args = tool_data.get("arguments", {})
+                            
+                            tool_id = "unknown"
+                            for ci, cm in console_msgs:
+                                if ci in used_console:
+                                    continue
+                                match = re.match(r"^\[Tool:\s*(.*?),\s*ID:\s*(.*?)\]", cm["Message"])
+                                if match and match.group(1) == tool_name:
+                                    tool_id = match.group(2)
+                                    used_console.add(ci)
+                                    break
+                            
+                            tool_calls.append({
+                                "id": tool_id,
+                                "type": "function",
+                                "function": {
+                                    "name": tool_name,
+                                    "arguments": json.dumps(tool_args)
+                                }
+                            })
+                        except:
+                            pass
+                    
+                    if tool_calls:
+                        ast_msg = {"role": "assistant"}
+                        if text_part:
+                            ast_msg["content"] = text_part
+                        ast_msg["tool_calls"] = tool_calls
+                        result.append(ast_msg)
+                        continue
+
             image, text = extract_image(message["Message"])
             if vision_support and image is not None and message["User"] == "User":
                 image = get_image_base64(image)
@@ -94,6 +194,7 @@ def aggregate_messages(messages: list, format="newelle"):
         "newelle": {"role": "User", "content": "Message"},
         "openai": {"role": "role", "content": "content"}
     }
+    blacklist_roles = ["Console", "tool"]
 
     if format not in formats:
         return messages
@@ -109,11 +210,15 @@ def aggregate_messages(messages: list, format="newelle"):
             current_message = message.copy()
             continue
 
+        if current_message[role_key] in blacklist_roles or message[role_key] in blacklist_roles:
+            aggregated_messages.append(current_message)
+            current_message = message.copy()
+            continue
+
         if current_message[role_key] == message[role_key]:
             content1 = current_message[content_key]
             content2 = message[content_key]
 
-            # Handle multimodal content (lists)
             if isinstance(content1, list) or isinstance(content2, list):
                 c1 = content1 if isinstance(content1, list) else [{"type": "text", "text": str(content1)}]
                 c2 = content2 if isinstance(content2, list) else [{"type": "text", "text": str(content2)}]
@@ -166,9 +271,36 @@ def convert_history_newelle(openai_history: list, vision_support: bool = False):
     for message in openai_history:
         role = message.get("role")
         content = message.get("content")
+        tool_calls = message.get("tool_calls")
         
-        # Handle vision-support messages if content is a list.
-        if vision_support and isinstance(content, list):
+        if role == "tool":
+            tool_name = message.get("name", "unknown")
+            tool_id = message.get("tool_call_id", "unknown")
+            newelle_history.append({
+                "User": "Console",
+                "Message": f"[Tool: {tool_name}, ID: {tool_id}]\n{content or ''}"
+            })
+        elif role == "assistant" and tool_calls:
+            parts = []
+            if content:
+                parts.append(content)
+            for tc in tool_calls:
+                fn = tc.get("function", {})
+                tool_data = {
+                    "name": fn.get("name", ""),
+                    "arguments": fn.get("arguments", {})
+                }
+                if isinstance(tool_data["arguments"], str):
+                    try:
+                        tool_data["arguments"] = json.loads(tool_data["arguments"])
+                    except:
+                        pass
+                parts.append(f"```json\n{json.dumps(tool_data)}\n```")
+            newelle_history.append({
+                "User": "Assistant",
+                "Message": "\n".join(parts)
+            })
+        elif vision_support and isinstance(content, list):
             text = None
             image = None
             for part in content:
@@ -178,33 +310,29 @@ def convert_history_newelle(openai_history: list, vision_support: bool = False):
                     image = part.get("image_url", {}).get("url")
             combined_message = embed_image(text, image)
             newelle_history.append({
-                "User": "User",  # Vision messages came from a user.
+                "User": "User",
                 "Message": combined_message
             })
-        # Handle Console messages (role "user" with a "Console: " prefix)
         elif isinstance(content, str) and content.startswith("Console: "):
             newelle_history.append({
                 "User": "Console",
                 "Message": content[len("Console: "):]
             })
-        # Regular text messages.
+        elif role == "user":
+            newelle_history.append({
+                "User": "User",
+                "Message": content
+            })
+        elif role == "assistant":
+            newelle_history.append({
+                "User": "Assistant",
+                "Message": content
+            })
         else:
-            if role == "user":
-                newelle_history.append({
-                    "User": "User",
-                    "Message": content
-                })
-            elif role == "assistant":
-                newelle_history.append({
-                    "User": "Assistant",
-                    "Message": content
-                })
-            else:
-                # Fallback for any unexpected role.
-                newelle_history.append({
-                    "User": role,
-                    "Message": content
-                })
+            newelle_history.append({
+                "User": role,
+                "Message": content
+            })
                 
     return newelle_history, prompts
 

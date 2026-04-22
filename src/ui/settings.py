@@ -5,7 +5,7 @@ import shutil
 import json 
 import time 
 
-from gi.repository import Gtk, Adw, Gio, GLib, GtkSource
+from gi.repository import Gtk, Adw, Gio, GLib, GObject, Gdk, GtkSource
 
 from ..utility.util import PerformanceMonitor
 
@@ -313,6 +313,11 @@ class Settings(Adw.PreferencesWindow):
         self.Voicegroup.add(self.wakeword_row)
         # Build prompts settings 
         self.prompt = Adw.PreferencesGroup(title=_('Prompt control'))
+        add_prompt_btn = Gtk.Button(icon_name="list-add-symbolic")
+        add_prompt_btn.add_css_class("flat")
+        add_prompt_btn.set_tooltip_text(_("Add custom prompt"))
+        add_prompt_btn.connect("clicked", self.on_add_custom_prompt)
+        self.prompt.set_header_suffix(add_prompt_btn)
         self.PromptsPage.add(self.prompt)
         self.prompts_rows = []
         self.build_prompts_settings()
@@ -1974,13 +1979,13 @@ class Settings(Adw.PreferencesWindow):
         self.refresh_tools_list()
 
     def build_prompts_settings(self):
-        # Prompts settings
-        self.prompts_settings = self.controller.newelle_settings.prompts_settings 
+        self.prompts_settings = self.controller.newelle_settings.prompts_settings
         for prompt in self.prompts_rows:
             self.prompt.remove(prompt)
         self.prompts_rows = []
 
-        for prompt in AVAILABLE_PROMPTS:
+        ordered_prompts = self._get_ordered_prompts()
+        for prompt in ordered_prompts:
             is_active = False
             if prompt["setting_name"] in self.prompts_settings:
                 is_active = self.prompts_settings[prompt["setting_name"]]
@@ -1989,14 +1994,98 @@ class Settings(Adw.PreferencesWindow):
             if not prompt["show_in_settings"]:
                 continue
             row = Adw.ExpanderRow(title=prompt["title"], subtitle=prompt["description"])
+
+            drag_handle = Gtk.Image(icon_name="list-drag-handle-symbolic")
+            drag_handle.add_css_class("dim-label")
+            drag_handle.set_valign(Gtk.Align.CENTER)
+            row.add_prefix(drag_handle)
+
             if prompt["editable"]:
-                self.add_customize_prompt_content(row, prompt["key"])
+                self.add_customize_prompt_content(row, prompt["key"], prompt["title"])
             switch = Gtk.Switch(valign=Gtk.Align.CENTER)
             switch.set_active(is_active)
             switch.connect("notify::active", self.update_prompt, prompt["setting_name"])
             row.add_suffix(switch)
+
+            if prompt.get("user_custom"):
+                delete_btn = Gtk.Button(icon_name="user-trash-symbolic")
+                delete_btn.add_css_class("flat")
+                delete_btn.add_css_class("destructive-action")
+                delete_btn.set_valign(Gtk.Align.CENTER)
+                delete_btn.set_tooltip_text(_("Delete custom prompt"))
+                delete_btn.connect("clicked", self.on_delete_custom_prompt, prompt["key"])
+                row.add_suffix(delete_btn)
+
+            drag_source = Gtk.DragSource(actions=Gdk.DragAction.MOVE)
+            drag_source.connect("prepare", self._on_prompt_drag_prepare, prompt["key"])
+            drag_source.connect("drag-begin", self._on_prompt_drag_begin, prompt["title"])
+            row.add_controller(drag_source)
+
+            drop_target = Gtk.DropTarget.new(GObject.TYPE_STRING, Gdk.DragAction.MOVE)
+            drop_target.connect("enter", self._on_prompt_drop_enter, row)
+            drop_target.connect("leave", self._on_prompt_drop_leave, row)
+            drop_target.connect("drop", self._on_prompt_drop, prompt["key"])
+            row.add_controller(drop_target)
+
             self.prompt.add(row)
             self.prompts_rows.append(row)
+
+    def _get_ordered_prompts(self):
+        try:
+            order = json.loads(self.settings.get_string("prompts-order"))
+        except (json.JSONDecodeError, Exception):
+            order = []
+        if not order:
+            return list(AVAILABLE_PROMPTS)
+        ordered = []
+        key_to_prompt = {p["key"]: p for p in AVAILABLE_PROMPTS}
+        for key in order:
+            if key in key_to_prompt:
+                ordered.append(key_to_prompt.pop(key))
+        for prompt in AVAILABLE_PROMPTS:
+            if prompt["key"] in key_to_prompt:
+                ordered.append(prompt)
+        return ordered
+
+    def _save_prompts_order(self, ordered_prompts):
+        order = [p["key"] for p in ordered_prompts]
+        self.settings.set_string("prompts-order", json.dumps(order))
+
+    def _on_prompt_drag_prepare(self, drag_source, x, y, key):
+        value = GObject.Value(GObject.TYPE_STRING, key)
+        return Gdk.ContentProvider.new_for_value(value)
+
+    def _on_prompt_drag_begin(self, drag_source, drag, title):
+        icon = Gtk.DragIcon.get_for_drag(drag)
+        label = Gtk.Label(
+            label=title,
+            css_classes=["card"],
+            margin_start=8, margin_end=8, margin_top=4, margin_bottom=4,
+        )
+        icon.set_child(label)
+
+    def _on_prompt_drop_enter(self, drop_target, x, y, row):
+        row.add_css_class("prompt-drop-target")
+        return Gdk.DragAction.MOVE
+
+    def _on_prompt_drop_leave(self, drop_target, row):
+        row.remove_css_class("prompt-drop-target")
+
+    def _on_prompt_drop(self, drop_target, source_key, x, y, target_key):
+        for row in self.prompts_rows:
+            row.remove_css_class("prompt-drop-target")
+        if source_key == target_key:
+            return False
+        ordered = self._get_ordered_prompts()
+        source_idx = next((i for i, p in enumerate(ordered) if p["key"] == source_key), None)
+        target_idx = next((i for i, p in enumerate(ordered) if p["key"] == target_key), None)
+        if source_idx is None or target_idx is None:
+            return False
+        item = ordered.pop(source_idx)
+        ordered.insert(target_idx, item)
+        self._save_prompts_order(ordered)
+        self.build_prompts_settings()
+        return True
 
     def build_browser_settings(self):
         # Browser settings
@@ -2403,12 +2492,13 @@ class Settings(Adw.PreferencesWindow):
     def create_extra_setting(self, setting : dict, handler: Handler, constants : dict[str, Any]) -> Adw.ExpanderRow | Adw.ActionRow:
         return self.extra_settings_builder.create_extra_setting(setting, handler, constants)
     
-    def add_customize_prompt_content(self, row, prompt_name):
+    def add_customize_prompt_content(self, row, prompt_name, prompt_title=""):
         """Add a MultilineEntry to edit a prompt from the given prompt name
 
         Args:
             row (): row of the prompt 
             prompt_name (): name of the prompt 
+            prompt_title (): title of the prompt for the expand dialog
         """
         box = Gtk.Box(spacing=6)
         entry = MultilineEntry()
@@ -2417,14 +2507,88 @@ class Settings(Adw.PreferencesWindow):
         entry.set_name(prompt_name)
         entry.set_on_change(self.edit_prompt)
 
+        expand_button = Gtk.Button(icon_name="window-maximize-symbolic")
+        expand_button.add_css_class("flat")
+        expand_button.set_valign(Gtk.Align.CENTER)
+        expand_button.set_tooltip_text(_("Expand editor"))
+        expand_button.connect("clicked", self._on_expand_prompt, entry, prompt_title or prompt_name)
+
         restore_button = Gtk.Button(icon_name="star-filled-rounded-symbolic")
         restore_button.add_css_class("flat")
         restore_button.set_valign(Gtk.Align.CENTER)
+        restore_button.set_tooltip_text(_("Restore default"))
         restore_button.connect("clicked", self.restore_prompt, entry)
 
+        buttons = Gtk.Box(spacing=3, valign=Gtk.Align.CENTER)
+        buttons.append(expand_button)
+        buttons.append(restore_button)
+
         box.append(entry)
-        box.append(restore_button)
+        box.append(buttons)
         row.add_row(box)
+
+    def _on_expand_prompt(self, button, entry, prompt_title):
+        dialog = Gtk.Window()
+        dialog.set_title(_("Edit Prompt"))
+        dialog.set_transient_for(self.app.win)
+        dialog.set_modal(True)
+        dialog.set_default_size(700, 500)
+
+        header = Adw.HeaderBar(css_classes=["flat"])
+        dialog.set_titlebar(header)
+
+        cancel_btn = Gtk.Button(label=_("Cancel"))
+        cancel_btn.add_css_class("flat")
+        cancel_btn.connect("clicked", lambda *_: dialog.close())
+
+        save_btn = Gtk.Button(label=_("Save"))
+        save_btn.add_css_class("suggested-action")
+        header.pack_start(cancel_btn)
+        header.pack_end(save_btn)
+
+        if prompt_title:
+            title_label = Gtk.Label(
+                label=prompt_title,
+                css_classes=["heading"],
+                halign=Gtk.Align.START,
+                margin_start=18,
+                margin_top=12,
+            )
+            header.set_title_widget(title_label)
+
+        scrolled = Gtk.ScrolledWindow(
+            hexpand=True,
+            vexpand=True,
+            margin_top=6,
+            margin_bottom=12,
+            margin_start=12,
+            margin_end=12,
+        )
+        textview = Gtk.TextView(
+            wrap_mode=Gtk.WrapMode.WORD,
+            monospace=True,
+            top_margin=12,
+            bottom_margin=12,
+            left_margin=12,
+            right_margin=12,
+            css_classes=["card"],
+        )
+        buf = textview.get_buffer()
+        buf.set_text(entry.get_text())
+        scrolled.set_child(textview)
+
+        content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        content.append(scrolled)
+        dialog.set_child(content)
+
+        def on_save(_):
+            new_text = buf.get_text(buf.get_start_iter(), buf.get_end_iter(), False)
+            entry.set_text(new_text)
+            self.edit_prompt(entry)
+            dialog.close()
+
+        save_btn.connect("clicked", on_save)
+        dialog.present()
 
     def edit_prompt(self, entry):
         """Called when the MultilineEntry is changed
@@ -2453,6 +2617,110 @@ class Settings(Adw.PreferencesWindow):
         """
         prompt_name = entry.get_name()
         entry.set_text(PROMPTS[prompt_name])
+
+    def on_add_custom_prompt(self, button):
+        dialog = Gtk.Window()
+        dialog.set_title(_("Add Custom Prompt"))
+        dialog.set_transient_for(self)
+        dialog.set_modal(True)
+        dialog.set_default_size(500, 450)
+
+        header = Adw.HeaderBar(css_classes=["flat"])
+        dialog.set_titlebar(header)
+
+        cancel_btn = Gtk.Button(label=_("Cancel"))
+        cancel_btn.add_css_class("flat")
+        cancel_btn.connect("clicked", lambda *_: dialog.close())
+
+        add_btn = Gtk.Button(label=_("Add"))
+        add_btn.add_css_class("suggested-action")
+        header.pack_start(cancel_btn)
+        header.pack_end(add_btn)
+
+        content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12,
+                          margin_start=18, margin_end=18, margin_top=6, margin_bottom=18)
+
+        name_row = Adw.EntryRow(title=_("Name"))
+        content.append(name_row)
+
+        desc_row = Adw.EntryRow(title=_("Description"))
+        content.append(desc_row)
+
+        text_label = Gtk.Label(label=_("Prompt Text"), halign=Gtk.Align.START)
+        content.append(text_label)
+
+        scrolled = Gtk.ScrolledWindow(hexpand=True, vexpand=True)
+        textview = Gtk.TextView(
+            wrap_mode=Gtk.WrapMode.WORD,
+            monospace=True,
+            top_margin=12, bottom_margin=12,
+            left_margin=12, right_margin=12,
+            css_classes=["card"],
+        )
+        scrolled.set_child(textview)
+        content.append(scrolled)
+
+        dialog.set_child(content)
+
+        def on_add(_):
+            title = name_row.get_text().strip()
+            description = desc_row.get_text().strip()
+            buf = textview.get_buffer()
+            text = buf.get_text(buf.get_start_iter(), buf.get_end_iter(), False).strip()
+            if not title or not text:
+                return
+            key = f"user_custom_{int(time.time() * 1000)}"
+            user_prompts = json.loads(self.settings.get_string("user-custom-prompts"))
+            user_prompts.append({
+                "key": key,
+                "title": title,
+                "description": description,
+                "text": text,
+            })
+            self.settings.set_string("user-custom-prompts", json.dumps(user_prompts))
+            PROMPTS[key] = text
+            AVAILABLE_PROMPTS.append({
+                "key": key,
+                "setting_name": key,
+                "title": title,
+                "description": description,
+                "editable": True,
+                "show_in_settings": True,
+                "default": True,
+                "user_custom": True,
+            })
+            self.prompts[key] = text
+            self.prompts_settings[key] = True
+            self.settings.set_string("prompts-settings", json.dumps(self.prompts_settings))
+            self.build_prompts_settings()
+            dialog.close()
+
+        add_btn.connect("clicked", on_add)
+        dialog.present()
+
+    def on_delete_custom_prompt(self, button, key):
+        user_prompts = json.loads(self.settings.get_string("user-custom-prompts"))
+        user_prompts = [p for p in user_prompts if p["key"] != key]
+        self.settings.set_string("user-custom-prompts", json.dumps(user_prompts))
+        if key in PROMPTS:
+            del PROMPTS[key]
+        for i, p in enumerate(AVAILABLE_PROMPTS):
+            if p["key"] == key:
+                AVAILABLE_PROMPTS.pop(i)
+                break
+        if key in self.prompts:
+            del self.prompts[key]
+        if key in self.custom_prompts:
+            del self.custom_prompts[key]
+            self.settings.set_string("custom-prompts", json.dumps(self.custom_prompts))
+        if key in self.prompts_settings:
+            del self.prompts_settings[key]
+            self.settings.set_string("prompts-settings", json.dumps(self.prompts_settings))
+        order = json.loads(self.settings.get_string("prompts-order"))
+        if key in order:
+            order.remove(key)
+            self.settings.set_string("prompts-order", json.dumps(order))
+        self.build_prompts_settings()
 
 
 

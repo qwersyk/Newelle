@@ -1,4 +1,5 @@
 import os
+import re
 import subprocess
 import sys
 
@@ -360,3 +361,47 @@ def has_backend(backend: str, spawn: bool = True) -> bool:
         return _run_check(["python3", "-c", "import openvino"])
 
     return False
+
+
+def detect_cuda_version() -> float | None:
+    """Detect the installed CUDA runtime version.
+
+    Tries nvcc first, then falls back to nvidia-smi output.
+
+    Returns:
+        The major.minor CUDA version as a float (e.g. 12.8, 13.2, 11.7),
+        or None if CUDA is not found.
+    """
+    cmd_prefix = get_spawn_command()
+
+    try:
+        result = subprocess.run(
+            cmd_prefix + ["nvcc", "--version"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            text=True,
+            timeout=5,
+        )
+        if result.returncode == 0:
+            match = re.search(r"release\s+(\d+)\.(\d+)", result.stdout)
+            if match:
+                return float(f"{match.group(1)}.{match.group(2)}")
+    except (subprocess.TimeoutExpired, FileNotFoundError, OSError):
+        pass
+
+    try:
+        result = subprocess.run(
+            cmd_prefix + ["nvidia-smi"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            text=True,
+            timeout=5,
+        )
+        if result.returncode == 0:
+            match = re.search(r"CUDA Version:\s+(\d+)\.(\d+)", result.stdout)
+            if match:
+                return float(f"{match.group(1)}.{match.group(2)}")
+    except (subprocess.TimeoutExpired, FileNotFoundError, OSError):
+        pass
+
+    return None
