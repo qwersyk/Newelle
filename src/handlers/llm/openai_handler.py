@@ -39,7 +39,7 @@ class OpenAIHandler(LLMHandler):
                 api = self.get_setting("api", False)
                 if api is None:
                     return
-                client = openai.Client(api_key=api, base_url=self.get_setting("endpoint"))
+                client = openai.Client(api_key=api, base_url=self.get_setting("endpoint"), default_headers=self.get_extra_headers())
                 models = client.models.list()
                 result = tuple()
                 for model in models:
@@ -60,9 +60,9 @@ class OpenAIHandler(LLMHandler):
         return True
 
     def get_extra_settings(self) -> list:
-        return self.build_extra_settings("OpenAI", True, True, True, True, True, "https://openai.com/policies/row-privacy-policy/", None, False,False,True, True)
+        return self.build_extra_settings("OpenAI", True, True, True, True, True, "https://openai.com/policies/row-privacy-policy/", None, False, False, True, True, supports_custom_headers=True)
 
-    def build_extra_settings(self, provider_name: str, has_api_key: bool, has_stream_settings: bool, endpoint_change: bool, allow_advanced_params: bool, supports_automatic_models: bool, privacy_notice_url : str | None, model_list_url: str | None, default_advanced_params: bool = False, default_automatic_models: bool = False, supports_custom_body : bool = False, supports_thinking: bool = False, supports_tool_calling: bool = True, has_tool_calling_option: bool = True) -> list:
+    def build_extra_settings(self, provider_name: str, has_api_key: bool, has_stream_settings: bool, endpoint_change: bool, allow_advanced_params: bool, supports_automatic_models: bool, privacy_notice_url : str | None, model_list_url: str | None, default_advanced_params: bool = False, default_automatic_models: bool = False, supports_custom_body : bool = False, supports_thinking: bool = False, supports_tool_calling: bool = True, has_tool_calling_option: bool = True, supports_custom_headers: bool = False) -> list:
         """Helper to build the list of extra settings for OpenAI Handlers
 
         Args:
@@ -128,8 +128,9 @@ class OpenAIHandler(LLMHandler):
                 "medium"
             )
         ]
-        custom_body = ExtraSettings.MultilineEntrySetting("custom_body", _("Custom Options"), _("Provide a JSON containing the custom options"), "{}") 
-        
+        custom_body = ExtraSettings.MultilineEntrySetting("custom_body", _("Custom Options"), _("Provide a JSON containing the custom options"), "{}")
+        custom_headers = ExtraSettings.MultilineEntrySetting("custom_headers", _("Custom Headers"), _("Provide a JSON containing custom HTTP headers to send with every request"), "{}")
+
         privacy_notice = [
             ExtraSettings.ButtonSetting(
                     "privacy", _("Privacy Policy"), _("Open privacy policy website"),
@@ -168,6 +169,8 @@ class OpenAIHandler(LLMHandler):
             ]
         if supports_custom_body:
             settings += [custom_body]
+        if supports_custom_headers:
+            settings += [custom_headers]
         return settings
 
     def convert_history(self, history: list, prompts: list | None = None) -> list:
@@ -229,7 +232,8 @@ class OpenAIHandler(LLMHandler):
                 "temperature": temperature,
                 "presence_penalty": presence_penalty,
                 "frequency_penalty": frequency_penalty,
-                "extra_body": extra_body
+                "extra_body": extra_body,
+                "extra_headers": self.get_extra_headers(),
             }
             if tools_list:
                 kwargs["tools"] = tools_list
@@ -378,4 +382,13 @@ class OpenAIHandler(LLMHandler):
         return {}
 
     def get_extra_headers(self):
+        headers = self.get_setting("custom_headers")
+        if headers is not None:
+            try:
+                j = json.loads(headers)
+                if isinstance(j, dict):
+                    return j
+            except Exception as e:
+                print("Wrong custom headers")
+                self.throw("Wrong custom headers given to OpenAI LLM Handler, ignoring")
         return {}
