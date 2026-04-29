@@ -89,7 +89,7 @@ class Command:
         params = {}
         required = []
         for name, param in sig.parameters.items():
-            if name == "self":
+            if name == "self" or name == "msg_uuid" or name == "tool_uuid" or name == "chat_id":
                 continue
             param_type = "string"
             if param.annotation == int:

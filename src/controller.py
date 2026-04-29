@@ -1689,20 +1689,29 @@ class NewelleController:
                     if on_message_callback:
                         on_message_callback(text)
                 
+                if iteration == 0:
+                    prompt = message
+                else:
+                    prompt = ""
+                    for i in range(len(current_history) - 1, -1, -1):
+                        if current_history[i]["User"] == "Console":
+                            prompt = current_history.pop(i)["Message"]
+                            break
+
                 send_history, _ = self._trim_context(current_history, system_prompt, message)
 
                 if self.handlers.llm.stream_enabled():
                     response = self.handlers.llm.send_message_stream(
-                        message if iteration == 0 else "",
+                        prompt,
                         send_history,
                         system_prompt,
                         stream_callback
                     )
                 else:
                     response = self.handlers.llm.send_message(
-                        message if iteration == 0 else "",
-                        system_prompt,
-                        send_history
+                        prompt,
+                        send_history,
+                        system_prompt
                     )
                     if on_message_callback:
                         on_message_callback(response)
