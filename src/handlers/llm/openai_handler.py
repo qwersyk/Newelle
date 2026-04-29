@@ -264,8 +264,6 @@ class OpenAIHandler(LLMHandler):
             user = "User"
         history.append({"User": user, "Message": prompt})
         messages = self.convert_history(history, system_prompt)
-        print(messages)
-        print([message["role"] for message in messages])
         api = self.get_setting("api")
         if api == "":
             api = "nokey"

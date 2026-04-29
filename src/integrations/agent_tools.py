@@ -45,8 +45,8 @@ class AgentToolsIntegration(NewelleExtension):
                 skill_manager = getattr(ctrl, "skill_manager", None)
                 requested_tools = [t.strip() for t in tools.split(",") if t.strip()]
                 # Add send_result tool
-                def send_result(result:str):
-                    self.subagent_results[tool_uuid] = result
+                def send_result(content:str):
+                    self.subagent_results[tool_uuid] = content 
                     res = ToolResult()
                     res.set_output(None)
                     return res
@@ -73,7 +73,7 @@ class AgentToolsIntegration(NewelleExtension):
                     from ..constants import PROMPTS
                     tools_instruction = PROMPTS.get("tools", "").replace("{TOOLS}", tools_prompt_json)
                     prompts.append(tools_instruction)
-                prompts.append("You MUST call send_result tool at the end of the task. Pass any relevant information to the main agent.")
+                prompts.append("You MUST call send_result tool at the end of the task. Pass any relevant information to the main agent using the content arguement.")
                 chat_id = ctrl.create_call_chat()
 
                 widget.set_status(_("Running…"))
