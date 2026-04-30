@@ -242,6 +242,9 @@ class OpenAIHandler(LLMHandler):
                 for tool_call in response.choices[0].message.tool_calls:
                     tool = tool_call.function
                     tool_call_dict = {"tool": tool.name, "arguments": json.loads(tool.arguments) if tool.arguments else {}}
+                    tc_id = getattr(tool_call, "id", None)
+                    if tc_id:
+                        tool_call_dict["id"] = tc_id
                     content += "```json\n" + json.dumps(tool_call_dict) + "\n```\n"
 
             return content.strip()
@@ -339,8 +342,10 @@ class OpenAIHandler(LLMHandler):
                     
                     for tc_delta in delta.tool_calls:
                         if tc_delta.index not in tool_calls:
-                            tool_calls[tc_delta.index] = {"name": "", "arguments": ""}
-                        
+                            tool_calls[tc_delta.index] = {"name": "", "arguments": "", "id": ""}
+
+                        if getattr(tc_delta, "id", None):
+                            tool_calls[tc_delta.index]["id"] += tc_delta.id
                         if tc_delta.function.name:
                             tool_calls[tc_delta.index]["name"] += tc_delta.function.name
                         if tc_delta.function.arguments:
@@ -357,6 +362,9 @@ class OpenAIHandler(LLMHandler):
                     except:
                         args = tc["arguments"]
                     tool_call_dict = {"tool": tc["name"], "arguments": args}
+                    tid = (tc.get("id") or "").strip()
+                    if tid:
+                        tool_call_dict["id"] = tid
                     full_message += "\n```json\n" + json.dumps(tool_call_dict) + "\n```\n"
             
             return full_message.strip()

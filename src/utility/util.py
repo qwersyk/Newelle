@@ -1,7 +1,8 @@
 from .media import get_image_base64, extract_image
-import time 
+import time
 import json
 import re
+import uuid
 
 def convert_messages_openai_to_newelle(messages: list) -> tuple[str, list[dict], list[str]]:
     """Convert OpenAI format messages to Newelle format.
@@ -16,15 +17,68 @@ def convert_messages_openai_to_newelle(messages: list) -> tuple[str, list[dict],
     history = []
     last_user_message = ""
 
+    def _tool_calls_function_dict(tc):
+        """Normalize a tool_calls entry to a function dict."""
+        if isinstance(tc, dict):
+            fn = tc.get("function") or {}
+        else:
+            fn = getattr(tc, "function", None)
+        if fn is None:
+            return {}
+        if isinstance(fn, dict):
+            return fn
+        if hasattr(fn, "model_dump"):
+            return fn.model_dump()
+        return vars(fn) if hasattr(fn, "__dict__") else {}
+
     for msg in messages:
         if isinstance(msg, dict):
             role = msg.get("role", "user")
-            content = msg.get("content", "")
+            content = msg.get("content")
+            tool_calls = msg.get("tool_calls")
+            tool_call_id = msg.get("tool_call_id")
+            name = msg.get("name")
         else:
             role = getattr(msg, "role", "user")
-            content = getattr(msg, "content", "")
+            content = getattr(msg, "content", None)
+            tool_calls = getattr(msg, "tool_calls", None)
+            tool_call_id = getattr(msg, "tool_call_id", None)
+            name = getattr(msg, "name", None)
+        if content is None:
+            content = ""
+
         if role == "system":
             system_prompt.append(content)
+        elif role == "tool":
+            tool_name = name or "unknown"
+            tid = tool_call_id or "unknown"
+            history.append({
+                "User": "Console",
+                "Message": f"[Tool: {tool_name}, ID: {tid}]\n{content}",
+            })
+        elif role == "assistant" and tool_calls:
+            parts = []
+            if content:
+                parts.append(content)
+            for tc in tool_calls:
+                fn = _tool_calls_function_dict(tc)
+                tool_data = {
+                    "name": fn.get("name", ""),
+                    "arguments": fn.get("arguments", {}),
+                }
+                if isinstance(tc, dict):
+                    tc_id = tc.get("id")
+                else:
+                    tc_id = getattr(tc, "id", None)
+                if isinstance(tc_id, str) and tc_id.strip():
+                    tool_data["id"] = tc_id.strip()
+                if isinstance(tool_data["arguments"], str):
+                    try:
+                        tool_data["arguments"] = json.loads(tool_data["arguments"])
+                    except json.JSONDecodeError:
+                        pass
+                parts.append(f"```json\n{json.dumps(tool_data)}\n```")
+            history.append({"User": "Assistant", "Message": "\n".join(parts)})
         elif role == "user":
             last_user_message = content
             history.append({"User": "User", "Message": content})
@@ -32,6 +86,78 @@ def convert_messages_openai_to_newelle(messages: list) -> tuple[str, list[dict],
             history.append({"User": "Assistant", "Message": content})
 
     return last_user_message, history, system_prompt
+
+
+def parse_tool_calls_from_assistant_content(text: str) -> tuple[str | None, list[dict]]:
+    """Pull ``tool_calls`` out of assistant text that uses fenced ```json blocks (Newelle native).
+
+    Recognizes JSON objects with a ``tool`` key or ``name`` plus ``arguments``, matching
+    :meth:`OpenAIHandler.generate_text` output.
+
+    Returns:
+        (content, tool_calls) where ``tool_calls`` is OpenAI chat.completion message format:
+        each item has ``id``, ``type``, ``function`` with ``name`` and JSON-string ``arguments``.
+        Fenced blocks that are valid tool calls are removed from ``content``.
+    """
+    if not text:
+        return "", []
+
+    pattern = re.compile(r"```json\s*(.*?)\s*```", re.DOTALL)
+    tool_calls: list[dict] = []
+    parts: list[str] = []
+    last = 0
+
+    for m in pattern.finditer(text):
+        parts.append(text[last:m.start()])
+        inner = m.group(1).strip()
+        try:
+            obj = json.loads(inner)
+        except json.JSONDecodeError:
+            parts.append(m.group(0))
+            last = m.end()
+            continue
+
+        tool_name = None
+        arguments = {}
+        if isinstance(obj, dict):
+            if "tool" in obj:
+                tool_name = obj.get("tool")
+                arguments = obj.get("arguments", {})
+            elif "name" in obj:
+                tool_name = obj.get("name")
+                arguments = obj.get("arguments", {})
+
+        if tool_name and isinstance(tool_name, str):
+            args_str = arguments if isinstance(arguments, str) else json.dumps(arguments)
+            raw_id = obj.get("id") if isinstance(obj, dict) else None
+            if isinstance(raw_id, str) and raw_id.strip():
+                call_id = raw_id.strip()
+            else:
+                call_id = f"call_{uuid.uuid4().hex[:24]}"
+            tool_calls.append({
+                "id": call_id,
+                "type": "function",
+                "function": {
+                    "name": tool_name,
+                    "arguments": args_str,
+                },
+            })
+            last = m.end()
+            continue
+
+        parts.append(m.group(0))
+        last = m.end()
+
+    parts.append(text[last:])
+    merged = "".join(parts).strip()
+
+    if tool_calls:
+        content_out = merged if merged else None
+    else:
+        content_out = merged
+
+    return content_out, tool_calls
+
 
 def extract_tools_from_prompts(prompts: list[str], remove_tool_prompt: bool = True) -> tuple[list[dict] | None, list[str]]:
     """Extract tools JSON wrapped in <tools> tags from prompts and return the parsed JSON and prompts without the JSON."""
@@ -123,16 +249,23 @@ def convert_history_openai(history: list, prompts: list, vision_support : bool =
                             tool_data = json.loads(block.group(1).strip())
                             tool_name = tool_data.get("name", tool_data.get("tool"))
                             tool_args = tool_data.get("arguments", {})
-                            
-                            tool_id = "unknown"
-                            for ci, cm in console_msgs:
-                                if ci in used_console:
-                                    continue
-                                match = re.match(r"^\[Tool:\s*(.*?),\s*ID:\s*(.*?)\]", cm["Message"])
-                                if match and match.group(1) == tool_name:
-                                    tool_id = match.group(2)
-                                    used_console.add(ci)
-                                    break
+
+                            tool_id = tool_data.get("id")
+                            if isinstance(tool_id, str) and tool_id.strip():
+                                tool_id = tool_id.strip()
+                            else:
+                                tool_id = None
+                            if not tool_id:
+                                for ci, cm in console_msgs:
+                                    if ci in used_console:
+                                        continue
+                                    match = re.match(r"^\[Tool:\s*(.*?),\s*ID:\s*(.*?)\]", cm["Message"])
+                                    if match and match.group(1) == tool_name:
+                                        tool_id = match.group(2)
+                                        used_console.add(ci)
+                                        break
+                                if not tool_id:
+                                    tool_id = "unknown"
                             
                             tool_calls.append({
                                 "id": tool_id,
@@ -288,8 +421,10 @@ def convert_history_newelle(openai_history: list, vision_support: bool = False):
                 fn = tc.get("function", {})
                 tool_data = {
                     "name": fn.get("name", ""),
-                    "arguments": fn.get("arguments", {})
+                    "arguments": fn.get("arguments", {}),
                 }
+                if tc.get("id"):
+                    tool_data["id"] = tc["id"]
                 if isinstance(tool_data["arguments"], str):
                     try:
                         tool_data["arguments"] = json.loads(tool_data["arguments"])

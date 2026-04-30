@@ -7,9 +7,21 @@ import threading
 import time
 import uuid
 
-from ...utility import convert_messages_openai_to_newelle
+from ...utility import convert_messages_openai_to_newelle, parse_tool_calls_from_assistant_content
 from ..extra_settings import ExtraSettings
 from .interface import Interface
+
+
+def _chat_completion_log_print(label: str, obj, max_chars: int = 8000) -> None:
+    """Debug logging for the OpenAI-compatible chat completions endpoint (stdout)."""
+    try:
+        text = json.dumps(obj, ensure_ascii=False, indent=2, default=str)
+    except TypeError:
+        text = repr(obj)
+    orig_len = len(text)
+    if orig_len > max_chars:
+        text = text[:max_chars] + f"\n... [truncated, {orig_len} chars total]"
+    print(f"[API chat/completions] {label}\n{text}")
 
 
 class APIInterface(Interface):
@@ -81,13 +93,19 @@ class APIInterface(Interface):
                 return await call_next(request)
 
         class ChatMessage(BaseModel):
+            model_config = {"extra": "ignore"}
+
             role: str
-            content: str
+            content: Optional[str] = None
+            tool_calls: Optional[list] = None
+            tool_call_id: Optional[str] = None
+            name: Optional[str] = None
 
         class ChatCompletionRequest(BaseModel):
             model: Optional[str] = None
             messages: list[ChatMessage]
             stream: Optional[bool] = False
+            tools: Optional[list] = None
 
         class SpeechRequest(BaseModel):
             model: Optional[str] = None
@@ -127,13 +145,54 @@ class APIInterface(Interface):
                 })
             return {"object": "list", "data": model_list}
 
+        def embed_openai_tools_in_system_prompt(system_prompt: list, tools: Optional[list]) -> None:
+            """Prepend <tools>...</tools> so extract_tools_from_prompts picks them up."""
+            if not tools:
+                return
+            normalized = []
+            for t in tools:
+                if not isinstance(t, dict):
+                    continue
+                if t.get("type") != "function":
+                    continue
+                fn = t.get("function") or {}
+                if not isinstance(fn, dict):
+                    continue
+                tool_name = fn.get("name")
+                if not tool_name:
+                    continue
+                normalized.append({
+                    "name": tool_name,
+                    "description": fn.get("description", ""),
+                    "parameters": fn.get("parameters", {"type": "object", "properties": {}}),
+                })
+            if not normalized:
+                return
+            system_prompt.insert(0, f"<tools>{json.dumps(normalized)}</tools>")
+
         @app.post("/v1/chat/completions")
         @app.post("/chats/completions")
         async def chat_completions(request: ChatCompletionRequest):
+            req_dump = request.model_dump() if hasattr(request, "model_dump") else request.dict()
+            _chat_completion_log_print("request (raw body)", req_dump)
+
             llm = controller.handlers.llm
             last_user_message, history, system_prompt = convert_messages_openai_to_newelle(request.messages)
+            embed_openai_tools_in_system_prompt(system_prompt, request.tools)
+
+            _chat_completion_log_print(
+                "request (normalized for LLM)",
+                {
+                    "last_user_message": last_user_message,
+                    "history_len": len(history),
+                    "history_tail": history[-5:] if history else [],
+                    "system_prompt": system_prompt,
+                },
+                max_chars=6000,
+            )
 
             if not last_user_message:
+                print("[API chat/completions] response: 400 No user message provided")
                 return JSONResponse(
                     status_code=400,
                     content={"error": {"message": "No user message provided", "type": "invalid_request_error"}},
@@ -142,6 +201,11 @@ class APIInterface(Interface):
             completion_id = f"chatcmpl-{uuid.uuid4().hex[:12]}"
             created = int(time.time())
             model_name = request.model or (llm.get_selected_model() if hasattr(llm, "get_selected_model") else "default")
+
+            print(
+                f"[API chat/completions] routing completion_id={completion_id} model={model_name!r} "
+                f"stream={request.stream} messages={len(request.messages)}"
+            )
 
             if request.stream:
                 return self._stream_response(llm, completion_id, created, model_name, last_user_message, history, system_prompt)
@@ -198,18 +262,33 @@ class APIInterface(Interface):
         except Exception as e:
             result = f"[Error: {str(e)}]"
 
-        return JSONResponse(content={
+        if isinstance(result, str) and result.startswith("[Error:"):
+            message = {"role": "assistant", "content": result}
+            finish_reason = "stop"
+        else:
+            content_clean, tool_calls = parse_tool_calls_from_assistant_content(result if isinstance(result, str) else str(result))
+            message = {"role": "assistant", "content": content_clean}
+            if tool_calls:
+                message["tool_calls"] = tool_calls
+                finish_reason = "tool_calls"
+            else:
+                finish_reason = "stop"
+
+        payload = {
             "id": completion_id,
             "object": "chat.completion",
             "created": created,
             "model": model_name,
             "choices": [{
                 "index": 0,
-                "message": {"role": "assistant", "content": result},
-                "finish_reason": "stop",
+                "message": message,
+                "finish_reason": finish_reason,
             }],
             "usage": {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0},
-        })
+        }
+        _chat_completion_log_print(f"response (non-stream) id={completion_id}", payload)
+
+        return JSONResponse(content=payload)
 
     def _stream_response(self, llm, completion_id, created, model_name, prompt, history, system_prompt):
         from fastapi.responses import StreamingResponse
@@ -217,13 +296,17 @@ class APIInterface(Interface):
         q = queue.Queue()
         done_sentinel = object()
         error_container = [None]
+        # Capture the return value of generate_text_stream, which includes tool-call
+        # JSON blocks appended AFTER streaming ends — on_update only fires during
+        # content chunks so final_full_message from the queue would miss them.
+        final_result_container = [None]
 
         def on_update(full_message: str):
             q.put(("chunk", full_message))
 
         def run_llm():
             try:
-                llm.generate_text_stream(prompt, history, system_prompt, on_update=on_update)
+                final_result_container[0] = llm.generate_text_stream(prompt, history, system_prompt, on_update=on_update)
             except Exception as e:
                 error_container[0] = str(e)
             finally:
@@ -237,7 +320,14 @@ class APIInterface(Interface):
         def event_generator():
             nonlocal prev_len
 
+            print(
+                f"[API chat/completions] stream start id={completion_id} model={model_name!r} "
+                f"prompt_len={len(prompt)} history_len={len(history)} system_prompt_parts={len(system_prompt)}"
+            )
+
             yield f"data: {json.dumps({'id': completion_id, 'object': 'chat.completion.chunk', 'created': created, 'model': model_name, 'choices': [{'index': 0, 'delta': {'role': 'assistant', 'content': ''}, 'finish_reason': None}]})}\n\n"
+
+            final_full_message = ""
 
             while True:
                 item = q.get()
@@ -245,17 +335,51 @@ class APIInterface(Interface):
                     break
 
                 _, full_message = item
+                final_full_message = full_message
                 delta = full_message[prev_len:]
                 prev_len = len(full_message)
 
                 if delta:
                     yield f"data: {json.dumps({'id': completion_id, 'object': 'chat.completion.chunk', 'created': created, 'model': model_name, 'choices': [{'index': 0, 'delta': {'content': delta}, 'finish_reason': None}]})}\n\n"
 
+            # Prefer the return value (has tool calls appended post-stream) over
+            # final_full_message which only accumulates on_update content chunks.
+            message_for_parsing = final_result_container[0] if final_result_container[0] is not None else final_full_message
+
             if error_container[0] is not None:
                 err_text = f"\n[Error: {error_container[0]}]"
                 yield f"data: {json.dumps({'id': completion_id, 'object': 'chat.completion.chunk', 'created': created, 'model': model_name, 'choices': [{'index': 0, 'delta': {'content': err_text}, 'finish_reason': None}]})}\n\n"
+                finish_reason = "stop"
+            else:
+                _, streamed_tool_calls = parse_tool_calls_from_assistant_content(message_for_parsing)
+                if streamed_tool_calls:
+                    delta_tc = []
+                    for i, tc in enumerate(streamed_tool_calls):
+                        delta_tc.append({
+                            "index": i,
+                            "id": tc["id"],
+                            "type": "function",
+                            "function": {
+                                "name": tc["function"]["name"],
+                                "arguments": tc["function"]["arguments"],
+                            },
+                        })
+                    yield f"data: {json.dumps({'id': completion_id, 'object': 'chat.completion.chunk', 'created': created, 'model': model_name, 'choices': [{'index': 0, 'delta': {'tool_calls': delta_tc}, 'finish_reason': None}]})}\n\n"
+                    finish_reason = "tool_calls"
+                else:
+                    finish_reason = "stop"
 
-            yield f"data: {json.dumps({'id': completion_id, 'object': 'chat.completion.chunk', 'created': created, 'model': model_name, 'choices': [{'index': 0, 'delta': {}, 'finish_reason': 'stop'}]})}\n\n"
+            _chat_completion_log_print(
+                f"response (stream end) id={completion_id} finish_reason={finish_reason}",
+                {
+                    "assistant_raw_len": len(message_for_parsing),
+                    "assistant_raw": message_for_parsing,
+                    "stream_error": error_container[0],
+                },
+                max_chars=12000,
+            )
+
+            yield f"data: {json.dumps({'id': completion_id, 'object': 'chat.completion.chunk', 'created': created, 'model': model_name, 'choices': [{'index': 0, 'delta': {}, 'finish_reason': finish_reason}]})}\n\n"
             yield "data: [DONE]\n\n"
 
         return StreamingResponse(event_generator(), media_type="text/event-stream")
