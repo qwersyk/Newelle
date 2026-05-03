@@ -11,8 +11,71 @@ from .llm import LLMHandler
 from ...utility.media import extract_image, extract_video, extract_file
 from ...utility.pip import find_module
 from ...utility.system import open_website
-from ...utility import extract_tools_from_prompts
+from ...utility import extract_tools_from_prompts, VOID_TOOL_RESULT_PLACEHOLDER
 from ...handlers import ExtraSettings, ErrorSeverity
+
+
+def balance_gemini_native_tool_responses(contents: list) -> list:
+    """Insert placeholder ``function_response`` parts for model ``function_call`` parts with no user reply.
+
+    Uses ``VOID_TOOL_RESULT_PLACEHOLDER`` so the model sees a non-empty acknowledgment for display-only tools.
+    """
+    if not contents:
+        return contents
+    from google.genai import types
+
+    result = list(contents)
+    i = 0
+    while i < len(result):
+        c = result[i]
+        if getattr(c, "role", None) != "model":
+            i += 1
+            continue
+        parts = list(getattr(c, "parts", None) or [])
+        fc_names = []
+        for p in parts:
+            fc = getattr(p, "function_call", None)
+            if fc is not None:
+                n = getattr(fc, "name", None)
+                if n:
+                    fc_names.append(str(n))
+        if not fc_names:
+            i += 1
+            continue
+        if i + 1 < len(result) and getattr(result[i + 1], "role", None) == "user":
+            u = result[i + 1]
+            uparts = list(getattr(u, "parts", None) or [])
+            matched = [False] * len(uparts)
+            filler = []
+            for fname in fc_names:
+                found = None
+                for pi, p in enumerate(uparts):
+                    if matched[pi]:
+                        continue
+                    fr = getattr(p, "function_response", None)
+                    if fr is not None and str(getattr(fr, "name", None) or "") == fname:
+                        found = pi
+                        break
+                if found is not None:
+                    matched[found] = True
+                else:
+                    filler.append(
+                        types.Part.from_function_response(
+                            name=fname, response={"result": VOID_TOOL_RESULT_PLACEHOLDER}
+                        )
+                    )
+            if filler:
+                result[i + 1] = types.Content(role="user", parts=filler + uparts)
+        else:
+            filler = [
+                types.Part.from_function_response(name=n, response={"result": VOID_TOOL_RESULT_PLACEHOLDER})
+                for n in fc_names
+            ]
+            result.insert(i + 1, types.Content(role="user", parts=filler))
+            i += 1
+        i += 1
+    return result
+
 
 class GeminiHandler(LLMHandler):
     key = "gemini"
@@ -395,6 +458,8 @@ class GeminiHandler(LLMHandler):
         if append_instructions is not None:
             history.insert(0,{"User": "User", "Message": append_instructions})
         converted_history = self.__convert_history(history, native_tool_calling=native_tool_calling)
+        if native_tool_calling:
+            converted_history = balance_gemini_native_tool_responses(converted_history)
         try: 
             response = client.models.generate_content_stream(
                 contents=converted_history,

@@ -13,9 +13,8 @@ from gi.repository import GLib
 from ..handler import ErrorSeverity
 
 from .llm import LLMHandler
-from ...utility.system import can_escape_sandbox, get_spawn_command, is_flatpak
+from ...utility import get_streaming_extra_setting, extract_tools_from_prompts, convert_history_openai, balance_native_tool_call_responses
 from ...utility.media import extract_image
-from ...utility import get_streaming_extra_setting, extract_tools_from_prompts, convert_history_openai
 from ...handlers import ExtraSettings
 
 class OllamaHandler(LLMHandler):
@@ -520,6 +519,8 @@ class OllamaHandler(LLMHandler):
             user = "User"
         history.append({"User": user, "Message": prompt})
         messages = self.convert_history(history, system_prompt)
+        if native_tool_calling:
+            messages = balance_native_tool_call_responses(messages)
         client = self.create_client()
 
         self.auto_serve(client)
@@ -558,6 +559,8 @@ class OllamaHandler(LLMHandler):
             user = "User"
         history.append({"User": user, "Message": prompt})
         messages = self.convert_history(history, system_prompt)
+        if native_tool_calling:
+            messages = balance_native_tool_call_responses(messages)
         client = self.create_client()
         
         self.auto_serve(client)

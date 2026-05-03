@@ -367,6 +367,76 @@ def aggregate_messages(messages: list, format="newelle"):
 
     return aggregated_messages
 
+
+VOID_TOOL_RESULT_PLACEHOLDER = "Tool executed successfully"
+
+
+def _tool_call_dict_id(tc: object) -> str:
+    if isinstance(tc, dict):
+        tid = tc.get("id")
+    else:
+        tid = getattr(tc, "id", None)
+    return tid if isinstance(tid, str) else ""
+
+
+def _tool_call_dict_name(tc: object) -> str:
+    fn = tc.get("function") if isinstance(tc, dict) else getattr(tc, "function", None)
+    if fn is None:
+        return ""
+    if isinstance(fn, dict):
+        return str(fn.get("name", "") or "")
+    return str(getattr(fn, "name", "") or "")
+
+
+def balance_native_tool_call_responses(messages: list) -> list:
+    """Ensure each assistant ``tool_calls`` entry has a matching ``role: tool`` message.
+
+    Display-only tools may omit console output (no ``[Tool: …]`` row in history). Several
+    APIs then reject the turn (e.g. mismatched function call / response counts). Missing
+    Missing replies use ``VOID_TOOL_RESULT_PLACEHOLDER`` in the tool message ``content`` field.
+    """
+    if not messages:
+        return messages
+    out: list = []
+    i = 0
+    n = len(messages)
+    while i < n:
+        msg = messages[i]
+        tcs = msg.get("tool_calls") if isinstance(msg, dict) else None
+        if isinstance(msg, dict) and msg.get("role") == "assistant" and tcs:
+            out.append(msg)
+            expected = [(_tool_call_dict_id(tc), _tool_call_dict_name(tc)) for tc in tcs]
+            j = i + 1
+            following_tools: list = []
+            while j < n and isinstance(messages[j], dict) and messages[j].get("role") == "tool":
+                following_tools.append(messages[j])
+                j += 1
+            matched = [False] * len(following_tools)
+            for eid, ename in expected:
+                found: int | None = None
+                for fi, fm in enumerate(following_tools):
+                    if matched[fi]:
+                        continue
+                    rid = fm.get("tool_call_id")
+                    rid_s = rid if isinstance(rid, str) else ("" if rid is None else str(rid))
+                    if rid_s == eid:
+                        found = fi
+                        break
+                if found is not None:
+                    matched[found] = True
+                else:
+                    row = {"role": "tool", "tool_call_id": eid, "content": VOID_TOOL_RESULT_PLACEHOLDER}
+                    if ename:
+                        row["name"] = ename
+                    out.append(row)
+            out.extend(following_tools)
+            i = j
+        else:
+            out.append(msg)
+            i += 1
+    return out
+
+
 def embed_image(text: str, image: str):
     """
     Inverse helper of extract_image.

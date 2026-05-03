@@ -7,7 +7,7 @@ _ = gettext.gettext
 
 from .llm import LLMHandler
 from ...utility.system import open_website
-from ...utility import convert_history_openai, get_streaming_extra_setting, extract_tools_from_prompts
+from ...utility import convert_history_openai, get_streaming_extra_setting, extract_tools_from_prompts, balance_native_tool_call_responses
 from ...handlers import ExtraSettings, ErrorSeverity
 
 class OpenAIHandler(LLMHandler):
@@ -208,6 +208,8 @@ class OpenAIHandler(LLMHandler):
             user = "User"
         history.append({"User": user, "Message": prompt})
         messages = self.convert_history(history, system_prompt)
+        if native_tool_calling:
+            messages = balance_native_tool_call_responses(messages)
         api = self.get_setting("api")
         if api == "":
             api = "nokey"
@@ -267,6 +269,8 @@ class OpenAIHandler(LLMHandler):
             user = "User"
         history.append({"User": user, "Message": prompt})
         messages = self.convert_history(history, system_prompt)
+        if native_tool_calling:
+            messages = balance_native_tool_call_responses(messages)
         api = self.get_setting("api")
         if api == "":
             api = "nokey"
