@@ -1,11 +1,14 @@
+import base64
 import io
 import json
 import os
 import queue
+import struct
 import tempfile
 import threading
 import time
 import uuid
+from typing import Union
 
 from ...utility import convert_messages_openai_to_newelle, parse_tool_calls_from_assistant_content
 from ..extra_settings import ExtraSettings
@@ -113,6 +116,15 @@ class APIInterface(Interface):
             voice: Optional[str] = None
             response_format: Optional[str] = "mp3"
             stream: Optional[bool] = False
+
+        class EmbeddingRequest(BaseModel):
+            model_config = {"extra": "ignore"}
+
+            model: Optional[str] = None
+            input: Union[str, list]
+            encoding_format: Optional[str] = "float"
+            dimensions: Optional[int] = None
+            user: Optional[str] = None
 
         app = FastAPI()
         app.add_middleware(APIKeyMiddleware)
@@ -251,6 +263,84 @@ class APIInterface(Interface):
                     os.unlink(temp_file.name)
                 except Exception:
                     pass
+
+        @app.post("/v1/embeddings")
+        async def create_embeddings(request: EmbeddingRequest):
+            embedding_handler = controller.handlers.embedding
+            if embedding_handler is None:
+                return JSONResponse(
+                    status_code=503,
+                    content={"error": {"message": "No embedding handler configured", "type": "server_error"}},
+                )
+
+            raw_input = request.input
+            if isinstance(raw_input, str):
+                texts = [raw_input]
+            elif isinstance(raw_input, list):
+                if len(raw_input) == 0:
+                    return JSONResponse(
+                        status_code=400,
+                        content={"error": {"message": "'input' must not be empty", "type": "invalid_request_error"}},
+                    )
+                if all(isinstance(item, str) for item in raw_input):
+                    texts = list(raw_input)
+                else:
+                    # Token-id arrays are not supported since the local embedder takes raw text.
+                    return JSONResponse(
+                        status_code=400,
+                        content={"error": {"message": "Token-id inputs are not supported; provide a string or list of strings", "type": "invalid_request_error"}},
+                    )
+            else:
+                return JSONResponse(
+                    status_code=400,
+                    content={"error": {"message": "'input' must be a string or list of strings", "type": "invalid_request_error"}},
+                )
+
+            try:
+                embeddings = embedding_handler.get_embedding(texts)
+            except Exception as e:
+                return JSONResponse(
+                    status_code=500,
+                    content={"error": {"message": f"Embedding failed: {str(e)}", "type": "server_error"}},
+                )
+
+            try:
+                rows = embeddings.tolist()
+            except AttributeError:
+                rows = list(embeddings)
+
+            encoding_format = (request.encoding_format or "float").lower()
+            data = []
+            for idx, vector in enumerate(rows):
+                vec_list = list(vector)
+                if encoding_format == "base64":
+                    packed = struct.pack(f"{len(vec_list)}f", *(float(v) for v in vec_list))
+                    embedding_value = base64.b64encode(packed).decode("ascii")
+                else:
+                    embedding_value = [float(v) for v in vec_list]
+                data.append({
+                    "object": "embedding",
+                    "index": idx,
+                    "embedding": embedding_value,
+                })
+
+            model_name = request.model
+            if not model_name:
+                model_name = embedding_handler.get_setting("model", search_default=True, return_value=None) \
+                    if hasattr(embedding_handler, "get_setting") else None
+            if not model_name:
+                model_name = getattr(embedding_handler, "key", "embedding")
+
+            total_tokens = sum(len(t.split()) for t in texts)
+            return {
+                "object": "list",
+                "data": data,
+                "model": model_name,
+                "usage": {
+                    "prompt_tokens": total_tokens,
+                    "total_tokens": total_tokens,
+                },
+            }
 
         return app
 
