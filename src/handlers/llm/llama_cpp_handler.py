@@ -77,6 +77,13 @@ class LlamaCPPHandler(OpenAIHandler):
             except:
                 pass
     
+    def get_custom_models_dir(self) -> str:
+        """Return the user-configured custom models directory, expanded, or empty string."""
+        custom_dir = self.get_setting("custom_models_dir", False, "") or ""
+        if custom_dir:
+            custom_dir = os.path.expanduser(custom_dir)
+        return custom_dir
+
     def get_custom_model_list(self, update=False): 
         """Get models in the user folder
 
@@ -84,6 +91,7 @@ class LlamaCPPHandler(OpenAIHandler):
             list: list of models 
         """
         file_list = tuple()
+        seen = set()
         for root, _, files in os.walk(self.model_folder):
             for file in files:
                 if file.endswith('.gguf'):
@@ -92,6 +100,23 @@ class LlamaCPPHandler(OpenAIHandler):
                         continue
                     relative_path = os.path.relpath(os.path.join(root, file), self.model_folder)
                     file_list += ((file_name, relative_path), )
+                    seen.add(file_name)
+
+        custom_dir = self.get_custom_models_dir()
+        if custom_dir and os.path.isdir(custom_dir) and os.path.abspath(custom_dir) != os.path.abspath(self.model_folder):
+            for root, _, files in os.walk(custom_dir):
+                for file in files:
+                    if file.endswith('.gguf'):
+                        file_name = file.rstrip('.gguf')
+                        if "mmproj" in file_name:
+                            continue
+                        abs_path = os.path.abspath(os.path.join(root, file))
+                        display_name = file_name
+                        # Disambiguate if a model with the same name exists in the default folder
+                        if display_name in seen:
+                            display_name = f"{file_name} (custom)"
+                        file_list += ((display_name, abs_path), )
+                        seen.add(display_name)
         if update:
             self.settings_update()
         return file_list
@@ -103,15 +128,40 @@ class LlamaCPPHandler(OpenAIHandler):
             list: list of mmproj files
         """
         file_list = tuple()
+        seen = set()
         for root, _, files in os.walk(self.model_folder):
             for file in files:
                 if 'mmproj' in file.lower() and file.endswith('.gguf'):
                     file_name = file.rstrip('.gguf')
                     relative_path = os.path.relpath(os.path.join(root, file), self.model_folder)
                     file_list+=((file_name, relative_path),)
+                    seen.add(file_name)
+
+        custom_dir = self.get_custom_models_dir()
+        if custom_dir and os.path.isdir(custom_dir) and os.path.abspath(custom_dir) != os.path.abspath(self.model_folder):
+            for root, _, files in os.walk(custom_dir):
+                for file in files:
+                    if 'mmproj' in file.lower() and file.endswith('.gguf'):
+                        file_name = file.rstrip('.gguf')
+                        abs_path = os.path.abspath(os.path.join(root, file))
+                        display_name = file_name
+                        if display_name in seen:
+                            display_name = f"{file_name} (custom)"
+                        file_list += ((display_name, abs_path), )
+                        seen.add(display_name)
         if update:
             self.settings_update()
         return file_list
+
+    def _resolve_model_path(self, value: str) -> str:
+        """Resolve a model setting value (which may be a relative path under the
+        default model folder or an absolute path from a custom directory) to an
+        absolute path on disk."""
+        if not value:
+            return ""
+        if os.path.isabs(value):
+            return value
+        return os.path.join(self.model_folder, value)
     
     def is_gpu_installed(self) -> bool:
         # Check if llama.cpp is built (hardware backend installation)
@@ -127,19 +177,29 @@ class LlamaCPPHandler(OpenAIHandler):
                 custom_model_list[0][1] if len(custom_model_list) > 0 else "", 
                 refresh=lambda button: self.get_custom_model_list(True),
                 folder=self.model_folder),
+            ]
+        settings.extend(
+            [
+                ExtraSettings.ButtonSetting("library", "Model Library", "Open the model library", self.open_model_library, label="Model Library"),
                 ExtraSettings.ToggleSetting("enable_mmproj", "Enable Vision (MMProj)", "Enable vision support using mmproj file", False, update_settings=True),
             ]
+        )
         settings += [ExtraSettings.ComboSetting("mmproj", "MMProj (Vision)", "Multimodal projection file for vision support", 
                 mmproj_list,
                 mmproj_list[0][1] if len(mmproj_list) > 0 else "",
                 refresh=lambda button: self.get_mmproj_list(True),
                 folder=self.model_folder)]
 
-        settings.extend(
-            [
-                ExtraSettings.ButtonSetting("library", "Model Library", "Open the model library", self.open_model_library, label="Model Library")
-            ]
+        settings.append(
+            ExtraSettings.EntrySetting(
+                "custom_models_dir",
+                "Custom Models Directory",
+                "Additional directory to scan for .gguf model files (leave empty to disable)",
+                "",
+                update_settings=True,
+            )
         )
+
         if not self.is_gpu_installed():
             settings.append(
                 ExtraSettings.ButtonSetting("install", "Install LlamaCPP (Hardware Acceleration)", "Build llama.cpp with hardware acceleration", self.show_install_dialog, label="Install")
@@ -177,7 +237,7 @@ class LlamaCPPHandler(OpenAIHandler):
             mmproj = self.get_mmproj_list()[0][1]
         if self.loaded_model == model and self.loaded_on == self.get_setting("gpu_acceleration", False, False) and self.loaded_ctx == ctx and self.loaded_mmproj == mmproj:
             return True
-        path = os.path.join(self.model_folder, self.get_setting("model"))
+        path = self._resolve_model_path(self.get_setting("model"))
         if not path or not os.path.exists(path):
              return False
         
@@ -199,7 +259,7 @@ class LlamaCPPHandler(OpenAIHandler):
         
         # Add mmproj for vision support if enabled and configured
         if self.get_setting("enable_mmproj") and mmproj:
-            mmproj_path = os.path.join(self.model_folder, mmproj)
+            mmproj_path = self._resolve_model_path(mmproj)
             if os.path.exists(mmproj_path):
                 cmd.extend(["--mmproj", mmproj_path])
         # Use flatpak-spawn for compiled or prebuilt CUDA binaries in Flatpak

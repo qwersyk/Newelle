@@ -76,6 +76,13 @@ class LlamaCPPEmbeddingHandler(EmbeddingHandler):
             except:
                 pass
     
+    def get_custom_models_dir(self) -> str:
+        """Return the user-configured custom models directory, expanded, or empty string."""
+        custom_dir = self.get_setting("custom_models_dir", False, "") or ""
+        if custom_dir:
+            custom_dir = os.path.expanduser(custom_dir)
+        return custom_dir
+
     def get_custom_model_list(self, update=False): 
         """Get models in the user folder
 
@@ -83,15 +90,40 @@ class LlamaCPPEmbeddingHandler(EmbeddingHandler):
             list: list of models 
         """
         file_list = tuple()
+        seen = set()
         for root, _, files in os.walk(self.model_folder):
             for file in files:
                 if file.endswith('.gguf'):
                     file_name = file.rstrip('.gguf')
                     relative_path = os.path.relpath(os.path.join(root, file), self.model_folder)
                     file_list += ((file_name, relative_path), )
+                    seen.add(file_name)
+
+        custom_dir = self.get_custom_models_dir()
+        if custom_dir and os.path.isdir(custom_dir) and os.path.abspath(custom_dir) != os.path.abspath(self.model_folder):
+            for root, _, files in os.walk(custom_dir):
+                for file in files:
+                    if file.endswith('.gguf'):
+                        file_name = file.rstrip('.gguf')
+                        abs_path = os.path.abspath(os.path.join(root, file))
+                        display_name = file_name
+                        if display_name in seen:
+                            display_name = f"{file_name} (custom)"
+                        file_list += ((display_name, abs_path), )
+                        seen.add(display_name)
         if update:
             self.settings_update()
         return file_list
+
+    def _resolve_model_path(self, value: str) -> str:
+        """Resolve a model setting value (which may be a relative path under the
+        default model folder or an absolute path from a custom directory) to an
+        absolute path on disk."""
+        if not value:
+            return ""
+        if os.path.isabs(value):
+            return value
+        return os.path.join(self.model_folder, value)
     
     def is_gpu_installed(self) -> bool:
         # Check if llama.cpp is built (hardware backend installation)
@@ -107,6 +139,16 @@ class LlamaCPPEmbeddingHandler(EmbeddingHandler):
                 refresh=lambda button: self.get_custom_model_list(True),
                 folder=self.model_folder)
             ]
+
+        settings.append(
+            ExtraSettings.EntrySetting(
+                "custom_models_dir",
+                "Custom Models Directory",
+                "Additional directory to scan for .gguf model files (leave empty to disable)",
+                "",
+                update_settings=True,
+            )
+        )
 
         #settings.extend(
         #    [
@@ -141,7 +183,7 @@ class LlamaCPPEmbeddingHandler(EmbeddingHandler):
             model = self.get_setting("model")
         if self.loaded_model == model and self.loaded_on == self.get_setting("gpu_acceleration", False, False):
             return True
-        path = os.path.join(self.model_folder, model)
+        path = self._resolve_model_path(model)
         if not path or not os.path.exists(path):
              return False
         
