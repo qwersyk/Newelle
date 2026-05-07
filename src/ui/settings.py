@@ -2381,9 +2381,8 @@ class Settings(Adw.PreferencesWindow):
         # Add check button
         button = Gtk.CheckButton(name=key, group=group, active=active)
         button.connect("toggled", self.choose_row, constants, secondary)
-        self.settingsrows[settings_row_key]["button"] = button 
-        if not self.sandbox and handler.requires_sandbox_escape() or not handler.is_installed():
-            button.set_sensitive(False)
+        self.settingsrows[settings_row_key]["button"] = button
+        self._apply_handler_row_blocked_style(button, handler)
         row.add_prefix(button)
 
         if "website" in model:
@@ -2427,6 +2426,38 @@ class Settings(Adw.PreferencesWindow):
     def get_constants_from_object(self, handler):
         return self.handlers.get_constants_from_object(handler)
 
+    def _handler_selection_blocked(self, handler: Handler) -> bool:
+        return (not self.sandbox and handler.requires_sandbox_escape()) or not handler.is_installed()
+
+    def _apply_handler_row_blocked_style(self, button: Gtk.CheckButton, handler: Handler) -> None:
+        button.set_opacity(0.45 if self._handler_selection_blocked(handler) else 1.0)
+
+    def _restore_previous_handler_row(
+        self,
+        constants: dict[str, Any],
+        secondary: bool,
+        setting_name: str,
+        failed_button: Gtk.CheckButton,
+    ) -> None:
+        prev_key = self.settings.get_string(setting_name)
+        failed_button.set_active(False)
+        sk = (prev_key, self.convert_constants(constants), secondary)
+        if sk in self.settingsrows:
+            self.settingsrows[sk]["button"].set_active(True)
+
+    def _show_optional_deps_popover(self, anchor: Gtk.Widget) -> None:
+        popover = Gtk.Popover()
+        popover.set_parent(anchor)
+        label = Gtk.Label(wrap=True, max_width_chars=44)
+        label.set_margin_top(12)
+        label.set_margin_bottom(12)
+        label.set_margin_start(12)
+        label.set_margin_end(12)
+        label.set_label(_("Click the download button on this row to install optional dependencies."))
+        popover.set_child(label)
+        popover.connect("closed", lambda p: p.unparent())
+        popover.popup()
+
     def choose_row(self, button, constants : dict, secondary=False):
         """Called by GTK the selected h
         andler is changed
@@ -2458,6 +2489,22 @@ class Settings(Adw.PreferencesWindow):
             setting_name = "websearch-model"
         else:
             return
+
+        if not button.get_active():
+            return
+
+        handler = self.get_object(constants, button.get_name(), secondary)
+
+        if not self.sandbox and handler.requires_sandbox_escape():
+            self._restore_previous_handler_row(constants, secondary, setting_name, button)
+            self.show_flatpak_sandbox_notice()
+            return
+
+        if not handler.is_installed():
+            self._restore_previous_handler_row(constants, secondary, setting_name, button)
+            self._show_optional_deps_popover(button)
+            return
+
         self.settings.set_string(setting_name, button.get_name())
         if constants == AVAILABLE_LLMS and self.popup:
             self.app.win.update_available_models()
@@ -2845,7 +2892,7 @@ class Settings(Adw.PreferencesWindow):
         button.set_child(None)
         button.set_sensitive(False)
         checkbutton = self.settingsrows[(model.key, self.convert_constants(self.get_constants_from_object(model)), model.is_secondary())]["button"]
-        checkbutton.set_sensitive(True)
+        self._apply_handler_row_blocked_style(checkbutton, model)
 
     def download_setting(self, button: Gtk.Button, setting, handler: Handler, uninstall=False):
         """Download the setting for the given handler
