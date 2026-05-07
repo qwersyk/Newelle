@@ -12,7 +12,7 @@ from typing import Union
 
 from ...utility import convert_messages_openai_to_newelle, parse_tool_calls_from_assistant_content
 from ..extra_settings import ExtraSettings
-from .interface import Interface
+from .chat_interface import ChatInterface
 
 
 def _chat_completion_log_print(label: str, obj, max_chars: int = 8000) -> None:
@@ -27,13 +27,21 @@ def _chat_completion_log_print(label: str, obj, max_chars: int = 8000) -> None:
     print(f"[API chat/completions] {label}\n{text}")
 
 
-class APIInterface(Interface):
+class APIInterface(ChatInterface):
     key = "api"
     name = "OpenAI Compatible API Server"
+
+    # ChatInterface folder/chat config (used by /v2/chat/completions)
+    folder_name = "API"
+    folder_color = "#e04369"
+    folder_icon = "folder-symbolic"
+    chat_name_prefix = "🌐 API"
 
     def __init__(self, settings, path):
         super().__init__(settings, path)
         self._server = None
+        # user_key -> event_q for in-progress runs paused at a tool interaction
+        self._pending_streams: dict[str, queue.Queue] = {}
 
     @staticmethod
     def get_extra_requirements() -> list:
@@ -109,6 +117,7 @@ class APIInterface(Interface):
             messages: list[ChatMessage]
             stream: Optional[bool] = False
             tools: Optional[list] = None
+            user: Optional[str] = None
 
         class SpeechRequest(BaseModel):
             model: Optional[str] = None
@@ -137,6 +146,7 @@ class APIInterface(Interface):
         )
 
         @app.get("/v1/models")
+        @app.get("/v2/models")
         def list_models():
             llm = controller.handlers.llm
             models = llm.get_models_list() if hasattr(llm, "get_models_list") else ()
@@ -223,6 +233,108 @@ class APIInterface(Interface):
                 return self._stream_response(llm, completion_id, created, model_name, last_user_message, history, system_prompt)
             else:
                 return self._non_stream_response(llm, completion_id, created, model_name, last_user_message, history, system_prompt)
+
+        # ------------------------------------------------------------------ #
+        # /v2/chat/completions — agent endpoint with tool support, commands,
+        # and per-user persistent chat.  Only the last user message matters.
+        # ------------------------------------------------------------------ #
+
+        @app.post("/v2/chat/completions")
+        async def chat_completions_v2(request: ChatCompletionRequest):
+            req_dump = request.model_dump() if hasattr(request, "model_dump") else request.dict()
+            _chat_completion_log_print("v2 request (raw body)", req_dump)
+
+            user_key = (request.user or "default").strip() or "default"
+
+            # Extract only the last user message (history is ignored — use the
+            # persistent chat owned by this user for full context).
+            last_user_message, _hist, _sys = convert_messages_openai_to_newelle(request.messages)
+
+            if not last_user_message:
+                return JSONResponse(
+                    status_code=400,
+                    content={"error": {"message": "No user message provided", "type": "invalid_request_error"}},
+                )
+
+            llm = controller.handlers.llm
+            completion_id = f"chatcmpl-{uuid.uuid4().hex[:12]}"
+            created = int(time.time())
+            model_name = request.model or (
+                llm.get_selected_model() if hasattr(llm, "get_selected_model") else "default"
+            )
+
+            stripped = last_user_message.strip()
+
+            # ── /option with a paused run ────────────────────────────────────
+            # Resolve the interaction first so the LLM thread unblocks, then
+            # stream/collect the continuation from the saved event queue.
+            if stripped.startswith("/option") and user_key in self._pending_streams:
+                pending_q = self._pending_streams.pop(user_key)
+                # Resolve the interaction (fires callback → unblocks LLM thread).
+                # The returned "✅ …" string is intentionally discarded here;
+                # the actual output comes from the resumed stream.
+                self.try_handle_command(user_key, stripped)
+                print(
+                    f"[API v2/chat/completions] resuming paused run user={user_key!r} "
+                    f"completion_id={completion_id} stream={request.stream}"
+                )
+                if request.stream:
+                    return self._v2_resume_stream(
+                        user_key, completion_id, created, model_name, pending_q
+                    )
+                else:
+                    return self._v2_resume_non_stream(
+                        user_key, completion_id, created, model_name, pending_q
+                    )
+
+            # ── Slash commands ───────────────────────────────────────────────
+            cmd_response = self.try_handle_command(user_key, last_user_message)
+            if cmd_response is not None:
+                _chat_completion_log_print(
+                    f"v2 command response user={user_key!r}", {"response": cmd_response}
+                )
+                if request.stream:
+                    from fastapi.responses import StreamingResponse as _SR
+
+                    _s = self._sse_chunk  # alias
+
+                    def _cmd_sse():
+                        yield _s(completion_id, created, model_name,
+                                 role="assistant", delta_content="")
+                        yield _s(completion_id, created, model_name,
+                                 delta_content=cmd_response)
+                        yield _s(completion_id, created, model_name, finish_reason="stop")
+                        yield "data: [DONE]\n\n"
+
+                    return _SR(_cmd_sse(), media_type="text/event-stream")
+
+                return JSONResponse(content={
+                    "id": completion_id,
+                    "object": "chat.completion",
+                    "created": created,
+                    "model": model_name,
+                    "choices": [{
+                        "index": 0,
+                        "message": {"role": "assistant", "content": cmd_response},
+                        "finish_reason": "stop",
+                    }],
+                    "usage": {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0},
+                })
+
+            # ── Full agent run ───────────────────────────────────────────────
+            print(
+                f"[API v2/chat/completions] user={user_key!r} completion_id={completion_id} "
+                f"stream={request.stream} model={model_name!r}"
+            )
+
+            if request.stream:
+                return self._v2_stream_response(
+                    user_key, completion_id, created, model_name, last_user_message
+                )
+            else:
+                return self._v2_non_stream_response(
+                    user_key, completion_id, created, model_name, last_user_message
+                )
 
         @app.post("/v1/audio/speech")
         async def create_speech(request: SpeechRequest):
@@ -473,6 +585,220 @@ class APIInterface(Interface):
             yield "data: [DONE]\n\n"
 
         return StreamingResponse(event_generator(), media_type="text/event-stream")
+
+    # ------------------------------------------------------------------ #
+    #              /v2 response helpers (tool-aware, per-user chat)       #
+    # ------------------------------------------------------------------ #
+
+    @staticmethod
+    def _sse_chunk(completion_id, created, model_name,
+                   delta_content=None, role=None, finish_reason=None) -> str:
+        delta: dict = {}
+        if role is not None:
+            delta["role"] = role
+        if delta_content is not None:
+            delta["content"] = delta_content
+        payload = {
+            "id": completion_id,
+            "object": "chat.completion.chunk",
+            "created": created,
+            "model": model_name,
+            "choices": [{"index": 0, "delta": delta, "finish_reason": finish_reason}],
+        }
+        return f"data: {json.dumps(payload)}\n\n"
+
+    @staticmethod
+    def _render_tool_event(event: dict) -> str | None:
+        """Return a plain-text string for a tool event, or None if nothing to show."""
+        if event.get("type") == "tool_interaction":
+            lines = [f"\nTool '{event['tool_name']}' needs your input:"]
+            if event.get("display_text"):
+                lines.append(event["display_text"][:300])
+            for opt in event.get("options", []):
+                lines.append(f"  {opt['index'] + 1}) {opt['title']}")
+            lines.append("Reply with /option <n> in your next message.")
+            return "\n".join(lines)
+        if event.get("type") == "tool_result":
+            display = event.get("display_text", "")
+            if display:
+                return f"\n[Tool '{event['tool_name']}': {display[:200]}]"
+        return None
+
+    def _start_process_message_thread(self, user_key, message) -> queue.Queue:
+        """Spin up process_message in a thread; return the event queue."""
+        event_q: queue.Queue = queue.Queue()
+
+        def on_chunk(delta: str):
+            event_q.put(("text", delta))
+
+        def on_tool_event(event: dict):
+            event_q.put(("tool", event))
+
+        def run():
+            try:
+                self.process_message(
+                    user_key, message, on_chunk=on_chunk, on_tool_event=on_tool_event
+                )
+            except Exception as e:
+                event_q.put(("error", str(e)))
+            finally:
+                event_q.put(("done", None))
+
+        threading.Thread(target=run, daemon=True).start()
+        return event_q
+
+    def _drain_queue_to_stream(self, user_key, completion_id, created, model_name,
+                               event_q: queue.Queue):
+        """Generator: forward events from *event_q* as SSE chunks.
+
+        When a tool_interaction is encountered, the options are emitted, the
+        queue is saved under *user_key* so the next /option request can resume,
+        and the stream closes with finish_reason=stop.
+        """
+        _sse = self._sse_chunk  # local alias
+
+        while True:
+            kind, data = event_q.get()
+
+            if kind == "done":
+                _chat_completion_log_print(
+                    f"v2 stream end id={completion_id}", {"stream_error": None}
+                )
+                yield _sse(completion_id, created, model_name, finish_reason="stop")
+                yield "data: [DONE]\n\n"
+                return
+
+            if kind == "error":
+                yield _sse(completion_id, created, model_name,
+                           delta_content=f"\n\n[Error: {data}]")
+                yield _sse(completion_id, created, model_name, finish_reason="stop")
+                yield "data: [DONE]\n\n"
+                return
+
+            if kind == "text":
+                if data:
+                    yield _sse(completion_id, created, model_name, delta_content=data)
+
+            elif kind == "tool":
+                rendered = self._render_tool_event(data)
+                if rendered:
+                    yield _sse(completion_id, created, model_name, delta_content=rendered)
+
+                if data.get("type") == "tool_interaction":
+                    # Save queue so the next /option request can resume from here.
+                    self._pending_streams[user_key] = event_q
+                    _chat_completion_log_print(
+                        f"v2 stream paused for interaction id={completion_id}", data
+                    )
+                    yield _sse(completion_id, created, model_name, finish_reason="stop")
+                    yield "data: [DONE]\n\n"
+                    return  # close this stream; LLM thread stays alive in background
+
+    def _v2_stream_response(self, user_key, completion_id, created, model_name, message):
+        from fastapi.responses import StreamingResponse
+
+        event_q = self._start_process_message_thread(user_key, message)
+
+        def event_generator():
+            yield self._sse_chunk(completion_id, created, model_name,
+                                  role="assistant", delta_content="")
+            yield from self._drain_queue_to_stream(
+                user_key, completion_id, created, model_name, event_q
+            )
+
+        return StreamingResponse(event_generator(), media_type="text/event-stream")
+
+    def _v2_resume_stream(self, user_key, completion_id, created, model_name,
+                          event_q: queue.Queue):
+        """Stream the continuation of a run that was paused at a tool interaction."""
+        from fastapi.responses import StreamingResponse
+
+        def event_generator():
+            yield self._sse_chunk(completion_id, created, model_name,
+                                  role="assistant", delta_content="")
+            yield from self._drain_queue_to_stream(
+                user_key, completion_id, created, model_name, event_q
+            )
+
+        return StreamingResponse(event_generator(), media_type="text/event-stream")
+
+    def _v2_non_stream_response(self, user_key, completion_id, created, model_name, message):
+        from fastapi.responses import JSONResponse
+
+        event_q = self._start_process_message_thread(user_key, message)
+        content, finish_reason = self._collect_queue(user_key, event_q)
+
+        payload = {
+            "id": completion_id,
+            "object": "chat.completion",
+            "created": created,
+            "model": model_name,
+            "choices": [{
+                "index": 0,
+                "message": {"role": "assistant", "content": content},
+                "finish_reason": finish_reason,
+            }],
+            "usage": {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0},
+        }
+        _chat_completion_log_print(f"v2 response (non-stream) id={completion_id}", payload)
+        return JSONResponse(content=payload)
+
+    def _v2_resume_non_stream(self, user_key, completion_id, created, model_name,
+                              event_q: queue.Queue):
+        """Collect the continuation of a paused run into a single JSON response."""
+        from fastapi.responses import JSONResponse
+
+        content, finish_reason = self._collect_queue(user_key, event_q)
+
+        payload = {
+            "id": completion_id,
+            "object": "chat.completion",
+            "created": created,
+            "model": model_name,
+            "choices": [{
+                "index": 0,
+                "message": {"role": "assistant", "content": content},
+                "finish_reason": finish_reason,
+            }],
+            "usage": {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0},
+        }
+        _chat_completion_log_print(f"v2 response (resume non-stream) id={completion_id}", payload)
+        return JSONResponse(content=payload)
+
+    def _collect_queue(self, user_key, event_q: queue.Queue) -> tuple[str, str]:
+        """Drain *event_q* synchronously; return (content, finish_reason).
+
+        If a tool_interaction is encountered the queue is saved to
+        ``_pending_streams`` and we return early with the options appended.
+        """
+        content = ""
+        finish_reason = "stop"
+
+        while True:
+            kind, data = event_q.get()
+
+            if kind == "done":
+                break
+
+            if kind == "error":
+                content += f"\n\n[Error: {data}]"
+                break
+
+            if kind == "text":
+                content += data
+
+            elif kind == "tool":
+                rendered = self._render_tool_event(data)
+                if rendered:
+                    content += rendered
+
+                if data.get("type") == "tool_interaction":
+                    # Save queue; the next /option request will resume.
+                    self._pending_streams[user_key] = event_q
+                    finish_reason = "stop"
+                    break  # return early; LLM thread stays alive
+
+        return content, finish_reason
 
     def _non_stream_tts(self, tts, voice, text, response_format):
         from fastapi.responses import Response
