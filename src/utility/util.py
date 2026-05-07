@@ -2,7 +2,157 @@ from .media import get_image_base64, extract_image
 import time
 import json
 import re
-import uuid
+import hashlib
+
+
+def _normalize_arguments_for_id(arguments) -> str:
+    """Produce a stable string form of tool arguments for hashing.
+
+    Accepts dict/list/str/None. Strings are parsed as JSON when possible so a
+    serialized and a structured form of the same payload hash identically.
+    """
+    if arguments is None:
+        return ""
+    if isinstance(arguments, str):
+        try:
+            arguments = json.loads(arguments)
+        except (json.JSONDecodeError, ValueError):
+            return arguments
+    try:
+        return json.dumps(arguments, sort_keys=True, ensure_ascii=False)
+    except (TypeError, ValueError):
+        return repr(arguments)
+
+
+def _make_tool_call_id(name: str, arguments, occurrence_index: int = 0) -> str:
+    """Generate a deterministic OpenAI-style ``call_<hex>`` id.
+
+    Used as a fallback when a tool call lacks an explicit id. Because it is a
+    pure function of (name, arguments, occurrence index), re-parsing the same
+    content always yields the same id — so a previously stored
+    ``[Tool: …, ID: X]`` console row keeps matching the assistant tool call
+    derived from the same JSON block on the next round-trip.
+    """
+    payload = f"{name or ''}|{_normalize_arguments_for_id(arguments)}|{occurrence_index}".encode("utf-8")
+    return "call_" + hashlib.sha1(payload).hexdigest()[:24]
+
+
+def _coerce_explicit_id(value) -> str | None:
+    """Return ``value`` stripped if it is a non-empty string, else ``None``."""
+    if isinstance(value, str):
+        stripped = value.strip()
+        if stripped:
+            return stripped
+    return None
+
+
+_NATIVE_TOOL_JSON_BLOCK_RE = re.compile(r'```json\s*(.*?)\s*```', re.DOTALL)
+_NATIVE_TOOL_CONSOLE_FULL_RE = re.compile(r"^\[Tool:\s*(.*?),\s*ID:\s*(.*?)\]\n(.*)", re.DOTALL)
+
+
+def parse_tool_console_message(message: str) -> tuple[str, str, str] | None:
+    """Parse a ``[Tool: <name>, ID: <id>]\\n<content>`` Console row.
+
+    Returns ``(name, id, content)`` or ``None`` when the row is not a tool
+    response. Used by handler-side history converters so the parsing rule
+    stays in lockstep with what :func:`convert_messages_openai_to_newelle`
+    and :func:`convert_history_newelle` write.
+    """
+    if not isinstance(message, str):
+        return None
+    match = _NATIVE_TOOL_CONSOLE_FULL_RE.match(message)
+    if not match:
+        return None
+    return match.group(1), match.group(2), match.group(3)
+
+
+def parse_assistant_native_tool_calls(
+    assistant_message: str,
+    following_console_msgs: list[tuple[int, dict]],
+    arguments_as_json_string: bool = True,
+) -> tuple[str, list[dict], set[int]] | None:
+    """Extract OpenAI-style ``tool_calls`` from a Newelle assistant message.
+
+    The id for each tool call is resolved with this precedence (matching
+    :func:`convert_history_openai`):
+
+    1. The id of the first not-yet-used Console row whose tool name matches
+       (this is the canonical id the tool actually executed under and that
+       must appear on the corresponding ``role: tool`` message).
+    2. An explicit ``id`` embedded in the assistant ``\\`\\`\\`json`` block.
+    3. A deterministic ``call_<hash>`` derived from
+       ``(name, arguments, occurrence_index)``.
+
+    Args:
+        assistant_message: Raw text of the Newelle ``Assistant`` row.
+        following_console_msgs: ``(history_index, message_dict)`` pairs for
+            ``Console`` rows that appear after the assistant message in the
+            same Newelle history; only those with a ``[Tool: …, ID: …]``
+            prefix participate in name matching.
+        arguments_as_json_string: When ``True`` (OpenAI format) the
+            ``function.arguments`` field is JSON-serialized; when ``False``
+            (Ollama native format) it is left as a Python dict.
+
+    Returns:
+        ``(text_part, tool_calls, used_console_indices)`` if at least one
+        valid tool call was extracted, else ``None``. ``text_part`` is the
+        assistant prose that precedes the first JSON block, stripped.
+    """
+    if "```json" not in assistant_message:
+        return None
+    json_blocks = list(_NATIVE_TOOL_JSON_BLOCK_RE.finditer(assistant_message))
+    if not json_blocks:
+        return None
+
+    text_part = assistant_message[:assistant_message.find("```json")].strip()
+    used_console: set[int] = set()
+    tool_calls: list[dict] = []
+
+    for block_index, block in enumerate(json_blocks):
+        try:
+            tool_data = json.loads(block.group(1).strip())
+        except (json.JSONDecodeError, ValueError):
+            continue
+        if not isinstance(tool_data, dict):
+            continue
+
+        tool_name = tool_data.get("name", tool_data.get("tool"))
+        if not isinstance(tool_name, str) or not tool_name:
+            continue
+        tool_args = tool_data.get("arguments", {})
+
+        tool_id: str | None = None
+        for ci, cm in following_console_msgs:
+            if ci in used_console:
+                continue
+            parsed = parse_tool_console_message(cm.get("Message", ""))
+            if parsed is not None and parsed[0] == tool_name:
+                tool_id = parsed[1]
+                used_console.add(ci)
+                break
+        if tool_id is None:
+            tool_id = _coerce_explicit_id(tool_data.get("id"))
+        if tool_id is None:
+            tool_id = _make_tool_call_id(tool_name or "", tool_args, block_index)
+
+        if arguments_as_json_string:
+            args_value = tool_args if isinstance(tool_args, str) else json.dumps(tool_args)
+        else:
+            args_value = tool_args
+
+        tool_calls.append({
+            "id": tool_id,
+            "type": "function",
+            "function": {
+                "name": tool_name,
+                "arguments": args_value,
+            },
+        })
+
+    if not tool_calls:
+        return None
+    return text_part, tool_calls, used_console
+
 
 def convert_messages_openai_to_newelle(messages: list) -> tuple[str, list[dict], list[str]]:
     """Convert OpenAI format messages to Newelle format.
@@ -31,7 +181,7 @@ def convert_messages_openai_to_newelle(messages: list) -> tuple[str, list[dict],
             return fn.model_dump()
         return vars(fn) if hasattr(fn, "__dict__") else {}
 
-    for msg in messages:
+    for msg_index, msg in enumerate(messages):
         if isinstance(msg, dict):
             role = msg.get("role", "user")
             content = msg.get("content")
@@ -51,7 +201,13 @@ def convert_messages_openai_to_newelle(messages: list) -> tuple[str, list[dict],
             system_prompt.append(content)
         elif role == "tool":
             tool_name = name or "unknown"
-            tid = tool_call_id or "unknown"
+            tid = _coerce_explicit_id(tool_call_id)
+            if tid is None:
+                tid = _make_tool_call_id(
+                    tool_name,
+                    content if isinstance(content, str) else "",
+                    msg_index,
+                )
             history.append({
                 "User": "Console",
                 "Message": f"[Tool: {tool_name}, ID: {tid}]\n{content}",
@@ -60,23 +216,27 @@ def convert_messages_openai_to_newelle(messages: list) -> tuple[str, list[dict],
             parts = []
             if content:
                 parts.append(content)
-            for tc in tool_calls:
+            for tc_index, tc in enumerate(tool_calls):
                 fn = _tool_calls_function_dict(tc)
                 tool_data = {
                     "name": fn.get("name", ""),
                     "arguments": fn.get("arguments", {}),
                 }
-                if isinstance(tc, dict):
-                    tc_id = tc.get("id")
-                else:
-                    tc_id = getattr(tc, "id", None)
-                if isinstance(tc_id, str) and tc_id.strip():
-                    tool_data["id"] = tc_id.strip()
                 if isinstance(tool_data["arguments"], str):
                     try:
                         tool_data["arguments"] = json.loads(tool_data["arguments"])
                     except json.JSONDecodeError:
                         pass
+                if isinstance(tc, dict):
+                    raw_tc_id = tc.get("id")
+                else:
+                    raw_tc_id = getattr(tc, "id", None)
+                tc_id = _coerce_explicit_id(raw_tc_id)
+                if tc_id is None:
+                    tc_id = _make_tool_call_id(
+                        tool_data["name"], tool_data["arguments"], tc_index
+                    )
+                tool_data["id"] = tc_id
                 parts.append(f"```json\n{json.dumps(tool_data)}\n```")
             history.append({"User": "Assistant", "Message": "\n".join(parts)})
         elif role == "user":
@@ -106,6 +266,7 @@ def parse_tool_calls_from_assistant_content(text: str) -> tuple[str | None, list
     tool_calls: list[dict] = []
     parts: list[str] = []
     last = 0
+    occurrence_index = 0
 
     for m in pattern.finditer(text):
         parts.append(text[last:m.start()])
@@ -130,10 +291,9 @@ def parse_tool_calls_from_assistant_content(text: str) -> tuple[str | None, list
         if tool_name and isinstance(tool_name, str):
             args_str = arguments if isinstance(arguments, str) else json.dumps(arguments)
             raw_id = obj.get("id") if isinstance(obj, dict) else None
-            if isinstance(raw_id, str) and raw_id.strip():
-                call_id = raw_id.strip()
-            else:
-                call_id = f"call_{uuid.uuid4().hex[:24]}"
+            call_id = _coerce_explicit_id(raw_id)
+            if call_id is None:
+                call_id = _make_tool_call_id(tool_name, arguments, occurrence_index)
             tool_calls.append({
                 "id": call_id,
                 "type": "function",
@@ -142,6 +302,7 @@ def parse_tool_calls_from_assistant_content(text: str) -> tuple[str | None, list
                     "arguments": args_str,
                 },
             })
+            occurrence_index += 1
             last = m.end()
             continue
 
@@ -212,79 +373,36 @@ def convert_history_openai(history: list, prompts: list, vision_support : bool =
     if len(prompts) > 0:
         result.append({"role": "system", "content": "\n".join(prompts)})
     
-    for message in history:
+    for msg_idx, message in enumerate(history):
         if message["User"] == "Console":
-            if native_tool_calling:
-                match = re.match(r"^\[Tool:\s*(.*?),\s*ID:\s*(.*?)\]\n(.*)", message["Message"], re.DOTALL)
-                if match:
-                    result.append({
-                        "role": "tool",
-                        "name": match.group(1),
-                        "tool_call_id": match.group(2),
-                        "content": match.group(3)
-                    })
-                else:
-                    result.append({
-                        "role": "user",
-                        "content": "Console: " + message["Message"],
-                    })
+            parsed = parse_tool_console_message(message["Message"]) if native_tool_calling else None
+            if parsed is not None:
+                tool_name, tool_id, tool_content = parsed
+                result.append({
+                    "role": "tool",
+                    "name": tool_name,
+                    "tool_call_id": tool_id,
+                    "content": tool_content,
+                })
             else:
                 result.append({
                     "role": "user",
                     "content": "Console: " + message["Message"],
                 })
         else:
-            if native_tool_calling and message["User"] == "Assistant" and "```json" in message["Message"]:
-                json_blocks = list(re.finditer(r'```json\s*(.*?)\s*```', message["Message"], re.DOTALL))
-                if json_blocks:
-                    text_part = message["Message"][:message["Message"].find("```json")].strip()
-                    
-                    msg_idx = history.index(message)
-                    console_msgs = [(i, m) for i, m in enumerate(history[msg_idx+1:], msg_idx+1) if m["User"] == "Console"]
-                    used_console = set()
-                    
-                    tool_calls = []
-                    for block in json_blocks:
-                        try:
-                            tool_data = json.loads(block.group(1).strip())
-                            tool_name = tool_data.get("name", tool_data.get("tool"))
-                            tool_args = tool_data.get("arguments", {})
-
-                            tool_id = tool_data.get("id")
-                            if isinstance(tool_id, str) and tool_id.strip():
-                                tool_id = tool_id.strip()
-                            else:
-                                tool_id = None
-                            if not tool_id:
-                                for ci, cm in console_msgs:
-                                    if ci in used_console:
-                                        continue
-                                    match = re.match(r"^\[Tool:\s*(.*?),\s*ID:\s*(.*?)\]", cm["Message"])
-                                    if match and match.group(1) == tool_name:
-                                        tool_id = match.group(2)
-                                        used_console.add(ci)
-                                        break
-                                if not tool_id:
-                                    tool_id = "unknown"
-                            
-                            tool_calls.append({
-                                "id": tool_id,
-                                "type": "function",
-                                "function": {
-                                    "name": tool_name,
-                                    "arguments": json.dumps(tool_args)
-                                }
-                            })
-                        except:
-                            pass
-                    
-                    if tool_calls:
-                        ast_msg = {"role": "assistant"}
-                        if text_part:
-                            ast_msg["content"] = text_part
-                        ast_msg["tool_calls"] = tool_calls
-                        result.append(ast_msg)
-                        continue
+            if native_tool_calling and message["User"] == "Assistant":
+                console_msgs = [(i, m) for i, m in enumerate(history[msg_idx + 1:], msg_idx + 1) if m["User"] == "Console"]
+                parsed_calls = parse_assistant_native_tool_calls(
+                    message["Message"], console_msgs, arguments_as_json_string=True
+                )
+                if parsed_calls is not None:
+                    text_part, tool_calls, _ = parsed_calls
+                    ast_msg: dict = {"role": "assistant"}
+                    if text_part:
+                        ast_msg["content"] = text_part
+                    ast_msg["tool_calls"] = tool_calls
+                    result.append(ast_msg)
+                    continue
 
             image, text = extract_image(message["Message"])
             if vision_support and image is not None and message["User"] == "User":
@@ -388,12 +506,42 @@ def _tool_call_dict_name(tc: object) -> str:
     return str(getattr(fn, "name", "") or "")
 
 
+def _tool_call_dict_arguments(tc: object):
+    fn = tc.get("function") if isinstance(tc, dict) else getattr(tc, "function", None)
+    if fn is None:
+        return {}
+    if isinstance(fn, dict):
+        return fn.get("arguments", {})
+    return getattr(fn, "arguments", {})
+
+
+def _ensure_tool_call_id(tc: object, occurrence_index: int) -> str:
+    """Return the tool call's id, deriving and writing back a deterministic
+    fallback when it is missing or empty.
+
+    Mutates ``tc`` in place when it is a dict so the assistant message we hand
+    off to the API has a usable id matching the synthesized ``role: tool`` row.
+    """
+    existing = _coerce_explicit_id(_tool_call_dict_id(tc))
+    if existing is not None:
+        return existing
+    new_id = _make_tool_call_id(
+        _tool_call_dict_name(tc), _tool_call_dict_arguments(tc), occurrence_index
+    )
+    if isinstance(tc, dict):
+        tc["id"] = new_id
+    return new_id
+
+
 def balance_native_tool_call_responses(messages: list) -> list:
     """Ensure each assistant ``tool_calls`` entry has a matching ``role: tool`` message.
 
     Display-only tools may omit console output (no ``[Tool: …]`` row in history). Several
     APIs then reject the turn (e.g. mismatched function call / response counts). Missing
-    Missing replies use ``VOID_TOOL_RESULT_PLACEHOLDER`` in the tool message ``content`` field.
+    replies use ``VOID_TOOL_RESULT_PLACEHOLDER`` in the tool message ``content`` field.
+
+    Assistant ``tool_calls`` lacking an id are backfilled with a deterministic
+    ``call_<hash>`` so the synthesized tool reply can reference a stable id.
     """
     if not messages:
         return messages
@@ -405,7 +553,10 @@ def balance_native_tool_call_responses(messages: list) -> list:
         tcs = msg.get("tool_calls") if isinstance(msg, dict) else None
         if isinstance(msg, dict) and msg.get("role") == "assistant" and tcs:
             out.append(msg)
-            expected = [(_tool_call_dict_id(tc), _tool_call_dict_name(tc)) for tc in tcs]
+            expected = [
+                (_ensure_tool_call_id(tc, idx), _tool_call_dict_name(tc))
+                for idx, tc in enumerate(tcs)
+            ]
             j = i + 1
             following_tools: list = []
             while j < n and isinstance(messages[j], dict) and messages[j].get("role") == "tool":
@@ -471,14 +622,20 @@ def convert_history_newelle(openai_history: list, vision_support: bool = False):
         prompts = openai_history[0].get("content", "").split("\n")
         openai_history = openai_history[1:]
     
-    for message in openai_history:
+    for msg_index, message in enumerate(openai_history):
         role = message.get("role")
         content = message.get("content")
         tool_calls = message.get("tool_calls")
         
         if role == "tool":
             tool_name = message.get("name", "unknown")
-            tool_id = message.get("tool_call_id", "unknown")
+            tool_id = _coerce_explicit_id(message.get("tool_call_id"))
+            if tool_id is None:
+                tool_id = _make_tool_call_id(
+                    tool_name,
+                    content if isinstance(content, str) else "",
+                    msg_index,
+                )
             newelle_history.append({
                 "User": "Console",
                 "Message": f"[Tool: {tool_name}, ID: {tool_id}]\n{content or ''}"
@@ -487,19 +644,23 @@ def convert_history_newelle(openai_history: list, vision_support: bool = False):
             parts = []
             if content:
                 parts.append(content)
-            for tc in tool_calls:
+            for tc_index, tc in enumerate(tool_calls):
                 fn = tc.get("function", {})
                 tool_data = {
                     "name": fn.get("name", ""),
                     "arguments": fn.get("arguments", {}),
                 }
-                if tc.get("id"):
-                    tool_data["id"] = tc["id"]
                 if isinstance(tool_data["arguments"], str):
                     try:
                         tool_data["arguments"] = json.loads(tool_data["arguments"])
-                    except:
+                    except (json.JSONDecodeError, ValueError):
                         pass
+                tc_id = _coerce_explicit_id(tc.get("id"))
+                if tc_id is None:
+                    tc_id = _make_tool_call_id(
+                        tool_data["name"], tool_data["arguments"], tc_index
+                    )
+                tool_data["id"] = tc_id
                 parts.append(f"```json\n{json.dumps(tool_data)}\n```")
             newelle_history.append({
                 "User": "Assistant",

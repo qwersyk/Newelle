@@ -2,7 +2,6 @@ import threading
 import json 
 import requests 
 import os
-import re
 from subprocess import Popen 
 from typing import Any, Callable
 import time
@@ -13,7 +12,7 @@ from gi.repository import GLib
 from ..handler import ErrorSeverity
 
 from .llm import LLMHandler
-from ...utility import get_streaming_extra_setting, extract_tools_from_prompts, convert_history_openai, balance_native_tool_call_responses
+from ...utility import get_streaming_extra_setting, extract_tools_from_prompts, convert_history_openai, balance_native_tool_call_responses, parse_assistant_native_tool_calls, parse_tool_console_message
 from ...utility.media import extract_image
 from ...handlers import ExtraSettings
 
@@ -429,70 +428,40 @@ class OllamaHandler(LLMHandler):
         result = []
         result.append({"role": "system", "content": "\n".join(prompts)})
         native_tool_calling = self.get_setting("native_tool_calling", False, True)
-        
+
         for i, message in enumerate(history):
             if message["User"] == "Console":
-                if native_tool_calling:
-                    match = re.match(r"^\[Tool:\s*(.*?),\s*ID:\s*(.*?)\]\n(.*)", message["Message"], re.DOTALL)
-                    if match:
-                        result.append({
-                            "role": "tool",
-                            "name": match.group(1),
-                            "tool_call_id": match.group(2),
-                            "content": match.group(3)
-                        })
-                        continue
-                result.append({
-                    "role": "user",
-                    "content": "Console: " + message["Message"]
-                })
+                parsed = parse_tool_console_message(message["Message"]) if native_tool_calling else None
+                if parsed is not None:
+                    tool_name, tool_id, tool_content = parsed
+                    result.append({
+                        "role": "tool",
+                        "name": tool_name,
+                        "tool_call_id": tool_id,
+                        "content": tool_content,
+                    })
+                else:
+                    result.append({
+                        "role": "user",
+                        "content": "Console: " + message["Message"]
+                    })
             else:
-                if native_tool_calling and message["User"] == "Assistant" and "```json" in message["Message"]:
-                    json_blocks = list(re.finditer(r'```json\s*(.*?)\s*```', message["Message"], re.DOTALL))
-                    if json_blocks:
-                        text_part = message["Message"][:message["Message"].find("```json")].strip()
-                        
-                        console_msgs = [(j, history[j]) for j in range(i + 1, len(history)) if history[j]["User"] == "Console"]
-                        used_console = set()
-                        
-                        tool_calls = []
-                        for block in json_blocks:
-                            try:
-                                tool_data = json.loads(block.group(1).strip())
-                                tool_name = tool_data.get("name", tool_data.get("tool"))
-                                tool_args = tool_data.get("arguments", {})
-                                
-                                tool_id = "unknown"
-                                for cj, cm in console_msgs:
-                                    if cj in used_console:
-                                        continue
-                                    match = re.match(r"^\[Tool:\s*(.*?),\s*ID:\s*(.*?)\]", cm["Message"])
-                                    if match and match.group(1) == tool_name:
-                                        tool_id = match.group(2)
-                                        used_console.add(cj)
-                                        break
-                                
-                                tool_calls.append({
-                                    "id": tool_id,
-                                    "type": "function",
-                                    "function": {
-                                        "name": tool_name,
-                                        "arguments": tool_args
-                                    }
-                                })
-                            except:
-                                pass
-                        
-                        if tool_calls:
-                            ast_msg = {"role": "assistant"}
-                            if text_part:
-                                ast_msg["content"] = text_part
-                            ast_msg["tool_calls"] = tool_calls
-                            result.append(ast_msg)
-                            continue
-                
+                if native_tool_calling and message["User"] == "Assistant":
+                    console_msgs = [(j, history[j]) for j in range(i + 1, len(history)) if history[j]["User"] == "Console"]
+                    parsed_calls = parse_assistant_native_tool_calls(
+                        message["Message"], console_msgs, arguments_as_json_string=False
+                    )
+                    if parsed_calls is not None:
+                        text_part, tool_calls, _ = parsed_calls
+                        ast_msg: dict = {"role": "assistant"}
+                        if text_part:
+                            ast_msg["content"] = text_part
+                        ast_msg["tool_calls"] = tool_calls
+                        result.append(ast_msg)
+                        continue
+
                 image, text = extract_image(message["Message"])
-                
+
                 msg = {
                     "role": message["User"].lower() if message["User"] in {"Assistant", "User"} else "system",
                     "content": text
