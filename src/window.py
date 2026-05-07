@@ -1438,6 +1438,11 @@ class MainWindow(Adw.ApplicationWindow):
             return
         print(f"Switching profile to {profile}")
 
+        # Reload profiles to pick up any profiles created since last switch
+        self.profile_settings = json.loads(self.settings.get_string("profiles"))
+        if profile not in self.profile_settings:
+            return
+
         # Store the old profile before we change anything
         old_profile = self.current_profile
 
@@ -1458,16 +1463,20 @@ class MainWindow(Adw.ApplicationWindow):
 
     def _do_profile_switch_work(self, old_profile: str, new_profile: str):
         """Do the actual profile switch work in background thread"""
-        # Save old profile's settings before switching
-        groups = self.profile_settings[old_profile].get("settings_groups", [])
-        old_settings = get_settings_dict_by_groups(self.settings, groups, SETTINGS_GROUPS, ["current-profile", "profiles"] )
-
-        # Reload profiles to ensure we have the latest data
+        # Reload profiles first to ensure we have the latest data
         self.profile_settings = json.loads(self.settings.get_string("profiles"))
-        self.profile_settings[old_profile]["settings"] = old_settings
+
+        if new_profile not in self.profile_settings:
+            return
+
+        if old_profile in self.profile_settings:
+            # Save old profile's settings before switching
+            groups = self.profile_settings[old_profile].get("settings_groups", [])
+            old_settings = get_settings_dict_by_groups(self.settings, groups, SETTINGS_GROUPS, ["current-profile", "profiles"])
+            self.profile_settings[old_profile]["settings"] = old_settings
 
         # Get new profile's settings
-        new_settings = self.profile_settings[new_profile]["settings"]
+        new_settings = self.profile_settings[new_profile].get("settings", {})
         groups = self.profile_settings[new_profile].get("settings_groups", [])
 
         # Schedule settings restoration on main thread
