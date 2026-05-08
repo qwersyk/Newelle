@@ -201,6 +201,7 @@ websearch_sources = [
   'handlers/websearch/searxng.py',
   'handlers/websearch/duckduckgo_handler.py',
   'handlers/websearch/tavily.py',
+  'handlers/websearch/tinyfish_handler.py',
   ]
 
 interface_sources = [

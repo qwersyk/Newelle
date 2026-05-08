@@ -5,7 +5,7 @@ from .handlers.stt import GroqSRHandler, OpenAISRHandler, SphinxHandler, GoogleS
 from .handlers.embeddings import WordLlamaHandler, OpenAIEmbeddingHandler, GeminiEmbeddingHanlder, OllamaEmbeddingHandler, Model2VecHandler, LlamaCPPEmbeddingHandler
 from .handlers.memory import MemoripyHandler, UserSummaryHandler, SummaryMemoripyHanlder, LlamaIndexMemoryHandler, AgenticMemoryHandler
 from .handlers.rag import LlamaIndexHanlder
-from .handlers.websearch import SearXNGHandler, DDGSeachHandler, TavilyHandler
+from .handlers.websearch import SearXNGHandler, DDGSeachHandler, TavilyHandler, TinyFishHandler
 from .handlers.interfaces.interface import Interface
 from .handlers.interfaces.api_handler import APIInterface
 from .handlers.interfaces.gui_api_handler import GUIAPIInterface
@@ -347,6 +347,12 @@ AVAILABLE_WEBSEARCH = {
         "description": _("Tavily search"),
         "website": "https://tavily.com/",
         "class": TavilyHandler,
+    },
+    "tinyfish": {
+        "key": "tinyfish",
+        "title": _("TinyFish"),
+        "description": _("TinyFish web search API"),
+        "class": TinyFishHandler,
     }
 }
 
