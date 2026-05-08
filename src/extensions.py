@@ -306,6 +306,10 @@ class NewelleExtension(Handler):
         """
         self.chat_tab = chat_tab
         
+    def on_uninstall(self):
+        """Hook called when the extension is being uninstalled. Override to clean up resources."""
+        pass
+
     def add_tab_menu_entries(self) -> list:
         """List of TabButtonDescriptions 
 
@@ -538,6 +542,12 @@ class ExtensionLoader:
         """
         if not isinstance(extension, str):
             extension = extension.id
+        ext_obj = self.get_extension_by_id(extension)
+        if ext_obj is not None and hasattr(ext_obj, 'on_uninstall'):
+            try:
+                ext_obj.on_uninstall()
+            except Exception as e:
+                print(f"Error during extension uninstall cleanup: {e}")
         os.remove(os.path.join(self.extension_dir, self.filemap[extension]))
 
     def add_extension(self, file_path : str):
