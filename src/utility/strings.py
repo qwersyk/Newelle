@@ -62,6 +62,8 @@ def clean_message_tts(text: str) -> str:
     text = re.sub(r'```[\s\S]*?(?:```|$)', '', text)
     text = re.sub(r'~~~[\s\S]*?(?:~~~|$)', '', text)
 
+    # Remove action expressions like *waves at you*
+    text = re.sub(r'(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)', '', text)
     # Remove markdown formatting
     text = remove_markdown(text)
 
