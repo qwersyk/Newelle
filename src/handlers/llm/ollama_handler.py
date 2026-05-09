@@ -453,9 +453,7 @@ class OllamaHandler(LLMHandler):
                     )
                     if parsed_calls is not None:
                         text_part, tool_calls, _ = parsed_calls
-                        ast_msg: dict = {"role": "assistant"}
-                        if text_part:
-                            ast_msg["content"] = text_part
+                        ast_msg: dict = {"role": "assistant", "content": text_part or ""}
                         ast_msg["tool_calls"] = tool_calls
                         result.append(ast_msg)
                         continue

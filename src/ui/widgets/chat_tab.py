@@ -692,7 +692,8 @@ class ChatTab(Gtk.Box):
             self.chat.append({
                 "User": "Assistant", 
                 "Message": message_label, 
-                "UUID": streaming_widget.chunk_uuid
+                "UUID": streaming_widget.chunk_uuid,
+                "Profile": self.controller.newelle_settings.current_profile
             })
             self.chat_history.update_history(self.chat)
             self.add_prompt("\n".join(prompts))
