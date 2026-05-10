@@ -1689,20 +1689,29 @@ class NewelleController:
                     if on_message_callback:
                         on_message_callback(text)
                 
+                if iteration == 0:
+                    prompt = message
+                else:
+                    prompt = ""
+                    for i in range(len(current_history) - 1, -1, -1):
+                        if current_history[i]["User"] == "Console":
+                            prompt = current_history.pop(i)["Message"]
+                            break
+
                 send_history, _ = self._trim_context(current_history, system_prompt, message)
 
                 if self.handlers.llm.stream_enabled():
                     response = self.handlers.llm.send_message_stream(
-                        message if iteration == 0 else "",
+                        prompt,
                         send_history,
                         system_prompt,
                         stream_callback
                     )
                 else:
                     response = self.handlers.llm.send_message(
-                        message if iteration == 0 else "",
-                        system_prompt,
-                        send_history
+                        prompt,
+                        send_history,
+                        system_prompt
                     )
                     if on_message_callback:
                         on_message_callback(response)
@@ -1722,7 +1731,7 @@ class NewelleController:
                     msg_uuid = int(uuid_lib.uuid4())
                     current_history.append({"User": "Assistant", "Message": text_content, "UUID": msg_uuid})
                     if save_chat:
-                        self.chats[chat_id]["chat"].append({"User": "Assistant", "Message": response, "UUID": msg_uuid})
+                        self.chats[chat_id]["chat"].append({"User": "Assistant", "Message": response, "UUID": msg_uuid, "Profile": self.newelle_settings.current_profile})
                         self.save_chats()
                     return text_content
                 assistant_msg_uuid = int(uuid_lib.uuid4())
@@ -1780,7 +1789,8 @@ class NewelleController:
                         self.chats[chat_id]["chat"].append({
                             "User": "Assistant",
                             "Message": tool_call_msg,
-                            "UUID": assistant_msg_uuid
+                            "UUID": assistant_msg_uuid,
+                            "Profile": self.newelle_settings.current_profile
                         })
                         self.chats[chat_id]["chat"].append({
                             "User": "Console",
@@ -1790,7 +1800,7 @@ class NewelleController:
             
             if save_chat:
                 msg_uuid = int(uuid_lib.uuid4())
-                self.chats[chat_id]["chat"].append({"User": "Assistant", "Message": text_content, "UUID": msg_uuid})
+                self.chats[chat_id]["chat"].append({"User": "Assistant", "Message": text_content, "UUID": msg_uuid, "Profile": self.newelle_settings.current_profile})
                 self.save_chats()
             return text_content
         finally:

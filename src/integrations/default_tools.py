@@ -116,7 +116,7 @@ class DefaultToolsIntegration(NewelleExtension):
         if image_path.startswith("http"):
             img = image
             load_image_with_callback(
-                img,
+                image_path,
                 lambda pixbuf_loader, i=img: i.set_from_pixbuf(pixbuf_loader.get_pixbuf())
             )
         else:
@@ -124,7 +124,7 @@ class DefaultToolsIntegration(NewelleExtension):
 
         result = ToolResult()
         result.set_widget(image)
-        result.set_display_text("```image\n" + image + "\n```")
+        result.set_display_text("```image\n" + image_path + "\n```")
         result.set_output(None)
         return result
     

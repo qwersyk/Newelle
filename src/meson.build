@@ -201,11 +201,13 @@ websearch_sources = [
   'handlers/websearch/searxng.py',
   'handlers/websearch/duckduckgo_handler.py',
   'handlers/websearch/tavily.py',
+  'handlers/websearch/tinyfish_handler.py',
   ]
 
 interface_sources = [
   'handlers/interfaces/__init__.py',
   'handlers/interfaces/interface.py',
+  'handlers/interfaces/chat_interface.py',
   'handlers/interfaces/api_handler.py',
   'handlers/interfaces/gui_api_handler.py',
   'handlers/interfaces/telegram_handler.py',
