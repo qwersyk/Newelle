@@ -842,20 +842,24 @@ class MainWindow(Adw.ApplicationWindow):
     def reload_buttons(self):
         """Reload offers and buttons on LLM change for all chat tabs"""
         if not self.first_load:
-            n_pages = self.chat_tabs.get_n_pages()
-            for i in range(n_pages):
-                page = self.chat_tabs.get_nth_page(i)
-                child = page.get_child()
-                if isinstance(child, ChatTab):
-                    child._update_attach_visibility()
-                    if not self.model.supports_video_vision():
-                        if child.video_recorder is not None:
-                            child.video_recorder.stop()
-                            child.video_recorder = None
-                    child.screen_record_button.set_visible(
-                        self.model.supports_video_vision() and not child.attached_image_data
-                    )
+            self._update_chat_tab_llm_buttons()
             self.chat_header.set_title_widget(self.build_model_popup())
+
+    def _update_chat_tab_llm_buttons(self):
+        """Update chat tab buttons that depend on LLM capabilities"""
+        n_pages = self.chat_tabs.get_n_pages()
+        for i in range(n_pages):
+            page = self.chat_tabs.get_nth_page(i)
+            child = page.get_child()
+            if isinstance(child, ChatTab):
+                child._update_attach_visibility()
+                if not self.model.supports_video_vision():
+                    if child.video_recorder is not None:
+                        child.video_recorder.stop()
+                        child.video_recorder = None
+                child.screen_record_button.set_visible(
+                    self.model.supports_video_vision() and not child.attached_image_data
+                )
 
     # Model popup
     def update_model_popup(self):
@@ -871,6 +875,36 @@ class MainWindow(Adw.ApplicationWindow):
                 label=model_name,
                 ellipsize=Pango.EllipsizeMode.MIDDLE,
             )
+        )
+
+    def _update_model_label_from_profile(self, profile: str):
+        """Update model popup label directly from profile settings for immediate feedback"""
+        if not hasattr(self, "model_menu_button"):
+            return
+        profile_data = self.profile_settings.get(profile)
+        if profile_data is None:
+            return
+        saved_settings = profile_data.get("settings", {})
+        groups = profile_data.get("settings_groups", [])
+        if len(groups) > 0 and "LLM" not in groups:
+            return
+        llm_key = saved_settings.get("language-model")
+        if llm_key is None:
+            return
+        if llm_key not in AVAILABLE_LLMS:
+            return
+        label = AVAILABLE_LLMS[llm_key]["title"]
+        llm_settings_str = saved_settings.get("llm-settings")
+        if llm_settings_str:
+            try:
+                llm_settings = json.loads(llm_settings_str)
+                model_setting = llm_settings.get(llm_key, {}).get("model")
+                if model_setting:
+                    label = label + " - " + model_setting
+            except (json.JSONDecodeError, TypeError):
+                pass
+        self.model_menu_button.set_child(
+            Gtk.Label(label=label, ellipsize=Pango.EllipsizeMode.MIDDLE)
         )
 
     def set_model_loading_spinner(self, status):
@@ -1438,6 +1472,11 @@ class MainWindow(Adw.ApplicationWindow):
             return
         print(f"Switching profile to {profile}")
 
+        # Reload profiles to pick up any profiles created since last switch
+        self.profile_settings = json.loads(self.settings.get_string("profiles"))
+        if profile not in self.profile_settings:
+            return
+
         # Store the old profile before we change anything
         old_profile = self.current_profile
 
@@ -1445,6 +1484,7 @@ class MainWindow(Adw.ApplicationWindow):
         self.settings.set_string("current-profile", profile)
         self.current_profile = profile
         self._update_profile_avatar(profile)
+        self._update_model_label_from_profile(profile)
 
         # Process pending GTK events to ensure UI updates are rendered
         # Then start the heavy lifting in background thread
@@ -1458,16 +1498,20 @@ class MainWindow(Adw.ApplicationWindow):
 
     def _do_profile_switch_work(self, old_profile: str, new_profile: str):
         """Do the actual profile switch work in background thread"""
-        # Save old profile's settings before switching
-        groups = self.profile_settings[old_profile].get("settings_groups", [])
-        old_settings = get_settings_dict_by_groups(self.settings, groups, SETTINGS_GROUPS, ["current-profile", "profiles"] )
-
-        # Reload profiles to ensure we have the latest data
+        # Reload profiles first to ensure we have the latest data
         self.profile_settings = json.loads(self.settings.get_string("profiles"))
-        self.profile_settings[old_profile]["settings"] = old_settings
+
+        if new_profile not in self.profile_settings:
+            return
+
+        if old_profile in self.profile_settings:
+            # Save old profile's settings before switching
+            groups = self.profile_settings[old_profile].get("settings_groups", [])
+            old_settings = get_settings_dict_by_groups(self.settings, groups, SETTINGS_GROUPS, ["current-profile", "profiles"])
+            self.profile_settings[old_profile]["settings"] = old_settings
 
         # Get new profile's settings
-        new_settings = self.profile_settings[new_profile]["settings"]
+        new_settings = self.profile_settings[new_profile].get("settings", {})
         groups = self.profile_settings[new_profile].get("settings_groups", [])
 
         # Schedule settings restoration on main thread
@@ -1543,11 +1587,6 @@ class MainWindow(Adw.ApplicationWindow):
         self.virtualization = newsettings.virtualization
         self.prompts = newsettings.prompts
 
-        # Update UI components that depend on settings BEFORE reloading handlers
-        if ReloadType.LLM in reload_types:
-            self.reload_buttons()
-            self.update_model_popup()
-
         # Now batch reload operations to avoid redundant select_handlers calls
         self._batch_reload(reload_types)
 
@@ -1560,6 +1599,12 @@ class MainWindow(Adw.ApplicationWindow):
         self.memory_handler = self.controller.handlers.memory
         self.rag_handler = self.controller.handlers.rag
         self.extensionloader = self.controller.extensionloader
+
+        # Update LLM UI - label first for responsiveness, delay expensive popup rebuild
+        if ReloadType.LLM in reload_types:
+            self.update_model_popup()
+            self._update_chat_tab_llm_buttons()
+        GLib.idle_add(lambda: self.chat_header.set_title_widget(self.build_model_popup()) and False)
 
         if ReloadType.RELOAD_CHAT in reload_types:
             self.show_chat()

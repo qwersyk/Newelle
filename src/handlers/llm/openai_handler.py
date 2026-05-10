@@ -7,7 +7,7 @@ _ = gettext.gettext
 
 from .llm import LLMHandler
 from ...utility.system import open_website
-from ...utility import convert_history_openai, get_streaming_extra_setting, extract_tools_from_prompts
+from ...utility import convert_history_openai, get_streaming_extra_setting, extract_tools_from_prompts, balance_native_tool_call_responses
 from ...handlers import ExtraSettings, ErrorSeverity
 
 class OpenAIHandler(LLMHandler):
@@ -211,6 +211,8 @@ class OpenAIHandler(LLMHandler):
             user = "User"
         history.append({"User": user, "Message": prompt})
         messages = self.convert_history(history, system_prompt)
+        if native_tool_calling:
+            messages = balance_native_tool_call_responses(messages)
         api = self.get_setting("api")
         if api == "":
             api = "nokey"
@@ -246,6 +248,9 @@ class OpenAIHandler(LLMHandler):
                 for tool_call in response.choices[0].message.tool_calls:
                     tool = tool_call.function
                     tool_call_dict = {"tool": tool.name, "arguments": json.loads(tool.arguments) if tool.arguments else {}}
+                    tc_id = getattr(tool_call, "id", None)
+                    if tc_id:
+                        tool_call_dict["id"] = tc_id
                     content += "```json\n" + json.dumps(tool_call_dict) + "\n```\n"
 
             return content.strip()
@@ -268,8 +273,8 @@ class OpenAIHandler(LLMHandler):
             user = "User"
         history.append({"User": user, "Message": prompt})
         messages = self.convert_history(history, system_prompt)
-        print(messages)
-        print([message["role"] for message in messages])
+        if native_tool_calling:
+            messages = balance_native_tool_call_responses(messages)
         api = self.get_setting("api")
         if api == "":
             api = "nokey"
@@ -345,8 +350,10 @@ class OpenAIHandler(LLMHandler):
                     
                     for tc_delta in delta.tool_calls:
                         if tc_delta.index not in tool_calls:
-                            tool_calls[tc_delta.index] = {"name": "", "arguments": ""}
-                        
+                            tool_calls[tc_delta.index] = {"name": "", "arguments": "", "id": ""}
+
+                        if getattr(tc_delta, "id", None):
+                            tool_calls[tc_delta.index]["id"] += tc_delta.id
                         if tc_delta.function.name:
                             tool_calls[tc_delta.index]["name"] += tc_delta.function.name
                         if tc_delta.function.arguments:
@@ -363,6 +370,9 @@ class OpenAIHandler(LLMHandler):
                     except:
                         args = tc["arguments"]
                     tool_call_dict = {"tool": tc["name"], "arguments": args}
+                    tid = (tc.get("id") or "").strip()
+                    if tid:
+                        tool_call_dict["id"] = tid
                     full_message += "\n```json\n" + json.dumps(tool_call_dict) + "\n```\n"
             
             return full_message.strip()

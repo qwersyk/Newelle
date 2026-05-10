@@ -358,7 +358,7 @@ class ChatHistory(Gtk.Box):
         # Handle empty/whitespace messages
         if message_label == " " * len(message_label) and not is_user:
             if not restore:
-                self.chat.append({"User": "Assistant", "Message": message_label})
+                self.chat.append({"User": "Assistant", "Message": message_label, "Profile": self.controller.newelle_settings.current_profile})
                 self.add_prompt(prompt)
                 self._finalize_message_display()
             GLib.idle_add(self.scrolled_chat)
@@ -391,7 +391,7 @@ class ChatHistory(Gtk.Box):
         if not is_user:
             if not restore:
                 msg_uuid = int(uuid.uuid4())
-                self.chat.append({"User": "Assistant", "Message": message_label, "UUID": msg_uuid})
+                self.chat.append({"User": "Assistant", "Message": message_label, "UUID": msg_uuid, "Profile": self.controller.newelle_settings.current_profile})
                 self.add_prompt(prompt)
             else:
                 msg_uuid = self.chat[id_message].get("UUID", 0)
@@ -410,7 +410,8 @@ class ChatHistory(Gtk.Box):
         if return_widget:
             return message_widget
             
-        self.add_message("User" if is_user else "Assistant", message_widget, id_message=id_message, editable=True)
+        profile = self.chat[id_message].get("Profile", self.controller.newelle_settings.current_profile) if not is_user else None
+        self.add_message("User" if is_user else "Assistant", message_widget, id_message=id_message, editable=True, profile_name=profile)
 
         if not restore:
             self._finalize_message_display()
@@ -429,9 +430,10 @@ class ChatHistory(Gtk.Box):
             widget = SkillWidget(skill.name, skill.description, resource_count)
         else:
             widget = SkillWidget(skill_name, "", 0)
-        self.add_message("Assistant", widget, id_message=id_message, editable=True)
+        profile = self.chat[id_message].get("Profile", self.controller.newelle_settings.current_profile)
+        self.add_message("Assistant", widget, id_message=id_message, editable=True, profile_name=profile)
 
-    def add_message(self, user, message=None, id_message=0, editable=False):
+    def add_message(self, user, message=None, id_message=0, editable=False, profile_name=None):
         """Add a message to the chat and return the box
 
         Args:
@@ -506,8 +508,9 @@ class ChatHistory(Gtk.Box):
                 content_box.append(label)
             box.set_css_classes(["card", "user"])
         if user == "Assistant" or user=="Command":
+            display_name = profile_name or self.controller.newelle_settings.current_profile
             label = Gtk.Label(
-                label=self.controller.newelle_settings.current_profile + ": ",
+                label=display_name + ": ",
                 margin_top=10,
                 margin_start=10,
                 margin_bottom=10,
@@ -976,7 +979,7 @@ class ChatHistory(Gtk.Box):
         content_box.remove(old_message)
         content_box.append(entry)
 
-    def _wrap_message_box(self, user_type: str, content_box, id_message: int, editable: bool):
+    def _wrap_message_box(self, user_type: str, content_box, id_message: int, editable: bool, profile_name=None):
         """Wrap a content box in the message wrapper (same logic as add_message)"""
         wrapper_box = Gtk.Box(
             css_classes=["card"],
@@ -1038,8 +1041,9 @@ class ChatHistory(Gtk.Box):
                 inner_content_box.append(label)
             wrapper_box.set_css_classes(["card", "user"])
         elif user_type == "Assistant":
+            display_name = profile_name or self.controller.newelle_settings.current_profile
             label = Gtk.Label(
-                label=self.controller.newelle_settings.current_profile + ": ",
+                label=display_name + ": ",
                 margin_top=10,
                 margin_start=10,
                 margin_bottom=10,
@@ -1195,7 +1199,8 @@ class ChatHistory(Gtk.Box):
                     content_box = SkillWidget(skill.name, skill.description, resource_count)
                 else:
                     content_box = SkillWidget(skill_name, "", 0)
-                wrapper_box = self._wrap_message_box("Assistant", content_box, i, editable=True)
+                profile = self.chat[i].get("Profile", self.controller.newelle_settings.current_profile)
+                wrapper_box = self._wrap_message_box("Assistant", content_box, i, editable=True, profile_name=profile)
                 new_messages_box_items.append(wrapper_box)
                 row = Gtk.ListBoxRow()
                 row.set_child(wrapper_box)
@@ -1211,8 +1216,9 @@ class ChatHistory(Gtk.Box):
                 continue
             
             # Wrap in the message box (same as add_message does)
+            profile = self.chat[i].get("Profile") if self.chat[i]["User"] == "Assistant" else None
             wrapper_box = self._wrap_message_box(
-                self.chat[i]["User"], content_box, i, editable=True
+                self.chat[i]["User"], content_box, i, editable=True, profile_name=profile
             )
             
             new_messages_box_items.append(wrapper_box)
