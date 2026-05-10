@@ -505,7 +505,6 @@ class MainWindow(Adw.ApplicationWindow):
         self.canvas_box.append(self.canvas_overview)
         self.canvas_toolbar_view.set_content(self.canvas_box)
         self.add_explorer_tab(None, self.main_path)
-        self.set_content(self.main_program_block)
         bin = Adw.BreakpointBin(child=self.main, width_request=self.history_sidebar_width, height_request=300)
         history_collapse_width = 680
         breakpoint = Adw.Breakpoint(condition=Adw.BreakpointCondition.new_length(Adw.BreakpointConditionLengthType.MAX_WIDTH, history_collapse_width, Adw.LengthUnit.PX))
@@ -988,26 +987,29 @@ class MainWindow(Adw.ApplicationWindow):
 
         # Add the existing pages
         llm_page = self.steal_from_settings(settings.LLM)
+        llm_page_container = self.scrollable(llm_page)
         stack.add_titled_with_icon(
-            self.scrollable(llm_page),
+            llm_page_container,
             title="LLM",
             name="LLM",
             icon_name="brain-augemnted-symbolic",
         )
+        prompts_page_container = self.scrollable(self.steal_from_settings(settings.prompt))
         stack.add_titled_with_icon(
-            self.scrollable(self.steal_from_settings(settings.prompt)),
+            prompts_page_container,
             title="Prompts",
             name="Prompts",
             icon_name="question-round-outline-symbolic",
         )
+        tools_page_container = self.scrollable(self.steal_from_settings(settings.tools_group))
         stack.add_titled_with_icon(
-            self.scrollable(self.steal_from_settings(settings.tools_group)),
+            tools_page_container,
             title="Tools",
             name="Tools",
             icon_name="tools-symbolic",
         )
         if len(self.model.get_models_list()) == 0:
-            stack.set_visible_child(llm_page)
+            stack.set_visible_child(llm_page_container)
         switcher = Adw.ViewSwitcher()
         switcher.set_stack(stack)
         box.append(switcher)
