@@ -108,7 +108,6 @@ class InterfacesWindow(Gtk.Window):
 
             enabled = self._get_interface_setting(key, "enabled", False)
             is_running = interface.is_running()
-            print(is_running)
             enabled_switch = Gtk.Switch(valign=Gtk.Align.CENTER, active=enabled)
             enabled_switch.connect("notify::active", self._on_enabled_toggled, key)
             self._enabled_switches[key] = enabled_switch
@@ -158,7 +157,10 @@ class InterfacesWindow(Gtk.Window):
 
     def _on_play_button_clicked(self, button, key, interface: Interface):
         if interface.is_running():
-            interface.stop()
+            if interface.is_locally_running():
+                interface.stop()
+            else:
+                Interface.stop_external(key, interface.path)
             button.set_icon_name("media-playback-start-symbolic")
         else:
             interface.start()

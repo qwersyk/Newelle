@@ -1391,18 +1391,20 @@ class GUIAPIInterface(Interface):
             self._server = uvicorn.Server(config)
             thread = threading.Thread(target=self._server.run, daemon=True)
             thread.start()
+            self._write_state_file()
             print(f"GUI API server started on {host}:{port}")
         except Exception as e:
             self._error = str(e)
             print(f"Failed to start GUI API server: {e}")
 
     def stop(self):
+        self._clear_state_file()
         if self._server is not None:
             self._server.should_exit = True
             self._server = None
             print("GUI API server stopped")
 
-    def is_running(self):
+    def _is_locally_running(self):
         return self._server is not None and not self._server.should_exit
 
 
