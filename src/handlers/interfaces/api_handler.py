@@ -938,15 +938,17 @@ class APIInterface(ChatInterface):
             self._server = uvicorn.Server(config)
             thread = threading.Thread(target=self._server.run, daemon=True)
             thread.start()
+            self._write_state_file()
             print(f"API server started on {host}:{port}")
         except Exception as e:
             print(f"Failed to start API server: {e}")
 
     def stop(self):
+        self._clear_state_file()
         if self._server is not None:
             self._server.should_exit = True
             self._server = None
             print("API server stopped")
 
-    def is_running(self):
+    def _is_locally_running(self):
         return self._server is not None and not self._server.should_exit

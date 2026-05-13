@@ -561,6 +561,7 @@ class TelegramInterface(ChatInterface):
                     self._loop.run_until_complete(self._application.initialize())
                     self._loop.run_until_complete(self._application.start())
                     self._loop.run_until_complete(self._application.updater.start_polling())
+                    self._write_state_file()
                     print("Telegram bot started")
                     while self._running:
                         self._loop.run_until_complete(asyncio.sleep(1))
@@ -568,6 +569,7 @@ class TelegramInterface(ChatInterface):
                     self._error = str(e)
                     print(f"Telegram bot error: {e}")
                 finally:
+                    self._clear_state_file()
                     try:
                         self._loop.run_until_complete(self._application.updater.stop())
                         self._loop.run_until_complete(self._application.stop())
@@ -584,6 +586,7 @@ class TelegramInterface(ChatInterface):
             print(f"Failed to start Telegram bot: {e}")
 
     def stop(self):
+        self._clear_state_file()
         self._running = False
         if self._application is not None:
             try:
@@ -603,5 +606,5 @@ class TelegramInterface(ChatInterface):
         self._thread = None
         print("Telegram bot stopped")
 
-    def is_running(self):
+    def _is_locally_running(self):
         return self._running and self._thread is not None and self._thread.is_alive()

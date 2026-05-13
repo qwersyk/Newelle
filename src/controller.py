@@ -2215,8 +2215,11 @@ class HandlersManager:
             if not skip_auto_start_interfaces:
                 enabled = interface.get_setting("enabled", False, False) 
                 if enabled:
-                    print("Interface started")
-                    interface.start()
+                    if Interface.check_external_running(key, self.directory):
+                        print(f"Interface '{key}' is already running externally, skipping auto-start")
+                    else:
+                        print("Interface started")
+                        interface.start()
         # Assign handlers 
         self.integrationsloader.set_handlers(self.llm, self.stt, self.tts, self.secondary_llm, self.embedding, self.rag, self.memory, self.websearch)
         self.extensionloader.set_handlers(self.llm, self.stt, self.tts, self.secondary_llm, self.embedding, self.rag, self.memory, self.websearch)
