@@ -919,6 +919,21 @@ class ChatTab(Gtk.Box):
         self.active_tool_results = []
         self.status = True
         self.stream_number_variable += 1
+
+        # Persist the incomplete streamed message to chat so that
+        # tool outputs (Console messages) aren't orphaned when the user
+        # regenerates after stopping.
+        if hasattr(self, 'current_streaming_message') and self.current_streaming_message is not None:
+            streamed_text = self.current_streaming_message.message
+            if streamed_text and streamed_text.strip():
+                self.chat.append({
+                    "User": "Assistant",
+                    "Message": streamed_text,
+                    "UUID": self.current_streaming_message.chunk_uuid,
+                    "Profile": self.controller.newelle_settings.current_profile
+                })
+            self.current_streaming_message = None
+
         GLib.idle_add(self.chat_history.update_button_text)
         GLib.idle_add(self.update_tab_indicator)
         self.notification_block.add_toast(
