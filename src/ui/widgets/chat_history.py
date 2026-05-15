@@ -40,6 +40,7 @@ class ChatHistory(Gtk.Box):
         self.lazy_loaded_end = 0  # Last loaded message index (exclusive)
         self.lazy_loading_in_progress = False
         self.scroll_handler_id = None  # Store scroll handler ID to disconnect when needed
+        self._preamble_row_count = 0  # Number of warning/disclaimer rows at the top
 
         self.messages_box = []
         self.edit_entries = {}
@@ -111,10 +112,13 @@ class ChatHistory(Gtk.Box):
         self.update_button_text()
 
     def populate_chat(self):
-        if not self.controller.newelle_settings.virtualization:
-            self.add_message("WarningNoVirtual")
-        else:
-            self.add_message("Disclaimer")
+        self._preamble_row_count = 0
+        if not self.controller.newelle_settings.hide_warning:
+            if not self.controller.newelle_settings.virtualization:
+                self.add_message("WarningNoVirtual")
+            else:
+                self.add_message("Disclaimer")
+            self._preamble_row_count = 1
         total_messages = len(self.chat)
         if self.scroll_handler_id is not None:
             adjustment = self.chat_scroll.get_vadjustment()
@@ -217,6 +221,37 @@ class ChatHistory(Gtk.Box):
         """Handle drop event and emit files-dropped signal for the window to process."""
         self.emit("files-dropped", value)
         return True
+
+    def _get_parent_window(self):
+        """Get the parent Gtk.Window for transient dialogs."""
+        if isinstance(self.window, Gtk.Window):
+            return self.window
+        if hasattr(self.window, 'window'):
+            return self.window.window
+        return None
+
+    def _on_hide_warning_clicked(self, gesture, n_press, x, y, box):
+        """Show a dialog asking the user if they want to hide the chat warning."""
+        dialog = Adw.MessageDialog(
+            transient_for=self._get_parent_window(),
+            heading=_("Hide warning?"),
+            body=_("Do you want to hide the warning at the top of the chat? You can re-enable it from the settings."),
+            close_response="cancel",
+        )
+        dialog.add_response("cancel", _("Cancel"))
+        dialog.add_response("hide", _("Hide"))
+        dialog.set_response_appearance("hide", Adw.ResponseAppearance.SUGGESTED)
+        dialog.connect("response", self._on_hide_warning_response, box)
+        dialog.present()
+
+    def _on_hide_warning_response(self, dialog, response, box):
+        """Handle the response to the hide warning dialog."""
+        if response == "hide":
+            self.controller.settings.set_boolean("hide-warning", True)
+            self.controller.newelle_settings.hide_warning = True
+            # Reload the chat to reflect the new hide_warning setting
+            self.show_chat()
+        dialog.destroy()
 
     def send_bot_response(self, button):
         self.window.send_bot_response(button)
@@ -585,7 +620,9 @@ class ChatHistory(Gtk.Box):
                 halign=Gtk.Align.CENTER,
                 orientation=Gtk.Orientation.HORIZONTAL,
                 css_classes=["warning", "heading"],
+                tooltip_text=_("Click to hide this warning"),
             )
+            box_warning.set_cursor(Gdk.Cursor.new_from_name("pointer", None))
             box_warning.append(icon)
 
             label = Gtk.Label(
@@ -599,8 +636,12 @@ class ChatHistory(Gtk.Box):
                 wrap=True,
                 wrap_mode=Pango.WrapMode.WORD_CHAR,
             )
-
             box_warning.append(label)
+
+            click_gesture = Gtk.GestureClick.new()
+            click_gesture.connect("pressed", self._on_hide_warning_clicked, box)
+            box_warning.add_controller(click_gesture)
+
             content_box.append(box_warning)
             box.set_halign(Gtk.Align.CENTER)
             box.set_css_classes(["card", "message-warning"])
@@ -614,7 +655,9 @@ class ChatHistory(Gtk.Box):
                 halign=Gtk.Align.CENTER,
                 orientation=Gtk.Orientation.HORIZONTAL,
                 css_classes=["heading"],
+                tooltip_text=_("Click to hide this warning"),
             )
+            box_warning.set_cursor(Gdk.Cursor.new_from_name("pointer", None))
             box_warning.append(icon)
 
             label = Gtk.Label(
@@ -628,8 +671,12 @@ class ChatHistory(Gtk.Box):
                 wrap=True,
                 wrap_mode=Pango.WrapMode.WORD_CHAR,
             )
-
             box_warning.append(label)
+
+            click_gesture = Gtk.GestureClick.new()
+            click_gesture.connect("pressed", self._on_hide_warning_clicked, box)
+            box_warning.add_controller(click_gesture)
+
             content_box.append(box_warning)
             box.set_halign(Gtk.Align.CENTER)
             box.set_css_classes(["card"])
@@ -1171,9 +1218,8 @@ class ChatHistory(Gtk.Box):
         current_value = adjustment.get_value()
         current_upper = adjustment.get_upper()
         
-        # Find the first actual message row (skip disclaimer/warning which are at index 0)
-        # We need to insert new messages after the disclaimer/warning but before existing messages
-        insert_position = 1  # After disclaimer/warning (index 0)
+        # Insert after any preamble rows (warning/disclaimer) that were added
+        insert_position = self._preamble_row_count
         
         # Load messages and create widgets
         new_messages_box_items = []
@@ -1369,10 +1415,13 @@ class ChatHistory(Gtk.Box):
         else:
             self.hide_placeholder()
         # Add warning or disclaimer first (matching populate_chat behavior)
-        if not self.controller.newelle_settings.virtualization:
-            self.add_message("WarningNoVirtual")
-        else:
-            self.add_message("Disclaimer")
+        self._preamble_row_count = 0
+        if not self.controller.newelle_settings.hide_warning:
+            if not self.controller.newelle_settings.virtualization:
+                self.add_message("WarningNoVirtual")
+            else:
+                self.add_message("Disclaimer")
+            self._preamble_row_count = 1
 
         # Re-populate the chat with all messages
         for i in range(len(self.chat)):
