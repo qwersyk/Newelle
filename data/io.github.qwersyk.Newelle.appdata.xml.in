@@ -12,19 +12,23 @@
 	<screenshots>
 		<screenshot type="default">
 			<image>https://raw.githubusercontent.com/qwersyk/Newelle/master/data/screenshots/1.png</image>
-			<caption>RAG over uploaded files. Messages render in a live stream</caption>
+			<caption>Prebuilt llama.cpp</caption>
 		</screenshot>
 		<screenshot>
 			<image>https://raw.githubusercontent.com/qwersyk/Newelle/master/data/screenshots/2.png</image>
-			<caption>Sending an email via an extension from inside the chat UI</caption>
+			<caption>Commands Permissions</caption>
 		</screenshot>
  		<screenshot>
 			<image>https://raw.githubusercontent.com/qwersyk/Newelle/master/data/screenshots/3.png</image>
-			<caption>Web search to find the date then the calendar extension adds the event</caption>
+			<caption>Reorderable Prompts</caption>
 		</screenshot>
 		<screenshot>
 			<image>https://raw.githubusercontent.com/qwersyk/Newelle/master/data/screenshots/4.png</image>
-			<caption>Using an MCP server to fetch Cloudflare Vectorize docs</caption>
+			<caption>Better Text Rendering</caption>
+		</screenshot>
+		<screenshot>
+			<image>https://raw.githubusercontent.com/qwersyk/Newelle/master/data/screenshots/5.png</image>
+			<caption>Interfaces</caption>
 		</screenshot>
 	</screenshots>
   	<branding>
@@ -36,6 +40,28 @@
 	<url type="bugtracker">https://github.com/qwersyk/Newelle/issues</url>
 	<content_rating type="oars-1.0" />
 	<releases>
+	    <release version="1.4.0" date="2026-05-19">
+            <description>
+              <p>Major update with new APIs, integrations and usability improvements.</p>
+
+              <ul>
+                <li>Added Interfaces for external applications to interact with Newelle</li>
+                <li>Added Telegram support</li>
+                <li>Added OpenAI compatible API with support for TTS, STT, LLM and Embeddings</li>
+                <li>Third party OpenAI compatible interfaces can now control Newelle using the v2 API</li>
+                <li>Added GUI API for third party interfaces</li>
+                <li>Added support for downloading pre-compiled llama.cpp binaries</li>
+                <li>Improved command permissions and safety restrictions</li>
+                <li>Added support for custom command rules and paths</li>
+                <li>Improved prompt editing with reordering and detached editing support</li>
+                <li>Added support for custom extra prompts</li>
+                <li>Improved font rendering and markdown divider support</li>
+                <li>Added native tool calling support for OpenAI handlers, Ollama and Gemini</li>
+                <li>Added full support for Ollama Cloud</li>
+                <li>Added support for Tinifish Websearch</li>
+              </ul>
+            </description>
+        </release>
 	    <release version="1.3.7" date="2026-03-30">
             <description>
                 <ul>
