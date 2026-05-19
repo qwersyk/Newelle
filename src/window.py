@@ -495,15 +495,13 @@ class MainWindow(Adw.ApplicationWindow):
                 otherview = Adw.TabView()
                 self.canvas_tabs.transfer_page(tab, otherview, 0)
                 # Set tab title as window title
-                tab_title = tab.get_title()
-                title_label = Gtk.Label(label=tab_title)
                 # Create window
-                headerbar = Adw.HeaderBar(css_classes=["flat"], title_widget=title_label)
                 content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-                content.append(headerbar)
                 content.append(otherview)
-                window = Gtk.Window(child=content, decorated=False)
-                tab.connect("notify::title", lambda x, title: title_label.set_label(x.get_title()))
+                window = Gtk.Window(child=content, decorated=True)
+                window.set_title(tab.get_title())
+                window.set_size_request(800, 600)
+                tab.connect("notify::title", lambda x, title: window.set_title(x.get_title()))
                 window.show()
                 window.connect("close-request", self.reattach_tab, tab, otherview)
 
