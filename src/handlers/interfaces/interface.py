@@ -13,6 +13,30 @@ class Interface(Handler):
         super().__init__(settings, path)
         self.controller = None
 
+    @staticmethod
+    def _get_process_start_time(pid):
+        """Get the start time (in clock ticks since boot) of a process from /proc."""
+        try:
+            with open(f"/proc/{pid}/stat", "r") as f:
+                data = f.read()
+            close_paren = data.rfind(")")
+            fields = data[close_paren + 2:].split()
+            return int(fields[19])
+        except (FileNotFoundError, ValueError, IndexError, PermissionError, OSError):
+            return None
+
+    @staticmethod
+    def _is_same_process(pid, stored_start_time):
+        """Check if the process with the given PID is the same one that wrote the state file."""
+        if stored_start_time is None:
+            return False
+        if pid == os.getpid():
+            return False
+        current_start_time = Interface._get_process_start_time(pid)
+        if current_start_time is None:
+            return False
+        return current_start_time == stored_start_time
+
     def start(self):
         pass
 
@@ -52,11 +76,12 @@ class Interface(Handler):
 
     def _write_state_file(self):
         """Write a state file indicating this interface is running."""
-        self._get_state_dir()  # ensure directory exists
+        self._get_state_dir()
         state = {
             "pid": os.getpid(),
             "key": self.key,
             "started_at": datetime.datetime.now().isoformat(),
+            "pid_start_time": Interface._get_process_start_time(os.getpid()),
         }
         with open(self._get_state_file(), "w") as f:
             json.dump(state, f)
@@ -69,26 +94,45 @@ class Interface(Handler):
             pass
 
     @staticmethod
+    def _cleanup_state_file(state_file):
+        try:
+            os.remove(state_file)
+        except (FileNotFoundError, OSError):
+            pass
+
+    @staticmethod
+    def _read_state_file(state_file):
+        """Read and validate a state file. Returns (state_dict, is_valid)."""
+        try:
+            with open(state_file, "r") as f:
+                state = json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            return None, False
+        pid = state.get("pid")
+        if not isinstance(pid, int):
+            Interface._cleanup_state_file(state_file)
+            return None, False
+        if not Interface._is_same_process(pid, state.get("pid_start_time")):
+            Interface._cleanup_state_file(state_file)
+            return None, False
+        return state, True
+
+    @staticmethod
     def check_external_running(key, path):
         """Check if an interface is running in another process by reading its state file."""
         state_file = Interface._get_state_file_path(key, path)
         try:
-            with open(state_file, "r") as f:
-                state = json.load(f)
-            pid = state.get("pid")
-            if pid is None:
+            state, valid = Interface._read_state_file(state_file)
+            if not valid or state is None:
                 return False
-            # Check if the process is still alive
+            pid = state.get("pid")
             os.kill(pid, 0)
             return True
-        except (FileNotFoundError, json.JSONDecodeError):
-            return False
         except (ProcessLookupError, OSError):
-            # Clean up stale state file
-            try:
-                os.remove(state_file)
-            except FileNotFoundError:
-                pass
+            Interface._cleanup_state_file(state_file)
+            return False
+        except Exception:
+            Interface._cleanup_state_file(state_file)
             return False
 
     @staticmethod
@@ -99,22 +143,18 @@ class Interface(Handler):
         """
         state_file = Interface._get_state_file_path(key, path)
         try:
-            with open(state_file, "r") as f:
-                state = json.load(f)
-            pid = state.get("pid")
-            if pid is None:
+            state, valid = Interface._read_state_file(state_file)
+            if not valid or state is None:
                 return False
+            pid = state.get("pid")
             os.kill(pid, signal.SIGTERM)
-            os.remove(state_file)
+            Interface._cleanup_state_file(state_file)
             return True
-        except (FileNotFoundError, json.JSONDecodeError):
-            return False
         except ProcessLookupError:
-            # Process already gone, clean up stale file
-            try:
-                os.remove(state_file)
-            except FileNotFoundError:
-                pass
+            Interface._cleanup_state_file(state_file)
             return True
         except OSError:
+            return False
+        except Exception:
+            Interface._cleanup_state_file(state_file)
             return False
