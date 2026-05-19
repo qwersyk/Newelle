@@ -41,6 +41,7 @@ https://github.com/user-attachments/assets/909edf0e-5a79-40c2-a3ef-cb5b2b18abfc
 
 
 - 🎨 **Advanced Customization**: Tailor the application with a wide range of settings
+- ✈️ **Connect Newelle to anything**: Interfaces allow you to control Newelle from Telegram, via API or anything else
 - 🚀 **Flexible Model Support**: Choose from mutliple AI models and providers to fit your specific needs
 - 📚 **Local models**: Download local models directly from Newelle, and run them using Llama.cpp or Ollama.
 - 💻 **Terminal Command Exection**: Execute commands suggested by the AI on the fly
