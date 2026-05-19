@@ -289,5 +289,8 @@
         <key name="monospace-line-height" type="d">
             <default>1.45</default>
         </key>
+        <key name="hide-warning" type="b">
+            <default>false</default>
+        </key>
 	</schema>
 </schemalist>

@@ -443,6 +443,12 @@ class Settings(Adw.PreferencesWindow):
         self.settings.bind("reverse-order", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
         self.interface.add(row)
         
+        row = Adw.ActionRow(title=_("Show Chat Warning"), subtitle=_("Show a warning at the top of the chat about AI safety"))
+        switch = Gtk.Switch(valign=Gtk.Align.CENTER)
+        row.add_suffix(switch)
+        self.settings.bind("hide-warning", switch, 'active', Gio.SettingsBindFlags.INVERT_BOOLEAN)
+        self.interface.add(row)
+        
         chat_name_row = Adw.ExpanderRow(title=_("Automatically Generate Chat Names"), subtitle=_("Generate chat names automatically after the first two messages"))
         chat_name_switch = Gtk.Switch(valign=Gtk.Align.CENTER)
         chat_name_row.add_suffix(chat_name_switch)

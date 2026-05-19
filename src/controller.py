@@ -901,7 +901,7 @@ class NewelleController:
                                                    extension_cache=self.extensions_cache, settings=self.settings)
             self.extensionloader.load_extensions()
             restore_handlers()
-            self.extensionloader.add_handlers(AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS, AVAILABLE_RAGS, AVAILABLE_WEBSEARCH)
+            self.extensionloader.add_handlers(AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS, AVAILABLE_RAGS, AVAILABLE_WEBSEARCH, AVAILABLE_INTERFACES=AVAILABLE_INTERFACES)
             self.extensionloader.add_prompts(PROMPTS, AVAILABLE_PROMPTS)
             self.newelle_settings.load_prompts()
             self.extensionloader.add_tools(self.tools)
@@ -1019,7 +1019,7 @@ class NewelleController:
         self.extensionloader = ExtensionLoader(self.extension_path, pip_path=self.pip_path,
                                                extension_cache=self.extensions_cache, settings=self.settings)
         self.extensionloader.load_extensions()
-        self.extensionloader.add_handlers(AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS, AVAILABLE_RAGS, AVAILABLE_WEBSEARCH)
+        self.extensionloader.add_handlers(AVAILABLE_LLMS, AVAILABLE_TTS, AVAILABLE_STT, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS, AVAILABLE_RAGS, AVAILABLE_WEBSEARCH, AVAILABLE_INTERFACES=AVAILABLE_INTERFACES)
         self.extensionloader.add_prompts(PROMPTS, AVAILABLE_PROMPTS)
         self.extensionloader.add_tools(self.tools)
         self.set_ui_controller(self.ui_controller)
@@ -1941,6 +1941,7 @@ class NewelleSettings:
         self.monospace_font_family = settings.get_string("monospace-font-family")
         self.monospace_font_size = settings.get_int("monospace-font-size")
         self.monospace_line_height = settings.get_double("monospace-line-height")
+        self.hide_warning = settings.get_boolean("hide-warning")
         self.load_prompts()
         # Adjust paths
         if os.path.exists(os.path.expanduser(self.main_path)):
@@ -2062,6 +2063,8 @@ class NewelleSettings:
             reloads.append(ReloadType.PROMPTS)
         if self.offers != new_settings.offers:
             reloads.append(ReloadType.OFFERS)
+        if self.hide_warning != new_settings.hide_warning:
+            reloads.append(ReloadType.RELOAD_CHAT)
 
         return reloads
 
