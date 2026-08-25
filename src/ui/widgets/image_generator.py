@@ -49,6 +49,26 @@ class ImageGeneratorWidget(Gtk.Box):
         self.loading_container.append(self.loading_pulse)
         self.loading_container.append(self.loading_text)
 
+        # Keep failures visible in-place instead of replacing the generated
+        # image with an unexplained missing-image icon.
+        self.error_container = Gtk.Box(
+            orientation=Gtk.Orientation.VERTICAL,
+            spacing=12,
+            margin_start=24,
+            margin_end=24,
+        )
+        self.error_container.set_halign(Gtk.Align.CENTER)
+        self.error_container.set_valign(Gtk.Align.CENTER)
+        self.error_container.add_css_class("error-container")
+
+        self.error_icon = Gtk.Image.new_from_icon_name("dialog-error-symbolic")
+        self.error_icon.set_pixel_size(48)
+        self.error_label = Gtk.Label(wrap=True, justify=Gtk.Justification.CENTER)
+        self.error_label.set_max_width_chars(48)
+        self.error_container.append(self.error_icon)
+        self.error_container.append(self.error_label)
+        self.error_container.set_visible(False)
+
         # Create the actual image widget
         self.image = Gtk.Image()
         self.image.set_size_request(self.width, self.height)
@@ -72,13 +92,19 @@ class ImageGeneratorWidget(Gtk.Box):
 
         # On hover show buttons
         ev = Gtk.EventControllerMotion.new()
-        ev.connect("enter", lambda x, y, data: self.overlay_buttons.set_visible(True))
+        ev.connect(
+            "enter",
+            lambda x, y, data: self.overlay_buttons.set_visible(
+                self.current_pixbuf is not None
+            ),
+        )
         ev.connect("leave", lambda data: self.overlay_buttons.set_visible(False))
         self.image_overlay.add_controller(ev)
 
         # Setup overlay
         self.loading_overlay.set_child(self.image_overlay)
         self.loading_overlay.add_overlay(self.loading_container)
+        self.loading_overlay.add_overlay(self.error_container)
 
         self.image_container.append(self.loading_overlay)
         self.append(self.image_container)
@@ -113,6 +139,15 @@ class ImageGeneratorWidget(Gtk.Box):
             font-weight: 500;
             opacity: 0.8;
             animation: loading-fade 1.5s ease-in-out infinite alternate;
+        }
+
+        .error-container {
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        .error-container label {
+            color: @error_color;
         }
 
         @keyframes loading-pulse {
@@ -170,10 +205,22 @@ class ImageGeneratorWidget(Gtk.Box):
         """Show or hide the loading animation"""
         self.loading_container.set_visible(show)
         if show:
+            self.error_container.set_visible(False)
+            self.overlay_buttons.set_visible(False)
             self.image.add_css_class("image-loading")
         else:
             self.image.remove_css_class("image-loading")
             self.image.add_css_class("image-loaded")
+
+    def show_error(self, message):
+        """Stop loading and display a generation or image-loading error."""
+        self.show_loading(False)
+        self.current_pixbuf = None
+        self.current_url = None
+        self.image.clear()
+        self.overlay_buttons.set_visible(False)
+        self.error_label.set_label(message or "Image generation failed.")
+        self.error_container.set_visible(True)
 
     def set_image_from_url(self, url, callback=None):
         """Load image from URL with loading animation"""
@@ -185,13 +232,12 @@ class ImageGeneratorWidget(Gtk.Box):
             scaled_pixbuf = self.scale_pixbuf_to_fit(self.current_pixbuf)
             self.image.set_from_pixbuf(scaled_pixbuf)
             self.show_loading(False)
+            self.error_container.set_visible(False)
             if callback:
                 callback(True)
 
         def load_error_callback():
-            self.show_loading(False)
-            # Show error placeholder
-            self.image.set_from_icon_name("image-missing")
+            self.show_error("The generated image could not be loaded.")
             if callback:
                 callback(False)
 
@@ -234,6 +280,7 @@ class ImageGeneratorWidget(Gtk.Box):
                     scaled_pixbuf = self.scale_pixbuf_to_fit(pixbuf)
                     self.image.set_from_pixbuf(scaled_pixbuf)
                     self.show_loading(False)
+                    self.error_container.set_visible(False)
                     if callback:
                         callback(True)
                     return False
@@ -244,8 +291,7 @@ class ImageGeneratorWidget(Gtk.Box):
                 print(f"Error loading image from path: {e}")
 
                 def show_error():
-                    self.show_loading(False)
-                    self.image.set_from_icon_name("image-missing")
+                    self.show_error("The generated image could not be loaded.")
                     if callback:
                         callback(False)
                     return False

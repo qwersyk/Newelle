@@ -3,9 +3,22 @@ from ...handlers.extra_settings import ExtraSettings
 from ...utility.system import can_escape_sandbox, is_flatpak, get_spawn_command, has_backend, detect_cuda_version
 from ...utility.media import get_image_path
 from ...utility.background_process import BackgroundProcess
+from ...utility.build_process import BuildCancelled, BuildProcess
+from ...utility.download_manager import (
+    DownloadCancelled,
+    DownloadKind,
+    current_download_task,
+    get_download_manager,
+)
 from ...tools import Tool, ToolResult
 from ...handlers import ErrorSeverity
-from ...ui.model_library import ModelLibraryWindow, LibraryModel
+from ...ui.model_library import (
+    LibraryModel,
+    ModelLibraryWindow,
+)
+from ...utility.model_icons import get_model_icon
+from ...ui.build_dependency_warning import BuildDependencyWarning
+from gettext import gettext as _
 import subprocess
 import os
 import platform
@@ -311,6 +324,8 @@ class StableDiffusionCPPHandler(ImageGeneratorHandler):
         self._installing = False
         self._server = BackgroundProcess("sd-server")
         self._server.register_atexit()
+        self._build_process = BuildProcess("stable-diffusion.cpp-build")
+        self._build_process.register_atexit()
         self.downloading = {}
 
         for folder in (self.model_folder, self.shared_folder, self.lora_folder):
@@ -1141,13 +1156,20 @@ class StableDiffusionCPPHandler(ImageGeneratorHandler):
         models = []
         for entry in SD_MODELS:
             description = entry["description"]
+            tags = list(entry.get("tags", []))
+            icon_name, icon_color = get_model_icon(
+                entry["display"],
+                tags,
+            )
             models.append(LibraryModel(
                 id=entry["id"],
                 name=entry["display"],
                 description=description,
-                tags=list(entry.get("tags", [])),
+                tags=tags,
                 is_pinned=False,
                 is_installed=self.model_installed(entry["id"]),
+                icon_name=icon_name,
+                icon_color=icon_color,
             ))
         return models
 
@@ -1176,7 +1198,7 @@ class StableDiffusionCPPHandler(ImageGeneratorHandler):
 
         self.downloading[model_id] = {"status": True, "progress": 0.0, "files_done": 0, "files_total": 0}
         GLib.idle_add(self.settings_update)
-        threading.Thread(target=self._download_variant, args=(model_id,), daemon=True).start()
+        self._download_variant(model_id)
 
     def _download_variant(self, model_id: str):
         """Download every file for a variant, with progress reporting."""
@@ -1234,6 +1256,8 @@ class StableDiffusionCPPHandler(ImageGeneratorHandler):
             print(f"Failed to install {model_id}: {e}")
             import traceback
             traceback.print_exc()
+            self.downloading.pop(model_id, None)
+            raise
         finally:
             if model_id in self.downloading:
                 self.downloading[model_id]["status"] = False
@@ -1248,23 +1272,41 @@ class StableDiffusionCPPHandler(ImageGeneratorHandler):
 
     def _download_file(self, url, dest, model_id, idx, total):
         tmp_path = dest + ".part"
+        task = current_download_task()
         os.makedirs(os.path.dirname(dest), exist_ok=True)
         try:
             with requests.get(url, stream=True, timeout=300) as resp:
                 resp.raise_for_status()
-                total_bytes = int(resp.headers.get("content-length", 0)) or 1
+                total_bytes = int(resp.headers.get("content-length", 0))
                 downloaded = 0
                 first_chunk = None
+                if task is not None:
+                    task.update(
+                        phase=_("Downloading {name}").format(name=os.path.basename(dest)),
+                        reset_progress=True,
+                        cancellable=True,
+                    )
                 with open(tmp_path, "wb") as f:
                     for chunk in resp.iter_content(chunk_size=1024 * 256):
                         if not chunk:
                             continue
+                        if task is not None:
+                            task.check_cancelled()
                         if first_chunk is None:
                             first_chunk = chunk
                         f.write(chunk)
                         downloaded += len(chunk)
-                        self._advance_progress(model_id, idx, total, downloaded / total_bytes)
+                        file_progress = downloaded / total_bytes if total_bytes > 0 else 0.0
+                        self._advance_progress(model_id, idx, total, file_progress)
+                        if task is not None:
+                            task.update(
+                                fraction=file_progress if total_bytes > 0 else None,
+                                transferred_bytes=downloaded,
+                                total_bytes=total_bytes if total_bytes > 0 else None,
+                            )
             self._validate_downloaded_file(tmp_path, dest, first_chunk)
+            if task is not None:
+                task.update(cancellable=False, phase=_("Finalizing model file"))
             os.replace(tmp_path, dest)
             self._advance_progress(model_id, idx, total, 1.0)
         except Exception:
@@ -1997,6 +2039,7 @@ class StableDiffusionCPPHandler(ImageGeneratorHandler):
 
     def show_install_dialog(self, button):
         win = Adw.Window(title="Install stable-diffusion.cpp")
+        self._build_window = win
         win.set_default_size(700, 760)
         win.set_modal(True)
         try:
@@ -2216,14 +2259,25 @@ class StableDiffusionCPPHandler(ImageGeneratorHandler):
 
         left_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
         self.hw_options = {}
+        dependency_warning = BuildDependencyWarning()
+        main_container.append(dependency_warning)
         group = None
-        for hw in ["CPU", "CPU (OpenBLAS)", "Nvidia (CUDA)", "AMD (ROCm)", "Any GPU (Vulkan)"]:
+        backend_options = {
+            "CPU": "cpu",
+            "CPU (OpenBLAS)": "cpu_openblas",
+            "Nvidia (CUDA)": "cuda",
+            "AMD (ROCm)": "rocm",
+            "Any GPU (Vulkan)": "vulkan",
+        }
+        for hw, backend in backend_options.items():
             btn = Gtk.CheckButton(label=hw, group=group)
             if group is None:
                 group = btn
                 btn.set_active(True)
+            dependency_warning.watch_option(btn, backend)
             self.hw_options[hw] = btn
             left_box.append(btn)
+        dependency_warning.refresh("cpu")
 
         right_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12, valign=Gtk.Align.CENTER)
         lbl_flags = Gtk.Label(label="Custom CMake Flags (Optional)")
@@ -2364,6 +2418,13 @@ class StableDiffusionCPPHandler(ImageGeneratorHandler):
         scroll.set_vexpand(True)
         scroll.set_hexpand(True)
         page4.append(scroll)
+
+        self.stop_build_button = Gtk.Button(label="Stop Build")
+        self.stop_build_button.add_css_class("destructive-action")
+        self.stop_build_button.set_halign(Gtk.Align.CENTER)
+        self.stop_build_button.set_sensitive(False)
+        self.stop_build_button.connect("clicked", self.stop_build)
+        page4.append(self.stop_build_button)
         content.append(page4)
 
         # ── Page 5: Done ───────────────────────────────────────────────
@@ -2580,7 +2641,17 @@ class StableDiffusionCPPHandler(ImageGeneratorHandler):
             self.progress_bar.set_fraction(fraction)
             return False
 
+        manager = get_download_manager()
+        task = manager.create_task(
+            _("Install {name}").format(name=asset["name"]),
+            kind=DownloadKind.RUNTIME,
+            source_id=f"runtime:{self.key}:{asset['name']}",
+            phase=_("Downloading runtime"),
+            cancellable=True,
+        )
+        tmp_dir = None
         try:
+            task.check_cancelled()
             GLib.idle_add(append_log, f"Downloading {asset['name']}...\n")
             GLib.idle_add(set_progress, 0.0)
 
@@ -2594,14 +2665,25 @@ class StableDiffusionCPPHandler(ImageGeneratorHandler):
 
             with open(tmp_file, "wb") as f:
                 for chunk in resp.iter_content(chunk_size=8192):
+                    task.check_cancelled()
                     f.write(chunk)
                     downloaded += len(chunk)
+                    task.update(
+                        fraction=downloaded / total if total > 0 else None,
+                        transferred_bytes=downloaded,
+                        total_bytes=total if total > 0 else None,
+                    )
                     if total > 0:
                         progress = (downloaded / total) * 0.7
                         GLib.idle_add(set_progress, progress)
 
             GLib.idle_add(set_progress, 0.7)
             GLib.idle_add(append_log, "Download complete. Extracting...\n")
+            task.update(
+                phase=_("Installing runtime"),
+                reset_progress=True,
+                cancellable=False,
+            )
 
             abs_sd_path = os.path.abspath(self.sd_cpp_path)
             if os.path.exists(abs_sd_path):
@@ -2651,11 +2733,18 @@ class StableDiffusionCPPHandler(ImageGeneratorHandler):
             GLib.idle_add(lambda: carousel.scroll_to(carousel.get_nth_page(5), True))
             GLib.idle_add(lambda: self.settings_update())
             self.set_setting("gpu_acceleration", asset.get("backend") != "cpu")
+            task.complete(_("Installed"))
 
+        except DownloadCancelled:
+            task.cancelled(_("Cancelled"))
         except Exception as e:
+            task.fail(str(e), _("Failed"))
             GLib.idle_add(append_log, f"\nError: {e}\n")
             import traceback
             GLib.idle_add(append_log, traceback.format_exc())
+        finally:
+            if tmp_dir is not None:
+                shutil.rmtree(tmp_dir, ignore_errors=True)
 
     # ── Build from source ──────────────────────────────────────────────
 
@@ -2672,8 +2761,25 @@ class StableDiffusionCPPHandler(ImageGeneratorHandler):
 
         custom_flags = self.entry_cmake.get_text()
 
+        self._build_process.begin()
+        self.stop_build_button.set_sensitive(True)
         carousel.scroll_to(carousel.get_nth_page(4), True)
         threading.Thread(target=self._run_build, args=(backend, carousel, custom_flags), daemon=True).start()
+
+    def stop_build(self, button=None):
+        """Stop the active stable-diffusion.cpp source build."""
+        self._build_process.cancel()
+        if button is None:
+            button = getattr(self, "stop_build_button", None)
+        if button is not None:
+            button.set_sensitive(False)
+
+    def _close_build_window(self):
+        window = getattr(self, "_build_window", None)
+        if window is not None:
+            self._build_window = None
+            window.close()
+        return False
 
     def _run_build(self, backend, carousel, custom_flags=""):
         if not can_escape_sandbox():
@@ -2718,23 +2824,12 @@ class StableDiffusionCPPHandler(ImageGeneratorHandler):
                     if extra_env:
                         env.update(extra_env)
 
-                process = subprocess.Popen(
+                return self._build_process.run(
                     full_cmd,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.STDOUT,
-                    text=True,
-                    bufsize=1,
                     env=env if not is_flatpak() else None,
                     cwd=cwd,
+                    on_output=lambda line: GLib.idle_add(append_log, line),
                 )
-
-                while True:
-                    line = process.stdout.readline()
-                    if not line and process.poll() is not None:
-                        break
-                    if line:
-                        GLib.idle_add(append_log, line)
-                return process.poll() == 0
 
             GLib.idle_add(set_progress, 0.1)
             GLib.idle_add(append_log, "Cloning stable-diffusion.cpp repository...\n")
@@ -2746,6 +2841,8 @@ class StableDiffusionCPPHandler(ImageGeneratorHandler):
 
             clone_cmd = ["git", "clone", "--depth", "1", self.REPO_URL, abs_sd_path]
             if not run_cmd(clone_cmd):
+                if self._build_process.cancel_requested:
+                    raise BuildCancelled()
                 raise Exception("Failed to clone stable-diffusion.cpp repository")
 
             # Initialize submodules (for webp/webm dependencies)
@@ -2753,6 +2850,8 @@ class StableDiffusionCPPHandler(ImageGeneratorHandler):
             GLib.idle_add(append_log, "Initializing submodules...\n")
             submodule_cmd = ["git", "submodule", "update", "--init", "--recursive"]
             if not run_cmd(submodule_cmd, cwd=abs_sd_path):
+                if self._build_process.cancel_requested:
+                    raise BuildCancelled()
                 GLib.idle_add(append_log, "Warning: submodule init failed, continuing anyway...\n")
 
             GLib.idle_add(set_progress, 0.25)
@@ -2760,6 +2859,8 @@ class StableDiffusionCPPHandler(ImageGeneratorHandler):
 
             cmake_configure = ["cmake", "-B", "build"] + cmake_args
             if not run_cmd(cmake_configure, cwd=abs_sd_path):
+                if self._build_process.cancel_requested:
+                    raise BuildCancelled()
                 raise Exception("Failed to configure CMake build")
 
             GLib.idle_add(set_progress, 0.4)
@@ -2770,7 +2871,12 @@ class StableDiffusionCPPHandler(ImageGeneratorHandler):
             num_jobs = multiprocessing.cpu_count()
             cmake_build = ["cmake", "--build", "build", "--config", "Release", "-j", str(num_jobs)]
             if not run_cmd(cmake_build, cwd=abs_sd_path):
+                if self._build_process.cancel_requested:
+                    raise BuildCancelled()
                 raise Exception("Failed to build stable-diffusion.cpp")
+
+            if self._build_process.cancel_requested:
+                raise BuildCancelled()
 
             sd_binary = os.path.join(abs_sd_path, "build", "bin", "sd-cli")
             if not os.path.exists(sd_binary):
@@ -2789,6 +2895,9 @@ class StableDiffusionCPPHandler(ImageGeneratorHandler):
             GLib.idle_add(lambda: self.settings_update())
             self.set_setting("gpu_acceleration", backend != "cpu")
 
+        except BuildCancelled:
+            GLib.idle_add(append_log, "\nBuild stopped by user.\n")
+            GLib.idle_add(self._close_build_window)
         except Exception as e:
             GLib.idle_add(
                 append_log,
@@ -2796,6 +2905,11 @@ class StableDiffusionCPPHandler(ImageGeneratorHandler):
             )
             import traceback
             GLib.idle_add(append_log, traceback.format_exc())
+        finally:
+            GLib.idle_add(
+                lambda: self.stop_build_button.set_sensitive(False)
+                if hasattr(self, "stop_build_button") else False
+            )
 
     def _finish_install(self, win):
         win.close()

@@ -32,6 +32,11 @@ gi.require_version("WebKit", "6.0")
 from gi.repository import Adw, GLib, Gtk, WebKit
 
 from ..utility.system import open_website
+from ..utility.download_manager import (
+    DownloadCancelled,
+    DownloadKind,
+    get_download_manager,
+)
 
 _ = gettext.gettext
 
@@ -174,16 +179,31 @@ def _github_headers():
     return headers
 
 
-def _read_response(response, max_bytes=MAX_RESPONSE_BYTES):
+def _read_response(response, max_bytes=MAX_RESPONSE_BYTES, task=None, phase=None):
     chunks = []
     size = 0
+    total = int(response.headers.get("content-length", 0))
+    if task is not None:
+        task.update(
+            phase=phase or _("Downloading extension files"),
+            reset_progress=True,
+            cancellable=True,
+        )
     for chunk in response.iter_content(64 * 1024):
         if not chunk:
             continue
+        if task is not None:
+            task.check_cancelled()
         size += len(chunk)
         if size > max_bytes:
             raise ExtensionCatalogError("The GitHub response is too large")
         chunks.append(chunk)
+        if task is not None:
+            task.update(
+                fraction=size / total if total > 0 else None,
+                transferred_bytes=size,
+                total_bytes=total if total > 0 else None,
+            )
     return b"".join(chunks)
 
 
@@ -215,7 +235,7 @@ def _github_json(url, session=requests, allow_not_found=False):
             raise ExtensionCatalogError("GitHub returned invalid JSON") from exc
 
 
-def _github_bytes(url, session=requests, max_bytes=MAX_FILE_BYTES):
+def _github_bytes(url, session=requests, max_bytes=MAX_FILE_BYTES, task=None):
     with session.get(
         url,
         headers={**_github_headers(), "Accept": "application/octet-stream"},
@@ -223,7 +243,12 @@ def _github_bytes(url, session=requests, max_bytes=MAX_FILE_BYTES):
         stream=True,
     ) as response:
         response.raise_for_status()
-        return _read_response(response, max_bytes=max_bytes)
+        return _read_response(
+            response,
+            max_bytes=max_bytes,
+            task=task,
+            phase=_("Downloading extension payload"),
+        )
 
 
 def _repo_identity(full_name):
@@ -369,7 +394,7 @@ def _archive_members(asset_name, content):
     return []
 
 
-def _release_files(release, session):
+def _release_files(release, session, task=None):
     if not isinstance(release, dict) or release.get("draft") is True:
         return None
     assets = release.get("assets")
@@ -401,7 +426,7 @@ def _release_files(release, session):
         if not isinstance(declared_size, int) or declared_size < 0 or declared_size > MAX_ARCHIVE_BYTES:
             continue
         try:
-            content = _github_bytes(url, session, MAX_ARCHIVE_BYTES)
+            content = _github_bytes(url, session, MAX_ARCHIVE_BYTES, task=task)
         except (requests.RequestException, ExtensionCatalogError):
             continue
         if name.lower().endswith(".py"):
@@ -420,7 +445,7 @@ def _release_files(release, session):
     return None
 
 
-def _tree_files(owner, repository, branch, session):
+def _tree_files(owner, repository, branch, session, task=None):
     tree_url = (
         f"{GITHUB_API}/repos/{quote(owner)}/{quote(repository)}/git/trees/"
         f"{quote(branch, safe='')}?recursive=1"
@@ -470,19 +495,19 @@ def _tree_files(owner, repository, branch, session):
                 }
             )
             continue
-        content = _github_bytes(download_url, session, MAX_FILE_BYTES)
+        content = _github_bytes(download_url, session, MAX_FILE_BYTES, task=task)
         files.append(_file_record(str(path), content))
     return files
 
 
-def _repository_archive_files(owner, repository, branch, session):
+def _repository_archive_files(owner, repository, branch, session, task=None):
     """Read a branch archive without spending another GitHub API request."""
     archive_url = (
         f"https://github.com/{quote(owner)}/{quote(repository)}/archive/refs/heads/"
         f"{quote(branch, safe='')}.zip"
     )
     _https_url(archive_url, "repository archive URL", {"github.com", "www.github.com"})
-    content = _github_bytes(archive_url, session, MAX_ARCHIVE_BYTES)
+    content = _github_bytes(archive_url, session, MAX_ARCHIVE_BYTES, task=task)
     members = _archive_members("source.zip", content)
     if not members:
         raise ExtensionCatalogError("The repository archive contained no readable files")
@@ -583,7 +608,7 @@ def search_extensions(query="", page=1, sort_by="stars", per_page=DEFAULT_PAGE_S
     }
 
 
-def load_extension_repository(repository, session=requests):
+def load_extension_repository(repository, session=requests, task=None):
     """Load README and statically validated files for one repository."""
     owner, name = _repo_identity(repository["full_name"])
     branch = _required_string(
@@ -604,7 +629,7 @@ def load_extension_repository(repository, session=requests):
     release_result = None
     if isinstance(releases, list):
         for release in releases:
-            release_result = _release_files(release, session)
+            release_result = _release_files(release, session, task=task)
             if release_result is not None:
                 break
 
@@ -613,12 +638,12 @@ def load_extension_repository(repository, session=requests):
         source_kind = "release"
     else:
         try:
-            files = _repository_archive_files(owner, name, branch, session)
+            files = _repository_archive_files(owner, name, branch, session, task=task)
             source_label = _("Repository archive · {}" ).format(branch)
         except (ExtensionCatalogError, requests.RequestException):
             # Keep the API tree as a fallback for unusually large or disabled
             # branch archives.
-            files = _tree_files(owner, name, branch, session)
+            files = _tree_files(owner, name, branch, session, task=task)
             source_label = _("Repository default branch · {}" ).format(branch)
         release_url = None
         source_kind = "repository"
@@ -1063,8 +1088,21 @@ class ExtensionMarketplaceView(Gtk.Box):
 
         def worker():
             try:
-                result = load_extension_repository(repository)
+                manager = get_download_manager()
+                with manager.operation(
+                    _("Download extension {name}").format(
+                        name=repository["name"]
+                    ),
+                    kind=DownloadKind.EXTENSION,
+                    source_id=f"extension:{repository['full_name']}",
+                    phase=_("Inspecting extension payload"),
+                    cancellable=True,
+                ) as task:
+                    result = load_extension_repository(repository, task=task)
                 error = None
+            except DownloadCancelled:
+                result = None
+                error = _("Download cancelled")
             except (ExtensionCatalogError, requests.RequestException, OSError, ValueError) as exc:
                 result = None
                 error = str(exc)
@@ -1239,7 +1277,20 @@ class ExtensionMarketplaceView(Gtk.Box):
 
         def worker():
             try:
-                installed = self.install_callback(selected)
+                manager = get_download_manager()
+                repository_name = (
+                    self.selected_repository.get("name", _("extension"))
+                    if self.selected_repository
+                    else _("extension")
+                )
+                with manager.operation(
+                    _("Install extension {name}").format(name=repository_name),
+                    kind=DownloadKind.EXTENSION,
+                    source_id=f"extension-install:{repository_name}",
+                    phase=_("Installing extension"),
+                    cancellable=False,
+                ):
+                    installed = self.install_callback(selected)
                 error = None
             except (ExtensionCatalogError, OSError, ValueError) as exc:
                 installed = None

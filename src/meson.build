@@ -67,6 +67,7 @@ ui_sources = [
   'ui/presentation.py',
   'ui/thread_editing.py',
   'ui/scheduled_tasks.py',
+  'ui/downloads.py',
   'ui/screenrecorder.py',
   'ui/shortcuts.py',
   'ui/mini_window.py',
@@ -78,6 +79,7 @@ ui_sources = [
   'ui/skill_creator.py',
   'ui/extra_settings.py',
   'ui/interfaces.py',
+  'ui/build_dependency_warning.py',
 ]
 
 widgets_sources = [
@@ -249,6 +251,7 @@ utility_sources = [
   'utility/profile_settings.py',
   'utility/audio_recorder.py',
   'utility/message_chunk.py',
+  'utility/model_icons.py',
   'utility/website_scraper.py',
   'utility/stdout_capture.py',
   'utility/wakeword_detector.py',
@@ -261,7 +264,11 @@ utility_sources = [
   'utility/command_runner.py',
   'utility/command_sessions.py',
   'utility/background_process.py',
+  'utility/build_process.py',
+  'utility/download_manager.py',
+  'utility/huggingface_download.py',
   'utility/tool_call_group.py',
+  'utility/build_dependencies.py',
 ]
 
 install_data(newelle_sources, install_dir: moduledir)

@@ -191,14 +191,16 @@ class ContextManager:
         """Compute cosine similarity between older messages and the current query."""
         try:
             texts = [history[i].get("Message", "") for i in indices]
-            all_texts = [query] + texts
-            embeddings = self.embedding_handler.get_embedding(all_texts)
-
-            query_emb = embeddings[0]
+            query_emb = self.embedding_handler.get_embedding(
+                [query], purpose="query"
+            )[0]
+            message_embeddings = self.embedding_handler.get_embedding(
+                texts, purpose="document"
+            )
             similarities = {}
 
             for j, idx in enumerate(indices):
-                msg_emb = embeddings[j + 1]
+                msg_emb = message_embeddings[j]
                 dot = float(sum(a * b for a, b in zip(query_emb, msg_emb)))
                 norm_q = float(sum(a * a for a in query_emb)) ** 0.5
                 norm_m = float(sum(a * a for a in msg_emb)) ** 0.5

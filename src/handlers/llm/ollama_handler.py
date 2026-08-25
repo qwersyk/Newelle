@@ -5,7 +5,7 @@ import os
 from subprocess import Popen 
 from typing import Any, Callable
 import time
-import gettext
+from gettext import gettext as _
 from gi.repository import GLib
 
 
@@ -16,6 +16,7 @@ from ...utility import get_streaming_extra_setting, extract_tools_from_prompts, 
 from ...utility.system import can_escape_sandbox, get_spawn_command
 from ...utility.media import extract_image
 from ...handlers import ExtraSettings
+from ...utility.download_manager import current_download_task
 
 class OllamaHandler(LLMHandler):
     key = "ollama"
@@ -126,6 +127,7 @@ class OllamaHandler(LLMHandler):
 
     def fetch_models(self):
         from ...ui.model_library import LibraryModel
+        from ...utility.model_icons import get_model_icon
         models = []
         unique_keys = set()
         
@@ -152,6 +154,7 @@ class OllamaHandler(LLMHandler):
                  
             tags = self.get_display_tags(key)
             is_installed = self.model_installed(key)
+            icon_name, icon_color = get_model_icon(key, tags)
             
             return LibraryModel(
                 id=key,
@@ -159,7 +162,9 @@ class OllamaHandler(LLMHandler):
                 description=desc,
                 tags=tags,
                 is_installed=is_installed,
-                is_pinned=pinned
+                is_pinned=pinned,
+                icon_name=icon_name,
+                icon_color=icon_color,
             )
 
         # 1. Pinned Models
@@ -309,7 +314,7 @@ class OllamaHandler(LLMHandler):
                 ExtraSettings.EntrySetting("model", _("Ollama Model"), _("Name of the Ollama Model"), default)
             )
         settings.append(get_streaming_extra_setting())
-        settings.append(ExtraSettings.ButtonSetting("update", _("Update Ollama"), _("Update Ollama"), lambda x: self.install(), _("Update Ollama")))
+        settings.append(ExtraSettings.ButtonSetting("update", _("Update Ollama"), _("Update Ollama"), lambda _x: self.install_in_background(_("Update Ollama")), _("Update Ollama")))
         return settings
 
     def get_duplication_settings(self) -> list[dict] | None:
@@ -339,15 +344,31 @@ class OllamaHandler(LLMHandler):
         client = self.create_client()
         self.auto_serve(client)
         model = self.get_setting("extra_model_name")
+        task = current_download_task()
+        self.downloading[model] = 0.0
         try:
             stream = client.pull(model, stream=True)
-            for p in stream:
-                if p.completed is not None:
-                    print(p.completed)
-                    break
+            for chunk in stream:
+                if chunk.completed is None:
+                    continue
+                self.downloading[model] = (
+                    chunk.completed / chunk.total if chunk.total else 0.0
+                )
+                if task is not None:
+                    task.update(
+                        phase=_("Downloading {name}").format(name=model),
+                        fraction=(
+                            chunk.completed / chunk.total if chunk.total else None
+                        ),
+                        transferred_bytes=chunk.completed,
+                        total_bytes=chunk.total if chunk.total else None,
+                    )
         except Exception as e:
             print(e)
-            return
+            raise
+        finally:
+            self.downloading.pop(model, None)
+        self.get_models()
         if not self.model_in_library(model):
             self.model_library = [{"key": model, "title": model, "description": "User added model"}] + self.model_library
         self.add_library_information()
@@ -415,12 +436,23 @@ class OllamaHandler(LLMHandler):
             return
         try:
             stream = client.pull(model, stream=True)
+            task = current_download_task()
             for chunk in stream:
                 if chunk.completed is None:
                     continue
-                self.downloading[model] = chunk.completed/chunk.total
-        except Exception as e:
+                self.downloading[model] = (
+                    chunk.completed / chunk.total if chunk.total else 0.0
+                )
+                if task is not None:
+                    task.update(
+                        phase=_("Downloading {name}").format(name=model),
+                        fraction=chunk.completed / chunk.total if chunk.total else None,
+                        transferred_bytes=chunk.completed,
+                        total_bytes=chunk.total if chunk.total else None,
+                    )
+        except Exception:
             self.settings_update()
+            raise
         self.get_models()    
         return
     

@@ -7,6 +7,7 @@ from ..controller import NewelleController
 from ..constants import AVAILABLE_INTERFACES
 from .extra_settings import ExtraSettingsBuilder
 from ..utility.system import can_escape_sandbox
+from ..utility.download_manager import get_download_manager
 from ..handlers.interfaces.interface import Interface
 
 
@@ -122,11 +123,14 @@ class InterfacesPage(Adw.PreferencesPage):
 
             install_button = None
             if not interface.is_installed():
-                if (interface.key, interface.schema_key) in self.controller.installing_handlers:
+                if get_download_manager().has_active(interface.get_install_source_id()):
                     install_button = Gtk.Button(css_classes=["flat"], valign=Gtk.Align.CENTER)
                     install_button.add_css_class("accent")
                     spinner = Gtk.Spinner(spinning=True)
                     install_button.set_child(spinner)
+                    install_button.connect(
+                        "clicked", lambda _button: self.app.downloads_action()
+                    )
                 else:
                     install_button = Gtk.Button(
                         css_classes=["flat"], valign=Gtk.Align.CENTER,
@@ -170,22 +174,31 @@ class InterfacesPage(Adw.PreferencesPage):
         spinner = Gtk.Spinner(spinning=True)
         button.set_child(spinner)
         button.disconnect_by_func(self._on_install_button_clicked)
+        button.connect("clicked", lambda _button: self.app.downloads_action())
         t = threading.Thread(target=self._install_interface_async, args=(button, interface, key))
         t.start()
 
     def _install_interface_async(self, button, interface, key):
-        self.controller.installing_handlers[(interface.key, interface.schema_key)] = True
-        interface.install()
-        interface.on_installed()
-        self.controller.installing_handlers[(interface.key, interface.schema_key)] = False
+        try:
+            interface.install_with_progress(
+                _("Install {name}").format(name=getattr(interface, "name", key))
+            )
+        except Exception as error:
+            print(f"Error installing interface {key}: {error}")
         GLib.idle_add(self._update_ui_after_install, button, interface, key)
 
     def _update_ui_after_install(self, button, interface, key):
-        button.set_child(None)
-        button.set_sensitive(False)
+        installed = interface.is_installed()
+        if installed:
+            button.set_child(None)
+            button.set_sensitive(False)
+        else:
+            button.set_child(Gtk.Image(icon_name="folder-download-symbolic"))
+            button.set_sensitive(True)
+            button.connect("clicked", self._on_install_button_clicked, key, interface)
         play_button = self._play_buttons.get(key)
         if play_button is not None:
-            play_button.set_sensitive(True)
+            play_button.set_sensitive(installed)
 
     def _on_extra_settings_update(self, interface: Interface, key: str):
         row_state = self.settingsrows.get((key, "interface", False))

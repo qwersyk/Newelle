@@ -4,11 +4,13 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
+import atexit
 import os
 import signal
 import subprocess
 import threading
 import time
+import uuid
 
 
 DEFAULT_COMMAND_TIMEOUT = 120
@@ -22,6 +24,7 @@ class CommandExecutionStatus(Enum):
     SUCCESS = "success"
     FAILURE = "failure"
     TIMEOUT = "timeout"
+    CANCELLED = "cancelled"
     STARTUP_ERROR = "startup-error"
 
 
@@ -115,6 +118,140 @@ class CommandExecutionResult:
             return None
 
 
+class CommandExecutionError(RuntimeError):
+    """Raised when a tracked bounded command cannot be found or controlled."""
+
+
+class CommandExecution:
+    """A bounded command that is currently owned by the application."""
+
+    def __init__(
+        self,
+        command: str,
+        working_dir: str,
+        owner,
+        timeout_seconds: int,
+        process: subprocess.Popen,
+    ):
+        self.execution_id = uuid.uuid4().hex[:12]
+        self.command = command
+        self.working_dir = working_dir
+        self.owner = owner
+        self.timeout_seconds = timeout_seconds
+        self.process = process
+        self.started_at = time.monotonic()
+        self._cancel_requested = threading.Event()
+        self._cancel_lock = threading.Lock()
+
+    @property
+    def pid(self) -> int:
+        return self.process.pid
+
+    @property
+    def is_running(self) -> bool:
+        return self.process.poll() is None
+
+    @property
+    def cancel_requested(self) -> bool:
+        return self._cancel_requested.is_set()
+
+    @property
+    def duration_seconds(self) -> float:
+        return max(0.0, time.monotonic() - self.started_at)
+
+    def cancel(self) -> None:
+        """Request cancellation without blocking the GTK main loop."""
+        with self._cancel_lock:
+            if self._cancel_requested.is_set():
+                return
+            self._cancel_requested.set()
+            if not self.is_running:
+                return
+            process = self.process
+
+        threading.Thread(
+            target=CommandRunner._terminate_process_group,
+            args=(process,),
+            name=f"command-cancel-{self.execution_id}",
+            daemon=True,
+        ).start()
+
+
+class CommandExecutionManager:
+    """Track active bounded commands so the UI can inspect and cancel them."""
+
+    def __init__(self):
+        self._executions: dict[str, CommandExecution] = {}
+        self._lock = threading.Lock()
+        atexit.register(self.shutdown_all)
+
+    def register(self, execution: CommandExecution) -> None:
+        with self._lock:
+            self._executions[execution.execution_id] = execution
+
+    def unregister(self, execution: CommandExecution) -> None:
+        with self._lock:
+            if self._executions.get(execution.execution_id) is execution:
+                self._executions.pop(execution.execution_id, None)
+
+    def list(self, owner=None) -> list[CommandExecution]:
+        with self._lock:
+            executions = [
+                execution
+                for execution in self._executions.values()
+                if (owner is None or execution.owner == owner)
+                and execution.is_running
+            ]
+        return sorted(executions, key=lambda execution: execution.started_at)
+
+    def list_all(self) -> list[CommandExecution]:
+        return self.list()
+
+    def get(self, execution_id: str, owner=None) -> CommandExecution:
+        if not execution_id:
+            raise CommandExecutionError("execution_id is required")
+        with self._lock:
+            execution = self._executions.get(execution_id)
+        if execution is None or (owner is not None and execution.owner != owner):
+            raise CommandExecutionError(
+                f"Command execution '{execution_id}' was not found"
+            )
+        return execution
+
+    def cancel(self, execution_id: str, owner=None) -> None:
+        self.get(execution_id, owner).cancel()
+
+    def shutdown_all(self) -> None:
+        executions = self.list_all()
+        for execution in executions:
+            execution.cancel()
+        for execution in executions:
+            try:
+                execution.process.wait(timeout=4)
+            except (subprocess.TimeoutExpired, OSError):
+                pass
+
+
+_default_execution_manager: CommandExecutionManager | None = None
+_default_execution_manager_lock = threading.Lock()
+
+
+def get_command_execution_manager() -> CommandExecutionManager:
+    """Return the process-wide bounded-command registry."""
+    global _default_execution_manager
+    if _default_execution_manager is None:
+        with _default_execution_manager_lock:
+            if _default_execution_manager is None:
+                _default_execution_manager = CommandExecutionManager()
+    return _default_execution_manager
+
+
+def shutdown_command_executions() -> None:
+    """Terminate all active bounded commands during application shutdown."""
+    if _default_execution_manager is not None:
+        _default_execution_manager.shutdown_all()
+
+
 class CommandRunner:
     """Execute one shell program with timeout and bounded output capture."""
 
@@ -169,7 +306,15 @@ class CommandRunner:
         except subprocess.TimeoutExpired:
             pass
 
-    def run(self, command: str, working_dir: str, host_prefix: list[str] | None = None) -> CommandExecutionResult:
+    def run(
+        self,
+        command: str,
+        working_dir: str,
+        host_prefix: list[str] | None = None,
+        *,
+        owner=None,
+        execution_manager: CommandExecutionManager | None = None,
+    ) -> CommandExecutionResult:
         started_at = time.monotonic()
         cwd = os.path.abspath(os.path.expanduser(working_dir))
         if not os.path.isdir(cwd):
@@ -206,6 +351,16 @@ class CommandRunner:
                 error=str(error),
             )
 
+        execution = CommandExecution(
+            command,
+            cwd,
+            owner,
+            self.timeout_seconds,
+            process,
+        )
+        manager = execution_manager or get_command_execution_manager()
+        manager.register(execution)
+
         stdout_collector = _BoundedTextCollector(OUTPUT_HEAD_CHARS, OUTPUT_TAIL_CHARS)
         stderr_collector = _BoundedTextCollector(OUTPUT_HEAD_CHARS, OUTPUT_TAIL_CHARS)
         reader_threads = [
@@ -223,30 +378,35 @@ class CommandRunner:
         for thread in reader_threads:
             thread.start()
 
-        timed_out = False
         try:
-            process.wait(timeout=self.timeout_seconds)
-        except subprocess.TimeoutExpired:
-            timed_out = True
-            self._terminate_process_group(process)
+            timed_out = False
+            try:
+                process.wait(timeout=self.timeout_seconds)
+            except subprocess.TimeoutExpired:
+                timed_out = True
+                self._terminate_process_group(process)
 
-        for thread in reader_threads:
-            thread.join(timeout=2)
+            for thread in reader_threads:
+                thread.join(timeout=2)
 
-        if timed_out:
-            status = CommandExecutionStatus.TIMEOUT
-        elif process.returncode == 0:
-            status = CommandExecutionStatus.SUCCESS
-        else:
-            status = CommandExecutionStatus.FAILURE
+            if execution.cancel_requested:
+                status = CommandExecutionStatus.CANCELLED
+            elif timed_out:
+                status = CommandExecutionStatus.TIMEOUT
+            elif process.returncode == 0:
+                status = CommandExecutionStatus.SUCCESS
+            else:
+                status = CommandExecutionStatus.FAILURE
 
-        return CommandExecutionResult(
-            status=status,
-            stdout=stdout_collector.get_text(),
-            stderr=stderr_collector.get_text(),
-            exit_code=process.returncode,
-            duration_seconds=time.monotonic() - started_at,
-            timeout_seconds=self.timeout_seconds if timed_out else None,
-            stdout_truncated=stdout_collector.truncated,
-            stderr_truncated=stderr_collector.truncated,
-        )
+            return CommandExecutionResult(
+                status=status,
+                stdout=stdout_collector.get_text(),
+                stderr=stderr_collector.get_text(),
+                exit_code=process.returncode,
+                duration_seconds=time.monotonic() - started_at,
+                timeout_seconds=self.timeout_seconds if timed_out else None,
+                stdout_truncated=stdout_collector.truncated,
+                stderr_truncated=stderr_collector.truncated,
+            )
+        finally:
+            manager.unregister(execution)

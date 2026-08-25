@@ -813,7 +813,7 @@ class Message(Gtk.Box):
         else:
             terminal_command = ["bash", "-c", "export TERM=xterm-256color;" + shell_command]
 
-        terminal = TerminalDialog()
+        terminal = TerminalDialog(parent_window=self._get_main_window())
 
         def save_output(save):
             if save is None:

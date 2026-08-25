@@ -6,6 +6,11 @@ from gi.repository import Gtk, Adw, Gio, GLib
 
 from ..handlers import Handler
 from ..utility.system import open_website, open_folder
+from ..utility.download_manager import (
+    DownloadCancelled,
+    DownloadKind,
+    get_download_manager,
+)
 from .widgets import ComboRowHelper, MultilineEntry
 
 
@@ -290,16 +295,21 @@ class ExtraSettingsBuilder:
         box.append(progress)
         button.set_child(box)
         button.disconnect_by_func(self.download_setting)
-        button.connect("clicked", lambda _x: setting["callback"](setting["key"]))
+        button.set_sensitive(False)
         th = threading.Thread(target=self.download_setting_thread, args=(handler, setting, button, progress))
         self.model_threads[(setting["key"], handler.key)] = [th, 0]
         th.start()
 
-    def update_download_status_setting(self, handler, setting, progressbar):
+    def update_download_status_setting(self, handler, setting, progressbar, task=None):
         while (setting["key"], handler.key) in self.downloading and self.downloading[(setting["key"], handler.key)]:
             try:
                 perc = setting["download_percentage"](setting["key"])
                 GLib.idle_add(progressbar.set_fraction, perc)
+                if task is not None and task.snapshot.transferred_bytes is None:
+                    task.update(
+                        phase=_("Downloading"),
+                        fraction=max(0.0, min(float(perc), 1.0)),
+                    )
             except Exception as e:
                 print(e)
             time.sleep(1)
@@ -311,19 +321,64 @@ class ExtraSettingsBuilder:
         button: Gtk.Button,
         progressbar: Gtk.ProgressBar,
     ):
-        self.model_threads[(setting["key"], handler.key)][1] = threading.current_thread().ident
-        self.downloading[(setting["key"], handler.key)] = True
-        th = threading.Thread(
-            target=self.update_download_status_setting,
-            args=(handler, setting, progressbar),
+        source_id = (
+            f"setting:{handler.schema_key}:{handler.key}:{setting['key']}"
         )
-        th.start()
-        setting["callback"](setting["key"])
+        manager = get_download_manager()
+        if manager.has_active(source_id):
+            return
+        try:
+            with manager.operation(
+                setting["title"],
+                kind=DownloadKind.MODEL,
+                source_id=source_id,
+                phase=_("Starting download"),
+                cancellable=False,
+            ) as task:
+                self.model_threads[(setting["key"], handler.key)][1] = threading.current_thread().ident
+                self.downloading[(setting["key"], handler.key)] = True
+                th = threading.Thread(
+                    target=self.update_download_status_setting,
+                    args=(handler, setting, progressbar, task),
+                    daemon=True,
+                )
+                th.start()
+                setting["callback"](setting["key"])
+            GLib.idle_add(self._set_download_finished, button, setting)
+        except Exception as error:
+            if not isinstance(error, DownloadCancelled):
+                print(f"Download failed: {error}")
+            GLib.idle_add(
+                self._restore_download_button, button, setting, handler
+            )
+        finally:
+            self.downloading[(setting["key"], handler.key)] = False
+
+    def _set_download_finished(self, button, setting):
         icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="user-trash-symbolic"))
         icon.set_icon_size(Gtk.IconSize.INHERIT)
         button.add_css_class("error")
+        button.remove_css_class("accent")
         button.set_child(icon)
-        self.downloading[(setting["key"], handler.key)] = False
+        button.set_sensitive(True)
+        button.connect(
+            "clicked", lambda _button: setting["callback"](setting["key"])
+        )
+        return False
+
+    def _restore_download_button(self, button, setting, handler):
+        button.remove_css_class("error")
+        button.add_css_class("accent")
+        button.set_child(
+            Gtk.Image.new_from_gicon(
+                Gio.ThemedIcon(
+                    name=setting.get("download-icon", "folder-download-symbolic")
+                )
+            )
+        )
+        button.set_sensitive(True)
+        button.connect("clicked", self.download_setting, setting, handler)
+        return False
 
     def create_web_button(self, website, folder=False) -> Gtk.Button:
         wbbutton = Gtk.Button(icon_name="internet-symbolic" if not folder else "search-folder-symbolic")

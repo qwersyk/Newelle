@@ -2,8 +2,16 @@ from ...handlers.llm import OpenAIHandler
 from ...handlers.extra_settings import ExtraSettings
 from ...utility.system import can_escape_sandbox, is_flatpak, get_spawn_command, has_backend, detect_cuda_version
 from ...utility.background_process import BackgroundProcess
+from ...utility.build_process import BuildCancelled, BuildProcess
+from ...utility.download_manager import (
+    DownloadCancelled,
+    DownloadKind,
+    current_download_task,
+    get_download_manager,
+)
+from ...utility.huggingface_download import download_huggingface_file
 from ...handlers import ErrorSeverity
-import subprocess
+from gettext import gettext as _
 import os
 import platform
 import threading
@@ -15,7 +23,12 @@ import shutil
 import tarfile
 import tempfile
 from gi.repository import Gtk, Adw, GLib, Gdk
-from ...ui.model_library import ModelLibraryWindow, LibraryModel
+from ...ui.model_library import (
+    LibraryModel,
+    ModelLibraryWindow,
+)
+from ...utility.model_icons import get_model_icon
+from ...ui.build_dependency_warning import BuildDependencyWarning
 import requests
 
 class LlamaCPPHandler(OpenAIHandler):
@@ -50,6 +63,8 @@ class LlamaCPPHandler(OpenAIHandler):
         self.model_folder = os.path.join(self.path, "custom_models")
         self.server = BackgroundProcess("llama-server")
         self.server.register_atexit()
+        self._build_process = BuildProcess("llama.cpp-build")
+        self._build_process.register_atexit()
         self._killing_server = False
         self.port = None
         self.loaded_model = None
@@ -197,7 +212,6 @@ class LlamaCPPHandler(OpenAIHandler):
                 "Custom Models Directory",
                 "Additional directory to scan for .gguf model files (leave empty to disable)",
                 "",
-                update_settings=True,
             )
         )
 
@@ -207,7 +221,6 @@ class LlamaCPPHandler(OpenAIHandler):
                 "Custom Arguments",
                 "Additional command-line arguments passed to llama-server (e.g. --threads 4 --no-mmap). Leave empty for none.",
                 "",
-                update_settings=True,
             )
         )
 
@@ -350,16 +363,24 @@ class LlamaCPPHandler(OpenAIHandler):
         data = self.library_data
         models = []
         for model in data:
+            tags = model["tags"] + model["capabilities"].split("\n")
+            icon_name, icon_color = get_model_icon(
+                model["title"],
+                tags,
+            )
             models.append(LibraryModel(
                 id=model["title"],
                 name=model["title"],
                 description=model["description"],
-                tags=model["tags"] + model["capabilities"].split("\n"),
+                tags=tags,
                 is_pinned=self.model_installed(model["title"]),
                 is_installed=self.model_installed(model["title"]),
+                icon_name=icon_name,
+                icon_color=icon_color,
             ))
         for model_name, model_file in self.models:
             if model_name not in [m.id for m in models]:
+                icon_name, icon_color = get_model_icon(model_name)
                 models = [LibraryModel(
                     id=model_name,
                     name=model_name,
@@ -367,6 +388,8 @@ class LlamaCPPHandler(OpenAIHandler):
                     tags=["custom"],
                     is_pinned=True,
                     is_installed=True,
+                    icon_name=icon_name,
+                    icon_color=icon_color,
                 )] + models
         return models
 
@@ -437,41 +460,34 @@ class LlamaCPPHandler(OpenAIHandler):
             parts = gguf_link.split("huggingface.co/")[-1].split("/")
             repo_id = f"{parts[0]}/{parts[1]}"
             print(f"Repo ID: {repo_id}")
-            from huggingface_hub import hf_hub_download, HfApi
+            from huggingface_hub import HfApi
             api = HfApi()
             files = api.list_repo_files(repo_id)
             gguf_file = self.select_best_gguf(files)
             self.downloading[model] = {"status": True, "progress": 0.0}
-            def update_progress(progress):
-                completed = progress.get("completed", 0)
-                total = progress.get("total", 1) # Avoid division by zero
-                percentage = (completed / total)
-                self.downloading[model]["progress"] = percentage
-            class TqdmProgress:
-                def __init__(self, *args, **kwargs):
-                    self.n = kwargs.get('initial', 0)
-                    self.total = kwargs.get('total', 1)
-                    update_progress({"completed": self.n, "total": self.total})
+            task = current_download_task()
+            if task is not None:
+                task.update(
+                    phase=_("Downloading {name}").format(name=gguf_file),
+                    reset_progress=True,
+                    cancellable=True,
+                )
+            try:
+                def update_local_progress(transferred, total):
+                    self.downloading[model]["progress"] = (
+                        transferred / total if total else 0.0
+                    )
 
-                def update(self, n=1):
-                    self.n += n
-                    update_progress({"completed": self.n, "total": self.total})
-
-                def close(self):
-                    pass
-
-                def __enter__(self):
-                    return self
-
-                def __exit__(self, *args):
-                    self.close()
-
-                def set_description(self, *args, **kwargs):
-                    pass
-
-            hf_hub_download(repo_id, gguf_file, local_dir=self.model_folder, local_dir_use_symlinks=False, tqdm_class=TqdmProgress)
-            os.rename(os.path.join(self.model_folder, gguf_file), os.path.join(self.model_folder, model + ".gguf"))
-            self.settings_update()
+                download_huggingface_file(
+                    repo_id,
+                    gguf_file,
+                    os.path.join(self.model_folder, model + ".gguf"),
+                    task=task,
+                    progress_callback=update_local_progress,
+                )
+                self.settings_update()
+            finally:
+                self.downloading.pop(model, None)
 
     def open_model_library(self, button):
         root = button.get_root()
@@ -480,6 +496,7 @@ class LlamaCPPHandler(OpenAIHandler):
 
     def show_install_dialog(self, button):
         win = Adw.Window(title="Install llama.cpp")
+        self._build_window = win
         win.set_default_size(700, 760)
         win.set_modal(True)
         try:
@@ -681,14 +698,28 @@ class LlamaCPPHandler(OpenAIHandler):
 
         left_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
         self.hw_options = {}
+        dependency_warning = BuildDependencyWarning()
+        main_container.append(dependency_warning)
         group = None
-        for hw in ["CPU", "CPU (OpenBLAS)", "Nvidia (CUDA)", "AMD (ROCm)", "Any GPU (Vulkan)", "Intel (OpenVINO)", "Intel (SYCL FP32)", "Intel (SYCL FP16)"]:
+        backend_options = {
+            "CPU": "cpu",
+            "CPU (OpenBLAS)": "cpu_openblas",
+            "Nvidia (CUDA)": "cuda",
+            "AMD (ROCm)": "rocm",
+            "Any GPU (Vulkan)": "vulkan",
+            "Intel (OpenVINO)": "openvino",
+            "Intel (SYCL FP32)": "sycl-fp32",
+            "Intel (SYCL FP16)": "sycl-fp16",
+        }
+        for hw, backend in backend_options.items():
             btn = Gtk.CheckButton(label=hw, group=group)
             if group is None:
                 group = btn
                 btn.set_active(True)
+            dependency_warning.watch_option(btn, backend)
             self.hw_options[hw] = btn
             left_box.append(btn)
+        dependency_warning.refresh("cpu")
 
         right_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12, valign=Gtk.Align.CENTER)
         lbl_flags = Gtk.Label(label="Custom CMake Flags (Optional)")
@@ -822,6 +853,13 @@ class LlamaCPPHandler(OpenAIHandler):
         scroll.set_vexpand(True)
         scroll.set_hexpand(True)
         page4.append(scroll)
+
+        self.stop_build_button = Gtk.Button(label="Stop Build")
+        self.stop_build_button.add_css_class("destructive-action")
+        self.stop_build_button.set_halign(Gtk.Align.CENTER)
+        self.stop_build_button.set_sensitive(False)
+        self.stop_build_button.connect("clicked", self.stop_build)
+        page4.append(self.stop_build_button)
         content.append(page4)
 
         # Page 5: Done
@@ -1151,6 +1189,15 @@ class LlamaCPPHandler(OpenAIHandler):
             self.progress_bar.set_fraction(fraction)
             return False
 
+        manager = get_download_manager()
+        task = manager.create_task(
+            _("Install {name}").format(name=asset["name"]),
+            kind=DownloadKind.RUNTIME,
+            source_id=f"runtime:{self.key}:{asset['name']}",
+            phase=_("Downloading runtime"),
+            cancellable=True,
+        )
+        tmp_dir = None
         try:
             GLib.idle_add(append_log, f"Downloading {asset['name']}...\n")
             GLib.idle_add(set_progress, 0.0)
@@ -1165,14 +1212,25 @@ class LlamaCPPHandler(OpenAIHandler):
 
             with open(tmp_file, "wb") as f:
                 for chunk in resp.iter_content(chunk_size=8192):
+                    task.check_cancelled()
                     f.write(chunk)
                     downloaded += len(chunk)
+                    task.update(
+                        fraction=downloaded / total if total > 0 else None,
+                        transferred_bytes=downloaded,
+                        total_bytes=total if total > 0 else None,
+                    )
                     if total > 0:
                         progress = (downloaded / total) * 0.7
                         GLib.idle_add(set_progress, progress)
 
             GLib.idle_add(set_progress, 0.7)
             GLib.idle_add(append_log, "Download complete. Extracting...\n")
+            task.update(
+                phase=_("Installing runtime"),
+                reset_progress=True,
+                cancellable=False,
+            )
 
             abs_llama_cpp_path = os.path.abspath(self.llama_cpp_path)
             if os.path.exists(abs_llama_cpp_path):
@@ -1221,11 +1279,18 @@ class LlamaCPPHandler(OpenAIHandler):
             # Kept for backward compatibility with the pre-sycl load_model logic
             self.set_setting("prebuilt_cuda", backend == "cuda")
             self.set_setting("gpu_acceleration", True)
+            task.complete(_("Installed"))
 
+        except DownloadCancelled:
+            task.cancelled(_("Cancelled"))
         except Exception as e:
+            task.fail(str(e), _("Failed"))
             GLib.idle_add(append_log, f"\nError: {e}\n")
             import traceback
             GLib.idle_add(append_log, traceback.format_exc())
+        finally:
+            if tmp_dir is not None:
+                shutil.rmtree(tmp_dir, ignore_errors=True)
 
     def start_installation(self, carousel):
         backend = "cpu"
@@ -1246,8 +1311,29 @@ class LlamaCPPHandler(OpenAIHandler):
 
         custom_flags = self.entry_cmake.get_text()
 
+        self._build_process.begin()
+        self.stop_build_button.set_sensitive(True)
         carousel.scroll_to(carousel.get_nth_page(4), True)
-        threading.Thread(target=self.run_install_process, args=(backend, carousel, custom_flags)).start()
+        threading.Thread(
+            target=self.run_install_process,
+            args=(backend, carousel, custom_flags),
+            daemon=True,
+        ).start()
+
+    def stop_build(self, button=None):
+        """Stop the active llama.cpp source build."""
+        self._build_process.cancel()
+        if button is None:
+            button = getattr(self, "stop_build_button", None)
+        if button is not None:
+            button.set_sensitive(False)
+
+    def _close_build_window(self):
+        window = getattr(self, "_build_window", None)
+        if window is not None:
+            self._build_window = None
+            window.close()
+        return False
 
     def run_install_process(self, backend, carousel, custom_flags=""):
         if not can_escape_sandbox():
@@ -1308,23 +1394,12 @@ class LlamaCPPHandler(OpenAIHandler):
                     if extra_env:
                         env.update(extra_env)
 
-                process = subprocess.Popen(
+                return self._build_process.run(
                     full_cmd,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.STDOUT,
-                    text=True,
-                    bufsize=1,
                     env=env if not is_flatpak() else None,
-                    cwd=cwd
+                    cwd=cwd,
+                    on_output=lambda line: GLib.idle_add(append_log, line),
                 )
-
-                while True:
-                    line = process.stdout.readline()
-                    if not line and process.poll() is not None:
-                        break
-                    if line:
-                        GLib.idle_add(append_log, line)
-                return process.poll() == 0
 
             GLib.idle_add(set_progress, 0.1)
             GLib.idle_add(append_log, "Cloning llama.cpp repository...\n")
@@ -1336,6 +1411,8 @@ class LlamaCPPHandler(OpenAIHandler):
 
             clone_cmd = ["git", "clone", "--depth", "1", "https://github.com/ggml-org/llama.cpp.git", abs_llama_cpp_path]
             if not run_cmd(clone_cmd):
+                if self._build_process.cancel_requested:
+                    raise BuildCancelled()
                 raise Exception("Failed to clone llama.cpp repository")
 
             GLib.idle_add(set_progress, 0.2)
@@ -1344,6 +1421,8 @@ class LlamaCPPHandler(OpenAIHandler):
             build_dir = os.path.join(abs_llama_cpp_path, "build")
             cmake_configure = ["cmake", "-B", "build", "-DCMAKE_BUILD_TYPE=Release"] + cmake_args
             if not run_cmd(cmake_configure, cwd=abs_llama_cpp_path):
+                if self._build_process.cancel_requested:
+                    raise BuildCancelled()
                 raise Exception("Failed to configure CMake build")
 
             GLib.idle_add(set_progress, 0.4)
@@ -1354,7 +1433,12 @@ class LlamaCPPHandler(OpenAIHandler):
             num_jobs = multiprocessing.cpu_count()
             cmake_build = ["cmake", "--build", "build", "--config", "Release", "-j", str(num_jobs)]
             if not run_cmd(cmake_build, cwd=abs_llama_cpp_path):
+                if self._build_process.cancel_requested:
+                    raise BuildCancelled()
                 raise Exception("Failed to build llama.cpp")
+
+            if self._build_process.cancel_requested:
+                raise BuildCancelled()
 
             server_binary = os.path.join(build_dir, "bin", "llama-server")
             if not os.path.exists(server_binary):
@@ -1368,10 +1452,18 @@ class LlamaCPPHandler(OpenAIHandler):
             self.set_setting("prebuilt_backend", backend)
             self.set_setting("gpu_acceleration", True)
 
+        except BuildCancelled:
+            GLib.idle_add(append_log, "\nBuild stopped by user.\n")
+            GLib.idle_add(self._close_build_window)
         except Exception as e:
             GLib.idle_add(append_log, f"\nError: {e}\n")
             import traceback
             GLib.idle_add(append_log, traceback.format_exc())
+        finally:
+            GLib.idle_add(
+                lambda: self.stop_build_button.set_sensitive(False)
+                if hasattr(self, "stop_build_button") else False
+            )
 
     def finish_install(self, win):
         win.close()

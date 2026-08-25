@@ -1,9 +1,11 @@
 import os
 import re
 import urllib.request
+from gettext import gettext as _
 
 from .tts import TTSHandler
 from ...utility.pip import install_module, find_module
+from ...utility.download_manager import current_download_task
 from ..handler import ErrorSeverity
 
 
@@ -133,9 +135,33 @@ class KokoroTTSHandler(TTSHandler):
 
     def _download(self, url: str, dst: str):
         tmp = dst + ".tmp"
+        task = current_download_task()
         try:
             with urllib.request.urlopen(url) as r, open(tmp, "wb") as f:
-                f.write(r.read())
+                total = int(r.headers.get("Content-Length", 0))
+                transferred = 0
+                if task is not None:
+                    task.update(
+                        phase=_("Downloading {name}").format(name=os.path.basename(dst)),
+                        reset_progress=True,
+                        cancellable=True,
+                    )
+                while True:
+                    chunk = r.read(256 * 1024)
+                    if not chunk:
+                        break
+                    if task is not None:
+                        task.check_cancelled()
+                    f.write(chunk)
+                    transferred += len(chunk)
+                    if task is not None:
+                        task.update(
+                            fraction=transferred / total if total > 0 else None,
+                            transferred_bytes=transferred,
+                            total_bytes=total if total > 0 else None,
+                        )
+            if task is not None:
+                task.update(cancellable=False, phase=_("Finalizing model file"))
             os.replace(tmp, dst)
         except Exception as e:
             try:
@@ -144,6 +170,7 @@ class KokoroTTSHandler(TTSHandler):
             except Exception:
                 pass
             self.throw(f"Failed to download Kokoro asset: {e}", ErrorSeverity.ERROR)
+            raise
 
     def streaming_enabled(self) -> bool:
         return True

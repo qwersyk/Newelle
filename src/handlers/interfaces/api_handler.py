@@ -106,6 +106,12 @@ class APIInterface(ChatInterface):
                 description=_("Path for the .jsonl log. ~ expands to home; the folder is created on demand."),
                 default=self._default_log_file_path(),
             ),
+            ExtraSettings.ToggleSetting(
+                key="use_bang_for_commands",
+                title=_("Use ! instead of / for commands in /v2 API"),
+                description=_("Use ! for /v2 API commands, for example !start."),
+                default=False,
+            ),
         ]
 
 
@@ -123,6 +129,18 @@ class APIInterface(ChatInterface):
     def _is_logging_to_file(self) -> bool:
         """Return True when the user opted-in to persisting API logs to a file."""
         return bool(self.get_setting("log_to_file", search_default=True, return_value=False))
+
+    def _use_bang_for_commands(self) -> bool:
+        """Return True when /v2 API commands should use ! instead of /."""
+        return bool(self.get_setting("use_bang_for_commands", search_default=True, return_value=False))
+
+    def _try_handle_v2_command(self, user_id, text: str) -> str | None:
+        """Handle a /v2 command with the configured command prefix."""
+        if self._use_bang_for_commands():
+            if not text.startswith("!"):
+                return None
+            text = "/" + text[1:]
+        return self.try_handle_command(user_id, text)
 
     def _resolve_log_file_path(self) -> str:
         """Return the configured NDJSON log file path, expanding `~`.
@@ -449,12 +467,13 @@ class APIInterface(ChatInterface):
             # ── /option with a paused run ────────────────────────────────────
             # Resolve the interaction first so the LLM thread unblocks, then
             # stream/collect the continuation from the saved event queue.
-            if stripped.startswith("/option") and user_key in self._pending_streams:
+            command_prefix = "!" if self._use_bang_for_commands() else "/"
+            if stripped.startswith(f"{command_prefix}option") and user_key in self._pending_streams:
                 pending_q = self._pending_streams.pop(user_key)
                 # Resolve the interaction (fires callback → unblocks LLM thread).
                 # The returned "✅ …" string is intentionally discarded here;
                 # the actual output comes from the resumed stream.
-                self.try_handle_command(user_key, stripped)
+                self._try_handle_v2_command(user_key, stripped)
                 self._log(
                     f"[API v2/chat/completions] resuming paused run user={user_key!r} "
                     f"completion_id={completion_id} stream={request.stream}"
@@ -468,8 +487,8 @@ class APIInterface(ChatInterface):
                         user_key, completion_id, created, model_name, pending_q
                     )
 
-            # ── Slash commands ───────────────────────────────────────────────
-            cmd_response = self.try_handle_command(user_key, last_user_message)
+            # ── Commands ─────────────────────────────────────────────────────
+            cmd_response = self._try_handle_v2_command(user_key, last_user_message)
             if cmd_response is not None:
                 self._chat_completion_log_print(
                     f"v2 command response user={user_key!r}", {"response": cmd_response}

@@ -1,8 +1,13 @@
 import os
 import json
+import gettext
+import threading
 from ..utility.pip import find_module, install_module
+from ..utility.download_manager import DownloadKind, get_download_manager
 from typing import Any
 from enum import Enum
+
+_ = gettext.gettext
 
 
 class SettingsCache:
@@ -148,6 +153,49 @@ class Handler():
         for module in self.get_extra_requirements():
             install_module(module, pip_path)
         self._is_installed_cache = None
+
+    def install_with_progress(self, title: str | None = None):
+        """Run the legacy synchronous install method as a tracked operation.
+
+        Subclasses and third-party handlers keep their existing ``install``
+        signature. Nested calls to ``install_module`` on this worker thread
+        automatically enrich the parent task with pip progress.
+        """
+        manager = get_download_manager()
+        source_id = self.get_install_source_id()
+        if manager.has_active(source_id):
+            return None
+        with manager.operation(
+            title or f"Install {self.key}",
+            kind=DownloadKind.DEPENDENCY,
+            source_id=source_id,
+            phase=_("Installing"),
+            cancellable=False,
+        ) as task:
+            result = self.install()
+            self._is_installed_cache = None
+            if not self.is_installed():
+                raise RuntimeError(f"{self.key} did not finish installing")
+            task.update(phase=_("Finalizing installation"), reset_progress=True)
+            self.on_installed()
+            return result
+
+    def get_install_source_id(self) -> str:
+        return f"handler:{self.schema_key}:{self.key}"
+
+    def install_in_background(self, title: str | None = None) -> None:
+        """Start a tracked legacy installation without blocking the GTK thread."""
+        def run_install():
+            try:
+                self.install_with_progress(title)
+            except Exception as error:
+                print(f"Error installing {self.key}: {error}")
+
+        threading.Thread(
+            target=run_install,
+            name=f"install-{self.key}",
+            daemon=True,
+        ).start()
 
     def on_installed(self):
         """Hook called after installation. Override to invalidate custom caches."""

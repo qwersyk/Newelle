@@ -313,7 +313,7 @@ Recent conversations:
             return
 
         texts = [chunk.content for chunk in self.chunks]
-        embeddings = self.embedding.get_embedding(texts)
+        embeddings = self.embedding.get_embedding(texts, purpose="document")
 
         for i, chunk in enumerate(self.chunks):
             chunk.embedding = embeddings[i].tolist() if hasattr(embeddings[i], 'tolist') else list(embeddings[i])
@@ -622,7 +622,9 @@ Recent conversations:
         max_results = int(self.get_setting("max_results", return_value=5))
 
         # Generate query embedding
-        query_embedding = self.embedding.get_embedding([query])[0]
+        query_embedding = self.embedding.get_embedding(
+            [query], purpose="query"
+        )[0]
         if hasattr(query_embedding, 'tolist'):
             query_embedding = query_embedding.tolist()
 

@@ -67,8 +67,7 @@ class ImageGeneratorHandler(Handler):
             msg_uuid: Unique message identifier for caching
         """
         if not image_source:
-            widget.show_loading(False)
-            widget.image.set_from_icon_name("image-missing")
+            widget.show_error("Image generation failed.")
             return
 
         def on_loaded(success):
@@ -80,7 +79,14 @@ class ImageGeneratorHandler(Handler):
         else:
             widget.set_image_from_path(image_source, on_loaded)
 
-    def generate_and_display(self, prompt: str, widget: ImageGeneratorWidget, msg_uuid: str, on_done_callback=None):
+    def generate_and_display(
+        self,
+        prompt: str,
+        widget: ImageGeneratorWidget,
+        msg_uuid: str,
+        on_done_callback=None,
+        on_error_callback=None,
+    ):
         """Generate an image and display it on the given widget.
 
         Runs in a background thread - safe to call from the GTK main thread.
@@ -91,22 +97,58 @@ class ImageGeneratorHandler(Handler):
             widget: The ImageGeneratorWidget to display the result on
             msg_uuid: Unique message identifier for caching
             on_done_callback: Optional callback, called on GTK main thread when done
+            on_error_callback: Optional callback receiving a user-facing error
+                               message on the GTK main thread
         """
         output_path = self.cache_path_for(msg_uuid)
 
         def generate():
+            error_message = None
             try:
                 image_source = self.generate_image(prompt, msg_uuid, output_file=output_path)
-                if image_source and output_path and image_source.startswith(("http://", "https://")):
+                if not isinstance(image_source, str) or not image_source.strip():
+                    raise RuntimeError("The image provider returned no image.")
+                if image_source.startswith(("http://", "https://")):
                     image_source = self._download_image(image_source, output_path)
+                elif not os.path.isfile(image_source):
+                    raise FileNotFoundError("The generated image file was not created.")
             except Exception as e:
                 print(f"Image generation failed: {e}")
                 image_source = None
-            GLib.idle_add(self._set_image_on_widget, widget, image_source, msg_uuid)
-            if on_done_callback:
-                GLib.idle_add(on_done_callback)
+                error_message = str(e).strip() or "Image generation failed."
+            GLib.idle_add(
+                self._finish_generation,
+                widget,
+                image_source,
+                msg_uuid,
+                error_message,
+                on_done_callback,
+                on_error_callback,
+            )
 
-        Thread(target=generate).start()
+        Thread(target=generate, daemon=True).start()
+
+    def _finish_generation(
+        self,
+        widget,
+        image_source,
+        msg_uuid,
+        error_message,
+        on_done_callback,
+        on_error_callback,
+    ):
+        """Apply a worker result and invoke callbacks on the GTK main thread."""
+        try:
+            if error_message:
+                widget.show_error(error_message)
+                if on_error_callback:
+                    on_error_callback(error_message)
+            else:
+                self._set_image_on_widget(widget, image_source, msg_uuid)
+        finally:
+            if on_done_callback:
+                on_done_callback()
+        return False
 
     def _generate_image_tool(self, prompt: str, msg_uuid = None):
         """Default tool function for image generation."""
@@ -114,7 +156,23 @@ class ImageGeneratorHandler(Handler):
         widget.set_prompt(prompt)
         result = ToolResult()
         result.set_widget(widget)
-        self.generate_and_display(prompt, widget, msg_uuid)
+        failed = {"value": False}
+
+        def on_error(message):
+            failed["value"] = True
+            result.set_output(f"Image generation failed: {message}")
+
+        def on_done():
+            if not failed["value"]:
+                result.set_output(None)
+
+        self.generate_and_display(
+            prompt,
+            widget,
+            msg_uuid,
+            on_done_callback=on_done,
+            on_error_callback=on_error,
+        )
         return result
 
     def _download_image(self, url: str, path: str, headers: dict = None, timeout: int = 120, verify: bool = True, proxies: dict = None, auth = None, allow_redirects: bool = True) -> str:
@@ -134,7 +192,10 @@ class ImageGeneratorHandler(Handler):
             allow_redirects: Whether to follow redirects (default: True)
 
         Returns:
-            str: The local file path on success, or the original URL on failure
+            str: The local file path on success
+
+        Raises:
+            RuntimeError: If the request fails or the response is not an image
         """
         try:
             response = requests.get(
@@ -158,9 +219,18 @@ class ImageGeneratorHandler(Handler):
                     img = img.convert("RGBA")
                 img.save(path, "PNG")
             return path
-        except Exception as e:
-            print(f"Failed to download image from {url}: {e}")
-            return url
+        except requests.Timeout as e:
+            raise RuntimeError("Timed out while downloading the generated image.") from e
+        except requests.RequestException as e:
+            status = getattr(getattr(e, "response", None), "status_code", None)
+            detail = f" (HTTP {status})" if status else ""
+            raise RuntimeError(
+                f"Failed to download the generated image{detail}."
+            ) from e
+        except (OSError, ValueError) as e:
+            raise RuntimeError(
+                "The image provider returned invalid image data."
+            ) from e
 
     def get_mini_app(self, constants: dict, **kwargs) -> 'Gtk.Box':
         """Create and return a mini app window for image generation.

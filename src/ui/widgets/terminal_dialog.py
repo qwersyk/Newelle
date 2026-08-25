@@ -1,4 +1,5 @@
 import gi
+from gettext import gettext as _
 from gi.repository import Gtk, Adw, GLib, Pango, Gdk
 import sys
 
@@ -56,7 +57,6 @@ if sys.platform != 'win32':
             self.set_font(Pango.FontDescription.from_string("Monospace 12"))
             self.set_clear_background(False)
             self.set_scrollback_lines(10000)
-            self.set_size(120, 40)
 
             self.connect("commit", self._on_commit)
             key_controller = Gtk.EventControllerKey()
@@ -139,31 +139,59 @@ else:
         def detach(self):
             pass
 
-class TerminalDialog(Adw.Dialog):
-    def __init__(self, confirm_output=True, **kwargs):
+class TerminalDialog(Adw.Window):
+    """A standalone, resizable terminal window.
+
+    This intentionally is not an ``Adw.Dialog``: dialogs are presented inside
+    the currently active window and cannot be resized like a desktop terminal.
+    """
+
+    def __init__(self, confirm_output=True, parent_window=None, **kwargs):
         super().__init__(**kwargs)
 
-        # Accessibility
-        self.set_title("Terminal") 
-        self.connect("close-attempt", self.closing_terminal)
-        self.connect("closed", self._on_closed)
-        self.set_can_close(not confirm_output)
+        self.set_title("Terminal")
+        self.set_default_size(960, 640)
+        self.set_resizable(True)
+        self.set_modal(False)
+        if parent_window is not None:
+            self.set_transient_for(parent_window)
+
+        self._confirm_output = confirm_output
+        self._allow_close = not confirm_output
+        self._terminal_detached = False
+        self.connect("close-request", self._on_close_request)
         self.output_func = lambda x: x
         # Toolbar View
         toolbar_view = Adw.ToolbarView()
         toolbar_view.add_css_class("osd")
+        toolbar_view.set_hexpand(True)
+        toolbar_view.set_vexpand(True)
 
         # Header Bar
-        header_bar = Adw.HeaderBar()
+        header_bar = Adw.HeaderBar(
+            show_start_title_buttons=False,
+            show_end_title_buttons=False,
+        )
+        close_button = Gtk.Button(
+            icon_name="window-close-symbolic",
+            css_classes=["flat", "circular"],
+            tooltip_text=_("Close"),
+        )
+        close_button.connect("clicked", lambda *_args: self.close())
+        header_bar.pack_end(close_button)
         toolbar_view.add_top_bar(header_bar)
 
         # Scrolled Window
         self.terminal_scroller = Gtk.ScrolledWindow(
-            propagate_natural_height=True,
-            propagate_natural_width=True
+            hexpand=True,
+            vexpand=True,
+            propagate_natural_height=False,
+            propagate_natural_width=False,
+            hscrollbar_policy=Gtk.PolicyType.AUTOMATIC,
+            vscrollbar_policy=Gtk.PolicyType.AUTOMATIC,
         )
         toolbar_view.set_content(self.terminal_scroller)
-        self.set_child(toolbar_view)
+        self.set_content(toolbar_view)
 
     def load_terminal(self, command:list[str]):
         self.set_terminal(Terminal(command))
@@ -175,30 +203,46 @@ class TerminalDialog(Adw.Dialog):
         if hasattr(self, "terminal") and hasattr(self.terminal, "detach"):
             self.terminal.detach()
         self.terminal = terminal
+        terminal.set_hexpand(True)
+        terminal.set_vexpand(True)
         self.terminal_scroller.set_child(terminal)
 
     def load_session(self, session):
         self.set_terminal(SessionTerminal(session))
 
     def close_window(self,dialog, response):
-        self.set_can_close(True)
-        self.close()
-        if response == "save": 
-            self.output_func(self.terminal.get_output())
-        else:
-            self.output_func(None)
+        self._allow_close = True
+        try:
+            if response == "save":
+                self.output_func(self.terminal.get_output())
+            else:
+                self.output_func(None)
+        finally:
+            self.close()
 
-    def closing_terminal(self, *args):
-        if self.get_can_close():
+    def _on_close_request(self, *_args):
+        if self._allow_close:
+            self._detach_terminal()
             return False
-        dialog = Adw.AlertDialog(body="Do you want to send the output of the terminal to the LLM to get a response?\nNote: Only the visible text will be sent as response", title="Send output?")
-        dialog.add_response("save", "Send output")
-        dialog.add_response("close", "Discard output")
+
+        dialog = Adw.AlertDialog(
+            body=_(
+                "Do you want to send the output of the terminal to the LLM "
+                "to get a response?\nNote: Only the visible text will be sent "
+                "as response"
+            ),
+            title=_("Send output?"),
+        )
+        dialog.add_response("save", _("Send output"))
+        dialog.add_response("close", _("Discard output"))
         dialog.set_response_appearance("close", Adw.ResponseAppearance.DESTRUCTIVE)
         dialog.connect("response", self.close_window)
-        dialog.present()
-        return True 
+        dialog.present(self)
+        return True
 
-    def _on_closed(self, *_args):
+    def _detach_terminal(self):
+        if self._terminal_detached:
+            return
+        self._terminal_detached = True
         if hasattr(self, "terminal") and hasattr(self.terminal, "detach"):
             self.terminal.detach()

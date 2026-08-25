@@ -1,4 +1,4 @@
-from .embedding import EmbeddingHandler
+from .embedding import EmbeddingHandler, EmbeddingPurpose
 from ...handlers import ExtraSettings
 from ...utility.system import get_spawn_command, can_escape_sandbox  
 import threading
@@ -49,7 +49,7 @@ class OllamaEmbeddingHandler(EmbeddingHandler):
             settings.append(
                 ExtraSettings.EntrySetting("model", _("Ollama Model"), _("Name of the Ollama Model"), default)
             )
-        return settings
+        return settings + self.get_prefix_settings()
 
     def get_client_headers(self) -> dict[str, str]:
         """Headers passed to the Ollama Python client."""
@@ -83,10 +83,15 @@ class OllamaEmbeddingHandler(EmbeddingHandler):
         self.set_setting("models", json.dumps(self.models))
         self.settings_update()
 
-    def get_embedding(self, text: list[str]) -> np.ndarray:
+    def get_embedding(
+        self, text: list[str], purpose: EmbeddingPurpose = None
+    ) -> np.ndarray:
         client = self.create_client()
         self.auto_serve(client)
-        arr = client.embed(model=self.get_setting("model"), input=text)
+        arr = client.embed(
+            model=self.get_setting("model"),
+            input=self._prepare_embedding_texts(text, purpose),
+        )
         return np.array(arr.embeddings)
     
     def auto_serve(self, client):

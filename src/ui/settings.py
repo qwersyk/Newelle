@@ -17,6 +17,7 @@ from ..handlers import Handler
 
 from ..constants import AVAILABLE_EMBEDDINGS, AVAILABLE_LLMS, AVAILABLE_MEMORIES, AVAILABLE_PROMPTS, AVAILABLE_TTS, AVAILABLE_STT, PROMPTS, AVAILABLE_RAGS, AVAILABLE_WEBSEARCH, AVAILABLE_IMAGE_GENERATORS
 from ..utility.pip import install_module
+from ..utility.download_manager import get_download_manager
 from .extension import ExtensionPage
 from .interfaces import InterfacesPage
 from .extra_settings import ExtraSettingsBuilder
@@ -741,7 +742,7 @@ class Settings(Adw.Window):
                 install_module(module, self.controller.pip_path, True)
             t = threading.Thread(target=install_thread)
             t.start()
-            self.app.win.show_stdout_monitor_dialog(self)
+            self.app.downloads_action()
         button.connect("clicked", install_custom_module)
         self.developer.add(row)
         
@@ -3774,11 +3775,11 @@ class Settings(Adw.Window):
         """
         actionbutton = Gtk.Button(css_classes=["flat"], valign=Gtk.Align.CENTER)
         if not handler.is_installed():
-            if (handler.key, handler.schema_key) in self.controller.installing_handlers:
+            if get_download_manager().has_active(handler.get_install_source_id()):
                 spinner = Gtk.Spinner(spinning=True)
                 actionbutton.set_child(spinner)
                 actionbutton.add_css_class("accent")
-                actionbutton.connect("clicked", lambda _ : self.app.win.show_stdout_monitor_dialog(self))
+                actionbutton.connect("clicked", lambda _ : self.app.downloads_action())
             else:
                 icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon(name="folder-download-symbolic"))
                 actionbutton.connect("clicked", self.install_model, handler)
@@ -3820,7 +3821,7 @@ class Settings(Adw.Window):
         spinner = Gtk.Spinner(spinning=True)
         button.set_child(spinner)
         button.disconnect_by_func(self.install_model)
-        button.connect("clicked", lambda x : self.app.win.show_stdout_monitor_dialog(self))
+        button.connect("clicked", lambda _x: self.app.downloads_action())
         t = threading.Thread(target=self.install_model_async, args= (button, handler))
         t.start() 
 
@@ -3831,10 +3832,12 @@ class Settings(Adw.Window):
             button (): button  
             model (): a handler instance
         """
-        self.controller.installing_handlers[(model.key, model.schema_key)] = True 
-        print("AE")
-        model.install()
-        self.controller.installing_handlers[(model.key, model.schema_key)] = False 
+        try:
+            constants = self.get_constants_from_object(model)
+            title = constants.get(model.key, {}).get("title", model.key)
+            model.install_with_progress(_("Install {name}").format(name=title))
+        except Exception as error:
+            print(f"Error installing {model.key}: {error}")
         GLib.idle_add(self.update_ui_after_install, button, model)
 
     def update_ui_after_install(self, button, model):
@@ -3846,8 +3849,16 @@ class Settings(Adw.Window):
         """
         if model.is_installed():
             self.on_setting_change(self.get_constants_from_object(model), model, "", True)
-        button.set_child(None)
-        button.set_sensitive(False)
+            button.set_child(None)
+            button.set_sensitive(False)
+        else:
+            button.set_child(
+                Gtk.Image.new_from_gicon(
+                    Gio.ThemedIcon(name="folder-download-symbolic")
+                )
+            )
+            button.set_sensitive(True)
+            button.connect("clicked", self.install_model, model)
         checkbutton = self.settingsrows[(model.key, self.convert_constants(self.get_constants_from_object(model)), model.is_secondary())]["button"]
         self._apply_handler_row_blocked_style(checkbutton, model)
 

@@ -175,15 +175,21 @@ class LlamaIndexMemoryHandler(MemoryHandler):
                 return self._get_text_embedding(text)
 
             def _get_query_embedding(self, query: str) -> List[float]:
-                embeddings = self._embedding_model.get_embedding([query])
+                embeddings = self._embedding_model.get_embedding(
+                    [query], purpose="query"
+                )
                 return embeddings[0]
 
             def _get_text_embedding(self, text: str) -> List[float]:
-                embeddings = self._embedding_model.get_embedding([text])
+                embeddings = self._embedding_model.get_embedding(
+                    [text], purpose="document"
+                )
                 return embeddings[0]
 
             def _get_text_embeddings(self, texts: List[str]) -> List[List[float]]:
-                embeddings = self._embedding_model.get_embedding(texts)
+                embeddings = self._embedding_model.get_embedding(
+                    texts, purpose="document"
+                )
                 return embeddings
         return CustomEmbedding(embedding)
 

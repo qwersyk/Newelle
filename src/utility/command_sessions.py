@@ -590,6 +590,14 @@ class CommandSessionManager:
                 key=lambda session: session.created_at,
             )
 
+    def list_all(self) -> list[CommandSession]:
+        """Return currently running sessions across all chat owners."""
+        with self._lock:
+            return sorted(
+                (session for session in self._sessions.values() if session.is_running),
+                key=lambda session: session.created_at,
+            )
+
     def shutdown_all(self) -> None:
         with self._lock:
             sessions = list(self._sessions.values())

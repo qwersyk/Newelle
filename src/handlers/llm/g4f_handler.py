@@ -1,5 +1,6 @@
 import os
 from subprocess import check_output
+from gettext import gettext as _
 from typing import Any, Callable
 
 from .llm import LLMHandler
@@ -43,7 +44,7 @@ class G4FHandler(LLMHandler):
     def get_extra_settings(self) -> list:
         return [
             ExtraSettings.ComboSetting("model", _("Model"), _("Model to use"), self.get_models_list(), "gpt-4o"),
-            ExtraSettings.ButtonSetting("update", _("Update G4F"), _("Update G4F"), lambda x: self.install(), "Update G4F"),
+            ExtraSettings.ButtonSetting("update", _("Update G4F"), _("Update G4F"), lambda _x: self.install_in_background(_("Update G4F")), "Update G4F"),
             get_streaming_extra_setting()
         ]
     
@@ -118,4 +119,3 @@ class G4FHandler(LLMHandler):
             return full_message.strip()
         except Exception as e:
             raise e
-

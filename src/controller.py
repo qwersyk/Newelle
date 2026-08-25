@@ -225,7 +225,6 @@ class NewelleController:
         self.settings = Gio.Settings.new(SCHEMA_ID)
         self.python_path = python_path
         self.ui_controller : UIController | None = None
-        self.installing_handlers = {}
         self.tools = ToolRegistry()
         # Tool names whose full schema has been fetched via tool_search. They are
         # emitted with full parameters afterwards so lazy-loaded tools can also be
@@ -259,7 +258,13 @@ class NewelleController:
         self.newelle_settings = NewelleSettings(self.mode_manager)
         self.newelle_settings.load_settings(self.settings)
         self.load_chats(self.newelle_settings.chat_id)
-        self.handlers = HandlersManager(self.settings, self.extensionloader, self.models_dir, self.integrationsloader, self.installing_handlers, self)
+        self.handlers = HandlersManager(
+            self.settings,
+            self.extensionloader,
+            self.models_dir,
+            self.integrationsloader,
+            self,
+        )
         self.handlers.select_handlers(self.newelle_settings)
         threading.Thread(target=self.handlers.cache_handlers).start()
         self.handlers.add_tools(self.tools)
@@ -2560,7 +2565,7 @@ class HandlersManager:
     """
     DUPLICATED_LLMS_SETTINGS_KEY = "__duplicated_llm_handlers__"
 
-    def __init__(self, settings: Gio.Settings, extensionloader : ExtensionLoader, models_path, integrations: ExtensionLoader, installing_handlers: dict, controller):
+    def __init__(self, settings: Gio.Settings, extensionloader : ExtensionLoader, models_path, integrations: ExtensionLoader, controller):
         self.settings = settings
         self.extensionloader = extensionloader
         self.directory = models_path
@@ -2568,7 +2573,6 @@ class HandlersManager:
         self.handlers_cached = threading.Semaphore()
         self.handlers_cached.acquire()
         self.integrationsloader = integrations
-        self.installing_handlers = installing_handlers
         self.secondary_stt = None
         self.wakeword_handler = None
         self.controller = controller
@@ -3166,13 +3170,14 @@ class HandlersManager:
                     self.embedding, self.rag, self.websearch, self.image_generator]
         for handler in handlers:
             if not handler.is_installed():
-                self.set_installing(handler, True)
-                handler.install()
-                self.set_installing(handler, False)
-
-    def set_installing(self, handler: Handler, status: bool):
-        """Set installing status"""
-        self.installing_handlers[(handler.key, handler.schema_key)] = status
+                try:
+                    constants = self.get_constants_from_object(handler)
+                    name = constants.get(handler.key, {}).get("title", handler.key)
+                    handler.install_with_progress(
+                        _("Install {name}").format(name=name)
+                    )
+                except Exception as error:
+                    print(f"Error installing {handler.key}: {error}")
 
     def cache_handlers(self):
         """Cache handlers"""

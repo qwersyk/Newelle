@@ -1,6 +1,7 @@
 from ..extensions import NewelleExtension
 from ..tools import InteractionOption, Tool, ToolResult, create_io_tool 
 from ..ui.widgets import CommandSessionActionWidget, CopyBox
+from gettext import gettext as _
 import os
 from ..utility.system import is_flatpak
 from ..utility.system import get_spawn_command
@@ -9,6 +10,7 @@ from ..utility.command_runner import (
     CommandRunner,
     DEFAULT_COMMAND_TIMEOUT,
     MAX_COMMAND_TIMEOUT,
+    get_command_execution_manager,
 )
 from ..utility.command_sessions import (
     CommandSessionError,
@@ -37,7 +39,9 @@ class DefaultToolsIntegration(NewelleExtension):
         else:
             terminal_command = ["bash", "-c", "export TERM=xterm-256color;" + shell_command]
 
-        terminal = TerminalDialog()
+        terminal = TerminalDialog(
+            parent_window=getattr(getattr(self, "ui_controller", None), "window", None)
+        )
 
         def save_output(save):
             if save is None:
@@ -50,16 +54,20 @@ class DefaultToolsIntegration(NewelleExtension):
 
     def _on_session_terminal_clicked(self, session_widget, session_id, chat_id):
         try:
-            session = get_command_session_manager().get(
-                session_id,
-                self._session_owner(chat_id),
-            )
-            if not session.is_running:
-                session_widget.set_active_session_available(False)
-                return
+            opened = self.open_session_terminal(session_id, chat_id)
         except CommandSessionError:
+            opened = False
+        if not opened:
             session_widget.set_active_session_available(False)
-            return
+
+    def open_session_terminal(self, session_id: str, chat_id: int | None) -> bool:
+        """Open a live persistent session in an interactive terminal dialog."""
+        session = get_command_session_manager().get(
+            session_id,
+            self._session_owner(chat_id),
+        )
+        if not session.is_running:
+            return False
 
         terminal_dialogs = getattr(self, "_session_terminal_dialogs", None)
         if terminal_dialogs is None:
@@ -68,9 +76,12 @@ class DefaultToolsIntegration(NewelleExtension):
         existing_dialog = terminal_dialogs.get(session.session_id)
         if existing_dialog is not None:
             existing_dialog.present()
-            return
+            return True
 
-        terminal = TerminalDialog(confirm_output=False)
+        terminal = TerminalDialog(
+            confirm_output=False,
+            parent_window=getattr(getattr(self, "ui_controller", None), "window", None),
+        )
         terminal.set_title(f"{terminal.get_title()} · {session.session_id}")
         terminal.load_session(session)
         terminal_dialogs[session.session_id] = terminal
@@ -79,8 +90,80 @@ class DefaultToolsIntegration(NewelleExtension):
             if terminal_dialogs.get(session.session_id) is dialog:
                 terminal_dialogs.pop(session.session_id, None)
 
-        terminal.connect("closed", forget_dialog)
+        terminal.connect("close-request", forget_dialog)
         terminal.present()
+        return True
+
+    def terminate_session(self, session_id: str, chat_id: int | None) -> None:
+        """Terminate and forget a persistent session owned by a chat."""
+        manager = get_command_session_manager()
+        session = manager.get(session_id, self._session_owner(chat_id))
+        session.terminate()
+        manager.forget(session)
+
+    def cancel_command_execution(self, execution_id: str, chat_id: int | None) -> None:
+        """Cancel a tracked bounded command owned by a chat."""
+        manager = get_command_execution_manager()
+        manager.cancel(execution_id, self._session_owner(chat_id))
+
+    @staticmethod
+    def _activity_chat_id(owner, scope):
+        """Extract a chat ID from the internal chat-scoped owner token."""
+        if not isinstance(owner, tuple) or len(owner) != 3:
+            return None
+        if owner[0] != "chat" or owner[1] != scope:
+            return None
+        try:
+            return int(owner[2])
+        except (TypeError, ValueError):
+            return owner[2]
+
+    def get_active_command_activities(self) -> list[dict]:
+        """Return active command and persistent-session work for the GUI scope."""
+        scope = id(getattr(self, "ui_controller", self))
+        controller = None
+        ui_controller = getattr(self, "ui_controller", None)
+        if ui_controller is not None:
+            window = getattr(ui_controller, "window", None)
+            controller = getattr(window, "controller", None)
+            if controller is None:
+                controller = getattr(ui_controller, "controller", None)
+        chats = getattr(controller, "chats", {}) or {}
+        groups = {}
+
+        def group_for(chat_id):
+            if chat_id not in groups:
+                chat_entry = chats.get(chat_id, {})
+                if not chat_entry and isinstance(chat_id, str):
+                    try:
+                        chat_entry = chats.get(int(chat_id), {})
+                    except ValueError:
+                        pass
+                groups[chat_id] = {
+                    "chat_id": chat_id,
+                    "chat_name": chat_entry.get(
+                        "name", _("Chat {id}").format(id=chat_id)
+                    ),
+                    "sessions": [],
+                    "executions": [],
+                }
+            return groups[chat_id]
+
+        for session in get_command_session_manager().list_all():
+            if not session.is_running:
+                continue
+            chat_id = self._activity_chat_id(session.owner, scope)
+            if chat_id is not None:
+                group_for(chat_id)["sessions"].append(session)
+
+        for execution in get_command_execution_manager().list_all():
+            if not execution.is_running:
+                continue
+            chat_id = self._activity_chat_id(execution.owner, scope)
+            if chat_id is not None:
+                group_for(chat_id)["executions"].append(execution)
+
+        return sorted(groups.values(), key=lambda group: str(group["chat_name"]).lower())
 
     def _host_prefix(self) -> list[str]:
         if is_flatpak() and not self.settings.get_boolean("virtualization"):
@@ -149,6 +232,7 @@ class DefaultToolsIntegration(NewelleExtension):
         self,
         command: str | None,
         timeout_seconds: int | None = None,
+        chat_id: int | None = None,
     ) -> str:
         """Run one non-interactive command and return its bounded result."""
         if command is None:
@@ -158,6 +242,8 @@ class DefaultToolsIntegration(NewelleExtension):
             command,
             self._working_dir(),
             host_prefix=self._host_prefix(),
+            owner=(self._session_owner(chat_id) if chat_id is not None else None),
+            execution_manager=get_command_execution_manager(),
         ).to_output()
 
     def _start_session(self, command: str, chat_id: int | None, wait_ms: int, max_output_chars: int) -> str:
@@ -215,7 +301,11 @@ class DefaultToolsIntegration(NewelleExtension):
                             max_output_chars,
                         )
                     else:
-                        output = self.execute_command(approved_command, timeout_seconds)
+                        output = self.execute_command(
+                            approved_command,
+                            timeout_seconds,
+                            chat_id=chat_id,
+                        )
                 except Exception as error:
                     output = self._error_output(
                         action_name,

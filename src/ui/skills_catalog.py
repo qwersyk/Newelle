@@ -16,6 +16,12 @@ import requests
 from gi.repository import Adw, GLib, Gtk
 
 from ..utility.system import open_website
+from ..utility.download_manager import (
+    DownloadCancelled,
+    DownloadKind,
+    current_download_task,
+    get_download_manager,
+)
 
 _ = gettext.gettext
 
@@ -249,8 +255,9 @@ def _github_api_json(url, session):
         return payload
 
 
-def download_github_skill(github_url, target_dir, session=requests):
+def download_github_skill(github_url, target_dir, session=requests, task=None):
     """Download one GitHub directory with strict traversal and size limits."""
+    task = task or current_download_task()
     owner, repository, ref, root_path = parse_github_tree_url(github_url)
     os.makedirs(target_dir, exist_ok=False)
     pending = [(root_path, 0)]
@@ -258,6 +265,8 @@ def download_github_skill(github_url, target_dir, session=requests):
     total_bytes = 0
 
     while pending:
+        if task is not None:
+            task.check_cancelled()
         current_path, depth = pending.pop()
         if depth > MAX_SKILL_DEPTH:
             raise SkillsCatalogError("The skill directory is nested too deeply")
@@ -318,6 +327,13 @@ def download_github_skill(github_url, target_dir, session=requests):
             destination = os.path.join(target_dir, *relative.parts)
             os.makedirs(os.path.dirname(destination), exist_ok=True)
             actual_size = 0
+            if task is not None:
+                task.update(
+                    phase=_("Downloading {name}").format(name=relative.name),
+                    transferred_bytes=max(0, total_bytes - declared_size),
+                    reset_progress=False,
+                    cancellable=True,
+                )
             with session.get(
                 download_url,
                 headers=REQUEST_HEADERS,
@@ -329,12 +345,20 @@ def download_github_skill(github_url, target_dir, session=requests):
                     for chunk in response.iter_content(64 * 1024):
                         if not chunk:
                             continue
+                        if task is not None:
+                            task.check_cancelled()
                         actual_size += len(chunk)
                         if actual_size > MAX_SKILL_FILE_BYTES:
                             raise SkillsCatalogError(
                                 "A skill file exceeds the 2 MB limit"
                             )
                         output.write(chunk)
+                        if task is not None:
+                            task.update(
+                                transferred_bytes=max(
+                                    0, total_bytes - declared_size + actual_size
+                                )
+                            )
             total_bytes += actual_size - declared_size
             if total_bytes > MAX_SKILL_TOTAL_BYTES:
                 raise SkillsCatalogError("The skill exceeds the 10 MB limit")
@@ -860,18 +884,33 @@ class SkillsCatalogView(Gtk.Box):
             installed = None
             error = None
             try:
-                _owner, _repository, _ref, source_path = parse_github_tree_url(
-                    github_url
-                )
-                directory_name = source_path.rsplit("/", 1)[-1]
-                with tempfile.TemporaryDirectory(prefix="newelle-skill-") as temporary:
-                    source_dir = os.path.join(temporary, directory_name)
-                    download_github_skill(github_url, source_dir)
-                    installed = self.controller.skill_manager.add_skill_from_path(
-                        source_dir
+                manager = get_download_manager()
+                with manager.operation(
+                    _("Install skill {name}").format(name=skill["name"]),
+                    kind=DownloadKind.SKILL,
+                    source_id=f"skill:{skill['name']}",
+                    phase=_("Downloading skill"),
+                    cancellable=True,
+                ) as task:
+                    _owner, _repository, _ref, source_path = parse_github_tree_url(
+                        github_url
                     )
-                    if installed is None:
-                        raise SkillsCatalogError("The downloaded SKILL.md is invalid")
+                    directory_name = source_path.rsplit("/", 1)[-1]
+                    with tempfile.TemporaryDirectory(prefix="newelle-skill-") as temporary:
+                        source_dir = os.path.join(temporary, directory_name)
+                        download_github_skill(github_url, source_dir, task=task)
+                        task.update(
+                            phase=_("Installing skill"),
+                            reset_progress=True,
+                            cancellable=False,
+                        )
+                        installed = self.controller.skill_manager.add_skill_from_path(
+                            source_dir
+                        )
+                        if installed is None:
+                            raise SkillsCatalogError("The downloaded SKILL.md is invalid")
+            except DownloadCancelled:
+                error = _("Installation cancelled")
             except (SkillsCatalogError, requests.RequestException, OSError) as exc:
                 error = str(exc)
             GLib.idle_add(

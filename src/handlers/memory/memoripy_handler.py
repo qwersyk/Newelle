@@ -58,7 +58,7 @@ class MemoripyHandler(MemoryHandler):
                 self.embedding = embedding
 
             def get_embedding(self, text: str) -> np.ndarray:
-                emb = self.embedding.get_embedding([text])
+                emb = self.embedding.get_embedding([text], purpose="query")
                 return emb[0]
        
             def initialize_embedding_dimension(self) -> int:
@@ -105,5 +105,7 @@ class MemoripyHandler(MemoryHandler):
             bot_response = remove_thinking_blocks(bot_response)
             combined_text = " ".join([history[-1]["Message"], bot_response])
             concepts = self.memory_manager.extract_concepts(combined_text)
-            new_embedding = self.embedding.get_embedding([combined_text])[0]
+            new_embedding = self.embedding.get_embedding(
+                [combined_text], purpose="document"
+            )[0]
             self.memory_manager.add_interaction(history[-1]["Message"], bot_response, new_embedding, concepts)
