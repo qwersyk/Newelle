@@ -48,6 +48,16 @@
 	<url type="bugtracker">https://github.com/qwersyk/Newelle/issues</url>
 	<content_rating type="oars-1.0" />
 	<releases>
+        <release version="1.5.1" date="2026-08-25">
+            <description>
+                <ul>
+                    <li>New Model Library UI and terminal management.</li>
+                    <li>Improved builds for llama.cpp, whisper.cpp and stablediffusion.cpp.</li>
+                    <li>Improved download manager and build cancellation.</li>
+                    <li>Various bug fixes and stability improvements.</li>
+                </ul>
+            </description>
+        </release>
 	    <release version="1.5.0" date="2026-08-19">
             <description>
                 <p>Major update with improved agent capabilities, terminal integration, MCP support and usability improvements.</p>
