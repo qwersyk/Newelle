@@ -266,9 +266,13 @@ class CallPanel(Gtk.Box):
         # VAD
         self.vad = VoiceActivityDetector(self.sample_rate)
         
-        # Audio stream state
-        self.audio_stream = None
-        self.pyaudio_instance = None
+        # Audio capture lifecycle.  The capture worker owns the native
+        # PyAudio objects; the UI only requests cancellation and waits for
+        # this event before starting another capture.
+        self._capture_stopped = threading.Event()
+        self._capture_stopped.set()
+        self._capture_start_pending = False
+        self._capture_start_source_id = None
         
         # Prebuffer for 1 second before speech starts
         self.prebuffer_chunks = int(self.sample_rate / self.chunk_size) + 1
@@ -585,7 +589,14 @@ class CallPanel(Gtk.Box):
     
     def _on_mute_clicked(self, button):
         """Handle mute button click"""
-        self.is_muted = not self.is_muted
+        with self._turn_lock:
+            self.is_muted = not self.is_muted
+            if self.is_muted:
+                # Drop any capture queued before the mute request.  The
+                # recording worker will reset its VAD state on its next
+                # chunk, while keeping the native stream open for unmute.
+                self._pending_barge_in = None
+                self._barge_in_capture = False
         if self.is_muted:
             button.add_css_class("call-button-mute-active")
             button.get_child().set_from_icon_name("microphone-disabled-symbolic")
@@ -626,6 +637,20 @@ class CallPanel(Gtk.Box):
     
     def start_call(self):
         """Start the voice call"""
+        if self.call_active:
+            return
+
+        # A previous capture may still be unwinding its PortAudio/PulseAudio
+        # resources after the user stopped the call.  Never overlap a new
+        # capture with that teardown.
+        if not self._capture_stopped.is_set():
+            if not self._capture_start_pending:
+                self._capture_start_pending = True
+                self._capture_start_source_id = GLib.timeout_add(
+                    20, self._start_call_after_capture_stopped
+                )
+            return
+
         self._call_generation += 1
         call_generation = self._call_generation
         self.call_active = True
@@ -670,6 +695,7 @@ class CallPanel(Gtk.Box):
             args=(call_generation,),
             daemon=True,
         )
+        self._capture_stopped.clear()
         self.recording_thread.start()
 
         self.timer_thread = threading.Thread(
@@ -678,6 +704,20 @@ class CallPanel(Gtk.Box):
             daemon=True,
         )
         self.timer_thread.start()
+
+    def _start_call_after_capture_stopped(self):
+        """Start a deferred call once the prior capture owns no resources."""
+        if self.call_active:
+            self._capture_start_pending = False
+            self._capture_start_source_id = None
+            return GLib.SOURCE_REMOVE
+        if not self._capture_stopped.is_set():
+            return GLib.SOURCE_CONTINUE
+
+        self._capture_start_pending = False
+        self._capture_start_source_id = None
+        self.start_call()
+        return GLib.SOURCE_REMOVE
     
     def end_call(self):
         """End the voice call"""
@@ -690,22 +730,6 @@ class CallPanel(Gtk.Box):
         with self._turn_lock:
             self._pending_barge_in = None
             self._barge_in_capture = False
-        
-        # Stop audio
-        if self.audio_stream:
-            try:
-                self.audio_stream.stop_stream()
-                self.audio_stream.close()
-            except Exception:
-                pass
-            self.audio_stream = None
-        
-        if self.pyaudio_instance:
-            try:
-                self.pyaudio_instance.terminate()
-            except Exception:
-                pass
-            self.pyaudio_instance = None
         
         # Stop TTS
         if hasattr(self.controller, 'handlers') and self.controller.handlers.tts:
@@ -800,9 +824,6 @@ class CallPanel(Gtk.Box):
             if not self._is_current_call(call_generation):
                 return
 
-            self.pyaudio_instance = pyaudio_instance
-            self.audio_stream = audio_stream
-
             consecutive_errors = 0
             max_consecutive_errors = 10
 
@@ -835,13 +856,14 @@ class CallPanel(Gtk.Box):
                 with self._turn_lock:
                     turn_in_progress = self._turn_in_progress
                     barge_in_capture = self._barge_in_capture
+                    is_muted = self.is_muted
 
                 can_barge_in = (
                     turn_in_progress
                     and self.listen_during_tts
                     and (self.assistant_speaking or barge_in_capture)
                 )
-                microphone_suppressed = self.is_muted or (
+                microphone_suppressed = is_muted or (
                     turn_in_progress and not can_barge_in
                 )
 
@@ -909,23 +931,28 @@ class CallPanel(Gtk.Box):
             print(traceback.format_exc())
             GLib.idle_add(self._end_call_if_current, call_generation)
         finally:
-            # Ensure stream is closed
+            # The capture worker is the sole owner of these native objects.
+            # In particular, do not move this teardown to end_call(): that
+            # method runs on GTK's thread while read() may still be active.
             if audio_stream:
                 try:
                     audio_stream.stop_stream()
+                except Exception:
+                    pass
+                try:
                     audio_stream.close()
                 except Exception:
                     pass
-                if self.audio_stream is audio_stream:
-                    self.audio_stream = None
 
             if pyaudio_instance:
                 try:
                     pyaudio_instance.terminate()
                 except Exception:
                     pass
-                if self.pyaudio_instance is pyaudio_instance:
-                    self.pyaudio_instance = None
+
+            if self.recording_thread is threading.current_thread():
+                self.recording_thread = None
+            self._capture_stopped.set()
     
     def _update_waveform(self, audio_data):
         """Update waveform visualization"""

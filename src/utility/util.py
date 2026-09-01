@@ -493,7 +493,20 @@ def aggregate_messages(messages: list, format="newelle"):
             current_message = message.copy()
             continue
 
-        if current_message[role_key] == message[role_key]:
+        structured_openai_message = (
+            format == "openai"
+            and (
+                current_message.get("tool_calls")
+                or message.get("tool_calls")
+                or current_message.get("function_call")
+                or message.get("function_call")
+            )
+        )
+
+        if (
+            current_message[role_key] == message[role_key]
+            and not structured_openai_message
+        ):
             content1 = current_message[content_key]
             content2 = message[content_key]
 
@@ -560,8 +573,63 @@ def _ensure_tool_call_id(tc: object, occurrence_index: int) -> str:
     return new_id
 
 
+def _orphan_tool_message_as_user(message: dict) -> dict:
+    """Preserve an unpaired tool result without sending an invalid tool role."""
+    name = str(message.get("name", "") or "").strip()
+    call_id = str(message.get("tool_call_id", "") or "").strip()
+    details = ", ".join(
+        detail
+        for detail in (
+            f"tool: {name}" if name else "",
+            f"ID: {call_id}" if call_id else "",
+        )
+        if detail
+    )
+    header = "Console tool result"
+    if details:
+        header += f" ({details})"
+
+    content = message.get("content", "")
+    if not isinstance(content, str):
+        content = json.dumps(content, ensure_ascii=False, default=str)
+    return {"role": "user", "content": f"{header}:\n{content}"}
+
+
+def _sanitize_tool_message_sequence(messages: list) -> list:
+    """Downgrade tool rows that do not answer the active assistant call set."""
+    out = []
+    pending_ids: list[str] | None = None
+
+    for message in messages:
+        role = message.get("role") if isinstance(message, dict) else None
+        tool_calls = message.get("tool_calls") if isinstance(message, dict) else None
+
+        if role == "assistant" and tool_calls:
+            pending_ids = [
+                _ensure_tool_call_id(tool_call, index)
+                for index, tool_call in enumerate(tool_calls)
+            ]
+            out.append(message)
+            continue
+
+        if role == "tool":
+            call_id = message.get("tool_call_id")
+            call_id = call_id if isinstance(call_id, str) else str(call_id or "")
+            if pending_ids is not None and call_id in pending_ids:
+                pending_ids.remove(call_id)
+                out.append(message)
+            else:
+                out.append(_orphan_tool_message_as_user(message))
+            continue
+
+        pending_ids = None
+        out.append(message)
+
+    return out
+
+
 def balance_native_tool_call_responses(messages: list) -> list:
-    """Ensure each assistant ``tool_calls`` entry has a matching ``role: tool`` message.
+    """Return a valid assistant/tool sequence for OpenAI-compatible APIs.
 
     Display-only tools may omit console output (no ``[Tool: …]`` row in history). Several
     APIs then reject the turn (e.g. mismatched function call / response counts). Missing
@@ -569,6 +637,12 @@ def balance_native_tool_call_responses(messages: list) -> list:
 
     Assistant ``tool_calls`` lacking an id are backfilled with a deterministic
     ``call_<hash>`` so the synthesized tool reply can reference a stable id.
+
+    Tool context can be stored between parallel tool results in Newelle history.
+    Matching results are moved next to their assistant call, as required by the
+    Chat Completions protocol. Results whose assistant call was removed by context
+    trimming are retained as user-visible console context instead of an invalid
+    orphan ``role: tool`` message.
     """
     if not messages:
         return messages
@@ -584,15 +658,30 @@ def balance_native_tool_call_responses(messages: list) -> list:
                 (_ensure_tool_call_id(tc, idx), _tool_call_dict_name(tc))
                 for idx, tc in enumerate(tcs)
             ]
+            # A tool can add user context before a parallel sibling finishes.
+            # Search the remainder of this assistant turn, but never steal a
+            # result from a later assistant message.
             j = i + 1
-            following_tools: list = []
-            while j < n and isinstance(messages[j], dict) and messages[j].get("role") == "tool":
-                following_tools.append(messages[j])
+            while j < n:
+                following = messages[j]
+                if (
+                    isinstance(following, dict)
+                    and following.get("role") == "assistant"
+                ):
+                    break
                 j += 1
+            following_tools = [
+                (index, messages[index])
+                for index in range(i + 1, j)
+                if (
+                    isinstance(messages[index], dict)
+                    and messages[index].get("role") == "tool"
+                )
+            ]
             matched = [False] * len(following_tools)
             for eid, ename in expected:
                 found: int | None = None
-                for fi, fm in enumerate(following_tools):
+                for fi, (_message_index, fm) in enumerate(following_tools):
                     if matched[fi]:
                         continue
                     rid = fm.get("tool_call_id")
@@ -602,17 +691,29 @@ def balance_native_tool_call_responses(messages: list) -> list:
                         break
                 if found is not None:
                     matched[found] = True
+                    out.append(following_tools[found][1])
                 else:
                     row = {"role": "tool", "tool_call_id": eid, "content": VOID_TOOL_RESULT_PLACEHOLDER}
                     if ename:
                         row["name"] = ename
                     out.append(row)
-            out.extend(following_tools)
+            matched_indices = {
+                message_index
+                for is_matched, (message_index, _message) in zip(
+                    matched, following_tools
+                )
+                if is_matched
+            }
+            out.extend(
+                messages[index]
+                for index in range(i + 1, j)
+                if index not in matched_indices
+            )
             i = j
         else:
             out.append(msg)
             i += 1
-    return out
+    return _sanitize_tool_message_sequence(out)
 
 
 def embed_image(text: str, image: str):

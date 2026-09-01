@@ -2701,7 +2701,7 @@ class StableDiffusionCPPHandler(ImageGeneratorHandler):
 
             # Look for sd-cli and sd-server binaries in extracted files
             sd_binary_found = False
-            for root, _, files in os.walk(tmp_dir):
+            for root, _dirs, files in os.walk(tmp_dir):
                 for f in files:
                     if f == "sd-cli" or f == "sd":
                         src = os.path.join(root, f)
@@ -2716,7 +2716,7 @@ class StableDiffusionCPPHandler(ImageGeneratorHandler):
                         os.chmod(dst, 0o755)
 
             # Also copy any .so files
-            for root, _, files in os.walk(tmp_dir):
+            for root, _dirs, files in os.walk(tmp_dir):
                 for f in files:
                     if f.endswith(".so") or f.endswith(".so.*"):
                         src = os.path.join(root, f)

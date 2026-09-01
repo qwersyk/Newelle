@@ -89,10 +89,17 @@ class WakewordDetector:
         self.stream = None
         self.vad = None
         self.chunk_size = None  # Will be set by VAD
+        self._capture_stopped = threading.Event()
+        self._capture_stopped.set()
+        self._state_lock = threading.Lock()
 
     def is_running(self):
         """Check if detector is running"""
         return self.running
+
+    def is_stopped(self):
+        """Return whether the detector worker released native audio resources."""
+        return self._capture_stopped.is_set()
 
     def _parse_wakewords(self, wakeword_string):
         """Parse comma-separated wakewords into a list
@@ -192,6 +199,9 @@ class WakewordDetector:
         if self.stream is not None:
             try:
                 self.stream.stop_stream()
+            except:
+                pass
+            try:
                 self.stream.close()
             except:
                 pass
@@ -446,6 +456,8 @@ class WakewordDetector:
                         print("WakewordDetector: Stream not active, attempting to reinitialize...")
                         self._cleanup_audio()
                         time.sleep(0.5)
+                        if not self.running:
+                            break
                         self._init_audio()
                         continue
 
@@ -534,6 +546,8 @@ class WakewordDetector:
                     try:
                         self._cleanup_audio()
                         time.sleep(1.0)
+                        if not self.running:
+                            break
                         self._init_audio()
                     except:
                         time.sleep(0.5)
@@ -549,28 +563,46 @@ class WakewordDetector:
             print(f"WakewordDetector: Fatal error in detection loop: {e}")
         finally:
             self._cleanup_audio()
+            with self._state_lock:
+                self.running = False
+                self._capture_stopped.set()
+                if self.thread is threading.current_thread():
+                    self.thread = None
             print("WakewordDetector: Detection loop stopped")
 
     def start(self):
         """Start continuous listening in daemon thread"""
-        if self.running:
-            print("WakewordDetector: Already running")
-            return
-
-        self.running = True
-        self.thread = threading.Thread(target=self._detection_loop, daemon=True)
-        self.thread.start()
+        with self._state_lock:
+            if self.running or not self._capture_stopped.is_set():
+                print("WakewordDetector: Already running or stopping")
+                return False
+            self.running = True
+            self._capture_stopped.clear()
+            self.thread = threading.Thread(
+                target=self._detection_loop,
+                daemon=True,
+            )
+            thread = self.thread
+        try:
+            thread.start()
+        except Exception:
+            with self._state_lock:
+                self.running = False
+                self.thread = None
+                self._capture_stopped.set()
+            raise
         print("WakewordDetector: Started")
+        return True
 
     def stop(self):
         """Stop listening"""
-        if not self.running:
-            return
+        with self._state_lock:
+            if self._capture_stopped.is_set():
+                self.running = False
+                return False
+            self.running = False
 
-        self.running = False
-        if self.thread:
-            self.thread.join(timeout=2.0)
-            self.thread = None
-
-        self._cleanup_audio()
-        print("WakewordDetector: Stopped")
+        # Do not close the stream here.  read() may still be executing on the
+        # detector thread; that thread owns all native teardown in finally.
+        print("WakewordDetector: Stop requested")
+        return True

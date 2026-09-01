@@ -32,13 +32,13 @@ class OpenAIEmbeddingHandler(EmbeddingHandler):
             list containing the extra settings
         """
         api_settings = [ 
-            ExtraSettings.EntrySetting("api", _("API Key"), _("API Key for " + provider_name), ""),
+            ExtraSettings.EntrySetting("api", _("API Key"), _("API Key for " + provider_name), "",password=True),
         ]
         endpoint_settings = [
             ExtraSettings.EntrySetting("endpoint", _("API Endpoint"), _("API base url, change this to use different APIs"), "https://api.openai.com/v1/"),
         ]
         custom_model = [
-            ExtraSettings.ToggleSetting("custom_model", _("Use Custom Model"), _("Use a custom model"), False)
+            ExtraSettings.ToggleSetting("custom_model", _("Use Custom Model"), _("Use a custom model"), False, update_settings=True)
         ]
         models_settings = [ 
             ExtraSettings.EntrySetting("model", _("Model"), _("Name of the Embedding Model to use"), self.models[0][0]),

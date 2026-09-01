@@ -92,6 +92,8 @@ class MainWindow(Adw.ApplicationWindow):
         # Wakeword detector
         self.wakeword_detector = None
         self.wakeword_listening = False
+        self._wakeword_restart_pending = False
+        self._wakeword_stop_source_id = None
         # Breakpoint - Collapse the sidebar when the window is too narrow
         breakpoint = Adw.Breakpoint(condition=Adw.BreakpointCondition.new_length(Adw.BreakpointConditionLengthType.MAX_WIDTH, 1000, Adw.LengthUnit.PX))
         breakpoint.add_setter(self.main_program_block, "collapsed", True)
@@ -101,6 +103,9 @@ class MainWindow(Adw.ApplicationWindow):
         self.check_streams = {"folder": False, "chat": False}
         # if it is recording
         self.recording = False
+        self._recording_stopping = False
+        self._recording_start_pending_button = None
+        self._recording_start_source_id = None
         # Stdout monitoring - Initialize and start from program start
         self.stdout_monitor_dialog = None
         self._init_stdout_monitoring()
@@ -1302,7 +1307,17 @@ class MainWindow(Adw.ApplicationWindow):
     def start_wakeword_detection(self):
         """Start continuous wakeword detection"""
         if self.wakeword_detector is not None:
-            return  # Already running
+            # A previous detector may still be releasing its native stream.
+            # Remember the desired state and let the cleanup callback start a
+            # replacement once it is safe to do so.
+            if self.wakeword_detector.is_running():
+                return  # Already running
+            if not self.wakeword_detector.is_stopped():
+                self._wakeword_restart_pending = True
+                self._schedule_wakeword_cleanup(self.wakeword_detector)
+            else:
+                self._finish_wakeword_stop(self.wakeword_detector)
+            return
 
         try:
             from .utility.wakeword_detector import WakewordDetector
@@ -1329,9 +1344,11 @@ class MainWindow(Adw.ApplicationWindow):
                 wakeword_handler=self.controller.handlers.wakeword_handler
             )
 
-            # Start in background thread
-            t = threading.Thread(target=self.wakeword_detector.start, daemon=True)
-            t.start()
+            # start() only creates the detector's worker and returns
+            # immediately; avoid an outer thread that can race with stop().
+            if not self.wakeword_detector.start():
+                self.wakeword_detector = None
+                return
             self.wakeword_listening = True
 
             # Update UI
@@ -1350,10 +1367,12 @@ class MainWindow(Adw.ApplicationWindow):
 
     def stop_wakeword_detection(self):
         """Stop wakeword detection"""
-        if self.wakeword_detector is not None:
-            self.wakeword_detector.stop()
-            self.wakeword_detector = None
-            self.wakeword_listening = False
+        detector = self.wakeword_detector
+        self._wakeword_restart_pending = False
+        self.wakeword_listening = False
+        if detector is not None:
+            detector.stop()
+            self._schedule_wakeword_cleanup(detector)
 
         # Reset UI
         def update_ui():
@@ -1362,6 +1381,31 @@ class MainWindow(Adw.ApplicationWindow):
                 self.recording_button.set_tooltip_text("")
 
         GLib.idle_add(update_ui)
+
+    def _schedule_wakeword_cleanup(self, detector):
+        """Poll for worker-owned audio cleanup without blocking GTK."""
+        if self._wakeword_stop_source_id is None:
+            self._wakeword_stop_source_id = GLib.timeout_add(
+                20, self._finish_wakeword_stop, detector
+            )
+
+    def _finish_wakeword_stop(self, detector):
+        """Finalize detector removal and any queued restart."""
+        if not detector.is_stopped():
+            return GLib.SOURCE_CONTINUE
+
+        self._wakeword_stop_source_id = None
+        if self.wakeword_detector is not detector:
+            return GLib.SOURCE_REMOVE
+        self.wakeword_detector = None
+
+        if (
+            self._wakeword_restart_pending
+            and self.controller.newelle_settings.wakeword_enabled
+        ):
+            self._wakeword_restart_pending = False
+            self.start_wakeword_detection()
+        return GLib.SOURCE_REMOVE
 
     def on_wakeword_detected(self, command_text):
         """Callback when wakeword is detected
@@ -1827,10 +1871,30 @@ class MainWindow(Adw.ApplicationWindow):
     # Voice Recording
     def start_recording(self, button):
         """Start recording voice for Speech to Text"""
+        recorder = getattr(self, "recorder", None)
+        if (
+            recorder is not None
+            and (
+                not recorder.is_stopped()
+                or self._recording_stopping
+            )
+        ):
+            # The prior worker may still be reading, writing the WAV, or
+            # dispatching its stop callback.  Queue the next start until all
+            # of that work has completed.
+            self._recording_start_pending_button = button
+            if self._recording_start_source_id is None:
+                self._recording_start_source_id = GLib.timeout_add(
+                    20, self._start_recording_after_cleanup
+                )
+            return
+
         path = os.path.join(self.controller.cache_dir, "recording.wav")
         if os.path.exists(path):
             os.remove(path)
         self.recording = True
+        self._recording_stopping = False
+        self._recording_start_pending_button = None
         self.recording_button = button  # Store the button for auto_stop_recording
         if self.controller.newelle_settings.automatic_stt:
             self.automatic_stt_status = True
@@ -1853,8 +1917,29 @@ class MainWindow(Adw.ApplicationWindow):
         t = threading.Thread(target=self.recorder.start_recording, args=(path,))
         t.start()
 
+    def _start_recording_after_cleanup(self):
+        """Start a queued chat recording after the prior worker is finished."""
+        recorder = getattr(self, "recorder", None)
+        if (
+            recorder is not None
+            and (
+                not recorder.is_stopped()
+                or self._recording_stopping
+            )
+        ):
+            return GLib.SOURCE_CONTINUE
+
+        button = self._recording_start_pending_button
+        self._recording_start_pending_button = None
+        self._recording_start_source_id = None
+        if button is not None and not self.recording:
+            self.start_recording(button)
+        return GLib.SOURCE_REMOVE
+
     def auto_stop_recording(self, button=False):
         """Stop recording after an auto stop signal"""
+        self.recording = False
+        self._recording_stopping = True
         GLib.idle_add(self.stop_recording_ui, self.recording_button)
         threading.Thread(
             target=self.stop_recording_async, args=(self.recording_button,)
@@ -1863,6 +1948,7 @@ class MainWindow(Adw.ApplicationWindow):
     def stop_recording(self, button=False):
         """Stop a recording manually"""
         self.recording = False
+        self._recording_stopping = True
         self.automatic_stt_status = False
         self.recorder.stop_recording(
             os.path.join(self.controller.cache_dir, "recording.wav")
@@ -1871,6 +1957,7 @@ class MainWindow(Adw.ApplicationWindow):
 
     def stop_recording_ui(self, button):
         """Update the UI to show that the recording has been stopped"""
+        self._recording_stopping = False
         button.set_child(None)
         button.set_icon_name("audio-input-microphone-symbolic")
         button.add_css_class("suggested-action")
