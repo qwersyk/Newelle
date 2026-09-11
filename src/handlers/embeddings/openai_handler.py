@@ -98,4 +98,4 @@ class OpenAIEmbeddingHandler(EmbeddingHandler):
         elif model == "text-embedding-ada-002":
             return 1536
         else:
-            return len(self.get_embedding([""]))
+            return self.get_embedding([""]).shape[1]
