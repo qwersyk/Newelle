@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schemalist gettext-domain="newelle">
 	<schema id="io.github.qwersyk.Newelle" path="/io/github/qwersyk/Newelle/">
+        <key name="direct-audio-input" type="b"><default>false</default></key>
+        <key name="audio-transcribe" type="b"><default>false</default></key>
+        <key name="audio-transcription-timing" type="s">
+            <choices><choice value="before"/><choice value="after"/></choices>
+            <default>'before'</default>
+        </key>
         <key name="offers" type="i">
             <default>0</default>
         </key>
@@ -76,6 +82,33 @@
         </key>
 	      <key name="tts-voice" type="s">
             <default>"{}"</default>
+        </key>
+        <key name="voice-mode-position" type="s">
+            <default>"bottom-center"</default>
+        </key>
+        <key name="voice-mode-margin" type="i">
+            <default>24</default>
+        </key>
+        <key name="voice-mode-mode" type="s">
+            <default>"current"</default>
+        </key>
+        <key name="voice-mode-x11-override-dont-show" type="b">
+            <default>false</default>
+        </key>
+        <key name="voice-pill-theme" type="s">
+            <default>"newelle"</default>
+        </key>
+        <key name="voice-pill-background" type="s">
+            <default>"#202124"</default>
+        </key>
+        <key name="voice-pill-foreground" type="s">
+            <default>"#f7f7f8"</default>
+        </key>
+        <key name="voice-pill-accent" type="s">
+            <default>"#78aeed"</default>
+        </key>
+        <key name="voice-pill-opacity" type="d">
+            <default>0.96</default>
         </key>
 	      <key name="stt-engine" type="s">
             <default>"google_sr"</default>
@@ -227,6 +260,9 @@
         </key>
         <!-- Wakeword settings -->
         <key name="wakeword-on" type="b">
+            <default>false</default>
+        </key>
+        <key name="wakeword-voice-mode" type="b">
             <default>false</default>
         </key>
         <key name="wakeword-mode" type="s">

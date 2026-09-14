@@ -1,3 +1,4 @@
+from gettext import gettext as _
 from typing import Any
 import threading 
 import os 
@@ -18,12 +19,21 @@ from ..handlers import Handler
 from ..constants import AVAILABLE_EMBEDDINGS, AVAILABLE_LLMS, AVAILABLE_MEMORIES, AVAILABLE_PROMPTS, AVAILABLE_TTS, AVAILABLE_STT, PROMPTS, AVAILABLE_RAGS, AVAILABLE_WEBSEARCH, AVAILABLE_IMAGE_GENERATORS
 from ..utility.pip import install_module
 from ..utility.download_manager import get_download_manager
+from ..utility.mcp_config import MCPConfigError, parse_mcp_servers_json
 from .extension import ExtensionPage
 from .interfaces import InterfacesPage
 from .extra_settings import ExtraSettingsBuilder
 from .widgets import ComboRowHelper, CopyBox 
 from .widgets import MultilineEntry
-from ..utility.system import can_escape_sandbox, get_spawn_command, open_website, open_folder, is_flatpak 
+from ..utility.system import (
+    can_escape_sandbox,
+    get_flatpak_x11_override_command,
+    get_spawn_command,
+    open_website,
+    open_folder,
+    is_flatpak,
+    needs_voice_mode_x11_override,
+) 
 
 from ..controller import NewelleController
 from ..modes import DEFAULT_MODE_NAME
@@ -206,6 +216,7 @@ class Settings(Adw.Window):
         for tts_key in AVAILABLE_TTS:
            row = self.build_row(AVAILABLE_TTS, tts_key, selected, group) 
            tts_program.add_row(row)
+        self.build_audio_input_settings()
         # Build the Speech to Text settings
         stt_engine = Adw.ExpanderRow(title=_('Speech To Text Engine'), subtitle=_("Choose which speech recognition engine you want"))
         self.Voicegroup.add(stt_engine)
@@ -229,6 +240,14 @@ class Settings(Adw.Window):
         self.settings.bind("wakeword-on", wakeword_enabled, 'active',
                            Gio.SettingsBindFlags.DEFAULT)
         self.wakeword_row.add_action(wakeword_enabled)
+
+        voice_mode_row = Adw.SwitchRow(
+            title=_("Open voice pill"),
+            subtitle=_("Say the wakeword, then speak your request when the voice pill opens"),
+        )
+        self.settings.bind("wakeword-voice-mode", voice_mode_row, "active",
+                           Gio.SettingsBindFlags.DEFAULT)
+        self.wakeword_row.add_row(voice_mode_row)
 
         # Wakeword mode toggle group
         mode_row = Adw.ActionRow(title=_('Detection Method'), subtitle=_("Choose wakeword detection method"))
@@ -368,6 +387,7 @@ class Settings(Adw.Window):
             row.set_visible(is_wakeword_mode)
 
         self.Voicegroup.add(self.wakeword_row)
+        self._build_voice_mode_settings()
         # Build prompts settings 
         self.prompt = Adw.PreferencesGroup(title=_('Prompt control'))
         add_prompt_btn = Gtk.Button(icon_name="list-add-symbolic")
@@ -2267,6 +2287,27 @@ class Settings(Adw.Window):
         
         self.mcp_server_rows = []
         self.refresh_mcp_servers_list()
+
+        # Import server configurations copied from other MCP clients.
+        import_row = Adw.ActionRow(
+            title=_("Import from JSON"),
+            subtitle=_("Paste one or more MCP server configurations"),
+        )
+        import_row.add_prefix(Gtk.Image(icon_name="edit-paste-symbolic"))
+        import_actions = Gtk.Box(
+            orientation=Gtk.Orientation.HORIZONTAL,
+            spacing=6,
+            valign=Gtk.Align.CENTER,
+        )
+        self.mcp_import_spinner = Gtk.Spinner()
+        self.mcp_import_button = Gtk.Button(
+            label=_("Import JSON"),
+            valign=Gtk.Align.CENTER,
+        )
+        self.mcp_import_button.connect("clicked", self._show_mcp_json_dialog)
+        import_actions.append(self.mcp_import_spinner)
+        import_actions.append(self.mcp_import_button)
+        import_row.add_suffix(import_actions)
         
         # Add server form
         add_row = Adw.ExpanderRow(title=_("Add Server"), subtitle=_("Add a new MCP server"), icon_name="list-add-symbolic")
@@ -2600,14 +2641,19 @@ class Settings(Adw.Window):
                 t.start()
         
         self.mcp_add_button.connect("clicked", add_server)
+        self.mcp_group.add(import_row)
         self.mcp_group.add(add_row)
         self.mcp_group.add(self.servers_list_group)
         self.MCPPage.add(self.mcp_catalog_group)
     
-    def _disable_mcp_form(self):
+    def _disable_mcp_form(self, importing=False):
         """Disable all MCP form fields"""
+        self.mcp_import_button.set_sensitive(False)
+        if importing:
+            self.mcp_import_spinner.start()
         self.mcp_add_button.set_sensitive(False)
-        self.mcp_add_spinner.start()
+        if not importing:
+            self.mcp_add_spinner.start()
         self.mcp_url_entry.set_sensitive(False)
         self.mcp_title_entry.set_sensitive(False)
         self.mcp_token_entry.set_sensitive(False)
@@ -2619,6 +2665,8 @@ class Settings(Adw.Window):
     
     def _enable_mcp_form(self):
         """Enable all MCP form fields"""
+        self.mcp_import_button.set_sensitive(True)
+        self.mcp_import_spinner.stop()
         self.mcp_add_button.set_sensitive(True)
         self.mcp_add_spinner.stop()
         self.mcp_url_entry.set_sensitive(True)
@@ -2640,6 +2688,179 @@ class Settings(Adw.Window):
         self.mcp_command_entry.set_text("")
         self.mcp_args_entry.set_text("")
         self.mcp_env_text.get_buffer().set_text("{}")
+
+    def _show_mcp_json_dialog(self, _button):
+        dialog = Adw.MessageDialog(
+            transient_for=self,
+            modal=True,
+            destroy_with_parent=True,
+            heading=_("Import MCP Servers"),
+            body=_(
+                "Paste an MCP configuration below. The mcpServers wrapper is optional; "
+                "direct server maps, single server objects, and arrays are also accepted."
+            ),
+        )
+
+        content = Gtk.Box(
+            orientation=Gtk.Orientation.VERTICAL,
+            spacing=6,
+            margin_top=6,
+            margin_bottom=6,
+            margin_start=6,
+            margin_end=6,
+        )
+        scroll = Gtk.ScrolledWindow(
+            hscrollbar_policy=Gtk.PolicyType.AUTOMATIC,
+            vscrollbar_policy=Gtk.PolicyType.AUTOMATIC,
+            min_content_height=220,
+            min_content_width=520,
+        )
+        json_view = Gtk.TextView(
+            monospace=True,
+            wrap_mode=Gtk.WrapMode.NONE,
+            top_margin=8,
+            bottom_margin=8,
+            left_margin=8,
+            right_margin=8,
+        )
+        json_view.add_css_class("card")
+        scroll.set_child(json_view)
+        content.append(scroll)
+
+        error_label = Gtk.Label(
+            visible=False,
+            wrap=True,
+            xalign=0,
+            max_width_chars=64,
+        )
+        error_label.add_css_class("error")
+        content.append(error_label)
+
+        dialog.set_extra_child(content)
+        dialog.add_response("cancel", _("Cancel"))
+        dialog.add_response("import", _("Import"))
+        dialog.set_close_response("cancel")
+        dialog.set_default_response("import")
+        dialog.set_response_appearance("import", Adw.ResponseAppearance.SUGGESTED)
+
+        def on_response(current_dialog, response_id):
+            if response_id == "cancel":
+                current_dialog.destroy()
+                return
+            buffer = json_view.get_buffer()
+            text = buffer.get_text(
+                buffer.get_start_iter(), buffer.get_end_iter(), False
+            )
+            try:
+                servers = parse_mcp_servers_json(text)
+            except MCPConfigError as exc:
+                error_label.set_label(_("Invalid MCP configuration: {}").format(exc))
+                error_label.set_visible(True)
+                return
+            current_dialog.destroy()
+            self._import_mcp_servers(servers)
+
+        dialog.connect("response", on_response)
+        dialog.present()
+        json_view.grab_focus()
+
+    def _import_mcp_servers(self, servers):
+        self._disable_mcp_form(importing=True)
+
+        def import_thread():
+            added_names = []
+            failures = []
+            handler = self.controller.get_mcp_integration()
+            if handler is None:
+                failures.append(_("The MCP integration is not available"))
+            else:
+                identifiers = {
+                    handler._get_server_identifier(handler._get_server_info(server))
+                    for server in handler.mcp_servers
+                }
+                for server in servers:
+                    title = server.get("title")
+                    if server["type"] == "stdio":
+                        display_name = title or server["command"]
+                    else:
+                        display_name = title or server["url"]
+                    identifier = handler._get_server_identifier(server)
+                    if identifier in identifiers:
+                        failures.append(
+                            _("{} is already configured").format(display_name)
+                        )
+                        continue
+                    try:
+                        if server["type"] == "stdio":
+                            prepared = handler.prepare_mcp_server(
+                                title=title,
+                                server_type="stdio",
+                                command=server["command"],
+                                args=server.get("args"),
+                                env=server.get("env"),
+                            )
+                        else:
+                            if server.get("oauth_mode"):
+                                from ..integrations.mcp_oauth import run_oauth_flow
+
+                                success, error = run_oauth_flow(
+                                    server["url"],
+                                    self.controller.config_dir,
+                                    client_id=server.get("client_id"),
+                                )
+                                if not success:
+                                    raise RuntimeError(error or _("Authentication failed"))
+                            prepared = handler.prepare_mcp_server(
+                                url=server["url"],
+                                title=title,
+                                bearer_token=server.get("bearer_token"),
+                                client_id=server.get("client_id"),
+                                custom_headers=server.get("custom_headers"),
+                                server_type="http",
+                                oauth_mode=server.get("oauth_mode", False),
+                            )
+                        if prepared is None or not handler.commit_mcp_server(*prepared):
+                            raise RuntimeError(_("The MCP server could not be added"))
+                        identifiers.add(identifier)
+                        added_names.append(display_name)
+                    except Exception as exc:
+                        failures.append(
+                            _("{0}: {1}").format(
+                                display_name, self._mcp_error_message(exc)
+                            )
+                        )
+
+                if added_names:
+                    self.settings.set_string(
+                        "mcp-servers", json.dumps(handler.mcp_servers)
+                    )
+                    self.controller.newelle_settings.mcp_servers_dict = list(
+                        handler.mcp_servers
+                    )
+
+            GLib.idle_add(
+                self._finish_mcp_json_import, added_names, failures
+            )
+
+        threading.Thread(target=import_thread, daemon=True).start()
+
+    def _finish_mcp_json_import(self, added_names, failures):
+        self._enable_mcp_form()
+        if added_names:
+            self.refresh_mcp_servers_list()
+            self.refresh_tools_list()
+            if len(added_names) == 1:
+                message = _("MCP server '{}' added").format(added_names[0])
+            else:
+                message = _("Added {} MCP servers").format(len(added_names))
+            self.add_toast(Adw.Toast(title=message))
+        if failures:
+            self.app.win.show_error_dialog(
+                _("Some MCP servers could not be added"),
+                "\n".join(failures),
+                parent=self,
+            )
+        return False
 
     def _mcp_error_message(self, exc):
         """Extract a readable message from an MCP exception.
@@ -3222,6 +3443,194 @@ class Settings(Adw.Window):
             
             parent_expander.add_row(folder_row)
             self.custom_folder_rows.append(folder_row)
+
+    def _build_voice_mode_settings(self):
+        group = Adw.PreferencesGroup(
+            title=_("Voice Mode"),
+            description=_("Configure the one-shot desktop voice pill"),
+        )
+        self.VoicePage.add(group)
+
+        if needs_voice_mode_x11_override():
+            command = get_flatpak_x11_override_command()
+            warning = Adw.ActionRow(
+                title=_("X11 access is missing"),
+                subtitle=_(
+                    "Voice Mode cannot position itself correctly on Wayland without X11 access. Run this command, then restart Newelle."
+                ),
+            )
+            warning.add_css_class("warning")
+            warning.set_icon_name("dialog-warning-symbolic")
+            copy_button = Gtk.Button(
+                icon_name="edit-copy-symbolic",
+                valign=Gtk.Align.CENTER,
+                tooltip_text=_("Copy command"),
+                css_classes=["flat"],
+            )
+            warning.add_suffix(copy_button)
+            group.add(warning)
+            command_row = Adw.ActionRow(
+                title=_("Override command"),
+                subtitle=command,
+            )
+            group.add(command_row)
+
+            def copy_override_command(_button):
+                display = self.get_display() or Gdk.Display.get_default()
+                if display is None:
+                    return
+                display.get_clipboard().set(command)
+
+            copy_button.connect("clicked", copy_override_command)
+
+        position_row = Adw.ComboRow(
+            title=_("Pill position"),
+            subtitle=_("Choose where Voice Mode appears on the desktop"),
+        )
+        positions = (
+            (_("Top left"), "top-left"),
+            (_("Top center"), "top-center"),
+            (_("Top right"), "top-right"),
+            (_("Center left"), "center-left"),
+            (_("Center"), "center-center"),
+            (_("Center right"), "center-right"),
+            (_("Bottom left"), "bottom-left"),
+            (_("Bottom center"), "bottom-center"),
+            (_("Bottom right"), "bottom-right"),
+        )
+        helper = ComboRowHelper(
+            position_row, positions, self.settings.get_string("voice-mode-position")
+        )
+        helper.connect(
+            "changed", lambda _helper, value: self.settings.set_string("voice-mode-position", value)
+        )
+        group.add(position_row)
+
+        margin_row = Adw.SpinRow(
+            title=_("Screen margin"),
+            subtitle=_("Distance from the selected screen edges"),
+            adjustment=Gtk.Adjustment(
+                lower=0,
+                upper=160,
+                value=self.settings.get_int("voice-mode-margin"),
+                step_increment=1,
+                page_increment=8,
+            ),
+            digits=0,
+        )
+        def update_voice_margin(spin, _input):
+            self.settings.set_int("voice-mode-margin", int(spin.get_value()))
+            return False
+
+        margin_row.connect("input", update_voice_margin)
+        group.add(margin_row)
+
+        mode_row = Adw.ComboRow(
+            title=_("Newelle Mode"),
+            subtitle=_("Use this Mode only for voice requests"),
+        )
+        mode_options = [(_("Follow current Mode"), "current")]
+        mode_options.extend(
+            (name, name) for name in self.controller.mode_manager.get_modes().keys()
+        )
+        helper = ComboRowHelper(
+            mode_row,
+            tuple(mode_options),
+            self.settings.get_string("voice-mode-mode"),
+        )
+        helper.connect(
+            "changed", lambda _helper, value: self.settings.set_string("voice-mode-mode", value)
+        )
+        group.add(mode_row)
+
+        theme_row = Adw.ComboRow(
+            title=_("Pill theme"),
+            subtitle=_("Follow Newelle or use a dedicated appearance"),
+        )
+        themes = (
+            (_("Follow Newelle"), "newelle"),
+            (_("Light"), "light"),
+            (_("Dark"), "dark"),
+            (_("Custom"), "custom"),
+        )
+        custom_colors = Adw.ExpanderRow(
+            title=_("Custom colors"),
+            subtitle=_("Background, text, waveform, and transparency"),
+        )
+        helper = ComboRowHelper(
+            theme_row, themes, self.settings.get_string("voice-pill-theme")
+        )
+
+        def on_theme_changed(_helper, value):
+            self.settings.set_string("voice-pill-theme", value)
+            custom_colors.set_visible(value == "custom")
+
+        helper.connect("changed", on_theme_changed)
+        group.add(theme_row)
+
+        def add_color_row(title, setting_key):
+            row = Adw.ActionRow(title=title)
+            rgba = Gdk.RGBA()
+            if not rgba.parse(self.settings.get_string(setting_key)):
+                rgba.parse("#ffffff")
+            dialog = Gtk.ColorDialog(title=title, with_alpha=False)
+            button = Gtk.ColorDialogButton(dialog=dialog, rgba=rgba)
+            button.connect(
+                "notify::rgba",
+                lambda color_button, _param: self.settings.set_string(
+                    setting_key, color_button.get_rgba().to_string()
+                ),
+            )
+            row.add_suffix(button)
+            custom_colors.add_row(row)
+
+        add_color_row(_("Background"), "voice-pill-background")
+        add_color_row(_("Text"), "voice-pill-foreground")
+        add_color_row(_("Waveform accent"), "voice-pill-accent")
+
+        opacity_row = Adw.SpinRow(
+            title=_("Opacity"),
+            adjustment=Gtk.Adjustment(
+                lower=0.55,
+                upper=1.0,
+                value=self.settings.get_double("voice-pill-opacity"),
+                step_increment=0.01,
+                page_increment=0.05,
+            ),
+            digits=2,
+        )
+        def update_voice_opacity(spin, _input):
+            self.settings.set_double("voice-pill-opacity", spin.get_value())
+            return False
+
+        opacity_row.connect("input", update_voice_opacity)
+        custom_colors.add_row(opacity_row)
+        custom_colors.set_visible(self.settings.get_string("voice-pill-theme") == "custom")
+        group.add(custom_colors)
+
+        shortcut_info = Adw.ActionRow(
+            title=_("Global shortcut"),
+            subtitle=_("Bind Ctrl+I to “newelle --voice” in your desktop keyboard settings"),
+        )
+        shortcut_info.add_prefix(Gtk.Image(icon_name="preferences-desktop-keyboard-shortcuts-symbolic"))
+        group.add(shortcut_info)
+
+    def build_audio_input_settings(self):
+        direct = Adw.SwitchRow(title=_("Direct audio input"), subtitle=_("Send recordings to an audio-capable language model"))
+        transcribe = Adw.SwitchRow(title=_("Transcribe audio"), subtitle=_("Use the selected speech recognition engine to add a transcript"))
+        timing = Adw.ComboRow(title=_("Transcription timing"), subtitle=_("Before sending uses the transcript for context; after sending uses previous messages only"))
+        self.settings.bind("direct-audio-input", direct, "active", Gio.SettingsBindFlags.DEFAULT)
+        self.settings.bind("audio-transcribe", transcribe, "active", Gio.SettingsBindFlags.DEFAULT)
+        helper = ComboRowHelper(timing, ((_("Before sending"), "before"), (_("After sending"), "after")), self.settings.get_string("audio-transcription-timing"))
+        helper.connect("changed", lambda _helper, value: self.settings.set_string("audio-transcription-timing", value))
+        def refresh(*_args):
+            transcribe.set_sensitive(direct.get_active())
+            timing.set_sensitive(direct.get_active() and transcribe.get_active())
+        direct.connect("notify::active", refresh)
+        transcribe.connect("notify::active", refresh)
+        refresh()
+        for row in (direct, transcribe, timing):
+            self.Voicegroup.add(row)
 
     def build_auto_stt(self):
         auto_stt_enabled = Gtk.Switch(valign=Gtk.Align.CENTER)

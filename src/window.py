@@ -56,7 +56,7 @@ class MainWindow(Adw.ApplicationWindow):
     }
 
     def __init__(self, *args, **kwargs):
-
+        self.suppress_presentation = kwargs.pop("suppress_presentation", False)
         super().__init__(*args, **kwargs)
         self.app = self.get_application()
         # Main program block - On the right Canvas tabs, Chat as content
@@ -106,6 +106,7 @@ class MainWindow(Adw.ApplicationWindow):
         self._recording_stopping = False
         self._recording_start_pending_button = None
         self._recording_start_source_id = None
+        self._tts_listener_tokens = []
         # Stdout monitoring - Initialize and start from program start
         self.stdout_monitor_dialog = None
         self._init_stdout_monitoring()
@@ -373,7 +374,10 @@ class MainWindow(Adw.ApplicationWindow):
 
         GLib.idle_add(start_transition)
         GLib.timeout_add(600, after_transition)
-        if not self.settings.get_boolean("welcome-screen-shown"):
+        if (
+            not self.suppress_presentation
+            and not self.settings.get_boolean("welcome-screen-shown")
+        ):
             threading.Thread(target=self.show_presentation_window).start()
         GLib.timeout_add(10, build_model_popup)
         self.ui_built = True
@@ -381,6 +385,7 @@ class MainWindow(Adw.ApplicationWindow):
 
     def _cleanup_on_destroy(self, window):
         """Clean up resources when window is destroyed"""
+        self._disconnect_tts_lifecycle()
         # Stop wakeword detection
         self.stop_wakeword_detection()
         # Stop stdout monitoring
@@ -916,12 +921,7 @@ class MainWindow(Adw.ApplicationWindow):
         if ReloadType.RELOAD_CHAT_LIST in reloads:
             self.update_history()
         # Setup TTS
-        self.tts.connect(
-            "start", lambda: GLib.idle_add(self.mute_tts_button.set_visible, True)
-        )
-        self.tts.connect(
-            "stop", lambda: GLib.idle_add(self.mute_tts_button.set_visible, False)
-        )
+        self._connect_tts_lifecycle()
         # Handle wakeword detection
         # Check if we need to restart wakeword detector
         should_be_listening = self.controller.newelle_settings.wakeword_enabled
@@ -1304,6 +1304,33 @@ class MainWindow(Adw.ApplicationWindow):
             self.tts.stop()
         return False
 
+    def _disconnect_tts_lifecycle(self):
+        for handler, token in getattr(self, "_tts_listener_tokens", []):
+            handler.disconnect(token)
+        self._tts_listener_tokens = []
+
+    def _connect_tts_lifecycle(self):
+        """Keep one pair of main-window listeners across handler reloads."""
+        self._disconnect_tts_lifecycle()
+        if self.tts is None:
+            return
+        self._tts_listener_tokens = [
+            (
+                self.tts,
+                self.tts.connect(
+                    "start",
+                    lambda: GLib.idle_add(self.mute_tts_button.set_visible, True),
+                ),
+            ),
+            (
+                self.tts,
+                self.tts.connect(
+                    "stop",
+                    lambda: GLib.idle_add(self.mute_tts_button.set_visible, False),
+                ),
+            ),
+        ]
+
     def start_wakeword_detection(self):
         """Start continuous wakeword detection"""
         if self.wakeword_detector is not None:
@@ -1337,6 +1364,8 @@ class MainWindow(Adw.ApplicationWindow):
                 silence_duration=self.controller.newelle_settings.wakeword_silence_duration,
                 energy_threshold=self.controller.newelle_settings.wakeword_energy_threshold,
                 callback=self.on_wakeword_detected,
+                activation_callback=self.on_wakeword_voice_mode if self.controller.newelle_settings.wakeword_voice_mode else None,
+                audio_callback=self.on_wakeword_audio if self.controller.settings.get_boolean("direct-audio-input") else None,
                 on_speech_started=self.on_wakeword_speech_started,
                 on_transcribing=self.on_wakeword_transcribing,
                 on_transcribing_done=self.on_wakeword_transcribing_done,
@@ -1407,6 +1436,34 @@ class MainWindow(Adw.ApplicationWindow):
             self.start_wakeword_detection()
         return GLib.SOURCE_REMOVE
 
+    def on_wakeword_voice_mode(self):
+        """Open the voice pill once and let it take over wakeword capture."""
+        if not self.wakeword_listening or not self.controller.newelle_settings.wakeword_voice_mode:
+            return GLib.SOURCE_REMOVE
+        app = self.get_application()
+        # Opening voice mode normally toggles it; repeated detections must not
+        # close a pill that has already opened or is releasing its microphone.
+        if getattr(app, "voice_win", None) is None:
+            app.show_voice_mode()
+        return GLib.SOURCE_REMOVE
+
+    def on_wakeword_audio(self, audio_path):
+        detector = self.wakeword_detector
+        message = self.controller.audio_input.prepare_audio_input(
+            audio_path, lambda: self.wakeword_detector is detector)
+        GLib.idle_add(self._send_wakeword_audio, message, detector)
+
+    def _send_wakeword_audio(self, message, detector):
+        if self.wakeword_detector is not detector:
+            return False
+        target = getattr(self, "_wakeword_audio_target", None)
+        if target is not None:
+            tab, chat_id = target
+            if tab.chat_id == chat_id and chat_id in self.controller.chats:
+                tab.input_panel.set_text(message)
+                tab.on_entry_activate(tab.input_panel)
+        return False
+
     def on_wakeword_detected(self, command_text):
         """Callback when wakeword is detected
 
@@ -1431,6 +1488,7 @@ class MainWindow(Adw.ApplicationWindow):
         """Callback when speech is detected during wakeword listening."""
         tab = self.get_active_chat_tab()
         if tab is not None:
+            self._wakeword_audio_target = (tab, tab.chat_id)
             GLib.idle_add(tab.set_mic_warning)
 
     def on_wakeword_transcribing(self):
@@ -1777,12 +1835,7 @@ class MainWindow(Adw.ApplicationWindow):
         if ReloadType.TOOLS in reload_types:
             self.model_popup_settings.refresh_tools_list()
 
-        self.tts.connect(
-            "start", lambda: GLib.idle_add(self.mute_tts_button.set_visible, True)
-        )
-        self.tts.connect(
-            "stop", lambda: GLib.idle_add(self.mute_tts_button.set_visible, False)
-        )
+        self._connect_tts_lifecycle()
 
         if ReloadType.LLM in reload_types:
             send_on_enter = not newsettings.send_on_enter
@@ -1869,8 +1922,10 @@ class MainWindow(Adw.ApplicationWindow):
         self.refresh_profiles_box()
 
     # Voice Recording
-    def start_recording(self, button):
+    def start_recording(self, button, tab=None):
         """Start recording voice for Speech to Text"""
+        if tab is None:
+            tab = self.get_active_chat_tab()
         recorder = getattr(self, "recorder", None)
         if (
             recorder is not None
@@ -1882,14 +1937,17 @@ class MainWindow(Adw.ApplicationWindow):
             # The prior worker may still be reading, writing the WAV, or
             # dispatching its stop callback.  Queue the next start until all
             # of that work has completed.
-            self._recording_start_pending_button = button
+            self._recording_start_pending_button = (button, tab)
             if self._recording_start_source_id is None:
                 self._recording_start_source_id = GLib.timeout_add(
                     20, self._start_recording_after_cleanup
                 )
             return
 
-        path = os.path.join(self.controller.cache_dir, "recording.wav")
+        if tab is None:
+            return
+        chat_id = tab.chat_id
+        path = os.path.join(self.controller.cache_dir, "recording_" + uuid.uuid4().hex + ".wav")
         if os.path.exists(path):
             os.remove(path)
         self.recording = True
@@ -1910,7 +1968,7 @@ class MainWindow(Adw.ApplicationWindow):
         button.connect("clicked", self.stop_recording)
         self.recorder = AudioRecorder(
             auto_stop=True,
-            stop_function=self.auto_stop_recording,
+            stop_function=lambda: self.auto_stop_recording(button, path, tab, chat_id),
             silence_duration=self.controller.newelle_settings.stt_silence_detection_duration,
             silence_threshold_percent=self.controller.newelle_settings.stt_silence_detection_threshold,
         )
@@ -1929,20 +1987,20 @@ class MainWindow(Adw.ApplicationWindow):
         ):
             return GLib.SOURCE_CONTINUE
 
-        button = self._recording_start_pending_button
+        pending = self._recording_start_pending_button
         self._recording_start_pending_button = None
         self._recording_start_source_id = None
-        if button is not None and not self.recording:
-            self.start_recording(button)
+        if pending is not None and not self.recording:
+            self.start_recording(*pending)
         return GLib.SOURCE_REMOVE
 
-    def auto_stop_recording(self, button=False):
+    def auto_stop_recording(self, button=False, path=None, tab=None, chat_id=None):
         """Stop recording after an auto stop signal"""
         self.recording = False
         self._recording_stopping = True
-        GLib.idle_add(self.stop_recording_ui, self.recording_button)
+        GLib.idle_add(self.stop_recording_ui, button, tab)
         threading.Thread(
-            target=self.stop_recording_async, args=(self.recording_button,)
+            target=self.stop_recording_async, args=(button, path, tab, chat_id)
         ).start()
 
     def stop_recording(self, button=False):
@@ -1950,12 +2008,10 @@ class MainWindow(Adw.ApplicationWindow):
         self.recording = False
         self._recording_stopping = True
         self.automatic_stt_status = False
-        self.recorder.stop_recording(
-            os.path.join(self.controller.cache_dir, "recording.wav")
-        )
+        self.recorder.stop_recording()
         # self.auto_stop_recording()
 
-    def stop_recording_ui(self, button):
+    def stop_recording_ui(self, button, tab=None):
         """Update the UI to show that the recording has been stopped"""
         self._recording_stopping = False
         button.set_child(None)
@@ -1966,56 +2022,72 @@ class MainWindow(Adw.ApplicationWindow):
             button.disconnect_by_func(self.stop_recording)
         except TypeError:
             pass
-        # Reconnect to the active chat tab's start_recording method
-        tab = self.get_active_chat_tab()
+        # Reconnect the recording tab even if selection changed during capture.
+        if tab is None:
+            tab = self.get_active_chat_tab()
         if tab is not None:
             button.connect("clicked", tab.start_recording)
 
-    def stop_recording_async(self, button=False):
-        """Stop recording and save the file"""
-        recognizer = self.stt
-        result = recognizer.recognize_file(
-            os.path.join(self.controller.cache_dir, "recording.wav")
-        )
+    def stop_recording_async(self, button=False, path=None, tab=None, chat_id=None):
+        """Process the capture owned by the originating tab."""
+        if path is None or tab is None:
+            return
+        direct = self.controller.settings.get_boolean("direct-audio-input")
+        try:
+            if direct:
+                result = self.controller.audio_input.prepare_audio_input(path)
+            else:
+                result = self.stt.recognize_file(path)
+        except Exception as exc:
+            GLib.idle_add(self.ui_controller.send_notification, str(exc))
+            return
+        finally:
+            try:
+                os.remove(path)
+            except OSError:
+                pass
 
         def idle_record():
-            tab = self.get_active_chat_tab()
-            if tab is None:
-                return
-            if (
-                result is not None
-                and "stop" not in result.lower()
-                and len(result.replace(" ", "")) > 2
-            ):
+            if tab.chat_id != chat_id or chat_id not in self.controller.chats:
+                return False
+            if result and (direct or ("stop" not in result.lower() and len(result.replace(" ", "")) > 2)):
                 tab.input_panel.set_text(result)
                 tab.on_entry_activate(tab.input_panel)
             else:
-                self.notification_block.add_toast(
-                    Adw.Toast(title=_("Could not recognize your voice"), timeout=2)
-                )
-
+                self.notification_block.add_toast(Adw.Toast(title=_("Could not recognize your voice"), timeout=2))
+            return False
         GLib.idle_add(idle_record)
 
     # Screen recording
-    def start_screen_recording(self, button):
-        """Start screen recording"""
-        if self.video_recorder is None:
-            self.video_recorder = ScreenRecorder(self)
-            self.video_recorder.start()
-            if self.video_recorder.recording:
-                self.screen_record_button.set_icon_name("media-playback-stop-symbolic")
-                self.screen_record_button.set_css_classes(
-                    ["destructive-action", "circular"]
-                )
-            else:
-                self.video_recorder = None
-        else:
-            self.screen_record_button.set_visible(False)
-            self.video_recorder.stop()
-            self.screen_record_button.set_icon_name("media-record-symbolic")
-            self.screen_record_button.set_css_classes(["flat"])
-            self.add_file(file_path=self.video_recorder.output_path + ".mp4")
-            self.video_recorder = None
+    def start_screen_recording(self, button, tab=None):
+        """Record asynchronously, keeping callbacks bound to the owning tab."""
+        if tab is None:
+            tab = self.get_active_chat_tab()
+        if tab is None:
+            return
+        if tab.video_recorder is not None:
+            button.set_sensitive(False)
+            tab.video_recorder.stop()
+            return
+
+        def started():
+            button.set_sensitive(True)
+            button.set_icon_name("media-playback-stop-symbolic")
+            button.set_css_classes(["destructive-action", "circular"])
+
+        def finished(path):
+            button.set_sensitive(True)
+            button.set_icon_name("media-record-symbolic")
+            button.set_css_classes(["flat"])
+            if tab.video_recorder is recorder:
+                tab.video_recorder = None
+                if path is not None:
+                    tab.add_file(file_path=path)
+
+        recorder = ScreenRecorder(self, on_started=started, on_finished=finished)
+        tab.video_recorder = recorder
+        button.set_sensitive(False)
+        recorder.start()
 
     # File attachment
     def attach_file(self, button):
@@ -2036,10 +2108,7 @@ class MainWindow(Adw.ApplicationWindow):
             name=_("LLM Supported Files"), patterns=file_patterns
         )
         second_file_filter = None
-        if (
-            self.rag_handler is not None
-            and self.controller.newelle_settings.rag_on_documents
-        ):
+        if self.rag_handler is not None:
             second_file_filter = Gtk.FileFilter(
                 name=_("RAG Supported files"),
                 patterns=self.rag_handler.get_supported_files(),

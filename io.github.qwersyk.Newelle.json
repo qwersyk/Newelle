@@ -12,8 +12,7 @@
         "--socket=wayland",
         "--talk-name=org.freedesktop.Flatpak",
         "--filesystem=home",
-        "--socket=pulseaudio",
-        "--talk-name=org.gnome.Shell.Screencast"
+        "--socket=pulseaudio"
     ],
     "cleanup" : [
         "/include",
@@ -27,6 +26,7 @@
         "*.a"
     ],
     "modules" : [
+        "modules/gtk4-layer-shell.json",
     	"modules/git.json",
         "modules/vte.json",
         "modules/python3-requests.json",

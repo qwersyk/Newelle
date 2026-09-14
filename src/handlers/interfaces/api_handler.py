@@ -1,3 +1,4 @@
+import asyncio
 import base64
 import io
 import json
@@ -304,7 +305,7 @@ class APIInterface(ChatInterface):
             model_config = {"extra": "ignore"}
 
             role: str
-            content: Optional[str] = None
+            content: str | list[dict] | None = None
             tool_calls: Optional[list] = None
             tool_call_id: Optional[str] = None
             name: Optional[str] = None
@@ -396,7 +397,11 @@ class APIInterface(ChatInterface):
             self._chat_completion_log_print("request (raw body)", req_dump)
 
             llm = controller.handlers.llm
-            last_user_message, history, system_prompt = convert_messages_openai_to_newelle(request.messages)
+            try:
+                last_user_message, history, system_prompt = await asyncio.to_thread(convert_messages_openai_to_newelle, request.messages)
+                system_prompt += await asyncio.to_thread(controller.get_document_prompt, history)
+            except (TypeError, ValueError, OSError) as error:
+                return JSONResponse(status_code=400, content={"error": {"message": str(error), "type": "invalid_request_error"}})
             embed_openai_tools_in_system_prompt(system_prompt, request.tools)
 
             # When the user opted-in to logging, dump the full system prompt,
@@ -447,7 +452,10 @@ class APIInterface(ChatInterface):
 
             # Extract only the last user message (history is ignored — use the
             # persistent chat owned by this user for full context).
-            last_user_message, _hist, _sys = convert_messages_openai_to_newelle(request.messages)
+            try:
+                last_user_message, _hist, _sys = await asyncio.to_thread(convert_messages_openai_to_newelle, request.messages)
+            except (TypeError, ValueError, OSError) as error:
+                return JSONResponse(status_code=400, content={"error": {"message": str(error), "type": "invalid_request_error"}})
 
             if not last_user_message:
                 return JSONResponse(

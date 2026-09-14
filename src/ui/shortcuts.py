@@ -22,6 +22,7 @@ class Shortcuts(Gtk.Window):
         gr.append(Gtk.ShortcutsShortcut(title=_("Zoom in"), accelerator='<primary>plus'))
         gr.append(Gtk.ShortcutsShortcut(title=_("Zoom out"), accelerator='<primary>minus'))
         gr.append(Gtk.ShortcutsShortcut(title=_("Switch between full and mini window"), accelerator='<primary>d'))
+        gr.append(Gtk.ShortcutsShortcut(title=_("Start or cancel Voice Mode"), accelerator='<primary>i'))
 
         sect_main.append(gr)
         self.set_child(sect_main)

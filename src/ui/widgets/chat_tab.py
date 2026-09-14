@@ -29,7 +29,7 @@ from ...utility.strings import (
     remove_emoji,
 )
 from ...utility.system import is_flatpak
-from ...utility.media import extract_supported_files
+from ...utility.media import extract_supported_files, file_matches_patterns
 from ...tools import Command
 
 _ = gettext.gettext
@@ -77,6 +77,8 @@ class ChatTab(Gtk.Box):
         self.tool_call_count = 0
         self.last_generation_time = None
         self.last_token_num = None
+        self.last_time_to_first_token = None
+        self.last_time_to_first_token_no_thinking = None
         
         # Recording state
         self.recording = False
@@ -212,6 +214,11 @@ class ChatTab(Gtk.Box):
 
         self.attached_image = Gtk.Image(visible=False)
         self.attached_image.set_size_request(36, 36)
+        self.attachment_mode = Gtk.DropDown.new_from_strings([
+            _("Automatic"), _("Send to model"), _("Use RAG"),
+        ])
+        self.attachment_mode.set_tooltip_text(_("How to process this document"))
+        self.attachment_mode.set_visible(False)
 
         self.screen_record_button = Gtk.Button(
             icon_name="media-record-symbolic",
@@ -305,7 +312,7 @@ class ChatTab(Gtk.Box):
         if getattr(self, "compact_options_popover", None) is not None:
             self.compact_options_popover.set_child(None)
         for widget in (
-            self.attach_button, self.attached_image, self.screen_record_button,
+            self.attach_button, self.attached_image, self.attachment_mode, self.screen_record_button,
             self.quick_toggles, self.quick_toggles_box, self.mode_button,
             self.thinking_button, self.mic_button, self.send_button,
             self.context_indicator, getattr(self, "compact_options_button", None),
@@ -333,6 +340,7 @@ class ChatTab(Gtk.Box):
         left_cluster = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=2)
         left_cluster.append(self.attach_button)
         left_cluster.append(self.attached_image)
+        left_cluster.append(self.attachment_mode)
         left_cluster.append(self.screen_record_button)
         left_cluster.append(self.quick_toggles)
         if self.mode_button is not None:
@@ -435,6 +443,7 @@ class ChatTab(Gtk.Box):
         ))
         attach_row.append(self.attached_image)
         box.append(attach_row)
+        box.append(self.attachment_mode)
         self._compact_attach_row = attach_row
 
         # Screen recording
@@ -953,17 +962,28 @@ class ChatTab(Gtk.Box):
             )
             return False
         
+        if self.attached_image_data is not None and self.attachment_mode.get_visible():
+            mode = self.attachment_mode.get_selected()
+            rag = self.controller.handlers.rag
+            if mode == 1 and not file_matches_patterns(self.attached_image_data, self.model.get_supported_files()):
+                self.notification_block.add_toast(Adw.Toast(title=_("The selected model does not support this file type")))
+                return False
+            if mode == 2 and (rag is None or not file_matches_patterns(self.attached_image_data, rag.get_supported_files_reading())):
+                self.notification_block.add_toast(Adw.Toast(title=_("The selected RAG provider does not support this file type")))
+                return False
+
         entry.set_text("")
         
         if text and not text.isspace():
             if self.attached_image_data is not None:
-                if self.attached_image_data.endswith((".png", ".jpg", ".jpeg", ".webp")) or \
+                if self.attached_image_data.lower().endswith((".png", ".jpg", ".jpeg", ".webp")) or \
                    self.attached_image_data.startswith("data:image/"):
                     text = "```image\n" + self.attached_image_data + "\n```\n" + text
-                elif self.attached_image_data.endswith((".mp4", ".mkv", ".webm", ".avi")):
+                elif self.attached_image_data.lower().endswith((".mp4", ".mkv", ".webm", ".avi", ".mov")):
                     text = "```video\n" + self.attached_image_data + "\n```\n" + text
                 else:
-                    text = "```file\n" + self.attached_image_data + "\n```\n" + text
+                    lang = ("file", "file_direct", "file_rag")[self.attachment_mode.get_selected()]
+                    text = "```" + lang + "\n" + self.attached_image_data + "\n```\n" + text
                 self.delete_attachment(self.attach_button)
             
             self.chat.append({"User": "User", "Message": text})
@@ -994,6 +1014,10 @@ class ChatTab(Gtk.Box):
             self.auto_run_times = 0
             self.tool_call_count = 0
         
+        if manual or not hasattr(self, "_audio_cancel_event"):
+            self._audio_cancel_event = threading.Event()
+        audio_cancel_event = self._audio_cancel_event
+        origin_chat_id = self._chat_id
         self.stream_number_variable += 1
         stream_number_variable = self.stream_number_variable
         self.status = False
@@ -1022,7 +1046,8 @@ class ChatTab(Gtk.Box):
             for status, data in self.controller.generate_response(
                 stream_number_variable, 
                 self.update_message,
-                chat_id=self._chat_id
+                chat_id=self._chat_id,
+                is_current=lambda: not audio_cancel_event.is_set() and self._chat_id == origin_chat_id,
             ):
                 if self.stream_number_variable != stream_number_variable:
                     break
@@ -1055,8 +1080,11 @@ class ChatTab(Gtk.Box):
         message_label = data['message']
         prompts = data['prompts']
         response_metadata = data.get('response_metadata')
+        response_usage = data.get('usage')
         self.last_generation_time = data['time']
         self.last_token_num = (data['input_tokens'], data['output_tokens'])
+        self.last_time_to_first_token = data.get('time_to_first_token')
+        self.last_time_to_first_token_no_thinking = data.get('time_to_first_token_no_thinking')
         trim_result = data.get('trim_result')
         if trim_result is not None and hasattr(self, 'context_indicator'):
             self.context_indicator.update_stats(trim_result)
@@ -1073,6 +1101,8 @@ class ChatTab(Gtk.Box):
             }
             if response_metadata is not None:
                 assistant_entry["OpenAIResponse"] = response_metadata
+            if response_usage is not None:
+                assistant_entry["LLMUsage"] = dict(response_usage)
             self.chat.append(assistant_entry)
             self.chat_history.update_history(self.chat)
             self.add_prompt("\n".join(prompts))
@@ -1148,12 +1178,15 @@ class ChatTab(Gtk.Box):
                 "\n".join(prompts),
             )
             if (
-                response_metadata is not None
+                (response_metadata is not None or response_usage is not None)
                 and assistant_index < len(self.chat)
                 and self.chat[assistant_index].get("User") == "Assistant"
                 and self.chat[assistant_index].get("Message") == message_label
             ):
-                self.chat[assistant_index]["OpenAIResponse"] = response_metadata
+                if response_metadata is not None:
+                    self.chat[assistant_index]["OpenAIResponse"] = response_metadata
+                if response_usage is not None:
+                    self.chat[assistant_index]["LLMUsage"] = dict(response_usage)
                 self.save_chat()
         
         if waiting_for_tools:
@@ -1370,6 +1403,10 @@ class ChatTab(Gtk.Box):
         self.chat[-1]["Prompt"] = prompt
         self.chat[-1]["InputTokens"] = self.last_token_num[0]
         self.chat[-1]["OutputTokens"] = self.last_token_num[1]
+        if self.last_time_to_first_token is not None:
+            self.chat[-1]["TimeToFirstToken"] = self.last_time_to_first_token
+        if self.last_time_to_first_token_no_thinking is not None:
+            self.chat[-1]["TimeToFirstTokenNoThinking"] = self.last_time_to_first_token_no_thinking
         
     def reload_message(self, message_id: int):
         """Reload a message in the chat history."""
@@ -1428,6 +1465,8 @@ class ChatTab(Gtk.Box):
         
     def stop_chat(self):
         """Stop the current generation."""
+        if hasattr(self, "_audio_cancel_event"):
+            self._audio_cancel_event.set()
         getattr(self, "active_generation_model", self.model).stop()
         for tool_result in self.active_tool_results:
             tool_result.cancel()
@@ -1549,6 +1588,8 @@ class ChatTab(Gtk.Box):
         self.attach_button.disconnect_by_func(self.delete_attachment)
         self.attach_button.connect("clicked", self.attach_file)
         self.attached_image.set_visible(False)
+        self.attachment_mode.set_visible(False)
+        self.attachment_mode.set_selected(0)
         self.screen_record_button.set_visible(self.vision_model.supports_video_vision())
         
     def add_file(self, file_path=None, file_data=None):
@@ -1558,8 +1599,10 @@ class ChatTab(Gtk.Box):
             file_path (): file path for the file
             file_data (): file data for the file
         """
+        self.attachment_mode.set_visible(False)
+        self.attachment_mode.set_selected(0)
         if file_path is not None:
-            if file_path.lower().endswith((".mp4", ".avi", ".mov")):
+            if file_path.lower().endswith((".mp4", ".mkv", ".webm", ".avi", ".mov")):
                 cmd = [
                     "ffmpeg",
                     "-i",
@@ -1592,6 +1635,7 @@ class ChatTab(Gtk.Box):
                 self.attached_image.set_from_file(file_path)
             else:
                 self.attached_image.set_from_icon_name("text-x-generic")
+                self.attachment_mode.set_visible(True)
 
             self.attached_image_data = file_path
             self.attached_image.set_visible(True)
@@ -1629,7 +1673,7 @@ class ChatTab(Gtk.Box):
         except TypeError:
             # Handler was not connected to this function
             pass
-        self.window.start_recording(button)
+        self.window.start_recording(button, self)
 
     def set_mic_warning(self):
         """Set mic button to warning state (yellow) when speech is detected."""
@@ -1649,7 +1693,7 @@ class ChatTab(Gtk.Box):
         
     def start_screen_recording(self, button):
         """Start screen recording."""
-        self.window.start_screen_recording(button)
+        self.window.start_screen_recording(button, self)
         
     # Bot response (for suggestions)
     def send_bot_response(self, button):

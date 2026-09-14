@@ -1,6 +1,7 @@
 import os
 import re
 import json
+import copy
 
 from .modes import ENABLE, REMOVE
 
@@ -95,6 +96,14 @@ class SkillManager:
                        ("enable"/"remove"/"no_change"). ``None`` resets them.
         """
         self.mode_skill_overrides = overrides or {}
+
+    def fork_with_mode_overrides(self, overrides):
+        """Return a request-local manager view with independent Mode state."""
+        fork = copy.copy(self)
+        fork.skills = dict(self.skills)
+        fork.activated_skills = set()
+        fork.mode_skill_overrides = dict(overrides or {})
+        return fork
 
     def _load_settings(self):
         raw = self.settings.get_string("skills-settings")

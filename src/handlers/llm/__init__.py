@@ -1,4 +1,4 @@
-from .llm import LLMHandler
+from .llm import LLMHandler, LLMResponse
 from .claude_handler import ClaudeHandler
 from .custom_handler import CustomLLMHandler
 from .g4f_handler import G4FHandler
@@ -16,6 +16,7 @@ from .llama_cpp_handler import LlamaCPPHandler
 
 __all__ = [
     "LLMHandler",
+    "LLMResponse",
     "ClaudeHandler",
     "CustomLLMHandler",
     "G4FHandler",

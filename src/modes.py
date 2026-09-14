@@ -271,54 +271,63 @@ class ModeManager:
         data = self.modes.get(self.active_mode) or self.modes[DEFAULT_MODE_NAME]
         return self._normalize_mode(data)
 
-    def get_tool_override(self, tool_name: str) -> str:
-        """Return the active mode's state for a tool (defaults to NO_CHANGE)."""
-        tools = self.get_active_mode().get("tools", {})
+    def _get_resolution_mode(self, mode_name: str | None = None) -> dict:
+        """Return the active mode or a named request-local mode."""
+        if mode_name is None:
+            return self.get_active_mode()
+        mode = self.get_mode(mode_name)
+        if mode is None:
+            raise ValueError(f"Mode '{mode_name}' not found")
+        return mode
+
+    def get_tool_override(self, tool_name: str, mode_name: str | None = None) -> str:
+        """Return a mode's state for a tool (defaults to NO_CHANGE)."""
+        tools = self._get_resolution_mode(mode_name).get("tools", {})
         return tools.get(tool_name, NO_CHANGE)
 
-    def get_skill_override(self, skill_name: str) -> str:
-        """Return the active mode's state for a skill (defaults to NO_CHANGE)."""
-        skills = self.get_active_mode().get("skills", {})
+    def get_skill_override(self, skill_name: str, mode_name: str | None = None) -> str:
+        """Return a mode's state for a skill (defaults to NO_CHANGE)."""
+        skills = self._get_resolution_mode(mode_name).get("skills", {})
         return skills.get(skill_name, NO_CHANGE)
 
-    def get_prompt_override(self, prompt_key: str) -> dict:
-        """Return the active mode's normalized settings for one prompt."""
-        prompts = self.get_active_mode().get("prompts", {})
+    def get_prompt_override(self, prompt_key: str, mode_name: str | None = None) -> dict:
+        """Return a mode's normalized settings for one prompt."""
+        prompts = self._get_resolution_mode(mode_name).get("prompts", {})
         return dict(prompts.get(prompt_key, {"state": NO_CHANGE}))
 
     # ------------------------------------------------------------------ #
     # Resolution helpers (apply the 3-state to a base boolean)
     # ------------------------------------------------------------------ #
-    def resolve_tool_enabled(self, tool_name: str, base_enabled: bool) -> bool:
-        """Apply the active mode's tool state to a profile-derived boolean."""
-        override = self.get_tool_override(tool_name)
+    def resolve_tool_enabled(self, tool_name: str, base_enabled: bool, mode_name: str | None = None) -> bool:
+        """Apply a mode's tool state to a profile-derived boolean."""
+        override = self.get_tool_override(tool_name, mode_name)
         if override == ENABLE:
             return True
         if override == REMOVE:
             return False
         return base_enabled
 
-    def resolve_skill_enabled(self, skill_name: str, base_enabled: bool) -> bool:
-        """Apply the active mode's skill state to a profile-derived boolean."""
-        override = self.get_skill_override(skill_name)
+    def resolve_skill_enabled(self, skill_name: str, base_enabled: bool, mode_name: str | None = None) -> bool:
+        """Apply a mode's skill state to a profile-derived boolean."""
+        override = self.get_skill_override(skill_name, mode_name)
         if override == ENABLE:
             return True
         if override == REMOVE:
             return False
         return base_enabled
 
-    def resolve_prompt_enabled(self, prompt_key: str, base_enabled: bool) -> bool:
-        """Apply the active mode's state to a profile-derived prompt setting."""
-        override = self.get_prompt_override(prompt_key).get("state", NO_CHANGE)
+    def resolve_prompt_enabled(self, prompt_key: str, base_enabled: bool, mode_name: str | None = None) -> bool:
+        """Apply a mode's state to a profile-derived prompt setting."""
+        override = self.get_prompt_override(prompt_key, mode_name).get("state", NO_CHANGE)
         if override == ENABLE:
             return True
         if override == REMOVE:
             return False
         return base_enabled
 
-    def resolve_prompt_text(self, prompt_key: str, base_text: str) -> str:
+    def resolve_prompt_text(self, prompt_key: str, base_text: str, mode_name: str | None = None) -> str:
         """Return a mode's text override or the profile-derived prompt text."""
-        override = self.get_prompt_override(prompt_key)
+        override = self.get_prompt_override(prompt_key, mode_name)
         if "override" in override:
             return override["override"]
         return base_text

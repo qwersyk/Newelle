@@ -1,3 +1,4 @@
+from .media import audio_text
 import copy
 from dataclasses import dataclass, field
 from .strings import count_message_tokens, remove_thinking_blocks
@@ -81,7 +82,7 @@ class ContextManager:
 
         # Phase 2: count tokens per message
         msg_tokens = [
-            count_message_tokens(m.get("Message", "")) + self.TOKEN_OVERHEAD_PER_MSG
+            count_message_tokens(audio_text(m.get("Message", ""))) + self.TOKEN_OVERHEAD_PER_MSG
             for m in history
         ]
         original_tokens = sum(msg_tokens) + prompts_token_count
@@ -100,7 +101,7 @@ class ContextManager:
         older_indices = list(range(recent_start))
 
         if self.embedding_handler is not None and current_message and older_indices:
-            scores = self._compute_similarities(history, older_indices, current_message)
+            scores = self._compute_similarities(history, older_indices, audio_text(current_message))
         else:
             scores = {i: i / max(recent_start, 1) for i in older_indices}
 
@@ -148,7 +149,7 @@ class ContextManager:
             result_history.append(history[i])
 
         trimmed_tokens = sum(
-            count_message_tokens(m.get("Message", "")) + self.TOKEN_OVERHEAD_PER_MSG
+            count_message_tokens(audio_text(m.get("Message", ""))) + self.TOKEN_OVERHEAD_PER_MSG
             for m in result_history
         ) + prompts_token_count
 
@@ -190,7 +191,7 @@ class ContextManager:
     ) -> dict[int, float]:
         """Compute cosine similarity between older messages and the current query."""
         try:
-            texts = [history[i].get("Message", "") for i in indices]
+            texts = [audio_text(history[i].get("Message", "")) for i in indices]
             query_emb = self.embedding_handler.get_embedding(
                 [query], purpose="query"
             )[0]
@@ -219,7 +220,7 @@ class ContextManager:
             formatted = []
             for msg in messages:
                 role = msg.get("User", "User")
-                content = msg.get("Message", "")
+                content = audio_text(msg.get("Message", ""))
                 if len(content) > 300:
                     content = content[:300] + "..."
                 formatted.append(f"{role}: {content}")

@@ -71,6 +71,7 @@ ui_sources = [
   'ui/screenrecorder.py',
   'ui/shortcuts.py',
   'ui/mini_window.py',
+  'ui/voice_mode.py',
   'ui/explorer.py',
   'ui/stdout_monitor.py',
   'ui/model_library.py',
@@ -250,6 +251,7 @@ utility_sources = [
   'utility/util.py',
   'utility/profile_settings.py',
   'utility/audio_recorder.py',
+  'utility/audio_input.py',
   'utility/message_chunk.py',
   'utility/model_icons.py',
   'utility/website_scraper.py',
@@ -269,6 +271,7 @@ utility_sources = [
   'utility/huggingface_download.py',
   'utility/tool_call_group.py',
   'utility/build_dependencies.py',
+  'utility/mcp_config.py',
 ]
 
 install_data(newelle_sources, install_dir: moduledir)

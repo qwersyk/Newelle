@@ -8,9 +8,14 @@ Type=Application
 Categories=Utility;
 StartupNotify=true
 Keywords=ai;assistant;chat;chatgpt;gpt;llm;ollama;
-Actions=mini-window;
+Actions=mini-window;voice-mode;
 
 [Desktop Action mini-window]
 Name=Mini Window
 Exec=newelle --mini
+Icon=io.github.qwersyk.Newelle
+
+[Desktop Action voice-mode]
+Name=Voice Mode
+Exec=newelle --voice
 Icon=io.github.qwersyk.Newelle

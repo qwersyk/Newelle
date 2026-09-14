@@ -178,6 +178,17 @@ class UIController:
         """Remove the reading widget from the UI"""
         self.window.remove_reading_widget()
 
+    def refresh_audio_message(self, chat_id, message_uuid):
+        """Refresh only the recorded user message, preserving active streaming UI."""
+        tabs = self.window.chat_tabs
+        for index in range(tabs.get_n_pages()):
+            tab = tabs.get_nth_page(index).get_child()
+            if getattr(tab, "chat_id", None) == chat_id:
+                for message_index, message in enumerate(tab.chat):
+                    if message.get("UUID") == message_uuid:
+                        tab.reload_message(message_index)
+                        break
+
     def update_history(self):
         return self.window.update_history()
 
@@ -249,6 +260,9 @@ class HeadlessController(UIController):
     def add_reading_widget(self, documents):
         pass
     def remove_reading_widget(self):
+        pass
+
+    def refresh_audio_message(self, chat_id, message_uuid):
         pass
 
     def update_history(self):

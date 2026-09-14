@@ -18,6 +18,16 @@ from .ui.thread_editing import ThreadEditing
 from .ui.scheduled_tasks import ScheduledTasksWindow
 from .ui.downloads import DownloadsWindow
 from .ui.mini_window import MiniWindow
+from .ui.voice_mode import VoiceModeWindow
+
+
+def requested_launch_mode(options):
+    """Resolve per-invocation window flags with Voice Mode taking priority."""
+    if options.contains("voice"):
+        return "voice"
+    if options.contains("mini"):
+        return "mini"
+    return None
 
 
 class MyApp(Adw.Application):
@@ -27,6 +37,7 @@ class MyApp(Adw.Application):
         self.settings = Gio.Settings.new("io.github.qwersyk.Newelle")
         self.add_main_option("run-action", 0, GLib.OptionFlags.NONE, GLib.OptionArg.STRING, "Run an action", "ACTION")
         self.add_main_option("mini", 0, GLib.OptionFlags.NONE, GLib.OptionArg.NONE, "Start in mini window mode", None)
+        self.add_main_option("voice", 0, GLib.OptionFlags.NONE, GLib.OptionArg.NONE, "Start one-shot Voice Mode", None)
         css = '''
         .code{
         background-color: rgb(38,38,38);
@@ -430,7 +441,11 @@ class MyApp(Adw.Application):
     
     def do_command_line(self, command_line):
         options = command_line.get_options_dict()
-        if options.contains("mini"):
+        launch_mode = requested_launch_mode(options)
+        if launch_mode == "voice":
+            self.start_in_voice = True
+            self.start_in_mini = False
+        elif launch_mode == "mini":
             self.start_in_mini = True
         if options.contains("run-action"):
             action_name = options.lookup_value("run-action").get_string()
@@ -444,11 +459,19 @@ class MyApp(Adw.Application):
         return 0
 
     def on_activate(self, app):
+        voice_requested = getattr(self, "start_in_voice", False)
         if not hasattr(self,"win"):
-            self.win = MainWindow(application=app)
+            self.win = MainWindow(
+                application=app,
+                suppress_presentation=voice_requested,
+            )
             self.win.connect("close-request", self.close_window)
 
-        if getattr(self, "start_in_mini", False) or self.settings.get_string("startup-mode") == "mini":
+        if voice_requested:
+            self.start_in_voice = False
+            self.start_in_mini = False
+            self._queue_voice_mode()
+        elif getattr(self, "start_in_mini", False) or self.settings.get_string("startup-mode") == "mini":
             self.settings.set_string("startup-mode", "normal")
             # --mini is per-invocation: a later plain `newelle` must present the main window
             self.start_in_mini = False
@@ -458,7 +481,52 @@ class MyApp(Adw.Application):
             else:
                 self.win.connect("ui-built", self.show_mini_window)
         else:
+            if getattr(self, "voice_win", None) is not None:
+                self.voice_win.cancel()
             self.win.present()
+
+    def _queue_voice_mode(self):
+        """Toggle Voice Mode now, or once the hidden main controller is ready."""
+        if getattr(self.win, "ui_built", False):
+            self.show_voice_mode()
+            return
+        if getattr(self, "_voice_start_pending", False):
+            self._voice_start_pending = False
+            return
+        self._voice_start_pending = True
+        self.win.connect("ui-built", self._show_queued_voice_mode)
+
+    def _show_queued_voice_mode(self, *_args):
+        if not getattr(self, "_voice_start_pending", False):
+            return
+        self._voice_start_pending = False
+        self.show_voice_mode()
+
+    def show_voice_mode(self, *_args):
+        """Open or cancel the one-shot desktop Voice Mode surface."""
+        existing = getattr(self, "voice_win", None)
+        if existing is not None:
+            if existing.is_closing() or existing.get_visible():
+                existing.cancel()
+                return
+        self.voice_win = VoiceModeWindow(
+            application=self,
+            main_window=self.win,
+            on_closed=self._voice_mode_closed,
+        )
+        self.voice_win.present()
+        GLib.idle_add(self.voice_win.start)
+
+    def _voice_mode_closed(self, window):
+        if getattr(self, "voice_win", None) is window:
+            self.voice_win = None
+
+    def toggle_voice_mode(self, *_args):
+        if not hasattr(self, "win"):
+            self.start_in_voice = True
+            self.activate()
+            return
+        self._queue_voice_mode()
 
     def show_mini_window(self, *args):
         """Open the mini window hosting the chat panel of the main window"""
@@ -604,4 +672,5 @@ def main(version):
     app.create_action('zoom_out', app.zoom_out, ['<primary>minus'])
     app.create_action('debug', app.debug, ['<primary>b'])
     app.create_action('toggle_mini_window', app.toggle_mini_window, ['<primary>d'])
+    app.create_action('voice_mode', app.toggle_voice_mode, ['<primary>i'])
     app.run(sys.argv)

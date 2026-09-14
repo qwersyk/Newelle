@@ -10,7 +10,7 @@ from typing import Any
 from ...handlers import ExtraSettings
 from ...utility import (
     VOID_TOOL_RESULT_PLACEHOLDER,
-    _ResponseText,
+    LLMResponse,
     extract_tools_from_prompts,
     get_streaming_extra_setting,
     parse_assistant_native_tool_calls,
@@ -674,9 +674,25 @@ class ClaudeHandler(LLMHandler):
             "content": content,
         }
 
-    def _response_text(self, response) -> _ResponseText:
+    def _response_text(self, response) -> LLMResponse:
         formatted = self._format_content(self._value(response, "content", []) or [])
-        return _ResponseText(formatted, self._response_metadata(response, formatted))
+        provider_usage = self._value(response, "usage")
+        usage = {}
+        for source, target in {
+            "input_tokens": "input_tokens",
+            "output_tokens": "output_tokens",
+            "cache_read_input_tokens": "cache_read_tokens",
+            "cache_creation_input_tokens": "cache_write_tokens",
+        }.items():
+            value = self._value(provider_usage, source)
+            if value is not None:
+                usage[target] = value
+        # Anthropic reports uncached input separately from cache reads/writes.
+        if "input_tokens" in usage:
+            usage["input_tokens"] += usage.get("cache_read_tokens", 0) + usage.get("cache_write_tokens", 0)
+        if "input_tokens" in usage and "output_tokens" in usage:
+            usage["total_tokens"] = usage["input_tokens"] + usage["output_tokens"]
+        return LLMResponse(formatted, self._response_metadata(response, formatted), usage=usage or None)
 
     def _stream_update(self, text: str, previous: str, on_update: Callable, extra_args: list) -> str:
         if len(text) - len(previous) > 1:
@@ -718,6 +734,7 @@ class ClaudeHandler(LLMHandler):
             thinking_open = False
             final_response = None
             streamed_content = []
+            streamed_usage = {}
             current_content_index = None
             current_input_json = None
 
@@ -733,6 +750,11 @@ class ClaudeHandler(LLMHandler):
                     stream.close()
                     break
                 event_type = self._value(event, "type", "")
+                if event_type in {"message_start", "message_delta"}:
+                    source = self._value(event, "message") if event_type == "message_start" else event
+                    event_usage = self._plain(self._value(source, "usage", {}))
+                    if isinstance(event_usage, dict):
+                        streamed_usage.update({key: value for key, value in event_usage.items() if value is not None})
                 if event_type == "message_stop":
                     final_response = self._value(event, "message")
                 elif event_type == "content_block_start":
@@ -822,7 +844,7 @@ class ClaudeHandler(LLMHandler):
                 except (AttributeError, AssertionError, RuntimeError):
                     final_response = None
             if final_response is None and self.running and streamed_content:
-                final_response = {"content": streamed_content}
+                final_response = {"content": streamed_content, "usage": streamed_usage}
 
         if final_response is not None:
             result = self._response_text(final_response)
@@ -833,7 +855,7 @@ class ClaudeHandler(LLMHandler):
 
         if thinking_open:
             visible += "</think>"
-        return visible.strip()
+        return LLMResponse(visible.strip())
 
     @staticmethod
     def get_extra_requirements() -> list:

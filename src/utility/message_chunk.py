@@ -330,6 +330,28 @@ def process_text_segment(text: str, allow_latex: bool) -> List[MessageChunk]:
 # Tool Call Parsing Logic
 # ============================================================
 
+def normalize_tool_arguments(arguments: Any) -> dict:
+    """Coerce tool-call arguments into a mapping for ``**`` unpacking.
+
+    Models often emit an empty string (or a JSON string) for parameterless
+    tools whose schema is ``{"type": "object", "properties": {}}``. Those
+    values must become ``{}`` before ``Tool.execute(**arguments)``.
+    """
+    if arguments is None:
+        return {}
+    if isinstance(arguments, str):
+        stripped = arguments.strip()
+        if not stripped:
+            return {}
+        try:
+            arguments = json.loads(stripped)
+        except (json.JSONDecodeError, ValueError, TypeError):
+            return {}
+    if isinstance(arguments, dict):
+        return arguments
+    return {}
+
+
 def parse_potential_tool_json(text: str) -> Optional[dict]:
     """
     Attempts to parse text as a JSON tool call. 
@@ -375,7 +397,9 @@ def find_tool_calls(text: str) -> List[MessageChunk]:
                     tool_obj = parse_potential_tool_json(candidate)
                     if tool_obj:
                         tool_name = tool_obj.get("name", tool_obj.get("tool", tool_obj.get("function")))
-                        tool_args = tool_obj.get("arguments", tool_obj.get("arguements", tool_obj.get("parameters", {})))
+                        tool_args = normalize_tool_arguments(
+                            tool_obj.get("arguments", tool_obj.get("arguements", tool_obj.get("parameters", {})))
+                        )
                         
                         chunks.append(MessageChunk(
                             type="tool_call",
@@ -393,7 +417,9 @@ def find_tool_calls(text: str) -> List[MessageChunk]:
             tool_obj = parse_potential_tool_json(candidate)
             if tool_obj:
                 tool_name = tool_obj.get("name", tool_obj.get("tool", tool_obj.get("function")))
-                tool_args = tool_obj.get("arguments", tool_obj.get("arguements", tool_obj.get("parameters", {})))
+                tool_args = normalize_tool_arguments(
+                    tool_obj.get("arguments", tool_obj.get("arguements", tool_obj.get("parameters", {})))
+                )
                 
                 chunks.append(MessageChunk(
                     type="tool_call",
@@ -482,7 +508,9 @@ def get_message_chunks(message: str, allow_latex: bool = True) -> List[MessageCh
                 tool_obj = parse_potential_tool_json(code_content)
                 if tool_obj:
                     tool_name = tool_obj.get("name", tool_obj.get("tool", tool_obj.get("function", "unknown")))
-                    tool_args = tool_obj.get("arguments", tool_obj.get("arguements", tool_obj.get("parameters", {})))
+                    tool_args = normalize_tool_arguments(
+                        tool_obj.get("arguments", tool_obj.get("arguements", tool_obj.get("parameters", {})))
+                    )
                     flat_chunks.append(MessageChunk(
                         type="tool_call",
                         text=code_content,

@@ -4,6 +4,8 @@ import threading
 import json
 from gi.repository import GLib
 
+from .utility.message_chunk import normalize_tool_arguments
+
 
 class InteractionOption:
     def __init__(self, title:str, callback) -> None:
@@ -230,7 +232,7 @@ class ToolRegistry:
         tool = self.get_tool(name)
         if not tool:
             raise ValueError(f"Tool '{name}' not found")
-        return tool.execute(**arguments)
+        return tool.execute(**normalize_tool_arguments(arguments))
     
     def get_tool_schema(self, tool_name: str) -> str:
         """Return the full JSON schema definition for a single tool.

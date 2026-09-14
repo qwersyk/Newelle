@@ -1,21 +1,47 @@
+import base64
+import fnmatch
 import gettext
 import hashlib
 import json
+import os
 import re
 import time
 
-from .media import extract_image, get_image_base64
+from .media import (
+    extract_image,
+    extract_audio,
+    get_file_base64,
+    get_image_base64,
+    prepare_file_message,
+    prepare_audio_message,
+    save_api_attachment,
+    video_frame_content,
+)
 
 _ = gettext.gettext
 
 
-class _ResponseText(str):
-    """A normal string carrying JSON-safe provider state for its chat message."""
+class LLMResponse(str):
+    """Generated text with optional JSON-safe provider state and usage.
 
-    def __new__(cls, value: str, response_metadata: dict | None = None):
+    Usage contains provider-reported counts such as input_tokens, output_tokens,
+    cache_read_tokens and cache_write_tokens. Input totals include cached tokens;
+    output totals include reasoning tokens, when reported separately by providers.
+    Cache and reasoning counts are breakdowns, not additions to those totals.
+    Omit unknown counts; zero means
+    a measured zero. Read attributes before string operations, which return
+    plain strings. Streaming handlers attach usage to their final return value.
+    """
+
+    def __new__(cls, value: str, response_metadata: dict | None = None, *, usage: dict | None = None):
         result = super().__new__(cls, value)
         result.response_metadata = response_metadata
+        result.usage = dict(usage) if usage is not None else None
         return result
+
+
+# Keep legacy imports, positional construction and persisted references working.
+_ResponseText = LLMResponse
 
 
 def _normalize_arguments_for_id(arguments) -> str:
@@ -217,6 +243,40 @@ def convert_messages_openai_to_newelle(messages: list) -> tuple[str, list[dict],
             name = getattr(msg, "name", None)
         if content is None:
             content = ""
+        if isinstance(content, list):
+            parts = []
+            for item in content:
+                if not isinstance(item, dict):
+                    raise TypeError(_("Content parts must be objects"))
+                kind = item.get("type")
+                if kind in ("text", "input_text"):
+                    if not isinstance(item.get("text"), str):
+                        raise ValueError(_("Text content must be a string"))
+                    parts.append(item["text"])
+                elif role == "user" and kind in ("image_url", "video_url", "input_image"):
+                    value = item.get("image_url" if kind == "input_image" else kind)
+                    url = value.get("url") if isinstance(value, dict) else value
+                    if not isinstance(url, str):
+                        raise ValueError(_("Attachment URL is required"))
+                    lang = "video" if kind == "video_url" else "image"
+                    path = save_api_attachment(url, lang, remote=True)
+                    parts.append(f"```{lang}\n{path}\n```")
+                elif role == "user" and kind in ("file", "input_file"):
+                    file = item.get("file", {}) if kind == "file" else item
+                    if not isinstance(file, dict):
+                        raise ValueError(_("File content must be an object"))
+                    data = file.get("file_data") or file.get("file_url")
+                    if not isinstance(data, str):
+                        raise ValueError(_("File inputs require file_data or file_url; file IDs are not supported"))
+                    processing = file.get("processing", "auto")
+                    if processing not in ("auto", "direct", "rag"):
+                        raise ValueError(_("File processing must be auto, direct or rag"))
+                    path = save_api_attachment(data, file.get("filename") or "attachment", remote=bool(file.get("file_url")))
+                    lang = {"auto": "file", "direct": "file_direct", "rag": "file_rag"}[processing]
+                    parts.append(f"```{lang}\n{path}\n```")
+                else:
+                    raise ValueError(_("Unsupported content part: {0}").format(kind))
+            content = "\n".join(parts)
 
         if role == "system":
             system_prompt.append(content)
@@ -379,7 +439,7 @@ def extract_tools_from_prompts(prompts: list[str], remove_tool_prompt: bool = Tr
                 new_prompts.append(prompt)
     return tools_json, new_prompts
 
-def convert_history_openai(history: list, prompts: list, vision_support : bool = False, native_tool_calling: bool = True, keep_reasoning_content: bool = True):
+def convert_history_openai(history: list, prompts: list, vision_support : bool = False, native_tool_calling: bool = True, keep_reasoning_content: bool = True, supported_files: list | None = None, video_support: bool = False, video_mode: str = "native", audio_support: bool = False):
     """Converts Newelle history into OpenAI format
 
     Args:
@@ -387,6 +447,9 @@ def convert_history_openai(history: list, prompts: list, vision_support : bool =
         prompts (list): list of prompts 
         vision_support (bool): True if vision support
         keep_reasoning_content (bool): If to extract and keep reasoning_content variable
+        supported_files (list): Filename patterns accepted as file inputs
+        video_support (bool): Whether to encode video attachments
+        video_mode (str): "native" for video_url, "frames" for image sampling
 
     Returns:
        history in openai format 
@@ -396,6 +459,19 @@ def convert_history_openai(history: list, prompts: list, vision_support : bool =
         result.append({"role": "system", "content": "\n".join(prompts)})
     
     for msg_idx, message in enumerate(history):
+        if message.get("User") == "User":
+            message = {**message, "Message": prepare_audio_message(message.get("Message", ""), audio_support)}
+        audio_path, audio_caption = extract_audio(message.get("Message", ""))
+        if audio_path and audio_support and message.get("User") == "User":
+            with open(audio_path, "rb") as recording:
+                data = base64.b64encode(recording.read()).decode("ascii")
+            content = [{"type": "input_audio", "input_audio": {"data": data, "format": "wav"}}]
+            if audio_caption.strip():
+                content.insert(0, {"type": "text", "text": audio_caption})
+            result.append({"role": "user", "content": content})
+            continue
+        if message.get("User") == "User":
+            message = {**message, "Message": prepare_file_message(message["Message"])}
         if message["User"] == "Console":
             parsed = parse_tool_console_message(message["Message"]) if native_tool_calling else None
             if parsed is not None:
@@ -425,6 +501,46 @@ def convert_history_openai(history: list, prompts: list, vision_support : bool =
                         ast_msg["reasoning_content"] = message["Reasoning"]
                         print(ast_msg)
                     result.append(ast_msg)
+                    continue
+
+            if message["User"] == "User" and (supported_files or video_support):
+                content = []
+                text = message["Message"]
+                cursor = 0
+                # Match all fenced blocks so attachment-like text inside an
+                # ordinary code block remains untouched.
+                for block in re.finditer(r"```(\w*)[^\S\n]*\n(.*?)\n```", text, re.DOTALL):
+                    lang, body = block.group(1).lower(), block.group(2)
+                    enabled = (lang == "image" and vision_support) or (lang == "video" and video_support) or (lang == "file" and supported_files)
+                    if not enabled:
+                        continue
+                    attachments = []
+                    for path in body.splitlines():
+                        path = path.strip()
+                        if not path or path.startswith("#"):
+                            continue
+                        if lang == "image":
+                            attachments.append({"type": "image_url", "image_url": {"url": get_image_base64(path)}})
+                        elif lang == "video":
+                            if video_mode == "frames":
+                                attachments.extend(video_frame_content(path))
+                            else:
+                                url = path if path.startswith(("https://", "http://")) else get_file_base64(path)
+                                attachments.append({"type": "video_url", "video_url": {"url": url}})
+                        elif any(fnmatch.fnmatch(path.lower(), pattern.lower()) for pattern in supported_files):
+                            attachments.append({"type": "file", "file": {"filename": os.path.basename(path), "file_data": get_file_base64(path)}})
+                        else:
+                            attachments.append({"type": "text", "text": f"```file\n{path}\n```"})
+                    if not attachments:
+                        continue
+                    if block.start() > cursor:
+                        content.append({"type": "text", "text": text[cursor:block.start()]})
+                    content.extend(attachments)
+                    cursor = block.end()
+                if content:
+                    if cursor < len(text):
+                        content.append({"type": "text", "text": text[cursor:]})
+                    result.append({"role": "user", "content": content})
                     continue
 
             image, text = extract_image(message["Message"])

@@ -640,7 +640,6 @@ class WhisperCPPHandler(STTHandler):
         self.stop_build_button = Gtk.Button(label="Stop Build")
         self.stop_build_button.add_css_class("destructive-action")
         self.stop_build_button.set_halign(Gtk.Align.CENTER)
-        self.stop_build_button.set_sensitive(False)
         self.stop_build_button.connect("clicked", self.stop_build)
         page3.append(self.stop_build_button)
         content.append(page3)
@@ -669,7 +668,6 @@ class WhisperCPPHandler(STTHandler):
         custom_flags = self.entry_cmake.get_text()
 
         self._build_process.begin()
-        self.stop_build_button.set_sensitive(True)
         carousel.scroll_to(carousel.get_nth_page(2), True)
         threading.Thread(
             target=self.run_install_process,
@@ -680,10 +678,7 @@ class WhisperCPPHandler(STTHandler):
     def stop_build(self, button=None):
         """Stop the active whisper.cpp source build."""
         self._build_process.cancel()
-        if button is None:
-            button = getattr(self, "stop_build_button", None)
-        if button is not None:
-            button.set_sensitive(False)
+        self._close_build_window()
 
     def _close_build_window(self):
         window = getattr(self, "_build_window", None)
@@ -820,11 +815,6 @@ class WhisperCPPHandler(STTHandler):
             GLib.idle_add(append_log, f"\nError: {e}\n")
             import traceback
             GLib.idle_add(append_log, traceback.format_exc())
-        finally:
-            GLib.idle_add(
-                lambda: self.stop_build_button.set_sensitive(False)
-                if hasattr(self, "stop_build_button") else False
-            )
 
     def finish_install(self, win):
         win.close()

@@ -5,10 +5,10 @@ import xml.dom.minidom
 import json
 from gi.repository import GLib
 import tiktoken
-from .media import extract_file, extract_image, extract_video
+from .media import extract_file, extract_image, extract_video, audio_text
 
 def clean_prompt(prompt: str) -> str:
-    prompt = remove_thinking_blocks(prompt)
+    prompt = audio_text(remove_thinking_blocks(prompt))
     _, message = extract_file(prompt)
     _, message = extract_image(message)
     _, message = extract_video(message)
@@ -412,18 +412,26 @@ def extract_reasoning_content(message):
     return None, message.strip()
 
 def remove_thinking_blocks(text):
-  """
-  Removes <think>...</think> blocks from a given text using regular expressions.
+    """Remove complete and currently-streaming ``<think>`` blocks.
 
-  Args:
-    text: The input text string.
-
-  Returns:
-    The text string with all <think>...</think> blocks removed.
-  """
-  pattern = r"<think>.*?</think>"  # Non-greedy match
-  cleaned_text = re.sub(pattern, "", text, flags=re.DOTALL) # flags=re.DOTALL allows . to match newline characters
-  return cleaned_text
+    LLM streaming callbacks often receive an opening tag before its closing tag.
+    Treat that unfinished trailing block as private reasoning as well so it is not
+    rendered in live status text or sent to text-to-speech.
+    """
+    complete_block = r"<think\b[^>]*>.*?</think\s*>"
+    text = re.sub(
+        complete_block,
+        "",
+        text,
+        flags=re.DOTALL | re.IGNORECASE,
+    )
+    unfinished_block = r"<think\b[^>]*>.*\Z"
+    return re.sub(
+        unfinished_block,
+        "",
+        text,
+        flags=re.DOTALL | re.IGNORECASE,
+    )
 
 def get_edited_messages(history: list, old_history: list) -> list | None:
     """Get the edited messages from the history

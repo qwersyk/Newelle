@@ -37,7 +37,8 @@ class WakewordDetector:
     def __init__(self, stt_handler, wakeword, vad_aggressiveness=1,
                  pre_buffer_duration=0.5, silence_duration=0.5, energy_threshold=500, callback=None,
                  on_speech_started=None, on_transcribing=None, on_transcribing_done=None,
-                 secondary_stt_handler=None, wakeword_handler=None, secondary_stt_check_duration=2.0):
+                 secondary_stt_handler=None, wakeword_handler=None, secondary_stt_check_duration=2.0, audio_callback=None,
+                 activation_callback=None):
         """Initialize wakeword detector
 
         Args:
@@ -54,6 +55,7 @@ class WakewordDetector:
             secondary_stt_handler: Optional secondary STTHandler for quick wakeword check (secondary-stt mode)
             wakeword_handler: Optional specialized wakeword detection handler (openwakeword mode)
             secondary_stt_check_duration: Seconds of audio to check with secondary STT (default 2.0)
+            activation_callback: Optional main-loop callback to activate voice mode without transcribing a command
         """
         if not DEPENDENCIES_AVAILABLE:
             raise ImportError("pysilero-vad, pyaudio, or numpy not available")
@@ -69,6 +71,8 @@ class WakewordDetector:
         self.energy_threshold = energy_threshold
         self.callback = callback
         self.on_speech_started = on_speech_started
+        self.audio_callback = audio_callback
+        self.activation_callback = activation_callback
         self.on_transcribing = on_transcribing
         self.on_transcribing_done = on_transcribing_done
 
@@ -340,6 +344,12 @@ class WakewordDetector:
                         print(f"WakewordDetector: Wakeword handler detected: '{result_lower}'")
 
                 if wakeword_detected:
+                    if self.activation_callback:
+                        GLib.idle_add(self.activation_callback)
+                        return
+                    if self.audio_callback:
+                        self.audio_callback(temp_file_path)
+                        return
                     print(f"WakewordDetector: Wakeword found, transcribing full audio with primary STT")
                     result = self._transcribe_audio(temp_file_path)
                     if result:
@@ -366,6 +376,7 @@ class WakewordDetector:
                 if not self._save_to_wav(check_frames, temp_file_secondary):
                     # Fall back to normal workflow if secondary fails
                     self.secondary_stt_handler = None
+                    result = self._transcribe_audio(temp_file_path)
                 else:
                     # Transcribe with secondary STT
                     print(f"WakewordDetector: Checking first {self.secondary_stt_check_duration}s with secondary STT")
@@ -383,6 +394,12 @@ class WakewordDetector:
 
                     # Only transcribe full audio if wakeword was detected
                     if wakeword_detected:
+                        if self.activation_callback:
+                            GLib.idle_add(self.activation_callback)
+                            return
+                        if self.audio_callback:
+                            self.audio_callback(temp_file_path)
+                            return
                         print(f"WakewordDetector: Wakeword found, transcribing full audio with primary STT")
                         result = self._transcribe_audio(temp_file_path)
                     else:
@@ -402,6 +419,12 @@ class WakewordDetector:
                         break
 
                 if matched_wakeword:
+                    if self.activation_callback:
+                        GLib.idle_add(self.activation_callback)
+                        return
+                    if self.audio_callback:
+                        self.audio_callback(temp_file_path)
+                        return
                     # Remove matched wakeword from text
                     command = result_lower.replace(matched_wakeword, "").strip()
 

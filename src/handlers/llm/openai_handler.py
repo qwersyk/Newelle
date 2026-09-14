@@ -9,7 +9,7 @@ _ = gettext.gettext
 
 from .llm import LLMHandler
 from ...utility.system import open_website
-from ...utility import _ResponseText, convert_history_openai, get_streaming_extra_setting, extract_tools_from_prompts, balance_native_tool_call_responses, parse_assistant_native_tool_calls, parse_tool_console_message
+from ...utility import LLMResponse, convert_history_openai, get_streaming_extra_setting, extract_tools_from_prompts, balance_native_tool_call_responses, parse_assistant_native_tool_calls, parse_tool_console_message
 from ...handlers import ExtraSettings, ErrorSeverity
 
 
@@ -65,8 +65,29 @@ class OpenAIHandler(LLMHandler):
     def get_extra_requirements() -> list:
         return ["openai"]
 
+    def supports_audio(self) -> bool:
+        return bool(self.get_setting("audio_input", False, False)) and not self.uses_responses_api()
+
     def supports_vision(self) -> bool:
         return True
+
+    def supports_video_vision(self) -> bool:
+        return self.supports_vision()
+
+    def get_supported_files(self) -> list[str]:
+        if not self.supports_vision():
+            return []
+        return ["*.pdf", "*.txt", "*.md", "*.json", "*.html", "*.xml",
+                "*.doc", "*.docx", "*.rtf", "*.odt", "*.ppt", "*.pptx",
+                "*.csv", "*.tsv", "*.xls", "*.xlsx"]
+
+    def get_video_mode(self) -> str:
+        # OpenAI's endpoints accept images, while compatible providers may
+        # implement the video_url extension to Chat Completions.
+        endpoint = self.get_setting("endpoint", False, "https://api.openai.com/v1") or ""
+        from urllib.parse import urlparse
+        default = "frames" if urlparse(endpoint).hostname == "api.openai.com" or self.uses_responses_api() else "native"
+        return self.get_setting("video_mode", False, default)
 
     def get_extra_settings(self) -> list:
         settings = self.build_extra_settings("OpenAI", True, True, True, True, True, "https://openai.com/policies/row-privacy-policy/", None, False, False, True, self.supports_thinking(), True, supports_custom_headers=True)
@@ -78,6 +99,12 @@ class OpenAIHandler(LLMHandler):
                 False,
             )
         )
+        settings.append(ExtraSettings.ComboSetting(
+            "video_mode", _("Video Input"),
+            _("Send videos natively to compatible providers, or sample up to 16 frames using ffmpeg (without audio). OpenAI requires frames."),
+            ((_("Video URL"), "native"), (_("Sample Frames"), "frames")),
+            self.get_video_mode(),
+        ))
         return settings
 
     def get_duplication_settings(self) -> list[dict] | None:
@@ -95,7 +122,7 @@ class OpenAIHandler(LLMHandler):
             )
         ]
 
-    def build_extra_settings(self, provider_name: str, has_api_key: bool, has_stream_settings: bool, endpoint_change: bool, allow_advanced_params: bool, supports_automatic_models: bool, privacy_notice_url : str | None, model_list_url: str | None, default_advanced_params: bool = False, default_automatic_models: bool = False, supports_custom_body : bool = False, supports_thinking: bool = False, supports_tool_calling: bool = True, has_tool_calling_option: bool = True, supports_custom_headers: bool = False) -> list:
+    def build_extra_settings(self, provider_name: str, has_api_key: bool, has_stream_settings: bool, endpoint_change: bool, allow_advanced_params: bool, supports_automatic_models: bool, privacy_notice_url : str | None, model_list_url: str | None, default_advanced_params: bool = False, default_automatic_models: bool = False, supports_custom_body : bool = False, supports_thinking: bool = False, supports_tool_calling: bool = True, has_tool_calling_option: bool = True, supports_custom_headers: bool = False, has_audio_input_option: bool = True) -> list:
         """Helper to build the list of extra settings for OpenAI Handlers
 
         Args:
@@ -108,6 +135,7 @@ class OpenAIHandler(LLMHandler):
             privacy_notice_url: the url of the privacy policy, None if not stated
             model_list_url: human accessible page that lists the available models
             supports_thinking: if to show thinking mode and effort settings
+            has_audio_input_option: if to show the audio input capability toggle
 
         Returns:
             list containing the extra settings
@@ -200,6 +228,11 @@ class OpenAIHandler(LLMHandler):
             settings += [
                 ExtraSettings.ToggleSetting("native_tool_calling", _("Native Tool Calling"), _("Enable native tool calling (Will use API's tool calling formatting instead of Newelle's. Disable only if you have issues with tool calling or the model you are using does not support it natively)"), supports_tool_calling)
             ]
+        if has_audio_input_option:
+            settings.append(ExtraSettings.ToggleSetting(
+                "audio_input", _("Model supports audio input"),
+                _("Enable for audio-capable Chat Completions models. Unavailable with Responses API."), False,
+            ))
         if supports_custom_body:
             settings += [custom_body]
         if supports_custom_headers:
@@ -209,7 +242,13 @@ class OpenAIHandler(LLMHandler):
     def convert_history(self, history: list, prompts: list | None = None) -> list:
         if prompts is None:
             prompts = self.prompts
-        return convert_history_openai(history, prompts, self.supports_vision(), self.get_setting("native_tool_calling", False, True))
+        return convert_history_openai(
+            history, prompts, self.supports_vision(),
+            self.get_setting("native_tool_calling", False, True),
+            audio_support=self.supports_audio(),
+            supported_files=self.get_supported_files(),
+            video_support=self.supports_video_vision(), video_mode=self.get_video_mode(),
+        )
 
     def uses_responses_api(self) -> bool:
         return self.get_setting("responses_api", False, False)
@@ -255,6 +294,10 @@ class OpenAIHandler(LLMHandler):
                             "image_url": image_url.get("url") if isinstance(image_url, dict) else image_url,
                             "detail": "auto",
                         })
+                    elif item.get("type") == "file":
+                        converted_content.append({"type": "input_file", **item["file"]})
+                    elif item.get("type") == "video_url":
+                        raise ValueError(_("The Responses API requires sampled video frames; select Sample Frames for Video Input"))
                     else:
                         converted_content.append(item)
                 content = converted_content
@@ -632,6 +675,38 @@ class OpenAIHandler(LLMHandler):
             visible.append("## Sources\n" + "\n".join(source_lines))
         return "\n\n".join(part for part in visible if part).strip()
 
+    @classmethod
+    def _response_usage(cls, response) -> dict:
+        usage = cls._value(response, "usage")
+        result = {}
+        for target, fields in {
+            "input_tokens": ("input_tokens", "prompt_tokens"),
+            "output_tokens": ("output_tokens", "completion_tokens"),
+            "total_tokens": ("total_tokens",),
+        }.items():
+            for field in fields:
+                value = cls._value(usage, field)
+                if value is not None:
+                    result[target] = value
+                    break
+        for fields, counts in (
+            (("input_tokens_details", "prompt_tokens_details"), {
+                "cached_tokens": "cache_read_tokens", "audio_tokens": "input_audio_tokens",
+            }),
+            (("output_tokens_details", "completion_tokens_details"), {
+                "reasoning_tokens": "reasoning_tokens", "audio_tokens": "output_audio_tokens",
+                "accepted_prediction_tokens": "accepted_prediction_tokens",
+                "rejected_prediction_tokens": "rejected_prediction_tokens",
+            }),
+        ):
+            for field in fields:
+                details = cls._value(usage, field)
+                for source, target in counts.items():
+                    value = cls._value(details, source)
+                    if value is not None:
+                        result[target] = value
+        return result
+
     def _response_metadata(
         self,
         response,
@@ -763,7 +838,7 @@ class OpenAIHandler(LLMHandler):
         if content and content != previous_preview:
             on_update(content, *tuple(extra_args))
         if cancelled or completed_response is None:
-            return content
+            return LLMResponse(content)
         metadata = self._response_metadata(
             completed_response,
             full_input,
@@ -771,7 +846,7 @@ class OpenAIHandler(LLMHandler):
             output,
             store,
         )
-        return _ResponseText(content, metadata)
+        return LLMResponse(content, metadata, usage=self._response_usage(completed_response))
 
     @staticmethod
     def _encrypted_content_include(extra_body: dict) -> list:
@@ -931,8 +1006,10 @@ class OpenAIHandler(LLMHandler):
                     output,
                     store,
                 )
-                return _ResponseText(content.strip(), metadata)
+                return LLMResponse(content.strip(), metadata, usage=self._response_usage(response))
             else:
+                if self.supports_audio():
+                    kwargs["modalities"] = ["text"]
                 kwargs["messages"] = messages
                 kwargs["presence_penalty"] = presence_penalty
                 kwargs["frequency_penalty"] = frequency_penalty
@@ -946,13 +1023,19 @@ class OpenAIHandler(LLMHandler):
                 if hasattr(response.choices[0].message, "tool_calls") and response.choices[0].message.tool_calls is not None:
                     for tool_call in response.choices[0].message.tool_calls:
                         tool = tool_call.function
-                        tool_call_dict = {"tool": tool.name, "arguments": json.loads(tool.arguments) if tool.arguments else {}}
+                        try:
+                            args = json.loads(tool.arguments) if tool.arguments else {}
+                        except (json.JSONDecodeError, TypeError, ValueError):
+                            args = {}
+                        if not isinstance(args, dict):
+                            args = {}
+                        tool_call_dict = {"tool": tool.name, "arguments": args}
                         tc_id = getattr(tool_call, "id", None)
                         if tc_id:
                             tool_call_dict["id"] = tc_id
                         content += "```json\n" + json.dumps(tool_call_dict) + "\n```\n"
 
-            return content.strip()
+            return LLMResponse(content.strip(), usage=self._response_usage(response))
         except Exception as e:
             raise e
     
@@ -1022,22 +1105,27 @@ class OpenAIHandler(LLMHandler):
                     store,
                 )
             else:
+                if self.supports_audio():
+                    kwargs["modalities"] = ["text"]
                 kwargs["messages"] = messages
                 kwargs["presence_penalty"] = presence_penalty
                 kwargs["frequency_penalty"] = frequency_penalty
                 if tools_list:
                     kwargs["tools"] = tools_list
+                kwargs["stream_options"] = {"include_usage": True}
                 response = client.chat.completions.create(**kwargs)
             full_message = ""
             prev_message = ""
             is_reasoning = False
             # Track ongoing tool calls
             tool_calls = {}
+            usage = {}
 
             for chunk in response:
                 if not self.running:
                     response.close()
                     break
+                usage.update(self._response_usage(chunk))
                 if len(chunk.choices) == 0:
                     continue
                 
@@ -1092,16 +1180,18 @@ class OpenAIHandler(LLMHandler):
                 for index in sorted(tool_calls.keys()):
                     tc = tool_calls[index]
                     try:
-                        args = json.loads(tc["arguments"])
-                    except:
-                        args = tc["arguments"]
+                        args = json.loads(tc["arguments"]) if tc["arguments"] else {}
+                    except (json.JSONDecodeError, TypeError, ValueError):
+                        args = {}
+                    if not isinstance(args, dict):
+                        args = {}
                     tool_call_dict = {"tool": tc["name"], "arguments": args}
                     tid = (tc.get("id") or "").strip()
                     if tid:
                         tool_call_dict["id"] = tid
                     full_message += "\n```json\n" + json.dumps(tool_call_dict) + "\n```\n"
             
-            return full_message.strip()
+            return LLMResponse(full_message.strip(), usage=usage or None)
         except Exception as e:
             raise e
 

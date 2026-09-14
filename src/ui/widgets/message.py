@@ -1,4 +1,5 @@
 import threading
+from gettext import gettext as _
 import uuid
 import inspect
 import base64
@@ -9,7 +10,7 @@ import tempfile
 import socket
 from gi.repository import Gtk, GLib, Pango, GdkPixbuf, Gio, Gdk
 
-from ...utility.message_chunk import get_message_chunks, MessageChunk
+from ...utility.message_chunk import get_message_chunks, MessageChunk, normalize_tool_arguments
 from ...utility.source_attribution import CitationSource, extract_source_section
 from ...utility.strings import markwon_to_pango, remove_thinking_blocks, simple_markdown_to_pango, quote_string
 from pylatexenc.latex2text import LatexNodes2Text
@@ -506,7 +507,7 @@ class Message(Gtk.Box):
                 codeblocks = {**self.controller.extensionloader.codeblocks, **self.controller.integrationsloader.codeblocks}
                 if not self.streaming and new_chunk.lang in codeblocks:
                     return False
-                if new_chunk.lang in ["video", "image", "chart", "file", "folder"]: return False
+                if new_chunk.lang in ["audio", "video", "image", "chart", "file", "file_direct", "file_rag", "folder"]: return False
                 return True
             return True
         if w_type == "thinking": return True
@@ -919,12 +920,30 @@ class Message(Gtk.Box):
             box.append(think)
         elif lang == "image":
             self._process_image_codeblock(text, box)
+        elif lang == "audio":
+            for path in text.strip().splitlines():
+                box.append(Gtk.Label(label=_("Audio recording"), xalign=0))
+                media = Gtk.MediaFile.new_for_filename(path)
+                box.append(Gtk.MediaControls(media_stream=media))
+                history = self._get_chat_history()
+                if history is not None and 0 <= self.id_message < len(history.chat):
+                    status = history.chat[self.id_message].get("Audio", {}).get("status")
+                    if status in ("pending", "failed"):
+                        box.append(Gtk.Label(
+                            label=_("Transcribing…") if status == "pending" else _("Transcript unavailable"),
+                            xalign=0, css_classes=["dim-label"],
+                        ))
         elif lang == "video":
             self._process_video_codeblock(text, box)
         elif lang == "console" and not is_user:
             self._process_console_codeblock(chunk, box, state, restore)
-        elif lang in ("file", "folder"):
+        elif lang in ("file", "file_direct", "file_rag", "folder"):
             chat_history = self._get_chat_history()
+            if lang in ("file_direct", "file_rag"):
+                box.append(Gtk.Label(
+                    label=_("Sent directly to model") if lang == "file_direct" else _("Use RAG"),
+                    xalign=0, css_classes=["dim-label"],
+                ))
             for obj in text.split("\n"):
                 if obj.strip():
                      if chat_history is not None:
@@ -1327,7 +1346,7 @@ class Message(Gtk.Box):
                         return
                     chat_tab.tool_call_count += 1
                 chunk = slot.chunk if slot is not None else None
-                args = chunk.tool_args if chunk is not None else {}
+                args = normalize_tool_arguments(chunk.tool_args if chunk is not None else {})
                 active_group = current_group()
                 if active_group is not None:
                     active_group.set_slot_state(slot, "running")

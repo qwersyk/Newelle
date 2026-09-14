@@ -7,8 +7,8 @@ import os
 import uuid 
 import time 
 
-from .llm import LLMHandler
-from ...utility.media import extract_image, extract_video, extract_file
+from .llm import LLMHandler, LLMResponse
+from ...utility.media import extract_image, extract_video, extract_file, extract_audio
 from ...utility.pip import find_module
 from ...utility.system import open_website
 from ...utility import extract_tools_from_prompts, VOID_TOOL_RESULT_PLACEHOLDER
@@ -140,6 +140,9 @@ class GeminiHandler(LLMHandler):
     @staticmethod
     def get_extra_requirements() -> list:
         return ["google-genai"]
+
+    def supports_audio(self) -> bool:
+        return True
 
     def supports_vision(self) -> bool:
         return True
@@ -350,7 +353,9 @@ class GeminiHandler(LLMHandler):
         from google.genai import Client 
         client = Client(api_key=self.get_setting("apikey"))
         img = None
-        image, text = extract_image(message)
+        image, text = extract_audio(message)
+        if image is None:
+            image, text = extract_image(message)
         if image is None:
             image, text = extract_video(message)
             if image is None:
@@ -471,9 +476,23 @@ class GeminiHandler(LLMHandler):
             thinking = False
             # Collect function calls from all chunks
             pending_function_calls = []
+            usage = {}
 
             for chunk in response:
-                if chunk.candidates[0].content.parts is None:
+                metadata = getattr(chunk, "usage_metadata", None)
+                # Streaming usage is cumulative, so retain the latest reported counts.
+                for source, target in {
+                    "prompt_token_count": "input_tokens",
+                    "candidates_token_count": "output_tokens",
+                    "total_token_count": "total_tokens",
+                    "cached_content_token_count": "cache_read_tokens",
+                    "thoughts_token_count": "reasoning_tokens",
+                    "tool_use_prompt_token_count": "tool_input_tokens",
+                }.items():
+                    value = getattr(metadata, source, None)
+                    if value is not None:
+                        usage[target] = value
+                if not chunk.candidates or not chunk.candidates[0].content or not chunk.candidates[0].content.parts:
                     continue
                 for part in chunk.candidates[0].content.parts:
                     if part.inline_data:
@@ -513,6 +532,9 @@ class GeminiHandler(LLMHandler):
                     tool_call_dict = {"tool": fc.name, "arguments": dict(fc.args) if fc.args else {}}
                     full_message += "\n```json\n" + json.dumps(tool_call_dict) + "\n```\n"
 
-            return full_message.strip()
+            # Gemini reports generated thoughts separately from candidate output.
+            if "output_tokens" in usage and "reasoning_tokens" in usage:
+                usage["output_tokens"] += usage["reasoning_tokens"]
+            return LLMResponse(full_message.strip(), usage=usage or None)
         except Exception as e:
             raise Exception("Message blocked: " + str(e))

@@ -788,7 +788,7 @@ SETTINGS_GROUPS = {
         },
         "STT": {
             "title": _("STT"),
-            "settings": ["stt-engine", "stt-settings", "automatic-stt", "stt-silence-detection-threshold", "stt-silence-detection-duration"],
+            "settings": ["direct-audio-input", "audio-transcribe", "audio-transcription-timing", "stt-engine", "stt-settings", "automatic-stt", "stt-silence-detection-threshold", "stt-silence-detection-duration"],
             "description": _("Speech to Text settings"),
         },
         "Embedding": {
@@ -843,10 +843,18 @@ SETTINGS_GROUPS = {
         },
         "wakeword": {
             "title": _("Wakeword"),
-            "settings": ["wakeword-on", "wakeword-mode", "wakeword-engine", "wakeword-engine-settings", "wakeword",
+            "settings": ["wakeword-on", "wakeword-voice-mode", "wakeword-mode", "wakeword-engine", "wakeword-engine-settings", "wakeword",
                          "wakeword-pre-buffer-duration", "wakeword-silence-duration", "wakeword-energy-threshold",
                          "secondary-stt-on", "secondary-stt-engine", "stt-secondary-settings"],
             "description": _("Wakeword detection settings"),
+        },
+        "voice_mode": {
+            "title": _("Voice Mode"),
+            "settings": ["voice-mode-position", "voice-mode-margin", "voice-mode-mode",
+                         "voice-pill-theme", "voice-pill-background", "voice-pill-foreground",
+                         "voice-pill-accent", "voice-pill-opacity",
+                         "voice-mode-x11-override-dont-show"],
+            "description": _("Voice Mode pill appearance and positioning"),
         }
 
 }

@@ -1,0 +1,17 @@
+{
+    "name": "gtk4-layer-shell",
+    "buildsystem": "meson",
+    "config-opts": [
+        "-Dexamples=false",
+        "-Ddocs=false",
+        "-Dtests=false",
+        "-Dvapi=false"
+    ],
+    "sources": [
+        {
+            "type": "git",
+            "url": "https://github.com/wmww/gtk4-layer-shell.git",
+            "tag": "v1.3.0"
+        }
+    ]
+}

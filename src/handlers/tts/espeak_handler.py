@@ -33,8 +33,12 @@ class EspeakHandler(TTSHandler):
 
     def play_audio(self, message):
         self._play_lock.acquire()
-        check_output(get_spawn_command() + ["espeak", "-v" + str(self.get_current_voice()), message])
-        self._play_lock.release()
+        self._emit("start")
+        try:
+            check_output(get_spawn_command() + ["espeak", "-v" + str(self.get_current_voice()), message])
+        finally:
+            self._emit("stop")
+            self._play_lock.release()
 
     def save_audio(self, message, file):
         r = check_output(get_spawn_command() + ["espeak", "-f", "-v" + str(self.get_current_voice()), message, "--stdout"])
