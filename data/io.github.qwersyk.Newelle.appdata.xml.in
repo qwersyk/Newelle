@@ -48,6 +48,24 @@
 	<url type="bugtracker">https://github.com/qwersyk/Newelle/issues</url>
 	<content_rating type="oars-1.0" />
 	<releases>
+	    <release version="1.5.2" date="2026-09-16">
+            <description>
+                <ul>
+                  <li>Add voice pill: launch Newelle with <code>newelle --voice</code> to show a pill for fast voice interaction (Experimental)</li>
+                  <li>Fix no-argument tool calls failing when arguments is an empty string</li>
+                  <li>Fix Anima image model not loading</li>
+                  <li>Allow adding MCP servers by pasting their JSON</li>
+                  <li>Add the option to manually add scheduled tasks</li>
+                  <li>Fix generate_image tool failing on custom OpenAI-compatible servers due to a hardcoded model name</li>
+                  <li>Fix OpenAIEmbeddingHandler.get_embedding_size() returning the wrong dimension, breaking FAISS index creation</li>
+                  <li>Add more statistics like caches and time to first token</li>
+                  <li>Fix building llama.cpp freezing when there is no internet connection</li>
+                  <li>Add support for screen recording anywhere on Linux, instead of only on GNOME</li>
+                  <li>Add support for video input / audio input / file input for OpenAI-compatible providers</li>
+                  <li>Add support for choosing whether to use RAG or CAG for OpenAI-compatible providers</li>
+                </ul>
+            </description>
+        </release>
         <release version="1.5.1" date="2026-08-25">
             <description>
                 <ul>
