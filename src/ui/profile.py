@@ -159,16 +159,52 @@ class ProfileDialog(Adw.PreferencesDialog):
         
     def build_settings_group(self, edit=False):
         self.settings_switches = {}
+        self._updating_settings_switches = False
+
+        self.select_all_switch = Gtk.Switch(valign=Gtk.Align.CENTER)
+        self.select_all_row = Adw.ActionRow(
+            title=_("All Settings"),
+            subtitle=_("Enable or disable every settings group"),
+            vexpand=False,
+        )
+        self.select_all_row.add_suffix(self.select_all_switch)
+        self.select_all_row.set_activatable_widget(self.select_all_switch)
+        self.settings_row.add_row(self.select_all_row)
+
         for setting, group in SETTINGS_GROUPS.items():
             toggle = Gtk.Switch(valign=Gtk.Align.CENTER)
             if edit:
                 toggle.set_active(setting in self.profile_settings[self.profile_name].get("settings_groups",[]))     
             else:
                 toggle.set_active(True)
+            toggle.connect("notify::active", self.on_setting_switch_toggled)
             row = Adw.ActionRow(title=group["title"], subtitle=group["description"], vexpand=False)
             row.add_suffix(toggle)
             self.settings_row.add_row(row)
             self.settings_switches[setting] = toggle
+
+        self.select_all_switch.connect("notify::active", self.on_toggle_all_settings)
+        self._sync_select_all_switch()
+
+    def on_toggle_all_settings(self, switch, _pspec):
+        if self._updating_settings_switches:
+            return
+        self._updating_settings_switches = True
+        active = switch.get_active()
+        for toggle in self.settings_switches.values():
+            toggle.set_active(active)
+        self._updating_settings_switches = False
+
+    def on_setting_switch_toggled(self, switch, _pspec):
+        if self._updating_settings_switches:
+            return
+        self._sync_select_all_switch()
+
+    def _sync_select_all_switch(self):
+        all_active = all(toggle.get_active() for toggle in self.settings_switches.values()) if self.settings_switches else False
+        self._updating_settings_switches = True
+        self.select_all_switch.set_active(all_active)
+        self._updating_settings_switches = False
 
     def on_profile_name_changed(self, entry):
         """Updates the avatar text when the profile name changes."""
