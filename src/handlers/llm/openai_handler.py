@@ -15,6 +15,7 @@ from ...handlers import ExtraSettings, ErrorSeverity
 
 class OpenAIHandler(LLMHandler):
     key = "openai"
+    default_send_reasoning = False
     default_models = (("gpt-5.6-luna", "gpt-5.6-luna"), )
     RESPONSE_STATE_KEY = "OpenAIResponse"
     RESPONSE_STATE_VERSION = 1
@@ -233,6 +234,11 @@ class OpenAIHandler(LLMHandler):
                 "audio_input", _("Model supports audio input"),
                 _("Enable for audio-capable Chat Completions models. Unavailable with Responses API."), False,
             ))
+        settings.append(ExtraSettings.ToggleSetting(
+            "send_reasoning", _("Send Reasoning History"),
+            _("Include reasoning_content in Chat Completions history. Enable only if your provider requires it; some providers reject this field."),
+            self.default_send_reasoning,
+        ))
         if supports_custom_body:
             settings += [custom_body]
         if supports_custom_headers:
@@ -245,6 +251,7 @@ class OpenAIHandler(LLMHandler):
         return convert_history_openai(
             history, prompts, self.supports_vision(),
             self.get_setting("native_tool_calling", False, True),
+            keep_reasoning_content=self.get_setting("send_reasoning", False, self.default_send_reasoning),
             audio_support=self.supports_audio(),
             supported_files=self.get_supported_files(),
             video_support=self.supports_video_vision(), video_mode=self.get_video_mode(),
