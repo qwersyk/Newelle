@@ -461,6 +461,21 @@ class MainWindow(WorkspaceWindow, Adw.ApplicationWindow):
             (_("Start Call"), "call-start-symbolic", self.start_call_tab),
             (_("Image Generator"), "insert-image-symbolic", self.add_image_generator_tab),
         ]
+        memory = self.controller.handlers.memory
+        if memory is not None and memory.has_mini_app():
+            # Construct the widget only after the user selects the menu item.
+            def add_memory_tab(*_args):
+                mini_app = memory.get_mini_app()
+                if mini_app is None:
+                    return None
+                tab = self.canvas_tabs.append(mini_app)
+                tab.set_title(_(memory.get_mini_app_title()))
+                tab.set_icon(Gio.ThemedIcon(name=memory.get_mini_app_icon()))
+                self.canvas_tabs.set_selected_page(tab)
+                self.show_sidebar()
+                return tab
+
+            menu_entries.append((_(memory.get_mini_app_title()), memory.get_mini_app_icon(), add_memory_tab))
         menu_entries += self.controller.integrationsloader.get_add_tab_buttons()
         menu_entries += self.extensionloader.get_add_tab_buttons()
         
