@@ -203,8 +203,6 @@ embedding_sources = [
 memory_sources = [  
   'handlers/memory/__init__.py',
   'handlers/memory/memory_handler.py',
-  'handlers/memory/memoripy_handler.py',
-  'handlers/memory/summary_memoripy_handler.py',
   'handlers/memory/user_summary_handler.py',
   'handlers/memory/llamaindex_memory_handler.py',
   'handlers/memory/agentic_memory_handler.py'
