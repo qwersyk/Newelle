@@ -1076,6 +1076,27 @@ class NewelleController(WorkspaceController):
                 self.reload(r)
         return reload
 
+    def apply_memory_settings(self) -> bool:
+        """Apply a memory enable/provider change right away.
+
+        The rest of the pending settings are still applied by update_settings.
+
+        Returns:
+            True if the memory state changed
+        """
+        memory_on = self.settings.get_boolean("memory-on")
+        memory_model = self.settings.get_string("memory-model")
+        current = self.newelle_settings
+        if current.memory_on == memory_on and current.memory_model == memory_model:
+            return False
+        model_changed = current.memory_model != memory_model
+        current.memory_on = memory_on
+        current.memory_model = memory_model
+        if model_changed:
+            self.handlers.select_handlers(current)
+        self.require_tool_update()
+        return True
+
     def close_application(self):
         self.stop_scheduler()
         self.handlers.destroy()
