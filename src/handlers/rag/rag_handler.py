@@ -6,6 +6,34 @@ from ...tools import create_io_tool
 from abc import abstractmethod
 import os
 
+
+class RAGRecord:
+    """A standalone text indexed under a stable id (it is never chunked)."""
+    __slots__ = ("id", "text")
+
+    def __init__(self, id: str, text: str):
+        self.id = id
+        self.text = text
+
+
+class RAGResult:
+    """A scored match from a record index.
+
+    similarity: cosine similarity of the vector match (None if unknown)
+    bm25: BM25 score normalized to 0-1 over the returned results (None if unknown)
+    relevance: combined 0-1 relevance; None when the index can only rank results
+    """
+    __slots__ = ("id", "text", "similarity", "bm25", "relevance")
+
+    def __init__(self, id: str, text: str, similarity: float | None = None,
+                 bm25: float | None = None, relevance: float | None = None):
+        self.id = id
+        self.text = text
+        self.similarity = similarity
+        self.bm25 = bm25
+        self.relevance = relevance
+
+
 class RAGIndex:
     def __init__(self):
         self.documents = []
@@ -98,6 +126,75 @@ class RAGIndex:
         """
         pass
 
+    def insert_records(self, records: list[RAGRecord]):
+        """Add id-addressable records to the index"""
+        self.insert(["text:" + record.text for record in records])
+
+    def get_record_ids(self) -> list[str]:
+        """Return the ids of the records stored in the index"""
+        return []
+
+    def query_scored(self, query: str, top_k: int) -> list[RAGResult]:
+        """Query the index returning scored records.
+
+        The default implementation only knows the result texts, so ids are empty
+        and scores are None.
+        """
+        return [RAGResult("", text) for text in self.query(query)[:top_k]]
+
+
+class GenericRecordIndex(RAGIndex):
+    """Record index built on top of any text-only RAGIndex.
+
+    Used by RAG handlers that do not implement build_record_index natively. Results
+    are mapped back to record ids by text containment, and are only ranked.
+    """
+
+    def __init__(self, handler, records: list[RAGRecord]):
+        super().__init__()
+        self.handler = handler
+        self.records: dict[str, str] = {}
+        self.inner: RAGIndex | None = None
+        self.insert_records(records)
+
+    def insert_records(self, records: list[RAGRecord]):
+        if not records:
+            return
+        for record in records:
+            self.records[record.id] = record.text
+        documents = ["text:" + record.text for record in records]
+        if self.inner is None:
+            self.inner = self.handler.build_index(documents)
+        else:
+            self.inner.insert(documents)
+
+    def get_record_ids(self) -> list[str]:
+        return list(self.records.keys())
+
+    def get_index_size(self):
+        return len(self.records)
+
+    def get_all_contexts(self) -> list[str]:
+        return list(self.records.values())
+
+    def query(self, query: str) -> list[str]:
+        return [result.text for result in self.query_scored(query, 5)]
+
+    def query_scored(self, query: str, top_k: int) -> list[RAGResult]:
+        if self.inner is None:
+            return []
+        results = []
+        seen = set()
+        for context in self.inner.query(query):
+            for record_id, text in self.records.items():
+                if record_id not in seen and text.strip() and text.strip() in context:
+                    seen.add(record_id)
+                    results.append(RAGResult(record_id, text))
+                    break
+            if len(results) >= top_k:
+                break
+        return results
+
 
 class RAGHandler(Handler):
     key = ""
@@ -187,6 +284,26 @@ class RAGHandler(Handler):
     @abstractmethod
     def build_index(self, documents: list[str], chunk_size: int|None = None) -> RAGIndex:
        pass
+
+    def build_record_index(self, records: list[RAGRecord], embedding: EmbeddingHandler | None = None) -> RAGIndex:
+        """Build an index of short, id-addressable records (e.g. memories).
+
+        Records are indexed as single units without chunking. Handlers should
+        override this to provide real similarity scores in query_scored.
+
+        Args:
+            records: records to index
+            embedding: embedding handler to use, defaults to the one of the RAG handler
+        """
+        return GenericRecordIndex(self, records)
+
+    def load_record_index(self, path: str, embedding: EmbeddingHandler | None = None) -> RAGIndex | None:
+        """Load a record index persisted with RAGIndex.persist.
+
+        Returns:
+            The loaded index, or None if persistence is not supported or nothing is saved
+        """
+        return None
 
     @abstractmethod 
     def index_exists(self) -> bool:

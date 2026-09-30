@@ -117,6 +117,7 @@ widgets_sources = [
   'ui/widgets/tool.py',
   'ui/widgets/skill.py',
   'ui/widgets/skill_editor_mini_app.py',
+  'ui/widgets/memory_mini_app.py',
   'ui/widgets/subagent.py',
   'ui/widgets/scheduled_task.py',
   'ui/widgets/status.py',
@@ -205,7 +206,9 @@ memory_sources = [
   'handlers/memory/memory_handler.py',
   'handlers/memory/user_summary_handler.py',
   'handlers/memory/llamaindex_memory_handler.py',
-  'handlers/memory/agentic_memory_handler.py'
+  'handlers/memory/agentic_memory_handler.py',
+  'handlers/memory/memory_store.py',
+  'handlers/memory/long_term_memory_handler.py',
 ]
 
 rag_sources = [  

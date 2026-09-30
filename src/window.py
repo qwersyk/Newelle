@@ -428,6 +428,9 @@ class MainWindow(WorkspaceWindow, Adw.ApplicationWindow):
         box.append(icon)
         self.new_tab_button.set_child(box)
         self.refresh_add_tab_menu()
+        self._memory_menu_source = None
+        for key in ("changed::memory-on", "changed::memory-model"):
+            self.settings.connect(key, self._on_memory_setting_changed)
        
         # Detach tab button 
         self.detach_tab_button = Gtk.Button(css_classes=["flat"], icon_name="detach-symbolic")
@@ -451,6 +454,22 @@ class MainWindow(WorkspaceWindow, Adw.ApplicationWindow):
         self.main_program_block.set_sidebar(self.canvas_box)
         self.main_program_block.set_name("hide")
 
+    def _on_memory_setting_changed(self, *_args):
+        # Both keys can change together (e.g. profile switch): apply them once
+        if self._memory_menu_source is None:
+            self._memory_menu_source = GLib.idle_add(self._apply_memory_setting_change)
+
+    def _apply_memory_setting_change(self):
+        self._memory_menu_source = None
+        try:
+            self.controller.apply_memory_settings()
+        except Exception as e:
+            print(f"Error applying memory settings: {e}")
+        self.memory_on = self.controller.newelle_settings.memory_on
+        self.memory_handler = self.controller.handlers.memory
+        self.refresh_add_tab_menu()
+        return False
+
     def refresh_add_tab_menu(self):
         """Rebuild the add-tab popover after mini-app extensions change."""
         self.extensionloader = self.controller.extensionloader
@@ -462,7 +481,7 @@ class MainWindow(WorkspaceWindow, Adw.ApplicationWindow):
             (_("Image Generator"), "insert-image-symbolic", self.add_image_generator_tab),
         ]
         memory = self.controller.handlers.memory
-        if memory is not None and memory.has_mini_app():
+        if self.controller.newelle_settings.memory_on and memory is not None and memory.has_mini_app():
             # Construct the widget only after the user selects the menu item.
             def add_memory_tab(*_args):
                 mini_app = memory.get_mini_app()

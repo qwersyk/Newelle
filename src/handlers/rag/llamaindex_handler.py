@@ -12,7 +12,7 @@ from ...utility.source_attribution import (
 from ...handlers.llm import LLMHandler 
 from ...handlers.embeddings.embedding import EmbeddingHandler 
 from ...handlers import ExtraSettings 
-from .rag_handler import RAGHandler, RAGIndex 
+from .rag_handler import RAGHandler, RAGIndex, RAGRecord, RAGResult
 from ...utility.pip import find_module, install_module
 from ...tools import Tool, create_io_tool
 import os
@@ -610,8 +610,47 @@ class LlamaIndexHanlder(RAGHandler):
 
         return LlamaIndexIndex(index, int(self.get_setting("return_documents")), float(self.get_setting("similarity_threshold")), counter, document_list, float(self.get_setting("oversample_factor", 2.0)), bm25_retriever, use_bm25) 
 
-    def get_embedding_adapter(self, embedding: EmbeddingHandler):
+    def build_record_index(self, records: list[RAGRecord], embedding: EmbeddingHandler | None = None) -> RAGIndex:
+        from llama_index.core import VectorStoreIndex, StorageContext
+        from llama_index.vector_stores.faiss import FaissVectorStore
+        import faiss
+
+        embedding = embedding or self.embedding
+        embedding.load_model()
+        embed_model = self.get_embedding_adapter(embedding, normalize=True)
+        # Inner product over normalized vectors, so FAISS scores are cosine similarities
+        faiss_index = faiss.IndexFlatIP(embedding.get_embedding_size())
+        storage_context = StorageContext.from_defaults(vector_store=FaissVectorStore(faiss_index=faiss_index))
+        index = VectorStoreIndex([], storage_context=storage_context, embed_model=embed_model)
+        record_index = LlamaIndexRecordIndex(index)
+        record_index.insert_records(records)
+        return record_index
+
+    def load_record_index(self, path: str, embedding: EmbeddingHandler | None = None) -> RAGIndex | None:
+        from llama_index.core import StorageContext, load_index_from_storage
+        from llama_index.vector_stores.faiss import FaissVectorStore
+
+        if not os.path.exists(os.path.join(path, "docstore.json")):
+            return None
+        embedding = embedding or self.embedding
+        embedding.load_model()
+        embed_model = self.get_embedding_adapter(embedding, normalize=True)
+        vector_store = FaissVectorStore.from_persist_dir(path)
+        storage_context = StorageContext.from_defaults(persist_dir=path, vector_store=vector_store)
+        index = load_index_from_storage(storage_context, embed_model=embed_model)
+        return LlamaIndexRecordIndex(index)
+
+    def get_embedding_adapter(self, embedding: EmbeddingHandler, normalize: bool = False):
         from llama_index.core.embeddings import BaseEmbedding
+
+        def prepare(vectors):
+            if not normalize:
+                return vectors
+            vectors = np.asarray(vectors, dtype="float32")
+            norms = np.linalg.norm(vectors, axis=1, keepdims=True)
+            norms[norms == 0] = 1.0
+            return (vectors / norms).tolist()
+
         class CustomEmbedding(BaseEmbedding):
             def __init__(self, embedding_model: EmbeddingHandler, **kwargs: Any):
                 super().__init__(**kwargs)
@@ -628,19 +667,19 @@ class LlamaIndexHanlder(RAGHandler):
                 embeddings = self._embedding_model.get_embedding(
                     [query], purpose="query"
                 )
-                return embeddings[0]
+                return prepare(embeddings)[0]
 
             def _get_text_embedding(self, text: str) -> List[float]:
                 embeddings = self._embedding_model.get_embedding(
                     [text], purpose="document"
                 )
-                return embeddings[0]
+                return prepare(embeddings)[0]
 
             def _get_text_embeddings(self, texts: List[str]) -> List[List[float]]:
                 embeddings = self._embedding_model.get_embedding(
                     texts, purpose="document"
                 )
-                return embeddings
+                return prepare(embeddings)
         return CustomEmbedding(embedding)
     
     def get_tools(self) -> list:
@@ -879,3 +918,112 @@ class LlamaIndexIndex(RAGIndex):
             except Exception as e:
                 print(f"Failed to load BM25 retriever: {e}")
                 self.bm25_retriever = None
+
+
+class LlamaIndexRecordIndex(RAGIndex):
+    """Hybrid (cosine vector + BM25) index of single-node records"""
+
+    def __init__(self, index):
+        super().__init__()
+        self.index = index
+        self._lock = threading.RLock()
+        self._bm25 = None
+        self._bm25_dirty = True
+
+    def _nodes(self) -> list:
+        return list(self.index.docstore.docs.values())
+
+    def get_record_ids(self) -> list[str]:
+        with self._lock:
+            return list(self.index.docstore.docs.keys())
+
+    def get_index_size(self):
+        with self._lock:
+            return len(self.index.docstore.docs)
+
+    def get_all_contexts(self) -> list[str]:
+        with self._lock:
+            return [node.get_content() for node in self._nodes()]
+
+    def insert_records(self, records: list[RAGRecord]):
+        from llama_index.core.schema import TextNode
+        if not records:
+            return
+        nodes = [TextNode(text=record.text, id_=record.id) for record in records]
+        with self._lock:
+            self.index.insert_nodes(nodes)
+            self._bm25_dirty = True
+
+    def insert(self, documents: list[str]):
+        import uuid
+        self.documents += documents
+        self.insert_records([RAGRecord(uuid.uuid4().hex, document.removeprefix("text:")) for document in documents])
+
+    def _get_bm25(self):
+        if not self._bm25_dirty:
+            return self._bm25
+        self._bm25_dirty = False
+        self._bm25 = None
+        nodes = self._nodes()
+        if not nodes:
+            return None
+        try:
+            from llama_index.retrievers.bm25 import BM25Retriever
+            self._bm25 = BM25Retriever.from_defaults(nodes=nodes, similarity_top_k=min(50, len(nodes)))
+        except Exception as e:
+            print(f"Failed to create BM25 retriever: {e}")
+        return self._bm25
+
+    def query_scored(self, query: str, top_k: int) -> list[RAGResult]:
+        from llama_index.core.retrievers import VectorIndexRetriever
+        query = query.strip()
+        if not query:
+            return []
+        with self._lock:
+            size = len(self.index.docstore.docs)
+            if size == 0:
+                return []
+            k = max(1, min(int(top_k), size))
+            results: dict[str, RAGResult] = {}
+            for node in VectorIndexRetriever(index=self.index, similarity_top_k=k).retrieve(query):
+                similarity = max(0.0, min(1.0, float(node.score or 0.0)))
+                results[node.node.node_id] = RAGResult(node.node.node_id, node.node.get_content(), similarity=similarity)
+            bm25 = self._get_bm25()
+            bm25_nodes = []
+            if bm25 is not None:
+                try:
+                    bm25_nodes = [node for node in bm25.retrieve(query) if (node.score or 0) > 0][:k]
+                except Exception as e:
+                    print(f"BM25 retrieval failed: {e}")
+        top_bm25 = max((float(node.score) for node in bm25_nodes), default=0.0)
+        for node in bm25_nodes:
+            normalized = float(node.score) / top_bm25 if top_bm25 > 0 else 0.0
+            result = results.get(node.node.node_id)
+            if result is None:
+                result = RAGResult(node.node.node_id, node.node.get_content())
+                results[node.node.node_id] = result
+            result.bm25 = normalized
+        # BM25-only matches have no cosine similarity: scale them by the same
+        # query-length weight used for the hybrid document search.
+        bm25_weight = LlamaIndexHanlder.compute_bm25_weight(query)
+        for result in results.values():
+            result.relevance = max(result.similarity or 0.0, (result.bm25 or 0.0) * bm25_weight)
+        return sorted(results.values(), key=lambda r: r.relevance, reverse=True)
+
+    def query(self, query: str) -> list[str]:
+        return [result.text for result in self.query_scored(query, 5)]
+
+    def persist(self, path: str):
+        os.makedirs(path, exist_ok=True)
+        with self._lock:
+            self.index.storage_context.persist(persist_dir=path)
+
+    def load_from_disk(self, path: str):
+        from llama_index.core import StorageContext, load_index_from_storage
+        from llama_index.vector_stores.faiss import FaissVectorStore
+        embed_model = self.index._embed_model
+        vector_store = FaissVectorStore.from_persist_dir(path)
+        storage_context = StorageContext.from_defaults(persist_dir=path, vector_store=vector_store)
+        with self._lock:
+            self.index = load_index_from_storage(storage_context, embed_model=embed_model)
+            self._bm25_dirty = True
