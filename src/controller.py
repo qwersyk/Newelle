@@ -113,6 +113,39 @@ class NewelleController(WorkspaceController):
             return []
         return sorted(self.workspace_chats())
 
+    def search_conversations(self, query):
+        """Return matching workspace chat IDs and plain-text excerpts.
+
+        Search stored messages, including history that has not been rendered,
+        independently of folder expansion and conversation branching.
+        """
+        query = " ".join(query.split())
+        if not query:
+            return {}
+        pattern = re.compile(re.escape(query), re.IGNORECASE)
+        results = {}
+        for cid, chat in self.workspace_chats().items():
+            if chat.get("call"):
+                continue
+            title_matches = pattern.search(" ".join(chat.get("name", "").split()))
+            excerpt = None
+            for message in chat.get("chat", []):
+                text = message.get("Message", "")
+                if not isinstance(text, str):
+                    continue
+                text = " ".join(text.split())
+                match = pattern.search(text)
+                if match:
+                    start = max(0, match.start() - 40)
+                    end = min(len(text), max(start + 160, match.end()))
+                    excerpt = ("…" if start else "") + text[start:end]
+                    if end < len(text):
+                        excerpt += "…"
+                    break
+            if title_matches or excerpt is not None:
+                results[cid] = excerpt
+        return results
+
     def _get_fallback_chat_id(self):
         """Return first available chat_id when current is invalid."""
         if not self.chats:

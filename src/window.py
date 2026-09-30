@@ -236,6 +236,34 @@ class MainWindow(WorkspaceWindow, Adw.ApplicationWindow):
         self.chats_secondary_box.append(self.chat_panel_header)
         self.chat_panel_header.pack_end(menu_button)
         self.build_workspace_picker()
+
+        self.conversation_search_entry = Gtk.SearchEntry(
+            placeholder_text=_("Search conversations…"),
+            tooltip_text=_("Search titles and messages in this workspace"),
+            hexpand=True,
+        )
+        self.conversation_search_entry.connect("search-changed", self._on_conversation_search_changed)
+        self.conversation_search_entry.connect("activate", self._activate_conversation_search)
+        self.conversation_search_bar = Gtk.SearchBar()
+        self.conversation_search_bar.set_child(self.conversation_search_entry)
+        self.conversation_search_bar.connect_entry(self.conversation_search_entry)
+        # Only typing within History should start a conversation search.
+        self.conversation_search_bar.set_key_capture_widget(self.chats_secondary_box)
+        self.chats_secondary_box.append(self.conversation_search_bar)
+
+        self.conversation_search_button = Gtk.ToggleButton(
+            icon_name="system-search-symbolic",
+            tooltip_text=_("Search conversations…"),
+            css_classes=["flat"],
+        )
+        self.chat_panel_header.pack_end(self.conversation_search_button)
+        self.conversation_search_button.bind_property(
+            "active", self.conversation_search_bar, "search-mode-enabled",
+            GObject.BindingFlags.BIDIRECTIONAL | GObject.BindingFlags.SYNC_CREATE,
+        )
+        self.conversation_search_bar.connect(
+            "notify::search-mode-enabled", self._on_conversation_search_mode_changed,
+        )
         
         # Chat list with navigation-sidebar styling for Adwaita look
         self.chats_buttons_block = Gtk.ListBox(css_classes=["navigation-sidebar"])
@@ -2426,13 +2454,41 @@ class MainWindow(WorkspaceWindow, Adw.ApplicationWindow):
             t = threading.Thread(target=tab.context_indicator.update_from_chat, args=(self.controller,))
             t.start()
 
-    def update_history(self):
+    def _on_conversation_search_mode_changed(self, search_bar, param):
+        if search_bar.get_search_mode():
+            self.conversation_search_entry.grab_focus()
+        else:
+            self.conversation_search_entry.set_text("")
+            self.update_history(focus_input=False)
+            self.conversation_search_button.grab_focus()
+
+    def _on_conversation_search_changed(self, entry):
+        self.update_history(focus_input=False)
+
+    def _activate_conversation_search(self, entry):
+        if not entry.get_text().strip():
+            return
+        # Enter can arrive before SearchEntry's debounced search-changed signal.
+        self.update_history(focus_input=False)
+        row = self.chats_list_box.get_row_at_index(0)
+        if row is not None:
+            self.on_chat_row_activated(self.chats_list_box, row)
+
+    def update_history(self, focus_input=True):
         """Reload chats panel with Adwaita-styled ChatRow/FolderRow widgets, supporting folders and branching"""
         if getattr(self, "_workspace_ui_switching", False):
             return
-        self.focus_input()
+        focused = self.get_focus()
+        search_focused = focused is not None and (
+            focused == self.conversation_search_entry
+            or focused.is_ancestor(self.conversation_search_entry)
+        )
+        if focus_input and not search_focused:
+            self.focus_input()
         workspace_chats = self.controller.workspace_chats()
         workspace_folders = self.controller.workspace_folders()
+        query = self.conversation_search_entry.get_text().strip()
+        search_results = self.controller.search_conversations(query) if query else None
 
         list_box = Gtk.ListBox(css_classes=["navigation-sidebar"])
         list_box.set_selection_mode(Gtk.SelectionMode.SINGLE)
@@ -2440,6 +2496,11 @@ class MainWindow(WorkspaceWindow, Adw.ApplicationWindow):
         self.chats_buttons_scroll_block.set_child(list_box)
 
         list_box.connect("row-activated", self.on_chat_row_activated)
+        list_box.set_placeholder(Gtk.Label(
+            label=_("No conversations found") if query else _("No conversations"),
+            wrap=True, margin_top=24, margin_bottom=24,
+            css_classes=["dim-label"],
+        ))
 
         middle_click_gesture = Gtk.GestureClick()
         middle_click_gesture.set_button(2)
@@ -2492,7 +2553,8 @@ class MainWindow(WorkspaceWindow, Adw.ApplicationWindow):
                 chat_index=chat_id,
                 is_selected=is_selected,
                 level=level,
-                is_open=is_open
+                is_open=is_open,
+                search_excerpt=search_results.get(chat_id) if search_results is not None else None,
             )
             chat_row.connect_signals(
                 on_generate=self.generate_chat_name,
@@ -2506,9 +2568,19 @@ class MainWindow(WorkspaceWindow, Adw.ApplicationWindow):
                 list_box.select_row(chat_row)
 
             entry_uuid = chat_entry.get("id")
-            if entry_uuid in children_map:
+            if search_results is None and entry_uuid in children_map:
                 for child_id in children_map[entry_uuid]:
                     add_chat_recursive(child_id, level + 1)
+
+        # Search is a flat list so collapsed folders cannot hide matches.
+        if search_results is not None:
+            chat_ids = list(search_results)
+            if self.controller.newelle_settings.reverse_order:
+                chat_ids.reverse()
+            for cid in chat_ids:
+                add_chat_recursive(cid)
+            self.save_workspace_tabs()
+            return
 
         # Render folders first
         for fid, folder in workspace_folders.items():
@@ -2814,10 +2886,10 @@ class MainWindow(WorkspaceWindow, Adw.ApplicationWindow):
         # Store original label for restoration
         original_label = row.name_label
         
-        # Find the position of the label in the box and replace it
-        # The label is between the icon and the actions revealer
+        # Search results place the title and excerpt in a nested box.
+        label_box = original_label.get_parent()
         siblings = []
-        child = row.main_box.get_first_child()
+        child = label_box.get_first_child()
         while child:
             siblings.append(child)
             child = child.get_next_sibling()
@@ -2825,12 +2897,12 @@ class MainWindow(WorkspaceWindow, Adw.ApplicationWindow):
         # Find and replace the name_label
         label_index = siblings.index(original_label) if original_label in siblings else -1
         if label_index >= 0:
-            row.main_box.remove(original_label)
+            label_box.remove(original_label)
             # Insert entry at the same position
             if label_index == 0:
-                row.main_box.prepend(entry)
+                label_box.prepend(entry)
             else:
-                row.main_box.insert_child_after(entry, siblings[label_index - 1])
+                label_box.insert_child_after(entry, siblings[label_index - 1])
         
         # Focus the entry
         entry.grab_focus()
