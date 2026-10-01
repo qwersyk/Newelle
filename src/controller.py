@@ -42,6 +42,7 @@ from .extensions import ExtensionLoader
 from .utility import override_prompts
 from .utility.strings import build_chat_title, clean_bot_response, clean_prompt, count_tokens, extract_reasoning_content, get_edited_messages, remove_thinking_blocks
 from .utility.context_manager import ContextManager, TrimResult
+from .utility.usage_tracker import get_usage_tracker
 from .utility.replacehelper import PromptFormatter, replace_variables_dict
 from enum import Enum 
 from .handlers import Handler
@@ -316,6 +317,7 @@ class NewelleController(WorkspaceController):
         self.newelle_settings.load_settings(self.settings)
         loaded_extensions_settings = self.newelle_settings.extensions_settings
         self.load_chats(self.newelle_settings.chat_id)
+        self.init_usage_tracking()
         self.handlers = HandlersManager(
             self.settings,
             self.extensionloader,
@@ -329,6 +331,23 @@ class NewelleController(WorkspaceController):
         self.require_tool_update()
         threading.Thread(target=self.handlers.cache_handlers).start()
         self.load_scheduled_tasks()
+    def init_usage_tracking(self):
+        """Persist LLM usage statistics for the Usage settings page."""
+        self.usage_tracker = get_usage_tracker()
+        self.usage_tracker.configure(
+            os.path.join(self.data_dir, "usage.sqlite3"),
+            self._usage_workspace,
+        )
+        self.usage_tracker.enabled = self.settings.get_boolean("usage-tracking")
+        self.settings.connect(
+            "changed::usage-tracking",
+            lambda settings, key: setattr(self.usage_tracker, "enabled", settings.get_boolean(key)),
+        )
+
+    def _usage_workspace(self) -> tuple[str, str]:
+        workspace = self.workspaces.get(self.active_workspace_id, {})
+        return self.active_workspace_id, workspace.get("name", self.active_workspace_id)
+
     def init_paths(self) -> None:
         """Define paths for the application"""
         self.config_dir = GLib.get_user_config_dir()

@@ -22,6 +22,7 @@ from ..utility.download_manager import get_download_manager
 from ..utility.mcp_config import MCPConfigError, parse_mcp_servers_json
 from .extension import ExtensionPage
 from .interfaces import InterfacesPage
+from .usage import UsagePage
 from .extra_settings import ExtraSettingsBuilder
 from .widgets import ComboRowHelper, CopyBox 
 from .widgets import MultilineEntry
@@ -80,6 +81,7 @@ class Settings(Adw.Window):
         self.VoicePage = Adw.PreferencesPage(icon_name="audio-input-microphone-symbolic", title=_("Voice"))
         self.SkillsPage = Adw.PreferencesPage(icon_name="skills-symbolic", title=_("Skills"))
         self.MCPPage = Adw.PreferencesPage(icon_name="internet-symbolic", title=_("MCP Servers"))
+        self.UsagePage = UsagePage(controller)
         # Dictionary containing all the rows for settings update
         self.settingsrows = {}
         self.extra_settings_builder = ExtraSettingsBuilder(
@@ -818,6 +820,7 @@ class Settings(Adw.Window):
             ("MCP", _("MCP Servers"), "internet-symbolic", self.MCPPage),
             ("Interfaces", _("Interfaces"), "controls-big-symbolic", self.InterfacesPage),
             ("Extensions", _("Extensions"), "extension-symbolic", self.ExtensionsPage),
+            ("Usage", _("Usage"), "chart-bars-symbolic", self.UsagePage),
         ]
         self.navigation_pages = {
             key: (title, page)
@@ -892,6 +895,8 @@ class Settings(Adw.Window):
             self.ensure_skills_page_initialized()
         elif page == self.MCPPage:
             self.ensure_mcp_page_initialized()
+        elif page == self.UsagePage:
+            self.UsagePage.show_page()
         self.content_stack.set_visible_child(page)
         self.content_navigation_page.set_title(title)
 

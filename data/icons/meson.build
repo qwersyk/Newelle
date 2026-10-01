@@ -110,6 +110,10 @@ install_data (
   'gnome-terminal-symbolic.svg',
   install_dir: symbolic_dir
 )
+install_data (
+  'chart-bars-symbolic.svg',
+  install_dir: symbolic_dir
+)
 install_data(
   'lobehub-icons.LICENSE',
   install_dir: join_paths(get_option('datadir'), 'licenses', 'newelle')

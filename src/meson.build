@@ -83,6 +83,7 @@ ui_sources = [
   'ui/extra_settings.py',
   'ui/interfaces.py',
   'ui/build_dependency_warning.py',
+  'ui/usage.py',
 ]
 
 widgets_sources = [
@@ -101,6 +102,7 @@ widgets_sources = [
   'ui/widgets/grep.py',
   'ui/widgets/list_directory.py',
   'ui/widgets/context_indicator.py',
+  'ui/widgets/usage_chart.py',
   'ui/widgets/folderrow.py',
   'ui/widgets/latex.py',
   'ui/widgets/mermaid.py',
@@ -265,6 +267,7 @@ utility_sources = [
   'utility/force_sync.py',
   'utility/file_search.py',
   'utility/context_manager.py',
+  'utility/usage_tracker.py',
   'utility/source_attribution.py',
   'utility/command_permissions.py',
   'utility/command_runner.py',
