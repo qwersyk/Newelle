@@ -27,6 +27,18 @@ class AudioInputManager:
         self.controller = controller
         self._turns = {}
 
+    def _request_context(self):
+        getter = getattr(self.controller, "_request_context", None)
+        return getter() if getter is not None else None
+
+    def _request_settings(self):
+        context = self._request_context()
+        return context["settings"] if context is not None else self.controller.settings
+
+    def _request_handlers(self):
+        context = self._request_context()
+        return context["handlers"] if context is not None else self.controller.handlers
+
     def get_state(self, path):
         return self._turns.get(path)
 
@@ -39,11 +51,12 @@ class AudioInputManager:
         os.makedirs(directory, exist_ok=True)
         path = os.path.join(directory, uuid.uuid4().hex + ".wav")
         shutil.copyfile(audio_path, path)
-        timing = (self.controller.settings.get_string("audio-transcription-timing")
-                  if self.controller.settings.get_boolean("audio-transcribe") else "off")
+        settings = self._request_settings()
+        timing = (settings.get_string("audio-transcription-timing")
+                  if settings.get_boolean("audio-transcribe") else "off")
         self._turns[path] = {
             "path": path, "timing": timing, "status": "pending" if timing != "off" else "off",
-            "stt": self.controller.handlers.stt, "is_current": is_current or (lambda: True),
+            "stt": self._request_handlers().stt, "is_current": is_current or (lambda: True),
             "started": False, "done": threading.Event(),
         }
         return f"```audio\n{path}\n```\n"
@@ -77,13 +90,14 @@ class AudioInputManager:
             state.update(timing=timing, transcript=caption.strip(),
                          status="complete" if caption.strip() else ("off" if timing == "off" else "pending"))
         if state is not None and (state.get("status") == "failed" or not state["is_current"]()):
-            timing = (self.controller.settings.get_string("audio-transcription-timing")
-                      if self.controller.settings.get_boolean("audio-transcribe") else "off")
+            settings = self._request_settings()
+            timing = (settings.get_string("audio-transcription-timing")
+                      if settings.get_boolean("audio-transcribe") else "off")
             state = None
         if state is None:
             status = "complete" if caption.strip() else ("off" if timing == "off" else "pending")
             state = {"path": path, "timing": timing, "status": status,
-                     "started": False, "done": threading.Event(), "stt": self.controller.handlers.stt,
+                     "started": False, "done": threading.Event(), "stt": self._request_handlers().stt,
                      "is_current": is_current or (lambda: True), "transcript": caption.strip()}
             self._turns[path] = state
         if is_current is not None and not state["started"]:
@@ -142,7 +156,7 @@ class AudioInputManager:
                     if state and state["status"] == "complete":
                         caption = state["transcript"]
                     else:
-                        caption = self._recognize_audio(path, {"stt": self.controller.handlers.stt})
+                        caption = self._recognize_audio(path, {"stt": self._request_handlers().stt})
                 except Exception as exc:
                     message.setdefault("Audio", {})["status"] = "failed"
                     self.controller.save_chats()

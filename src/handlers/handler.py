@@ -2,6 +2,7 @@ import os
 import json
 import gettext
 import threading
+from gi.repository import GLib
 from ..utility.pip import find_module, install_module
 from ..utility.download_manager import DownloadKind, get_download_manager
 from typing import Any
@@ -47,6 +48,83 @@ class SettingsCache:
             self.settings.set_string(key, json.dumps(value))
         finally:
             self._updating = False
+
+
+class SettingsSnapshot:
+    """Read-only-per-request view of ``Gio.Settings``.
+
+    Workspace switches update the process-wide GSettings object.  A chat
+    request must keep seeing the values that were active when it started, so
+    background work uses this lightweight snapshot instead of the live
+    object.  Setters update only the snapshot; handler code that writes a
+    setting therefore cannot change the workspace currently shown in the UI.
+    """
+
+    def __init__(self, settings):
+        self._base = settings
+        self._values = {}
+        for key in settings.list_keys():
+            try:
+                self._values[key] = settings.get_value(key).unpack()
+            except Exception:
+                continue
+
+    def overlay(self, values):
+        for key, value in (values or {}).items():
+            if key in self._values:
+                self._values[key] = value
+
+    def connect(self, *_args, **_kwargs):
+        return 0
+
+    def list_keys(self):
+        return list(self._values)
+
+    def _get(self, key, fallback):
+        return self._values[key] if key in self._values else fallback()
+
+    def get_string(self, key):
+        return str(self._get(key, lambda: self._base.get_string(key)))
+
+    def get_boolean(self, key):
+        return bool(self._get(key, lambda: self._base.get_boolean(key)))
+
+    def get_int(self, key):
+        return int(self._get(key, lambda: self._base.get_int(key)))
+
+    def get_double(self, key):
+        return float(self._get(key, lambda: self._base.get_double(key)))
+
+    def get_strv(self, key):
+        value = self._get(key, lambda: self._base.get_strv(key))
+        return list(value)
+
+    def get_value(self, key):
+        if key not in self._values:
+            return self._base.get_value(key)
+        current = self._base.get_value(key)
+        return GLib.Variant(current.get_type_string(), self._values[key])
+
+    def _set(self, key, value):
+        self._values[key] = value
+
+    def set_string(self, key, value):
+        self._set(key, value)
+
+    def set_boolean(self, key, value):
+        self._set(key, bool(value))
+
+    def set_int(self, key, value):
+        self._set(key, int(value))
+
+    def set_double(self, key, value):
+        self._set(key, float(value))
+
+    def set_strv(self, key, value):
+        self._set(key, list(value))
+
+    def set_value(self, key, value):
+        self._set(key, value.unpack() if hasattr(value, "unpack") else value)
 
 
 class ErrorSeverity(Enum):

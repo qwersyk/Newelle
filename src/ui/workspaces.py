@@ -254,15 +254,14 @@ class WorkspaceWindow:
         self.notification_block.add_toast(Adw.Toast(title=message))
 
     def workspace_ui_busy(self):
-        if self._workspace_ui_switching or self.controller.workspace_switching or self.controller.workspace_requests:
-            return True
-        from ..utility.command_runner import get_command_execution_manager
-        from ..utility.command_sessions import get_command_session_manager
-        if get_command_execution_manager().list_all() or get_command_session_manager().list_all():
+        # A chat generation is owned by its ChatTab and can continue while a
+        # different workspace is selected.  Keep this predicate focused on
+        # operations that truly require the visible workspace to be idle.
+        if self._workspace_ui_switching or self.controller.workspace_switching:
             return True
         for i in range(self.chat_tabs.get_n_pages()):
             tab = self.chat_tabs.get_nth_page(i).get_child()
-            if not tab.status or tab.recording:
+            if tab.recording:
                 return True
         voice = getattr(self.app, "voice_win", None)
         if voice is not None:

@@ -32,6 +32,17 @@ class DefaultToolsIntegration(NewelleExtension):
     id = "default_tools"
     name = "Default Tools"
 
+    def _request_settings(self):
+        """Return settings bound to the chat currently invoking a tool."""
+        window = getattr(getattr(self, "ui_controller", None), "window", None)
+        controller = getattr(window, "controller", None)
+        if controller is not None:
+            getter = getattr(controller, "_request_context", None)
+            context = getter() if getter is not None else None
+            if context is not None:
+                return context["settings"]
+        return self.settings
+
     def _on_copybox_terminal_clicked(self, copybox, command, execution_request_mode):
         shell_command = "cd " + quote_string(os.getcwd()) + "; " + command + "; exec bash"
 
@@ -168,12 +179,12 @@ class DefaultToolsIntegration(NewelleExtension):
         return sorted(groups.values(), key=lambda group: str(group["chat_name"]).lower())
 
     def _host_prefix(self) -> list[str]:
-        if is_flatpak() and not self.settings.get_boolean("virtualization"):
+        if is_flatpak() and not self._request_settings().get_boolean("virtualization"):
             return get_spawn_command()
         return []
 
     def _working_dir(self) -> str:
-        return self.settings.get_string("path") or os.getcwd()
+        return self._request_settings().get_string("path") or os.getcwd()
 
     def _timeout(self, timeout_seconds: int | None) -> int:
         if timeout_seconds is None:
@@ -284,7 +295,8 @@ class DefaultToolsIntegration(NewelleExtension):
                 )
             )
 
-        perm_manager = CommandPermissionManager.get_instance(self.settings)
+        request_settings = self._request_settings()
+        perm_manager = CommandPermissionManager.get_instance(request_settings)
         working_dir = self._working_dir()
         action, reason = perm_manager.check_command(command, working_dir)
 
@@ -345,7 +357,7 @@ class DefaultToolsIntegration(NewelleExtension):
             result.set_widget(widget)
             return result
 
-        if action == CommandAction.ALLOW and self.settings.get_boolean("auto-run"):
+        if action == CommandAction.ALLOW and request_settings.get_boolean("auto-run"):
             widget._on_execution_run_clicked(None)
         else:
             result.set_intreaction_options([

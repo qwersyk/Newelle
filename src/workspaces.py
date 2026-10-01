@@ -211,7 +211,15 @@ class WorkspaceController:
 
     def init_workspace_state(self):
         self.workspace_lock = threading.RLock()
+        self.workspace_local = threading.local()
+        # Requests are tracked separately from the workspace selected in the
+        # window.  A request keeps using the workspace of its chat even after
+        # the user switches the visible workspace, so a global busy flag would
+        # incorrectly prevent independent chats from running together.
         self.workspace_requests = 0
+        self.workspace_chat_requests = 0
+        self.workspace_requests_by_workspace = {}
+        self.active_request_contexts = {}
         self.workspace_switching = False
         self.workspaces = {}
         self.active_workspace_id = DEFAULT_WORKSPACE
@@ -329,26 +337,52 @@ class WorkspaceController:
 
     @contextmanager
     def workspace_request(self, chat_id=None):
+        previous_context = getattr(self.workspace_local, "context", None)
         with self.workspace_lock:
             if self.workspace_switching:
                 raise RuntimeError(_("Workspace is switching. Please try again."))
-            if chat_id in self.chats and self.chats[chat_id].get("workspace_id") != self.active_workspace_id:
-                raise RuntimeError(_("Switch to this chat's workspace before continuing."))
             self.workspace_requests += 1
+            self.workspace_chat_requests += 1
+            workspace_id = None
+            if chat_id in self.chats:
+                workspace_id = self.chats[chat_id].get("workspace_id", DEFAULT_WORKSPACE)
+            self.workspace_requests_by_workspace[workspace_id] = (
+                self.workspace_requests_by_workspace.get(workspace_id, 0) + 1
+            )
         try:
+            # NewelleController supplies a request-local settings/handler
+            # snapshot.  Keeping this hook here also leaves headless and
+            # lightweight WorkspaceController users fully compatible.
+            build_context = getattr(self, "build_workspace_request_context", None)
+            if build_context is not None:
+                self.workspace_local.context = build_context(chat_id)
+                register_context = getattr(self, "register_workspace_request_context", None)
+                if register_context is not None and self.workspace_local.context is not None:
+                    register_context(chat_id, self.workspace_local.context)
             yield
         finally:
+            unregister_context = getattr(self, "unregister_workspace_request_context", None)
+            if unregister_context is not None:
+                unregister_context(chat_id)
+            if previous_context is None:
+                self.workspace_local.__dict__.pop("context", None)
+            else:
+                self.workspace_local.context = previous_context
             with self.workspace_lock:
                 self.workspace_requests -= 1
+                self.workspace_chat_requests -= 1
+                remaining = self.workspace_requests_by_workspace.get(workspace_id, 1) - 1
+                if remaining > 0:
+                    self.workspace_requests_by_workspace[workspace_id] = remaining
+                else:
+                    self.workspace_requests_by_workspace.pop(workspace_id, None)
 
     def begin_workspace_switch(self):
-        from .utility.command_runner import get_command_execution_manager
-        from .utility.command_sessions import get_command_session_manager
-
         with self.workspace_lock, self.scheduled_tasks_lock:
-            if get_command_execution_manager().list_all() or get_command_session_manager().list_all():
-                raise WorkspaceBusyError(_("Finish or stop active work before switching workspaces."))
-            if self.workspace_switching or self.workspace_requests or any(task.get("running") for task in self.scheduled_tasks):
+            # Requests and tool executions are tied to explicit chat IDs and
+            # may continue while the UI activates another workspace.  Only a
+            # concurrent workspace transition itself needs serialization.
+            if self.workspace_switching:
                 raise WorkspaceBusyError(_("Finish or stop active work before switching workspaces."))
             self.workspace_switching = True
 

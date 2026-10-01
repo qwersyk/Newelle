@@ -14,7 +14,10 @@ class UIController:
     def workspace_action(self, action, workspace_id=None, **data):
         window = self.window
         controller = window.controller
-        if window.workspace_ui_busy():
+        # Switching the visible workspace is safe while chat requests are
+        # running; each request is tied to its own chat.  Other mutations
+        # still require the UI to be idle.
+        if action != "switch" and (window.workspace_ui_busy() or controller.workspace_requests):
             raise RuntimeError("Finish or stop active work before changing workspaces")
         if workspace_id is not None and workspace_id not in controller.workspaces:
             raise KeyError("Workspace not found")

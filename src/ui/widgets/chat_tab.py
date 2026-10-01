@@ -1012,7 +1012,10 @@ class ChatTab(Gtk.Box):
     # Message sending and streaming
     def send_message(self, manual=True):
         """Send a message in the chat and get bot answer."""
-        if self.controller.workspace_switching or self.chat_id not in self.controller.workspace_chats():
+        # The tab can be parked in a cached workspace while its request is
+        # still running.  Check the chat itself instead of the currently
+        # selected workspace so switching workspaces does not orphan it.
+        if self.controller.workspace_switching or self.chat_id not in self.controller.chats:
             return
         if manual:
             self.auto_run_times = 0
@@ -1101,7 +1104,9 @@ class ChatTab(Gtk.Box):
                 "User": "Assistant", 
                 "Message": message_label, 
                 "UUID": streaming_widget.chunk_uuid,
-                "Profile": self.controller.newelle_settings.current_profile
+                "Profile": self.controller.chats.get(self._chat_id, {}).get(
+                    "profile", self.controller.newelle_settings.current_profile
+                )
             }
             if response_metadata is not None:
                 assistant_entry["OpenAIResponse"] = response_metadata
@@ -1471,6 +1476,12 @@ class ChatTab(Gtk.Box):
         """Stop the current generation."""
         if hasattr(self, "_audio_cancel_event"):
             self._audio_cancel_event.set()
+        # Requests use a workspace-local handler snapshot.  Stop that model as
+        # well as the foreground handler so switching workspaces cannot leave
+        # a hidden tab's provider running in the background.
+        stop_request = getattr(self.controller, "stop_workspace_request", None)
+        if stop_request is not None:
+            stop_request(self.chat_id)
         getattr(self, "active_generation_model", self.model).stop()
         for tool_result in self.active_tool_results:
             tool_result.cancel()

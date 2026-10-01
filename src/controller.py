@@ -9,7 +9,7 @@ import copy
 
 from .tools import Command, Tool, ToolRegistry, ToolResult
 from .skills import SkillManager
-from .modes import ModeManager
+from .modes import ModeManager, DEFAULT_MODE_NAME
 from .workspaces import WorkspaceController, workspace_request, workspace_storage
 from .utility.media import chat_contains_vision, get_image_base64, get_image_path, extract_supported_files
 from .utility.audio_input import AudioInputManager
@@ -46,7 +46,7 @@ from .utility.usage_tracker import get_usage_tracker
 from .utility.replacehelper import PromptFormatter, replace_variables_dict
 from enum import Enum 
 from .handlers import Handler
-from .handlers.handler import SettingsCache
+from .handlers.handler import SettingsCache, SettingsSnapshot
 from .ui_controller import UIController
 """
 Manage Newelle Application, create handlers, check integrity, manage settings...
@@ -344,7 +344,152 @@ class NewelleController(WorkspaceController):
             lambda settings, key: setattr(self.usage_tracker, "enabled", settings.get_boolean(key)),
         )
 
+    def _request_handler_snapshot(self, handler, settings):
+        """Clone a handler with request-local settings while retaining state.
+
+        Handler instances can contain loaded model state, so constructing a
+        second model for every message is both expensive and unsafe for local
+        models.  A shallow clone keeps that state but gives all setting reads a
+        private ``SettingsSnapshot``.
+        """
+        if handler is None:
+            return None
+        snapshot = copy.copy(handler)
+        snapshot.settings = settings
+        return snapshot
+
+    def build_workspace_request_context(self, chat_id=None):
+        """Capture workspace-scoped settings for a background chat request."""
+        if not hasattr(self, "handlers") or not hasattr(self, "newelle_settings"):
+            return None
+
+        workspace_id = self.active_workspace_id
+        if chat_id in self.chats:
+            workspace_id = self.chats[chat_id].get("workspace_id", workspace_id)
+        workspace = self.workspaces.get(workspace_id, self.active_workspace)
+        settings = SettingsSnapshot(self.settings)
+
+        # A workspace may link a profile.  Apply its persisted group values to
+        # the request snapshot without changing the live GSettings object.
+        try:
+            profiles = json.loads(self.settings.get_string("profiles"))
+        except (TypeError, ValueError, json.JSONDecodeError):
+            profiles = {}
+        profile_name = workspace.get("profile")
+        profile = profiles.get(profile_name) if profile_name else None
+        if profile is not None:
+            settings.overlay(profile.get("settings", {}))
+            settings.set_string("current-profile", profile_name)
+        settings.set_string("path", os.path.expanduser(workspace.get("path") or self.settings.get_string("path")))
+        settings.set_string("current-mode", workspace.get("mode", DEFAULT_MODE_NAME))
+
+        mode_manager = copy.copy(self.mode_manager)
+        mode_manager.settings = settings
+        try:
+            mode_manager.set_active_mode(settings.get_string("current-mode"))
+        except (AttributeError, ValueError):
+            pass
+        request_settings = NewelleSettings(mode_manager)
+        request_settings.load_settings(settings, change_directory=False)
+        if request_settings.main_path == "~":
+            settings.set_string("path", os.path.expanduser("~"))
+
+        request_handlers = copy.copy(self.handlers)
+        request_handlers.settings = settings
+        request_handlers.handlers = {}
+        for attribute in (
+            "llm", "secondary_llm", "stt", "secondary_stt", "wakeword_handler",
+            "tts", "embedding", "memory", "rag", "websearch", "image_generator",
+        ):
+            if hasattr(self.handlers, attribute):
+                setattr(
+                    request_handlers,
+                    attribute,
+                    self._request_handler_snapshot(getattr(self.handlers, attribute), settings),
+                )
+        if request_handlers.memory is not None:
+            request_handlers.memory.set_handlers(
+                request_handlers.secondary_llm,
+                request_handlers.embedding,
+                request_handlers.rag,
+            )
+        if request_handlers.rag is not None:
+            request_handlers.rag.set_handlers(request_handlers.llm, request_handlers.embedding)
+
+        request_skill_manager = copy.copy(self.skill_manager)
+        request_skill_manager.settings = settings
+        request_path = os.path.expanduser(settings.get_string("path"))
+        request_skill_manager.skills_dirs = [
+            os.path.join(request_path, ".newelle", "skills"),
+            os.path.join(request_path, ".agents", "skills"),
+            self.skills_path,
+            os.path.join(os.path.expanduser("~"), ".agents", "skills"),
+        ]
+        request_skill_manager.activated_skills = set()
+        request_skill_manager.discover()
+        request_skill_manager.set_mode_overrides(
+            mode_manager.get_active_mode().get("skills", {})
+        )
+
+        return {
+            "workspace_id": workspace_id,
+            "chat_id": chat_id,
+            "path": settings.get_string("path"),
+            "settings": settings,
+            "newelle_settings": request_settings,
+            "handlers": request_handlers,
+            "mode_manager": mode_manager,
+            "skill_manager": request_skill_manager,
+        }
+
+    def _request_context(self):
+        return getattr(self.workspace_local, "context", None)
+
+    def _request_settings(self):
+        context = self._request_context()
+        return context["newelle_settings"] if context else self.newelle_settings
+
+    def _request_handlers(self):
+        context = self._request_context()
+        return context["handlers"] if context else self.handlers
+
+    def register_workspace_request_context(self, chat_id, context):
+        with self.workspace_lock:
+            self.active_request_contexts.setdefault(chat_id, []).append(context)
+
+    def unregister_workspace_request_context(self, chat_id):
+        with self.workspace_lock:
+            contexts = self.active_request_contexts.get(chat_id)
+            if contexts:
+                contexts.pop()
+                if not contexts:
+                    self.active_request_contexts.pop(chat_id, None)
+
+    def stop_workspace_request(self, chat_id):
+        """Stop the request-local model for a chat, if it is running."""
+        with self.workspace_lock:
+            contexts = list(self.active_request_contexts.get(chat_id, ()))
+        if not contexts:
+            return
+        for context in contexts:
+            if context is None:
+                continue
+            handlers = context.get("handlers")
+            for name in ("llm", "secondary_llm"):
+                handler = getattr(handlers, name, None)
+                if handler is not None:
+                    try:
+                        handler.stop()
+                    except (AttributeError, RuntimeError):
+                        pass
+
     def _usage_workspace(self) -> tuple[str, str]:
+        context = getattr(self.workspace_local, "context", None)
+        if context is not None:
+            workspace = self.workspaces.get(context.get("workspace_id"), {})
+            return context.get("workspace_id", ""), workspace.get(
+                "name", context.get("workspace_id", "")
+            )
         workspace = self.workspaces.get(self.active_workspace_id, {})
         return self.active_workspace_id, workspace.get("name", self.active_workspace_id)
 
@@ -1017,6 +1162,7 @@ class NewelleController(WorkspaceController):
                 task["running"] = True
                 # Reserve before starting the worker, even if its schedule is deleted.
                 self.workspace_requests += 1
+                self.workspace_chat_requests += 1
                 task["last_error"] = None
                 due_tasks.append(copy.deepcopy(task))
                 if task["schedule_type"] == "once":
@@ -1035,6 +1181,7 @@ class NewelleController(WorkspaceController):
             except Exception:
                 with self.workspace_lock:
                     self.workspace_requests -= 1
+                    self.workspace_chat_requests -= 1
                 raise
         return True
 
@@ -1072,6 +1219,7 @@ class NewelleController(WorkspaceController):
         finally:
             with self.workspace_lock:
                 self.workspace_requests -= 1
+                self.workspace_chat_requests -= 1
             finished_at = datetime.datetime.now().astimezone().isoformat()
             with self.scheduled_tasks_lock:
                 for stored_task in self.scheduled_tasks:
@@ -1295,10 +1443,21 @@ class NewelleController(WorkspaceController):
         if reload_type == ReloadType.EXTENSIONS:
             return self.reload_extensions()
         elif reload_type == ReloadType.LLM:
-            self.handlers.llm.destroy()
+            # A running request owns a shallow handler snapshot.  Destroying
+            # the cached handler here can tear down shared provider state
+            # underneath that snapshot, so leave the old instance alive and
+            # evict it before selecting the new foreground handler.
+            old_llm = self.handlers.llm
+            if self.workspace_chat_requests:
+                self.handlers.handlers.pop((old_llm.key, "llm", False), None)
+            else:
+                old_llm.destroy()
             self.handlers.select_handlers(self.newelle_settings)
             GLib.timeout_add(50, threading.Thread(target=self.wait_llm_loading).start)
         elif reload_type == ReloadType.SECONDARY_LLM:
+            if self.workspace_chat_requests:
+                old_secondary = self.handlers.secondary_llm
+                self.handlers.handlers.pop((old_secondary.key, "llm", True), None)
             self.handlers.select_handlers(self.newelle_settings)
             if self.newelle_settings.use_secondary_language_model:
                 GLib.timeout_add(100,threading.Thread(target=self.handlers.secondary_llm.load_model, args=(None,)).start)
@@ -1385,7 +1544,9 @@ class NewelleController(WorkspaceController):
             list[Tool]: List of enabled tools
         """
         enabled_tools = []
-        tools_settings = self.newelle_settings.tools_settings_dict
+        request_settings = self._request_settings()
+        request_context = self._request_context()
+        tools_settings = request_settings.tools_settings_dict
 
         for tool in self.tools.get_all_tools():
             # Check if tool is explicitly enabled/disabled in settings
@@ -1394,12 +1555,13 @@ class NewelleController(WorkspaceController):
                 is_enabled = tools_settings[tool.name]["enabled"]
 
             # Special case: search tool is disabled if websearch is off
-            if tool.name == "search" and not self.newelle_settings.websearch_on:
+            if tool.name == "search" and not request_settings.websearch_on:
                 is_enabled = False
 
             # Apply the active Mode's tool override (enable/remove/no_change)
-            if hasattr(self, "mode_manager"):
-                is_enabled = self.mode_manager.resolve_tool_enabled(
+            mode_manager = request_context.get("mode_manager") if request_context else getattr(self, "mode_manager", None)
+            if mode_manager is not None:
+                is_enabled = mode_manager.resolve_tool_enabled(
                     tool.name, is_enabled, mode_name
                 )
 
@@ -1704,26 +1866,26 @@ class NewelleController(WorkspaceController):
             if tool.name == name:
                 if tool in self.get_enabled_tools(mode_name):
                     return True
-                else:
-                    return False
+                return False
+        request_settings = self._request_settings()
         if name == "tts_on":
-            return self.newelle_settings.tts_enabled
+            return request_settings.tts_enabled
         elif name == "virtualization_on":
-            return self.newelle_settings.virtualization and is_flatpak()
+            return request_settings.virtualization and is_flatpak()
         elif name == "auto_run":
-            return self.newelle_settings.auto_run
+            return request_settings.auto_run
         elif name == "websearch_on":
-            return self.newelle_settings.websearch_on
+            return request_settings.websearch_on
         elif name == "rag_on":
-            return self.newelle_settings.rag_on_documents
+            return request_settings.rag_on_documents
         elif name == "local_folder":
-            return self.newelle_settings.rag_on
+            return request_settings.rag_on
         elif name == "automatic_stt":
-            return self.newelle_settings.automatic_stt
+            return request_settings.automatic_stt
         elif name == "profile_name":
-            return self.newelle_settings.current_profile
+            return request_settings.current_profile
         elif name == "external_browser":
-            return self.newelle_settings.external_browser
+            return request_settings.external_browser
         elif name == "call":
             return self.is_call_request
         elif name == "skills_available":
@@ -1732,9 +1894,16 @@ class NewelleController(WorkspaceController):
                 return len(active_skill_manager.get_enabled_skills()) > 0
             return False
         elif name == "history":
-            return "\n".join([f"{msg['User']}: {audio_text(msg['Message'])}" for msg in self.get_history()])
+            context = self._request_context()
+            chat = self.get_chat_by_id(context.get("chat_id")) if context else None
+            return "\n".join([
+                f"{msg['User']}: {audio_text(msg['Message'])}"
+                for msg in self.get_history(chat=chat)
+            ])
         elif name == "message":
-            return audio_text(self.chat[-1]["Message"])
+            context = self._request_context()
+            chat = self.get_chat_by_id(context.get("chat_id")) if context else self.chat
+            return audio_text(chat[-1]["Message"]) if chat else ""
         else:
             rep = replace_variables_dict()
             var = "{" + name.upper() + "}"
@@ -1754,13 +1923,14 @@ class NewelleController(WorkspaceController):
         Returns:
            chat history
         """
+        request_settings = self._request_settings()
         if chat is None:
             chat = self.chat
         if copy_chat:
             chat = copy.deepcopy(chat)
         history = []
-        use_fixed = self.newelle_settings.context_mode == "fixed"
-        count = self.newelle_settings.memory if use_fixed else -1
+        use_fixed = request_settings.context_mode == "fixed"
+        count = request_settings.memory if use_fixed else -1
         msgs = chat[:-1] if not include_last_message else chat
         msgs.reverse()
         for msg in msgs:
@@ -1787,31 +1957,38 @@ class NewelleController(WorkspaceController):
 
         Returns (trimmed_history, trim_result). trim_result is None when using fixed mode.
         """
-        if self.newelle_settings.context_mode != "context-manager":
+        request_settings = self._request_settings()
+        request_handlers = self._request_handlers()
+        if request_settings.context_mode != "context-manager":
             return history, None
 
         prompts_token_count = sum(count_tokens(p) for p in prompts)
 
-        embedding = getattr(self.handlers, "embedding", None)
-        if self.newelle_settings.use_secondary_language_model:
-            llm = getattr(self.handlers, "secondary_llm", None)
+        embedding = getattr(request_handlers, "embedding", None)
+        if request_settings.use_secondary_language_model:
+            llm = getattr(request_handlers, "secondary_llm", None)
         else:
-            llm = getattr(self.handlers, "llm", None)
+            llm = getattr(request_handlers, "llm", None)
 
         cm = ContextManager(
-            max_tokens=self.newelle_settings.context_max,
-            suggested_tokens=self.newelle_settings.context_suggested,
+            max_tokens=request_settings.context_max,
+            suggested_tokens=request_settings.context_suggested,
             embedding_handler=embedding,
             llm_handler=llm,
-            summarization_enabled=self.newelle_settings.context_summarization,
+            summarization_enabled=request_settings.context_summarization,
         )
         result = cm.trim(history, prompts_token_count, current_message)
         self.last_trim_result = result
+        context = self._request_context()
+        if context is not None:
+            context["last_trim_result"] = result
         return result.history, result
 
     def get_memory_prompt(self, chat=None, chat_id=None):
+        request_settings = self._request_settings()
+        request_handlers = self._request_handlers()
         if chat_id is None:
-            chat_id = self.newelle_settings.chat_id
+            chat_id = request_settings.chat_id
         if chat is None:
             chat = self.get_chat_by_id(chat_id)
         has_audio = any(extract_audio(m.get("Message", ""))[0] for m in chat)
@@ -1822,12 +1999,12 @@ class NewelleController(WorkspaceController):
         if not has_audio:
             query = chat[-1]["Message"] if chat else ""
         r = []
-        if query and self.newelle_settings.memory_on:
-            memory_contexts = self.handlers.memory.get_context(query, self.get_history(chat=chat, include_last_message=has_audio)) or []
+        if query and request_settings.memory_on:
+            memory_contexts = request_handlers.memory.get_context(query, self.get_history(chat=chat, include_last_message=has_audio)) or []
             r += [format_source_context(context, "Saved memory", source_type="Memory")
                   for context in memory_contexts if context and context.strip()]
-        if query and self.newelle_settings.rag_on:
-            r += self.handlers.rag.get_context(query, self.get_history(chat=chat, include_last_message=has_audio))
+        if query and request_settings.rag_on:
+            r += request_handlers.rag.get_context(query, self.get_history(chat=chat, include_last_message=has_audio))
         if chat:
             # Document retrieval should use the same textual query, not a later tool result.
             documents_chat = copy.deepcopy(chat)
@@ -1843,15 +2020,17 @@ class NewelleController(WorkspaceController):
         """
         history = self.get_history(chat=chat, include_last_message=True)
         explicit = extract_supported_files(history, ["*"], include_automatic=False)
-        rag = self.handlers.rag
+        request_settings = self._request_settings()
+        request_handlers = self._request_handlers()
+        rag = request_handlers.rag
         if rag is None:
             if explicit:
                 raise ValueError(_("A RAG provider is required for this attachment"))
             return []
         documents = extract_supported_files(
             history, rag.get_supported_files_reading(),
-            self.handlers.llm.get_supported_files(),
-            include_automatic=self.newelle_settings.rag_on_documents,
+            request_handlers.llm.get_supported_files(),
+            include_automatic=request_settings.rag_on_documents,
         )
         if set(explicit) - set(documents):
             raise ValueError(_("The selected RAG provider does not support this file type"))
@@ -1871,7 +2050,7 @@ class NewelleController(WorkspaceController):
                     self.chat_documents_index[chat_id] = existing_index
             else:
                 existing_index.update_index(documents)
-            if existing_index.get_index_size() > self.newelle_settings.rag_limit:
+            if existing_index.get_index_size() > request_settings.rag_limit:
                 query = clean_prompt(chat[-1]["Message"]).strip()
                 return existing_index.query(query) if query else []
             return existing_index.get_all_contexts()
@@ -1888,9 +2067,11 @@ class NewelleController(WorkspaceController):
         """
         if chat is None:
             chat = self.chat
-        if self.newelle_settings.memory_on:
+        request_settings = self._request_settings()
+        request_handlers = self._request_handlers()
+        if request_settings.memory_on:
             snapshot = copy.deepcopy(chat)
-            memory = self.handlers.memory
+            memory = request_handlers.memory
             def register():
                 current_user = next((entry for entry in reversed(snapshot)
                                      if entry.get("User") == "User" and not entry.get("ToolContext")), None)
@@ -1910,31 +2091,36 @@ class NewelleController(WorkspaceController):
 
     def get_vision_model(self) -> LLMHandler:
         """Return the model configured to handle image and video chats."""
+        request_settings = self._request_settings()
+        request_handlers = self._request_handlers()
         if (
-            self.newelle_settings.use_secondary_language_model
-            and self.newelle_settings.use_secondary_language_model_for_vision
+            request_settings.use_secondary_language_model
+            and request_settings.use_secondary_language_model_for_vision
         ):
-            return self.handlers.secondary_llm
-        return self.handlers.llm
+            return request_handlers.secondary_llm
+        return request_handlers.llm
 
     def get_model_for_chat(self, chat: list[dict]) -> LLMHandler:
         """Return the model that should generate the next response for a chat."""
+        request_handlers = self._request_handlers()
         if chat_contains_vision(chat):
             return self.get_vision_model()
-        return self.handlers.llm
+        return request_handlers.llm
 
     def _get_tools_prompt_for_mode(self, mode_name: str | None = None) -> str:
         """Return the tool catalog resolved against an optional named Mode."""
-        tools_settings = self.newelle_settings.tools_settings_dict
+        request_settings = self._request_settings()
+        tools_settings = request_settings.tools_settings_dict
         enabled_tools = {}
         for tool in self.tools.get_all_tools():
             enabled = tool.default_on
             if tool.name in tools_settings and "enabled" in tools_settings[tool.name]:
                 enabled = tools_settings[tool.name]["enabled"]
-            if tool.name == "search" and not self.newelle_settings.websearch_on:
+            if tool.name == "search" and not request_settings.websearch_on:
                 enabled = False
-            if hasattr(self, "mode_manager"):
-                enabled = self.mode_manager.resolve_tool_enabled(
+            mode_manager = self._request_context().get("mode_manager") if self._request_context() else self.mode_manager
+            if mode_manager is not None:
+                enabled = mode_manager.resolve_tool_enabled(
                     tool.name, enabled, mode_name
                 )
             enabled_tools[tool.name] = enabled
@@ -1953,7 +2139,8 @@ class NewelleController(WorkspaceController):
         """Use the same variables and Mode for both prompt destinations."""
         simple_vars = replace_variables_dict()
         simple_vars["{TOOLS}"] = self._get_tools_prompt_for_mode(mode_name)
-        active_skill_manager = skill_manager or getattr(self, "skill_manager", None)
+        context = self._request_context()
+        active_skill_manager = skill_manager or (context.get("skill_manager") if context else None) or getattr(self, "skill_manager", None)
         simple_vars["{SKILLS}"] = (
             active_skill_manager.get_catalog() if active_skill_manager is not None else ""
         )
@@ -1966,7 +2153,7 @@ class NewelleController(WorkspaceController):
         )
 
     def _format_user_message_prompts(self, formatter, mode_name=None):
-        prompts = self.newelle_settings.get_bot_prompts(mode_name, user_message=True)
+        prompts = self._request_settings().get_bot_prompts(mode_name, user_message=True)
         return "\n\n".join(text for prompt in prompts if (text := formatter.format(prompt)).strip())
 
     def _set_user_message_prompts(self, message, formatter, mode_name=None):
@@ -2004,7 +2191,7 @@ class NewelleController(WorkspaceController):
         mode and may need to be rebuilt between tool iterations.
         """
         formatter = self._get_prompt_formatter(mode_name, skill_manager, audio_turn)
-        prompts = [formatter.format(prompt) for prompt in self.newelle_settings.get_bot_prompts(mode_name)]
+        prompts = [formatter.format(prompt) for prompt in self._request_settings().get_bot_prompts(mode_name)]
         prompts += self._get_user_message_tool_prompts(self.get_chat_by_id(chat_id))
         prompts += self.get_memory_prompt(chat_id=chat_id)
         return prompts
@@ -2020,7 +2207,8 @@ class NewelleController(WorkspaceController):
             Returns (None, None, None, None, None, None) if chat_id is invalid
         """
         # Use explicit chat_id or fall back to current
-        effective_chat_id = chat_id if chat_id is not None else self.newelle_settings.chat_id
+        request_settings = self._request_settings()
+        effective_chat_id = chat_id if chat_id is not None else request_settings.chat_id
 
         # Validate chat_id exists
         if not self.chats or effective_chat_id not in self.chats:
@@ -2032,12 +2220,12 @@ class NewelleController(WorkspaceController):
             chat = self.audio_input.audio_request_history(chat, audio_turn)
 
         # Save profile for generation
-        self.chats[effective_chat_id]["profile"] = self.newelle_settings.current_profile
+        self.chats[effective_chat_id]["profile"] = request_settings.current_profile
 
         # Append extensions prompts
         prompts = []
         formatter = self._get_prompt_formatter(audio_turn=audio_turn)
-        for prompt in self.newelle_settings.bot_prompts:
+        for prompt in request_settings.bot_prompts:
             prompts.append(formatter.format(prompt))
 
         # Append memory
@@ -2075,7 +2263,8 @@ class NewelleController(WorkspaceController):
             chat_id: Optional chat ID to use. If None, uses current chat_id from settings.
         """
         try:
-            audio_turn = self.audio_input.bind_audio_turn(chat_id if chat_id is not None else self.newelle_settings.chat_id, is_current)
+            request_settings = self._request_settings()
+            audio_turn = self.audio_input.bind_audio_turn(chat_id if chat_id is not None else request_settings.chat_id, is_current)
             prompts, history, old_history, old_user_prompt, chat, effective_chat_id = self.prepare_generation(chat_id=chat_id, audio_turn=audio_turn)
         except Exception as exc:
             yield ('error', str(exc))
@@ -2216,7 +2405,11 @@ class NewelleController(WorkspaceController):
             'time': last_generation_time,
             'time_to_first_token': time_to_first_token,
             'time_to_first_token_no_thinking': time_to_first_token_no_thinking,
-            'trim_result': getattr(self, 'last_trim_result', None),
+            'trim_result': (
+                self._request_context().get("last_trim_result")
+                if self._request_context() is not None
+                else getattr(self, 'last_trim_result', None)
+            ),
             'response_metadata': response_metadata,
             'usage': response_usage,
         })
@@ -2267,18 +2460,20 @@ class NewelleController(WorkspaceController):
         Returns:
             Final message from the LLM
         """
+        request_settings = self._request_settings()
+        request_context = self._request_context()
         if max_tool_calls is None:
-            max_tool_calls = getattr(self.newelle_settings, "max_tool_calls", 10)
+            max_tool_calls = getattr(request_settings, "max_tool_calls", 10)
         if max_tool_calls < 1:
             raise ValueError("max_tool_calls must be at least 1")
 
         if mode_name in ("", "current"):
             mode_name = None
-        mode_manager = getattr(self, "mode_manager", None)
+        mode_manager = request_context.get("mode_manager") if request_context else getattr(self, "mode_manager", None)
         if mode_name is not None:
             if mode_manager is None or mode_manager.get_mode(mode_name) is None:
                 raise ValueError(f"Mode '{mode_name}' not found")
-            base_skill_manager = skill_manager or getattr(self, "skill_manager", None)
+            base_skill_manager = skill_manager or (request_context.get("skill_manager") if request_context else None) or getattr(self, "skill_manager", None)
             if base_skill_manager is not None:
                 skill_manager = base_skill_manager.fork_with_mode_overrides(
                     mode_manager.get_mode(mode_name).get("skills", {})
@@ -2290,7 +2485,7 @@ class NewelleController(WorkspaceController):
             if tool_registry is None
             else None
         )
-        active_skill_manager = skill_manager if skill_manager is not None else getattr(self, "skill_manager", None)
+        active_skill_manager = skill_manager if skill_manager is not None else (request_context.get("skill_manager") if request_context else None) or getattr(self, "skill_manager", None)
         msg_uuid = int(uuid_lib.uuid4())
         self.chats[chat_id]["chat"].append({"User": "User", "Message": message, "UUID": msg_uuid})
         renamed = self.name_chat_from_first_message(chat_id, save=False)
@@ -2519,7 +2714,7 @@ class NewelleController(WorkspaceController):
                     if save_chat:
                         stored_entry = {
                             **assistant_entry,
-                            "Profile": self.newelle_settings.current_profile,
+                            "Profile": request_settings.current_profile,
                         }
                         self.chats[chat_id]["chat"].append(stored_entry)
                         self.save_chats()
@@ -2556,7 +2751,7 @@ class NewelleController(WorkspaceController):
                 if save_chat:
                     self.chats[chat_id]["chat"].append({
                         **assistant_entry,
-                        "Profile": self.newelle_settings.current_profile,
+                        "Profile": request_settings.current_profile,
                     })
 
                 for tool_call in tool_calls:
@@ -2608,7 +2803,7 @@ class NewelleController(WorkspaceController):
                         # schema was fetched, hand back the schema instead of
                         # running it with guessed arguments, and mark it expanded.
                         redirect = active_tool_registry.maybe_redirect_lazy_tool(
-                            tool_name, self.newelle_settings.tools_settings_dict, self.expanded_tools
+                            tool_name, request_settings.tools_settings_dict, self.expanded_tools
                         )
                         if redirect is not None:
                             # Native tool calling needs the full schema next turn.
@@ -2741,13 +2936,22 @@ class NewelleController(WorkspaceController):
 
         done = threading.Event()
         result_holder: dict[str, Any] = {}
+        request_context = self._request_context()
 
         def run():
+            previous_context = getattr(self.workspace_local, "context", None)
+            if request_context is not None:
+                self.workspace_local.context = request_context
             try:
                 result_holder["result"] = tool.execute(**arguments)
             except Exception as exc:
                 result_holder["error"] = exc
             finally:
+                if request_context is not None:
+                    if previous_context is None:
+                        self.workspace_local.__dict__.pop("context", None)
+                    else:
+                        self.workspace_local.context = previous_context
                 done.set()
             return GLib.SOURCE_REMOVE
 
@@ -2767,7 +2971,7 @@ class NewelleSettings:
         # manager (e.g. in isolated tests).
         self.mode_manager = mode_manager
 
-    def load_settings(self, settings):
+    def load_settings(self, settings, change_directory=True):
         """Basic settings loading
 
         Args:
@@ -2878,10 +3082,10 @@ class NewelleSettings:
         self.hide_warning = settings.get_boolean("hide-warning")
         self.load_prompts()
         # Adjust paths
-        if os.path.exists(os.path.expanduser(self.main_path)):
-            os.chdir(os.path.expanduser(self.main_path))
-        else:
+        if not os.path.exists(os.path.expanduser(self.main_path)):
             self.main_path = "~"
+        elif change_directory:
+            os.chdir(os.path.expanduser(self.main_path))
 
     def load_prompts(self):
         """Load prompts and do overrides"""
