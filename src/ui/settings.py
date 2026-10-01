@@ -3146,6 +3146,7 @@ class Settings(Adw.Window):
 
     def build_prompts_settings(self):
         self.prompts_settings = self.controller.newelle_settings.prompts_settings
+        self.user_message_prompts_settings = self.controller.newelle_settings.user_message_prompts_settings
         for prompt in self.prompts_rows:
             self.prompt.remove(prompt)
         self.prompts_rows = []
@@ -3165,6 +3166,18 @@ class Settings(Adw.Window):
             drag_handle.add_css_class("dim-label")
             drag_handle.set_valign(Gtk.Align.CENTER)
             row.add_prefix(drag_handle)
+
+            user_message_row = Adw.ActionRow(
+                title=_("User Message prompts"),
+                subtitle=_("Add this prompt at the start of user messages inside <context> tags"),
+                use_markup=False,
+            )
+            user_message_switch = Gtk.Switch(valign=Gtk.Align.CENTER)
+            user_message_switch.set_active(self.controller.newelle_settings.prompt_uses_user_message(prompt))
+            user_message_switch.connect("notify::active", self.update_user_message_prompt, prompt["setting_name"])
+            user_message_row.add_suffix(user_message_switch)
+            user_message_row.set_activatable_widget(user_message_switch)
+            row.add_row(user_message_row)
 
             if prompt["editable"]:
                 self.add_customize_prompt_content(row, prompt["key"], prompt["title"])
@@ -3731,6 +3744,10 @@ class Settings(Adw.Window):
         self.prompts_settings[key] = switch.get_active()
         self.settings.set_string("prompts-settings", json.dumps(self.prompts_settings))
 
+    def update_user_message_prompt(self, switch: Gtk.Switch, state, key: str):
+        self.user_message_prompts_settings[key] = switch.get_active()
+        self.settings.set_string("user-message-prompts", json.dumps(self.user_message_prompts_settings))
+
     def build_row(self, constants: dict[str, Any], key: str, selected: str, group: Gtk.CheckButton, secondary: bool = False) -> Adw.ActionRow | Adw.ExpanderRow:
         """Build the row for every handler
 
@@ -4175,6 +4192,9 @@ class Settings(Adw.Window):
         if key in self.prompts_settings:
             del self.prompts_settings[key]
             self.settings.set_string("prompts-settings", json.dumps(self.prompts_settings))
+        if key in self.user_message_prompts_settings:
+            del self.user_message_prompts_settings[key]
+            self.settings.set_string("user-message-prompts", json.dumps(self.user_message_prompts_settings))
         order = json.loads(self.settings.get_string("prompts-order"))
         if key in order:
             order.remove(key)

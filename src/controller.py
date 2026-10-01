@@ -13,7 +13,7 @@ from .modes import ModeManager
 from .workspaces import WorkspaceController, workspace_request, workspace_storage
 from .utility.media import chat_contains_vision, get_image_base64, get_image_path, extract_supported_files
 from .utility.audio_input import AudioInputManager
-from .utility.media import audio_history_text, audio_text, extract_audio
+from .utility.media import audio_history_text, audio_text, extract_audio, prepend_user_message_context
 from .utility.message_chunk import get_message_chunks, normalize_tool_arguments
 
 from .extensions import NewelleExtension
@@ -1925,6 +1925,53 @@ class NewelleController(WorkspaceController):
             expanded_tools=self.expanded_tools,
         )
 
+    def _get_prompt_formatter(
+        self,
+        mode_name: str | None = None,
+        skill_manager: SkillManager | None = None,
+        audio_turn=None,
+    ) -> PromptFormatter:
+        """Use the same variables and Mode for both prompt destinations."""
+        simple_vars = replace_variables_dict()
+        simple_vars["{TOOLS}"] = self._get_tools_prompt_for_mode(mode_name)
+        active_skill_manager = skill_manager or getattr(self, "skill_manager", None)
+        simple_vars["{SKILLS}"] = (
+            active_skill_manager.get_catalog() if active_skill_manager is not None else ""
+        )
+        return PromptFormatter(
+            simple_vars,
+            lambda name: self.audio_input.audio_prompt_variable(
+                name, audio_turn,
+                lambda variable: self.get_variable(variable, mode_name=mode_name, skill_manager=active_skill_manager),
+            ),
+        )
+
+    def _format_user_message_prompts(self, formatter, mode_name=None):
+        prompts = self.newelle_settings.get_bot_prompts(mode_name, user_message=True)
+        return "\n\n".join(text for prompt in prompts if (text := formatter.format(prompt)).strip())
+
+    def _set_user_message_prompts(self, message, formatter, mode_name=None):
+        """Snapshot this turn's context without changing its displayed message."""
+        if message.get("User") != "User" or message.get("ToolContext"):
+            return
+        message["UserMessagePrompts"] = self._format_user_message_prompts(formatter, mode_name)
+
+    def _apply_user_message_prompts(self, history):
+        """Restore saved context only on the request copy of user messages."""
+        return [
+            {**message, "Message": prepend_user_message_context(
+                message["Message"], message.get("UserMessagePrompts", "")
+            )} if message.get("User") == "User" else message
+            for message in history
+        ]
+
+    def _get_user_message_tool_prompts(self, chat):
+        """Keep native tool schemas available when their prompt is user context."""
+        for message in reversed(chat):
+            if message.get("User") == "User" and not message.get("ToolContext"):
+                return re.findall(r"<tools>.*?</tools>", message.get("UserMessagePrompts", ""), flags=re.DOTALL)
+        return []
+
     def _build_tool_system_prompt(
         self,
         chat_id: int,
@@ -1937,22 +1984,9 @@ class NewelleController(WorkspaceController):
         Unlike a caller-supplied prompt, this prompt is derived from the active
         mode and may need to be rebuilt between tool iterations.
         """
-        prompts = []
-        simple_vars = replace_variables_dict()
-        simple_vars["{TOOLS}"] = self._get_tools_prompt_for_mode(mode_name)
-        active_skill_manager = skill_manager or getattr(self, "skill_manager", None)
-        simple_vars["{SKILLS}"] = (
-            active_skill_manager.get_catalog() if active_skill_manager is not None else ""
-        )
-        formatter = PromptFormatter(
-            simple_vars,
-            lambda name: self.audio_input.audio_prompt_variable(
-                name, audio_turn,
-                lambda variable: self.get_variable(variable, mode_name=mode_name, skill_manager=active_skill_manager),
-            ),
-        )
-        for prompt in self.newelle_settings.get_bot_prompts(mode_name):
-            prompts.append(formatter.format(prompt))
+        formatter = self._get_prompt_formatter(mode_name, skill_manager, audio_turn)
+        prompts = [formatter.format(prompt) for prompt in self.newelle_settings.get_bot_prompts(mode_name)]
+        prompts += self._get_user_message_tool_prompts(self.get_chat_by_id(chat_id))
         prompts += self.get_memory_prompt(chat_id=chat_id)
         return prompts
 
@@ -1983,8 +2017,7 @@ class NewelleController(WorkspaceController):
 
         # Append extensions prompts
         prompts = []
-        formatter = PromptFormatter(replace_variables_dict(),
-                                    lambda name: self.audio_input.audio_prompt_variable(name, audio_turn, self.get_variable))
+        formatter = self._get_prompt_formatter(audio_turn=audio_turn)
         for prompt in self.newelle_settings.bot_prompts:
             prompts.append(formatter.format(prompt))
 
@@ -1999,6 +2032,10 @@ class NewelleController(WorkspaceController):
         old_user_prompt = current_message
         processed_chat, prompts = self.integrationsloader.preprocess_history(chat, prompts)
         chat, prompts = self.extensionloader.preprocess_history(processed_chat, prompts)
+
+        if chat:
+            self._set_user_message_prompts(chat[-1], formatter)
+        prompts += self._get_user_message_tool_prompts(chat)
 
         # Update the chat in storage if it was modified
         self.set_chat_by_id(effective_chat_id, copy.deepcopy(chat) if audio_turn else chat)
@@ -2050,6 +2087,8 @@ class NewelleController(WorkspaceController):
 
         request_chat = self.audio_input.audio_request_history(chat, audio_turn)
         new_history = self.audio_input.audio_request_history(new_history, audio_turn)
+        request_chat = self._apply_user_message_prompts(request_chat)
+        new_history = self._apply_user_message_prompts(new_history)
 
         # Extensions may change both the history and prompts. Trim only their
         # effective result so the context manager's selection is what is sent.
@@ -2111,7 +2150,7 @@ class NewelleController(WorkspaceController):
                 input_tokens += count_tokens(prompt)
             for message in history:
                 input_tokens += count_tokens(message.get("User", "")) + count_tokens(message.get("Message", ""))
-            input_tokens += count_tokens(chat[-1]["Message"])
+            input_tokens += count_tokens(request_message)
             
             output_tokens = count_tokens(message_label)
             if response_usage is not None:
@@ -2248,19 +2287,22 @@ class NewelleController(WorkspaceController):
                 original_skill_manager = getattr(skills_integration, "skill_manager", None)
                 skills_integration.set_skill_manager(active_skill_manager)
 
-        history = self.get_history(chat=self.chats[chat_id]["chat"], include_last_message=True)
         system_prompt_was_built = system_prompt is None
         if system_prompt is None:
             _, _, _, _, _, effective_chat_id = self.prepare_generation(chat_id=chat_id, audio_turn=audio_turn)
+            formatter = self._get_prompt_formatter(mode_name, active_skill_manager, audio_turn)
+            self._set_user_message_prompts(self.chats[chat_id]["chat"][-1], formatter, mode_name)
             system_prompt = self._build_tool_system_prompt(
                 effective_chat_id, mode_name, active_skill_manager, audio_turn
             )
+
+        history = self.get_history(chat=self.chats[chat_id]["chat"], include_last_message=True)
         
         # Avoid history duplication: check the last entry is the current message.
         last_entry_is_current = bool(
             history
             and history[-1].get("User") == "User"
-            and history[-1].get("Message") == message
+            and (history[-1].get("UUID") == msg_uuid or history[-1].get("Message") == message)
         )
         current_history = copy.deepcopy(history)
         # Let extensions/integrations preprocess the history and prompts before
@@ -2316,6 +2358,11 @@ class NewelleController(WorkspaceController):
                 if current_mode_name != active_mode_name:
                     active_mode_name = current_mode_name
                     if system_prompt_was_built:
+                        formatter = self._get_prompt_formatter(current_mode_name, active_skill_manager, audio_turn)
+                        context = self._format_user_message_prompts(formatter, current_mode_name)
+                        for entry in current_history + self.chats[chat_id]["chat"]:
+                            if entry.get("UUID") == msg_uuid:
+                                entry["UserMessagePrompts"] = context
                         system_prompt = self._build_tool_system_prompt(
                             chat_id, current_mode_name, active_skill_manager, audio_turn
                         )
@@ -2350,7 +2397,13 @@ class NewelleController(WorkspaceController):
                 if iteration == 0:
                     prompt = current_prompt
                     if current_prompt_index is not None:
-                        request_history.pop(current_prompt_index)
+                        current_entry = request_history.pop(current_prompt_index)
+                        prompt = prepend_user_message_context(prompt, current_entry.get("UserMessagePrompts", ""))
+                    else:
+                        context = next((entry.get("UserMessagePrompts", "")
+                                        for entry in self.chats[chat_id]["chat"]
+                                        if entry.get("UUID") == msg_uuid), "")
+                        prompt = prepend_user_message_context(prompt, context)
                 else:
                     prompt = ""
                     if (
@@ -2371,7 +2424,8 @@ class NewelleController(WorkspaceController):
                         "more tools; return the best final answer using the results already available."
                     ]
 
-                send_history, _ = self._trim_context(request_history, request_system_prompt, self.audio_input.audio_context_query(message, audio_turn))
+                request_history = self._apply_user_message_prompts(request_history)
+                send_history, _ = self._trim_context(request_history, request_system_prompt, self.audio_input.audio_context_query(prompt, audio_turn))
 
                 if is_current is not None and not is_current():
                     return ""
@@ -2756,6 +2810,7 @@ class NewelleSettings:
         self.use_secondary_language_model_for_vision = self.settings.get_boolean("secondary-llm-vision")
         self.custom_prompts = json.loads(self.settings.get_string("custom-prompts"))
         self.prompts_settings = json.loads(self.settings.get_string("prompts-settings")) 
+        self.user_message_prompts_settings = json.loads(self.settings.get_string("user-message-prompts"))
         self.extensions_settings = self.settings.get_string("extensions-settings")
         self.username = self.settings.get_string("user-name")
         self.zoom = self.settings.get_int("zoom")
@@ -2837,12 +2892,17 @@ class NewelleSettings:
         # profile base text (controller.newelle_settings.prompts).
         self.bot_prompts = self.get_bot_prompts()
 
-    def get_bot_prompts(self, mode_name: str | None = None) -> list[str]:
-        """Resolve profile prompts against the active or a request-local Mode."""
+    def prompt_uses_user_message(self, prompt: dict) -> bool:
+        return self.user_message_prompts_settings.get(prompt["setting_name"], prompt.get("user_message", False))
+
+    def get_bot_prompts(self, mode_name: str | None = None, user_message: bool = False) -> list[str]:
+        """Resolve enabled prompts for a destination and the requested Mode."""
         mm = self.mode_manager
         bot_prompts = []
         ordered_prompts = self._get_ordered_prompts()
         for prompt in ordered_prompts:
+            if self.prompt_uses_user_message(prompt) != user_message:
+                continue
             key = prompt["key"]
             is_active = False
             if prompt["setting_name"] in self.prompts_settings:
@@ -2939,7 +2999,8 @@ class NewelleSettings:
             self.secondary_stt_settings != new_settings.secondary_stt_settings):
             reloads.append(ReloadType.WAKEWORD)
         # Check prompts
-        if len(self.prompts) != len(new_settings.prompts):
+        if (len(self.prompts) != len(new_settings.prompts)
+                or self.user_message_prompts_settings != new_settings.user_message_prompts_settings):
             reloads.append(ReloadType.PROMPTS)
         if self.offers != new_settings.offers:
             reloads.append(ReloadType.OFFERS)

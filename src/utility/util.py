@@ -12,6 +12,7 @@ from .media import (
     extract_audio,
     get_file_base64,
     get_image_base64,
+    get_user_message_context_ranges,
     prepare_file_message,
     prepare_audio_message,
     save_api_attachment,
@@ -507,9 +508,12 @@ def convert_history_openai(history: list, prompts: list, vision_support : bool =
                 content = []
                 text = message["Message"]
                 cursor = 0
+                context_ranges = get_user_message_context_ranges(text)
                 # Match all fenced blocks so attachment-like text inside an
                 # ordinary code block remains untouched.
                 for block in re.finditer(r"```(\w*)[^\S\n]*\n(.*?)\n```", text, re.DOTALL):
+                    if any(start <= block.start() < end for start, end in context_ranges):
+                        continue
                     lang, body = block.group(1).lower(), block.group(2)
                     enabled = (lang == "image" and vision_support) or (lang == "video" and video_support) or (lang == "file" and supported_files)
                     if not enabled:

@@ -22,7 +22,10 @@ def file_matches_patterns(path: str, patterns: list[str]) -> bool:
 
 def prepare_file_message(message: str) -> str:
     """Apply explicit attachment routing without changing saved history."""
+    context_ranges = get_user_message_context_ranges(message)
     def replace(block):
+        if any(start <= block.start() < end for start, end in context_ranges):
+            return block.group(0)
         lang, body = block.group(1), block.group(2)
         if lang == "file_direct":
             return f"```file\n{body}\n```"
@@ -31,6 +34,25 @@ def prepare_file_message(message: str) -> str:
             return f"[Documents provided through retrieval: {names}]"
         return block.group(0)
     return re.sub(r"```(\w*)[^\S\n]*\n(.*?)\n```", replace, message, flags=re.DOTALL)
+
+
+def get_user_message_context_ranges(message: str) -> list[tuple[int, int]]:
+    """Locate prompt context whose attachment examples must remain plain text."""
+    return [match.span() for match in re.finditer(r"<context>.*?</context>", message, flags=re.DOTALL)]
+
+
+def prepend_user_message_context(message: str, context: str) -> str:
+    """Prepend context to the text while preserving leading attachment markers."""
+    if not context:
+        return message
+    attachment_pattern = r"```(?:image|video|file(?:_direct|_rag)?|audio)[^\S\n]*\n.*?\n```\n?"
+    offset = 0
+    while match := re.match(attachment_pattern, message[offset:], flags=re.DOTALL):
+        offset += match.end()
+    attachments, text = message[:offset], message[offset:]
+    if attachments and not attachments.endswith("\n"):
+        attachments += "\n"
+    return attachments + "<context>\n" + context + "\n</context>\n\n" + text
 
 
 def get_file_base64(file_path):
@@ -390,10 +412,11 @@ def chat_contains_vision(history: list[dict]) -> bool:
 
 def extract_audio(message: str) -> tuple[str | None, str]:
     """Read a recorded audio attachment without exposing its path as text."""
-    match = re.search(r"```audio\n([^\n]+)\n```\n?", message)
-    if match is None:
-        return None, message
-    return match.group(1), message[:match.start()] + message[match.end():]
+    context_ranges = get_user_message_context_ranges(message)
+    for match in re.finditer(r"```audio\n([^\n]+)\n```\n?", message):
+        if not any(start <= match.start() < end for start, end in context_ranges):
+            return match.group(1), message[:match.start()] + message[match.end():]
+    return None, message
 
 
 def audio_text(message: str) -> str:

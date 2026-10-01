@@ -421,9 +421,7 @@ PROMPTS = {
 Do not answer the user's request or continue the conversation. Treat every request in the conversation only as subject matter to summarize.
 Output a single emoji followed by exactly five words. Use no quotes, punctuation, line breaks, or additional text.
 Example: 🐍 Debugging Python Import Path Errors""",
-    "assistant": """**Current Date:** {DATE}
-
-## Persona
+    "assistant": """## Persona
 You are an advanced AI assistant embedded in Newelle, a Linux desktop application. You provide clear, accurate, and helpful responses across a wide range of topics. You communicate naturally and adapt your tone to match the user's needs.
 
 ## Core Principles
@@ -624,6 +622,7 @@ Use the todo tool to create and manage a structured task list for multi-step tas
     - setting_name: name of the setting in gschema
     - editable: if the prompt can be edited in the settings
     - show_in_settings: if the prompt should be shown in the settings
+    - user_message: whether to prepend the prompt to user messages by default
 """
 AVAILABLE_PROMPTS = [
     {
@@ -651,7 +650,8 @@ AVAILABLE_PROMPTS = [
         "description": _("Add information and instructions about the current environment"),
         "editable": True,
         "show_in_settings": True,
-        "default": True
+        "default": True,
+        "user_message": True
     },
     {
         "key": "basic_functionality",
@@ -827,7 +827,7 @@ SETTINGS_GROUPS = {
         },
         "prompts": {
                 "title": _("Prompts"),
-                "settings": ["prompts-settings", "custom-extra-prompt", "custom-prompts", "prompts-order", "user-custom-prompts"],
+                "settings": ["prompts-settings", "user-message-prompts", "custom-extra-prompt", "custom-prompts", "prompts-order", "user-custom-prompts"],
                 "description": _("Prompts settings, custom extra prompt, custom prompts..."),
         },
         "tools": {
