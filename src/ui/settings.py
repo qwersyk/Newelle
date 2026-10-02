@@ -603,23 +603,6 @@ class Settings(Adw.Window):
         self.settings.bind("parallel-tool-execution", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
         self.neural_network.add(row)
 
-        max_tool_calls_row = Adw.SpinRow(
-            title=_("Maximum Tool Calls"),
-            subtitle=_("Maximum number of tools the model can run for one request, including scheduled tasks"),
-            adjustment=Gtk.Adjustment(
-                lower=1,
-                upper=300,
-                step_increment=1,
-                page_increment=10,
-                value=self.settings.get_int("max-tool-calls"),
-            ),
-            digits=0,
-        )
-        def update_max_tool_calls(spin, _value):
-            self.settings.set_int("max-tool-calls", int(spin.get_value()))
-        max_tool_calls_row.connect("notify::value", update_max_tool_calls)
-        self.neural_network.add(max_tool_calls_row)
-        
         row = Adw.ExpanderRow(title=_("External Terminal"), subtitle=_("Choose the external terminal where to run the console commands"))
         terminal_enabled = Gtk.Switch(valign=Gtk.Align.CENTER)
         self.settings.bind("external-terminal-on", terminal_enabled, 'active', Gio.SettingsBindFlags.DEFAULT)
@@ -1285,6 +1268,24 @@ class Settings(Adw.Window):
             return
         self._building_permissions_page = True
         self.permissions_page_initialized = True
+        tool_calls_group = Adw.PreferencesGroup(title=_("Tool calls"))
+        max_tool_calls_row = Adw.SpinRow(
+            title=_("Maximum Tool Calls"),
+            subtitle=_("Maximum number of tools the model can run for one request, including scheduled tasks"),
+            adjustment=Gtk.Adjustment(
+                lower=1,
+                upper=1000,
+                step_increment=1,
+                page_increment=10,
+                value=self.settings.get_int("max-tool-calls"),
+            ),
+            digits=0,
+        )
+        def update_max_tool_calls(spin, _value):
+            self.settings.set_int("max-tool-calls", int(spin.get_value()))
+        max_tool_calls_row.connect("notify::value", update_max_tool_calls)
+        tool_calls_group.add(max_tool_calls_row)
+        self.PermissionsPage.add(tool_calls_group)
         self.build_file_permissions_settings()
         self.build_command_permissions_settings()
         self.build_path_security_settings()
