@@ -199,6 +199,8 @@ class WorkspaceWindow:
 
     def refresh_workspace_picker(self):
         workspace = self.controller.active_workspace
+        self._workspace_configuration = (workspace.get("profile"), workspace["path"], workspace["mode"])
+        self.set_title(_("Newelle — {workspace}").format(workspace=workspace["name"]))
         content = Gtk.Box(spacing=10)
         content.append(self._workspace_avatar(workspace))
         labels = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2, hexpand=True)
@@ -229,6 +231,12 @@ class WorkspaceWindow:
         for wid, entry in self.controller.workspaces.items():
             row = self._workspace_row(entry, active=wid == self.controller.active_workspace_id)
             row.connect("activated", lambda _row, key=wid: (popover.popdown(), self.switch_workspace(key)))
+            open_window = Gtk.Button(
+                icon_name="window-new-symbolic", valign=Gtk.Align.CENTER,
+                css_classes=["flat", "circular"], tooltip_text=_("Open in New Window"),
+            )
+            open_window.connect("clicked", lambda _button, key=wid: (popover.popdown(), self.app.open_workspace_window(key, self)))
+            row.add_suffix(open_window)
             edit = Gtk.Button(
                 icon_name="document-edit-symbolic", valign=Gtk.Align.CENTER,
                 css_classes=["flat", "circular"], tooltip_text=_("Edit workspace"),
@@ -264,7 +272,7 @@ class WorkspaceWindow:
             if tab.recording:
                 return True
         voice = getattr(self.app, "voice_win", None)
-        if voice is not None:
+        if voice is not None and (voice.main_window is self or voice.controller is self.controller):
             return True
         for i in range(self.canvas_tabs.get_n_pages()):
             if getattr(self.canvas_tabs.get_nth_page(i).get_child(), "call_active", False):
@@ -274,7 +282,8 @@ class WorkspaceWindow:
             view = getattr(window, "tab_view", None)
             if view is not None:
                 for i in range(view.get_n_pages()):
-                    if getattr(view.get_nth_page(i).get_child(), "call_active", False):
+                    panel = view.get_nth_page(i).get_child()
+                    if getattr(panel, "call_active", False) and getattr(panel, "controller", None) is self.controller:
                         return True
         return False
 
@@ -297,6 +306,34 @@ class WorkspaceWindow:
     def _save_workspace_on_close(self, *_args):
         self.save_workspace_tabs()
         return False
+
+    def remember_workspace_drafts(self, view=None):
+        views = (view,) if view is not None else (self.chat_tabs, *self._workspace_views.values())
+        for tabs in views:
+            for index in range(tabs.get_n_pages()):
+                tab = tabs.get_nth_page(index).get_child()
+                self.controller.workspace_storage.drafts[tab.chat_id] = {
+                    "text": "" if tab.input_panel.placeholding else tab.input_panel.get_text(),
+                    "attachment": tab.attached_image_data,
+                    "attachment_mode": tab.attachment_mode.get_selected(),
+                }
+
+    def release_workspace_tabs(self, workspace_id):
+        """Save parked drafts before another window takes over this workspace."""
+        cached = getattr(self, "_workspace_views", {}).get(workspace_id)
+        if cached is None:
+            return True
+        if self.controller.workspace_requests_by_workspace.get(workspace_id):
+            return False
+        for index in range(cached.get_n_pages()):
+            tab = cached.get_nth_page(index).get_child()
+            if not tab.status or tab.recording:
+                return False
+        self.remember_workspace_drafts(cached)
+        self._workspace_views.pop(workspace_id)
+        while cached.get_n_pages():
+            cached.close_page(cached.get_nth_page(0))
+        return True
 
     def restore_workspace_tabs(self):
         self._workspace_ui_switching = True
@@ -327,6 +364,14 @@ class WorkspaceWindow:
     def switch_workspace(self, workspace_id, force=False):
         if workspace_id == self.controller.active_workspace_id and not force:
             return True
+        existing = self.app.workspace_window(workspace_id, exclude=self)
+        if existing is not None:
+            existing.present()
+            return True
+        for window in self.app.main_windows:
+            if window is not self and not window.release_workspace_tabs(workspace_id):
+                self.workspace_toast(_("Finish or stop active work before opening this workspace in another window."))
+                return False
         if self.workspace_ui_busy():
             self.workspace_toast(_("Finish or stop active work before switching workspaces."))
             return False
@@ -361,7 +406,6 @@ class WorkspaceWindow:
             if explorer is not None:
                 explorer.set_main_path(self.main_path)
                 explorer.update_folder()
-            os.chdir(os.path.expanduser(self.main_path))
             self.refresh_profiles_box()
             self.refresh_workspace_picker()
         finally:
@@ -575,5 +619,14 @@ class WorkspaceWindow:
             self.chat_id = selected
         finally:
             self._workspace_ui_switching = False
+        destination = self.app.workspace_window(workspace_id, exclude=self)
+        if destination is not None:
+            self.release_workspace_tabs(workspace_id)
+            selected_page = destination.chat_tabs.get_selected_page()
+            for cid in self.controller.workspaces[workspace_id]["open_chats"]:
+                destination.add_chat_tab(cid)
+            if selected_page is not None:
+                destination.chat_tabs.set_selected_page(selected_page)
+            destination.save_workspace_tabs()
         self.update_history()
         return True

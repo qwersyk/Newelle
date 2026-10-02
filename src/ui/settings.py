@@ -44,11 +44,12 @@ class Settings(Adw.Window):
         super().__init__(*args, **kwargs)
         self.app = app
         self.controller = controller
+        self.window = getattr(controller.ui_controller, "window", None)
         self.settings = controller.settings
         self.headless = headless
         self.popup = popup
         if not headless:
-            self.set_transient_for(app.win)
+            self.set_transient_for(self.window)
         self.set_title(_("Settings"))
         self.set_default_size(950, 720)
         self.set_modal(True)
@@ -417,7 +418,7 @@ class Settings(Adw.Window):
         row.add_suffix(spin)
         def update_zoom(x,y):
             self.controller.settings.set_int("zoom", spin.get_value())
-            self.app.win.set_zoom(spin.get_value())
+            self.window.set_zoom(spin.get_value())
         spin.connect("input", update_zoom)
         self.interface.add(row)
 
@@ -731,7 +732,7 @@ class Settings(Adw.Window):
         row = Adw.ActionRow(title=_("Program Output Monitor"), subtitle=_("Monitor the program output in real-time, useful for debugging and seeing downloads progress"))
         button = Gtk.Button(label=_("Open"), valign=Gtk.Align.CENTER)
         row.add_suffix(button)
-        button.connect("clicked", lambda _ : self.app.win.show_stdout_monitor_dialog(self))
+        button.connect("clicked", lambda _ : self.window.show_stdout_monitor_dialog(self))
         self.developer.add(row)
         # Delete pip path
         row = Adw.ActionRow(title=_("Delete pip path"), subtitle=_("Remove the extra dependencies installed"))
@@ -1257,7 +1258,7 @@ class Settings(Adw.Window):
             if response == "delete" and self.handlers.delete_duplicated_llm(key):
                 self.refresh_llm_rows()
                 if self.popup:
-                    self.app.win.update_available_models()
+                    self.window.update_available_models()
             current.destroy()
 
         dialog.connect("response", on_response)
@@ -2528,7 +2529,7 @@ class Settings(Adw.Window):
                 command = self.mcp_command_entry.get_text().strip()
                 command = os.path.expanduser(command)
                 if not command:
-                    self.app.win.show_error_dialog(_("Error"), _("Command is required for stdio servers"), parent=self)
+                    self.window.show_error_dialog(_("Error"), _("Command is required for stdio servers"), parent=self)
                     return
                 
                 args_text = self.mcp_args_entry.get_text().strip()
@@ -2542,10 +2543,10 @@ class Settings(Adw.Window):
                     try:
                         env = json.loads(env_text)
                         if not isinstance(env, dict):
-                            self.app.win.show_error_dialog(_("Error"), _("Environment variables must be a JSON object"), parent=self)
+                            self.window.show_error_dialog(_("Error"), _("Environment variables must be a JSON object"), parent=self)
                             return
                     except json.JSONDecodeError as e:
-                        self.app.win.show_error_dialog(_("Error"), _("Invalid JSON in environment variables: ") + str(e), parent=self)
+                        self.window.show_error_dialog(_("Error"), _("Invalid JSON in environment variables: ") + str(e), parent=self)
                         return
                 
                 self._disable_mcp_form()
@@ -2562,13 +2563,13 @@ class Settings(Adw.Window):
                         )
                         self.settings.set_string("mcp-servers", json.dumps(mcp_handler.mcp_servers))
                         if not added:
-                            GLib.idle_add(self.app.win.show_error_dialog, _("Error"), _("Failed to add MCP server"), self)
+                            GLib.idle_add(self.window.show_error_dialog, _("Error"), _("Failed to add MCP server"), self)
                         GLib.idle_add(self.refresh_mcp_servers_list)
                         GLib.idle_add(self.refresh_tools_list)
                     except Exception as e:
                         traceback.print_exc()
                         err_msg = self._mcp_error_message(e)
-                        GLib.idle_add(self.app.win.show_error_dialog, _("Error"), _("Failed to add MCP server: {}").format(err_msg), self)
+                        GLib.idle_add(self.window.show_error_dialog, _("Error"), _("Failed to add MCP server: {}").format(err_msg), self)
                     finally:
                         GLib.idle_add(self._enable_mcp_form)
                         GLib.idle_add(self._clear_mcp_form)
@@ -2577,7 +2578,7 @@ class Settings(Adw.Window):
             else:
                 url = self.mcp_url_entry.get_text().strip()
                 if not url:
-                    self.app.win.show_error_dialog(_("Error"), _("URL is required for HTTP servers"), parent=self)
+                    self.window.show_error_dialog(_("Error"), _("URL is required for HTTP servers"), parent=self)
                     return
                 
                 bearer_token = self.mcp_token_entry.get_text().strip() or None
@@ -2592,10 +2593,10 @@ class Settings(Adw.Window):
                     try:
                         custom_headers = json.loads(headers_text)
                         if not isinstance(custom_headers, dict):
-                            self.app.win.show_error_dialog(_("Error"), _("Custom headers must be a JSON object"), parent=self)
+                            self.window.show_error_dialog(_("Error"), _("Custom headers must be a JSON object"), parent=self)
                             return
                     except json.JSONDecodeError as e:
-                        self.app.win.show_error_dialog(_("Error"), _("Invalid JSON in custom headers: ") + str(e), parent=self)
+                        self.window.show_error_dialog(_("Error"), _("Invalid JSON in custom headers: ") + str(e), parent=self)
                         return
                 
                 self._disable_mcp_form()
@@ -2608,7 +2609,7 @@ class Settings(Adw.Window):
                             config_dir = self.controller.config_dir
                             success, err_msg = run_oauth_flow(url, config_dir)
                             if not success:
-                                GLib.idle_add(self.app.win.show_error_dialog, _("OAuth Error"), err_msg or _("Authentication failed"), self)
+                                GLib.idle_add(self.window.show_error_dialog, _("OAuth Error"), err_msg or _("Authentication failed"), self)
                                 return
                         added = mcp_handler.add_mcp_server(
                             url=url,
@@ -2621,7 +2622,7 @@ class Settings(Adw.Window):
                         )
                         self.settings.set_string("mcp-servers", json.dumps(mcp_handler.mcp_servers))
                         if not added:
-                            GLib.idle_add(self.app.win.show_error_dialog, _("Error"), _("Failed to add MCP server"), self)
+                            GLib.idle_add(self.window.show_error_dialog, _("Error"), _("Failed to add MCP server"), self)
                         GLib.idle_add(self.refresh_mcp_servers_list)
                         GLib.idle_add(self.refresh_tools_list)
                     except Exception as e:
@@ -2645,7 +2646,7 @@ class Settings(Adw.Window):
                             )
                         else:
                             err_msg = _("Failed to add MCP server: {}").format(err_msg)
-                        GLib.idle_add(self.app.win.show_error_dialog, _("Error"), err_msg, self)
+                        GLib.idle_add(self.window.show_error_dialog, _("Error"), err_msg, self)
                     finally:
                         GLib.idle_add(self._enable_mcp_form)
                         GLib.idle_add(self._clear_mcp_form)
@@ -2867,7 +2868,7 @@ class Settings(Adw.Window):
                 message = _("Added {} MCP servers").format(len(added_names))
             self.add_toast(Adw.Toast(title=message))
         if failures:
-            self.app.win.show_error_dialog(
+            self.window.show_error_dialog(
                 _("Some MCP servers could not be added"),
                 "\n".join(failures),
                 parent=self,
@@ -3022,7 +3023,7 @@ class Settings(Adw.Window):
                 GLib.idle_add(self.refresh_tools_list)
                 GLib.idle_add(lambda: self.add_toast(Adw.Toast(title=_("Re-authentication successful"))))
             else:
-                GLib.idle_add(self.app.win.show_error_dialog, _("OAuth Error"), err_msg or _("Re-authentication failed"), self)
+                GLib.idle_add(self.window.show_error_dialog, _("OAuth Error"), err_msg or _("Re-authentication failed"), self)
             GLib.idle_add(btn.set_sensitive, True)
 
         threading.Thread(target=reauth_thread, daemon=True).start()
@@ -3567,6 +3568,25 @@ class Settings(Adw.Window):
         margin_row.connect("input", update_voice_margin)
         group.add(margin_row)
 
+        workspace_row = Adw.ComboRow(
+            title=_("Newelle Workspace"),
+            subtitle=_("Use this workspace only for voice requests"),
+        )
+        workspace_options = [(_("Follow current"), "current")]
+        workspace_options.extend(
+            (workspace["name"], workspace_id)
+            for workspace_id, workspace in self.controller.workspaces.items()
+        )
+        helper = ComboRowHelper(
+            workspace_row,
+            tuple(workspace_options),
+            self.settings.get_string("voice-mode-workspace"),
+        )
+        helper.connect(
+            "changed", lambda _helper, value: self.settings.set_string("voice-mode-workspace", value)
+        )
+        group.add(workspace_row)
+
         mode_row = Adw.ComboRow(
             title=_("Newelle Mode"),
             subtitle=_("Use this Mode only for voice requests"),
@@ -3836,20 +3856,20 @@ class Settings(Adw.Window):
     def _update_font_setting(self, key, value):
         self.settings.set_string(key, value)
         setattr(self.controller.newelle_settings, key.replace("-", "_"), value)
-        self.app.win.update_font_settings()
+        self.window.update_font_settings()
 
     def _update_font_setting_int(self, key, spin):
         val = int(spin.get_value())
         self.settings.set_int(key, val)
         setattr(self.controller.newelle_settings, key.replace("-", "_"), val)
-        self.app.win.update_font_settings()
+        self.window.update_font_settings()
         return False
 
     def _update_font_setting_double(self, key, spin):
         val = spin.get_value()
         self.settings.set_double(key, val)
         setattr(self.controller.newelle_settings, key.replace("-", "_"), val)
-        self.app.win.update_font_settings()
+        self.window.update_font_settings()
         return False
 
     def get_object(self, constants, key, secondary=False):
@@ -3944,9 +3964,9 @@ class Settings(Adw.Window):
 
         self.settings.set_string(setting_name, button.get_name())
         if constants == AVAILABLE_LLMS and self.popup:
-            self.app.win.update_available_models()
+            self.window.update_available_models()
         if constants == AVAILABLE_RAGS or constants == AVAILABLE_EMBEDDINGS:
-            self.app.win.update_settings()
+            self.window.update_settings()
             self.update_rag_index()
 
     def add_extra_settings(self, constants : dict[str, Any], handler : Handler, row : Adw.ExpanderRow, nested_settings : list | None = None, settings : list | None = None):
@@ -4012,7 +4032,7 @@ class Settings(Adw.Window):
     def _on_expand_prompt(self, button, entry, prompt_title):
         dialog = Gtk.Window()
         dialog.set_title(_("Edit Prompt"))
-        dialog.set_transient_for(self.app.win)
+        dialog.set_transient_for(self.window)
         dialog.set_modal(True)
         dialog.set_default_size(700, 500)
 

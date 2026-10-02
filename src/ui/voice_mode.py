@@ -18,6 +18,8 @@ import pyaudio
 
 from gi.repository import Adw, Gdk, GLib, Gtk, Pango
 
+from ..controller import NewelleController
+from ..ui_controller import HeadlessController
 from ..utility.strings import clean_message_tts, remove_thinking_blocks
 from ..utility.system import (
     get_flatpak_x11_override_command,
@@ -546,6 +548,46 @@ class VoicePillX11Helper:
         return None
 
 
+class VoiceWorkspaceUIController(HeadlessController):
+    """Keep voice tools bound to their workspace while displaying requested UI."""
+
+    def __init__(self, controller, display_ui):
+        super().__init__(controller)
+        self.display_ui = display_ui
+        self.chat_id = None
+
+    def add_tab(self, child, focus=True):
+        return self.display_ui.add_tab(child, focus)
+
+    def new_browser_tab(self, url=None, new=True):
+        return self.display_ui.new_browser_tab(url, new)
+
+    def open_link(self, url, new=False, use_integrated_browser=True):
+        return self.display_ui.open_link(url, new, use_integrated_browser)
+
+    def new_explorer_tab(self, path, new=True):
+        return self.display_ui.new_explorer_tab(path, new)
+
+    def new_editor_tab(self, file):
+        return self.display_ui.new_editor_tab(file)
+
+    def get_current_chat_id(self):
+        context = self.controller._request_context()
+        if context is not None:
+            return context["chat_id"]
+        return self.chat_id if self.chat_id is not None else super().get_current_chat_id()
+
+    def get_tool_result_by_id(self, tool_uuid):
+        prefix = "[Tool: "
+        for entry in self.controller.get_chat_by_id(self.get_current_chat_id()):
+            message = entry.get("Message", "")
+            if entry.get("User") == "Console" and message.startswith(prefix):
+                header, separator, output = message.partition("\n")
+                if header.endswith(f", ID: {tool_uuid}]"):
+                    return output if separator else ""
+        return None
+
+
 class VoiceModeWindow(Gtk.Window):
     """Desktop-anchored speech → tools → TTS conversation surface."""
 
@@ -562,6 +604,8 @@ class VoiceModeWindow(Gtk.Window):
         self._application_held = False
         self.main_window = main_window
         self.controller = main_window.controller
+        self._workspace_controller = None
+        self._workspace_cleanup_source = None
         self.settings = self.controller.settings
         self.on_closed = on_closed
         self.session = VoiceSessionController()
@@ -578,6 +622,7 @@ class VoiceModeWindow(Gtk.Window):
         self._tts_playback_generation = 0
         self._owns_tts = False
         self._resume_wakeword = False
+        self._wakeword_windows = []
         self._destroying = False
         self._layer_shell_active = False
         self._x11_active = False
@@ -1269,6 +1314,11 @@ class VoiceModeWindow(Gtk.Window):
         if self._closing or self._destroying or self.state is not VoiceSessionState.IDLE:
             return
         self._animate_open()
+        try:
+            self._select_workspace()
+        except Exception as error:  # noqa: BLE001 - Provider setup may raise third-party exceptions.
+            self._show_error(str(error))
+            return
         if self._microphone_busy():
             self._show_error(_("Microphone in use"))
             return
@@ -1277,15 +1327,46 @@ class VoiceModeWindow(Gtk.Window):
         if tts is not None:
             tts.stop()
 
-        self._resume_wakeword = bool(self.main_window.wakeword_listening)
+        self._wakeword_windows = [
+            window for window in self._application.main_windows
+            if getattr(window, "wakeword_listening", False)
+        ]
+        self._resume_wakeword = bool(self._wakeword_windows)
         if self._resume_wakeword:
-            self.main_window.stop_wakeword_detection()
+            for window in self._wakeword_windows:
+                window.stop_wakeword_detection()
             self._wakeword_release_deadline = time.monotonic() + 3.0
             self._wakeword_release_source = GLib.timeout_add(
                 25, self._start_after_wakeword_release
             )
         else:
             self._start_capture()
+
+    def _select_workspace(self):
+        """Resolve the voice workspace once, keeping the visible window unchanged."""
+        source = self.main_window.controller
+        workspace_id = self.settings.get_string("voice-mode-workspace")
+        if workspace_id in ("", "current") or workspace_id not in source.workspaces:
+            workspace_id = source.active_workspace_id
+        if workspace_id == source.active_workspace_id:
+            self.controller = source
+        else:
+            window = self._application.workspace_window(workspace_id)
+            if window is not None and getattr(window, "ui_built", False):
+                self.controller = window.controller
+            else:
+                controller = NewelleController(
+                    source.python_path, shared_controller=source,
+                    workspace_id=workspace_id, window_settings=True,
+                )
+                self._workspace_controller = controller
+                # Saving a background voice chat must preserve the visible
+                # window's workspace selection for the next application start.
+                controller.history_selection_controller = source
+                controller.ui_init()
+                controller.set_ui_controller(VoiceWorkspaceUIController(controller, source.ui_controller))
+                self.controller = controller
+        self._selected_chat_id = self.controller.newelle_settings.chat_id
 
     def _animate_open(self):
         if (
@@ -1321,8 +1402,8 @@ class VoiceModeWindow(Gtk.Window):
         if self._cancel_event.is_set() or self._closing or self._destroying:
             self._wakeword_release_source = None
             return GLib.SOURCE_REMOVE
-        detector = getattr(self.main_window, "wakeword_detector", None)
-        if detector is not None and not detector.is_stopped():
+        detectors = [getattr(window, "wakeword_detector", None) for window in self._wakeword_windows]
+        if any(detector is not None and not detector.is_stopped() for detector in detectors):
             if time.monotonic() < self._wakeword_release_deadline:
                 return GLib.SOURCE_CONTINUE
             self._show_error(_("Microphone is still busy"))
@@ -1333,15 +1414,15 @@ class VoiceModeWindow(Gtk.Window):
         return GLib.SOURCE_REMOVE
 
     def _microphone_busy(self) -> bool:
-        if self.main_window.recording or self.main_window._recording_stopping:
-            return True
-        tab_view = getattr(self.main_window, "canvas_tabs", None)
-        if tab_view is None:
-            return False
-        for index in range(tab_view.get_n_pages()):
-            child = tab_view.get_nth_page(index).get_child()
-            if getattr(child, "call_active", False):
+        for window in self._application.main_windows:
+            if getattr(window, "recording", False) or getattr(window, "_recording_stopping", False):
                 return True
+            tab_view = getattr(window, "canvas_tabs", None)
+            if tab_view is not None:
+                for index in range(tab_view.get_n_pages()):
+                    child = tab_view.get_nth_page(index).get_child()
+                    if getattr(child, "call_active", False):
+                        return True
         return False
 
     def _start_capture(self):
@@ -1462,7 +1543,7 @@ class VoiceModeWindow(Gtk.Window):
                 return
             GLib.idle_add(self._set_state, VoiceSessionState.TRANSCRIBING)
             stt = getattr(self.controller.handlers, "stt", None)
-            direct_audio = self.settings.get_boolean("direct-audio-input")
+            direct_audio = self.controller.settings.get_boolean("direct-audio-input")
             if not direct_audio and (stt is None or not stt.is_installed()):
                 GLib.idle_add(self._show_error, _("Speech recognition unavailable"))
                 return
@@ -1502,6 +1583,8 @@ class VoiceModeWindow(Gtk.Window):
                 self.chat_id = self.controller.get_voice_chat(
                     self._chat_mode, self._selected_chat_id
                 )
+            if isinstance(self.controller.ui_controller, VoiceWorkspaceUIController):
+                self.controller.ui_controller.chat_id = self.chat_id
             configured_mode = self.settings.get_string("voice-mode-mode")
             mode_name = None if configured_mode in ("", "current") else configured_mode
             if (
@@ -2410,27 +2493,32 @@ class VoiceModeWindow(Gtk.Window):
         return self._destroy_window()
 
     def _maybe_resume_wakeword(self):
-        if not (
-            self._resume_wakeword
-            and self.controller.newelle_settings.wakeword_enabled
-        ):
+        if not self._resume_wakeword:
             return
         self._resume_wakeword = False
         if self._capture_released():
-            GLib.idle_add(self.main_window.start_wakeword_detection)
+            self._resume_workspace_wakewords()
             return
         GLib.timeout_add(20, self._resume_wakeword_when_ready)
 
     def _resume_wakeword_when_ready(self):
         if not self._capture_released():
             return GLib.SOURCE_CONTINUE
-        self.main_window.start_wakeword_detection()
+        self._resume_workspace_wakewords()
         return GLib.SOURCE_REMOVE
+
+    def _resume_workspace_wakewords(self):
+        for window in self._wakeword_windows:
+            if window in self._application.main_windows and window.controller.newelle_settings.wakeword_enabled:
+                GLib.idle_add(window.start_wakeword_detection)
+        self._wakeword_windows = []
 
     def _notify_closed(self):
         if self._closed_notified:
             return
         self._closed_notified = True
+        if self._workspace_controller is not None and self._workspace_cleanup_source is None:
+            self._workspace_cleanup_source = GLib.timeout_add(20, self._close_workspace_when_idle)
         callback = self.on_closed
         self.on_closed = None
         try:
@@ -2441,6 +2529,17 @@ class VoiceModeWindow(Gtk.Window):
             if self._application_held:
                 self._application_held = False
                 self._application.release()
+
+    def _close_workspace_when_idle(self):
+        thread = self._processing_thread
+        if thread is not None and thread.is_alive():
+            return GLib.SOURCE_CONTINUE
+        self._workspace_cleanup_source = None
+        controller = self._workspace_controller
+        self._workspace_controller = None
+        if controller is not None:
+            controller.close_application()
+        return GLib.SOURCE_REMOVE
 
     def _on_destroy(self, *_args):
         self._closing = True

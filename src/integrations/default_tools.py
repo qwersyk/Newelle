@@ -44,7 +44,7 @@ class DefaultToolsIntegration(NewelleExtension):
         return self.settings
 
     def _on_copybox_terminal_clicked(self, copybox, command, execution_request_mode):
-        shell_command = "cd " + quote_string(os.getcwd()) + "; " + command + "; exec bash"
+        shell_command = "cd " + quote_string(self._request_settings().get_string("path")) + "; " + command + "; exec bash"
 
         if not self.settings.get_boolean("virtualization"):
             shell_command = add_S_to_sudo(shell_command)
@@ -199,7 +199,9 @@ class DefaultToolsIntegration(NewelleExtension):
             chat_id = self.ui_controller.get_current_chat_id()
         if chat_id is None:
             raise CommandSessionError("A chat ID is required for terminal sessions")
-        controller_scope = id(getattr(self, "ui_controller", self))
+        window = getattr(getattr(self, "ui_controller", None), "window", None)
+        controller = window.controller if window is not None else getattr(getattr(self, "ui_controller", None), "controller", None)
+        controller_scope = id(controller.workspace_storage) if controller is not None else id(getattr(self, "ui_controller", self))
         return ("chat", controller_scope, str(chat_id))
 
     @staticmethod

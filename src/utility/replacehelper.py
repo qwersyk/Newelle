@@ -50,7 +50,7 @@ class ReplaceHelper:
         return desktop
 
     @staticmethod
-    def get_user() -> str:
+    def get_user(controller=None) -> str:
         """
         Get the user
 
@@ -58,27 +58,32 @@ class ReplaceHelper:
             str: user name
             
         """
-        if ReplaceHelper.controller is None:
+        controller = controller or ReplaceHelper.controller
+        if controller is None:
             return "User"
-        return ReplaceHelper.controller.newelle_settings.username
+        context = controller._request_context()
+        settings = context["newelle_settings"] if context else controller.newelle_settings
+        return settings.username
     
     @staticmethod
-    def get_tools_json() -> str:
+    def get_tools_json(controller=None) -> str:
         """
         Get the JSON list of tools available to the LLM
         """
-        controller = ReplaceHelper.controller
-        tools_settings = controller.newelle_settings.tools_settings_dict
+        controller = controller or ReplaceHelper.controller
+        context = controller._request_context()
+        newelle_settings = context["newelle_settings"] if context else controller.newelle_settings
+        tools_settings = newelle_settings.tools_settings_dict
         enabled_tools = {}
         for tool_name, settings in tools_settings.items():
              if "enabled" in settings:
                  enabled_tools[tool_name] = settings["enabled"]
         # Link websearch setting with the search tool
-        if not controller.newelle_settings.websearch_on:
+        if not newelle_settings.websearch_on:
             enabled_tools["search"] = False
         # Apply the active Mode's tool overrides (enable/remove/no_change) so
         # that the {TOOLS} prompt and get_enabled_tools() stay consistent.
-        mode_manager = getattr(controller, "mode_manager", None)
+        mode_manager = context["mode_manager"] if context else getattr(controller, "mode_manager", None)
         if mode_manager is not None:
             for tool in controller.tools.get_all_tools():
                 base = enabled_tools.get(tool.name, tool.default_on)
@@ -93,21 +98,25 @@ class ReplaceHelper:
         )
 
     @staticmethod
-    def get_skills_catalog() -> str:
-        if ReplaceHelper.controller is None:
+    def get_skills_catalog(controller=None) -> str:
+        controller = controller or ReplaceHelper.controller
+        if controller is None:
             return ""
-        if not hasattr(ReplaceHelper.controller, "skill_manager"):
+        if not hasattr(controller, "skill_manager"):
             return ""
-        return ReplaceHelper.controller.skill_manager.get_catalog()
+        context = controller._request_context()
+        manager = context["skill_manager"] if context else controller.skill_manager
+        return manager.get_catalog()
 
     @staticmethod
-    def get_agents_md() -> str:
-        if os.path.exists("AGENTS.md"):
-            with open("AGENTS.md", "r") as f:
+    def get_agents_md(path=None) -> str:
+        filename = os.path.join(path or os.getcwd(), "AGENTS.md")
+        if os.path.exists(filename):
+            with open(filename, "r") as f:
                 return f.read()
         return ""
 
-def replace_variables(text: str) -> str:
+def replace_variables(text: str, controller=None) -> str:
     """
     Replace variables in prompts
     Supported variables:
@@ -124,9 +133,13 @@ def replace_variables(text: str) -> str:
     Returns:
         str: text with replaced variables
     """
-    text = text.replace("{DIR}", os.getcwd())
+    controller = controller or ReplaceHelper.controller
+    context = controller._request_context() if controller else None
+    path = context["path"] if context else (controller.settings.get_string("path") if controller else os.getcwd())
+    path = os.path.expanduser(path)
+    text = text.replace("{DIR}", path)
     if "{AGENTSMD}" in text:
-        text = text.replace("{AGENTSMD}", ReplaceHelper.get_agents_md())
+        text = text.replace("{AGENTSMD}", ReplaceHelper.get_agents_md(path))
     if "{DISTRO}" in text:
         text = text.replace("{DISTRO}", ReplaceHelper.get_distribution())
     if "{DE}" in text:
@@ -134,26 +147,30 @@ def replace_variables(text: str) -> str:
     if "{DATE}" in text:
         text = text.replace("{DATE}", str(time.strftime("%H:%M %Y-%m-%d")))
     if "{USER}" in text:
-        text = text.replace("{USER}", ReplaceHelper.get_user())
+        text = text.replace("{USER}", ReplaceHelper.get_user(controller))
     if "{DISPLAY}" in text:
         text = text.replace("{DISPLAY}", ReplaceHelper.gisplay_server())
     if "{TOOLS}" in text:
-        text = text.replace("{TOOLS}", ReplaceHelper.get_tools_json())
+        text = text.replace("{TOOLS}", ReplaceHelper.get_tools_json(controller))
     if "{SKILLS}" in text:
-        text = text.replace("{SKILLS}", ReplaceHelper.get_skills_catalog())
+        text = text.replace("{SKILLS}", ReplaceHelper.get_skills_catalog(controller))
     return text
 
-def replace_variables_dict() -> dict:
+def replace_variables_dict(controller=None) -> dict:
+    controller = controller or ReplaceHelper.controller
+    context = controller._request_context() if controller else None
+    path = context["path"] if context else (controller.settings.get_string("path") if controller else os.getcwd())
+    path = os.path.expanduser(path)
     return {
-        "{DIR}": os.getcwd(),
-        "{AGENTSMD}": ReplaceHelper.get_agents_md(),
+        "{DIR}": path,
+        "{AGENTSMD}": ReplaceHelper.get_agents_md(path),
         "{DISTRO}": ReplaceHelper.get_distribution(),
         "{DE}": ReplaceHelper.get_desktop_environment(),
         "{DATE}": str(time.strftime("%H:%M %Y-%m-%d")),
-        "{USER}": ReplaceHelper.get_user(),
+        "{USER}": ReplaceHelper.get_user(controller),
         "{DISPLAY}": ReplaceHelper.gisplay_server(),
-        "{TOOLS}": ReplaceHelper.get_tools_json(),
-        "{SKILLS}": ReplaceHelper.get_skills_catalog(),
+        "{TOOLS}": ReplaceHelper.get_tools_json(controller),
+        "{SKILLS}": ReplaceHelper.get_skills_catalog(controller),
     }
 
 class PromptFormatter:

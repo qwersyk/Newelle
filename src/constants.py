@@ -844,7 +844,7 @@ SETTINGS_GROUPS = {
         },
         "voice_mode": {
             "title": _("Voice Mode"),
-            "settings": ["voice-mode-position", "voice-mode-margin", "voice-mode-mode",
+            "settings": ["voice-mode-position", "voice-mode-margin", "voice-mode-mode", "voice-mode-workspace",
                          "voice-mode-feedback", "voice-mode-chat",
                          "voice-pill-theme", "voice-pill-background", "voice-pill-foreground",
                          "voice-pill-accent", "voice-pill-opacity",

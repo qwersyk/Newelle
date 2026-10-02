@@ -11,6 +11,15 @@ class UIController:
     def require_tool_update(self):
         self.window.controller.require_tool_update()
 
+    def workspace_storage_changed(self):
+        window = self.window
+        workspace = window.controller.active_workspace
+        configuration = (workspace.get("profile"), workspace["path"], workspace["mode"])
+        if configuration != window._workspace_configuration and not window.switch_workspace(window.controller.active_workspace_id, force=True):
+            return
+        window.refresh_workspace_picker()
+        window.update_history(focus_input=False)
+
     def workspace_action(self, action, workspace_id=None, **data):
         window = self.window
         controller = window.controller
@@ -95,6 +104,7 @@ class UIController:
         app_settings = getattr(getattr(self.window, "app", None), "settingswindow", None)
         if (
             app_settings is not None
+            and app_settings.controller is self.window.controller
             and app_settings.get_visible()
             and all(app_settings is not view for view in settings_views)
         ):

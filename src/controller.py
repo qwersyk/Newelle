@@ -10,7 +10,7 @@ import copy
 from .tools import Command, Tool, ToolRegistry, ToolResult
 from .skills import SkillManager
 from .modes import ModeManager, DEFAULT_MODE_NAME
-from .workspaces import WorkspaceController, workspace_request, workspace_storage
+from .workspaces import WorkspaceController, WorkspaceStorage, shared_workspace_property, workspace_request, workspace_storage
 from .utility.media import chat_contains_vision, get_image_base64, get_image_path, extract_supported_files
 from .utility.audio_input import AudioInputManager
 from .utility.media import audio_history_text, audio_text, extract_audio, prepend_user_message_context
@@ -108,6 +108,13 @@ class NewelleController(WorkspaceController):
         chat: current chat 
         extensionloader: Extensionloader object 
     """
+    chats = shared_workspace_property("chats")
+    folders = shared_workspace_property("folders")
+    workspaces = shared_workspace_property("workspaces")
+    next_chat_id = shared_workspace_property("next_chat_id")
+    next_folder_id = shared_workspace_property("next_folder_id")
+    scheduled_tasks = shared_workspace_property("scheduled_tasks")
+
     def chat_ids_ordered(self):
         """Return chat IDs in stable chronological order (sorted by ID)."""
         if not hasattr(self, 'chats') or not self.chats:
@@ -277,9 +284,18 @@ class NewelleController(WorkspaceController):
                     return str(uuid_lib.uuid4())[:8]
         return str(uuid_lib.uuid4())[:8]
 
-    def __init__(self, python_path) -> None:
+    def __init__(self, python_path, shared_controller=None, workspace_id=None, window_settings=False) -> None:
+        self.workspace_storage = shared_controller.workspace_storage if shared_controller else WorkspaceStorage()
+        self.workspace_storage.controllers.add(self)
+        self.initial_workspace_id = workspace_id
+        self.secondary_window = shared_controller is not None
+        self._closed = False
         self.audio_input = AudioInputManager(self)
         self.settings = Gio.Settings.new(SCHEMA_ID)
+        self._settings_syncing = False
+        self._settings_connections = []
+        if window_settings:
+            self._init_window_settings(shared_controller.settings if shared_controller else None)
         self.python_path = python_path
         self.ui_controller : UIController | None = None
         self.tools = ToolRegistry()
@@ -290,11 +306,52 @@ class NewelleController(WorkspaceController):
         self.msgid = 0
         self.chat_documents_index = {}
         self.is_call_request = False
-        self.scheduled_tasks = []
-        self.scheduled_tasks_lock = threading.Lock()
-        self.save_lock = threading.Lock()
+        self.scheduled_tasks_lock = self.workspace_storage.scheduled_tasks_lock
+        self.save_lock = self.workspace_storage.save_lock
         self.scheduler_source_id = None
         self.init_workspace_state()
+        if workspace_id is not None:
+            self.active_workspace_id = workspace_id
+
+    def _init_window_settings(self, initial_settings=None):
+        """Use a native GSettings backend that keeps each window's profile isolated."""
+        self.persistent_settings = self.settings
+        self.settings = Gio.Settings.new_full(
+            self.persistent_settings.props.settings_schema,
+            Gio.memory_settings_backend_new(), None,
+        )
+        self.settings.workspace_window = True
+        initial_settings = initial_settings or self.persistent_settings
+        for key in initial_settings.list_keys():
+            self.settings.set_value(key, initial_settings.get_value(key))
+        self._window_local_keys = {"chat", "path", "current-mode", "current-profile"}
+        self._profile_keys = set().union(*(group["settings"] for group in SETTINGS_GROUPS.values()))
+        self._shared_settings_keys = {"profiles", "modes", "scheduled-tasks"}
+        self._settings_connections = [
+            (self.settings, self.settings.connect("changed", self._persist_window_setting)),
+            (self.persistent_settings, self.persistent_settings.connect("changed", self._sync_window_setting)),
+        ]
+
+    def _persist_window_setting(self, settings, key):
+        if self._settings_syncing or key in self._window_local_keys:
+            return
+        if getattr(self, "workspace_switching", False) and key not in self._shared_settings_keys:
+            return
+        self.persistent_settings.set_value(key, settings.get_value(key))
+
+    def _sync_window_setting(self, settings, key):
+        if key in self._window_local_keys or (key in self._profile_keys and key not in self._shared_settings_keys):
+            return
+        self._settings_syncing = True
+        try:
+            self.settings.set_value(key, settings.get_value(key))
+            if key == "profiles" and hasattr(self, "newelle_settings"):
+                self.newelle_settings.profile_settings = json.loads(settings.get_string(key))
+            if key == "modes" and hasattr(self, "mode_manager"):
+                self.mode_manager._load_modes()
+                self.mode_manager._load_active_mode()
+        finally:
+            self._settings_syncing = False
 
     def ui_init(self):
         """Init necessary variables for the UI and load models and handlers"""
@@ -330,13 +387,18 @@ class NewelleController(WorkspaceController):
             self.reload_extensions()
         self.require_tool_update()
         threading.Thread(target=self.handlers.cache_handlers).start()
-        self.load_scheduled_tasks()
+        if any(controller is not self and hasattr(controller, "handlers") for controller in self.workspace_storage.controllers):
+            # The shared task list includes reservations for running tasks.
+            # Reloading it from GSettings would clear those reservations.
+            self._persist_scheduled_tasks()
+        else:
+            self.load_scheduled_tasks()
     def init_usage_tracking(self):
         """Persist LLM usage statistics for the Usage settings page."""
         self.usage_tracker = get_usage_tracker()
         self.usage_tracker.configure(
             os.path.join(self.data_dir, "usage.sqlite3"),
-            self._usage_workspace,
+            self._shared_usage_workspace,
         )
         self.usage_tracker.enabled = self.settings.get_boolean("usage-tracking")
         self.settings.connect(
@@ -493,6 +555,14 @@ class NewelleController(WorkspaceController):
         workspace = self.workspaces.get(self.active_workspace_id, {})
         return self.active_workspace_id, workspace.get("name", self.active_workspace_id)
 
+    def _shared_usage_workspace(self):
+        # The usage tracker is process-wide, while request contexts belong to
+        # the controller that started the generation on this thread.
+        for controller in list(self.workspace_storage.controllers):
+            if controller._request_context() is not None:
+                return controller._usage_workspace()
+        return self._usage_workspace()
+
     def init_paths(self) -> None:
         """Define paths for the application"""
         self.config_dir = GLib.get_user_config_dir()
@@ -566,6 +636,9 @@ class NewelleController(WorkspaceController):
     def load_chats(self, chat_id):
         """Load chats"""
         self.filename = "chats.pkl"
+        if self.workspace_storage.loaded:
+            self.load_workspaces({})
+            return
         raw = {}
         if os.path.exists(self.chats_path):
             with open(self.chats_path, 'rb') as f:
@@ -586,7 +659,7 @@ class NewelleController(WorkspaceController):
 
     def save_chats(self):
         """Save chats without exposing a partially written storage file."""
-        with self.save_lock:
+        with self.workspace_lock, self.save_lock:
             storage_dir = os.path.dirname(self.chats_path) or "."
             storage_name = os.path.basename(self.chats_path)
             temporary_path = None
@@ -601,7 +674,7 @@ class NewelleController(WorkspaceController):
                     temporary_path = temporary_file.name
                     pickle.dump({
                         "workspaces": self.workspaces,
-                        "active_workspace_id": self.active_workspace_id,
+                        "active_workspace_id": getattr(self, "history_selection_controller", self).active_workspace_id,
                         "chats": self.chats,
                         "next_chat_id": self.next_chat_id,
                         "folders": self.folders,
@@ -618,6 +691,18 @@ class NewelleController(WorkspaceController):
                         os.unlink(temporary_path)
                     except FileNotFoundError:
                         pass
+        if not self.workspace_storage.refresh_pending:
+            self.workspace_storage.refresh_pending = True
+            GLib.idle_add(self._refresh_workspace_windows)
+
+    def _refresh_workspace_windows(self):
+        self.workspace_storage.refresh_pending = False
+        for controller in list(self.workspace_storage.controllers):
+            ui = controller.ui_controller
+            window = getattr(ui, "window", None)
+            if window is not None and getattr(window, "ui_built", False):
+                ui.workspace_storage_changed()
+        return False
 
     @workspace_storage
     def create_call_chat(self, workspace_id=None):
@@ -1298,8 +1383,23 @@ class NewelleController(WorkspaceController):
         return True
 
     def close_application(self):
+        if self._closed:
+            return
+        self._closed = True
         self.stop_scheduler()
-        self.handlers.destroy()
+        if hasattr(self, "handlers"):
+            self.handlers.destroy()
+        for settings, connection in self._settings_connections:
+            settings.disconnect(connection)
+        self._settings_connections.clear()
+        self.workspace_storage.controllers.discard(self)
+        if not self.secondary_window:
+            successor = next((controller for controller in self.workspace_storage.controllers
+                              if hasattr(controller, "handlers") and hasattr(controller.ui_controller, "window")), None)
+            if successor is not None:
+                successor.secondary_window = False
+                successor.handlers.interfaces.clear()
+                successor.handlers.refresh_interfaces()
 
     def wait_llm_loading(self):
         GLib.idle_add(self.ui_controller.set_model_loading, True)
@@ -1905,7 +2005,7 @@ class NewelleController(WorkspaceController):
             chat = self.get_chat_by_id(context.get("chat_id")) if context else self.chat
             return audio_text(chat[-1]["Message"]) if chat else ""
         else:
-            rep = replace_variables_dict()
+            rep = replace_variables_dict(self)
             var = "{" + name.upper() + "}"
             if var in rep:
                 return rep[var]
@@ -2137,7 +2237,7 @@ class NewelleController(WorkspaceController):
         audio_turn=None,
     ) -> PromptFormatter:
         """Use the same variables and Mode for both prompt destinations."""
-        simple_vars = replace_variables_dict()
+        simple_vars = replace_variables_dict(self)
         simple_vars["{TOOLS}"] = self._get_tools_prompt_for_mode(mode_name)
         context = self._request_context()
         active_skill_manager = skill_manager or (context.get("skill_manager") if context else None) or getattr(self, "skill_manager", None)
@@ -3084,7 +3184,7 @@ class NewelleSettings:
         # Adjust paths
         if not os.path.exists(os.path.expanduser(self.main_path)):
             self.main_path = "~"
-        elif change_directory:
+        elif change_directory and not getattr(settings, "workspace_window", False):
             os.chdir(os.path.expanduser(self.main_path))
 
     def load_prompts(self):
@@ -3632,6 +3732,7 @@ class HandlersManager:
 
     def refresh_interfaces(self, auto_start=True):
         """Synchronize interface instances without restarting unchanged ones."""
+        auto_start = auto_start and not getattr(self.controller, "secondary_window", False)
         available_keys = set(AVAILABLE_INTERFACES)
         for key in set(self.interfaces) - available_keys:
             interface = self.interfaces.pop(key)

@@ -58,6 +58,8 @@ class MainWindow(WorkspaceWindow, Adw.ApplicationWindow):
 
     def __init__(self, *args, **kwargs):
         self.suppress_presentation = kwargs.pop("suppress_presentation", False)
+        workspace_id = kwargs.pop("workspace_id", None)
+        shared_controller = kwargs.pop("shared_controller", None)
         super().__init__(*args, **kwargs)
         self.app = self.get_application()
         # Main program block - On the right Canvas tabs, Chat as content
@@ -72,7 +74,10 @@ class MainWindow(WorkspaceWindow, Adw.ApplicationWindow):
         self.app_stack.add_named(self.main_program_block, "main")
         self.app_stack.add_named(self.build_splashscreen(), "splashscreen")
         self.app_stack.set_visible_child_name("splashscreen")
-        self.controller = NewelleController(sys.path)
+        self.controller = NewelleController(
+            sys.path, shared_controller=shared_controller,
+            workspace_id=workspace_id, window_settings=True,
+        )
         self.settings = self.controller.settings
         # Set window default size
 
@@ -612,7 +617,6 @@ class MainWindow(WorkspaceWindow, Adw.ApplicationWindow):
         if child is not None:
             if hasattr(child, "main_path"):
                 self.main_path = child.main_path 
-                os.chdir(os.path.expanduser(child.main_path))
 
     # Chat Tab Management
     def add_chat_tab(self, chat_id: int) -> Adw.TabPage | None:
@@ -638,6 +642,16 @@ class MainWindow(WorkspaceWindow, Adw.ApplicationWindow):
         
         # Create new ChatTab widget
         chat_tab = ChatTab(self, chat_id)
+        draft = self.controller.workspace_storage.drafts.pop(chat_id, None)
+        if draft is not None:
+            chat_tab.input_panel.set_text(draft["text"])
+            attachment = draft["attachment"]
+            if attachment:
+                if attachment.startswith("data:"):
+                    chat_tab.add_file(file_data=base64.b64decode(attachment.split(",", 1)[1]))
+                else:
+                    chat_tab.add_file(file_path=attachment)
+                chat_tab.attachment_mode.set_selected(draft["attachment_mode"])
         chat_tab.connect("chat-name-changed", self._on_chat_name_changed)
         # The mini window always uses the compact input bar
         if self._mini_window_active():
@@ -862,7 +876,7 @@ class MainWindow(WorkspaceWindow, Adw.ApplicationWindow):
         """Whether the mini window is currently hosting the chat panel."""
         app = self.get_application()
         mini_win = getattr(app, "mini_win", None)
-        return mini_win is not None and getattr(mini_win, "chat_panel", None) is not None
+        return mini_win is not None and mini_win.main_window is self and getattr(mini_win, "chat_panel", None) is not None
 
     def _apply_compact_input_bar(self, enabled: bool):
         """Set the input bar layout of every open chat tab."""
@@ -3093,7 +3107,6 @@ class MainWindow(WorkspaceWindow, Adw.ApplicationWindow):
         Returns:
            output of the command
         """
-        os.chdir(os.path.expanduser(self.main_path))
         console_permissions = ""
         if not self.controller.newelle_settings.virtualization:
             console_permissions = " ".join(get_spawn_command())
@@ -3116,7 +3129,8 @@ class MainWindow(WorkspaceWindow, Adw.ApplicationWindow):
             else:
                 txt += console_permissions + " " + t
         process = subprocess.Popen(
-            txt, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True
+            txt, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True,
+            cwd=os.path.expanduser(self.main_path),
         )
         outputs = []
 
@@ -3148,7 +3162,6 @@ class MainWindow(WorkspaceWindow, Adw.ApplicationWindow):
                 )
             ]
         if os.path.exists(os.path.expanduser(path)):
-            os.chdir(os.path.expanduser(path))
             self.main_path = path
             explorer = self.get_current_explorer_panel()
             if explorer is not None:

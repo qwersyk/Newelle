@@ -7,6 +7,7 @@ import json
 import os
 import threading
 import uuid
+import weakref
 from contextlib import contextmanager
 
 from .modes import DEFAULT_MODE_NAME
@@ -15,6 +16,33 @@ from .constants import SETTINGS_GROUPS
 
 _ = gettext.gettext
 DEFAULT_WORKSPACE = "default"
+
+
+class WorkspaceStorage:
+    """One history store shared by the controllers of all application windows."""
+
+    def __init__(self):
+        self.chats = {}
+        self.folders = {}
+        self.workspaces = {}
+        self.next_chat_id = 0
+        self.next_folder_id = 0
+        self.scheduled_tasks = []
+        self.lock = threading.RLock()
+        self.save_lock = threading.Lock()
+        self.scheduled_tasks_lock = threading.Lock()
+        self.controllers = weakref.WeakSet()
+        self.loaded = False
+        self.refresh_pending = False
+        self.drafts = {}
+
+
+def shared_workspace_property(name):
+    """Keep existing controller accessors backed by the shared storage."""
+    return property(
+        lambda self: getattr(self.workspace_storage, name),
+        lambda self, value: setattr(self.workspace_storage, name, value),
+    )
 
 
 class WorkspaceBusyError(ValueError):
@@ -55,11 +83,12 @@ def workspace_change(function):
     """Reserve workspace mutations against concurrent request startup."""
     @functools.wraps(function)
     def wrapper(self, *args, **kwargs):
-        self.begin_workspace_switch()
-        try:
-            return function(self, *args, **kwargs)
-        finally:
-            self.workspace_switching = False
+        with self.workspace_lock:
+            self.begin_workspace_switch()
+            try:
+                return function(self, *args, **kwargs)
+            finally:
+                self.workspace_switching = False
     return wrapper
 
 
@@ -169,7 +198,8 @@ class WorkspaceController:
         path = os.path.abspath(path)
         if not os.path.isdir(path):
             raise ValueError(_("Directory not found: {path}").format(path=path))
-        os.chdir(path)
+        if not getattr(self.settings, "workspace_window", False):
+            os.chdir(path)
         self.active_workspace["path"] = path
         self.settings.set_string("path", path)
         self.newelle_settings.main_path = path
@@ -210,7 +240,8 @@ class WorkspaceController:
         return result
 
     def init_workspace_state(self):
-        self.workspace_lock = threading.RLock()
+        storage = getattr(self, "workspace_storage", None)
+        self.workspace_lock = storage.lock if storage else threading.RLock()
         self.workspace_local = threading.local()
         # Requests are tracked separately from the workspace selected in the
         # window.  A request keeps using the workspace of its chat even after
@@ -221,7 +252,8 @@ class WorkspaceController:
         self.workspace_requests_by_workspace = {}
         self.active_request_contexts = {}
         self.workspace_switching = False
-        self.workspaces = {}
+        if storage is None:
+            self.workspaces = {}
         self.active_workspace_id = DEFAULT_WORKSPACE
         self.workspace_path_notice = None
 
@@ -247,10 +279,13 @@ class WorkspaceController:
                 "mode": self.mode_manager.get_active_mode_name(),
                 "open_chats": [], "selected_chat": None}
 
+    @workspace_storage
     def load_workspaces(self, raw):
-        self.workspaces = raw.get("workspaces", {}) if isinstance(raw, dict) else {}
+        storage = getattr(self, "workspace_storage", None)
+        if storage is None or not storage.loaded:
+            self.workspaces = raw.get("workspaces", {}) if isinstance(raw, dict) else {}
         self.workspaces.setdefault(DEFAULT_WORKSPACE, self._workspace_record(_("Default")))
-        self.active_workspace_id = raw.get("active_workspace_id", DEFAULT_WORKSPACE) if isinstance(raw, dict) else DEFAULT_WORKSPACE
+        self.active_workspace_id = getattr(self, "initial_workspace_id", None) or (raw.get("active_workspace_id", DEFAULT_WORKSPACE) if isinstance(raw, dict) else DEFAULT_WORKSPACE)
         if self.active_workspace_id not in self.workspaces:
             self.active_workspace_id = DEFAULT_WORKSPACE
         for entry in (*self.chats.values(), *self.folders.values()):
@@ -261,6 +296,8 @@ class WorkspaceController:
                 workspace.setdefault(key, value)
         self.next_chat_id = max(self.next_chat_id, max(self.chats, default=-1) + 1)
         self.next_folder_id = max(self.next_folder_id, max(self.folders, default=-1) + 1)
+        if storage is not None:
+            storage.loaded = True
         profiles = json.loads(self.settings.get_string("profiles"))
         current_profile = self.newelle_settings.current_profile
         if current_profile not in profiles:
@@ -329,7 +366,8 @@ class WorkspaceController:
             mode = DEFAULT_MODE_NAME
             workspace["mode"] = mode
         self.mode_manager.set_active_mode(mode)
-        os.chdir(path)
+        if not getattr(self.settings, "workspace_window", False):
+            os.chdir(path)
         self.skill_manager.skills_dirs = self._build_skills_dirs()
         self.skill_manager.discover()
         self.skill_manager.activated_skills.clear()
@@ -422,6 +460,7 @@ class WorkspaceController:
 
     @workspace_change
     def edit_workspace(self, workspace_id, name, profile, path, appearance=None):
+        self.check_workspace_windows(workspace_id)
         if not name.strip():
             raise ValueError(_("A workspace name is required."))
         self.workspaces[workspace_id].update(name=name.strip(), profile=profile, path=path)
@@ -433,6 +472,7 @@ class WorkspaceController:
 
     @workspace_change
     def delete_workspace(self, workspace_id):
+        self.check_workspace_windows(workspace_id, deleting=True)
         if workspace_id == DEFAULT_WORKSPACE:
             raise ValueError(_("The Default workspace cannot be deleted."))
         if workspace_id == self.active_workspace_id:
@@ -454,6 +494,7 @@ class WorkspaceController:
 
     @workspace_change
     def move_chat_to_workspace(self, chat_id, workspace_id):
+        self.check_workspace_windows(workspace_id)
         if workspace_id not in self.workspaces:
             raise ValueError(_("Workspace not found."))
         moving = {chat_id}
@@ -474,3 +515,21 @@ class WorkspaceController:
         self.ensure_workspace_chat()
         self.save_chats()
         return moving
+
+    def check_workspace_windows(self, workspace_id, deleting=False):
+        """Protect other windows' active sessions from membership/settings changes."""
+        storage = getattr(self, "workspace_storage", None)
+        if storage is None:
+            return
+        for controller in list(storage.controllers):
+            if controller.workspace_requests:
+                raise WorkspaceBusyError(_("Finish or stop active work before changing workspaces."))
+            window = getattr(controller.ui_controller, "window", None)
+            if window is None:
+                continue
+            if not getattr(window, "ui_built", False):
+                raise WorkspaceBusyError(_("Wait for the workspace window to finish loading."))
+            if window.workspace_ui_busy() and controller is not self:
+                raise WorkspaceBusyError(_("Finish or stop active work before changing workspaces."))
+            if deleting and controller is not self and controller.active_workspace_id == workspace_id:
+                raise WorkspaceBusyError(_("Close this workspace's window before deleting it."))
