@@ -312,11 +312,7 @@ class WorkspaceWindow:
         for tabs in views:
             for index in range(tabs.get_n_pages()):
                 tab = tabs.get_nth_page(index).get_child()
-                self.controller.workspace_storage.drafts[tab.chat_id] = {
-                    "text": "" if tab.input_panel.placeholding else tab.input_panel.get_text(),
-                    "attachment": tab.attached_image_data,
-                    "attachment_mode": tab.attachment_mode.get_selected(),
-                }
+                tab.remember_draft()
 
     def release_workspace_tabs(self, workspace_id):
         """Save parked drafts before another window takes over this workspace."""

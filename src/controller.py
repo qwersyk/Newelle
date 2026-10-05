@@ -626,6 +626,10 @@ class NewelleController(WorkspaceController):
             )
             self.folders = raw.get("folders", {})
             self.next_folder_id = raw.get("next_folder_id", 0)
+            self.workspace_storage.drafts = {
+                chat_id: draft for chat_id, draft in raw.get("drafts", {}).items()
+                if chat_id in self.chats
+            }
             return
         # Old list format
         self.chats = {i: entry for i, entry in enumerate(raw)}
@@ -679,6 +683,10 @@ class NewelleController(WorkspaceController):
                         "next_chat_id": self.next_chat_id,
                         "folders": self.folders,
                         "next_folder_id": self.next_folder_id,
+                        "drafts": {
+                            chat_id: draft for chat_id, draft in self.workspace_storage.drafts.items()
+                            if chat_id in self.chats
+                        },
                     }, temporary_file)
                     temporary_file.flush()
                     os.fsync(temporary_file.fileno())
@@ -703,6 +711,36 @@ class NewelleController(WorkspaceController):
             if window is not None and getattr(window, "ui_built", False):
                 ui.workspace_storage_changed()
         return False
+
+    @workspace_storage
+    def save_message_draft(self, chat_id, draft, draft_id=None):
+        """Save unsent composer content separately from the model's history."""
+        chat = self.chats.get(chat_id)
+        if chat is None or not (draft["text"].strip() or draft.get("attachment")):
+            return None
+        drafts = chat.setdefault("drafts", [])
+        saved = {
+            "id": draft_id or str(uuid_lib.uuid4()),
+            "text": draft["text"],
+            "attachment": draft.get("attachment"),
+            "attachment_mode": draft.get("attachment_mode", 0),
+        }
+        for index, existing in enumerate(drafts):
+            if existing["id"] == saved["id"]:
+                drafts[index] = saved
+                break
+        else:
+            drafts.append(saved)
+        self.save_chats()
+        return saved["id"]
+
+    @workspace_storage
+    def delete_message_draft(self, chat_id, draft_id):
+        chat = self.chats.get(chat_id)
+        if chat is None:
+            return
+        chat["drafts"] = [draft for draft in chat.get("drafts", []) if draft["id"] != draft_id]
+        self.save_chats()
 
     @workspace_storage
     def create_call_chat(self, workspace_id=None):

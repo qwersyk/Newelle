@@ -8,7 +8,6 @@ import os
 import subprocess
 import threading
 import json
-import base64
 import copy
 import uuid 
 import gettext
@@ -642,16 +641,6 @@ class MainWindow(WorkspaceWindow, Adw.ApplicationWindow):
         
         # Create new ChatTab widget
         chat_tab = ChatTab(self, chat_id)
-        draft = self.controller.workspace_storage.drafts.pop(chat_id, None)
-        if draft is not None:
-            chat_tab.input_panel.set_text(draft["text"])
-            attachment = draft["attachment"]
-            if attachment:
-                if attachment.startswith("data:"):
-                    chat_tab.add_file(file_data=base64.b64decode(attachment.split(",", 1)[1]))
-                else:
-                    chat_tab.add_file(file_path=attachment)
-                chat_tab.attachment_mode.set_selected(draft["attachment_mode"])
         chat_tab.connect("chat-name-changed", self._on_chat_name_changed)
         # The mini window always uses the compact input bar
         if self._mini_window_active():
@@ -745,6 +734,8 @@ class MainWindow(WorkspaceWindow, Adw.ApplicationWindow):
                 # Just switch to a new chat tab instead of closing
                 self.new_chat(None)
                 return True  # Prevent close, we'll handle it via new_chat
+            child.remember_draft()
+            self.controller.save_chats()
         
         return False  # Allow close
     
@@ -2859,6 +2850,7 @@ class MainWindow(WorkspaceWindow, Adw.ApplicationWindow):
             self.chat_tabs.close_page(tab_page)
         self.controller.remove_chat_from_folder(deleted_chat_id, save=False)
         del self.chats[deleted_chat_id]
+        self.controller.workspace_storage.drafts.pop(deleted_chat_id, None)
         self.save_chat()
         self.update_history()
 
