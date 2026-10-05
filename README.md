@@ -144,9 +144,8 @@ There are two ways of doing this
 
 With nix, you can run the app without installing by executing this command:
 ```sh
-nix run github:qwersyk/Newelle
+nix-shell -p newelle
 ```
-If you want the latest commit version, you can clone this repository and execute `nix run .` to start the program or `nix develop .` to start a developer shell
 
 <a href="https://github.com/qwersyk/Newelle/actions">
   <picture>

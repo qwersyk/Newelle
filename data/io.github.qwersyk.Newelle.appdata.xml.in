@@ -11,24 +11,32 @@
 	<summary>AI chatbot</summary>
 	<screenshots>
 		<screenshot type="default">
-			<image>https://raw.githubusercontent.com/qwersyk/Newelle/master/data/screenshots/1.png</image>
-			<caption>Prebuilt llama.cpp</caption>
+			<image>https://raw.githubusercontent.com/qwersyk/Newelle/master/data/screenshots/1.jpg</image>
+			<caption>Modes Support</caption>
 		</screenshot>
 		<screenshot>
-			<image>https://raw.githubusercontent.com/qwersyk/Newelle/master/data/screenshots/2.png</image>
-			<caption>Commands Permissions</caption>
+			<image>https://raw.githubusercontent.com/qwersyk/Newelle/master/data/screenshots/2.jpg</image>
+			<caption>MCP Servers Catalog</caption>
 		</screenshot>
  		<screenshot>
-			<image>https://raw.githubusercontent.com/qwersyk/Newelle/master/data/screenshots/3.png</image>
-			<caption>Reorderable Prompts</caption>
+			<image>https://raw.githubusercontent.com/qwersyk/Newelle/master/data/screenshots/3.jpg</image>
+			<caption>Mini Window Mode</caption>
 		</screenshot>
 		<screenshot>
-			<image>https://raw.githubusercontent.com/qwersyk/Newelle/master/data/screenshots/4.png</image>
-			<caption>Better Text Rendering</caption>
+			<image>https://raw.githubusercontent.com/qwersyk/Newelle/master/data/screenshots/4.jpg</image>
+			<caption>Extensions and Skills Catalog</caption>
 		</screenshot>
 		<screenshot>
-			<image>https://raw.githubusercontent.com/qwersyk/Newelle/master/data/screenshots/5.png</image>
-			<caption>Interfaces</caption>
+			<image>https://raw.githubusercontent.com/qwersyk/Newelle/master/data/screenshots/5.jpg</image>
+			<caption>Integrated Skill Editor</caption>
+		</screenshot>
+		<screenshot>
+			<image>https://raw.githubusercontent.com/qwersyk/Newelle/master/data/screenshots/6.jpg</image>
+			<caption>Interactive Terminals</caption>
+		</screenshot>
+		<screenshot>
+			<image>https://raw.githubusercontent.com/qwersyk/Newelle/master/data/screenshots/7.jpg</image>
+			<caption>Citations</caption>
 		</screenshot>
 	</screenshots>
   	<branding>
@@ -40,6 +48,69 @@
 	<url type="bugtracker">https://github.com/qwersyk/Newelle/issues</url>
 	<content_rating type="oars-1.0" />
 	<releases>
+	    <release version="1.5.2" date="2026-09-16">
+            <description>
+                <ul>
+                  <li>Add voice pill: launch Newelle with <code>newelle --voice</code> to show a pill for fast voice interaction (Experimental)</li>
+                  <li>Fix no-argument tool calls failing when arguments is an empty string</li>
+                  <li>Fix Anima image model not loading</li>
+                  <li>Allow adding MCP servers by pasting their JSON</li>
+                  <li>Add the option to manually add scheduled tasks</li>
+                  <li>Fix generate_image tool failing on custom OpenAI-compatible servers due to a hardcoded model name</li>
+                  <li>Fix OpenAIEmbeddingHandler.get_embedding_size() returning the wrong dimension, breaking FAISS index creation</li>
+                  <li>Add more statistics like caches and time to first token</li>
+                  <li>Fix building llama.cpp freezing when there is no internet connection</li>
+                  <li>Add support for screen recording anywhere on Linux, instead of only on GNOME</li>
+                  <li>Add support for video input / audio input / file input for OpenAI-compatible providers</li>
+                  <li>Add support for choosing whether to use RAG or CAG for OpenAI-compatible providers</li>
+                </ul>
+            </description>
+        </release>
+        <release version="1.5.1" date="2026-08-25">
+            <description>
+                <ul>
+                    <li>New Model Library UI and terminal management.</li>
+                    <li>Improved builds for llama.cpp, whisper.cpp and stablediffusion.cpp.</li>
+                    <li>Improved download manager and build cancellation.</li>
+                    <li>Various bug fixes and stability improvements.</li>
+                </ul>
+            </description>
+        </release>
+	    <release version="1.5.0" date="2026-08-19">
+            <description>
+                <p>Major update with improved agent capabilities, terminal integration, MCP support and usability improvements.</p>
+
+                <ul>
+                    <li>Improved terminal tool: Newelle can now manage persistent Terminal sessions and interact with TUIs</li>
+                    <li>Added mode switching: users can create custom modes that quickly change prompts, tools and skills, such as Planning mode</li>
+                    <li>Added a curated catalog of MCP servers that can be used to connect applications to Newelle</li>
+                    <li>Added citations, allowing the LLM to state the source of information</li>
+                    <li>Added the ability to add LLM providers directly from the UI, including OpenAI, Ollama and Anthropic-compatible providers</li>
+                    <li>Improved text generation animation</li>
+                    <li>Added Compact Mode for tool calls and the input bar</li>
+                    <li>Added the ability to download and explore new extensions and skills directly in Newelle</li>
+                    <li>Added a Skill editor to create and edit Newelle Skills directly in Newelle</li>
+                    <li>Added a send_message tool for sending messages to interfaces, such as Telegram</li>
+                    <li>Added new tools: sleep and switch_mode</li>
+                    <li>Agents can now read images using the read_image tool</li>
+                    <li>Added the ability to delegate vision chats to a secondary LLM</li>
+                    <li>Added support for Mistral STT and TTS</li>
+                    <li>Added API key support for Ollama</li>
+                    <li>Improved the Anthropic LLM handler</li>
+                    <li>Added the ability to set the maximum number of tool iterations in a chat</li>
+                    <li>Fixed bugs with the OpenAI handler</li>
+                    <li>Added support for the OpenAI /responses endpoint</li>
+                    <li>Improved the Telegram interface</li>
+                    <li>Improved the GUI-API interface</li>
+                    <li>Improved logging support in the OpenAI API interface</li>
+                    <li>Fixed bugs with LaTeX rendering and improved performance</li>
+                    <li>Added an option to automatically expand thinking</li>
+                    <li>Fixed thinking scrolling up while streaming</li>
+                    <li>Improved mini-window mode</li>
+                    <li>Added CTRL+G to switch between normal and mini-window modes</li>
+                </ul>
+            </description>
+        </release>
         <release version="1.4.6" date="2026-07-04">
             <description>
                 <p>Bug fixes and stability improvements.</p>
