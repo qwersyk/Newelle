@@ -11,6 +11,66 @@ class UIController:
     def require_tool_update(self):
         self.window.controller.require_tool_update()
 
+    def workspace_storage_changed(self):
+        window = self.window
+        workspace = window.controller.active_workspace
+        configuration = (workspace.get("profile"), workspace["path"], workspace["mode"])
+        if configuration != window._workspace_configuration and not window.switch_workspace(window.controller.active_workspace_id, force=True):
+            return
+        window.refresh_workspace_picker()
+        window.update_history(focus_input=False)
+
+    def workspace_action(self, action, workspace_id=None, **data):
+        window = self.window
+        controller = window.controller
+        # Switching the visible workspace is safe while chat requests are
+        # running; each request is tied to its own chat.  Other mutations
+        # still require the UI to be idle.
+        if action != "switch" and (window.workspace_ui_busy() or controller.workspace_requests):
+            raise RuntimeError("Finish or stop active work before changing workspaces")
+        if workspace_id is not None and workspace_id not in controller.workspaces:
+            raise KeyError("Workspace not found")
+        if action == "path":
+            controller._remote_workspace_action(action, workspace_id, **data)
+            window.main_path = controller.active_workspace["path"]
+            explorer = window.get_current_explorer_panel()
+            if explorer is None:
+                for index in range(window.canvas_tabs.get_n_pages()):
+                    candidate = window.canvas_tabs.get_nth_page(index).get_child()
+                    if hasattr(candidate, "set_main_path"):
+                        explorer = candidate
+                        break
+            if explorer is not None:
+                explorer.set_main_path(window.main_path)
+                explorer.update_folder()
+        elif action == "switch":
+            if not window.switch_workspace(workspace_id):
+                raise RuntimeError("Workspace switch blocked by active work")
+        elif action == "move":
+            if data["chat_id"] not in controller.workspace_chats():
+                raise KeyError("Chat not found in active workspace")
+            if not window.move_chat_to_workspace(data["chat_id"], workspace_id):
+                raise RuntimeError("Chat transfer blocked by active work")
+        else:
+            if action == "delete" and workspace_id == controller.active_workspace_id:
+                if workspace_id == "default":
+                    raise ValueError("The Default workspace cannot be deleted")
+                if not window.switch_workspace("default"):
+                    raise RuntimeError("Workspace switch blocked by active work")
+            workspace_id = controller._remote_workspace_action(action, workspace_id, **data)
+            if action == "edit" and workspace_id == controller.active_workspace_id:
+                if not window.switch_workspace(workspace_id, force=True):
+                    raise RuntimeError("Workspace settings saved; activation blocked by active work")
+            if action == "delete":
+                cached = window._workspace_views.pop(workspace_id, None)
+                if cached is not None:
+                    target = window.chat_tabs if controller.active_workspace_id == "default" else window._workspace_views.setdefault("default", Adw.TabView())
+                    while cached.get_n_pages():
+                        cached.transfer_page(cached.get_nth_page(0), target, target.get_n_pages())
+        window.refresh_workspace_picker()
+        window.update_history()
+        return workspace_id
+
     def refresh_extension_resources(self, refreshes):
         """Refresh extension-backed UI surfaces that are currently alive."""
         self.window.extensionloader = self.window.controller.extensionloader
@@ -44,6 +104,7 @@ class UIController:
         app_settings = getattr(getattr(self.window, "app", None), "settingswindow", None)
         if (
             app_settings is not None
+            and app_settings.controller is self.window.controller
             and app_settings.get_visible()
             and all(app_settings is not view for view in settings_views)
         ):

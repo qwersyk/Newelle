@@ -51,7 +51,7 @@ class OpenWakeWordHandler(STTHandler):
                 folder=self.wakewords_dir,
                 refresh=lambda x: self.get_wakeword_models(True), update_settings=True
             ),
-            ExtraSettings.EntrySetting("wakeword", "Wakeword", "Wakewords to remove from the transcription, comma separated", "hey jarvis, jarvis"),
+            ExtraSettings.EntrySetting("wakeword", _("Wakeword"), _("Wakewords to remove from the transcription, comma separated"), "hey jarvis, jarvis"),
             ExtraSettings.ScaleSetting("sensitivity", _("Sensitivity"), _("Minimum score for detection. You can see the score given to recorded audio in the console when launching Newelle"), 0.5, 0.0, 1.0, 2),
         ]
      

@@ -18,7 +18,9 @@ import pyaudio
 
 from gi.repository import Adw, Gdk, GLib, Gtk, Pango
 
-from ..utility.strings import clean_message_tts
+from ..controller import NewelleController
+from ..ui_controller import HeadlessController
+from ..utility.strings import clean_message_tts, remove_thinking_blocks
 from ..utility.system import (
     get_flatpak_x11_override_command,
     has_flatpak_x11_permission,
@@ -70,9 +72,11 @@ VOICE_CSS = """
 }
 .voice-interaction-card {
     min-width: 390px;
+    max-width: 520px;
     border-radius: 22px;
     padding: 14px;
     margin-bottom: 8px;
+    overflow: hidden;
     color: @window_fg_color;
     background-color: alpha(@window_bg_color, 0.98);
     border: 1px solid alpha(@window_fg_color, 0.13);
@@ -84,6 +88,19 @@ VOICE_CSS = """
 }
 .voice-interaction-title {
     font-weight: 700;
+}
+.voice-feedback-message {
+    font-size: 0.95em;
+    font-weight: 500;
+    line-height: 1.45;
+    opacity: 0.94;
+}
+.voice-feedback-widget {
+    margin-top: 2px;
+}
+.voice-tool-placeholder {
+    padding: 6px 2px;
+    opacity: 0.88;
 }
 .voice-mode-error .voice-wave-bar {
     background-color: @error_bg_color;
@@ -103,6 +120,12 @@ class VoiceSessionState(Enum):
     SPEAKING = "speaking"
     ERROR = "error"
     CLOSING = "closing"
+
+
+class VoiceFeedbackMode(Enum):
+    REQUIRED = "required"
+    TOOLS = "tools"
+    FULL = "full"
 
 
 class VoiceCaptureDecision(Enum):
@@ -214,6 +237,13 @@ class MeanWaveform(Gtk.Box):
             self._animation_source = GLib.timeout_add(55, self._animate_output)
 
     def _animate_output(self):
+        try:
+            if self.get_parent() is None:
+                self._animation_source = None
+                return GLib.SOURCE_REMOVE
+        except Exception:
+            self._animation_source = None
+            return GLib.SOURCE_REMOVE
         self._phase += 0.34
         level = 0.43 + 0.28 * math.sin(self._phase) + 0.12 * math.sin(self._phase * 2.3)
         self._render(max(0.12, min(1.0, level)), animated=True)
@@ -239,7 +269,10 @@ class MeanWaveform(Gtk.Box):
 
     def stop_animation(self):
         if self._animation_source is not None:
-            GLib.source_remove(self._animation_source)
+            try:
+                GLib.source_remove(self._animation_source)
+            except Exception:
+                pass
             self._animation_source = None
 
 
@@ -515,6 +548,46 @@ class VoicePillX11Helper:
         return None
 
 
+class VoiceWorkspaceUIController(HeadlessController):
+    """Keep voice tools bound to their workspace while displaying requested UI."""
+
+    def __init__(self, controller, display_ui):
+        super().__init__(controller)
+        self.display_ui = display_ui
+        self.chat_id = None
+
+    def add_tab(self, child, focus=True):
+        return self.display_ui.add_tab(child, focus)
+
+    def new_browser_tab(self, url=None, new=True):
+        return self.display_ui.new_browser_tab(url, new)
+
+    def open_link(self, url, new=False, use_integrated_browser=True):
+        return self.display_ui.open_link(url, new, use_integrated_browser)
+
+    def new_explorer_tab(self, path, new=True):
+        return self.display_ui.new_explorer_tab(path, new)
+
+    def new_editor_tab(self, file):
+        return self.display_ui.new_editor_tab(file)
+
+    def get_current_chat_id(self):
+        context = self.controller._request_context()
+        if context is not None:
+            return context["chat_id"]
+        return self.chat_id if self.chat_id is not None else super().get_current_chat_id()
+
+    def get_tool_result_by_id(self, tool_uuid):
+        prefix = "[Tool: "
+        for entry in self.controller.get_chat_by_id(self.get_current_chat_id()):
+            message = entry.get("Message", "")
+            if entry.get("User") == "Console" and message.startswith(prefix):
+                header, separator, output = message.partition("\n")
+                if header.endswith(f", ID: {tool_uuid}]"):
+                    return output if separator else ""
+        return None
+
+
 class VoiceModeWindow(Gtk.Window):
     """Desktop-anchored speech → tools → TTS conversation surface."""
 
@@ -524,15 +597,24 @@ class VoiceModeWindow(Gtk.Window):
     ENDPOINT_DEBOUNCE_SECONDS = 0.5
 
     def __init__(self, application, main_window, on_closed=None, **kwargs):
-        super().__init__(application=application, **kwargs)
+        # Choose the display before registering with Gtk.Application. Its
+        # native backend is tied to the default display, not each window's.
+        super().__init__(**kwargs)
+        self._application = application
+        self._application_held = False
         self.main_window = main_window
         self.controller = main_window.controller
+        self._workspace_controller = None
+        self._workspace_cleanup_source = None
         self.settings = self.controller.settings
         self.on_closed = on_closed
         self.session = VoiceSessionController()
         self.chat_id = None
+        self._chat_mode = self.settings.get_string("voice-mode-chat")
+        self._selected_chat_id = self.controller.newelle_settings.chat_id
         self._cancel_event = self.session.cancel_event
         self._recording_thread = None
+        self._capture_thread = None
         self._processing_thread = None
         self._pending_results = self.session.pending_results
         self._tts_tokens = []
@@ -540,6 +622,7 @@ class VoiceModeWindow(Gtk.Window):
         self._tts_playback_generation = 0
         self._owns_tts = False
         self._resume_wakeword = False
+        self._wakeword_windows = []
         self._destroying = False
         self._layer_shell_active = False
         self._x11_active = False
@@ -560,16 +643,27 @@ class VoiceModeWindow(Gtk.Window):
         self._content_transition_ms = 170 if self._animations_enabled else 0
         self._settings_changed_handler = None
         self._interaction_hide_source = None
+        self._feedback_text_source = None
         self._content_reveal_source = None
         self._close_animation_source = None
         self._close_wait_source = None
         self._wakeword_release_source = None
         self._capture_restart_source = None
+        self._tts_finish_source = None
+        self._widget_timeouts = set()
         self._open_animation_started = False
         self._close_animation_started = False
         self._closing = False
         self._teardown_started = False
-        self._capture_wait_deadline = None
+        self._closed_notified = False
+        self._feedback_mode = VoiceFeedbackMode.REQUIRED
+        self._feedback_message = ""
+        self._feedback_shown_text = ""
+        self._feedback_pending_text = None
+        self._feedback_widgets = []
+        self._feedback_placeholders = []
+        self._feedback_interactive = False
+        self._feedback_title = _("Action required")
 
         self.set_title(_("Newelle Voice Mode"))
         self.set_decorated(False)
@@ -579,12 +673,38 @@ class VoiceModeWindow(Gtk.Window):
         self.add_css_class("voice-mode-window")
         self._build_ui()
         self._configure_position()
+        self._attach_application()
         self._maybe_prompt_x11_override()
         self._apply_css()
         self._settings_changed_handler = self.settings.connect(
             "changed", self._on_setting_changed
         )
         self.connect("close-request", self._on_close_request)
+        self.connect("destroy", self._on_destroy)
+
+    def _attach_application(self):
+        application = self._application
+        if self.get_display() == Gdk.Display.get_default():
+            self.set_application(application)
+            return
+
+        # A Wayland Gtk.Application must not own an X11 fallback window:
+        # window removal otherwise passes its X11 surface to Wayland cleanup
+        # and can segfault inside libwayland-client. Keep the application
+        # alive explicitly and expose actions without registering the window.
+        application.hold()
+        self._application_held = True
+        self.insert_action_group("app", application)
+        shortcuts = Gtk.ShortcutController()
+        shortcuts.set_scope(Gtk.ShortcutScope.GLOBAL)
+        for accelerator in application.get_accels_for_action("app.voice_mode"):
+            trigger = Gtk.ShortcutTrigger.parse_string(accelerator)
+            if trigger is not None:
+                shortcuts.add_shortcut(Gtk.Shortcut(
+                    trigger=trigger,
+                    action=Gtk.NamedAction.new("app.voice_mode"),
+                ))
+        self.add_controller(shortcuts)
 
     @property
     def state(self):
@@ -607,8 +727,8 @@ class VoiceModeWindow(Gtk.Window):
             reveal_child=False,
         )
         # A vertically sliding revealer still contributes its child's width
-        # while collapsed. Hide it entirely until interaction is required so
-        # the 390px card cannot stretch the normal 240px pill.
+        # while collapsed. Hide it entirely until feedback is shown so the
+        # 390px card cannot stretch the normal 240px pill.
         self.interaction_revealer.set_visible(False)
         self.interaction_card = Gtk.Box(
             orientation=Gtk.Orientation.VERTICAL,
@@ -620,7 +740,23 @@ class VoiceModeWindow(Gtk.Window):
             xalign=0,
             css_classes=["voice-interaction-title"],
         )
+        self.interaction_title.set_wrap(True)
+        self.interaction_title.set_wrap_mode(Pango.WrapMode.WORD_CHAR)
         self.interaction_card.append(self.interaction_title)
+        self.feedback_text_revealer = Gtk.Revealer(
+            transition_type=self._content_slide_transition(),
+            transition_duration=self._content_transition_ms,
+            reveal_child=False,
+        )
+        self.feedback_message_label = Gtk.Label(
+            xalign=0,
+            wrap=True,
+            wrap_mode=Pango.WrapMode.WORD_CHAR,
+            selectable=True,
+            css_classes=["voice-feedback-message"],
+        )
+        self.feedback_message_label.set_max_width_chars(48)
+        self.feedback_text_revealer.set_child(self.feedback_message_label)
         self.interaction_scroll = Gtk.ScrolledWindow(
             hscrollbar_policy=Gtk.PolicyType.NEVER,
             vscrollbar_policy=Gtk.PolicyType.AUTOMATIC,
@@ -630,10 +766,12 @@ class VoiceModeWindow(Gtk.Window):
         self.interaction_box = Gtk.Box(
             orientation=Gtk.Orientation.VERTICAL, spacing=8
         )
+        self.interaction_box.append(self.feedback_text_revealer)
         self.interaction_scroll.set_child(self.interaction_box)
         self.interaction_card.append(self.interaction_scroll)
         self.interaction_revealer.set_child(self.interaction_card)
         self.root_box.append(self.interaction_revealer)
+        self._sync_feedback_mode()
 
         self.pill = Gtk.Box(
             orientation=Gtk.Orientation.HORIZONTAL,
@@ -751,6 +889,24 @@ class VoiceModeWindow(Gtk.Window):
                 Gtk.RevealerTransitionType.SLIDE_UP
             )
             self.root_box.reorder_child_after(self.interaction_revealer, None)
+        if hasattr(self, "feedback_text_revealer"):
+            self.feedback_text_revealer.set_transition_type(
+                self._content_slide_transition()
+            )
+
+    def _sync_feedback_mode(self):
+        value = self.settings.get_string("voice-mode-feedback") or "required"
+        try:
+            self._feedback_mode = VoiceFeedbackMode(value)
+        except ValueError:
+            self._feedback_mode = VoiceFeedbackMode.REQUIRED
+
+    def _content_slide_transition(self):
+        position = self.settings.get_string("voice-mode-position") or "bottom-center"
+        transitions = Gtk.RevealerTransitionType
+        if position.startswith("top-"):
+            return getattr(transitions, "FADE_SLIDE_DOWN", transitions.SLIDE_DOWN)
+        return getattr(transitions, "FADE_SLIDE_UP", transitions.SLIDE_UP)
 
     def _on_setting_changed(self, _settings, key):
         if self._closing or self._destroying:
@@ -761,6 +917,9 @@ class VoiceModeWindow(Gtk.Window):
                 self._apply_layer_anchors()
             elif self._x11_active:
                 self._apply_x11_position()
+        elif key == "voice-mode-feedback":
+            self._sync_feedback_mode()
+            self._refresh_feedback_card()
         elif key in {
             "voice-pill-theme",
             "voice-pill-background",
@@ -817,7 +976,7 @@ class VoiceModeWindow(Gtk.Window):
                 self._css_provider,
                 Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION + 1,
             )
-            app = self.get_application()
+            app = self._application
             if (
                 display != Gdk.Display.get_default()
                 and app is not None
@@ -1155,6 +1314,11 @@ class VoiceModeWindow(Gtk.Window):
         if self._closing or self._destroying or self.state is not VoiceSessionState.IDLE:
             return
         self._animate_open()
+        try:
+            self._select_workspace()
+        except Exception as error:  # noqa: BLE001 - Provider setup may raise third-party exceptions.
+            self._show_error(str(error))
+            return
         if self._microphone_busy():
             self._show_error(_("Microphone in use"))
             return
@@ -1163,15 +1327,46 @@ class VoiceModeWindow(Gtk.Window):
         if tts is not None:
             tts.stop()
 
-        self._resume_wakeword = bool(self.main_window.wakeword_listening)
+        self._wakeword_windows = [
+            window for window in self._application.main_windows
+            if getattr(window, "wakeword_listening", False)
+        ]
+        self._resume_wakeword = bool(self._wakeword_windows)
         if self._resume_wakeword:
-            self.main_window.stop_wakeword_detection()
+            for window in self._wakeword_windows:
+                window.stop_wakeword_detection()
             self._wakeword_release_deadline = time.monotonic() + 3.0
             self._wakeword_release_source = GLib.timeout_add(
                 25, self._start_after_wakeword_release
             )
         else:
             self._start_capture()
+
+    def _select_workspace(self):
+        """Resolve the voice workspace once, keeping the visible window unchanged."""
+        source = self.main_window.controller
+        workspace_id = self.settings.get_string("voice-mode-workspace")
+        if workspace_id in ("", "current") or workspace_id not in source.workspaces:
+            workspace_id = source.active_workspace_id
+        if workspace_id == source.active_workspace_id:
+            self.controller = source
+        else:
+            window = self._application.workspace_window(workspace_id)
+            if window is not None and getattr(window, "ui_built", False):
+                self.controller = window.controller
+            else:
+                controller = NewelleController(
+                    source.python_path, shared_controller=source,
+                    workspace_id=workspace_id, window_settings=True,
+                )
+                self._workspace_controller = controller
+                # Saving a background voice chat must preserve the visible
+                # window's workspace selection for the next application start.
+                controller.history_selection_controller = source
+                controller.ui_init()
+                controller.set_ui_controller(VoiceWorkspaceUIController(controller, source.ui_controller))
+                self.controller = controller
+        self._selected_chat_id = self.controller.newelle_settings.chat_id
 
     def _animate_open(self):
         if (
@@ -1207,8 +1402,8 @@ class VoiceModeWindow(Gtk.Window):
         if self._cancel_event.is_set() or self._closing or self._destroying:
             self._wakeword_release_source = None
             return GLib.SOURCE_REMOVE
-        detector = getattr(self.main_window, "wakeword_detector", None)
-        if detector is not None and not detector.is_stopped():
+        detectors = [getattr(window, "wakeword_detector", None) for window in self._wakeword_windows]
+        if any(detector is not None and not detector.is_stopped() for detector in detectors):
             if time.monotonic() < self._wakeword_release_deadline:
                 return GLib.SOURCE_CONTINUE
             self._show_error(_("Microphone is still busy"))
@@ -1219,27 +1414,30 @@ class VoiceModeWindow(Gtk.Window):
         return GLib.SOURCE_REMOVE
 
     def _microphone_busy(self) -> bool:
-        if self.main_window.recording or self.main_window._recording_stopping:
-            return True
-        tab_view = getattr(self.main_window, "canvas_tabs", None)
-        if tab_view is None:
-            return False
-        for index in range(tab_view.get_n_pages()):
-            child = tab_view.get_nth_page(index).get_child()
-            if getattr(child, "call_active", False):
+        for window in self._application.main_windows:
+            if getattr(window, "recording", False) or getattr(window, "_recording_stopping", False):
                 return True
+            tab_view = getattr(window, "canvas_tabs", None)
+            if tab_view is not None:
+                for index in range(tab_view.get_n_pages()):
+                    child = tab_view.get_nth_page(index).get_child()
+                    if getattr(child, "call_active", False):
+                        return True
         return False
 
     def _start_capture(self):
         if self._cancel_event.is_set() or self._closing or self._destroying:
             return
+        self._reset_feedback()
         self._set_state(VoiceSessionState.LISTENING)
-        self._recording_thread = threading.Thread(
+        thread = threading.Thread(
             target=self._capture_one_utterance,
             name="newelle-voice-capture",
             daemon=True,
         )
-        self._recording_thread.start()
+        self._recording_thread = thread
+        self._capture_thread = thread
+        thread.start()
 
     def _capture_one_utterance(self):
         audio = None
@@ -1331,7 +1529,10 @@ class VoiceModeWindow(Gtk.Window):
     def _apply_input_level(self, level: float):
         if self._closing or self._destroying:
             return GLib.SOURCE_REMOVE
-        self.waveform.set_input_level(level)
+        try:
+            self.waveform.set_input_level(level)
+        except Exception:
+            pass
         return GLib.SOURCE_REMOVE
 
     def _process_capture(self, audio_data: bytes):
@@ -1342,7 +1543,7 @@ class VoiceModeWindow(Gtk.Window):
                 return
             GLib.idle_add(self._set_state, VoiceSessionState.TRANSCRIBING)
             stt = getattr(self.controller.handlers, "stt", None)
-            direct_audio = self.settings.get_boolean("direct-audio-input")
+            direct_audio = self.controller.settings.get_boolean("direct-audio-input")
             if not direct_audio and (stt is None or not stt.is_installed()):
                 GLib.idle_add(self._show_error, _("Speech recognition unavailable"))
                 return
@@ -1378,8 +1579,12 @@ class VoiceModeWindow(Gtk.Window):
 
             GLib.idle_add(self._set_state, VoiceSessionState.RUNNING)
             # Keep prior turns when capture restarts after each response.
-            if self.chat_id is None:
-                self.chat_id = self.controller.create_voice_chat()
+            if self.chat_id not in self.controller.chats:
+                self.chat_id = self.controller.get_voice_chat(
+                    self._chat_mode, self._selected_chat_id
+                )
+            if isinstance(self.controller.ui_controller, VoiceWorkspaceUIController):
+                self.controller.ui_controller.chat_id = self.chat_id
             configured_mode = self.settings.get_string("voice-mode-mode")
             mode_name = None if configured_mode in ("", "current") else configured_mode
             if (
@@ -1399,13 +1604,7 @@ class VoiceModeWindow(Gtk.Window):
                     time.sleep(0.02)
 
             def on_message(text):
-                preview = clean_message_tts(str(text or "")).strip()
-                if preview:
-                    GLib.idle_add(
-                        self._set_status,
-                        preview,
-                        "brain-augemnted-symbolic",
-                    )
+                GLib.idle_add(self._on_stream_message, text)
 
             def on_intermediate_message(text):
                 self._play_response(
@@ -1498,19 +1697,35 @@ class VoiceModeWindow(Gtk.Window):
             return GLib.SOURCE_REMOVE
         self._set_state(VoiceSessionState.SPEAKING)
         self._set_status(response)
+        if self._feedback_mode is VoiceFeedbackMode.FULL and not self._feedback_message:
+            display = self._display_message_text(response)
+            if display:
+                self._queue_feedback_message(display)
         return GLib.SOURCE_REMOVE
 
     def _on_tts_stop(self, final, playback_generation):
-        # Give a synchronous playback exception a chance to publish its error
-        # state before treating the stop signal as successful completion.
-        GLib.timeout_add(
+        # Playback signals can fire on a worker. Marshal the delayed
+        # completion so GLib sources are only touched on the main loop.
+        GLib.idle_add(
+            self._schedule_finish_after_speech,
+            final,
+            playback_generation,
+        )
+
+    def _schedule_finish_after_speech(self, final, playback_generation):
+        if self._closing or self._destroying:
+            return GLib.SOURCE_REMOVE
+        self._clear_source("_tts_finish_source")
+        self._tts_finish_source = GLib.timeout_add(
             50,
             self._finish_after_speech,
             final,
             playback_generation,
         )
+        return GLib.SOURCE_REMOVE
 
     def _finish_after_speech(self, final, playback_generation):
+        self._tts_finish_source = None
         if self._closing or self._destroying:
             return GLib.SOURCE_REMOVE
         if playback_generation != self._tts_playback_generation:
@@ -1550,7 +1765,7 @@ class VoiceModeWindow(Gtk.Window):
             self._capture_restart_source = None
             return GLib.SOURCE_REMOVE
         if (
-            self._recording_thread is not None
+            not self._capture_released()
             or self._processing_thread is not None
             or self._pending_results
         ):
@@ -1559,73 +1774,59 @@ class VoiceModeWindow(Gtk.Window):
         self._start_capture()
         return GLib.SOURCE_REMOVE
 
+    def _on_stream_message(self, text):
+        if self._cancel_event.is_set() or self._closing or self._destroying:
+            return GLib.SOURCE_REMOVE
+        display = self._display_message_text(text)
+        if not display:
+            return GLib.SOURCE_REMOVE
+        preview = clean_message_tts(display).strip() or display
+        self._set_status(preview, "brain-augemnted-symbolic")
+        if self._feedback_mode is VoiceFeedbackMode.FULL:
+            self._queue_feedback_message(display)
+        return GLib.SOURCE_REMOVE
+
     def _on_tool_result(self, tool_name, result):
         if self._cancel_event.is_set() or self._closing or self._destroying:
             result.cancel()
             return GLib.SOURCE_REMOVE
         tool_title, tool_icon = self._tool_presentation(tool_name)
-        if not result.requires_interaction:
-            # ToolResult callbacks may be delivered before an asynchronous
-            # result has finished producing output. Keep the active-tool state
-            # until the next model or interaction state replaces it.
-            display_text = getattr(result, "display_text", None)
+        display_text = getattr(result, "display_text", None)
+        if display_text:
+            self._set_status(display_text, tool_icon)
+
+        if result.requires_interaction:
+            if not self.session.track_interaction(result):
+                return GLib.SOURCE_REMOVE
+            self._set_state(VoiceSessionState.WAITING)
+            self._set_status(
+                _("{tool} needs input").format(tool=tool_title),
+                tool_icon,
+            )
+            self._feedback_title = _("{tool} needs your input").format(tool=tool_title)
+            self._feedback_interactive = True
+            widget = self._widget_for_result(result)
+            if widget is not None:
+                self._add_feedback_widget(widget)
+            threading.Thread(
+                target=self._wait_for_interaction,
+                args=(result,),
+                daemon=True,
+            ).start()
+        elif (
+            self._feedback_mode is not VoiceFeedbackMode.REQUIRED
+            and result.widget is not None
+        ):
             if display_text:
-                self._set_status(display_text, tool_icon)
+                self._feedback_title = display_text
+            else:
+                self._feedback_title = tool_title
+            self._add_feedback_widget(result.widget)
+        else:
+            self._remove_tool_placeholder(tool_name)
             return GLib.SOURCE_REMOVE
 
-        if not self.session.track_interaction(result):
-            return GLib.SOURCE_REMOVE
-        self._set_state(VoiceSessionState.WAITING)
-        self._set_status(
-            _("{tool} needs input").format(tool=tool_title),
-            tool_icon,
-        )
-        self.interaction_title.set_label(
-            _("{tool} needs your input").format(tool=tool_title)
-        )
-        self._clear_interaction_box()
-        widget = result.widget
-        if widget is not None:
-            parent = widget.get_parent()
-            if parent is not None and hasattr(parent, "remove"):
-                parent.remove(widget)
-            self.interaction_box.append(widget)
-        elif result.interaction_options:
-            button_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
-            for option in result.interaction_options:
-                button = Gtk.Button(label=option.title)
-                button.connect("clicked", lambda _button, cb=option.callback: cb())
-                button_box.append(button)
-            self.interaction_box.append(button_box)
-        if self._interaction_hide_source is not None:
-            GLib.source_remove(self._interaction_hide_source)
-            self._interaction_hide_source = None
-        self.interaction_revealer.set_visible(True)
-        self.interaction_revealer.set_reveal_child(True)
-        self.set_focusable(True)
-        if self._layer_shell_active:
-            Gtk4LayerShell.set_keyboard_mode(
-                self, Gtk4LayerShell.KeyboardMode.ON_DEMAND
-            )
-        elif self._x11_active and self._x11_surface is not None:
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore", DeprecationWarning)
-                try:
-                    display = self.get_display()
-                    user_time = (
-                        display.get_user_time()
-                        if hasattr(display, "get_user_time")
-                        else 0
-                    )
-                    self._x11_surface.set_user_time(user_time)
-                except Exception:
-                    pass
-        self.present()
-        threading.Thread(
-            target=self._wait_for_interaction,
-            args=(result,),
-            daemon=True,
-        ).start()
+        self._refresh_feedback_card()
         return GLib.SOURCE_REMOVE
 
     def _on_tool_start(self, tool_name, status_ready=None):
@@ -1641,6 +1842,10 @@ class VoiceModeWindow(Gtk.Window):
             ),
             tool_icon,
         )
+        if self._feedback_mode is not VoiceFeedbackMode.REQUIRED:
+            self._feedback_title = _("Running {tool}…").format(tool=tool_title)
+            self._ensure_tool_placeholder(tool_name, tool_title, tool_icon)
+            self._refresh_feedback_card()
         if status_ready is not None:
             status_ready.set()
         return GLib.SOURCE_REMOVE
@@ -1660,13 +1865,317 @@ class VoiceModeWindow(Gtk.Window):
         if self._closing or self._destroying:
             return GLib.SOURCE_REMOVE
         if not self._pending_results:
-            self.interaction_revealer.set_reveal_child(False)
-            if self._transition_ms:
-                self._interaction_hide_source = GLib.timeout_add(
-                    self._transition_ms, self._hide_interaction_card
-                )
+            self._feedback_interactive = False
+            self._release_feedback_focus()
+            if self._feedback_mode is VoiceFeedbackMode.REQUIRED:
+                self._hide_feedback_card()
             else:
-                self._hide_interaction_card()
+                self._refresh_feedback_card()
+            if not self._cancel_event.is_set():
+                self._set_state(VoiceSessionState.RUNNING)
+        return GLib.SOURCE_REMOVE
+
+    def _display_message_text(self, text):
+        cleaned = remove_thinking_blocks(str(text or "")).strip()
+        if not cleaned:
+            return ""
+        tts = clean_message_tts(cleaned).strip()
+        return tts or cleaned
+
+    def _set_feedback_message(self, text):
+        incoming = str(text or "").strip()
+        if not incoming:
+            return False
+        shown = self._feedback_shown_text
+        if not shown:
+            self._feedback_message = incoming
+        elif incoming.startswith(shown) or shown.startswith(incoming):
+            self._feedback_message = incoming if len(incoming) >= len(shown) else shown
+        elif incoming in shown:
+            return False
+        elif shown in incoming:
+            self._feedback_message = incoming
+        else:
+            self._feedback_message = incoming
+        changed = self._feedback_message != shown
+        self._feedback_shown_text = self._feedback_message
+        return changed
+
+    def _queue_feedback_message(self, text):
+        if not self._set_feedback_message(text):
+            return
+        if not self._animations_enabled:
+            self._refresh_feedback_card()
+            return
+        self._feedback_pending_text = self._feedback_message
+        if self._feedback_text_source is None:
+            self._feedback_text_source = GLib.timeout_add(
+                55, self._flush_feedback_message
+            )
+
+    def _flush_feedback_message(self):
+        self._feedback_text_source = None
+        self._feedback_pending_text = None
+        if self._closing or self._destroying:
+            return GLib.SOURCE_REMOVE
+        self._refresh_feedback_card()
+        return GLib.SOURCE_REMOVE
+
+    def _widget_for_result(self, result):
+        widget = result.widget
+        if widget is not None:
+            return widget
+        if not result.interaction_options:
+            return None
+        button_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
+        for option in result.interaction_options:
+            button = Gtk.Button(label=option.title)
+            button.connect("clicked", lambda _button, cb=option.callback: cb())
+            button_box.append(button)
+        return button_box
+
+    def _adopt_widget(self, widget):
+        parent = widget.get_parent()
+        if parent is not None and hasattr(parent, "remove"):
+            parent.remove(widget)
+        widget.set_hexpand(True)
+        if not widget.has_css_class("voice-feedback-widget"):
+            widget.add_css_class("voice-feedback-widget")
+        return widget
+
+    def _card_is_open(self):
+        if self._closing or self._destroying:
+            return False
+        try:
+            return self.interaction_revealer.get_visible() and (
+                self.interaction_revealer.get_reveal_child()
+                or self._interaction_hide_source is not None
+            )
+        except Exception:
+            return False
+
+    def _wrap_feedback_widget(self, widget):
+        widget = self._adopt_widget(widget)
+        already_open = self._card_is_open()
+        revealer = Gtk.Revealer(
+            transition_type=self._content_slide_transition(),
+            transition_duration=self._content_transition_ms if already_open else 0,
+            reveal_child=not self._animations_enabled or not already_open,
+        )
+        revealer.set_child(widget)
+        return revealer
+
+    def _add_feedback_widget(self, widget):
+        if widget is None or self._closing or self._destroying:
+            return
+        for placeholder in list(self._feedback_placeholders):
+            placeholder.set_reveal_child(False)
+            if placeholder.get_parent() is self.interaction_box:
+                if self._content_transition_ms:
+                    self._schedule_remove_feedback_child(placeholder)
+                else:
+                    self._remove_feedback_child(placeholder)
+            self._feedback_placeholders.remove(placeholder)
+        for existing in self._feedback_widgets:
+            if existing.get_child() is widget:
+                return
+        revealer = self._wrap_feedback_widget(widget)
+        self._feedback_widgets.append(revealer)
+        self.interaction_box.append(revealer)
+        if self._animations_enabled and self._card_is_open():
+            GLib.idle_add(self._reveal_feedback_child, revealer)
+
+    def _ensure_tool_placeholder(self, tool_name, tool_title, tool_icon):
+        if self._closing or self._destroying:
+            return
+        for placeholder in self._feedback_placeholders:
+            child = placeholder.get_child()
+            if getattr(child, "_tool_name", None) == tool_name:
+                return
+        if self._feedback_widgets:
+            return
+        row = Gtk.Box(
+            orientation=Gtk.Orientation.HORIZONTAL,
+            spacing=8,
+            css_classes=["voice-tool-placeholder"],
+            valign=Gtk.Align.CENTER,
+        )
+        row._tool_name = tool_name
+        icon = Gtk.Image(icon_name=tool_icon)
+        icon.set_pixel_size(16)
+        spinner = Gtk.Spinner()
+        spinner.start()
+        label = Gtk.Label(
+            label=tool_title,
+            xalign=0,
+            hexpand=True,
+            ellipsize=Pango.EllipsizeMode.END,
+        )
+        row.append(icon)
+        row.append(label)
+        row.append(spinner)
+        revealer = self._wrap_feedback_widget(row)
+        self._feedback_placeholders.append(revealer)
+        self.interaction_box.append(revealer)
+        if self._animations_enabled and self._card_is_open():
+            GLib.idle_add(self._reveal_feedback_child, revealer)
+
+    def _reveal_feedback_child(self, revealer):
+        if self._closing or self._destroying:
+            return GLib.SOURCE_REMOVE
+        try:
+            revealer.set_transition_duration(self._content_transition_ms)
+            revealer.set_reveal_child(True)
+        except Exception:
+            pass
+        return GLib.SOURCE_REMOVE
+
+    def _remove_tool_placeholder(self, tool_name):
+        remaining = []
+        for placeholder in self._feedback_placeholders:
+            child = placeholder.get_child()
+            if getattr(child, "_tool_name", None) == tool_name:
+                placeholder.set_reveal_child(False)
+                if placeholder.get_parent() is self.interaction_box:
+                    if self._content_transition_ms:
+                        self._schedule_remove_feedback_child(placeholder)
+                    else:
+                        self._remove_feedback_child(placeholder)
+            else:
+                remaining.append(placeholder)
+        self._feedback_placeholders = remaining
+
+    def _schedule_remove_feedback_child(self, widget):
+        source_id = None
+
+        def run():
+            self._widget_timeouts.discard(source_id)
+            return self._remove_feedback_child(widget)
+
+        source_id = GLib.timeout_add(self._content_transition_ms, run)
+        self._widget_timeouts.add(source_id)
+
+    def _remove_feedback_child(self, widget):
+        if self._closing or self._destroying:
+            return GLib.SOURCE_REMOVE
+        try:
+            parent = widget.get_parent()
+        except Exception:
+            return GLib.SOURCE_REMOVE
+        if parent is self.interaction_box:
+            parent.remove(widget)
+        return GLib.SOURCE_REMOVE
+
+    def _scroll_feedback_to_bottom(self):
+        if self._closing or self._destroying:
+            return GLib.SOURCE_REMOVE
+        try:
+            adjustment = self.interaction_scroll.get_vadjustment()
+            if adjustment is not None:
+                adjustment.set_value(adjustment.get_upper())
+        except Exception:
+            pass
+        return GLib.SOURCE_REMOVE
+
+    def _feedback_has_content(self):
+        show_text = (
+            self._feedback_mode is VoiceFeedbackMode.FULL
+            and bool(self._feedback_message)
+        )
+        show_widgets = bool(self._feedback_widgets) or (
+            self._feedback_mode is not VoiceFeedbackMode.REQUIRED
+            and bool(self._feedback_placeholders)
+        )
+        if self._feedback_mode is VoiceFeedbackMode.REQUIRED:
+            return self._feedback_interactive
+        if self._feedback_mode is VoiceFeedbackMode.TOOLS:
+            return show_widgets
+        return show_text or show_widgets or self._feedback_interactive
+
+    def _refresh_feedback_card(self):
+        if self._closing or self._destroying:
+            return
+        try:
+            self._refresh_feedback_card_body()
+        except Exception:
+            return
+
+    def _refresh_feedback_card_body(self):
+        show_text = (
+            self._feedback_mode is VoiceFeedbackMode.FULL
+            and bool(self._feedback_message)
+        )
+        show_title = bool(
+            self._feedback_interactive
+            or self._feedback_widgets
+            or self._feedback_placeholders
+        )
+        if show_text:
+            if self.feedback_message_label.get_label() != self._feedback_message:
+                self.feedback_message_label.set_label(self._feedback_message)
+            if show_title:
+                self.interaction_title.set_label(self._feedback_title or _("Reply"))
+        elif show_title:
+            self.interaction_title.set_label(self._feedback_title or _("Action required"))
+        self.interaction_title.set_visible(show_title)
+        if show_text:
+            already_open = self._card_is_open()
+            self.feedback_text_revealer.set_visible(True)
+            self.feedback_text_revealer.set_transition_duration(
+                self._content_transition_ms if already_open else 0
+            )
+            self.feedback_text_revealer.set_reveal_child(True)
+            if already_open:
+                self.feedback_text_revealer.set_transition_duration(
+                    self._content_transition_ms
+                )
+        else:
+            self.feedback_text_revealer.set_transition_duration(self._content_transition_ms)
+            self.feedback_text_revealer.set_reveal_child(False)
+            if not self._content_transition_ms:
+                self.feedback_text_revealer.set_visible(False)
+
+        if not self._feedback_has_content():
+            self._hide_feedback_card()
+            return
+
+        self._clear_source("_interaction_hide_source")
+        self.interaction_revealer.set_visible(True)
+        self.interaction_revealer.set_reveal_child(True)
+        if show_text or self._feedback_widgets:
+            GLib.idle_add(self._scroll_feedback_to_bottom)
+        if self._feedback_interactive:
+            self._request_feedback_focus()
+        else:
+            self._release_feedback_focus()
+
+    def _request_feedback_focus(self):
+        if self._closing or self._destroying:
+            return
+        self.set_focusable(True)
+        if self._layer_shell_active:
+            Gtk4LayerShell.set_keyboard_mode(
+                self, Gtk4LayerShell.KeyboardMode.ON_DEMAND
+            )
+        elif self._x11_active and self._x11_surface is not None:
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", DeprecationWarning)
+                try:
+                    display = self.get_display()
+                    user_time = (
+                        display.get_user_time()
+                        if hasattr(display, "get_user_time")
+                        else 0
+                    )
+                    self._x11_surface.set_user_time(user_time)
+                except Exception:
+                    pass
+        self.present()
+
+    def _release_feedback_focus(self):
+        if self._destroying:
+            return
+        try:
             self.set_focusable(False)
             if self._layer_shell_active:
                 Gtk4LayerShell.set_keyboard_mode(
@@ -1679,48 +2188,91 @@ class VoiceModeWindow(Gtk.Window):
                         self._x11_surface.set_user_time(0)
                     except Exception:
                         pass
-            if not self._cancel_event.is_set():
-                self._set_state(VoiceSessionState.RUNNING)
-        return GLib.SOURCE_REMOVE
+        except Exception:
+            pass
+
+    def _hide_feedback_card(self):
+        if self._closing or self._destroying:
+            return
+        try:
+            if not self.interaction_revealer.get_reveal_child() and not self.interaction_revealer.get_visible():
+                return
+            self.feedback_text_revealer.set_reveal_child(False)
+            self.interaction_revealer.set_reveal_child(False)
+        except Exception:
+            return
+        self._release_feedback_focus()
+        if self._transition_ms:
+            self._clear_source("_interaction_hide_source")
+            self._interaction_hide_source = GLib.timeout_add(
+                self._transition_ms, self._hide_interaction_card
+            )
+        else:
+            self._hide_interaction_card()
 
     def _hide_interaction_card(self):
         self._interaction_hide_source = None
         if self._closing or self._destroying:
             return GLib.SOURCE_REMOVE
-        if not self._pending_results and not self.interaction_revealer.get_reveal_child():
+        try:
+            if self.interaction_revealer.get_reveal_child() or self._feedback_has_content():
+                return GLib.SOURCE_REMOVE
             self.interaction_revealer.set_visible(False)
+            self.feedback_text_revealer.set_visible(False)
             self.set_default_size(240, -1)
+        except Exception:
+            pass
         return GLib.SOURCE_REMOVE
 
-    def _clear_interaction_box(self):
-        child = self.interaction_box.get_first_child()
-        while child is not None:
-            next_child = child.get_next_sibling()
-            self.interaction_box.remove(child)
-            child = next_child
+    def _clear_feedback_widgets(self):
+        for revealer in list(self._feedback_widgets) + list(self._feedback_placeholders):
+            try:
+                parent = revealer.get_parent()
+                if parent is self.interaction_box:
+                    parent.remove(revealer)
+            except Exception:
+                pass
+        self._feedback_widgets = []
+        self._feedback_placeholders = []
+
+    def _reset_feedback(self):
+        self._feedback_message = ""
+        self._feedback_shown_text = ""
+        self._feedback_pending_text = None
+        self._feedback_interactive = False
+        self._feedback_title = _("Action required")
+        self._clear_source("_feedback_text_source")
+        try:
+            self.feedback_message_label.set_label("")
+            self.feedback_text_revealer.set_reveal_child(False)
+        except Exception:
+            return
+        self._clear_feedback_widgets()
+        self._hide_feedback_card()
 
     def _set_state(self, state: VoiceSessionState):
-        if self._destroying:
+        if self._closing or self._destroying:
             return GLib.SOURCE_REMOVE
         if self._cancel_event.is_set() and state is not VoiceSessionState.CLOSING:
             return GLib.SOURCE_REMOVE
         if not self.session.transition(state):
             return GLib.SOURCE_REMOVE
-        self._set_status(
-            self._state_label(state),
-            self._state_icon(state),
-            spinning=state is VoiceSessionState.RUNNING,
-        )
-        self.root_box.remove_css_class("voice-mode-error")
-        self.root_box.remove_css_class("voice-mode-waiting")
-        if state is VoiceSessionState.SPEAKING:
-            self.waveform.start_output_animation()
-        elif state is VoiceSessionState.LISTENING:
-            self.waveform.set_idle()
-        else:
-            self.waveform.set_idle()
-        if state is VoiceSessionState.WAITING:
-            self.root_box.add_css_class("voice-mode-waiting")
+        try:
+            self._set_status(
+                self._state_label(state),
+                self._state_icon(state),
+                spinning=state is VoiceSessionState.RUNNING,
+            )
+            self.root_box.remove_css_class("voice-mode-error")
+            self.root_box.remove_css_class("voice-mode-waiting")
+            if state is VoiceSessionState.SPEAKING:
+                self.waveform.start_output_animation()
+            else:
+                self.waveform.set_idle()
+            if state is VoiceSessionState.WAITING:
+                self.root_box.add_css_class("voice-mode-waiting")
+        except Exception:
+            pass
         return GLib.SOURCE_REMOVE
 
     @staticmethod
@@ -1750,26 +2302,33 @@ class VoiceModeWindow(Gtk.Window):
         }[state]
 
     def _set_status(self, text, icon_name=None, spinning=False):
-        if self._destroying:
+        if self._closing or self._destroying:
             return
-        if spinning:
-            self.status_indicator.set_visible_child_name("spinner")
-            self.status_spinner.start()
-        elif icon_name:
-            self.status_spinner.stop()
-            self.status_icon.set_from_icon_name(icon_name)
-            self.status_indicator.set_visible_child_name("icon")
-        self.status_label.set_label(text)
-        self.pill.set_tooltip_text(text)
-        self.pill.update_property([Gtk.AccessibleProperty.LABEL], [text])
+        try:
+            if spinning:
+                self.status_indicator.set_visible_child_name("spinner")
+                self.status_spinner.start()
+            elif icon_name:
+                self.status_spinner.stop()
+                self.status_icon.set_from_icon_name(icon_name)
+                self.status_indicator.set_visible_child_name("icon")
+            self.status_label.set_label(text)
+            self.pill.set_tooltip_text(text)
+            self.pill.update_property([Gtk.AccessibleProperty.LABEL], [text])
+        except Exception:
+            pass
 
     def _show_error(self, message: str):
         if self._closing or self._destroying:
             return GLib.SOURCE_REMOVE
         self.session.fail()
-        self._set_status(message, "dialog-error-symbolic")
-        self.root_box.add_css_class("voice-mode-error")
-        self.waveform.set_idle()
+        try:
+            self._set_status(message, "dialog-error-symbolic")
+            self.root_box.add_css_class("voice-mode-error")
+            self.waveform.set_idle()
+            self._reset_feedback()
+        except Exception:
+            pass
         return GLib.SOURCE_REMOVE
 
     def is_closing(self):
@@ -1789,28 +2348,22 @@ class VoiceModeWindow(Gtk.Window):
                 tts.stop()
             except Exception:
                 pass
-        if self._wakeword_release_source is not None:
-            GLib.source_remove(self._wakeword_release_source)
-            self._wakeword_release_source = None
-        if self._capture_restart_source is not None:
-            GLib.source_remove(self._capture_restart_source)
-            self._capture_restart_source = None
+        self._clear_session_sources()
         GLib.idle_add(self._animate_close)
 
     def _animate_close(self):
         if self._destroying or self._close_animation_started:
             return GLib.SOURCE_REMOVE
         self._close_animation_started = True
-        if self._content_reveal_source is not None:
-            GLib.source_remove(self._content_reveal_source)
-            self._content_reveal_source = None
-        self.pill_content_revealer.set_reveal_child(False)
+        self._clear_source("_content_reveal_source")
+        try:
+            self.pill_content_revealer.set_reveal_child(False)
+            mapped = self.get_mapped()
+            revealing = self.motion_revealer.get_reveal_child()
+        except Exception:
+            return self._finalize_close()
 
-        if (
-            not self._animations_enabled
-            or not self.get_mapped()
-            or not self.motion_revealer.get_reveal_child()
-        ):
+        if not self._animations_enabled or not mapped or not revealing:
             return self._finalize_close()
 
         self.motion_revealer.set_transition_duration(self._close_transition_ms)
@@ -1839,6 +2392,33 @@ class VoiceModeWindow(Gtk.Window):
         self._tts_tokens = []
         self._tts_handler = None
 
+    def _clear_source(self, attr):
+        source_id = getattr(self, attr, None)
+        if source_id is None:
+            return
+        try:
+            GLib.source_remove(source_id)
+        except Exception:
+            pass
+        setattr(self, attr, None)
+
+    def _clear_session_sources(self):
+        for attr in (
+            "_interaction_hide_source",
+            "_feedback_text_source",
+            "_content_reveal_source",
+            "_wakeword_release_source",
+            "_capture_restart_source",
+            "_tts_finish_source",
+        ):
+            self._clear_source(attr)
+        for source_id in list(self._widget_timeouts):
+            try:
+                GLib.source_remove(source_id)
+            except Exception:
+                pass
+        self._widget_timeouts.clear()
+
     def _finalize_close(self):
         if self._destroying or self._teardown_started:
             return GLib.SOURCE_REMOVE
@@ -1846,25 +2426,22 @@ class VoiceModeWindow(Gtk.Window):
         self._closing = True
         self.session.cancel()
         self._tts_playback_generation += 1
-        self.waveform.stop_animation()
+        try:
+            self.waveform.stop_animation()
+        except Exception:
+            pass
         self._disconnect_tts()
-        if self._interaction_hide_source is not None:
-            GLib.source_remove(self._interaction_hide_source)
-            self._interaction_hide_source = None
-        if self._content_reveal_source is not None:
-            GLib.source_remove(self._content_reveal_source)
-            self._content_reveal_source = None
-        if self._close_animation_source is not None:
-            GLib.source_remove(self._close_animation_source)
-            self._close_animation_source = None
-        if self._wakeword_release_source is not None:
-            GLib.source_remove(self._wakeword_release_source)
-            self._wakeword_release_source = None
-        if self._capture_restart_source is not None:
-            GLib.source_remove(self._capture_restart_source)
-            self._capture_restart_source = None
+        self._clear_session_sources()
+        self._clear_source("_close_animation_source")
+        try:
+            self._clear_feedback_widgets()
+        except Exception:
+            pass
         if self._settings_changed_handler is not None:
-            self.settings.disconnect(self._settings_changed_handler)
+            try:
+                self.settings.disconnect(self._settings_changed_handler)
+            except Exception:
+                pass
             self._settings_changed_handler = None
         if self._surface_width_handler is not None and self._x11_surface is not None:
             try:
@@ -1889,51 +2466,120 @@ class VoiceModeWindow(Gtk.Window):
         self._x11_surface = None
         self._x11_xid = None
         self._x11_active = False
-        self._remove_css_provider()
+        try:
+            self._remove_css_provider()
+        except Exception:
+            pass
         try:
             self.set_visible(False)
         except Exception:
             pass
         if self._close_wait_source is None:
-            self._capture_wait_deadline = time.monotonic() + 2.0
             self._close_wait_source = GLib.timeout_add(
                 20, self._destroy_when_capture_released
             )
         return GLib.SOURCE_REMOVE
 
     def _capture_released(self) -> bool:
-        # PortAudio teardown lives on the capture worker. Destroying the
-        # window or restarting wakeword while that worker is still in
-        # terminate() races ALSA/Pulse and can abort the process.
-        return self._recording_thread is None
+        # Wait for PortAudio teardown before another microphone user, such
+        # as wakeword detection, can open a new stream.
+        thread = self._capture_thread or self._recording_thread
+        return thread is None or not thread.is_alive()
 
     def _destroy_when_capture_released(self):
-        if (
-            not self._capture_released()
-            and self._capture_wait_deadline is not None
-            and time.monotonic() < self._capture_wait_deadline
-        ):
+        if not self._capture_released():
             return GLib.SOURCE_CONTINUE
         self._close_wait_source = None
-        self._capture_wait_deadline = None
         return self._destroy_window()
 
-    def _destroy_window(self):
-        if self._destroying:
-            return GLib.SOURCE_REMOVE
-        self._destroying = True
-        if self._close_wait_source is not None:
-            GLib.source_remove(self._close_wait_source)
-            self._close_wait_source = None
-        resume_wakeword = (
-            self._resume_wakeword
-            and self.controller.newelle_settings.wakeword_enabled
-        )
+    def _maybe_resume_wakeword(self):
+        if not self._resume_wakeword:
+            return
+        self._resume_wakeword = False
+        if self._capture_released():
+            self._resume_workspace_wakewords()
+            return
+        GLib.timeout_add(20, self._resume_wakeword_when_ready)
+
+    def _resume_wakeword_when_ready(self):
+        if not self._capture_released():
+            return GLib.SOURCE_CONTINUE
+        self._resume_workspace_wakewords()
+        return GLib.SOURCE_REMOVE
+
+    def _resume_workspace_wakewords(self):
+        for window in self._wakeword_windows:
+            if window in self._application.main_windows and window.controller.newelle_settings.wakeword_enabled:
+                GLib.idle_add(window.start_wakeword_detection)
+        self._wakeword_windows = []
+
+    def _notify_closed(self):
+        if self._closed_notified:
+            return
+        self._closed_notified = True
+        if self._workspace_controller is not None and self._workspace_cleanup_source is None:
+            self._workspace_cleanup_source = GLib.timeout_add(20, self._close_workspace_when_idle)
         callback = self.on_closed
         self.on_closed = None
-        self.destroy()
-        if resume_wakeword:
-            GLib.idle_add(self.main_window.start_wakeword_detection)
-        if callback is not None:
-            callback(self)
+        try:
+            self._maybe_resume_wakeword()
+            if callback is not None:
+                callback(self)
+        finally:
+            if self._application_held:
+                self._application_held = False
+                self._application.release()
+
+    def _close_workspace_when_idle(self):
+        thread = self._processing_thread
+        if thread is not None and thread.is_alive():
+            return GLib.SOURCE_CONTINUE
+        self._workspace_cleanup_source = None
+        controller = self._workspace_controller
+        self._workspace_controller = None
+        if controller is not None:
+            controller.close_application()
+        return GLib.SOURCE_REMOVE
+
+    def _on_destroy(self, *_args):
+        self._closing = True
+        self._destroying = True
+        self.session.cancel()
+        self._tts_playback_generation += 1
+        try:
+            self.waveform.stop_animation()
+        except Exception:
+            pass
+        self._disconnect_tts()
+        self._clear_session_sources()
+        self._clear_source("_close_animation_source")
+        self._clear_source("_close_wait_source")
+        if self._settings_changed_handler is not None:
+            try:
+                self.settings.disconnect(self._settings_changed_handler)
+            except Exception:
+                pass
+            self._settings_changed_handler = None
+        try:
+            self._remove_css_provider()
+        except Exception:
+            pass
+        self._feedback_widgets = []
+        self._feedback_placeholders = []
+        self._notify_closed()
+
+    def _destroy_window(self):
+        self._clear_source("_close_wait_source")
+        if self._destroying:
+            self._notify_closed()
+            return GLib.SOURCE_REMOVE
+        try:
+            self.destroy()
+        except Exception:
+            self._on_destroy()
+        # GtkWidget::destroy can be delayed while Python callbacks still
+        # reference the window. Release our application hold on explicit
+        # close, without waiting for the wrapper to be garbage-collected.
+        self._destroying = True
+        self._notify_closed()
         return GLib.SOURCE_REMOVE

@@ -8,7 +8,6 @@ import os
 import subprocess
 import threading
 import json
-import base64
 import copy
 import uuid 
 import gettext
@@ -18,6 +17,7 @@ from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject, GLib, GdkPixbuf
 from .ui.settings import Settings
 
 from .ui.profile import ProfileDialog
+from .ui.workspaces import WorkspaceWindow
 from .ui.presentation import PresentationWindow
 from .ui.widgets import File, CopyBox, BarChartBox, MarkupTextView, DocumentReaderWidget, TipsCarousel, BrowserWidget, Terminal, CodeEditorWidget, ToolWidget, CallPanel
 from .ui.explorer import ExplorerPanel
@@ -48,7 +48,7 @@ from .controller import NewelleController, ReloadType, NewelleSettings
 from .ui_controller import UIController
 
 
-class MainWindow(Adw.ApplicationWindow):
+class MainWindow(WorkspaceWindow, Adw.ApplicationWindow):
     __gsignals__ = {
         # Emitted once the UI has been built by build_main_window, so other
         # windows (e.g. the mini window) can reparent parts of it
@@ -57,6 +57,8 @@ class MainWindow(Adw.ApplicationWindow):
 
     def __init__(self, *args, **kwargs):
         self.suppress_presentation = kwargs.pop("suppress_presentation", False)
+        workspace_id = kwargs.pop("workspace_id", None)
+        shared_controller = kwargs.pop("shared_controller", None)
         super().__init__(*args, **kwargs)
         self.app = self.get_application()
         # Main program block - On the right Canvas tabs, Chat as content
@@ -71,7 +73,10 @@ class MainWindow(Adw.ApplicationWindow):
         self.app_stack.add_named(self.main_program_block, "main")
         self.app_stack.add_named(self.build_splashscreen(), "splashscreen")
         self.app_stack.set_visible_child_name("splashscreen")
-        self.controller = NewelleController(sys.path)
+        self.controller = NewelleController(
+            sys.path, shared_controller=shared_controller,
+            workspace_id=workspace_id, window_settings=True,
+        )
         self.settings = self.controller.settings
         # Set window default size
 
@@ -234,6 +239,35 @@ class MainWindow(Adw.ApplicationWindow):
         )
         self.chats_secondary_box.append(self.chat_panel_header)
         self.chat_panel_header.pack_end(menu_button)
+        self.build_workspace_picker()
+
+        self.conversation_search_entry = Gtk.SearchEntry(
+            placeholder_text=_("Search conversations…"),
+            tooltip_text=_("Search titles and messages in this workspace"),
+            hexpand=True,
+        )
+        self.conversation_search_entry.connect("search-changed", self._on_conversation_search_changed)
+        self.conversation_search_entry.connect("activate", self._activate_conversation_search)
+        self.conversation_search_bar = Gtk.SearchBar()
+        self.conversation_search_bar.set_child(self.conversation_search_entry)
+        self.conversation_search_bar.connect_entry(self.conversation_search_entry)
+        # Only typing within History should start a conversation search.
+        self.conversation_search_bar.set_key_capture_widget(self.chats_secondary_box)
+        self.chats_secondary_box.append(self.conversation_search_bar)
+
+        self.conversation_search_button = Gtk.ToggleButton(
+            icon_name="system-search-symbolic",
+            tooltip_text=_("Search conversations…"),
+            css_classes=["flat"],
+        )
+        self.chat_panel_header.pack_end(self.conversation_search_button)
+        self.conversation_search_button.bind_property(
+            "active", self.conversation_search_bar, "search-mode-enabled",
+            GObject.BindingFlags.BIDIRECTIONAL | GObject.BindingFlags.SYNC_CREATE,
+        )
+        self.conversation_search_bar.connect(
+            "notify::search-mode-enabled", self._on_conversation_search_mode_changed,
+        )
         
         # Chat list with navigation-sidebar styling for Adwaita look
         self.chats_buttons_block = Gtk.ListBox(css_classes=["navigation-sidebar"])
@@ -337,7 +371,8 @@ class MainWindow(Adw.ApplicationWindow):
         self.main_program_block.set_show_sidebar(False)
 
         # Add the initial chat tab
-        self.add_chat_tab(self.chat_id)
+        self.restore_workspace_tabs()
+        GLib.idle_add(self.show_workspace_path_notice)
         self.refresh_context_indicator()
 
         def build_model_popup():
@@ -425,6 +460,9 @@ class MainWindow(Adw.ApplicationWindow):
         box.append(icon)
         self.new_tab_button.set_child(box)
         self.refresh_add_tab_menu()
+        self._memory_menu_source = None
+        for key in ("changed::memory-on", "changed::memory-model"):
+            self.settings.connect(key, self._on_memory_setting_changed)
        
         # Detach tab button 
         self.detach_tab_button = Gtk.Button(css_classes=["flat"], icon_name="detach-symbolic")
@@ -448,6 +486,22 @@ class MainWindow(Adw.ApplicationWindow):
         self.main_program_block.set_sidebar(self.canvas_box)
         self.main_program_block.set_name("hide")
 
+    def _on_memory_setting_changed(self, *_args):
+        # Both keys can change together (e.g. profile switch): apply them once
+        if self._memory_menu_source is None:
+            self._memory_menu_source = GLib.idle_add(self._apply_memory_setting_change)
+
+    def _apply_memory_setting_change(self):
+        self._memory_menu_source = None
+        try:
+            self.controller.apply_memory_settings()
+        except Exception as e:
+            print(f"Error applying memory settings: {e}")
+        self.memory_on = self.controller.newelle_settings.memory_on
+        self.memory_handler = self.controller.handlers.memory
+        self.refresh_add_tab_menu()
+        return False
+
     def refresh_add_tab_menu(self):
         """Rebuild the add-tab popover after mini-app extensions change."""
         self.extensionloader = self.controller.extensionloader
@@ -458,6 +512,21 @@ class MainWindow(Adw.ApplicationWindow):
             (_("Start Call"), "call-start-symbolic", self.start_call_tab),
             (_("Image Generator"), "insert-image-symbolic", self.add_image_generator_tab),
         ]
+        memory = self.controller.handlers.memory
+        if self.controller.newelle_settings.memory_on and memory is not None and memory.has_mini_app():
+            # Construct the widget only after the user selects the menu item.
+            def add_memory_tab(*_args):
+                mini_app = memory.get_mini_app()
+                if mini_app is None:
+                    return None
+                tab = self.canvas_tabs.append(mini_app)
+                tab.set_title(_(memory.get_mini_app_title()))
+                tab.set_icon(Gio.ThemedIcon(name=memory.get_mini_app_icon()))
+                self.canvas_tabs.set_selected_page(tab)
+                self.show_sidebar()
+                return tab
+
+            menu_entries.append((_(memory.get_mini_app_title()), memory.get_mini_app_icon(), add_memory_tab))
         menu_entries += self.controller.integrationsloader.get_add_tab_buttons()
         menu_entries += self.extensionloader.get_add_tab_buttons()
         
@@ -517,7 +586,8 @@ class MainWindow(Adw.ApplicationWindow):
                 # Create window
                 content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
                 content.append(otherview)
-                window = Gtk.Window(child=content, decorated=True)
+                window = Gtk.Window(child=content, decorated=True, application=self.app)
+                window.tab_view = otherview
                 window.set_title(tab.get_title())
                 window.set_size_request(800, 600)
                 tab.connect("notify::title", lambda x, title: window.set_title(x.get_title()))
@@ -546,7 +616,6 @@ class MainWindow(Adw.ApplicationWindow):
         if child is not None:
             if hasattr(child, "main_path"):
                 self.main_path = child.main_path 
-                os.chdir(os.path.expanduser(child.main_path))
 
     # Chat Tab Management
     def add_chat_tab(self, chat_id: int) -> Adw.TabPage | None:
@@ -567,7 +636,7 @@ class MainWindow(Adw.ApplicationWindow):
             return existing_tab
         
         # Validate chat_id
-        if chat_id not in self.chats:
+        if chat_id not in self.controller.workspace_chats():
             return None
         
         # Create new ChatTab widget
@@ -623,6 +692,8 @@ class MainWindow(Adw.ApplicationWindow):
     
     def _on_chat_tab_switched(self, tab_view, param):
         """Handle chat tab selection changes."""
+        if self._workspace_ui_switching:
+            return
         tab = self.get_active_chat_tab()
         if tab is not None:
             # Update global chat_id to match selected tab
@@ -637,7 +708,7 @@ class MainWindow(Adw.ApplicationWindow):
             if self.controller.newelle_settings.remember_profile and "profile" in self.chats[tab.chat_id]:
                 target_profile = self.chats[tab.chat_id]["profile"]
                 if target_profile != self.current_profile:
-                    GLib.timeout_add(50, lambda: self.switch_profile(target_profile) and False)
+                    GLib.timeout_add(50, self.remember_chat_profile, tab.chat_id)
     
     def _on_chat_tab_close_requested(self, tab_view, page) -> bool:
         """Handle chat tab close request.
@@ -663,6 +734,8 @@ class MainWindow(Adw.ApplicationWindow):
                 # Just switch to a new chat tab instead of closing
                 self.new_chat(None)
                 return True  # Prevent close, we'll handle it via new_chat
+            child.remember_draft()
+            self.controller.save_chats()
         
         return False  # Allow close
     
@@ -794,7 +867,7 @@ class MainWindow(Adw.ApplicationWindow):
         """Whether the mini window is currently hosting the chat panel."""
         app = self.get_application()
         mini_win = getattr(app, "mini_win", None)
-        return mini_win is not None and getattr(mini_win, "chat_panel", None) is not None
+        return mini_win is not None and mini_win.main_window is self and getattr(mini_win, "chat_panel", None) is not None
 
     def _apply_compact_input_bar(self, enabled: bool):
         """Set the input bar layout of every open chat tab."""
@@ -872,9 +945,10 @@ class MainWindow(Adw.ApplicationWindow):
         if ReloadType.LLM in reloads:
             self.reload_buttons()
 
-    def update_settings(self):
+    def update_settings(self, reloads=None):
         """Update settings, run every time the program is started or settings dialog closed"""
-        reloads = self.controller.update_settings()
+        if reloads is None:
+            reloads = self.controller.update_settings()
         self.update_font_settings()
         if ReloadType.WAKEWORD in reloads:
             self.controller.handlers.select_handlers(self.controller.newelle_settings)
@@ -1684,64 +1758,27 @@ class MainWindow(Adw.ApplicationWindow):
         self.switch_profile(action.profile)
 
     def switch_profile(self, profile: str):
-        """Handle profile switching"""
-        if self.current_profile == profile:
+        """Apply profiles as a serialized transition, preserving workspace path/mode."""
+        if not profile or self.current_profile == profile:
             return
-        print(f"Switching profile to {profile}")
-
-        # Reload profiles to pick up any profiles created since last switch
-        self.profile_settings = json.loads(self.settings.get_string("profiles"))
-        if profile not in self.profile_settings:
+        if profile not in json.loads(self.settings.get_string("profiles")):
             return
-
-        # Store the old profile before we change anything
-        old_profile = self.current_profile
-
-        # Update UI immediately for fast visual feedback
-        self.settings.set_string("current-profile", profile)
-        self.current_profile = profile
-        self._update_profile_avatar(profile)
-        self._update_model_label_from_profile(profile)
-
-        # Process pending GTK events to ensure UI updates are rendered
-        # Then start the heavy lifting in background thread
-        GLib.timeout_add(20, lambda: self._switch_profile_async(old_profile, profile) and False)
-
-    def _switch_profile_async(self, old_profile: str, new_profile: str):
-        """Async part of profile switching - spawns background thread for heavy work"""
-        # Spawn thread for the heavy lifting
-        threading.Thread(target=self._do_profile_switch_work, args=(old_profile, new_profile), daemon=True).start()
-        return False  # For GLib.timeout_add
-
-    def _do_profile_switch_work(self, old_profile: str, new_profile: str):
-        """Do the actual profile switch work in background thread"""
-        # Reload profiles first to ensure we have the latest data
-        self.profile_settings = json.loads(self.settings.get_string("profiles"))
-
-        if new_profile not in self.profile_settings:
+        if self.workspace_ui_busy():
+            self.workspace_toast(_("Finish or stop active work before switching profiles."))
             return
+        try:
+            self.controller.begin_workspace_switch()
+        except ValueError as error:
+            self.workspace_toast(str(error))
+            return
+        try:
+            reloads = self.controller.switch_profile(profile)
+            self.update_settings(reloads)
+            self.refresh_profiles_box()
+            self.refresh_mode_buttons()
+        finally:
+            self.controller.workspace_switching = False
 
-        if old_profile in self.profile_settings:
-            # Save old profile's settings before switching
-            groups = self.profile_settings[old_profile].get("settings_groups", [])
-            old_settings = get_settings_dict_by_groups(self.settings, groups, SETTINGS_GROUPS, ["current-profile", "profiles"])
-            self.profile_settings[old_profile]["settings"] = old_settings
-
-        # Get new profile's settings
-        new_settings = self.profile_settings[new_profile].get("settings", {})
-        groups = self.profile_settings[new_profile].get("settings_groups", [])
-
-        # Schedule settings restoration on main thread
-        GLib.idle_add(self._restore_profile_settings, new_settings, groups, new_profile)
-
-    def _restore_profile_settings(self, new_settings: dict, groups: list, profile: str):
-        """Restore profile settings and update state"""
-        restore_settings_from_dict_by_groups(self.settings, new_settings, groups, SETTINGS_GROUPS)
-        self.settings.set_string("profiles", json.dumps(self.profile_settings))
-        # Schedule the UI update on the next iteration of the main loop
-        # This gives GTK a chance to render the changes
-        GLib.idle_add(lambda: self._update_profile_state(profile, groups) and False)
-    
     def _update_profile_state(self, profile: str, groups: list):
         """Update application state for profile switch (optimized - only reloads what changed)
 
@@ -2396,7 +2433,8 @@ class MainWindow(Adw.ApplicationWindow):
 
         new_chat_id = self.controller.create_visible_chat(
             name=parent_chat["name"],
-            profile=parent_chat.get("profile", self.current_profile)
+            profile=parent_chat.get("profile", self.current_profile),
+            workspace_id=parent_chat.get("workspace_id"),
         )
         self.chats[new_chat_id]["chat"] = branched_messages
         self.chats[new_chat_id]["branched_from"] = parent_id
@@ -2421,9 +2459,41 @@ class MainWindow(Adw.ApplicationWindow):
             t = threading.Thread(target=tab.context_indicator.update_from_chat, args=(self.controller,))
             t.start()
 
-    def update_history(self):
+    def _on_conversation_search_mode_changed(self, search_bar, param):
+        if search_bar.get_search_mode():
+            self.conversation_search_entry.grab_focus()
+        else:
+            self.conversation_search_entry.set_text("")
+            self.update_history(focus_input=False)
+            self.conversation_search_button.grab_focus()
+
+    def _on_conversation_search_changed(self, entry):
+        self.update_history(focus_input=False)
+
+    def _activate_conversation_search(self, entry):
+        if not entry.get_text().strip():
+            return
+        # Enter can arrive before SearchEntry's debounced search-changed signal.
+        self.update_history(focus_input=False)
+        row = self.chats_list_box.get_row_at_index(0)
+        if row is not None:
+            self.on_chat_row_activated(self.chats_list_box, row)
+
+    def update_history(self, focus_input=True):
         """Reload chats panel with Adwaita-styled ChatRow/FolderRow widgets, supporting folders and branching"""
-        self.focus_input()
+        if getattr(self, "_workspace_ui_switching", False):
+            return
+        focused = self.get_focus()
+        search_focused = focused is not None and (
+            focused == self.conversation_search_entry
+            or focused.is_ancestor(self.conversation_search_entry)
+        )
+        if focus_input and not search_focused:
+            self.focus_input()
+        workspace_chats = self.controller.workspace_chats()
+        workspace_folders = self.controller.workspace_folders()
+        query = self.conversation_search_entry.get_text().strip()
+        search_results = self.controller.search_conversations(query) if query else None
 
         list_box = Gtk.ListBox(css_classes=["navigation-sidebar"])
         list_box.set_selection_mode(Gtk.SelectionMode.SINGLE)
@@ -2431,6 +2501,11 @@ class MainWindow(Adw.ApplicationWindow):
         self.chats_buttons_scroll_block.set_child(list_box)
 
         list_box.connect("row-activated", self.on_chat_row_activated)
+        list_box.set_placeholder(Gtk.Label(
+            label=_("No conversations found") if query else _("No conversations"),
+            wrap=True, margin_top=24, margin_bottom=24,
+            css_classes=["dim-label"],
+        ))
 
         middle_click_gesture = Gtk.GestureClick()
         middle_click_gesture.set_button(2)
@@ -2445,18 +2520,18 @@ class MainWindow(Adw.ApplicationWindow):
         list_box.add_controller(unfolder_drop)
 
         # Build hierarchy map
-        id_to_chat_id = {chat.get("id"): cid for cid, chat in self.chats.items()}
+        id_to_chat_id = {chat.get("id"): cid for cid, chat in workspace_chats.items()}
         children_map = {}
         top_level_ids = []
 
         # Collect chats that live inside a folder
         foldered_chat_ids = set()
-        for folder in self.controller.folders.values():
+        for folder in workspace_folders.values():
             for cid in folder.get("chat_ids", []):
-                if cid in self.chats:
+                if cid in workspace_chats:
                     foldered_chat_ids.add(cid)
 
-        for cid, chat in self.chats.items():
+        for cid, chat in workspace_chats.items():
             if chat.get("call", False):
                 continue
             parent_id = chat.get("branched_from")
@@ -2471,7 +2546,7 @@ class MainWindow(Adw.ApplicationWindow):
             top_level_ids.reverse()
 
         def add_chat_recursive(chat_id, level=0):
-            if chat_id not in self.chats:
+            if chat_id not in workspace_chats:
                 return
             chat_entry = self.chats[chat_id]
             name = chat_entry["name"]
@@ -2483,7 +2558,8 @@ class MainWindow(Adw.ApplicationWindow):
                 chat_index=chat_id,
                 is_selected=is_selected,
                 level=level,
-                is_open=is_open
+                is_open=is_open,
+                search_excerpt=search_results.get(chat_id) if search_results is not None else None,
             )
             chat_row.connect_signals(
                 on_generate=self.generate_chat_name,
@@ -2491,17 +2567,28 @@ class MainWindow(Adw.ApplicationWindow):
                 on_clone=self.copy_chat,
                 on_delete=self.remove_chat
             )
+            self.add_workspace_chat_action(chat_row, chat_id)
             list_box.append(chat_row)
             if is_selected:
                 list_box.select_row(chat_row)
 
             entry_uuid = chat_entry.get("id")
-            if entry_uuid in children_map:
+            if search_results is None and entry_uuid in children_map:
                 for child_id in children_map[entry_uuid]:
                     add_chat_recursive(child_id, level + 1)
 
+        # Search is a flat list so collapsed folders cannot hide matches.
+        if search_results is not None:
+            chat_ids = list(search_results)
+            if self.controller.newelle_settings.reverse_order:
+                chat_ids.reverse()
+            for cid in chat_ids:
+                add_chat_recursive(cid)
+            self.save_workspace_tabs()
+            return
+
         # Render folders first
-        for fid, folder in self.controller.folders.items():
+        for fid, folder in workspace_folders.items():
             folder_row = FolderRow(
                 folder_id=fid,
                 folder_name=folder["name"],
@@ -2523,7 +2610,8 @@ class MainWindow(Adw.ApplicationWindow):
         # Render top-level (unfoldered) chats
         for cid in top_level_ids:
             add_chat_recursive(cid)
-    
+        self.save_workspace_tabs()
+
     def on_chat_row_activated(self, listbox, row):
         """Handle chat/folder row activation"""
         if isinstance(row, FolderRow):
@@ -2762,6 +2850,7 @@ class MainWindow(Adw.ApplicationWindow):
             self.chat_tabs.close_page(tab_page)
         self.controller.remove_chat_from_folder(deleted_chat_id, save=False)
         del self.chats[deleted_chat_id]
+        self.controller.workspace_storage.drafts.pop(deleted_chat_id, None)
         self.save_chat()
         self.update_history()
 
@@ -2803,10 +2892,10 @@ class MainWindow(Adw.ApplicationWindow):
         # Store original label for restoration
         original_label = row.name_label
         
-        # Find the position of the label in the box and replace it
-        # The label is between the icon and the actions revealer
+        # Search results place the title and excerpt in a nested box.
+        label_box = original_label.get_parent()
         siblings = []
-        child = row.main_box.get_first_child()
+        child = label_box.get_first_child()
         while child:
             siblings.append(child)
             child = child.get_next_sibling()
@@ -2814,12 +2903,12 @@ class MainWindow(Adw.ApplicationWindow):
         # Find and replace the name_label
         label_index = siblings.index(original_label) if original_label in siblings else -1
         if label_index >= 0:
-            row.main_box.remove(original_label)
+            label_box.remove(original_label)
             # Insert entry at the same position
             if label_index == 0:
-                row.main_box.prepend(entry)
+                label_box.prepend(entry)
             else:
-                row.main_box.insert_child_after(entry, siblings[label_index - 1])
+                label_box.insert_child_after(entry, siblings[label_index - 1])
         
         # Focus the entry
         entry.grab_focus()
@@ -2829,14 +2918,13 @@ class MainWindow(Adw.ApplicationWindow):
         def on_entry_activate(entry):
             new_name = entry.get_text().strip()
             if new_name:
-                self.chats[chat_id]["name"] = new_name
-                self.save_chat()
+                self.controller.rename_chat(chat_id, new_name)
 
                 # Update tab title if this chat is open in a tab
                 tab_page = self.get_tab_for_chat(chat_id)
                 if tab_page:
                     tab_page.set_title(new_name)
-                    
+
             self.update_history()
              
         entry.connect("activate", on_entry_activate)
@@ -2854,7 +2942,8 @@ class MainWindow(Adw.ApplicationWindow):
         source_chat = self.chats[source_chat_id]
         new_chat_id = self.controller.create_visible_chat(
             name=source_chat["name"],
-            profile=source_chat.get("profile", self.current_profile)
+            profile=source_chat.get("profile", self.current_profile),
+            workspace_id=source_chat.get("workspace_id"),
         )
         self.chats[new_chat_id]["chat"] = source_chat["chat"][:]
         self.chats[new_chat_id]["branched_from"] = source_chat.get("id")
@@ -2865,6 +2954,8 @@ class MainWindow(Adw.ApplicationWindow):
         """Switch to another chat - switches current tab or focuses existing tab"""
         self.return_to_chat_panel(None)
         chat_id = int(id)
+        if chat_id not in self.controller.workspace_chats():
+            return
         
         # Check if this chat is already open in a tab
         existing_tab = self.get_tab_for_chat(chat_id)
@@ -2893,8 +2984,7 @@ class MainWindow(Adw.ApplicationWindow):
 
         # Schedule profile switch to happen after UI renders
         if self.controller.newelle_settings.remember_profile and "profile" in self.chats[chat_id]:
-            target_profile = self.chats[chat_id]["profile"]
-            GLib.timeout_add(500, lambda: self.switch_profile(target_profile) and False)
+            GLib.timeout_add(500, self.remember_chat_profile, chat_id)
 
     def clear_chat(self, button):
         """Delete current chat history in the active tab"""
@@ -3009,7 +3099,6 @@ class MainWindow(Adw.ApplicationWindow):
         Returns:
            output of the command
         """
-        os.chdir(os.path.expanduser(self.main_path))
         console_permissions = ""
         if not self.controller.newelle_settings.virtualization:
             console_permissions = " ".join(get_spawn_command())
@@ -3032,7 +3121,8 @@ class MainWindow(Adw.ApplicationWindow):
             else:
                 txt += console_permissions + " " + t
         process = subprocess.Popen(
-            txt, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True
+            txt, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True,
+            cwd=os.path.expanduser(self.main_path),
         )
         outputs = []
 
@@ -3064,7 +3154,6 @@ class MainWindow(Adw.ApplicationWindow):
                 )
             ]
         if os.path.exists(os.path.expanduser(path)):
-            os.chdir(os.path.expanduser(path))
             self.main_path = path
             explorer = self.get_current_explorer_panel()
             if explorer is not None:
@@ -3302,13 +3391,13 @@ class MainWindow(Adw.ApplicationWindow):
                     clean_name = remove_markdown(clean_name)
                     if clean_name != "Chat has been stopped":
                         chat_id = int(button.get_name())
-                        self.chats[chat_id]["name"] = clean_name
+                        self.controller.rename_chat(chat_id, clean_name)
 
                         # Update tab title if this chat is open in a tab
                         tab_page = self.get_tab_for_chat(chat_id)
                         if tab_page:
                             tab_page.set_title(clean_name)
-                            
+
                     self.update_history()
 
             GLib.idle_add(on_complete)

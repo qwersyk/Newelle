@@ -12,17 +12,17 @@ class PollinationsHandler(ImageGeneratorHandler):
 
     def get_extra_settings(self) -> list:
         return [
-            ExtraSettings.EntrySetting("api-key", "API Key", "Pollinations API key from enter.pollinations.ai (required)", "", password=True),
-            ExtraSettings.ComboSetting("model", "Model", "Choose the model to use for image generation", self.models, "zimage"),
-            ExtraSettings.MultilineEntrySetting("positive-prompt", "Positive Prompt Template", "Prompt template for positive prompt, [input] will be replaced with the AI input", "[input]"),
-            ExtraSettings.MultilineEntrySetting("negative-prompt", "Negative Prompt", "Negative prompt to exclude from the image", ""),
-            ExtraSettings.NestedSetting("advanced_settings", "Advanced Settings", "Advanced image generation settings", [
-                ExtraSettings.ScaleSetting("width", "Width", "Width of the generated image", 400, 256, 2048, 0),
-                ExtraSettings.ScaleSetting("height", "Height", "Height of the generated image", 400, 256, 2048, 0),
-                ExtraSettings.EntrySetting("seed", "Seed", "Seed for reproducible results (-1 for random)", "-1"),
-                ExtraSettings.EntrySetting("enhance", "Enhance", "Enhance the prompt with more detail (true/false)", "false"),
-                ExtraSettings.EntrySetting("quality", "Quality", "Image quality (standard/hd)", "standard"),
-                ExtraSettings.EntrySetting("transparent", "Transparent", "Transparent background if supported (true/false)", "false"),
+            ExtraSettings.EntrySetting("api-key", _("API Key"), _("Pollinations API key from enter.pollinations.ai (required)"), "", password=True),
+            ExtraSettings.ComboSetting("model", _("Model"), _("Choose the model to use for image generation"), self.models, "zimage"),
+            ExtraSettings.MultilineEntrySetting("positive-prompt", _("Positive Prompt Template"), _("Prompt template for positive prompt, [input] will be replaced with the AI input"), "[input]"),
+            ExtraSettings.MultilineEntrySetting("negative-prompt", _("Negative Prompt"), _("Negative prompt to exclude from the image"), ""),
+            ExtraSettings.NestedSetting("advanced_settings", _("Advanced Settings"), _("Advanced image generation settings"), [
+                ExtraSettings.ScaleSetting("width", _("Width"), _("Width of the generated image"), 400, 256, 2048, 0),
+                ExtraSettings.ScaleSetting("height", _("Height"), _("Height of the generated image"), 400, 256, 2048, 0),
+                ExtraSettings.EntrySetting("seed", _("Seed"), _("Seed for reproducible results (-1 for random)"), "-1"),
+                ExtraSettings.EntrySetting("enhance", _("Enhance"), _("Enhance the prompt with more detail (true/false)"), "false"),
+                ExtraSettings.EntrySetting("quality", _("Quality"), _("Image quality (standard/hd)"), "standard"),
+                ExtraSettings.EntrySetting("transparent", _("Transparent"), _("Transparent background if supported (true/false)"), "false"),
             ])
         ]
 

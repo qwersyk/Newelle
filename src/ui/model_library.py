@@ -3,8 +3,13 @@ from __future__ import annotations
 import builtins
 import gettext
 import inspect
+import os
+import re
+import subprocess
 import threading
 from dataclasses import dataclass
+from pathlib import Path
+from urllib.parse import urlsplit
 
 from gi.repository import Adw, Gdk, GLib, Gtk, Pango
 
@@ -13,8 +18,189 @@ from ..utility.download_manager import (
     DownloadKind,
     get_download_manager,
 )
+from ..utility.system import get_spawn_command, is_flatpak
 
 _ = getattr(builtins, "_", gettext.gettext)
+
+_SIZE_PATTERN = re.compile(
+    r"(?<![\w.])(\d+(?:[.,]\d+)?)\s*(TiB|GiB|MiB|KiB|TB|GB|MB|KB)\b",
+    re.IGNORECASE,
+)
+_PARAMETER_PATTERN = re.compile(r"^(\d+(?:[.,]\d+)?)\s*([BM])$", re.IGNORECASE)
+_SIZE_MULTIPLIERS = {
+    "kib": 1024, "mib": 1024 ** 2, "gib": 1024 ** 3, "tib": 1024 ** 4,
+    "kb": 1000, "mb": 1000 ** 2, "gb": 1000 ** 3, "tb": 1000 ** 4,
+}
+
+
+def _size_from_text(value):
+    match = _SIZE_PATTERN.search(str(value))
+    if not match:
+        return None
+    return int(float(match.group(1).replace(",", ".")) * _SIZE_MULTIPLIERS[match.group(2).lower()])
+
+
+def _system_ram_bytes():
+    try:
+        total = os.sysconf("SC_PHYS_PAGES") * os.sysconf("SC_PAGE_SIZE")
+        return total if total > 0 else None
+    except (OSError, ValueError, AttributeError):
+        return None
+
+
+def _backend_from_cmake_cache(handler):
+    source_dir = {
+        "llamacpp": "llama_cpp_path",
+        "llamacppembedding": "llama_cpp_path",
+        "stablediffusioncpp": "sd_cpp_path",
+        "whispercpp": "whisper_cpp_path",
+    }.get(getattr(handler, "key", ""))
+    if not source_dir or not getattr(handler, source_dir, None):
+        return None
+    cache_path = Path(getattr(handler, source_dir)) / "build" / "CMakeCache.txt"
+    try:
+        cache = cache_path.read_text(encoding="utf-8")
+    except (OSError, UnicodeError):
+        return None
+    options = {
+        "cuda": ("GGML_CUDA", "SD_CUDA"),
+        "rocm": ("GGML_HIPBLAS", "SD_HIPBLAS"),
+        "vulkan": ("GGML_VULKAN", "SD_VULKAN"),
+        "openvino": ("GGML_OPENVINO",),
+        "sycl-fp16": ("GGML_SYCL_F16",),
+        "sycl-fp32": ("GGML_SYCL",),
+    }
+    for backend, flags in options.items():
+        if any(re.search(rf"^{flag}:BOOL=ON$", cache, re.MULTILINE) for flag in flags):
+            return backend
+    if re.search(r"^(?:GGML_BLAS|GGML_OPENBLAS):BOOL=ON$", cache, re.MULTILINE):
+        return "cpu_openblas"
+    return "cpu"
+
+
+def get_local_backend(handler):
+    """Return the installed built-in backend, or None when no binary exists."""
+    key = getattr(handler, "key", "")
+    if key not in ("llamacpp", "llamacppembedding", "stablediffusioncpp", "whispercpp"):
+        return None
+
+    def setting(name, default=False):
+        try:
+            return handler.get_setting(name, False, default)
+        except Exception:  # noqa: BLE001 - handler boundary
+            return default
+
+    if key == "stablediffusioncpp":
+        binary_installed = any(
+            path and os.path.isfile(path) and os.access(path, os.X_OK)
+            for path in (
+                getattr(handler, "sd_binary_path", None),
+                getattr(handler, "sd_server_binary_path", None),
+            )
+        )
+    else:
+        installed = getattr(handler, "is_gpu_installed", None)
+        try:
+            binary_installed = callable(installed) and installed()
+        except Exception:  # noqa: BLE001 - handler boundary
+            binary_installed = False
+    if not binary_installed:
+        return None
+
+    backend = setting("prebuilt_backend", None) if key in ("llamacpp", "llamacppembedding") else setting("installed_backend", None)
+    if backend is None and key in ("llamacpp", "llamacppembedding") and setting("prebuilt", False):
+        backend = "cuda" if setting("prebuilt_cuda") else "cpu"
+    if backend is None:
+        backend = _backend_from_cmake_cache(handler)
+    return backend if backend in (
+        "cpu", "cpu_openblas", "cuda", "rocm", "vulkan", "openvino", "sycl-fp32", "sycl-fp16"
+    ) else "unknown"
+
+
+def get_local_backend_label(handler):
+    backend = get_local_backend(handler)
+    labels = {
+        None: _("No built-in binary installed"),
+        "cpu": _("CPU"),
+        "cpu_openblas": _("CPU (OpenBLAS)"),
+        "cuda": _("NVIDIA CUDA"),
+        "rocm": _("AMD ROCm"),
+        "vulkan": _("Vulkan"),
+        "openvino": _("Intel OpenVINO"),
+        "sycl-fp32": _("Intel SYCL (FP32)"),
+        "sycl-fp16": _("Intel SYCL (FP16)"),
+        "unknown": _("Unknown backend for existing installation; reinstall to identify"),
+    }
+    return labels[backend]
+
+
+def _installed_backend(handler):
+    """Return the backend currently selected by a local model handler."""
+    key = getattr(handler, "key", "")
+    if key == "ollama":
+        try:
+            endpoint = handler.get_setting("endpoint", False, "http://localhost:11434") or "http://localhost:11434"
+            host = urlsplit(endpoint).hostname
+        except (AttributeError, TypeError, ValueError):
+            host = None
+        if host not in ("localhost", "127.0.0.1", "::1", "0.0.0.0"):
+            return "remote"
+        return "auto"
+    if key not in ("llamacpp", "llamacppembedding", "stablediffusioncpp", "whispercpp"):
+        return "cpu"
+
+    def setting(name, default=False):
+        try:
+            return handler.get_setting(name, False, default)
+        except Exception:  # noqa: BLE001 - handler boundary
+            return default
+
+    if key in ("llamacpp", "llamacppembedding", "whispercpp") and setting("use_system_server"):
+        return "unknown"
+    if key == "stablediffusioncpp" and setting("use_system_sd"):
+        return "unknown"
+    if not setting("gpu_acceleration"):
+        return "cpu"
+    backend = get_local_backend(handler)
+    if backend in ("cpu", "cpu_openblas"):
+        return "cpu"
+    return backend or "unknown"
+
+
+def _gpu_vram_bytes(backend):
+    """Read dedicated GPU memory when the installed backend has a known probe."""
+    nvidia_memory = []
+    if backend in ("cuda", "vulkan", "auto"):
+        try:
+            result = subprocess.run(
+                get_spawn_command() + [
+                    "nvidia-smi", "--query-gpu=memory.total", "--format=csv,noheader,nounits",
+                ],
+                capture_output=True, text=True, timeout=5, check=False,
+            )
+            if result.returncode == 0:
+                nvidia_memory = [
+                    int(line.strip()) * 1024 ** 2
+                    for line in result.stdout.splitlines() if line.strip()
+                ]
+        except (OSError, ValueError, subprocess.TimeoutExpired):
+            pass
+
+    amd_memory = []
+    if backend in ("rocm", "vulkan", "auto"):
+        for path in sorted(Path("/sys/class/drm").glob("card[0-9]*/device/mem_info_vram_total")):
+            try:
+                total = int(path.read_text().strip())
+                if total > 0:
+                    amd_memory.append(total)
+            except (OSError, ValueError):
+                continue
+    if backend == "cuda":
+        return min(nvidia_memory, default=None)
+    if backend == "rocm":
+        return min(amd_memory, default=None)
+    devices = nvidia_memory + amd_memory
+    return devices[0] if len(devices) == 1 else None
 
 
 @dataclass
@@ -27,6 +213,8 @@ class LibraryModel:
     is_pinned: bool = False
     icon_name: str | None = None
     icon_color: str | None = None
+    size_bytes: int | None = None
+    can_offload: bool = False
 
 
 class ModelLibraryWindow(Adw.Window):
@@ -43,6 +231,12 @@ class ModelLibraryWindow(Adw.Window):
         self.refreshing = False
         self.custom_model_pending = False
         self.filter_mode = "all"
+        self.machine_filter = "all"
+        self.machine_ram_bytes = _system_ram_bytes()
+        self.machine_backend = "unknown"
+        self.machine_vram_bytes = None
+        self.machine_probe_complete = False
+        self._machine_probe_id = 0
         self.all_models = []
         self.filtered_models = []
         self.all_model_keys = []
@@ -165,6 +359,29 @@ class ModelLibraryWindow(Adw.Window):
         self.result_count_label.add_css_class("dim-label")
         filter_row.append(self.result_count_label)
         controls.append(filter_row)
+
+        machine_row = Gtk.Box(
+            orientation=Gtk.Orientation.HORIZONTAL,
+            spacing=12,
+        )
+        machine_row.append(Gtk.Label(label=_("On this machine"), xalign=0))
+        self.machine_filter_dropdown = Gtk.DropDown.new_from_strings([
+            _("All models"),
+            _("Likely to run"),
+            _("May not fit in memory"),
+            _("Unknown"),
+        ])
+        self.machine_filter_dropdown.set_tooltip_text(
+            _("Based on the installed backend, model size, system RAM, and detected GPU memory. Actual requirements depend on context and other running apps.")
+        )
+        self.machine_filter_dropdown.connect("notify::selected", self._on_machine_filter_changed)
+        machine_row.append(self.machine_filter_dropdown)
+        self.machine_details_label = Gtk.Label(xalign=1, hexpand=True)
+        self.machine_details_label.add_css_class("caption")
+        self.machine_details_label.add_css_class("dim-label")
+        self.machine_details_label.set_ellipsize(Pango.EllipsizeMode.END)
+        machine_row.append(self.machine_details_label)
+        controls.append(machine_row)
 
         controls_clamp = Adw.Clamp(
             maximum_size=1120,
@@ -349,6 +566,7 @@ class ModelLibraryWindow(Adw.Window):
     def load_models(self):
         if self.closed:
             return GLib.SOURCE_REMOVE
+        self._refresh_machine_profile()
         self.results_stack.set_visible_child_name("loading")
         self.loading_spinner.start()
         try:
@@ -381,6 +599,103 @@ class ModelLibraryWindow(Adw.Window):
         model.is_installed = installed
         return installed
 
+    def _refresh_machine_profile(self):
+        self.machine_ram_bytes = _system_ram_bytes()
+        self.machine_backend = _installed_backend(self.handler)
+        self.machine_vram_bytes = None
+        self.machine_probe_complete = self.machine_backend in ("cpu", "unknown", "remote")
+        self._machine_probe_id += 1
+        probe_id = self._machine_probe_id
+        self._update_machine_details()
+        if self.machine_backend in ("cpu", "unknown", "remote"):
+            return
+        backend = self.machine_backend
+
+        def probe():
+            vram = _gpu_vram_bytes(backend)
+            GLib.idle_add(self._finish_machine_probe, probe_id, vram)
+
+        threading.Thread(target=probe, daemon=True).start()
+
+    def _finish_machine_probe(self, probe_id, vram):
+        if self.closed or probe_id != self._machine_probe_id:
+            return GLib.SOURCE_REMOVE
+        self.machine_vram_bytes = vram
+        self.machine_probe_complete = True
+        if self.machine_backend == "auto" and vram is None:
+            has_gpu_device = Path("/dev/nvidia0").exists() or any(
+                Path("/dev/dri").glob("renderD*")
+            )
+            self.machine_backend = "unknown" if has_gpu_device or is_flatpak() else "cpu"
+        self._update_machine_details()
+        self.apply_filter()
+        return GLib.SOURCE_REMOVE
+
+    def _update_machine_details(self):
+        ram = self.machine_ram_bytes
+        if ram is None:
+            label = _("System RAM unknown")
+        else:
+            label = _("{ram:.1f} GiB RAM").format(ram=ram / 1024 ** 3)
+        backend_name = (
+            _("GPU (automatic)") if self.machine_backend == "auto"
+            else self.machine_backend.upper()
+        )
+        if self.machine_backend == "cpu":
+            label = _("CPU · {memory}").format(memory=label)
+        elif self.machine_backend == "remote":
+            label = _("Remote Ollama server")
+        elif self.machine_backend == "unknown":
+            label = _("Backend unknown · {memory}").format(memory=label)
+        elif self.machine_vram_bytes is not None:
+            label = _("{backend} · {vram:.1f} GiB VRAM · {memory}").format(
+                backend=backend_name,
+                vram=self.machine_vram_bytes / 1024 ** 3,
+                memory=label,
+            )
+        elif self.machine_probe_complete:
+            label = _("{backend} · VRAM unknown · {memory}").format(
+                backend=backend_name, memory=label,
+            )
+        else:
+            label = _("Detecting GPU memory…")
+        self.machine_details_label.set_label(label)
+        self.machine_details_label.set_tooltip_text(label)
+
+    def _machine_assessment(self, model):
+        if self.machine_backend == "remote":
+            return "unknown", "remote"
+        size = model.size_bytes
+        if size is None:
+            for tag in model.tags or []:
+                size = _size_from_text(tag)
+                if size:
+                    break
+        if size is None:
+            size = _size_from_text(model.description or "")
+        if size is None and getattr(self.handler, "key", "") in ("llamacpp", "llamacppembedding"):
+            for tag in model.tags or []:
+                match = _PARAMETER_PATTERN.fullmatch(str(tag).strip())
+                if match:
+                    count = float(match.group(1).replace(",", "."))
+                    # These handlers prefer Q4_K_M GGUF, roughly 0.65 bytes/parameter.
+                    size = int(count * (10 ** 9 if match.group(2).lower() == "b" else 10 ** 6) * 0.65)
+                    break
+        if not size or not self.machine_ram_bytes:
+            return "unknown", "size"
+        # Allow room for the runtime, context, and the rest of the desktop.
+        required = size * 1.25 + 1024 ** 3
+        if required > self.machine_ram_bytes:
+            return "unlikely", "ram"
+        if self.machine_backend == "cpu":
+            return "likely", "ram"
+        if self.machine_backend == "unknown" or self.machine_vram_bytes is None:
+            return "unknown", "gpu"
+        gpu_required = size * 1.15 + 512 * 1024 ** 2
+        if gpu_required > self.machine_vram_bytes:
+            return ("unknown", "offload") if model.can_offload else ("unlikely", "vram")
+        return "likely", "vram"
+
     def apply_filter(self):
         query = self.search_entry.get_text().strip().casefold()
         filtered = []
@@ -389,6 +704,8 @@ class ModelLibraryWindow(Adw.Window):
             if self.filter_mode == "installed" and not installed:
                 continue
             if self.filter_mode == "available" and installed:
+                continue
+            if self.machine_filter != "all" and self._machine_assessment(model)[0] != self.machine_filter:
                 continue
 
             searchable = (
@@ -425,7 +742,11 @@ class ModelLibraryWindow(Adw.Window):
     def _update_result_count(self):
         count = len(self.filtered_models)
         total = len(self.all_models)
-        has_filter = bool(self.search_entry.get_text().strip()) or self.filter_mode != "all"
+        has_filter = (
+            bool(self.search_entry.get_text().strip())
+            or self.filter_mode != "all"
+            or self.machine_filter != "all"
+        )
         if has_filter and count != total:
             label = _("{count} of {total} models").format(count=count, total=total)
         else:
@@ -475,10 +796,15 @@ class ModelLibraryWindow(Adw.Window):
         self.filter_mode = mode
         self.apply_filter()
 
+    def _on_machine_filter_changed(self, dropdown, _pspec):
+        self.machine_filter = ("all", "likely", "unlikely", "unknown")[dropdown.get_selected()]
+        self.apply_filter()
+
     def _clear_filters(self, _button):
         self.search_entry.set_text("")
         self.filter_buttons["all"].set_active(True)
-        if self.filter_mode == "all":
+        self.machine_filter_dropdown.set_selected(0)
+        if self.filter_mode == "all" and self.machine_filter == "all":
             self.apply_filter()
 
     def on_search_changed(self, _entry):
@@ -517,7 +843,7 @@ class ModelLibraryWindow(Adw.Window):
         card = Gtk.Box(
             orientation=Gtk.Orientation.VERTICAL,
             width_request=260,
-            height_request=286,
+            height_request=310,
             hexpand=True,
         )
         card.add_css_class("card")
@@ -609,6 +935,36 @@ class ModelLibraryWindow(Adw.Window):
         )
         description.add_css_class("dim-label")
         content.append(description)
+
+        machine_status, reason = self._machine_assessment(model)
+        machine_note = Gtk.Label(xalign=0, wrap=True)
+        machine_note.add_css_class("caption")
+        machine_note.set_tooltip_text(
+            _("Estimate from the installed backend and memory capacity. Runtime overhead, GPU support, and other apps can change the result.")
+        )
+        if machine_status == "likely":
+            machine_note.set_label(
+                _("Likely to run (RAM and VRAM)") if reason == "vram"
+                else _("Likely to run (RAM)")
+            )
+            machine_note.add_css_class("success")
+        elif machine_status == "unlikely":
+            machine_note.set_label(
+                _("May not fit in VRAM") if reason == "vram"
+                else _("May not fit in RAM")
+            )
+            machine_note.add_css_class("warning")
+        else:
+            if reason == "offload":
+                machine_note.set_label(_("Needs GPU offloading; fit is uncertain"))
+            elif reason == "gpu":
+                machine_note.set_label(_("GPU memory or backend unknown"))
+            elif reason == "remote":
+                machine_note.set_label(_("Runs on a remote Ollama server"))
+            else:
+                machine_note.set_label(_("Machine compatibility unknown"))
+            machine_note.add_css_class("dim-label")
+        content.append(machine_note)
 
         tags = []
         seen_tags = set()
@@ -1084,6 +1440,7 @@ class ModelLibraryWindow(Adw.Window):
             )
             return GLib.SOURCE_REMOVE
 
+        self._refresh_machine_profile()
         self._replace_models(models)
         self._toast(_("Model library refreshed"))
         return GLib.SOURCE_REMOVE

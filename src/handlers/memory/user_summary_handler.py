@@ -24,10 +24,10 @@ Continue with the conversation while considering the above context.
 
     def get_extra_settings(self) -> list:
         return [
-            ExtraSettings.ButtonSetting("reset_memory", "Reset Memory", "Reset the memory", lambda x: self.reset_memory(), "Reset Memory"),
-            ExtraSettings.ScaleSetting("update_freq", "Update Summary Frequency", "How often to update the summary", 5, 1, 10, 0), 
-            ExtraSettings.MultilineEntrySetting("user_summary", "User Summary", "Current summary of the interactions with the assistant", ""),
-            ExtraSettings.MultilineEntrySetting("prompt", "Summary prompt", "Prompt to get the summary. {prompt} will be replaced with the user summary.", self.DEFAULT_PROMPT, refresh=self.restore_prompt, refresh_icon="star-filled-rounded-symbolic")
+            ExtraSettings.ButtonSetting("reset_memory", _("Reset Memory"), _("Reset the memory"), lambda x: self.reset_memory(), "Reset Memory"),
+            ExtraSettings.ScaleSetting("update_freq", _("Update Summary Frequency"), _("How often to update the summary"), 5, 1, 10, 0), 
+            ExtraSettings.MultilineEntrySetting("user_summary", _("User Summary"), _("Current summary of the interactions with the assistant"), ""),
+            ExtraSettings.MultilineEntrySetting("prompt", _("Summary prompt"), _("Prompt to get the summary. {prompt} will be replaced with the user summary."), self.DEFAULT_PROMPT, refresh=self.restore_prompt, refresh_icon="star-filled-rounded-symbolic")
         ]
     
     def reset_memory(self):

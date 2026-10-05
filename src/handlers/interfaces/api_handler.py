@@ -343,6 +343,47 @@ class APIInterface(ChatInterface):
             allow_headers=["*"],
         )
 
+        class WorkspaceRequest(BaseModel):
+            name: Optional[str] = None
+            profile: Optional[str] = None
+            path: Optional[str] = None
+            mode: Optional[str] = None
+
+        def workspace_action(action, workspace_id=None, **data):
+            try:
+                wid = controller.remote_workspace_action(action, workspace_id, **data)
+                return {"workspace_id": wid, **controller.list_workspaces_info()}
+            except KeyError as error:
+                raise HTTPException(status_code=404, detail=str(error))
+            except ValueError as error:
+                raise HTTPException(status_code=400, detail=str(error))
+            except RuntimeError as error:
+                raise HTTPException(status_code=409, detail=str(error))
+
+        @app.get("/v2/workspaces")
+        def list_workspaces():
+            return controller.list_workspaces_info()
+
+        @app.post("/v2/workspaces")
+        def create_workspace(req: WorkspaceRequest):
+            return workspace_action("create", **req.model_dump(exclude_unset=True))
+
+        @app.patch("/v2/workspaces/{workspace_id}")
+        def edit_workspace(workspace_id: str, req: WorkspaceRequest):
+            return workspace_action("edit", workspace_id, **req.model_dump(exclude_unset=True))
+
+        @app.post("/v2/workspaces/{workspace_id}/switch")
+        def switch_workspace(workspace_id: str):
+            return workspace_action("switch", workspace_id)
+
+        @app.delete("/v2/workspaces/{workspace_id}")
+        def delete_workspace(workspace_id: str):
+            return workspace_action("delete", workspace_id)
+
+        @app.post("/v2/workspaces/{workspace_id}/chats/{chat_id}")
+        def transfer_chat(workspace_id: str, chat_id: int):
+            return workspace_action("move", workspace_id, chat_id=chat_id)
+
         @app.get("/v1/models")
         @app.get("/v2/models")
         def list_models():

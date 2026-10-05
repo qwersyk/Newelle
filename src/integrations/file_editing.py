@@ -24,10 +24,23 @@ class FileEditingIntegration(NewelleExtension):
     def __init__(self, pip_path, extension_path, settings):
         super().__init__(pip_path, extension_path, settings)
 
+    def _request_settings(self):
+        window = getattr(getattr(self, "ui_controller", None), "window", None)
+        controller = getattr(window, "controller", None)
+        if controller is not None:
+            getter = getattr(controller, "_request_context", None)
+            context = getter() if getter is not None else None
+            if context is not None:
+                return context["settings"]
+        return self.settings
+
+    def _workspace_path(self):
+        return self._request_settings().get_string("path") or os.getcwd()
+
     def _get_permission_rules(self):
         """Load the file-permissions rules from settings."""
         try:
-            raw = self.settings.get_string("file-permissions")
+            raw = self._request_settings().get_string("file-permissions")
             return json.loads(raw)
         except Exception:
             return [
@@ -40,7 +53,7 @@ class FileEditingIntegration(NewelleExtension):
         if rule_path == "*":
             return "*"
         if rule_path == "{{main_path}}":
-            main_path = self.settings.get_string("path")
+            main_path = self._request_settings().get_string("path")
             return os.path.realpath(os.path.expanduser(main_path))
         return os.path.realpath(os.path.expanduser(rule_path))
 
@@ -77,7 +90,7 @@ class FileEditingIntegration(NewelleExtension):
 
         return best_mode
 
-    def _check_and_execute(self, file_path: str, operation: str, execute_fn):
+    def _check_and_execute(self, file_path: str, operation: str, execute_fn, preview_fn=None):
         """Check permission for *file_path* and either execute, block, or ask.
 
         Args:
@@ -85,6 +98,8 @@ class FileEditingIntegration(NewelleExtension):
             operation: ``"read"`` or ``"write"``.
             execute_fn: Zero-argument callable that performs the real work
                         and returns a ``ToolResult``.
+            preview_fn: Optional callable returning a ``ToolResult`` with a
+                        preview widget, without changing the file.
 
         Returns:
             A ``ToolResult``.
@@ -103,6 +118,10 @@ class FileEditingIntegration(NewelleExtension):
 
         # mode == "ask" -- return immediately; ToolResult semaphore blocks
         # the LLM thread at get_output() until the user responds.
+        preview = preview_fn() if preview_fn is not None else None
+        if preview is not None and preview.widget is None:
+            return preview
+
         result = ToolResult(requires_interaction=True)
 
         def on_accepted():
@@ -114,6 +133,10 @@ class FileEditingIntegration(NewelleExtension):
             def _run_on_main():
                 try:
                     inner = execute_fn()
+                    if inner.widget is not None:
+                        if preview is not None:
+                            box.remove(preview.widget)
+                        box.append(inner.widget)
                     inner_holder["result"] = inner
                 except Exception as exc:
                     inner_holder["error"] = exc
@@ -129,8 +152,6 @@ class FileEditingIntegration(NewelleExtension):
                 return
 
             inner = inner_holder["result"]
-            if inner.widget is not None:
-                GLib.idle_add(box.append, inner.widget)
             result.set_output(inner.get_output())
 
         def on_rejected(_widget=None):
@@ -148,6 +169,8 @@ class FileEditingIntegration(NewelleExtension):
         )
         confirm.connect("rejected", on_rejected)
         box.append(confirm)
+        if preview is not None:
+            box.append(preview.widget)
 
         result.set_widget(box)
         result.set_intreaction_options([
@@ -177,7 +200,8 @@ class FileEditingIntegration(NewelleExtension):
                 self.ui_controller.new_editor_tab(path)
             return _open_any
 
-    def _read_file_content(self, absolute_path: str, offset: int = 0, limit: Optional[int] = None) -> tuple[str, str, bool]:
+    def _read_file_content(self, absolute_path: str, offset: int = 0, limit: Optional[int] = None,
+                           preserve_trailing_newline: bool = False) -> tuple[str, str, bool]:
         """
         Read file content and return (content, error_message, success).
         
@@ -185,6 +209,7 @@ class FileEditingIntegration(NewelleExtension):
             absolute_path: Absolute path to the file
             offset: 0-based line number to start reading from
             limit: Maximum number of lines to read
+            preserve_trailing_newline: Keep the exact content for file edits
             
         Returns:
             Tuple of (content_or_error, display_info, success)
@@ -226,7 +251,7 @@ class FileEditingIntegration(NewelleExtension):
             # Handle offset
             if offset < 0:
                 offset = 0
-            if offset >= total_lines:
+            if offset >= total_lines and (total_lines > 0 or offset > 0):
                 return "", f"Error: Offset ({offset}) exceeds total line count ({total_lines})", False
             
             # Slice lines based on offset and limit
@@ -238,7 +263,7 @@ class FileEditingIntegration(NewelleExtension):
             content = ''.join(selected_lines)
             
             # Remove trailing newline if present for cleaner display
-            if content.endswith('\n'):
+            if not preserve_trailing_newline and content.endswith('\n'):
                 content = content[:-1]
             
             # Build display info
@@ -338,9 +363,10 @@ class FileEditingIntegration(NewelleExtension):
         return self._check_and_execute(
             file_path, "write",
             lambda: self._write_file_impl(file_path, content),
+            preview_fn=lambda: self._write_file_impl(file_path, content, preview=True),
         )
 
-    def _write_file_impl(self, file_path: str, content: str):
+    def _write_file_impl(self, file_path: str, content: str, preview: bool = False):
         result = ToolResult()
 
         if not os.path.isabs(file_path):
@@ -363,10 +389,11 @@ class FileEditingIntegration(NewelleExtension):
         old_content = ""
         edit_type = "write"
         if os.path.exists(file_path):
-            old_content_raw, _, success = self._read_file_content(file_path)
-            if success:
-                old_content = old_content_raw
-                edit_type = "edit"
+            old_content, info, success = self._read_file_content(file_path, preserve_trailing_newline=True)
+            if not success:
+                result.set_output(info)
+                return result
+            edit_type = "edit"
 
             if not os.access(file_path, os.W_OK):
                 result.set_output(f"Error: Permission denied writing to file: {file_path}")
@@ -377,11 +404,12 @@ class FileEditingIntegration(NewelleExtension):
                 return result
 
         try:
-            with open(file_path, 'w', encoding='utf-8') as f:
-                f.write(content)
+            if not preview:
+                with open(file_path, 'w', encoding='utf-8') as f:
+                    f.write(content)
 
-            file_size = os.path.getsize(file_path)
-            lines_count = content.count('\n') + (1 if content and not content.endswith('\n') else 0)
+                file_size = os.path.getsize(file_path)
+                lines_count = content.count('\n') + (1 if content and not content.endswith('\n') else 0)
 
             widget = FileEditWidget(
                 file_path=file_path,
@@ -389,11 +417,14 @@ class FileEditingIntegration(NewelleExtension):
                 new_content=content,
                 edit_type=edit_type,
                 open_in_editor_callback=self._get_open_in_editor_callback(file_path),
-                undo_callback=self.undo_file_edit,
-                redo_callback=self.redo_file_edit
+                undo_callback=None if preview else self.undo_file_edit,
+                redo_callback=None if preview else self.redo_file_edit,
+                preview=preview,
             )
 
-            if edit_type == "write":
+            if preview:
+                output = None
+            elif edit_type == "write":
                 output = f"Successfully created new file: {file_path}\nSize: {file_size} bytes, {lines_count} lines"
             else:
                 output = f"Successfully wrote to file: {file_path}\nSize: {file_size} bytes, {lines_count} lines"
@@ -424,7 +455,7 @@ class FileEditingIntegration(NewelleExtension):
         old_content = ""
         edit_type = "write"
         if os.path.exists(file_path) and os.path.isfile(file_path):
-            old_content_raw, _, success = self._read_file_content(file_path)
+            old_content_raw, _, success = self._read_file_content(file_path, preserve_trailing_newline=True)
             if success:
                 old_content = old_content_raw
                 edit_type = "edit"
@@ -458,9 +489,11 @@ class FileEditingIntegration(NewelleExtension):
         return self._check_and_execute(
             file_path, "write",
             lambda: self._edit_impl(file_path, old_string, new_string, replace_all),
+            preview_fn=lambda: self._edit_impl(file_path, old_string, new_string, replace_all, preview=True),
         )
 
-    def _edit_impl(self, file_path: str, old_string: str, new_string: str, replace_all: bool = False):
+    def _edit_impl(self, file_path: str, old_string: str, new_string: str, replace_all: bool = False,
+                   preview: bool = False):
         result = ToolResult()
 
         if not os.path.isabs(file_path):
@@ -468,7 +501,7 @@ class FileEditingIntegration(NewelleExtension):
             return result
 
         if not old_string:
-            return self._write_file_impl(file_path, new_string)
+            return self._write_file_impl(file_path, new_string, preview=preview)
 
         if not os.path.exists(file_path):
             result.set_output(f"Error: File does not exist: {file_path}")
@@ -486,9 +519,9 @@ class FileEditingIntegration(NewelleExtension):
             result.set_output(f"Error: Permission denied writing to file: {file_path}")
             return result
 
-        old_content, info, success = self._read_file_content(file_path)
+        old_content, info, success = self._read_file_content(file_path, preserve_trailing_newline=True)
         if not success:
-            result.set_output(old_content)
+            result.set_output(info)
             return result
 
         occurrences = old_content.count(old_string)
@@ -507,10 +540,11 @@ class FileEditingIntegration(NewelleExtension):
             new_content = old_content.replace(old_string, new_string, 1)
 
         try:
-            with open(file_path, 'w', encoding='utf-8') as f:
-                f.write(new_content)
+            if not preview:
+                with open(file_path, 'w', encoding='utf-8') as f:
+                    f.write(new_content)
 
-            file_size = os.path.getsize(file_path)
+                file_size = os.path.getsize(file_path)
 
             widget = FileEditWidget(
                 file_path=file_path,
@@ -518,12 +552,15 @@ class FileEditingIntegration(NewelleExtension):
                 new_content=new_content,
                 edit_type="edit",
                 open_in_editor_callback=self._get_open_in_editor_callback(file_path),
-                undo_callback=self.undo_file_edit,
-                redo_callback=self.redo_file_edit
+                undo_callback=None if preview else self.undo_file_edit,
+                redo_callback=None if preview else self.redo_file_edit,
+                preview=preview,
             )
 
-            replacement_count = occurrences if replace_all else 1
-            output = f"Successfully edited file: {file_path}\nMade {replacement_count} replacement(s)\nNew size: {file_size} bytes"
+            output = None
+            if not preview:
+                replacement_count = occurrences if replace_all else 1
+                output = f"Successfully edited file: {file_path}\nMade {replacement_count} replacement(s)\nNew size: {file_size} bytes"
 
             result.set_output(output)
             result.set_widget(widget)
@@ -550,7 +587,7 @@ class FileEditingIntegration(NewelleExtension):
         result = ToolResult()
 
         # Read current file content
-        current_content, _, success = self._read_file_content(file_path)
+        current_content, _, success = self._read_file_content(file_path, preserve_trailing_newline=True)
         if not success:
             result.set_output(current_content)
             return result
@@ -637,7 +674,7 @@ class FileEditingIntegration(NewelleExtension):
 
     def glob(self, pattern: str, path: Optional[str] = None):
         """Search for files matching a glob pattern, with permission checking."""
-        search_dir = path if path else os.getcwd()
+        search_dir = path if path else self._workspace_path()
         return self._check_and_execute(
             search_dir, "read",
             lambda: self._glob_impl(pattern, path),
@@ -662,7 +699,7 @@ class FileEditingIntegration(NewelleExtension):
                 return result
             search_dir = path
         else:
-            search_dir = os.getcwd()
+            search_dir = self._workspace_path()
 
         pattern = pattern.strip()
 
@@ -728,7 +765,7 @@ class FileEditingIntegration(NewelleExtension):
         result = ToolResult()
 
         # Determine search directory
-        search_dir = path if path else os.getcwd()
+        search_dir = path if path else self._workspace_path()
 
         def _do_glob_search():
             try:
@@ -918,7 +955,7 @@ class FileEditingIntegration(NewelleExtension):
         limit: Optional[int] = None
     ):
         """Search for a regex pattern in file contents, with permission checking."""
-        search_path = path if path else os.getcwd()
+        search_path = path if path else self._workspace_path()
         return self._check_and_execute(
             search_path, "read",
             lambda: self._grep_search_impl(pattern, path, glob, limit),
@@ -952,7 +989,7 @@ class FileEditingIntegration(NewelleExtension):
                 return result
             search_path = path
         else:
-            search_path = os.getcwd()
+            search_path = self._workspace_path()
 
         glob_patterns = self._expand_glob_pattern(glob) if glob else []
 
@@ -1037,7 +1074,7 @@ class FileEditingIntegration(NewelleExtension):
                 return result
             search_path = path
         else:
-            search_path = os.getcwd()
+            search_path = self._workspace_path()
 
         glob_patterns = self._expand_glob_pattern(glob) if glob else []
 

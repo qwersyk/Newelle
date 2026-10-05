@@ -83,6 +83,14 @@
 	      <key name="tts-voice" type="s">
             <default>"{}"</default>
         </key>
+        <key name="voice-mode-chat" type="s">
+            <choices>
+                <choice value="new"/>
+                <choice value="current"/>
+                <choice value="shared"/>
+            </choices>
+            <default>"new"</default>
+        </key>
         <key name="voice-mode-position" type="s">
             <default>"bottom-center"</default>
         </key>
@@ -91,6 +99,14 @@
         </key>
         <key name="voice-mode-mode" type="s">
             <default>"current"</default>
+        </key>
+        <key name="voice-mode-feedback" type="s">
+            <choices>
+                <choice value="required"/>
+                <choice value="tools"/>
+                <choice value="full"/>
+            </choices>
+            <default>"required"</default>
         </key>
         <key name="voice-mode-x11-override-dont-show" type="b">
             <default>false</default>
@@ -244,6 +260,9 @@
         </key>
         <key name="remember-profile" type="b">
           <default>false</default>
+        </key>
+        <key name="hide-workspaces" type="b">
+            <default>false</default>
         </key>
         <key name="hide-history-on-launch" type="b">
             <default>false</default>

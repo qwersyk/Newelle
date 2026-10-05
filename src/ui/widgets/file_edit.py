@@ -17,7 +17,8 @@ class FileEditWidget(Gtk.Box):
     }
 
     def __init__(self, file_path: str, old_content: str, new_content: str, edit_type: str = "edit",
-                 color_scheme: str = "Adwaita-dark", open_in_editor_callback=None, undo_callback=None, redo_callback=None):
+                 color_scheme: str = "Adwaita-dark", open_in_editor_callback=None, undo_callback=None, redo_callback=None,
+                 preview: bool = False):
         """
         Initialize the file edit widget.
 
@@ -30,6 +31,7 @@ class FileEditWidget(Gtk.Box):
             open_in_editor_callback: Optional callable to open file in internal editor
             undo_callback: Optional callable(file_path, old_content, edit_type) to undo
             redo_callback: Optional callable(file_path, new_content, edit_type) to redo
+            preview: Whether the changes are awaiting approval
         """
         super().__init__(
             orientation=Gtk.Orientation.VERTICAL,
@@ -45,6 +47,7 @@ class FileEditWidget(Gtk.Box):
         self.old_content = old_content
         self.new_content = new_content
         self.edit_type = edit_type
+        self.preview = preview
         self.color_scheme = color_scheme
         self.is_expanded = False
         self.is_undone = False
@@ -76,16 +79,19 @@ class FileEditWidget(Gtk.Box):
 
         if self.edit_type == "write" or not self.old_content:
             # For new files, show all content as additions
-            lines = self.new_content.split('\n')
+            lines = self.new_content.splitlines(keepends=True)
             diff_lines = []
             for i, line in enumerate(lines, 1):
-                diff_lines.append(f"+{line}")
+                diff_lines.append('+' + line.removesuffix('\n'))
                 line_numbers.append(("", str(i)))
+                if not line.endswith('\n'):
+                    diff_lines.append('\\ No newline at end of file')
+                    line_numbers.append(("", ""))
             return '\n'.join(diff_lines), line_numbers
 
         # Generate unified diff
-        old_lines = self.old_content.split('\n')
-        new_lines = self.new_content.split('\n')
+        old_lines = self.old_content.splitlines(keepends=True)
+        new_lines = self.new_content.splitlines(keepends=True)
 
         diff_generator = difflib.unified_diff(
             old_lines,
@@ -98,10 +104,13 @@ class FileEditWidget(Gtk.Box):
         diff_lines = []
         old_line = 0
         new_line = 0
-        old_count = 0
-        new_count = 0
 
-        for line in diff_generator:
+        for index, line in enumerate(diff_generator):
+            if index < 2:
+                diff_lines.append(line)
+                line_numbers.append(("", ""))
+                continue
+
             # Parse hunk header: @@ -start,count +start,count @@
             if line.startswith('@@'):
                 diff_lines.append(line)
@@ -120,25 +129,21 @@ class FileEditWidget(Gtk.Box):
                 new_line = new_start
                 continue
 
-            if line.startswith('---') or line.startswith('+++'):
-                diff_lines.append(line)
-                line_numbers.append(("", ""))
-                continue
-
+            diff_lines.append(line.removesuffix('\n'))
             if line.startswith('-'):
-                diff_lines.append(line)
                 line_numbers.append((str(old_line), ""))
                 old_line += 1
             elif line.startswith('+'):
-                diff_lines.append(line)
                 line_numbers.append(("", str(new_line)))
                 new_line += 1
             elif line.startswith(' ') or line:
                 # Context line (unchanged) or empty line
-                diff_lines.append(line)
                 line_numbers.append((str(old_line), str(new_line)))
                 old_line += 1
                 new_line += 1
+            if not line.endswith('\n'):
+                diff_lines.append('\\ No newline at end of file')
+                line_numbers.append(("", ""))
 
         return '\n'.join(diff_lines), line_numbers
 
@@ -161,11 +166,12 @@ class FileEditWidget(Gtk.Box):
         for i, line in enumerate(lines):
             is_last = (i == len(lines) - 1)
             line_len = len(line) + (0 if is_last else 1)  # +1 for newline (except last line)
-            if line.startswith('+') and not line.startswith('+++'):
+            old_number, new_number = self.line_numbers[i] if i < len(self.line_numbers) else ("", "")
+            if new_number and not old_number:
                 start = self.buffer.get_iter_at_offset(offset)
                 end = self.buffer.get_iter_at_offset(offset + line_len)
                 self.buffer.apply_tag(add_tag, start, end)
-            elif line.startswith('-') and not line.startswith('---'):
+            elif old_number and not new_number:
                 start = self.buffer.get_iter_at_offset(offset)
                 end = self.buffer.get_iter_at_offset(offset + line_len)
                 self.buffer.apply_tag(del_tag, start, end)
@@ -186,7 +192,7 @@ class FileEditWidget(Gtk.Box):
         title_text = self.filename
         if self.edit_type == "write":
             title_text += " (new file)"
-        elif self.edit_type == "edit":
+        elif self.edit_type == "edit" and not self.preview:
             title_text += " (modified)"
 
         title_label = Gtk.Label(
@@ -213,7 +219,7 @@ class FileEditWidget(Gtk.Box):
         header_box.append(self.copy_button)
 
         # Open in internal editor button
-        if self.open_in_editor_callback is not None:
+        if self.open_in_editor_callback is not None and not (self.preview and self.edit_type == "write"):
             edit_button = Gtk.Button(css_classes=["flat"], valign=Gtk.Align.CENTER)
             edit_button.set_icon_name("document-edit-symbolic")
             edit_button.set_tooltip_text("Open in internal editor")
@@ -221,11 +227,12 @@ class FileEditWidget(Gtk.Box):
             header_box.append(edit_button)
 
         # Open externally button
-        open_button = Gtk.Button(css_classes=["flat"], valign=Gtk.Align.CENTER)
-        open_button.set_icon_name("document-open-symbolic")
-        open_button.set_tooltip_text("Open in external editor")
-        open_button.connect("clicked", self._on_open_externally_clicked)
-        header_box.append(open_button)
+        if not (self.preview and self.edit_type == "write"):
+            open_button = Gtk.Button(css_classes=["flat"], valign=Gtk.Align.CENTER)
+            open_button.set_icon_name("document-open-symbolic")
+            open_button.set_tooltip_text("Open in external editor")
+            open_button.connect("clicked", self._on_open_externally_clicked)
+            header_box.append(open_button)
 
         # Undo/Redo button
         self.undo_button = None
@@ -358,19 +365,16 @@ class FileEditWidget(Gtk.Box):
 
         # Calculate change statistics
         if self.edit_type == "write":
-            new_lines = len(self.new_content.split('\n')) if self.new_content else 0
+            new_lines = len(self.new_content.splitlines())
             status_text = f"New file: {new_lines} lines"
         else:
-            old_lines = self.old_content.split('\n') if self.old_content else []
-            new_lines = self.new_content.split('\n') if self.new_content else []
-
             # Count additions and deletions from diff
             additions = 0
             deletions = 0
-            for line in self.diff_content.split('\n'):
-                if line.startswith('+') and not line.startswith('+++'):
+            for old_number, new_number in self.line_numbers:
+                if new_number and not old_number:
                     additions += 1
-                elif line.startswith('-') and not line.startswith('---'):
+                elif old_number and not new_number:
                     deletions += 1
 
             status_text = f"Changes: +{additions} / -{deletions} lines"

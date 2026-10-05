@@ -2,6 +2,7 @@ from .openai_handler import OpenAIHandler
 
 class DeepseekHandler(OpenAIHandler):
     key = "deepseek"
+    default_send_reasoning = True
     default_models = (("deepseek-chat", "deepseek-chat"),("deepseek-reasoner", "deepseek-reasoner") )
     def __init__(self, settings, path):
         super().__init__(settings, path)

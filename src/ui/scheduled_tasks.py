@@ -131,9 +131,10 @@ class ScheduledTasksWindow(Gtk.Window):
     def __init__(self, app, *args, **kwargs):
         super().__init__(*args, **kwargs, title=_("Scheduled Tasks"))
         self.app = app
-        self.controller = app.win.controller
+        self.main_window = app.win
+        self.controller = self.main_window.controller
         self.set_default_size(700, 520)
-        self.set_transient_for(app.win)
+        self.set_transient_for(self.main_window)
         self.set_modal(True)
 
         header = Adw.HeaderBar(css_classes=["flat"])
@@ -198,10 +199,16 @@ class ScheduledTasksWindow(Gtk.Window):
         return _("None")
 
     def _open_latest_chat(self, button, chat_id):
-        if chat_id is None or chat_id not in self.app.win.chats:
+        if chat_id is None or chat_id not in self.controller.chats:
             return
-        self.app.win.present()
-        self.app.win.chose_chat(chat_id)
+        workspace_id = self.controller.chats[chat_id].get("workspace_id", "default")
+        window = self.app.workspace_window(workspace_id)
+        if window is None:
+            window = self.main_window
+            if not window.switch_workspace(workspace_id):
+                return
+        window.present()
+        window.chose_chat(chat_id)
         self.close()
 
     def _toggle_task(self, button, task_id, enabled):
@@ -252,7 +259,7 @@ class ScheduledTasksWindow(Gtk.Window):
             latest_chat_id = task.get("latest_chat_id")
             open_button.set_tooltip_text(_("Open latest chat"))
             open_button.set_sensitive(
-                latest_chat_id is not None and latest_chat_id in self.app.win.chats
+                latest_chat_id is not None and latest_chat_id in self.controller.chats
             )
             open_button.connect("clicked", self._open_latest_chat, latest_chat_id)
             row.add_suffix(open_button)

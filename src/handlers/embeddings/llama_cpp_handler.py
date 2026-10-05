@@ -11,7 +11,7 @@ from ...utility.download_manager import (
     get_download_manager,
 )
 from ...utility.huggingface_download import download_huggingface_file
-from ...ui.model_library import ModelLibraryWindow, LibraryModel
+from ...ui.model_library import ModelLibraryWindow, LibraryModel, get_local_backend_label
 from gettext import gettext as _
 import os
 import platform
@@ -146,7 +146,11 @@ class LlamaCPPEmbeddingHandler(EmbeddingHandler):
     def get_extra_settings(self) -> list:
         custom_model_list = self.get_custom_model_list()
         settings =  [
-                ExtraSettings.ComboSetting("model", "Model", "Model to use", self.get_custom_model_list(), 
+                ExtraSettings.InfoSetting(
+                    "installed_backend_status", _("Installed built-in backend"),
+                    get_local_backend_label(self),
+                ),
+                ExtraSettings.ComboSetting("model", _("Model"), _("Model to use"), self.get_custom_model_list(), 
                 custom_model_list[0][1] if len(custom_model_list) > 0 else "", 
                 refresh=lambda button: self.get_custom_model_list(True),
                 folder=self.model_folder)
@@ -155,8 +159,8 @@ class LlamaCPPEmbeddingHandler(EmbeddingHandler):
         settings.append(
             ExtraSettings.EntrySetting(
                 "custom_models_dir",
-                "Custom Models Directory",
-                "Additional directory to scan for .gguf model files (leave empty to disable)",
+                _("Custom Models Directory"),
+                _("Additional directory to scan for .gguf model files (leave empty to disable)"),
                 "",
                 update_settings=True,
             )
@@ -165,8 +169,8 @@ class LlamaCPPEmbeddingHandler(EmbeddingHandler):
         settings.append(
             ExtraSettings.MultilineEntrySetting(
                 "custom_args",
-                "Custom Arguments",
-                "Additional command-line arguments passed to llama-server (e.g. --threads 4 --no-mmap). Leave empty for none.",
+                _("Custom Arguments"),
+                _("Additional command-line arguments passed to llama-server (e.g. --threads 4 --no-mmap). Leave empty for none."),
                 "",
                 update_settings=True,
             )
@@ -181,18 +185,18 @@ class LlamaCPPEmbeddingHandler(EmbeddingHandler):
         #)
         if not self.is_gpu_installed():
             settings.append(
-                ExtraSettings.ButtonSetting("install", "Install LlamaCPP (Hardware Acceleration)", "Build llama.cpp with hardware acceleration", self.show_install_dialog, label="Install")
+                ExtraSettings.ButtonSetting("install", _("Install LlamaCPP (Hardware Acceleration)"), _("Build llama.cpp with hardware acceleration"), self.show_install_dialog, label=_("Install"))
             )
         else:
             settings.extend([
-                ExtraSettings.ToggleSetting("gpu_acceleration", "Hardware Acceleration", "Enable hardware acceleration", False),
+                ExtraSettings.ToggleSetting("gpu_acceleration", _("Hardware Acceleration"), _("Enable hardware acceleration"), False),
             ])
             if is_flatpak():
                 settings.append(
-                    ExtraSettings.ToggleSetting("use_system_server", "Use System llama-server", "Use system-installed llama-server instead of built-in (requires llama-server on host and sandbox escape)", False)
+                    ExtraSettings.ToggleSetting("use_system_server", _("Use System llama-server"), _("Use system-installed llama-server instead of built-in (requires llama-server on host and sandbox escape)"), False)
                 )
             settings.append(
-                ExtraSettings.ButtonSetting("reinstall", "Reinstall", "Rebuild llama.cpp", self.show_install_dialog, label="Reinstall")
+                ExtraSettings.ButtonSetting("reinstall", _("Reinstall"), _("Rebuild llama.cpp"), self.show_install_dialog, label=_("Reinstall"))
             )
         return settings
 
@@ -318,13 +322,17 @@ class LlamaCPPEmbeddingHandler(EmbeddingHandler):
         data = self.library_data
         models = []
         for model in data:
+            installed = self.model_installed(model["title"])
+            model_path = os.path.join(self.model_folder, model["title"] + ".gguf")
             models.append(LibraryModel(
                 id=model["title"],
                 name=model["title"],
                 description=model["description"],
                 tags=model["tags"] + model["capabilities"].split("\n"),
-                is_pinned=self.model_installed(model["title"]),
-                is_installed=self.model_installed(model["title"]),
+                is_pinned=installed,
+                is_installed=installed,
+                size_bytes=os.path.getsize(model_path) if installed else None,
+                can_offload=True,
             ))
         for model_name, model_file in self.models:
             if model_name not in [m.id for m in models]:
@@ -335,6 +343,8 @@ class LlamaCPPEmbeddingHandler(EmbeddingHandler):
                     tags=["custom"],
                     is_pinned=True,
                     is_installed=True,
+                    size_bytes=os.path.getsize(self._resolve_model_path(model_file)),
+                    can_offload=True,
                 )] + models
         return models
 

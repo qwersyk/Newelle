@@ -15,6 +15,7 @@ class ThreadEditing(Gtk.Window):
         self.set_transient_for(app.win)
         self.set_modal(False)
         self.app = app
+        self.main_window = app.win
         self._legacy_outputs = {}
         self._refresh_source_id = None
 
@@ -49,7 +50,7 @@ class ThreadEditing(Gtk.Window):
 
     def _get_default_tools_integration(self):
         try:
-            return self.app.win.controller.integrationsloader.extensionsmap.get(
+            return self.main_window.controller.integrationsloader.extensionsmap.get(
                 "default_tools"
             )
         except AttributeError:
@@ -118,7 +119,7 @@ class ThreadEditing(Gtk.Window):
         )
 
     def _append_legacy_streams(self, parent) -> bool:
-        streams = self.app.win.streams
+        streams = self.main_window.streams
         if not streams:
             return False
 
@@ -374,7 +375,7 @@ class ThreadEditing(Gtk.Window):
 
     def stop_flow(self, widget):
         try:
-            process = self.app.win.streams[int(widget.get_name())]
+            process = self.main_window.streams[int(widget.get_name())]
             if process.poll() is None:
                 process.terminate()
         except (IndexError, TypeError, ValueError, OSError):

@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Optional, List
+from typing import Optional
 from ..handler import Handler
 from ..llm.llm import LLMHandler
 from ..embeddings.embedding import EmbeddingHandler
@@ -68,3 +68,24 @@ class MemoryHandler(Handler):
             List of tools (empty by default)
         """
         return []
+
+    def get_mini_app(self, **kwargs):
+        """Create a mini app for managing or inspecting this memory handler.
+
+        Memory providers can override this method to return a GTK widget that
+        is placed in a canvas tab.  The default keeps existing providers
+        headless and does not add a tab.
+        """
+        return None
+
+    def has_mini_app(self) -> bool:
+        """Whether this provider offers a mini app in the canvas."""
+        return type(self).get_mini_app is not MemoryHandler.get_mini_app
+
+    def get_mini_app_title(self) -> str:
+        """Return the title used for the optional memory mini app tab."""
+        return "Memory"
+
+    def get_mini_app_icon(self) -> str:
+        """Return the themed icon name used for the optional memory tab."""
+        return "view-list-symbolic"

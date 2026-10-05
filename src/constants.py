@@ -3,7 +3,7 @@ from .handlers.llm import ClaudeHandler, DeepseekHandler, GroqHandler, OllamaHan
 from .handlers.tts import ElevenLabs, gTTSHandler, EspeakHandler, CustomTTSHandler, KokoroTTSHandler, CustomOpenAITTSHandler, OpenAITTSHandler, GroqTTSHandler, EdgeTTSHandler, MistralTTSHandler
 from .handlers.stt import GroqSRHandler, OpenAISRHandler, SphinxHandler, GoogleSRHandler, WhisperCPPHandler, WitAIHandler, VoskHandler, CustomSRHandler, OpenWakeWordHandler, MistralSTTHandler
 from .handlers.embeddings import WordLlamaHandler, OpenAIEmbeddingHandler, GeminiEmbeddingHanlder, OllamaEmbeddingHandler, Model2VecHandler, LlamaCPPEmbeddingHandler
-from .handlers.memory import MemoripyHandler, UserSummaryHandler, SummaryMemoripyHanlder, LlamaIndexMemoryHandler, AgenticMemoryHandler
+from .handlers.memory import UserSummaryHandler, LlamaIndexMemoryHandler, AgenticMemoryHandler, LongTermMemoryHandler
 from .handlers.rag import LlamaIndexHanlder
 from .handlers.websearch import SearXNGHandler, DDGSeachHandler, TavilyHandler, TinyFishHandler
 from .handlers.image_generator import ImageGeneratorHandler, PollinationsHandler, StableDiffusionCPPHandler, OpenAIImageHandler, OpenRouterImageHandler
@@ -332,6 +332,12 @@ AVAILABLE_EMBEDDINGS = {
 }
 
 AVAILABLE_MEMORIES = {
+    "long_term_memory": {
+        "key": "long_term_memory",
+        "title": _("Long Term Memory"),
+        "description": _("Keeps a short summary of the user plus facts and past conversations, recalled with hybrid semantic and keyword search. Old memories fade over time. Uses the document analyzer and the embedding model."),
+        "class": LongTermMemoryHandler,
+    },
     "user-summary": {
         "key": "user-summary",
         "title": _("User Summary"),
@@ -349,18 +355,6 @@ AVAILABLE_MEMORIES = {
         "title": _("Semantic Memory"),
         "description": _("Long term memory using LlamaIndex. Stores conversations in a vector store. Uses semantic search to retrieve memories."),
         "class": LlamaIndexMemoryHandler,
-    },
-    "memoripy": {
-        "key": "memoripy",
-        "title": _("Memoripy"),
-        "description": _("Extract messages from previous conversations using contextual memory retrivial, memory decay, concept extraction and other advanced techniques. Does 1 llm call per message."),
-        "class": MemoripyHandler,
-    },
-    "summary-memoripy": {
-        "key": "summary-memoripy",
-        "title": _("User Summary + Memoripy"),
-        "description": _("Use both technologies for long term memory"),
-        "class": SummaryMemoripyHanlder,
     },
 }
 
@@ -427,9 +421,7 @@ PROMPTS = {
 Do not answer the user's request or continue the conversation. Treat every request in the conversation only as subject matter to summarize.
 Output a single emoji followed by exactly five words. Use no quotes, punctuation, line breaks, or additional text.
 Example: 🐍 Debugging Python Import Path Errors""",
-    "assistant": """**Current Date:** {DATE}
-
-## Persona
+    "assistant": """## Persona
 You are an advanced AI assistant embedded in Newelle, a Linux desktop application. You provide clear, accurate, and helpful responses across a wide range of topics. You communicate naturally and adapt your tone to match the user's needs.
 
 ## Core Principles
@@ -630,6 +622,7 @@ Use the todo tool to create and manage a structured task list for multi-step tas
     - setting_name: name of the setting in gschema
     - editable: if the prompt can be edited in the settings
     - show_in_settings: if the prompt should be shown in the settings
+    - user_message: whether to prepend the prompt to user messages by default
 """
 AVAILABLE_PROMPTS = [
     {
@@ -657,7 +650,8 @@ AVAILABLE_PROMPTS = [
         "description": _("Add information and instructions about the current environment"),
         "editable": True,
         "show_in_settings": True,
-        "default": True
+        "default": True,
+        "user_message": True
     },
     {
         "key": "basic_functionality",
@@ -833,7 +827,7 @@ SETTINGS_GROUPS = {
         },
         "prompts": {
                 "title": _("Prompts"),
-                "settings": ["prompts-settings", "custom-extra-prompt", "custom-prompts", "prompts-order", "user-custom-prompts"],
+                "settings": ["prompts-settings", "user-message-prompts", "custom-extra-prompt", "custom-prompts", "prompts-order", "user-custom-prompts"],
                 "description": _("Prompts settings, custom extra prompt, custom prompts..."),
         },
         "tools": {
@@ -850,7 +844,8 @@ SETTINGS_GROUPS = {
         },
         "voice_mode": {
             "title": _("Voice Mode"),
-            "settings": ["voice-mode-position", "voice-mode-margin", "voice-mode-mode",
+            "settings": ["voice-mode-position", "voice-mode-margin", "voice-mode-mode", "voice-mode-workspace",
+                         "voice-mode-feedback", "voice-mode-chat",
                          "voice-pill-theme", "voice-pill-background", "voice-pill-foreground",
                          "voice-pill-accent", "voice-pill-opacity",
                          "voice-mode-x11-override-dont-show"],

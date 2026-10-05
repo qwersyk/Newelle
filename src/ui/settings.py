@@ -22,6 +22,7 @@ from ..utility.download_manager import get_download_manager
 from ..utility.mcp_config import MCPConfigError, parse_mcp_servers_json
 from .extension import ExtensionPage
 from .interfaces import InterfacesPage
+from .usage import UsagePage
 from .extra_settings import ExtraSettingsBuilder
 from .widgets import ComboRowHelper, CopyBox 
 from .widgets import MultilineEntry
@@ -43,11 +44,12 @@ class Settings(Adw.Window):
         super().__init__(*args, **kwargs)
         self.app = app
         self.controller = controller
+        self.window = getattr(controller.ui_controller, "window", None)
         self.settings = controller.settings
         self.headless = headless
         self.popup = popup
         if not headless:
-            self.set_transient_for(app.win)
+            self.set_transient_for(self.window)
         self.set_title(_("Settings"))
         self.set_default_size(950, 720)
         self.set_modal(True)
@@ -80,6 +82,7 @@ class Settings(Adw.Window):
         self.VoicePage = Adw.PreferencesPage(icon_name="audio-input-microphone-symbolic", title=_("Voice"))
         self.SkillsPage = Adw.PreferencesPage(icon_name="skills-symbolic", title=_("Skills"))
         self.MCPPage = Adw.PreferencesPage(icon_name="internet-symbolic", title=_("MCP Servers"))
+        self.UsagePage = UsagePage(controller)
         # Dictionary containing all the rows for settings update
         self.settingsrows = {}
         self.extra_settings_builder = ExtraSettingsBuilder(
@@ -415,7 +418,7 @@ class Settings(Adw.Window):
         row.add_suffix(spin)
         def update_zoom(x,y):
             self.controller.settings.set_int("zoom", spin.get_value())
-            self.app.win.set_zoom(spin.get_value())
+            self.window.set_zoom(spin.get_value())
         spin.connect("input", update_zoom)
         self.interface.add(row)
 
@@ -492,6 +495,10 @@ class Settings(Adw.Window):
         switch = Gtk.Switch(valign=Gtk.Align.CENTER)
         row.add_suffix(switch)
         self.settings.bind("hide-history-on-launch", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
+        self.interface.add(row)
+
+        row = Adw.SwitchRow(title=_("Hide workspace selector"))
+        self.settings.bind("hide-workspaces", row, 'active', Gio.SettingsBindFlags.DEFAULT)
         self.interface.add(row)
 
         row = Adw.ActionRow(title=_("Remember assistant profile per chat"), subtitle=_("When changing chat, the profile corresponding to the last generation is selected"))
@@ -597,23 +604,6 @@ class Settings(Adw.Window):
         self.settings.bind("parallel-tool-execution", switch, 'active', Gio.SettingsBindFlags.DEFAULT)
         self.neural_network.add(row)
 
-        max_tool_calls_row = Adw.SpinRow(
-            title=_("Maximum Tool Calls"),
-            subtitle=_("Maximum number of tools the model can run for one request, including scheduled tasks"),
-            adjustment=Gtk.Adjustment(
-                lower=1,
-                upper=300,
-                step_increment=1,
-                page_increment=10,
-                value=self.settings.get_int("max-tool-calls"),
-            ),
-            digits=0,
-        )
-        def update_max_tool_calls(spin, _value):
-            self.settings.set_int("max-tool-calls", int(spin.get_value()))
-        max_tool_calls_row.connect("notify::value", update_max_tool_calls)
-        self.neural_network.add(max_tool_calls_row)
-        
         row = Adw.ExpanderRow(title=_("External Terminal"), subtitle=_("Choose the external terminal where to run the console commands"))
         terminal_enabled = Gtk.Switch(valign=Gtk.Align.CENTER)
         self.settings.bind("external-terminal-on", terminal_enabled, 'active', Gio.SettingsBindFlags.DEFAULT)
@@ -742,7 +732,7 @@ class Settings(Adw.Window):
         row = Adw.ActionRow(title=_("Program Output Monitor"), subtitle=_("Monitor the program output in real-time, useful for debugging and seeing downloads progress"))
         button = Gtk.Button(label=_("Open"), valign=Gtk.Align.CENTER)
         row.add_suffix(button)
-        button.connect("clicked", lambda _ : self.app.win.show_stdout_monitor_dialog(self))
+        button.connect("clicked", lambda _ : self.window.show_stdout_monitor_dialog(self))
         self.developer.add(row)
         # Delete pip path
         row = Adw.ActionRow(title=_("Delete pip path"), subtitle=_("Remove the extra dependencies installed"))
@@ -814,6 +804,7 @@ class Settings(Adw.Window):
             ("MCP", _("MCP Servers"), "internet-symbolic", self.MCPPage),
             ("Interfaces", _("Interfaces"), "controls-big-symbolic", self.InterfacesPage),
             ("Extensions", _("Extensions"), "extension-symbolic", self.ExtensionsPage),
+            ("Usage", _("Usage"), "chart-bars-symbolic", self.UsagePage),
         ]
         self.navigation_pages = {
             key: (title, page)
@@ -888,6 +879,8 @@ class Settings(Adw.Window):
             self.ensure_skills_page_initialized()
         elif page == self.MCPPage:
             self.ensure_mcp_page_initialized()
+        elif page == self.UsagePage:
+            self.UsagePage.show_page()
         self.content_stack.set_visible_child(page)
         self.content_navigation_page.set_title(title)
 
@@ -924,6 +917,8 @@ class Settings(Adw.Window):
         """Refresh only settings sections affected by extension changes."""
         self.extensionloader = self.controller.extensionloader
         self.handlers = self.controller.handlers
+        if "extensions" in refreshes and hasattr(self.ExtensionsPage, "update"):
+            self.ExtensionsPage.update()
         if "llm_handlers" in refreshes:
             self.refresh_llm_rows()
         if "tools" in refreshes and self.tools_page_initialized:
@@ -1263,7 +1258,7 @@ class Settings(Adw.Window):
             if response == "delete" and self.handlers.delete_duplicated_llm(key):
                 self.refresh_llm_rows()
                 if self.popup:
-                    self.app.win.update_available_models()
+                    self.window.update_available_models()
             current.destroy()
 
         dialog.connect("response", on_response)
@@ -1274,6 +1269,24 @@ class Settings(Adw.Window):
             return
         self._building_permissions_page = True
         self.permissions_page_initialized = True
+        tool_calls_group = Adw.PreferencesGroup(title=_("Tool calls"))
+        max_tool_calls_row = Adw.SpinRow(
+            title=_("Maximum Tool Calls"),
+            subtitle=_("Maximum number of tools the model can run for one request, including scheduled tasks"),
+            adjustment=Gtk.Adjustment(
+                lower=1,
+                upper=1000,
+                step_increment=1,
+                page_increment=10,
+                value=self.settings.get_int("max-tool-calls"),
+            ),
+            digits=0,
+        )
+        def update_max_tool_calls(spin, _value):
+            self.settings.set_int("max-tool-calls", int(spin.get_value()))
+        max_tool_calls_row.connect("notify::value", update_max_tool_calls)
+        tool_calls_group.add(max_tool_calls_row)
+        self.PermissionsPage.add(tool_calls_group)
         self.build_file_permissions_settings()
         self.build_command_permissions_settings()
         self.build_path_security_settings()
@@ -2270,7 +2283,7 @@ class Settings(Adw.Window):
 
         self.mcp_catalog_group = Adw.PreferencesGroup(
             title=_("Connect Application"),
-            description=_("Choose an application from the MCP catalog"),
+            description=_("Connect an MCP server or install an extension"),
         )
         self.mcp_catalog = ConnectApplicationView(
             parent=self,
@@ -2516,7 +2529,7 @@ class Settings(Adw.Window):
                 command = self.mcp_command_entry.get_text().strip()
                 command = os.path.expanduser(command)
                 if not command:
-                    self.app.win.show_error_dialog(_("Error"), _("Command is required for stdio servers"), parent=self)
+                    self.window.show_error_dialog(_("Error"), _("Command is required for stdio servers"), parent=self)
                     return
                 
                 args_text = self.mcp_args_entry.get_text().strip()
@@ -2530,10 +2543,10 @@ class Settings(Adw.Window):
                     try:
                         env = json.loads(env_text)
                         if not isinstance(env, dict):
-                            self.app.win.show_error_dialog(_("Error"), _("Environment variables must be a JSON object"), parent=self)
+                            self.window.show_error_dialog(_("Error"), _("Environment variables must be a JSON object"), parent=self)
                             return
                     except json.JSONDecodeError as e:
-                        self.app.win.show_error_dialog(_("Error"), _("Invalid JSON in environment variables: ") + str(e), parent=self)
+                        self.window.show_error_dialog(_("Error"), _("Invalid JSON in environment variables: ") + str(e), parent=self)
                         return
                 
                 self._disable_mcp_form()
@@ -2550,13 +2563,13 @@ class Settings(Adw.Window):
                         )
                         self.settings.set_string("mcp-servers", json.dumps(mcp_handler.mcp_servers))
                         if not added:
-                            GLib.idle_add(self.app.win.show_error_dialog, _("Error"), _("Failed to add MCP server"), self)
+                            GLib.idle_add(self.window.show_error_dialog, _("Error"), _("Failed to add MCP server"), self)
                         GLib.idle_add(self.refresh_mcp_servers_list)
                         GLib.idle_add(self.refresh_tools_list)
                     except Exception as e:
                         traceback.print_exc()
                         err_msg = self._mcp_error_message(e)
-                        GLib.idle_add(self.app.win.show_error_dialog, _("Error"), _("Failed to add MCP server: {}").format(err_msg), self)
+                        GLib.idle_add(self.window.show_error_dialog, _("Error"), _("Failed to add MCP server: {}").format(err_msg), self)
                     finally:
                         GLib.idle_add(self._enable_mcp_form)
                         GLib.idle_add(self._clear_mcp_form)
@@ -2565,7 +2578,7 @@ class Settings(Adw.Window):
             else:
                 url = self.mcp_url_entry.get_text().strip()
                 if not url:
-                    self.app.win.show_error_dialog(_("Error"), _("URL is required for HTTP servers"), parent=self)
+                    self.window.show_error_dialog(_("Error"), _("URL is required for HTTP servers"), parent=self)
                     return
                 
                 bearer_token = self.mcp_token_entry.get_text().strip() or None
@@ -2580,10 +2593,10 @@ class Settings(Adw.Window):
                     try:
                         custom_headers = json.loads(headers_text)
                         if not isinstance(custom_headers, dict):
-                            self.app.win.show_error_dialog(_("Error"), _("Custom headers must be a JSON object"), parent=self)
+                            self.window.show_error_dialog(_("Error"), _("Custom headers must be a JSON object"), parent=self)
                             return
                     except json.JSONDecodeError as e:
-                        self.app.win.show_error_dialog(_("Error"), _("Invalid JSON in custom headers: ") + str(e), parent=self)
+                        self.window.show_error_dialog(_("Error"), _("Invalid JSON in custom headers: ") + str(e), parent=self)
                         return
                 
                 self._disable_mcp_form()
@@ -2596,7 +2609,7 @@ class Settings(Adw.Window):
                             config_dir = self.controller.config_dir
                             success, err_msg = run_oauth_flow(url, config_dir)
                             if not success:
-                                GLib.idle_add(self.app.win.show_error_dialog, _("OAuth Error"), err_msg or _("Authentication failed"), self)
+                                GLib.idle_add(self.window.show_error_dialog, _("OAuth Error"), err_msg or _("Authentication failed"), self)
                                 return
                         added = mcp_handler.add_mcp_server(
                             url=url,
@@ -2609,7 +2622,7 @@ class Settings(Adw.Window):
                         )
                         self.settings.set_string("mcp-servers", json.dumps(mcp_handler.mcp_servers))
                         if not added:
-                            GLib.idle_add(self.app.win.show_error_dialog, _("Error"), _("Failed to add MCP server"), self)
+                            GLib.idle_add(self.window.show_error_dialog, _("Error"), _("Failed to add MCP server"), self)
                         GLib.idle_add(self.refresh_mcp_servers_list)
                         GLib.idle_add(self.refresh_tools_list)
                     except Exception as e:
@@ -2633,7 +2646,7 @@ class Settings(Adw.Window):
                             )
                         else:
                             err_msg = _("Failed to add MCP server: {}").format(err_msg)
-                        GLib.idle_add(self.app.win.show_error_dialog, _("Error"), err_msg, self)
+                        GLib.idle_add(self.window.show_error_dialog, _("Error"), err_msg, self)
                     finally:
                         GLib.idle_add(self._enable_mcp_form)
                         GLib.idle_add(self._clear_mcp_form)
@@ -2855,7 +2868,7 @@ class Settings(Adw.Window):
                 message = _("Added {} MCP servers").format(len(added_names))
             self.add_toast(Adw.Toast(title=message))
         if failures:
-            self.app.win.show_error_dialog(
+            self.window.show_error_dialog(
                 _("Some MCP servers could not be added"),
                 "\n".join(failures),
                 parent=self,
@@ -3010,7 +3023,7 @@ class Settings(Adw.Window):
                 GLib.idle_add(self.refresh_tools_list)
                 GLib.idle_add(lambda: self.add_toast(Adw.Toast(title=_("Re-authentication successful"))))
             else:
-                GLib.idle_add(self.app.win.show_error_dialog, _("OAuth Error"), err_msg or _("Re-authentication failed"), self)
+                GLib.idle_add(self.window.show_error_dialog, _("OAuth Error"), err_msg or _("Re-authentication failed"), self)
             GLib.idle_add(btn.set_sensitive, True)
 
         threading.Thread(target=reauth_thread, daemon=True).start()
@@ -3140,6 +3153,7 @@ class Settings(Adw.Window):
 
     def build_prompts_settings(self):
         self.prompts_settings = self.controller.newelle_settings.prompts_settings
+        self.user_message_prompts_settings = self.controller.newelle_settings.user_message_prompts_settings
         for prompt in self.prompts_rows:
             self.prompt.remove(prompt)
         self.prompts_rows = []
@@ -3159,6 +3173,18 @@ class Settings(Adw.Window):
             drag_handle.add_css_class("dim-label")
             drag_handle.set_valign(Gtk.Align.CENTER)
             row.add_prefix(drag_handle)
+
+            user_message_row = Adw.ActionRow(
+                title=_("User Message prompts"),
+                subtitle=_("Add this prompt at the start of user messages inside <context> tags"),
+                use_markup=False,
+            )
+            user_message_switch = Gtk.Switch(valign=Gtk.Align.CENTER)
+            user_message_switch.set_active(self.controller.newelle_settings.prompt_uses_user_message(prompt))
+            user_message_switch.connect("notify::active", self.update_user_message_prompt, prompt["setting_name"])
+            user_message_row.add_suffix(user_message_switch)
+            user_message_row.set_activatable_widget(user_message_switch)
+            row.add_row(user_message_row)
 
             if prompt["editable"]:
                 self.add_customize_prompt_content(row, prompt["key"], prompt["title"])
@@ -3483,6 +3509,23 @@ class Settings(Adw.Window):
 
             copy_button.connect("clicked", copy_override_command)
 
+        chat_row = Adw.ComboRow(
+            title=_("Voice pill chat"),
+            subtitle=_("Choose which conversation the voice pill uses"),
+        )
+        chat_modes = (
+            (_("Start a new chat each time"), "new"),
+            (_("Use the currently selected chat"), "current"),
+            (_("Always use the same voice pill chat"), "shared"),
+        )
+        chat_helper = ComboRowHelper(
+            chat_row, chat_modes, self.settings.get_string("voice-mode-chat")
+        )
+        chat_helper.connect(
+            "changed", lambda _helper, value: self.settings.set_string("voice-mode-chat", value)
+        )
+        group.add(chat_row)
+
         position_row = Adw.ComboRow(
             title=_("Pill position"),
             subtitle=_("Choose where Voice Mode appears on the desktop"),
@@ -3525,6 +3568,25 @@ class Settings(Adw.Window):
         margin_row.connect("input", update_voice_margin)
         group.add(margin_row)
 
+        workspace_row = Adw.ComboRow(
+            title=_("Newelle Workspace"),
+            subtitle=_("Use this workspace only for voice requests"),
+        )
+        workspace_options = [(_("Follow current"), "current")]
+        workspace_options.extend(
+            (workspace["name"], workspace_id)
+            for workspace_id, workspace in self.controller.workspaces.items()
+        )
+        helper = ComboRowHelper(
+            workspace_row,
+            tuple(workspace_options),
+            self.settings.get_string("voice-mode-workspace"),
+        )
+        helper.connect(
+            "changed", lambda _helper, value: self.settings.set_string("voice-mode-workspace", value)
+        )
+        group.add(workspace_row)
+
         mode_row = Adw.ComboRow(
             title=_("Newelle Mode"),
             subtitle=_("Use this Mode only for voice requests"),
@@ -3542,6 +3604,26 @@ class Settings(Adw.Window):
             "changed", lambda _helper, value: self.settings.set_string("voice-mode-mode", value)
         )
         group.add(mode_row)
+
+        feedback_row = Adw.ComboRow(
+            title=_("Response feedback"),
+            subtitle=_("How much of the current reply the voice pill should show"),
+        )
+        feedback_modes = (
+            (_("Required only"), "required"),
+            (_("Tool widgets only"), "tools"),
+            (_("Full"), "full"),
+        )
+        helper = ComboRowHelper(
+            feedback_row,
+            feedback_modes,
+            self.settings.get_string("voice-mode-feedback"),
+        )
+        helper.connect(
+            "changed",
+            lambda _helper, value: self.settings.set_string("voice-mode-feedback", value),
+        )
+        group.add(feedback_row)
 
         theme_row = Adw.ComboRow(
             title=_("Pill theme"),
@@ -3616,21 +3698,25 @@ class Settings(Adw.Window):
         group.add(shortcut_info)
 
     def build_audio_input_settings(self):
-        direct = Adw.SwitchRow(title=_("Direct audio input"), subtitle=_("Send recordings to an audio-capable language model"))
+        direct = Adw.ExpanderRow(title=_("Direct audio input"), subtitle=_("Send recordings to an audio-capable language model"))
         transcribe = Adw.SwitchRow(title=_("Transcribe audio"), subtitle=_("Use the selected speech recognition engine to add a transcript"))
         timing = Adw.ComboRow(title=_("Transcription timing"), subtitle=_("Before sending uses the transcript for context; after sending uses previous messages only"))
-        self.settings.bind("direct-audio-input", direct, "active", Gio.SettingsBindFlags.DEFAULT)
+        direct_switch = Gtk.Switch(valign=Gtk.Align.CENTER)
+        self.settings.bind("direct-audio-input", direct_switch, "active", Gio.SettingsBindFlags.DEFAULT)
+        direct.add_suffix(direct_switch)
         self.settings.bind("audio-transcribe", transcribe, "active", Gio.SettingsBindFlags.DEFAULT)
         helper = ComboRowHelper(timing, ((_("Before sending"), "before"), (_("After sending"), "after")), self.settings.get_string("audio-transcription-timing"))
         helper.connect("changed", lambda _helper, value: self.settings.set_string("audio-transcription-timing", value))
         def refresh(*_args):
-            transcribe.set_sensitive(direct.get_active())
-            timing.set_sensitive(direct.get_active() and transcribe.get_active())
-        direct.connect("notify::active", refresh)
+            transcribe.set_sensitive(direct_switch.get_active())
+            timing.set_sensitive(direct_switch.get_active() and transcribe.get_active())
+        direct_switch.connect("notify::active", refresh)
         transcribe.connect("notify::active", refresh)
+        direct.add_row(transcribe)
+        direct.add_row(timing)
         refresh()
-        for row in (direct, transcribe, timing):
-            self.Voicegroup.add(row)
+        self.Voicegroup.add(direct)
+        direct.set_enable_expansion(self.settings.get_boolean("direct-audio-input"))
 
     def build_auto_stt(self):
         auto_stt_enabled = Gtk.Switch(valign=Gtk.Align.CENTER)
@@ -3683,6 +3769,10 @@ class Settings(Adw.Window):
         """
         self.prompts_settings[key] = switch.get_active()
         self.settings.set_string("prompts-settings", json.dumps(self.prompts_settings))
+
+    def update_user_message_prompt(self, switch: Gtk.Switch, state, key: str):
+        self.user_message_prompts_settings[key] = switch.get_active()
+        self.settings.set_string("user-message-prompts", json.dumps(self.user_message_prompts_settings))
 
     def build_row(self, constants: dict[str, Any], key: str, selected: str, group: Gtk.CheckButton, secondary: bool = False) -> Adw.ActionRow | Adw.ExpanderRow:
         """Build the row for every handler
@@ -3766,20 +3856,20 @@ class Settings(Adw.Window):
     def _update_font_setting(self, key, value):
         self.settings.set_string(key, value)
         setattr(self.controller.newelle_settings, key.replace("-", "_"), value)
-        self.app.win.update_font_settings()
+        self.window.update_font_settings()
 
     def _update_font_setting_int(self, key, spin):
         val = int(spin.get_value())
         self.settings.set_int(key, val)
         setattr(self.controller.newelle_settings, key.replace("-", "_"), val)
-        self.app.win.update_font_settings()
+        self.window.update_font_settings()
         return False
 
     def _update_font_setting_double(self, key, spin):
         val = spin.get_value()
         self.settings.set_double(key, val)
         setattr(self.controller.newelle_settings, key.replace("-", "_"), val)
-        self.app.win.update_font_settings()
+        self.window.update_font_settings()
         return False
 
     def get_object(self, constants, key, secondary=False):
@@ -3874,9 +3964,9 @@ class Settings(Adw.Window):
 
         self.settings.set_string(setting_name, button.get_name())
         if constants == AVAILABLE_LLMS and self.popup:
-            self.app.win.update_available_models()
+            self.window.update_available_models()
         if constants == AVAILABLE_RAGS or constants == AVAILABLE_EMBEDDINGS:
-            self.app.win.update_settings()
+            self.window.update_settings()
             self.update_rag_index()
 
     def add_extra_settings(self, constants : dict[str, Any], handler : Handler, row : Adw.ExpanderRow, nested_settings : list | None = None, settings : list | None = None):
@@ -3942,7 +4032,7 @@ class Settings(Adw.Window):
     def _on_expand_prompt(self, button, entry, prompt_title):
         dialog = Gtk.Window()
         dialog.set_title(_("Edit Prompt"))
-        dialog.set_transient_for(self.app.win)
+        dialog.set_transient_for(self.window)
         dialog.set_modal(True)
         dialog.set_default_size(700, 500)
 
@@ -4128,6 +4218,9 @@ class Settings(Adw.Window):
         if key in self.prompts_settings:
             del self.prompts_settings[key]
             self.settings.set_string("prompts-settings", json.dumps(self.prompts_settings))
+        if key in self.user_message_prompts_settings:
+            del self.user_message_prompts_settings[key]
+            self.settings.set_string("user-message-prompts", json.dumps(self.user_message_prompts_settings))
         order = json.loads(self.settings.get_string("prompts-order"))
         if key in order:
             order.remove(key)

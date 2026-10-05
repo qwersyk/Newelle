@@ -74,7 +74,9 @@ class ExtraSettingsBuilder:
         handler: Handler,
         constants: dict[str, Any],
     ) -> Adw.ExpanderRow | Adw.ActionRow | Adw.ComboRow | None:
-        if setting["type"] == "entry":
+        if setting["type"] == "info":
+            row = Adw.ActionRow(title=setting["title"], subtitle=setting["description"])
+        elif setting["type"] == "entry":
             row = Adw.ActionRow(title=setting["title"], subtitle=setting["description"])
             value = str(handler.get_setting(setting["key"]))
             password = setting.get("password", False)

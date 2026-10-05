@@ -43,9 +43,9 @@ class LlamaIndexMemoryHandler(MemoryHandler):
 
     def get_extra_settings(self) -> list:
         return [
-            ExtraSettings.ButtonSetting("reset_memory", "Reset Memory", "Reset the memory", lambda x: self.reset_memory(), "Reset Memory"),
-            ExtraSettings.ScaleSetting("similarity_threshold", "Similarity Threshold", "Minimum similarity for retrieved memories", 0.7, 0.0, 1.0, 2),
-            ExtraSettings.ScaleSetting("max_memory_count", "Max Memories", "Maximum number of memories to retrieve", 5, 1, 20, 0),
+            ExtraSettings.ButtonSetting("reset_memory", _("Reset Memory"), _("Reset the memory"), lambda x: self.reset_memory(), "Reset Memory"),
+            ExtraSettings.ScaleSetting("similarity_threshold", _("Similarity Threshold"), _("Minimum similarity for retrieved memories"), 0.7, 0.0, 1.0, 2),
+            ExtraSettings.ScaleSetting("max_memory_count", _("Max Memories"), _("Maximum number of memories to retrieve"), 5, 1, 20, 0),
         ]
 
     def reset_memory(self):

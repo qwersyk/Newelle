@@ -66,21 +66,21 @@ class OpenAIImageHandler(ImageGeneratorHandler):
             ]
         else:
             model_settings = [
-                ExtraSettings.ComboSetting("model", "Model", "Image generation model", self.models, default_model, refresh=lambda x: self._refresh_models()),
+                ExtraSettings.ComboSetting("model", _("Model"), _("Image generation model"), self.models, default_model, refresh=lambda x: self._refresh_models()),
             ]
         return [
-            ExtraSettings.EntrySetting("api", "API Key", "OpenAI API key", "", password=True),
-            ExtraSettings.EntrySetting("endpoint", "API Endpoint", "Custom endpoint for OpenAI-compatible services. Leave empty for default OpenAI endpoint.", "", website="https://platform.openai.com/docs/api-reference/images"),
+            ExtraSettings.EntrySetting("api", _("API Key"), _("OpenAI API key"), "", password=True),
+            ExtraSettings.EntrySetting("endpoint", _("API Endpoint"), _("Custom endpoint for OpenAI-compatible services. Leave empty for default OpenAI endpoint."), "", website="https://platform.openai.com/docs/api-reference/images"),
             ExtraSettings.ToggleSetting("custom_model", _("Use Custom Model"), _("Use a custom model name instead of selecting from the list"), False, update_settings=True),
             *model_settings,
-            ExtraSettings.SpinSetting("height", "Height", "Height of the generated image", 512, 256, 2048, 0),
-            ExtraSettings.SpinSetting("width", "Width", "Width of the generated image", 512, 256, 2048, 0),
-            ExtraSettings.ComboSetting("quality", "Quality", "Image quality (dall-e-3 only)", (
+            ExtraSettings.SpinSetting("height", _("Height"), _("Height of the generated image"), 512, 256, 2048, 0),
+            ExtraSettings.SpinSetting("width", _("Width"), _("Width of the generated image"), 512, 256, 2048, 0),
+            ExtraSettings.ComboSetting("quality", _("Quality"), _("Image quality (dall-e-3 only)"), (
                 ("standard", "Standard"),
                 ("hd", "HD"),
                 ), "standard"),
-            ExtraSettings.MultilineEntrySetting("positive-prompt", "Positive Prompt Template", "Prompt template, [input] will be replaced with the user prompt", "[input]"),
-            ExtraSettings.EntrySetting("style", "Style", "Generation style: vivid or natural (dall-e-3 only)", "vivid"),
+            ExtraSettings.MultilineEntrySetting("positive-prompt", _("Positive Prompt Template"), _("Prompt template, [input] will be replaced with the user prompt"), "[input]"),
+            ExtraSettings.EntrySetting("style", _("Style"), _("Generation style: vivid or natural (dall-e-3 only)"), "vivid"),
         ]
 
     def _refresh_models(self):

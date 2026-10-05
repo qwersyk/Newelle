@@ -99,7 +99,11 @@ class SourcesButton(Gtk.MenuButton):
     """Bottom-of-message button whose popover lists every cited source."""
 
     def __init__(self, sources: list[CitationSource], on_open):
-        super().__init__(css_classes=["flat", "pill", "sources-button"], halign=Gtk.Align.START)
+        super().__init__(
+            css_classes=["flat", "pill", "sources-button"],
+            halign=Gtk.Align.START,
+            margin_top=12,
+        )
         self.sources = sources
         self.on_open = on_open
         self.set_always_show_arrow(False)

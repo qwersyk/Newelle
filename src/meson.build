@@ -37,6 +37,7 @@ newelle_sources = [
   'window.py',
   'extensions.py',
   'controller.py',
+  'workspaces.py',
   'ui_controller.py',
   'tools.py',
   'skills.py',
@@ -61,6 +62,7 @@ integrations_sources = [
 ui_sources = [
   'ui/__init__.py',
   'ui/profile.py',
+  'ui/workspaces.py',
   'ui/extension.py',
   'ui/extensions_catalog.py',
   'ui/settings.py',
@@ -81,6 +83,7 @@ ui_sources = [
   'ui/extra_settings.py',
   'ui/interfaces.py',
   'ui/build_dependency_warning.py',
+  'ui/usage.py',
 ]
 
 widgets_sources = [
@@ -99,6 +102,7 @@ widgets_sources = [
   'ui/widgets/grep.py',
   'ui/widgets/list_directory.py',
   'ui/widgets/context_indicator.py',
+  'ui/widgets/usage_chart.py',
   'ui/widgets/folderrow.py',
   'ui/widgets/latex.py',
   'ui/widgets/mermaid.py',
@@ -115,6 +119,7 @@ widgets_sources = [
   'ui/widgets/tool.py',
   'ui/widgets/skill.py',
   'ui/widgets/skill_editor_mini_app.py',
+  'ui/widgets/memory_mini_app.py',
   'ui/widgets/subagent.py',
   'ui/widgets/scheduled_task.py',
   'ui/widgets/status.py',
@@ -201,11 +206,11 @@ embedding_sources = [
 memory_sources = [  
   'handlers/memory/__init__.py',
   'handlers/memory/memory_handler.py',
-  'handlers/memory/memoripy_handler.py',
-  'handlers/memory/summary_memoripy_handler.py',
   'handlers/memory/user_summary_handler.py',
   'handlers/memory/llamaindex_memory_handler.py',
-  'handlers/memory/agentic_memory_handler.py'
+  'handlers/memory/agentic_memory_handler.py',
+  'handlers/memory/memory_store.py',
+  'handlers/memory/long_term_memory_handler.py',
 ]
 
 rag_sources = [  
@@ -242,6 +247,7 @@ interface_sources = [
 ]
 
 utility_sources = [
+  'utility/screenshot.py',
   'utility/__init__.py',
   'utility/media.py',
   'utility/pip.py',
@@ -261,6 +267,7 @@ utility_sources = [
   'utility/force_sync.py',
   'utility/file_search.py',
   'utility/context_manager.py',
+  'utility/usage_tracker.py',
   'utility/source_attribution.py',
   'utility/command_permissions.py',
   'utility/command_runner.py',

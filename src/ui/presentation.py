@@ -10,6 +10,7 @@ class PresentationWindow(Adw.Window):
     def __init__(self, title, settings, parent):
         super().__init__(title=title, deletable=True, modal=True)
         self.app = parent.get_application()
+        self.main_window = parent
         self.controller = parent.controller
         self.settings = settings
 
@@ -50,7 +51,7 @@ class PresentationWindow(Adw.Window):
 
     def close_window(self,_=None):
         self.settings.set_boolean("welcome-screen-shown", True)
-        self.app.win.update_settings()
+        self.main_window.update_settings()
         self.destroy()
     def page_changes(self, carousel, page):
         """Called when a page of carousel is changed. Changes the opacity of the next and previous buttons"""
@@ -263,4 +264,3 @@ class PresentationWindow(Adw.Window):
         pic = Gtk.Picture()
         pic.set_resource(picture)
         return self.create_page(title, description, pic, actions)
-

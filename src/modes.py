@@ -420,6 +420,8 @@ class ModeManager:
                 self.active_mode = target_name
                 self.settings.set_string("current-mode", target_name)
         self._save_modes()
+        if target_name != name and hasattr(self, "workspace_reference_changed"):
+            self.workspace_reference_changed(name, target_name)
         return target_name
 
     def rename_mode(self, name: str, new_name: str) -> str:
@@ -436,6 +438,8 @@ class ModeManager:
         if name not in self.modes:
             return False
         del self.modes[name]
+        if hasattr(self, "workspace_reference_changed"):
+            self.workspace_reference_changed(name, DEFAULT_MODE_NAME)
         self._save_modes()
         # If the active mode was removed, fall back to Normal.
         if self.active_mode == name:

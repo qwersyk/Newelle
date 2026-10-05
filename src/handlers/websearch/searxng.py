@@ -1,17 +1,16 @@
 from .websearch import WebSearchHandler
 from ...handlers import ExtraSettings, ErrorSeverity
-from ...utility.website_scraper import WebsiteScraper
 
 class SearXNGHandler(WebSearchHandler):
     key = "searxng"
 
     def get_extra_settings(self) -> list:
         return [
-            ExtraSettings.EntrySetting("endpoint", "SearXNG Instance", "URL of the instance of SearXNG to query.\nIt is strongly suggested to selfhost your own instance with json mode enabled", "https://search.nyarchlinux.moe"),
-            ExtraSettings.EntrySetting("lang", "Language", "Language for the search results", "en"),
-            ExtraSettings.ScaleSetting("results", "Results", "Number of results to consider", 2, 1, 10, 0),
-            ExtraSettings.ToggleSetting("scrape", "Instance scraping", "Scrape SearXNG instance if JSON format is not enabled", True),
-            ExtraSettings.ToggleSetting("streaming", "Show search progress", "Show search progress", True)
+            ExtraSettings.EntrySetting("endpoint", _("SearXNG Instance"), _("URL of the instance of SearXNG to query.\nIt is strongly suggested to selfhost your own instance with json mode enabled"), "https://search.nyarchlinux.moe"),
+            ExtraSettings.EntrySetting("lang", _("Language"), _("Language for the search results"), "en"),
+            ExtraSettings.ScaleSetting("results", _("Results"), _("Number of results to consider"), 2, 1, 10, 0),
+            ExtraSettings.ToggleSetting("scrape", _("Instance scraping"), _("Scrape SearXNG instance if JSON format is not enabled"), True),
+            ExtraSettings.ToggleSetting("streaming", _("Show search progress"), _("Show search progress"), True)
         ]
 
     def supports_streaming_query(self) -> bool:
@@ -36,7 +35,6 @@ class SearXNGHandler(WebSearchHandler):
             for result in content
         )
         return text, urls
-
 
     def extract_links_from_html(self,response):
         from bs4 import BeautifulSoup
@@ -125,45 +123,3 @@ class SearXNGHandler(WebSearchHandler):
         result_links = self.extract_links_from_html(response.text)
         return result_links
 
-    def scrape_websites(self, result_links, update, max_results=None):
-        if max_results is None:
-            max_results = self.get_setting("results")
-        lang = self.get_setting("lang")
-        if not result_links:
-            print("No result links found on the SearXNG page.")
-            return [],[]
-        urls = []
-        extracted_content = []
-        processed_count = 0
-
-        for url, initial_title in result_links:
-            if processed_count >= max_results:
-                print(f"Reached maximum results limit ({max_results}).")
-                break
-
-            print(f"\nProcessing URL ({processed_count + 1}/{min(len(result_links), max_results)}): {url}")
-            article_data = {'url': url, 'title': initial_title, 'text': ''} # Pre-populate with URL and initial title
-
-            try:
-                # Configure Article object
-                article = WebsiteScraper(url)
-                # Download and parse
-                article.parse_article()
-                update(article.get_title(), url, article.get_favicon())
-                # Check if parsing was successful and text was extracted
-                text = article.get_text()
-                if text:
-                    article_data['title'] = article.get_title() or initial_title # Prefer newspaper's title if available
-                    article_data['text'] = text
-                    extracted_content.append(article_data)
-                    urls.append(url)
-                    print(f"  Successfully extracted content. Title: '{article_data['title']}'")
-                    processed_count += 1
-                else:
-                    print("  Could not extract main text content from the page.")
-            except Exception as e:
-                # Catch other potential errors during download/parse
-                print(f"  An unexpected error occurred processing {url}: {e}")
-        
-        print(f"\nFinished processing. Successfully extracted content from {len(extracted_content)} URLs.")
-        return extracted_content, urls

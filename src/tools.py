@@ -180,7 +180,8 @@ class Tool:
         params = {}
         required = []
         for name, param in sig.parameters.items():
-            if name == "self":
+            if name == "self" or name in ("msg_uuid", "tool_uuid", "chat_id"):
+                # Internal parameters are injected by the framework, never provided by the LLM
                 continue
             param_type = "string"
             if param.annotation == int:

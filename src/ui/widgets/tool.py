@@ -3,6 +3,8 @@ import gettext
 from gi.repository import Gtk, Adw, Pango
 
 from ...utility.tool_call_group import ToolCallGroupState
+from ...utility.message_chunk import get_message_chunks
+from ...ui import append_image_codeblock
 
 
 _ = gettext.gettext
@@ -321,7 +323,7 @@ class ToolWidget(Gtk.ListBox):
         self.append(self.expander_row)
         self.chunk_text = chunk_text
 
-    def set_result(self, success, result_text):
+    def set_result(self, success, result_text, context_messages=None):
         if not self.get_display():
             return
         self.expander_row.set_subtitle("Completed" if success else "Error")
@@ -336,4 +338,8 @@ class ToolWidget(Gtk.ListBox):
             xalign=0,
         )
         content_box.append(label)
+        for message in context_messages or []:
+            for chunk in get_message_chunks(message, allow_latex=False):
+                if chunk.type == "codeblock" and chunk.lang == "image":
+                    append_image_codeblock(chunk.text, content_box)
         self.expander_row.add_row(content_box)

@@ -2,13 +2,12 @@ import threading
 from gettext import gettext as _
 import uuid
 import inspect
-import base64
 import json
 import os
 import re
 import tempfile
 import socket
-from gi.repository import Gtk, GLib, Pango, GdkPixbuf, Gio, Gdk
+from gi.repository import Gtk, GLib, Pango, Gio, Gdk
 
 from ...utility.message_chunk import get_message_chunks, MessageChunk, normalize_tool_arguments
 from ...utility.source_attribution import CitationSource, extract_source_section
@@ -31,7 +30,7 @@ from .markuptextview import MarkupTextView
 from .tool import ToolWidget, ToolCallSlot, ToolCallsGroupWidget
 from .sources import SourceChip, SourcesButton
 from ...tools import ToolResult
-from ...ui import apply_css_to_widget, load_image_with_callback
+from ...ui import apply_css_to_widget, append_image_codeblock
 
 
 _STREAM_FADE_DURATION_US = 140_000
@@ -102,6 +101,44 @@ class Message(Gtk.Box):
         self.streaming = is_streaming
         self._render_serial = getattr(self, '_render_serial', 0) + 1
         GLib.idle_add(self._ui_sync_content, message, self._render_serial)
+
+    def reindex_after_deletion(self, start, end):
+        """Keep rendered content and deferred callbacks tied to their live records."""
+        def shifted(index):
+            if index < start:
+                return index
+            return index - (end - start) if index >= end else start
+
+        self.id_message = shifted(self.id_message)
+        for key in ("id_message", "original_id"):
+            self.state[key] = shifted(self.state[key])
+        # Tool result/code widgets can be parented in another message's group.
+        roots = [self]
+        for _kind, widget, _chunk in self.widgets_map:
+            roots.extend(widget if isinstance(widget, list) else [widget])
+        seen = set()
+        while roots:
+            widget = roots.pop()
+            if not isinstance(widget, Gtk.Widget) or id(widget) in seen:
+                continue
+            seen.add(id(widget))
+            if widget is not self and isinstance(widget, Message):
+                continue
+            # Shared group children belong to several messages. Visit only
+            # this message's mapped slots, not the whole shared expander.
+            if isinstance(widget, ToolCallsGroupWidget):
+                continue
+            if isinstance(widget, CopyBox):
+                widget.id_message = shifted(widget.id_message)
+            if isinstance(widget, ToolCallSlot):
+                widget.message_id = self.id_message
+                widget._compact_order = (self.id_message, widget.entry_id)
+            child = widget.get_first_child()
+            while child is not None:
+                roots.append(child)
+                child = child.get_next_sibling()
+        for widget, order in self._compact_moved_widgets.items():
+            widget._compact_order = (self.id_message, order)
 
     def _ui_sync_content(self, message: str, serial: int = -1):
         """Internal method to synchronize UI (Main Thread only)."""
@@ -602,7 +639,7 @@ class Message(Gtk.Box):
         if self._has_renderable_citation(text):
             widgets = {}
             markdown = self._inject_source_widgets(text, widgets)
-            box.append(self._build_markup_overlay(markdown, widgets, text))
+            box.append(self._build_markup_overlay(markdown, widgets))
             return
 
         label_kwargs = dict(
@@ -655,22 +692,12 @@ class Message(Gtk.Box):
             parts[index] = replace_segment(parts[index])
         return "".join(parts)
 
-    def _build_markup_overlay(self, markdown: str, widgets: dict, measure_text: str) -> Gtk.Widget:
+    def _build_markup_overlay(self, markdown: str, widgets: dict) -> Gtk.Widget:
         overlay = Gtk.Overlay(hexpand=True)
-        measure = Gtk.Label(
-            label=measure_text,
-            wrap=True,
-            wrap_mode=Pango.WrapMode.WORD_CHAR,
-            width_chars=1,
-            hexpand=True,
-            xalign=0,
-        )
-        measure.set_opacity(0)
-        overlay.set_child(measure)
-
-        textview = MarkupTextView(hexpand=True, valign=Gtk.Align.START)
-        overlay.add_overlay(textview)
-        overlay.set_measure_overlay(textview, True)
+        textview = MarkupTextView(fit_content=True, hexpand=True, valign=Gtk.Align.START)
+        textview.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
+        # Measure the actual text and child anchors, including wrapped chips.
+        overlay.set_child(textview)
 
         markup = markwon_to_pango(markdown, validate=not self.streaming)
         markup = re.sub(r'WZIDZW(\d+)WZIDZW', r'<widget id="\1"/>', markup)
@@ -960,36 +987,7 @@ class Message(Gtk.Box):
             box.append(self._create_copybox(text, lang, state=state, codeblock_id=codeblock_id, allow_edit=state["editable"], enable_run_callback=True))
 
     def _process_image_codeblock(self, text, box):
-        for line in text.split("\n"):
-            if not line.strip(): continue
-            image = Gtk.Image(css_classes=["image"])
-            if line.startswith("data:image/"):
-                try:
-                    header_end = line.index(",")
-                    data = line[header_end + 1:]
-                    raw_data = base64.b64decode(data)
-                    texture = Gdk.Texture.new_from_bytes(GLib.Bytes.new(raw_data))
-                    image.set_from_paintable(texture)
-                    box.append(image)
-                except Exception:
-                    try:
-                        header_end = line.index(",")
-                        data = line[header_end + 1:]
-                        raw_data = base64.b64decode(data)
-                        loader = GdkPixbuf.PixbufLoader()
-                        loader.write(raw_data)
-                        loader.close()
-                        image.set_from_pixbuf(loader.get_pixbuf())
-                        box.append(image)
-                    except Exception:
-                        pass
-            elif line.startswith(("https://", "http://")):
-                img = image
-                load_image_with_callback(line, lambda pixbuf_loader, i=img: i.set_from_pixbuf(pixbuf_loader.get_pixbuf()))
-                box.append(image)
-            else:
-                image.set_from_file(line)
-                box.append(image)
+        append_image_codeblock(text, box)
 
     def _process_video_codeblock(self, text, box):
         for line in text.split("\n"):
@@ -1025,15 +1023,11 @@ class Message(Gtk.Box):
     def _process_inline_chunks(self, chunk, box):
         if not chunk.subchunks: return
         overlay = Gtk.Overlay()
-        label = Gtk.Label(wrap=True)
-        label.set_opacity(0)
-        overlay.set_child(label)
-        textview = MarkupTextView()
+        textview = MarkupTextView(fit_content=True)
         textview.set_valign(Gtk.Align.START)
         textview.set_hexpand(True)
-        overlay.add_overlay(textview)
-        overlay.set_measure_overlay(textview, True)
-        overlay._inline_measure = label
+        textview.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
+        overlay.set_child(textview)
         overlay._inline_textview = textview
         overlay._inline_latex_widgets = {}
         overlay._inline_processed_markup = None
@@ -1044,7 +1038,6 @@ class Message(Gtk.Box):
     def _update_inline_chunks_widget(self, overlay, chunk):
         """Update mixed inline markup without rebuilding rendered equations."""
         subchunks = chunk.subchunks or []
-        overlay._inline_measure.set_label(" ".join(ch.text for ch in subchunks))
 
         full_markdown = ""
         widgets_dict = {}
@@ -1354,12 +1347,10 @@ class Message(Gtk.Box):
                 tool_failed = False
                 if restore:
                     try:
-                        result = tool.restore(
-                            msg_uuid=msg_uuid,
-                            tool_uuid=tool_uuid,
-                            chat_id=chat_id,
-                            **args,
-                        )
+                        # Merge into a dict first: the model must never be able to
+                        # override (or collide with) the framework-injected ids.
+                        tool_kwargs = {**args, "msg_uuid": msg_uuid, "tool_uuid": tool_uuid, "chat_id": chat_id}
+                        result = tool.restore(**tool_kwargs)
                     except Exception as e:
                         tool_failed = True
                         result = ToolResult()
@@ -1379,12 +1370,8 @@ class Message(Gtk.Box):
                         result = redirect
                     else:
                         try:
-                            result = tool.execute(
-                                msg_uuid=msg_uuid,
-                                tool_uuid=tool_uuid,
-                                chat_id=chat_id,
-                                **args,
-                            )
+                            tool_kwargs = {**args, "msg_uuid": msg_uuid, "tool_uuid": tool_uuid, "chat_id": chat_id}
+                            result = tool.execute(**tool_kwargs)
                         except Exception as e:
                             tool_failed = True
                             result = ToolResult()
@@ -1434,7 +1421,7 @@ class Message(Gtk.Box):
                     GLib.idle_add(swap_widget)
 
                     # Handle result closure
-                    def on_result(code):
+                    def on_result(code, context_messages):
                         active_group = current_group()
                         if active_group is not None:
                             active_group.set_slot_state(
@@ -1442,8 +1429,8 @@ class Message(Gtk.Box):
                             )
                 else:
                     # Use placeholder (ToolWidget)
-                    def on_result(code):
-                        placeholder.set_result(code[0], code[1])
+                    def on_result(code, context_messages):
+                        placeholder.set_result(code[0], code[1], context_messages)
                         active_group = current_group()
                         if active_group is not None:
                             active_group.set_slot_state(
@@ -1473,7 +1460,11 @@ class Message(Gtk.Box):
                             formatted = f"[Tool: {tool.name}, ID: {tool_uuid}]\n{console_output}"
                             self.controller.append_chat_message(
                                 chat_id,
-                                {"User": "Console", "Message": formatted},
+                                {
+                                    "User": "Console",
+                                    "Message": formatted,
+                                    "ToolContextMessages": context_messages,
+                                },
                             )
                             for context_message in context_messages:
                                 self.controller.append_chat_message(
@@ -1486,8 +1477,11 @@ class Message(Gtk.Box):
                                 )
                     else:
                         code = (True, reply_from_console)
+                        context_messages = self.controller.get_tool_context_messages(
+                            chat_id, state["id_message"], tool.name, tool_uuid
+                        )
                     
-                    GLib.idle_add(on_result, code)
+                    GLib.idle_add(on_result, code, context_messages)
  
                 t = threading.Thread(target=get_response, args=(reply_from_console,))
                 state["running_threads"].append(t)

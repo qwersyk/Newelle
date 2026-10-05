@@ -459,6 +459,15 @@ class TelegramInterface(ChatInterface):
         async def profile_cmd(update: Update, context):
             await _reply(update, context, "profile", context.args)
 
+        async def workspace_cmd(update: Update, context):
+            await _reply(update, context, "workspace", context.args)
+
+        async def workspaces_cmd(update: Update, context):
+            await _reply(update, context, "workspaces", context.args)
+
+        async def move_workspace_cmd(update: Update, context):
+            await _reply(update, context, "move_workspace", context.args)
+
         async def mode_cmd(update: Update, context):
             await _reply(update, context, "mode", context.args)
 
@@ -772,6 +781,9 @@ class TelegramInterface(ChatInterface):
         app.add_handler(CommandHandler("models", models_cmd))
         app.add_handler(CommandHandler("model", model_cmd))
         app.add_handler(CommandHandler("profile", profile_cmd))
+        app.add_handler(CommandHandler("workspace", workspace_cmd))
+        app.add_handler(CommandHandler("workspaces", workspaces_cmd))
+        app.add_handler(CommandHandler("move_workspace", move_workspace_cmd))
         app.add_handler(CommandHandler("mode", mode_cmd))
         app.add_handler(CommandHandler("prompts", prompts_cmd))
         app.add_handler(CommandHandler("tools", tools_cmd))

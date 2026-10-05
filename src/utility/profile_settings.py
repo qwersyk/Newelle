@@ -39,9 +39,10 @@ def get_settings_dict_by_groups(settings, groups: list, settings_groups: dict, b
         if group in settings_groups:
             allowed_keys.update(settings_groups[group]["settings"])
     
+    # Path and active mode belong to the workspace, even in older profile snapshots.
     settings_dict = {}
     for key in settings.list_keys():
-        if key in blacklisted_keys or key not in allowed_keys:
+        if key in blacklisted_keys or key in ("path", "current-mode") or key not in allowed_keys:
             continue
         value = settings.get_value(key)
         settings_dict[key] = value.unpack()
@@ -66,7 +67,7 @@ def restore_settings_from_dict_by_groups(settings, settings_dict, groups: list, 
             allowed_keys.update(settings_groups[group]["settings"])
     
     for key, value in settings_dict.items():
-        if key not in allowed_keys:
+        if key in ("path", "current-mode") or key not in allowed_keys:
             continue
         current_value = settings.get_value(key)
         variant = GLib.Variant(current_value.get_type_string(), value)

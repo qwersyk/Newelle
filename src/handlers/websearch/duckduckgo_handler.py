@@ -1,4 +1,3 @@
-from ...utility.website_scraper import WebsiteScraper
 from .websearch import WebSearchHandler
 from ...handlers import ExtraSettings, ErrorSeverity
 
@@ -56,46 +55,4 @@ class DDGSeachHandler(WebSearchHandler):
             for result in content
         )
         return text, urls
-    
-    def scrape_websites(self, result_links, update, max_results=None):
-        if max_results is None:
-            max_results = self.get_setting("results")
-        if not result_links:
-            print("No result links found on the DDG page.")
-            return [],[]
-        urls = []
-        extracted_content = []
-        processed_count = 0
 
-        for url, initial_title in result_links:
-            if processed_count >= max_results:
-                print(f"Reached maximum results limit ({max_results}).")
-                break
-
-            print(f"\nProcessing URL ({processed_count + 1}/{min(len(result_links), max_results)}): {url}")
-            article_data = {'url': url, 'title': initial_title, 'text': ''} # Pre-populate with URL and initial title
-
-            try:
-                # Configure Article object
-                article = WebsiteScraper(url)
-
-                # Download and parse
-                article.parse_article()
-                update(article.get_title(), url, article.get_favicon())
-                # Check if parsing was successful and text was extracted
-                text = article.get_text()
-                if text:
-                    article_data['title'] = article.get_title() or initial_title # Prefer newspaper's title if available
-                    article_data['text'] = text
-                    extracted_content.append(article_data)
-                    urls.append(url)
-                    print(f"  Successfully extracted content. Title: '{article_data['title']}'")
-                    processed_count += 1
-                else:
-                    print("  Could not extract main text content from the page.")
-            except Exception as e:
-                # Catch other potential errors during download/parse
-                print(f"  An unexpected error occurred processing {url}: {e}")
-        
-        print(f"\nFinished processing. Successfully extracted content from {len(extracted_content)} URLs.")
-        return extracted_content, urls

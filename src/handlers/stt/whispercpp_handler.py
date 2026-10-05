@@ -6,7 +6,7 @@ from ...utility.build_process import BuildCancelled, BuildProcess
 from ...utility.download_manager import current_download_task
 from .stt import STTHandler
 from ...handlers import ErrorSeverity, ExtraSettings
-from ...ui.model_library import ModelLibraryWindow, LibraryModel
+from ...ui.model_library import ModelLibraryWindow, LibraryModel, get_local_backend_label
 from ...utility.model_icons import get_model_icon
 from ...ui.build_dependency_warning import BuildDependencyWarning
 import os
@@ -70,6 +70,10 @@ class WhisperCPPHandler(STTHandler):
     def get_extra_settings(self) -> list:
         installed_models = self.get_models()
         settings = [
+            ExtraSettings.InfoSetting(
+                "installed_backend_status", _("Installed built-in backend"),
+                get_local_backend_label(self),
+            ),
             {
                 "key": "model",
                 "title": _("Model"),
@@ -442,6 +446,7 @@ class WhisperCPPHandler(STTHandler):
                 is_installed=self.is_model_installed(model["model_name"]),
                 icon_name=icon_name,
                 icon_color=icon_color,
+                size_bytes=model["size_bytes"],
             ))
         return models
 
@@ -807,6 +812,7 @@ class WhisperCPPHandler(STTHandler):
             GLib.idle_add(lambda: carousel.scroll_to(carousel.get_nth_page(3), True))
             GLib.idle_add(lambda: self.settings_update())
             self.set_setting("gpu_acceleration", True)
+            self.set_setting("installed_backend", backend)
 
         except BuildCancelled:
             GLib.idle_add(append_log, "\nBuild stopped by user.\n")

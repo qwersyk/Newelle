@@ -165,6 +165,7 @@ class OllamaHandler(LLMHandler):
                 is_pinned=pinned,
                 icon_name=icon_name,
                 icon_color=icon_color,
+                can_offload=True,
             )
 
         # 1. Pinned Models
@@ -287,7 +288,7 @@ class OllamaHandler(LLMHandler):
                     _("Open model library"),
                     _("Open the model library to download or remove models"),
                     self.open_library,
-                    label="Open Library"
+                    label=_("Open Library")
                 )
             )
         settings += [

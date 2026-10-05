@@ -44,9 +44,9 @@ class ChatInterface(Interface):
     # ------------------------------------------------------------------ #
 
     def _ensure_folder(self) -> int:
-        if self._folder_id is not None:
+        if self._folder_id in self.controller.workspace_folders():
             return self._folder_id
-        for fid, folder in self.controller.folders.items():
+        for fid, folder in self.controller.workspace_folders().items():
             if folder.get("name") == self.folder_name:
                 self._folder_id = fid
                 self._count_existing_chats()
@@ -77,29 +77,33 @@ class ChatInterface(Interface):
         return count
 
     def _save_last_chat_id(self, user_id, chat_id: int):
-        self.set_setting(f"last_chat_user_{user_id}", chat_id)
+        self.set_setting(f"last_chat_workspace_{self.controller.active_workspace_id}_user_{user_id}", chat_id)
 
     def _load_last_chat_id(self, user_id) -> int | None:
-        return self.get_setting(
-            f"last_chat_user_{user_id}", search_default=True, return_value=None
+        saved = self.get_setting(
+            f"last_chat_workspace_{self.controller.active_workspace_id}_user_{user_id}", search_default=True, return_value=None
         )
+        if saved is None and self.controller.active_workspace_id == "default":
+            saved = self.get_setting(f"last_chat_user_{user_id}", search_default=True, return_value=None)
+        return saved
 
     def get_or_create_chat(self, user_id) -> int:
         """Return the persistent chat ID for *user_id*, creating one if needed."""
         user_id = str(user_id)
-        if user_id in self._user_chats:
-            chat_id = self._user_chats[user_id]
-            if chat_id in self.controller.chats:
+        user_key = (self.controller.active_workspace_id, user_id)
+        if user_key in self._user_chats:
+            chat_id = self._user_chats[user_key]
+            if chat_id in self.controller.workspace_chats():
                 return chat_id
         last_chat_id = self._load_last_chat_id(user_id)
-        if last_chat_id is not None and last_chat_id in self.controller.chats:
-            self._user_chats[user_id] = last_chat_id
+        if last_chat_id is not None and last_chat_id in self.controller.workspace_chats():
+            self._user_chats[user_key] = last_chat_id
             return last_chat_id
         folder_id = self._ensure_folder()
         self._chat_counter += 1
         chat_name = f"{self.chat_name_prefix} {self._chat_counter}"
         chat_id = self.controller.create_visible_chat(name=chat_name, folder_id=folder_id)
-        self._user_chats[user_id] = chat_id
+        self._user_chats[user_key] = chat_id
         self._save_last_chat_id(user_id, chat_id)
         self.controller.save_chats()
         return chat_id
@@ -109,6 +113,10 @@ class ChatInterface(Interface):
     # ------------------------------------------------------------------ #
 
     def process_message(self, user_id, text, *, on_chunk=None, on_tool_event=None) -> str:
+        with self.controller.workspace_request():
+            return self._process_message(user_id, text, on_chunk=on_chunk, on_tool_event=on_tool_event)
+
+    def _process_message(self, user_id, text, *, on_chunk=None, on_tool_event=None) -> str:
         """Run *text* through ``run_llm_with_tools`` and return the final response.
 
         This method is **blocking** – call it from a worker thread.
@@ -241,6 +249,9 @@ class ChatInterface(Interface):
         handler = self._BUILTIN_COMMANDS.get(name)
         if handler:
             try:
+                if name in ("new", "resume", "peek", "list_chats", "start"):
+                    with self.controller.workspace_request():
+                        return handler(self, user_id, args)
                 return handler(self, user_id, args)
             except Exception as e:
                 return f"❌ Error in /{name}: {e}"
@@ -283,6 +294,12 @@ class ChatInterface(Interface):
             f"👋 Welcome to Newelle! Your chat: \"{chat_name}\" (ID: {chat_id})\n\n"
             "📋 Commands:\n"
             "🆕 /new - Create a new chat\n"
+            "/workspaces - List workspaces\n"
+            "/workspace <name or ID> - Switch workspace globally\n"
+            "/workspace new <name> - Create a workspace\n"
+            "/workspace rename|profile|path <value> - Edit current workspace\n"
+            "/workspace delete <name or ID> - Move chats to Default and delete\n"
+            "/move_workspace <chat_id> <workspace> - Move a chat and branches\n"
             "🤖 /models - List available models\n"
             "🔀 /model [provider:]model - Switch model\n"
             "👤 /profile <name> - Switch profile\n"
@@ -308,9 +325,53 @@ class ChatInterface(Interface):
             name = f"{self.chat_name_prefix} {self._chat_counter}"
         chat_id = self.controller.create_visible_chat(name=name, folder_id=folder_id)
         self.controller.save_chats()
-        self._user_chats[user_id] = chat_id
+        self._user_chats[(self.controller.active_workspace_id, user_id)] = chat_id
         self._save_last_chat_id(user_id, chat_id)
         return f"🆕 New chat created: \"{name}\" (ID: {chat_id})"
+
+    def _resolve_workspace(self, value):
+        if value in self.controller.workspaces:
+            return value
+        matches = [wid for wid, entry in self.controller.workspaces.items() if entry["name"].casefold() == value.casefold()]
+        if len(matches) != 1:
+            raise ValueError("Workspace name is missing or ambiguous; use its ID from /workspaces")
+        return matches[0]
+
+    def _cmd_workspaces(self, user_id, args):
+        return "\n".join(
+            f"{'*' if wid == self.controller.active_workspace_id else '-'} {entry['name']} [{wid}]\n  {entry['path']}"
+            for wid, entry in self.controller.workspaces.items()
+        )[:4000]
+
+    def _cmd_workspace(self, user_id, args):
+        if not args:
+            return self._cmd_workspaces(user_id, args)
+        if args[0] in ("rename", "profile", "path"):
+            value = " ".join(args[1:])
+            if not value:
+                return "Usage: /workspace rename|profile|path <value> (profile: none to unlink)"
+            field = {"rename": "name", "profile": "profile", "path": "path"}[args[0]]
+            if field == "profile" and value.lower() == "none":
+                value = None
+            self.controller.remote_workspace_action("edit", self.controller.active_workspace_id, **{field: value})
+            return "Workspace updated."
+        if args[0] == "delete":
+            wid = self._resolve_workspace(" ".join(args[1:]))
+            self.controller.remote_workspace_action("delete", wid)
+            return "Workspace deleted. Chats and folders moved to Default."
+        if args[0] == "new":
+            wid = self.controller.remote_workspace_action("create", name=" ".join(args[1:]))
+        else:
+            wid = self._resolve_workspace(" ".join(args))
+        self.controller.remote_workspace_action("switch", wid)
+        return f"Workspace: {self.controller.workspaces[wid]['name']} (shared by all clients)"
+
+    def _cmd_move_workspace(self, user_id, args):
+        if len(args) < 2:
+            return "Usage: /move_workspace <chat_id> <workspace name or ID>"
+        wid = self._resolve_workspace(" ".join(args[1:]))
+        self.controller.remote_workspace_action("move", wid, chat_id=int(args[0]))
+        return f"Chat moved to {self.controller.workspaces[wid]['name']}"
 
     def _cmd_models(self, user_id, args):
         from ...constants import AVAILABLE_LLMS
@@ -521,16 +582,7 @@ class ChatInterface(Interface):
         return f"❌ Command/skill '{skill_name}' not found."
 
     def _cmd_cd(self, user_id, args):
-        if not args:
-            return f"📂 Current path: {self.controller.settings.get_string('path')}"
-        new_path = " ".join(args)
-        expanded = os.path.expanduser(new_path)
-        if not os.path.isdir(expanded):
-            return f"❌ Directory not found: {new_path}"
-        self.controller.settings.set_string("path", os.path.normpath(new_path))
-        self.controller.update_settings()
-        os.chdir(expanded)
-        return f"✅ Path changed to: {os.path.normpath(new_path)}"
+        return self.controller.cd_command(path=" ".join(args)).get_output()
 
     def _cmd_list_chats(self, user_id, args):
         current_chat_id = self.controller.newelle_settings.chat_id
@@ -557,7 +609,7 @@ class ChatInterface(Interface):
             target_id = int(args[0])
         except ValueError:
             return "❌ Chat ID must be a number."
-        if target_id not in self.controller.chats:
+        if target_id not in self.controller.workspace_chats():
             return f"❌ Chat {target_id} not found."
         chat = self.controller.chats[target_id]
         name = chat.get("name", f"Chat {target_id}")
@@ -584,14 +636,14 @@ class ChatInterface(Interface):
             target_id = int(args[0])
         except ValueError:
             return "❌ Chat ID must be a number."
-        if target_id not in self.controller.chats:
+        if target_id not in self.controller.workspace_chats():
             return f"❌ Chat {target_id} not found."
         chat = self.controller.chats[target_id]
         if chat.get("call"):
             return f"❌ Chat {target_id} is a hidden call chat."
         self.controller.newelle_settings.chat_id = target_id
         self.controller.settings.set_int("chat", target_id)
-        self._user_chats[user_id] = target_id
+        self._user_chats[(self.controller.active_workspace_id, user_id)] = target_id
         self._save_last_chat_id(user_id, target_id)
         name = chat.get("name", f"Chat {target_id}")
         return f"✅ Resumed chat: \"{name}\" (ID: {target_id})"
@@ -633,6 +685,9 @@ class ChatInterface(Interface):
     _BUILTIN_COMMANDS: dict = {
         "start": _cmd_start,
         "new": _cmd_new,
+        "workspaces": _cmd_workspaces,
+        "workspace": _cmd_workspace,
+        "move_workspace": _cmd_move_workspace,
         "models": _cmd_models,
         "model": _cmd_model,
         "profile": _cmd_profile,

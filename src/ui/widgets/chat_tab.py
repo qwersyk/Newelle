@@ -14,6 +14,7 @@ import re
 import gettext
 import subprocess
 import base64
+import os
 
 from .chat_history import ChatHistory
 from .multiline import MultilineEntry
@@ -86,6 +87,8 @@ class ChatTab(Gtk.Box):
         
         # Attachment state
         self.attached_image_data = None
+        self._editing_draft_id = None
+        self._restoring_draft = False
         
         # Error tracking
         self.last_error_box = None
@@ -95,6 +98,7 @@ class ChatTab(Gtk.Box):
 
         # Build UI
         self._build_ui()
+        self.restore_composer_draft(self.controller.workspace_storage.drafts.get(chat_id, {}))
         
     def _setup_chat_history(self, chat_history):
         """Connect signals for a ChatHistory object."""
@@ -219,6 +223,17 @@ class ChatTab(Gtk.Box):
         ])
         self.attachment_mode.set_tooltip_text(_("How to process this document"))
         self.attachment_mode.set_visible(False)
+        self.attachment_mode.connect("notify::selected", lambda *_: self.remember_draft())
+
+        self.drafts_button = Gtk.MenuButton(
+            css_classes=["flat", "circular"], icon_name="document-edit-symbolic",
+            tooltip_text=_("Message drafts"),
+        )
+        self.drafts_popover = Gtk.Popover()
+        self.drafts_button.set_popover(self.drafts_popover)
+        self.drafts_popover.connect("notify::visible", self._on_drafts_visible)
+        self._draft_save_button = None
+        self._update_drafts_button()
 
         self.screen_record_button = Gtk.Button(
             icon_name="media-record-symbolic",
@@ -315,6 +330,7 @@ class ChatTab(Gtk.Box):
             self.attach_button, self.attached_image, self.attachment_mode, self.screen_record_button,
             self.quick_toggles, self.quick_toggles_box, self.mode_button,
             self.thinking_button, self.mic_button, self.send_button,
+            self.drafts_button,
             self.context_indicator, getattr(self, "compact_options_button", None),
         ):
             if widget is not None:
@@ -326,6 +342,7 @@ class ChatTab(Gtk.Box):
         self.input_panel.input_panel.set_bottom_margin(0)
         self.mic_button.set_size_request(36, 36)
         self.send_button.set_size_request(36, 36)
+        self.drafts_button.set_size_request(36, 36)
         # The quick toggles go back into their own popover button.
         self.quick_toggles_popover.set_child(self.quick_toggles_box)
 
@@ -351,6 +368,7 @@ class ChatTab(Gtk.Box):
         # Right cluster (pushed to the end)
         actions_row.append(Gtk.Box(hexpand=True))
         right_cluster = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=4)
+        right_cluster.append(self.drafts_button)
         right_cluster.append(self.mic_button)
         right_cluster.append(self.send_button)
         right_cluster.append(self.context_indicator)
@@ -363,7 +381,7 @@ class ChatTab(Gtk.Box):
     def _build_compact_input_layout(self):
         """Compact layout: a single row, the controls float over the text.
 
-        The options, mic and send buttons sit together on the bottom-right
+        The options, drafts, mic and send buttons sit together on the bottom-right
         corner, so the text keeps the full width and no extra row is added
         below it. The context indicator stays hidden in this mode.
         """
@@ -372,6 +390,7 @@ class ChatTab(Gtk.Box):
         self.input_panel.input_panel.set_bottom_margin(30)
         self.mic_button.set_size_request(28, 28)
         self.send_button.set_size_request(28, 28)
+        self.drafts_button.set_size_request(28, 28)
 
         self._ensure_compact_options()
         self._populate_compact_options()
@@ -388,6 +407,7 @@ class ChatTab(Gtk.Box):
             margin_bottom=2,
         )
         right_cluster.append(self.compact_options_button)
+        right_cluster.append(self.drafts_button)
         right_cluster.append(self.mic_button)
         right_cluster.append(self.send_button)
         overlay.add_overlay(right_cluster)
@@ -564,6 +584,7 @@ class ChatTab(Gtk.Box):
             self._cmd_list.select_row(row)
 
     def _on_input_changed(self, buffer):
+        self.remember_draft()
         text = buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter(), False)
         if text.startswith("/"):
             query = text[1:].split(" ", 1)[0].lower()
@@ -797,6 +818,156 @@ class ChatTab(Gtk.Box):
             self.attach_button.set_visible(False)
         else:
             self.attach_button.set_visible(True)
+
+    # Message drafts
+    def get_composer_draft(self):
+        return {
+            "text": "" if self.input_panel.placeholding else self.input_panel.get_text(),
+            "attachment": self.attached_image_data,
+            "attachment_mode": self.attachment_mode.get_selected(),
+            "editing_draft_id": self._editing_draft_id,
+        }
+
+    def remember_draft(self):
+        """Keep unfinished input with its chat, including a reopened saved draft."""
+        if self._restoring_draft:
+            return
+        draft = self.get_composer_draft()
+        has_content = bool(draft["text"].strip() or draft["attachment"])
+        with self.controller.workspace_lock:
+            if has_content and self._chat_id in self.controller.chats:
+                self.controller.workspace_storage.drafts[self._chat_id] = draft
+            else:
+                self.controller.workspace_storage.drafts.pop(self._chat_id, None)
+        if self._draft_save_button is not None:
+            self._draft_save_button.set_sensitive(has_content)
+
+    def restore_composer_draft(self, draft):
+        self._restoring_draft = True
+        try:
+            if self.attached_image_data is not None:
+                self.delete_attachment(self.attach_button)
+            self._editing_draft_id = draft.get("editing_draft_id", draft.get("id"))
+            text = draft.get("text", "")
+            if text or self.input_panel.input_panel.has_focus():
+                self.input_panel.set_text(text)
+            else:
+                self.input_panel.placeholding = True
+                self.input_panel.set_text(self.input_panel.placeholder, False)
+            attachment = draft.get("attachment")
+            if attachment:
+                if attachment.startswith("data:"):
+                    self.add_file(file_data=base64.b64decode(attachment.split(",", 1)[1]))
+                else:
+                    self.add_file(file_path=attachment)
+                self.attachment_mode.set_selected(draft.get("attachment_mode", 0))
+        finally:
+            self._restoring_draft = False
+        self.remember_draft()
+        self._update_drafts_button()
+
+    def _update_drafts_button(self):
+        count = len(self.controller.chats.get(self._chat_id, {}).get("drafts", []))
+        self.drafts_button.set_tooltip_text(
+            _("Message drafts ({count})").format(count=count) if count else _("Message drafts")
+        )
+        if count:
+            self.drafts_button.add_css_class("accent")
+        else:
+            self.drafts_button.remove_css_class("accent")
+
+    def _on_drafts_visible(self, *_args):
+        if self.drafts_popover.get_visible():
+            self._populate_drafts()
+
+    def _populate_drafts(self):
+        box = Gtk.Box(
+            orientation=Gtk.Orientation.VERTICAL, spacing=10,
+            margin_start=10, margin_end=10, margin_top=10, margin_bottom=10,
+        )
+        box.append(Gtk.Label(label=_("Message drafts"), xalign=0, css_classes=["heading"]))
+        self._draft_save_button = Gtk.Button(
+            label=_("Save draft"), css_classes=["suggested-action"],
+        )
+        self._draft_save_button.connect("clicked", self._on_save_draft)
+        draft = self.get_composer_draft()
+        self._draft_save_button.set_sensitive(bool(draft["text"].strip() or draft["attachment"]))
+        box.append(self._draft_save_button)
+
+        drafts = self.controller.chats.get(self._chat_id, {}).get("drafts", [])
+        if drafts:
+            rows = Gtk.ListBox(selection_mode=Gtk.SelectionMode.NONE, css_classes=["boxed-list"])
+            for draft in reversed(drafts):
+                attachment = draft.get("attachment")
+                subtitle = ""
+                if attachment:
+                    subtitle = (
+                        _("Image attachment") if attachment.startswith("data:")
+                        else os.path.basename(attachment)
+                    )
+                row = Adw.ActionRow(
+                    title=" ".join(draft["text"].split())[:160] or _("Attachment"),
+                    subtitle=subtitle, use_markup=False, title_lines=2, subtitle_lines=1,
+                    activatable=True,
+                )
+                row.connect("activated", self._on_use_draft, draft["id"])
+                edit = Gtk.Button(
+                    icon_name="document-edit-symbolic", css_classes=["flat"],
+                    valign=Gtk.Align.CENTER, tooltip_text=_("Edit draft"),
+                )
+                edit.connect("clicked", self._on_use_draft, draft["id"])
+                row.add_suffix(edit)
+                delete = Gtk.Button(
+                    icon_name="user-trash-symbolic", css_classes=["flat"],
+                    valign=Gtk.Align.CENTER, tooltip_text=_("Delete draft"),
+                )
+                delete.connect("clicked", self._on_delete_draft, draft["id"])
+                row.add_suffix(delete)
+                rows.append(row)
+            scroll = Gtk.ScrolledWindow(
+                hscrollbar_policy=Gtk.PolicyType.NEVER, max_content_height=300,
+                propagate_natural_height=True, min_content_width=280,
+            )
+            scroll.set_child(rows)
+            box.append(scroll)
+        else:
+            box.append(Gtk.Label(label=_("No saved drafts"), css_classes=["dim-label"]))
+        self.drafts_popover.set_child(box)
+        self._update_drafts_button()
+
+    def _on_save_draft(self, *_args):
+        draft_id = self.controller.save_message_draft(
+            self._chat_id, self.get_composer_draft(), self._editing_draft_id,
+        )
+        if draft_id is None:
+            return
+        self.restore_composer_draft({})
+        self.controller.save_chats()
+        self.drafts_popover.popdown()
+        self.notification_block.add_toast(Adw.Toast(title=_("Draft saved")))
+        self.focus_input()
+
+    def _on_use_draft(self, _widget, draft_id):
+        drafts = self.controller.chats.get(self._chat_id, {}).get("drafts", [])
+        draft = next((item for item in drafts if item["id"] == draft_id), None)
+        if draft is None:
+            return
+        if self._editing_draft_id != draft_id:
+            # Save existing input before replacing it with another draft.
+            self.controller.save_message_draft(
+                self._chat_id, self.get_composer_draft(), self._editing_draft_id,
+            )
+            self.restore_composer_draft(draft)
+            self.controller.save_chats()
+        self.drafts_popover.popdown()
+        self.focus_input()
+
+    def _on_delete_draft(self, _widget, draft_id):
+        if self._editing_draft_id == draft_id:
+            self._editing_draft_id = None
+            self.remember_draft()
+        self.controller.delete_message_draft(self._chat_id, draft_id)
+        self._populate_drafts()
             
     # Properties
     @property
@@ -888,6 +1059,9 @@ class ChatTab(Gtk.Box):
         if not self.status:
             # Cannot switch while generating
             return
+
+        self.remember_draft()
+        self.drafts_popover.popdown()
         
         # Determine direction based on chat IDs
         # If new ID > old ID, we are moving down the list (slide up)
@@ -909,6 +1083,8 @@ class ChatTab(Gtk.Box):
         
         # Update internal chat_id
         self._chat_id = chat_id
+        self.restore_composer_draft(self.controller.workspace_storage.drafts.get(chat_id, {}))
+        self.controller.save_chats()
         
         # Update tab title
         self._update_tab_title()
@@ -943,7 +1119,7 @@ class ChatTab(Gtk.Box):
         
     def on_entry_activate(self, entry):
         """Send a message when input is pressed."""
-        text = entry.get_text()
+        text = "" if entry.placeholding else entry.get_text()
 
         if text.startswith("/") and self._cmd_popover.get_visible():
             selected = self._cmd_list.get_selected_row()
@@ -974,7 +1150,7 @@ class ChatTab(Gtk.Box):
 
         entry.set_text("")
         
-        if text and not text.isspace():
+        if text.strip() or self.attached_image_data is not None:
             if self.attached_image_data is not None:
                 if self.attached_image_data.lower().endswith((".png", ".jpg", ".jpeg", ".webp")) or \
                    self.attached_image_data.startswith("data:image/"):
@@ -987,11 +1163,19 @@ class ChatTab(Gtk.Box):
                 self.delete_attachment(self.attach_button)
             
             self.chat.append({"User": "User", "Message": text})
+            draft_id = self._editing_draft_id
+            self._editing_draft_id = None
+            self.remember_draft()
+            if draft_id is not None:
+                self.controller.delete_message_draft(self._chat_id, draft_id)
+                self._update_drafts_button()
             self.chat_history.show_message(text, True, id_message=len(self.chat) - 1, is_user=True)
 
             # Store current profile in chat data
             if self._chat_id in self.controller.chats:
                 self.controller.chats[self._chat_id]["profile"] = self.window.current_profile
+
+            self._name_chat_from_first_message()
 
         GLib.timeout_add(200, self.chat_history.scrolled_chat)
         threading.Thread(target=self.send_message).start()
@@ -1010,6 +1194,11 @@ class ChatTab(Gtk.Box):
     # Message sending and streaming
     def send_message(self, manual=True):
         """Send a message in the chat and get bot answer."""
+        # The tab can be parked in a cached workspace while its request is
+        # still running.  Check the chat itself instead of the currently
+        # selected workspace so switching workspaces does not orphan it.
+        if self.controller.workspace_switching or self.chat_id not in self.controller.chats:
+            return
         if manual:
             self.auto_run_times = 0
             self.tool_call_count = 0
@@ -1097,7 +1286,9 @@ class ChatTab(Gtk.Box):
                 "User": "Assistant", 
                 "Message": message_label, 
                 "UUID": streaming_widget.chunk_uuid,
-                "Profile": self.controller.newelle_settings.current_profile
+                "Profile": self.controller.chats.get(self._chat_id, {}).get(
+                    "profile", self.controller.newelle_settings.current_profile
+                )
             }
             if response_metadata is not None:
                 assistant_entry["OpenAIResponse"] = response_metadata
@@ -1467,6 +1658,12 @@ class ChatTab(Gtk.Box):
         """Stop the current generation."""
         if hasattr(self, "_audio_cancel_event"):
             self._audio_cancel_event.set()
+        # Requests use a workspace-local handler snapshot.  Stop that model as
+        # well as the foreground handler so switching workspaces cannot leave
+        # a hidden tab's provider running in the background.
+        stop_request = getattr(self.controller, "stop_workspace_request", None)
+        if stop_request is not None:
+            stop_request(self.chat_id)
         getattr(self, "active_generation_model", self.model).stop()
         for tool_result in self.active_tool_results:
             tool_result.cancel()
@@ -1527,6 +1724,13 @@ class ChatTab(Gtk.Box):
                 Adw.Toast(title=_("You can no longer regenerate the message."), timeout=2)
             )
             
+    def _name_chat_from_first_message(self):
+        """Title a chat that still has its default name with its first message."""
+        if not self.controller.name_chat_from_first_message(self._chat_id):
+            return
+        self._update_tab_title()
+        self.emit("chat-name-changed", self.chat_name)
+
     def generate_chat_name(self):
         """Generate a name for the chat based on content."""
         def generate():
@@ -1538,8 +1742,7 @@ class ChatTab(Gtk.Box):
                 name = name.strip().strip('"').strip("'")
                 name = remove_markdown(name)
                 if self._chat_id in self.controller.chats:
-                    self.controller.chats[self._chat_id]["name"] = name
-                    self.save_chat()
+                    self.controller.rename_chat(self._chat_id, name)
                     GLib.idle_add(self._update_tab_title)
                     GLib.idle_add(self.window.update_history)
                     GLib.idle_add(self.emit,"chat-name-changed", name)
@@ -1591,6 +1794,7 @@ class ChatTab(Gtk.Box):
         self.attachment_mode.set_visible(False)
         self.attachment_mode.set_selected(0)
         self.screen_record_button.set_visible(self.vision_model.supports_video_vision())
+        self.remember_draft()
         
     def add_file(self, file_path=None, file_data=None):
         """Add a file attachment and update the UI, also generates thumbnail for videos
@@ -1664,6 +1868,7 @@ class ChatTab(Gtk.Box):
         # Since we can't directly disconnect by func in this case, we'll rebuild the button state
         self.attach_button.disconnect_by_func(self.attach_file)
         self.screen_record_button.set_visible(False)
+        self.remember_draft()
         
     # Recording
     def start_recording(self, button):
@@ -1702,11 +1907,13 @@ class ChatTab(Gtk.Box):
         text = button.get_child().get_label()
         self.chat.append({"User": "User", "Message": text})
         self.chat_history.show_message(text, id_message=len(self.chat) - 1, is_user=True)
-        
+
         # Store current profile in chat data
         if self._chat_id in self.controller.chats:
             self.controller.chats[self._chat_id]["profile"] = self.window.current_profile
-        
+
+        self._name_chat_from_first_message()
+
         threading.Thread(target=self.send_message).start()
 
     # Suggestions

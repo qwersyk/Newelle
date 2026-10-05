@@ -1,6 +1,7 @@
+import base64
 from io import BytesIO
 
-from gi.repository import Gtk, GdkPixbuf, GLib
+from gi.repository import Gtk, Gdk, GdkPixbuf, GLib
 import requests
 
 
@@ -129,3 +130,37 @@ def load_image_with_callback(url, callback, error_callback=None):
     thread = threading.Thread(target=_load_image)
     thread.daemon = True
     thread.start()
+
+
+def append_image_codeblock(text, box):
+    """Append image-block contents to a GTK box on the main thread."""
+    for line in text.split("\n"):
+        if not line.strip(): continue
+        image = Gtk.Image(css_classes=["image"])
+        if line.startswith("data:image/"):
+            try:
+                header_end = line.index(",")
+                data = line[header_end + 1:]
+                raw_data = base64.b64decode(data)
+                texture = Gdk.Texture.new_from_bytes(GLib.Bytes.new(raw_data))
+                image.set_from_paintable(texture)
+                box.append(image)
+            except Exception:
+                try:
+                    header_end = line.index(",")
+                    data = line[header_end + 1:]
+                    raw_data = base64.b64decode(data)
+                    loader = GdkPixbuf.PixbufLoader()
+                    loader.write(raw_data)
+                    loader.close()
+                    image.set_from_pixbuf(loader.get_pixbuf())
+                    box.append(image)
+                except Exception:
+                    pass
+        elif line.startswith(("https://", "http://")):
+            img = image
+            load_image_with_callback(line, lambda pixbuf_loader, i=img: i.set_from_pixbuf(pixbuf_loader.get_pixbuf()))
+            box.append(image)
+        else:
+            image.set_from_file(line)
+            box.append(image)

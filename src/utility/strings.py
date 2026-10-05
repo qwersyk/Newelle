@@ -374,6 +374,29 @@ def remove_markdown(text: str) -> str:
 
     return text.strip()
 
+def build_chat_title(message: str, max_length: int = 30) -> str:
+    """
+    Build a short chat title from the beginning of a message.
+
+    Strip attachment codeblocks before the general markdown cleanup: the
+    inline-code rule in ``remove_markdown`` would otherwise break the fences
+    and leak their content into the title. Remaining markdown is removed and
+    whitespace is collapsed to a single line.
+
+    Args:
+        message: The message to build the title from
+        max_length: Maximum number of characters kept
+
+    Returns:
+        The title, truncated with an ellipsis when needed. Empty when the
+        message has no usable text.
+    """
+    text = re.sub(r'```[\s\S]*?```', ' ', str(message))
+    text = " ".join(remove_markdown(text).split())
+    if len(text) > max_length:
+        text = text[:max_length].rstrip() + "…"
+    return text
+
 def convert_think_codeblocks(text: str) -> str:
     """Convert think codeblocks to markdown
 

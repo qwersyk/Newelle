@@ -2,6 +2,13 @@ from collections.abc import Callable
 
 
 class ExtraSettings:
+    @staticmethod
+    def InfoSetting(key: str, title: str, description: str) -> dict:
+        """Show read-only information in a settings row."""
+        result = ExtraSettings.Setting(key, title, description, None)
+        result["type"] = "info"
+        return result
+
     @staticmethod 
     def Setting(key: str, title: str, description: str, default: object, folder: str|None = None, website: str|None = None, update_settings: bool = False, refresh: Callable|None = None, refresh_icon: str|None = None) -> dict:
         """

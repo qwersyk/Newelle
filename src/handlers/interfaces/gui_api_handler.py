@@ -85,6 +85,11 @@ class GUIAPIInterface(Interface):
                             status_code=401,
                             content={"error": "Invalid or missing API key"},
                         )
+                chat_match = re.match(r"^/api/chats/(\d+)(?:/|$)", request.url.path)
+                if chat_match and int(chat_match.group(1)) not in controller.chats:
+                    return JSONResponse(status_code=404, content={"detail": "Chat not found"})
+                if chat_match and int(chat_match.group(1)) not in controller.workspace_chats():
+                    return JSONResponse(status_code=409, content={"detail": "Switch to the chat's workspace first"})
                 return await call_next(request)
 
         app = FastAPI(title="Newelle GUI API", version="1.0.0")
@@ -102,6 +107,19 @@ class GUIAPIInterface(Interface):
             name: Optional[str] = None
             profile: Optional[str] = None
             folder_id: Optional[int] = None
+            workspace_id: Optional[str] = None
+
+        class WorkspaceRequest(BaseModel):
+            name: Optional[str] = None
+            profile: Optional[str] = None
+            path: Optional[str] = None
+            mode: Optional[str] = None
+
+        class MoveWorkspaceRequest(BaseModel):
+            workspace_id: str
+
+        class WorkspacePathRequest(BaseModel):
+            path: str
 
         class RenameChatRequest(BaseModel):
             name: str
@@ -290,6 +308,45 @@ class GUIAPIInterface(Interface):
         # ============================================================ #
         #                           CHATS                               #
         # ============================================================ #
+        def workspace_action(action, workspace_id=None, **data):
+            try:
+                wid = controller.remote_workspace_action(action, workspace_id, **data)
+                return {"workspace_id": wid, **controller.list_workspaces_info()}
+            except KeyError as error:
+                raise HTTPException(status_code=404, detail=str(error))
+            except ValueError as error:
+                raise HTTPException(status_code=400, detail=str(error))
+            except RuntimeError as error:
+                raise HTTPException(status_code=409, detail=str(error))
+
+        @app.get("/api/workspaces")
+        def api_workspaces():
+            return controller.list_workspaces_info()
+
+        @app.post("/api/workspaces")
+        def api_create_workspace(req: WorkspaceRequest):
+            return workspace_action("create", **req.model_dump(exclude_unset=True))
+
+        @app.patch("/api/workspaces/{workspace_id}")
+        def api_edit_workspace(workspace_id: str, req: WorkspaceRequest):
+            return workspace_action("edit", workspace_id, **req.model_dump(exclude_unset=True))
+
+        @app.post("/api/workspaces/{workspace_id}/switch")
+        def api_switch_workspace(workspace_id: str):
+            return workspace_action("switch", workspace_id)
+
+        @app.post("/api/workspaces/{workspace_id}/path")
+        def api_workspace_path(workspace_id: str, req: WorkspacePathRequest):
+            return workspace_action("path", workspace_id, path=req.path)
+
+        @app.delete("/api/workspaces/{workspace_id}")
+        def api_delete_workspace(workspace_id: str):
+            return workspace_action("delete", workspace_id)
+
+        @app.post("/api/chats/{chat_id}/workspace")
+        def api_move_workspace(chat_id: int, req: MoveWorkspaceRequest):
+            return workspace_action("move", req.workspace_id, chat_id=chat_id)
+
         @app.get("/api/chats")
         def api_list_chats():
             """List all chats with metadata (list_chats_info equivalent)."""
@@ -306,6 +363,7 @@ class GUIAPIInterface(Interface):
                     "folder_id": controller.get_folder_for_chat(cid),
                     "profile": chat_data.get("profile"),
                     "call": chat_data.get("call", False),
+                    "workspace_id": chat_data.get("workspace_id"),
                 }
                 result.append(entry)
             return result
@@ -313,14 +371,16 @@ class GUIAPIInterface(Interface):
         @app.get("/api/chats/{chat_id}/history")
         def api_get_chat_history(chat_id: int):
             """Get full message timeline for one chat."""
-            if chat_id not in controller.chats:
+            if chat_id not in controller.workspace_chats():
                 raise HTTPException(status_code=404, detail="Chat not found")
             return controller.get_chat_by_id(chat_id)
 
         @app.post("/api/chats")
         def api_create_chat(req: CreateChatRequest):
+            if req.workspace_id and req.workspace_id not in controller.workspaces:
+                raise HTTPException(status_code=404, detail="Workspace not found")
             chat_id = controller.create_visible_chat(
-                name=req.name, profile=req.profile, folder_id=req.folder_id
+                name=req.name, profile=req.profile, folder_id=req.folder_id, workspace_id=req.workspace_id
             )
             return {"chat_id": chat_id}
 
@@ -328,8 +388,7 @@ class GUIAPIInterface(Interface):
         def api_rename_chat(chat_id: int, req: RenameChatRequest):
             if chat_id not in controller.chats:
                 raise HTTPException(status_code=404, detail="Chat not found")
-            controller.chats[chat_id]["name"] = req.name
-            controller.save_chats()
+            controller.rename_chat(chat_id, req.name)
             return {"status": "ok"}
 
         @app.delete("/api/chats/{chat_id}")
@@ -356,7 +415,7 @@ class GUIAPIInterface(Interface):
 
         @app.put("/api/chats/{chat_id}")
         def api_set_chat_by_id(chat_id: int, messages: list = Body(...)):
-            if chat_id not in controller.chats:
+            if chat_id not in controller.workspace_chats():
                 raise HTTPException(status_code=404, detail="Chat not found")
             controller.set_chat_by_id(chat_id, messages)
             controller.save_chats()
@@ -382,15 +441,19 @@ class GUIAPIInterface(Interface):
             if chat_id not in controller.chats:
                 raise HTTPException(status_code=404, detail="Chat not found")
             source = controller.chats[chat_id]
-            new_id = controller.create_visible_chat(name=source["name"] + " (copy)")
+            new_id = controller.create_visible_chat(name=source["name"] + " (copy)", workspace_id=source.get("workspace_id"))
             controller.chats[new_id]["chat"] = [m.copy() for m in source.get("chat", [])]
             controller.save_chats()
             return {"chat_id": new_id}
 
         @app.post("/api/chats/{chat_id}/choose")
         def api_choose_chat(chat_id: int):
+            if chat_id not in controller.workspace_chats():
+                raise HTTPException(status_code=409, detail="Switch to the chat's workspace first")
             controller.newelle_settings.chat_id = chat_id
             controller.settings.set_int("chat", chat_id)
+            controller.active_workspace["selected_chat"] = chat_id
+            controller.save_chats()
             return {"status": "ok"}
 
         # ============================================================ #
@@ -1823,7 +1886,7 @@ class GUIAPIInterface(Interface):
         @app.get("/api/folders")
         def api_list_folders():
             result = []
-            for fid, folder in controller.folders.items():
+            for fid, folder in controller.workspace_folders().items():
                 result.append({
                     "id": fid,
                     "name": folder["name"],
@@ -2299,7 +2362,7 @@ class GUIAPIInterface(Interface):
         @app.get("/api/chats/{chat_id}/stream")
         def api_stream_chat_events(chat_id: int):
             """SSE endpoint for real-time generation with tool support."""
-            if chat_id not in controller.chats:
+            if chat_id not in controller.workspace_chats():
                 raise HTTPException(status_code=404, detail="Chat not found")
 
             q = queue.Queue()
@@ -2378,7 +2441,15 @@ class GUIAPIInterface(Interface):
                 finally:
                     q.put(done_sentinel)
 
-            thread = threading.Thread(target=run, daemon=True)
+            def run_in_workspace():
+                try:
+                    with controller.workspace_request(chat_id):
+                        run()
+                except Exception as error:
+                    q.put(("error", str(error)))
+                    q.put(done_sentinel)
+
+            thread = threading.Thread(target=run_in_workspace, daemon=True)
             thread.start()
 
             def event_generator():

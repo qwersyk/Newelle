@@ -3,7 +3,7 @@ import xml.etree.ElementTree as ET
 from .. import apply_css_to_widget
 
 class MarkupTextView(Gtk.TextView):
-    def __init__(self, **kwargs):
+    def __init__(self, fit_content=False, **kwargs):
         super().__init__(**kwargs)
         self.set_wrap_mode(Gtk.WrapMode.WORD)
         self.set_editable(False)
@@ -16,6 +16,22 @@ class MarkupTextView(Gtk.TextView):
         apply_css_to_widget(
             self, ".scroll { background-color: rgba(0,0,0,0);}"
         )
+        if fit_content:
+            self.add_tick_callback(self._fit_content_height)
+
+    def _fit_content_height(self, _widget, _frame_clock):
+        if self.get_width() <= 0:
+            return True
+
+        # TextView's minimum request does not include all wrapped content.
+        # Use its validated layout at the allocated width so tags and child
+        # anchors contribute their real sizes. A tick also catches late changes
+        # to embedded widgets, such as asynchronously rendered equations.
+        line_y, line_height = self.get_line_yrange(self.buffer.get_end_iter())
+        height = line_y + line_height + self.get_top_margin() + self.get_bottom_margin()
+        if self.get_size_request()[1] != height:
+            self.set_size_request(-1, height)
+        return True
 
     def update_textview_size(self, parent=None):
         if parent is not None:

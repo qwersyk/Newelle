@@ -61,7 +61,6 @@ class ExplorerPanel(Gtk.Box):
 
     def go_to_path(self, path): 
         self.set_main_path(path)
-        os.chdir(os.path.expanduser(self.main_path))
         self.get_current_path()
         GLib.idle_add(self.update_folder)
 
@@ -119,10 +118,41 @@ class ExplorerPanel(Gtk.Box):
         box = Gtk.Box(spacing=6)
         box.append(button_search)
         box.append(button_reload)
+        workspace_folder = Gtk.Button(
+            css_classes=["flat"], icon_name="folder-open-symbolic",
+            tooltip_text=_("Change workspace folder"),
+        )
+        workspace_folder.connect("clicked", self.choose_workspace_folder)
+        box.append(workspace_folder)
 
         # Box containing explorer panel specific buttons
         self.explorer_panel_headerbox = box
         self.explorer_panel_header.pack_end(box)
+
+    def choose_workspace_folder(self, _button):
+        workspace_id = self.controller.active_workspace_id
+        chooser = Gtk.FileDialog(title=_("Change workspace folder"))
+        chooser.set_initial_folder(Gio.File.new_for_path(os.path.expanduser(self.main_path)))
+
+        def selected(dialog, result):
+            try:
+                folder = dialog.select_folder_finish(result)
+                if folder is None:
+                    return
+                path = folder.get_path()
+                if path is None:
+                    raise ValueError(_("Choose a local folder."))
+                self.controller.remote_workspace_action("path", workspace_id, path=path)
+                self.set_main_path(path)
+                self.update_folder()
+                self.notification_block.add_toast(Adw.Toast(title=_("Workspace folder updated")))
+            except GLib.Error as error:
+                if not error.matches(Gtk.dialog_error_quark(), Gtk.DialogError.DISMISSED):
+                    self.notification_block.add_toast(Adw.Toast(title=str(error)))
+            except (ValueError, RuntimeError, OSError, KeyError) as error:
+                self.notification_block.add_toast(Adw.Toast(title=str(error)))
+
+        chooser.select_folder(self.get_root(), None, selected)
 
     def on_search_button_clicked(self, button):
         if self.search_bar.get_search_mode():
@@ -255,7 +285,6 @@ class ExplorerPanel(Gtk.Box):
                     empty_space_right_click.connect("pressed", self.on_empty_space_right_click)
                     
                     if os.path.normpath(self.main_path) == "~" or os.path.normpath(self.main_path) == os.path.expanduser("~"):
-                        os.chdir(os.path.expanduser("~"))
                         fname = "/".join(self.controller.newelle_dir.split("/")[3:])
                         button = Gtk.Button(css_classes=["flat"])
                         button.set_name(fname)
@@ -366,7 +395,6 @@ class ExplorerPanel(Gtk.Box):
         if os.path.exists(full_path):
             if os.path.isdir(full_path):
                 self.set_main_path(full_path)
-                os.chdir(os.path.expanduser(self.main_path))
                 GLib.idle_add(self.update_folder)
             else:
                 subprocess.run(["xdg-open", full_path])

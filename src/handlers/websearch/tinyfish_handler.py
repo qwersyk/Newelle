@@ -12,8 +12,8 @@ class TinyFishHandler(WebSearchHandler):
         return [
             ExtraSettings.EntrySetting("token", _("API Key"), _("TinyFish API key"), "", password=True),
             ExtraSettings.ScaleSetting("results", _("Max Results"), _("Number of results to consider"), 5, 1, 20, 0),
-            ExtraSettings.ComboSetting("location", _("Location"), _("Location for search results"), {"United States": "US", "United Kingdom": "GB", "Germany": "DE", "France": "FR", "Italy": "IT", "Spain": "ES", "Japan": "JP", "China": "CN"}, "US"),
-            ExtraSettings.ComboSetting("language", _("Language"), _("Language for search results"), {"English": "en", "Spanish": "es", "French": "fr", "German": "de", "Italian": "it", "Japanese": "ja", "Chinese": "zh"}, "en"),
+            ExtraSettings.ComboSetting("location", _("Location"), _("Location for search results"), {_("United States"): "US", _("United Kingdom"): "GB", _("Germany"): "DE", _("France"): "FR", _("Italy"): "IT", _("Spain"): "ES", _("Japan"): "JP", _("China"): "CN"}, "US"),
+            ExtraSettings.ComboSetting("language", _("Language"), _("Language for search results"), {_("English"): "en", _("Spanish"): "es", _("French"): "fr", _("German"): "de", _("Italian"): "it", _("Japanese"): "ja", _("Chinese"): "zh"}, "en"),
         ]
 
     def query(self, keywords: str, max_results: int = None) -> tuple[str, list]:

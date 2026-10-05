@@ -2,7 +2,7 @@ import os
 import subprocess
 from threading import Thread
 
-from gi.repository import Adw, GLib, Gtk
+from gi.repository import Adw, Gdk, GLib, Gtk
 
 from ..controller import NewelleController
 from ..utility.system import can_escape_sandbox, get_spawn_command
@@ -73,6 +73,7 @@ class ExtensionPage(Adw.PreferencesPage):
         self.tabs_group = Adw.PreferencesGroup()
         self.tabs_group.add(tabs_box)
         super().add(self.tabs_group)
+        self._add_drag_and_drop()
         self.update()
 
     def _add_toast(self, title):
@@ -249,6 +250,7 @@ class ExtensionPage(Adw.PreferencesPage):
         actions.add(download_row)
 
         install_row = Adw.ActionRow(title=_("Install extension from file..."))
+        install_row.set_subtitle(_("You can also drag and drop the file here"))
         install_button = Gtk.Button(
             label=_("Install"),
             valign=Gtk.Align.CENTER,
@@ -349,23 +351,60 @@ class ExtensionPage(Adw.PreferencesPage):
         if file is None:
             return
 
-        file_path = file.get_path()
-        filename = os.path.basename(file_path)
-        self.extensionloader.add_extension(file_path)
+        self._install_extension_files([file.get_path()])
+
+    def _add_drag_and_drop(self):
+        drop_target = Gtk.DropTarget.new(Gdk.FileList, Gdk.DragAction.COPY)
+        drop_target.connect("drop", self._on_extension_drop)
+        self.add_controller(drop_target)
+
+    def _on_extension_drop(self, _drop_target, value, _x, _y):
+        """Install extension files dropped onto the page."""
+        file_paths = []
+        for file in value.get_files():
+            path = file.get_path()
+            if path is not None:
+                file_paths.append(path)
+        if file_paths:
+            self._install_extension_files(file_paths)
+        return True
+
+    def _install_extension_files(self, file_paths):
+        # Files already inside the extension directory are skipped to avoid
+        # copying a file onto itself
+        extension_dir = os.path.abspath(self.extension_path)
+        candidates = [
+            path
+            for path in file_paths
+            if path is not None
+            and path.endswith(".py")
+            and os.path.isfile(path)
+            and os.path.dirname(os.path.abspath(path)) != extension_dir
+        ]
+        if not candidates:
+            self._add_toast(_("This is not an extension or it is not correct"))
+            return
+
+        for path in candidates:
+            self.extensionloader.add_extension(path)
         self._reload_user_extensions()
 
-        added_extension = None
+        filenames = {os.path.basename(path) for path in candidates}
+        added_extensions = []
         for extension_id, extension_filename in self.extensionloader.filemap.items():
-            if extension_filename == filename:
-                added_extension = self.extensionloader.get_extension_by_id(extension_id)
-                break
+            if extension_filename not in filenames:
+                continue
+            extension = self.extensionloader.get_extension_by_id(extension_id)
+            if extension is not None:
+                added_extensions.append(extension)
 
-        if added_extension is None:
+        if not added_extensions:
             self._add_toast(_("This is not an extension or it is not correct"))
             self.update()
             return
 
-        Thread(target=added_extension.install, daemon=True).start()
+        for added_extension in added_extensions:
+            Thread(target=added_extension.install, daemon=True).start()
         self._add_toast(_("Extension added. New extensions will run"))
         self.update()
 
