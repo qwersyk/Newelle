@@ -2839,20 +2839,43 @@ class MainWindow(WorkspaceWindow, Adw.ApplicationWindow):
         dialog.present(self)
 
     def remove_chat(self, button):
-        """Remove a chat"""
+        """Remove a chat, including the one currently being displayed"""
         deleted_chat_id = int(button.get_name())
         if deleted_chat_id not in self.chats:
             return
-        if deleted_chat_id == self.chat_id:
-            return
         tab_page = self.get_tab_for_chat(deleted_chat_id)
-        if tab_page is not None:
+        tab = tab_page.get_child() if tab_page is not None else None
+        # Never delete a chat that is generating in an open tab
+        if tab is not None and not tab.status:
+            self.notification_block.add_toast(
+                Adw.Toast(title=_("Cannot delete a chat while it is generating"), timeout=2)
+            )
+            return
+        was_current = deleted_chat_id == self.chat_id
+        if was_current:
+            # The current chat is being deleted: choose another one to display
+            ordered = self.controller.chat_ids_ordered()
+            remaining = [cid for cid in ordered if cid != deleted_chat_id]
+            if remaining:
+                # Prefer the chat right after the deleted one, else the previous one
+                index = ordered.index(deleted_chat_id) if deleted_chat_id in ordered else 0
+                next_chat_id = remaining[min(index, len(remaining) - 1)]
+            else:
+                # Last chat of the workspace: create a fresh empty one
+                next_chat_id = self.controller.create_visible_chat()
+            if tab is not None:
+                # Focus the tab showing the deleted chat and switch it over
+                self.chat_tabs.set_selected_page(tab_page)
+                tab.switch_to_chat(next_chat_id)
+            self.chat_id = next_chat_id
+        elif tab_page is not None:
             self.chat_tabs.close_page(tab_page)
-        self.controller.remove_chat_from_folder(deleted_chat_id, save=False)
-        del self.chats[deleted_chat_id]
         self.controller.workspace_storage.drafts.pop(deleted_chat_id, None)
-        self.save_chat()
+        if not self.controller.delete_chat(deleted_chat_id):
+            return
         self.update_history()
+        if was_current:
+            self.refresh_context_indicator()
 
     def edit_chat_name(self, button, stack, multithreading=False):
         """Allow manual editing of chat name by replacing the title with an entry"""

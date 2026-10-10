@@ -160,9 +160,6 @@ class ChatRow(Gtk.ListBoxRow):
             self.chat_icon.remove_css_class("dim-label")
             self.chat_icon.add_css_class("accent")
             self.name_label.add_css_class("heading")
-            # Disable delete for selected chat
-            self.delete_button.set_sensitive(False)
-            self.delete_button.set_tooltip_text(_("Cannot delete current chat"))
         else:
             self.add_css_class("chat-row")
             if is_open:

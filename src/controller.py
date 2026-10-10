@@ -803,6 +803,12 @@ class NewelleController(WorkspaceController):
         self.subagent_runtime.delete_owner_sessions(chat_id)
         self.remove_chat_from_folder(chat_id, save=False)
         del self.chats[chat_id]
+        # If the deleted chat was the selected one, point the selection at a
+        # surviving chat so the UI does not reference a missing conversation.
+        if hasattr(self, 'newelle_settings') and self.newelle_settings.chat_id == chat_id:
+            fallback = self._get_fallback_chat_id()
+            if fallback is not None:
+                self.newelle_settings.chat_id = fallback
         self.save_chats()
         return True
 

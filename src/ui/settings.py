@@ -24,6 +24,7 @@ from .extension import ExtensionPage
 from .interfaces import InterfacesPage
 from .usage import UsagePage
 from .extra_settings import ExtraSettingsBuilder
+from .settings_search import SettingsSearch
 from .subagents import SubagentsPage
 from .widgets import ComboRowHelper, CopyBox 
 from .widgets import MultilineEntry
@@ -52,7 +53,7 @@ class Settings(Adw.Window):
         if not headless:
             self.set_transient_for(self.window)
         self.set_title(_("Settings"))
-        self.set_default_size(950, 720)
+        self.set_default_size(950, 750)
         self.set_modal(True)
         self.set_resizable(False)
         self.downloading = {}
@@ -841,13 +842,22 @@ class Settings(Adw.Window):
         )
         sidebar_scroll.set_child(self.navigation_list)
         sidebar_toolbar = Adw.ToolbarView()
-        sidebar_toolbar.add_top_bar(Adw.HeaderBar())
+        sidebar_header = Adw.HeaderBar()
+        sidebar_toolbar.add_top_bar(sidebar_header)
         sidebar_toolbar.set_content(sidebar_scroll)
         sidebar_page = Adw.NavigationPage.new(sidebar_toolbar, _("Settings"))
 
         content_toolbar = Adw.ToolbarView()
-        content_toolbar.add_top_bar(Adw.HeaderBar())
-        content_toolbar.set_content(self.content_stack)
+        content_header = Adw.HeaderBar()
+        content_toolbar.add_top_bar(content_header)
+        self.settings_search = SettingsSearch(self)
+        sidebar_header.pack_end(self.settings_search.create_button())
+        content_search_button = self.settings_search.create_button()
+        content_header.pack_end(content_search_button)
+        self.split_view.bind_property(
+            "collapsed", content_search_button, "visible", GObject.BindingFlags.SYNC_CREATE,
+        )
+        content_toolbar.set_content(self.settings_search.content)
         self.content_navigation_page = Adw.NavigationPage.new(
             content_toolbar,
             _("General"),
@@ -872,6 +882,7 @@ class Settings(Adw.Window):
     def on_navigation_row_selected(self, _listbox, row):
         if row is None:
             return
+        self.settings_search.close()
         key = row.settings_page_key
         title, page = self.navigation_pages[key]
         if page == self.ToolsPage:
@@ -890,6 +901,7 @@ class Settings(Adw.Window):
         self.content_navigation_page.set_title(title)
 
     def on_navigation_row_activated(self, _listbox, _row):
+        self.settings_search.close()
         self.split_view.set_show_content(True)
 
     def ensure_tools_page_initialized(self):
@@ -2286,18 +2298,13 @@ class Settings(Adw.Window):
         if self.mcp_page_initialized:
             return
         self.mcp_page_initialized = True
-        from .mcp_catalog import ConnectApplicationView
-
         self.mcp_catalog_group = Adw.PreferencesGroup(
             title=_("Connect Application"),
             description=_("Connect an MCP server or install an extension"),
         )
-        self.mcp_catalog = ConnectApplicationView(
-            parent=self,
-            controller=self.controller,
-            on_connected=self._on_mcp_application_connected,
-        )
-        self.mcp_catalog_group.add(self.mcp_catalog)
+        # Search builds settings without opening the remote application catalog.
+        self.mcp_catalog = None
+        self.mcp_catalog_group.connect("map", self._ensure_mcp_catalog)
 
         self.mcp_group = Adw.PreferencesGroup(title=_("MCP Servers"), description=_("Manage Model Context Protocol servers"))
         self.MCPPage.add(self.mcp_group)
@@ -2666,6 +2673,18 @@ class Settings(Adw.Window):
         self.mcp_group.add(self.servers_list_group)
         self.MCPPage.add(self.mcp_catalog_group)
     
+    def _ensure_mcp_catalog(self, _group):
+        if self.mcp_catalog is not None:
+            return
+        from .mcp_catalog import ConnectApplicationView
+
+        self.mcp_catalog = ConnectApplicationView(
+            parent=self,
+            controller=self.controller,
+            on_connected=self._on_mcp_application_connected,
+        )
+        self.mcp_catalog_group.add(self.mcp_catalog)
+
     def _disable_mcp_form(self, importing=False):
         """Disable all MCP form fields"""
         self.mcp_import_button.set_sensitive(False)
