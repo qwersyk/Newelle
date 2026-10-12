@@ -5,7 +5,7 @@ import json
 from ..handler import Handler
 from ...utility.util import LLMResponse
 from ...utility.media import extract_image, prepare_file_message, prepare_audio_message, audio_text
-from ...utility.strings import extract_json
+from ...utility.strings import extract_json, normalize_thinking_tags
 from ...utility.usage_tracker import get_usage_tracker
 
 __all__ = ["LLMHandler", "LLMResponse"]
@@ -45,6 +45,40 @@ def _track_usage(method):
     wrapper._usage_tracked = True
     return wrapper
 
+
+def _normalize_response(result):
+    if isinstance(result, LLMResponse):
+        normalized = normalize_thinking_tags(str(result))
+        if normalized == result:
+            return result
+        return LLMResponse(normalized, result.response_metadata, usage=result.usage)
+    if isinstance(result, str):
+        return normalize_thinking_tags(result)
+    return result
+
+
+def _normalize_thinking(method):
+    """Rewrite model-specific reasoning markers into ``<think>`` blocks."""
+    @functools.wraps(method)
+    def wrapper(self, *args, **kwargs):
+        if method.__name__ == "generate_text_stream":
+            if "on_update" in kwargs:
+                original = kwargs["on_update"]
+            elif len(args) > 3:
+                original = args[3]
+            else:
+                original = None
+            if callable(original):
+                def on_update(text, *extra):
+                    return original(normalize_thinking_tags(text), *extra)
+                if "on_update" in kwargs:
+                    kwargs["on_update"] = on_update
+                else:
+                    args = args[:3] + (on_update,) + args[4:]
+        return _normalize_response(method(self, *args, **kwargs))
+    wrapper._thinking_normalized = True
+    return wrapper
+
 class LLMHandler(Handler):
     """Every LLM model handler should extend this class.
 
@@ -63,8 +97,13 @@ class LLMHandler(Handler):
         # every caller (chat, secondary tasks, memory, RAG, API interfaces).
         for name in ("generate_text", "generate_text_stream"):
             method = cls.__dict__.get(name)
-            if callable(method) and not getattr(method, "_usage_tracked", False):
-                setattr(cls, name, _track_usage(method))
+            if not callable(method):
+                continue
+            if not getattr(method, "_thinking_normalized", False):
+                method = _normalize_thinking(method)
+            if not getattr(method, "_usage_tracked", False):
+                method = _track_usage(method)
+            setattr(cls, name, method)
 
     def __init__(self, settings, path):
         super().__init__(settings, path)

@@ -434,6 +434,38 @@ def extract_reasoning_content(message):
     # If no think block is found
     return None, message.strip()
 
+# Gemma 4 style: <|channel>thought ... <channel|>
+_GEMMA_THINK_OPEN = re.compile(r"<\|channel>(?:thought\b[ \t]*\n?)?")
+_GEMMA_THINK_CLOSE = re.compile(r"<channel\|>")
+# gpt-oss "harmony" style: <|channel|>analysis<|message|> ... <|end|><|start|>assistant<|channel|>final<|message|> ...
+_HARMONY_THINK_OPEN = re.compile(r"(?:<\|start\|>assistant)?<\|channel\|>analysis<\|message\|>")
+_HARMONY_THINK_CLOSE = re.compile(
+    r"<\|end\|>\s*(?:<\|start\|>assistant)?<\|channel\|>final<\|message\|>"
+)
+_HARMONY_LEFTOVERS = re.compile(
+    r"(?:<\|start\|>assistant)?<\|channel\|>final<\|message\|>|<\|return\|>|<\|end\|>"
+)
+
+
+def normalize_thinking_tags(text):
+    """Convert model-specific reasoning markers to ``<think>`` blocks.
+
+    Some models (Gemma, gpt-oss, ...) served through endpoints that do not
+    parse their chat template emit raw channel tokens in the content stream.
+    """
+    if not isinstance(text, str) or ("<|" not in text and "|>" not in text):
+        return text
+    if "<|channel>" in text or "<channel|>" in text:
+        text = _GEMMA_THINK_OPEN.sub("<think>", text)
+        text = _GEMMA_THINK_CLOSE.sub("</think>", text)
+    if "<|channel|>" in text:
+        text = _HARMONY_THINK_OPEN.sub("<think>", text)
+        if "<think>" in text:
+            text = _HARMONY_THINK_CLOSE.sub("</think>", text)
+        text = _HARMONY_LEFTOVERS.sub("", text)
+    return text
+
+
 def remove_thinking_blocks(text):
     """Remove complete and currently-streaming ``<think>`` blocks.
 
