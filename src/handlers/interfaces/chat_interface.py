@@ -446,14 +446,7 @@ class ChatInterface(Interface):
         name = " ".join(args)
         if name not in profiles:
             return f"❌ Profile '{name}' not found. Available: {', '.join(profiles.keys())}"
-        from ...utility.profile_settings import restore_settings_from_dict
-
-        self.controller.update_current_profile()
-        self.controller.settings.set_string("current-profile", name)
-        profile_data = profiles[name]
-        if profile_data.get("settings_groups"):
-            restore_settings_from_dict(self.controller.settings, profile_data.get("settings", {}))
-        self.controller.update_settings()
+        self.controller.switch_profile(name)
         return f"✅ Switched to profile: {name}"
 
     def _cmd_mode(self, user_id, args):

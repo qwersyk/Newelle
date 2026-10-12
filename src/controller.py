@@ -31,7 +31,18 @@ from .handlers.interfaces.interface import Interface
 
 from .utility.system import is_flatpak
 from .utility.pip import install_module
-from .utility.profile_settings import get_settings_dict_by_groups
+from .utility.profile_settings import (
+    ROOT_PROFILE,
+    apply_profile_settings,
+    get_group_keys,
+    get_group_owners,
+    get_profile_descendants,
+    get_profile_groups,
+    get_profile_parent,
+    new_profile_record,
+    resolve_profile_settings,
+    save_live_settings_to_profiles,
+)
 from .utility.source_attribution import format_source_context
 from .constants import AVAILABLE_INTEGRATIONS, AVAILABLE_WEBSEARCH, AVAILABLE_IMAGE_GENERATORS, DIR_NAME, SCHEMA_ID, PROMPTS, AVAILABLE_STT, AVAILABLE_TTS, AVAILABLE_LLMS, AVAILABLE_RAGS, AVAILABLE_PROMPTS, AVAILABLE_MEMORIES, AVAILABLE_EMBEDDINGS, AVAILABLE_INTERFACES, SETTINGS_GROUPS, restore_handlers, restore_prompts
 import threading
@@ -461,9 +472,10 @@ class NewelleController(WorkspaceController):
         except (TypeError, ValueError, json.JSONDecodeError):
             profiles = {}
         profile_name = workspace.get("profile")
-        profile = profiles.get(profile_name) if profile_name else None
-        if profile is not None:
-            settings.overlay(profile.get("settings", {}))
+        if profile_name and profile_name in profiles:
+            # Live values are newer than the saved snapshot of the active profile.
+            if profile_name != self.settings.get_string("current-profile"):
+                settings.overlay(resolve_profile_settings(profiles, profile_name, SETTINGS_GROUPS))
             settings.set_string("current-profile", profile_name)
         settings.set_string("path", os.path.expanduser(workspace.get("path") or self.settings.get_string("path")))
         settings.set_string("current-mode", workspace.get("mode", DEFAULT_MODE_NAME))
@@ -1794,31 +1806,213 @@ class NewelleController(WorkspaceController):
         self.integrationsloader.add_tools(self.tools)
         self.set_ui_controller(self.ui_controller)
 
-    def create_profile(self, profile_name, picture=None, settings={}, settings_groups=[]):
+    def _load_profiles(self):
+        """Read saved profiles, making sure the root and current profile exist."""
+        try:
+            profiles = json.loads(self.settings.get_string("profiles"))
+        except (TypeError, ValueError):
+            profiles = {}
+        if not isinstance(profiles, dict):
+            profiles = {}
+        for name in (ROOT_PROFILE, self.settings.get_string("current-profile")):
+            if name and name not in profiles:
+                profiles[name] = new_profile_record(parent=None if name == ROOT_PROFILE else ROOT_PROFILE)
+        return profiles
+
+    def _save_profiles(self, profiles):
+        self.newelle_settings.profile_settings = profiles
+        self.profile_settings = profiles
+        self.settings.set_string("profiles", json.dumps(profiles))
+
+    def _valid_profile_parent(self, profiles, profile_name, parent):
+        """Return ``parent`` if it can be used without creating a cycle."""
+        if parent not in profiles or parent == profile_name:
+            return ROOT_PROFILE
+        if profile_name in profiles and parent in get_profile_descendants(profiles, profile_name):
+            return ROOT_PROFILE
+        return parent
+
+    def get_profile_group_owners(self, profile_name=None):
+        """Map every settings group to the profile that provides its values."""
+        profile_name = profile_name or self.settings.get_string("current-profile")
+        return get_group_owners(self._load_profiles(), profile_name, SETTINGS_GROUPS)
+
+    def create_profile(self, profile_name, picture=None, settings=None, settings_groups=None, parent=None):
         """Create a profile
 
         Args:
             profile_name (): name of the profile 
             picture (): path to the profile picture 
-            settings (): settings to override for that profile 
+            settings (): saved values for the overridden groups. When empty,
+                they start as a copy of what the parent profile uses.
+            settings_groups (): groups this profile overrides
+            parent (): profile the other groups are inherited from. Defaults
+                to the current profile.
         """
-        self.newelle_settings.profile_settings[profile_name] = {"picture": picture, "settings": settings, "settings_groups": settings_groups}
-        self.settings.set_string("profiles", json.dumps(self.newelle_settings.profile_settings))
+        self.update_current_profile()
+        profiles = self._load_profiles()
+        settings_groups = list(settings_groups or [])
+        if parent is None:
+            parent = self.settings.get_string("current-profile")
+            # Callers that predate inheritance used an empty list for "all".
+            if len(settings_groups) == 0:
+                settings_groups = list(SETTINGS_GROUPS.keys())
+        if profile_name == ROOT_PROFILE:
+            parent = None
+        else:
+            parent = self._valid_profile_parent(profiles, profile_name, parent)
+        if not settings:
+            inherited = resolve_profile_settings(profiles, parent, SETTINGS_GROUPS) if parent else {}
+            settings = {
+                key: inherited[key]
+                for group in settings_groups if group in SETTINGS_GROUPS
+                for key in get_group_keys(group, SETTINGS_GROUPS) if key in inherited
+            }
+        profiles[profile_name] = new_profile_record(picture, settings, settings_groups, parent)
+        self._save_profiles(profiles)
+
+    def edit_profile(self, profile_name, new_name=None, picture=None, settings_groups=None, parent=None, apply=True):
+        """Change a profile's name, picture, overridden groups or parent.
+
+        Groups that become overridden start as a copy of the values the
+        profile was inheriting, so the visible settings do not change.
+
+        Args:
+            apply (): load the resulting values into the live settings and
+                reload what changed. Skip it when the live values are known
+                to be unaffected.
+
+        Returns:
+            list of ReloadType values that were triggered
+        """
+        self.update_current_profile()
+        profiles = self._load_profiles()
+        if profile_name not in profiles:
+            raise ValueError(f"Profile '{profile_name}' not found")
+        new_name = new_name or profile_name
+        if new_name != profile_name and new_name in profiles:
+            raise ValueError(f"Profile '{new_name}' already exists")
+        record = profiles[profile_name]
+        record["picture"] = picture
+        if profile_name != ROOT_PROFILE:
+            seen = resolve_profile_settings(profiles, profile_name, SETTINGS_GROUPS)
+            old_groups = set(get_profile_groups(profiles, profile_name, SETTINGS_GROUPS))
+            if settings_groups is None:
+                settings_groups = old_groups
+            if parent is None:
+                parent = get_profile_parent(profiles, profile_name)
+            new_groups = [group for group in SETTINGS_GROUPS if group in settings_groups]
+            saved = dict(record.get("settings") or {})
+            for group in old_groups - set(new_groups):
+                for key in get_group_keys(group, SETTINGS_GROUPS):
+                    saved.pop(key, None)
+            for group in set(new_groups) - old_groups:
+                for key in get_group_keys(group, SETTINGS_GROUPS):
+                    if key in seen:
+                        saved[key] = seen[key]
+            record["settings"] = saved
+            record["settings_groups"] = new_groups
+            record["parent"] = self._valid_profile_parent(profiles, profile_name, parent)
+        current = self.settings.get_string("current-profile")
+        if new_name != profile_name:
+            profiles = {new_name if name == profile_name else name: value for name, value in profiles.items()}
+            for value in profiles.values():
+                if value.get("parent") == profile_name:
+                    value["parent"] = new_name
+            for workspace in self.workspaces.values():
+                if workspace.get("profile") == profile_name:
+                    workspace["profile"] = new_name
+            for chat in self.chats.values():
+                if chat.get("profile") == profile_name:
+                    chat["profile"] = new_name
+            self.save_chats()
+            if current == profile_name:
+                current = new_name
+                self.settings.set_string("current-profile", new_name)
+        self._save_profiles(profiles)
+        if not apply:
+            return []
+        # Edits to an ancestor change what the current profile inherits.
+        apply_profile_settings(self.settings, profiles, current, SETTINGS_GROUPS)
+        return self.update_settings()
+
+    def transfer_profile_settings(self, source, target, groups):
+        """Copy the values ``source`` uses for ``groups`` into ``target``.
+
+        The copied groups become overridden in ``target``, so profiles that
+        share them with ``target`` through inheritance are not changed.
+
+        Returns:
+            list of ReloadType values that were triggered
+        """
+        self.update_current_profile()
+        profiles = self._load_profiles()
+        if source not in profiles or target not in profiles:
+            raise ValueError(_("Profile not found"))
+        groups = [group for group in SETTINGS_GROUPS if group in groups]
+        if source == target or not groups:
+            return []
+        values = resolve_profile_settings(profiles, source, SETTINGS_GROUPS)
+        record = profiles[target]
+        if get_profile_parent(profiles, target) is not None:
+            owned = get_profile_groups(profiles, target, SETTINGS_GROUPS)
+            record["settings_groups"] = [group for group in SETTINGS_GROUPS if group in owned or group in groups]
+            record["parent"] = get_profile_parent(profiles, target)
+        saved = dict(record.get("settings") or {})
+        for group in groups:
+            for key in get_group_keys(group, SETTINGS_GROUPS):
+                if key in values:
+                    saved[key] = values[key]
+        record["settings"] = saved
+        self._save_profiles(profiles)
+        # The current profile may be the target or inherit from it.
+        apply_profile_settings(self.settings, profiles, self.settings.get_string("current-profile"), SETTINGS_GROUPS)
+        return self.update_settings()
+
+    def override_profile_groups(self, groups, profile_name=None):
+        """Make a profile override groups it currently inherits, keeping their values.
+
+        Only the saved profiles change, so pending edits in an open Settings
+        window are not applied early.
+        """
+        profile_name = profile_name or self.settings.get_string("current-profile")
+        profiles = self._load_profiles()
+        if profile_name not in profiles:
+            return
+        current = get_profile_groups(profiles, profile_name, SETTINGS_GROUPS)
+        self.edit_profile(
+            profile_name,
+            picture=profiles[profile_name].get("picture"),
+            settings_groups=current + [group for group in groups if group not in current],
+            parent=get_profile_parent(profiles, profile_name),
+            apply=False,
+        )
 
     def delete_profile(self, profile_name):
         """Delete a profile
 
+        Profiles based on it are re-based on its own parent.
+
         Args:
             profile_name (): name of the profile to delete 
         """
-        if profile_name == "Assistant" or profile_name == self.settings.get_string("current-profile"):
+        if profile_name == ROOT_PROFILE or profile_name == self.settings.get_string("current-profile"):
             return
+        self.update_current_profile()
+        profiles = self._load_profiles()
+        if profile_name not in profiles:
+            return
+        parent = get_profile_parent(profiles, profile_name) or ROOT_PROFILE
+        for name in profiles:
+            if name != profile_name and get_profile_parent(profiles, name) == profile_name:
+                profiles[name]["parent"] = parent
         for workspace in self.workspaces.values():
             if workspace.get("profile") == profile_name:
                 workspace["profile"] = None
         self.save_chats()
-        del self.newelle_settings.profile_settings[profile_name]
-        self.settings.set_string("profiles", json.dumps(self.newelle_settings.profile_settings))
+        del profiles[profile_name]
+        self._save_profiles(profiles)
+        apply_profile_settings(self.settings, profiles, self.settings.get_string("current-profile"), SETTINGS_GROUPS)
         self.update_settings()
 
     def switch_profile(self, profile_name: str):
@@ -1836,7 +2030,6 @@ class NewelleController(WorkspaceController):
         Raises:
             ValueError: if the profile does not exist
         """
-        from .utility.profile_settings import restore_settings_from_dict_by_groups
         if profile_name not in self.newelle_settings.profile_settings:
             raise ValueError(f"Profile '{profile_name}' not found")
 
@@ -1847,27 +2040,32 @@ class NewelleController(WorkspaceController):
         # Save current profile settings
         self.update_current_profile()
 
-        # Restore target profile settings
-        profiles = json.loads(self.settings.get_string("profiles"))
-        profile_data = profiles.get(profile_name, {})
-        groups = profile_data.get("settings_groups", [])
-        saved = profile_data.get("settings", {})
-
+        # Restore target profile settings, including inherited groups
+        profiles = self._load_profiles()
         self.settings.set_string("current-profile", profile_name)
-        restore_settings_from_dict_by_groups(self.settings, saved, groups, SETTINGS_GROUPS)
+        apply_profile_settings(self.settings, profiles, profile_name, SETTINGS_GROUPS)
 
         reload_types = self.update_settings()
         return reload_types
 
+    def apply_profile(self, profile_name):
+        """Save the current profile and load ``profile_name`` without reloading handlers."""
+        profiles = self._load_profiles()
+        if profile_name not in profiles:
+            return False
+        if profile_name != self.settings.get_string("current-profile"):
+            self.update_current_profile()
+            profiles = self._load_profiles()
+            self.settings.set_string("current-profile", profile_name)
+        apply_profile_settings(self.settings, profiles, profile_name, SETTINGS_GROUPS)
+        return True
+
     def update_current_profile(self):
-        """Update the current profile"""
+        """Save the live settings into the current profile and the profiles it inherits from"""
         self.current_profile = self.settings.get_string("current-profile")
-        self.profile_settings = self.newelle_settings.profile_settings
-        groups = self.profile_settings[self.current_profile].get("settings_groups", [])
-        old_settings = get_settings_dict_by_groups(self.settings, groups, SETTINGS_GROUPS, ["current-profile", "profiles"] )
-        self.profile_settings = json.loads(self.settings.get_string("profiles"))
-        self.profile_settings[self.current_profile]["settings"] = old_settings
-        self.settings.set_string("profiles", json.dumps(self.profile_settings))
+        profiles = self._load_profiles()
+        save_live_settings_to_profiles(self.settings, profiles, self.current_profile, SETTINGS_GROUPS)
+        self._save_profiles(profiles)
     
     def export_profile(self, profile_name, remove_passwords=False, export_propic=False):
         """Export a profile
@@ -3220,8 +3418,9 @@ class NewelleSettings:
         self.settings = settings
         self.profile_settings = json.loads(self.settings.get_string("profiles"))
         self.current_profile = self.settings.get_string("current-profile")
-        if len(self.profile_settings) == 0 or self.current_profile not in self.profile_settings:
-            self.profile_settings[self.current_profile] = {"settings": {}, "picture": None, "settings_groups": []}
+        for name in (ROOT_PROFILE, self.current_profile):
+            if name not in self.profile_settings:
+                self.profile_settings[name] = new_profile_record(parent=None if name == ROOT_PROFILE else ROOT_PROFILE)
 
         # Init variables
         self.automatic_stt_status = False

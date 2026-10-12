@@ -4,6 +4,7 @@ import shutil
 import os
 import json
 from ..constants import SETTINGS_GROUPS
+from ..utility.profile_settings import ROOT_PROFILE, get_profile_descendants, get_profile_groups, get_profile_parent
 from gi.repository import Gdk, Gtk, Adw, Gio, GLib
 
 class ProfileDialog(Adw.PreferencesDialog):
@@ -55,9 +56,17 @@ class ProfileDialog(Adw.PreferencesDialog):
         self.entry = row
         self.group.add(row)
 
-        self.settings_row = Adw.ExpanderRow(title=_("Copied Settings"), subtitle=_("Settings that will be copied to the new profile"))
+        self.parent_names = []
+        self.parent_row = None
+        if not (editing and self.original_name == ROOT_PROFILE):
+            self.build_parent_row(editing)
+        self.settings_row = Adw.ExpanderRow(
+            title=_("Overridden Settings"),
+            subtitle=_("Selected groups use this profile's own values"),
+        )
         self.build_settings_group(editing)
         self.settings_group.add(self.settings_row)
+        self._update_inheritance_description()
 
 
         # File Filter for image selection
@@ -99,6 +108,16 @@ class ProfileDialog(Adw.PreferencesDialog):
             self.export_button = Gtk.Button(label=_("Export Profile"))
             self.export_button.connect("clicked", self.export_profile)
             self.export_button_group.add(self.export_button)
+
+            if len(self.profile_settings) > 1:
+                self.transfer_group = Adw.PreferencesGroup(
+                    title=_("Transfer Settings"),
+                    description=_("Copy settings groups from another profile into this one"),
+                )
+                self.page.add(self.transfer_group)
+                self.transfer_button = Gtk.Button(label=_("Copy Settings From…"))
+                self.transfer_button.connect("clicked", self.open_transfer_dialog)
+                self.transfer_group.add(self.transfer_button)
        
         if image is not None:
             texture = Gdk.Texture.new_from_filename(image)
@@ -113,10 +132,55 @@ class ProfileDialog(Adw.PreferencesDialog):
 
         if not editing:
             g = Adw.PreferencesGroup()
-            warning = Gtk.Label(label=_("The settings of the current profile will be copied into the new one"), wrap=True)
+            warning = Gtk.Label(label=_("Overridden settings start as a copy of the base profile"), wrap=True)
             g.add(warning)
             self.page.add(g)
 
+    def build_parent_row(self, edit=False):
+        """Add the "Based on" selector, hiding choices that would create a loop."""
+        excluded = set()
+        if edit:
+            excluded = {self.original_name} | get_profile_descendants(self.profile_settings, self.original_name)
+            selected = get_profile_parent(self.profile_settings, self.original_name) or ROOT_PROFILE
+        else:
+            selected = self.parent.current_profile
+        self.parent_names = [name for name in self.profile_settings if name not in excluded]
+        if ROOT_PROFILE in self.parent_names:
+            self.parent_names.remove(ROOT_PROFILE)
+            self.parent_names.insert(0, ROOT_PROFILE)
+        self.parent_row = Adw.ComboRow(
+            title=_("Based on"),
+            subtitle=_("Settings that are not overridden come from this profile"),
+            model=Gtk.StringList.new(self.parent_names),
+        )
+        if selected in self.parent_names:
+            self.parent_row.set_selected(self.parent_names.index(selected))
+        self.parent_row.connect("notify::selected", lambda *_args: self._update_inheritance_description())
+        self.settings_group.add(self.parent_row)
+
+    def get_selected_parent(self):
+        if self.parent_row is None or not self.parent_names:
+            return None
+        index = self.parent_row.get_selected()
+        if index >= len(self.parent_names):
+            return ROOT_PROFILE
+        return self.parent_names[index]
+
+    def _update_inheritance_description(self):
+        parent = self.get_selected_parent()
+        if parent is None:
+            self.settings_group.set_description(_("This is the base profile: it stores every setting."))
+            self.settings_row.set_sensitive(False)
+            return
+        self.settings_group.set_description(
+            _("Other settings follow “{0}”. Changing them while this profile is active also changes “{0}”.").format(parent)
+        )
+
+
+    def open_transfer_dialog(self, _button):
+        # The overridden groups shown here would be stale after a transfer.
+        self.close()
+        self.parent.show_transfer_profile_settings(target=self.original_name)
 
     def export_profile(self, button):
         filter = Gtk.FileFilter(name=_("Newelle Profiles"), patterns=["*.np", "*.json"]) 
@@ -164,19 +228,18 @@ class ProfileDialog(Adw.PreferencesDialog):
         self.select_all_switch = Gtk.Switch(valign=Gtk.Align.CENTER)
         self.select_all_row = Adw.ActionRow(
             title=_("All Settings"),
-            subtitle=_("Enable or disable every settings group"),
+            subtitle=_("Override or inherit every settings group"),
             vexpand=False,
         )
         self.select_all_row.add_suffix(self.select_all_switch)
         self.select_all_row.set_activatable_widget(self.select_all_switch)
         self.settings_row.add_row(self.select_all_row)
 
+        # New profiles start independent so editing them never changes the base by surprise.
+        owned = get_profile_groups(self.profile_settings, self.profile_name, SETTINGS_GROUPS) if edit else list(SETTINGS_GROUPS)
         for setting, group in SETTINGS_GROUPS.items():
             toggle = Gtk.Switch(valign=Gtk.Align.CENTER)
-            if edit:
-                toggle.set_active(setting in self.profile_settings[self.profile_name].get("settings_groups",[]))     
-            else:
-                toggle.set_active(True)
+            toggle.set_active(setting in owned)
             toggle.connect("notify::active", self.on_setting_switch_toggled)
             row = Adw.ActionRow(title=group["title"], subtitle=group["description"], vexpand=False)
             row.add_suffix(toggle)
@@ -258,23 +321,102 @@ class ProfileDialog(Adw.PreferencesDialog):
     def on_create_clicked(self, button):
         """Handles the create button click."""
 
+        if not self.profile_name:
+            self.add_toast(Adw.Toast.new(_("Please enter a profile name.")))
+            return
+        renamed = not self.editing or self.original_name != self.profile_name
+        if renamed and self.profile_name in self.profile_settings:
+            self.add_toast(Adw.Toast.new(_("A profile with this name already exists.")))
+            return
+
+        picture = self.profile_settings[self.original_name].get("picture") if self.editing else None
         if self.pic_path is not None:
             path = os.path.join(self.parent.path, "profiles")
             if not os.path.exists(path):
                 os.makedirs(path)
             shutil.copy(self.pic_path, os.path.join(path, self.profile_name + ".png"))
-            self.pic_path = os.path.join(path, self.profile_name + ".png")
-        if not self.profile_name:
-            toast = Adw.Toast.new("Please enter a profile name.")
-            self.parent.add_toast(toast)
-            return
-        
-        # Get the custom image from the avatar (if any)
-        copied_settings = [setting for setting in self.settings_switches if self.settings_switches[setting].get_active()] 
+            picture = os.path.join(path, self.profile_name + ".png")
+
+        overridden = [setting for setting in self.settings_switches if self.settings_switches[setting].get_active()]
+        parent = self.get_selected_parent()
         if self.editing:
-            self.parent.switch_profile(self.original_name)
-        self.parent.create_profile(self.profile_name, self.pic_path, {}, copied_settings)
-        GLib.idle_add(self.parent.switch_profile, self.profile_name)
-        if self.editing and self.original_name != self.profile_name:
-            GLib.idle_add(self.parent.delete_profile, self.original_name)
+            if not self.parent.apply_profile_edit(self.original_name, self.profile_name, picture, overridden, parent):
+                return
+        else:
+            self.parent.create_profile(self.profile_name, picture, None, overridden, parent or ROOT_PROFILE)
+            GLib.idle_add(self.parent.switch_profile, self.profile_name)
         self.close()
+
+
+class TransferSettingsDialog(Adw.PreferencesDialog):
+    """Copy settings groups from one existing profile to another."""
+
+    def __init__(self, parent, profile_settings, source=None, target=None):
+        super().__init__()
+        self.parent = parent
+        self.profile_settings = profile_settings
+        self.profile_names = list(profile_settings)
+        self.set_title(_("Transfer Settings"))
+        self.set_search_enabled(False)
+
+        page = Adw.PreferencesPage()
+        self.add(page)
+
+        profiles_group = Adw.PreferencesGroup(
+            description=_("Copied groups become overridden in the target profile, so its base profile is not changed. Profiles that inherit these groups from the target also get the new values."),
+        )
+        page.add(profiles_group)
+        if target not in self.profile_names:
+            target = parent.current_profile
+        if source not in self.profile_names or source == target:
+            source = next((name for name in self.profile_names if name != target), target)
+        self.source_row = Adw.ComboRow(title=_("From"), model=Gtk.StringList.new(self.profile_names))
+        self.source_row.set_selected(self.profile_names.index(source))
+        self.target_row = Adw.ComboRow(title=_("To"), model=Gtk.StringList.new(self.profile_names))
+        self.target_row.set_selected(self.profile_names.index(target))
+        profiles_group.add(self.source_row)
+        profiles_group.add(self.target_row)
+
+        groups_group = Adw.PreferencesGroup(title=_("Settings to Copy"))
+        page.add(groups_group)
+        self.group_switches = {}
+        for key, group in SETTINGS_GROUPS.items():
+            row = Adw.SwitchRow(title=group["title"], subtitle=group["description"])
+            row.connect("notify::active", self._update_state)
+            groups_group.add(row)
+            self.group_switches[key] = row
+
+        button_group = Adw.PreferencesGroup()
+        page.add(button_group)
+        self.transfer_button = Gtk.Button(label=_("Copy Settings"))
+        self.transfer_button.add_css_class("suggested-action")
+        self.transfer_button.connect("clicked", self.on_transfer_clicked)
+        button_group.add(self.transfer_button)
+
+        self.source_row.connect("notify::selected", self._update_state)
+        self.target_row.connect("notify::selected", self._update_state)
+        self._update_state()
+
+    def _selected_name(self, row):
+        index = row.get_selected()
+        return self.profile_names[index] if index < len(self.profile_names) else None
+
+    def _selected_groups(self):
+        return [key for key, row in self.group_switches.items() if row.get_active()]
+
+    def _update_state(self, *_args):
+        source = self._selected_name(self.source_row)
+        target = self._selected_name(self.target_row)
+        self.transfer_button.set_sensitive(
+            source is not None and target is not None and source != target and bool(self._selected_groups())
+        )
+
+    def on_transfer_clicked(self, _button):
+        source = self._selected_name(self.source_row)
+        target = self._selected_name(self.target_row)
+        groups = self._selected_groups()
+        if self.parent.transfer_profile_settings(source, target, groups):
+            self.parent.workspace_toast(
+                _("Copied {0} settings group(s) from “{1}” to “{2}”.").format(len(groups), source, target)
+            )
+            self.close()

@@ -16,7 +16,7 @@ from ..utility.util import PerformanceMonitor
 
 from ..handlers import Handler
 
-from ..constants import AVAILABLE_EMBEDDINGS, AVAILABLE_LLMS, AVAILABLE_MEMORIES, AVAILABLE_PROMPTS, AVAILABLE_TTS, AVAILABLE_STT, PROMPTS, AVAILABLE_RAGS, AVAILABLE_WEBSEARCH, AVAILABLE_IMAGE_GENERATORS
+from ..constants import AVAILABLE_EMBEDDINGS, AVAILABLE_LLMS, AVAILABLE_MEMORIES, AVAILABLE_PROMPTS, AVAILABLE_TTS, AVAILABLE_STT, PROMPTS, AVAILABLE_RAGS, AVAILABLE_WEBSEARCH, AVAILABLE_IMAGE_GENERATORS, SETTINGS_GROUPS
 from ..utility.pip import install_module
 from ..utility.download_manager import get_download_manager
 from ..utility.mcp_config import MCPConfigError, parse_mcp_servers_json
@@ -40,6 +40,22 @@ from ..utility.system import (
 
 from ..controller import NewelleController
 from ..modes import DEFAULT_MODE_NAME
+
+# Profile settings groups whose keys are edited on each navigation page.
+PROFILE_PAGE_GROUPS = {
+    "General": ["interface", "general"],
+    "LLM": ["LLM"],
+    "Memory": ["Embedding", "memory", "websearch", "image_generator", "rag"],
+    "Voice": ["TTS", "STT", "wakeword", "voice_mode"],
+    "Prompts": ["prompts"],
+    "Tools": ["tools"],
+    "Permissions": ["general", "tools"],
+    "Skills": ["tools"],
+    "Subagents": ["tools"],
+    "MCP": ["tools"],
+    "Interfaces": ["interface"],
+    "Extensions": ["extensions"],
+}
 
 class Settings(Adw.Window):
     def __init__(self,app, controller: NewelleController,headless=False, startup_page=None, popup=False, *args, **kwargs):
@@ -850,6 +866,10 @@ class Settings(Adw.Window):
         content_toolbar = Adw.ToolbarView()
         content_header = Adw.HeaderBar()
         content_toolbar.add_top_bar(content_header)
+        self.profile_banner = Adw.Banner(button_label=_("Override here"))
+        self.profile_banner.connect("button-clicked", self.on_profile_banner_override)
+        self._profile_banner_groups = []
+        content_toolbar.add_top_bar(self.profile_banner)
         self.settings_search = SettingsSearch(self)
         sidebar_header.pack_end(self.settings_search.create_button())
         content_search_button = self.settings_search.create_button()
@@ -899,6 +919,40 @@ class Settings(Adw.Window):
             self.UsagePage.show_page()
         self.content_stack.set_visible_child(page)
         self.content_navigation_page.set_title(title)
+        self.update_profile_banner(key)
+
+    def update_profile_banner(self, page_key=None):
+        """Show which profile provides the settings on this page when they are inherited."""
+        if page_key is None:
+            row = self.navigation_list.get_selected_row()
+            page_key = getattr(row, "settings_page_key", None)
+        current = self.settings.get_string("current-profile")
+        owners = self.controller.get_profile_group_owners(current)
+        inherited = [
+            group for group in PROFILE_PAGE_GROUPS.get(page_key, [])
+            if group in owners and owners[group] != current
+        ]
+        self._profile_banner_groups = inherited
+        if not inherited:
+            self.profile_banner.set_revealed(False)
+            return
+        sources = list(dict.fromkeys(owners[group] for group in inherited))
+        names = ", ".join(SETTINGS_GROUPS[group]["title"] for group in inherited)
+        if len(sources) == 1:
+            title = _("{0} settings come from “{1}”. Changes also apply there.").format(names, sources[0])
+        else:
+            title = _("{0} settings come from other profiles ({1}). Changes also apply there.").format(names, ", ".join(sources))
+        self.profile_banner.set_title(title)
+        self.profile_banner.set_revealed(True)
+
+    def on_profile_banner_override(self, _banner):
+        groups = list(self._profile_banner_groups)
+        if not groups:
+            return
+        self.controller.override_profile_groups(groups)
+        self.update_profile_banner()
+        self.add_toast(Adw.Toast.new(_("“{0}” now has its own copy of these settings.").format(
+            self.settings.get_string("current-profile"))))
 
     def on_navigation_row_activated(self, _listbox, _row):
         self.settings_search.close()

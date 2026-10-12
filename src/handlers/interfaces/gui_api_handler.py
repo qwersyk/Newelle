@@ -160,6 +160,7 @@ class GUIAPIInterface(Interface):
             picture: Optional[str] = None
             settings: Optional[dict] = Field(default_factory=dict)
             settings_groups: Optional[list] = Field(default_factory=list)
+            parent: Optional[str] = None
 
         class DeleteProfileRequest(BaseModel):
             profile_name: str
@@ -899,11 +900,14 @@ class GUIAPIInterface(Interface):
             profiles = controller.newelle_settings.profile_settings
             current = controller.settings.get_string("current-profile")
             result = []
+            from ...constants import SETTINGS_GROUPS
+            from ...utility.profile_settings import get_profile_groups, get_profile_parent
             for name, data in profiles.items():
                 result.append({
                     "name": name,
                     "picture": data.get("picture"),
-                    "settings_groups": data.get("settings_groups", []),
+                    "settings_groups": get_profile_groups(profiles, name, SETTINGS_GROUPS),
+                    "parent": get_profile_parent(profiles, name),
                     "current": name == current,
                 })
             return result
@@ -916,7 +920,7 @@ class GUIAPIInterface(Interface):
         @app.post("/api/profiles")
         def api_create_profile(req: CreateProfileRequest):
             controller.create_profile(
-                req.profile_name, req.picture, req.settings, req.settings_groups
+                req.profile_name, req.picture, req.settings, req.settings_groups, req.parent
             )
             return {"status": "ok"}
 
