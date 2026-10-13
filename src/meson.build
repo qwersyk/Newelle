@@ -248,6 +248,7 @@ interface_sources = [
   'handlers/interfaces/api_handler.py',
   'handlers/interfaces/gui_api_handler.py',
   'handlers/interfaces/telegram_handler.py',
+  'handlers/interfaces/mcp_interface.py',
 ]
 
 utility_sources = [
