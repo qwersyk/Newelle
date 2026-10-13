@@ -36,7 +36,7 @@ class WebsiteButton(Gtk.Button):
         icon_name = "internet-symbolic"
 
         icon = Gtk.Image(icon_name=icon_name)
-        icon.set_css_classes(["large"])
+        icon.set_css_classes(["newelle-icon-large"])
         self.icon = icon 
 
         box.append(icon)
