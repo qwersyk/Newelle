@@ -51,7 +51,7 @@ PROFILE_PAGE_GROUPS = {
     "Tools": ["tools"],
     "Permissions": ["general", "tools"],
     "Skills": ["tools"],
-    "Subagents": ["tools"],
+    "Subagents": ["subagents"],
     "MCP": ["tools"],
     "Interfaces": ["interface"],
     "Extensions": ["extensions"],

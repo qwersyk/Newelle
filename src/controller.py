@@ -3491,6 +3491,7 @@ class NewelleSettings:
         self.tools_settings = settings.get_string("tools-settings")
         self.tools_settings_dict = json.loads(self.tools_settings)
         self.skills_settings = settings.get_string("skills-settings")
+        self.subagents_settings = settings.get_string("subagents-settings")
         self.mcp_servers = self.settings.get_string("mcp-servers")
         self.mcp_servers_dict = json.loads(self.mcp_servers)
         self.file_permissions = self.settings.get_string("file-permissions")
@@ -3644,7 +3645,7 @@ class NewelleSettings:
             reloads.append(ReloadType.RELOAD_CHAT_LIST)
         if self.websearch_on != new_settings.websearch_on or self.websearch_model != new_settings.websearch_model or self.websearch_settings != new_settings.websearch_settings:
             reloads.append(ReloadType.WEBSEARCH)
-        if self.mcp_servers != new_settings.mcp_servers or self.tools_settings != new_settings.tools_settings or self.skills_settings != new_settings.skills_settings:
+        if self.mcp_servers != new_settings.mcp_servers or self.tools_settings != new_settings.tools_settings or self.skills_settings != new_settings.skills_settings or self.subagents_settings != new_settings.subagents_settings:
             reloads.append(ReloadType.TOOLS)
         # Check wakeword settings
         if (self.wakeword_enabled != new_settings.wakeword_enabled or

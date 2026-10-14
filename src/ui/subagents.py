@@ -71,6 +71,9 @@ class SubagentsPage(Adw.PreferencesPage):
         self.add_button.connect("clicked", self._on_create)
         self.group.set_header_suffix(self.add_button)
         self.add(self.group)
+        self.controller.settings.connect(
+            "changed::subagents-settings", lambda *args: GLib.idle_add(self.refresh)
+        )
         self.refresh()
 
     def refresh(self):
