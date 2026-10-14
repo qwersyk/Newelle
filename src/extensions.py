@@ -19,6 +19,60 @@ from .handlers.embeddings import EmbeddingHandler
 from .handlers.websearch import WebSearchHandler
 from .ui_controller import UIController
 from .tools import Command
+from .subagents import (
+    InvalidSubagentError,
+    normalize_subagent_definition,
+    validate_subagent_id_component,
+)
+
+
+def validate_subagent_contributions(extension) -> dict[str, dict]:
+    """Validate and namespace one extension's named subagents.
+
+    Extension definitions carry a local ``id``.  The returned mapping uses a
+    stable application-wide ID and includes source metadata while retaining
+    only canonical definition fields.
+    """
+    extension_id = validate_subagent_id_component(
+        getattr(extension, "id", None), "extension id"
+    )
+    contributions = extension.get_subagents() or []
+    if not isinstance(contributions, (list, tuple)):
+        raise InvalidSubagentError(
+            f"Extension '{extension_id}' get_subagents() must return a list"
+        )
+
+    result = {}
+    local_ids = set()
+    for contribution in contributions:
+        if not isinstance(contribution, dict):
+            raise InvalidSubagentError(
+                f"Extension '{extension_id}' returned a non-object subagent"
+            )
+        local_id = validate_subagent_id_component(
+            contribution.get("id"), "extension subagent id"
+        )
+        if local_id in local_ids:
+            raise InvalidSubagentError(
+                f"Extension '{extension_id}' returned duplicate subagent id "
+                f"'{local_id}'"
+            )
+        local_ids.add(local_id)
+        identifier = f"extension:{extension_id}:{local_id}"
+        definition = normalize_subagent_definition(contribution)
+        definition.update(
+            {
+                "id": identifier,
+                "source": "extension",
+                "read_only": True,
+                "extension_id": extension_id,
+                "source_extension": extension_id,
+                "local_id": local_id,
+            }
+        )
+        result[identifier] = definition
+    return result
+
 
 class NewelleExtension(Handler):
     """The base class for all extensions"""
@@ -224,6 +278,19 @@ class NewelleExtension(Handler):
     def get_tools(self) -> list:
         return []
 
+    def get_subagents(self) -> list[dict]:
+        """Return named subagents contributed by this extension.
+
+        Each entry must contain an extension-local ``id`` plus the canonical
+        subagent fields ``name``, ``description``, ``system_prompt``,
+        ``include_agents_md``, ``tools``, ``skills``, ``provider``, ``model``,
+        ``use_secondary_model`` and ``default_on``. Fields other than ``id``
+        and ``name`` may be omitted and receive safe defaults.
+        Extension subagents are live, read-only contributions; Newelle never
+        copies them into the user's global ``subagents`` setting.
+        """
+        return []
+
     def get_modes(self) -> dict:
         """Returns the Modes contributed by this extension.
 
@@ -235,6 +302,7 @@ class NewelleExtension(Handler):
                 "icon": "<str>",             # GTK symbolic icon name
                 "tools":  {"<tool_name>": "<state>", ...},   # optional
                 "skills": {"<skill_name>": "<state>", ...},  # optional
+                "subagents": {"<subagent_id>": "<state>", ...}, # optional
                 "prompts": {                                      # optional
                     "<prompt_key>": {
                         "state": "<state>",
@@ -478,6 +546,11 @@ class ExtensionLoader:
         ):
             contribution_types.add("handlers")
 
+        if self.get_subagent_contributions(
+            extension_ids, include_disabled
+        ):
+            contribution_types.add("subagents")
+
         methods = {
             "tools": "get_tools",
             "prompts": "get_additional_prompts",
@@ -495,6 +568,31 @@ class ExtensionLoader:
                         f"extension '{extension.id}': {error}"
                     )
         return contribution_types
+
+    def get_subagent_contributions(
+        self, extension_ids=None, include_disabled=False
+    ) -> dict[str, dict]:
+        """Return validated, namespaced subagents from selected extensions."""
+        contributions = {}
+        for extension in self._get_contributing_extensions(
+            extension_ids, include_disabled
+        ):
+            try:
+                extension_subagents = validate_subagent_contributions(extension)
+            except Exception as error:
+                print(
+                    f"Error reading subagent contributions from extension "
+                    f"'{extension.id}': {error}"
+                )
+                continue
+            for identifier, definition in extension_subagents.items():
+                if identifier in contributions:
+                    print(
+                        f"Ignoring duplicate extension subagent '{identifier}'"
+                    )
+                    continue
+                contributions[identifier] = definition
+        return contributions
 
     def load_integrations(self, AVAILABLE_INTEGRATIONS):
         for integration in AVAILABLE_INTEGRATIONS:

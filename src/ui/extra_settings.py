@@ -186,6 +186,9 @@ class ExtraSettingsBuilder:
         else:
             return None
 
+        # Lets settings search resolve a lazy result after its provider expands.
+        row.settings_search_key = setting.get("key")
+
         if "website" in setting:
             website_button = self.create_web_button(setting["website"])
             row.add_suffix(website_button)

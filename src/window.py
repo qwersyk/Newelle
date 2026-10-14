@@ -16,7 +16,7 @@ from gi.repository import Gtk, Adw, Pango, Gio, Gdk, GObject, GLib, GdkPixbuf
 
 from .ui.settings import Settings
 
-from .ui.profile import ProfileDialog
+from .ui.profile import ProfileDialog, TransferSettingsDialog
 from .ui.workspaces import WorkspaceWindow
 from .ui.presentation import PresentationWindow
 from .ui.widgets import File, CopyBox, BarChartBox, MarkupTextView, DocumentReaderWidget, TipsCarousel, BrowserWidget, Terminal, CodeEditorWidget, ToolWidget, CallPanel
@@ -1628,15 +1628,53 @@ class MainWindow(WorkspaceWindow, Adw.ApplicationWindow):
             avatar = Adw.Avatar(text=profile, show_initials=True, size=20)
         profile_button.set_child(avatar)
 
-    def create_profile(self, profile_name, picture=None, settings={}, settings_groups=[]):
+    def create_profile(self, profile_name, picture=None, settings=None, settings_groups=None, parent=None):
         """Create a profile
 
         Args:
             profile_name (): name of the profile
             picture (): path to the profile picture
             settings (): settings to override for that profile
+            settings_groups (): groups the profile overrides
+            parent (): profile the other groups are inherited from
         """
-        self.controller.create_profile(profile_name, picture, settings, settings_groups)
+        self.controller.create_profile(profile_name, picture, settings, settings_groups, parent)
+
+    def _run_profile_change(self, change):
+        """Run a controller profile change that may rewrite live settings"""
+        if self.workspace_ui_busy():
+            self.workspace_toast(_("Finish or stop active work before editing profiles."))
+            return False
+        try:
+            self.controller.begin_workspace_switch()
+        except ValueError as error:
+            self.workspace_toast(str(error))
+            return False
+        try:
+            reloads = change()
+            self.update_settings(reloads)
+            self.refresh_profiles_box()
+        except ValueError as error:
+            self.workspace_toast(str(error))
+            return False
+        finally:
+            self.controller.workspace_switching = False
+        return True
+
+    def apply_profile_edit(self, profile_name, new_name, picture, settings_groups, parent):
+        """Apply changes from the profile dialog and reload what they affect"""
+        return self._run_profile_change(
+            lambda: self.controller.edit_profile(profile_name, new_name, picture, settings_groups, parent)
+        )
+
+    def transfer_profile_settings(self, source, target, groups):
+        """Copy settings groups from one profile to another"""
+        return self._run_profile_change(
+            lambda: self.controller.transfer_profile_settings(source, target, groups)
+        )
+
+    def show_transfer_profile_settings(self, target=None):
+        TransferSettingsDialog(self, self.profile_settings, target=target).present(self)
 
     def delete_profile(self, profile_name):
         """Delete a profile
@@ -1656,8 +1694,6 @@ class MainWindow(WorkspaceWindow, Adw.ApplicationWindow):
         """
         dialog = ProfileDialog(self, self.profile_settings, profile_name=profile_name)
         dialog.present()
-        self.refresh_profiles_box()
-        self.update_settings()
 
     def get_profiles_box(self):
         """Create and build the profile selection dialog"""
@@ -1717,6 +1753,12 @@ class MainWindow(WorkspaceWindow, Adw.ApplicationWindow):
                 _("Create new profile"), None, False, add=True, allow_delete=False
             )
         )
+        if len(self.profile_settings) > 1:
+            profiles.append(
+                ProfileRow(
+                    _("Transfer settings"), None, False, transfer=True, allow_delete=False
+                )
+            )
 
         # Assign widgets
         popover = Gtk.Popover(css_classes=["menu"])
@@ -1752,6 +1794,15 @@ class MainWindow(WorkspaceWindow, Adw.ApplicationWindow):
             )
             popover.hide()
             dialog.present()
+            return
+        if action.transfer:
+            listbox.select_row(
+                listbox.get_row_at_index(
+                    list(self.profile_settings.keys()).index(self.current_profile)
+                )
+            )
+            popover.hide()
+            self.show_transfer_profile_settings()
             return
         if self.current_profile != action.profile:
             popover.hide()
@@ -1821,6 +1872,8 @@ class MainWindow(WorkspaceWindow, Adw.ApplicationWindow):
             elif group == "prompts":
                 reload_types.add(ReloadType.PROMPTS)
             elif group == "tools":
+                reload_types.add(ReloadType.TOOLS)
+            elif group == "subagents":
                 reload_types.add(ReloadType.TOOLS)
             elif group == "interface":
                 reload_types.add(ReloadType.RELOAD_CHAT_LIST)
@@ -2839,20 +2892,43 @@ class MainWindow(WorkspaceWindow, Adw.ApplicationWindow):
         dialog.present(self)
 
     def remove_chat(self, button):
-        """Remove a chat"""
+        """Remove a chat, including the one currently being displayed"""
         deleted_chat_id = int(button.get_name())
         if deleted_chat_id not in self.chats:
             return
-        if deleted_chat_id == self.chat_id:
-            return
         tab_page = self.get_tab_for_chat(deleted_chat_id)
-        if tab_page is not None:
+        tab = tab_page.get_child() if tab_page is not None else None
+        # Never delete a chat that is generating in an open tab
+        if tab is not None and not tab.status:
+            self.notification_block.add_toast(
+                Adw.Toast(title=_("Cannot delete a chat while it is generating"), timeout=2)
+            )
+            return
+        was_current = deleted_chat_id == self.chat_id
+        if was_current:
+            # The current chat is being deleted: choose another one to display
+            ordered = self.controller.chat_ids_ordered()
+            remaining = [cid for cid in ordered if cid != deleted_chat_id]
+            if remaining:
+                # Prefer the chat right after the deleted one, else the previous one
+                index = ordered.index(deleted_chat_id) if deleted_chat_id in ordered else 0
+                next_chat_id = remaining[min(index, len(remaining) - 1)]
+            else:
+                # Last chat of the workspace: create a fresh empty one
+                next_chat_id = self.controller.create_visible_chat()
+            if tab is not None:
+                # Focus the tab showing the deleted chat and switch it over
+                self.chat_tabs.set_selected_page(tab_page)
+                tab.switch_to_chat(next_chat_id)
+            self.chat_id = next_chat_id
+        elif tab_page is not None:
             self.chat_tabs.close_page(tab_page)
-        self.controller.remove_chat_from_folder(deleted_chat_id, save=False)
-        del self.chats[deleted_chat_id]
         self.controller.workspace_storage.drafts.pop(deleted_chat_id, None)
-        self.save_chat()
+        if not self.controller.delete_chat(deleted_chat_id):
+            return
         self.update_history()
+        if was_current:
+            self.refresh_context_indicator()
 
     def edit_chat_name(self, button, stack, multithreading=False):
         """Allow manual editing of chat name by replacing the title with an entry"""

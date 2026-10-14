@@ -27,6 +27,7 @@ class MultilineEntry(Gtk.Box):
         scroll.set_propagate_natural_height(True)
         scroll.set_margin_start(10)
         scroll.set_margin_end(10)
+        self.scroll = scroll
         self.append(scroll)
 
         # TextView
@@ -59,6 +60,15 @@ class MultilineEntry(Gtk.Box):
 
         # Add TextView to the ScrolledWindow
         scroll.set_child(self.input_panel)
+
+    def set_editor_height(self, height: int):
+        """Give the editor an explicit vertical allocation."""
+        height = max(0, int(height))
+        self.set_size_request(-1, height)
+        self.set_vexpand(True)
+        self.scroll.set_vexpand(True)
+        self.scroll.set_propagate_natural_height(False)
+        self.input_panel.set_vexpand(True)
 
     def set_enter_on_ctrl(self, enter_on_ctrl):
         self.enter_on_ctrl = enter_on_ctrl

@@ -39,11 +39,17 @@ class ToolResult:
         interaction_options: list=[],
         display_text: str | None = None,
         context_messages: list[str] | None = None,
+        stop_generation: bool = False,
+        cancel_callback: Callable[[], None] | None = None,
     ) -> None:
         self.output = output 
         self.widget = widget
         self.display_text = display_text
         self.context_messages = list(context_messages or [])
+        # Tools such as ``send_message_to_main`` finish the current agent turn
+        # instead of asking the model for another tool-follow-up response.
+        self.stop_generation = bool(stop_generation)
+        self.cancel_callback = cancel_callback
         self.is_cancelled = False
         self.requires_interaction = requires_interaction
         self.output_semaphore = threading.Semaphore()
@@ -57,7 +63,15 @@ class ToolResult:
 
     def cancel(self):
         self.is_cancelled = True
+        if self.cancel_callback is not None:
+            try:
+                self.cancel_callback()
+            finally:
+                self.cancel_callback = None
         self.set_output(None)
+
+    def set_cancel_callback(self, callback: Callable[[], None] | None):
+        self.cancel_callback = callback
 
     def set_widget(self, widget):
         self.widget = widget
@@ -148,11 +162,11 @@ class Command:
         return func_to_call(**kwargs)
 
 class Tool:
-    def __init__(self, name: str, description: str, func: Callable, schema: Dict[str, Any] = None, run_on_main_thread: bool = False, title: str = None, prompt_editable: bool = True, restore_func: Callable = None, default_on: bool = True, tools_group: str = None, icon_name: str = None, default_lazy_load: bool = False):
+    def __init__(self, name: str, description: str, func: Callable, schema: Dict[str, Any] | Callable[[], Dict[str, Any]] = None, run_on_main_thread: bool = False, title: str = None, prompt_editable: bool = True, restore_func: Callable = None, default_on: bool = True, tools_group: str = None, icon_name: str = None, default_lazy_load: bool = False):
         self.name = name
         self.description = description
         self.func = func
-        self.schema = schema or self._generate_schema_from_func(func)
+        self._schema = schema if schema is not None else self._generate_schema_from_func(func)
         self.run_on_main_thread = run_on_main_thread
         self.title = title or name.replace("_", " ").title()
         self.prompt_editable = prompt_editable
@@ -161,6 +175,18 @@ class Tool:
         self.tools_group = tools_group
         self.icon_name = icon_name
         self.default_lazy_load = default_lazy_load
+
+    @property
+    def schema(self) -> Dict[str, Any]:
+        """Return the current schema, resolving dynamic schema factories."""
+        schema = self._schema() if callable(self._schema) else self._schema
+        if not isinstance(schema, dict):
+            raise TypeError(f"Schema for tool '{self.name}' must be a dictionary")
+        return schema
+
+    @schema.setter
+    def schema(self, value):
+        self._schema = value
 
     def restore(self, **kwargs):
         if self.restore_func is not None:

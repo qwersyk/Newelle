@@ -2015,7 +2015,7 @@ class ChatHistory(Gtk.Box):
         else:
             name = "image-missing"
         icon = Gtk.Image(icon_name=name)
-        icon.set_css_classes(["large"])
+        icon.set_css_classes(["newelle-icon-large"])
         box.append(icon)
         box.append(vbox)
         vbox.set_size_request(250, -1)

@@ -220,16 +220,19 @@ class SkillManager:
             lines.append(f"- **{skill.name}**: {skill.description}")
         return "\n".join(lines)
 
-    def activate_skill(self, name):
-        """Return the full skill body with structured wrapping, or an error message."""
+    def render_skill(self, name, require_enabled=True):
+        """Return a skill's wrapped instructions without changing activation state.
+
+        ``require_enabled`` keeps the normal main-agent behavior by default,
+        while scoped runtimes such as configured subagents can authorize their
+        own explicit skill selection independently of profile and Mode toggles.
+        """
         skill = self.skills.get(name)
         if skill is None:
             return f"Skill '{name}' not found. Available skills: {', '.join(self.skills.keys())}"
 
-        if not self.is_skill_enabled(name):
+        if require_enabled and not self.is_skill_enabled(name):
             return f"Skill '{name}' is disabled."
-
-        self.activated_skills.add(name)
 
         resources = self._list_resources(skill.base_dir)
         resource_section = ""
@@ -245,6 +248,14 @@ class SkillManager:
             f"{resource_section}\n"
             f"</skill_content>"
         )
+
+    def activate_skill(self, name):
+        """Return the full skill body with structured wrapping, or an error message."""
+        output = self.render_skill(name, require_enabled=True)
+        skill = self.skills.get(name)
+        if skill is not None and self.is_skill_enabled(name):
+            self.activated_skills.add(name)
+        return output
 
     def _list_resources(self, base_dir, max_files=50):
         """List non-SKILL.md files in the skill directory."""

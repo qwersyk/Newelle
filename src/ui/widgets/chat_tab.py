@@ -1646,10 +1646,11 @@ class ChatTab(Gtk.Box):
         self.notification_block.add_toast(
             Adw.Toast(title=_("Chat is cleared"), timeout=2)
         )
-        self.chat.clear()
         for tool_result in self.active_tool_results:
             tool_result.cancel()
         self.active_tool_results = []
+        self.controller.cleanup_owner_sessions(self._chat_id)
+        self.chat.clear()
         self.show_chat()
         self.stream_number_variable += 1
         GLib.idle_add(self.chat_history.update_button_text)

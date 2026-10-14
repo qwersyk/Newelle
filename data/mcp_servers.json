@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "catalog_revision": 1,
+  "catalog_revision": 2,
   "applications": [
     {
       "id": "gmail",
@@ -770,6 +770,8 @@
         "command": "uv",
         "args": [
           "run",
+          "--with",
+          "mcp<2",
           "--directory",
           "${setup_dir}",
           "python",

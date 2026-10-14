@@ -299,7 +299,7 @@ class ExplorerPanel(Gtk.Box):
                         icon = File(
                             self.main_path, fname
                         )
-                        icon.set_css_classes(["large"])
+                        icon.set_css_classes(["newelle-icon-large"])
                         icon.set_valign(Gtk.Align.END)
                         icon.set_vexpand(True)
                         file_label = Gtk.Label(
@@ -337,7 +337,7 @@ class ExplorerPanel(Gtk.Box):
                         button.add_controller(right_click)
 
                         icon = File(self.main_path, file_info)
-                        icon.set_css_classes(["large"])
+                        icon.set_css_classes(["newelle-icon-large"])
                         icon.set_valign(Gtk.Align.END)
                         icon.set_vexpand(True)
                         file_label = Gtk.Label(

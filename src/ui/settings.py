@@ -16,7 +16,7 @@ from ..utility.util import PerformanceMonitor
 
 from ..handlers import Handler
 
-from ..constants import AVAILABLE_EMBEDDINGS, AVAILABLE_LLMS, AVAILABLE_MEMORIES, AVAILABLE_PROMPTS, AVAILABLE_TTS, AVAILABLE_STT, PROMPTS, AVAILABLE_RAGS, AVAILABLE_WEBSEARCH, AVAILABLE_IMAGE_GENERATORS
+from ..constants import AVAILABLE_EMBEDDINGS, AVAILABLE_LLMS, AVAILABLE_MEMORIES, AVAILABLE_PROMPTS, AVAILABLE_TTS, AVAILABLE_STT, PROMPTS, AVAILABLE_RAGS, AVAILABLE_WEBSEARCH, AVAILABLE_IMAGE_GENERATORS, SETTINGS_GROUPS
 from ..utility.pip import install_module
 from ..utility.download_manager import get_download_manager
 from ..utility.mcp_config import MCPConfigError, parse_mcp_servers_json
@@ -24,6 +24,8 @@ from .extension import ExtensionPage
 from .interfaces import InterfacesPage
 from .usage import UsagePage
 from .extra_settings import ExtraSettingsBuilder
+from .settings_search import SettingsSearch
+from .subagents import SubagentsPage
 from .widgets import ComboRowHelper, CopyBox 
 from .widgets import MultilineEntry
 from ..utility.system import (
@@ -39,6 +41,22 @@ from ..utility.system import (
 from ..controller import NewelleController
 from ..modes import DEFAULT_MODE_NAME
 
+# Profile settings groups whose keys are edited on each navigation page.
+PROFILE_PAGE_GROUPS = {
+    "General": ["interface", "general"],
+    "LLM": ["LLM"],
+    "Memory": ["Embedding", "memory", "websearch", "image_generator", "rag"],
+    "Voice": ["TTS", "STT", "wakeword", "voice_mode"],
+    "Prompts": ["prompts"],
+    "Tools": ["tools"],
+    "Permissions": ["general", "tools"],
+    "Skills": ["tools"],
+    "Subagents": ["subagents"],
+    "MCP": ["tools"],
+    "Interfaces": ["interface"],
+    "Extensions": ["extensions"],
+}
+
 class Settings(Adw.Window):
     def __init__(self,app, controller: NewelleController,headless=False, startup_page=None, popup=False, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -51,9 +69,8 @@ class Settings(Adw.Window):
         if not headless:
             self.set_transient_for(self.window)
         self.set_title(_("Settings"))
-        self.set_default_size(950, 720)
+        self.set_default_size(950, 750)
         self.set_modal(True)
-        self.set_resizable(False)
         self.downloading = {}
         self.slider_labels = {}
         self.directory = GLib.get_user_config_dir()
@@ -81,6 +98,7 @@ class Settings(Adw.Window):
         self.MemoryPage = Adw.PreferencesPage(icon_name="vcard-symbolic", title=_("Knowledge"))
         self.VoicePage = Adw.PreferencesPage(icon_name="audio-input-microphone-symbolic", title=_("Voice"))
         self.SkillsPage = Adw.PreferencesPage(icon_name="skills-symbolic", title=_("Skills"))
+        self.SubagentsPage = SubagentsPage(controller, self)
         self.MCPPage = Adw.PreferencesPage(icon_name="internet-symbolic", title=_("MCP Servers"))
         self.UsagePage = UsagePage(controller)
         # Dictionary containing all the rows for settings update
@@ -801,6 +819,7 @@ class Settings(Adw.Window):
             ("Tools", _("Tools"), "tools-symbolic", self.ToolsPage),
             ("Permissions", _("Permissions"), "key-symbolic", self.PermissionsPage),
             ("Skills", _("Skills"), "skills-symbolic", self.SkillsPage),
+            ("Subagents", _("Subagents"), "system-users-symbolic", self.SubagentsPage),
             ("MCP", _("MCP Servers"), "internet-symbolic", self.MCPPage),
             ("Interfaces", _("Interfaces"), "controls-big-symbolic", self.InterfacesPage),
             ("Extensions", _("Extensions"), "extension-symbolic", self.ExtensionsPage),
@@ -838,13 +857,26 @@ class Settings(Adw.Window):
         )
         sidebar_scroll.set_child(self.navigation_list)
         sidebar_toolbar = Adw.ToolbarView()
-        sidebar_toolbar.add_top_bar(Adw.HeaderBar())
+        sidebar_header = Adw.HeaderBar()
+        sidebar_toolbar.add_top_bar(sidebar_header)
         sidebar_toolbar.set_content(sidebar_scroll)
         sidebar_page = Adw.NavigationPage.new(sidebar_toolbar, _("Settings"))
 
         content_toolbar = Adw.ToolbarView()
-        content_toolbar.add_top_bar(Adw.HeaderBar())
-        content_toolbar.set_content(self.content_stack)
+        content_header = Adw.HeaderBar()
+        content_toolbar.add_top_bar(content_header)
+        self.profile_banner = Adw.Banner(button_label=_("Override here"))
+        self.profile_banner.connect("button-clicked", self.on_profile_banner_override)
+        self._profile_banner_groups = []
+        content_toolbar.add_top_bar(self.profile_banner)
+        self.settings_search = SettingsSearch(self)
+        sidebar_header.pack_end(self.settings_search.create_button())
+        content_search_button = self.settings_search.create_button()
+        content_header.pack_end(content_search_button)
+        self.split_view.bind_property(
+            "collapsed", content_search_button, "visible", GObject.BindingFlags.SYNC_CREATE,
+        )
+        content_toolbar.set_content(self.settings_search.content)
         self.content_navigation_page = Adw.NavigationPage.new(
             content_toolbar,
             _("General"),
@@ -869,6 +901,7 @@ class Settings(Adw.Window):
     def on_navigation_row_selected(self, _listbox, row):
         if row is None:
             return
+        self.settings_search.close()
         key = row.settings_page_key
         title, page = self.navigation_pages[key]
         if page == self.ToolsPage:
@@ -877,14 +910,51 @@ class Settings(Adw.Window):
             self.ensure_permissions_page_initialized()
         elif page == self.SkillsPage:
             self.ensure_skills_page_initialized()
+        elif page == self.SubagentsPage:
+            self.SubagentsPage.ensure_initialized()
         elif page == self.MCPPage:
             self.ensure_mcp_page_initialized()
         elif page == self.UsagePage:
             self.UsagePage.show_page()
         self.content_stack.set_visible_child(page)
         self.content_navigation_page.set_title(title)
+        self.update_profile_banner(key)
+
+    def update_profile_banner(self, page_key=None):
+        """Show which profile provides the settings on this page when they are inherited."""
+        if page_key is None:
+            row = self.navigation_list.get_selected_row()
+            page_key = getattr(row, "settings_page_key", None)
+        current = self.settings.get_string("current-profile")
+        owners = self.controller.get_profile_group_owners(current)
+        inherited = [
+            group for group in PROFILE_PAGE_GROUPS.get(page_key, [])
+            if group in owners and owners[group] != current
+        ]
+        self._profile_banner_groups = inherited
+        if not inherited:
+            self.profile_banner.set_revealed(False)
+            return
+        sources = list(dict.fromkeys(owners[group] for group in inherited))
+        names = ", ".join(SETTINGS_GROUPS[group]["title"] for group in inherited)
+        if len(sources) == 1:
+            title = _("{0} settings come from “{1}”. Changes also apply there.").format(names, sources[0])
+        else:
+            title = _("{0} settings come from other profiles ({1}). Changes also apply there.").format(names, ", ".join(sources))
+        self.profile_banner.set_title(title)
+        self.profile_banner.set_revealed(True)
+
+    def on_profile_banner_override(self, _banner):
+        groups = list(self._profile_banner_groups)
+        if not groups:
+            return
+        self.controller.override_profile_groups(groups)
+        self.update_profile_banner()
+        self.add_toast(Adw.Toast.new(_("“{0}” now has its own copy of these settings.").format(
+            self.settings.get_string("current-profile"))))
 
     def on_navigation_row_activated(self, _listbox, _row):
+        self.settings_search.close()
         self.split_view.set_show_content(True)
 
     def ensure_tools_page_initialized(self):
@@ -923,6 +993,8 @@ class Settings(Adw.Window):
             self.refresh_llm_rows()
         if "tools" in refreshes and self.tools_page_initialized:
             self.refresh_tools_list()
+        if "subagents" in refreshes and self.SubagentsPage.initialized:
+            self.SubagentsPage.refresh()
         if "prompts" in refreshes:
             self.custom_prompts = self.controller.newelle_settings.custom_prompts
             self.prompts_settings = self.controller.newelle_settings.prompts_settings
@@ -2279,18 +2351,13 @@ class Settings(Adw.Window):
         if self.mcp_page_initialized:
             return
         self.mcp_page_initialized = True
-        from .mcp_catalog import ConnectApplicationView
-
         self.mcp_catalog_group = Adw.PreferencesGroup(
             title=_("Connect Application"),
             description=_("Connect an MCP server or install an extension"),
         )
-        self.mcp_catalog = ConnectApplicationView(
-            parent=self,
-            controller=self.controller,
-            on_connected=self._on_mcp_application_connected,
-        )
-        self.mcp_catalog_group.add(self.mcp_catalog)
+        # Search builds settings without opening the remote application catalog.
+        self.mcp_catalog = None
+        self.mcp_catalog_group.connect("map", self._ensure_mcp_catalog)
 
         self.mcp_group = Adw.PreferencesGroup(title=_("MCP Servers"), description=_("Manage Model Context Protocol servers"))
         self.MCPPage.add(self.mcp_group)
@@ -2659,6 +2726,18 @@ class Settings(Adw.Window):
         self.mcp_group.add(self.servers_list_group)
         self.MCPPage.add(self.mcp_catalog_group)
     
+    def _ensure_mcp_catalog(self, _group):
+        if self.mcp_catalog is not None:
+            return
+        from .mcp_catalog import ConnectApplicationView
+
+        self.mcp_catalog = ConnectApplicationView(
+            parent=self,
+            controller=self.controller,
+            on_connected=self._on_mcp_application_connected,
+        )
+        self.mcp_catalog_group.add(self.mcp_catalog)
+
     def _disable_mcp_form(self, importing=False):
         """Disable all MCP form fields"""
         self.mcp_import_button.set_sensitive(False)

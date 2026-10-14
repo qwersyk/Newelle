@@ -1009,6 +1009,8 @@ class VoiceModeWindow(Gtk.Window):
         if Gtk4LayerShell is not None and Gtk4LayerShell.is_supported():
             try:
                 Gtk4LayerShell.init_for_window(self)
+                if not Gtk4LayerShell.is_layer_window(self):
+                    raise RuntimeError("layer surface was not created")
                 Gtk4LayerShell.set_namespace(self, "newelle-voice-mode")
                 Gtk4LayerShell.set_layer(self, Gtk4LayerShell.Layer.TOP)
                 Gtk4LayerShell.set_exclusive_zone(self, 0)
@@ -1169,15 +1171,20 @@ class VoiceModeWindow(Gtk.Window):
             except Exception:
                 pass
 
-        if target_connector or target_geom:
+        # Match by connector before geometry: XWayland's RandR layout can
+        # disagree with the compositor's (e.g. Hyprland swaps outputs), so a
+        # geometry match may pick a different physical monitor.
+        if target_connector:
             for i in range(monitors.get_n_items()):
                 mon = monitors.get_item(i)
-                if target_connector and mon.get_connector() == target_connector:
+                if mon.get_connector() == target_connector:
                     return mon
+        if target_geom:
+            for i in range(monitors.get_n_items()):
+                mon = monitors.get_item(i)
                 mg = mon.get_geometry()
                 if (
-                    target_geom
-                    and mg.x == target_geom.x
+                    mg.x == target_geom.x
                     and mg.y == target_geom.y
                     and mg.width == target_geom.width
                     and mg.height == target_geom.height

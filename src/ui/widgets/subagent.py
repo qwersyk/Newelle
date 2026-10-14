@@ -11,7 +11,14 @@ from ...utility.message_chunk import get_message_chunks
 class SubagentWidget(Gtk.ListBox):
     """Widget displayed in chat showing a subagent's execution progress."""
 
-    def __init__(self, task_summary: str):
+    STREAM_UPDATE_INTERVAL_MS = 33
+
+    def __init__(
+        self,
+        task_summary: str,
+        subagent_name: str | None = None,
+        session_id: str | None = None,
+    ):
         super().__init__()
         self.add_css_class("boxed-list")
         self.set_margin_top(10)
@@ -19,6 +26,9 @@ class SubagentWidget(Gtk.ListBox):
         self.set_margin_end(10)
 
         self._task_summary = task_summary
+        self._subagent_name = subagent_name
+        self._session_id = session_id
+        self._status_text = _("Starting…")
         self._current_message = ""
         self.widgets_map = []
         self._state_lock = threading.Lock()
@@ -27,8 +37,8 @@ class SubagentWidget(Gtk.ListBox):
 
         # Expander row header
         self.expander_row = Adw.ExpanderRow(
-            title=self._truncate_title(task_summary),
-            subtitle=_("Starting…"),
+            title=self._header_title(),
+            subtitle=self._status_subtitle(),
             icon_name="system-run-symbolic",
         )
 
@@ -72,7 +82,18 @@ class SubagentWidget(Gtk.ListBox):
 
     def set_status(self, status: str):
         """Update the subtitle status text."""
+        self._status_text = status
         self._run_on_main_thread(self._ui_set_status, status)
+
+    def set_session(self, session_id: str | None, subagent_name: str | None = None):
+        """Attach the durable session identity once launch has resolved it."""
+        self._session_id = session_id
+        if subagent_name:
+            self._subagent_name = subagent_name
+        self._run_on_main_thread(self._ui_set_session)
+
+    def expand(self):
+        self._run_on_main_thread(self._ui_expand)
 
     def update_message(self, full_text: str):
         """Re-render the message content from the full text using chunk parsing."""
@@ -94,6 +115,16 @@ class SubagentWidget(Gtk.ListBox):
 
     # ---- GTK main-thread helpers ----
 
+    def _header_title(self):
+        prefix = f"{self._subagent_name}: " if self._subagent_name else ""
+        return self._truncate_title(prefix + self._task_summary)
+
+    def _status_subtitle(self, status=None):
+        status = status or self._status_text
+        if self._session_id:
+            return f"{status} · {self._session_id}"
+        return status
+
     def _run_on_main_thread(self, callback, *args):
         if threading.current_thread() is threading.main_thread():
             callback(*args)
@@ -101,26 +132,49 @@ class SubagentWidget(Gtk.ListBox):
         GLib.idle_add(callback, *args)
 
     def _drain_message_updates(self):
-        while True:
-            with self._state_lock:
-                full_text = self._pending_message
-                self._pending_message = None
+        """Render one coalesced stream update, then yield to GTK.
 
-            if full_text is not None:
-                self._current_message = full_text
-                self._ui_update_message(full_text)
+        Token callbacks can arrive faster than GTK can rebuild the formatted
+        message. Draining them in a loop keeps the main context occupied for
+        the entire generation and makes the window appear frozen. Keep only
+        the newest text and cap rendering to roughly one frame every 33 ms.
+        """
+        with self._state_lock:
+            full_text = self._pending_message
+            self._pending_message = None
 
-            with self._state_lock:
-                if self._pending_message is None:
-                    self._message_update_queued = False
-                    break
+        if full_text is not None:
+            self._current_message = full_text
+            self._ui_update_message(full_text)
 
+        with self._state_lock:
+            has_pending_update = self._pending_message is not None
+            if not has_pending_update:
+                self._message_update_queued = False
+
+        if has_pending_update:
+            GLib.timeout_add(
+                self.STREAM_UPDATE_INTERVAL_MS,
+                self._drain_message_updates,
+            )
         return GLib.SOURCE_REMOVE
 
     def _ui_set_status(self, status: str):
         if not self.get_display():
             return GLib.SOURCE_REMOVE
-        self.expander_row.set_subtitle(status)
+        self.expander_row.set_subtitle(self._status_subtitle(status))
+        return GLib.SOURCE_REMOVE
+
+    def _ui_set_session(self):
+        if not self.get_display():
+            return GLib.SOURCE_REMOVE
+        self.expander_row.set_title(self._header_title())
+        self.expander_row.set_subtitle(self._status_subtitle())
+        return GLib.SOURCE_REMOVE
+
+    def _ui_expand(self):
+        if self.get_display():
+            self.expander_row.set_expanded(True)
         return GLib.SOURCE_REMOVE
 
     def _ui_update_message(self, full_text: str):
@@ -328,5 +382,6 @@ class SubagentWidget(Gtk.ListBox):
             self.finished_icon.remove_css_class("success")
             self.finished_icon.add_css_class("error")
         status = summary if summary else (_("Completed") if success else _("Failed"))
-        self.expander_row.set_subtitle(status)
+        self._status_text = status
+        self.expander_row.set_subtitle(self._status_subtitle(status))
         return GLib.SOURCE_REMOVE

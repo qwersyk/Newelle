@@ -1,5 +1,6 @@
 import os
 import json
+import copy
 import gettext
 import threading
 from gi.repository import GLib
@@ -9,6 +10,89 @@ from typing import Any
 from enum import Enum
 
 _ = gettext.gettext
+
+
+class IsolatedSettings:
+    """A read-through, in-memory overlay for a ``Gio.Settings`` instance.
+
+    Provider handlers expect the regular settings API and some of them write
+    defaults while they initialise.  A subagent needs those handlers to reuse
+    the user's credentials without letting a model override mutate the active
+    profile.  This small adapter snapshots overrides and keeps every write
+    local while forwarding unknown/read-only API calls to the underlying
+    settings object.
+    """
+
+    def __init__(self, settings, overrides: dict | None = None):
+        self._settings = settings
+        self._values = copy.deepcopy(overrides or {})
+        self._callbacks = []
+
+    def _get(self, method: str, key: str):
+        if key in self._values:
+            return copy.deepcopy(self._values[key])
+        return getattr(self._settings, method)(key)
+
+    def _set(self, key: str, value) -> bool:
+        self._values[key] = copy.deepcopy(value)
+        for callback, user_args in tuple(self._callbacks):
+            try:
+                callback(self, key, *user_args)
+            except Exception:
+                pass
+        return True
+
+    def get_string(self, key):
+        return self._get("get_string", key)
+
+    def get_boolean(self, key):
+        return self._get("get_boolean", key)
+
+    def get_int(self, key):
+        return self._get("get_int", key)
+
+    def get_uint(self, key):
+        return self._get("get_uint", key)
+
+    def get_double(self, key):
+        return self._get("get_double", key)
+
+    def get_value(self, key):
+        return self._get("get_value", key)
+
+    def set_string(self, key, value):
+        return self._set(key, value)
+
+    def set_boolean(self, key, value):
+        return self._set(key, bool(value))
+
+    def set_int(self, key, value):
+        return self._set(key, int(value))
+
+    def set_uint(self, key, value):
+        return self._set(key, int(value))
+
+    def set_double(self, key, value):
+        return self._set(key, float(value))
+
+    def set_value(self, key, value):
+        return self._set(key, value)
+
+    def connect(self, signal: str, callback, *user_args):
+        # The overlay is a launch-time snapshot.  Track local changes only;
+        # changes to global settings must not alter a running subagent.
+        if signal == "changed":
+            self._callbacks.append((callback, user_args))
+            return len(self._callbacks)
+        return 0
+
+    def disconnect(self, handler_id):
+        index = int(handler_id) - 1
+        if 0 <= index < len(self._callbacks):
+            self._callbacks[index] = (lambda *_: None, ())
+
+    def __getattr__(self, name):
+        return getattr(self._settings, name)
 
 
 class SettingsCache:

@@ -18,10 +18,12 @@ class AgentToolsIntegration(NewelleExtension):
 
     def __init__(self, pip_path, extension_path, settings):
         super().__init__(pip_path, extension_path, settings)
-        self.subagent_results = {}
 
     @property
     def controller(self):
+        direct = getattr(self, "runtime_controller", None)
+        if direct is not None:
+            return direct
         return self.ui_controller.window.controller
 
     def _available_modes(self):
@@ -39,124 +41,277 @@ class AgentToolsIntegration(NewelleExtension):
             return []
         return list(mm.get_modes().keys())
 
-    def _run_subagent(self, task: str, system_prompt: str, tools: str, skills: str = "", tool_uuid=None):
-        """Run a subagent with the given task, system prompt, tools and skills.
+    def _subagent_catalog(self):
+        manager = getattr(self.controller, "subagent_manager", None)
+        if manager is None:
+            return []
+        definitions = manager.get_subagents(enabled_only=True) or {}
+        return sorted(
+            definitions.items(),
+            key=lambda item: str(item[1].get("name", item[0])).casefold(),
+        )
 
-        Args:
-            task: The task description for the subagent.
-            system_prompt: System prompt that sets the subagent's behaviour.
-            tools: Comma-separated list of tool names to give the subagent.
-            skills: Comma-separated list of skill names to activate (optional).
-        """
-        result = ToolResult()
-        widget = SubagentWidget(task)
-        result.set_widget(widget)
-        self.subagent_results[tool_uuid] = result
-        
+    def _run_subagent_schema(self):
+        """Schema for named launch, durable resume, and legacy inline launch."""
+        catalog = self._subagent_catalog()
+        catalog_text = "; ".join(
+            f"{identifier} ({definition.get('name', identifier)}"
+            + (
+                f": {definition['description']}"
+                if definition.get("description")
+                else ""
+            )
+            + ")"
+            for identifier, definition in catalog
+        )
+        subagent_property = {
+            "type": "string",
+            "minLength": 1,
+            "description": (
+                "Stable ID of a configured subagent. Its current profile and "
+                "mode must enable it."
+                + (f" Available definitions: {catalog_text}." if catalog_text else "")
+            ),
+        }
+        if catalog:
+            subagent_property["enum"] = [identifier for identifier, _ in catalog]
+        properties = {
+            "task": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Detailed task or next message for the subagent.",
+            },
+            "subagent": subagent_property,
+            "session_id": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Session ID returned by an earlier terminated turn.",
+            },
+            "system_prompt": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Legacy inline system prompt.",
+            },
+            "tools": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Legacy inline comma-separated tool names.",
+            },
+            "skills": {
+                "type": "string",
+                "description": "Legacy inline comma-separated skill names.",
+            },
+        }
+        return {
+            "type": "object",
+            "properties": properties,
+            "required": ["task"],
+            # Runtime validation reports a clear error for conflicting forms;
+            # ``anyOf`` remains compatible with providers that materialize
+            # optional fields while still requiring one complete launch form.
+            "anyOf": [
+                {"required": ["task", "subagent"]},
+                {"required": ["task", "session_id"]},
+                {"required": ["task", "system_prompt", "tools"]},
+            ],
+        }
+
+    def _has_ui(self):
+        ui_controller = getattr(self, "ui_controller", None)
+        return ui_controller is not None and getattr(ui_controller, "window", None) is not None
+
+    def _make_subagent_widget(self, task, subagent_name=None, session_id=None):
+        if not self._has_ui():
+            return None
+        if threading.current_thread() is threading.main_thread():
+            return SubagentWidget(task, subagent_name=subagent_name, session_id=session_id)
+
+        created = {}
+        done = threading.Event()
+
+        def create():
+            created["widget"] = SubagentWidget(
+                task, subagent_name=subagent_name, session_id=session_id
+            )
+            done.set()
+            return GLib.SOURCE_REMOVE
+
+        GLib.idle_add(create)
+        done.wait()
+        return created.get("widget")
+
+    def _notify_tool_interaction(self, tool_name):
+        if not self._has_ui():
+            return
+
+        def notify():
+            try:
+                window = self.ui_controller.window
+                if window and not window.is_active():
+                    app = Gio.Application.get_default()
+                    if app:
+                        notification = Gio.Notification.new(_("Action Required"))
+                        notification.set_body(
+                            _("The tool '{name}' requires your interaction.").format(
+                                name=tool_name
+                            )
+                        )
+                        app.send_notification("tool-interaction", notification)
+            except Exception as error:
+                print(f"Failed to send notification: {error}")
+            return GLib.SOURCE_REMOVE
+
+        GLib.idle_add(notify)
+
+    def _run_subagent(
+        self,
+        task: str,
+        subagent: str = "",
+        session_id: str = "",
+        system_prompt: str = "",
+        tools: str = "",
+        skills: str = "",
+        tool_uuid=None,
+        chat_id=None,
+    ):
+        """Launch or resume a durable, turn-based subagent session."""
+        stop_event = threading.Event()
+        result = ToolResult(
+            cancel_callback=lambda: self.controller.subagent_runtime.cancel(
+                stop_event
+            )
+        )
+        subagent_name = None
+        if subagent:
+            manager = getattr(self.controller, "subagent_manager", None)
+            definition = manager.get_subagent(subagent) if manager is not None else None
+            if definition:
+                subagent_name = definition.get("name")
+        widget = self._make_subagent_widget(
+            task, subagent_name=subagent_name, session_id=session_id or None
+        )
+        if widget is not None:
+            result.set_widget(widget)
+
         def run():
             try:
-                ctrl = self.controller
-
-                from ..tools import ToolRegistry
-                sub_registry = ToolRegistry()
-                skill_manager = getattr(ctrl, "skill_manager", None)
-                requested_tools = [t.strip() for t in tools.split(",") if t.strip()]
-                # Add send_result tool
-                def send_result(content:str):
-                    self.subagent_results[tool_uuid] = content 
-                    res = ToolResult()
-                    res.set_output(None)
-                    return res
-
-                sub_registry.register_tool(Tool(
-                    name="send_result",
-                    description="Send the result of the subagent to the main agent.",
-                    func=send_result,
-                    title="Send Result",
-                ))
-                for tool_name in requested_tools:
-                    tool_obj = ctrl.tools.get_tool(tool_name)
-                    if tool_obj is not None:
-                        sub_registry.register_tool(tool_obj)
-
-                prompts = [system_prompt]
-                if skills.strip() and skill_manager is not None:
-                    for skill_name in [s.strip() for s in skills.split(",") if s.strip()]:
-                        skill_output = skill_manager.activate_skill(skill_name)
-                        prompts.append(skill_output)
-
-                expanded_tools = getattr(ctrl, "expanded_tools", None)
-                tools_prompt_json = sub_registry.get_tools_prompt(expanded_tools=expanded_tools)
-                if tools_prompt_json:
-                    from ..constants import PROMPTS
-                    tools_instruction = PROMPTS.get("tools", "").replace("{TOOLS}", tools_prompt_json)
-                    prompts.append(tools_instruction)
-                prompts.append("You MUST call send_result tool at the end of the task. Pass any relevant information to the main agent using the content arguement.")
-                chat_id = ctrl.create_call_chat()
-
-                widget.set_status(_("Running…"))
-
-                last_message = [""]
+                if chat_id is None:
+                    raise ValueError("The owning main chat is unavailable.")
+                if widget is not None:
+                    widget.set_status(_("Running…"))
 
                 def on_message(text: str):
-                    if text[:len(last_message[-1])] != last_message[-1][:len(last_message[-1])]:
-                        last_message.append("\n\n")
-                        last_message.append("")
-                    last_message[-1] = text
-                    widget.update_message("".join(last_message))
+                    if widget is not None:
+                        widget.update_message(text)
 
                 def on_tool_result(tool_name: str, tool_result: ToolResult):
+                    if widget is None:
+                        return
                     widget.set_status(_("Tool: ") + tool_name)
                     widget.add_tool_widget(tool_name, tool_result)
                     if tool_result.requires_interaction:
-                        widget.expander_row.set_expanded(True)
-                        def _notify_if_unfocused():
-                            try:
-                                window = self.ui_controller.window
-                                if window and not window.is_active():
-                                    app = Gio.Application.get_default()
-                                    if app:
-                                        notification = Gio.Notification.new("Action Required")
-                                        notification.set_body(f"The tool '{tool_name}' requires your interaction.")
-                                        app.send_notification("tool-interaction", notification)
-                            except Exception as e:
-                                print(f"Failed to send notification: {e}")
-                        GLib.idle_add(_notify_if_unfocused) 
+                        widget.expand()
+                        self._notify_tool_interaction(tool_name)
 
-                final = ctrl.run_llm_with_tools(
-                    message=task,
-                    chat_id=chat_id,
-                    system_prompt=prompts,
-                    on_message_callback=on_message,
-                    on_tool_result_callback=on_tool_result,
-                    force_tools_on_main_thread=True,
-                    tool_registry=sub_registry,
-                    skill_manager=skill_manager,
+                payload = self.controller.subagent_runtime.run_turn(
+                    task=task,
+                    owner_chat_id=chat_id,
+                    subagent=subagent or None,
+                    session_id=session_id or None,
+                    system_prompt=system_prompt or None,
+                    tools=tools,
+                    skills=skills,
+                    on_message=on_message,
+                    on_tool_result=on_tool_result,
+                    stop_event=stop_event,
+                )
+            except Exception as error:
+                payload = self.controller.subagent_runtime.error_result(
+                    error,
+                    session_id=session_id or None,
+                    subagent=subagent or None,
                 )
 
-                widget.finish(success=True)
-                if self.subagent_results[tool_uuid] is None:
-                    result.set_output(final if final else "".join(last_message))
-                else:
-                    result.set_output(self.subagent_results[tool_uuid])
+            if widget is not None:
+                widget.set_session(
+                    payload.get("session_id"),
+                    subagent_name=subagent_name,
+                )
+                widget.finish(
+                    success=payload.get("status") == "terminated",
+                    summary=(
+                        _("Completed")
+                        if payload.get("status") == "terminated"
+                        else _("Stopped")
+                        if payload.get("status") == "interrupted"
+                        else payload.get("message", _("Failed"))
+                    ),
+                )
+            if not result.is_cancelled:
+                result.set_output(json.dumps(payload, ensure_ascii=False))
 
-            except Exception as e:
-                widget.finish(success=False, summary=str(e))
-                result.set_output(f"Subagent error: {e}")
-
-        thread = threading.Thread(target=run, daemon=True)
-        thread.start()
+        threading.Thread(target=run, daemon=True).start()
         return result
 
-    def _restore_subagent(self, tool_uuid: str, task: str, system_prompt: str, tools: str, skills: str = ""):
-        widget = SubagentWidget(task)
-        output = self.ui_controller.get_tool_result_by_id(tool_uuid)
-        widget.update_message(output) 
-        widget.finish(success=True, summary=_("Completed"))
-        r = ToolResult()
-        r.set_widget(widget)
-        r.set_output(output)
-        return result
+    def _stored_tool_output(self, tool_uuid, chat_id=None):
+        if chat_id is not None:
+            output = self.controller.get_tool_response(
+                chat_id, 0, "run_subagent", tool_uuid, strict=True
+            )
+            if output is not None:
+                return output
+        if self._has_ui():
+            return self.ui_controller.get_tool_result_by_id(tool_uuid)
+        return None
+
+    def _restore_subagent(
+        self,
+        tool_uuid: str,
+        task: str,
+        subagent: str = "",
+        session_id: str = "",
+        system_prompt: str = "",
+        tools: str = "",
+        skills: str = "",
+        chat_id=None,
+    ):
+        output = self._stored_tool_output(tool_uuid, chat_id)
+        payload = None
+        try:
+            payload = json.loads(output) if output else None
+        except (json.JSONDecodeError, TypeError):
+            pass
+        if not isinstance(payload, dict):
+            payload = {
+                "session_id": session_id or None,
+                "subagent": subagent or None,
+                "status": "terminated",
+                "message": output or "",
+                "warnings": [],
+            }
+
+        widget = self._make_subagent_widget(
+            task,
+            subagent_name=subagent or None,
+            session_id=payload.get("session_id"),
+        )
+        restored = ToolResult()
+        if widget is not None:
+            widget.update_message(payload.get("message", ""))
+            status = payload.get("status")
+            widget.finish(
+                success=status == "terminated",
+                summary=(
+                    _("Completed")
+                    if status == "terminated"
+                    else _("Stopped")
+                    if status == "interrupted"
+                    else _("Failed")
+                ),
+            )
+            restored.set_widget(widget)
+        restored.set_output(output)
+        return restored
 
     def _schedule_task(self, task: str, run_at: str = "", cron: str = ""):
         """Schedule a future agent run in a visible chat."""
@@ -370,11 +525,15 @@ class AgentToolsIntegration(NewelleExtension):
             Tool(
                 name="run_subagent",
                 description=(
-                    "Run a subagent to solve a task autonomously. "
-                    "The subagent gets its own system prompt and a subset of tools. "
-                    "Use this when a task requires multiple tool calls that can be delegated."
+                    "Launch an enabled configured subagent, resume a terminated "
+                    "subagent session, or use the legacy inline prompt/tools form. "
+                    "The returned session_id can be resumed with another task."
                 ),
                 func=self._run_subagent,
+                # Resolve at prompt emission so CRUD, profile toggles, Modes,
+                # and extension changes are reflected without rebuilding the
+                # whole tool registry.
+                schema=self._run_subagent_schema,
                 title="Run Subagent",
                 restore_func=self._restore_subagent,
                 default_on=True,

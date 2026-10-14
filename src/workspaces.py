@@ -11,8 +11,6 @@ import weakref
 from contextlib import contextmanager
 
 from .modes import DEFAULT_MODE_NAME
-from .utility.profile_settings import restore_settings_from_dict_by_groups
-from .constants import SETTINGS_GROUPS
 
 _ = gettext.gettext
 DEFAULT_WORKSPACE = "default"
@@ -352,10 +350,7 @@ class WorkspaceController:
         if profile not in profiles:
             workspace["profile"] = None
         elif profile != self.settings.get_string("current-profile"):
-            self.update_current_profile()
-            saved = profiles[profile]
-            restore_settings_from_dict_by_groups(self.settings, saved.get("settings", {}), saved.get("settings_groups", []), SETTINGS_GROUPS)
-            self.settings.set_string("current-profile", profile)
+            self.apply_profile(profile)
         path = os.path.expanduser(workspace["path"])
         if not os.path.isdir(path) or not os.access(path, os.X_OK):
             self.workspace_path_notice = _("Workspace directory is unavailable. Using your home directory.")

@@ -50,6 +50,9 @@
         <key name="prompts-settings" type="s">
             <default>"{}"</default>
           </key>
+        <key name="user-message-prompts" type="s">
+            <default>"{}"</default>
+          </key>
         <key name="prompts-order" type="s">
             <default>"[]"</default>
           </key>
@@ -100,6 +103,9 @@
         <key name="voice-mode-mode" type="s">
             <default>"current"</default>
         </key>
+        <key name="voice-mode-workspace" type="s">
+            <default>"current"</default>
+        </key>
         <key name="voice-mode-feedback" type="s">
             <choices>
                 <choice value="required"/>
@@ -142,7 +148,7 @@
           <default>false</default>
         </key>
 	      <key name="memory-model" type="s">
-            <default>"user-summary"</default>
+            <default>"long_term_memory"</default>
         </key>
 	      <key name="memory-settings" type="s">
             <default>"{}"</default>
@@ -210,6 +216,9 @@
         <key name="current-mode" type="s">
           <default>"Normal"</default>
         </key>
+        <key name="subagents" type="s">
+          <default>"{}"</default>
+        </key>
         <key name="user-name" type="s">
           <default>"User"</default>
         </key>
@@ -254,7 +263,10 @@
         </key>
         <key name="skills-settings" type="s">
           <default>"{}"</default>
-        </key> 
+        </key>
+        <key name="subagents-settings" type="s">
+          <default>"{}"</default>
+        </key>
         <key name="scheduled-tasks" type="s">
           <default>"[]"</default>
         </key>
@@ -271,7 +283,7 @@
             <default>false</default>
         </key>
         <key name="max-tool-calls" type="i">
-            <range min="1" max="300"/>
+            <range min="1" max="1000"/>
             <default>70</default>
         </key>
         <key name="custom-document-folders" type="as">
@@ -371,6 +383,15 @@
         </key>    
         <key name="hide-warning" type="b">
             <default>false</default>
+        </key>
+        <key name="usage-tracking" type="b">
+            <default>true</default>
+        </key>
+        <key name="usage-prices" type="s">
+            <default>"{}"</default>
+        </key>
+        <key name="usage-currency" type="s">
+            <default>"$"</default>
         </key>
 	</schema>
 </schemalist>

@@ -11,6 +11,7 @@ from .handlers.interfaces.interface import Interface
 from .handlers.interfaces.api_handler import APIInterface
 from .handlers.interfaces.gui_api_handler import GUIAPIInterface
 from .handlers.interfaces.telegram_handler import TelegramInterface
+from .handlers.interfaces.mcp_interface import MCPInterface
 from .integrations.website_reader import WebsiteReader
 from .integrations.websearch import WebsearchIntegration
 from .integrations.mcp import MCPIntegration
@@ -413,6 +414,12 @@ AVAILABLE_INTERFACES = {
         "title": _("Telegram Bot"),
         "description": _("Use Newelle as a Telegram bot with message streaming, voice transcription, tools and more"),
         "class": TelegramInterface,
+    },
+    "mcp": {
+        "key": "mcp",
+        "title": _("MCP Server"),
+        "description": _("Expose Newelle tools to third-party applications over the Model Context Protocol"),
+        "class": MCPInterface,
     },
 }
 
@@ -834,6 +841,11 @@ SETTINGS_GROUPS = {
             "title": _("Tools"),
             "settings": ["tools-settings", "mcp-servers", "skills-settings", "file-permissions", "command-execution-permissions", "path-security-levels", "default-risk-level"],
             "description": _("Tools settings, tools groups..."),
+        },
+        "subagents": {
+            "title": _("Subagents"),
+            "settings": ["subagents-settings"],
+            "description": _("Subagents settings"),
         },
         "wakeword": {
             "title": _("Wakeword"),

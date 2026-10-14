@@ -1,8 +1,8 @@
 """Create and edit modes through a tabbed preferences dialog.
 
-Modes are generic overlays for prompts, tools, and skills. Every configurable
-item has three states: inherit the profile, force enable, or force disable.
-Prompt text can additionally be replaced for the lifetime of the mode.
+Modes are generic overlays for prompts, tools, skills, and subagents. Every
+configurable item has three states: inherit the profile, force enable, or force
+disable. Prompt text can additionally be replaced for the lifetime of the mode.
 """
 
 import gettext
@@ -51,6 +51,7 @@ class ModeEditorDialog(Adw.PreferencesDialog):
             "icon": (existing or {}).get("icon", DEFAULT_MODE_ICON),
             "tools": dict((existing or {}).get("tools", {})),
             "skills": dict((existing or {}).get("skills", {})),
+            "subagents": dict((existing or {}).get("subagents", {})),
             "prompts": {
                 key: dict(config)
                 for key, config in (existing or {}).get("prompts", {}).items()
@@ -69,16 +70,21 @@ class ModeEditorDialog(Adw.PreferencesDialog):
         self.skills_page = self._add_page(
             _("Skills"), "skills-symbolic", "skills"
         )
+        self.subagents_page = self._add_page(
+            _("Subagents"), "system-users-symbolic", "subagents"
+        )
 
         self._build_identity_group()
         self._build_prompts_group()
         self._build_tools_group()
         self._build_skills_group()
+        self._build_subagents_group()
         for page in (
             self.general_page,
             self.prompts_page,
             self.tools_page,
             self.skills_page,
+            self.subagents_page,
         ):
             self._build_actions_group(page, include_delete=page is self.general_page)
 
@@ -441,6 +447,91 @@ class ModeEditorDialog(Adw.PreferencesDialog):
             )
 
     # ------------------------------------------------------------------ #
+    # Subagents
+    # ------------------------------------------------------------------ #
+    def _build_subagents_group(self):
+        group = Adw.PreferencesGroup(
+            title=_("Subagent behavior"),
+            description=_(
+                "Override which named subagents can be launched in this mode"
+            ),
+        )
+        self.subagents_page.add(group)
+        manager = getattr(self.controller, "subagent_manager", None)
+        definitions = manager.get_subagents() if manager is not None else {}
+        if not definitions:
+            group.add(Adw.ActionRow(title=_("No subagents available")))
+            return
+
+        if isinstance(definitions, dict):
+            items = definitions.items()
+        else:
+            items = (
+                (getattr(definition, "id", ""), definition)
+                for definition in definitions
+            )
+        items = sorted(
+            (
+                (identifier, definition)
+                for identifier, definition in items
+                if identifier
+            ),
+            key=lambda item: str(
+                self._subagent_value(item[1], "name", item[0])
+            ).casefold(),
+        )
+        for identifier, definition in items:
+            control = self._build_state_control(
+                self._working["subagents"].get(identifier, NO_CHANGE),
+                self._on_item_state_selected,
+                "subagents",
+                identifier,
+            )
+            provider = self._subagent_value(definition, "provider")
+            model = self._subagent_value(definition, "model")
+            use_secondary_model = bool(
+                self._subagent_value(
+                    definition, "use_secondary_model", False
+                )
+            )
+            description = self._subagent_value(definition, "description", "")
+            if use_secondary_model:
+                model_summary = "{} · {}".format(
+                    _("Secondary LLM"),
+                    model or _("provider default"),
+                )
+                subtitle = (
+                    "{}\n{}".format(description, model_summary)
+                    if description
+                    else model_summary
+                )
+            elif provider:
+                model_summary = "{} · {}".format(
+                    provider, model or _("provider default")
+                )
+                subtitle = (
+                    "{}\n{}".format(description, model_summary)
+                    if description
+                    else model_summary
+                )
+            else:
+                subtitle = description or _("Uses the main model")
+            group.add(
+                self._build_state_row(
+                    title=self._subagent_value(definition, "name", identifier),
+                    subtitle=subtitle,
+                    icon_name="system-users-symbolic",
+                    control=control,
+                )
+            )
+
+    @staticmethod
+    def _subagent_value(definition, key, default=None):
+        if isinstance(definition, dict):
+            return definition.get(key, default)
+        return getattr(definition, key, default)
+
+    # ------------------------------------------------------------------ #
     # Shared state controls
     # ------------------------------------------------------------------ #
     def _build_state_row(self, title, subtitle, icon_name, control):
@@ -543,6 +634,11 @@ class ModeEditorDialog(Adw.PreferencesDialog):
             for key, value in self._working["skills"].items()
             if value != NO_CHANGE
         }
+        subagents = {
+            key: value
+            for key, value in self._working["subagents"].items()
+            if value != NO_CHANGE
+        }
         prompts = {}
         for key, config in self._working["prompts"].items():
             state = config.get("state", NO_CHANGE)
@@ -551,7 +647,7 @@ class ModeEditorDialog(Adw.PreferencesDialog):
                 cleaned["override"] = config["override"]
             if state != NO_CHANGE or "override" in cleaned:
                 prompts[key] = cleaned
-        return tools, skills, prompts
+        return tools, skills, subagents, prompts
 
     def _on_save(self, _button):
         name = self._resolve_name()
@@ -560,12 +656,13 @@ class ModeEditorDialog(Adw.PreferencesDialog):
             self.set_visible_page(self.general_page)
             return
 
-        tools, skills, prompts = self._clean_working_overrides()
+        tools, skills, subagents, prompts = self._clean_working_overrides()
         mode_data = {
             "description": self._working["description"],
             "icon": self._working["icon"],
             "tools": tools,
             "skills": skills,
+            "subagents": subagents,
             "prompts": prompts,
         }
 

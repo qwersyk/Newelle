@@ -58,7 +58,10 @@ class MyApp(Adw.Application):
             color:rgb(255,255,255);
             background-color: rgb(38,162,105);
         }
-        .large{
+        /* Named newelle-icon-large: libadwaita's AdwClamp applies its own
+        `.large` class to preferences-page content on wide windows, and
+        -gtk-icon-size is inherited, which would blow up every icon there. */
+        .newelle-icon-large{
             -gtk-icon-size:100px;
         }
         .empty-folder{

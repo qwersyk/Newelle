@@ -156,7 +156,7 @@ def replace_variables(text: str, controller=None) -> str:
         text = text.replace("{SKILLS}", ReplaceHelper.get_skills_catalog(controller))
     return text
 
-def replace_variables_dict(controller=None) -> dict:
+def replace_variables_dict(controller=None, tools: str | None = None, skills: str | None = None) -> dict:
     controller = controller or ReplaceHelper.controller
     context = controller._request_context() if controller else None
     path = context["path"] if context else (controller.settings.get_string("path") if controller else os.getcwd())
@@ -169,8 +169,8 @@ def replace_variables_dict(controller=None) -> dict:
         "{DATE}": str(time.strftime("%H:%M %Y-%m-%d")),
         "{USER}": ReplaceHelper.get_user(controller),
         "{DISPLAY}": ReplaceHelper.gisplay_server(),
-        "{TOOLS}": ReplaceHelper.get_tools_json(controller),
-        "{SKILLS}": ReplaceHelper.get_skills_catalog(controller),
+        "{TOOLS}": ReplaceHelper.get_tools_json(controller) if tools is None else tools,
+        "{SKILLS}": ReplaceHelper.get_skills_catalog(controller) if skills is None else skills,
     }
 
 class PromptFormatter:

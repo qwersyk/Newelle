@@ -2155,12 +2155,10 @@ class ConnectApplicationView(Gtk.Box):
         if error is not None:
             self.connect_button.set_sensitive(True)
             self.connect_button.set_label(original_label)
-            self.toast_overlay.add_toast(
-                Adw.Toast(
-                    title=_("Could not connect {}: {}").format(
-                        application_name, error
-                    )
-                )
+            self.parent_window.show_error_dialog(
+                _("Error"),
+                _("Could not connect {}: {}").format(application_name, error),
+                parent=self.parent_window,
             )
             return False
 

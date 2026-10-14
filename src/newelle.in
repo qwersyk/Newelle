@@ -46,6 +46,21 @@ def parse_args():
     return args, remaining
 
 
+def preload_gtk4_layer_shell():
+    """Load gtk4-layer-shell before GTK pulls in libwayland-client.
+
+    The library hooks libwayland-client, so it only works when loaded first;
+    otherwise Gtk4LayerShell.is_supported() reports False and Voice Mode
+    falls back to X11 positioning.
+    """
+    import ctypes
+
+    try:
+        ctypes.CDLL('libgtk4-layer-shell.so.0', mode=ctypes.RTLD_GLOBAL)
+    except OSError:
+        pass
+
+
 def forward_voice_request(arguments):
     """Toggle an existing instance without importing the UI or AI handlers."""
     if arguments != ['--voice']:
@@ -108,6 +123,7 @@ def forward_voice_request(arguments):
 
 
 if __name__ == '__main__':
+    preload_gtk4_layer_shell()
     args, remaining = parse_args()
 
     if args.list_interfaces:

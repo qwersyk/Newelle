@@ -9,6 +9,8 @@ touching the active profile. It is composed of:
   affected relative to the current profile.
 - ``skills``       : mapping ``skill_name -> state`` describing how each skill is
   affected relative to the current profile.
+- ``subagents``    : mapping ``subagent_id -> state`` describing which named
+  subagents the main agent may launch.
 - ``prompts``      : mapping ``prompt_key -> {state, override}`` describing whether
   each prompt is enabled and, optionally, which text replaces its profile value.
 
@@ -55,6 +57,7 @@ DEFAULT_MODES = {
         "icon": "chat-bubbles-text-symbolic",
         "tools": {},
         "skills": {},
+        "subagents": {},
         "prompts": {},
     },
     "Plan": {
@@ -66,6 +69,7 @@ DEFAULT_MODES = {
             "execute_command": REMOVE,
         },
         "skills": {},
+        "subagents": {},
         # Plan Mode uses the same generic prompt override system available to
         # every other mode; there is no dedicated mode-only prompt anymore.
         "prompts": {
@@ -80,6 +84,7 @@ DEFAULT_MODES = {
         "icon": "system-run-symbolic",
         "tools": {},
         "skills": {},
+        "subagents": {},
         "prompts": {
             "tools": {
                 "state": REMOVE,
@@ -170,6 +175,7 @@ class ModeManager:
                 "icon":         "<str>",
                 "tools":        {"<tool_name>": "<state>", ...},
                 "skills":       {"<skill_name>": "<state>", ...},
+                "subagents":    {"<subagent_id>": "<state>", ...},
                 "prompts":      {
                     "<prompt_key>": {
                         "state": "<state>",
@@ -289,6 +295,29 @@ class ModeManager:
         """Return a mode's state for a skill (defaults to NO_CHANGE)."""
         skills = self._get_resolution_mode(mode_name).get("skills", {})
         return skills.get(skill_name, NO_CHANGE)
+    def get_subagent_override(self, subagent_id: str) -> str:
+        """Return the active mode's state for a named subagent."""
+        return self.get_override("subagents", subagent_id)
+
+    def get_override(self, resource_type: str, resource_name: str) -> str:
+        """Return a three-state override for a binary mode resource.
+
+        Singular and plural resource names are accepted to keep adapters thin.
+        Prompt configuration remains on its dedicated structured accessor.
+        """
+        resource_map = {
+            "tool": "tools",
+            "tools": "tools",
+            "skill": "skills",
+            "skills": "skills",
+            "subagent": "subagents",
+            "subagents": "subagents",
+        }
+        key = resource_map.get(resource_type)
+        if key is None:
+            raise ValueError(f"Unknown mode resource type: {resource_type}")
+        state = self.get_active_mode().get(key, {}).get(resource_name, NO_CHANGE)
+        return state if state in VALID_STATES else NO_CHANGE
 
     def get_prompt_override(self, prompt_key: str, mode_name: str | None = None) -> dict:
         """Return a mode's normalized settings for one prompt."""
@@ -310,6 +339,23 @@ class ModeManager:
     def resolve_skill_enabled(self, skill_name: str, base_enabled: bool, mode_name: str | None = None) -> bool:
         """Apply a mode's skill state to a profile-derived boolean."""
         override = self.get_skill_override(skill_name, mode_name)
+        if override == ENABLE:
+            return True
+        if override == REMOVE:
+            return False
+        return base_enabled
+
+    def resolve_subagent_enabled(
+        self, subagent_id: str, base_enabled: bool
+    ) -> bool:
+        """Apply the active mode's state to profile subagent enablement."""
+        return self.resolve_enabled("subagents", subagent_id, base_enabled)
+
+    def resolve_enabled(
+        self, resource_type: str, resource_name: str, base_enabled: bool
+    ) -> bool:
+        """Apply a binary resource's active mode override to its base state."""
+        override = self.get_override(resource_type, resource_name)
         if override == ENABLE:
             return True
         if override == REMOVE:
@@ -359,7 +405,7 @@ class ModeManager:
         self.set_active_mode(next_name)
         return next_name
 
-    def create_mode(self, name: str, description: str = "", icon: str = DEFAULT_MODE_ICON, tools: dict | None = None, skills: dict | None = None, prompts: dict | None = None):
+    def create_mode(self, name: str, description: str = "", icon: str = DEFAULT_MODE_ICON, tools: dict | None = None, skills: dict | None = None, prompts: dict | None = None, subagents: dict | None = None):
         """Create a mode with a trimmed, unique name.
 
         Raises :class:`InvalidModeNameError` for a blank name and
@@ -369,12 +415,12 @@ class ModeManager:
         if name in self.modes:
             raise ModeAlreadyExistsError(f"Mode '{name}' already exists")
         self.modes[name] = self._build_mode(
-            description, icon, tools, skills, prompts
+            description, icon, tools, skills, prompts, subagents
         )
         self._save_modes()
         return name
 
-    def update_mode(self, name: str, description: str | None = None, icon: str | None = None, tools: dict | None = None, skills: dict | None = None, prompts: dict | None = None, new_name: str | None = None):
+    def update_mode(self, name: str, description: str | None = None, icon: str | None = None, tools: dict | None = None, skills: dict | None = None, prompts: dict | None = None, new_name: str | None = None, subagents: dict | None = None):
         """Update and optionally atomically rename an existing mode.
 
         ``None`` arguments leave the corresponding field untouched.  A rename
@@ -401,6 +447,8 @@ class ModeManager:
             mode["tools"] = self._clean_state_map(tools)
         if skills is not None:
             mode["skills"] = self._clean_state_map(skills)
+        if subagents is not None:
+            mode["subagents"] = self._clean_state_map(subagents)
         if prompts is not None:
             mode["prompts"] = self._clean_prompt_map(prompts)
         mode = self._normalize_mode(mode)
@@ -446,6 +494,18 @@ class ModeManager:
             self.set_active_mode(DEFAULT_MODE_NAME)
         return True
 
+    def remove_subagent_reference(self, subagent_id: str) -> bool:
+        """Remove a deleted user subagent from every stored mode."""
+        changed = False
+        for mode in self.modes.values():
+            state_map = mode.get("subagents", {})
+            if subagent_id in state_map:
+                del state_map[subagent_id]
+                changed = True
+        if changed:
+            self._save_modes()
+        return changed
+
     # ------------------------------------------------------------------ #
     # Internal helpers
     # ------------------------------------------------------------------ #
@@ -456,12 +516,13 @@ class ModeManager:
         return name.strip()
 
     @staticmethod
-    def _build_mode(description, icon, tools, skills, prompts) -> dict:
+    def _build_mode(description, icon, tools, skills, prompts, subagents=None) -> dict:
         return {
             "description": description or "",
             "icon": icon or DEFAULT_MODE_ICON,
             "tools": ModeManager._clean_state_map(tools or {}),
             "skills": ModeManager._clean_state_map(skills or {}),
+            "subagents": ModeManager._clean_state_map(subagents or {}),
             "prompts": ModeManager._clean_prompt_map(prompts or {}),
         }
 
@@ -490,6 +551,9 @@ class ModeManager:
             "icon": data.get("icon", "") or DEFAULT_MODE_ICON,
             "tools": ModeManager._clean_state_map(data.get("tools", {})),
             "skills": ModeManager._clean_state_map(data.get("skills", {})),
+            "subagents": ModeManager._clean_state_map(
+                data.get("subagents", {})
+            ),
             "prompts": ModeManager._clean_prompt_map(prompts),
         }
 
