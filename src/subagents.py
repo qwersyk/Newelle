@@ -23,6 +23,7 @@ CANONICAL_FIELDS = (
     "name",
     "description",
     "system_prompt",
+    "include_agents_md",
     "tools",
     "skills",
     "provider",
@@ -109,6 +110,9 @@ def normalize_subagent_definition(definition: object) -> dict:
     default_on = definition.get("default_on", True)
     if not isinstance(default_on, bool):
         raise InvalidSubagentError("'default_on' must be a boolean")
+    include_agents_md = definition.get("include_agents_md", False)
+    if not isinstance(include_agents_md, bool):
+        raise InvalidSubagentError("'include_agents_md' must be a boolean")
     use_secondary_model = definition.get("use_secondary_model", False)
     if not isinstance(use_secondary_model, bool):
         raise InvalidSubagentError("'use_secondary_model' must be a boolean")
@@ -128,6 +132,7 @@ def normalize_subagent_definition(definition: object) -> dict:
         "system_prompt": _normalize_string(
             definition.get("system_prompt", ""), "system_prompt"
         ),
+        "include_agents_md": include_agents_md,
         "tools": _normalize_name_list(definition.get("tools", []), "tools"),
         "skills": _normalize_name_list(definition.get("skills", []), "skills"),
         "provider": provider,

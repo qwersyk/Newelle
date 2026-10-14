@@ -262,6 +262,9 @@ class SubagentSessionRuntime:
                 "name": definition.get("name") or canonical_id,
                 "description": definition.get("description") or "",
                 "system_prompt": definition.get("system_prompt") or "",
+                "include_agents_md": bool(
+                    definition.get("include_agents_md", False)
+                ),
                 "tools": _name_list(definition.get("tools")),
                 "skills": _name_list(definition.get("skills")),
                 "provider": definition.get("provider"),
@@ -289,6 +292,7 @@ class SubagentSessionRuntime:
                 "name": "Inline subagent",
                 "description": "",
                 "system_prompt": str(system_prompt).strip(),
+                "include_agents_md": False,
                 "tools": requested_tools,
                 "skills": _name_list(skills),
                 "provider": provider,
@@ -519,6 +523,12 @@ class SubagentSessionRuntime:
 
         formatter = PromptFormatter(simple_variables, get_scoped_variable)
         prompts = [formatter.format(snapshot.get("system_prompt") or "")]
+        if snapshot.get("include_agents_md"):
+            # Same "agent.md" prompt the main agent can enable: the content of
+            # AGENTS.md from the current directory, resolved through {AGENTSMD}.
+            agents_md = formatter.format(PROMPTS.get("agent.md", "{AGENTSMD}"))
+            if agents_md.strip():
+                prompts.append(agents_md)
         for skill_name in snapshot["skills"]:
             prompts.append(skill_manager.render_skill(skill_name, require_enabled=False))
 

@@ -296,6 +296,9 @@ class SubagentEditorDialog(Adw.PreferencesDialog):
             "name": _definition_value(self.existing, "name", ""),
             "description": _definition_value(self.existing, "description", ""),
             "system_prompt": _definition_value(self.existing, "system_prompt", ""),
+            "include_agents_md": bool(
+                _definition_value(self.existing, "include_agents_md", False)
+            ),
             "tools": set(_definition_value(self.existing, "tools", []) or []),
             "skills": set(_definition_value(self.existing, "skills", []) or []),
             "provider": _definition_value(self.existing, "provider"),
@@ -396,6 +399,18 @@ class SubagentEditorDialog(Adw.PreferencesDialog):
         self.prompt_entry.set_on_change(self._on_prompt_changed)
         editor_box.append(self.prompt_entry)
         group.add(editor_box)
+
+        self.agents_md_row = Adw.SwitchRow(
+            title=_("Include AGENTS.md"),
+            subtitle=_(
+                "Add the content of the AGENTS.md file in the current "
+                "directory to the subagent's prompt"
+            ),
+        )
+        self.agents_md_row.set_active(self.working["include_agents_md"])
+        self.agents_md_row.set_sensitive(not self.read_only)
+        self.agents_md_row.connect("notify::active", self._on_agents_md_toggled)
+        group.add(self.agents_md_row)
 
     def _build_tools(self):
         group = Adw.PreferencesGroup(
@@ -669,6 +684,9 @@ class SubagentEditorDialog(Adw.PreferencesDialog):
     def _on_prompt_changed(self, entry):
         self.working["system_prompt"] = entry.get_text()
 
+    def _on_agents_md_toggled(self, row, _param):
+        self.working["include_agents_md"] = bool(row.get_active())
+
     def _on_capability_toggled(self, _switch, state, target, key):
         if state:
             self.working[target].add(key)
@@ -751,6 +769,7 @@ class SubagentEditorDialog(Adw.PreferencesDialog):
             "name": self.working["name"],
             "description": self.working["description"],
             "system_prompt": self.working["system_prompt"],
+            "include_agents_md": self.working["include_agents_md"],
             "tools": sorted(self.working["tools"]),
             "skills": sorted(self.working["skills"]),
             "provider": self.working["provider"],

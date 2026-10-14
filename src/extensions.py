@@ -282,10 +282,10 @@ class NewelleExtension(Handler):
         """Return named subagents contributed by this extension.
 
         Each entry must contain an extension-local ``id`` plus the canonical
-        subagent fields ``name``, ``description``, ``system_prompt``, ``tools``,
-        ``skills``, ``provider``, ``model``, ``use_secondary_model`` and
-        ``default_on``. Fields other than ``id`` and ``name`` may be omitted
-        and receive safe defaults.
+        subagent fields ``name``, ``description``, ``system_prompt``,
+        ``include_agents_md``, ``tools``, ``skills``, ``provider``, ``model``,
+        ``use_secondary_model`` and ``default_on``. Fields other than ``id``
+        and ``name`` may be omitted and receive safe defaults.
         Extension subagents are live, read-only contributions; Newelle never
         copies them into the user's global ``subagents`` setting.
         """
