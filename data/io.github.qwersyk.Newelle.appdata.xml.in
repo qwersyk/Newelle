@@ -48,6 +48,30 @@
 	<url type="bugtracker">https://github.com/qwersyk/Newelle/issues</url>
 	<content_rating type="oars-1.0" />
 	<releases>
+        <release version="1.6.0" date="2026-10-15">
+            <description>
+                <ul>
+                    <li>Workspaces: Divide chats into workspaces, and tie profiles to them. Different workspaces can run in different windows</li>
+                    <li>Subagents: You can now create subagents "template" to tackle specific tasks. The main assistant can launch that subagent</li>
+                    <li>New Long Term Memory: Added a new explorable long term memory that manages memory across chats much better</li>
+                    <li>Usage Tracking: You can now track how much you use Newelle and specific models</li>
+                    <li>Better search: You can now search for messages in conversations and options in settings</li>
+                    <li>Drafts: You can now create drafts of messages</li>
+                </ul>
+                <p>Minor improvements:</p>
+                <ul>
+                    <li>Newelle can now host an MCP server with Newelle's tools for third parties to access</li>
+                    <li>Improved profiles: They now have explicit inheritance systems and you can transfer settings</li>
+                    <li>Added support to Qwen Image 2.1 and other image generation tools</li>
+                    <li>Add a universal screenshot tool</li>
+                    <li>When downloading local models, their size compatibility is estimated in the model downloader</li>
+                    <li>Improvements to the voice pill, still experimental</li>
+                    <li>Long Term Memories can now expose mini apps</li>
+                    <li>Performance improvements when deleting a message</li>
+                    <li>You can now delete the chat you are in</li>
+                </ul>
+            </description>
+        </release>
 	    <release version="1.5.2" date="2026-09-16">
             <description>
                 <ul>
