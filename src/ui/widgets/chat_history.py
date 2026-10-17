@@ -1539,111 +1539,19 @@ class ChatHistory(Gtk.Box):
             self.chat[-1]["Prompt"] = prompt
 
     def show_prompt(self, button, id):
-        """Show a prompt
+        """Show the token, cache and cost details of the prompt of a message
 
         Args:
-            id (): id of the prompt to show
+            id (): id of the message whose prompt is shown
         """
-        # Retrieve prompt data
-        prompt_data = self.chat[id]
-        prompt_text = prompt_data.get("Prompt", "")
-        usage = prompt_data.get("LLMUsage") or {}
-        input_tokens = usage.get("input_tokens", prompt_data.get("InputTokens", 0))
-        output_tokens = usage.get("output_tokens", prompt_data.get("OutputTokens", 0))
-        elapsed = prompt_data.get("enlapsed", 0.0)
-        time_to_first_token = prompt_data.get("TimeToFirstToken")
-        time_to_first_token_no_thinking = prompt_data.get("TimeToFirstTokenNoThinking")
+        from .prompt_details import PromptDetailsDialog
 
-        speed = 0.0
-        if elapsed > 0:
-            speed = output_tokens / elapsed
-
-        dialog = Adw.Dialog(can_close=True)
-        dialog.set_title(_("Prompt Details"))
-
-        content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        content.append(
-            Adw.HeaderBar(css_classes=["flat"], show_start_title_buttons=True)
+        dialog = PromptDetailsDialog(
+            self.chat[id],
+            self.controller.settings,
+            on_open_usage=lambda: self.app.settings_action_paged("Usage"),
         )
-
-        scroll = Gtk.ScrolledWindow(propagate_natural_width=True)
-        scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
-        scroll.set_vexpand(True)
-        
-        clamp = Adw.Clamp(maximum_size=600, margin_top=24, margin_bottom=24, margin_start=12, margin_end=12)
-        scroll.set_child(clamp)
-
-        inner_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=24)
-        clamp.set_child(inner_box)
-
-        # Statistics
-        stats_group = Adw.PreferencesGroup(title=_("Statistics"))
-        inner_box.append(stats_group)
-
-        row_input = Adw.ActionRow(title=_("Input Tokens"), subtitle=str(input_tokens))
-        stats_group.add(row_input)
-
-        row_output = Adw.ActionRow(title=_("Output Tokens"), subtitle=str(output_tokens))
-        stats_group.add(row_output)
-
-        for key, title in (
-            ("total_tokens", _("Total Tokens")),
-            ("cache_read_tokens", _("Cached Input Tokens")),
-            ("cache_write_tokens", _("Cache Write Tokens")),
-            ("reasoning_tokens", _("Reasoning Tokens")),
-            ("input_audio_tokens", _("Input Audio Tokens")),
-            ("output_audio_tokens", _("Output Audio Tokens")),
-            ("tool_input_tokens", _("Tool Input Tokens")),
-            ("accepted_prediction_tokens", _("Accepted Prediction Tokens")),
-            ("rejected_prediction_tokens", _("Rejected Prediction Tokens")),
-        ):
-            if usage.get(key) is not None:
-                stats_group.add(Adw.ActionRow(title=title, subtitle=str(usage[key])))
-
-        if time_to_first_token is not None:
-            row_ttft = Adw.ActionRow(
-                title=_("Time to First Token"),
-                subtitle=f"{time_to_first_token:.2f} s",
-            )
-            stats_group.add(row_ttft)
-
-        if time_to_first_token_no_thinking is not None:
-            row_ttft_no_thinking = Adw.ActionRow(
-                title=_("Time to First Token (without thinking)"),
-                subtitle=f"{time_to_first_token_no_thinking:.2f} s",
-            )
-            stats_group.add(row_ttft_no_thinking)
-
-        row_speed = Adw.ActionRow(title=_("Generation Speed"), subtitle=f"{speed:.2f} tokens/s")
-        stats_group.add(row_speed)
-
-        # Prompt
-        prompt_group = Adw.PreferencesGroup(title=_("Prompt"))
-        inner_box.append(prompt_group)
-
-        prompt_card = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        prompt_card.add_css_class("card")
-        
-        label = Gtk.Label(
-            label=prompt_text,
-            wrap=True,
-            wrap_mode=Pango.WrapMode.WORD,
-            selectable=True,
-            halign=Gtk.Align.START,
-            xalign=0,
-            margin_top=12,
-            margin_bottom=12,
-            margin_start=12,
-            margin_end=12
-        )
-        prompt_card.append(label)
-        prompt_group.add(prompt_card)
-
-        content.append(scroll)
-        dialog.set_child(content)
-        dialog.set_content_width(500)
-        dialog.set_content_height(600)
-        dialog.present()
+        dialog.present(self.get_root())
 
     def copy_message(self, button, id):
         """Copy a message

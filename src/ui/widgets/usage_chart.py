@@ -85,13 +85,14 @@ class _StyleAwareArea(Gtk.DrawingArea):
 class ColorDot(_StyleAwareArea):
     """Small legend dot drawn with a series color."""
 
-    def __init__(self, index: int | None, size: int = 10):
+    def __init__(self, index: int | None, size: int = 10, rgba=None):
         super().__init__(content_width=size, content_height=size, valign=Gtk.Align.CENTER)
         self.index = index
+        self.rgba = rgba
         self.set_draw_func(self._draw)
 
     def _draw(self, _area, cr, width, height):
-        color = series_color(self.index)
+        color = self.rgba or series_color(self.index)
         cr.set_source_rgba(color.red, color.green, color.blue, 1)
         cr.arc(width / 2, height / 2, min(width, height) / 2, 0, 2 * math.pi)
         cr.fill()
@@ -134,6 +135,41 @@ class ShareBar(_StyleAwareArea):
         cr.set_source_rgba(color.red, color.green, color.blue, 1)
         _rounded_rect(cr, 0, 0, max(height, width * self.fraction), height, height / 2)
         cr.fill()
+
+
+class SegmentBar(_StyleAwareArea):
+    """Rounded bar split into colored segments.
+
+    ``segments`` is a list of (value, rgba) pairs. With ``total`` larger than
+    their sum, the remainder is left as an empty track.
+    """
+
+    def __init__(self, segments: list, total: float | None = None, width: int = 72, height: int = 6,
+                 hexpand: bool = False):
+        super().__init__(content_width=width, content_height=height, valign=Gtk.Align.CENTER, hexpand=hexpand)
+        self.segments = [(max(0.0, value), rgba) for value, rgba in segments]
+        self.total = max(total or 0, sum(value for value, _rgba in self.segments))
+        self.set_draw_func(self._draw)
+
+    def _draw(self, _area, cr, width, height):
+        fg = self.get_color()
+        cr.save()
+        _rounded_rect(cr, 0, 0, width, height, height / 2)
+        cr.clip()
+        cr.set_source_rgba(fg.red, fg.green, fg.blue, 0.1)
+        cr.paint()
+        if self.total > 0:
+            x = 0.0
+            for value, rgba in self.segments:
+                if value <= 0:
+                    continue
+                segment = value / self.total * width
+                cr.set_source_rgba(rgba.red, rgba.green, rgba.blue, 1)
+                # Overlap by a pixel so antialiasing leaves no seams between segments.
+                cr.rectangle(x, 0, segment + (1 if x + segment < width else 0), height)
+                cr.fill()
+                x += segment
+        cr.restore()
 
 
 class UsageChart(_StyleAwareArea):

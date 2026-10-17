@@ -2701,7 +2701,7 @@ class NewelleController(WorkspaceController):
         # Validate chat_id exists
         if not self.chats or effective_chat_id not in self.chats:
             print(f"prepare_generation: Invalid chat_id {effective_chat_id}, chats: {list(self.chats.keys()) if self.chats else []}")
-            return None, None, None, None, None, None
+            return None, None, None, None, None, None, None
 
         chat = self.get_chat_by_id(effective_chat_id)
         if audio_turn is not None:
@@ -2712,9 +2712,14 @@ class NewelleController(WorkspaceController):
 
         # Append extensions prompts
         prompts = []
+        title_by_text = {}
         formatter = self._get_prompt_formatter(audio_turn=audio_turn)
-        for prompt in request_settings.bot_prompts:
-            prompts.append(formatter.format(prompt))
+        titles = getattr(request_settings, "bot_prompt_titles", None) or []
+        for index, prompt in enumerate(request_settings.bot_prompts):
+            text = formatter.format(prompt)
+            prompts.append(text)
+            if index < len(titles):
+                title_by_text.setdefault(text, titles[index])
 
         self._set_retrieval_context(chat, effective_chat_id)
 
@@ -2736,11 +2741,66 @@ class NewelleController(WorkspaceController):
         if chat:
             self._set_user_message_prompts(chat[-1], formatter)
         prompts += self._get_user_message_tool_prompts(chat)
+        # Extensions may add or rewrite prompts, so titles are matched by text.
+        prompt_titles = [self._prompt_section_title(prompt, title_by_text) for prompt in prompts]
 
         # Update the chat in storage if it was modified
         self.set_chat_by_id(effective_chat_id, copy.deepcopy(chat) if audio_turn else chat)
 
-        return prompts, history, old_history, old_user_prompt, chat, effective_chat_id
+        return prompts, history, old_history, old_user_prompt, chat, effective_chat_id, prompt_titles
+
+    @staticmethod
+    def _prompt_section_title(prompt: str, title_by_text: dict) -> str:
+        if prompt in title_by_text:
+            return title_by_text[prompt]
+        if prompt.lstrip().startswith("<tools>"):
+            return _("Tool definitions")
+        return _("Extension prompt")
+
+    def _prompt_sections(self, prompts, prompt_titles, history, current_entry) -> list[dict]:
+        """Estimate the request tokens of each section, in the order they are sent."""
+        sections = []
+        for prompt, title in zip(prompts, prompt_titles):
+            sections.append({
+                "kind": "system",
+                "title": title,
+                "tokens": count_tokens(prompt),
+                "length": len(prompt),
+            })
+        roles = {}
+        for message in history:
+            role = message.get("User", "")
+            roles[role] = roles.get(role, 0) + count_message_tokens(message.get("Message", ""))
+        if history:
+            sections.append({
+                "kind": "history",
+                "title": _("Conversation history"),
+                "tokens": sum(roles.values()),
+                "messages": len(history),
+                "roles": roles,
+            })
+        message_tokens = count_message_tokens(current_entry.get("Message", ""))
+        if current_entry.get("User") == "User":
+            context = self._user_message_context(current_entry)
+            if context:
+                context_tokens = count_tokens(context)
+                prompt_tokens = min(context_tokens, count_tokens(current_entry.get("UserMessagePrompts", "")))
+                if prompt_tokens:
+                    sections.append({"kind": "context", "title": _("Message context prompts"), "tokens": prompt_tokens})
+                if context_tokens > prompt_tokens:
+                    sections.append({
+                        "kind": "retrieved",
+                        "title": _("Retrieved context"),
+                        "tokens": context_tokens - prompt_tokens,
+                    })
+                message_tokens = max(0, message_tokens - context_tokens)
+            title = _("Your message")
+        elif current_entry.get("User") == "Console":
+            title = _("Tool result")
+        else:
+            title = _("Last message")
+        sections.append({"kind": "message", "title": title, "tokens": message_tokens})
+        return sections
 
 
     @workspace_request
@@ -2758,7 +2818,7 @@ class NewelleController(WorkspaceController):
         try:
             request_settings = self._request_settings()
             audio_turn = self.audio_input.bind_audio_turn(chat_id if chat_id is not None else request_settings.chat_id, is_current)
-            prompts, history, old_history, old_user_prompt, chat, effective_chat_id = self.prepare_generation(chat_id=chat_id, audio_turn=audio_turn)
+            prompts, history, old_history, old_user_prompt, chat, effective_chat_id, prompt_titles = self.prepare_generation(chat_id=chat_id, audio_turn=audio_turn)
         except Exception as exc:
             yield ('error', str(exc))
             return
@@ -2853,12 +2913,13 @@ class NewelleController(WorkspaceController):
             # Post-generation logic
             last_generation_time = time.time() - t1
             
-            input_tokens = 0
-            for prompt in prompts:
-                input_tokens += count_tokens(prompt)
-            for message in history:
-                input_tokens += count_tokens(message.get("User", "")) + count_tokens(message.get("Message", ""))
-            input_tokens += count_tokens(request_message)
+            prompt_sections = self._prompt_sections(prompts, prompt_titles, history, request_chat[-1])
+            input_tokens = sum(section["tokens"] for section in prompt_sections)
+            provider = getattr(model, "key", "") or type(model).__name__
+            try:
+                model_name = str(model.get_selected_model() or "")
+            except Exception:  # noqa: BLE001 -- Model names are informational; never fail a response over them.
+                model_name = ""
             
             output_tokens = count_tokens(message_label)
             if response_usage is not None:
@@ -2912,6 +2973,9 @@ class NewelleController(WorkspaceController):
             ),
             'response_metadata': response_metadata,
             'usage': response_usage,
+            'prompt_sections': prompt_sections,
+            'provider': provider,
+            'model': model_name,
         })
 
     @workspace_request
@@ -3026,7 +3090,7 @@ class NewelleController(WorkspaceController):
 
         system_prompt_was_built = system_prompt is None
         if system_prompt is None:
-            _, _, _, _, _, effective_chat_id = self.prepare_generation(chat_id=chat_id, audio_turn=audio_turn)
+            _, _, _, _, _, effective_chat_id, _ = self.prepare_generation(chat_id=chat_id, audio_turn=audio_turn)
             formatter = self._get_prompt_formatter(mode_name, active_skill_manager, audio_turn)
             self._set_user_message_prompts(self.chats[chat_id]["chat"][-1], formatter, mode_name)
             system_prompt = self._build_tool_system_prompt(
@@ -3655,13 +3719,19 @@ class NewelleSettings:
         # self.prompts stays profile-level only: mode overrides are applied to
         # bot_prompts below so the Mode Editor keeps comparing against the true
         # profile base text (controller.newelle_settings.prompts).
-        self.bot_prompts = self.get_bot_prompts()
+        entries = self.get_bot_prompt_entries()
+        self.bot_prompts = [text for _title, text in entries]
+        self.bot_prompt_titles = [title for title, _text in entries]
 
     def prompt_uses_user_message(self, prompt: dict) -> bool:
         return self.user_message_prompts_settings.get(prompt["setting_name"], prompt.get("user_message", False))
 
     def get_bot_prompts(self, mode_name: str | None = None, user_message: bool = False) -> list[str]:
         """Resolve enabled prompts for a destination and the requested Mode."""
+        return [text for _title, text in self.get_bot_prompt_entries(mode_name, user_message)]
+
+    def get_bot_prompt_entries(self, mode_name: str | None = None, user_message: bool = False) -> list[tuple[str, str]]:
+        """Like get_bot_prompts, but return (title, text) pairs."""
         mm = self.mode_manager
         bot_prompts = []
         ordered_prompts = self._get_ordered_prompts()
@@ -3683,7 +3753,7 @@ class NewelleSettings:
                     if mm is not None
                     else base_text
                 )
-                bot_prompts.append(text)
+                bot_prompts.append((prompt.get("title", key), text))
         return bot_prompts
 
     def _get_ordered_prompts(self):

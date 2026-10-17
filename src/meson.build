@@ -107,6 +107,7 @@ widgets_sources = [
   'ui/widgets/list_directory.py',
   'ui/widgets/context_indicator.py',
   'ui/widgets/usage_chart.py',
+  'ui/widgets/prompt_details.py',
   'ui/widgets/folderrow.py',
   'ui/widgets/latex.py',
   'ui/widgets/mermaid.py',
