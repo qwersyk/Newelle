@@ -3451,6 +3451,7 @@ class NewelleSettings:
         self.secondary_stt_engine = settings.get_string("secondary-stt-engine")
         self.secondary_stt_settings = settings.get_string("stt-secondary-settings")
         self.external_terminal = settings.get_string("external-terminal")
+        self.external_terminal_on = settings.get_boolean("external-terminal-on")
         self.automatic_stt = settings.get_boolean("automatic-stt")
         self.stt_silence_detection_threshold = settings.get_double("stt-silence-detection-threshold")
         self.stt_silence_detection_duration = settings.get_int("stt-silence-detection-duration")
