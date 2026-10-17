@@ -6,6 +6,7 @@ import json
 from gi.repository import GLib
 import tiktoken
 from .media import extract_file, extract_image, extract_video, audio_text
+from .source_attribution import extract_source_section
 
 def clean_prompt(prompt: str) -> str:
     prompt = audio_text(remove_thinking_blocks(prompt))
@@ -25,6 +26,7 @@ def clean_message_tts(text: str) -> str:
     - Thinking blocks
     - Markdown formatting (bold, italic, code blocks, etc.)
     - Markdown links (keeps the text)
+    - Inline citation markers and the Sources section
     - Emojis
 
     Args:
@@ -33,6 +35,10 @@ def clean_message_tts(text: str) -> str:
     Returns:
         The cleaned text suitable for TTS playback
     """
+    # Citations are useful in the visual response, but should not be spoken.
+    text, _ = extract_source_section(text)
+    text = re.sub(r'[ \t]*\[(\d+)\](?!\s*\()', '', text)
+
     # Remove markdown tables (pipe-based)
     # Match table rows and separators
     text = re.sub(r"```.*?```", "", text, flags=re.DOTALL)
