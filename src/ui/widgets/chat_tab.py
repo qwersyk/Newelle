@@ -667,6 +667,36 @@ class ChatTab(Gtk.Box):
         msg_uuid = int(uuid.uuid4())
         kwargs['msg_uuid'] = msg_uuid
         kwargs['chat_id'] = self._chat_id
+        if cmd.name == "compact":
+            if not self.status:
+                self.notification_block.add_toast(Adw.Toast(title=_("Wait for the current operation to finish before compacting")))
+                return
+            self.status = False
+            compacting_history = self.chat_history
+            self.send_button_start_spinner()
+            self.notification_block.add_toast(Adw.Toast(title=_("Compacting conversation…")))
+
+            def finish_compaction(output, trim_result):
+                compacting_history.status = True
+                if self._chat_id == kwargs['chat_id']:
+                    self.remove_send_button_spinner()
+                    if trim_result is not None:
+                        self.context_indicator.update_stats(trim_result)
+                self.notification_block.add_toast(Adw.Toast(title=output))
+                return False
+
+            def compact_in_background():
+                trim_result = None
+                try:
+                    result = cmd.execute(**kwargs)
+                    output = result.get_output()
+                    trim_result = getattr(result, "trim_result", None)
+                except Exception as exc:  # noqa: BLE001 -- Report background provider failures on the GTK thread.
+                    output = _("Could not compact the conversation: {error}").format(error=exc)
+                GLib.idle_add(finish_compaction, output, trim_result)
+
+            threading.Thread(target=compact_in_background).start()
+            return
         result = cmd.execute(**kwargs)
         if result is not None and result.widget is not None:
             display_text = f"/{cmd.name} {args_str}".strip()
