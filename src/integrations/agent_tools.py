@@ -106,14 +106,6 @@ class AgentToolsIntegration(NewelleExtension):
             "type": "object",
             "properties": properties,
             "required": ["task"],
-            # Runtime validation reports a clear error for conflicting forms;
-            # ``anyOf`` remains compatible with providers that materialize
-            # optional fields while still requiring one complete launch form.
-            "anyOf": [
-                {"required": ["task", "subagent"]},
-                {"required": ["task", "session_id"]},
-                {"required": ["task", "system_prompt", "tools"]},
-            ],
         }
 
     def _has_ui(self):
