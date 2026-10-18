@@ -679,6 +679,7 @@ class ChatTab(Gtk.Box):
 
             def finish_compaction(output, trim_result):
                 compacting_history.status = True
+                compacting_history.refresh_compaction_marker()
                 if self._chat_id == kwargs['chat_id']:
                     self.remove_send_button_spinner()
                     if trim_result is not None:
@@ -1313,6 +1314,9 @@ class ChatTab(Gtk.Box):
         trim_result = data.get('trim_result')
         if trim_result is not None and hasattr(self, 'context_indicator'):
             self.context_indicator.update_stats(trim_result)
+        if trim_result is not None:
+            # Automatic compaction happens while trimming the request.
+            self.chat_history.refresh_compaction_marker()
         
         waiting_for_tools = False
         if hasattr(self, "current_streaming_message") and self.current_streaming_message:

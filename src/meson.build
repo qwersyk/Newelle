@@ -123,6 +123,7 @@ widgets_sources = [
   'ui/widgets/code_editor.py',
   'ui/widgets/tool.py',
   'ui/widgets/skill.py',
+  'ui/widgets/compaction_marker.py',
   'ui/widgets/skill_editor_mini_app.py',
   'ui/widgets/memory_mini_app.py',
   'ui/widgets/subagent.py',

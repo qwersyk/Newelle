@@ -6,7 +6,7 @@ import os
 import subprocess
 import gettext
 from ...utility.system import open_website
-from ..widgets import TipsCarousel, SkillWidget
+from ..widgets import TipsCarousel, SkillWidget, CompactionMarkerWidget
 from ...utility.strings import markwon_to_pango
 from ...ui.widgets import Message, MultilineEntry, ToolCallsGroupWidget
 from ...utility.message_chunk import get_message_chunks
@@ -59,6 +59,7 @@ class ChatHistory(Gtk.Box):
         self._compact_tool_groups = {}
         self._active_compact_tool_group = None
         self._compact_hidden_rows = set()
+        self._compaction_marker_row = None
         # Suggestions vars
         self.message_suggestion_buttons_array = []
         self.message_suggestion_buttons_array_placeholder = []
@@ -220,6 +221,7 @@ class ChatHistory(Gtk.Box):
                                     self.add_message("Command", result.widget, id_message=i, editable=True)
                 elif self.chat[i]["User"] in ["File", "Folder"]:
                     self.add_message(self.chat[i]["User"], self.get_file_button(self.chat[i]["Message"][1 : len(self.chat[i]["Message"])]), id_message=i)
+        GLib.idle_add(self.refresh_compaction_marker)
         GLib.timeout_add(200, self.scrolled_chat)
         GLib.idle_add(self.update_button_text)
 
@@ -266,6 +268,7 @@ class ChatHistory(Gtk.Box):
                 self.lazy_loading_in_progress = False
                 self._initial_load_source_id = None
                 GLib.idle_add(self.prune_compact_empty_rows)
+                GLib.idle_add(self.refresh_compaction_marker)
                 GLib.idle_add(self.scrolled_chat)
                 return GLib.SOURCE_REMOVE
 
@@ -1311,6 +1314,8 @@ class ChatHistory(Gtk.Box):
         )
         box.editing_message = None
         del self.edit_entries[int(gesture.get_name())]
+        # Editing a compacted message invalidates the saved checkpoint.
+        self.refresh_compaction_marker()
 
 
     def cancel_edit_message(self, gesture, box: Gtk.Box, apply_edit_stack: Gtk.Stack):
@@ -1503,6 +1508,7 @@ class ChatHistory(Gtk.Box):
         if not self.chat:
             self.show_placeholder()
         self.update_button_text()
+        self.refresh_compaction_marker()
 
         # Tick callbacks precede layout. Wait one frame for GTK to allocate
         # the shortened history before restoring the surviving row's offset.
@@ -1859,6 +1865,7 @@ class ChatHistory(Gtk.Box):
             self.messages_box.insert(0, box)
         
         self.lazy_loaded_start = new_start
+        self.refresh_compaction_marker()
         
         # Restore scroll position (adjust for new content height)
         deletion_generation = self._deletion_generation
@@ -1991,6 +1998,45 @@ class ChatHistory(Gtk.Box):
             self.chat[message_idx]["Message"][1 : len(self.chat[message_idx]["Message"])]
         )
 
+    def refresh_compaction_marker(self):
+        """Place the context compaction divider after the last compacted message."""
+        row = self._compaction_marker_row
+        if row is not None and row.get_parent() is not self.chat_list_block:
+            row = self._compaction_marker_row = None
+        marker = self.controller.get_compaction_marker(self.chat_id) if self.chat else None
+        # The boundary is not loaded yet; lazy loading refreshes the marker.
+        if marker is None or self.lazy_loaded_start > marker[0] + 1:
+            if row is not None:
+                self.chat_list_block.remove(row)
+                self._compaction_marker_row = None
+            return GLib.SOURCE_REMOVE
+        boundary, summary = marker
+
+        anchor = None
+        anchor_index = -1
+        for bubble in self._message_bubbles():
+            index = bubble.message_index
+            if index is None or not anchor_index < index <= boundary:
+                continue
+            candidate = bubble.get_ancestor(Gtk.ListBoxRow)
+            if candidate is not None and candidate is not row and candidate.get_parent() is self.chat_list_block:
+                anchor, anchor_index = candidate, index
+
+        if row is not None:
+            in_place = (row.get_prev_sibling() is anchor if anchor is not None
+                        else row.get_index() == self._preamble_row_count)
+            if in_place:
+                row.get_child().set_summary(summary)
+                return GLib.SOURCE_REMOVE
+            self.chat_list_block.remove(row)
+
+        position = anchor.get_index() + 1 if anchor is not None else self._preamble_row_count
+        row = Gtk.ListBoxRow(activatable=False, selectable=False, focusable=False)
+        row.set_child(CompactionMarkerWidget(summary))
+        self.chat_list_block.insert(row, position)
+        self._compaction_marker_row = row
+        return GLib.SOURCE_REMOVE
+
     def show_chat(self):
         """Reload and display all messages from the chat"""
         self._deletion_generation += 1
@@ -2003,6 +2049,7 @@ class ChatHistory(Gtk.Box):
         self.lazy_loading_in_progress = False
         # Clear existing messages from UI
         self.chat_list_block.remove_all()
+        self._compaction_marker_row = None
         self.messages_box.clear()
         self.last_error_box = None
         # Groups contain live Message/slot widgets, so never reuse them across
@@ -2054,6 +2101,7 @@ class ChatHistory(Gtk.Box):
             self.lazy_loaded_end = total_messages
 
         # Update UI state
+        GLib.idle_add(self.refresh_compaction_marker)
         GLib.idle_add(self.scrolled_chat)
         GLib.idle_add(self.update_button_text)
 
@@ -2113,6 +2161,7 @@ class ChatHistory(Gtk.Box):
             if child is None:
                 break
             self.chat_list_block.remove(child)
+        self._compaction_marker_row = None
         self.messages_box = []
         self.edit_entries = {}
         self._compact_hidden_rows = set()

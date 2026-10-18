@@ -1778,6 +1778,30 @@ class NewelleController(WorkspaceController):
         ))
         return result
 
+    def get_compaction_marker(self, chat_id):
+        """Return ``(last_compacted_index, summary)`` for a chat, or None.
+
+        The checkpoint counts entries of the model history, which omits
+        placeholder Console results, so map that count back to a chat index.
+        """
+        with self.chat_state_lock:
+            record = self.chats.get(chat_id)
+            checkpoint = record.get("context_compaction") if record else None
+            if not checkpoint:
+                return None
+            chat = record["chat"]
+            history = self.get_history(chat=chat, include_last_message=True, ignore_limit=True)
+            visible = [index for index, message in enumerate(chat)
+                       if not (message["User"] == "Console" and message["Message"] == "None")]
+        history = self._apply_user_message_prompts(history)
+        cm = CacheContextManager(0, 0, checkpoint=checkpoint)
+        _effective, consumed = cm.apply_checkpoint(history)
+        if not consumed:
+            return None
+        if consumed > len(visible):
+            return None
+        return visible[consumed - 1], cm.checkpoint.get("summary", "")
+
     def require_tool_update(self):
         self.tools = ToolRegistry()
         self.extensionloader.add_tools(self.tools)

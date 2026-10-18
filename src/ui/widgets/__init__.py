@@ -24,6 +24,7 @@ from .terminal_dialog import Terminal, TerminalDialog
 from .code_editor import CodeEditorWidget
 from .tool import ToolWidget, ToolCallSlot, ToolCallsGroupWidget
 from .skill import SkillWidget
+from .compaction_marker import CompactionMarkerWidget
 from .subagent import SubagentWidget
 from .scheduled_task import ScheduledTaskWidget
 from .question import QuestionWidget, RestoredQuestionWidget
@@ -69,6 +70,7 @@ __all__ = [
     "ToolCallSlot",
     "ToolCallsGroupWidget",
     "SkillWidget",
+    "CompactionMarkerWidget",
     "SubagentWidget",
     "ScheduledTaskWidget",
     "QuestionWidget",
