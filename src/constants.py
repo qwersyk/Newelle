@@ -829,7 +829,7 @@ SETTINGS_GROUPS = {
         },
         "general": {
             "title": _("General"),
-            "settings": ["virtualization", "offers", "memory", "remove-thinking", "auto-generate-name", "path", "auto-run", "max-run-times", "parallel-tool-execution", "max-tool-calls", "context-mode", "context-max", "context-suggested", "context-summarization"],
+            "settings": ["virtualization", "offers", "memory", "remove-thinking", "auto-generate-name", "path", "auto-run", "max-run-times", "parallel-tool-execution", "max-tool-calls", "context-mode", "context-max", "context-auto", "context-percent", "context-summarization"],
             "description": _("General settings, virtualization, offers, memory length, automatically generate chat name, current folder..."),
         },
         "prompts": {
