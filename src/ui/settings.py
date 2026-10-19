@@ -683,6 +683,32 @@ class Settings(Adw.Window):
         suggested_row.connect("input", update_context_suggested)
         context_expander.add_row(suggested_row)
 
+        # Context Manager mode: use the model's context length from the provider API
+        auto_row = Adw.ActionRow(
+            title=_("Use Model Context From API"),
+            subtitle=_("Get the context length from the provider's /models endpoint (e.g. Fireworks) and trim to a percentage of it"),
+        )
+        auto_switch = Gtk.Switch(valign=Gtk.Align.CENTER)
+        auto_row.add_suffix(auto_switch)
+        auto_row.set_activatable_widget(auto_switch)
+        self.settings.bind("context-auto", auto_switch, 'active', Gio.SettingsBindFlags.DEFAULT)
+        context_expander.add_row(auto_row)
+
+        percent_adj = Gtk.Adjustment(lower=1, upper=100, step_increment=1, page_increment=10)
+        percent_adj.set_value(self.settings.get_int("context-percent"))
+        percent_row = Adw.SpinRow(
+            title=_("Auto Context Percentage"),
+            subtitle=_("Trim/summarize the conversation to this percentage of the model's context length"),
+            adjustment=percent_adj,
+            digits=0,
+        )
+        def update_context_percent(spin, _input):
+            self.settings.set_int("context-percent", int(spin.get_value()))
+            return False
+        percent_row.connect("input", update_context_percent)
+        percent_row.connect("notify::value", lambda row, _p: update_context_percent(row, None))
+        context_expander.add_row(percent_row)
+
         # Context Manager mode: summarization toggle
         summarize_row = Adw.ActionRow(
             title=_("Summarize dropped messages"),
@@ -693,7 +719,28 @@ class Settings(Adw.Window):
         self.settings.bind("context-summarization", summarize_switch, 'active', Gio.SettingsBindFlags.DEFAULT)
         context_expander.add_row(summarize_row)
 
-        self.context_cm_rows = [max_row, suggested_row, summarize_row]
+        def update_context_auto(*args):
+            auto = self.settings.get_boolean("context-auto")
+            max_row.set_sensitive(not auto)
+            suggested_row.set_sensitive(not auto)
+            percent_row.set_sensitive(auto)
+            if auto:
+                model_ctx = None
+                try:
+                    llm = getattr(self.controller, "llm", None)
+                    if llm is not None and hasattr(llm, "get_context_length"):
+                        model_ctx = llm.get_context_length()
+                except Exception:
+                    model_ctx = None
+                if model_ctx:
+                    auto_row.set_subtitle(_("Model context: {tokens} tokens").format(tokens=model_ctx))
+                else:
+                    auto_row.set_subtitle(_("Context length unknown for the current model; using manual values"))
+
+        self.settings.connect("changed::context-auto", update_context_auto)
+        update_context_auto()
+
+        self.context_cm_rows = [max_row, suggested_row, auto_row, percent_row, summarize_row]
         self.context_fixed_rows = [fixed_row]
 
         def apply_context_mode(mode):
