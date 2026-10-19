@@ -740,6 +740,22 @@ class Settings(Adw.Window):
         self.settings.connect("changed::context-auto", update_context_auto)
         update_context_auto()
 
+        def refresh_ring_on_context_change(_settings, key):
+            """Refresh the context ring right away when context settings change."""
+            try:
+                self.controller.newelle_settings.load_settings(
+                    self.settings, change_directory=False
+                )
+                window = self.controller.ui_controller.window
+                if window is not None:
+                    window.refresh_context_indicator()
+            except Exception:
+                pass
+
+        for key in ("context-auto", "context-percent", "context-max",
+                    "context-suggested", "context-mode"):
+            self.settings.connect(f"changed::{key}", refresh_ring_on_context_change)
+
         self.context_cm_rows = [max_row, suggested_row, auto_row, percent_row, summarize_row]
         self.context_fixed_rows = [fixed_row]
 
