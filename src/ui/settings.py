@@ -654,7 +654,7 @@ class Settings(Adw.Window):
         context_expander.add_row(fixed_row)
 
         # Context Manager mode: max tokens
-        max_adj = Gtk.Adjustment(lower=1000, upper=1000000, step_increment=1000, page_increment=10000)
+        max_adj = Gtk.Adjustment(lower=1000, upper=2147483647, step_increment=1000, page_increment=10000)
         max_adj.set_value(self.settings.get_int("context-max"))
         max_row = Adw.SpinRow(
             title=_("Max Context Size"),
@@ -669,7 +669,7 @@ class Settings(Adw.Window):
         context_expander.add_row(max_row)
 
         # Context Manager mode: suggested tokens
-        suggested_adj = Gtk.Adjustment(lower=1000, upper=500000, step_increment=1000, page_increment=10000)
+        suggested_adj = Gtk.Adjustment(lower=1000, upper=2147483647, step_increment=1000, page_increment=10000)
         suggested_adj.set_value(self.settings.get_int("context-suggested"))
         suggested_row = Adw.SpinRow(
             title=_("Suggested Context Size"),
@@ -1321,10 +1321,10 @@ class Settings(Adw.Window):
         tool_calls_group = Adw.PreferencesGroup(title=_("Tool calls"))
         max_tool_calls_row = Adw.SpinRow(
             title=_("Maximum Tool Calls"),
-            subtitle=_("Maximum number of tools the model can run for one request, including scheduled tasks"),
+            subtitle=_("Maximum number of tools the model can run for one request, including scheduled tasks. Set to 0 for unlimited"),
             adjustment=Gtk.Adjustment(
-                lower=1,
-                upper=1000,
+                lower=0,
+                upper=2147483647,
                 step_increment=1,
                 page_increment=10,
                 value=self.settings.get_int("max-tool-calls"),
