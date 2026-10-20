@@ -637,23 +637,12 @@ class Settings(Adw.Window):
         )
 
         current_mode = self.settings.get_string("context-mode")
-        context_mode_cm = Gtk.ToggleButton(label=_("Context Manager"))
-        context_mode_fixed = Gtk.ToggleButton(label=_("Fixed message count"))
-        mode_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=0, valign=Gtk.Align.CENTER)
-        mode_box.add_css_class("linked")
-        mode_box.append(context_mode_cm)
-        mode_box.append(context_mode_fixed)
-
-        # Initialize exclusive selection
-        if current_mode == "fixed":
-            context_mode_fixed.set_active(True)
-            context_mode_cm.set_active(False)
-        else:
-            context_mode_cm.set_active(True)
-            context_mode_fixed.set_active(False)
-
-        mode_row = Adw.ActionRow(title=_("Mode"))
-        mode_row.add_suffix(mode_box)
+        context_modes = ("context-manager", "cache", "fixed")
+        mode_row = Adw.ComboRow(
+            title=_("Mode"),
+            model=Gtk.StringList.new([_("Context Manager"), _("Cache optimized"), _("Fixed message count")]),
+        )
+        mode_row.set_selected(context_modes.index(current_mode) if current_mode in context_modes else 0)
         context_expander.add_row(mode_row)
 
         # Fixed mode: message count
@@ -707,40 +696,28 @@ class Settings(Adw.Window):
         self.context_cm_rows = [max_row, suggested_row, summarize_row]
         self.context_fixed_rows = [fixed_row]
 
-        def apply_context_mode(is_cm: bool):
-            mode = "context-manager" if is_cm else "fixed"
-            self.settings.set_string("context-mode", mode)
+        def apply_context_mode(mode):
+            is_cm = mode != "fixed"
             for r in self.context_cm_rows:
                 r.set_visible(is_cm)
             for r in self.context_fixed_rows:
                 r.set_visible(not is_cm)
-
-        def on_cm_toggled(btn):
-            if btn.get_active():
-                context_mode_fixed.set_active(False)
-                apply_context_mode(True)
+            if mode == "cache":
+                mode_row.set_subtitle(_("Keep the same history prefix until the maximum context size is reached"))
+                suggested_row.set_title(_("Context size after compaction"))
+                suggested_row.set_subtitle(_("Reduce context to this target only when the maximum is reached"))
             else:
-                # Keep one option selected at all times
-                if not context_mode_fixed.get_active():
-                    btn.set_active(True)
+                mode_row.set_subtitle("")
+                suggested_row.set_title(_("Suggested Context Size"))
+                suggested_row.set_subtitle(_("Soft token target — less relevant messages are dropped to stay near this"))
 
-        def on_fixed_toggled(btn):
-            if btn.get_active():
-                context_mode_cm.set_active(False)
-                apply_context_mode(False)
-            else:
-                # Keep one option selected at all times
-                if not context_mode_cm.get_active():
-                    btn.set_active(True)
+        def on_context_mode_changed(row, _param):
+            mode = context_modes[row.get_selected()]
+            self.settings.set_string("context-mode", mode)
+            apply_context_mode(mode)
 
-        context_mode_cm.connect("toggled", on_cm_toggled)
-        context_mode_fixed.connect("toggled", on_fixed_toggled)
-
-        is_cm = current_mode != "fixed"
-        for r in self.context_cm_rows:
-            r.set_visible(is_cm)
-        for r in self.context_fixed_rows:
-            r.set_visible(not is_cm)
+        mode_row.connect("notify::selected", on_context_mode_changed)
+        apply_context_mode(current_mode)
 
         self.KNOWLEDGE.add(context_expander)
         # Developer settings

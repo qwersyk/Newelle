@@ -115,6 +115,32 @@ class MyApp(Adw.Application):
             border-radius: 999px;
             padding: 2px 4px;
         }
+        /* Context compaction divider in the chat history */
+        .compaction-line.start{
+            background-image: linear-gradient(to right, alpha(@accent_color, 0), alpha(@accent_color, 0.45));
+        }
+        .compaction-line.end{
+            background-image: linear-gradient(to left, alpha(@accent_color, 0), alpha(@accent_color, 0.45));
+        }
+        .compaction-pill{
+            min-height: 0;
+            padding: 4px 12px;
+            border-radius: 999px;
+            background-color: alpha(@accent_bg_color, 0.14);
+            box-shadow: inset 0 0 0 1px alpha(@accent_color, 0.25);
+            color: @accent_color;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+        .compaction-pill:hover{
+            background-color: alpha(@accent_bg_color, 0.22);
+        }
+        .compaction-summary{
+            padding: 12px 14px;
+            border-radius: 12px;
+            background-color: alpha(@accent_bg_color, 0.06);
+            box-shadow: inset 0 0 0 1px alpha(@accent_color, 0.15);
+        }
         .transparent{
             background-color: rgba(0,0,0,0);
         }

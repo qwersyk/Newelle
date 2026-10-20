@@ -12,6 +12,7 @@ from gi.repository import Gtk, GLib, Pango, Gio, Gdk
 from ...utility.message_chunk import get_message_chunks, MessageChunk, normalize_tool_arguments
 from ...utility.source_attribution import CitationSource, extract_source_section
 from ...utility.strings import markwon_to_pango, remove_thinking_blocks, simple_markdown_to_pango, quote_string, add_S_to_sudo
+from ...utility.system import get_spawn_command, open_in_external_terminal
 from pylatexenc.latex2text import LatexNodes2Text
 
 from .copybox import CopyBox
@@ -840,6 +841,9 @@ class Message(Gtk.Box):
             terminal_command = get_spawn_command() + ["bash", "-c", "export TERM=xterm-256color;alias sudo=\"sudo -S\";" + shell_command]
         else:
             terminal_command = ["bash", "-c", "export TERM=xterm-256color;" + shell_command]
+
+        if self.controller.newelle_settings.external_terminal_on and open_in_external_terminal(shell_command, self.controller.newelle_settings.external_terminal):
+            return
 
         terminal = TerminalDialog(parent_window=self._get_main_window())
 

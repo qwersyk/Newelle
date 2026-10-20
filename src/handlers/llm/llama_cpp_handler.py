@@ -51,7 +51,7 @@ class LlamaCPPHandler(OpenAIHandler):
         except Exception as e:
             print(f"Error updating library cache: {e}")
     
-    def get_models(self, manual=False):
+    def get_models(self, manual=False, multithread=False):
         self.set_setting("models", json.dumps(["custom"]))
         self.update_library_cache()
 

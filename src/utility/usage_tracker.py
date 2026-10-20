@@ -266,16 +266,16 @@ def get_price(prices: dict, provider: str, model: str) -> dict | None:
     return price
 
 
-def compute_cost(row: dict, price: dict | None) -> float | None:
-    """Cost of a usage row. Cache prices fall back to the input price when unset.
+def cost_breakdown(row: dict, price: dict | None) -> dict | None:
+    """Billed tokens, unit price and cost of each PRICE_FIELDS category of a usage row.
 
-    ``input_tokens`` already includes cache reads and writes, so they are
-    removed from the regular input before applying their own prices.
+    Cache prices fall back to the input price when unset. ``input_tokens``
+    already includes cache reads and writes, so they are removed from the
+    regular input before applying their own prices.
     """
     if price is None:
         return None
     input_price = price.get("input") or 0.0
-    output_price = price.get("output") or 0.0
     cache_read_price = price.get("cache_read")
     cache_write_price = price.get("cache_write")
     if cache_read_price is None:
@@ -285,12 +285,48 @@ def compute_cost(row: dict, price: dict | None) -> float | None:
     cache_read = row["cache_read_tokens"]
     cache_write = row["cache_write_tokens"]
     uncached = max(0, row["input_tokens"] - cache_read - cache_write)
-    return (
-        uncached * input_price
-        + cache_read * cache_read_price
-        + cache_write * cache_write_price
-        + row["output_tokens"] * output_price
-    ) / 1_000_000
+    breakdown = {}
+    for field, tokens, unit_price in (
+        ("input", uncached, input_price),
+        ("output", row["output_tokens"], price.get("output") or 0.0),
+        ("cache_read", cache_read, cache_read_price),
+        ("cache_write", cache_write, cache_write_price),
+    ):
+        breakdown[field] = {"tokens": tokens, "price": unit_price, "cost": tokens * unit_price / 1_000_000}
+    return breakdown
+
+
+def compute_cost(row: dict, price: dict | None) -> float | None:
+    """Total cost of a usage row, see cost_breakdown."""
+    breakdown = cost_breakdown(row, price)
+    if breakdown is None:
+        return None
+    return sum(part["cost"] for part in breakdown.values())
+
+
+def split_cached_prefix(section_tokens: list[int], input_tokens: int, cache_read: int,
+                        cache_write: int) -> list[tuple[int, int, int]]:
+    """Estimate (read, written, uncached) cache tokens for each prompt section.
+
+    Providers cache a prefix of the prompt, so the reported cache counts cover
+    the leading sections. Section sizes are local estimates that rarely match
+    the provider's count, so the cache boundaries are placed at the same
+    fraction of the prompt that the provider reported.
+    """
+    total = sum(section_tokens)
+    if total <= 0 or input_tokens <= 0:
+        return [(0, 0, tokens) for tokens in section_tokens]
+    read_end = min(1.0, cache_read / input_tokens) * total
+    write_end = min(1.0, (cache_read + cache_write) / input_tokens) * total
+    result = []
+    start = 0
+    for tokens in section_tokens:
+        end = start + tokens
+        read = min(tokens, round(max(0.0, min(end, read_end) - start)))
+        written = min(tokens - read, round(max(0.0, min(end, write_end) - max(start, read_end))))
+        result.append((read, written, tokens - read - written))
+        start = end
+    return result
 
 
 def compute_cache_savings(row: dict, price: dict | None) -> float | None:

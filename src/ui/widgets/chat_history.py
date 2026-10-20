@@ -6,7 +6,7 @@ import os
 import subprocess
 import gettext
 from ...utility.system import open_website
-from ..widgets import TipsCarousel, SkillWidget
+from ..widgets import TipsCarousel, SkillWidget, CompactionMarkerWidget
 from ...utility.strings import markwon_to_pango
 from ...ui.widgets import Message, MultilineEntry, ToolCallsGroupWidget
 from ...utility.message_chunk import get_message_chunks
@@ -59,6 +59,7 @@ class ChatHistory(Gtk.Box):
         self._compact_tool_groups = {}
         self._active_compact_tool_group = None
         self._compact_hidden_rows = set()
+        self._compaction_marker_row = None
         # Suggestions vars
         self.message_suggestion_buttons_array = []
         self.message_suggestion_buttons_array_placeholder = []
@@ -220,6 +221,7 @@ class ChatHistory(Gtk.Box):
                                     self.add_message("Command", result.widget, id_message=i, editable=True)
                 elif self.chat[i]["User"] in ["File", "Folder"]:
                     self.add_message(self.chat[i]["User"], self.get_file_button(self.chat[i]["Message"][1 : len(self.chat[i]["Message"])]), id_message=i)
+        GLib.idle_add(self.refresh_compaction_marker)
         GLib.timeout_add(200, self.scrolled_chat)
         GLib.idle_add(self.update_button_text)
 
@@ -266,6 +268,7 @@ class ChatHistory(Gtk.Box):
                 self.lazy_loading_in_progress = False
                 self._initial_load_source_id = None
                 GLib.idle_add(self.prune_compact_empty_rows)
+                GLib.idle_add(self.refresh_compaction_marker)
                 GLib.idle_add(self.scrolled_chat)
                 return GLib.SOURCE_REMOVE
 
@@ -1311,6 +1314,8 @@ class ChatHistory(Gtk.Box):
         )
         box.editing_message = None
         del self.edit_entries[int(gesture.get_name())]
+        # Editing a compacted message invalidates the saved checkpoint.
+        self.refresh_compaction_marker()
 
 
     def cancel_edit_message(self, gesture, box: Gtk.Box, apply_edit_stack: Gtk.Stack):
@@ -1503,6 +1508,7 @@ class ChatHistory(Gtk.Box):
         if not self.chat:
             self.show_placeholder()
         self.update_button_text()
+        self.refresh_compaction_marker()
 
         # Tick callbacks precede layout. Wait one frame for GTK to allocate
         # the shortened history before restoring the surviving row's offset.
@@ -1539,111 +1545,19 @@ class ChatHistory(Gtk.Box):
             self.chat[-1]["Prompt"] = prompt
 
     def show_prompt(self, button, id):
-        """Show a prompt
+        """Show the token, cache and cost details of the prompt of a message
 
         Args:
-            id (): id of the prompt to show
+            id (): id of the message whose prompt is shown
         """
-        # Retrieve prompt data
-        prompt_data = self.chat[id]
-        prompt_text = prompt_data.get("Prompt", "")
-        usage = prompt_data.get("LLMUsage") or {}
-        input_tokens = usage.get("input_tokens", prompt_data.get("InputTokens", 0))
-        output_tokens = usage.get("output_tokens", prompt_data.get("OutputTokens", 0))
-        elapsed = prompt_data.get("enlapsed", 0.0)
-        time_to_first_token = prompt_data.get("TimeToFirstToken")
-        time_to_first_token_no_thinking = prompt_data.get("TimeToFirstTokenNoThinking")
+        from .prompt_details import PromptDetailsDialog
 
-        speed = 0.0
-        if elapsed > 0:
-            speed = output_tokens / elapsed
-
-        dialog = Adw.Dialog(can_close=True)
-        dialog.set_title(_("Prompt Details"))
-
-        content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        content.append(
-            Adw.HeaderBar(css_classes=["flat"], show_start_title_buttons=True)
+        dialog = PromptDetailsDialog(
+            self.chat[id],
+            self.controller.settings,
+            on_open_usage=lambda: self.app.settings_action_paged("Usage"),
         )
-
-        scroll = Gtk.ScrolledWindow(propagate_natural_width=True)
-        scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
-        scroll.set_vexpand(True)
-        
-        clamp = Adw.Clamp(maximum_size=600, margin_top=24, margin_bottom=24, margin_start=12, margin_end=12)
-        scroll.set_child(clamp)
-
-        inner_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=24)
-        clamp.set_child(inner_box)
-
-        # Statistics
-        stats_group = Adw.PreferencesGroup(title=_("Statistics"))
-        inner_box.append(stats_group)
-
-        row_input = Adw.ActionRow(title=_("Input Tokens"), subtitle=str(input_tokens))
-        stats_group.add(row_input)
-
-        row_output = Adw.ActionRow(title=_("Output Tokens"), subtitle=str(output_tokens))
-        stats_group.add(row_output)
-
-        for key, title in (
-            ("total_tokens", _("Total Tokens")),
-            ("cache_read_tokens", _("Cached Input Tokens")),
-            ("cache_write_tokens", _("Cache Write Tokens")),
-            ("reasoning_tokens", _("Reasoning Tokens")),
-            ("input_audio_tokens", _("Input Audio Tokens")),
-            ("output_audio_tokens", _("Output Audio Tokens")),
-            ("tool_input_tokens", _("Tool Input Tokens")),
-            ("accepted_prediction_tokens", _("Accepted Prediction Tokens")),
-            ("rejected_prediction_tokens", _("Rejected Prediction Tokens")),
-        ):
-            if usage.get(key) is not None:
-                stats_group.add(Adw.ActionRow(title=title, subtitle=str(usage[key])))
-
-        if time_to_first_token is not None:
-            row_ttft = Adw.ActionRow(
-                title=_("Time to First Token"),
-                subtitle=f"{time_to_first_token:.2f} s",
-            )
-            stats_group.add(row_ttft)
-
-        if time_to_first_token_no_thinking is not None:
-            row_ttft_no_thinking = Adw.ActionRow(
-                title=_("Time to First Token (without thinking)"),
-                subtitle=f"{time_to_first_token_no_thinking:.2f} s",
-            )
-            stats_group.add(row_ttft_no_thinking)
-
-        row_speed = Adw.ActionRow(title=_("Generation Speed"), subtitle=f"{speed:.2f} tokens/s")
-        stats_group.add(row_speed)
-
-        # Prompt
-        prompt_group = Adw.PreferencesGroup(title=_("Prompt"))
-        inner_box.append(prompt_group)
-
-        prompt_card = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        prompt_card.add_css_class("card")
-        
-        label = Gtk.Label(
-            label=prompt_text,
-            wrap=True,
-            wrap_mode=Pango.WrapMode.WORD,
-            selectable=True,
-            halign=Gtk.Align.START,
-            xalign=0,
-            margin_top=12,
-            margin_bottom=12,
-            margin_start=12,
-            margin_end=12
-        )
-        prompt_card.append(label)
-        prompt_group.add(prompt_card)
-
-        content.append(scroll)
-        dialog.set_child(content)
-        dialog.set_content_width(500)
-        dialog.set_content_height(600)
-        dialog.present()
+        dialog.present(self.get_root())
 
     def copy_message(self, button, id):
         """Copy a message
@@ -1951,6 +1865,7 @@ class ChatHistory(Gtk.Box):
             self.messages_box.insert(0, box)
         
         self.lazy_loaded_start = new_start
+        self.refresh_compaction_marker()
         
         # Restore scroll position (adjust for new content height)
         deletion_generation = self._deletion_generation
@@ -2083,6 +1998,45 @@ class ChatHistory(Gtk.Box):
             self.chat[message_idx]["Message"][1 : len(self.chat[message_idx]["Message"])]
         )
 
+    def refresh_compaction_marker(self):
+        """Place the context compaction divider after the last compacted message."""
+        row = self._compaction_marker_row
+        if row is not None and row.get_parent() is not self.chat_list_block:
+            row = self._compaction_marker_row = None
+        marker = self.controller.get_compaction_marker(self.chat_id) if self.chat else None
+        # The boundary is not loaded yet; lazy loading refreshes the marker.
+        if marker is None or self.lazy_loaded_start > marker[0] + 1:
+            if row is not None:
+                self.chat_list_block.remove(row)
+                self._compaction_marker_row = None
+            return GLib.SOURCE_REMOVE
+        boundary, summary = marker
+
+        anchor = None
+        anchor_index = -1
+        for bubble in self._message_bubbles():
+            index = bubble.message_index
+            if index is None or not anchor_index < index <= boundary:
+                continue
+            candidate = bubble.get_ancestor(Gtk.ListBoxRow)
+            if candidate is not None and candidate is not row and candidate.get_parent() is self.chat_list_block:
+                anchor, anchor_index = candidate, index
+
+        if row is not None:
+            in_place = (row.get_prev_sibling() is anchor if anchor is not None
+                        else row.get_index() == self._preamble_row_count)
+            if in_place:
+                row.get_child().set_summary(summary)
+                return GLib.SOURCE_REMOVE
+            self.chat_list_block.remove(row)
+
+        position = anchor.get_index() + 1 if anchor is not None else self._preamble_row_count
+        row = Gtk.ListBoxRow(activatable=False, selectable=False, focusable=False)
+        row.set_child(CompactionMarkerWidget(summary))
+        self.chat_list_block.insert(row, position)
+        self._compaction_marker_row = row
+        return GLib.SOURCE_REMOVE
+
     def show_chat(self):
         """Reload and display all messages from the chat"""
         self._deletion_generation += 1
@@ -2095,6 +2049,7 @@ class ChatHistory(Gtk.Box):
         self.lazy_loading_in_progress = False
         # Clear existing messages from UI
         self.chat_list_block.remove_all()
+        self._compaction_marker_row = None
         self.messages_box.clear()
         self.last_error_box = None
         # Groups contain live Message/slot widgets, so never reuse them across
@@ -2146,6 +2101,7 @@ class ChatHistory(Gtk.Box):
             self.lazy_loaded_end = total_messages
 
         # Update UI state
+        GLib.idle_add(self.refresh_compaction_marker)
         GLib.idle_add(self.scrolled_chat)
         GLib.idle_add(self.update_button_text)
 
@@ -2205,6 +2161,7 @@ class ChatHistory(Gtk.Box):
             if child is None:
                 break
             self.chat_list_block.remove(child)
+        self._compaction_marker_row = None
         self.messages_box = []
         self.edit_entries = {}
         self._compact_hidden_rows = set()

@@ -222,13 +222,37 @@ class GeminiHandler(LLMHandler):
 
         - ``array`` types must have an ``items`` field → default to ``{"type": "string"}``
         - Strip keys that Gemini does not support: ``$schema``, ``additionalProperties``,
-          ``default``, ``$defs``, ``$ref``.
+          ``default``, ``$defs``, ``$ref``, ``examples``.
+        - Convert ``const`` to ``enum``.
+        - Convert list-based ``type`` (e.g. ``["string", "null"]``) to single type and ``nullable``.
+        - Strip ``anyOf`` / ``oneOf`` / ``allOf`` on objects that define ``properties``, as
+          Gemini rejects sibling conditional schemas alongside properties.
+        - Handle union types (e.g. ``anyOf`` / ``oneOf`` / ``allOf`` without properties) by
+          filtering empty schemas and converting to supported Gemini structures.
+        - Enforce Gemini's strict rules on ``required``: only allowed on ``object`` types, and
+          every property in ``required`` must exist in ``properties``.
         """
         if not isinstance(schema, dict):
             return schema
 
         UNSUPPORTED_KEYS = {"$schema", "additionalProperties", "default", "$defs", "$ref", "examples"}
         result = {k: v for k, v in schema.items() if k not in UNSUPPORTED_KEYS}
+
+        # Convert 'const' to 'enum' (OpenAPI 3.0 / Gemini compatible)
+        if "const" in result:
+            const_val = result.pop("const")
+            if "enum" not in result:
+                result["enum"] = [const_val]
+
+        # Handle list-based types, e.g. ["string", "null"]
+        if isinstance(result.get("type"), list):
+            types_list = [t for t in result["type"] if t != "null"]
+            if "null" in result["type"]:
+                result["nullable"] = True
+            if types_list:
+                result["type"] = types_list[0]
+            else:
+                result.pop("type", None)
 
         # Fix array missing items
         if result.get("type") == "array" and "items" not in result:
@@ -239,16 +263,59 @@ class GeminiHandler(LLMHandler):
             result["items"] = GeminiHandler._sanitize_schema(result["items"])
 
         # Recurse into properties
+        has_properties = False
         if "properties" in result and isinstance(result["properties"], dict):
-            result["properties"] = {
-                k: GeminiHandler._sanitize_schema(v)
-                for k, v in result["properties"].items()
-            }
+            sanitized_props = {}
+            for k, v in result["properties"].items():
+                if isinstance(v, dict):
+                    sanitized_props[k] = GeminiHandler._sanitize_schema(v)
+                else:
+                    sanitized_props[k] = v
+            result["properties"] = sanitized_props
+            has_properties = True
+            result["type"] = "object"
 
-        # Recurse into anyOf / oneOf / allOf
-        for key in ("anyOf", "oneOf", "allOf"):
-            if key in result and isinstance(result[key], list):
-                result[key] = [GeminiHandler._sanitize_schema(s) for s in result[key]]
+        # If the object has properties, strip anyOf / oneOf / allOf constraint lists
+        # (e.g. anyOf containing alternative required sets), which Gemini does not support alongside properties.
+        if has_properties:
+            for key in ("anyOf", "oneOf", "allOf"):
+                result.pop(key, None)
+        else:
+            # Recurse into anyOf / oneOf / allOf for union types
+            union_schemas = []
+            for key in ("anyOf", "oneOf", "allOf"):
+                if key in result:
+                    raw_val = result.pop(key)
+                    if isinstance(raw_val, list):
+                        for s in raw_val:
+                            if isinstance(s, dict):
+                                clean_s = GeminiHandler._sanitize_schema(s)
+                                if clean_s and (clean_s.get("type") or clean_s.get("properties") or clean_s.get("anyOf")):
+                                    union_schemas.append(clean_s)
+            if union_schemas:
+                non_null = [s for s in union_schemas if s.get("type") != "null"]
+                if len(non_null) < len(union_schemas):
+                    result["nullable"] = True
+                if len(non_null) == 1:
+                    result.update(non_null[0])
+                elif non_null:
+                    result["anyOf"] = non_null
+                elif union_schemas:
+                    result["anyOf"] = union_schemas
+
+        # Enforce Gemini required rules:
+        # 1. required is only allowed for OBJECT type
+        # 2. Every item in required must be defined in properties
+        if "required" in result:
+            if result.get("type") == "object" and isinstance(result.get("properties"), dict):
+                result["required"] = [
+                    prop for prop in result["required"]
+                    if isinstance(prop, str) and prop in result["properties"]
+                ]
+                if not result["required"]:
+                    result.pop("required", None)
+            else:
+                result.pop("required", None)
 
         return result
 
@@ -260,6 +327,8 @@ class GeminiHandler(LLMHandler):
             fn = tool.get("function", {})
             params = fn.get("parameters", {})
             sanitized = self._sanitize_schema(params) if params else None
+            if sanitized and sanitized.get("type") == "object" and not sanitized.get("properties"):
+                sanitized = None
             decl = types.FunctionDeclaration(
                 name=fn.get("name", ""),
                 description=fn.get("description", ""),
@@ -268,29 +337,53 @@ class GeminiHandler(LLMHandler):
             declarations.append(decl)
         return types.Tool(function_declarations=declarations)
 
+    def _requires_thought_signature(self) -> bool:
+        """Return True if the configured model enforces thought_signature validation on function calls."""
+        model_name = str(self.get_setting("model") or "").lower()
+        return "gemini-3" in model_name or "gemini-2.5" in model_name or bool(self.get_setting("thinking"))
+
     def __convert_history(self, history: list, native_tool_calling: bool = False):
         from google.genai import types
         result = []
+        requires_sig = self._requires_thought_signature()
+
         for message in history:
             if message["User"] == "Console":
-                if native_tool_calling:
+                last_turn = result[-1] if result else None
+                can_attach_response = False
+                if last_turn is not None:
+                    if getattr(last_turn, "role", None) == "model":
+                        can_attach_response = any(
+                            getattr(p, "function_call", None) is not None
+                            for p in getattr(last_turn, "parts", [])
+                        )
+                    elif getattr(last_turn, "role", None) == "user":
+                        can_attach_response = any(
+                            getattr(p, "function_response", None) is not None
+                            for p in getattr(last_turn, "parts", [])
+                        )
+
+                if native_tool_calling and can_attach_response:
                     # Try to parse [Tool: <name>, ID: <id>]\n<result>
                     match = re.match(r"^\[Tool:\s*(.*?),\s*ID:\s*(.*?)\]\n(.*)", message["Message"], re.DOTALL)
                     if match:
-                        tool_name = match.group(1)
+                        tool_name = match.group(1).strip()
                         tool_result = match.group(3)
-                        result.append(
-                            types.Content(
-                                role="user",
-                                parts=[
-                                    types.Part.from_function_response(
-                                        name=tool_name,
-                                        response={"result": tool_result}
-                                    )
-                                ]
-                            )
+                        fr_part = types.Part.from_function_response(
+                            name=tool_name,
+                            response={"result": tool_result}
                         )
+                        if last_turn is not None and getattr(last_turn, "role", None) == "user":
+                            last_turn.parts.append(fr_part)
+                        else:
+                            result.append(
+                                types.Content(
+                                    role="user",
+                                    parts=[fr_part]
+                                )
+                            )
                         continue
+
                 # Fallback: plain console message
                 result.append(
                     types.Content(
@@ -300,31 +393,64 @@ class GeminiHandler(LLMHandler):
                         ]
                     )
                 )
+
             elif message["User"] == "Assistant" and native_tool_calling and "```json" in message["Message"]:
                 # Convert assistant tool call blocks into function_call parts
                 json_blocks = list(re.finditer(r'```json\s*(.*?)\s*```', message["Message"], re.DOTALL))
+                parts = []
+                has_invalid_missing_sig = False
+                first_sig_bytes = None
+
                 if json_blocks:
                     text_before = message["Message"][:message["Message"].find("```json")].strip()
-                    parts = []
                     if text_before:
                         parts.append(types.Part.from_text(text=text_before))
+
+                    parsed_blocks = []
                     for block in json_blocks:
                         try:
                             tool_data = json.loads(block.group(1).strip())
                             tool_name = tool_data.get("name", tool_data.get("tool", ""))
                             tool_args = tool_data.get("arguments", {})
-                            parts.append(
-                                types.Part.from_function_call(
-                                    name=tool_name,
-                                    args=tool_args if isinstance(tool_args, dict) else {}
-                                )
-                            )
+                            sig_data = tool_data.get("thought_signature")
+                            sig_bytes = None
+                            if sig_data is not None:
+                                if isinstance(sig_data, (bytes, bytearray)):
+                                    sig_bytes = bytes(sig_data)
+                                elif isinstance(sig_data, str) and sig_data.strip():
+                                    try:
+                                        sig_bytes = base64.b64decode(sig_data.strip())
+                                    except Exception:
+                                        sig_bytes = sig_data.encode("utf-8")
+                            if sig_bytes and first_sig_bytes is None:
+                                first_sig_bytes = sig_bytes
+                            parsed_blocks.append((tool_name, tool_args, sig_bytes))
                         except Exception:
                             pass
-                    if parts:
-                        result.append(types.Content(role="model", parts=parts))
-                        continue
-                # Fall through to normal assistant message if parsing failed
+
+                    # For models requiring thought_signature, if no block has a signature,
+                    # sending function_call parts will cause 400 INVALID_ARGUMENT.
+                    # In that case, fall back to plain text for this turn.
+                    if requires_sig and not first_sig_bytes:
+                        has_invalid_missing_sig = True
+
+                    if not has_invalid_missing_sig:
+                        for tool_name, tool_args, sig_bytes in parsed_blocks:
+                            effective_sig = sig_bytes or first_sig_bytes
+                            fc_part = types.Part(
+                                function_call=types.FunctionCall(
+                                    name=tool_name,
+                                    args=tool_args if isinstance(tool_args, dict) else {},
+                                ),
+                                thought_signature=effective_sig,
+                            )
+                            parts.append(fc_part)
+
+                if parts and not has_invalid_missing_sig:
+                    result.append(types.Content(role="model", parts=parts))
+                    continue
+
+                # Fall through to normal assistant message if parsing failed or missing required signature
                 img, text = self.get_gemini_image(message["Message"])
                 result.append(
                     types.Content(
@@ -332,6 +458,7 @@ class GeminiHandler(LLMHandler):
                         parts=[types.Part.from_text(text=text)] if img is None else [types.Part.from_text(text=text), types.Part.from_uri(file_uri=img.uri, mime_type=img.mime_type)]
                     )
                 )
+
             else: 
                 img, text = self.get_gemini_image(message["Message"]) 
                 result.append(
@@ -476,6 +603,7 @@ class GeminiHandler(LLMHandler):
             thinking = False
             # Collect function calls from all chunks
             pending_function_calls = []
+            current_thought_signature = None
             usage = {}
 
             for chunk in response:
@@ -495,6 +623,9 @@ class GeminiHandler(LLMHandler):
                 if not chunk.candidates or not chunk.candidates[0].content or not chunk.candidates[0].content.parts:
                     continue
                 for part in chunk.candidates[0].content.parts:
+                    part_sig = getattr(part, "thought_signature", None)
+                    if part_sig is not None:
+                        current_thought_signature = part_sig
                     if part.inline_data:
                         args = (full_message.strip(), ) + tuple(extra_args)
                         on_update(*args)
@@ -504,8 +635,12 @@ class GeminiHandler(LLMHandler):
                         )
                         full_message += "\n```image\n" + file_name + "\n```\n"
                     elif native_tool_calling and part.function_call is not None:
-                        # Collect function call parts; they will be appended after streaming
-                        pending_function_calls.append(part.function_call)
+                        fc = part.function_call
+                        fc_sig = getattr(part, "thought_signature", None) or current_thought_signature
+                        pending_function_calls.append({
+                            "call": fc,
+                            "thought_signature": fc_sig,
+                        })
                     elif not part.text:
                         continue
                     elif part.thought:
@@ -528,8 +663,20 @@ class GeminiHandler(LLMHandler):
             if pending_function_calls:
                 if thinking:
                     full_message += "</think>\n"
-                for fc in pending_function_calls:
-                    tool_call_dict = {"tool": fc.name, "arguments": dict(fc.args) if fc.args else {}}
+                for item in pending_function_calls:
+                    fc = item["call"]
+                    sig = item.get("thought_signature") or current_thought_signature
+                    tool_call_dict = {
+                        "tool": fc.name,
+                        "arguments": dict(fc.args) if fc.args else {},
+                    }
+                    if getattr(fc, "id", None):
+                        tool_call_dict["id"] = fc.id
+                    if sig is not None:
+                        if isinstance(sig, (bytes, bytearray, memoryview)):
+                            tool_call_dict["thought_signature"] = base64.b64encode(bytes(sig)).decode("ascii")
+                        elif isinstance(sig, str):
+                            tool_call_dict["thought_signature"] = sig
                     full_message += "\n```json\n" + json.dumps(tool_call_dict) + "\n```\n"
 
             # Gemini reports generated thoughts separately from candidate output.

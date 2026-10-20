@@ -52,7 +52,12 @@ class WebsiteReader(NewelleExtension):
         return ["website"]
    
     def preprocess_history(self, history: list, prompts: list) -> tuple[list, list]:
-        user_message = history[-1]["Message"]
+        current_user = next((message for message in reversed(history)
+                             if message.get("User") == "User" and not message.get("ToolContext")), None)
+        if current_user is None or ("WebsiteContext" in current_user
+                                    and current_user.get("WebsiteContextMessage") == current_user["Message"]):
+            return history, prompts
+        user_message = current_user["Message"]
         lines = []
         for line in user_message.split("\n"):
             if line.startswith("#https://") or line.startswith("#http://"):
@@ -63,7 +68,7 @@ class WebsiteReader(NewelleExtension):
                 lines += [" ".join(urlline[1:])]
             else:
                 lines += [line]
-        history[-1]["Message"] = "\n".join(lines)
+        current_user["Message"] = "\n".join(lines)
 
         # Find articles
         websites = []
@@ -81,15 +86,16 @@ class WebsiteReader(NewelleExtension):
                 source_type="Web",
             ))
         if sum(len(doc) for doc in docs) < MAX_CONTEXT:
-            prompts += docs
+            current_user["WebsiteContext"] = docs
         elif self.rag is not None:
             print("Using RAG")
             rag_docs = ["text:" + doc for doc in docs]
             index = self.rag.build_index(rag_docs, CHUNK_SIZE)
             results = index.query(user_message)
-            prompts += ["Content from previous websites:\n" + "\n".join(results)]
+            current_user["WebsiteContext"] = results
         else:
-            prompts.append("Content from previous websites:\n" + "\n".join(docs)[:MAX_CONTEXT])
+            current_user["WebsiteContext"] = ["\n".join(docs)[:MAX_CONTEXT]]
+        current_user["WebsiteContextMessage"] = current_user["Message"]
         return history, prompts
 
     def get_gtk_widget(self, codeblock: str, lang: str) -> Gtk.Widget | None:
@@ -125,4 +131,3 @@ class WebsiteReader(NewelleExtension):
             button.description.set_text(description) 
         GLib.idle_add(update_button)
         load_image_with_callback(favicon, lambda pixbuf_loader : button.icon.set_from_pixbuf(pixbuf_loader.get_pixbuf()))
-

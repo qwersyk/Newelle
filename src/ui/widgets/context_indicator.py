@@ -1,5 +1,5 @@
 import math
-import gettext
+from gettext import gettext as _
 from gi.repository import Gtk, GLib
 
 
@@ -78,11 +78,11 @@ class ContextIndicator(Gtk.MenuButton):
 
     def update_from_chat(self, controller) -> None:
         """Estimate context stats from the current chat without running the full trim pipeline."""
+        from ...utility.context_manager import CacheContextManager, TrimResult
         from ...utility.strings import count_message_tokens
-        from ...utility.context_manager import TrimResult
 
         settings = controller.newelle_settings
-        if settings.context_mode != "context-manager":
+        if settings.context_mode not in ("context-manager", "cache"):
             self._original = 0
             self._trimmed = 0
             self._suggested = 0
@@ -91,12 +91,16 @@ class ContextIndicator(Gtk.MenuButton):
             return
 
         chat = controller.chat
-        history = controller.get_history(chat=chat)
+        history = controller._apply_user_message_prompts(controller.get_history(chat=chat, include_last_message=True))
         total = sum(count_message_tokens(m.get("Message", "")) + 4 for m in history)
+        checkpoint = controller.chats.get(settings.chat_id, {}).get("context_compaction")
+        cm = CacheContextManager(settings.context_max, settings.context_suggested, checkpoint=checkpoint)
+        effective, _ = cm.apply_checkpoint(history)
+        effective_total = sum(count_message_tokens(m.get("Message", "")) + 4 for m in effective)
 
         GLib.idle_add(self.update_stats, TrimResult(
             original_tokens=total,
-            trimmed_tokens=min(total, settings.context_suggested),
+            trimmed_tokens=effective_total if settings.context_mode == "cache" else min(effective_total, settings.context_suggested),
             suggested_tokens=settings.context_suggested,
             max_tokens=settings.context_max,
         ))

@@ -80,6 +80,7 @@ class ChatTab(Gtk.Box):
         self.last_token_num = None
         self.last_time_to_first_token = None
         self.last_time_to_first_token_no_thinking = None
+        self.last_prompt_details = {}
         
         # Recording state
         self.recording = False
@@ -667,6 +668,37 @@ class ChatTab(Gtk.Box):
         msg_uuid = int(uuid.uuid4())
         kwargs['msg_uuid'] = msg_uuid
         kwargs['chat_id'] = self._chat_id
+        if cmd.name == "compact":
+            if not self.status:
+                self.notification_block.add_toast(Adw.Toast(title=_("Wait for the current operation to finish before compacting")))
+                return
+            self.status = False
+            compacting_history = self.chat_history
+            self.send_button_start_spinner()
+            self.notification_block.add_toast(Adw.Toast(title=_("Compacting conversation…")))
+
+            def finish_compaction(output, trim_result):
+                compacting_history.status = True
+                compacting_history.refresh_compaction_marker()
+                if self._chat_id == kwargs['chat_id']:
+                    self.remove_send_button_spinner()
+                    if trim_result is not None:
+                        self.context_indicator.update_stats(trim_result)
+                self.notification_block.add_toast(Adw.Toast(title=output))
+                return False
+
+            def compact_in_background():
+                trim_result = None
+                try:
+                    result = cmd.execute(**kwargs)
+                    output = result.get_output()
+                    trim_result = getattr(result, "trim_result", None)
+                except Exception as exc:  # noqa: BLE001 -- Report background provider failures on the GTK thread.
+                    output = _("Could not compact the conversation: {error}").format(error=exc)
+                GLib.idle_add(finish_compaction, output, trim_result)
+
+            threading.Thread(target=compact_in_background).start()
+            return
         result = cmd.execute(**kwargs)
         if result is not None and result.widget is not None:
             display_text = f"/{cmd.name} {args_str}".strip()
@@ -1274,9 +1306,17 @@ class ChatTab(Gtk.Box):
         self.last_token_num = (data['input_tokens'], data['output_tokens'])
         self.last_time_to_first_token = data.get('time_to_first_token')
         self.last_time_to_first_token_no_thinking = data.get('time_to_first_token_no_thinking')
+        self.last_prompt_details = {
+            "PromptSections": data.get('prompt_sections'),
+            "LLMProvider": data.get('provider'),
+            "LLMModel": data.get('model'),
+        }
         trim_result = data.get('trim_result')
         if trim_result is not None and hasattr(self, 'context_indicator'):
             self.context_indicator.update_stats(trim_result)
+        if trim_result is not None:
+            # Automatic compaction happens while trimming the request.
+            self.chat_history.refresh_compaction_marker()
         
         waiting_for_tools = False
         if hasattr(self, "current_streaming_message") and self.current_streaming_message:
@@ -1369,15 +1409,16 @@ class ChatTab(Gtk.Box):
                 "\n".join(prompts),
             )
             if (
-                (response_metadata is not None or response_usage is not None)
-                and assistant_index < len(self.chat)
+                assistant_index < len(self.chat)
                 and self.chat[assistant_index].get("User") == "Assistant"
                 and self.chat[assistant_index].get("Message") == message_label
             ):
+                assistant_entry = self.chat[assistant_index]
                 if response_metadata is not None:
-                    self.chat[assistant_index]["OpenAIResponse"] = response_metadata
+                    assistant_entry["OpenAIResponse"] = response_metadata
                 if response_usage is not None:
-                    self.chat[assistant_index]["LLMUsage"] = dict(response_usage)
+                    assistant_entry["LLMUsage"] = dict(response_usage)
+                self._apply_prompt_metadata(assistant_entry)
                 self.save_chat()
         
         if waiting_for_tools:
@@ -1590,14 +1631,23 @@ class ChatTab(Gtk.Box):
         """Add prompt metadata to the last message."""
         if prompt is None:
             return
-        self.chat[-1]["enlapsed"] = self.last_generation_time
         self.chat[-1]["Prompt"] = prompt
-        self.chat[-1]["InputTokens"] = self.last_token_num[0]
-        self.chat[-1]["OutputTokens"] = self.last_token_num[1]
+        self._apply_prompt_metadata(self.chat[-1])
+
+    def _apply_prompt_metadata(self, entry: dict):
+        """Store the statistics of the last generation on a chat entry."""
+        if self.last_generation_time is not None:
+            entry["enlapsed"] = self.last_generation_time
+        if self.last_token_num is not None:
+            entry["InputTokens"] = self.last_token_num[0]
+            entry["OutputTokens"] = self.last_token_num[1]
         if self.last_time_to_first_token is not None:
-            self.chat[-1]["TimeToFirstToken"] = self.last_time_to_first_token
+            entry["TimeToFirstToken"] = self.last_time_to_first_token
         if self.last_time_to_first_token_no_thinking is not None:
-            self.chat[-1]["TimeToFirstTokenNoThinking"] = self.last_time_to_first_token_no_thinking
+            entry["TimeToFirstTokenNoThinking"] = self.last_time_to_first_token_no_thinking
+        for key, value in self.last_prompt_details.items():
+            if value:
+                entry[key] = value
         
     def reload_message(self, message_id: int):
         """Reload a message in the chat history."""

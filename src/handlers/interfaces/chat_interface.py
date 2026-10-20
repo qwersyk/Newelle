@@ -12,6 +12,7 @@ import json
 import os
 import threading
 import uuid
+from gettext import gettext as _
 
 from ...utility.strings import remove_thinking_blocks
 from .interface import Interface
@@ -259,7 +260,7 @@ class ChatInterface(Interface):
         for cmd in self.controller.get_commands():
             if cmd.name == name or cmd.name == f"skill {name}":
                 try:
-                    result = cmd.execute()
+                    result = cmd.execute(chat_id=self.get_or_create_chat(user_id))
                     output = str(result) if result is not None else "Done."
                     if hasattr(result, "get_output"):
                         output = str(result.get_output())
@@ -294,6 +295,7 @@ class ChatInterface(Interface):
             f"👋 Welcome to Newelle! Your chat: \"{chat_name}\" (ID: {chat_id})\n\n"
             "📋 Commands:\n"
             "🆕 /new - Create a new chat\n"
+            + _("/compact - Summarize the conversation to reduce context size\n") +
             "/workspaces - List workspaces\n"
             "/workspace <name or ID> - Switch workspace globally\n"
             "/workspace new <name> - Create a workspace\n"
@@ -565,7 +567,7 @@ class ChatInterface(Interface):
         for cmd in self.controller.get_commands():
             if cmd.name == f"skill {skill_name}" or cmd.name == skill_name:
                 try:
-                    result = cmd.execute()
+                    result = cmd.execute(chat_id=self.get_or_create_chat(user_id))
                     output = str(result) if result is not None else "Done."
                     if hasattr(result, "get_output"):
                         output = str(result.get_output())

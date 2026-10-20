@@ -6,7 +6,7 @@ import os
 import threading
 from ..utility.screenshot import capture_screenshot
 from ..utility.system import is_flatpak
-from ..utility.system import get_spawn_command
+from ..utility.system import get_spawn_command, open_in_external_terminal
 from ..utility.strings import quote_string, add_S_to_sudo
 from ..utility.command_runner import (
     CommandRunner,
@@ -51,6 +51,9 @@ class DefaultToolsIntegration(NewelleExtension):
             terminal_command = get_spawn_command() + ["bash", "-c", "export TERM=xterm-256color;alias sudo=\"sudo -S\";" + shell_command]
         else:
             terminal_command = ["bash", "-c", "export TERM=xterm-256color;" + shell_command]
+
+        if self.settings.get_boolean("external-terminal-on") and open_in_external_terminal(shell_command, self.settings.get_string("external-terminal")):
+            return
 
         terminal = TerminalDialog(
             parent_window=getattr(getattr(self, "ui_controller", None), "window", None)
