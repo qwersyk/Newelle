@@ -38,6 +38,18 @@ WHISPER_MODELS = [
     {"model_name": "large-v3-turbo-q5_0", "display_name": "Large v3 Turbo Q5_0", "size": "547 MiB", "size_bytes": 573513728},
 ]
 
+DEFAULT_WHISPER_CPP_VERSION = "v1.9.5"
+DEFAULT_WHISPER_VERSIONS = [
+    "v1.9.5",
+    "v1.9.4",
+    "v1.9.3",
+    "v1.9.2",
+    "v1.9.1",
+    "v1.9.0",
+    "v1.8.4",
+    "master",
+]
+
 
 class WhisperCPPHandler(STTHandler):
     key = "whispercpp"
@@ -89,6 +101,17 @@ class WhisperCPPHandler(STTHandler):
                 ExtraSettings.MultilineEntrySetting("prompt", _("Prompt for the recognition"), _("Prompt to use for the recognition"), "")
             ])
         ]
+
+        if self.is_installed():
+            installed_ver = self.get_setting("installed_version", False, None)
+            if installed_ver:
+                settings.insert(
+                    1,
+                    ExtraSettings.InfoSetting(
+                        "installed_version_status", _("Installed whisper.cpp version"),
+                        installed_ver,
+                    ),
+                )
 
         # Hardware acceleration settings
         settings.append(
@@ -205,11 +228,13 @@ class WhisperCPPHandler(STTHandler):
         os.makedirs(os.path.join(self.path, "whisper"), exist_ok=True)
         print("Installing whisper...")
         path = os.path.join(self.path, "whisper")
-        installation_script = f"cd {path} && git clone https://github.com/ggerganov/whisper.cpp.git && cd whisper.cpp && git checkout 9386f239401074690479731c1e41683fbbeac557 && sh ./models/download-ggml-model.sh tiny && cmake -B build && cmake --build build -j --config Release"
+        version = self.get_setting("installed_version", False, DEFAULT_WHISPER_CPP_VERSION)
+        installation_script = f"cd {path} && git clone https://github.com/ggerganov/whisper.cpp.git && cd whisper.cpp && git checkout {version} && sh ./models/download-ggml-model.sh tiny && cmake -B build && cmake --build build -j --config Release"
         out = subprocess.check_output(get_spawn_command() + ["bash", "-c", installation_script])
         exec_path = os.path.join(path, "whisper.cpp/build/bin/whisper-cli")
         if not os.path.exists(exec_path):
             self.throw("Error installing Whisper: " + out.decode("utf-8"), ErrorSeverity.ERROR)
+        self.set_setting("installed_version", version)
         self._is_installed_cache = None
 
     @staticmethod
@@ -462,7 +487,7 @@ class WhisperCPPHandler(STTHandler):
     def show_install_dialog(self, button):
         win = Adw.Window(title="Build whisper.cpp")
         self._build_window = win
-        win.set_default_size(600, 600)
+        win.set_default_size(650, 650)
         win.set_modal(True)
         try:
             root = button.get_root()
@@ -524,6 +549,27 @@ class WhisperCPPHandler(STTHandler):
             main_container.append(warning_box)
             main_container.append(Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL))
 
+        # Version options
+        default_versions = list(DEFAULT_WHISPER_VERSIONS)
+        installed_version = self.get_setting("installed_version", False, None)
+        if installed_version and installed_version not in default_versions:
+            default_versions.insert(0, installed_version)
+        items = default_versions + [_("Custom...")]
+        self._version_items = items
+        self.dropdown_version = Gtk.DropDown.new_from_strings(items)
+        self.dropdown_version.set_enable_search(True)
+        if installed_version and installed_version in items:
+            self.dropdown_version.set_selected(items.index(installed_version))
+        else:
+            self.dropdown_version.set_selected(0)
+
+        self.entry_custom_version = Gtk.Entry()
+        self.entry_custom_version.set_placeholder_text(_("Tag, commit hash, or branch name..."))
+        self.entry_custom_version.set_visible(False)
+        self.dropdown_version.connect("notify::selected", self._on_version_changed)
+
+        threading.Thread(target=self._fetch_whisper_versions, daemon=True).start()
+
         # Horizontal box for hardware options and CMake flags
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=24, hexpand=True)
         hbox.set_halign(Gtk.Align.CENTER)
@@ -553,8 +599,14 @@ class WhisperCPPHandler(STTHandler):
             left_box.append(btn)
         dependency_warning.refresh("cpu")
 
-        # Right side: CMake flags
+        # Right side: Version selection and CMake flags
         right_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12, valign=Gtk.Align.CENTER)
+        lbl_version = Gtk.Label(label=_("whisper.cpp Version"))
+        lbl_version.set_halign(Gtk.Align.START)
+        right_box.append(lbl_version)
+        right_box.append(self.dropdown_version)
+        right_box.append(self.entry_custom_version)
+
         lbl_flags = Gtk.Label(label="Custom CMake Flags (Optional)")
         lbl_flags.set_halign(Gtk.Align.START)
         right_box.append(lbl_flags)
@@ -581,7 +633,19 @@ class WhisperCPPHandler(STTHandler):
             btn_next1.set_sensitive(False)
             btn_next1.set_tooltip_text("Please run the Flatpak override command first")
         else:
-            btn_next1.connect("clicked", lambda x: content.scroll_to(content.get_nth_page(1), True))
+            def on_next_clicked(x):
+                version = self.get_selected_version()
+                backend_name = "CPU"
+                for hw, btn in self.hw_options.items():
+                    if btn.get_active():
+                        backend_name = hw
+                        break
+                page2.set_description(
+                    f"Version: {version}  |  Backend: {backend_name}\nClick start to begin compilation"
+                )
+                content.scroll_to(content.get_nth_page(1), True)
+
+            btn_next1.connect("clicked", on_next_clicked)
         button_box.append(btn_next1)
 
         main_container.append(button_box)
@@ -659,6 +723,66 @@ class WhisperCPPHandler(STTHandler):
 
         win.present()
 
+    def _on_version_changed(self, dropdown, _pspec):
+        item = dropdown.get_selected_item()
+        if not item:
+            return
+        is_custom = (item.get_string() == _("Custom..."))
+        if hasattr(self, "entry_custom_version") and self.entry_custom_version:
+            self.entry_custom_version.set_visible(is_custom)
+
+    def get_selected_version(self) -> str:
+        if not hasattr(self, "dropdown_version") or not self.dropdown_version:
+            return self.get_setting("installed_version", False, DEFAULT_WHISPER_CPP_VERSION)
+        item = self.dropdown_version.get_selected_item()
+        if not item:
+            return DEFAULT_WHISPER_CPP_VERSION
+        text = item.get_string()
+        if text == _("Custom..."):
+            if hasattr(self, "entry_custom_version") and self.entry_custom_version:
+                custom = self.entry_custom_version.get_text().strip()
+                if custom:
+                    return custom
+            return DEFAULT_WHISPER_CPP_VERSION
+        return text
+
+    def _fetch_whisper_versions(self):
+        try:
+            resp = requests.get(
+                "https://api.github.com/repos/ggerganov/whisper.cpp/tags?per_page=30",
+                timeout=10,
+                headers={"User-Agent": "NyarchAssistant"},
+            )
+            if resp.status_code == 200:
+                tags_data = resp.json()
+                fetched = []
+                for item in tags_data:
+                    name = item.get("name", "")
+                    if name.startswith("v") and name not in fetched:
+                        fetched.append(name)
+                if fetched:
+                    if "master" not in fetched:
+                        fetched.append("master")
+                    GLib.idle_add(self._update_version_dropdown, fetched)
+        except Exception:
+            pass
+
+    def _update_version_dropdown(self, versions):
+        if not hasattr(self, "dropdown_version") or not self.dropdown_version:
+            return False
+        current_selection = self.get_selected_version()
+        items = list(versions)
+        items.append(_("Custom..."))
+        self._version_items = items
+        self.dropdown_version.set_model(Gtk.StringList.new(items))
+        if current_selection in items:
+            self.dropdown_version.set_selected(items.index(current_selection))
+        elif hasattr(self, "entry_custom_version") and self.entry_custom_version and self.entry_custom_version.get_visible():
+            self.dropdown_version.set_selected(items.index(_("Custom...")))
+        else:
+            self.dropdown_version.set_selected(0)
+        return False
+
     def start_installation(self, carousel):
         backend = "cpu"
         if self.hw_options["Nvidia (CUDA)"].get_active():
@@ -671,12 +795,13 @@ class WhisperCPPHandler(STTHandler):
             backend = "cpu_openblas"
 
         custom_flags = self.entry_cmake.get_text()
+        version = self.get_selected_version()
 
         self._build_process.begin()
         carousel.scroll_to(carousel.get_nth_page(2), True)
         threading.Thread(
             target=self.run_install_process,
-            args=(backend, carousel, custom_flags),
+            args=(backend, carousel, custom_flags, version),
             daemon=True,
         ).start()
 
@@ -689,10 +814,12 @@ class WhisperCPPHandler(STTHandler):
         window = getattr(self, "_build_window", None)
         if window is not None:
             self._build_window = None
+            self.dropdown_version = None
+            self.entry_custom_version = None
             window.close()
         return False
 
-    def run_install_process(self, backend, carousel, custom_flags=""):
+    def run_install_process(self, backend, carousel, custom_flags="", version=DEFAULT_WHISPER_CPP_VERSION):
         if not can_escape_sandbox():
             self.throw("You have to escape the sandbox to install WhisperCPP", ErrorSeverity.ERROR)
         try:
@@ -753,7 +880,7 @@ class WhisperCPPHandler(STTHandler):
                 )
 
             GLib.idle_add(set_progress, 0.1)
-            GLib.idle_add(append_log, "Cloning whisper.cpp repository...\n")
+            GLib.idle_add(append_log, f"Cloning whisper.cpp repository (version: {version})...\n")
 
             abs_whisper_cpp_path = os.path.abspath(self.whisper_cpp_path)
 
@@ -768,11 +895,12 @@ class WhisperCPPHandler(STTHandler):
                     raise BuildCancelled()
                 raise Exception("Failed to clone whisper.cpp repository")
 
-            checkout_cmd = ["git", "checkout", "9386f239401074690479731c1e41683fbbeac557"]
+            GLib.idle_add(append_log, f"Checking out whisper.cpp version {version}...\n")
+            checkout_cmd = ["git", "checkout", version]
             if not run_cmd(checkout_cmd, cwd=abs_whisper_cpp_path):
                 if self._build_process.cancel_requested:
                     raise BuildCancelled()
-                raise Exception("Failed to checkout whisper.cpp commit")
+                raise Exception(f"Failed to checkout whisper.cpp version {version}")
 
             GLib.idle_add(set_progress, 0.2)
             GLib.idle_add(append_log, "Configuring CMake build...\n")
@@ -786,7 +914,7 @@ class WhisperCPPHandler(STTHandler):
                 raise Exception("Failed to configure CMake build")
 
             GLib.idle_add(set_progress, 0.4)
-            GLib.idle_add(append_log, f"Building whisper.cpp (Backend: {backend})...\n")
+            GLib.idle_add(append_log, f"Building whisper.cpp (Version: {version}, Backend: {backend})...\n")
             GLib.idle_add(append_log, "This may take several minutes...\n")
 
             # Build whisper.cpp
@@ -813,6 +941,7 @@ class WhisperCPPHandler(STTHandler):
             GLib.idle_add(lambda: self.settings_update())
             self.set_setting("gpu_acceleration", True)
             self.set_setting("installed_backend", backend)
+            self.set_setting("installed_version", version)
 
         except BuildCancelled:
             GLib.idle_add(append_log, "\nBuild stopped by user.\n")
