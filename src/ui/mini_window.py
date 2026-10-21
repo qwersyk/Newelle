@@ -1,4 +1,4 @@
-from gi.repository import Gtk, Gdk
+from gi.repository import Gtk, Gdk, GLib
 
 
 class MiniWindow(Gtk.Window):
@@ -51,6 +51,9 @@ class MiniWindow(Gtk.Window):
         self.main_box.append(self.chat_panel)
         # The mini window always uses the compact input bar, whatever the setting
         self.main_window._apply_compact_input_bar(True)
+        # Reparenting and the compact layout rebuild steal focus; put it back
+        # on the input once the window is mapped.
+        GLib.idle_add(self.main_window.focus_input)
 
     def _on_key_pressed(self, controller, keyval, keycode, state):
         if keyval == Gdk.KEY_Escape:
