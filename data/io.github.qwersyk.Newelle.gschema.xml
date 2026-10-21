@@ -334,7 +334,7 @@
         </key>
         <!-- Context Manager settings -->
         <key name="context-mode" type="s">
-            <default>"context-manager"</default>
+            <default>"cache"</default>
         </key>
         <key name="context-max" type="i">
             <default>128000</default>
