@@ -1,5 +1,5 @@
 from copy import deepcopy
-from .handlers.llm import ClaudeHandler, DeepseekHandler, GroqHandler, OllamaHandler, OllamaCloudHandler, OpenAIHandler, CustomLLMHandler, GeminiHandler, MistralHandler, OpenRouterHandler, NewelleAPIHandler, G4FHandler, LlamaCPPHandler
+from .handlers.llm import ClaudeHandler, DeepseekHandler, LiteLLMHandler, GroqHandler, OllamaHandler, OllamaCloudHandler, OpenAIHandler, CustomLLMHandler, GeminiHandler, MistralHandler, OpenRouterHandler, NewelleAPIHandler, G4FHandler, LlamaCPPHandler
 from .handlers.tts import ElevenLabs, gTTSHandler, EspeakHandler, CustomTTSHandler, KokoroTTSHandler, CustomOpenAITTSHandler, OpenAITTSHandler, GroqTTSHandler, EdgeTTSHandler, MistralTTSHandler
 from .handlers.stt import GroqSRHandler, OpenAISRHandler, SphinxHandler, GoogleSRHandler, WhisperCPPHandler, WitAIHandler, VoskHandler, CustomSRHandler, OpenWakeWordHandler, MistralSTTHandler
 from .handlers.embeddings import WordLlamaHandler, OpenAIEmbeddingHandler, GeminiEmbeddingHanlder, OllamaEmbeddingHandler, Model2VecHandler, LlamaCPPEmbeddingHandler
@@ -130,6 +130,14 @@ AVAILABLE_LLMS = {
         "description": _("Openrouter.ai API, supports lots of models"),
         "class": OpenRouterHandler,
         "secondary": True
+    },
+    "litellm": {
+        "key": "litellm",
+        "title": _("LiteLLM"),
+        "description": _("LiteLLM SDK, one interface to 100+ providers (Bedrock, Vertex AI, Azure, Anthropic, Ollama...)"),
+        "class": LiteLLMHandler,
+        "website": "https://docs.litellm.ai/docs/providers",
+        "secondary": True,
     },
     "deepseek": {
         "key": "deepseek",
