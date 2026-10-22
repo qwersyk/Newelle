@@ -2560,6 +2560,30 @@ msgstr ""
 msgid "ai;assistant;chat;chatgpt;gpt;llm;ollama;"
 msgstr ""
 
+#: src/constants.py:399
+msgid "DeepSeek"
+msgstr ""
+
+#: src/constants.py:400
+msgid "DeepSeek web search API"
+msgstr ""
+
+#: src/handlers/websearch/deepseek_handler.py:17
+msgid "DeepSeek API key"
+msgstr ""
+
+#: src/handlers/websearch/deepseek_handler.py:31
+msgid "Portuguese"
+msgstr ""
+
+#: src/handlers/websearch/deepseek_handler.py:32
+msgid "Russian"
+msgstr ""
+
+#: src/handlers/websearch/deepseek_handler.py:36
+msgid "An optional IP address used to localize search results"
+msgstr ""
+
 #, fuzzy
 #~ msgid "_Cancel"
 #~ msgstr "Cancel"
