@@ -5,7 +5,7 @@ from .handlers.stt import GroqSRHandler, OpenAISRHandler, SphinxHandler, GoogleS
 from .handlers.embeddings import WordLlamaHandler, OpenAIEmbeddingHandler, GeminiEmbeddingHanlder, OllamaEmbeddingHandler, Model2VecHandler, LlamaCPPEmbeddingHandler
 from .handlers.memory import UserSummaryHandler, LlamaIndexMemoryHandler, AgenticMemoryHandler, LongTermMemoryHandler
 from .handlers.rag import LlamaIndexHanlder
-from .handlers.websearch import SearXNGHandler, DDGSeachHandler, TavilyHandler, TinyFishHandler
+from .handlers.websearch import SearXNGHandler, DDGSeachHandler, TavilyHandler, TinyFishHandler, DeepseekSearchHandler
 from .handlers.image_generator import ImageGeneratorHandler, PollinationsHandler, StableDiffusionCPPHandler, OpenAIImageHandler, OpenRouterImageHandler
 from .handlers.interfaces.interface import Interface
 from .handlers.interfaces.api_handler import APIInterface
@@ -393,7 +393,14 @@ AVAILABLE_WEBSEARCH = {
         "title": _("TinyFish"),
         "description": _("TinyFish web search API"),
         "class": TinyFishHandler,
-    }
+    },
+    "deepseeksearch": {
+        "key": "deepseeksearch",
+        "title": _("DeepSeek"),
+        "description": _("DeepSeek web search API"),
+        "website": "https://api-docs.deepseek.com/guides/search",
+        "class": DeepseekSearchHandler,
+    },
 }
 
 AVAILABLE_INTERFACES = {
@@ -829,7 +836,7 @@ SETTINGS_GROUPS = {
         },
         "general": {
             "title": _("General"),
-            "settings": ["virtualization", "offers", "memory", "remove-thinking", "auto-generate-name", "path", "auto-run", "max-run-times", "parallel-tool-execution", "max-tool-calls", "context-mode", "context-max", "context-suggested", "context-summarization"],
+            "settings": ["virtualization", "offers", "memory", "remove-thinking", "auto-generate-name", "path", "auto-run", "max-run-times", "parallel-tool-execution", "max-tool-calls", "context-mode", "context-max", "context-auto", "context-percent", "context-summarization"],
             "description": _("General settings, virtualization, offers, memory length, automatically generate chat name, current folder..."),
         },
         "prompts": {

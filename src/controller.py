@@ -1759,9 +1759,10 @@ class NewelleController(WorkspaceController):
             result.set_output(_("There is no conversation to compact"))
             return result
         handlers = self._request_handlers()
+        max_tokens, suggested_tokens = self.resolve_context_limits(request_settings, handlers)
         cm = CacheContextManager(
-            max_tokens=request_settings.context_max,
-            suggested_tokens=request_settings.context_suggested,
+            max_tokens=max_tokens,
+            suggested_tokens=suggested_tokens,
             llm_handler=handlers.secondary_llm if request_settings.use_secondary_language_model else handlers.llm,
             checkpoint=self.chats[chat_id].get("context_compaction"),
         )
@@ -2412,6 +2413,31 @@ class NewelleController(WorkspaceController):
                 count -= 1
         return history
 
+    def resolve_context_limits(self, request_settings, request_handlers):
+        """Effective (max_tokens, suggested_tokens) for context trimming.
+
+        The hard max is the manual context-max setting, or — when context-auto
+        is enabled and the LLM provider's /models endpoint reports a
+        context_length for the selected model (e.g. Fireworks) — the model's
+        context length. The suggested soft target is always a percentage
+        (context-percent) of that max.
+        """
+        max_tokens = request_settings.context_max
+        if getattr(request_settings, "context_auto", False):
+            context_length = None
+            llm = getattr(request_handlers, "llm", None)
+            if llm is not None and hasattr(llm, "get_context_length"):
+                try:
+                    context_length = llm.get_context_length()
+                except Exception:
+                    context_length = None
+            if context_length:
+                max_tokens = context_length
+        suggested_tokens = int(
+            max_tokens * getattr(request_settings, "context_percent", 80) / 100
+        )
+        return max_tokens, suggested_tokens
+
     def _trim_context(
         self,
         history: list[dict[str, str]],
@@ -2431,6 +2457,10 @@ class NewelleController(WorkspaceController):
         # Reserve the current prompt as well as the system prefix.
         prompts_token_count = sum(count_tokens(p) for p in prompts) + count_message_tokens(current_message) + 4
 
+        max_tokens, suggested_tokens = self.resolve_context_limits(
+            request_settings, request_handlers
+        )
+
         embedding = getattr(request_handlers, "embedding", None)
         if request_settings.use_secondary_language_model:
             llm = getattr(request_handlers, "secondary_llm", None)
@@ -2438,8 +2468,8 @@ class NewelleController(WorkspaceController):
             llm = getattr(request_handlers, "llm", None)
 
         cache_cm = CacheContextManager(
-            max_tokens=request_settings.context_max,
-            suggested_tokens=request_settings.context_suggested,
+            max_tokens=max_tokens,
+            suggested_tokens=suggested_tokens,
             llm_handler=llm,
             summarization_enabled=request_settings.context_summarization,
             checkpoint=chat_record.get("context_compaction"),
@@ -2453,8 +2483,8 @@ class NewelleController(WorkspaceController):
                 count = request_settings.memory
                 return history[-count:] if count > 0 else [], None
             cm = ContextManager(
-                max_tokens=request_settings.context_max,
-                suggested_tokens=request_settings.context_suggested,
+                max_tokens=max_tokens,
+                suggested_tokens=suggested_tokens,
                 embedding_handler=embedding,
                 llm_handler=llm,
                 summarization_enabled=request_settings.context_summarization,
@@ -3699,7 +3729,8 @@ class NewelleSettings:
         self.wakeword_energy_threshold = settings.get_int("wakeword-energy-threshold")
         self.context_mode = settings.get_string("context-mode")
         self.context_max = settings.get_int("context-max")
-        self.context_suggested = settings.get_int("context-suggested")
+        self.context_auto = settings.get_boolean("context-auto")
+        self.context_percent = settings.get_int("context-percent")
         self.context_summarization = settings.get_boolean("context-summarization")
         self.font_family = settings.get_string("font-family")
         self.font_size = settings.get_int("font-size")

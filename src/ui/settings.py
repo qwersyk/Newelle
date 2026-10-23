@@ -654,7 +654,7 @@ class Settings(Adw.Window):
         context_expander.add_row(fixed_row)
 
         # Context Manager mode: max tokens
-        max_adj = Gtk.Adjustment(lower=1000, upper=1000000, step_increment=1000, page_increment=10000)
+        max_adj = Gtk.Adjustment(lower=1000, upper=2147483647, step_increment=1000, page_increment=10000)
         max_adj.set_value(self.settings.get_int("context-max"))
         max_row = Adw.SpinRow(
             title=_("Max Context Size"),
@@ -668,20 +668,32 @@ class Settings(Adw.Window):
         max_row.connect("input", update_context_max)
         context_expander.add_row(max_row)
 
-        # Context Manager mode: suggested tokens
-        suggested_adj = Gtk.Adjustment(lower=1000, upper=500000, step_increment=1000, page_increment=10000)
-        suggested_adj.set_value(self.settings.get_int("context-suggested"))
-        suggested_row = Adw.SpinRow(
-            title=_("Suggested Context Size"),
-            subtitle=_("Soft token target — less relevant messages are dropped to stay near this"),
-            adjustment=suggested_adj,
+        # Context Manager mode: suggested size as a percentage of the max
+        percent_adj = Gtk.Adjustment(lower=1, upper=100, step_increment=1, page_increment=10)
+        percent_adj.set_value(self.settings.get_int("context-percent"))
+        percent_row = Adw.SpinRow(
+            title=_("Suggested Context (%)"),
+            subtitle=_("Soft target — less relevant messages are dropped to stay near this percentage of the max context"),
+            adjustment=percent_adj,
             digits=0,
         )
-        def update_context_suggested(spin, _input):
-            self.settings.set_int("context-suggested", int(spin.get_value()))
+        def update_context_percent(spin, _input):
+            self.settings.set_int("context-percent", int(spin.get_value()))
             return False
-        suggested_row.connect("input", update_context_suggested)
-        context_expander.add_row(suggested_row)
+        percent_row.connect("input", update_context_percent)
+        percent_row.connect("notify::value", lambda row, _p: update_context_percent(row, None))
+        context_expander.add_row(percent_row)
+
+        # Context Manager mode: use the model's context length from the provider API
+        auto_row = Adw.ActionRow(
+            title=_("Use Model Context From API"),
+            subtitle=_("Get the context length from the provider's /models endpoint (e.g. Fireworks) and use it as the max context"),
+        )
+        auto_switch = Gtk.Switch(valign=Gtk.Align.CENTER)
+        auto_row.add_suffix(auto_switch)
+        auto_row.set_activatable_widget(auto_switch)
+        self.settings.bind("context-auto", auto_switch, 'active', Gio.SettingsBindFlags.DEFAULT)
+        context_expander.add_row(auto_row)
 
         # Context Manager mode: summarization toggle
         summarize_row = Adw.ActionRow(
@@ -693,7 +705,42 @@ class Settings(Adw.Window):
         self.settings.bind("context-summarization", summarize_switch, 'active', Gio.SettingsBindFlags.DEFAULT)
         context_expander.add_row(summarize_row)
 
-        self.context_cm_rows = [max_row, suggested_row, summarize_row]
+        def update_context_auto(*args):
+            auto = self.settings.get_boolean("context-auto")
+            max_row.set_sensitive(not auto)
+            if auto:
+                model_ctx = None
+                try:
+                    llm = getattr(self.controller, "llm", None)
+                    if llm is not None and hasattr(llm, "get_context_length"):
+                        model_ctx = llm.get_context_length()
+                except Exception:
+                    model_ctx = None
+                if model_ctx:
+                    auto_row.set_subtitle(_("Model context: {tokens} tokens").format(tokens=model_ctx))
+                else:
+                    auto_row.set_subtitle(_("Context length unknown for the current model; using manual values"))
+
+        self.settings.connect("changed::context-auto", update_context_auto)
+        update_context_auto()
+
+        def refresh_ring_on_context_change(_settings, key):
+            """Refresh the context ring right away when context settings change."""
+            try:
+                self.controller.newelle_settings.load_settings(
+                    self.settings, change_directory=False
+                )
+                window = self.controller.ui_controller.window
+                if window is not None:
+                    window.refresh_context_indicator()
+            except Exception:
+                pass
+
+        for key in ("context-auto", "context-percent", "context-max",
+                    "context-mode"):
+            self.settings.connect(f"changed::{key}", refresh_ring_on_context_change)
+
+        self.context_cm_rows = [max_row, percent_row, auto_row, summarize_row]
         self.context_fixed_rows = [fixed_row]
 
         def apply_context_mode(mode):
@@ -704,12 +751,12 @@ class Settings(Adw.Window):
                 r.set_visible(not is_cm)
             if mode == "cache":
                 mode_row.set_subtitle(_("Keep the same history prefix until the maximum context size is reached"))
-                suggested_row.set_title(_("Context size after compaction"))
-                suggested_row.set_subtitle(_("Reduce context to this target only when the maximum is reached"))
+                percent_row.set_title(_("Context size after compaction (%)"))
+                percent_row.set_subtitle(_("Compact the context to this percentage of the maximum only when the maximum is reached"))
             else:
                 mode_row.set_subtitle("")
-                suggested_row.set_title(_("Suggested Context Size"))
-                suggested_row.set_subtitle(_("Soft token target — less relevant messages are dropped to stay near this"))
+                percent_row.set_title(_("Suggested Context (%)"))
+                percent_row.set_subtitle(_("Soft target — less relevant messages are dropped to stay near this percentage of the max context"))
 
         def on_context_mode_changed(row, _param):
             mode = context_modes[row.get_selected()]
@@ -1321,10 +1368,10 @@ class Settings(Adw.Window):
         tool_calls_group = Adw.PreferencesGroup(title=_("Tool calls"))
         max_tool_calls_row = Adw.SpinRow(
             title=_("Maximum Tool Calls"),
-            subtitle=_("Maximum number of tools the model can run for one request, including scheduled tasks"),
+            subtitle=_("Maximum number of tools the model can run for one request, including scheduled tasks. Set to 0 for unlimited"),
             adjustment=Gtk.Adjustment(
-                lower=1,
-                upper=1000,
+                lower=0,
+                upper=2147483647,
                 step_increment=1,
                 page_increment=10,
                 value=self.settings.get_int("max-tool-calls"),
