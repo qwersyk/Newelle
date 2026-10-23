@@ -93,16 +93,17 @@ class ContextIndicator(Gtk.MenuButton):
         chat = controller.chat
         history = controller._apply_user_message_prompts(controller.get_history(chat=chat, include_last_message=True))
         total = sum(count_message_tokens(m.get("Message", "")) + 4 for m in history)
+        max_tokens, suggested = controller.resolve_context_limits(settings, controller)
         checkpoint = controller.chats.get(settings.chat_id, {}).get("context_compaction")
-        cm = CacheContextManager(settings.context_max, settings.context_suggested, checkpoint=checkpoint)
+        cm = CacheContextManager(max_tokens, suggested, checkpoint=checkpoint)
         effective, _ = cm.apply_checkpoint(history)
         effective_total = sum(count_message_tokens(m.get("Message", "")) + 4 for m in effective)
 
         GLib.idle_add(self.update_stats, TrimResult(
             original_tokens=total,
-            trimmed_tokens=effective_total if settings.context_mode == "cache" else min(effective_total, settings.context_suggested),
-            suggested_tokens=settings.context_suggested,
-            max_tokens=settings.context_max,
+            trimmed_tokens=effective_total if settings.context_mode == "cache" else min(effective_total, suggested),
+            suggested_tokens=suggested,
+            max_tokens=max_tokens,
         ))
 
     def _update_labels(self):

@@ -339,8 +339,12 @@
         <key name="context-max" type="i">
             <default>128000</default>
         </key>
-        <key name="context-suggested" type="i">
-            <default>30000</default>
+        <key name="context-auto" type="b">
+            <default>false</default>
+        </key>
+        <key name="context-percent" type="i">
+            <range min="1" max="100"/>
+            <default>80</default>
         </key>
         <key name="context-summarization" type="b">
             <default>false</default>

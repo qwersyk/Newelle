@@ -1333,7 +1333,7 @@ class Message(Gtk.Box):
                     max_tool_calls = getattr(
                         self.controller.newelle_settings, "max_tool_calls", 10
                     )
-                    if chat_tab.tool_call_count >= max_tool_calls:
+                    if max_tool_calls > 0 and chat_tab.tool_call_count >= max_tool_calls:
                         error_text = _(
                             "Maximum tool call limit reached ({0})"
                         ).format(max_tool_calls)
