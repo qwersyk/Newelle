@@ -112,7 +112,7 @@ class LlamaCPPHandler(OpenAIHandler):
         for root, _, files in os.walk(self.model_folder):
             for file in files:
                 if file.endswith('.gguf'):
-                    file_name = file.rstrip('.gguf')
+                    file_name = file.removesuffix('.gguf')
                     if "mmproj" in file_name:
                         continue
                     relative_path = os.path.relpath(os.path.join(root, file), self.model_folder)
@@ -124,7 +124,7 @@ class LlamaCPPHandler(OpenAIHandler):
             for root, _, files in os.walk(custom_dir):
                 for file in files:
                     if file.endswith('.gguf'):
-                        file_name = file.rstrip('.gguf')
+                        file_name = file.removesuffix('.gguf')
                         if "mmproj" in file_name:
                             continue
                         abs_path = os.path.abspath(os.path.join(root, file))
@@ -149,7 +149,7 @@ class LlamaCPPHandler(OpenAIHandler):
         for root, _, files in os.walk(self.model_folder):
             for file in files:
                 if 'mmproj' in file.lower() and file.endswith('.gguf'):
-                    file_name = file.rstrip('.gguf')
+                    file_name = file.removesuffix('.gguf')
                     relative_path = os.path.relpath(os.path.join(root, file), self.model_folder)
                     file_list+=((file_name, relative_path),)
                     seen.add(file_name)
@@ -159,7 +159,7 @@ class LlamaCPPHandler(OpenAIHandler):
             for root, _, files in os.walk(custom_dir):
                 for file in files:
                     if 'mmproj' in file.lower() and file.endswith('.gguf'):
-                        file_name = file.rstrip('.gguf')
+                        file_name = file.removesuffix('.gguf')
                         abs_path = os.path.abspath(os.path.join(root, file))
                         display_name = file_name
                         if display_name in seen:
