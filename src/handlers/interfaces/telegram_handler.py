@@ -12,7 +12,9 @@ import threading
 import uuid
 from urllib.parse import unquote_to_bytes
 
-from ...utility.strings import remove_thinking_blocks
+from gi.repository import GLib
+
+from ...utility.strings import remove_thinking_for_display
 from ...tools import ToolResult
 
 from ...utility.pip import find_module
@@ -73,6 +75,12 @@ class TelegramInterface(ChatInterface):
                 description=_("Use edit_message_text instead of send_message_draft for streaming responses. Sends a regular message first, then edits it in place."),
                 default=False,
             ),
+            ExtraSettings.ToggleSetting(
+                key="topic_mode",
+                title=_("Topic Mode for Groups"),
+                description=_("In groups with topics enabled, every topic is a separate assistant chat and /new creates a new topic. The bot must be an admin with the Manage Topics permission."),
+                default=False,
+            ),
         ]
 
     def _get_bot_token(self):
@@ -108,6 +116,96 @@ class TelegramInterface(ChatInterface):
 
     def _ensure_controller(self):
         return self.controller is not None
+
+    # ------------------------------------------------------------------ #
+    #                  Chat keys, topic mode and silent mode               #
+    # ------------------------------------------------------------------ #
+
+    def _is_topic_mode(self) -> bool:
+        return bool(self.get_setting("topic_mode", search_default=True, return_value=False))
+
+    def _uses_topic_chats(self, tg_chat) -> bool:
+        """Whether messages in *tg_chat* are routed to one Newelle chat per topic."""
+        return (
+            self._is_topic_mode()
+            and tg_chat is not None
+            and tg_chat.type in ("group", "supergroup")
+            and bool(getattr(tg_chat, "is_forum", False))
+        )
+
+    @staticmethod
+    def _thread_id(message):
+        """Return the forum topic of *message*, or None for General/non-forum chats."""
+        if message is not None and getattr(message, "is_topic_message", False):
+            return message.message_thread_id
+        return None
+
+    @staticmethod
+    def _topic_key(tg_chat_id, thread_id) -> str:
+        return f"topic_{tg_chat_id}_{thread_id if thread_id is not None else 'general'}"
+
+    def _chat_key(self, update) -> str:
+        """Identify the Newelle chat an update belongs to (user or group topic)."""
+        tg_chat = update.effective_chat
+        if self._uses_topic_chats(tg_chat):
+            return self._topic_key(tg_chat.id, self._thread_id(update.effective_message))
+        return str(update.effective_user.id)
+
+    def _topic_chat_name(self, tg_chat, topic_name: str | None) -> str:
+        if topic_name is None:
+            topic_name = f"{tg_chat.title or tg_chat.id} · General"
+        return f"{self.chat_name_prefix} · {topic_name}"
+
+    def _message_topic_name(self, message) -> str | None:
+        thread_id = self._thread_id(message)
+        if thread_id is None:
+            return None
+        # Messages inside a topic reply to its creation service message,
+        # which carries the topic name.
+        for source in (message, getattr(message, "reply_to_message", None)):
+            created = getattr(source, "forum_topic_created", None)
+            if created is not None and created.name:
+                return created.name
+        return f"Topic {thread_id}"
+
+    def _ensure_topic_chat(self, update):
+        """Create the Newelle chat of a group topic, named after the topic."""
+        tg_chat = update.effective_chat
+        if not self._uses_topic_chats(tg_chat):
+            return None
+        name = self._topic_chat_name(tg_chat, self._message_topic_name(update.effective_message))
+        try:
+            with self.controller.workspace_request():
+                return self.get_or_create_chat(self._chat_key(update), name=name)
+        except RuntimeError as error:
+            print(f"Telegram topic chat error: {error}")
+            return None
+
+    def _is_silent(self, chat_key) -> bool:
+        return bool(self.get_setting(f"silent_{chat_key}", search_default=False, return_value=False))
+
+    def _cmd_silent(self, user_id, args):
+        if args and args[0].lower() in ("on", "off"):
+            enabled = args[0].lower() == "on"
+        else:
+            enabled = not self._is_silent(user_id)
+        self.set_setting(f"silent_{user_id}", enabled)
+        if enabled:
+            return "🤫 Silent mode enabled: only final answers are sent, without tool calls or intermediate messages."
+        return "🔊 Silent mode disabled: tool calls and responses are streamed again."
+
+    def _cmd_start(self, user_id, args):
+        text = ChatInterface._cmd_start(self, user_id, args)
+        text += "🤫 /silent [on|off] - Send only final answers, hiding tool calls\n"
+        if self._is_topic_mode():
+            text += "🧵 In groups with topics, every topic is a separate chat and /new creates a new topic\n"
+        return text
+
+    _BUILTIN_COMMANDS = {
+        **ChatInterface._BUILTIN_COMMANDS,
+        "start": _cmd_start,
+        "silent": _cmd_silent,
+    }
 
     def _run_async(self, coro):
         """Schedule a coroutine on the bot's event loop from a sync thread."""
@@ -182,7 +280,7 @@ class TelegramInterface(ChatInterface):
         return [] if len(self._get_send_message_recipients()) == 1 else ["recipient"]
 
     @staticmethod
-    async def _send_text(bot, chat_id, text):
+    async def _send_text(bot, chat_id, text, thread_id=None):
         """Send text while preserving Newelle's Markdown conversion behavior."""
         from telegramify_markdown import convert
 
@@ -192,9 +290,12 @@ class TelegramInterface(ChatInterface):
                 chat_id=chat_id,
                 text=text_md,
                 entities=[entity.to_dict() for entity in entities],
+                message_thread_id=thread_id,
             )
         except Exception:
-            return await bot.send_message(chat_id=chat_id, text=text)
+            return await bot.send_message(
+                chat_id=chat_id, text=text, message_thread_id=thread_id
+            )
 
     @staticmethod
     def _media_input(source: str, kind: str):
@@ -226,7 +327,7 @@ class TelegramInterface(ChatInterface):
         partial `````image`` block from being rendered as ordinary text before
         the model finishes writing its path.
         """
-        text = self._MEDIA_BLOCK_RE.sub("", message)
+        text = self._MEDIA_BLOCK_RE.sub("", remove_thinking_for_display(message))
         if streaming:
             text = re.sub(r"```(?:image|video|file)\s*\n.*$", "", text, flags=re.I | re.S)
         return text.strip()
@@ -276,29 +377,31 @@ class TelegramInterface(ChatInterface):
 
         return sent_message, visible_text
 
-    async def _send_media_blocks(self, bot, chat_id, message):
+    async def _send_media_blocks(self, bot, chat_id, message, thread_id=None):
         """Upload Newelle image, video, and file blocks as native Telegram media."""
-        for match in self._MEDIA_BLOCK_RE.finditer(message):
+        for match in self._MEDIA_BLOCK_RE.finditer(remove_thinking_for_display(message)):
             kind = match.group(1).lower()
             source = match.group(2).strip().splitlines()[0].strip() if match.group(2).strip() else ""
             if not source:
                 raise ValueError(f"The {kind} block does not contain a file path or URL.")
             upload = self._media_input(source, kind)
             if kind == "image":
-                await bot.send_photo(chat_id=chat_id, photo=upload)
+                await bot.send_photo(chat_id=chat_id, photo=upload, message_thread_id=thread_id)
             elif kind == "video":
-                await bot.send_video(chat_id=chat_id, video=upload)
+                await bot.send_video(chat_id=chat_id, video=upload, message_thread_id=thread_id)
             else:
-                await bot.send_document(chat_id=chat_id, document=upload)
+                await bot.send_document(chat_id=chat_id, document=upload, message_thread_id=thread_id)
 
-    async def _send_outgoing_message(self, chat_id, message, bot=None):
+    async def _send_outgoing_message(self, chat_id, message, bot=None, thread_id=None):
         """Deliver text and Newelle media code blocks to a Telegram chat."""
         bot = bot or self._application.bot
         text = self._message_text(message)
         if text:
             for chunk_start in range(0, len(text), 4000):
-                await self._send_text(bot, chat_id, text[chunk_start:chunk_start + 4000])
-        await self._send_media_blocks(bot, chat_id, message)
+                await self._send_text(
+                    bot, chat_id, text[chunk_start:chunk_start + 4000], thread_id=thread_id
+                )
+        await self._send_media_blocks(bot, chat_id, message, thread_id=thread_id)
 
     def send_message(self, message, extra_options):
         """Send a message to a known authorized Telegram recipient."""
@@ -352,6 +455,7 @@ class TelegramInterface(ChatInterface):
             return
         # Retrieve the Telegram chat id stored when the interaction was registered.
         tg_chat_id = self._pending_interactions.get(interaction_id, {}).get("tg_chat_id")
+        tg_thread_id = self._pending_interactions.get(interaction_id, {}).get("tg_thread_id")
         bot = self._pending_interactions.get(interaction_id, {}).get("bot")
         if tg_chat_id is None or bot is None:
             return
@@ -377,13 +481,15 @@ class TelegramInterface(ChatInterface):
                 entities = [e.to_dict() for e in entities]
                 await bot.send_message(
                     chat_id=tg_chat_id, text=text_md,
-                    entities=entities, reply_markup=reply_markup
+                    entities=entities, reply_markup=reply_markup,
+                    message_thread_id=tg_thread_id,
                 )
             except Exception:
                 await bot.send_message(
-                    chat_id=tg_chat_id, text=tool_text, reply_markup=reply_markup
+                    chat_id=tg_chat_id, text=tool_text, reply_markup=reply_markup,
+                    message_thread_id=tg_thread_id,
                 )
-            await self._send_media_blocks(bot, tg_chat_id, display)
+            await self._send_media_blocks(bot, tg_chat_id, display, thread_id=tg_thread_id)
 
         future = asyncio.run_coroutine_threadsafe(_send(), self._loop)
         future.result(timeout=30)
@@ -394,6 +500,7 @@ class TelegramInterface(ChatInterface):
     def _create_bot_app(self):
         from telegramify_markdown import convert
         from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+        from telegram.constants import ChatAction
         from telegram.ext import (
             ApplicationBuilder,
             CommandHandler,
@@ -430,25 +537,79 @@ class TelegramInterface(ChatInterface):
         def _check(update: Update) -> bool:
             return iface._is_user_allowed(update.effective_user)
 
+        async def _prepare(update: Update) -> str | None:
+            """Authorize an update and return the key of its Newelle chat."""
+            if not _check(update):
+                return None
+            tg_chat = update.effective_chat
+            # A group topic is not a destination for the send_message tool.
+            if not iface._uses_topic_chats(tg_chat):
+                iface._remember_recipient(update.effective_user, tg_chat.id)
+            if not iface._ensure_controller():
+                await update.effective_message.reply_text("⏳ Controller not ready.")
+                return None
+            iface._ensure_topic_chat(update)
+            return iface._chat_key(update)
+
         # ---- command handlers (thin wrappers over ChatInterface) ------- #
 
         # Helper: run a built-in command and send the plain-text response
         async def _reply(update: Update, context, name: str, args):
-            if not _check(update):
+            chat_key = await _prepare(update)
+            if chat_key is None:
                 return
-            iface._remember_recipient(update.effective_user, update.effective_chat.id)
-            if not iface._ensure_controller():
-                await update.message.reply_text("⏳ Controller not ready.")
-                return
-            user_id = str(update.effective_user.id)
-            resp = iface.run_command(name, user_id, list(args) if args else [])
-            await _safe_send_message(context.bot, update.effective_chat.id, resp)
+            resp = iface.run_command(name, chat_key, list(args) if args else [])
+            await _safe_send_message(
+                context.bot, update.effective_chat.id, resp,
+                message_thread_id=iface._thread_id(update.effective_message),
+            )
 
         async def start_cmd(update: Update, context):
             await _reply(update, context, "start", context.args)
 
         async def new_cmd(update: Update, context):
-            await _reply(update, context, "new", context.args)
+            tg_chat = update.effective_chat
+            if not iface._uses_topic_chats(tg_chat):
+                await _reply(update, context, "new", context.args)
+                return
+            if not _check(update):
+                return
+            if not iface._ensure_controller():
+                await update.effective_message.reply_text("⏳ Controller not ready.")
+                return
+            thread_id = iface._thread_id(update.effective_message)
+            if context.args:
+                topic_name = " ".join(context.args)[:128]
+            else:
+                with iface.controller.workspace_request():
+                    iface._ensure_folder()
+                    topic_name = f"Chat {iface._chat_counter + 1}"
+            try:
+                topic = await context.bot.create_forum_topic(chat_id=tg_chat.id, name=topic_name)
+            except Exception as e:
+                await _safe_send_message(
+                    context.bot, tg_chat.id,
+                    f"❌ Could not create a topic: {e}\n"
+                    "Make sure the bot is an admin with the Manage Topics permission.",
+                    message_thread_id=thread_id,
+                )
+                return
+            chat_key = iface._topic_key(tg_chat.id, topic.message_thread_id)
+            with iface.controller.workspace_request():
+                chat_id = iface.get_or_create_chat(
+                    chat_key, name=iface._topic_chat_name(tg_chat, topic_name)
+                )
+            await _safe_send_message(
+                context.bot, tg_chat.id,
+                f"🆕 New chat: \"{topic_name}\" (ID: {chat_id}). Write here to talk with the assistant.",
+                message_thread_id=topic.message_thread_id,
+            )
+
+        async def silent_cmd(update: Update, context):
+            await _reply(update, context, "silent", context.args)
+
+        async def stop_cmd(update: Update, context):
+            await _reply(update, context, "stop", context.args)
 
         async def models_cmd(update: Update, context):
             await _reply(update, context, "models", context.args)
@@ -498,33 +659,51 @@ class TelegramInterface(ChatInterface):
         async def autoexec_cmd(update: Update, context):
             await _reply(update, context, "autoexec", context.args)
 
+        # ---- forum topic service messages ----------------------------- #
+
+        async def handle_topic_created(update: Update, context):
+            if not iface._uses_topic_chats(update.effective_chat):
+                return
+            if not _check(update) or not iface._ensure_controller():
+                return
+            iface._ensure_topic_chat(update)
+
+        async def handle_topic_edited(update: Update, context):
+            tg_chat = update.effective_chat
+            edited = update.effective_message.forum_topic_edited
+            if edited is None or not edited.name or not iface._uses_topic_chats(tg_chat):
+                return
+            if not _check(update) or not iface._ensure_controller():
+                return
+            name = iface._topic_chat_name(tg_chat, edited.name)
+            with iface.controller.workspace_request():
+                chat_id = iface.get_or_create_chat(iface._chat_key(update), name=name)
+            iface.controller.rename_chat(chat_id, name)
+            if iface.controller.ui_controller is not None:
+                GLib.idle_add(iface.controller.ui_controller.update_history)
+
         # ---- text / voice / photo / callback handlers ----------------- #
 
         async def handle_text_message(update: Update, context):
-            if not _check(update):
+            chat_key = await _prepare(update)
+            if chat_key is None:
                 return
-            iface._remember_recipient(update.effective_user, update.effective_chat.id)
-            if not iface._ensure_controller():
-                await update.message.reply_text("⏳ Controller not ready.")
-                return
-            user_id = str(update.effective_user.id)
             text = update.message.text
 
-            cmd_resp = iface.try_handle_command(user_id, text)
+            cmd_resp = iface.try_handle_command(chat_key, text)
             if cmd_resp is not None:
-                await _safe_send_message(context.bot, update.effective_chat.id, cmd_resp)
+                await _safe_send_message(
+                    context.bot, update.effective_chat.id, cmd_resp,
+                    message_thread_id=iface._thread_id(update.effective_message),
+                )
                 return
 
-            await _process_user_message(update, context, user_id, text)
+            await _process_user_message(update, context, chat_key, text)
 
         async def handle_voice_message(update: Update, context):
-            if not _check(update):
+            user_id = await _prepare(update)
+            if user_id is None:
                 return
-            iface._remember_recipient(update.effective_user, update.effective_chat.id)
-            if not iface._ensure_controller():
-                await update.message.reply_text("⏳ Controller not ready.")
-                return
-            user_id = str(update.effective_user.id)
             voice = update.message.voice or update.message.audio
             if voice is None:
                 await update.message.reply_text("🎤 Could not process audio.")
@@ -571,13 +750,9 @@ class TelegramInterface(ChatInterface):
                             pass
 
         async def handle_photo_message(update: Update, context):
-            if not _check(update):
+            user_id = await _prepare(update)
+            if user_id is None:
                 return
-            iface._remember_recipient(update.effective_user, update.effective_chat.id)
-            if not iface._ensure_controller():
-                await update.message.reply_text("⏳ Controller not ready.")
-                return
-            user_id = str(update.effective_user.id)
             photo = update.message.photo[-1]
             img_path = None
             try:
@@ -603,7 +778,8 @@ class TelegramInterface(ChatInterface):
             """Handle inline keyboard button presses for tool interactions."""
             if not _check(update):
                 return
-            iface._remember_recipient(update.effective_user, update.effective_chat.id)
+            if not iface._uses_topic_chats(update.effective_chat):
+                iface._remember_recipient(update.effective_user, update.effective_chat.id)
             query = update.callback_query
             data = query.data
             if not data.startswith("tool_"):
@@ -637,14 +813,21 @@ class TelegramInterface(ChatInterface):
         async def _process_user_message(update: Update, context, user_id: str, text: str):
             """Run text through process_message, deliver streaming updates to Telegram."""
             tg_chat_id = update.effective_chat.id
-            use_edit_message = iface.get_setting(
+            thread_id = iface._thread_id(update.effective_message)
+            silent = iface._is_silent(user_id)
+            # Message drafts only exist in private chats.
+            use_edit_message = update.effective_chat.type != "private" or iface.get_setting(
                 "use_edit_message", search_default=True, return_value=False
             )
             draft_id = random.randint(1, 1_000_000)
 
+            async def _send(bot, chat_id, text):
+                return await _safe_send_message(bot, chat_id, text, message_thread_id=thread_id)
+
             # Single queue for all events from the LLM thread:
             # ("text", delta_str) | ("tool", event_dict) | ("done", err_or_None)
             event_q: queue.Queue = queue.Queue()
+            stop_event = threading.Event()
 
             def on_chunk(delta: str):
                 event_q.put(("text", delta))
@@ -656,6 +839,7 @@ class TelegramInterface(ChatInterface):
                     iid = event.get("interaction_id")
                     if iid and iid in iface._pending_interactions:
                         iface._pending_interactions[iid]["tg_chat_id"] = tg_chat_id
+                        iface._pending_interactions[iid]["tg_thread_id"] = thread_id
                         iface._pending_interactions[iid]["bot"] = context.bot
                 # For non-interactive tool results, show a short status line.
                 if event.get("type") == "tool_result":
@@ -665,7 +849,8 @@ class TelegramInterface(ChatInterface):
             def run():
                 try:
                     iface.process_message(
-                        user_id, text, on_chunk=on_chunk, on_tool_event=on_tool_event
+                        user_id, text, on_chunk=on_chunk, on_tool_event=on_tool_event,
+                        stop_event=stop_event,
                     )
                     event_q.put(("done", None))
                 except Exception as e:
@@ -680,6 +865,9 @@ class TelegramInterface(ChatInterface):
             last_rendered = ""
             done = False
             error = None
+            loop = asyncio.get_running_loop()
+            # Telegram shows a chat action for about 5 seconds.
+            next_typing_at = 0.0
 
             async def _finalize_current_message():
                 """Finish text delivery, then upload any completed media blocks."""
@@ -691,13 +879,25 @@ class TelegramInterface(ChatInterface):
                     use_edit_message=use_edit_message,
                     sent_message=sent_message,
                     last_rendered=last_rendered,
-                    send_message=_safe_send_message,
+                    send_message=_send,
                     edit_message=_safe_edit_message,
                 )
                 if iface._has_media_blocks(accumulated):
-                    await iface._send_media_blocks(context.bot, tg_chat_id, accumulated)
+                    await iface._send_media_blocks(
+                        context.bot, tg_chat_id, accumulated, thread_id=thread_id
+                    )
 
             while not done:
+                if silent and loop.time() >= next_typing_at:
+                    next_typing_at = loop.time() + 4
+                    try:
+                        await context.bot.send_chat_action(
+                            chat_id=tg_chat_id, action=ChatAction.TYPING,
+                            message_thread_id=thread_id,
+                        )
+                    except Exception:
+                        pass
+
                 await asyncio.sleep(0.3)
 
                 # Drain all events queued since last poll
@@ -716,43 +916,55 @@ class TelegramInterface(ChatInterface):
                     elif kind == "tool":
                         # Non-interactive tool result: finalize current text, then
                         # show the tool status line, then reset for next segment.
-                        if accumulated:
-                            try:
+                        # Silent mode only keeps the files produced on the way.
+                        try:
+                            if silent:
+                                for media_source in (accumulated, data.get("display_text") or ""):
+                                    if iface._has_media_blocks(media_source):
+                                        await iface._send_media_blocks(
+                                            context.bot, tg_chat_id, media_source,
+                                            thread_id=thread_id,
+                                        )
+                            elif accumulated:
                                 await _finalize_current_message()
-                                last_sent = accumulated
-                            except Exception:
-                                pass
+                        except Exception:
+                            pass
                         sent_message = None
                         last_sent = ""
                         last_rendered = ""
                         draft_id = random.randint(1, 1_000_000)
                         accumulated = ""
 
-                        tool_text = f"🔧 **{data['tool_name']}**"
-                        if data.get("display_text"):
-                            tool_text += f"\n{data['display_text']}"
-                        await iface._send_outgoing_message(
-                            tg_chat_id, tool_text, bot=context.bot
-                        )
+                        if not silent:
+                            tool_text = f"🔧 **{data['tool_name']}**"
+                            if data.get("display_text"):
+                                tool_text += f"\n{data['display_text']}"
+                            await iface._send_outgoing_message(
+                                tg_chat_id, tool_text, bot=context.bot, thread_id=thread_id
+                            )
 
                 # Update streaming display with latest accumulated text
-                if not done and accumulated and accumulated != last_sent:
+                if not silent and not done and accumulated and accumulated != last_sent:
                     try:
                         text_to_send = iface._message_text(accumulated, streaming=True)[:4000]
                         if text_to_send:
                             if use_edit_message:
                                 if sent_message is None:
-                                    sent_message = await _safe_send_message(
+                                    sent_message = await _send(
                                         context.bot, tg_chat_id, text_to_send
                                     )
                                 else:
                                     await _safe_edit_message(sent_message, text_to_send)
                             else:
+                                draft_kwargs = {}
+                                if thread_id is not None:
+                                    draft_kwargs["message_thread_id"] = thread_id
                                 await context.bot.send_message_draft(
                                     chat_id=tg_chat_id,
                                     draft_id=draft_id,
                                     text=text_to_send,
-                                    parse_mode="markdown"
+                                    parse_mode="markdown",
+                                    **draft_kwargs,
                                 )
                         last_sent = accumulated
                         last_rendered = text_to_send
@@ -761,9 +973,12 @@ class TelegramInterface(ChatInterface):
 
             llm_thread.join(timeout=5)
 
-            if error:
+            if error and not stop_event.is_set():
                 accumulated += f"\n\n❌ Error: {error}"
-            if not accumulated:
+            if not iface._message_text(accumulated) and not iface._has_media_blocks(accumulated):
+                if stop_event.is_set():
+                    # /stop already confirmed the stop.
+                    return
                 accumulated = "🤷 No response."
 
             await _finalize_current_message()
@@ -778,6 +993,8 @@ class TelegramInterface(ChatInterface):
 
         app.add_handler(CommandHandler("start", start_cmd))
         app.add_handler(CommandHandler("new", new_cmd))
+        app.add_handler(CommandHandler("silent", silent_cmd))
+        app.add_handler(CommandHandler("stop", stop_cmd))
         app.add_handler(CommandHandler("models", models_cmd))
         app.add_handler(CommandHandler("model", model_cmd))
         app.add_handler(CommandHandler("profile", profile_cmd))
@@ -795,6 +1012,8 @@ class TelegramInterface(ChatInterface):
         app.add_handler(CommandHandler("resume", resume_cmd))
         app.add_handler(CommandHandler("autoexec", autoexec_cmd))
         app.add_handler(CallbackQueryHandler(handle_callback_query))
+        app.add_handler(MessageHandler(filters.StatusUpdate.FORUM_TOPIC_CREATED, handle_topic_created))
+        app.add_handler(MessageHandler(filters.StatusUpdate.FORUM_TOPIC_EDITED, handle_topic_edited))
         app.add_handler(MessageHandler(filters.VOICE | filters.AUDIO, handle_voice_message))
         app.add_handler(MessageHandler(filters.PHOTO, handle_photo_message))
         app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text_message))
