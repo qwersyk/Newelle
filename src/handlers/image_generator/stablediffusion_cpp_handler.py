@@ -597,7 +597,7 @@ class StableDiffusionCPPHandler(ImageGeneratorHandler):
                 _("Custom Models Directory"),
                 _("Additional directory to scan for model files (.safetensors, .ckpt, .gguf). Leave empty to disable."),
                 "",
-                update_settings=True,
+                update_settings=False,
             )
         )
 
@@ -733,7 +733,7 @@ class StableDiffusionCPPHandler(ImageGeneratorHandler):
                         _("LoRA Folder"),
                         _("Directory containing LoRA weights (.safetensors, .ckpt)"),
                         "",
-                        update_settings=True,
+                        update_settings=False,
                     ),
                 ],
             )

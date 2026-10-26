@@ -162,7 +162,7 @@ class LlamaCPPEmbeddingHandler(EmbeddingHandler):
                 _("Custom Models Directory"),
                 _("Additional directory to scan for .gguf model files (leave empty to disable)"),
                 "",
-                update_settings=True,
+                update_settings=False,
             )
         )
 
@@ -172,7 +172,7 @@ class LlamaCPPEmbeddingHandler(EmbeddingHandler):
                 _("Custom Arguments"),
                 _("Additional command-line arguments passed to llama-server (e.g. --threads 4 --no-mmap). Leave empty for none."),
                 "",
-                update_settings=True,
+                update_settings=False,
             )
         )
 

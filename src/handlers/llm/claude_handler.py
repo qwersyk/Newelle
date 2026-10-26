@@ -154,7 +154,7 @@ class ClaudeHandler(LLMHandler):
                     _("Model"),
                     _("The model to use"),
                     "",
-                    update_settings=True,
+                    update_settings=False,
                 )
             )
         else:
