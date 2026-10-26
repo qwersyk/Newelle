@@ -14,7 +14,7 @@ import threading
 import uuid
 from gettext import gettext as _
 
-from ...utility.strings import remove_thinking_blocks
+from ...utility.strings import remove_thinking_blocks, remove_thinking_for_display
 from .interface import Interface
 
 
@@ -39,6 +39,9 @@ class ChatInterface(Interface):
         self._user_chats: dict[str, int] = {}
         # interaction_id -> {options, user_id, tool_name, result}
         self._pending_interactions: dict[str, dict] = {}
+        # user_id -> running generations: {chat_id, stop_event, tool_result}
+        self._active_runs: dict[str, list[dict]] = {}
+        self._active_runs_lock = threading.Lock()
 
     # ------------------------------------------------------------------ #
     #                     Folder / Chat management                         #
@@ -88,8 +91,11 @@ class ChatInterface(Interface):
             saved = self.get_setting(f"last_chat_user_{user_id}", search_default=True, return_value=None)
         return saved
 
-    def get_or_create_chat(self, user_id) -> int:
-        """Return the persistent chat ID for *user_id*, creating one if needed."""
+    def get_or_create_chat(self, user_id, name: str | None = None) -> int:
+        """Return the persistent chat ID for *user_id*, creating one if needed.
+
+        *name* is only used when a new chat has to be created.
+        """
         user_id = str(user_id)
         user_key = (self.controller.active_workspace_id, user_id)
         if user_key in self._user_chats:
@@ -102,7 +108,7 @@ class ChatInterface(Interface):
             return last_chat_id
         folder_id = self._ensure_folder()
         self._chat_counter += 1
-        chat_name = f"{self.chat_name_prefix} {self._chat_counter}"
+        chat_name = name or f"{self.chat_name_prefix} {self._chat_counter}"
         chat_id = self.controller.create_visible_chat(name=chat_name, folder_id=folder_id)
         self._user_chats[user_key] = chat_id
         self._save_last_chat_id(user_id, chat_id)
@@ -113,11 +119,13 @@ class ChatInterface(Interface):
     #               LLM / tool-aware blocking execution                    #
     # ------------------------------------------------------------------ #
 
-    def process_message(self, user_id, text, *, on_chunk=None, on_tool_event=None) -> str:
+    def process_message(self, user_id, text, *, on_chunk=None, on_tool_event=None, stop_event=None) -> str:
         with self.controller.workspace_request():
-            return self._process_message(user_id, text, on_chunk=on_chunk, on_tool_event=on_tool_event)
+            return self._process_message(
+                user_id, text, on_chunk=on_chunk, on_tool_event=on_tool_event, stop_event=stop_event
+            )
 
-    def _process_message(self, user_id, text, *, on_chunk=None, on_tool_event=None) -> str:
+    def _process_message(self, user_id, text, *, on_chunk=None, on_tool_event=None, stop_event=None) -> str:
         """Run *text* through ``run_llm_with_tools`` and return the final response.
 
         This method is **blocking** – call it from a worker thread.
@@ -132,44 +140,50 @@ class ChatInterface(Interface):
                             ``type="tool_interaction"`` and an ``interaction_id``
                             that can later be resolved with
                             :meth:`resolve_pending_interaction`.
+            stop_event:     Optional event set by :meth:`stop_generation`.
         """
         user_id = str(user_id)
         chat_id = self.get_or_create_chat(user_id)
+        stop_event = stop_event or threading.Event()
+        run_state = {"chat_id": chat_id, "stop_event": stop_event, "tool_result": None}
 
         accumulated = ""
-        last_cumulative = ""
-        is_thinking = False
+        # Visible (thinking-free) text already forwarded for the current LLM turn.
+        last_visible = ""
         state_lock = threading.Lock()
 
         def _on_message(cumulative_text: str):
-            nonlocal accumulated, last_cumulative, is_thinking
+            nonlocal accumulated, last_visible
+            if stop_event.is_set():
+                # The stop may have raced with the start of a model call.
+                self.controller.stop_workspace_request(chat_id)
+                return
             with state_lock:
-                cleaned = remove_thinking_blocks(cumulative_text)
-                still_thinking = "<think>" in cleaned
-                if still_thinking:
-                    cleaned = ""
-
-                if cumulative_text.startswith(last_cumulative):
-                    raw_delta = cumulative_text[len(last_cumulative):]
+                visible = remove_thinking_for_display(cumulative_text)
+                if visible.startswith(last_visible):
+                    delta = visible[len(last_visible):]
+                elif last_visible.startswith(visible):
+                    # The visible text can briefly shrink (a partial tag that
+                    # turns into a reasoning block, trimmed whitespace). Text
+                    # that was already forwarded cannot be taken back.
+                    return
                 else:
-                    raw_delta = cumulative_text
-                last_cumulative = cumulative_text
-
-                if not still_thinking and is_thinking:
-                    is_thinking = False
-                    delta = cleaned
-                elif still_thinking:
-                    is_thinking = True
-                    delta = ""
-                else:
-                    delta = raw_delta
-
-                if not still_thinking:
+                    delta = visible
+                last_visible = visible
+                if delta:
                     accumulated += delta
-                    if on_chunk and delta:
+                    if on_chunk:
                         on_chunk(delta)
 
         def _on_tool(tool_name: str, result):
+            nonlocal last_visible
+            run_state["tool_result"] = result
+            if stop_event.is_set():
+                result.cancel()
+                return
+            with state_lock:
+                # The next LLM turn streams a new cumulative response.
+                last_visible = ""
             display = result.display_text or ""
             event: dict = {
                 "tool_name": tool_name,
@@ -199,15 +213,46 @@ class ChatInterface(Interface):
                 if on_tool_event:
                     on_tool_event(event)
 
-        self.controller.run_llm_with_tools(
-            message=text,
-            chat_id=chat_id,
-            on_message_callback=_on_message,
-            on_tool_result_callback=_on_tool,
-            save_chat=True,
-            force_tools_on_main_thread=True,
-        )
+        with self._active_runs_lock:
+            self._active_runs.setdefault(user_id, []).append(run_state)
+        try:
+            self.controller.run_llm_with_tools(
+                message=text,
+                chat_id=chat_id,
+                on_message_callback=_on_message,
+                on_tool_result_callback=_on_tool,
+                save_chat=True,
+                force_tools_on_main_thread=True,
+                stop_generation_event=stop_event,
+            )
+        finally:
+            with self._active_runs_lock:
+                runs = [run for run in self._active_runs.get(user_id, []) if run is not run_state]
+                if runs:
+                    self._active_runs[user_id] = runs
+                else:
+                    self._active_runs.pop(user_id, None)
         return accumulated
+
+    def stop_generation(self, user_id) -> bool:
+        """Stop every running generation of *user_id*. Returns whether one was running."""
+        user_id = str(user_id)
+        with self._active_runs_lock:
+            runs = list(self._active_runs.get(user_id, ()))
+        for run in runs:
+            run["stop_event"].set()
+            self.controller.stop_workspace_request(run["chat_id"])
+            tool_result = run.get("tool_result")
+            if tool_result is not None:
+                try:
+                    # Releases tools that wait for output or user input.
+                    tool_result.cancel()
+                except Exception as e:
+                    print(f"[ChatInterface] Tool cancel error: {e}")
+        for interaction_id, entry in list(self._pending_interactions.items()):
+            if entry.get("user_id") == user_id:
+                self._pending_interactions.pop(interaction_id, None)
+        return bool(runs)
 
     # ------------------------------------------------------------------ #
     #                     Interaction resolution                           #
@@ -295,6 +340,7 @@ class ChatInterface(Interface):
             f"👋 Welcome to Newelle! Your chat: \"{chat_name}\" (ID: {chat_id})\n\n"
             "📋 Commands:\n"
             "🆕 /new - Create a new chat\n"
+            "⏹️ /stop - Stop the response being generated\n"
             + _("/compact - Summarize the conversation to reduce context size\n") +
             "/workspaces - List workspaces\n"
             "/workspace <name or ID> - Switch workspace globally\n"
@@ -613,8 +659,9 @@ class ChatInterface(Interface):
             return f"📭 Chat \"{name}\" (ID: {target_id}) is empty."
         lines = [f"👀 *Peek at \"{name}\"* (ID: {target_id}, {len(messages)} messages):\n"]
         for msg in messages[-5:]:
-            content = msg.get("Message", "")[:100]
-            if len(msg.get("Message", "")) > 100:
+            full_content = remove_thinking_blocks(msg.get("Message", "")).strip()
+            content = full_content[:100]
+            if len(full_content) > 100:
                 content += "..."
             lines.append(f"*{msg.get('User', 'Unknown')}*: {content.replace(chr(10), ' ')}")
         return "\n".join(lines)[:4000]
@@ -649,6 +696,11 @@ class ChatInterface(Interface):
         self.controller.settings.set_boolean("auto-run", new_value)
         self.controller.auto_run = new_value
         return f"⚡ Auto command execution {'enabled' if new_value else 'disabled'}"
+
+    def _cmd_stop(self, user_id, args):
+        if self.stop_generation(user_id):
+            return "⏹️ Generation stopped."
+        return "ℹ️ Nothing is being generated in this chat."
 
     def _cmd_option(self, user_id, args):
         user_pending = [
@@ -696,5 +748,6 @@ class ChatInterface(Interface):
         "peek": _cmd_peek,
         "resume": _cmd_resume,
         "autoexec": _cmd_autoexec,
+        "stop": _cmd_stop,
         "option": _cmd_option,
     }

@@ -1143,7 +1143,7 @@ class ChatTab(Gtk.Box):
     # Input handling
     def focus_input(self):
         """Focus the input panel."""
-        self.input_panel.grab_focus()
+        self.input_panel.input_panel.grab_focus()
         
     def on_entry_button_clicked(self, *a):
         """Handle send button click."""

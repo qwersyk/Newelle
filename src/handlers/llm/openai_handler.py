@@ -980,6 +980,23 @@ class OpenAIHandler(LLMHandler):
             self.set_setting("thinking", True)
             self.set_setting("thinking_effort", value)
 
+    @staticmethod
+    def _content_text(content) -> str:
+        """Flatten Chat Completions content into text.
+
+        Mistral returns content as a list of typed chunks instead of a string;
+        keep text chunks and drop the rest (thinking, references...).
+        """
+        if not isinstance(content, list):
+            return content or ""
+        parts = []
+        for chunk in content:
+            if isinstance(chunk, str):
+                parts.append(chunk)
+            elif isinstance(chunk, dict) and chunk.get("type") == "text":
+                parts.append(chunk.get("text") or "")
+        return "".join(parts)
+
     def generate_text(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = []) -> str:
         from openai import OpenAI
 
@@ -1062,7 +1079,7 @@ class OpenAIHandler(LLMHandler):
                 if not hasattr(response, "choices") or response.choices is None or len(response.choices) == 0:
                     raise Exception(str(response))
 
-                content = response.choices[0].message.content or ""
+                content = self._content_text(response.choices[0].message.content)
                 if hasattr(response.choices[0].message, "tool_calls") and response.choices[0].message.tool_calls is not None:
                     for tool_call in response.choices[0].message.tool_calls:
                         tool = tool_call.function
@@ -1177,7 +1194,7 @@ class OpenAIHandler(LLMHandler):
                     if is_reasoning:
                         full_message += "</think>\n"
                         is_reasoning = False
-                    full_message += delta.content
+                    full_message += self._content_text(delta.content)
                     args = (full_message.strip(), ) + tuple(extra_args)
                     if len(full_message) - len(prev_message) > 1:
                         on_update(*args)

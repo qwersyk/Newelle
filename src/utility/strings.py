@@ -494,6 +494,20 @@ def remove_thinking_blocks(text):
         flags=re.DOTALL | re.IGNORECASE,
     )
 
+
+_PARTIAL_THINK_OPEN = re.compile(r"<(?:t(?:h(?:i(?:n(?:k)?)?)?)?)?\Z", re.IGNORECASE)
+
+
+def remove_thinking_for_display(text):
+    """Return the user-visible part of a (possibly still streaming) response.
+
+    Besides complete and unfinished ``<think>`` blocks, this hides a trailing
+    partial opening tag (``<thi``) so it is never shown before the stream
+    reveals it as the start of a reasoning block.
+    """
+    text = remove_thinking_blocks(str(text))
+    return _PARTIAL_THINK_OPEN.sub("", text).lstrip()
+
 def get_edited_messages(history: list, old_history: list) -> list | None:
     """Get the edited messages from the history
 

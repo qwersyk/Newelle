@@ -104,6 +104,9 @@ class MultilineEntry(Gtk.Box):
     def get_input_panel(self):
         return self.input_panel
 
+    def grab_focus(self):
+        return self.input_panel.grab_focus()
+
     def set_text(self, text, remove_placeholder=True):
         if remove_placeholder:
             self.placeholding = False
