@@ -25,7 +25,7 @@ class OpenAITTSHandler(TTSHandler):
         return find_module("openai") is not None
 
     def get_models(self):
-        models = ["tts-1", "tts-1-hd"]
+        models = ["tts-1", "tts-1-hd", "gpt-4o-mini-tts"]
         m = tuple()
         for model in models:
             m += ((model, model),)
