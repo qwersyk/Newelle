@@ -14,6 +14,16 @@ from ...utility.message_chunk import get_message_chunks
 _ = gettext.gettext
 SCHEMA_ID = "io.github.qwersyk.Newelle"
 
+# Treat "close enough" as the bottom: rows are laid out asynchronously and an
+# exact match is rarely reached while content is still growing.
+_SCROLL_BOTTOM_TOLERANCE_PX = 8.0
+# Ignore small upward movements: relayouting a message (widgets removed and
+# re-added, expanders animating) can lower the adjustment value without any
+# user input, which must not stop auto-following. Wheel and touchpad gestures
+# are handled separately by _on_user_scroll, so this only filters per-event
+# drifts rather than real scrolling.
+_USER_SCROLL_PAUSE_PX = 24.0
+
 
 class ChatHistory(Gtk.Box):
     __gsignals__ = {
@@ -506,11 +516,21 @@ class ChatHistory(Gtk.Box):
 
     def begin_streaming_scroll(self, force_follow=False):
         """Start a stream, preserving a paused scroll during automatic continuations."""
-        adjustment = self.chat_scroll.get_vadjustment()
-        if force_follow or self._is_at_bottom(adjustment):
+        return self.scroll_to_bottom(
+            force_follow or self._is_at_bottom(self.chat_scroll.get_vadjustment())
+        )
+
+    def scroll_to_bottom(self, force=False):
+        """Follow the newest content, optionally overriding a paused scroll.
+
+        Tool results that need the user (command confirmations, questions) are
+        inserted and expanded once the model turn has ended, i.e. while
+        following may already be paused. Such prompts are useless below the
+        viewport, so callers pass ``force`` to bring them back into view.
+        """
+        if force:
             self._follow_new_content = True
-        self.scrolled_chat()
-        return GLib.SOURCE_REMOVE
+        return self.scrolled_chat()
 
     def scrolled_chat(self):
         """Follow new content only while the user has not scrolled away."""

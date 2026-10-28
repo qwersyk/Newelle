@@ -1,6 +1,6 @@
 import gettext
 
-from gi.repository import Gtk, Adw, Pango
+from gi.repository import Gtk, Adw, Pango, GLib
 
 from ...utility.tool_call_group import ToolCallGroupState
 from ...utility.message_chunk import get_message_chunks
@@ -74,6 +74,7 @@ class ToolCallsGroupWidget(Gtk.ListBox):
         # itself is inserted. Slots may subsequently originate in later
         # continuation messages while remaining in this same group.
         self.owner_message = None
+        self._reveal_handler_id = None
 
         self.expander_row = Adw.ExpanderRow(
             title=_("Tool calls"),
@@ -98,6 +99,7 @@ class ToolCallsGroupWidget(Gtk.ListBox):
             child=self.content_box,
         )
         scrolled.add_css_class("expander-inset-content")
+        self.content_scroller = scrolled
         self.expander_row.add_row(scrolled)
         self.append(self.expander_row)
 
@@ -262,7 +264,42 @@ class ToolCallsGroupWidget(Gtk.ListBox):
         return True
 
     def expand_for_interaction(self):
+        """Expand the group and reveal the prompt waiting at its end.
+
+        The newest slot holds the prompt blocking the turn, but long tool runs
+        scroll inside the expander, so it must be revealed there too. The view
+        port only reaches its final height once the row has unfolded, and that
+        animation is owned by libadwaita, so wait for its completion signal
+        instead of assuming a duration.
+        """
         self.expander_row.set_expanded(True)
+        revealer = self.content_scroller.get_ancestor(Gtk.Revealer)
+        if revealer is not None and not revealer.get_child_revealed():
+            if self._reveal_handler_id is None:
+                self._reveal_handler_id = revealer.connect(
+                    "notify::child-revealed", self._on_reveal_finished
+                )
+            return
+        # Already unfolded (or not animated at all): the height is final.
+        GLib.idle_add(self._reveal_last_slot)
+
+    def _on_reveal_finished(self, revealer, _pspec):
+        if not revealer.get_child_revealed():
+            return
+        if self._reveal_handler_id is not None:
+            revealer.disconnect(self._reveal_handler_id)
+            self._reveal_handler_id = None
+        GLib.idle_add(self._reveal_last_slot)
+
+    def _reveal_last_slot(self):
+        if self.get_root() is None:
+            return GLib.SOURCE_REMOVE
+        adjustment = self.content_scroller.get_vadjustment()
+        adjustment.set_value(max(
+            adjustment.get_lower(),
+            adjustment.get_upper() - adjustment.get_page_size(),
+        ))
+        return GLib.SOURCE_REMOVE
 
     def _update_header(self):
         summary = self.state.summary()
