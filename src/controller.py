@@ -1838,6 +1838,10 @@ class NewelleController(WorkspaceController):
                     tool.name, is_enabled, mode_name
                 )
 
+            # Memory tools are meaningless without Long Term Memory, whatever the Mode says
+            if tool.tools_group == "Memory" and not request_settings.memory_on:
+                is_enabled = False
+
             if is_enabled:
                 enabled_tools.append(tool)
 
@@ -2644,6 +2648,8 @@ class NewelleController(WorkspaceController):
                 enabled = mode_manager.resolve_tool_enabled(
                     tool.name, enabled, mode_name
                 )
+            if tool.tools_group == "Memory" and not request_settings.memory_on:
+                enabled = False
             enabled_tools[tool.name] = enabled
         return self.tools.get_tools_prompt(
             enabled_tools_dict=enabled_tools,
@@ -3346,7 +3352,8 @@ class NewelleController(WorkspaceController):
                 if model.stream_enabled() and not tool_calls and on_message_callback:
                     on_message_callback(response)
                 
-                if not tool_calls or final_synthesis_turn:
+                # A stopped response may still contain tool calls that must not run.
+                if not tool_calls or final_synthesis_turn or stop_generation_event.is_set():
                     final_content = response_text if not tool_calls else text_content
                     msg_uuid = int(uuid_lib.uuid4())
                     assistant_entry = {

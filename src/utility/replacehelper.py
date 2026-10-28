@@ -88,6 +88,9 @@ class ReplaceHelper:
             for tool in controller.tools.get_all_tools():
                 base = enabled_tools.get(tool.name, tool.default_on)
                 enabled_tools[tool.name] = mode_manager.resolve_tool_enabled(tool.name, base)
+        for tool in controller.tools.get_all_tools():
+            if tool.tools_group == "Memory" and not newelle_settings.memory_on:
+                enabled_tools[tool.name] = False
         # Tools already discovered via tool_search are emitted with their full
         # schema so they can be invoked through native tool calling too.
         expanded_tools = getattr(controller, "expanded_tools", None)
