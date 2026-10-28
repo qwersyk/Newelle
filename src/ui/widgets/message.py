@@ -805,6 +805,17 @@ class Message(Gtk.Box):
             return self.parent_window.chat_history
         return None
 
+    def _reveal_interaction_request(self):
+        """Scroll the chat to a tool prompt that is waiting for the user.
+
+        Confirmations and questions are inserted once the model turn has
+        ended, i.e. possibly while the user has scrolled away, and the turn
+        stays blocked until they answer.
+        """
+        chat_history = self._get_chat_history()
+        if chat_history is not None and hasattr(chat_history, "scroll_to_bottom"):
+            chat_history.scroll_to_bottom(force=True)
+
     def _get_main_window(self):
         chat_tab = self._get_chat_tab()
         if hasattr(chat_tab, "window"):
@@ -1385,12 +1396,14 @@ class Message(Gtk.Box):
                     wrapped_result = ToolResult()
                     wrapped_result.set_output(result)
                     result = wrapped_result
-                
+
+                requires_interaction = getattr(result, "requires_interaction", False)
+
                 if not restore:
                     # Append result to active tool results in main thread if needed
                     chat_tab.active_tool_results.append(result)
-                    
-                    if getattr(result, "requires_interaction", False):
+
+                    if requires_interaction:
                         def _notify_if_unfocused():
                             try:
                                 window = self._get_main_window()
@@ -1405,7 +1418,7 @@ class Message(Gtk.Box):
                         GLib.idle_add(_notify_if_unfocused)
 
                 active_group = current_group()
-                if active_group is not None and getattr(result, "requires_interaction", False):
+                if active_group is not None and requires_interaction:
                     GLib.idle_add(active_group.expand_for_interaction)
 
                 widget = result.widget
@@ -1422,6 +1435,10 @@ class Message(Gtk.Box):
                                 parent.append(widget)
                         if widget.get_parent() is not None:
                             self._register_execution_copybox(widget)
+                        if requires_interaction:
+                            # The prompt is now in the tree: keep it visible even
+                            # if the user had scrolled away from the bottom.
+                            self._reveal_interaction_request()
                     GLib.idle_add(swap_widget)
 
                     # Handle result closure
@@ -1440,7 +1457,9 @@ class Message(Gtk.Box):
                             active_group.set_slot_state(
                                 slot, "completed" if code[0] else "error"
                             )
-                
+                    if requires_interaction:
+                        self._reveal_interaction_request()
+
                 reply_from_console = self.controller.get_tool_response(
                     chat_id, state["id_message"], tool.name, tool_uuid
                 )
