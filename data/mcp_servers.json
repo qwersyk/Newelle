@@ -1,7 +1,28 @@
 {
   "schema_version": 1,
-  "catalog_revision": 2,
+  "catalog_revision": 3,
   "applications": [
+    {
+      "id": "parallel_search",
+      "name": "Parallel Search",
+      "description": "Search the web with Fast mode and extract page content through Parallel Search MCP, with no account or API key.",
+      "logo_url": "https://parallel.ai/favicon.ico",
+      "setup": {
+        "instructions": "Connect to add web_search and web_fetch to Newelle. No account, API key, or local server installation is required. Search queries and fetched URLs are sent to Parallel.",
+        "help_url": "https://docs.parallel.ai/integrations/mcp/search-mcp"
+      },
+      "server": {
+        "type": "http",
+        "title": "Parallel Search",
+        "url": "https://search.parallel.ai/mcp",
+        "headers": {
+          "User-Agent": "Newelle/1.6.0"
+        },
+        "auth": {
+          "type": "none"
+        }
+      }
+    },
     {
       "id": "gmail",
       "name": "Gmail",
