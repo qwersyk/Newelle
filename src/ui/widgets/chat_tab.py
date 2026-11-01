@@ -73,6 +73,8 @@ class ChatTab(Gtk.Box):
         self.streaming_box = None
         
         # Generation state
+        self._response_start_index = None
+        self._response_in_progress = False
         self.active_tool_results = []
         self.auto_run_times = 0
         self.tool_call_count = 0
@@ -1114,6 +1116,7 @@ class ChatTab(Gtk.Box):
         self.history_stack.set_transition_duration(300)
         
         # Update internal chat_id
+        self._response_start_index = None
         self._chat_id = chat_id
         self.restore_composer_draft(self.controller.workspace_storage.drafts.get(chat_id, {}))
         self.controller.save_chats()
@@ -1210,7 +1213,7 @@ class ChatTab(Gtk.Box):
             self._name_chat_from_first_message()
 
         GLib.timeout_add(200, self.chat_history.scrolled_chat)
-        threading.Thread(target=self.send_message).start()
+        self.send_message()
         self.send_button_start_spinner()
         
     def send_button_start_spinner(self):
@@ -1224,79 +1227,119 @@ class ChatTab(Gtk.Box):
         self.send_button.set_icon_name("go-next-symbolic")
         
     # Message sending and streaming
-    def send_message(self, manual=True):
-        """Send a message in the chat and get bot answer."""
+    def send_message(self, manual=True, expected_generation=None):
+        """Queue generation startup on GTK's thread, including from tool workers."""
+        generation = self.stream_number_variable if expected_generation is None else expected_generation
+        if threading.current_thread() is threading.main_thread():
+            self._start_generation(manual, generation, self._chat_id)
+        else:
+            GLib.idle_add(self._start_generation, manual, generation, self._chat_id)
+
+    def _start_generation(self, manual, expected_generation, origin_chat_id):
+        """Start only if Stop or a newer request has not invalidated this one."""
+        if (
+            self.stream_number_variable != expected_generation
+            or self._chat_id != origin_chat_id
+        ):
+            return GLib.SOURCE_REMOVE
         # The tab can be parked in a cached workspace while its request is
         # still running.  Check the chat itself instead of the currently
         # selected workspace so switching workspaces does not orphan it.
         if self.controller.workspace_switching or self.chat_id not in self.controller.chats:
-            return
+            return GLib.SOURCE_REMOVE
         if manual:
             self.auto_run_times = 0
             self.tool_call_count = 0
+        # Keep the boundary across automatic tool continuations, including
+        # turns whose streaming widget has already been finalized.
+        if manual or self._response_start_index is None:
+            self._response_start_index = len(self.chat)
+        self._response_in_progress = True
         
         if manual or not hasattr(self, "_audio_cancel_event"):
             self._audio_cancel_event = threading.Event()
         audio_cancel_event = self._audio_cancel_event
-        origin_chat_id = self._chat_id
         self.stream_number_variable += 1
         stream_number_variable = self.stream_number_variable
         self.status = False
-        self.emit("generation-started")
-        GLib.idle_add(self.update_tab_indicator)
-        GLib.idle_add(self.chat_history.set_generating, True)
-        GLib.idle_add(self.chat_history.begin_streaming_scroll, manual)
-        
-        # Start creating the message
-        self.active_generation_model = self.controller.get_model_for_chat(self.chat)
-        if self.active_generation_model.stream_enabled():
-            self.streamed_message = ""
-            self.curr_label = ""
-            self.streaming_label = None
-            self.stream_thinking = False
-            with self.streaming_lock:
-                self.streamed_content = ""
-                self._stream_target_content = ""
-                self.streaming_pending = False
-            GLib.idle_add(
-                self.create_streaming_message_label,
-                stream_number_variable,
-            )
-            
+        self.streamed_message = ""
+        self.curr_label = ""
+        self.streaming_label = None
+        self.stream_thinking = False
+        with self.streaming_lock:
+            self.streamed_content = ""
+            self._stream_target_content = ""
+            self.streaming_pending = False
+        chat = self.chat
+
         def run_generation():
+            # Model selection can scan the history for attachments; keep it
+            # off GTK's thread along with the actual provider request.
+            model = self.controller.get_model_for_chat(chat)
+            if audio_cancel_event.is_set() or self.stream_number_variable != stream_number_variable:
+                return
+            GLib.idle_add(
+                self._generation_started,
+                stream_number_variable,
+                manual,
+                model,
+            )
             for status, data in self.controller.generate_response(
                 stream_number_variable, 
                 self.update_message,
-                chat_id=self._chat_id,
-                is_current=lambda: not audio_cancel_event.is_set() and self._chat_id == origin_chat_id,
+                chat_id=origin_chat_id,
+                is_current=lambda: (
+                    not audio_cancel_event.is_set()
+                    and self._chat_id == origin_chat_id
+                    and self.stream_number_variable == stream_number_variable
+                ),
             ):
                 if self.stream_number_variable != stream_number_variable:
                     break
-                
-                if status == 'reload_chat':
-                    GLib.idle_add(self.show_chat)
-                elif status == 'reload_message':
-                    GLib.idle_add(self.reload_message, data)
-                elif status == 'error':
-                    def handle_error_ui():
-                        self.chat_history.show_message(data, False, -1, False, False, True)
-                        self.remove_send_button_spinner()
-                        self.status = True
-                        self.update_tab_indicator()
-                        self.emit("generation-stopped")
-                    GLib.idle_add(handle_error_ui)
-                elif status == 'done':
-                    GLib.idle_add(self.remove_send_button_spinner)
-                    GLib.idle_add(self.show_chat)
-                elif status == 'finished':
-                    def finish_safe():
-                        self._handle_generation_finished(data, stream_number_variable)
-                    GLib.idle_add(finish_safe)
+                GLib.idle_add(self._handle_generation_event, status, data, stream_number_variable)
         
         threading.Thread(target=run_generation).start()
+        return GLib.SOURCE_REMOVE
+
+    def _generation_started(self, stream_number_variable, manual, model):
+        if self.stream_number_variable != stream_number_variable:
+            return GLib.SOURCE_REMOVE
+        self.active_generation_model = model
+        self.emit("generation-started")
+        self.update_tab_indicator()
+        self.chat_history.set_generating(True)
+        self.chat_history.begin_streaming_scroll(manual)
+        if model.stream_enabled():
+            self.create_streaming_message_label(stream_number_variable)
+        return GLib.SOURCE_REMOVE
+
+    def _handle_generation_event(self, status, data, stream_number_variable):
+        """Apply queued provider events only while their generation is current."""
+        if self.stream_number_variable != stream_number_variable:
+            return GLib.SOURCE_REMOVE
+        if status == 'reload_chat':
+            self.show_chat()
+        elif status == 'reload_message':
+            self.reload_message(data)
+        elif status == 'error':
+            self.chat_history.show_message(data, False, -1, False, False, True)
+            self.remove_send_button_spinner()
+            self.status = True
+            self._response_in_progress = False
+            self.update_tab_indicator()
+            self.emit("generation-stopped")
+        elif status == 'done':
+            self._response_in_progress = False
+            self.remove_send_button_spinner()
+            self.show_chat()
+        elif status == 'finished':
+            self._handle_generation_finished(data, stream_number_variable)
+        return GLib.SOURCE_REMOVE
         
     def _handle_generation_finished(self, data, stream_number_variable):
         """Handle completion of one model turn in the generation chain."""
+        if self.stream_number_variable != stream_number_variable:
+            return GLib.SOURCE_REMOVE
         self._cancel_stream_reveal()
         message_label = data['message']
         prompts = data['prompts']
@@ -1368,27 +1411,30 @@ class ChatTab(Gtk.Box):
                     threads = streaming_widget.state.get("running_threads", [])
                     parallel = self.controller.newelle_settings.parallel_tool_execution
                     current_stream = self.stream_number_variable
+
+                    def continue_generation():
+                        if self.stream_number_variable != current_stream:
+                            return GLib.SOURCE_REMOVE
+                        if threads and streaming_widget.state.get("should_continue", False):
+                            self.send_message(manual=False, expected_generation=current_stream)
+                        else:
+                            self._finish_generation_chain(message_label, current_stream)
+                        return GLib.SOURCE_REMOVE
                     
                     def wait_and_continue():
                         if not parallel:
                             for t in threads:
+                                if self.stream_number_variable != current_stream:
+                                    return
                                 t.start()
                                 t.join()
                         else:
                             for t in threads:
                                 t.join()
                         
-                        if self.stream_number_variable != current_stream:
-                            return
-                        
-                        if threads and streaming_widget.state.get("should_continue", False):
-                            self.send_message(manual=False)
-                        else:
-                            GLib.idle_add(
-                                self._finish_generation_chain,
-                                message_label,
-                                current_stream,
-                            )
+                        # Tool history commits and this continuation decision
+                        # share the GTK queue, so Stop cannot race a restart.
+                        GLib.idle_add(continue_generation)
                     
                     threading.Thread(target=wait_and_continue).start()
                 else:
@@ -1431,6 +1477,7 @@ class ChatTab(Gtk.Box):
         if self.stream_number_variable != stream_number_variable:
             return GLib.SOURCE_REMOVE
 
+        self._response_in_progress = False
         self.chat_history.set_generating(False)
         self.remove_send_button_spinner()
         self.update_tab_indicator()
@@ -1468,6 +1515,8 @@ class ChatTab(Gtk.Box):
             
     def create_streaming_message_label(self, stream_number_variable):
         """Create a label for message streaming."""
+        if self.stream_number_variable != stream_number_variable:
+            return GLib.SOURCE_REMOVE
         self._cancel_stream_reveal()
         self._stream_reveal_generation = stream_number_variable
         
@@ -1489,11 +1538,6 @@ class ChatTab(Gtk.Box):
             id_message=next_message_id,
             editable=True,
         )
-        try:
-            if hasattr(self.chat_history, "messages_box") and len(self.chat_history.messages_box) > 0:
-                self.chat_history.messages_box.pop()
-        except (AttributeError, IndexError):
-            pass
         self.streaming_box.set_overflow(Gtk.Overflow.VISIBLE)
 
         with self.streaming_lock:
@@ -1699,6 +1743,8 @@ class ChatTab(Gtk.Box):
         for tool_result in self.active_tool_results:
             tool_result.cancel()
         self.active_tool_results = []
+        self._response_start_index = None
+        self._response_in_progress = False
         self.controller.cleanup_owner_sessions(self._chat_id)
         self.chat.clear()
         self.show_chat()
@@ -1707,8 +1753,16 @@ class ChatTab(Gtk.Box):
         
     def stop_chat(self):
         """Stop the current generation."""
+        response_start = self._response_start_index if self._response_in_progress else None
+        if self.current_streaming_message is not None and response_start is None:
+            response_start = self._response_start_index
+            if response_start is None:
+                response_start = self.current_streaming_message.id_message
         if hasattr(self, "_audio_cancel_event"):
             self._audio_cancel_event.set()
+        self.stream_number_variable += 1
+        self._cancel_stream_reveal()
+        self.focus_input()
         # Requests use a workspace-local handler snapshot.  Stop that model as
         # well as the foreground handler so switching workspaces cannot leave
         # a hidden tab's provider running in the background.
@@ -1716,34 +1770,40 @@ class ChatTab(Gtk.Box):
         if stop_request is not None:
             stop_request(self.chat_id)
         getattr(self, "active_generation_model", self.model).stop()
-        for tool_result in self.active_tool_results:
+        for tool_result in tuple(self.active_tool_results):
             tool_result.cancel()
         self.active_tool_results = []
         self.status = True
-        self.stream_number_variable += 1
 
-        # Persist the incomplete streamed message to chat so that
-        # tool outputs (Console messages) aren't orphaned when the user
-        # regenerates after stopping.
-        if hasattr(self, 'current_streaming_message') and self.current_streaming_message is not None:
-            streamed_text = self.current_streaming_message.message
-            if streamed_text and streamed_text.strip():
-                self.chat.append({
-                    "User": "Assistant",
-                    "Message": streamed_text,
-                    "UUID": self.current_streaming_message.chunk_uuid,
-                    "Profile": self.controller.newelle_settings.current_profile
-                })
-            self.current_streaming_message = None
+        if response_start is not None:
+            # Remove the entire interrupted response, even if an earlier
+            # iteration was committed before its tools or continuation ran.
+            self.chat_history.remove_chat_suffix(min(response_start, len(self.chat)))
+            threading.Thread(target=self.save_chat).start()
+        self._response_start_index = None
+        self._response_in_progress = False
+        self.current_streaming_message = None
+        self.streaming_box = None
 
         GLib.idle_add(self.chat_history.update_button_text)
         GLib.idle_add(self.update_tab_indicator)
-        self.notification_block.add_toast(
-            Adw.Toast(title=_("The message generation was stopped"), timeout=2)
-        )
-        GLib.idle_add(self.show_chat)
+        toast = Adw.Toast(title=_("The message generation was stopped"), timeout=2)
+        toast.connect("dismissed", self._on_stop_toast_dismissed)
+        self.notification_block.add_toast(toast)
         self.remove_send_button_spinner()
         self.emit("generation-stopped")
+
+    def _on_stop_toast_dismissed(self, _toast):
+        """Keep toast focus restoration from scrolling to an old chat row."""
+        root = self.get_root()
+        if root is None or not self.get_mapped():
+            return
+        focus = root.get_focus()
+        if focus is None or (
+            focus.is_ancestor(self.notification_block)
+            and not focus.is_ancestor(self.history_stack)
+        ):
+            self.focus_input()
         
     def continue_message(self):
         """Continue the last message."""
@@ -1752,28 +1812,55 @@ class ChatTab(Gtk.Box):
                 Adw.Toast(title=_("You can no longer continue the message."), timeout=2)
             )
         else:
-            threading.Thread(target=self.send_message).start()
+            self.send_message()
             self.send_button_start_spinner()
             
     def regenerate_message(self):
         """Regenerate the last message."""
-        if self.chat_history.chat[-1]["User"] in ["Assistant", "Console"]:
-            for i in range(len(self.chat) - 1, -1, -1):
-                if self.chat[i]["User"] in ["Assistant", "Console"]:
-                    self.chat.pop(i)
-                else:
-                    break
-            self.show_chat()
-            threading.Thread(target=self.send_message).start()
-            self.send_button_start_spinner()
-        elif self.chat_history.last_error_box is not None:
-            self.show_chat()
-            threading.Thread(target=self.send_message).start()
-            self.send_button_start_spinner()
-        else:
+        if not self.status:
+            return
+        if not self.chat or (
+            self.chat[-1]["User"] not in ("Assistant", "Console")
+            and not self.chat[-1].get("ToolContext")
+            and self.chat_history.last_error_box is None
+        ):
             self.notification_block.add_toast(
                 Adw.Toast(title=_("You can no longer regenerate the message."), timeout=2)
             )
+            return
+
+        start = len(self.chat)
+        while start > 0:
+            entry = self.chat[start - 1]
+            if entry["User"] not in ("Assistant", "Console") and not entry.get("ToolContext"):
+                break
+            start -= 1
+
+        if hasattr(self, "_audio_cancel_event"):
+            self._audio_cancel_event.set()
+        self.stream_number_variable += 1
+        self._cancel_stream_reveal()
+        self.focus_input()
+        # Mark busy before starting the worker so repeated clicks cannot
+        # launch two retries against the same conversation.
+        self.chat_history.set_generating(True)
+        self.chat_history.remove_chat_suffix(start)
+        self._response_start_index = start
+        self._response_in_progress = True
+        self.current_streaming_message = None
+        self.streaming_box = None
+        self.last_error_box = None
+        self.stream_tools = False
+        self.send_button_start_spinner()
+        generation = self.stream_number_variable
+        chat_id = self._chat_id
+
+        def regenerate():
+            self.save_chat()
+            if self.stream_number_variable == generation and self._chat_id == chat_id:
+                self.send_message(expected_generation=generation)
+
+        threading.Thread(target=regenerate).start()
             
     def _name_chat_from_first_message(self):
         """Title a chat that still has its default name with its first message."""
