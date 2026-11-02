@@ -422,18 +422,55 @@ class MyApp(Adw.Application):
         shortcuts.present()
 
     def on_about_action(self, *a):
-        Adw.AboutWindow(transient_for=self.props.active_window,
-                        application_name='Newelle',
-                        application_icon='io.github.qwersyk.Newelle',
-                        developer_name='qwersyk',
-                        version=self.version,
-                        issue_url='https://github.com/qwersyk/Newelle/issues',
-                        website='https://github.com/qwersyk/Newelle',
-                        developers=['Yehor Hliebov  https://github.com/qwersyk',"Francesco Caracciolo https://github.com/FrancescoCaracciolo", "Pim Snel https://github.com/mipmip"],
-                        documenters=["Francesco Caracciolo https://github.com/FrancescoCaracciolo"],
-                        designers=["Nokse22 https://github.com/Nokse22", "Jared Tweed https://github.com/JaredTweed"],
-                        translator_credits="\n".join(["Amine Saoud (Arabic) https://github.com/amiensa","Heimen Stoffels (Dutch) https://github.com/Vistaus","Albano Battistella (Italian) https://github.com/albanobattistella","Oliver Tzeng (Traditional Chinese, all languages) https://github.com/olivertzeng","Aritra Saha (Bengali, Hindi) https://github.com/olumolu","NorwayFun (Georgian) https://github.com/NorwayFun"]),
-                        copyright='© 2025 qwersyk').present()
+        about = Adw.AboutWindow(
+            transient_for=self.props.active_window,
+            application_name='Newelle',
+            application_icon='io.github.qwersyk.Newelle',
+            developer_name='qwersyk',
+            version=self.version,
+            issue_url='https://github.com/qwersyk/Newelle/issues',
+            website='https://github.com/qwersyk/Newelle',
+            developers=[
+                'Yehor Hliebov https://github.com/qwersyk',
+                'Francesco Caracciolo https://github.com/FrancescoCaracciolo',
+            ],
+            documenters=[
+                'Francesco Caracciolo https://github.com/FrancescoCaracciolo',
+                'Oliver Tzeng https://github.com/olivertzeng',
+            ],
+            designers=[
+                'Nokse22 https://github.com/Nokse22',
+                'Jared Tweed https://github.com/JaredTweed',
+            ],
+            translator_credits="\n".join([
+                'Amine Saoud (Arabic) https://github.com/amiensa',
+                'Aritra Saha (Bengali, Hindi) https://github.com/olumolu',
+                'Heimen Stoffels (Dutch) https://github.com/Vistaus',
+                'NorwayFun (Georgian) https://github.com/NorwayFun',
+                'Albano Battistella (Italian) https://github.com/albanobattistella',
+                'Piotr Orzechowski (Polish) https://github.com/0rzech',
+                'Oliver Tzeng (Traditional Chinese) https://github.com/olivertzeng',
+            ]),
+            copyright='© 2025 qwersyk',
+        )
+        about.add_credit_section(_('Contributors'), [
+            'Aritra Saha https://github.com/olumolu',
+            'Asaf Niv https://github.com/svc64',
+            'Fabien Danieau https://github.com/FabienDanieau',
+            'Florian RICHER https://github.com/mrdev023',
+            'Jah-yee https://github.com/Jah-yee',
+            'Jérémy Lal https://github.com/kapouer',
+            'Parallel Contributions https://github.com/qwersyk/Newelle/commit/49898d9c95af2f7d75ff104b9aefb43f3c0482f4',
+            'Pim Snel https://github.com/mipmip',
+            'Recycled0080 https://github.com/qwersyk/Newelle/commit/bac94b6',
+            'Rohan Sharma https://github.com/rs545837',
+            'Salim B https://github.com/salim-b',
+            'SusieeTheLinuxUser https://github.com/SusieeTheLinuxUser',
+            'That1LinuxGuy https://github.com/That1LinuxGuy',
+            'Yurizal Susanto https://github.com/yursan9',
+            'zzoraemon043 https://github.com/zzoraemon043',
+        ])
+        about.present()
 
     def thread_editing_action(self, *a):
         threadediting = ThreadEditing(self)
