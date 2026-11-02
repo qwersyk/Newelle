@@ -5,7 +5,7 @@ from .handlers.stt import GroqSRHandler, OpenAISRHandler, SphinxHandler, GoogleS
 from .handlers.embeddings import WordLlamaHandler, OpenAIEmbeddingHandler, GeminiEmbeddingHanlder, OllamaEmbeddingHandler, Model2VecHandler, LlamaCPPEmbeddingHandler
 from .handlers.memory import UserSummaryHandler, LlamaIndexMemoryHandler, AgenticMemoryHandler, LongTermMemoryHandler
 from .handlers.rag import LlamaIndexHanlder
-from .handlers.websearch import SearXNGHandler, DDGSeachHandler, TavilyHandler, TinyFishHandler, DeepseekSearchHandler
+from .handlers.websearch import SearXNGHandler, DDGSeachHandler, TavilyHandler, TinyFishHandler, DeepseekSearchHandler, OutcrawlSearchHandler
 from .handlers.image_generator import ImageGeneratorHandler, PollinationsHandler, StableDiffusionCPPHandler, OpenAIImageHandler, OpenRouterImageHandler
 from .handlers.interfaces.interface import Interface
 from .handlers.interfaces.api_handler import APIInterface
@@ -400,6 +400,13 @@ AVAILABLE_WEBSEARCH = {
         "description": _("DeepSeek web search API"),
         "website": "https://api-docs.deepseek.com/guides/search",
         "class": DeepseekSearchHandler,
+    },
+    "outcrawl": {
+        "key": "outcrawl",
+        "title": _("Outcrawl"),
+        "description": _("Outcrawl web search API"),
+        "website": "https://outcrawl.ai/",
+        "class": OutcrawlSearchHandler,
     },
 }
 

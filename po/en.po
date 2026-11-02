@@ -2584,6 +2584,26 @@ msgstr ""
 msgid "An optional IP address used to localize search results"
 msgstr ""
 
+#: src/constants.py:406
+msgid "Outcrawl"
+msgstr ""
+
+#: src/constants.py:407
+msgid "Outcrawl web search API"
+msgstr ""
+
+#: src/handlers/websearch/outcrawl_handler.py:18
+msgid "Outcrawl API key"
+msgstr ""
+
+#: src/handlers/websearch/outcrawl_handler.py:20
+msgid "Read pages"
+msgstr ""
+
+#: src/handlers/websearch/outcrawl_handler.py:20
+msgid "Fetch the full content of each result as Markdown instead of using only the search snippet. Each page uses extra API credits."
+msgstr ""
+
 #, fuzzy
 #~ msgid "_Cancel"
 #~ msgstr "Cancel"
