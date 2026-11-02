@@ -984,6 +984,9 @@ class NewelleController(WorkspaceController):
         if self.chats[chat_id].get("workspace_id") != self.folders[folder_id].get("workspace_id"):
             return
         self.remove_chat_from_folder(chat_id, save=False)
+        # A chat dropped into a folder leaves its branch parent behind:
+        # folder nesting replaces branch nesting in the sidebar.
+        self.chats[chat_id]["branched_from"] = None
         if folder_id in self.folders:
             if chat_id not in self.folders[folder_id]["chat_ids"]:
                 self.folders[folder_id]["chat_ids"].append(chat_id)
@@ -1001,6 +1004,29 @@ class NewelleController(WorkspaceController):
                     if self.ui_controller is not None:
                         GLib.idle_add(self.ui_controller.update_history)
                 return
+
+    def move_chat_to_top_level(self, chat_id: int):
+        """Move a chat to the top level, leaving its folder and its branch parent.
+
+        Used when a chat is dragged away from the chat it was branched from:
+        the chat stops nesting under its parent and becomes standalone.
+        """
+        chat = self.chats.get(chat_id)
+        if chat is None:
+            return
+        changed = False
+        for folder in self.folders.values():
+            if chat_id in folder["chat_ids"]:
+                folder["chat_ids"].remove(chat_id)
+                changed = True
+        if chat.get("branched_from") is not None:
+            chat["branched_from"] = None
+            changed = True
+        if not changed:
+            return
+        self.save_chats()
+        if self.ui_controller is not None:
+            GLib.idle_add(self.ui_controller.update_history)
 
     def get_folder_for_chat(self, chat_id: int):
         """Return the folder_id containing this chat, or None."""
