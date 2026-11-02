@@ -828,6 +828,44 @@
         "args": ["kubernetes-mcp-server@latest", "--kubeconfig", "${kubeconfig}"],
         "env": {}
       }
+    },
+    {
+      "id": "sem",
+      "name": "Sem",
+      "description": "Find code entities and inspect their relationships in a local Git repository.",
+      "logo_url": "https://github.com/Ataraxy-Labs.png?size=96",
+      "setup": {
+        "instructions": "Install Sem from https://github.com/Ataraxy-Labs/sem on the host. Enter its absolute executable path and an absolute Git repository path. Code excerpts returned by tools are sent to your configured chat model. No Sem cloud account is required.",
+        "help_url": "https://github.com/Ataraxy-Labs/sem",
+        "fields": [
+          {
+            "id": "sem_binary",
+            "type": "file",
+            "label": "Sem executable",
+            "description": "Absolute path to the installed sem binary.",
+            "required": true
+          },
+          {
+            "id": "sem_repo",
+            "type": "directory",
+            "label": "Git repository",
+            "description": "Absolute path to a local Git repository accessible to the server.",
+            "required": true
+          }
+        ]
+      },
+      "server": {
+        "type": "stdio",
+        "title": "Sem",
+        "command": "${sem_binary}",
+        "args": [
+          "mcp"
+        ],
+        "env": {
+          "SEM_REPO": "${sem_repo}",
+          "SEM_CLOUD": "0"
+        }
+      }
     }
   ]
 }
