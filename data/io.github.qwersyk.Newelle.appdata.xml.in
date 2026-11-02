@@ -48,6 +48,11 @@
 	<url type="bugtracker">https://github.com/qwersyk/Newelle/issues</url>
 	<content_rating type="oars-1.0" />
 	<releases>
+        <release version="1.6.1" date="2026-11-02">
+            <description>
+                <p>Bug fixes and performance improvements.</p>
+            </description>
+        </release>
         <release version="1.6.0" date="2026-10-15">
             <description>
                 <ul>
