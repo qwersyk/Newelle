@@ -11,6 +11,8 @@ class MultilineEntry(Gtk.Box):
         self.on_change_func = None
         self.on_image_pasted = lambda *a: None
         self.enter_on_ctrl = enter_on_ctrl
+        self._refresh_source_id = 0
+        self._refreshed_natural_height = None
         # Handle enter key
         # Call handle_enter_key only when shift is not pressed
         # shift + enter = new line
@@ -60,6 +62,41 @@ class MultilineEntry(Gtk.Box):
 
         # Add TextView to the ScrolledWindow
         scroll.set_child(self.input_panel)
+
+        # GtkTextView validates its layout lazily, sometimes while GTK is
+        # allocating or drawing a frame, and it updates its size and scroll
+        # adjustments from there (GTK issue #6057). Resize and redraw requests
+        # made at that point can be lost, so the entry keeps showing stale
+        # text until an unrelated relayout, like opening a context menu.
+        # Repeat both requests from an idle callback once the frame is done.
+        self.input_panel.get_buffer().connect("changed", self._queue_view_refresh)
+        for adjustment in (scroll.get_vadjustment(), scroll.get_hadjustment()):
+            adjustment.connect("changed", self._queue_view_refresh)
+            adjustment.connect("value-changed", self._queue_view_refresh)
+
+    def _queue_view_refresh(self, *_args):
+        if self._refresh_source_id == 0:
+            self._refresh_source_id = GLib.idle_add(self._refresh_view)
+
+    def _refresh_view(self):
+        self._refresh_source_id = 0
+        if self.input_panel.get_root() is None:
+            return GLib.SOURCE_REMOVE
+        # Adjustments notify on every allocation, so only resize when the
+        # height changed; an unconditional resize would loop.
+        natural = self.input_panel.measure(Gtk.Orientation.VERTICAL, -1)[1]
+        if natural != self._refreshed_natural_height:
+            self._refreshed_natural_height = natural
+            self.input_panel.queue_resize()
+        # A lost redraw can leave the redraw flag set on the view or one of
+        # its ancestors while its parent already has a cached render. Later
+        # requests stop at that flag and never reach the window. Queueing a
+        # draw on each ancestor separately gets past it.
+        widget = self.input_panel
+        while widget is not None:
+            widget.queue_draw()
+            widget = widget.get_parent()
+        return GLib.SOURCE_REMOVE
 
     def set_editor_height(self, height: int):
         """Give the editor an explicit vertical allocation."""
