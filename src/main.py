@@ -582,6 +582,7 @@ class MyApp(Adw.Application):
             if session.owner in owners:
                 sessions.forget(session)
                 threading.Thread(target=session.terminate, daemon=True).start()
+        window.controller.update_current_profile()
         self.settings.set_int("chat", window.chat_id)
         self.settings.set_string("current-profile", window.settings.get_string("current-profile"))
         window.controller.save_chats()

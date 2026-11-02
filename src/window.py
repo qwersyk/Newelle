@@ -2565,7 +2565,9 @@ class MainWindow(WorkspaceWindow, Adw.ApplicationWindow):
         middle_click_gesture.connect("pressed", self._on_chat_row_middle_clicked, list_box)
         list_box.add_controller(middle_click_gesture)
 
-        # Drop target on the list box itself to remove a chat from its folder
+        # Drop target on the list box itself to move a chat to the top level:
+        # removes it from its folder and detaches it from the chat it was
+        # branched from.
         unfolder_drop = Gtk.DropTarget.new(GObject.TYPE_STRING, Gdk.DragAction.MOVE)
         unfolder_drop.connect("enter", self._on_unfolder_drop_enter)
         unfolder_drop.connect("leave", self._on_unfolder_drop_leave)
@@ -2702,7 +2704,10 @@ class MainWindow(WorkspaceWindow, Adw.ApplicationWindow):
         if value:
             try:
                 chat_id = int(value)
-                self.controller.remove_chat_from_folder(chat_id)
+                # Dropping a chat outside a folder detaches it: it leaves any
+                # folder it was in and is unlinked from the chat it was
+                # branched from, becoming a standalone top-level chat.
+                self.controller.move_chat_to_top_level(chat_id)
                 return True
             except (ValueError, TypeError):
                 pass

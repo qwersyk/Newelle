@@ -75,16 +75,17 @@ class OllamaCloudHandler(OllamaHandler):
                     _("Name of the Ollama Cloud model"),
                     self.models,
                     default,
+                    update_settings=True,
                     refresh=lambda x: self.get_models(manual=True),
                 )
             )
         else:
             settings.append(
-                ExtraSettings.EntrySetting("model", _("Ollama Cloud Model"), _("Name of the Ollama Cloud model"), default)
+                ExtraSettings.EntrySetting("model", _("Ollama Cloud Model"), _("Name of the Ollama Cloud model"), default, update_settings=True)
             )
 
+        settings += self.get_thinking_settings()
         settings += [
-            ExtraSettings.ToggleSetting("thinking", _("Enable Thinking"), _("Allow thinking in the model, only some models are supported"), True, website="https://ollama.com/search?c=thinking"),
             ExtraSettings.ToggleSetting("native_tool_calling", _("Native Tool Calling"), _("Enable native tool calling (Will use API's tool calling formatting instead of Newelle's. Disable only if you have issues with tool calling or the model you are using does not support it natively)"), True),
             get_streaming_extra_setting(),
         ]

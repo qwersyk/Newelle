@@ -304,6 +304,9 @@ class WorkspaceController:
         self.mode_manager.workspace_reference_changed = self.workspace_mode_reference_changed
         self.workspace_switching = True
         try:
+            # Secondary windows copy the live settings of an already running window.
+            if not self.secondary_window and hasattr(self, "restore_current_profile"):
+                self.restore_current_profile()
             self.apply_workspace_settings()
             self.newelle_settings.load_settings(self.settings)
         finally:

@@ -14,7 +14,7 @@ from ..ui.widgets.file_permission_confirm import FilePermissionConfirmWidget
 from ..ui.widgets.glob import GlobWidget
 from ..ui.widgets.grep import GrepWidget
 from ..ui.widgets.list_directory import ListDirectoryWidget
-from ..utility.file_search import glob_files, grep_files
+from ..utility.file_search import GLOB_RESULT_LIMIT, GLOB_TIME_LIMIT, glob_search, grep_files
 
 
 class FileEditingIntegration(NewelleExtension):
@@ -35,7 +35,10 @@ class FileEditingIntegration(NewelleExtension):
         return self.settings
 
     def _workspace_path(self):
-        return self._request_settings().get_string("path") or os.getcwd()
+        configured = os.path.expanduser(self._request_settings().get_string("path") or "")
+        if configured and os.path.isdir(configured):
+            return configured
+        return os.getcwd()
 
     def _get_permission_rules(self):
         """Load the file-permissions rules from settings."""
@@ -674,28 +677,30 @@ class FileEditingIntegration(NewelleExtension):
 
     def glob(self, pattern: str, path: Optional[str] = None):
         """Search for files matching a glob pattern, with permission checking."""
-        search_dir = path if path else self._workspace_path()
+        search_dir = os.path.expanduser(path) if path else self._workspace_path()
         return self._check_and_execute(
             search_dir, "read",
             lambda: self._glob_impl(pattern, path),
         )
 
     def _glob_impl(self, pattern: str, path: Optional[str] = None):
-        result = ToolResult()
-
         if not pattern or not pattern.strip():
+            result = ToolResult()
             result.set_output("Error: Pattern cannot be empty or whitespace-only")
             return result
 
         if path:
+            path = os.path.expanduser(path)
+            error = None
             if not os.path.isabs(path):
-                result.set_output(f"Error: Path must be absolute: {path}")
-                return result
-            if not os.path.exists(path):
-                result.set_output(f"Error: Directory does not exist: {path}")
-                return result
-            if not os.path.isdir(path):
-                result.set_output(f"Error: Path is not a directory: {path}")
+                error = f"Error: Path must be absolute: {path}"
+            elif not os.path.exists(path):
+                error = f"Error: Directory does not exist: {path}"
+            elif not os.path.isdir(path):
+                error = f"Error: Path is not a directory: {path}"
+            if error:
+                result = ToolResult()
+                result.set_output(error)
                 return result
             search_dir = path
         else:
@@ -703,36 +708,61 @@ class FileEditingIntegration(NewelleExtension):
 
         pattern = pattern.strip()
 
-        def _do_glob_search():
-            try:
-                return glob_files(search_dir, pattern), None
-            except Exception as e:
-                return None, str(e)
+        def format_output(search):
+            notes = self._glob_notes(search)
+            if not search.matches:
+                output = f"No files match the pattern '{pattern}' in {search_dir}."
+                if notes:
+                    return f"{output} {'; '.join(notes)}."
+                return (
+                    f"{output} Hidden files and gitignored paths are skipped; "
+                    "include a '.' segment in the pattern to search hidden files."
+                )
 
-        def _update_widget(matches, error):
-            if error:
-                result.set_output(f"Error performing glob search: {error}")
-                return
+            output_lines = [
+                f"Found {len(search.matches)} match(es) for '{pattern}' in {search_dir}:",
+                "",
+            ]
+            for match in search.matches:
+                try:
+                    rel_path = os.path.relpath(match, search_dir)
+                except ValueError:
+                    rel_path = match
+                if match in search.directories:
+                    rel_path += "/"
+                output_lines.append(rel_path)
+            if notes:
+                output_lines.extend(("", f"Note: {'; '.join(notes)}."))
+            return "\n".join(output_lines)
 
-            if not matches:
-                output = f"No files match the pattern '{pattern}' in {search_dir}"
-            else:
-                output_lines = [f"Found {len(matches)} file(s) matching '{pattern}' in {search_dir}:", ""]
-                for match in matches:
-                    try:
-                        rel_path = os.path.relpath(match, search_dir)
-                        output_lines.append(rel_path)
-                    except ValueError:
-                        output_lines.append(match)
-                output = "\n".join(output_lines)
+        return self._start_glob_search(
+            pattern,
+            search_dir,
+            format_output,
+            lambda error: f"Error performing glob search: {error}",
+        )
 
-            widget.set_matches(matches)
-            open_callback = self._get_open_in_editor_callback() if matches else None
-            widget.open_in_editor_callback = open_callback
+    @staticmethod
+    def _glob_notes(search) -> list[str]:
+        notes = []
+        if search.truncated:
+            notes.append(
+                f"results limited to the first {GLOB_RESULT_LIMIT} matches, "
+                "use a more specific pattern or path"
+            )
+        if search.timed_out:
+            notes.append(
+                f"search stopped after {GLOB_TIME_LIMIT:g}s, results are partial"
+            )
+        return notes
 
-            result.set_output(output)
+    def _start_glob_search(self, pattern: str, search_dir: str, format_output, format_error):
+        """Run a glob search in the background and return a pending ToolResult.
 
-        open_callback = self._get_open_in_editor_callback()
+        The result's output is always set once the search ends, even if
+        updating the widget fails, so the model is never left waiting.
+        """
+        result = ToolResult()
         widget = GlobWidget(
             pattern=pattern,
             search_path=search_dir,
@@ -741,13 +771,42 @@ class FileEditingIntegration(NewelleExtension):
         )
         result.set_widget(widget)
 
+        cancel_event = threading.Event()
+        result.set_cancel_callback(cancel_event.set)
+
+        def _finish(search, error):
+            try:
+                output = format_error(error) if error else format_output(search)
+            except Exception as e:
+                output = format_error(str(e))
+            try:
+                if error:
+                    widget.set_error(error)
+                else:
+                    widget.open_in_editor_callback = (
+                        self._get_open_in_editor_callback() if search.matches else None
+                    )
+                    widget.set_matches(
+                        search.matches,
+                        directories=search.directories,
+                        truncated=search.incomplete,
+                    )
+            except Exception as e:
+                print(f"Error updating glob widget: {e}")
+            finally:
+                if not result.is_cancelled:
+                    result.set_output(output)
+            return False
+
         def _run_search_thread():
-            matches, error = _do_glob_search()
-            GLib.idle_add(lambda: _update_widget(matches, error))
+            try:
+                search = glob_search(search_dir, pattern, cancel=cancel_event)
+                error = None
+            except Exception as e:
+                search, error = None, str(e)
+            GLib.idle_add(_finish, search, error)
 
-        thread = threading.Thread(target=_run_search_thread, daemon=True)
-        thread.start()
-
+        threading.Thread(target=_run_search_thread, daemon=True).start()
         return result
 
     def glob_restore(self, tool_uuid: str, pattern: str, path: Optional[str] = None):
@@ -762,53 +821,24 @@ class FileEditingIntegration(NewelleExtension):
         Returns:
             ToolResult with restored widget
         """
-        result = ToolResult()
+        search_dir = os.path.expanduser(path) if path else self._workspace_path()
 
-        # Determine search directory
-        search_dir = path if path else self._workspace_path()
+        def format_output(search):
+            if not search.matches:
+                return f"Glob: '{pattern}' in {search_dir} - No matches"
+            dir_count = len(search.directories)
+            file_count = len(search.matches) - dir_count
+            return (
+                f"Glob: '{pattern}' in {search_dir} - {len(search.matches)} matches "
+                f"({file_count} files, {dir_count} directories)"
+            )
 
-        def _do_glob_search():
-            try:
-                return glob_files(search_dir, pattern), None
-            except Exception as e:
-                return None, str(e)
-
-        def _update_widget(matches, error):
-            if error:
-                result.set_output(f"Glob: '{pattern}' in {search_dir} - Error: {error}")
-                return
-
-            # Build output
-            if not matches:
-                output = f"Glob: '{pattern}' in {search_dir} - No matches"
-            else:
-                file_count = sum(1 for m in matches if os.path.isfile(m))
-                dir_count = len(matches) - file_count
-                output = f"Glob: '{pattern}' in {search_dir} - {len(matches)} matches ({file_count} files, {dir_count} directories)"
-
-            widget.set_matches(matches)
-            open_callback = self._get_open_in_editor_callback() if matches else None
-            widget.open_in_editor_callback = open_callback
-
-            result.set_output(output)
-
-        open_callback = self._get_open_in_editor_callback()
-        widget = GlobWidget(
-            pattern=pattern,
-            search_path=search_dir,
-            matches=[],
-            open_in_editor_callback=None
+        return self._start_glob_search(
+            pattern,
+            search_dir,
+            format_output,
+            lambda error: f"Glob: '{pattern}' in {search_dir} - Error: {error}",
         )
-        result.set_widget(widget)
-
-        def _run_search_thread():
-            matches, error = _do_glob_search()
-            GLib.idle_add(lambda: _update_widget(matches, error))
-
-        thread = threading.Thread(target=_run_search_thread, daemon=True)
-        thread.start()
-
-        return result
 
     def _should_ignore(self, entry_name: str, ignore_patterns: Optional[list[str]]) -> bool:
         """Check if an entry matches any of the ignore patterns."""
@@ -1161,13 +1191,27 @@ class FileEditingIntegration(NewelleExtension):
             ),
             Tool(
                 name="glob",
-                description="Search for files matching a glob pattern. Supports standard glob patterns like '*.py' and recursive patterns like '**/*.txt'. If path is not specified, searches in the current working directory.",
+                description="Find files and directories by name using a glob pattern, newest first. A pattern without '/' (e.g. '*.py') matches at any depth; use '/' to anchor it (e.g. 'src/*.py') and '**' to span directories (e.g. 'src/**/*.ts'). Supports *, ?, [abc] and {a,b} (e.g. '**/*.{ts,tsx}'). Hidden files, gitignored paths and directories like node_modules are skipped. Results are capped, so narrow the pattern or path if the output reports truncation. Searches the workspace directory unless a path is given.",
                 func=self.glob,
                 title="Glob Search",
                 restore_func=self.glob_restore,
                 default_on=True,
                 icon_name="folder-saved-search-symbolic",
-                tools_group="File Operations"
+                tools_group="File Operations",
+                schema={
+                    "type": "object",
+                    "properties": {
+                        "pattern": {
+                            "type": "string",
+                            "description": "The glob pattern, relative to the search directory (e.g. '**/*.py', 'src/**/*.{ts,tsx}', '*.md')"
+                        },
+                        "path": {
+                            "type": "string",
+                            "description": "Absolute path of the directory to search in (defaults to the workspace directory if omitted)"
+                        }
+                    },
+                    "required": ["pattern"]
+                }
             ),
             Tool(
                 name="list_directory",

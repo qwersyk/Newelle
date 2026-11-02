@@ -44,6 +44,8 @@ class GlobWidget(Gtk.Box):
         self.pattern = pattern
         self.search_path = search_path
         self.matches = matches
+        self.directories: set[str] = set()
+        self.truncated = False
         self.color_scheme = color_scheme
         self.open_in_editor_callback = open_in_editor_callback
 
@@ -111,7 +113,7 @@ class GlobWidget(Gtk.Box):
             return
 
         # Limit to 50 matches
-        display_matches = sorted(self.matches)[:50]
+        display_matches = self.matches[:50]
 
         # Create list box for matches
         self.list_box = Gtk.ListBox(
@@ -141,7 +143,7 @@ class GlobWidget(Gtk.Box):
     def _add_file_row(self, file_path: str):
         """Add a file row to the list box."""
         # Determine if it's a file or directory
-        is_dir = os.path.isdir(file_path)
+        is_dir = file_path in self.directories
 
         # Get display name (relative to search path if possible)
         try:
@@ -199,8 +201,8 @@ class GlobWidget(Gtk.Box):
     def _build_status(self):
         """Build status label showing search info."""
         match_count = len(self.matches)
-        file_count = sum(1 for m in self.matches if os.path.isfile(m))
-        dir_count = match_count - file_count
+        dir_count = len(self.directories)
+        file_count = match_count - dir_count
         displayed_count = min(match_count, 50)
 
         status_parts = []
@@ -216,6 +218,9 @@ class GlobWidget(Gtk.Box):
             status_parts.append(f"{file_count} files")
         if dir_count > 0:
             status_parts.append(f"{dir_count} directories")
+
+        if self.truncated:
+            status_parts.append("results incomplete")
 
         status_text = " • ".join(status_parts)
         if self.search_path:
@@ -236,7 +241,7 @@ class GlobWidget(Gtk.Box):
             return
 
         clipboard = display.get_clipboard()
-        matches_text = "\n".join(sorted(self.matches))
+        matches_text = "\n".join(self.matches)
         clipboard.set_content(Gdk.ContentProvider.new_for_value(matches_text))
 
         # Visual feedback
@@ -268,15 +273,41 @@ class GlobWidget(Gtk.Box):
         """Get the search path used."""
         return self.search_path
 
-    def set_matches(self, matches: list[str]):
-        """Update the matches and rebuild the matches view and status."""
-        self.matches = matches
-
-        # Remove loading spinner, existing content and status
+    def _clear_content(self):
+        """Remove the loading spinner, matches view and status."""
         for child in list(self):
             if isinstance(child, (Gtk.Spinner, Gtk.ScrolledWindow, Gtk.Label)):
                 self.remove(child)
 
-        # Rebuild content and status
+    def set_matches(
+        self,
+        matches: list[str],
+        directories: set[str] | None = None,
+        truncated: bool = False,
+    ):
+        """Update the matches and rebuild the matches view and status.
+
+        Args:
+            matches: Matching paths, in display order
+            directories: The subset of matches that are directories
+            truncated: Whether the search stopped before finding every match
+        """
+        self.matches = matches
+        self.directories = set(directories or ())
+        self.truncated = truncated
+
+        self._clear_content()
         self._build_matches_view()
         self._build_status()
+
+    def set_error(self, message: str):
+        """Replace the loading spinner with an error message."""
+        self._clear_content()
+        self.append(
+            Gtk.Label(
+                label=message,
+                halign=Gtk.Align.START,
+                wrap=True,
+                css_classes=["error"]
+            )
+        )

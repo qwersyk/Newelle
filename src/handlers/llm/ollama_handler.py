@@ -278,6 +278,56 @@ class OllamaHandler(LLMHandler):
     def supports_vision(self) -> bool:
         return True
 
+    def _uses_thinking_effort(self) -> bool:
+        model = self.get_setting("model", False)
+        if not model:
+            model = self.models[0][1] if self.models else ""
+        family = model.lower().rsplit("/", 1)[-1].split(":", 1)[0]
+        return family == "gpt-oss" or family.startswith("gpt-oss-")
+
+    def get_thinking_modes(self) -> list[tuple[str, str]] | None:
+        modes = [("none", _("None"))]
+        if self._uses_thinking_effort():
+            return modes + [("low", _("Low")), ("medium", _("Medium")), ("high", _("High"))]
+        return modes + [("enabled", _("Enabled"))]
+
+    def get_thinking_mode(self) -> str:
+        if not self.get_setting("thinking", False, True):
+            return "none"
+        if self._uses_thinking_effort():
+            effort = self.get_setting("thinking_effort", False, "medium")
+            return effort if effort in {"low", "medium", "high"} else "medium"
+        return "enabled"
+
+    def set_thinking_mode(self, value: str):
+        if value not in {mode[0] for mode in self.get_thinking_modes() or ()}:
+            return
+        self.set_setting("thinking", value != "none")
+        if self._uses_thinking_effort() and value != "none":
+            self.set_setting("thinking_effort", value)
+
+    def get_thinking_params(self) -> dict:
+        mode = self.get_thinking_mode()
+        if mode == "none":
+            return {"think": False}
+        return {"think": mode if self._uses_thinking_effort() else True}
+
+    def get_thinking_settings(self) -> list:
+        settings = [ExtraSettings.ToggleSetting(
+            "thinking", _("Enable Thinking"),
+            _("Allow thinking in the model, only some models are supported"),
+            True, website="https://ollama.com/search?c=thinking", update_settings=True,
+        )]
+        if self._uses_thinking_effort() and self.get_setting("thinking", False, True):
+            settings.append(ExtraSettings.ComboSetting(
+                "thinking_effort",
+                _("Reasoning Effort"),
+                _("How much reasoning effort to allocate"),
+                tuple((label, value) for value, label in self.get_thinking_modes() if value != "none"),
+                "medium",
+            ))
+        return settings
+
     def get_extra_settings(self) -> list:
         default = self.models[0][1] if len(self.models) > 0 else ""
         settings = []
@@ -295,7 +345,6 @@ class OllamaHandler(LLMHandler):
             ExtraSettings.EntrySetting("api", _("API Key"), _("Ollama API key"), "", password=True),
             ExtraSettings.EntrySetting("endpoint", _("API Endpoint"), _("API base url, change this to use interference APIs"), "http://localhost:11434"),
             ExtraSettings.ToggleSetting("serve", _("Automatically Serve"), _("Automatically run ollama serve in background when needed if it's not running. You can kill it with killall ollama"), False),
-            ExtraSettings.ToggleSetting("thinking", _("Enable Thinking"), _("Allow thinking in the model, only some models are supported"), True, website="https://ollama.com/search?c=thinking"),
             ExtraSettings.ToggleSetting("native_tool_calling", _("Native Tool Calling"), _("Enable native tool calling (Will use API's tool calling formatting instead of Newelle's. Disable only if you have issues with tool calling or the model you are using does not support it natively)"), True),
             ExtraSettings.ToggleSetting("custom_model", _("Custom Model"), _("Use a custom model"), False, update_settings=True),
         ]
@@ -307,13 +356,15 @@ class OllamaHandler(LLMHandler):
                     _("Name of the Ollama Model"),
                     self.models,
                     default,
+                    update_settings=True,
                     refresh= lambda x: self.get_models(manual=True),
                 )
             )
         else:
             settings.append(
-                ExtraSettings.EntrySetting("model", _("Ollama Model"), _("Name of the Ollama Model"), default)
+                ExtraSettings.EntrySetting("model", _("Ollama Model"), _("Name of the Ollama Model"), default, update_settings=True)
             )
+        settings += self.get_thinking_settings()
         settings.append(get_streaming_extra_setting())
         settings.append(ExtraSettings.ButtonSetting("update", _("Update Ollama"), _("Update Ollama"), lambda _x: self.install_in_background(_("Update Ollama")), _("Update Ollama")))
         return settings
@@ -548,8 +599,12 @@ class OllamaHandler(LLMHandler):
             }
             if tools_list:
                 kwargs["tools"] = tools_list
-            response = client.chat(**kwargs, think=self.get_setting("thinking"))
-            content = response["message"].get("content", "")
+            kwargs.update(self.get_thinking_params())
+            response = client.chat(**kwargs)
+            content = response["message"].get("content") or ""
+            reasoning = response["message"].get("thinking")
+            if reasoning:
+                content = "<think>" + reasoning + "</think>" + content
             if "tool_calls" in response["message"] and response["message"]["tool_calls"]:
                  for tool in response["message"]["tool_calls"]:
                         tool_name = tool.function.name 
@@ -561,9 +616,6 @@ class OllamaHandler(LLMHandler):
             raise e
     
     def generate_text_stream(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = [], on_update: Callable[[str], Any] = lambda _: None, extra_args: list = []) -> str:
-        if self.get_setting("thinking") is False:
-            prompt = "/no_think\n" + prompt
-            
         native_tool_calling = self.get_setting("native_tool_calling", False, True)
         if native_tool_calling:
             tools_list, system_prompt = extract_tools_from_prompts(system_prompt)
@@ -586,8 +638,8 @@ class OllamaHandler(LLMHandler):
                 "model": self.get_setting("model"),
                 "messages": messages,
                 "stream": True,
-                "think": self.get_setting("thinking")
             }
+            kwargs.update(self.get_thinking_params())
             if tools_list:
                 kwargs["tools"] = tools_list
             response = client.chat(**kwargs)
@@ -595,24 +647,17 @@ class OllamaHandler(LLMHandler):
             prev_message = ""
             thinking = False
             for chunk in response:
-                if "thinking" in chunk["message"] and chunk["message"]["thinking"] is not None:
+                if chunk["message"].get("thinking"):
                     if not thinking:
                         full_message += "<think>"
                         thinking = True
                     full_message += chunk["message"]["thinking"]
-                    args = (full_message.strip(), ) + tuple(extra_args)
-                    if len(full_message) - len(prev_message) > 1:
-                        on_update(*args)
-                        prev_message = full_message
-                if len(chunk["message"]["content"]):
+                if chunk["message"].get("content"):
                     if thinking is True:
                         thinking = False
                         full_message += "</think>"
                     full_message += chunk["message"]["content"]
-                    args = (full_message.strip(), ) + tuple(extra_args)
-                    on_update(*args)
-                    prev_message = full_message
-                if "tool_calls" in chunk["message"] and chunk["message"]["tool_calls"] is not None:
+                if chunk["message"].get("tool_calls"):
                     if thinking:
                         thinking = False
                         full_message += "</think>"
@@ -621,6 +666,15 @@ class OllamaHandler(LLMHandler):
                         arguments = tool.function.arguments
                         call = "```json\n" + json.dumps({"tool": tool_name, "arguments": arguments}) + "\n```\n"
                         full_message += call
-            return full_message.strip()
+                visible_message = full_message.strip()
+                if visible_message != prev_message:
+                    on_update(visible_message, *extra_args)
+                    prev_message = visible_message
+            if thinking:
+                full_message += "</think>"
+            full_message = full_message.strip()
+            if full_message != prev_message:
+                on_update(full_message, *extra_args)
+            return full_message
         except Exception as e:
             raise e
