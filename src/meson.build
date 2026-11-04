@@ -233,6 +233,7 @@ websearch_sources = [
   'handlers/websearch/tavily.py',
   'handlers/websearch/tinyfish_handler.py',
   'handlers/websearch/deepseek_handler.py',
+  'handlers/websearch/outcrawl_handler.py',
   ]
 
 image_generator_sources = [
