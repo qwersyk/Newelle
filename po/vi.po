@@ -1,0 +1,2642 @@
+# Vietnamese translation for newelle.
+# Copyright (C) 2026 newelle's authors
+# This file is distributed under the same license as the newelle package.
+# dinhkarate <dinhkarat@gmail.com>, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: newelle\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-08-11 01:45+0800\n"
+"PO-Revision-Date: 2026-11-04 12:00+0700\n"
+"Last-Translator: dinhkarate <dinhkarat@gmail.com>\n"
+"Language-Team: Vietnamese\n"
+"Language: vi\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: src/handlers/embeddings/ollama_handler.py:32
+#: src/handlers/embeddings/openai_handler.py:38
+#: src/handlers/llm/ollama_handler.py:150 src/handlers/llm/openai_handler.py:75
+#: src/handlers/stt/openaisr_handler.py:10
+msgid "API Endpoint"
+msgstr "Điểm cuối API"
+
+#: src/handlers/embeddings/ollama_handler.py:32
+#: src/handlers/llm/ollama_handler.py:150 src/handlers/llm/openai_handler.py:75
+msgid "API base url, change this to use interference APIs"
+msgstr "URL gốc của API, thay đổi giá trị này để dùng các API suy luận"
+
+#: src/handlers/embeddings/ollama_handler.py:33
+#: src/handlers/llm/ollama_handler.py:151
+msgid "Automatically Serve"
+msgstr "Tự động chạy máy chủ"
+
+#: src/handlers/embeddings/ollama_handler.py:33
+#: src/handlers/llm/ollama_handler.py:151
+msgid ""
+"Automatically run ollama serve in background when needed if it's not "
+"running. You can kill it with killall ollama"
+msgstr ""
+"Tự động chạy ollama serve ở chế độ nền khi cần nếu nó chưa chạy. Bạn có thể "
+"dừng nó bằng lệnh killall ollama"
+
+#: src/handlers/embeddings/ollama_handler.py:34
+#: src/handlers/llm/ollama_handler.py:153
+msgid "Custom Model"
+msgstr "Mô hình tùy chỉnh"
+
+#: src/handlers/embeddings/ollama_handler.py:34
+#: src/handlers/embeddings/openai_handler.py:41
+#: src/handlers/llm/claude_handler.py:85 src/handlers/llm/ollama_handler.py:153
+#: src/handlers/llm/openai_handler.py:78
+msgid "Use a custom model"
+msgstr "Dùng mô hình tùy chỉnh"
+
+#: src/handlers/embeddings/ollama_handler.py:40
+#: src/handlers/embeddings/ollama_handler.py:49
+#: src/handlers/llm/ollama_handler.py:159
+#: src/handlers/llm/ollama_handler.py:168
+msgid "Ollama Model"
+msgstr "Mô hình Ollama"
+
+#: src/handlers/embeddings/ollama_handler.py:41
+#: src/handlers/embeddings/ollama_handler.py:49
+#: src/handlers/llm/ollama_handler.py:160
+#: src/handlers/llm/ollama_handler.py:168
+msgid "Name of the Ollama Model"
+msgstr "Tên mô hình Ollama"
+
+#: src/handlers/embeddings/openai_handler.py:35
+#: src/handlers/llm/claude_handler.py:84 src/handlers/llm/openai_handler.py:72
+#: src/handlers/stt/googlesr_handler.py:13
+#: src/handlers/stt/groqsr_handler.py:13
+#: src/handlers/stt/openaisr_handler.py:17 src/handlers/stt/witai_handler.py:12
+#: src/handlers/tts/custom_openai_tts.py:18
+#: src/handlers/tts/groq_tts_handler.py:32
+#: src/handlers/tts/openai_tts_handler.py:18
+#: src/handlers/tts/elevenlabs_handler.py:10
+msgid "API Key"
+msgstr "Khóa API"
+
+#: src/handlers/embeddings/openai_handler.py:35
+#: src/handlers/llm/openai_handler.py:72
+msgid "API Key for "
+msgstr "Khóa API cho "
+
+#: src/handlers/embeddings/openai_handler.py:38
+msgid "API base url, change this to use different APIs"
+msgstr "URL gốc của API, thay đổi giá trị này để dùng các API khác"
+
+#: src/handlers/embeddings/openai_handler.py:41
+#: src/handlers/llm/openai_handler.py:78
+msgid "Use Custom Model"
+msgstr "Dùng mô hình tùy chỉnh"
+
+#: src/handlers/embeddings/openai_handler.py:44
+#: src/handlers/llm/claude_handler.py:89 src/handlers/llm/claude_handler.py:93
+#: src/handlers/llm/g4f_handler.py:44 src/handlers/llm/gemini_handler.py:97
+#: src/handlers/llm/openai_handler.py:84 src/handlers/stt/whisper_handler.py:15
+#: src/handlers/stt/whispercpp_handler.py:40
+#: src/handlers/tts/custom_openai_tts.py:20
+#: src/handlers/tts/groq_tts_handler.py:34
+#: src/handlers/tts/openai_tts_handler.py:20
+#: src/handlers/tts/elevenlabs_handler.py:25
+msgid "Model"
+msgstr "Mô hình"
+
+#: src/handlers/embeddings/openai_handler.py:44
+msgid "Name of the Embedding Model to use"
+msgstr "Tên mô hình embedding cần dùng"
+
+#: src/handlers/embeddings/openai_handler.py:51
+#: src/handlers/llm/openai_handler.py:91
+msgid " Model"
+msgstr " – mô hình"
+
+#: src/handlers/llm/claude_handler.py:84
+#: src/handlers/tts/custom_openai_tts.py:18
+#: src/handlers/tts/groq_tts_handler.py:32
+#: src/handlers/tts/openai_tts_handler.py:18
+msgid "The API key to use"
+msgstr "Khóa API cần dùng"
+
+#: src/handlers/llm/claude_handler.py:89 src/handlers/llm/claude_handler.py:93
+#: src/handlers/tts/custom_openai_tts.py:20
+#: src/handlers/tts/groq_tts_handler.py:34
+#: src/handlers/tts/openai_tts_handler.py:20
+msgid "The model to use"
+msgstr "Mô hình cần dùng"
+
+#: src/handlers/llm/claude_handler.py:96
+msgid "Max Tokens"
+msgstr "Số token tối đa"
+
+#: src/handlers/llm/claude_handler.py:96
+msgid "The maximum number of tokens to generate"
+msgstr "Số token tối đa được tạo ra"
+
+#: src/handlers/llm/custom_handler.py:20
+#: src/handlers/llm/gpt4all_handler.py:153
+#: src/handlers/llm/newelle_handler.py:27
+#: src/handlers/llm/gemini_handler.py:119 src/utility/util.py:136
+msgid "Message Streaming"
+msgstr "Truyền phát tin nhắn"
+
+#: src/handlers/llm/custom_handler.py:20
+#: src/handlers/llm/gpt4all_handler.py:153
+#: src/handlers/llm/newelle_handler.py:28
+#: src/handlers/llm/gemini_handler.py:120 src/utility/util.py:137
+msgid "Gradually stream message output"
+msgstr "Hiển thị dần nội dung tin nhắn khi đang tạo"
+
+#: src/handlers/llm/custom_handler.py:21
+msgid "Command to execute to get bot output"
+msgstr "Lệnh cần chạy để lấy đầu ra của bot"
+
+#: src/handlers/llm/custom_handler.py:21
+#, python-brace-format
+msgid ""
+"Command to execute to get bot response, {0} will be replaced with a JSON "
+"file containing the chat, {1} with the system prompt"
+msgstr ""
+"Lệnh cần chạy để lấy phản hồi của bot, {0} sẽ được thay bằng một tệp JSON "
+"chứa cuộc trò chuyện, {1} bằng lời nhắc hệ thống"
+
+#: src/handlers/llm/custom_handler.py:22
+msgid "Command to execute to get bot's suggestions"
+msgstr "Lệnh cần chạy để lấy gợi ý của bot"
+
+#: src/handlers/llm/custom_handler.py:22
+#, python-brace-format
+msgid ""
+"Command to execute to get chat suggestions, {0} will be replaced with a JSON "
+"file containing the chat, {1} with the extra prompts, {2} with the numer of "
+"suggestions to generate. Must return a JSON array containing the suggestions "
+"as strings"
+msgstr ""
+"Lệnh cần chạy để lấy gợi ý trò chuyện, {0} sẽ được thay bằng một tệp JSON "
+"chứa cuộc trò chuyện, {1} bằng các lời nhắc bổ sung, {2} bằng số gợi ý cần "
+"tạo. Lệnh phải trả về một mảng JSON chứa các gợi ý dưới dạng chuỗi"
+
+#: src/handlers/llm/gpt4all_handler.py:67
+msgid "RAM Required: "
+msgstr "RAM yêu cầu: "
+
+#: src/handlers/llm/gpt4all_handler.py:68
+msgid "Parameters: "
+msgstr "Tham số: "
+
+#: src/handlers/llm/gpt4all_handler.py:69
+msgid "Size: "
+msgstr "Kích thước: "
+
+#: src/handlers/llm/gpt4all_handler.py:154 src/handlers/llm/g4f_handler.py:44
+msgid "Model to use"
+msgstr "Mô hình cần dùng"
+
+#: src/handlers/llm/gpt4all_handler.py:154
+#: src/handlers/tts/elevenlabs_handler.py:26
+msgid "Name of the model to use"
+msgstr "Tên mô hình cần dùng"
+
+#: src/handlers/llm/gpt4all_handler.py:155
+#: src/handlers/llm/ollama_handler.py:172
+msgid "Model Manager"
+msgstr "Trình quản lý mô hình"
+
+#: src/handlers/llm/gpt4all_handler.py:155
+#: src/handlers/llm/ollama_handler.py:172
+msgid "List of models available"
+msgstr "Danh sách mô hình có sẵn"
+
+#: src/handlers/llm/g4f_handler.py:45
+msgid "Update G4F"
+msgstr "Cập nhật G4F"
+
+#: src/handlers/llm/newelle_handler.py:18
+#: src/handlers/llm/gemini_handler.py:131
+#: src/handlers/llm/openai_handler.py:112
+msgid "Privacy Policy"
+msgstr "Chính sách quyền riêng tư"
+
+#: src/handlers/llm/newelle_handler.py:19
+#: src/handlers/llm/gemini_handler.py:132
+#: src/handlers/llm/openai_handler.py:112
+msgid "Open privacy policy website"
+msgstr "Mở trang web chính sách quyền riêng tư"
+
+#: src/handlers/llm/ollama_handler.py:152
+#: src/handlers/llm/gemini_handler.py:110
+msgid "Enable Thinking"
+msgstr "Bật suy nghĩ"
+
+#: src/handlers/llm/ollama_handler.py:152
+msgid "Allow thinking in the model, only some models are supported"
+msgstr "Cho phép mô hình suy nghĩ, chỉ một số mô hình được hỗ trợ"
+
+#: src/handlers/llm/ollama_handler.py:176
+msgid "Add custom model"
+msgstr "Thêm mô hình tùy chỉnh"
+
+#: src/handlers/llm/ollama_handler.py:177
+msgid ""
+"Add any model to this list by putting name:size\n"
+"Or any gguf from hf with hf.co/username/model"
+msgstr ""
+"Thêm bất kỳ mô hình nào vào danh sách này bằng cách nhập tên:kích thước\n"
+"Hoặc bất kỳ gguf nào từ hf với hf.co/username/model"
+
+#: src/handlers/llm/ollama_handler.py:187
+msgid "Update Ollama"
+msgstr "Cập nhật Ollama"
+
+#: src/handlers/llm/gemini_handler.py:94
+msgid "API Key (required)"
+msgstr "Khóa API (bắt buộc)"
+
+#: src/handlers/llm/gemini_handler.py:94
+msgid "API key got from ai.google.dev"
+msgstr "Khóa API lấy từ ai.google.dev"
+
+#: src/handlers/llm/gemini_handler.py:98
+msgid "AI Model to use"
+msgstr "Mô hình AI cần dùng"
+
+#: src/handlers/llm/gemini_handler.py:103
+msgid "Enable System Prompt"
+msgstr "Bật lời nhắc hệ thống"
+
+#: src/handlers/llm/gemini_handler.py:103
+msgid ""
+"Some models don't support system prompt (or developers instructions), "
+"disable it if you get errors about it"
+msgstr ""
+"Một số mô hình không hỗ trợ lời nhắc hệ thống (hoặc chỉ dẫn của nhà phát "
+"triển), hãy tắt tùy chọn này nếu bạn gặp lỗi liên quan"
+
+#: src/handlers/llm/gemini_handler.py:107
+msgid "Inject system prompt"
+msgstr "Chèn lời nhắc hệ thống"
+
+#: src/handlers/llm/gemini_handler.py:107
+msgid ""
+"Even if the model doesn't support system prompts, put the prompts on top of "
+"the user message"
+msgstr ""
+"Ngay cả khi mô hình không hỗ trợ lời nhắc hệ thống, vẫn đặt các lời nhắc lên "
+"đầu tin nhắn của người dùng"
+
+#: src/handlers/llm/gemini_handler.py:109
+msgid "Thinking Settings"
+msgstr "Cài đặt suy nghĩ"
+
+#: src/handlers/llm/gemini_handler.py:109
+msgid "Settings about thinking models"
+msgstr "Cài đặt cho các mô hình suy nghĩ"
+
+#: src/handlers/llm/gemini_handler.py:110
+msgid "Show thinking, disable it if your model does not support it"
+msgstr "Hiển thị quá trình suy nghĩ, hãy tắt nếu mô hình của bạn không hỗ trợ"
+
+#: src/handlers/llm/gemini_handler.py:111
+msgid "Enable Thinking Budget"
+msgstr "Bật ngân sách suy nghĩ"
+
+#: src/handlers/llm/gemini_handler.py:111
+msgid "If to enable thinking budget"
+msgstr "Có bật ngân sách suy nghĩ hay không"
+
+#: src/handlers/llm/gemini_handler.py:112
+msgid "Thinking Budget"
+msgstr "Ngân sách suy nghĩ"
+
+#: src/handlers/llm/gemini_handler.py:112
+msgid "How much time to spend thinking"
+msgstr "Thời gian dành cho việc suy nghĩ"
+
+#: src/handlers/llm/gemini_handler.py:116
+msgid "Image Output"
+msgstr "Đầu ra hình ảnh"
+
+#: src/handlers/llm/gemini_handler.py:116
+msgid "Enable image output, only supported by gemini-2.0-flash-exp"
+msgstr "Bật đầu ra hình ảnh, chỉ được hỗ trợ bởi gemini-2.0-flash-exp"
+
+#: src/handlers/llm/gemini_handler.py:125
+msgid "Enable safety settings"
+msgstr "Bật cài đặt an toàn"
+
+#: src/handlers/llm/gemini_handler.py:126
+msgid "Enable google safety settings to avoid generating harmful content"
+msgstr "Bật cài đặt an toàn của Google để tránh tạo nội dung có hại"
+
+#: src/handlers/llm/gemini_handler.py:135 src/handlers/llm/openai_handler.py:81
+msgid "Advanced Parameters"
+msgstr "Tham số nâng cao"
+
+#: src/handlers/llm/gemini_handler.py:135
+msgid "Enable advanced parameters"
+msgstr "Bật tham số nâng cao"
+
+#: src/handlers/llm/openai_handler.py:81
+msgid "Include parameters like Top-P, Temperature, etc."
+msgstr "Bao gồm các tham số như Top-P, nhiệt độ, v.v."
+
+#: src/handlers/llm/openai_handler.py:84
+msgid "Name of the LLM Model to use"
+msgstr "Tên mô hình LLM cần dùng"
+
+#: src/handlers/llm/openai_handler.py:103
+msgid "Top-P"
+msgstr "Top-P"
+
+#: src/handlers/llm/openai_handler.py:103
+msgid "An alternative to sampling with temperature, called nucleus sampling"
+msgstr ""
+"Một cách thay thế cho lấy mẫu theo nhiệt độ, gọi là lấy mẫu hạt nhân "
+"(nucleus sampling)"
+
+#: src/handlers/llm/openai_handler.py:104
+#: src/handlers/stt/whispercpp_handler.py:50
+msgid "Temperature"
+msgstr "Nhiệt độ"
+
+#: src/handlers/llm/openai_handler.py:104
+msgid ""
+"What sampling temperature to use. Higher values will make the output more "
+"random"
+msgstr "Nhiệt độ lấy mẫu cần dùng. Giá trị càng cao thì đầu ra càng ngẫu nhiên"
+
+#: src/handlers/llm/openai_handler.py:105
+msgid "Frequency Penalty"
+msgstr "Phạt tần suất"
+
+#: src/handlers/llm/openai_handler.py:105
+msgid ""
+"Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
+"to repeat the same line verbatim"
+msgstr ""
+"Số từ -2.0 đến 2.0. Giá trị dương làm giảm khả năng mô hình lặp lại nguyên "
+"văn cùng một dòng"
+
+#: src/handlers/llm/openai_handler.py:106
+msgid "Presence Penalty"
+msgstr "Phạt hiện diện"
+
+#: src/handlers/llm/openai_handler.py:106
+msgid ""
+"Number between -2.0 and 2.0. Positive values decrease the model's likelihood "
+"to talk about new topics"
+msgstr ""
+"Số từ -2.0 đến 2.0. Giá trị dương làm giảm khả năng mô hình nói về chủ đề mới"
+
+#: src/handlers/llm/openai_handler.py:108
+msgid "Custom Options"
+msgstr "Tùy chọn riêng"
+
+#: src/handlers/llm/openai_handler.py:108
+msgid "Provide a JSON containing the custom options"
+msgstr "Cung cấp một JSON chứa các tùy chọn riêng"
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Provider Sorting"
+msgstr "Sắp xếp nhà cung cấp"
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Choose providers based on pricing/throughput or latency"
+msgstr "Chọn nhà cung cấp dựa trên giá/thông lượng hoặc độ trễ"
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Price"
+msgstr "Giá"
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Throughput"
+msgstr "Thông lượng"
+
+#: src/handlers/llm/openrouter_handler.py:14
+msgid "Latency"
+msgstr "Độ trễ"
+
+#: src/handlers/llm/openrouter_handler.py:15
+msgid "Providers Order"
+msgstr "Thứ tự nhà cung cấp"
+
+#: src/handlers/llm/openrouter_handler.py:15
+msgid ""
+"Add order of providers to use, names separated by a comma.\n"
+"Empty to not specify"
+msgstr ""
+"Nhập thứ tự các nhà cung cấp cần dùng, tên cách nhau bằng dấu phẩy.\n"
+"Để trống nếu không chỉ định"
+
+#: src/handlers/llm/openrouter_handler.py:16
+msgid "Allow Fallbacks"
+msgstr "Cho phép dự phòng"
+
+#: src/handlers/llm/openrouter_handler.py:16
+msgid "Allow fallbacks to other providers"
+msgstr "Cho phép chuyển dự phòng sang nhà cung cấp khác"
+
+#: src/handlers/rag/rag_handler.py:104
+msgid "Index your documents"
+msgstr "Lập chỉ mục tài liệu"
+
+#: src/handlers/rag/rag_handler.py:105
+msgid ""
+"Index all the documents in your document folder. You have to run this "
+"operation every time you edit/create a document, change document analyzer or "
+"change embedding model"
+msgstr ""
+"Lập chỉ mục tất cả tài liệu trong thư mục tài liệu của bạn. Bạn phải chạy "
+"thao tác này mỗi khi sửa/tạo tài liệu, đổi trình phân tích tài liệu hoặc đổi "
+"mô hình embedding"
+
+#: src/handlers/stt/custom_handler.py:13 src/handlers/tts/custom_handler.py:17
+msgid "Command to execute"
+msgstr "Lệnh cần chạy"
+
+#: src/handlers/stt/custom_handler.py:14
+#, python-brace-format
+msgid "{0} will be replaced with the model fullpath"
+msgstr "{0} sẽ được thay bằng đường dẫn đầy đủ của mô hình"
+
+#: src/handlers/stt/googlesr_handler.py:14
+msgid "API Key for Google SR, write 'default' to use the default one"
+msgstr "Khóa API cho Google SR, nhập “default” để dùng khóa mặc định"
+
+#: src/handlers/stt/googlesr_handler.py:21
+#: src/handlers/stt/groqsr_handler.py:29
+#: src/handlers/stt/openaisr_handler.py:32
+#: src/handlers/stt/whispercpp_handler.py:47
+msgid "Language"
+msgstr "Ngôn ngữ"
+
+#: src/handlers/stt/googlesr_handler.py:22
+msgid "The language of the text to recgnize in IETF"
+msgstr "Ngôn ngữ của văn bản cần nhận dạng theo chuẩn IETF"
+
+#: src/handlers/stt/groqsr_handler.py:14
+msgid "API Key for Groq SR, write 'default' to use the default one"
+msgstr "Khóa API cho Groq SR, nhập “default” để dùng khóa mặc định"
+
+#: src/handlers/stt/groqsr_handler.py:21
+msgid "Groq Model"
+msgstr "Mô hình Groq"
+
+#: src/handlers/stt/groqsr_handler.py:22
+msgid "Name of the Groq Model"
+msgstr "Tên mô hình Groq"
+
+#: src/handlers/stt/groqsr_handler.py:30
+msgid ""
+"Specify the language for transcription. Use ISO 639-1 language codes (e.g. "
+"\"en\" for English, \"fr\" for French, etc.). "
+msgstr ""
+"Chỉ định ngôn ngữ để chuyển thành văn bản. Dùng mã ngôn ngữ ISO 639-1 (ví dụ "
+"“en” cho tiếng Anh, “fr” cho tiếng Pháp, v.v.). "
+
+#: src/handlers/stt/openaisr_handler.py:11
+msgid "Endpoint for OpenAI requests"
+msgstr "Điểm cuối cho các yêu cầu OpenAI"
+
+#: src/handlers/stt/openaisr_handler.py:18
+msgid "API Key for OpenAI"
+msgstr "Khóa API cho OpenAI"
+
+#: src/handlers/stt/openaisr_handler.py:25
+msgid "Whisper Model"
+msgstr "Mô hình Whisper"
+
+#: src/handlers/stt/openaisr_handler.py:26
+msgid "Name of the OpenAI model"
+msgstr "Tên mô hình OpenAI"
+
+#: src/handlers/stt/openaisr_handler.py:33
+msgid ""
+"Optional: Specify the language for transcription. Use ISO 639-1 language "
+"codes (e.g. \"en\" for English, \"fr\" for French, etc.). "
+msgstr ""
+"Không bắt buộc: chỉ định ngôn ngữ để chuyển thành văn bản. Dùng mã ngôn "
+"ngữ ISO 639-1 (ví dụ “en” cho tiếng Anh, “fr” cho tiếng Pháp, v.v.). "
+
+#: src/handlers/stt/vosk_handler.py:17
+msgid "Model Path"
+msgstr "Đường dẫn mô hình"
+
+#: src/handlers/stt/vosk_handler.py:18
+msgid "Absolute path to the VOSK model (unzipped)"
+msgstr "Đường dẫn tuyệt đối tới mô hình VOSK (đã giải nén)"
+
+#: src/handlers/stt/whisper_handler.py:16
+#: src/handlers/stt/whispercpp_handler.py:41
+msgid "Name of the Whisper model"
+msgstr "Tên mô hình Whisper"
+
+#: src/handlers/stt/witai_handler.py:13
+msgid "Server Access Token for wit.ai"
+msgstr "Mã truy cập máy chủ cho wit.ai"
+
+#: src/handlers/stt/sphinx_handler.py:19
+msgid "Could not understand the audio"
+msgstr "Không thể hiểu được âm thanh"
+
+#: src/handlers/stt/whispercpp_handler.py:47
+msgid "Language of the recognition. For example en, it..."
+msgstr "Ngôn ngữ nhận dạng. Ví dụ en, it…"
+
+#: src/handlers/stt/whispercpp_handler.py:48
+msgid "Model Library"
+msgstr "Thư viện mô hình"
+
+#: src/handlers/stt/whispercpp_handler.py:48
+msgid "Manage Whisper models"
+msgstr "Quản lý mô hình Whisper"
+
+#: src/handlers/stt/whispercpp_handler.py:49
+msgid "Advanced Settings"
+msgstr "Cài đặt nâng cao"
+
+#: src/handlers/stt/whispercpp_handler.py:49
+msgid "More advanced settings"
+msgstr "Các cài đặt nâng cao khác"
+
+#: src/handlers/stt/whispercpp_handler.py:50
+msgid "Temperature to use"
+msgstr "Nhiệt độ cần dùng"
+
+#: src/handlers/stt/whispercpp_handler.py:51
+msgid "Prompt for the recognition"
+msgstr "Lời nhắc cho việc nhận dạng"
+
+#: src/handlers/stt/whispercpp_handler.py:51
+msgid "Prompt to use for the recognition"
+msgstr "Lời nhắc dùng cho việc nhận dạng"
+
+#: src/handlers/tts/custom_openai_tts.py:17
+msgid "Endpoint"
+msgstr "Điểm cuối"
+
+#: src/handlers/tts/custom_openai_tts.py:17
+msgid "Custom endpoint of the service to use"
+msgstr "Điểm cuối tùy chỉnh của dịch vụ cần dùng"
+
+#: src/handlers/tts/custom_openai_tts.py:19
+#: src/handlers/tts/groq_tts_handler.py:33
+#: src/handlers/tts/openai_tts_handler.py:19
+#: src/handlers/tts/elevenlabs_handler.py:18 src/handlers/tts/tts.py:33
+#: src/ui/settings.py:129
+msgid "Voice"
+msgstr "Giọng nói"
+
+#: src/handlers/tts/custom_openai_tts.py:19
+#: src/handlers/tts/groq_tts_handler.py:33
+#: src/handlers/tts/openai_tts_handler.py:19
+msgid "The voice to use"
+msgstr "Giọng nói cần dùng"
+
+#: src/handlers/tts/custom_openai_tts.py:21
+#: src/handlers/tts/openai_tts_handler.py:21
+msgid "Instructions"
+msgstr "Chỉ dẫn"
+
+#: src/handlers/tts/custom_openai_tts.py:21
+#: src/handlers/tts/openai_tts_handler.py:21
+msgid ""
+"Instructions for the voice generation. Leave it blank to avoid this field"
+msgstr "Chỉ dẫn cho việc tạo giọng nói. Để trống để bỏ qua trường này"
+
+#: src/handlers/tts/custom_handler.py:17
+#, python-brace-format
+msgid "{0} will be replaced with the file fullpath, {1} with the text"
+msgstr "{0} sẽ được thay bằng đường dẫn đầy đủ của tệp, {1} bằng văn bản"
+
+#: src/handlers/tts/elevenlabs_handler.py:11
+msgid "API Key for ElevenLabs"
+msgstr "Khóa API cho ElevenLabs"
+
+#: src/handlers/tts/elevenlabs_handler.py:19
+msgid "Voice ID to use"
+msgstr "ID giọng nói cần dùng"
+
+#: src/handlers/tts/elevenlabs_handler.py:33
+msgid "Stability"
+msgstr "Độ ổn định"
+
+#: src/handlers/tts/elevenlabs_handler.py:34
+msgid "stability of the voice"
+msgstr "độ ổn định của giọng nói"
+
+#: src/handlers/tts/elevenlabs_handler.py:43
+msgid "Similarity boost"
+msgstr "Tăng độ tương đồng"
+
+#: src/handlers/tts/elevenlabs_handler.py:44
+msgid "Boosts overall voice clarity and speaker similarity"
+msgstr "Tăng độ rõ ràng chung của giọng nói và độ giống với người nói"
+
+#: src/handlers/tts/elevenlabs_handler.py:53
+msgid "Style exaggeration"
+msgstr "Cường điệu phong cách"
+
+#: src/handlers/tts/elevenlabs_handler.py:54
+msgid ""
+"High values are reccomended if the style of the speech must be exaggerated"
+msgstr "Nên dùng giá trị cao nếu cần cường điệu phong cách của giọng nói"
+
+#: src/handlers/tts/tts.py:34
+msgid "Choose the preferred voice"
+msgstr "Chọn giọng nói ưa thích"
+
+#: src/handlers/websearch/tavily.py:20
+msgid "Token"
+msgstr "Mã token"
+
+#: src/handlers/websearch/tavily.py:20
+msgid "Tavily API key"
+msgstr "Khóa API Tavily"
+
+#: src/handlers/websearch/tavily.py:21
+#: src/handlers/websearch/duckduckgo_handler.py:14
+msgid "Max Results"
+msgstr "Số kết quả tối đa"
+
+#: src/handlers/websearch/tavily.py:21
+#: src/handlers/websearch/duckduckgo_handler.py:14
+msgid "Number of results to consider"
+msgstr "Số kết quả cần xem xét"
+
+#: src/handlers/websearch/tavily.py:22
+msgid "The depth of the search"
+msgstr "Độ sâu tìm kiếm"
+
+#: src/handlers/websearch/tavily.py:22
+msgid ""
+"The depth of the search. Advanced search is tailored to retrieve the most "
+"relevant sources and content snippets for your query, while basic search "
+"provides generic content snippets from each source. A basic search costs 1 "
+"API Credit, while an advanced search costs 2 API Credits."
+msgstr ""
+"Độ sâu tìm kiếm. Tìm kiếm nâng cao được thiết kế để lấy các nguồn và đoạn "
+"nội dung liên quan nhất tới truy vấn của bạn, còn tìm kiếm cơ bản cung cấp "
+"các đoạn nội dung chung từ mỗi nguồn. Một lần tìm kiếm cơ bản tốn 1 tín dụng "
+"API, còn một lần tìm kiếm nâng cao tốn 2 tín dụng API."
+
+#: src/handlers/websearch/tavily.py:23
+msgid "The category of the search"
+msgstr "Danh mục tìm kiếm"
+
+#: src/handlers/websearch/tavily.py:23
+msgid ""
+"The category of the search. News is useful for retrieving real-time updates, "
+"particularly about politics, sports, and major current events covered by "
+"mainstream media sources. General is for broader, more general-purpose "
+"searches that may include a wide range of sources."
+msgstr ""
+"Danh mục tìm kiếm. Tin tức hữu ích để lấy thông tin cập nhật theo thời gian "
+"thực, đặc biệt về chính trị, thể thao và các sự kiện thời sự lớn được các "
+"nguồn truyền thông chính thống đưa tin. Chung dành cho các tìm kiếm rộng "
+"hơn, đa mục đích, có thể bao gồm nhiều loại nguồn."
+
+#: src/handlers/websearch/tavily.py:24
+msgid "Chunks per source"
+msgstr "Số đoạn mỗi nguồn"
+
+#: src/handlers/websearch/tavily.py:24
+msgid ""
+"The number of content chunks to retrieve from each source. Each chunk's "
+"length is maximum 500 characters. Available only when search depth is "
+"advanced."
+msgstr ""
+"Số đoạn nội dung cần lấy từ mỗi nguồn. Mỗi đoạn dài tối đa 500 ký tự. Chỉ "
+"khả dụng khi độ sâu tìm kiếm là nâng cao."
+
+#: src/handlers/websearch/tavily.py:25
+msgid "Number of days back from the current date to include"
+msgstr "Số ngày tính ngược từ hôm nay cần bao gồm"
+
+#: src/handlers/websearch/tavily.py:25
+msgid "Available only if topic is news."
+msgstr "Chỉ khả dụng nếu chủ đề là tin tức."
+
+#: src/handlers/websearch/tavily.py:26
+msgid "Include answer"
+msgstr "Bao gồm câu trả lời"
+
+#: src/handlers/websearch/tavily.py:26
+msgid ""
+"Include an LLM-generated answer to the provided query. Basic search returns "
+"a quick answer. Advanced returns a more detailed answer."
+msgstr ""
+"Bao gồm câu trả lời do LLM tạo cho truy vấn đã cung cấp. Tìm kiếm cơ bản trả "
+"về câu trả lời nhanh. Tìm kiếm nâng cao trả về câu trả lời chi tiết hơn."
+
+#: src/handlers/websearch/tavily.py:27
+msgid "Include raw content"
+msgstr "Bao gồm nội dung thô"
+
+#: src/handlers/websearch/tavily.py:27
+msgid "Include the cleaned and parsed HTML content of each search result."
+msgstr ""
+"Bao gồm nội dung HTML đã được làm sạch và phân tích của mỗi kết quả tìm kiếm."
+
+#: src/handlers/websearch/tavily.py:28
+msgid "Include images"
+msgstr "Bao gồm hình ảnh"
+
+#: src/handlers/websearch/tavily.py:28
+msgid "Perform an image search and include the results in the response."
+msgstr "Thực hiện tìm kiếm hình ảnh và đưa kết quả vào phản hồi."
+
+#: src/handlers/websearch/tavily.py:29
+msgid "Include image descriptions"
+msgstr "Bao gồm mô tả hình ảnh"
+
+#: src/handlers/websearch/tavily.py:29
+msgid ""
+"When Include images is enabled, also add a descriptive text for each image."
+msgstr "Khi bật “Bao gồm hình ảnh”, thêm cả văn bản mô tả cho mỗi hình ảnh."
+
+#: src/handlers/websearch/tavily.py:30
+msgid "Include domains"
+msgstr "Bao gồm tên miền"
+
+#: src/handlers/websearch/tavily.py:30
+msgid "A list of domains to specifically include in the search results."
+msgstr "Danh sách tên miền cần đưa vào kết quả tìm kiếm."
+
+#: src/handlers/websearch/tavily.py:31
+msgid "Exclude domains"
+msgstr "Loại trừ tên miền"
+
+#: src/handlers/websearch/tavily.py:31
+msgid "A list of domains to specifically exclude from the search results."
+msgstr "Danh sách tên miền cần loại khỏi kết quả tìm kiếm."
+
+#: src/handlers/websearch/duckduckgo_handler.py:15
+msgid "Region"
+msgstr "Khu vực"
+
+#: src/handlers/websearch/duckduckgo_handler.py:15
+msgid "Region for the search results"
+msgstr "Khu vực cho kết quả tìm kiếm"
+
+#: src/ui/profile.py:33 src/window.py:119
+msgid "Settings"
+msgstr "Cài đặt"
+
+#: src/ui/profile.py:53
+msgid "Profile Name"
+msgstr "Tên hồ sơ"
+
+#: src/ui/profile.py:58
+msgid "Copied Settings"
+msgstr "Cài đặt được sao chép"
+
+#: src/ui/profile.py:58
+msgid "Settings that will be copied to the new profile"
+msgstr "Các cài đặt sẽ được sao chép sang hồ sơ mới"
+
+#: src/ui/profile.py:70
+msgid "Create Profile"
+msgstr "Tạo hồ sơ"
+
+#: src/ui/profile.py:72 src/ui/profile.py:74 src/ui/profile.py:129
+msgid "Import Profile"
+msgstr "Nhập hồ sơ"
+
+#: src/ui/profile.py:79 src/ui/widgets/profilerow.py:43
+msgid "Edit Profile"
+msgstr "Sửa hồ sơ"
+
+#: src/ui/profile.py:84 src/ui/profile.py:99 src/ui/profile.py:123
+msgid "Export Profile"
+msgstr "Xuất hồ sơ"
+
+#: src/ui/profile.py:87
+msgid "Export Passwords"
+msgstr "Xuất mật khẩu"
+
+#: src/ui/profile.py:87
+msgid "Also export password-like fields"
+msgstr "Xuất cả các trường kiểu mật khẩu"
+
+#: src/ui/profile.py:89
+msgid "Export Propic"
+msgstr "Xuất ảnh hồ sơ"
+
+#: src/ui/profile.py:89
+msgid "Also export the profile picture"
+msgstr "Xuất cả ảnh hồ sơ"
+
+#: src/ui/profile.py:109 src/ui/explorer.py:692
+msgid "Create"
+msgstr "Tạo"
+
+#: src/ui/profile.py:109
+msgid "Apply"
+msgstr "Áp dụng"
+
+#: src/ui/profile.py:116
+msgid "The settings of the current profile will be copied into the new one"
+msgstr "Cài đặt của hồ sơ hiện tại sẽ được sao chép sang hồ sơ mới"
+
+#: src/ui/profile.py:122 src/ui/profile.py:128
+msgid "Newelle Profiles"
+msgstr "Hồ sơ Newelle"
+
+#: src/ui/profile.py:123
+msgid "Export"
+msgstr "Xuất"
+
+#: src/ui/profile.py:129
+msgid "Import"
+msgstr "Nhập"
+
+#: src/ui/profile.py:197
+msgid "Set profile picture"
+msgstr "Đặt ảnh hồ sơ"
+
+#: src/ui/thread_editing.py:6 src/window.py:117
+msgid "Thread editing"
+msgstr "Quản lý luồng"
+
+#: src/ui/thread_editing.py:36
+msgid "No threads are running"
+msgstr "Không có luồng nào đang chạy"
+
+#: src/ui/thread_editing.py:42
+msgid "Thread number: "
+msgstr "Luồng số: "
+
+#: src/ui/widgets/profilerow.py:26
+msgid "Select profile"
+msgstr "Chọn hồ sơ"
+
+#: src/ui/widgets/profilerow.py:53
+msgid "Delete Profile"
+msgstr "Xóa hồ sơ"
+
+#: src/ui/widgets/thinking.py:26
+msgid "Thoughts"
+msgstr "Suy nghĩ"
+
+#: src/ui/widgets/thinking.py:27 src/ui/widgets/thinking.py:134
+msgid "Expand to see details"
+msgstr "Mở rộng để xem chi tiết"
+
+#: src/ui/widgets/thinking.py:122
+msgid "Thinking..."
+msgstr "Đang suy nghĩ…"
+
+#: src/ui/widgets/thinking.py:123
+msgid "The LLM is thinking... Expand to see thought process"
+msgstr "LLM đang suy nghĩ… Mở rộng để xem quá trình suy nghĩ"
+
+#: src/ui/widgets/thinking.py:136
+msgid "No thought process recorded"
+msgstr "Không có quá trình suy nghĩ nào được ghi lại"
+
+#: src/ui/widgets/tipscarousel.py:41
+msgid "Newelle Tips"
+msgstr "Mẹo dùng Newelle"
+
+#: src/ui/explorer.py:192
+msgid "Folder is Empty"
+msgstr "Thư mục trống"
+
+#: src/ui/explorer.py:340 src/window.py:1580
+msgid "File not found"
+msgstr "Không tìm thấy tệp"
+
+#: src/ui/explorer.py:355
+msgid "Open in new tab"
+msgstr "Mở trong thẻ mới"
+
+#: src/ui/explorer.py:357
+msgid "Open in integrated editor"
+msgstr "Mở trong trình soạn thảo tích hợp"
+
+#: src/ui/explorer.py:360 src/ui/explorer.py:589
+msgid "Open in file manager"
+msgstr "Mở trong trình quản lý tệp"
+
+#: src/ui/explorer.py:363 src/ui/explorer.py:451
+msgid "Rename"
+msgstr "Đổi tên"
+
+#: src/ui/explorer.py:366 src/ui/explorer.py:502 src/ui/settings.py:276
+#: src/ui/settings.py:362
+msgid "Delete"
+msgstr "Xóa"
+
+#: src/ui/explorer.py:369
+msgid "Copy full path"
+msgstr "Sao chép đường dẫn đầy đủ"
+
+#: src/ui/explorer.py:420 src/ui/explorer.py:657
+msgid "Failed to open file manager"
+msgstr "Không mở được trình quản lý tệp"
+
+#: src/ui/explorer.py:436
+msgid "New name:"
+msgstr "Tên mới:"
+
+#: src/ui/explorer.py:448 src/ui/explorer.py:501 src/ui/explorer.py:689
+#: src/main.py:209
+msgid "Cancel"
+msgstr "Hủy"
+
+#: src/ui/explorer.py:471
+msgid "Renamed successfully"
+msgstr "Đã đổi tên thành công"
+
+#: src/ui/explorer.py:476
+#, python-brace-format
+msgid "Failed to rename: {}"
+msgstr "Không đổi tên được: {}"
+
+#: src/ui/explorer.py:497
+msgid "Delete File?"
+msgstr "Xóa tệp?"
+
+#: src/ui/explorer.py:499
+#, python-brace-format
+msgid "Are you sure you want to delete \"{}\"?"
+msgstr "Bạn có chắc muốn xóa “{}” không?"
+
+#: src/ui/explorer.py:520
+msgid "Deleted successfully"
+msgstr "Đã xóa thành công"
+
+#: src/ui/explorer.py:525
+#, python-brace-format
+msgid "Failed to delete: {}"
+msgstr "Không xóa được: {}"
+
+#: src/ui/explorer.py:538
+msgid "Path copied to clipboard"
+msgstr "Đã sao chép đường dẫn vào bảng nhớ tạm"
+
+#: src/ui/explorer.py:542
+msgid "Failed to copy path"
+msgstr "Không sao chép được đường dẫn"
+
+#: src/ui/explorer.py:580
+msgid "Create new folder"
+msgstr "Tạo thư mục mới"
+
+#: src/ui/explorer.py:583
+msgid "Create new file"
+msgstr "Tạo tệp mới"
+
+#: src/ui/explorer.py:586
+msgid "Open Terminal Here"
+msgstr "Mở terminal tại đây"
+
+#: src/ui/explorer.py:640
+msgid "Create New Folder"
+msgstr "Tạo thư mục mới"
+
+#: src/ui/explorer.py:640
+msgid "Folder name:"
+msgstr "Tên thư mục:"
+
+#: src/ui/explorer.py:644
+msgid "Create New File"
+msgstr "Tạo tệp mới"
+
+#: src/ui/explorer.py:644
+msgid "File name:"
+msgstr "Tên tệp:"
+
+#: src/ui/explorer.py:713
+msgid "Folder created successfully"
+msgstr "Đã tạo thư mục thành công"
+
+#: src/ui/explorer.py:720
+msgid "File created successfully"
+msgstr "Đã tạo tệp thành công"
+
+#: src/ui/explorer.py:725
+msgid "A file or folder with that name already exists"
+msgstr "Đã có tệp hoặc thư mục mang tên này"
+
+#: src/ui/explorer.py:728
+msgid "folder"
+msgstr "thư mục"
+
+#: src/ui/explorer.py:728
+msgid "file"
+msgstr "tệp"
+
+#: src/ui/explorer.py:730
+#, python-brace-format
+msgid "Failed to create {}: {}"
+msgstr "Không tạo được {}: {}"
+
+#: src/ui/shortcuts.py:6
+msgid "Help"
+msgstr "Trợ giúp"
+
+#: src/ui/shortcuts.py:12
+msgid "Shortcuts"
+msgstr "Phím tắt"
+
+#: src/ui/shortcuts.py:13
+msgid "Reload chat"
+msgstr "Tải lại cuộc trò chuyện"
+
+#: src/ui/shortcuts.py:14
+msgid "Reload folder"
+msgstr "Tải lại thư mục"
+
+#: src/ui/shortcuts.py:15
+msgid "New tab"
+msgstr "Thẻ mới"
+
+#: src/ui/shortcuts.py:16
+msgid "Paste Image"
+msgstr "Dán hình ảnh"
+
+#: src/ui/shortcuts.py:17
+msgid "Focus message box"
+msgstr "Chuyển đến ô nhập tin nhắn"
+
+#: src/ui/shortcuts.py:18
+msgid "Start/stop recording"
+msgstr "Bắt đầu/dừng ghi âm"
+
+#: src/ui/shortcuts.py:19
+msgid "Save"
+msgstr "Lưu"
+
+#: src/ui/shortcuts.py:20
+msgid "Stop TTS"
+msgstr "Dừng đọc văn bản"
+
+#: src/ui/shortcuts.py:21
+msgid "Zoom in"
+msgstr "Phóng to"
+
+#: src/ui/shortcuts.py:22
+msgid "Zoom out"
+msgstr "Thu nhỏ"
+
+#: src/ui/stdout_monitor.py:31 src/ui/stdout_monitor.py:41
+#: src/ui/settings.py:269
+msgid "Program Output Monitor"
+msgstr "Trình theo dõi đầu ra chương trình"
+
+#: src/ui/stdout_monitor.py:48
+msgid "Clear output"
+msgstr "Xóa đầu ra"
+
+#: src/ui/stdout_monitor.py:61
+msgid "Start/Stop monitoring"
+msgstr "Bắt đầu/dừng theo dõi"
+
+#: src/ui/stdout_monitor.py:109 src/ui/stdout_monitor.py:182
+#: src/ui/stdout_monitor.py:191 src/window.py:3702
+msgid "Monitoring: Active"
+msgstr "Theo dõi: đang bật"
+
+#: src/ui/stdout_monitor.py:109 src/ui/stdout_monitor.py:208
+msgid "Monitoring: Stopped"
+msgstr "Theo dõi: đã dừng"
+
+#: src/ui/stdout_monitor.py:116 src/ui/stdout_monitor.py:252
+#, python-brace-format
+msgid "Lines: {}"
+msgstr "Số dòng: {}"
+
+#: src/ui/stdout_monitor.py:267
+msgid "Lines: 0"
+msgstr "Số dòng: 0"
+
+#: src/ui/extension.py:17 src/ui/presentation.py:131 src/constants.py:513
+#: src/window.py:118
+msgid "Extensions"
+msgstr "Tiện ích mở rộng"
+
+#: src/ui/extension.py:50
+msgid "Installed Extensions"
+msgstr "Tiện ích mở rộng đã cài"
+
+#: src/ui/extension.py:86
+msgid "User guide to Extensions"
+msgstr "Hướng dẫn sử dụng tiện ích mở rộng"
+
+#: src/ui/extension.py:89
+msgid "Download new Extensions"
+msgstr "Tải xuống tiện ích mở rộng mới"
+
+#: src/ui/extension.py:92
+msgid "Install extension from file..."
+msgstr "Cài tiện ích mở rộng từ tệp…"
+
+#: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.appdata.xml.in:7
+#: data/io.github.qwersyk.Newelle.desktop.in:2
+msgid "Newelle"
+msgstr "Newelle"
+
+#: src/ui/mini_window.py:20
+msgid "Chat is opened in mini window"
+msgstr "Cuộc trò chuyện đang mở trong cửa sổ nhỏ"
+
+#: src/ui/presentation.py:93
+msgid "Welcome to Newelle"
+msgstr "Chào mừng đến với Newelle"
+
+#: src/ui/presentation.py:94
+msgid "Your ultimate virtual assistant."
+msgstr "Trợ lý ảo toàn diện của bạn."
+
+#: src/ui/presentation.py:98
+msgid "Github Page"
+msgstr "Trang GitHub"
+
+#: src/ui/presentation.py:105
+msgid "Choose your favourite AI Language Model"
+msgstr "Chọn mô hình ngôn ngữ AI yêu thích của bạn"
+
+#: src/ui/presentation.py:106
+msgid ""
+"Newelle can be used with mutiple models and providers!\n"
+"<b>Note: It is strongly suggested to read the Guide to LLM page</b>"
+msgstr ""
+"Newelle có thể dùng với nhiều mô hình và nhà cung cấp!\n"
+"<b>Lưu ý: chúng tôi đặc biệt khuyên bạn đọc trang Hướng dẫn về LLM</b>"
+
+#: src/ui/presentation.py:110
+msgid "Guide to LLM"
+msgstr "Hướng dẫn về LLM"
+
+#: src/ui/presentation.py:117
+msgid "Chat with your documents"
+msgstr "Trò chuyện với tài liệu của bạn"
+
+#: src/ui/presentation.py:118
+msgid ""
+"Newelle can retrieve relevant information from documents you send in the "
+"chat or from your own files! Information relevant to your query will be sent "
+"to the LLM."
+msgstr ""
+"Newelle có thể lấy thông tin liên quan từ tài liệu bạn gửi trong cuộc trò "
+"chuyện hoặc từ chính các tệp của bạn! Thông tin liên quan đến truy vấn của "
+"bạn sẽ được gửi tới LLM."
+
+#: src/ui/presentation.py:124 src/ui/settings.py:237 src/window.py:649
+msgid "Command virtualization"
+msgstr "Ảo hóa lệnh"
+
+#: src/ui/presentation.py:125
+msgid ""
+"Newelle can be used to run commands on your system, but pay attention at "
+"what you run! <b>The LLM is not under our control, so it might generate "
+"malicious code!</b>\n"
+"By default, your commands will be <b>virtualized in the Flatpak environment</"
+"b>, but pay attention!"
+msgstr ""
+"Newelle có thể dùng để chạy lệnh trên hệ thống của bạn, nhưng hãy cẩn thận "
+"với những gì bạn chạy! <b>LLM không nằm trong tầm kiểm soát của chúng tôi, "
+"nên nó có thể tạo ra mã độc!</b>\n"
+"Theo mặc định, các lệnh của bạn sẽ được <b>ảo hóa trong môi trường Flatpak</"
+"b>, nhưng hãy cẩn thận!"
+
+#: src/ui/presentation.py:132
+msgid "You can extend Newelle's functionalities using extensions!"
+msgstr "Bạn có thể mở rộng tính năng của Newelle bằng tiện ích mở rộng!"
+
+#: src/ui/presentation.py:136
+msgid "Download extensions"
+msgstr "Tải xuống tiện ích mở rộng"
+
+#: src/ui/presentation.py:146
+msgid "Permission Error"
+msgstr "Lỗi quyền"
+
+#: src/ui/presentation.py:147
+msgid ""
+"Newelle does not have enough permissions to run commands on your system."
+msgstr "Newelle không có đủ quyền để chạy lệnh trên hệ thống của bạn."
+
+#: src/ui/presentation.py:158
+msgid "Begin using the app"
+msgstr "Bắt đầu dùng ứng dụng"
+
+#: src/ui/presentation.py:163
+msgid "Start chatting"
+msgstr "Bắt đầu trò chuyện"
+
+#: src/ui/settings.py:47 src/constants.py:523
+msgid "General"
+msgstr "Chung"
+
+#: src/ui/settings.py:48 src/constants.py:478
+msgid "LLM"
+msgstr "LLM"
+
+#: src/ui/settings.py:49 src/constants.py:528
+msgid "Prompts"
+msgstr "Lời nhắc"
+
+#: src/ui/settings.py:50
+msgid "Knowledge"
+msgstr "Kiến thức"
+
+#: src/ui/settings.py:54
+msgid "Language Model"
+msgstr "Mô hình ngôn ngữ"
+
+#: src/ui/settings.py:63 src/ui/settings.py:83
+msgid "Other LLMs"
+msgstr "LLM khác"
+
+#: src/ui/settings.py:63 src/ui/settings.py:83
+msgid "Other available LLM providers"
+msgstr "Các nhà cung cấp LLM khác hiện có"
+
+#: src/ui/settings.py:73
+msgid "Advanced LLM Settings"
+msgstr "Cài đặt LLM nâng cao"
+
+#: src/ui/settings.py:77
+msgid "Secondary Language Model"
+msgstr "Mô hình ngôn ngữ phụ"
+
+#: src/ui/settings.py:77
+msgid ""
+"Model used for secondary tasks, like offer, chat name and memory generation"
+msgstr ""
+"Mô hình dùng cho các tác vụ phụ, như tạo gợi ý, tên cuộc trò chuyện và bộ nhớ"
+
+#: src/ui/settings.py:94
+msgid "Embedding Model"
+msgstr "Mô hình embedding"
+
+#: src/ui/settings.py:94
+msgid ""
+"Embedding is used to trasform text into vectors. Used by Long Term Memory "
+"and RAG. Changing it might require you to re-index documents or reset memory."
+msgstr ""
+"Embedding được dùng để chuyển văn bản thành vectơ. Được dùng bởi bộ nhớ dài "
+"hạn và RAG. Thay đổi nó có thể khiến bạn phải lập chỉ mục lại tài liệu hoặc "
+"đặt lại bộ nhớ."
+
+#: src/ui/settings.py:105 src/window.py:647
+msgid "Long Term Memory"
+msgstr "Bộ nhớ dài hạn"
+
+#: src/ui/settings.py:105
+msgid "Keep memory of old conversations"
+msgstr "Ghi nhớ các cuộc trò chuyện cũ"
+
+#: src/ui/settings.py:117 src/constants.py:401
+msgid "Web Search"
+msgstr "Tìm kiếm web"
+
+#: src/ui/settings.py:117
+msgid "Search information on the Web"
+msgstr "Tìm kiếm thông tin trên web"
+
+#: src/ui/settings.py:133
+msgid "Text To Speech Program"
+msgstr "Chương trình chuyển văn bản thành giọng nói"
+
+#: src/ui/settings.py:133
+msgid "Choose which text to speech to use"
+msgstr "Chọn công cụ chuyển văn bản thành giọng nói cần dùng"
+
+#: src/ui/settings.py:142
+msgid "Speech To Text Engine"
+msgstr "Công cụ chuyển giọng nói thành văn bản"
+
+#: src/ui/settings.py:142
+msgid "Choose which speech recognition engine you want"
+msgstr "Chọn công cụ nhận dạng giọng nói bạn muốn"
+
+#: src/ui/settings.py:150
+msgid "Automatic Speech To Text"
+msgstr "Tự động chuyển giọng nói thành văn bản"
+
+#: src/ui/settings.py:150
+msgid "Automatically restart speech to text at the end of a text/TTS"
+msgstr ""
+"Tự động khởi động lại chuyển giọng nói thành văn bản khi kết thúc một đoạn "
+"văn bản/TTS"
+
+#: src/ui/settings.py:154
+msgid "Prompt control"
+msgstr "Kiểm soát lời nhắc"
+
+#: src/ui/settings.py:159
+msgid "Interface"
+msgstr "Giao diện"
+
+#: src/ui/settings.py:162
+msgid "Interface Size"
+msgstr "Kích thước giao diện"
+
+#: src/ui/settings.py:162
+msgid "Adjust the size of the interface"
+msgstr "Điều chỉnh kích thước giao diện"
+
+#: src/ui/settings.py:174
+msgid "Editor color scheme"
+msgstr "Bảng màu trình soạn thảo"
+
+#: src/ui/settings.py:174
+msgid "Change the color scheme of the editor and codeblocks"
+msgstr "Thay đổi bảng màu của trình soạn thảo và khối mã"
+
+#: src/ui/settings.py:181
+msgid "Hidden files"
+msgstr "Tệp ẩn"
+
+#: src/ui/settings.py:181
+msgid "Show hidden files"
+msgstr "Hiển thị tệp ẩn"
+
+#: src/ui/settings.py:187
+msgid "Send with ENTER"
+msgstr "Gửi bằng ENTER"
+
+#: src/ui/settings.py:187
+msgid ""
+"If enabled, messages will be sent with ENTER, to go to a new line use "
+"CTRL+ENTER. If disabled, messages will be sent with SHIFT+ENTER, and newline "
+"with enter"
+msgstr ""
+"Nếu bật, tin nhắn sẽ được gửi bằng ENTER, để xuống dòng hãy dùng CTRL+ENTER. "
+"Nếu tắt, tin nhắn sẽ được gửi bằng SHIFT+ENTER và xuống dòng bằng ENTER"
+
+#: src/ui/settings.py:193
+msgid "Remove thinking from history"
+msgstr "Xóa phần suy nghĩ khỏi lịch sử"
+
+#: src/ui/settings.py:193
+msgid ""
+"Do not send old thinking blocks for reasoning models in order to reduce "
+"token usage"
+msgstr ""
+"Không gửi các khối suy nghĩ cũ cho mô hình suy luận để giảm lượng token sử "
+"dụng"
+
+#: src/ui/settings.py:199
+msgid "Display LaTeX"
+msgstr "Hiển thị LaTeX"
+
+#: src/ui/settings.py:199
+msgid "Display LaTeX formulas in chat"
+msgstr "Hiển thị công thức LaTeX trong cuộc trò chuyện"
+
+#: src/ui/settings.py:205
+msgid "Reverse Chat Order"
+msgstr "Đảo thứ tự cuộc trò chuyện"
+
+#: src/ui/settings.py:205
+msgid "Show most recent chats on top in chat list (change chat to apply)"
+msgstr ""
+"Hiển thị các cuộc trò chuyện gần đây nhất ở đầu danh sách (chuyển cuộc trò "
+"chuyện để áp dụng)"
+
+#: src/ui/settings.py:211
+msgid "Automatically Generate Chat Names"
+msgstr "Tự động tạo tên cuộc trò chuyện"
+
+#: src/ui/settings.py:211
+msgid "Generate chat names automatically after the first two messages"
+msgstr "Tự động tạo tên cuộc trò chuyện sau hai tin nhắn đầu tiên"
+
+#: src/ui/settings.py:217
+msgid "Number of offers"
+msgstr "Số gợi ý"
+
+#: src/ui/settings.py:217
+msgid "Number of message suggestions to send to chat "
+msgstr "Số gợi ý tin nhắn hiển thị trong cuộc trò chuyện "
+
+#: src/ui/settings.py:224
+msgid "Username"
+msgstr "Tên người dùng"
+
+#: src/ui/settings.py:224
+#, python-brace-format
+msgid ""
+"Change the label that appears before your message\n"
+"This information is not sent to the LLM by default\n"
+"You can add it to a prompt using the {USER} variable"
+msgstr ""
+"Thay đổi nhãn xuất hiện trước tin nhắn của bạn\n"
+"Theo mặc định, thông tin này không được gửi tới LLM\n"
+"Bạn có thể thêm nó vào lời nhắc bằng biến {USER}"
+
+#: src/ui/settings.py:234
+msgid "Neural Network Control"
+msgstr "Kiểm soát mạng nơ-ron"
+
+#: src/ui/settings.py:237
+msgid "Run commands in a virtual machine"
+msgstr "Chạy lệnh trong máy ảo"
+
+#: src/ui/settings.py:250
+msgid "External Terminal"
+msgstr "Terminal bên ngoài"
+
+#: src/ui/settings.py:250
+msgid "Choose the external terminal where to run the console commands"
+msgstr "Chọn terminal bên ngoài để chạy các lệnh console"
+
+#: src/ui/settings.py:259
+msgid "Program memory"
+msgstr "Bộ nhớ chương trình"
+
+#: src/ui/settings.py:259
+msgid "How long the program remembers the chat "
+msgstr "Chương trình ghi nhớ cuộc trò chuyện trong bao lâu "
+
+#: src/ui/settings.py:266
+msgid "Developer"
+msgstr "Nhà phát triển"
+
+#: src/ui/settings.py:269
+msgid ""
+"Monitor the program output in real-time, useful for debugging and seeing "
+"downloads progress"
+msgstr ""
+"Theo dõi đầu ra của chương trình theo thời gian thực, hữu ích để gỡ lỗi và "
+"xem tiến trình tải xuống"
+
+#: src/ui/settings.py:270
+msgid "Open"
+msgstr "Mở"
+
+#: src/ui/settings.py:275
+msgid "Delete pip path"
+msgstr "Xóa đường dẫn pip"
+
+#: src/ui/settings.py:275
+msgid "Remove the extra dependencies installed"
+msgstr "Gỡ bỏ các phụ thuộc bổ sung đã cài"
+
+#: src/ui/settings.py:281
+msgid "Install pip module"
+msgstr "Cài mô-đun pip"
+
+#: src/ui/settings.py:281
+msgid "Manually install pip module"
+msgstr "Cài mô-đun pip thủ công"
+
+#: src/ui/settings.py:310
+msgid "Auto-run commands"
+msgstr "Tự động chạy lệnh"
+
+#: src/ui/settings.py:310
+msgid "Commands that the bot will write will automatically run"
+msgstr "Các lệnh bot viết ra sẽ được tự động chạy"
+
+#: src/ui/settings.py:313
+msgid "Max number of commands"
+msgstr "Số lệnh tối đa"
+
+#: src/ui/settings.py:313
+msgid ""
+"Maximum number of commands that the bot will write after a single user "
+"request"
+msgstr "Số lệnh tối đa bot sẽ viết sau một yêu cầu của người dùng"
+
+#: src/ui/settings.py:344
+msgid "Browser"
+msgstr "Trình duyệt"
+
+#: src/ui/settings.py:344
+msgid "Settings for the browser"
+msgstr "Cài đặt cho trình duyệt"
+
+#: src/ui/settings.py:349
+msgid "Use external browser"
+msgstr "Dùng trình duyệt bên ngoài"
+
+#: src/ui/settings.py:349
+msgid "Use an external browser to open links instead of integrated one"
+msgstr "Dùng trình duyệt bên ngoài để mở liên kết thay vì trình duyệt tích hợp"
+
+#: src/ui/settings.py:356
+msgid "Persist browser session"
+msgstr "Giữ phiên trình duyệt"
+
+#: src/ui/settings.py:356
+msgid ""
+"Persist browser session between restarts. Turning this off requires "
+"restarting the program"
+msgstr ""
+"Giữ phiên trình duyệt giữa các lần khởi động lại. Tắt tùy chọn này cần khởi "
+"động lại chương trình"
+
+#: src/ui/settings.py:361
+msgid "Delete browser data"
+msgstr "Xóa dữ liệu trình duyệt"
+
+#: src/ui/settings.py:361
+msgid "Delete browser session and data"
+msgstr "Xóa phiên và dữ liệu trình duyệt"
+
+#: src/ui/settings.py:368
+msgid "Initial browser page"
+msgstr "Trang khởi đầu của trình duyệt"
+
+#: src/ui/settings.py:368
+msgid "The page where the browser will start"
+msgstr "Trang trình duyệt sẽ mở khi khởi động"
+
+#: src/ui/settings.py:375
+msgid "Search string"
+msgstr "Chuỗi tìm kiếm"
+
+#: src/ui/settings.py:375
+#, python-format
+msgid "The search string used in the browser, %s is replaced with the query"
+msgstr "Chuỗi tìm kiếm dùng trong trình duyệt, %s được thay bằng truy vấn"
+
+#: src/ui/settings.py:396
+msgid "Document Sources (RAG)"
+msgstr "Nguồn tài liệu (RAG)"
+
+#: src/ui/settings.py:396
+msgid "Include content from your documents in the responses"
+msgstr "Đưa nội dung từ tài liệu của bạn vào câu trả lời"
+
+#: src/ui/settings.py:397
+msgid "Document Analyzer"
+msgstr "Trình phân tích tài liệu"
+
+#: src/ui/settings.py:397
+msgid ""
+"The document analyzer uses multiple techniques to extract relevant "
+"information about your documents"
+msgstr ""
+"Trình phân tích tài liệu dùng nhiều kỹ thuật để trích xuất thông tin liên "
+"quan từ tài liệu của bạn"
+
+#: src/ui/settings.py:408
+msgid "Read documents if unsupported"
+msgstr "Đọc tài liệu nếu không được hỗ trợ"
+
+#: src/ui/settings.py:408
+msgid ""
+"If the LLM does not support reading documents, relevant information about "
+"documents sent in the chat will be given to the LLM using your Document "
+"Analyzer."
+msgstr ""
+"Nếu LLM không hỗ trợ đọc tài liệu, thông tin liên quan về các tài liệu gửi "
+"trong cuộc trò chuyện sẽ được cung cấp cho LLM bằng trình phân tích tài liệu "
+"của bạn."
+
+#: src/ui/settings.py:412
+msgid "Maximum tokens for RAG"
+msgstr "Số token tối đa cho RAG"
+
+#: src/ui/settings.py:412
+msgid ""
+"The maximum amount of tokens to be used for RAG. If the documents do not "
+"exceed this token count,\n"
+"dump all of them in the context"
+msgstr ""
+"Số token tối đa được dùng cho RAG. Nếu tài liệu không vượt quá số token "
+"này,\n"
+"đưa toàn bộ tài liệu vào ngữ cảnh"
+
+#: src/ui/settings.py:429
+msgid "Document Folder"
+msgstr "Thư mục tài liệu"
+
+#: src/ui/settings.py:429
+msgid ""
+"Put the documents you want to query in your document folder. The document "
+"analyzer will find relevant information in them if this option is enabled"
+msgstr ""
+"Đặt các tài liệu bạn muốn truy vấn vào thư mục tài liệu. Trình phân tích tài "
+"liệu sẽ tìm thông tin liên quan trong đó nếu tùy chọn này được bật"
+
+#: src/ui/settings.py:432
+msgid "Put all the documents you want to index in this folder"
+msgstr "Đặt tất cả tài liệu bạn muốn lập chỉ mục vào thư mục này"
+
+#: src/ui/settings.py:468
+msgid "Silence threshold"
+msgstr "Ngưỡng im lặng"
+
+#: src/ui/settings.py:468
+msgid ""
+"Silence threshold in seconds, percentage of the volume to be considered "
+"silence"
+msgstr "Ngưỡng im lặng tính bằng giây, phần trăm âm lượng được xem là im lặng"
+
+#: src/ui/settings.py:481
+msgid "Silence time"
+msgstr "Thời gian im lặng"
+
+#: src/ui/settings.py:481
+msgid "Silence time in seconds before recording stops automatically"
+msgstr "Thời gian im lặng tính bằng giây trước khi tự động dừng ghi âm"
+
+#: src/ui/settings.py:1061
+msgid "Not enough permissions"
+msgstr "Không đủ quyền"
+
+#: src/ui/settings.py:1065
+msgid ""
+"Newelle does not have enough permissions to run commands on your system, "
+"please run the following command"
+msgstr ""
+"Newelle không có đủ quyền để chạy lệnh trên hệ thống của bạn, vui lòng chạy "
+"lệnh sau"
+
+#: src/ui/settings.py:1066 src/ui/settings.py:1079
+msgid "Understood"
+msgstr "Đã hiểu"
+
+#: src/ui/settings.py:1078
+msgid "Pip path deleted"
+msgstr "Đã xóa đường dẫn pip"
+
+#: src/ui/settings.py:1078
+msgid ""
+"The pip path has been deleted, you can now reinstall the dependencies. This "
+"operation requires a restart of the application."
+msgstr ""
+"Đường dẫn pip đã bị xóa, giờ bạn có thể cài lại các phụ thuộc. Thao tác này "
+"cần khởi động lại ứng dụng."
+
+#: src/constants.py:20
+msgid "Newelle Demo API"
+msgstr "API dùng thử của Newelle"
+
+#: src/constants.py:26
+msgid "GPT4Free"
+msgstr "GPT4Free"
+
+#: src/constants.py:34
+msgid "Local Model"
+msgstr "Mô hình cục bộ"
+
+#: src/constants.py:35
+msgid ""
+"NO GPU SUPPORT, USE OLLAMA INSTEAD. Run a LLM model locally, more privacy "
+"but slower"
+msgstr ""
+"KHÔNG HỖ TRỢ GPU, HÃY DÙNG OLLAMA THAY THẾ. Chạy mô hình LLM cục bộ, riêng "
+"tư hơn nhưng chậm hơn"
+
+#: src/constants.py:40
+msgid "Ollama Instance"
+msgstr "Máy chủ Ollama"
+
+#: src/constants.py:41
+msgid "Easily run multiple LLM models on your own hardware"
+msgstr "Dễ dàng chạy nhiều mô hình LLM trên phần cứng của riêng bạn"
+
+#: src/constants.py:47
+msgid "Groq"
+msgstr "Groq"
+
+#: src/constants.py:54 src/constants.py:230
+msgid "Google Gemini API"
+msgstr "API Google Gemini"
+
+#: src/constants.py:60 src/constants.py:224 src/constants.py:225
+msgid "OpenAI API"
+msgstr "API OpenAI"
+
+#: src/constants.py:61
+msgid "OpenAI API. Custom endpoints supported. Use this for custom providers"
+msgstr ""
+"API OpenAI. Hỗ trợ điểm cuối tùy chỉnh. Dùng mục này cho các nhà cung cấp "
+"tùy chỉnh"
+
+#: src/constants.py:66
+msgid "Anthropic Claude"
+msgstr "Anthropic Claude"
+
+#: src/constants.py:67
+msgid ""
+"Official APIs for Anthropic Claude's models, with image and file support, "
+"requires an API key"
+msgstr ""
+"API chính thức cho các mô hình Claude của Anthropic, hỗ trợ hình ảnh và tệp, "
+"cần khóa API"
+
+#: src/constants.py:73
+msgid "Mistral"
+msgstr "Mistral"
+
+#: src/constants.py:74
+msgid "Mistral API"
+msgstr "API Mistral"
+
+#: src/constants.py:80
+msgid "OpenRouter"
+msgstr "OpenRouter"
+
+#: src/constants.py:81
+msgid "Openrouter.ai API, supports lots of models"
+msgstr "API Openrouter.ai, hỗ trợ rất nhiều mô hình"
+
+#: src/constants.py:87
+msgid "Deepseek"
+msgstr "Deepseek"
+
+#: src/constants.py:88
+msgid "Deepseek API, strongest open source models"
+msgstr "API Deepseek, các mô hình mã nguồn mở mạnh nhất"
+
+#: src/constants.py:94 src/constants.py:203
+msgid "Custom Command"
+msgstr "Lệnh tùy chỉnh"
+
+#: src/constants.py:95
+msgid "Use the output of a custom command"
+msgstr "Dùng đầu ra của một lệnh tùy chỉnh"
+
+#: src/constants.py:104
+msgid "Whisper C++"
+msgstr "Whisper C++"
+
+#: src/constants.py:105
+msgid "Works offline. Optimized Whisper impelementation written in C++"
+msgstr ""
+"Hoạt động ngoại tuyến. Bản triển khai Whisper được tối ưu, viết bằng C++"
+
+#: src/constants.py:111
+msgid "CMU Sphinx"
+msgstr "CMU Sphinx"
+
+#: src/constants.py:112
+msgid "Works offline. Only English supported"
+msgstr "Hoạt động ngoại tuyến. Chỉ hỗ trợ tiếng Anh"
+
+#: src/constants.py:118
+msgid "Google Speech Recognition"
+msgstr "Nhận dạng giọng nói Google"
+
+#: src/constants.py:119 src/constants.py:125
+msgid "Google Speech Recognition online"
+msgstr "Nhận dạng giọng nói Google trực tuyến"
+
+#: src/constants.py:124
+msgid "Groq Speech Recognition"
+msgstr "Nhận dạng giọng nói Groq"
+
+#: src/constants.py:130
+msgid "Wit AI"
+msgstr "Wit AI"
+
+#: src/constants.py:131
+msgid "wit.ai speech recognition free API (language chosen on the website)"
+msgstr ""
+"API nhận dạng giọng nói miễn phí của wit.ai (ngôn ngữ được chọn trên trang "
+"web)"
+
+#: src/constants.py:137
+msgid "Vosk API"
+msgstr "API Vosk"
+
+#: src/constants.py:138
+msgid "Works Offline"
+msgstr "Hoạt động ngoại tuyến"
+
+#: src/constants.py:144
+msgid "Whisper API"
+msgstr "API Whisper"
+
+#: src/constants.py:145
+msgid "Uses OpenAI Whisper API"
+msgstr "Dùng API Whisper của OpenAI"
+
+#: src/constants.py:151
+msgid "Custom command"
+msgstr "Lệnh tùy chỉnh"
+
+#: src/constants.py:152
+msgid "Runs a custom command"
+msgstr "Chạy một lệnh tùy chỉnh"
+
+#: src/constants.py:161
+msgid "Google TTS"
+msgstr "Google TTS"
+
+#: src/constants.py:162
+msgid "Google's text to speech"
+msgstr "Chuyển văn bản thành giọng nói của Google"
+
+#: src/constants.py:167
+msgid "Kokoro TTS"
+msgstr "Kokoro TTS"
+
+#: src/constants.py:168
+msgid ""
+"Lightweight and fast open source TTS engine. ~3GB dependencies, 400MB model"
+msgstr "Công cụ TTS mã nguồn mở nhẹ và nhanh. Phụ thuộc ~3GB, mô hình 400MB"
+
+#: src/constants.py:173
+msgid "ElevenLabs TTS"
+msgstr "ElevenLabs TTS"
+
+#: src/constants.py:174
+msgid "Natural sounding TTS"
+msgstr "TTS có giọng tự nhiên"
+
+#: src/constants.py:179 src/constants.py:180
+msgid "OpenAI TTS"
+msgstr "OpenAI TTS"
+
+#: src/constants.py:185
+msgid "Groq TTS"
+msgstr "Groq TTS"
+
+#: src/constants.py:186
+msgid "Groq TTS API"
+msgstr "API Groq TTS"
+
+#: src/constants.py:191 src/constants.py:192
+msgid "Custom OpenAI TTS"
+msgstr "OpenAI TTS tùy chỉnh"
+
+#: src/constants.py:197
+msgid "Espeak TTS"
+msgstr "Espeak TTS"
+
+#: src/constants.py:198
+msgid "Offline TTS"
+msgstr "TTS ngoại tuyến"
+
+#: src/constants.py:204
+#, python-brace-format
+msgid "Use a custom command as TTS, {0} will be replaced with the text"
+msgstr "Dùng một lệnh tùy chỉnh làm TTS, {0} sẽ được thay bằng văn bản"
+
+#: src/constants.py:212
+msgid "WordLlama"
+msgstr "WordLlama"
+
+#: src/constants.py:213
+msgid ""
+"Light local embedding model based on llama. Works offline, very low "
+"resources usage"
+msgstr ""
+"Mô hình embedding cục bộ nhẹ dựa trên llama. Hoạt động ngoại tuyến, dùng rất "
+"ít tài nguyên"
+
+#: src/constants.py:218
+msgid "Ollama Embedding"
+msgstr "Embedding Ollama"
+
+#: src/constants.py:219
+msgid ""
+"Use Ollama models for Embedding. Works offline, very low resources usage"
+msgstr ""
+"Dùng mô hình Ollama cho embedding. Hoạt động ngoại tuyến, dùng rất ít tài "
+"nguyên"
+
+#: src/constants.py:231
+msgid "Use Google Gemini API to get embeddings"
+msgstr "Dùng API Google Gemini để lấy embedding"
+
+#: src/constants.py:239
+msgid "User Summary"
+msgstr "Tóm tắt người dùng"
+
+#: src/constants.py:240
+msgid "Generate a summary of the user's conversation"
+msgstr "Tạo bản tóm tắt cuộc trò chuyện của người dùng"
+
+#: src/constants.py:245
+msgid "Memoripy"
+msgstr "Memoripy"
+
+#: src/constants.py:246
+msgid ""
+"Extract messages from previous conversations using contextual memory "
+"retrivial, memory decay, concept extraction and other advanced techniques. "
+"Does 1 llm call per message."
+msgstr ""
+"Trích xuất tin nhắn từ các cuộc trò chuyện trước bằng truy xuất bộ nhớ theo "
+"ngữ cảnh, suy giảm bộ nhớ, trích xuất khái niệm và các kỹ thuật nâng cao "
+"khác. Thực hiện 1 lần gọi LLM cho mỗi tin nhắn."
+
+#: src/constants.py:251
+msgid "User Summary + Memoripy"
+msgstr "Tóm tắt người dùng + Memoripy"
+
+#: src/constants.py:252
+msgid "Use both technologies for long term memory"
+msgstr "Dùng cả hai công nghệ cho bộ nhớ dài hạn"
+
+#: src/constants.py:260
+msgid "Document reader"
+msgstr "Trình đọc tài liệu"
+
+#: src/constants.py:261
+msgid ""
+"Classic RAG approach - chunk documents and embed them, then compare them to "
+"the query and return the most relevant documents"
+msgstr ""
+"Cách tiếp cận RAG cổ điển - chia tài liệu thành đoạn và tạo embedding, sau "
+"đó so sánh với truy vấn và trả về các tài liệu liên quan nhất"
+
+#: src/constants.py:269
+msgid "SearXNG"
+msgstr "SearXNG"
+
+#: src/constants.py:270
+msgid "SearXNG - Private and selfhostable search engine"
+msgstr "SearXNG - Công cụ tìm kiếm riêng tư và có thể tự lưu trữ"
+
+#: src/constants.py:275
+msgid "DuckDuckGo"
+msgstr "DuckDuckGo"
+
+#: src/constants.py:276
+msgid "DuckDuckGo search"
+msgstr "Tìm kiếm DuckDuckGo"
+
+#: src/constants.py:281
+msgid "Tavily"
+msgstr "Tavily"
+
+#: src/constants.py:282
+msgid "Tavily search"
+msgstr "Tìm kiếm Tavily"
+
+#: src/constants.py:375
+msgid "Helpful assistant"
+msgstr "Trợ lý hữu ích"
+
+#: src/constants.py:376
+msgid "General purpose prompt to enhance the LLM answers and give more context"
+msgstr ""
+"Lời nhắc đa dụng để cải thiện câu trả lời của LLM và cung cấp thêm ngữ cảnh"
+
+#: src/constants.py:384
+msgid "Console access"
+msgstr "Truy cập console"
+
+#: src/constants.py:385
+msgid "Can the program run terminal commands on the computer"
+msgstr "Chương trình có thể chạy lệnh terminal trên máy tính hay không"
+
+#: src/constants.py:392
+msgid "Current directory"
+msgstr "Thư mục hiện tại"
+
+#: src/constants.py:393
+msgid "What is the current directory"
+msgstr "Thư mục hiện tại là gì"
+
+#: src/constants.py:402
+msgid "Allow the LLM to search on the internet"
+msgstr "Cho phép LLM tìm kiếm trên internet"
+
+#: src/constants.py:410
+msgid "Basic functionality"
+msgstr "Chức năng cơ bản"
+
+#: src/constants.py:411
+msgid "Showing tables and code (*can work without it)"
+msgstr "Hiển thị bảng và mã (*có thể hoạt động mà không cần)"
+
+#: src/constants.py:419
+msgid "Graphs access"
+msgstr "Truy cập đồ thị"
+
+#: src/constants.py:420
+msgid "Can the program display graphs"
+msgstr "Chương trình có thể hiển thị đồ thị hay không"
+
+#: src/constants.py:428
+msgid "Show image"
+msgstr "Hiển thị hình ảnh"
+
+#: src/constants.py:429
+msgid "Show image in chat"
+msgstr "Hiển thị hình ảnh trong cuộc trò chuyện"
+
+#: src/constants.py:437
+msgid "Custom Prompt"
+msgstr "Lời nhắc tùy chỉnh"
+
+#: src/constants.py:438
+msgid "Add your own custom prompt"
+msgstr "Thêm lời nhắc tùy chỉnh của riêng bạn"
+
+#: src/constants.py:480
+msgid "LLM and Secondary LLM settings"
+msgstr "Cài đặt LLM và LLM phụ"
+
+#: src/constants.py:483 src/window.py:648
+msgid "TTS"
+msgstr "TTS"
+
+#: src/constants.py:485
+msgid "Text to Speech settings"
+msgstr "Cài đặt chuyển văn bản thành giọng nói"
+
+#: src/constants.py:488
+msgid "STT"
+msgstr "STT"
+
+#: src/constants.py:490
+msgid "Speech to Text settings"
+msgstr "Cài đặt chuyển giọng nói thành văn bản"
+
+#: src/constants.py:493
+msgid "Embedding"
+msgstr "Embedding"
+
+#: src/constants.py:495
+msgid "Embedding settings"
+msgstr "Cài đặt embedding"
+
+#: src/constants.py:498
+msgid "Memory"
+msgstr "Bộ nhớ"
+
+#: src/constants.py:500
+msgid "Memory settings"
+msgstr "Cài đặt bộ nhớ"
+
+#: src/constants.py:503
+msgid "Websearch"
+msgstr "Tìm kiếm web"
+
+#: src/constants.py:505
+msgid "Websearch settings"
+msgstr "Cài đặt tìm kiếm web"
+
+#: src/constants.py:508
+msgid "RAG"
+msgstr "RAG"
+
+#: src/constants.py:510
+msgid "Document analyzer settings"
+msgstr "Cài đặt trình phân tích tài liệu"
+
+#: src/constants.py:515
+msgid "Extensions settings"
+msgstr "Cài đặt tiện ích mở rộng"
+
+#: src/constants.py:518
+msgid "Inteface"
+msgstr "Giao diện"
+
+#: src/constants.py:520
+msgid "Interface settings, hidden files, reverse order, zoom..."
+msgstr "Cài đặt giao diện, tệp ẩn, đảo thứ tự, thu phóng…"
+
+#: src/constants.py:525
+msgid ""
+"General settings, virtualization, offers, memory length, automatically "
+"generate chat name, current folder..."
+msgstr ""
+"Cài đặt chung, ảo hóa, gợi ý, độ dài bộ nhớ, tự động tạo tên cuộc trò "
+"chuyện, thư mục hiện tại…"
+
+#: src/constants.py:530
+msgid "Prompts settings, custom extra prompt, custom prompts..."
+msgstr "Cài đặt lời nhắc, lời nhắc bổ sung tùy chỉnh, lời nhắc tùy chỉnh…"
+
+#: src/controller.py:135 src/window.py:1852
+msgid "Chat "
+msgstr "Trò chuyện "
+
+#: src/main.py:205
+msgid "Terminal threads are still running in the background"
+msgstr "Các luồng terminal vẫn đang chạy ở chế độ nền"
+
+#: src/main.py:206
+msgid "When you close the window, they will be automatically terminated"
+msgstr "Khi bạn đóng cửa sổ, chúng sẽ tự động bị kết thúc"
+
+#: src/main.py:210
+msgid "Close"
+msgstr "Đóng"
+
+#: src/main.py:244
+msgid "Chat is rebooted"
+msgstr "Đã tải lại cuộc trò chuyện"
+
+#: src/main.py:249
+msgid "Folder is rebooted"
+msgstr "Đã tải lại thư mục"
+
+#: src/main.py:254
+msgid "Chat is created"
+msgstr "Đã tạo cuộc trò chuyện"
+
+#: src/window.py:120
+msgid "Keyboard shorcuts"
+msgstr "Phím tắt"
+
+#: src/window.py:121
+msgid "About"
+msgstr "Giới thiệu"
+
+#: src/window.py:128 src/window.py:197
+msgid "Chat"
+msgstr "Trò chuyện"
+
+#: src/window.py:170
+msgid "History"
+msgstr "Lịch sử"
+
+#: src/window.py:191
+msgid "Create a chat"
+msgstr "Tạo cuộc trò chuyện"
+
+#: src/window.py:196
+msgid "Chats"
+msgstr "Cuộc trò chuyện"
+
+#: src/window.py:267
+msgid " Stop"
+msgstr " Dừng"
+
+#: src/window.py:282
+msgid " Clear"
+msgstr " Xóa"
+
+#: src/window.py:297
+msgid " Continue"
+msgstr " Tiếp tục"
+
+#: src/window.py:310
+msgid " Regenerate"
+msgstr " Tạo lại"
+
+#: src/window.py:376
+msgid "Send a message..."
+msgstr "Gửi tin nhắn…"
+
+#: src/window.py:467
+msgid "Explorer Tab"
+msgstr "Thẻ trình quản lý tệp"
+
+#: src/window.py:468
+msgid "Terminal Tab"
+msgstr "Thẻ terminal"
+
+#: src/window.py:469
+msgid "Browser Tab"
+msgstr "Thẻ trình duyệt"
+
+#: src/window.py:589
+msgid "Ask about a website"
+msgstr "Hỏi về một trang web"
+
+#: src/window.py:589
+msgid "Write #https://website.com in chat to ask information about a website"
+msgstr ""
+"Viết #https://website.com trong cuộc trò chuyện để hỏi thông tin về một "
+"trang web"
+
+#: src/window.py:590
+msgid "Check out our Extensions!"
+msgstr "Khám phá các tiện ích mở rộng của chúng tôi!"
+
+#: src/window.py:590
+msgid "We have a lot of extensions for different things. Check it out!"
+msgstr ""
+"Chúng tôi có rất nhiều tiện ích mở rộng cho nhiều việc khác nhau. Hãy khám "
+"phá!"
+
+#: src/window.py:591
+msgid "Chat with documents!"
+msgstr "Trò chuyện với tài liệu!"
+
+#: src/window.py:591
+msgid ""
+"Add your documents to your documents folder and chat using the information "
+"contained in them!"
+msgstr ""
+"Thêm tài liệu vào thư mục tài liệu và trò chuyện dựa trên thông tin chứa "
+"trong đó!"
+
+#: src/window.py:592
+msgid "Surf the web!"
+msgstr "Lướt web!"
+
+#: src/window.py:592
+msgid ""
+"Enable web search to allow the LLM to surf the web and provide up to date "
+"answers"
+msgstr ""
+"Bật tìm kiếm web để cho phép LLM lướt web và đưa ra câu trả lời cập nhật"
+
+#: src/window.py:593
+msgid "Mini Window"
+msgstr "Cửa sổ nhỏ"
+
+#: src/window.py:593
+msgid "Ask questions on the fly using the mini window mode"
+msgstr "Đặt câu hỏi nhanh bằng chế độ cửa sổ nhỏ"
+
+#: src/window.py:594
+msgid "Text to Speech"
+msgstr "Chuyển văn bản thành giọng nói"
+
+#: src/window.py:594
+msgid "Newelle supports text-to-speech! Enable it in the settings"
+msgstr ""
+"Newelle hỗ trợ chuyển văn bản thành giọng nói! Hãy bật tính năng này trong "
+"cài đặt"
+
+#: src/window.py:595
+msgid "Keyboard Shortcuts"
+msgstr "Phím tắt"
+
+#: src/window.py:595
+msgid "Control Newelle using Keyboard Shortcuts"
+msgstr "Điều khiển Newelle bằng phím tắt"
+
+#: src/window.py:596
+msgid "Prompt Control"
+msgstr "Kiểm soát lời nhắc"
+
+#: src/window.py:596
+msgid "Newelle gives you 100% prompt control. Tune your prompts for your use."
+msgstr ""
+"Newelle cho bạn kiểm soát lời nhắc 100%. Hãy tinh chỉnh lời nhắc theo nhu "
+"cầu của bạn."
+
+#: src/window.py:597
+msgid "Thread Editing"
+msgstr "Quản lý luồng"
+
+#: src/window.py:597
+msgid "Check the programs and processes you run from Newelle"
+msgstr "Kiểm tra các chương trình và tiến trình bạn chạy từ Newelle"
+
+#: src/window.py:598
+msgid "Programmable Prompts"
+msgstr "Lời nhắc lập trình được"
+
+#: src/window.py:598
+msgid ""
+"You can add dynamic prompts to Newelle, with conditions and probabilities"
+msgstr "Bạn có thể thêm lời nhắc động vào Newelle, với điều kiện và xác suất"
+
+#: src/window.py:605
+msgid "New Chat"
+msgstr "Cuộc trò chuyện mới"
+
+#: src/window.py:623
+msgid "Provider Errror"
+msgstr "Lỗi nhà cung cấp"
+
+#: src/window.py:646
+msgid "Local Documents"
+msgstr "Tài liệu cục bộ"
+
+#: src/window.py:650
+msgid "Web search"
+msgstr "Tìm kiếm web"
+
+#: src/window.py:896
+msgid "This provider does not have a model list"
+msgstr "Nhà cung cấp này không có danh sách mô hình"
+
+#: src/window.py:901
+msgid " Models"
+msgstr " – các mô hình"
+
+#: src/window.py:904
+msgid "Search Models..."
+msgstr "Tìm kiếm mô hình…"
+
+#: src/window.py:1132
+msgid "Create new profile"
+msgstr "Tạo hồ sơ mới"
+
+#: src/window.py:1266
+msgid "Could not recognize your voice"
+msgstr "Không thể nhận dạng giọng nói của bạn"
+
+#: src/window.py:1303
+msgid "Images"
+msgstr "Hình ảnh"
+
+#: src/window.py:1307
+msgid "LLM Supported Files"
+msgstr "Tệp được LLM hỗ trợ"
+
+#: src/window.py:1315
+msgid "RAG Supported files"
+msgstr "Tệp được RAG hỗ trợ"
+
+#: src/window.py:1333
+msgid "Supported Files"
+msgstr "Tệp được hỗ trợ"
+
+#: src/window.py:1337
+msgid "All Files"
+msgstr "Tất cả tệp"
+
+#: src/window.py:1343
+msgid "Attach file"
+msgstr "Đính kèm tệp"
+
+#: src/window.py:1598
+msgid "The file cannot be sent until the program is finished"
+msgstr "Không thể gửi tệp cho đến khi chương trình chạy xong"
+
+#: src/window.py:1620
+msgid "The file is not recognized"
+msgstr "Không nhận dạng được tệp"
+
+#: src/window.py:1639
+msgid "You can no longer continue the message."
+msgstr "Bạn không thể tiếp tục tin nhắn này nữa."
+
+#: src/window.py:1664
+msgid "You can no longer regenerate the message."
+msgstr "Bạn không thể tạo lại tin nhắn này nữa."
+
+#: src/window.py:1896
+msgid "Chat is cleared"
+msgstr "Đã xóa cuộc trò chuyện"
+
+#: src/window.py:1921
+msgid "The message was canceled and deleted from history"
+msgstr "Tin nhắn đã bị hủy và xóa khỏi lịch sử"
+
+#: src/window.py:1965
+msgid "The message cannot be sent until the program is finished"
+msgstr "Không thể gửi tin nhắn cho đến khi chương trình chạy xong"
+
+#: src/window.py:2954
+msgid "You can't edit a message while the program is running."
+msgstr "Bạn không thể sửa tin nhắn khi chương trình đang chạy."
+
+#: src/window.py:3080
+msgid "Prompt content"
+msgstr "Nội dung lời nhắc"
+
+#: src/window.py:3339
+msgid ""
+"The neural network has access to your computer and any data in this chat and "
+"can run commands, be careful, we are not responsible for the neural network. "
+"Do not share any sensitive information."
+msgstr ""
+"Mạng nơ-ron có quyền truy cập máy tính của bạn và mọi dữ liệu trong cuộc trò "
+"chuyện này, đồng thời có thể chạy lệnh. Hãy cẩn thận, chúng tôi không chịu "
+"trách nhiệm về mạng nơ-ron. Đừng chia sẻ bất kỳ thông tin nhạy cảm nào."
+
+#: src/window.py:3368
+msgid ""
+"The neural network has access to any data in this chat, be careful, we are "
+"not responsible for the neural network. Do not share any sensitive "
+"information."
+msgstr ""
+"Mạng nơ-ron có quyền truy cập mọi dữ liệu trong cuộc trò chuyện này. Hãy cẩn "
+"thận, chúng tôi không chịu trách nhiệm về mạng nơ-ron. Đừng chia sẻ bất kỳ "
+"thông tin nhạy cảm nào."
+
+#: src/window.py:3417
+msgid "Wrong folder path"
+msgstr "Đường dẫn thư mục không đúng"
+
+#: src/window.py:3450
+msgid "Thread has not been completed, thread number: "
+msgstr "Luồng chưa hoàn thành, luồng số: "
+
+#: src/window.py:3462
+msgid "Failed to open the folder"
+msgstr "Không mở được thư mục"
+
+#: src/window.py:3641
+msgid "Chat is empty"
+msgstr "Cuộc trò chuyện trống"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:9
+msgid ""
+"Train Newelle to do more with custom extensions and new AI modules, giving "
+"your chatbot endless possibilities."
+msgstr ""
+"Huấn luyện Newelle làm được nhiều hơn với các tiện ích mở rộng tùy chỉnh và "
+"mô-đun AI mới, mang lại cho chatbot của bạn khả năng vô tận."
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:11
+msgid "AI chatbot"
+msgstr "Chatbot AI"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:15
+msgid "Quick profile selection"
+msgstr "Chọn hồ sơ nhanh"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:19
+msgid "Message Editing"
+msgstr "Sửa tin nhắn"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:23
+msgid "More than 10 standard AI providers"
+msgstr "Hơn 10 nhà cung cấp AI tiêu chuẩn"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:38
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:62
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:85
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:147
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:152
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:157
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:162
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:167
+msgid "Bug fixes"
+msgstr "Sửa lỗi"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:45
+msgid ""
+"Mini Apps support! Extensions can now show custom mini apps on the sidebar"
+msgstr ""
+"Hỗ trợ ứng dụng nhỏ! Tiện ích mở rộng giờ có thể hiển thị ứng dụng nhỏ tùy "
+"chỉnh trên thanh bên"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:46
+msgid ""
+"Added integrated browser Mini App: browse the web directly in Newelle and "
+"attach web pages"
+msgstr ""
+"Thêm ứng dụng nhỏ trình duyệt tích hợp: duyệt web trực tiếp trong Newelle và "
+"đính kèm trang web"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:47
+msgid "Improved integrated file manager, supporting multiple file operations"
+msgstr "Cải thiện trình quản lý tệp tích hợp, hỗ trợ nhiều thao tác với tệp"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:48
+msgid "Integrated file editor: edit files and codeblocks directly in Newelle"
+msgstr ""
+"Trình soạn thảo tệp tích hợp: sửa tệp và khối mã trực tiếp trong Newelle"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:49
+msgid "Integrated Terminal mini app: open the terminal directly in Newelle"
+msgstr "Ứng dụng nhỏ terminal tích hợp: mở terminal trực tiếp trong Newelle"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:50
+msgid ""
+"Programmable prompts: add dynamic content to prompts with conditionals and "
+"random strings"
+msgstr ""
+"Lời nhắc lập trình được: thêm nội dung động vào lời nhắc với điều kiện và "
+"chuỗi ngẫu nhiên"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:51
+msgid "Add ability to manually edit chat name"
+msgstr "Thêm khả năng sửa tên cuộc trò chuyện thủ công"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:52
+msgid "Minor bug fixes"
+msgstr "Sửa các lỗi nhỏ"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:53
+msgid "Added support for multiple languages for Kokoro TTS and Whisper.CPP"
+msgstr "Thêm hỗ trợ nhiều ngôn ngữ cho Kokoro TTS và Whisper.CPP"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:54
+msgid "Run HTML/CSS/JS websites directly in app"
+msgstr "Chạy trang web HTML/CSS/JS trực tiếp trong ứng dụng"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:55
+msgid "New animation on chat change"
+msgstr "Hiệu ứng chuyển động mới khi chuyển cuộc trò chuyện"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:63
+msgid "Small improvements"
+msgstr "Một số cải tiến nhỏ"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:70
+msgid "Improve local documents reading and loading performances"
+msgstr "Cải thiện hiệu năng đọc và tải tài liệu cục bộ"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:71
+msgid "Add option to send with CTRL+Enter"
+msgstr "Thêm tùy chọn gửi bằng CTRL+Enter"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:72
+msgid "Improve codeblocks"
+msgstr "Cải thiện khối mã"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:73
+msgid "Fix Kokoro TTS"
+msgstr "Sửa Kokoro TTS"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:74
+msgid "Remove emoji from TTS"
+msgstr "Bỏ emoji khỏi TTS"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:75
+msgid "Set API keys as password fields"
+msgstr "Đặt khóa API thành trường mật khẩu"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:76
+msgid "Add thinking support for Gemini"
+msgstr "Thêm hỗ trợ suy nghĩ cho Gemini"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:77
+msgid "Updated translations"
+msgstr "Cập nhật bản dịch"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:84
+msgid "Added new features"
+msgstr "Thêm tính năng mới"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:92
+msgid "Website reading and web search with SearXNG, DuckDuckGo, and Tavily"
+msgstr "Đọc trang web và tìm kiếm web với SearXNG, DuckDuckGo và Tavily"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:93
+msgid "Improved LaTeX rendering and document management"
+msgstr "Cải thiện hiển thị LaTeX và quản lý tài liệu"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:94
+msgid "New Thinking Widget and OpenRouter handler"
+msgstr "Thành phần hiển thị suy nghĩ mới và trình xử lý OpenRouter"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:95
+msgid "Vision support for Llama4 on Groq"
+msgstr "Hỗ trợ nhận diện hình ảnh cho Llama4 trên Groq"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:96
+msgid "New translations (Traditional Chinese, Bengali, Hindi)"
+msgstr "Bản dịch mới (tiếng Trung phồn thể, tiếng Bengal, tiếng Hindi)"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:102
+msgid "Fixed many bugs, added some features!"
+msgstr "Sửa nhiều lỗi, thêm một số tính năng!"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:107
+msgid "Support for new features and bug fixes"
+msgstr "Hỗ trợ tính năng mới và sửa lỗi"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:112
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:117
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:122
+msgid "Added many new features and bug fixes"
+msgstr "Thêm nhiều tính năng mới và sửa lỗi"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:127
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:132
+msgid "Added new features and bug fixes"
+msgstr "Thêm tính năng mới và sửa lỗi"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:137
+msgid ""
+"Updated the g4f library with versioning, added user guides, improved "
+"extension browsing, and enhanced model handling."
+msgstr ""
+"Cập nhật thư viện g4f có quản lý phiên bản, thêm hướng dẫn sử dụng, cải "
+"thiện việc duyệt tiện ích mở rộng và nâng cao khả năng xử lý mô hình."
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:142
+msgid ""
+"Bug fixes and new features have been implemented. We've modified the "
+"extension architecture, added new models, and introduced vision support, "
+"along with more capabilities."
+msgstr ""
+"Đã sửa lỗi và bổ sung tính năng mới. Chúng tôi đã thay đổi kiến trúc tiện "
+"ích mở rộng, thêm mô hình mới và hỗ trợ nhận diện hình ảnh, cùng nhiều khả "
+"năng khác."
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:172
+msgid "Stable version"
+msgstr "Phiên bản ổn định"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:177
+msgid "Added extension"
+msgstr "Thêm tiện ích mở rộng"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:182
+msgid "Blacklist of commands"
+msgstr "Danh sách lệnh bị chặn"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:187
+msgid "Localization"
+msgstr "Bản địa hóa"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:192
+msgid "Redesign"
+msgstr "Thiết kế lại"
+
+#: data/io.github.qwersyk.Newelle.appdata.xml.in:196
+msgid "Qwersyk"
+msgstr "Qwersyk"
+
+#: data/io.github.qwersyk.Newelle.desktop.in:3
+msgid "Newelle: Your advanced chat bot"
+msgstr "Newelle: Chatbot nâng cao của bạn"
+
+#: data/io.github.qwersyk.Newelle.desktop.in:10
+msgid "ai;assistant;chat;chatgpt;gpt;llm;ollama;"
+msgstr "ai;assistant;chat;chatgpt;gpt;llm;ollama;trợ lý;trò chuyện;"
