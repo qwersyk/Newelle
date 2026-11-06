@@ -10,6 +10,7 @@ from .ollama_handler import OllamaHandler
 from .ollama_cloud_handler import OllamaCloudHandler
 from .openai_handler import OpenAIHandler 
 from .openrouter_handler import OpenRouterHandler 
+from .litellm_handler import LiteLLMHandler
 from .newelle_handler import NewelleAPIHandler
 from .deepseek_handler import DeepseekHandler
 from .llama_cpp_handler import LlamaCPPHandler
@@ -28,6 +29,7 @@ __all__ = [
     "OllamaCloudHandler",
     "OpenAIHandler",
     "OpenRouterHandler",
+    "LiteLLMHandler",
     "NewelleAPIHandler",
     "DeepseekHandler",
     "LlamaCPPHandler",

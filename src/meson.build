@@ -163,6 +163,7 @@ llm_sources = [
   'handlers/llm/ollama_cloud_handler.py',
   'handlers/llm/openai_handler.py',
   'handlers/llm/openrouter_handler.py',
+  'handlers/llm/litellm_handler.py',
   'handlers/llm/deepseek_handler.py',
   'handlers/llm/llama_cpp_handler.py',
   ]
