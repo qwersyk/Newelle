@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "catalog_revision": 3,
+  "catalog_revision": 4,
   "applications": [
     {
       "id": "parallel_search",
@@ -864,6 +864,34 @@
         "env": {
           "SEM_REPO": "${sem_repo}",
           "SEM_CLOUD": "0"
+        }
+      }
+    },
+    {
+      "id": "bowmark",
+      "name": "Bowmark",
+      "description": "Typed functions for live web data: search, product prices, listings, profiles and more across many sites, with structured results.",
+      "logo_url": "https://bowmark.ai/favicon.ico",
+      "setup": {
+        "instructions": "Create an API key at bowmark.ai (new accounts start with a free $10 of usage). Requests and their results go to Bowmark.",
+        "help_url": "https://bowmark.ai/docs/quickstart",
+        "fields": [
+          {
+            "id": "api_key",
+            "type": "secret",
+            "label": "API key",
+            "description": "The key is stored with your existing MCP server settings.",
+            "required": true
+          }
+        ]
+      },
+      "server": {
+        "type": "http",
+        "title": "Bowmark",
+        "url": "https://api.bowmark.ai/mcp",
+        "auth": {
+          "type": "bearer",
+          "token": "${api_key}"
         }
       }
     }
