@@ -2604,6 +2604,26 @@ msgstr ""
 msgid "Fetch the full content of each result as Markdown instead of using only the search snippet. Each page uses extra API credits."
 msgstr ""
 
+#: src/constants.py:413
+msgid "SpecStream"
+msgstr ""
+
+#: src/constants.py:414
+msgid "SpecStream web search API"
+msgstr ""
+
+#: src/handlers/websearch/specstream_handler.py:17
+msgid "SpecStream API key"
+msgstr ""
+
+#: src/handlers/websearch/specstream_handler.py:19
+msgid "Include page text"
+msgstr ""
+
+#: src/handlers/websearch/specstream_handler.py:19
+msgid "Also return the text of the pages closest to the query instead of using only the search snippet. It is part of the same search request."
+msgstr ""
+
 #, fuzzy
 #~ msgid "_Cancel"
 #~ msgstr "Cancel"
