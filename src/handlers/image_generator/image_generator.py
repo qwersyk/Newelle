@@ -7,6 +7,7 @@ import os
 from io import BytesIO
 
 if TYPE_CHECKING:
+    from gi.repository import Gtk
     from ...ui.widgets.image_generator import ImageGeneratorWidget
 
 # Lazy import to avoid circular dependency at module level
