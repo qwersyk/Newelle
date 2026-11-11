@@ -358,7 +358,6 @@ class WhisperCPPHandler(STTHandler):
         """Recognize using the whisper-server HTTP API"""
         import urllib.request
         import urllib.error
-        import json
 
         try:
             boundary = '----WebKitFormBoundary7MA4YWxkTrZu0gW'
