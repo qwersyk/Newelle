@@ -32,7 +32,7 @@ class OpenAIEmbeddingHandler(EmbeddingHandler):
             list containing the extra settings
         """
         api_settings = [ 
-            ExtraSettings.EntrySetting("api", _("API Key"), _("API Key for " + provider_name), "",password=True),
+            ExtraSettings.EntrySetting("api", _("API Key"), _("API Key for {provider}").format(provider=provider_name), "",password=True),
         ]
         endpoint_settings = [
             ExtraSettings.EntrySetting("endpoint", _("API Endpoint"), _("API base url, change this to use different APIs"), "https://api.openai.com/v1/"),

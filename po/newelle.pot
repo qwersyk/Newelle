@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Newelle\n"
 "Report-Msgid-Bugs-To: https://github.com/qwersyk/Newelle/issues\n"
-"POT-Creation-Date: 2026-11-11 09:17+0100\n"
+"POT-Creation-Date: 2026-11-11 09:21+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1308,7 +1308,8 @@ msgstr ""
 
 #: src/handlers/embeddings/openai_handler.py:35
 #: src/handlers/llm/openai_handler.py:173
-msgid "API Key for "
+#, python-brace-format
+msgid "API Key for {provider}"
 msgstr ""
 
 #: src/handlers/embeddings/openai_handler.py:38
