@@ -234,6 +234,7 @@ websearch_sources = [
   'handlers/websearch/tinyfish_handler.py',
   'handlers/websearch/deepseek_handler.py',
   'handlers/websearch/outcrawl_handler.py',
+  'handlers/websearch/specstream_handler.py',
   ]
 
 image_generator_sources = [
