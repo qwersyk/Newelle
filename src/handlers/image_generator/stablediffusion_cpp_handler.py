@@ -1,37 +1,28 @@
 from .image_generator import ImageGeneratorHandler
 from ...handlers.extra_settings import ExtraSettings
-from ...utility.system import can_escape_sandbox, is_flatpak, get_spawn_command, has_backend, detect_cuda_version
+from ...utility.system import is_flatpak, get_spawn_command, has_backend
 from ...utility.media import get_image_path
 from ...utility.background_process import BackgroundProcess
-from ...utility.build_process import BuildCancelled, BuildProcess
-from ...utility.download_manager import (
-    DownloadCancelled,
-    DownloadKind,
-    current_download_task,
-    get_download_manager,
-)
+from ...utility.runtime_installer import RuntimeProject, fetch_json
+from ...utility.download_manager import current_download_task
 from ...tools import Tool, ToolResult
-from ...handlers import ErrorSeverity
 from ...ui.model_library import (
     LibraryModel,
     ModelLibraryWindow,
     get_local_backend_label,
 )
 from ...utility.model_icons import get_model_icon
-from ...ui.build_dependency_warning import BuildDependencyWarning
 from gettext import gettext as _
 import subprocess
 import os
 import platform
 import threading
 import shutil
-import zipfile
-import tempfile
 import time
 import socket
 import json
 import glob
-from gi.repository import Gtk, Adw, GLib, Gdk
+from gi.repository import GLib
 import requests
 
 # Model Library
@@ -500,6 +491,77 @@ SD_EDIT_FAMILIES = (
 )
 
 
+def fetch_stable_diffusion_cpp_releases():
+    release = fetch_json(
+        "https://api.github.com/repos/leejet/stable-diffusion.cpp/releases/latest"
+    )
+    machine = platform.machine().lower()
+    arch = {"amd64": "x64", "x86_64": "x64", "aarch64": "arm64"}.get(machine, machine)
+    backend_checks = {
+        backend: has_backend(backend)
+        for backend in ("cuda", "rocm", "vulkan", "openvino", "sycl")
+    }
+    available = []
+    for asset in release.get("assets", []):
+        name = asset["name"]
+        if not name.endswith(".zip") or "Linux" not in name:
+            continue
+        arm = "arm64" in name.lower() or "aarch64" in name.lower()
+        if not ((arch == "arm64" and arm) or (arch == "x64" and not arm)):
+            continue
+        backend = next(
+            (key for key in ("rocm", "cuda", "vulkan", "openvino", "sycl") if key in name.lower()), "cpu"
+        )
+        compatible = backend == "cpu" or backend_checks.get(backend, False)
+        if backend == "sycl":
+            backend = "sycl-fp16" if "fp16" in name.lower() else "sycl-fp32"
+        available.append(
+            {
+                "name": name,
+                "url": asset["browser_download_url"],
+                "size": asset.get("size", 0),
+                "backend": backend,
+                "tag": release.get("tag_name", "unknown"),
+                "source": "official",
+                "compatible": compatible,
+                "recommended": compatible and backend != "cpu",
+            }
+        )
+    priority = {
+        "cuda": 0, "rocm": 1, "vulkan": 2, "openvino": 3,
+        "sycl-fp16": 4, "sycl-fp32": 5, "cpu": 6,
+    }
+    available.sort(
+        key=lambda asset: (not asset["compatible"], priority.get(asset["backend"], 99))
+    )
+    return available
+
+
+STABLE_DIFFUSION_CPP = RuntimeProject(
+    name="stable-diffusion.cpp",
+    repository="https://github.com/leejet/stable-diffusion.cpp.git",
+    binaries=("sd-cli", "sd-server"),
+    require_all_binaries=False,
+    binary_aliases=(("sd", "sd-cli"),),
+    backend_flags={
+        "cpu": (),
+        "cpu_openblas": ("-DGGML_OPENBLAS=ON",),
+        "cuda": ("-DSD_CUDA=ON",),
+        "rocm": ("-DSD_HIPBLAS=ON",),
+        "vulkan": ("-DSD_VULKAN=ON",),
+    },
+    submodules=True,
+    backend_labels={
+        "cpu": _("CPU"),
+        "cpu_openblas": _("CPU (OpenBLAS)"),
+        "cuda": _("Nvidia (CUDA)"),
+        "rocm": _("AMD (ROCm)"),
+        "vulkan": _("Any GPU (Vulkan)"),
+    },
+    fetch_releases=fetch_stable_diffusion_cpp_releases,
+)
+
+
 class StableDiffusionCPPHandler(ImageGeneratorHandler):
     """Local image generation using stable-diffusion.cpp.
 
@@ -508,10 +570,8 @@ class StableDiffusionCPPHandler(ImageGeneratorHandler):
     """
 
     key = "stablediffusioncpp"
+    runtime_project = STABLE_DIFFUSION_CPP
     schema_key = "image-generator-settings"
-
-    RELEASE_API_URL = "https://api.github.com/repos/leejet/stable-diffusion.cpp/releases"
-    REPO_URL = "https://github.com/leejet/stable-diffusion.cpp.git"
 
     def __init__(self, settings, path):
         super().__init__(settings, path)
@@ -524,8 +584,6 @@ class StableDiffusionCPPHandler(ImageGeneratorHandler):
         self._installing = False
         self._server = BackgroundProcess("sd-server")
         self._server.register_atexit()
-        self._build_process = BuildProcess("stable-diffusion.cpp-build")
-        self._build_process.register_atexit()
         self.downloading = {}
 
         for folder in (self.model_folder, self.shared_folder, self.lora_folder):
@@ -2330,875 +2388,16 @@ class StableDiffusionCPPHandler(ImageGeneratorHandler):
     # ── Installation dialog ────────────────────────────────────────────
 
     def show_install_dialog(self, button):
-        win = Adw.Window(title="Install stable-diffusion.cpp")
-        self._build_window = win
-        win.set_default_size(700, 760)
-        win.set_modal(True)
-        try:
-            root = button.get_root()
-            if root:
-                win.set_transient_for(root)
-        except Exception:
-            pass
+        from ...ui.widgets.runtime_installer import show_runtime_installer
 
-        main_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        win.set_content(main_box)
-
-        dots = Adw.CarouselIndicatorDots()
-        dots.set_margin_top(12)
-        main_box.append(dots)
-
-        content = Adw.Carousel()
-        content.set_allow_mouse_drag(False)
-        content.set_allow_scroll_wheel(False)
-        content.set_hexpand(True)
-        content.set_vexpand(True)
-        dots.set_carousel(content)
-        main_box.append(content)
-
-        # ── Page 0: Choose Method ──────────────────────────────────────
-
-        page0 = Adw.StatusPage(
-            title="Choose Installation Method",
-            description="How would you like to install stable-diffusion.cpp?",
-            icon_name="system-software-install-symbolic",
+        show_runtime_installer(
+            self,
+            self.runtime_project,
+            self.sd_cpp_path,
+            button,
+            on_installed=self.on_runtime_installed,
         )
-        page0_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=16, hexpand=True, vexpand=True)
-        page0_box.set_margin_start(24)
-        page0_box.set_margin_end(24)
-        page0_box.set_valign(Gtk.Align.CENTER)
 
-        cards_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=20, homogeneous=True)
-        cards_box.set_halign(Gtk.Align.CENTER)
-
-        # Left card: Compile
-        compile_card = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
-        compile_card.add_css_class("card")
-        compile_card.set_margin_top(8)
-        compile_card.set_margin_bottom(8)
-        compile_card.set_margin_start(12)
-        compile_card.set_margin_end(12)
-
-        compile_inner = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
-        compile_inner.set_margin_top(16)
-        compile_inner.set_margin_bottom(16)
-        compile_inner.set_margin_start(16)
-        compile_inner.set_margin_end(16)
-        compile_card.append(compile_inner)
-
-        compile_icon = Gtk.Image.new_from_icon_name("tools-symbolic")
-        compile_icon.set_pixel_size(48)
-        compile_icon.set_halign(Gtk.Align.CENTER)
-        compile_inner.append(compile_icon)
-
-        compile_title = Gtk.Label(label="Compile from Source")
-        compile_title.add_css_class("title-4")
-        compile_title.set_halign(Gtk.Align.CENTER)
-        compile_inner.append(compile_title)
-
-        for text in [
-            "Optimized for your specific hardware",
-            "Full customization via CMake flags",
-            "Supports CUDA, Vulkan, ROCm",
-        ]:
-            lbl = Gtk.Label(label="  +  " + text)
-            lbl.set_halign(Gtk.Align.START)
-            lbl.set_margin_start(8)
-            lbl.add_css_class("success")
-            compile_inner.append(lbl)
-
-        for text in [
-            "Takes 5-20 minutes to build",
-            "Requires build tools (cmake, gcc)",
-        ]:
-            lbl = Gtk.Label(label="  -  " + text)
-            lbl.set_halign(Gtk.Align.START)
-            lbl.set_margin_start(8)
-            lbl.add_css_class("dim-label")
-            compile_inner.append(lbl)
-
-        btn_compile = Gtk.Button(label="Compile")
-        btn_compile.add_css_class("suggested-action")
-        btn_compile.set_halign(Gtk.Align.CENTER)
-        btn_compile.set_margin_top(8)
-        btn_compile.connect("clicked", lambda x: content.scroll_to(content.get_nth_page(1), True))
-        compile_inner.append(btn_compile)
-        cards_box.append(compile_card)
-
-        # Right card: Download
-        download_card = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
-        download_card.add_css_class("card")
-        download_card.set_margin_top(8)
-        download_card.set_margin_bottom(8)
-        download_card.set_margin_start(12)
-        download_card.set_margin_end(12)
-
-        download_inner = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
-        download_inner.set_margin_top(16)
-        download_inner.set_margin_bottom(16)
-        download_inner.set_margin_start(16)
-        download_inner.set_margin_end(16)
-        download_card.append(download_inner)
-
-        download_icon = Gtk.Image.new_from_icon_name("folder-download-symbolic")
-        download_icon.set_pixel_size(48)
-        download_icon.set_halign(Gtk.Align.CENTER)
-        download_inner.append(download_icon)
-
-        download_title = Gtk.Label(label="Download Pre-built")
-        download_title.add_css_class("title-4")
-        download_title.set_halign(Gtk.Align.CENTER)
-        download_inner.append(download_title)
-
-        for text in [
-            "Ready in under a minute",
-            "No build tools required",
-            "Pre-tested official binaries",
-        ]:
-            lbl = Gtk.Label(label="  +  " + text)
-            lbl.set_halign(Gtk.Align.START)
-            lbl.set_margin_start(8)
-            lbl.add_css_class("success")
-            download_inner.append(lbl)
-
-        for text in [
-            "Generic CPU optimizations",
-            "Limited to available releases",
-            "No CUDA prebuilt for Linux",
-        ]:
-            lbl = Gtk.Label(label="  -  " + text)
-            lbl.set_halign(Gtk.Align.START)
-            lbl.set_margin_start(8)
-            lbl.add_css_class("dim-label")
-            download_inner.append(lbl)
-
-        btn_download = Gtk.Button(label="Download")
-        btn_download.add_css_class("suggested-action")
-        btn_download.set_halign(Gtk.Align.CENTER)
-        btn_download.set_margin_top(8)
-        btn_download.connect("clicked", lambda x: self._on_prebuilt_selected(content))
-        download_inner.append(btn_download)
-        cards_box.append(download_card)
-
-        page0_box.append(cards_box)
-
-        btn_cancel0 = Gtk.Button(label="Cancel")
-        btn_cancel0.add_css_class("destructive-action")
-        btn_cancel0.set_halign(Gtk.Align.CENTER)
-        btn_cancel0.connect("clicked", lambda x: win.close())
-        page0_box.append(btn_cancel0)
-
-        page0.set_child(page0_box)
-        content.append(page0)
-
-        # ── Page 1: Hardware Selection (Compile path) ──────────────────
-
-        page1 = Adw.StatusPage(
-            title="Select Hardware",
-            description="Choose your acceleration backend",
-            icon_name="brain-augemnted-symbolic",
-        )
-        main_container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12, hexpand=True, vexpand=True)
-        main_container.set_halign(Gtk.Align.CENTER)
-
-        if not can_escape_sandbox():
-            warning_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
-            warning_box.set_margin_bottom(16)
-            warning_box.add_css_class("warning")
-
-            warning_label = Gtk.Label(label="Flatpak Sandbox Warning")
-            warning_label.add_css_class("heading")
-            warning_label.set_halign(Gtk.Align.CENTER)
-            warning_box.append(warning_label)
-
-            warning_text = Gtk.Label(
-                label="To build stable-diffusion.cpp with hardware acceleration in Flatpak,\n"
-                      "you need to grant sandbox escape permissions.\n"
-                      "Run the following command in a terminal:"
-            )
-            warning_text.set_halign(Gtk.Align.CENTER)
-            warning_text.set_wrap(True)
-            warning_box.append(warning_text)
-
-            command_entry = Gtk.Entry()
-            command_entry.set_text(
-                "flatpak --user override --talk-name=org.freedesktop.Flatpak --filesystem=home io.github.qwersyk.Newelle"
-            )
-            command_entry.set_editable(False)
-            command_entry.set_halign(Gtk.Align.CENTER)
-            command_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
-            command_box.set_halign(Gtk.Align.CENTER)
-            command_box.append(command_entry)
-            warning_box.append(command_box)
-
-            copy_btn = Gtk.Button(label="Copy Command")
-            copy_btn.set_halign(Gtk.Align.CENTER)
-            copy_btn.connect(
-                "clicked",
-                lambda btn: self._copy_to_clipboard(
-                    "flatpak --user override --talk-name=org.freedesktop.Flatpak --filesystem=home io.github.qwersyk.Newelle"
-                ),
-            )
-            warning_box.append(copy_btn)
-
-            main_container.append(warning_box)
-            main_container.append(Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL))
-
-        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=24, hexpand=True)
-        hbox.set_halign(Gtk.Align.CENTER)
-        hbox.set_margin_start(24)
-        hbox.set_margin_end(24)
-
-        left_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
-        self.hw_options = {}
-        dependency_warning = BuildDependencyWarning()
-        main_container.append(dependency_warning)
-        group = None
-        backend_options = {
-            "CPU": "cpu",
-            "CPU (OpenBLAS)": "cpu_openblas",
-            "Nvidia (CUDA)": "cuda",
-            "AMD (ROCm)": "rocm",
-            "Any GPU (Vulkan)": "vulkan",
-        }
-        for hw, backend in backend_options.items():
-            btn = Gtk.CheckButton(label=hw, group=group)
-            if group is None:
-                group = btn
-                btn.set_active(True)
-            dependency_warning.watch_option(btn, backend)
-            self.hw_options[hw] = btn
-            left_box.append(btn)
-        dependency_warning.refresh("cpu")
-
-        right_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12, valign=Gtk.Align.CENTER)
-        lbl_flags = Gtk.Label(label="Custom CMake Flags (Optional)")
-        lbl_flags.set_halign(Gtk.Align.START)
-        right_box.append(lbl_flags)
-
-        self.entry_cmake = Gtk.Entry()
-        self.entry_cmake.set_placeholder_text("-DSD_WEBP=OFF ...")
-        right_box.append(self.entry_cmake)
-
-        hbox.append(left_box)
-        hbox.append(right_box)
-        main_container.append(hbox)
-
-        button_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
-        button_box.set_halign(Gtk.Align.CENTER)
-        button_box.set_margin_top(12)
-
-        btn_cancel1 = Gtk.Button(label="Cancel")
-        btn_cancel1.add_css_class("destructive-action")
-        btn_cancel1.connect("clicked", lambda x: win.close())
-        button_box.append(btn_cancel1)
-
-        btn_next1 = Gtk.Button(label="Next")
-        if not can_escape_sandbox():
-            btn_next1.set_sensitive(False)
-            btn_next1.set_tooltip_text("Please run the Flatpak override command first")
-        else:
-            btn_next1.connect("clicked", lambda x: content.scroll_to(content.get_nth_page(3), True))
-        button_box.append(btn_next1)
-
-        main_container.append(button_box)
-
-        page1.set_child(main_container)
-        content.append(page1)
-
-        # ── Page 2: Pre-built Binary Selection ─────────────────────────
-
-        page2 = Adw.StatusPage(
-            title="Select Pre-built Binary",
-            description="Choose the binary that matches your hardware",
-            icon_name="folder-download-symbolic",
-        )
-        self.prebuilt_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12, hexpand=True, vexpand=True)
-        self.prebuilt_box.set_margin_start(24)
-        self.prebuilt_box.set_margin_end(24)
-        self.prebuilt_box.set_halign(Gtk.Align.CENTER)
-
-        self.prebuilt_spinner = Gtk.Spinner()
-        self.prebuilt_spinner.set_halign(Gtk.Align.CENTER)
-        self.prebuilt_spinner.start()
-        self.prebuilt_box.append(self.prebuilt_spinner)
-
-        self.prebuilt_list_box = Gtk.ListBox()
-        self.prebuilt_list_box.set_selection_mode(Gtk.SelectionMode.NONE)
-        self.prebuilt_list_box.add_css_class("boxed-list")
-        self.prebuilt_list_box.set_hexpand(True)
-        self.prebuilt_box.append(self.prebuilt_list_box)
-
-        self.prebuilt_error_label = Gtk.Label(label="")
-        self.prebuilt_error_label.set_halign(Gtk.Align.CENTER)
-        self.prebuilt_error_label.set_wrap(True)
-        self.prebuilt_box.append(self.prebuilt_error_label)
-
-        prebuilt_buttons = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
-        prebuilt_buttons.set_halign(Gtk.Align.CENTER)
-        prebuilt_buttons.set_margin_top(12)
-
-        btn_back_prebuilt = Gtk.Button(label="Back")
-        btn_back_prebuilt.connect("clicked", lambda x: content.scroll_to(content.get_nth_page(0), True))
-        prebuilt_buttons.append(btn_back_prebuilt)
-
-        self.btn_start_prebuilt = Gtk.Button(label="Download & Install")
-        self.btn_start_prebuilt.add_css_class("suggested-action")
-        self.btn_start_prebuilt.set_sensitive(False)
-        self.btn_start_prebuilt.connect("clicked", lambda x: self._start_prebuilt_install(content))
-        prebuilt_buttons.append(self.btn_start_prebuilt)
-
-        self.prebuilt_box.append(prebuilt_buttons)
-        page2.set_child(self.prebuilt_box)
-        content.append(page2)
-
-        # ── Page 3: Ready to Build ─────────────────────────────────────
-
-        page3 = Adw.StatusPage(
-            title="Ready to Build",
-            description="Click start to begin compilation",
-            icon_name="tools-symbolic",
-        )
-        box3 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12, hexpand=True, vexpand=True)
-        box3.set_halign(Gtk.Align.CENTER)
-
-        btn_start = Gtk.Button(label="Start Build")
-        btn_start.set_halign(Gtk.Align.CENTER)
-        btn_start.connect("clicked", lambda x: self._start_build(content))
-        box3.append(btn_start)
-
-        btn_back3 = Gtk.Button(label="Back")
-        btn_back3.set_halign(Gtk.Align.CENTER)
-        btn_back3.connect("clicked", lambda x: content.scroll_to(content.get_nth_page(1), True))
-        box3.append(btn_back3)
-
-        page3.set_child(box3)
-        content.append(page3)
-
-        # ── Page 4: Progress ───────────────────────────────────────────
-
-        page4 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
-        page4.set_hexpand(True)
-        page4.set_vexpand(True)
-        page4.set_margin_top(24)
-        page4.set_margin_bottom(24)
-        page4.set_margin_start(24)
-        page4.set_margin_end(24)
-
-        icon4 = Gtk.Image.new_from_icon_name("magic-wand-symbolic")
-        icon4.set_pixel_size(96)
-        icon4.set_halign(Gtk.Align.CENTER)
-        page4.append(icon4)
-
-        title4 = Gtk.Label(label="Installing")
-        title4.add_css_class("title-1")
-        title4.set_halign(Gtk.Align.CENTER)
-        page4.append(title4)
-
-        desc4 = Gtk.Label(label="Please wait...")
-        desc4.set_halign(Gtk.Align.CENTER)
-        page4.append(desc4)
-
-        self.progress_bar = Gtk.ProgressBar()
-        page4.append(self.progress_bar)
-
-        self.log_view = Gtk.TextView()
-        self.log_view.set_editable(False)
-        self.log_view.set_monospace(True)
-        scroll = Gtk.ScrolledWindow()
-        scroll.set_child(self.log_view)
-        scroll.set_vexpand(True)
-        scroll.set_hexpand(True)
-        page4.append(scroll)
-
-        self.stop_build_button = Gtk.Button(label="Stop Build")
-        self.stop_build_button.add_css_class("destructive-action")
-        self.stop_build_button.set_halign(Gtk.Align.CENTER)
-        self.stop_build_button.connect("clicked", self.stop_build)
-        page4.append(self.stop_build_button)
-        content.append(page4)
-
-        # ── Page 5: Done ───────────────────────────────────────────────
-
-        page5 = Adw.StatusPage(
-            title="Completed",
-            description="Installation finished successfully",
-            icon_name="emblem-default-symbolic",
-        )
-        btn_close = Gtk.Button(label="Close")
-        btn_close.set_halign(Gtk.Align.CENTER)
-        btn_close.connect("clicked", lambda x: self._finish_install(win))
-        page5.set_child(btn_close)
-        content.append(page5)
-
-        win.present()
-
-    # ── Prebuilt binary download ───────────────────────────────────────
-
-    def _on_prebuilt_selected(self, content):
-        content.scroll_to(content.get_nth_page(2), True)
-        if not hasattr(self, "_prebuilt_fetched") or not self._prebuilt_fetched:
-            self._prebuilt_fetched = True
-            threading.Thread(target=self._fetch_prebuilt_releases, args=(content,), daemon=True).start()
-
-    @staticmethod
-    def _detect_arch():
-        machine = platform.machine().lower()
-        if machine in ("x86_64", "amd64"):
-            return "x86_64"
-        elif machine in ("aarch64", "arm64"):
-            return "arm64"
-        return machine
-
-    @staticmethod
-    def _parse_asset_backend(name):
-        name_lower = name.lower()
-        if "rocm" in name_lower:
-            return "rocm"
-        elif "vulkan" in name_lower:
-            return "vulkan"
-        return "cpu"
-
-    @staticmethod
-    def _human_size(size_bytes):
-        for unit in ("B", "KB", "MB", "GB"):
-            if size_bytes < 1024:
-                return f"{size_bytes:.1f} {unit}"
-            size_bytes /= 1024
-        return f"{size_bytes:.1f} TB"
-
-    @staticmethod
-    def _backend_display_name(backend):
-        return {
-            "cpu": "CPU (Basic)",
-            "vulkan": "Any GPU (Vulkan)",
-            "rocm": "AMD ROCm",
-        }.get(backend, backend)
-
-    def _fetch_prebuilt_releases(self, carousel):
-        arch = self._detect_arch()
-        available = []
-
-        try:
-            # Use the specific release tagged in the repo
-            resp = requests.get(self.RELEASE_API_URL + "/latest", timeout=15)
-            resp.raise_for_status()
-            release = resp.json()
-            tag = release.get("tag_name", "unknown")
-
-            for asset in release.get("assets", []):
-                name = asset["name"]
-                url = asset["browser_download_url"]
-                size = asset.get("size", 0)
-
-                # We only support Linux .zip archives
-                if not name.endswith(".zip"):
-                    continue
-                if "Linux" not in name:
-                    continue
-                if "Darwin" in name or "macOS" in name:
-                    continue
-
-                # Check architecture match
-                if arch == "x86_64" and ("arm64" in name.lower() or "aarch64" in name.lower()):
-                    continue
-                if arch == "arm64" and "x86_64" in name and "arm64" not in name.lower():
-                    continue
-
-                backend = self._parse_asset_backend(name)
-                available.append({
-                    "name": name,
-                    "url": url,
-                    "size": size,
-                    "backend": backend,
-                    "tag": tag,
-                })
-
-        except Exception as e:
-            GLib.idle_add(self._show_prebuilt_error, f"Failed to fetch releases: {e}")
-            return
-
-        if not available:
-            GLib.idle_add(
-                self._show_prebuilt_error,
-                f"No compatible pre-built binaries found for your architecture ({arch}).",
-            )
-            return
-
-        # Sort: compatible backends first
-        backend_checks = {}
-        for b in ("vulkan", "rocm"):
-            backend_checks[b] = has_backend(b)
-
-        for item in available:
-            item["compatible"] = item["backend"] == "cpu" or backend_checks.get(item["backend"], False)
-
-        def _sort_key(x):
-            is_compatible = 0 if x["compatible"] else 1
-            backend_prio = {"vulkan": 0, "rocm": 1, "cpu": 2}.get(x["backend"], 99)
-            return (is_compatible, backend_prio)
-
-        available.sort(key=_sort_key)
-
-        GLib.idle_add(self._populate_prebuilt_list, available)
-
-    def _show_prebuilt_error(self, message):
-        if hasattr(self, "prebuilt_spinner") and self.prebuilt_spinner:
-            self.prebuilt_spinner.stop()
-            self.prebuilt_spinner.set_visible(False)
-        self.prebuilt_error_label.set_text(message)
-
-    def _populate_prebuilt_list(self, available):
-        if hasattr(self, "prebuilt_spinner") and self.prebuilt_spinner:
-            self.prebuilt_spinner.stop()
-            self.prebuilt_spinner.set_visible(False)
-
-        child = self.prebuilt_list_box.get_first_child()
-        while child:
-            self.prebuilt_list_box.remove(child)
-            child = self.prebuilt_list_box.get_first_child()
-
-        self.prebuilt_assets = available
-        group = None
-        first_recommended = None
-        first_overall = None
-
-        for i, item in enumerate(available):
-            row = Adw.ActionRow()
-            row.set_title(self._backend_display_name(item["backend"]))
-
-            if item["compatible"] and item["backend"] != "cpu":
-                rec = Gtk.Label(label="Recommended")
-                rec.add_css_class("success")
-                rec.add_css_class("caption")
-                rec.set_valign(Gtk.Align.CENTER)
-                row.add_suffix(rec)
-
-            subtitle_parts = [
-                self._human_size(item["size"]),
-                item["tag"],
-            ]
-            row.set_subtitle("  |  ".join(subtitle_parts))
-
-            check = Gtk.CheckButton()
-            if group is None:
-                group = check
-                check.set_active(True)
-            else:
-                check.set_group(group)
-            row.add_prefix(check)
-            row.set_activatable_widget(check)
-
-            if item["compatible"] and first_recommended is None:
-                first_recommended = i
-                check.set_active(True)
-            if first_overall is None:
-                first_overall = i
-
-            self.prebuilt_list_box.append(row)
-
-        self._selected_prebuilt = first_recommended if first_recommended is not None else first_overall
-        self.btn_start_prebuilt.set_sensitive(True)
-
-        def on_row_activated(listbox, row):
-            idx = 0
-            child = listbox.get_first_child()
-            while child:
-                if child == row:
-                    break
-                child = child.get_next_sibling()
-                idx += 1
-            self._selected_prebuilt = idx
-
-        self.prebuilt_list_box.connect("row-activated", on_row_activated)
-
-    def _start_prebuilt_install(self, carousel):
-        if not hasattr(self, "_selected_prebuilt") or self._selected_prebuilt is None:
-            return
-        if not hasattr(self, "prebuilt_assets") or self._selected_prebuilt >= len(self.prebuilt_assets):
-            return
-
-        asset = self.prebuilt_assets[self._selected_prebuilt]
-        carousel.scroll_to(carousel.get_nth_page(4), True)
-        threading.Thread(target=self._run_prebuilt_install, args=(asset, carousel), daemon=True).start()
-
-    def _run_prebuilt_install(self, asset, carousel):
-        def append_log(text):
-            buf = self.log_view.get_buffer()
-            buf.insert(buf.get_end_iter(), text)
-            return False
-
-        def set_progress(fraction):
-            self.progress_bar.set_fraction(fraction)
-            return False
-
-        manager = get_download_manager()
-        task = manager.create_task(
-            _("Install {name}").format(name=asset["name"]),
-            kind=DownloadKind.RUNTIME,
-            source_id=f"runtime:{self.key}:{asset['name']}",
-            phase=_("Downloading runtime"),
-            cancellable=True,
-        )
-        tmp_dir = None
-        try:
-            task.check_cancelled()
-            GLib.idle_add(append_log, f"Downloading {asset['name']}...\n")
-            GLib.idle_add(set_progress, 0.0)
-
-            resp = requests.get(asset["url"], stream=True, timeout=300)
-            resp.raise_for_status()
-            total = int(resp.headers.get("content-length", asset["size"]))
-            downloaded = 0
-
-            tmp_dir = tempfile.mkdtemp()
-            tmp_file = os.path.join(tmp_dir, asset["name"])
-
-            with open(tmp_file, "wb") as f:
-                for chunk in resp.iter_content(chunk_size=8192):
-                    task.check_cancelled()
-                    f.write(chunk)
-                    downloaded += len(chunk)
-                    task.update(
-                        fraction=downloaded / total if total > 0 else None,
-                        transferred_bytes=downloaded,
-                        total_bytes=total if total > 0 else None,
-                    )
-                    if total > 0:
-                        progress = (downloaded / total) * 0.7
-                        GLib.idle_add(set_progress, progress)
-
-            GLib.idle_add(set_progress, 0.7)
-            GLib.idle_add(append_log, "Download complete. Extracting...\n")
-            task.update(
-                phase=_("Installing runtime"),
-                reset_progress=True,
-                cancellable=False,
-            )
-
-            abs_sd_path = os.path.abspath(self.sd_cpp_path)
-            if os.path.exists(abs_sd_path):
-                shutil.rmtree(abs_sd_path)
-
-            with zipfile.ZipFile(tmp_file, "r") as zf:
-                zf.extractall(tmp_dir)
-
-            # Find the extracted directory or binary
-            extracted_items = os.listdir(tmp_dir)
-            extracted_items = [i for i in extracted_items if i != asset["name"]]
-
-            build_bin = os.path.join(abs_sd_path, "build", "bin")
-            os.makedirs(build_bin, exist_ok=True)
-
-            # Look for sd-cli and sd-server binaries in extracted files
-            sd_binary_found = False
-            for root, _dirs, files in os.walk(tmp_dir):
-                for f in files:
-                    if f == "sd-cli" or f == "sd":
-                        src = os.path.join(root, f)
-                        dst = os.path.join(build_bin, "sd-cli")
-                        shutil.move(src, dst)
-                        os.chmod(dst, 0o755)
-                        sd_binary_found = True
-                    elif f == "sd-server":
-                        src = os.path.join(root, f)
-                        dst = os.path.join(build_bin, "sd-server")
-                        shutil.move(src, dst)
-                        os.chmod(dst, 0o755)
-
-            # Also copy any .so files
-            for root, _dirs, files in os.walk(tmp_dir):
-                for f in files:
-                    if f.endswith(".so") or f.endswith(".so.*"):
-                        src = os.path.join(root, f)
-                        dst = os.path.join(build_bin, f)
-                        shutil.move(src, dst)
-
-            if not sd_binary_found:
-                raise Exception("sd-cli binary not found in the archive")
-
-            shutil.rmtree(tmp_dir, ignore_errors=True)
-
-            GLib.idle_add(set_progress, 1.0)
-            GLib.idle_add(append_log, "Installation completed successfully!\n")
-            GLib.idle_add(lambda: carousel.scroll_to(carousel.get_nth_page(5), True))
-            GLib.idle_add(lambda: self.settings_update())
-            self.set_setting("gpu_acceleration", asset.get("backend") != "cpu")
-            self.set_setting("installed_backend", asset.get("backend", "cpu"))
-            task.complete(_("Installed"))
-
-        except DownloadCancelled:
-            task.cancelled(_("Cancelled"))
-        except Exception as e:
-            task.fail(str(e), _("Failed"))
-            GLib.idle_add(append_log, f"\nError: {e}\n")
-            import traceback
-            GLib.idle_add(append_log, traceback.format_exc())
-        finally:
-            if tmp_dir is not None:
-                shutil.rmtree(tmp_dir, ignore_errors=True)
-
-    # ── Build from source ──────────────────────────────────────────────
-
-    def _start_build(self, carousel):
-        backend = "cpu"
-        if self.hw_options["Nvidia (CUDA)"].get_active():
-            backend = "cuda"
-        elif self.hw_options["AMD (ROCm)"].get_active():
-            backend = "rocm"
-        elif self.hw_options["Any GPU (Vulkan)"].get_active():
-            backend = "vulkan"
-        elif self.hw_options["CPU (OpenBLAS)"].get_active():
-            backend = "cpu_openblas"
-
-        custom_flags = self.entry_cmake.get_text()
-
-        self._build_process.begin()
-        carousel.scroll_to(carousel.get_nth_page(4), True)
-        threading.Thread(target=self._run_build, args=(backend, carousel, custom_flags), daemon=True).start()
-
-    def stop_build(self, button=None):
-        """Stop the active stable-diffusion.cpp source build."""
-        self._build_process.cancel()
-        self._close_build_window()
-
-    def _close_build_window(self):
-        window = getattr(self, "_build_window", None)
-        if window is not None:
-            self._build_window = None
-            window.close()
-        return False
-
-    def _run_build(self, backend, carousel, custom_flags=""):
-        if not can_escape_sandbox():
-            self.throw("You have to escape the sandbox to build stable-diffusion.cpp", ErrorSeverity.ERROR)
-            return
-
-        try:
-            env = os.environ.copy()
-            cmake_args = ["-DCMAKE_BUILD_TYPE=Release"]
-
-            if backend == "cuda":
-                cmake_args.append("-DSD_CUDA=ON")
-            elif backend == "rocm":
-                cmake_args.append("-DSD_HIPBLAS=ON")
-            elif backend == "vulkan":
-                cmake_args.append("-DSD_VULKAN=ON")
-            elif backend == "cpu_openblas":
-                cmake_args.append("-DGGML_OPENBLAS=ON")
-
-            if custom_flags:
-                custom_list = custom_flags.split() if isinstance(custom_flags, str) else custom_flags
-                cmake_args.extend(custom_list)
-
-            def append_log(text):
-                buffer = self.log_view.get_buffer()
-                buffer.insert(buffer.get_end_iter(), text)
-                return False
-
-            def set_progress(fraction):
-                self.progress_bar.set_fraction(fraction)
-                return False
-
-            def run_cmd(cmd_list, extra_env=None, cwd=None):
-                full_cmd = cmd_list
-                if is_flatpak():
-                    flatpak_cmd = get_spawn_command()
-                    if extra_env:
-                        for k, v in extra_env.items():
-                            flatpak_cmd.extend([f"--env={k}={v}"])
-                    full_cmd = flatpak_cmd + cmd_list
-                else:
-                    if extra_env:
-                        env.update(extra_env)
-
-                return self._build_process.run(
-                    full_cmd,
-                    env=env if not is_flatpak() else None,
-                    cwd=cwd,
-                    on_output=lambda line: GLib.idle_add(append_log, line),
-                )
-
-            GLib.idle_add(set_progress, 0.1)
-            GLib.idle_add(append_log, "Cloning stable-diffusion.cpp repository...\n")
-
-            abs_sd_path = os.path.abspath(self.sd_cpp_path)
-
-            if os.path.exists(abs_sd_path):
-                run_cmd(["rm", "-rf", abs_sd_path])
-
-            clone_cmd = ["git", "clone", "--depth", "1", self.REPO_URL, abs_sd_path]
-            if not run_cmd(clone_cmd):
-                if self._build_process.cancel_requested:
-                    raise BuildCancelled()
-                raise Exception("Failed to clone stable-diffusion.cpp repository")
-
-            # Initialize submodules (for webp/webm dependencies)
-            GLib.idle_add(set_progress, 0.15)
-            GLib.idle_add(append_log, "Initializing submodules...\n")
-            submodule_cmd = ["git", "submodule", "update", "--init", "--recursive"]
-            if not run_cmd(submodule_cmd, cwd=abs_sd_path):
-                if self._build_process.cancel_requested:
-                    raise BuildCancelled()
-                GLib.idle_add(append_log, "Warning: submodule init failed, continuing anyway...\n")
-
-            GLib.idle_add(set_progress, 0.25)
-            GLib.idle_add(append_log, "Configuring CMake build...\n")
-
-            cmake_configure = ["cmake", "-B", "build"] + cmake_args
-            if not run_cmd(cmake_configure, cwd=abs_sd_path):
-                if self._build_process.cancel_requested:
-                    raise BuildCancelled()
-                raise Exception("Failed to configure CMake build")
-
-            GLib.idle_add(set_progress, 0.4)
-            GLib.idle_add(append_log, f"Building stable-diffusion.cpp (Backend: {backend})...\n")
-            GLib.idle_add(append_log, "This may take several minutes...\n")
-
-            import multiprocessing
-            num_jobs = multiprocessing.cpu_count()
-            cmake_build = ["cmake", "--build", "build", "--config", "Release", "-j", str(num_jobs)]
-            if not run_cmd(cmake_build, cwd=abs_sd_path):
-                if self._build_process.cancel_requested:
-                    raise BuildCancelled()
-                raise Exception("Failed to build stable-diffusion.cpp")
-
-            if self._build_process.cancel_requested:
-                raise BuildCancelled()
-
-            sd_binary = os.path.join(abs_sd_path, "build", "bin", "sd-cli")
-            if not os.path.exists(sd_binary):
-                # Check for sd binary name
-                sd_alt = os.path.join(abs_sd_path, "build", "bin", "sd")
-                if os.path.exists(sd_alt):
-                    os.rename(sd_alt, sd_binary)
-
-            sd_server = os.path.join(abs_sd_path, "build", "bin", "sd-server")
-            if not os.path.exists(sd_binary) and not os.path.exists(sd_server):
-                raise Exception("sd-cli and sd-server binaries not found after build")
-
-            GLib.idle_add(set_progress, 1.0)
-            GLib.idle_add(append_log, "Build completed successfully!\n")
-            GLib.idle_add(lambda: carousel.scroll_to(carousel.get_nth_page(5), True))
-            GLib.idle_add(lambda: self.settings_update())
-            self.set_setting("gpu_acceleration", backend != "cpu")
-            self.set_setting("installed_backend", backend)
-
-        except BuildCancelled:
-            GLib.idle_add(append_log, "\nBuild stopped by user.\n")
-            GLib.idle_add(self._close_build_window)
-        except Exception as e:
-            GLib.idle_add(
-                append_log,
-                f"\nError: {e}\n",
-            )
-            import traceback
-            GLib.idle_add(append_log, traceback.format_exc())
-
-    def _finish_install(self, win):
-        win.close()
-        self.settings_update()
-
-    def _copy_to_clipboard(self, text):
-        clipboard = Gdk.Display.get_default().get_clipboard()
-        clipboard.set(text)
+    def on_runtime_installed(self, backend, version=None, prebuilt=False):
+        self.set_setting("gpu_acceleration", backend != "cpu")
+        self.set_setting("installed_backend", backend)

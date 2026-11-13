@@ -91,6 +91,7 @@ ui_sources = [
 ]
 
 widgets_sources = [
+  'ui/widgets/runtime_installer.py',
   'ui/widgets/__init__.py',
   'ui/widgets/multiline.py',
   'ui/widgets/profilerow.py',
@@ -144,6 +145,7 @@ widgets_sources = [
 handler_sources = [
   'handlers/__init__.py',
   'handlers/handler.py',
+  'handlers/llama_cpp_installer.py',
   'handlers/extra_settings.py',
   'handlers/descriptors.py',
 ]
@@ -255,6 +257,7 @@ interface_sources = [
 ]
 
 utility_sources = [
+  'utility/runtime_installer.py',
   'utility/screenshot.py',
   'utility/__init__.py',
   'utility/media.py',
