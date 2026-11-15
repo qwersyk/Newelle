@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "catalog_revision": 4,
+  "catalog_revision": 5,
   "applications": [
     {
       "id": "parallel_search",
@@ -889,6 +889,34 @@
         "type": "http",
         "title": "Bowmark",
         "url": "https://api.bowmark.ai/mcp",
+        "auth": {
+          "type": "bearer",
+          "token": "${api_key}"
+        }
+      }
+    },
+    {
+      "id": "getyoutubetranscript",
+      "name": "GetYouTubeTranscript",
+      "description": "YouTube video transcripts with optional timestamps, plus video search and channel and playlist video lists.",
+      "logo_url": "https://getyoutubetranscript.com/favicon.ico",
+      "setup": {
+        "instructions": "Create an API key at getyoutubetranscript.com (new accounts get 100 free credits; one credit per transcript or request). Requests and their results go to GetYouTubeTranscript.",
+        "help_url": "https://getyoutubetranscript.com/docs",
+        "fields": [
+          {
+            "id": "api_key",
+            "type": "secret",
+            "label": "API key",
+            "description": "The key is stored with your existing MCP server settings.",
+            "required": true
+          }
+        ]
+      },
+      "server": {
+        "type": "http",
+        "title": "GetYouTubeTranscript",
+        "url": "https://getyoutubetranscript.com/api/mcp",
         "auth": {
           "type": "bearer",
           "token": "${api_key}"
