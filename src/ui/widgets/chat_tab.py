@@ -49,13 +49,14 @@ class ChatTab(Gtk.Box):
         "generation-stopped": (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
-    def __init__(self, window, chat_id: int):
+    def __init__(self, window, chat_id: int, defer_history: bool = False):
         super().__init__(orientation=Gtk.Orientation.VERTICAL, vexpand=True, hexpand=True)
         
         self.window = window
         self._chat_id = chat_id
         self.controller = window.controller
         self.tab_page = None  # Will be set after tab is added to TabView
+        self._history_needs_population = defer_history
         
         # Streaming state - isolated per tab
         self.stream_number_variable = 0
@@ -129,7 +130,8 @@ class ChatTab(Gtk.Box):
         # Initial chat history
         self.chat_history = ChatHistory(self, self.chat, self._chat_id)
         self._setup_chat_history(self.chat_history)
-        self.chat_history.populate_chat()
+        if not self._history_needs_population:
+            self.chat_history.populate_chat()
         
         self.history_stack.add_child(self.chat_history)
         
@@ -976,7 +978,7 @@ class ChatTab(Gtk.Box):
         if draft_id is None:
             return
         self.restore_composer_draft({})
-        self.controller.save_chats()
+        self.controller.schedule_save()
         self.drafts_popover.popdown()
         self.notification_block.add_toast(Adw.Toast(title=_("Draft saved")))
         self.focus_input()
@@ -992,7 +994,7 @@ class ChatTab(Gtk.Box):
                 self._chat_id, self.get_composer_draft(), self._editing_draft_id,
             )
             self.restore_composer_draft(draft)
-            self.controller.save_chats()
+            self.controller.schedule_save()
         self.drafts_popover.popdown()
         self.focus_input()
 
@@ -1090,12 +1092,14 @@ class ChatTab(Gtk.Box):
         Args:
             chat_id: The ID of the chat to switch to
         """
-        if not self.status:
+        if not self.status or chat_id == self._chat_id:
             # Cannot switch while generating
             return
 
         self.remember_draft()
         self.drafts_popover.popdown()
+        old_history = self.chat_history
+        old_history.cancel_loading()
         
         # Determine direction based on chat IDs
         # If new ID > old ID, we are moving down the list (slide up)
@@ -1119,15 +1123,14 @@ class ChatTab(Gtk.Box):
         self._response_start_index = None
         self._chat_id = chat_id
         self.restore_composer_draft(self.controller.workspace_storage.drafts.get(chat_id, {}))
-        self.controller.save_chats()
         
         # Update tab title
         self._update_tab_title()
         
         # Create new chat history
-        old_history = self.chat_history
         self.chat_history = ChatHistory(self, self.chat, self._chat_id)
         self._setup_chat_history(self.chat_history)
+        self._history_needs_population = False
         self.chat_history.populate_chat()
         
         # Add to stack and switch
@@ -1154,6 +1157,7 @@ class ChatTab(Gtk.Box):
         
     def on_entry_activate(self, entry):
         """Send a message when input is pressed."""
+        self.ensure_history_populated()
         text = "" if entry.placeholding else entry.get_text()
 
         if text.startswith("/") and self._cmd_popover.get_visible():
@@ -1247,6 +1251,7 @@ class ChatTab(Gtk.Box):
         # selected workspace so switching workspaces does not orphan it.
         if self.controller.workspace_switching or self.chat_id not in self.controller.chats:
             return GLib.SOURCE_REMOVE
+        self.ensure_history_populated()
         if manual:
             self.auto_run_times = 0
             self.tool_call_count = 0
@@ -1700,11 +1705,13 @@ class ChatTab(Gtk.Box):
         if self.chat[message_id]["User"] == "Console":
             return
 
-        message_box_index = message_id + 1
-        if message_box_index < 0 or message_box_index >= len(self.chat_history.messages_box):
+        self.chat_history._tool_call_cache.clear()
+        self.chat_history._tool_chain_starts.clear()
+        message_box = next((box for box in self.chat_history._message_bubbles()
+                            if box.message_index == message_id), None)
+        if message_box is None or message_id in self.chat_history.edit_entries:
             return
 
-        message_box = self.chat_history.messages_box[message_box_index]
         overlay = message_box.get_first_child()
         if overlay is None:
             return
@@ -1713,27 +1720,31 @@ class ChatTab(Gtk.Box):
             return
         old_label = content_box.get_last_child()
         if old_label is not None:
+            if isinstance(old_label, Message):
+                old_label.cancel_streaming()
             content_box.remove(old_label)
-            content_box.append(
-                self.chat_history.show_message(
-                    self.chat[message_id]["Message"],
-                    id_message=message_id,
-                    is_user=self.chat[message_id]["User"] == "User",
-                    return_widget=True,
-                    restore=True
-                )
+            replacement = self.chat_history.show_message(
+                self.chat[message_id]["Message"],
+                id_message=message_id,
+                is_user=self.chat[message_id]["User"] == "User",
+                return_widget=True,
+                restore=True
             )
+            if replacement is not None:
+                content_box.append(replacement)
             
     # Chat management
     def show_chat(self):
         """Reload and display the chat."""
         self.stream_tools = False
         self.last_error_box = None
+        if self._history_needs_population:
+            return
         self.chat_history.show_chat()
         
     def save_chat(self):
         """Save the chat to disk."""
-        self.controller.save_chats()
+        self.controller.schedule_save()
         
     def clear_chat(self):
         """Clear the current chat."""
@@ -2041,6 +2052,7 @@ class ChatTab(Gtk.Box):
     # Bot response (for suggestions)
     def send_bot_response(self, button):
         """Send a bot response suggestion."""
+        self.ensure_history_populated()
         self.send_button_start_spinner()
         text = button.get_child().get_label()
         self.chat.append({"User": "User", "Message": text})
@@ -2057,7 +2069,21 @@ class ChatTab(Gtk.Box):
     # Suggestions
     def _on_map(self, widget):
         """Handle map event (when tab is shown)."""
+        # Restoring a workspace briefly selects intermediate pages. Wait
+        # until the final selection is known before restoring any messages.
+        GLib.idle_add(self._populate_visible_history)
         self.start_suggestions_timer()
+
+    def _populate_visible_history(self):
+        if self.get_mapped() and self.window.get_active_chat_tab() is self:
+            self.ensure_history_populated()
+        return GLib.SOURCE_REMOVE
+
+    def ensure_history_populated(self):
+        """Restore background tabs only when selected or used for a request."""
+        if self._history_needs_population:
+            self._history_needs_population = False
+            self.chat_history.populate_chat()
 
     def start_suggestions_timer(self):
         """Start timer to generate suggestions if tab remains active."""

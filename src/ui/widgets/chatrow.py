@@ -152,19 +152,7 @@ class ChatRow(Gtk.ListBoxRow):
         self.delete_button.set_name(str(chat_index))
         self.actions_box.append(self.delete_button)
         
-        # Apply selected styling
-        if is_selected:
-            self.add_css_class("chat-row-selected")
-            if isinstance(self.chat_icon, Gtk.Image):
-                self.chat_icon.set_from_icon_name("chat-bubbles-text-symbolic")
-            self.chat_icon.remove_css_class("dim-label")
-            self.chat_icon.add_css_class("accent")
-            self.name_label.add_css_class("heading")
-        else:
-            self.add_css_class("chat-row")
-            if is_open:
-                self.add_css_class("chat-locked")
-                self.name_label.add_css_class("window-bar-label")
+        self.set_state(is_selected, is_open)
         
         # Add hover controllers
         hover_controller = Gtk.EventControllerMotion()
@@ -177,6 +165,24 @@ class ChatRow(Gtk.ListBoxRow):
         drag_source.connect("prepare", self._on_drag_prepare)
         drag_source.connect("drag-begin", self._on_drag_begin)
         self.add_controller(drag_source)
+
+    def set_state(self, is_selected: bool, is_open: bool):
+        """Update selection and tab indicators without recreating the row."""
+        self.is_selected = is_selected
+        self.is_open = is_open
+        for widget, css_class, enabled in (
+            (self, "chat-row-selected", is_selected),
+            (self, "chat-row", not is_selected),
+            (self, "chat-locked", is_open and not is_selected),
+            (self.chat_icon, "dim-label", not is_selected),
+            (self.chat_icon, "accent", is_selected),
+            (self.name_label, "heading", is_selected),
+            (self.name_label, "window-bar-label", is_open and not is_selected),
+        ):
+            if enabled:
+                widget.add_css_class(css_class)
+            else:
+                widget.remove_css_class(css_class)
     
     def _on_hover_enter(self, controller, x, y):
         """Show action buttons on hover"""

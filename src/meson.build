@@ -73,6 +73,7 @@ ui_sources = [
   'ui/thread_editing.py',
   'ui/scheduled_tasks.py',
   'ui/downloads.py',
+  'ui/dependency_manager.py',
   'ui/screenrecorder.py',
   'ui/shortcuts.py',
   'ui/mini_window.py',
@@ -91,6 +92,7 @@ ui_sources = [
 ]
 
 widgets_sources = [
+  'ui/widgets/runtime_installer.py',
   'ui/widgets/__init__.py',
   'ui/widgets/multiline.py',
   'ui/widgets/profilerow.py',
@@ -144,6 +146,7 @@ widgets_sources = [
 handler_sources = [
   'handlers/__init__.py',
   'handlers/handler.py',
+  'handlers/llama_cpp_installer.py',
   'handlers/extra_settings.py',
   'handlers/descriptors.py',
 ]
@@ -256,6 +259,7 @@ interface_sources = [
 ]
 
 utility_sources = [
+  'utility/runtime_installer.py',
   'utility/screenshot.py',
   'utility/__init__.py',
   'utility/media.py',
@@ -284,6 +288,8 @@ utility_sources = [
   'utility/background_process.py',
   'utility/build_process.py',
   'utility/download_manager.py',
+  'utility/dependency_manager.py',
+  'utility/dependencies.py',
   'utility/huggingface_download.py',
   'utility/tool_call_group.py',
   'utility/build_dependencies.py',

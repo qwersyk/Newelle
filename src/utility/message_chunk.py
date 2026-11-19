@@ -247,6 +247,21 @@ def _mask_currency_dollars(text: str) -> str:
     )
 
 
+def replace_inline_latex(text: str, replace) -> str:
+    """Replace only inline LaTeX spans, leaving prose and prices untouched."""
+    # Masking swaps single characters, so match spans index the original text.
+    latex_text = _mask_currency_dollars(text)
+    parts = []
+    last_index = 0
+    for match in _INLINE_LATEX_PATTERN.finditer(latex_text):
+        start, end = match.span()
+        parts.append(text[last_index:start])
+        parts.append(replace(text[start:end]))
+        last_index = end
+    parts.append(text[last_index:])
+    return "".join(parts)
+
+
 def process_inline_elements(text: str, allow_latex: bool) -> List[MessageChunk]:
     chunks = []
     if not allow_latex:

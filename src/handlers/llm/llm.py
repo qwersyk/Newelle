@@ -1,7 +1,9 @@
 from abc import abstractmethod
+from collections import OrderedDict
 from typing import Callable, Any
 import functools
 import json
+import threading
 from ..handler import Handler
 from ...utility.util import LLMResponse
 from ...utility.media import extract_image, prepare_file_message, prepare_audio_message, audio_text
@@ -9,6 +11,35 @@ from ...utility.strings import extract_json, normalize_thinking_tags
 from ...utility.usage_tracker import get_usage_tracker
 
 __all__ = ["LLMHandler", "LLMResponse"]
+
+_CLIENT_CACHE_SIZE = 8
+_client_cache = OrderedDict()
+_client_cache_lock = threading.Lock()
+
+
+def cached_client(key: tuple, factory: Callable[[], Any]) -> Any:
+    """Return a shared SDK client for ``key``, creating it with ``factory``.
+
+    Provider SDK clients own an HTTP connection pool. Handlers are shallow-
+    copied for every request, so caching on the instance would not survive;
+    a module-level cache lets consecutive requests reuse open connections
+    instead of paying a new TCP/TLS handshake each time.
+    """
+    with _client_cache_lock:
+        client = _client_cache.get(key)
+        if client is not None:
+            _client_cache.move_to_end(key)
+            return client
+    client = factory()
+    with _client_cache_lock:
+        existing = _client_cache.get(key)
+        if existing is not None:
+            return existing
+        _client_cache[key] = client
+        while len(_client_cache) > _CLIENT_CACHE_SIZE:
+            # Evicted clients may still be serving a request; let GC close them.
+            _client_cache.popitem(last=False)
+    return client
 
 
 def _track_usage(method):

@@ -33,6 +33,11 @@ class WorkspaceStorage:
         self.loaded = False
         self.refresh_pending = False
         self.drafts = {}
+        # Monotonic snapshot counters keep an older background write from
+        # replacing a newer file when saves overlap.
+        self.save_generation = 0
+        self.saved_generation = 0
+        self.save_timer = None
 
 
 def shared_workspace_property(name):

@@ -17,7 +17,7 @@ from ...utility import (
     parse_tool_console_message,
 )
 from ...utility.media import extract_file, extract_image, get_image_base64
-from .llm import LLMHandler
+from .llm import LLMHandler, cached_client
 
 _ = gettext.gettext
 
@@ -167,7 +167,9 @@ class ClaudeHandler(LLMHandler):
                     self.models,
                     default_model,
                     update_settings=True,
-                    refresh=lambda _button: self.get_models(),
+                    refresh=lambda _button: threading.Thread(
+                        target=self.get_models, daemon=True
+                    ).start(),
                 )
             )
 
@@ -864,9 +866,11 @@ class ClaudeHandler(LLMHandler):
     def _get_client(self):
         import anthropic
 
-        return anthropic.Client(
-            api_key=self.get_setting("api"),
-            base_url=self.get_setting("endpoint"),
+        api_key = self.get_setting("api")
+        base_url = self.get_setting("endpoint")
+        return cached_client(
+            ("anthropic", api_key, base_url),
+            lambda: anthropic.Client(api_key=api_key, base_url=base_url),
         )
 
     def get_models(self):

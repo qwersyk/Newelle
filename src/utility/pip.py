@@ -167,6 +167,12 @@ def _run_pip(command, environment, handle):
     )
 
 
+def pip_path_lock(path: str) -> threading.Semaphore:
+    """Return the lock that serializes changes to one pip target directory."""
+    with LOCK_SEMAPHORE:
+        return LOCKS.setdefault(os.path.abspath(path), threading.Semaphore(1))
+
+
 def install_module(module, path, update=True, cache_dir=None, task=None):
     """Install requirements into ``path`` while reporting observable progress.
 
@@ -214,8 +220,7 @@ def install_module(module, path, update=True, cache_dir=None, task=None):
                 handle.fail(_("The shared pip installation failed"), _("Failed"))
         return result
 
-    with LOCK_SEMAPHORE:
-        path_lock = LOCKS.setdefault(os.path.abspath(path), threading.Semaphore(1))
+    path_lock = pip_path_lock(path)
 
     acquired = path_lock.acquire(blocking=False)
     if not acquired:

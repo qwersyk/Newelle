@@ -7,7 +7,7 @@ from typing import Any, Callable, Optional
 
 _ = gettext.gettext
 
-from .llm import LLMHandler
+from .llm import LLMHandler, cached_client
 from ...utility.system import open_website
 from ...utility import LLMResponse, convert_history_openai, get_streaming_extra_setting, extract_tools_from_prompts, balance_native_tool_call_responses, parse_assistant_native_tool_calls, parse_tool_console_message
 from ...handlers import ExtraSettings, ErrorSeverity
@@ -53,6 +53,14 @@ class OpenAIHandler(LLMHandler):
         if secondary and self.key != "openai" and endpoint is not None:
             self.set_setting("endpoint", endpoint) 
         return out 
+
+    @staticmethod
+    def _get_openai_client(api, endpoint):
+        from openai import OpenAI
+        return cached_client(
+            ("openai", api, endpoint),
+            lambda: OpenAI(api_key=api, base_url=endpoint),
+        )
 
     def get_models(self, manual=False, multithread = False):
         if not multithread:
@@ -998,8 +1006,6 @@ class OpenAIHandler(LLMHandler):
         return "".join(parts)
 
     def generate_text(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = []) -> str:
-        from openai import OpenAI
-
         responses_api = self.uses_responses_api()
         native_tool_calling = self.get_setting("native_tool_calling", False, True)
         if native_tool_calling:
@@ -1022,10 +1028,7 @@ class OpenAIHandler(LLMHandler):
         if api == "":
             api = "nokey"
         
-        client = OpenAI(
-            api_key=api,
-            base_url=self.get_setting("endpoint")
-        )
+        client = self._get_openai_client(api, self.get_setting("endpoint"))
         top_p, temperature, presence_penalty, frequency_penalty = self.get_advanced_params()
         thinking_params = self.get_thinking_params()
         extra_body = self.get_extra_body()
@@ -1101,7 +1104,6 @@ class OpenAIHandler(LLMHandler):
     
     def generate_text_stream(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = [], on_update: Callable[[str], Any] = lambda _: None, extra_args: list = []) -> str:
         self.running = True
-        from openai import OpenAI
 
         responses_api = self.uses_responses_api()
         native_tool_calling = self.get_setting("native_tool_calling", False, True)
@@ -1124,10 +1126,7 @@ class OpenAIHandler(LLMHandler):
         api = self.get_setting("api")
         if api == "":
             api = "nokey"
-        client = OpenAI(
-            api_key=api,
-            base_url=self.get_setting("endpoint")
-        )
+        client = self._get_openai_client(api, self.get_setting("endpoint"))
         top_p, temperature, presence_penalty, frequency_penalty = self.get_advanced_params()
         thinking_params = self.get_thinking_params()
         extra_body = self.get_extra_body()

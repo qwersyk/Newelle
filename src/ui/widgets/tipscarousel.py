@@ -38,12 +38,13 @@ class TipsCarousel(Gtk.Box):
         Builds the layout of the widget (label, carousel, indicators).
         """
         # Title for the tips section
-        tips_label = Gtk.Label(label=_("Newelle Tips"))
-        tips_label.add_css_class("heading") # Use a suitable style class for a section title
-        tips_label.set_halign(Gtk.Align.START) # Center the title
-        tips_label.set_margin_bottom(5) # Reduce margin here, box spacing handles the rest
+        header = Gtk.Box(spacing=8, halign=Gtk.Align.START, margin_start=4)
+        header_icon = Gtk.Image(icon_name="dialog-information-symbolic", css_classes=["tip-card-icon"])
+        header.append(header_icon)
+        tips_label = Gtk.Label(label=_("Newelle Tips"), css_classes=["heading", "dim-label"])
+        header.append(tips_label)
 
-        self.append(tips_label)
+        self.append(header)
 
         # Create the Adw.Carousel
         self._carousel = Adw.Carousel()
@@ -72,24 +73,27 @@ class TipsCarousel(Gtk.Box):
         Returns:
             A Gtk.Widget (a Button) representing the tip card.
         """
-        content_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        content_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4, valign=Gtk.Align.CENTER)
 
         # Title Label (bold)
-        title_label = Gtk.Label(wrap=True, halign=Gtk.Align.START, css_classes=["heading"])
+        title_label = Gtk.Label(wrap=True, xalign=0, halign=Gtk.Align.START, css_classes=["heading"])
         title_label.set_markup(tip_data['title'])
         content_box.append(title_label)
 
         # Subtitle Label
-        subtitle_label = Gtk.Label(wrap=True, halign=Gtk.Align.START, css_classes=["body"], overflow=Gtk.Overflow.VISIBLE, wrap_mode=Pango.WrapMode.WORD, vexpand=True, width_request=250)
+        subtitle_label = Gtk.Label(wrap=True, xalign=0, halign=Gtk.Align.START, css_classes=["body", "dim-label"], wrap_mode=Pango.WrapMode.WORD_CHAR, width_chars=20)
         subtitle_label.set_text(tip_data['subtitle'])
         content_box.append(subtitle_label)
 
-        tip_button = Gtk.Button(vexpand=True, hexpand=False)
-        tip_button.set_child(content_box)
-        tip_button.add_css_class("richtext") 
+        card_box = Gtk.Box(spacing=12)
+        content_box.set_hexpand(True)
+        card_box.append(content_box)
+        if tip_data.get("on_click") is not None:
+            card_box.append(Gtk.Image(icon_name="go-next-symbolic", valign=Gtk.Align.CENTER, css_classes=["dim-label"]))
 
-        tip_button.set_vexpand(False) 
-        tip_button.set_valign(Gtk.Align.FILL) # Align cards to the top within the carousel
+        tip_button = Gtk.Button(hexpand=True, vexpand=False, css_classes=["card", "tip-card"])
+        tip_button.set_child(card_box)
+        tip_button.set_valign(Gtk.Align.FILL) # Keep all cards the same height
 
         on_click = tip_data.get("on_click", None)
         if on_click is not None:

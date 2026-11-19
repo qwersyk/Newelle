@@ -2,7 +2,6 @@ from gettext import gettext as _
 from typing import Any
 import threading 
 import os 
-import shutil
 import json
 import time
 import traceback
@@ -17,9 +16,9 @@ from ..utility.util import PerformanceMonitor
 from ..handlers import Handler
 
 from ..constants import AVAILABLE_EMBEDDINGS, AVAILABLE_LLMS, AVAILABLE_MEMORIES, AVAILABLE_PROMPTS, AVAILABLE_TTS, AVAILABLE_STT, PROMPTS, AVAILABLE_RAGS, AVAILABLE_WEBSEARCH, AVAILABLE_IMAGE_GENERATORS, SETTINGS_GROUPS
-from ..utility.pip import install_module
 from ..utility.download_manager import get_download_manager
 from ..utility.mcp_config import MCPConfigError, parse_mcp_servers_json
+from .dependency_manager import DependencyManagerWindow
 from .extension import ExtensionPage
 from .interfaces import InterfacesPage
 from .usage import UsagePage
@@ -123,6 +122,13 @@ class Settings(Adw.Window):
         )
         duplicate_llm.connect("clicked", self.on_duplicate_llm)
         llm_header_actions.append(duplicate_llm)
+        test_connection = Gtk.Button(
+            css_classes=["flat"],
+            tooltip_text=_("Test connection with the selected LLM"),
+        )
+        test_connection.set_child(Gtk.Image(icon_name="network-transmit-receive-symbolic"))
+        test_connection.connect("clicked", self.on_test_connection)
+        llm_header_actions.append(test_connection)
         help = Gtk.Button(css_classes=["flat"], icon_name="info-outline-symbolic")
         help.connect("clicked", lambda button : Popen(get_spawn_command() + ["xdg-open", "https://github.com/qwersyk/Newelle/wiki/User-guide-to-the-available-LLMs"]))
         llm_header_actions.append(help)
@@ -776,26 +782,12 @@ class Settings(Adw.Window):
         row.add_suffix(button)
         button.connect("clicked", lambda _ : self.window.show_stdout_monitor_dialog(self))
         self.developer.add(row)
-        # Delete pip path
-        row = Adw.ActionRow(title=_("Delete pip path"), subtitle=_("Remove the extra dependencies installed"))
-        button = Gtk.Button(label=_("Delete"), valign=Gtk.Align.CENTER, css_classes=["destructive-action"])
+        # Python dependencies
+        row = Adw.ActionRow(title=_("Dependencies"), subtitle=_("Install, update and remove the Python packages and runtimes used by providers and extensions"))
+        button = Gtk.Button(label=_("Manage"), valign=Gtk.Align.CENTER)
         row.add_suffix(button)
-        button.connect("clicked", lambda _ : self.delete_pip_path())
-        self.developer.add(row)
-        # Install pip module 
-        row = Adw.ActionRow(title=_("Install pip module"), subtitle=_("Manually install pip module"))
-        entry = Gtk.Entry(valign=Gtk.Align.CENTER)
-        button = Gtk.Button(icon_name="download-symbolic", valign=Gtk.Align.CENTER)
-        row.add_suffix(entry)
-        row.add_suffix(button)
-        def install_custom_module(button):
-            module = entry.get_text()
-            def install_thread():
-                install_module(module, self.controller.pip_path, True)
-            t = threading.Thread(target=install_thread)
-            t.start()
-            self.app.downloads_action()
-        button.connect("clicked", install_custom_module)
+        row.set_activatable_widget(button)
+        button.connect("clicked", lambda _ : self.show_dependency_manager())
         self.developer.add(row)
         
         if self.popup:
@@ -3956,6 +3948,74 @@ class Settings(Adw.Window):
             secondary.set_setting(setting, primary.get_setting(setting))
         self.on_setting_change(constants, handler, "", True)
 
+    def on_test_connection(self, button):
+        """Test the connection with the currently selected LLM provider."""
+        self.test_llm_connection(button, False)
+
+    def test_llm_connection(self, button, secondary: bool):
+        """Start a connection test for the selected (primary or secondary) LLM.
+
+        The request runs in a background thread to avoid blocking the UI.
+
+        Args:
+            button: the button that triggered the test, disabled while testing
+            secondary: whether to test the secondary LLM
+        """
+        setting_name = "secondary-language-model" if secondary else "language-model"
+        key = self.settings.get_string(setting_name)
+        model = AVAILABLE_LLMS.get(key, {})
+        title = model.get("title", key)
+        handler = self.get_object(AVAILABLE_LLMS, key, secondary)
+        if not handler.is_installed():
+            self.add_toast(Adw.Toast(
+                title=_("{model}: dependencies not installed, use the download button on its row").format(model=title),
+                timeout=4,
+            ))
+            return
+        if not self.sandbox and handler.requires_sandbox_escape():
+            self.add_toast(Adw.Toast(
+                title=_("{model}: requires the Flatpak sandbox escape to run").format(model=title),
+                timeout=4,
+            ))
+            return
+        button.set_sensitive(False)
+        spinner = Gtk.Spinner()
+        spinner.start()
+        button.set_child(spinner)
+
+        def run_test():
+            try:
+                handler.send_message("ping")
+                error = None
+            except Exception as e:
+                error = e
+            GLib.idle_add(self.on_test_connection_finished, button, title, error)
+
+        threading.Thread(target=run_test, daemon=True).start()
+
+    def on_test_connection_finished(self, button, model_title: str, error) -> bool:
+        """Show the result of an LLM connection test and restore the button.
+
+        Args:
+            button: the button to re-enable
+            model_title: title of the tested model, used in the toast
+            error: exception raised by the request, None on success
+
+        Returns:
+            False to remove the idle callback
+        """
+        button.set_sensitive(True)
+        button.set_child(Gtk.Image(icon_name="network-transmit-receive-symbolic"))
+        if error is None:
+            self.add_toast(Adw.Toast(title=_("{model}: connection successful").format(model=model_title), timeout=3))
+        else:
+            self.add_toast(Adw.Toast(
+                title=_("{model}: connection failed").format(model=model_title),
+                subtitle=str(error),
+                timeout=6,
+            ))
+        return False
+
     def _update_font_setting(self, key, value):
         self.settings.set_string(key, value)
         setattr(self.controller.newelle_settings, key.replace("-", "_"), value)
@@ -4570,13 +4630,6 @@ class Settings(Adw.Window):
         # Show the window
         dialog.present()
 
-    def delete_pip_path(self):
-        """Delete the pip path folder"""
-        shutil.rmtree(self.controller.pip_path)
-        dialog = Adw.MessageDialog(title=_("Pip path deleted"), body=_("The pip path has been deleted, you can now reinstall the dependencies. This operation requires a restart of the application."))
-        dialog.add_response("close", _("Understood"))
-        dialog.set_default_response("close")
-        dialog.set_close_response("close")
-        dialog.set_response_appearance("close", Adw.ResponseAppearance.DESTRUCTIVE)
-        dialog.connect('response', lambda dialog, response_id: dialog.destroy())
-        dialog.present()
+    def show_dependency_manager(self):
+        """Open the manager for the optional Python packages and components"""
+        DependencyManagerWindow(self.app, self.controller, parent=self).present()

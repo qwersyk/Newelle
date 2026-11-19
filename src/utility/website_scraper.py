@@ -1,6 +1,4 @@
-from os import wait
 import requests
-from newspaper import Article
 from urllib.parse import urljoin
 
 
@@ -27,6 +25,7 @@ class WebsiteScraper:
     def parse_article(self):
         if self.article:
             return
+        from newspaper import Article
         self.article = Article(url=self.url)
         if self.html is not None:
             self.article.set_html(self.html)

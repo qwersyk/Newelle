@@ -268,7 +268,7 @@ class FileEditWidget(Gtk.Box):
         if diff_language:
             self.buffer.set_language(diff_language)
 
-        style_scheme_manager = GtkSource.StyleSchemeManager.new()
+        style_scheme_manager = GtkSource.StyleSchemeManager.get_default()
         style_scheme = style_scheme_manager.get_scheme(self.color_scheme)
         if style_scheme:
             self.buffer.set_style_scheme(style_scheme)

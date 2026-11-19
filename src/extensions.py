@@ -612,6 +612,7 @@ class ExtensionLoader:
     def load_extensions(self):
         """Load extensions from the extension directory"""
         sys.path.insert(0, self.project_dir)
+        settings_changed = False
         for file in os.listdir(self.extension_dir):
             if file.endswith(".py"):
                 try: 
@@ -625,7 +626,7 @@ class ExtensionLoader:
                             # Create entry in settings
                             if extension.id not in self.extensions_settings:
                                 self.extensions_settings[extension.id] = {}
-                                self.save_settings()
+                                settings_changed = True
 
                             # Save properties about enabled and codeblocks
                             if extension.id in self.extensions_settings and ("disabled" not in self.extensions_settings[extension.id] or not self.extensions_settings[extension.id]["disabled"]):
@@ -642,6 +643,8 @@ class ExtensionLoader:
                     print("Error loding file: ", file, e)
             
         sys.path.remove(self.project_dir)
+        if settings_changed:
+            self.save_settings()
 
     def set_handlers(self, llm: LLMHandler, stt: STTHandler, tts:TTSHandler|None, secondary_llm: LLMHandler, embedding: EmbeddingHandler, rag: RAGHandler|None, memory: MemoryHandler|None, websearch: WebSearchHandler | None):
         for extension in self.extensions:

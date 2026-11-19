@@ -126,7 +126,7 @@ class GrepWidget(Gtk.Box):
         self.buffer = GtkSource.Buffer()
         self.buffer.set_text(display_text)
 
-        style_scheme_manager = GtkSource.StyleSchemeManager.new()
+        style_scheme_manager = GtkSource.StyleSchemeManager.get_default()
         style_scheme = style_scheme_manager.get_scheme(self.color_scheme)
         if style_scheme:
             self.buffer.set_style_scheme(style_scheme)

@@ -7,7 +7,7 @@ import os
 import uuid 
 import time 
 
-from .llm import LLMHandler, LLMResponse
+from .llm import LLMHandler, LLMResponse, cached_client
 from ...utility.media import extract_image, extract_video, extract_file, extract_audio
 from ...utility.pip import find_module
 from ...utility.system import open_website
@@ -112,20 +112,22 @@ class GeminiHandler(LLMHandler):
     def get_supported_files(self) -> list[str]:
         return ["*"]
 
+    @staticmethod
+    def _get_genai_client(api):
+        from google import genai
+        return cached_client(("genai", api), lambda: genai.Client(api_key=api))
+
     def get_models(self, manual=False):
         if self.is_installed():
             try:
-                from google import genai
                 api = self.get_setting("apikey", False)
                 if api is None:
                     return
-                client = genai.Client(api_key=api)
+                client = self._get_genai_client(api)
                 
                 models = client.models.list()
                 result = tuple()
                 for model in models:
-                    print(model.supported_actions)
-                    print(model)
                     if "embedding" in model.display_name.lower() or "legacy" in model.display_name.lower():
                         continue
                     result += ((model.display_name, model.name,),)
@@ -166,7 +168,9 @@ class GeminiHandler(LLMHandler):
                 _("AI Model to use"),
                 self.models,
                 self.models[0][1],
-                refresh=lambda button: self.get_models(),
+                refresh=lambda button: threading.Thread(
+                    target=self.get_models, daemon=True
+                ).start(),
             ),
             ExtraSettings.ToggleSetting("system_prompt", _("Enable System Prompt"), _("Some models don't support system prompt (or developers instructions), disable it if you get errors about it"), True, update_settings=True),
         ]
@@ -477,8 +481,7 @@ class GeminiHandler(LLMHandler):
         return history
     
     def get_gemini_image(self, message: str) -> tuple[object, str]:
-        from google.genai import Client 
-        client = Client(api_key=self.get_setting("apikey"))
+        client = self._get_genai_client(self.get_setting("apikey"))
         img = None
         image, text = extract_audio(message)
         if image is None:
@@ -533,7 +536,6 @@ class GeminiHandler(LLMHandler):
         return self.generate_text_stream(prompt, history, system_prompt) 
     
     def generate_text_stream(self, prompt: str, history: list[dict[str, str]] = [], system_prompt: list[str] = [], on_update: Callable[[str], Any] = lambda _: None , extra_args: list = []) -> str:
-        from google import genai
         from google.genai.types import HarmCategory, HarmBlockThreshold, GenerateContentConfig, Part 
         from google.genai import types
 
@@ -555,7 +557,7 @@ class GeminiHandler(LLMHandler):
                 types.SafetySetting(category=types.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold=HarmBlockThreshold.BLOCK_NONE),
                 types.SafetySetting(category=types.HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold=HarmBlockThreshold.BLOCK_NONE),
             ] 
-        client = genai.Client(api_key=self.get_setting("apikey"))
+        client = self._get_genai_client(self.get_setting("apikey"))
         instructions = "\n".join(system_prompt)
         append_instructions = None
         if not self.get_setting("system_prompt"): 

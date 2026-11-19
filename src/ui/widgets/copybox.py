@@ -154,11 +154,11 @@ class CopyBox(Gtk.Box):
         self.buffer = GtkSource.Buffer()
         self.buffer.set_text(txt, -1)
         
-        manager = GtkSource.LanguageManager.new()
+        manager = GtkSource.LanguageManager.get_default()
         language = manager.get_language("sh")
         self.buffer.set_language(language)
         
-        style_scheme_manager = GtkSource.StyleSchemeManager.new()
+        style_scheme_manager = GtkSource.StyleSchemeManager.get_default()
         style_scheme = style_scheme_manager.get_scheme(self.color_scheme)
         self.buffer.set_style_scheme(style_scheme)
         
@@ -249,11 +249,11 @@ class CopyBox(Gtk.Box):
         self.buffer = GtkSource.Buffer()
         self.buffer.set_text(txt, -1)
         
-        manager = GtkSource.LanguageManager.new()
+        manager = GtkSource.LanguageManager.get_default()
         language = manager.get_language(display_lang)
         self.buffer.set_language(language)
         
-        style_scheme_manager = GtkSource.StyleSchemeManager.new()
+        style_scheme_manager = GtkSource.StyleSchemeManager.get_default()
         style_scheme = style_scheme_manager.get_scheme(self.color_scheme)
         self.buffer.set_style_scheme(style_scheme)
         
@@ -688,7 +688,7 @@ class CopyBox(Gtk.Box):
                 
         self.lang = display_lang
         
-        manager = GtkSource.LanguageManager.new()
+        manager = GtkSource.LanguageManager.get_default()
         language = manager.get_language(display_lang)
         if language:
             self.buffer.set_language(language)

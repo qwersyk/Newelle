@@ -287,7 +287,7 @@ class WorkspaceWindow:
                         return True
         return False
 
-    def save_workspace_tabs(self):
+    def save_workspace_tabs(self, defer=False):
         if getattr(self, "_workspace_ui_switching", True) or not hasattr(self, "chat_tabs"):
             return
         workspace = self.controller.active_workspace
@@ -296,12 +296,29 @@ class WorkspaceWindow:
         tab = self.get_active_chat_tab()
         selected = tab.chat_id if tab else None
         if workspace["open_chats"] == open_chats and workspace["selected_chat"] == selected:
+            if not defer and getattr(self, "_workspace_tabs_save_source", None) is not None:
+                self._flush_workspace_tabs()
             return
         workspace["open_chats"] = open_chats
         workspace["selected_chat"] = selected
         if tab:
             self.settings.set_int("chat", tab.chat_id)
+        if defer:
+            # Coalesce rapid selection changes and let the new chat paint
+            # before serializing and fsyncing the complete history store.
+            if getattr(self, "_workspace_tabs_save_source", None) is not None:
+                GLib.source_remove(self._workspace_tabs_save_source)
+            self._workspace_tabs_save_source = GLib.timeout_add(300, self._flush_workspace_tabs)
+        else:
+            self._flush_workspace_tabs()
+
+    def _flush_workspace_tabs(self):
+        source = getattr(self, "_workspace_tabs_save_source", None)
+        if source is not None:
+            GLib.source_remove(source)
+            self._workspace_tabs_save_source = None
         self.controller.save_chats()
+        return GLib.SOURCE_REMOVE
 
     def _save_workspace_on_close(self, *_args):
         self.save_workspace_tabs()
@@ -347,7 +364,7 @@ class WorkspaceWindow:
                         cached.close_page(page)
             for cid in list(workspace["open_chats"]):
                 if self.get_tab_for_chat(cid) is None:
-                    self.add_chat_tab(cid)
+                    self.add_chat_tab(cid, select_tab=False)
             page = self.get_tab_for_chat(selected) or self.add_chat_tab(selected)
             if page is not None:
                 self.chat_tabs.set_selected_page(page)

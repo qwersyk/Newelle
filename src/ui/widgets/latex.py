@@ -5,10 +5,7 @@ import math
 import re
 import threading
 
-import numpy as np
 from gi.repository import Gtk, GLib, Gdk
-from matplotlib.font_manager import FontProperties
-from matplotlib.mathtext import MathTextParser
 
 
 # MathText parsing is CPU-heavy and Matplotlib is not thread-safe. A single
@@ -16,7 +13,8 @@ from matplotlib.mathtext import MathTextParser
 # Matplotlib parsers. Queued work is cancelled when its widget is unmapped, so
 # switching chats does not leave a long list of irrelevant equations behind.
 _RENDER_EXECUTOR = ThreadPoolExecutor(max_workers=1, thread_name_prefix="latex-render")
-_MATHTEXT_PARSER = MathTextParser("agg")
+# Matplotlib and NumPy add ~100 ms to startup; load them with the first equation.
+_MATHTEXT_PARSER = None
 _RENDER_LOCK = threading.Lock()
 
 # Keep rendered pixels, not GTK objects, in the cache. This lets repeated
@@ -83,11 +81,18 @@ def _cache_render(key, rendered: _RenderedLatex) -> None:
 
 def _render_latex(key) -> _RenderedLatex:
     """Render one equation to an RGBA buffer, suitable for a Gdk texture."""
+    global _MATHTEXT_PARSER
     with _RENDER_LOCK:
         cached = _RENDER_CACHE.get(key)
         if cached is not None:
             _RENDER_CACHE.move_to_end(key)
             return cached
+
+        import numpy as np
+        from matplotlib.font_manager import FontProperties
+        if _MATHTEXT_PARSER is None:
+            from matplotlib.mathtext import MathTextParser
+            _MATHTEXT_PARSER = MathTextParser("agg")
 
         latex, size, rgba, scale = key
         dpi = 100 * scale

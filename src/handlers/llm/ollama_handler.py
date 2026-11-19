@@ -11,7 +11,7 @@ from gi.repository import GLib
 
 from ..handler import ErrorSeverity
 
-from .llm import LLMHandler
+from .llm import LLMHandler, cached_client
 from ...utility import get_streaming_extra_setting, extract_tools_from_prompts, convert_history_openai, balance_native_tool_call_responses, parse_assistant_native_tool_calls, parse_tool_console_message
 from ...utility.system import can_escape_sandbox, get_spawn_command
 from ...utility.media import extract_image
@@ -64,15 +64,20 @@ class OllamaHandler(LLMHandler):
     def get_models_list(self):
         return self.models
 
+    def _models_info_cache_is_fresh(self, max_age=24 * 3600) -> bool:
+        try:
+            return time.time() - os.path.getmtime(self.get_cache_path()) < max_age
+        except OSError:
+            return False
+
     def get_models_infomation(self):
         """Get information about models on ollama.com"""
         if self.is_installed(): 
             try:
-                info = requests.get(self.library_url).json()
+                info = requests.get(self.library_url, timeout=30).json()
                 cache_path = self.get_cache_path()
                 with open(cache_path, "w") as f:
                     json.dump(info, f)
-                print(info)
                 self.models_info = info
                 self.add_library_information()
                 self.settings_update()
@@ -219,7 +224,8 @@ class OllamaHandler(LLMHandler):
         """Get the list of installed models in ollama"""
         if not self.is_installed():
             return
-        threading.Thread(target=self.get_models_infomation, args=()).start()
+        if manual or not self._models_info_cache_is_fresh():
+            threading.Thread(target=self.get_models_infomation, args=()).start()
         client = self.create_client()
         self.auto_serve(client)
         try:
@@ -271,9 +277,12 @@ class OllamaHandler(LLMHandler):
     def create_client(self):
         from ollama import Client
         headers = self.get_client_headers()
+        host = self.get_setting("endpoint")
         if len(headers) > 0:
-            return Client(host=self.get_setting("endpoint"), headers=headers)
-        return Client(host=self.get_setting("endpoint"))
+            factory = lambda: Client(host=host, headers=headers)
+        else:
+            factory = lambda: Client(host=host)
+        return cached_client(("ollama", host, tuple(sorted(headers.items()))), factory)
 
     def supports_vision(self) -> bool:
         return True
@@ -357,7 +366,9 @@ class OllamaHandler(LLMHandler):
                     self.models,
                     default,
                     update_settings=True,
-                    refresh= lambda x: self.get_models(manual=True),
+                    refresh= lambda x: threading.Thread(
+                        target=self.get_models, kwargs={"manual": True}, daemon=True
+                    ).start(),
                 )
             )
         else:

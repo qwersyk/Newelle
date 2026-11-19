@@ -188,7 +188,7 @@ class CodeEditorWidget(Gtk.Box):
         """Set up the GtkSource.Buffer."""
         self._source_buffer = GtkSource.Buffer.new(None) # No Gtk.TextTagTable initially
         self._source_buffer.set_highlight_syntax(True)
-        style_scheme_manager = GtkSource.StyleSchemeManager.new()
+        style_scheme_manager = GtkSource.StyleSchemeManager.get_default()
         style_scheme = style_scheme_manager.get_scheme(self.scheme)
         self._source_buffer.set_style_scheme(style_scheme)
         self._source_view.set_buffer(self._source_buffer)

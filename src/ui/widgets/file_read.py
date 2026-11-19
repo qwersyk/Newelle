@@ -114,7 +114,7 @@ class ReadFileWidget(Gtk.Box):
         if language:
             self.buffer.set_language(language)
         
-        style_scheme_manager = GtkSource.StyleSchemeManager.new()
+        style_scheme_manager = GtkSource.StyleSchemeManager.get_default()
         style_scheme = style_scheme_manager.get_scheme(self.color_scheme)
         if style_scheme:
             self.buffer.set_style_scheme(style_scheme)

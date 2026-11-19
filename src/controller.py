@@ -65,6 +65,8 @@ from .ui_controller import UIController
 Manage Newelle Application, create handlers, check integrity, manage settings...
 """
 
+SAVE_DEBOUNCE_SECONDS = 0.7
+
 class ReloadType(Enum):
     """
     Enum for reload type
@@ -409,13 +411,6 @@ class NewelleController(WorkspaceController):
             self,
         )
         self.subagent_runtime.recover_sessions()
-        self.handlers = HandlersManager(
-            self.settings,
-            self.extensionloader,
-            self.models_dir,
-            self.integrationsloader,
-            self,
-        )
         self.handlers.select_handlers(self.newelle_settings)
         if loaded_extensions_settings != self.newelle_settings.extensions_settings:
             self.reload_extensions()
@@ -705,45 +700,98 @@ class NewelleController(WorkspaceController):
 
     def save_chats(self):
         """Save chats without exposing a partially written storage file."""
-        with self.workspace_lock, self.save_lock:
-            storage_dir = os.path.dirname(self.chats_path) or "."
-            storage_name = os.path.basename(self.chats_path)
-            temporary_path = None
-            try:
-                with tempfile.NamedTemporaryFile(
-                    mode="wb",
-                    dir=storage_dir,
-                    prefix=f".{storage_name}.",
-                    suffix=".tmp",
-                    delete=False,
-                ) as temporary_file:
-                    temporary_path = temporary_file.name
-                    pickle.dump({
-                        "workspaces": self.workspaces,
-                        "active_workspace_id": getattr(self, "history_selection_controller", self).active_workspace_id,
-                        "chats": self.chats,
-                        "next_chat_id": self.next_chat_id,
-                        "folders": self.folders,
-                        "next_folder_id": self.next_folder_id,
-                        "drafts": {
-                            chat_id: draft for chat_id, draft in self.workspace_storage.drafts.items()
-                            if chat_id in self.chats
-                        },
-                    }, temporary_file)
-                    temporary_file.flush()
-                    os.fsync(temporary_file.fileno())
-
-                os.replace(temporary_path, self.chats_path)
-                temporary_path = None
-            finally:
-                if temporary_path is not None:
-                    try:
-                        os.unlink(temporary_path)
-                    except FileNotFoundError:
-                        pass
+        storage = self.workspace_storage
+        with self.workspace_lock:
+            # Serialize under the workspace lock for a consistent snapshot, but
+            # write and fsync outside it: on large histories the disk flush
+            # takes ~100 ms and would otherwise stall every thread (and the UI)
+            # waiting for the lock.
+            if storage.save_timer is not None:
+                storage.save_timer.cancel()
+                storage.save_timer = None
+            payload = pickle.dumps({
+                "workspaces": self.workspaces,
+                "active_workspace_id": getattr(self, "history_selection_controller", self).active_workspace_id,
+                "chats": self.chats,
+                "next_chat_id": self.next_chat_id,
+                "folders": self.folders,
+                "next_folder_id": self.next_folder_id,
+                "drafts": {
+                    chat_id: draft for chat_id, draft in storage.drafts.items()
+                    if chat_id in self.chats
+                },
+            })
+            storage.save_generation += 1
+            generation = storage.save_generation
+        with self.save_lock:
+            if generation > storage.saved_generation:
+                self._write_chats_file(payload)
+                storage.saved_generation = generation
         if not self.workspace_storage.refresh_pending:
             self.workspace_storage.refresh_pending = True
             GLib.idle_add(self._refresh_workspace_windows)
+
+    def _write_chats_file(self, payload: bytes):
+        storage_dir = os.path.dirname(self.chats_path) or "."
+        storage_name = os.path.basename(self.chats_path)
+        temporary_path = None
+        try:
+            with tempfile.NamedTemporaryFile(
+                mode="wb",
+                dir=storage_dir,
+                prefix=f".{storage_name}.",
+                suffix=".tmp",
+                delete=False,
+            ) as temporary_file:
+                temporary_path = temporary_file.name
+                temporary_file.write(payload)
+                temporary_file.flush()
+                os.fsync(temporary_file.fileno())
+
+            os.replace(temporary_path, self.chats_path)
+            temporary_path = None
+        finally:
+            if temporary_path is not None:
+                try:
+                    os.unlink(temporary_path)
+                except FileNotFoundError:
+                    pass
+
+    def schedule_save(self):
+        """Persist chats soon, off the calling thread.
+
+        Frequent edits (each message, tool step or draft) are merged into one
+        write. Use ``save_chats`` when the file must be on disk before
+        continuing, e.g. on shutdown.
+        """
+        storage = self.workspace_storage
+        with self.workspace_lock:
+            if storage.save_timer is not None:
+                return
+            # A non-daemon timer still runs if the interpreter starts exiting,
+            # so a pending change is not lost.
+            timer = threading.Timer(SAVE_DEBOUNCE_SECONDS, self._run_scheduled_save)
+            storage.save_timer = timer
+            timer.start()
+
+    def _run_scheduled_save(self):
+        storage = self.workspace_storage
+        with self.workspace_lock:
+            if storage.save_timer is None or storage.save_timer is not threading.current_thread():
+                # Cancelled or superseded by a synchronous save.
+                return
+            storage.save_timer = None
+        try:
+            self.save_chats()
+        except Exception as e:
+            print(f"Error saving chats: {e}")
+
+    def flush_scheduled_save(self):
+        """Write a pending scheduled save now, if there is one."""
+        with self.workspace_lock:
+            pending = self.workspace_storage.save_timer is not None
+        if pending:
+            self.save_chats()
 
     def _refresh_workspace_windows(self):
         self.workspace_storage.refresh_pending = False
@@ -1515,6 +1563,7 @@ class NewelleController(WorkspaceController):
         if self._closed:
             return
         self._closed = True
+        self.flush_scheduled_save()
         self.stop_scheduler()
         if hasattr(self, "handlers"):
             self.handlers.destroy()
@@ -1797,7 +1846,7 @@ class NewelleController(WorkspaceController):
             if self.get_chat_by_id(chat_id) != snapshot or chat_id not in self.chats:
                 raise ValueError(_("The conversation changed during compaction. Please try again."))
             self.chats[chat_id]["context_compaction"] = cm.checkpoint
-            self.save_chats()
+        self.save_chats()
         self.last_trim_result = trim_result
         result.trim_result = trim_result
         result.set_output(_("Conversation compacted from {before} to {after} tokens").format(
@@ -2544,7 +2593,7 @@ class NewelleController(WorkspaceController):
                 chat_record["context_compaction"] = checkpoint
             else:
                 chat_record.pop("context_compaction", None)
-            self.save_chats()
+            self.schedule_save()
 
     def get_memory_prompt(self, chat=None, chat_id=None):
         request_settings = self._request_settings()
@@ -2674,13 +2723,14 @@ class NewelleController(WorkspaceController):
         request_settings = self._request_settings()
         tools_settings = request_settings.tools_settings_dict
         enabled_tools = {}
+        context = self._request_context()
+        mode_manager = context.get("mode_manager") if context else self.mode_manager
         for tool in self.tools.get_all_tools():
             enabled = tool.default_on
             if tool.name in tools_settings and "enabled" in tools_settings[tool.name]:
                 enabled = tools_settings[tool.name]["enabled"]
             if tool.name == "search" and not request_settings.websearch_on:
                 enabled = False
-            mode_manager = self._request_context().get("mode_manager") if self._request_context() else self.mode_manager
             if mode_manager is not None:
                 enabled = mode_manager.resolve_tool_enabled(
                     tool.name, enabled, mode_name
@@ -3161,7 +3211,7 @@ class NewelleController(WorkspaceController):
         self.chats[chat_id]["chat"].append({"User": "User", "Message": message, "UUID": msg_uuid})
         renamed = self.name_chat_from_first_message(chat_id, save=False)
         if save_chat or renamed:
-            self.save_chats()
+            self.schedule_save()
         audio_turn = self.audio_input.bind_audio_turn(chat_id, is_current)
         message = self.chats[chat_id]["chat"][-1]["Message"]
         active_tools_settings = (
@@ -3409,7 +3459,7 @@ class NewelleController(WorkspaceController):
                             "Profile": request_settings.current_profile,
                         }
                         self.chats[chat_id]["chat"].append(stored_entry)
-                        self.save_chats()
+                        self.schedule_save()
                     # Let extensions/integrations postprocess the final response,
                     # mirroring generate_response.
                     if extension_processing:
@@ -3423,7 +3473,7 @@ class NewelleController(WorkspaceController):
                                         entry.pop("OpenAIResponse", None)
                                     break
                             self.set_chat_by_id(chat_id, chat_list)
-                            self.save_chats()
+                            self.schedule_save()
                         return final_message
                     return final_content
                 remaining_tool_calls = max_tool_calls - tool_call_count
@@ -3578,7 +3628,7 @@ class NewelleController(WorkspaceController):
                                 "Message": context_message,
                                 "ToolContext": True,
                             })
-                        self.save_chats()
+                        self.schedule_save()
 
                     if stop_generation_event.is_set():
                         break
@@ -3608,7 +3658,7 @@ class NewelleController(WorkspaceController):
                                 entry.pop("OpenAIResponse", None)
                             break
                     self.set_chat_by_id(chat_id, chat_list)
-                    self.save_chats()
+                    self.schedule_save()
                 if audio_turn is not None:
                     self.update_memory(final_message, chat=self.get_chat_by_id(chat_id))
                 return final_message

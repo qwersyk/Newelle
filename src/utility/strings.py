@@ -3,8 +3,8 @@ import html
 import xml 
 import xml.dom.minidom
 import json
+from functools import lru_cache
 from gi.repository import GLib
-import tiktoken
 from .media import extract_file, extract_image, extract_video, audio_text
 from .source_attribution import extract_source_section
 
@@ -85,16 +85,21 @@ def clean_message_tts(text: str) -> str:
 
     return text
 
+@lru_cache(maxsize=16)
+def _get_encoding(model: str):
+    import tiktoken
+    try:
+        return tiktoken.encoding_for_model(model)
+    except KeyError:
+        return tiktoken.get_encoding("cl100k_base")
+
+
 def count_tokens(text: str, model: str = "gpt-4o-mini") -> int:
     """
     Count the number of tokens in a string
     """
     try:
-        try:
-            encoding = tiktoken.encoding_for_model(model)
-        except KeyError:
-            encoding = tiktoken.get_encoding("cl100k_base")
-        return len(encoding.encode(text))
+        return len(_get_encoding(model).encode(text))
     except Exception:
         return len(text) // 4
 

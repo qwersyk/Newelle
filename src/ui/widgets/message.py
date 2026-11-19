@@ -9,7 +9,7 @@ import tempfile
 import socket
 from gi.repository import Gtk, GLib, Pango, Gio, Gdk
 
-from ...utility.message_chunk import get_message_chunks, MessageChunk, normalize_tool_arguments
+from ...utility.message_chunk import get_message_chunks, MessageChunk, normalize_tool_arguments, replace_inline_latex
 from ...utility.source_attribution import CitationSource, extract_source_section
 from ...utility.strings import markwon_to_pango, remove_thinking_blocks, simple_markdown_to_pango, quote_string, add_S_to_sudo
 from ...utility.system import get_spawn_command, open_in_external_terminal
@@ -38,6 +38,7 @@ _STREAM_FADE_DURATION_US = 140_000
 _STREAM_FADE_START_ALPHA = 0.32
 _CITATION_MARKER_PATTERN = re.compile(r'\[(\d+)\](?!\s*\()')
 _CITATION_PROTECTED_MARKDOWN_PATTERN = re.compile(r'(`[^`\n]*`|\[[^\]]+\]\([^)]+\))')
+_BLANK_LINES_PATTERN = re.compile(r'\n{2,}')
 
 
 class Message(Gtk.Box):
@@ -101,6 +102,12 @@ class Message(Gtk.Box):
         self.message = message
         self.streaming = is_streaming
         self._render_serial = getattr(self, '_render_serial', 0) + 1
+        if is_streaming and threading.current_thread() is threading.main_thread():
+            # The stream reveal timer already runs on the main loop; rendering
+            # now avoids an extra idle round-trip and lets the follow-up scroll
+            # see the new size.
+            self._ui_sync_content(message, self._render_serial)
+            return
         GLib.idle_add(self._ui_sync_content, message, self._render_serial)
 
     def reindex_after_deletion(self, start, end):
@@ -171,6 +178,16 @@ class Message(Gtk.Box):
         for chunk in chunks:
             if current_widget_idx < len(self.widgets_map):
                 w_type, widget, w_data = self.widgets_map[current_widget_idx]
+                if (
+                    w_type == "table"
+                    and chunk.type == "table"
+                    and getattr(w_data, "text", None) == chunk.text
+                ):
+                    # Tables cannot be updated in place. Keep an unchanged one
+                    # instead of rebuilding it and every widget after it on
+                    # each streaming tick.
+                    current_widget_idx += 1
+                    continue
                 if self._can_update_widget(w_type, widget, chunk):
                     self._update_widget(widget, w_type, chunk)
                     self.widgets_map[current_widget_idx] = (chunk.type, widget, chunk)
@@ -561,9 +578,14 @@ class Message(Gtk.Box):
 
     def _update_widget(self, widget, w_type, new_chunk):
         if w_type == "text":
-            previous_text = widget.get_text()
-            if widget.get_label() != new_chunk.text:
-                widget.set_markup(markwon_to_pango(new_chunk.text, validate=not self.streaming))
+            text = _BLANK_LINES_PATTERN.sub('\n', new_chunk.text)
+            # get_label() returns Pango markup, so compare against the source
+            # markdown; otherwise every label is re-rendered on every tick.
+            render_key = (text, not self.streaming)
+            if getattr(widget, "_render_key", None) != render_key:
+                previous_text = widget.get_text()
+                widget.set_markup(markwon_to_pango(text, validate=not self.streaming))
+                widget._render_key = render_key
                 self._fade_streamed_text(widget, previous_text)
         elif w_type == "codeblock":
             if isinstance(widget, CopyBox):
@@ -589,7 +611,7 @@ class Message(Gtk.Box):
                 self.widgets_map.append(("tool_call", slot, chunk))
             return
 
-        start_children = self.observe_children()
+        start_children = set(self.observe_children())
         
         # Real logic
         if chunk.type == "codeblock":
@@ -615,8 +637,7 @@ class Message(Gtk.Box):
             box.append(self.sources_button)
             
         # Capture added widgets
-        end_children = self.observe_children()
-        new_widgets = [c for c in end_children if c not in start_children]
+        new_widgets = [c for c in self.observe_children() if c not in start_children]
         
         if len(new_widgets) == 1:
              self.widgets_map.append((chunk.type, new_widgets[0], chunk))
@@ -636,7 +657,7 @@ class Message(Gtk.Box):
     # --- Process Methods (Copied & Adapted from window.py) ---
 
     def _process_text(self, chunk, box):
-        text = re.sub(r'\n{2,}', '\n', chunk.text)
+        text = _BLANK_LINES_PATTERN.sub('\n', chunk.text)
         if self._has_renderable_citation(text):
             widgets = {}
             markdown = self._inject_source_widgets(text, widgets)
@@ -661,6 +682,7 @@ class Message(Gtk.Box):
             label_kwargs["halign"] = Gtk.Align.FILL
             label_kwargs["xalign"] = 0
         label = Gtk.Label(**label_kwargs)
+        label._render_key = (text, not self.streaming)
         box.append(label)
         self._fade_streamed_text(label, "")
 
@@ -1553,6 +1575,7 @@ class Message(Gtk.Box):
             cells = row.strip("|").split("|")
             data.append([cell.strip() for cell in cells])
         model = Gtk.ListStore(*[str] * len(data[0]))
+        latex_to_text = LatexNodes2Text().latex_to_text
         for row in data[1:]:
             if not all(len(element.replace(":", "").replace(" ", "").replace("-", "").strip()) == 0 for element in row):
                 # Ensure row matches number of columns
@@ -1564,7 +1587,7 @@ class Message(Gtk.Box):
                 
                 r = []
                 for element in row: 
-                    r.append(simple_markdown_to_pango(LatexNodes2Text().latex_to_text(element)))
+                    r.append(simple_markdown_to_pango(replace_inline_latex(element, latex_to_text)))
                 model.append(r)
         treeview = Gtk.TreeView(model=model, css_classes=["toolbar", "view", "transparent"])
 
@@ -1592,7 +1615,7 @@ class Message(Gtk.Box):
         self.streaming = False
 
         for chunk_type, widget, _chunk in self.widgets_map:
-            if chunk_type == "text" and not isinstance(widget, list):
+            if chunk_type == "text" and isinstance(widget, Gtk.Label):
                 self._stop_stream_fade(widget)
         
         if self.thinking_widget:
@@ -1617,7 +1640,7 @@ class Message(Gtk.Box):
         self.state["should_continue"] = False
 
         for chunk_type, widget, _chunk in self.widgets_map:
-            if chunk_type == "text" and not isinstance(widget, list):
+            if chunk_type == "text" and isinstance(widget, Gtk.Label):
                 self._stop_stream_fade(widget)
 
         if self.thinking_widget:

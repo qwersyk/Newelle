@@ -461,5 +461,4 @@ class ImageGeneratorWidget(Gtk.Box):
             self.copy_button.set_css_classes(original_classes)
             return False  # Don't repeat
 
-        from gi.repository import GLib
         GLib.timeout_add(1000, reset_button)  # Reset after 1 second

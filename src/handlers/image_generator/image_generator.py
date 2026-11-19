@@ -1,12 +1,14 @@
 from ..handler import Handler
 from ...tools import Tool, ToolResult
-from ...ui.widgets.image_generator import ImageGeneratorWidget
 from gi.repository import GLib
 from threading import Thread
+from typing import TYPE_CHECKING
 import os
-import requests
-from PIL import Image
 from io import BytesIO
+
+if TYPE_CHECKING:
+    from gi.repository import Gtk
+    from ...ui.widgets.image_generator import ImageGeneratorWidget
 
 # Lazy import to avoid circular dependency at module level
 _mini_app_class = None
@@ -17,6 +19,13 @@ def _get_mini_app_class():
         from ...ui.widgets.image_generator_mini_app import ImageGeneratorMiniApp
         _mini_app_class = ImageGeneratorMiniApp
     return _mini_app_class
+
+
+def _image_generator_widget(**kwargs):
+    # Importing the UI widget package from the handler layer at module load
+    # pulls every chat widget into handler imports.
+    from ...ui.widgets.image_generator import ImageGeneratorWidget
+    return ImageGeneratorWidget(**kwargs)
 
 
 class ImageGeneratorHandler(Handler):
@@ -56,7 +65,7 @@ class ImageGeneratorHandler(Handler):
         """
         raise NotImplementedError("Subclasses must implement generate_image()")
 
-    def _set_image_on_widget(self, widget: ImageGeneratorWidget, image_source: str, msg_uuid: str):
+    def _set_image_on_widget(self, widget: 'ImageGeneratorWidget', image_source: str, msg_uuid: str):
         """Set the image on the widget from a URL or file path.
 
         Called on the GTK main thread via GLib.idle_add.
@@ -82,7 +91,7 @@ class ImageGeneratorHandler(Handler):
     def generate_and_display(
         self,
         prompt: str,
-        widget: ImageGeneratorWidget,
+        widget: 'ImageGeneratorWidget',
         msg_uuid: str,
         on_done_callback=None,
         on_error_callback=None,
@@ -152,7 +161,7 @@ class ImageGeneratorHandler(Handler):
 
     def _generate_image_tool(self, prompt: str, msg_uuid = None):
         """Default tool function for image generation."""
-        widget = ImageGeneratorWidget(width=400, height=400)
+        widget = _image_generator_widget(width=400, height=400)
         widget.set_prompt(prompt)
         result = ToolResult()
         result.set_widget(widget)
@@ -197,6 +206,8 @@ class ImageGeneratorHandler(Handler):
         Raises:
             RuntimeError: If the request fails or the response is not an image
         """
+        import requests
+        from PIL import Image
         try:
             response = requests.get(
                 url,
@@ -257,7 +268,7 @@ class ImageGeneratorHandler(Handler):
 
     def _restore_image_tool(self, msg_uuid, prompt: str) -> ToolResult:
         """Default restore function for image generation tool."""
-        widget = ImageGeneratorWidget(width=400, height=400)
+        widget = _image_generator_widget(width=400, height=400)
         widget.set_prompt(prompt)
         cached_path = self.cache_path_for(msg_uuid)
         if os.path.exists(cached_path):
