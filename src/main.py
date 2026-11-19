@@ -17,6 +17,7 @@ from .window import MainWindow
 from .ui.shortcuts import Shortcuts
 from .ui.thread_editing import ThreadEditing
 from .ui.scheduled_tasks import ScheduledTasksWindow
+from .ui.dependency_manager import DependencyManagerWindow
 from .ui.downloads import DownloadsWindow
 from .ui.mini_window import MiniWindow
 from .ui.voice_mode import VoiceModeWindow
@@ -364,6 +365,9 @@ class MyApp(Adw.Application):
         action = Gio.SimpleAction.new("downloads", None)
         action.connect('activate', self.downloads_action)
         self.add_action(action)
+        action = Gio.SimpleAction.new("dependencies", None)
+        action.connect('activate', self.dependencies_action)
+        self.add_action(action)
         action = Gio.SimpleAction.new("extension", None)
         action.connect('activate', self.extension_action)
         self.add_action(action)
@@ -483,6 +487,18 @@ class MyApp(Adw.Application):
 
     def _downloads_window_closed(self, *_args):
         self.downloads_window = None
+        return False
+
+    def dependencies_action(self, *a):
+        window = getattr(self, "dependencies_window", None)
+        if window is None:
+            window = DependencyManagerWindow(self, self.win.controller, parent=self.win)
+            window.connect("close-request", self._dependencies_window_closed)
+            self.dependencies_window = window
+        window.present()
+
+    def _dependencies_window_closed(self, *_args):
+        self.dependencies_window = None
         return False
 
     def settings_action(self, *a): 

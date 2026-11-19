@@ -4,6 +4,7 @@ from ...utility.system import is_flatpak, get_spawn_command, has_backend
 from ...utility.media import get_image_path
 from ...utility.background_process import BackgroundProcess
 from ...utility.runtime_installer import RuntimeProject, fetch_json
+from ...utility.dependencies import RuntimeDependency
 from ...utility.download_manager import current_download_task
 from ...tools import Tool, ToolResult
 from ...ui.model_library import (
@@ -2397,6 +2398,21 @@ class StableDiffusionCPPHandler(ImageGeneratorHandler):
             button,
             on_installed=self.on_runtime_installed,
         )
+
+    def get_dependencies(self):
+        return [
+            RuntimeDependency(
+                self.runtime_project,
+                self.sd_cpp_path,
+                description=_("Runs local Stable Diffusion models for image generation"),
+                handler=self,
+                installation_info=lambda: {
+                    "backend": self.get_setting("installed_backend", False, None),
+                },
+                before_remove=self._stop_server,
+                on_removed=lambda: self.set_setting("gpu_acceleration", False),
+            )
+        ]
 
     def on_runtime_installed(self, backend, version=None, prebuilt=False):
         self.set_setting("gpu_acceleration", backend != "cpu")

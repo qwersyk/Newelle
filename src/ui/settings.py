@@ -2,7 +2,6 @@ from gettext import gettext as _
 from typing import Any
 import threading 
 import os 
-import shutil
 import json
 import time
 import traceback
@@ -17,9 +16,9 @@ from ..utility.util import PerformanceMonitor
 from ..handlers import Handler
 
 from ..constants import AVAILABLE_EMBEDDINGS, AVAILABLE_LLMS, AVAILABLE_MEMORIES, AVAILABLE_PROMPTS, AVAILABLE_TTS, AVAILABLE_STT, PROMPTS, AVAILABLE_RAGS, AVAILABLE_WEBSEARCH, AVAILABLE_IMAGE_GENERATORS, SETTINGS_GROUPS
-from ..utility.pip import install_module
 from ..utility.download_manager import get_download_manager
 from ..utility.mcp_config import MCPConfigError, parse_mcp_servers_json
+from .dependency_manager import DependencyManagerWindow
 from .extension import ExtensionPage
 from .interfaces import InterfacesPage
 from .usage import UsagePage
@@ -783,26 +782,12 @@ class Settings(Adw.Window):
         row.add_suffix(button)
         button.connect("clicked", lambda _ : self.window.show_stdout_monitor_dialog(self))
         self.developer.add(row)
-        # Delete pip path
-        row = Adw.ActionRow(title=_("Delete pip path"), subtitle=_("Remove the extra dependencies installed"))
-        button = Gtk.Button(label=_("Delete"), valign=Gtk.Align.CENTER, css_classes=["destructive-action"])
+        # Python dependencies
+        row = Adw.ActionRow(title=_("Dependencies"), subtitle=_("Install, update and remove the Python packages and runtimes used by providers and extensions"))
+        button = Gtk.Button(label=_("Manage"), valign=Gtk.Align.CENTER)
         row.add_suffix(button)
-        button.connect("clicked", lambda _ : self.delete_pip_path())
-        self.developer.add(row)
-        # Install pip module 
-        row = Adw.ActionRow(title=_("Install pip module"), subtitle=_("Manually install pip module"))
-        entry = Gtk.Entry(valign=Gtk.Align.CENTER)
-        button = Gtk.Button(icon_name="download-symbolic", valign=Gtk.Align.CENTER)
-        row.add_suffix(entry)
-        row.add_suffix(button)
-        def install_custom_module(button):
-            module = entry.get_text()
-            def install_thread():
-                install_module(module, self.controller.pip_path, True)
-            t = threading.Thread(target=install_thread)
-            t.start()
-            self.app.downloads_action()
-        button.connect("clicked", install_custom_module)
+        row.set_activatable_widget(button)
+        button.connect("clicked", lambda _ : self.show_dependency_manager())
         self.developer.add(row)
         
         if self.popup:
@@ -4645,13 +4630,6 @@ class Settings(Adw.Window):
         # Show the window
         dialog.present()
 
-    def delete_pip_path(self):
-        """Delete the pip path folder"""
-        shutil.rmtree(self.controller.pip_path)
-        dialog = Adw.MessageDialog(title=_("Pip path deleted"), body=_("The pip path has been deleted, you can now reinstall the dependencies. This operation requires a restart of the application."))
-        dialog.add_response("close", _("Understood"))
-        dialog.set_default_response("close")
-        dialog.set_close_response("close")
-        dialog.set_response_appearance("close", Adw.ResponseAppearance.DESTRUCTIVE)
-        dialog.connect('response', lambda dialog, response_id: dialog.destroy())
-        dialog.present()
+    def show_dependency_manager(self):
+        """Open the manager for the optional Python packages and components"""
+        DependencyManagerWindow(self.app, self.controller, parent=self).present()

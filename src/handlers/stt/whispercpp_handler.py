@@ -1,6 +1,7 @@
 from gettext import gettext as _
 from ...utility.system import get_spawn_command, is_flatpak
 from ...utility.background_process import BackgroundProcess
+from ...utility.dependencies import RuntimeDependency
 from ...utility.runtime_installer import RuntimeProject, fetch_json, get_runtime_installer
 from ...utility.download_manager import current_download_task
 from .stt import STTHandler
@@ -538,6 +539,23 @@ class WhisperCPPHandler(STTHandler):
                 "installed_version", False, DEFAULT_WHISPER_CPP_VERSION
             ),
         )
+
+    def get_dependencies(self):
+        return [
+            RuntimeDependency(
+                self.runtime_project,
+                self.whisper_cpp_path,
+                description=_("Runs local Whisper models for speech recognition"),
+                handler=self,
+                installation_info=lambda: {
+                    "method": "source",
+                    "backend": self.get_setting("installed_backend", False, None),
+                    "version": self.get_setting("installed_version", False, None),
+                },
+                before_remove=self._stop_process,
+                on_removed=lambda: self.set_setting("gpu_acceleration", False),
+            )
+        ]
 
     def on_runtime_installed(self, backend, version=None, prebuilt=False):
         self.set_setting("gpu_acceleration", True)

@@ -7,6 +7,7 @@ from gettext import gettext as _
 
 import requests
 
+from ..utility.dependencies import RuntimeDependency
 from ..utility.runtime_installer import RuntimeProject, fetch_json
 from ..utility.system import detect_cuda_version, has_backend
 
@@ -207,6 +208,22 @@ class LlamaCPPInstallerMixin:
             button,
             on_installed=self.on_runtime_installed,
         )
+
+    def get_dependencies(self):
+        return [
+            RuntimeDependency(
+                self.runtime_project,
+                self.llama_cpp_path,
+                description=_("Runs local GGUF models for chat and embeddings"),
+                handler=self,
+                installation_info=self._runtime_installation_info,
+                before_remove=self.kill_server,
+                on_removed=lambda: self.set_setting("gpu_acceleration", False),
+            )
+        ]
+
+    def _runtime_installation_info(self):
+        return {"backend": self.get_setting("prebuilt_backend", False, None)}
 
     def on_runtime_installed(self, backend, version=None, prebuilt=False):
         self.set_setting("prebuilt", prebuilt)

@@ -319,6 +319,16 @@ class Handler():
         """The list of extra pip requirements needed by the handler"""
         return []
 
+    def get_dependencies(self) -> list:
+        """Components installed by this handler that the user can update or remove.
+
+        Return ``utility.dependencies.Dependency`` objects. The dependency
+        manager lists the installed ones. Python packages declared in
+        ``get_extra_requirements`` are listed automatically and must not be
+        returned here.
+        """
+        return []
+
     def install(self):
         """Install the handler requirements"""
         pip_path = os.path.join(os.path.abspath(os.path.join(self.path, os.pardir)), "pip")

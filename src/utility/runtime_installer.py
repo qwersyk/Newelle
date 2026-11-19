@@ -4,12 +4,15 @@ This module performs synchronous work. Callers choose the worker thread and
 marshal the optional log/progress callbacks onto their UI's main loop.
 """
 
+import json
 import os
 import shlex
 import shutil
+import subprocess
 import tarfile
 import tempfile
 import threading
+import time
 import zipfile
 from collections.abc import Callable
 from dataclasses import dataclass, field
@@ -46,6 +49,41 @@ class RuntimeProject:
     versions: tuple[str, ...] = ()
     fetch_versions: Callable[[], list[str]] | None = None
     preserve_patterns: tuple[str, ...] = ()
+
+
+MANIFEST_NAME = ".newelle-runtime.json"
+
+
+def read_runtime_manifest(path):
+    """Return how the runtime in ``path`` was installed, or ``None``.
+
+    Runtimes installed before manifests existed have no manifest.
+    """
+    try:
+        with open(os.path.join(path, MANIFEST_NAME), encoding="utf-8") as handle:
+            manifest = json.load(handle)
+    except (OSError, ValueError):
+        return None
+    return manifest if isinstance(manifest, dict) else None
+
+
+def _write_manifest(directory, **values):
+    values["installed_at"] = time.time()
+    with open(os.path.join(directory, MANIFEST_NAME), "w", encoding="utf-8") as handle:
+        json.dump(values, handle, indent=2)
+
+
+def _remove_except(root: Path, keep: set[Path]) -> None:
+    for entry in list(root.iterdir()):
+        if entry in keep:
+            continue
+        if any(entry in path.parents for path in keep):
+            _remove_except(entry, keep)
+            continue
+        if entry.is_dir() and not entry.is_symlink():
+            shutil.rmtree(entry)
+        else:
+            entry.unlink()
 
 
 def fetch_json(url):
@@ -200,6 +238,19 @@ class RuntimeInstaller:
                 )
                 self._check_cancelled()
                 self._validate_binaries(os.path.join(source, "build", "bin"))
+                _write_manifest(
+                    source,
+                    method="source",
+                    backend=backend,
+                    version=version or self._git_output(source, "describe", "--tags", "--always"),
+                    requested_version=version,
+                    commit=self._git_output(source, "rev-parse", "HEAD"),
+                    custom_flags=list(
+                        shlex.split(custom_flags)
+                        if isinstance(custom_flags, str)
+                        else custom_flags
+                    ),
+                )
                 self._publish(source, temporary)
             progress(1.0)
             log(_("Build completed successfully!") + "\n")
@@ -217,14 +268,22 @@ class RuntimeInstaller:
     ):
         self._begin(cancel_event)
         task = None
+        manager = get_download_manager()
+        # A caller that already tracks this work (such as a dependency update)
+        # keeps a single entry in the downloads list.
+        owns_task = manager.current_task() is None
         try:
-            task = get_download_manager().create_task(
-                _("Install {name}").format(name=asset["name"]),
-                kind=DownloadKind.RUNTIME,
-                source_id=source_id,
-                phase=_("Downloading runtime"),
-                cancellable=True,
-            )
+            if owns_task:
+                task = manager.create_task(
+                    _("Install {name}").format(name=asset["name"]),
+                    kind=DownloadKind.RUNTIME,
+                    source_id=source_id,
+                    phase=_("Downloading runtime"),
+                    cancellable=True,
+                )
+            else:
+                task = manager.current_task()
+                task.update(phase=_("Downloading runtime"), reset_progress=True)
             os.makedirs(os.path.dirname(self.path), exist_ok=True)
             with tempfile.TemporaryDirectory(
                 prefix=".runtime-download-", dir=os.path.dirname(self.path)
@@ -262,20 +321,82 @@ class RuntimeInstaller:
                 os.makedirs(binary_dir)
                 self._copy_binaries(extracted, binary_dir)
                 self._validate_binaries(binary_dir)
+                _write_manifest(
+                    source,
+                    method="prebuilt",
+                    backend=asset.get("backend"),
+                    version=asset.get("tag"),
+                    asset=asset.get("name"),
+                    source=asset.get("source", "official"),
+                    cuda_version=asset.get("cuda_version"),
+                )
                 self._check_cancelled(task)
                 task.update(cancellable=False)
                 self._publish(source, temporary)
             progress(1.0)
             log(_("Installation completed successfully!") + "\n")
-            task.complete(_("Installed"))
+            if owns_task:
+                task.complete(_("Installed"))
         except (BuildCancelled, DownloadCancelled):
-            if task is not None:
+            if task is not None and owns_task:
                 task.cancelled(_("Cancelled"))
             raise
         except Exception as error:
-            if task is not None:
+            if task is not None and owns_task:
                 task.fail(str(error), _("Failed"))
             raise
+        finally:
+            self._lock.release()
+
+    def _git_output(self, source, *arguments):
+        """Return the last output line of a git command, or ``None`` on failure."""
+        output = []
+        try:
+            succeeded = self.process.run(
+                get_spawn_command() + ["git", *arguments],
+                cwd=source,
+                on_output=output.append,
+            )
+        except OSError:
+            return None
+        lines = "".join(output).strip().splitlines()
+        return lines[-1].strip() if succeeded and lines else None
+
+    def fetch_remote_commit(self):
+        """Return the commit at the head of the default branch upstream."""
+        # Not run through self.process: that runner tracks one build at a time.
+        try:
+            result = subprocess.run(
+                get_spawn_command() + ["git", "ls-remote", self.project.repository, "HEAD"],
+                stdin=subprocess.DEVNULL,
+                capture_output=True,
+                text=True,
+                timeout=30,
+                check=False,
+            )
+        except (OSError, subprocess.SubprocessError):
+            return None
+        fields = result.stdout.split() if result.returncode == 0 else []
+        return fields[0] if fields else None
+
+    def uninstall(self):
+        """Delete the installed runtime, keeping ``preserve_patterns`` matches.
+
+        Raises ``RuntimeError`` while an installation of this runtime runs.
+        """
+        if not self._lock.acquire(blocking=False):
+            raise RuntimeError(_("An installation is already running"))
+        try:
+            root = Path(self.path)
+            if not root.exists():
+                return
+            keep = set()
+            for pattern in self.project.preserve_patterns:
+                keep.update(root.glob(pattern))
+            if keep:
+                _remove_except(root, keep)
+            else:
+                shutil.rmtree(root)
         finally:
             self._lock.release()
 
