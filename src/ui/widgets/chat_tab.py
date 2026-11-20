@@ -1491,8 +1491,12 @@ class ChatTab(Gtk.Box):
         # Generate suggestions
         self.generate_suggestions()
 
-        # Generate chat name
-        if self.controller.newelle_settings.auto_generate_name and len(self.chat) == 2:
+        # Tool calls can add multiple assistant, console, and context messages
+        # to the first response. Count actual user turns instead of entries.
+        if self.controller.newelle_settings.auto_generate_name and sum(
+            message.get("User") == "User" and not message.get("ToolContext")
+            for message in self.chat
+        ) == 1:
             GLib.idle_add(self.generate_chat_name)
         
         # TTS
@@ -1885,7 +1889,7 @@ class ChatTab(Gtk.Box):
         def generate():
             name = self.window.secondary_model.generate_chat_name(
                 self.controller.newelle_settings.prompts["generate_name_prompt"],
-                self.controller.get_history(chat=self.chat)
+                self.controller.get_history(chat=self.chat, include_last_message=True)
             )
             if name:
                 name = name.strip().strip('"').strip("'")
