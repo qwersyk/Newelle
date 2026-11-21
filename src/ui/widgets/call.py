@@ -8,11 +8,10 @@ import struct
 import math
 import gettext
 import pyaudio
-import re
 import tempfile
 from collections import deque
 
-from ...utility.strings import clean_message_tts, remove_emoji, remove_markdown, remove_thinking_blocks
+from ...utility.strings import clean_message_tts
 from ...utility.vad import VoiceActivityDetector
 
 
@@ -1260,12 +1259,7 @@ class CallPanel(Gtk.Box):
     
     def _clean_response(self, response):
         """Clean response for TTS"""
-        response = remove_thinking_blocks(response)
-        response = remove_markdown(response)
-        response = re.sub(r'\[([^\]]+)\]\([^\)]+\)', r'\1', response)
-        # Remove emoji 
-        response = remove_emoji(response) 
-        return response.strip()
+        return clean_message_tts(response)
     
     def _play_tts(self, text, call_generation):
         """Play TTS for the response"""
