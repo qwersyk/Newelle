@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<component type="desktop">
-	<id>io.github.qwersyk.Newelle.desktop</id>
+<component type="desktop-application">
+	<id>io.github.qwersyk.Newelle</id>
 	<metadata_license>CC0-1.0</metadata_license>
 	<project_license>GPL-3.0-or-later</project_license>
         <launchable type="desktop-id">io.github.qwersyk.Newelle.desktop</launchable>
@@ -46,7 +46,10 @@
 	<url type="homepage">https://newelle.qsk.me</url>
   	<url type="vcs-browser">https://github.com/qwersyk/Newelle</url>
 	<url type="bugtracker">https://github.com/qwersyk/Newelle/issues</url>
-	<content_rating type="oars-1.0" />
+	<developer id="io.github.qwersyk">
+		<name>Qwersyk</name>
+	</developer>
+	<content_rating type="oars-1.1" />
 	<releases>
         <release version="1.6.1" date="2026-11-02">
             <description>
@@ -439,6 +442,5 @@
 			</description>
 		</release>
 	</releases>
-	<developer_name>Qwersyk</developer_name>
 	<update_contact>qsk@gmx.at</update_contact>
 </component>

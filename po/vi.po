@@ -1138,7 +1138,7 @@ msgstr "Tải xuống tiện ích mở rộng mới"
 msgid "Install extension from file..."
 msgstr "Cài tiện ích mở rộng từ tệp…"
 
-#: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.appdata.xml.in:7
+#: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.metainfo.xml.in:7
 #: data/io.github.qwersyk.Newelle.desktop.in:2
 msgid "Newelle"
 msgstr "Newelle"
@@ -2421,7 +2421,7 @@ msgstr "Không mở được thư mục"
 msgid "Chat is empty"
 msgstr "Cuộc trò chuyện trống"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:9
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:9
 msgid ""
 "Train Newelle to do more with custom extensions and new AI modules, giving "
 "your chatbot endless possibilities."
@@ -2429,41 +2429,41 @@ msgstr ""
 "Huấn luyện Newelle làm được nhiều hơn với các tiện ích mở rộng tùy chỉnh và "
 "mô-đun AI mới, mang lại cho chatbot của bạn khả năng vô tận."
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:11
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:11
 msgid "AI chatbot"
 msgstr "Chatbot AI"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:15
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:15
 msgid "Quick profile selection"
 msgstr "Chọn hồ sơ nhanh"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:19
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:19
 msgid "Message Editing"
 msgstr "Sửa tin nhắn"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:23
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:23
 msgid "More than 10 standard AI providers"
 msgstr "Hơn 10 nhà cung cấp AI tiêu chuẩn"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:38
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:62
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:85
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:147
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:152
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:157
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:162
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:167
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:38
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:62
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:85
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:147
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:152
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:157
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:162
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:167
 msgid "Bug fixes"
 msgstr "Sửa lỗi"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:45
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:45
 msgid ""
 "Mini Apps support! Extensions can now show custom mini apps on the sidebar"
 msgstr ""
 "Hỗ trợ ứng dụng nhỏ! Tiện ích mở rộng giờ có thể hiển thị ứng dụng nhỏ tùy "
 "chỉnh trên thanh bên"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:46
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:46
 msgid ""
 "Added integrated browser Mini App: browse the web directly in Newelle and "
 "attach web pages"
@@ -2471,20 +2471,20 @@ msgstr ""
 "Thêm ứng dụng nhỏ trình duyệt tích hợp: duyệt web trực tiếp trong Newelle và "
 "đính kèm trang web"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:47
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:47
 msgid "Improved integrated file manager, supporting multiple file operations"
 msgstr "Cải thiện trình quản lý tệp tích hợp, hỗ trợ nhiều thao tác với tệp"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:48
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:48
 msgid "Integrated file editor: edit files and codeblocks directly in Newelle"
 msgstr ""
 "Trình soạn thảo tệp tích hợp: sửa tệp và khối mã trực tiếp trong Newelle"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:49
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:49
 msgid "Integrated Terminal mini app: open the terminal directly in Newelle"
 msgstr "Ứng dụng nhỏ terminal tích hợp: mở terminal trực tiếp trong Newelle"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:50
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:50
 msgid ""
 "Programmable prompts: add dynamic content to prompts with conditionals and "
 "random strings"
@@ -2492,106 +2492,106 @@ msgstr ""
 "Lời nhắc lập trình được: thêm nội dung động vào lời nhắc với điều kiện và "
 "chuỗi ngẫu nhiên"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:51
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:51
 msgid "Add ability to manually edit chat name"
 msgstr "Thêm khả năng sửa tên cuộc trò chuyện thủ công"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:52
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:52
 msgid "Minor bug fixes"
 msgstr "Sửa các lỗi nhỏ"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:53
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:53
 msgid "Added support for multiple languages for Kokoro TTS and Whisper.CPP"
 msgstr "Thêm hỗ trợ nhiều ngôn ngữ cho Kokoro TTS và Whisper.CPP"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:54
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:54
 msgid "Run HTML/CSS/JS websites directly in app"
 msgstr "Chạy trang web HTML/CSS/JS trực tiếp trong ứng dụng"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:55
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:55
 msgid "New animation on chat change"
 msgstr "Hiệu ứng chuyển động mới khi chuyển cuộc trò chuyện"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:63
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:63
 msgid "Small improvements"
 msgstr "Một số cải tiến nhỏ"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:70
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:70
 msgid "Improve local documents reading and loading performances"
 msgstr "Cải thiện hiệu năng đọc và tải tài liệu cục bộ"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:71
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:71
 msgid "Add option to send with CTRL+Enter"
 msgstr "Thêm tùy chọn gửi bằng CTRL+Enter"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:72
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:72
 msgid "Improve codeblocks"
 msgstr "Cải thiện khối mã"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:73
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:73
 msgid "Fix Kokoro TTS"
 msgstr "Sửa Kokoro TTS"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:74
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:74
 msgid "Remove emoji from TTS"
 msgstr "Bỏ emoji khỏi TTS"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:75
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:75
 msgid "Set API keys as password fields"
 msgstr "Đặt khóa API thành trường mật khẩu"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:76
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:76
 msgid "Add thinking support for Gemini"
 msgstr "Thêm hỗ trợ suy nghĩ cho Gemini"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:77
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:77
 msgid "Updated translations"
 msgstr "Cập nhật bản dịch"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:84
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:84
 msgid "Added new features"
 msgstr "Thêm tính năng mới"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:92
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:92
 msgid "Website reading and web search with SearXNG, DuckDuckGo, and Tavily"
 msgstr "Đọc trang web và tìm kiếm web với SearXNG, DuckDuckGo và Tavily"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:93
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:93
 msgid "Improved LaTeX rendering and document management"
 msgstr "Cải thiện hiển thị LaTeX và quản lý tài liệu"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:94
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:94
 msgid "New Thinking Widget and OpenRouter handler"
 msgstr "Thành phần hiển thị suy nghĩ mới và trình xử lý OpenRouter"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:95
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:95
 msgid "Vision support for Llama4 on Groq"
 msgstr "Hỗ trợ nhận diện hình ảnh cho Llama4 trên Groq"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:96
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:96
 msgid "New translations (Traditional Chinese, Bengali, Hindi)"
 msgstr "Bản dịch mới (tiếng Trung phồn thể, tiếng Bengal, tiếng Hindi)"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:102
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:102
 msgid "Fixed many bugs, added some features!"
 msgstr "Sửa nhiều lỗi, thêm một số tính năng!"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:107
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:107
 msgid "Support for new features and bug fixes"
 msgstr "Hỗ trợ tính năng mới và sửa lỗi"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:112
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:117
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:122
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:112
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:117
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:122
 msgid "Added many new features and bug fixes"
 msgstr "Thêm nhiều tính năng mới và sửa lỗi"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:127
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:132
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:127
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:132
 msgid "Added new features and bug fixes"
 msgstr "Thêm tính năng mới và sửa lỗi"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:137
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:137
 msgid ""
 "Updated the g4f library with versioning, added user guides, improved "
 "extension browsing, and enhanced model handling."
@@ -2599,7 +2599,7 @@ msgstr ""
 "Cập nhật thư viện g4f có quản lý phiên bản, thêm hướng dẫn sử dụng, cải "
 "thiện việc duyệt tiện ích mở rộng và nâng cao khả năng xử lý mô hình."
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:142
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:142
 msgid ""
 "Bug fixes and new features have been implemented. We've modified the "
 "extension architecture, added new models, and introduced vision support, "
@@ -2609,27 +2609,27 @@ msgstr ""
 "ích mở rộng, thêm mô hình mới và hỗ trợ nhận diện hình ảnh, cùng nhiều khả "
 "năng khác."
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:172
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:172
 msgid "Stable version"
 msgstr "Phiên bản ổn định"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:177
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:177
 msgid "Added extension"
 msgstr "Thêm tiện ích mở rộng"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:182
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:182
 msgid "Blacklist of commands"
 msgstr "Danh sách lệnh bị chặn"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:187
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:187
 msgid "Localization"
 msgstr "Bản địa hóa"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:192
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:192
 msgid "Redesign"
 msgstr "Thiết kế lại"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:196
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:196
 msgid "Qwersyk"
 msgstr "Qwersyk"
 

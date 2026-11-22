@@ -1151,7 +1151,7 @@ msgstr "Baixar novas Extensões"
 msgid "Install extension from file..."
 msgstr "Instalar extensão de arquivo..."
 
-#: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.appdata.xml.in:7
+#: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.metainfo.xml.in:7
 #: data/io.github.qwersyk.Newelle.desktop.in:2
 msgid "Newelle"
 msgstr "Newelle"
@@ -2444,7 +2444,7 @@ msgstr "Falha ao abrir a pasta"
 msgid "Chat is empty"
 msgstr "Chat vazio"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:9
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:9
 msgid ""
 "Train Newelle to do more with custom extensions and new AI modules, giving "
 "your chatbot endless possibilities."
@@ -2452,163 +2452,163 @@ msgstr ""
 "Treine o Newelle para fazer mais com extensões personalizadas e novos "
 "módulos de IA, dando ao seu chatbot infinitas possibilidades."
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:11
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:11
 msgid "AI chatbot"
 msgstr "Chatbot de IA"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:15
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:15
 msgid "Quick profile selection"
 msgstr "Seleção rápida de perfil"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:19
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:19
 msgid "Message Editing"
 msgstr "Edição de Mensagens"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:23
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:23
 msgid "More than 10 standard AI providers"
 msgstr "Mais de 10 provedores de IA padrão"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:38
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:62
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:85
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:147
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:152
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:157
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:162
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:167
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:38
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:62
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:85
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:147
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:152
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:157
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:162
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:167
 msgid "Bug fixes"
 msgstr "Correções de bugs"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:45
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:45
 msgid ""
 "Mini Apps support! Extensions can now show custom mini apps on the sidebar"
 msgstr ""
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:46
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:46
 msgid ""
 "Added integrated browser Mini App: browse the web directly in Newelle and "
 "attach web pages"
 msgstr ""
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:47
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:47
 msgid "Improved integrated file manager, supporting multiple file operations"
 msgstr ""
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:48
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:48
 msgid "Integrated file editor: edit files and codeblocks directly in Newelle"
 msgstr ""
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:49
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:49
 msgid "Integrated Terminal mini app: open the terminal directly in Newelle"
 msgstr ""
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:50
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:50
 msgid ""
 "Programmable prompts: add dynamic content to prompts with conditionals and "
 "random strings"
 msgstr ""
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:51
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:51
 msgid "Add ability to manually edit chat name"
 msgstr ""
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:52
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:52
 #, fuzzy
 msgid "Minor bug fixes"
 msgstr "Correções de bugs"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:53
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:53
 msgid "Added support for multiple languages for Kokoro TTS and Whisper.CPP"
 msgstr ""
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:54
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:54
 msgid "Run HTML/CSS/JS websites directly in app"
 msgstr ""
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:55
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:55
 msgid "New animation on chat change"
 msgstr ""
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:63
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:63
 msgid "Small improvements"
 msgstr "Pequenas melhorias"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:70
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:70
 msgid "Improve local documents reading and loading performances"
 msgstr "Melhorar a leitura de documentos locais e o desempenho de carregamento"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:71
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:71
 msgid "Add option to send with CTRL+Enter"
 msgstr "Adicionar opção de envio com CTRL+Enter"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:72
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:72
 msgid "Improve codeblocks"
 msgstr "Melhorar blocos de código"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:73
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:73
 msgid "Fix Kokoro TTS"
 msgstr "Corrigir Kokoro TTS"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:74
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:74
 msgid "Remove emoji from TTS"
 msgstr "Remover emoji do TTS"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:75
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:75
 msgid "Set API keys as password fields"
 msgstr "Definir chaves de API como campos de senha"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:76
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:76
 msgid "Add thinking support for Gemini"
 msgstr "Adicionar suporte a pensamento para Gemini"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:77
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:77
 msgid "Updated translations"
 msgstr "Traduções atualizadas"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:84
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:84
 msgid "Added new features"
 msgstr "Novas funcionalidades adicionadas"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:92
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:92
 msgid "Website reading and web search with SearXNG, DuckDuckGo, and Tavily"
 msgstr "Leitura de websites e pesquisa na web com SearXNG, DuckDuckGo e Tavily"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:93
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:93
 msgid "Improved LaTeX rendering and document management"
 msgstr "Renderização de LaTeX e gerenciamento de documentos aprimorados"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:94
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:94
 msgid "New Thinking Widget and OpenRouter handler"
 msgstr "Novo Widget de Pensamento e manipulador OpenRouter"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:95
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:95
 msgid "Vision support for Llama4 on Groq"
 msgstr "Suporte a visão para Llama4 no Groq"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:96
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:96
 msgid "New translations (Traditional Chinese, Bengali, Hindi)"
 msgstr "Novas traduções (Chinês Tradicional, Bengali, Hindi)"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:102
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:102
 msgid "Fixed many bugs, added some features!"
 msgstr "Muitos bugs corrigidos, algumas funcionalidades adicionadas!"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:107
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:107
 msgid "Support for new features and bug fixes"
 msgstr "Suporte a novas funcionalidades e correções de bugs"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:112
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:117
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:122
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:112
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:117
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:122
 msgid "Added many new features and bug fixes"
 msgstr "Adicionadas muitas novas funcionalidades e correções de bugs"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:127
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:132
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:127
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:132
 msgid "Added new features and bug fixes"
 msgstr "Adicionadas novas funcionalidades e correções de bugs"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:137
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:137
 msgid ""
 "Updated the g4f library with versioning, added user guides, improved "
 "extension browsing, and enhanced model handling."
@@ -2616,7 +2616,7 @@ msgstr ""
 "Biblioteca g4f atualizada com versionamento, guias do usuário adicionados, "
 "navegação de extensões aprimorada e tratamento de modelos melhorado."
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:142
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:142
 msgid ""
 "Bug fixes and new features have been implemented. We've modified the "
 "extension architecture, added new models, and introduced vision support, "
@@ -2626,27 +2626,27 @@ msgstr ""
 "arquitetura de extensão, adicionamos novos modelos e introduzimos suporte à "
 "visão, juntamente com mais capacidades."
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:172
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:172
 msgid "Stable version"
 msgstr "Versão estável"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:177
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:177
 msgid "Added extension"
 msgstr "Extensão adicionada"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:182
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:182
 msgid "Blacklist of commands"
 msgstr "Lista negra de comandos"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:187
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:187
 msgid "Localization"
 msgstr "Localização"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:192
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:192
 msgid "Redesign"
 msgstr "Redesenho"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:196
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:196
 msgid "Qwersyk"
 msgstr "Qwersyk"
 
