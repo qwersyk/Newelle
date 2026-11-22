@@ -1502,7 +1502,10 @@ class ChatTab(Gtk.Box):
         # TTS
         tts_thread = None
         if self.tts_enabled:
-            message = clean_message_tts(message_label)
+            message = clean_message_tts(
+                message_label,
+                quoted_only=self.controller.newelle_settings.tts_quoted_only,
+            )
             if message.strip() and not message.isspace():
                 tts_thread = threading.Thread(
                     target=self.tts.play, args=(message,)

@@ -86,6 +86,9 @@
 	      <key name="tts-voice" type="s">
             <default>"{}"</default>
         </key>
+        <key name="tts-quoted-only" type="b">
+            <default>false</default>
+        </key>
         <key name="voice-mode-chat" type="s">
             <choices>
                 <choice value="new"/>

@@ -243,6 +243,12 @@ class Settings(Adw.Window):
         for tts_key in AVAILABLE_TTS:
            row = self.build_row(AVAILABLE_TTS, tts_key, selected, group) 
            tts_program.add_row(row)
+        tts_quoted_only = Adw.SwitchRow(
+            title=_("Speak Only Quoted Text"),
+            subtitle=_("Read aloud only the phrases between quotes, for example \"Hello!\""),
+        )
+        self.settings.bind("tts-quoted-only", tts_quoted_only, "active", Gio.SettingsBindFlags.DEFAULT)
+        self.Voicegroup.add(tts_quoted_only)
         self.build_audio_input_settings()
         # Build the Speech to Text settings
         stt_engine = Adw.ExpanderRow(title=_('Speech To Text Engine'), subtitle=_("Choose which speech recognition engine you want"))

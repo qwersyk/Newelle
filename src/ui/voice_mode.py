@@ -1615,7 +1615,10 @@ class VoiceModeWindow(Gtk.Window):
 
             def on_intermediate_message(text):
                 self._play_response(
-                    clean_message_tts(str(text or "")).strip(),
+                    clean_message_tts(
+                        str(text or ""),
+                        quoted_only=self.controller.newelle_settings.tts_quoted_only,
+                    ).strip(),
                     final=False,
                 )
 
@@ -1639,7 +1642,10 @@ class VoiceModeWindow(Gtk.Window):
 
             if self._cancel_event.is_set():
                 return
-            spoken_response = clean_message_tts(response or "")
+            spoken_response = clean_message_tts(
+                response or "",
+                quoted_only=self.controller.newelle_settings.tts_quoted_only,
+            )
             if not spoken_response:
                 GLib.idle_add(self._complete_without_tts)
                 return

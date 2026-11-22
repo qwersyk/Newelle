@@ -1240,7 +1240,7 @@ class CallPanel(Gtk.Box):
                     response,
                     False,
                 )
-                response = clean_message_tts(response)
+                response = self._clean_response(response)
                 self._play_tts(response, call_generation)
 
         except Exception as e:
@@ -1259,7 +1259,10 @@ class CallPanel(Gtk.Box):
     
     def _clean_response(self, response):
         """Clean response for TTS"""
-        return clean_message_tts(response)
+        return clean_message_tts(
+            response,
+            quoted_only=self.controller.newelle_settings.tts_quoted_only,
+        )
     
     def _play_tts(self, text, call_generation):
         """Play TTS for the response"""

@@ -3756,6 +3756,7 @@ class NewelleSettings:
         self.tts_enabled = settings.get_boolean("tts-on")
         self.tts_program = settings.get_string("tts")
         self.tts_voice = settings.get_string("tts-voice")
+        self.tts_quoted_only = settings.get_boolean("tts-quoted-only")
         self.direct_audio_input = settings.get_boolean("direct-audio-input")
         self.audio_transcribe = settings.get_boolean("audio-transcribe")
         self.audio_transcription_timing = settings.get_string("audio-transcription-timing")

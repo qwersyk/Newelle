@@ -410,7 +410,33 @@ def _convert_markdown_blocks_for_tts(text: str) -> str:
     return "\n\n".join(rendered_blocks)
 
 
-def clean_message_tts(text: str) -> str:
+_TTS_QUOTED_PHRASE_RE = re.compile(
+    r'"((?:[^"\n]|\n(?!\n))+?)"'
+    r"|“((?:[^“”\n]|\n(?!\n))+?)”"
+    r"|„((?:[^„“”\n]|\n(?!\n))+?)[“”]"
+    r"|«((?:[^«»\n]|\n(?!\n))+?)»"
+)
+
+
+def extract_quoted_phrases(text: str) -> str:
+    """Return only the phrases enclosed in double quotes, one per line.
+
+    Supports straight ("..."), curly (“...”), German („...“) and guillemet
+    («...») quotes. Quotes never span a blank line, so a stray unmatched quote
+    cannot swallow the rest of the message.
+    """
+    if not text:
+        return ""
+    phrases = []
+    for match in _TTS_QUOTED_PHRASE_RE.finditer(text):
+        phrase = next(group for group in match.groups() if group is not None)
+        phrase = " ".join(phrase.split())
+        if phrase:
+            phrases.append(phrase)
+    return "\n".join(phrases)
+
+
+def clean_message_tts(text: str, quoted_only: bool = False) -> str:
     """Clean a message for text-to-speech (TTS) readability.
 
     Converts Markdown and rich assistant output into natural spoken prose:
@@ -425,6 +451,7 @@ def clean_message_tts(text: str) -> str:
 
     Args:
         text: The text to clean for TTS
+        quoted_only: Keep only the phrases enclosed in double quotes
 
     Returns:
         The cleaned text suitable for TTS playback
@@ -549,6 +576,10 @@ def clean_message_tts(text: str) -> str:
     text = _convert_markdown_blocks_for_tts(text)
 
     # 12. Restore inline code and escaped characters, unescape HTML entities, normalize spaces
+    # Quotes are matched before restoring placeholders so quotes inside inline code are ignored
+    if quoted_only:
+        text = extract_quoted_phrases(text)
+
     for key, value in placeholders.items():
         text = text.replace(key, value)
 

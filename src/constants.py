@@ -791,7 +791,7 @@ SETTINGS_GROUPS = {
         },
         "TTS": {
             "title": _("TTS"),
-            "settings": ["tts-on", "tts", "tts-voice"],
+            "settings": ["tts-on", "tts", "tts-voice", "tts-quoted-only"],
             "description": _("Text to Speech settings"),
         },
         "STT": {
