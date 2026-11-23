@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "catalog_revision": 4,
+  "catalog_revision": 5,
   "applications": [
     {
       "id": "parallel_search",
@@ -892,6 +892,27 @@
         "auth": {
           "type": "bearer",
           "token": "${api_key}"
+        }
+      }
+    },
+    {
+      "id": "keenable_search",
+      "name": "Keenable Search",
+      "description": "Search the web and read pages as clean markdown through Keenable's MCP server, with no account or API key.",
+      "logo_url": "https://api.keenable.ai/favicon.svg",
+      "setup": {
+        "instructions": "Connect to add search_web_pages and fetch_page_content to Newelle. No account, API key, or local server installation is required. Search queries and fetched URLs are sent to Keenable, and keyless requests are rate limited per IP address.",
+        "help_url": "https://docs.keenable.ai/mcp-server"
+      },
+      "server": {
+        "type": "http",
+        "title": "Keenable Search",
+        "url": "https://api.keenable.ai/mcp-public",
+        "headers": {
+          "User-Agent": "Newelle/1.6.0"
+        },
+        "auth": {
+          "type": "none"
         }
       }
     }
