@@ -1377,7 +1377,7 @@ class MainWindow(WorkspaceWindow, Adw.ApplicationWindow):
     def mute_tts(self, button: Gtk.Button):
         """Mute the TTS"""
         self.focus_input()
-        if self.tts_enabled:
+        if self.tts is not None:
             self.tts.stop()
         return False
 
