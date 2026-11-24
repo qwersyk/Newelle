@@ -1447,7 +1447,10 @@ class MainWindow(WorkspaceWindow, Adw.ApplicationWindow):
                 on_transcribing=self.on_wakeword_transcribing,
                 on_transcribing_done=self.on_wakeword_transcribing_done,
                 secondary_stt_handler=self.controller.handlers.secondary_stt,
-                wakeword_handler=self.controller.handlers.wakeword_handler
+                wakeword_handler=self.controller.handlers.wakeword_handler,
+                tts_interrupt_callback=self.on_wakeword_interrupt_tts if self.controller.newelle_settings.wakeword_stop_tts else None,
+                is_tts_playing=self._is_tts_playing,
+                stop_words=self.controller.newelle_settings.wakeword_stop_words,
             )
 
             # start() only creates the detector's worker and returns
@@ -1522,6 +1525,17 @@ class MainWindow(WorkspaceWindow, Adw.ApplicationWindow):
         # close a pill that has already opened or is releasing its microphone.
         if getattr(app, "voice_win", None) is None:
             app.show_voice_mode()
+        return GLib.SOURCE_REMOVE
+
+    def _is_tts_playing(self):
+        """Called from the wakeword detector thread."""
+        tts = self.tts
+        return tts is not None and tts.play_process is not None
+
+    def on_wakeword_interrupt_tts(self):
+        """Stop the TTS playback after the wakeword or a stop word was heard."""
+        if self.tts is not None:
+            self.tts.stop()
         return GLib.SOURCE_REMOVE
 
     def on_wakeword_audio(self, audio_path):

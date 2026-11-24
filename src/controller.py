@@ -3814,6 +3814,8 @@ class NewelleSettings:
         self.scheduled_tasks = self.settings.get_string("scheduled-tasks")
         self.wakeword_enabled = settings.get_boolean("wakeword-on")
         self.wakeword_voice_mode = settings.get_boolean("wakeword-voice-mode")
+        self.wakeword_stop_tts = settings.get_boolean("wakeword-stop-tts")
+        self.wakeword_stop_words = settings.get_string("wakeword-stop-words")
         self.wakeword_mode = settings.get_string("wakeword-mode")
         self.wakeword_engine = settings.get_string("wakeword-engine")
         self.wakeword_engine_settings = settings.get_string("wakeword-engine-settings")
@@ -3972,6 +3974,8 @@ class NewelleSettings:
         # Check wakeword settings
         if (self.wakeword_enabled != new_settings.wakeword_enabled or
             self.wakeword_voice_mode != new_settings.wakeword_voice_mode or
+            self.wakeword_stop_tts != new_settings.wakeword_stop_tts or
+            self.wakeword_stop_words != new_settings.wakeword_stop_words or
             self.wakeword != new_settings.wakeword or
             self.wakeword_mode != new_settings.wakeword_mode or
             self.wakeword_engine != new_settings.wakeword_engine or

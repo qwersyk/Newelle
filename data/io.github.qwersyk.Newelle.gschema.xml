@@ -299,6 +299,12 @@
         <key name="wakeword-voice-mode" type="b">
             <default>false</default>
         </key>
+        <key name="wakeword-stop-tts" type="b">
+            <default>false</default>
+        </key>
+        <key name="wakeword-stop-words" type="s">
+            <default>"stop, cancel, quiet"</default>
+        </key>
         <key name="wakeword-mode" type="s">
             <default>"secondary-stt"</default>
         </key>

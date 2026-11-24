@@ -856,7 +856,7 @@ SETTINGS_GROUPS = {
         },
         "wakeword": {
             "title": _("Wakeword"),
-            "settings": ["wakeword-on", "wakeword-voice-mode", "wakeword-mode", "wakeword-engine", "wakeword-engine-settings", "wakeword",
+            "settings": ["wakeword-on", "wakeword-voice-mode", "wakeword-stop-tts", "wakeword-stop-words", "wakeword-mode", "wakeword-engine", "wakeword-engine-settings", "wakeword",
                          "wakeword-pre-buffer-duration", "wakeword-silence-duration", "wakeword-energy-threshold",
                          "secondary-stt-on", "secondary-stt-engine", "stt-secondary-settings"],
             "description": _("Wakeword detection settings"),

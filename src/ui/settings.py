@@ -282,6 +282,14 @@ class Settings(Adw.Window):
                            Gio.SettingsBindFlags.DEFAULT)
         self.wakeword_row.add_row(voice_mode_row)
 
+        stop_tts_row = Adw.SwitchRow(
+            title=_("Interrupt TTS"),
+            subtitle=_("Stop the voice reply when the wakeword is said while it is speaking"),
+        )
+        self.settings.bind("wakeword-stop-tts", stop_tts_row, "active",
+                           Gio.SettingsBindFlags.DEFAULT)
+        self.wakeword_row.add_row(stop_tts_row)
+
         # Wakeword mode toggle group
         mode_row = Adw.ActionRow(title=_('Detection Method'), subtitle=_("Choose wakeword detection method"))
         mode_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6, valign=Gtk.Align.CENTER)
@@ -321,6 +329,15 @@ class Settings(Adw.Window):
                            Gio.SettingsBindFlags.DEFAULT)
         self.wakeword_row.add_row(wakeword_entry)
         self.secondary_stt_rows.append(wakeword_entry)
+
+        stop_words_entry = Adw.EntryRow(title=_('TTS Stop Words'))
+        stop_words_entry.set_tooltip_text(_("Words that stop the voice reply while it is speaking, even without the wakeword (multiple separated by comma)"))
+        self.settings.bind("wakeword-stop-words", stop_words_entry, 'text',
+                           Gio.SettingsBindFlags.DEFAULT)
+        stop_tts_row.bind_property("active", stop_words_entry, "sensitive",
+                                   GObject.BindingFlags.SYNC_CREATE)
+        self.wakeword_row.add_row(stop_words_entry)
+        self.secondary_stt_rows.append(stop_words_entry)
 
         # Wakeword engine mode rows (visible when openwakeword mode is selected)
         self.wakeword_engine_rows = []
