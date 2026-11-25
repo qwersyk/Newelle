@@ -55,11 +55,11 @@ class CustomOpenAITTSHandler(TTSHandler):
     def get_audio_stream(self, message):
         from openai import OpenAI, NOT_GIVEN
         client = OpenAI(api_key=self.get_setting("api_key"), base_url=self.get_setting("endpoint"))
-        response = client.audio.speech.create(
+        with client.audio.speech.with_streaming_response.create(
             model=self.get_setting("model"),
             voice=self.get_setting("voice"),
             input=message,
             response_format=self.get_setting("response_format"),
-        )
-        for chunk in response.iter_bytes():
-            yield chunk
+        ) as response:
+            for chunk in response.iter_bytes():
+                yield chunk
