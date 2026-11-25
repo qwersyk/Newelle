@@ -134,9 +134,15 @@ class MultilineEntry(Gtk.Box):
         self.enter_func = function
 
     def handle_enter_key(self):
-        if self.enter_func is not None:
-            GLib.idle_add(self.set_text, self.get_text().rstrip("\n"))
-            GLib.idle_add(self.enter_func, self)
+        if self.enter_func is None:
+            return False
+        if not self.placeholding:
+            text = self.get_text()
+            stripped = text.rstrip("\n")
+            if stripped != text:
+                self.set_text(stripped)
+        self.enter_func(self)
+        return True
 
     def get_input_panel(self):
         return self.input_panel

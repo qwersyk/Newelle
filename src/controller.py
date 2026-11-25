@@ -863,6 +863,7 @@ class NewelleController(WorkspaceController):
         self.subagent_runtime.delete_owner_sessions(chat_id)
         self.remove_chat_from_folder(chat_id, save=False)
         del self.chats[chat_id]
+        self.workspace_storage.pending_messages.pop(chat_id, None)
         # If the deleted chat was the selected one, point the selection at a
         # surviving chat so the UI does not reference a missing conversation.
         if hasattr(self, 'newelle_settings') and self.newelle_settings.chat_id == chat_id:

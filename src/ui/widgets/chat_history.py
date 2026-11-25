@@ -2324,6 +2324,8 @@ class ChatHistory(Gtk.Box):
 
     def populate_suggestions(self, suggestions):
         """Update the UI with the generated suggestions"""
+        if not self.status:
+            return
         i = 0
         offers_count = self.controller.newelle_settings.offers
         # Convert to tuple to remove duplicates

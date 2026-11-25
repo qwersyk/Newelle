@@ -33,6 +33,7 @@ class WorkspaceStorage:
         self.loaded = False
         self.refresh_pending = False
         self.drafts = {}
+        self.pending_messages = {}
         # Monotonic snapshot counters keep an older background write from
         # replacing a newer file when saves overlap.
         self.save_generation = 0

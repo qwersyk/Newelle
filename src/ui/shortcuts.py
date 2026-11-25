@@ -1,4 +1,8 @@
-from gi.repository import Gtk, Adw
+from gi.repository import Gtk, Adw, Gdk
+
+
+QUEUE_MESSAGE_MODIFIERS = Gdk.ModifierType.ALT_MASK
+STEER_MESSAGE_MODIFIERS = Gdk.ModifierType.CONTROL_MASK | QUEUE_MESSAGE_MODIFIERS
 
 
 class Shortcuts(Gtk.Window):
@@ -15,6 +19,14 @@ class Shortcuts(Gtk.Window):
         gr.append(Gtk.ShortcutsShortcut(title=_("New tab"), accelerator='<primary>t'))
         gr.append(Gtk.ShortcutsShortcut(title=_("Paste Image"), accelerator='<primary>v'))
         gr.append(Gtk.ShortcutsShortcut(title=_("Focus message box"), accelerator='<primary>l'))
+        gr.append(Gtk.ShortcutsShortcut(
+            title=_("Queue message while generating"),
+            accelerator=Gtk.accelerator_name(Gdk.KEY_Return, QUEUE_MESSAGE_MODIFIERS),
+        ))
+        gr.append(Gtk.ShortcutsShortcut(
+            title=_("Send steering message while generating"),
+            accelerator=Gtk.accelerator_name(Gdk.KEY_Return, STEER_MESSAGE_MODIFIERS),
+        ))
         gr.append(Gtk.ShortcutsShortcut(title=_("Start/stop recording"), accelerator='<primary>g'))
         gr.append(Gtk.ShortcutsShortcut(title=_("Stop generation"), accelerator='<primary>q'))
         gr.append(Gtk.ShortcutsShortcut(title=_("Save"), accelerator='<primary>s'))
