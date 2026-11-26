@@ -46,6 +46,7 @@ src/ui/profile.py
 src/ui/screenrecorder.py
 src/ui/thread_editing.py
 src/ui/widgets/barchart.py
+src/ui/widgets/chat_tab.py
 src/ui/widgets/comborow.py
 src/ui/widgets/documents_reader.py
 src/ui/widgets/latex.py

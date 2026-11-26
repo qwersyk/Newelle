@@ -282,6 +282,12 @@ class Settings(Adw.Window):
                            Gio.SettingsBindFlags.DEFAULT)
         self.wakeword_row.add_row(voice_mode_row)
 
+        self.wakeword_row.add_row(self._voice_message_action_row(
+            "wakeword-message-action",
+            _("Wakeword messages during a reply"),
+            _("Choose how to send wakeword messages while the chat is replying"),
+        ))
+
         stop_tts_row = Adw.SwitchRow(
             title=_("Interrupt TTS"),
             subtitle=_("Stop the voice reply when the wakeword is said while it is speaking"),
@@ -3588,6 +3594,16 @@ class Settings(Adw.Window):
             parent_expander.add_row(folder_row)
             self.custom_folder_rows.append(folder_row)
 
+    def _voice_message_action_row(self, key, title, subtitle):
+        row = Adw.ComboRow(title=title, subtitle=subtitle)
+        actions = (
+            (_("Queue until the reply ends"), "queue"),
+            (_("Steer the next model request"), "steer"),
+        )
+        helper = ComboRowHelper(row, actions, self.settings.get_string(key))
+        helper.connect("changed", lambda _helper, value: self.settings.set_string(key, value))
+        return row
+
     def _build_voice_mode_settings(self):
         group = Adw.PreferencesGroup(
             title=_("Voice Mode"),
@@ -3643,6 +3659,12 @@ class Settings(Adw.Window):
             "changed", lambda _helper, value: self.settings.set_string("voice-mode-chat", value)
         )
         group.add(chat_row)
+
+        group.add(self._voice_message_action_row(
+            "voice-message-action",
+            _("Voice messages during a reply"),
+            _("Choose how to send Voice Mode messages while the chat is replying"),
+        ))
 
         position_row = Adw.ComboRow(
             title=_("Pill position"),

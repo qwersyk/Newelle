@@ -1316,6 +1316,16 @@ class ChatTab(Gtk.Box):
         if self._response_in_progress:
             self.on_entry_activate(self.input_panel, steer=True)
 
+    def submit_voice_message(self, text, *, steer=None, allow_commands=True):
+        """Submit voice text, using the configured action during a reply."""
+        self.input_panel.set_text(text)
+        if steer is None:
+            steer = self.controller.settings.get_string("voice-message-action") == "steer"
+        return self.on_entry_activate(
+            self.input_panel, steer=self._response_in_progress and steer,
+            allow_commands=allow_commands,
+        )
+
     def on_entry_activate(self, entry, steer=False, *, allow_commands=True):
         """Send the input, or keep it pending while a response is in progress."""
         self.ensure_history_populated()

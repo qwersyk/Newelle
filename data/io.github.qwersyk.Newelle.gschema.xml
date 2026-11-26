@@ -97,6 +97,13 @@
             </choices>
             <default>"new"</default>
         </key>
+        <key name="voice-message-action" type="s">
+            <choices>
+                <choice value="queue"/>
+                <choice value="steer"/>
+            </choices>
+            <default>"queue"</default>
+        </key>
         <key name="voice-mode-position" type="s">
             <default>"bottom-center"</default>
         </key>
@@ -298,6 +305,13 @@
         </key>
         <key name="wakeword-voice-mode" type="b">
             <default>false</default>
+        </key>
+        <key name="wakeword-message-action" type="s">
+            <choices>
+                <choice value="queue"/>
+                <choice value="steer"/>
+            </choices>
+            <default>"steer"</default>
         </key>
         <key name="wakeword-stop-tts" type="b">
             <default>false</default>
