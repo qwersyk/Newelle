@@ -1142,7 +1142,7 @@ msgstr "ახალი გაფართოებების გადმო�
 msgid "Install extension from file..."
 msgstr "გაფართოების დაყენება ფაილიდან..."
 
-#: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.appdata.xml.in:7
+#: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.metainfo.xml.in:7
 #: data/io.github.qwersyk.Newelle.desktop.in:2
 msgid "Newelle"
 msgstr "Newelle"
@@ -2388,70 +2388,70 @@ msgstr "საქაღალდის გახსნის შეცდომ�
 msgid "Chat is empty"
 msgstr "ჩატი ცარიელია"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:9
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:9
 msgid ""
 "Train Newelle to do more with custom extensions and new AI modules, giving "
 "your chatbot endless possibilities."
 msgstr ""
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:11
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:11
 msgid "AI chatbot"
 msgstr "ჩატბოტი ხი-ით"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:15
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:15
 msgid "Quick profile selection"
 msgstr "პროფილის სწრაფი არჩევანი"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:19
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:19
 msgid "Message Editing"
 msgstr "შეტყობინების ჩასწორება"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:23
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:23
 msgid "More than 10 standard AI providers"
 msgstr "10-ზე მეტი სტანდარტული ხი-ის პროვაიდერი"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:38
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:62
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:85
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:147
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:152
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:157
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:162
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:167
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:38
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:62
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:85
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:147
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:152
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:157
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:162
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:167
 msgid "Bug fixes"
 msgstr "შეცდომების გასწორება"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:45
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:45
 msgid ""
 "Mini Apps support! Extensions can now show custom mini apps on the sidebar"
 msgstr ""
 "მინიპროგრამების მხარდაჭერა! გაფართოებებს ახლა საკუთარი მინიპროგრამების "
 "ჩვენება შეუძლიათ გვერდით პანელზე"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:46
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:46
 msgid ""
 "Added integrated browser Mini App: browse the web directly in Newelle and "
 "attach web pages"
 msgstr ""
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:47
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:47
 msgid "Improved integrated file manager, supporting multiple file operations"
 msgstr ""
 "გაუმჯობესდა ჩაშენებული ფაილების მმართველი. ახლა მას ერთზე მეტ ფაილზე შეუძლია "
 "ოპერაციები"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:48
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:48
 msgid "Integrated file editor: edit files and codeblocks directly in Newelle"
 msgstr ""
 "ჩაშენებული ფაილის რედაქტორი: ჩაასწორეთ ფაილები და კოდის ბლოკები პირდაპირ "
 "Newelle-ში"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:49
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:49
 msgid "Integrated Terminal mini app: open the terminal directly in Newelle"
 msgstr ""
 "ჩაშენდა ტერმინალის მინიპროგრამა. გახსენით ტერმინალი პირდაპირ Newelle-ში"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:50
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:50
 msgid ""
 "Programmable prompts: add dynamic content to prompts with conditionals and "
 "random strings"
@@ -2459,107 +2459,107 @@ msgstr ""
 "პროგრამირებადი მინიშნებები: დაამატეთ დინამიკური შემცველობა მოთხოვნებს "
 "პირობებითა და შემთხვევითი სტრიქონებით"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:51
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:51
 msgid "Add ability to manually edit chat name"
 msgstr "დაემატა ჩატის სახელის ხელით გადარქმევის შესაძლებლობა"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:52
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:52
 msgid "Minor bug fixes"
 msgstr "მცირე შეცდომების გამოსწორება"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:53
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:53
 msgid "Added support for multiple languages for Kokoro TTS and Whisper.CPP"
 msgstr "დაემატა ბევრი ენის მხარდაჭერა Kokoro TTS-ისთვის და Whisper.CPP-ისთვის"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:54
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:54
 msgid "Run HTML/CSS/JS websites directly in app"
 msgstr "გაუშვით HTML/CSS/JS ვებსაიტები პირდაპირ აპში"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:55
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:55
 msgid "New animation on chat change"
 msgstr "ახალი ანიმაცია ჩატის ცვლილებაზე"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:63
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:63
 msgid "Small improvements"
 msgstr "მცირე გაუმჯობესებები"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:70
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:70
 msgid "Improve local documents reading and loading performances"
 msgstr "გაუმჯობესდა ლოკალური დოკუმენტების წაკითხვისა და ჩატვირთვის წარმადობები"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:71
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:71
 msgid "Add option to send with CTRL+Enter"
 msgstr "დაემატა არჩევანი Ctrl+Enter-ით გასაგზავნად"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:72
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:72
 msgid "Improve codeblocks"
 msgstr "გაუმჯობესდა კოდის ბლოკები"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:73
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:73
 msgid "Fix Kokoro TTS"
 msgstr "გასწორდა Kokoro TTS"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:74
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:74
 msgid "Remove emoji from TTS"
 msgstr "ემოჯის წაშლა TTS-დან"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:75
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:75
 msgid "Set API keys as password fields"
 msgstr "API-ის გასაღებების დაყენება პაროლის ველების სახით"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:76
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:76
 msgid "Add thinking support for Gemini"
 msgstr "დაემატა ფიქრის მხარდაჭერა Gemini-ისთვის"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:77
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:77
 msgid "Updated translations"
 msgstr "განახლებული თარგმანები"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:84
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:84
 msgid "Added new features"
 msgstr "დაემატა ახალი ფუნქციები"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:92
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:92
 msgid "Website reading and web search with SearXNG, DuckDuckGo, and Tavily"
 msgstr ""
 "ვებსაიტების წაკითხვა და ვებში ძებნა SearXNG-ით, DuckDuckGo-ით და Tavily-ით"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:93
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:93
 msgid "Improved LaTeX rendering and document management"
 msgstr "გაუმჯობესდა LaTeX-ის რენდერი და დოკუმენტების მართვა"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:94
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:94
 msgid "New Thinking Widget and OpenRouter handler"
 msgstr "ახალი ფიქრის ვიჯეტი და OpenRouter-ის დამმუშავებელი"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:95
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:95
 msgid "Vision support for Llama4 on Groq"
 msgstr "ხედვის მხარდაჭერა Llama4-ისთვის Groq-ზე"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:96
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:96
 msgid "New translations (Traditional Chinese, Bengali, Hindi)"
 msgstr "ახალი თარგმანები (ტრადიციული ჩინური, ბენგალური, ინდური)"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:102
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:102
 msgid "Fixed many bugs, added some features!"
 msgstr "გასწორდა ბევრი შეცდომა და დაემატა რამდენიმე ფუნქცია!"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:107
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:107
 msgid "Support for new features and bug fixes"
 msgstr "ახალი ფუნქციების მხარდაჭერა და შეცდომების გასწორება"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:112
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:117
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:122
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:112
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:117
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:122
 msgid "Added many new features and bug fixes"
 msgstr "დაემატა ბევრი ახალი ფუნქცია და გასწორდა შეცდომები"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:127
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:132
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:127
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:132
 msgid "Added new features and bug fixes"
 msgstr "დაემატა ახალი ფუნქციები და გასწორდა შეცდომები"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:137
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:137
 msgid ""
 "Updated the g4f library with versioning, added user guides, improved "
 "extension browsing, and enhanced model handling."
@@ -2567,7 +2567,7 @@ msgstr ""
 "განახლდა ბიბლიოთეკა g4k ვერსიებით, დაემატა მომხმარებლის გიდები, გაუმჯობესდა "
 "გაფართოებების დათვალიერება და მოდელების დამუშავება."
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:142
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:142
 msgid ""
 "Bug fixes and new features have been implemented. We've modified the "
 "extension architecture, added new models, and introduced vision support, "
@@ -2577,27 +2577,27 @@ msgstr ""
 "გაფართოების არქიტექტურა, დაემატა ახალი მოდელები და ვიზუალური მხარდაჭერა, "
 "სხვა შესაძლებლობებთან ერთად."
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:172
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:172
 msgid "Stable version"
 msgstr "სტაბილური ვერსია"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:177
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:177
 msgid "Added extension"
 msgstr "დაემატა გაფარტოება"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:182
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:182
 msgid "Blacklist of commands"
 msgstr "ბრძანებების შავი სია"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:187
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:187
 msgid "Localization"
 msgstr "ლოკალიზაცია"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:192
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:192
 msgid "Redesign"
 msgstr "რედიზაინი"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:196
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:196
 msgid "Qwersyk"
 msgstr "კვერსიკი"
 

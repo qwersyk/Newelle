@@ -1114,7 +1114,7 @@ msgstr "下載擴充功能"
 msgid "Install extension from file..."
 msgstr "從檔案安裝檔案..."
 
-#: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.appdata.xml.in:7
+#: src/ui/mini_window.py:9 data/io.github.qwersyk.Newelle.metainfo.xml.in:7
 #: data/io.github.qwersyk.Newelle.desktop.in:2
 msgid "Newelle"
 msgstr "Newelle"
@@ -2337,174 +2337,174 @@ msgstr "無法開啟資料夾"
 msgid "Chat is empty"
 msgstr "聊天室為空"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:9
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:9
 msgid ""
 "Train Newelle to do more with custom extensions and new AI modules, giving "
 "your chatbot endless possibilities."
 msgstr "利用擴充功能讓 Newelle 的功能多又更多！"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:11
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:11
 msgid "AI chatbot"
 msgstr "AI 聊天機器人"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:15
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:15
 msgid "Quick profile selection"
 msgstr "快速設定檔選取"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:19
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:19
 msgid "Message Editing"
 msgstr "訊息編輯"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:23
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:23
 msgid "More than 10 standard AI providers"
 msgstr "多過 10 種 AI 服務"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:38
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:62
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:85
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:147
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:152
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:157
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:162
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:167
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:38
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:62
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:85
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:147
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:152
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:157
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:162
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:167
 msgid "Bug fixes"
 msgstr "修正各種錯誤"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:45
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:45
 msgid ""
 "Mini Apps support! Extensions can now show custom mini apps on the sidebar"
 msgstr "迷你應用程式支援！擴充功能將能於側欄顯示迷你應用程式"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:46
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:46
 msgid ""
 "Added integrated browser Mini App: browse the web directly in Newelle and "
 "attach web pages"
 msgstr "新增內建瀏覽器迷你應用程式：直接地於 Newelle 瀏覽並內嵌網頁"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:47
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:47
 msgid "Improved integrated file manager, supporting multiple file operations"
 msgstr "改良內建檔案管理，支援多檔案操作"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:48
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:48
 msgid "Integrated file editor: edit files and codeblocks directly in Newelle"
 msgstr "內建檔案編輯器：直接地於 Newelle 編輯檔案與程式碼"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:49
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:49
 msgid "Integrated Terminal mini app: open the terminal directly in Newelle"
 msgstr "內建終端機迷你應用程式：於 Newelle 直接地開啟終端機"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:50
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:50
 msgid ""
 "Programmable prompts: add dynamic content to prompts with conditionals and "
 "random strings"
 msgstr "動態提示語"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:51
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:51
 msgid "Add ability to manually edit chat name"
 msgstr "現在可直接更改聊天室名稱"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:52
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:52
 msgid "Minor bug fixes"
 msgstr "修正各種小錯誤"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:53
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:53
 msgid "Added support for multiple languages for Kokoro TTS and Whisper.CPP"
 msgstr "支援 Kokoro TTS 與 Whisper.CPP 的更多語言"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:54
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:54
 msgid "Run HTML/CSS/JS websites directly in app"
 msgstr "直接地於應用程式內執行 HTML/CSS/JS"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:55
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:55
 msgid "New animation on chat change"
 msgstr "新增更動聊天室時的小動畫"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:63
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:63
 msgid "Small improvements"
 msgstr "小小改進"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:70
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:70
 msgid "Improve local documents reading and loading performances"
 msgstr "改善檔案閱讀理解速度"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:71
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:71
 msgid "Add option to send with CTRL+Enter"
 msgstr "新增 CTRL＋Enter 快捷鍵"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:72
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:72
 msgid "Improve codeblocks"
 msgstr "改善程式碼區塊顯示"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:73
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:73
 msgid "Fix Kokoro TTS"
 msgstr "修復 Kokoro 文本轉語音"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:74
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:74
 msgid "Remove emoji from TTS"
 msgstr "從文本轉語音移除表情符號"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:75
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:75
 msgid "Set API keys as password fields"
 msgstr "設定 API 金鑰為「密碼」型輸入框"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:76
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:76
 msgid "Add thinking support for Gemini"
 msgstr "新增 Gemini 思考支援"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:77
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:77
 msgid "Updated translations"
 msgstr "更新翻譯"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:84
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:84
 msgid "Added new features"
 msgstr "新增更多新功能"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:92
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:92
 msgid "Website reading and web search with SearXNG, DuckDuckGo, and Tavily"
 msgstr "網站閱讀與支援 SearXNG、DuckDuckGo、與 Tavily 等搜尋引擎"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:93
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:93
 msgid "Improved LaTeX rendering and document management"
 msgstr "改良 LaTeX 處理以及文件管理"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:94
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:94
 msgid "New Thinking Widget and OpenRouter handler"
 msgstr "新增推理模型的「思考過程」以及 OpenRouter 管理"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:95
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:95
 msgid "Vision support for Llama4 on Groq"
 msgstr "新增 Groq Llama4 圖片辨識支援"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:96
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:96
 msgid "New translations (Traditional Chinese, Bengali, Hindi)"
 msgstr "新翻譯（繁體中文、孟加拉文、印度文）"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:102
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:102
 msgid "Fixed many bugs, added some features!"
 msgstr "新增更多新功能以及修正錯誤"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:107
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:107
 msgid "Support for new features and bug fixes"
 msgstr "新增更多新功能以及修正錯誤"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:112
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:117
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:122
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:112
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:117
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:122
 msgid "Added many new features and bug fixes"
 msgstr "新增更多新功能以及修正錯誤"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:127
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:132
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:127
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:132
 msgid "Added new features and bug fixes"
 msgstr "新增更多新功能以及修正錯誤"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:137
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:137
 msgid ""
 "Updated the g4f library with versioning, added user guides, improved "
 "extension browsing, and enhanced model handling."
 msgstr "改良 g4f 資料庫的版本管理、使用者說明、擴充功能瀏覽、以及模型處理。"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:142
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:142
 msgid ""
 "Bug fixes and new features have been implemented. We've modified the "
 "extension architecture, added new models, and introduced vision support, "
@@ -2513,27 +2513,27 @@ msgstr ""
 "新增更多新功能以及修正錯誤。我們不但更改了擴充功能架構、新增新模型、以及新增"
 "圖片上傳功能等。"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:172
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:172
 msgid "Stable version"
 msgstr "穩定版本"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:177
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:177
 msgid "Added extension"
 msgstr "已新增擴充功能"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:182
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:182
 msgid "Blacklist of commands"
 msgstr "指令黑名單"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:187
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:187
 msgid "Localization"
 msgstr "翻譯"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:192
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:192
 msgid "Redesign"
 msgstr "重新設計"
 
-#: data/io.github.qwersyk.Newelle.appdata.xml.in:196
+#: data/io.github.qwersyk.Newelle.metainfo.xml.in:196
 msgid "Qwersyk"
 msgstr "Qwersyk"
 

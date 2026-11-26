@@ -81,6 +81,6 @@ src/controller.py
 src/extensions.py
 src/main.py
 src/window.py
-data/io.github.qwersyk.Newelle.appdata.xml.in
+data/io.github.qwersyk.Newelle.metainfo.xml.in
 data/io.github.qwersyk.Newelle.desktop.in
 data/io.github.qwersyk.Newelle.gschema.xml
