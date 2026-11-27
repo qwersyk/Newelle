@@ -51,6 +51,17 @@
 	</developer>
 	<content_rating type="oars-1.1" />
 	<releases>
+        <release version="1.6.2" date="2026-11-27">
+            <description>
+                <ul>
+                    <li>Add the option to steer or queue messages</li>
+                    <li>Minor improvements to TTS</li>
+                    <li>Add a dependency manager to manage additional dependencies</li>
+                    <li>Improve general performance</li>
+                    <li>Minor fixes</li>
+                </ul>
+            </description>
+        </release>
         <release version="1.6.1" date="2026-11-02">
             <description>
                 <p>Bug fixes and performance improvements.</p>
