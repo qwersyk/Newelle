@@ -8,13 +8,15 @@ Each ChatTab owns its own:
 - Message sending and generation lifecycle
 """
 
-from gi.repository import Gtk, Adw, Gio, Gdk, GObject, GLib, GdkPixbuf
+from dataclasses import dataclass
 import threading
 import re
 import gettext
 import subprocess
 import base64
 import os
+
+from gi.repository import Gtk, Adw, Gio, Gdk, GObject, GLib, GdkPixbuf
 
 from .chat_history import ChatHistory
 from .multiline import MultilineEntry
@@ -23,6 +25,7 @@ from .context_indicator import ContextIndicator
 from .documents_reader import DocumentReaderWidget
 from .message import Message
 from .. import apply_css_to_widget
+from ..shortcuts import QUEUE_MESSAGE_MODIFIERS, STEER_MESSAGE_MODIFIERS
 from ...utility.strings import (
     clean_message_tts,
     convert_think_codeblocks,
@@ -38,6 +41,14 @@ _ = gettext.gettext
 _STREAM_REVEAL_INTERVAL_MS = 30
 _STREAM_REVEAL_TARGET_FRAMES = 4
 _STREAM_REVEAL_MAX_CHARS = 48
+
+
+@dataclass(eq=False, frozen=True)
+class PendingMessage:
+    message: str
+    preview: str
+    attachment_name: str
+    steer: bool
 
 
 class ChatTab(Gtk.Box):
@@ -76,6 +87,7 @@ class ChatTab(Gtk.Box):
         # Generation state
         self._response_start_index = None
         self._response_in_progress = False
+        self._applied_steering = []
         self.active_tool_results = []
         self.auto_run_times = 0
         self.tool_call_count = 0
@@ -202,6 +214,11 @@ class ChatTab(Gtk.Box):
         self._build_command_popover()
         self.input_panel.input_panel.get_buffer().connect("changed", self._on_input_changed)
 
+        key_ctrl = Gtk.EventControllerKey.new()
+        key_ctrl.set_propagation_phase(Gtk.PropagationPhase.CAPTURE)
+        key_ctrl.connect("key-pressed", self._on_composer_key_pressed)
+        self.input_panel.input_panel.add_controller(key_ctrl)
+
         # SHIFT+TAB cycles through Modes while focused in the input box.
         mode_key_ctrl = Gtk.EventControllerKey.new()
         mode_key_ctrl.set_propagation_phase(Gtk.PropagationPhase.CAPTURE)
@@ -212,6 +229,7 @@ class ChatTab(Gtk.Box):
 
         # Populate the thinking control from the current model's capabilities.
         self._populate_thinking_control()
+        self._update_send_controls()
 
     def _build_input_action_widgets(self):
         """Create the input controls used by the normal and compact layouts."""
@@ -282,6 +300,28 @@ class ChatTab(Gtk.Box):
         self.send_button.set_vexpand(False)
         self.send_button.set_valign(Gtk.Align.CENTER)
 
+        steer_label = _("Steer the response at the next model request")
+        self.steer_button = Gtk.Button(
+            css_classes=["flat", "circular"],
+            icon_name="go-jump-symbolic",
+            tooltip_text=_("{action} ({shortcut})").format(
+                action=steer_label,
+                shortcut=Gtk.accelerator_get_label(Gdk.KEY_Return, STEER_MESSAGE_MODIFIERS),
+            ),
+            visible=False,
+        )
+        self.steer_button.update_property([Gtk.AccessibleProperty.LABEL], [steer_label])
+        self.steer_button.connect("clicked", self._on_steer_clicked)
+        self.pending_button = Gtk.MenuButton(
+            css_classes=["flat", "circular", "accent"],
+            icon_name="view-list-ordered-symbolic",
+            visible=False,
+        )
+        self.pending_popover = Gtk.Popover()
+        self.pending_button.set_popover(self.pending_popover)
+        self.pending_popover.connect("notify::visible", self._on_pending_visible)
+        self._update_pending_button()
+
         # Context usage indicator (pie-chart ring).
         self.context_indicator = ContextIndicator()
         self.context_indicator.set_valign(Gtk.Align.CENTER)
@@ -335,7 +375,7 @@ class ChatTab(Gtk.Box):
             self.attach_button, self.attached_image, self.attachment_mode, self.screen_record_button,
             self.quick_toggles, self.quick_toggles_box, self.mode_button,
             self.thinking_button, self.mic_button, self.send_button,
-            self.drafts_button,
+            self.drafts_button, self.pending_button, self.steer_button,
             self.context_indicator, getattr(self, "compact_options_button", None),
         ):
             if widget is not None:
@@ -348,6 +388,8 @@ class ChatTab(Gtk.Box):
         self.mic_button.set_size_request(36, 36)
         self.send_button.set_size_request(36, 36)
         self.drafts_button.set_size_request(36, 36)
+        self.pending_button.set_size_request(36, 36)
+        self.steer_button.set_size_request(36, 36)
         # The quick toggles go back into their own popover button.
         self.quick_toggles_popover.set_child(self.quick_toggles_box)
 
@@ -374,7 +416,9 @@ class ChatTab(Gtk.Box):
         actions_row.append(Gtk.Box(hexpand=True))
         right_cluster = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=4)
         right_cluster.append(self.drafts_button)
+        right_cluster.append(self.pending_button)
         right_cluster.append(self.mic_button)
+        right_cluster.append(self.steer_button)
         right_cluster.append(self.send_button)
         right_cluster.append(self.context_indicator)
         actions_row.append(right_cluster)
@@ -384,18 +428,15 @@ class ChatTab(Gtk.Box):
         self.input_box.append(actions_row)
 
     def _build_compact_input_layout(self):
-        """Compact layout: a single row, the controls float over the text.
-
-        The options, drafts, mic and send buttons sit together on the bottom-right
-        corner, so the text keeps the full width and no extra row is added
-        below it. The context indicator stays hidden in this mode.
-        """
+        """Float the composer actions over the bottom right of the text entry."""
         # Reserve the bottom of the text view so no text runs under the
         # overlay buttons; this replaces the height of the actions row.
         self.input_panel.input_panel.set_bottom_margin(30)
         self.mic_button.set_size_request(28, 28)
         self.send_button.set_size_request(28, 28)
         self.drafts_button.set_size_request(28, 28)
+        self.pending_button.set_size_request(28, 28)
+        self.steer_button.set_size_request(28, 28)
 
         self._ensure_compact_options()
         self._populate_compact_options()
@@ -413,7 +454,9 @@ class ChatTab(Gtk.Box):
         )
         right_cluster.append(self.compact_options_button)
         right_cluster.append(self.drafts_button)
+        right_cluster.append(self.pending_button)
         right_cluster.append(self.mic_button)
+        right_cluster.append(self.steer_button)
         right_cluster.append(self.send_button)
         overlay.add_overlay(right_cluster)
 
@@ -524,12 +567,18 @@ class ChatTab(Gtk.Box):
         self._cmd_popover.set_child(scroll)
         self._cmd_selected_index = -1
 
-        key_ctrl = Gtk.EventControllerKey.new()
-        key_ctrl.set_propagation_phase(Gtk.PropagationPhase.CAPTURE)
-        key_ctrl.connect("key-pressed", self._on_cmd_key_pressed)
-        self.input_panel.input_panel.add_controller(key_ctrl)
+    def _on_composer_key_pressed(self, controller, keyval, keycode, state):
+        if keyval in (Gdk.KEY_Return, Gdk.KEY_KP_Enter):
+            modifiers = state & Gtk.accelerator_get_default_mod_mask()
+            if modifiers in (QUEUE_MESSAGE_MODIFIERS, STEER_MESSAGE_MODIFIERS):
+                if self._response_in_progress:
+                    self.on_entry_activate(
+                        self.input_panel, steer=modifiers == STEER_MESSAGE_MODIFIERS,
+                        allow_commands=False,
+                    )
+                # Keep these chords from falling through to the normal send handler.
+                return True
 
-    def _on_cmd_key_pressed(self, controller, keyval, keycode, state):
         if not self._cmd_popover.get_visible():
             return False
 
@@ -591,6 +640,7 @@ class ChatTab(Gtk.Box):
     def _on_input_changed(self, buffer):
         self.remember_draft()
         text = buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter(), False)
+        self._update_steer_sensitivity()
         if text.startswith("/"):
             query = text[1:].split(" ", 1)[0].lower()
             self._show_command_hints(query)
@@ -642,6 +692,10 @@ class ChatTab(Gtk.Box):
 
     def _on_command_selected(self, listbox, row):
         if row is None:
+            return
+        if not self.status or self._response_in_progress:
+            self._cmd_popover.popdown()
+            self.notification_block.add_toast(Adw.Toast(title=_("Wait for the current response before running a command")))
             return
         cmd = row.cmd_data
         full_text = self.input_panel.get_text()
@@ -1004,7 +1058,108 @@ class ChatTab(Gtk.Box):
             self.remember_draft()
         self.controller.delete_message_draft(self._chat_id, draft_id)
         self._populate_drafts()
-            
+
+    # Pending messages
+    @property
+    def _pending_messages(self):
+        return self.controller.workspace_storage.pending_messages.get(self._chat_id, [])
+
+    def _update_pending_button(self):
+        count = len(self._pending_messages)
+        if not count:
+            self.pending_popover.popdown()
+        self.pending_button.set_visible(bool(count))
+        label = _("Pending messages ({count})").format(count=count)
+        self.pending_button.set_tooltip_text(label)
+        self.pending_button.update_property([Gtk.AccessibleProperty.LABEL], [label])
+        if count and self.pending_popover.get_visible():
+            self._populate_pending_messages()
+
+    def _on_pending_visible(self, *_args):
+        if self.pending_popover.get_visible():
+            self._populate_pending_messages()
+
+    def _populate_pending_messages(self):
+        box = Gtk.Box(
+            orientation=Gtk.Orientation.VERTICAL, spacing=10,
+            margin_start=10, margin_end=10, margin_top=10, margin_bottom=10,
+        )
+        box.append(Gtk.Label(label=_("Pending messages"), xalign=0, css_classes=["heading"]))
+        rows = Gtk.ListBox(selection_mode=Gtk.SelectionMode.NONE, css_classes=["boxed-list"])
+        for pending in sorted(self._pending_messages, key=lambda item: not item.steer):
+            kind = _("Steering") if pending.steer else _("Queued")
+            subtitle = f"{kind} · {pending.attachment_name}" if pending.attachment_name else kind
+            row = Adw.ActionRow(
+                title=pending.preview or _("Attachment"), subtitle=subtitle,
+                use_markup=False, title_lines=2, subtitle_lines=1,
+            )
+            remove = Gtk.Button(
+                icon_name="list-remove-symbolic", css_classes=["flat"],
+                valign=Gtk.Align.CENTER, tooltip_text=_("Remove pending message"),
+            )
+            remove.connect("clicked", self._remove_pending_message, pending)
+            row.add_suffix(remove)
+            rows.append(row)
+        box.append(Gtk.ScrolledWindow(
+            hscrollbar_policy=Gtk.PolicyType.NEVER, max_content_height=260,
+            propagate_natural_height=True, width_request=280, child=rows,
+        ))
+        if self.status and not self._response_in_progress:
+            resume = Gtk.Button(label=_("Send next pending message"), css_classes=["suggested-action"])
+            resume.connect("clicked", lambda *_: self._send_next_pending())
+            box.append(resume)
+        self.pending_popover.set_child(box)
+
+    def _remove_pending_message(self, _button, pending):
+        messages = self._pending_messages
+        if pending in messages:
+            messages.remove(pending)
+            if not messages:
+                self.controller.workspace_storage.pending_messages.pop(self._chat_id, None)
+        self._update_pending_button()
+
+    def _send_next_pending(self, steering_only=False):
+        """Take the next pending message at a generation boundary."""
+        if self.controller.workspace_switching or self._chat_id not in self.controller.chats:
+            return False
+        if not steering_only and (not self.status or self._response_in_progress):
+            return False
+        messages = self._pending_messages
+        pending = next((item for item in messages if item.steer), None)
+        if pending is None:
+            if steering_only or not messages:
+                return False
+            pending = messages[0]
+        self._remove_pending_message(None, pending)
+        self._append_user_message(pending.message, store_profile=False)
+        if steering_only:
+            self._applied_steering.append(pending)
+        else:
+            self.pending_popover.popdown()
+            self.send_message()
+        return True
+
+    def _update_steer_sensitivity(self):
+        entry = self.input_panel
+        has_text = not entry.placeholding and bool(entry.get_text().strip())
+        self.steer_button.set_sensitive(has_text or self.attached_image_data is not None)
+
+    def _update_send_controls(self):
+        generating = self._response_in_progress
+        self.send_button.set_icon_name("list-add-symbolic" if generating else "go-next-symbolic")
+        label = _("Queue message") if generating else _("Send")
+        tooltip = label
+        if generating:
+            tooltip = _("{action} ({shortcut})").format(
+                action=label,
+                shortcut=Gtk.accelerator_get_label(Gdk.KEY_Return, QUEUE_MESSAGE_MODIFIERS),
+            )
+        self.send_button.set_tooltip_text(tooltip)
+        self.send_button.update_property([Gtk.AccessibleProperty.LABEL], [label])
+        self.steer_button.set_visible(generating)
+        self._update_steer_sensitivity()
+        self._update_pending_button()
+
     # Properties
     @property
     def chat_id(self) -> int:
@@ -1098,6 +1253,7 @@ class ChatTab(Gtk.Box):
 
         self.remember_draft()
         self.drafts_popover.popdown()
+        self.pending_popover.popdown()
         old_history = self.chat_history
         old_history.cancel_loading()
         
@@ -1130,6 +1286,7 @@ class ChatTab(Gtk.Box):
         # Create new chat history
         self.chat_history = ChatHistory(self, self.chat, self._chat_id)
         self._setup_chat_history(self.chat_history)
+        self._update_send_controls()
         self._history_needs_population = False
         self.chat_history.populate_chat()
         
@@ -1154,13 +1311,27 @@ class ChatTab(Gtk.Box):
     def on_entry_button_clicked(self, *a):
         """Handle send button click."""
         self.on_entry_activate(self.input_panel)
-        
-    def on_entry_activate(self, entry):
-        """Send a message when input is pressed."""
+
+    def _on_steer_clicked(self, _button):
+        if self._response_in_progress:
+            self.on_entry_activate(self.input_panel, steer=True)
+
+    def submit_voice_message(self, text, *, steer=None, allow_commands=True):
+        """Submit voice text, using the configured action during a reply."""
+        self.input_panel.set_text(text)
+        if steer is None:
+            steer = self.controller.settings.get_string("voice-message-action") == "steer"
+        return self.on_entry_activate(
+            self.input_panel, steer=self._response_in_progress and steer,
+            allow_commands=allow_commands,
+        )
+
+    def on_entry_activate(self, entry, steer=False, *, allow_commands=True):
+        """Send the input, or keep it pending while a response is in progress."""
         self.ensure_history_populated()
         text = "" if entry.placeholding else entry.get_text()
 
-        if text.startswith("/") and self._cmd_popover.get_visible():
+        if allow_commands and not steer and text.startswith("/") and self._cmd_popover.get_visible():
             selected = self._cmd_list.get_selected_row()
             if selected is None:
                 selected = self._cmd_list.get_row_at_index(0)
@@ -1168,7 +1339,7 @@ class ChatTab(Gtk.Box):
                 self._on_command_selected(self._cmd_list, selected)
                 return False
 
-        if not self.status:
+        if not self.status and not self._response_in_progress:
             self.notification_block.add_toast(
                 Adw.Toast(
                     title=_("The message cannot be sent until the program is finished"),
@@ -1187,48 +1358,59 @@ class ChatTab(Gtk.Box):
                 self.notification_block.add_toast(Adw.Toast(title=_("The selected RAG provider does not support this file type")))
                 return False
 
-        entry.set_text("")
-        
-        if text.strip() or self.attached_image_data is not None:
-            if self.attached_image_data is not None:
-                if self.attached_image_data.lower().endswith((".png", ".jpg", ".jpeg", ".webp")) or \
-                   self.attached_image_data.startswith("data:image/"):
-                    text = "```image\n" + self.attached_image_data + "\n```\n" + text
-                elif self.attached_image_data.lower().endswith((".mp4", ".mkv", ".webm", ".avi", ".mov")):
-                    text = "```video\n" + self.attached_image_data + "\n```\n" + text
-                else:
-                    lang = ("file", "file_direct", "file_rag")[self.attachment_mode.get_selected()]
-                    text = "```" + lang + "\n" + self.attached_image_data + "\n```\n" + text
-                self.delete_attachment(self.attach_button)
-            
-            self.chat.append({"User": "User", "Message": text})
-            draft_id = self._editing_draft_id
-            self._editing_draft_id = None
-            self.remember_draft()
-            if draft_id is not None:
-                self.controller.delete_message_draft(self._chat_id, draft_id)
-                self._update_drafts_button()
-            self.chat_history.show_message(text, True, id_message=len(self.chat) - 1, is_user=True)
+        attachment = self.attached_image_data
+        if not text.strip() and attachment is None:
+            return True
+        message = text
+        attachment_name = ""
+        if attachment is not None:
+            if attachment.lower().endswith((".png", ".jpg", ".jpeg", ".webp")) or attachment.startswith("data:image/"):
+                lang = "image"
+            elif attachment.lower().endswith((".mp4", ".mkv", ".webm", ".avi", ".mov")):
+                lang = "video"
+            else:
+                lang = ("file", "file_direct", "file_rag")[self.attachment_mode.get_selected()]
+            message = f"```{lang}\n{attachment}\n```\n{text}"
+            attachment_name = _("Image attachment") if attachment.startswith("data:") else os.path.basename(attachment)
 
-            # Store current profile in chat data
-            if self._chat_id in self.controller.chats:
-                self.controller.chats[self._chat_id]["profile"] = self.window.current_profile
+        draft_id = self._editing_draft_id
+        self.restore_composer_draft({})
+        if draft_id is not None:
+            self.controller.delete_message_draft(self._chat_id, draft_id)
+            self._update_drafts_button()
 
-            self._name_chat_from_first_message()
+        if self._response_in_progress:
+            pending = PendingMessage(message, " ".join(text.split())[:160], attachment_name, steer)
+            self.controller.workspace_storage.pending_messages.setdefault(self._chat_id, []).append(pending)
+            self._update_pending_button()
+            self.focus_input()
+            return True
 
-        GLib.timeout_add(200, self.chat_history.scrolled_chat)
+        self._append_user_message(message)
         self.send_message()
-        self.send_button_start_spinner()
+        return True
+
+    def _append_user_message(self, message, store_profile=True):
+        self.ensure_history_populated()
+        self.chat.append({"User": "User", "Message": message})
+        self.chat_history.show_message(message, True, id_message=len(self.chat) - 1, is_user=True)
+        if store_profile and self._chat_id in self.controller.chats:
+            self.controller.chats[self._chat_id]["profile"] = self.window.current_profile
+        self._name_chat_from_first_message()
+        self.save_chat()
+        GLib.timeout_add(200, self.chat_history.scrolled_chat)
         
     def send_button_start_spinner(self):
-        """Show spinner on send button."""
+        """Show a spinner for operations outside the response composer."""
+        if self._response_in_progress:
+            return
         spinner = Gtk.Spinner(spinning=True)
         self.send_button.set_child(spinner)
         
     def remove_send_button_spinner(self):
         """Remove spinner from send button."""
         self.send_button.set_child(None)
-        self.send_button.set_icon_name("go-next-symbolic")
+        self._update_send_controls()
         
     # Message sending and streaming
     def send_message(self, manual=True, expected_generation=None):
@@ -1255,6 +1437,8 @@ class ChatTab(Gtk.Box):
         if manual:
             self.auto_run_times = 0
             self.tool_call_count = 0
+        elif self._response_in_progress:
+            self._send_next_pending(steering_only=True)
         # Keep the boundary across automatic tool continuations, including
         # turns whose streaming widget has already been finalized.
         if manual or self._response_start_index is None:
@@ -1266,7 +1450,8 @@ class ChatTab(Gtk.Box):
         audio_cancel_event = self._audio_cancel_event
         self.stream_number_variable += 1
         stream_number_variable = self.stream_number_variable
-        self.status = False
+        self.chat_history.set_generating(True)
+        self._update_send_controls()
         self.streamed_message = ""
         self.curr_label = ""
         self.streaming_label = None
@@ -1280,28 +1465,34 @@ class ChatTab(Gtk.Box):
         def run_generation():
             # Model selection can scan the history for attachments; keep it
             # off GTK's thread along with the actual provider request.
-            model = self.controller.get_model_for_chat(chat)
-            if audio_cancel_event.is_set() or self.stream_number_variable != stream_number_variable:
-                return
-            GLib.idle_add(
-                self._generation_started,
-                stream_number_variable,
-                manual,
-                model,
-            )
-            for status, data in self.controller.generate_response(
-                stream_number_variable, 
-                self.update_message,
-                chat_id=origin_chat_id,
-                is_current=lambda: (
+            def is_current():
+                return (
                     not audio_cancel_event.is_set()
                     and self._chat_id == origin_chat_id
                     and self.stream_number_variable == stream_number_variable
-                ),
-            ):
-                if self.stream_number_variable != stream_number_variable:
-                    break
-                GLib.idle_add(self._handle_generation_event, status, data, stream_number_variable)
+                )
+
+            terminal_event = ("done", None)
+            try:
+                model = self.controller.get_model_for_chat(chat)
+                if not is_current():
+                    return
+                GLib.idle_add(self._generation_started, stream_number_variable, manual, model)
+                for status, data in self.controller.generate_response(
+                    stream_number_variable, self.update_message,
+                    chat_id=origin_chat_id, is_current=is_current,
+                ):
+                    if not is_current():
+                        break
+                    if status in ("finished", "error", "done"):
+                        terminal_event = (status, data)
+                    else:
+                        GLib.idle_add(self._handle_generation_event, status, data, stream_number_variable)
+            except Exception as exc:
+                terminal_event = ("error", str(exc))
+            # The provider's workspace context has unwound before the next request starts.
+            if is_current():
+                GLib.idle_add(self._handle_generation_event, *terminal_event, stream_number_variable)
         
         threading.Thread(target=run_generation).start()
         return GLib.SOURCE_REMOVE
@@ -1312,7 +1503,6 @@ class ChatTab(Gtk.Box):
         self.active_generation_model = model
         self.emit("generation-started")
         self.update_tab_indicator()
-        self.chat_history.set_generating(True)
         self.chat_history.begin_streaming_scroll(manual)
         if model.stream_enabled():
             self.create_streaming_message_label(stream_number_variable)
@@ -1323,20 +1513,21 @@ class ChatTab(Gtk.Box):
         if self.stream_number_variable != stream_number_variable:
             return GLib.SOURCE_REMOVE
         if status == 'reload_chat':
+            self.current_streaming_message = None
+            self.streaming_box = None
             self.show_chat()
+            if self.active_generation_model.stream_enabled():
+                self.create_streaming_message_label(stream_number_variable)
         elif status == 'reload_message':
             self.reload_message(data)
-        elif status == 'error':
-            self.chat_history.show_message(data, False, -1, False, False, True)
-            self.remove_send_button_spinner()
-            self.status = True
-            self._response_in_progress = False
-            self.update_tab_indicator()
-            self.emit("generation-stopped")
-        elif status == 'done':
-            self._response_in_progress = False
-            self.remove_send_button_spinner()
+        elif status in ('error', 'done'):
+            self._cancel_stream_reveal()
+            self.current_streaming_message = None
+            self.streaming_box = None
             self.show_chat()
+            if status == 'error':
+                self.chat_history.show_message(data, newelle_error=True)
+            self._reset_generation_state()
         elif status == 'finished':
             self._handle_generation_finished(data, stream_number_variable)
         return GLib.SOURCE_REMOVE
@@ -1366,145 +1557,106 @@ class ChatTab(Gtk.Box):
             # Automatic compaction happens while trimming the request.
             self.chat_history.refresh_compaction_marker()
         
-        waiting_for_tools = False
-        if hasattr(self, "current_streaming_message") and self.current_streaming_message:
-            # Streaming was active, finalize the existing widget
-            streaming_widget = self.current_streaming_message
-            assistant_entry = {
-                "User": "Assistant", 
-                "Message": message_label, 
-                "UUID": streaming_widget.chunk_uuid,
+        message_widget = self.current_streaming_message
+        assistant_index = len(self.chat)
+        if message_widget is None:
+            message_widget = self.chat_history.show_message(
+                message_label, return_widget=True, prompt="\n".join(prompts),
+            )
+            if message_widget is not None:
+                self.chat_history.add_message(
+                    "Assistant", message_widget, id_message=assistant_index, editable=True,
+                    profile_name=self.controller.newelle_settings.current_profile,
+                )
+        else:
+            self.chat.append({
+                "User": "Assistant",
+                "Message": message_label,
+                "UUID": message_widget.chunk_uuid,
                 "Profile": self.controller.chats.get(self._chat_id, {}).get(
                     "profile", self.controller.newelle_settings.current_profile
-                )
-            }
-            if response_metadata is not None:
-                assistant_entry["OpenAIResponse"] = response_metadata
-            if response_usage is not None:
-                assistant_entry["LLMUsage"] = dict(response_usage)
-            self.chat.append(assistant_entry)
-            self.chat_history.update_history(self.chat)
-            self.add_prompt("\n".join(prompts))
-            
-            final_message = message_label
-            
-            def finalize_stream():
-                nonlocal waiting_for_tools
-                streaming_widget.update_content(final_message, is_streaming=False)
-                streaming_widget.finish_streaming()
-                waiting_for_tools = streaming_widget.state.get(
-                    "has_terminal_command", False
-                )
-                remove_streaming_row = self.chat_history.finish_compact_message(
-                    streaming_widget
-                )
-                if remove_streaming_row:
-                    self.chat_history.remove_message_widget(streaming_widget)
-                # Let the final Message render settle, then reconcile this
-                # continuation row without rescanning the entire history.
-                GLib.idle_add(
-                    self.chat_history.prune_compact_message_row,
-                    streaming_widget,
-                )
-                self.chat_history._finalize_message_display(
-                    generation_finished=not waiting_for_tools
-                )
-                self.save_chat()
-                
-                # Handle deferred tool execution and continuation
-                if waiting_for_tools:
-                    threads = streaming_widget.state.get("running_threads", [])
-                    parallel = self.controller.newelle_settings.parallel_tool_execution
-                    current_stream = self.stream_number_variable
+                ),
+                "Prompt": "\n".join(prompts),
+            })
+            message_widget.update_content(message_label, is_streaming=False)
 
-                    def continue_generation():
-                        if self.stream_number_variable != current_stream:
-                            return GLib.SOURCE_REMOVE
-                        if threads and streaming_widget.state.get("should_continue", False):
-                            self.send_message(manual=False, expected_generation=current_stream)
-                        else:
-                            self._finish_generation_chain(message_label, current_stream)
-                        return GLib.SOURCE_REMOVE
-                    
-                    def wait_and_continue():
-                        if not parallel:
-                            for t in threads:
-                                if self.stream_number_variable != current_stream:
-                                    return
-                                t.start()
-                                t.join()
-                        else:
-                            for t in threads:
-                                t.join()
-                        
-                        # Tool history commits and this continuation decision
-                        # share the GTK queue, so Stop cannot race a restart.
-                        GLib.idle_add(continue_generation)
-                    
-                    threading.Thread(target=wait_and_continue).start()
-                else:
-                    GLib.idle_add(self.chat_history.scrolled_chat)
-            
-            finalize_stream()
-            self.current_streaming_message = None
-        else:
-            # No streaming, standard display
-            assistant_index = len(self.chat)
-            self.chat_history.show_message(
-                message_label,
-                False,
-                -1,
-                False,
-                False,
-                False,
-                "\n".join(prompts),
-            )
-            if (
-                assistant_index < len(self.chat)
-                and self.chat[assistant_index].get("User") == "Assistant"
-                and self.chat[assistant_index].get("Message") == message_label
-            ):
-                assistant_entry = self.chat[assistant_index]
-                if response_metadata is not None:
-                    assistant_entry["OpenAIResponse"] = response_metadata
-                if response_usage is not None:
-                    assistant_entry["LLMUsage"] = dict(response_usage)
-                self._apply_prompt_metadata(assistant_entry)
-                self.save_chat()
-        
-        if waiting_for_tools:
+        assistant_entry = self.chat[assistant_index]
+        if response_metadata is not None:
+            assistant_entry["OpenAIResponse"] = response_metadata
+        if response_usage is not None:
+            assistant_entry["LLMUsage"] = dict(response_usage)
+        self._apply_prompt_metadata(assistant_entry)
+        self.current_streaming_message = None
+        self.streaming_box = None
+
+        if message_widget is not None:
+            message_widget.finish_streaming()
+            if self.chat_history.finish_compact_message(message_widget):
+                self.chat_history.remove_message_widget(message_widget)
+            GLib.idle_add(self.chat_history.prune_compact_message_row, message_widget)
+
+        self.save_chat()
+        threads = message_widget.state["running_threads"] if message_widget is not None else []
+        if not threads:
+            self._finish_generation_chain(message_label, stream_number_variable)
             return
 
-        self._finish_generation_chain(message_label, stream_number_variable)
+        parallel = self.controller.newelle_settings.parallel_tool_execution
+
+        def continue_generation():
+            if self.stream_number_variable != stream_number_variable:
+                return GLib.SOURCE_REMOVE
+            if message_widget.state["should_continue"]:
+                self.send_message(manual=False, expected_generation=stream_number_variable)
+            else:
+                self._finish_generation_chain(message_label, stream_number_variable)
+            return GLib.SOURCE_REMOVE
+
+        def wait_and_continue():
+            for thread in threads:
+                if self.stream_number_variable != stream_number_variable:
+                    return
+                if not parallel and thread.ident is None:
+                    thread.start()
+                thread.join()
+            # Tool history commits and continuation decisions share the GTK queue.
+            GLib.idle_add(continue_generation)
+
+        threading.Thread(target=wait_and_continue).start()
 
     def _finish_generation_chain(self, message_label, stream_number_variable):
         """Mark the full response chain done after all tool continuations."""
         if self.stream_number_variable != stream_number_variable:
             return GLib.SOURCE_REMOVE
 
-        self._response_in_progress = False
-        self.chat_history.set_generating(False)
-        self.remove_send_button_spinner()
-        self.update_tab_indicator()
-        self.emit("generation-stopped")
+        self._reset_generation_state()
 
-        # Generate suggestions
-        self.generate_suggestions()
-
-        # Generate chat name
-        if self.controller.newelle_settings.auto_generate_name and len(self.chat) == 2:
+        # Tool calls can add multiple assistant, console, and context messages
+        # to the first response. Count actual user turns instead of entries.
+        if self.controller.newelle_settings.auto_generate_name and sum(
+            message.get("User") == "User" and not message.get("ToolContext")
+            for message in self.chat
+        ) == 1:
             GLib.idle_add(self.generate_chat_name)
         
         # TTS
         tts_thread = None
         if self.tts_enabled:
-            message = clean_message_tts(message_label)
+            message = clean_message_tts(
+                message_label,
+                quoted_only=self.controller.newelle_settings.tts_quoted_only,
+            )
             if message.strip() and not message.isspace():
                 tts_thread = threading.Thread(
                     target=self.tts.play, args=(message,)
                 )
                 tts_thread.start()
         
+        if self._send_next_pending():
+            return GLib.SOURCE_REMOVE
+
+        self.generate_suggestions()
+
         # Wait for TTS to finish before restarting recording
         def restart_recording():
             if not self.window.automatic_stt_status:
@@ -1517,6 +1669,15 @@ class ChatTab(Gtk.Box):
             threading.Thread(target=restart_recording).start()
 
         return GLib.SOURCE_REMOVE
+
+    def _reset_generation_state(self):
+        self._response_in_progress = False
+        self._response_start_index = None
+        self._applied_steering.clear()
+        self.chat_history.set_generating(False)
+        self.remove_send_button_spinner()
+        self.update_tab_indicator()
+        self.emit("generation-stopped")
             
     def create_streaming_message_label(self, stream_number_variable):
         """Create a label for message streaming."""
@@ -1748,6 +1909,8 @@ class ChatTab(Gtk.Box):
         
     def clear_chat(self):
         """Clear the current chat."""
+        if not self.status or self._response_in_progress:
+            return
         self.notification_block.add_toast(
             Adw.Toast(title=_("Chat is cleared"), timeout=2)
         )
@@ -1756,6 +1919,9 @@ class ChatTab(Gtk.Box):
         self.active_tool_results = []
         self._response_start_index = None
         self._response_in_progress = False
+        self._applied_steering.clear()
+        self.controller.workspace_storage.pending_messages.pop(self._chat_id, None)
+        self._update_send_controls()
         self.controller.cleanup_owner_sessions(self._chat_id)
         self.chat.clear()
         self.show_chat()
@@ -1790,19 +1956,17 @@ class ChatTab(Gtk.Box):
             # Remove the entire interrupted response, even if an earlier
             # iteration was committed before its tools or continuation ran.
             self.chat_history.remove_chat_suffix(min(response_start, len(self.chat)))
+            if self._applied_steering:
+                messages = self.controller.workspace_storage.pending_messages.setdefault(self._chat_id, [])
+                messages[:0] = self._applied_steering
             threading.Thread(target=self.save_chat).start()
-        self._response_start_index = None
-        self._response_in_progress = False
         self.current_streaming_message = None
         self.streaming_box = None
 
-        GLib.idle_add(self.chat_history.update_button_text)
-        GLib.idle_add(self.update_tab_indicator)
         toast = Adw.Toast(title=_("The message generation was stopped"), timeout=2)
         toast.connect("dismissed", self._on_stop_toast_dismissed)
         self.notification_block.add_toast(toast)
-        self.remove_send_button_spinner()
-        self.emit("generation-stopped")
+        self._reset_generation_state()
 
     def _on_stop_toast_dismissed(self, _toast):
         """Keep toast focus restoration from scrolling to an old chat row."""
@@ -1818,13 +1982,14 @@ class ChatTab(Gtk.Box):
         
     def continue_message(self):
         """Continue the last message."""
-        if self.chat_history.chat[-1]["User"] not in ["Assistant", "Console", "User"]:
+        if not self.status or self._response_in_progress:
+            return
+        if not self.chat or self.chat[-1]["User"] not in ["Assistant", "Console", "User"]:
             self.notification_block.add_toast(
                 Adw.Toast(title=_("You can no longer continue the message."), timeout=2)
             )
         else:
             self.send_message()
-            self.send_button_start_spinner()
             
     def regenerate_message(self):
         """Regenerate the last message."""
@@ -1862,7 +2027,7 @@ class ChatTab(Gtk.Box):
         self.streaming_box = None
         self.last_error_box = None
         self.stream_tools = False
-        self.send_button_start_spinner()
+        self._update_send_controls()
         generation = self.stream_number_variable
         chat_id = self._chat_id
 
@@ -1885,7 +2050,7 @@ class ChatTab(Gtk.Box):
         def generate():
             name = self.window.secondary_model.generate_chat_name(
                 self.controller.newelle_settings.prompts["generate_name_prompt"],
-                self.controller.get_history(chat=self.chat)
+                self.controller.get_history(chat=self.chat, include_last_message=True)
             )
             if name:
                 name = name.strip().strip('"').strip("'")
@@ -1944,6 +2109,7 @@ class ChatTab(Gtk.Box):
         self.attachment_mode.set_selected(0)
         self.screen_record_button.set_visible(self.vision_model.supports_video_vision())
         self.remember_draft()
+        self._update_steer_sensitivity()
         
     def add_file(self, file_path=None, file_data=None):
         """Add a file attachment and update the UI, also generates thumbnail for videos
@@ -2018,6 +2184,7 @@ class ChatTab(Gtk.Box):
         self.attach_button.disconnect_by_func(self.attach_file)
         self.screen_record_button.set_visible(False)
         self.remember_draft()
+        self._update_steer_sensitivity()
         
     # Recording
     def start_recording(self, button):
@@ -2052,19 +2219,11 @@ class ChatTab(Gtk.Box):
     # Bot response (for suggestions)
     def send_bot_response(self, button):
         """Send a bot response suggestion."""
-        self.ensure_history_populated()
-        self.send_button_start_spinner()
+        if not self.status or self._response_in_progress:
+            return
         text = button.get_child().get_label()
-        self.chat.append({"User": "User", "Message": text})
-        self.chat_history.show_message(text, id_message=len(self.chat) - 1, is_user=True)
-
-        # Store current profile in chat data
-        if self._chat_id in self.controller.chats:
-            self.controller.chats[self._chat_id]["profile"] = self.window.current_profile
-
-        self._name_chat_from_first_message()
-
-        threading.Thread(target=self.send_message).start()
+        self._append_user_message(text)
+        self.send_message()
 
     # Suggestions
     def _on_map(self, widget):

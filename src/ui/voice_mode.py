@@ -596,7 +596,7 @@ class VoiceModeWindow(Gtk.Window):
     START_TIMEOUT_SECONDS = 15.0
     ENDPOINT_DEBOUNCE_SECONDS = 0.5
 
-    def __init__(self, application, main_window, on_closed=None, **kwargs):
+    def __init__(self, application, main_window, on_closed=None, *, initial_steer=None, **kwargs):
         # Choose the display before registering with Gtk.Application. Its
         # native backend is tied to the default display, not each window's.
         super().__init__(**kwargs)
@@ -608,6 +608,7 @@ class VoiceModeWindow(Gtk.Window):
         self._workspace_cleanup_source = None
         self.settings = self.controller.settings
         self.on_closed = on_closed
+        self._initial_steer = initial_steer
         self.session = VoiceSessionController()
         self.chat_id = None
         self._chat_mode = self.settings.get_string("voice-mode-chat")
@@ -1592,6 +1593,14 @@ class VoiceModeWindow(Gtk.Window):
                 )
             if isinstance(self.controller.ui_controller, VoiceWorkspaceUIController):
                 self.controller.ui_controller.chat_id = self.chat_id
+
+            # The wakeword action applies to the request that opened the pill.
+            steer = self._initial_steer
+            self._initial_steer = None
+            if self._submit_to_running_chat(text.strip(), steer=steer):
+                GLib.idle_add(self._finish_voice_interaction)
+                return
+
             configured_mode = self.settings.get_string("voice-mode-mode")
             mode_name = None if configured_mode in ("", "current") else configured_mode
             if (
@@ -1615,7 +1624,10 @@ class VoiceModeWindow(Gtk.Window):
 
             def on_intermediate_message(text):
                 self._play_response(
-                    clean_message_tts(str(text or "")).strip(),
+                    clean_message_tts(
+                        str(text or ""),
+                        quoted_only=self.controller.newelle_settings.tts_quoted_only,
+                    ).strip(),
                     final=False,
                 )
 
@@ -1639,7 +1651,10 @@ class VoiceModeWindow(Gtk.Window):
 
             if self._cancel_event.is_set():
                 return
-            spoken_response = clean_message_tts(response or "")
+            spoken_response = clean_message_tts(
+                response or "",
+                quoted_only=self.controller.newelle_settings.tts_quoted_only,
+            )
             if not spoken_response:
                 GLib.idle_add(self._complete_without_tts)
                 return
@@ -1657,6 +1672,34 @@ class VoiceModeWindow(Gtk.Window):
                     os.remove(audio_path)
                 except OSError:
                     pass
+
+    def _submit_to_running_chat(self, text, *, steer=None):
+        """Route an overlapping Voice Mode utterance through the chat queue."""
+        result = {"submitted": False}
+        completed = threading.Event()
+
+        def submit():
+            try:
+                if self._cancel_event.is_set() or self._closing or self._destroying:
+                    return
+                window = self._application.workspace_window(
+                    self.controller.active_workspace_id
+                )
+                if window is None and self.controller is self.main_window.controller:
+                    window = self.main_window
+                if window is not None:
+                    result["submitted"] = window.submit_voice_message(
+                        self.chat_id, text, steer=steer, only_if_generating=True,
+                    )
+            finally:
+                completed.set()
+            return GLib.SOURCE_REMOVE
+
+        GLib.idle_add(submit)
+        while not completed.wait(0.05):
+            if self._cancel_event.is_set() or self._closing or self._destroying:
+                return False
+        return result["submitted"]
 
     def _play_response(self, response: str, final: bool):
         if not response or self._cancel_event.is_set() or self._closing or self._destroying:

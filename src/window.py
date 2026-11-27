@@ -676,6 +676,16 @@ class MainWindow(WorkspaceWindow, Adw.ApplicationWindow):
             if isinstance(child, ChatTab) and child.chat_id == chat_id:
                 return page
         return None
+
+    def submit_voice_message(self, chat_id: int, text: str, *, steer=None, only_if_generating=False) -> bool:
+        """Send voice text to an open chat, optionally only while it is replying."""
+        page = self.get_tab_for_chat(chat_id)
+        tab = page.get_child() if page is not None else None
+        if tab is None or (only_if_generating and not tab._response_in_progress):
+            return False
+        return bool(tab.submit_voice_message(
+            text, steer=steer, allow_commands=not only_if_generating,
+        ))
     
     def get_active_chat_tab(self) -> ChatTab | None:
         """Get the currently active ChatTab widget.
@@ -1377,7 +1387,7 @@ class MainWindow(WorkspaceWindow, Adw.ApplicationWindow):
     def mute_tts(self, button: Gtk.Button):
         """Mute the TTS"""
         self.focus_input()
-        if self.tts_enabled:
+        if self.tts is not None:
             self.tts.stop()
         return False
 
@@ -1447,7 +1457,10 @@ class MainWindow(WorkspaceWindow, Adw.ApplicationWindow):
                 on_transcribing=self.on_wakeword_transcribing,
                 on_transcribing_done=self.on_wakeword_transcribing_done,
                 secondary_stt_handler=self.controller.handlers.secondary_stt,
-                wakeword_handler=self.controller.handlers.wakeword_handler
+                wakeword_handler=self.controller.handlers.wakeword_handler,
+                tts_interrupt_callback=self.on_wakeword_interrupt_tts if self.controller.newelle_settings.wakeword_stop_tts else None,
+                is_tts_playing=self._is_tts_playing,
+                stop_words=self.controller.newelle_settings.wakeword_stop_words,
             )
 
             # start() only creates the detector's worker and returns
@@ -1513,6 +1526,9 @@ class MainWindow(WorkspaceWindow, Adw.ApplicationWindow):
             self.start_wakeword_detection()
         return GLib.SOURCE_REMOVE
 
+    def _wakeword_steers(self):
+        return self.controller.settings.get_string("wakeword-message-action") == "steer"
+
     def on_wakeword_voice_mode(self):
         """Open the voice pill once and let it take over wakeword capture."""
         if not self.wakeword_listening or not self.controller.newelle_settings.wakeword_voice_mode:
@@ -1521,7 +1537,18 @@ class MainWindow(WorkspaceWindow, Adw.ApplicationWindow):
         # Opening voice mode normally toggles it; repeated detections must not
         # close a pill that has already opened or is releasing its microphone.
         if getattr(app, "voice_win", None) is None:
-            app.show_voice_mode()
+            app.show_voice_mode(main_window=self, initial_steer=self._wakeword_steers())
+        return GLib.SOURCE_REMOVE
+
+    def _is_tts_playing(self):
+        """Called from the wakeword detector thread."""
+        tts = self.tts
+        return tts is not None and tts.play_process is not None
+
+    def on_wakeword_interrupt_tts(self):
+        """Stop the TTS playback after the wakeword or a stop word was heard."""
+        if self.tts is not None:
+            self.tts.stop()
         return GLib.SOURCE_REMOVE
 
     def on_wakeword_audio(self, audio_path):
@@ -1537,8 +1564,7 @@ class MainWindow(WorkspaceWindow, Adw.ApplicationWindow):
         if target is not None:
             tab, chat_id = target
             if tab.chat_id == chat_id and chat_id in self.controller.chats:
-                tab.input_panel.set_text(message)
-                tab.on_entry_activate(tab.input_panel)
+                tab.submit_voice_message(message, steer=self._wakeword_steers())
         return False
 
     def on_wakeword_detected(self, command_text):
@@ -1552,9 +1578,7 @@ class MainWindow(WorkspaceWindow, Adw.ApplicationWindow):
             return
 
         if command_text and len(command_text.strip()) > 0:
-            # Set text and send
-            tab.input_panel.set_text(command_text)
-            tab.on_entry_activate(tab.input_panel)
+            tab.submit_voice_message(command_text, steer=self._wakeword_steers())
         else:
             # Just wakeword, no command
             self.notification_block.add_toast(

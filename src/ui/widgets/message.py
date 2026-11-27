@@ -1516,7 +1516,7 @@ class Message(Gtk.Box):
                         if state.get("cancelled", False) or result.is_cancelled:
                             return GLib.SOURCE_REMOVE
                         if not restore and (code[1] is not None or context_messages):
-                            state["should_continue"] = True
+                            self.state["should_continue"] = True
                             console_output = code[1] or "Tool returned additional context."
                             formatted = f"[Tool: {tool.name}, ID: {tool_uuid}]\n{console_output}"
                             self.controller.append_chat_message(
@@ -1708,7 +1708,7 @@ class Message(Gtk.Box):
                   response = extension.get_answer(value, lang)
                   if response is None: code = (False, _("Stopped"))
                   else:
-                       state["should_continue"] = True
+                       self.state["should_continue"] = True
                        code = (True, response)
              else:
                   code = (True, reply_from_console)

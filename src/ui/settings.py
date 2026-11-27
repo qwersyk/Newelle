@@ -243,6 +243,12 @@ class Settings(Adw.Window):
         for tts_key in AVAILABLE_TTS:
            row = self.build_row(AVAILABLE_TTS, tts_key, selected, group) 
            tts_program.add_row(row)
+        tts_quoted_only = Adw.SwitchRow(
+            title=_("Speak Only Quoted Text"),
+            subtitle=_("Read aloud only the phrases between quotes, for example \"Hello!\""),
+        )
+        self.settings.bind("tts-quoted-only", tts_quoted_only, "active", Gio.SettingsBindFlags.DEFAULT)
+        self.Voicegroup.add(tts_quoted_only)
         self.build_audio_input_settings()
         # Build the Speech to Text settings
         stt_engine = Adw.ExpanderRow(title=_('Speech To Text Engine'), subtitle=_("Choose which speech recognition engine you want"))
@@ -275,6 +281,20 @@ class Settings(Adw.Window):
         self.settings.bind("wakeword-voice-mode", voice_mode_row, "active",
                            Gio.SettingsBindFlags.DEFAULT)
         self.wakeword_row.add_row(voice_mode_row)
+
+        self.wakeword_row.add_row(self._voice_message_action_row(
+            "wakeword-message-action",
+            _("Wakeword messages during a reply"),
+            _("Choose how to send wakeword messages while the chat is replying"),
+        ))
+
+        stop_tts_row = Adw.SwitchRow(
+            title=_("Interrupt TTS"),
+            subtitle=_("Stop the voice reply when the wakeword is said while it is speaking"),
+        )
+        self.settings.bind("wakeword-stop-tts", stop_tts_row, "active",
+                           Gio.SettingsBindFlags.DEFAULT)
+        self.wakeword_row.add_row(stop_tts_row)
 
         # Wakeword mode toggle group
         mode_row = Adw.ActionRow(title=_('Detection Method'), subtitle=_("Choose wakeword detection method"))
@@ -315,6 +335,15 @@ class Settings(Adw.Window):
                            Gio.SettingsBindFlags.DEFAULT)
         self.wakeword_row.add_row(wakeword_entry)
         self.secondary_stt_rows.append(wakeword_entry)
+
+        stop_words_entry = Adw.EntryRow(title=_('TTS Stop Words'))
+        stop_words_entry.set_tooltip_text(_("Words that stop the voice reply while it is speaking, even without the wakeword (multiple separated by comma)"))
+        self.settings.bind("wakeword-stop-words", stop_words_entry, 'text',
+                           Gio.SettingsBindFlags.DEFAULT)
+        stop_tts_row.bind_property("active", stop_words_entry, "sensitive",
+                                   GObject.BindingFlags.SYNC_CREATE)
+        self.wakeword_row.add_row(stop_words_entry)
+        self.secondary_stt_rows.append(stop_words_entry)
 
         # Wakeword engine mode rows (visible when openwakeword mode is selected)
         self.wakeword_engine_rows = []
@@ -3565,6 +3594,16 @@ class Settings(Adw.Window):
             parent_expander.add_row(folder_row)
             self.custom_folder_rows.append(folder_row)
 
+    def _voice_message_action_row(self, key, title, subtitle):
+        row = Adw.ComboRow(title=title, subtitle=subtitle)
+        actions = (
+            (_("Queue until the reply ends"), "queue"),
+            (_("Steer the next model request"), "steer"),
+        )
+        helper = ComboRowHelper(row, actions, self.settings.get_string(key))
+        helper.connect("changed", lambda _helper, value: self.settings.set_string(key, value))
+        return row
+
     def _build_voice_mode_settings(self):
         group = Adw.PreferencesGroup(
             title=_("Voice Mode"),
@@ -3620,6 +3659,12 @@ class Settings(Adw.Window):
             "changed", lambda _helper, value: self.settings.set_string("voice-mode-chat", value)
         )
         group.add(chat_row)
+
+        group.add(self._voice_message_action_row(
+            "voice-message-action",
+            _("Voice messages during a reply"),
+            _("Choose how to send Voice Mode messages while the chat is replying"),
+        ))
 
         position_row = Adw.ComboRow(
             title=_("Pill position"),

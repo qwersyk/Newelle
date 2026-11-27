@@ -1,13 +1,14 @@
 from gi.repository import Gtk, GObject, Pango, Gio, GLib, Adw, Gdk
 import threading
 import time
+import traceback
 import uuid
 import os
 import subprocess
 import gettext
 from ...utility.system import open_website
 from ..widgets import TipsCarousel, SkillWidget, CompactionMarkerWidget
-from ...utility.strings import markwon_to_pango
+from ...utility.strings import clean_message_tts, markwon_to_pango
 from ...ui.widgets import Message, MultilineEntry, ToolCallsGroupWidget
 from ...utility.message_chunk import get_message_chunks
 
@@ -23,6 +24,15 @@ _SCROLL_BOTTOM_TOLERANCE_PX = 8.0
 # are handled separately by _on_user_scroll, so this only filters per-event
 # drifts rather than real scrolling.
 _USER_SCROLL_PAUSE_PX = 24.0
+
+
+class SpeechRequest:
+    """A message being read aloud from its action toolbar"""
+
+    def __init__(self, box, tts):
+        self.box = box
+        self.tts = tts
+        self.thread = None
 
 
 class ChatHistory(Gtk.Box):
@@ -67,6 +77,7 @@ class ChatHistory(Gtk.Box):
         self.messages_box = []
         self.edit_entries = {}
         self.last_error_box = None
+        self._speech_request = None
         self._compact_tool_groups = {}
         self._tool_call_cache = {}
         self._tool_chain_starts = {}
@@ -1298,6 +1309,17 @@ class ChatHistory(Gtk.Box):
         copy_button.connect("clicked", lambda btn: self.copy_message(btn, box.message_index))
         actions.append(edit_button)
         actions.append(copy_button)
+        if box.message_user not in ("File", "Folder"):
+            # Those messages only contain a path, there is no text to read
+            speak_button = Gtk.Button(
+                icon_name="audio-speakers-symbolic",
+                css_classes=["flat", "accent"],
+                valign=Gtk.Align.CENTER,
+            )
+            speak_button.set_tooltip_text(_("Read aloud"))
+            speak_button.connect("clicked", lambda btn: self.read_message_aloud(box))
+            box.speak_button = speak_button
+            actions.append(speak_button)
         if has_prompt:
             info_button = Gtk.Button(
                 icon_name="question-round-outline-symbolic",
@@ -1423,6 +1445,7 @@ class ChatHistory(Gtk.Box):
         box.message_user = user
         box.message_profile = profile
         box.message_controls = []
+        box.speech_request = None
 
     def _message_bubbles(self):
         """Find message wrappers in bookkeeping and the live ListBox."""
@@ -1572,6 +1595,8 @@ class ChatHistory(Gtk.Box):
         """Remove one record and its Console results without rebuilding the chat."""
         if not self.status:
             return
+        if box.speech_request is not None:
+            box.speech_request.tts.stop()
         idx = box.message_index
         if idx is None or not 0 <= idx < len(self.chat):
             return
@@ -1722,6 +1747,97 @@ class ChatHistory(Gtk.Box):
         )
         button.set_icon_name("object-select-symbolic")
         GLib.timeout_add(2000, lambda: button.set_icon_name("edit-copy-symbolic"))
+
+    def read_message_aloud(self, box):
+        """Read a message aloud with the TTS program, pressing the button again stops it
+
+        Args:
+            box: box of the message
+        """
+        speech = box.speech_request
+        if speech is not None:
+            # Drops the request even if its audio has not been generated yet
+            speech.tts.stop()
+            box.speak_button.set_sensitive(False)
+            return
+
+        index = box.message_index
+        if index is None or not 0 <= index < len(self.chat):
+            return
+        message = clean_message_tts(
+            self.chat[index]["Message"],
+            quoted_only=self.controller.newelle_settings.tts_quoted_only,
+        )
+        if not message.strip():
+            self.window.notification_block.add_toast(
+                Adw.Toast(title=_("This message has nothing to read aloud"), timeout=2)
+            )
+            return
+
+        # Only one message of the chat is read at a time
+        if self._speech_request is not None:
+            self._speech_request.tts.stop()
+            self._end_speech(self._speech_request)
+
+        tts = self.controller.handlers.tts
+        speech = SpeechRequest(box, tts)
+
+        def on_start():
+            # The signal is emitted by the thread running the playback
+            if threading.current_thread() is speech.thread:
+                GLib.idle_add(self._set_speech_playing, speech)
+
+        token = tts.connect("start", on_start)
+        box.speech_request = speech
+        self._speech_request = speech
+        button = box.speak_button
+        button.set_tooltip_text(_("Stop"))
+        if tts.streaming_enabled():
+            button.set_icon_name("media-playback-stop-symbolic")
+        else:
+            # The audio is generated completely before the playback starts
+            button.set_child(Gtk.Spinner(spinning=True))
+
+        def play():
+            error = None
+            try:
+                tts.play(message)
+            except Exception as e:
+                traceback.print_exc()
+                error = e
+            finally:
+                tts.disconnect(token)
+            GLib.idle_add(self._on_speech_finished, speech, error)
+
+        speech.thread = threading.Thread(target=play, daemon=True)
+        speech.thread.start()
+
+    def _set_speech_playing(self, speech):
+        box = speech.box
+        if box.speech_request is speech:
+            box.speak_button.set_child(None)
+            box.speak_button.set_icon_name("media-playback-stop-symbolic")
+        return GLib.SOURCE_REMOVE
+
+    def _end_speech(self, speech):
+        """Restore the read aloud button of a request that ended or was replaced"""
+        box = speech.box
+        if box.speech_request is speech:
+            box.speech_request = None
+            box.speak_button.set_child(None)
+            box.speak_button.set_icon_name("audio-speakers-symbolic")
+            box.speak_button.set_tooltip_text(_("Read aloud"))
+            box.speak_button.set_sensitive(True)
+        if self._speech_request is speech:
+            self._speech_request = None
+
+    def _on_speech_finished(self, speech, error):
+        if error is not None and speech.box.speech_request is speech:
+            self.window.notification_block.add_toast(
+                Adw.Toast(title=_("Could not read the message aloud"), timeout=2)
+            )
+        self._end_speech(speech)
+        return GLib.SOURCE_REMOVE
 
     def edit_message(
         self, gesture, data, x, y, box: Gtk.Box, apply_edit_stack: Gtk.Stack
@@ -2208,6 +2324,8 @@ class ChatHistory(Gtk.Box):
 
     def populate_suggestions(self, suggestions):
         """Update the UI with the generated suggestions"""
+        if not self.status:
+            return
         i = 0
         offers_count = self.controller.newelle_settings.offers
         # Convert to tuple to remove duplicates

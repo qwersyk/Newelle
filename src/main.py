@@ -747,7 +747,7 @@ class MyApp(Adw.Application):
         self._voice_start_pending = False
         self.show_voice_mode()
 
-    def show_voice_mode(self, *_args):
+    def show_voice_mode(self, *_args, main_window=None, initial_steer=None):
         """Open or cancel the one-shot desktop Voice Mode surface."""
         existing = getattr(self, "voice_win", None)
         if existing is not None:
@@ -756,8 +756,9 @@ class MyApp(Adw.Application):
                 return
         self.voice_win = VoiceModeWindow(
             application=self,
-            main_window=self.win,
+            main_window=self.win if main_window is None else main_window,
             on_closed=self._voice_mode_closed,
+            initial_steer=initial_steer,
         )
         self.voice_win.present()
         GLib.idle_add(self.voice_win.start)

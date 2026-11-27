@@ -20,6 +20,8 @@ class TTSHandler(Handler):
         self.voices = tuple()
         self._signal_callbacks = {"start": [], "stop": []}
         self.play_process = None
+        self._play_requests = []
+        self._play_requests_lock = threading.Lock()
 
     def get_extra_settings(self) -> list:
         """Get extra settings for the TTS"""
@@ -58,7 +60,8 @@ class TTSHandler(Handler):
         file_name = self.get_tempname("wav")
         path = os.path.join(self.path, file_name)
         self.save_audio(message, path)
-        self.playsound(path)
+        if not self._play_cancelled():
+            self.playsound(path)
         try:
             os.remove(path)
         except Exception as e:
@@ -101,6 +104,9 @@ class TTSHandler(Handler):
         import mimetypes
         self.stop()
         self._play_lock.acquire()
+        if self._play_cancelled():
+            self._play_lock.release()
+            return
         self._emit("start")
         try:
             p = Popen(["ffplay", "-nodisp", "-autoexit", "-hide_banner", path])
@@ -115,8 +121,28 @@ class TTSHandler(Handler):
         self._play_lock.release()
      
     def stop(self):
+        """Stop the playback
+
+        The play requests that did not start playing yet are dropped as well,
+        so an audio that is still being generated is not played afterwards.
+        """
+        with self._play_requests_lock:
+            requests = list(self._play_requests)
+        current = threading.current_thread()
+        if all(thread is not current for thread, _cancel in requests):
+            for _thread, cancel in requests:
+                cancel.set()
         if self.play_process is not None:
             self.play_process.terminate()
+
+    def _play_cancelled(self) -> bool:
+        """Check if stop() was called on the play() request of the current thread"""
+        current = threading.current_thread()
+        with self._play_requests_lock:
+            for thread, cancel in self._play_requests:
+                if thread is current:
+                    return cancel.is_set()
+        return False
 
     def get_current_voice(self):
         """Get the current selected voice"""
@@ -134,10 +160,19 @@ class TTSHandler(Handler):
 
     def play(self, text):
         """Automatically plays with either stream or regular TTS"""
-        if self.streaming_enabled():
-            self.play_audio_stream(text)
-        else:
-            self.play_audio(text)
+        # A request is owned by the thread running it: stop() cancels the other
+        # requests, while the one replacing a previous playback is kept.
+        request = (threading.current_thread(), threading.Event())
+        with self._play_requests_lock:
+            self._play_requests.append(request)
+        try:
+            if self.streaming_enabled():
+                self.play_audio_stream(text)
+            else:
+                self.play_audio(text)
+        finally:
+            with self._play_requests_lock:
+                self._play_requests.remove(request)
     def streaming_enabled(self) -> bool:
         """Return True if the TTS handler supports streaming audio playback."""
         return False
@@ -156,6 +191,9 @@ class TTSHandler(Handler):
 
         self.stop()
         self._play_lock.acquire()
+        if self._play_cancelled():
+            self._play_lock.release()
+            return
         self._emit("start")
 
         ffmpeg_process = None

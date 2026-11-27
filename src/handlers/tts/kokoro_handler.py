@@ -92,8 +92,38 @@ class KokoroTTSHandler(TTSHandler):
         self._ensure_model_files(cache_dir)
         return Kokoro(self._model_path, self._voices_path)
 
+    LINE_PAUSE_SECONDS = 0.18
+    PARAGRAPH_PAUSE_SECONDS = 0.40
+
     def _split_text(self, message):
         return [p.strip() for p in re.split(r"\n+", message or "") if p.strip()]
+
+    def _split_text_with_pauses(self, message) -> list[tuple[str, float]]:
+        tokens = re.split(r"(\n+)", message or "")
+        segments: list[tuple[str, float]] = []
+        pending_newlines = 0
+
+        for token in tokens:
+            if not token:
+                continue
+            if token.startswith("\n"):
+                pending_newlines += len(token)
+                continue
+            stripped = token.strip()
+            if not stripped:
+                continue
+            if segments:
+                pause = (
+                    self.PARAGRAPH_PAUSE_SECONDS
+                    if pending_newlines >= 2
+                    else self.LINE_PAUSE_SECONDS
+                )
+                prev_text, _ = segments[-1]
+                segments[-1] = (prev_text, pause)
+            segments.append((stripped, 0.0))
+            pending_newlines = 0
+
+        return segments
 
     def save_audio(self, message, file):
         import numpy as np
@@ -101,15 +131,15 @@ class KokoroTTSHandler(TTSHandler):
 
         kokoro = self._get_kokoro()
         voice_id, lang_code = self._get_voice_and_lang()
-        parts = self._split_text(message)
+        segments = self._split_text_with_pauses(message)
 
-        if not parts:
+        if not segments:
             self.throw("No text to synthesize", ErrorSeverity.WARNING)
             return
 
         chunks = []
         sample_rate = None
-        for part in parts:
+        for part, pause_sec in segments:
             try:
                 samples, sr = kokoro.create(part, voice=voice_id, speed=1.0, lang=lang_code)
             except Exception:
@@ -117,6 +147,8 @@ class KokoroTTSHandler(TTSHandler):
             if sample_rate is None:
                 sample_rate = sr
             chunks.append(samples)
+            if pause_sec > 0 and sr:
+                chunks.append(np.zeros(int(sr * pause_sec), dtype=samples.dtype))
 
         audio = np.concatenate(chunks, axis=0)
         sf.write(file, audio, int(sample_rate or 24000))
@@ -185,16 +217,23 @@ class KokoroTTSHandler(TTSHandler):
 
         kokoro = self._get_kokoro()
         voice_id, lang_code = self._get_voice_and_lang()
-        parts = self._split_text(message)
+        segments = self._split_text_with_pauses(message)
 
         q = _queue.Queue()
 
         async def _produce():
-            for part in parts:
+            for part, pause_sec in segments:
+                sr_used = 24000
                 stream = kokoro.create_stream(part, voice=voice_id, speed=1.0, lang=lang_code)
-                async for samples, _ in stream:
+                async for samples, sr in stream:
+                    if sr:
+                        sr_used = sr
                     audio_int16 = (samples * 32767).astype(np.int16)
                     q.put(audio_int16.tobytes())
+                if pause_sec > 0:
+                    silence_samples = int(sr_used * pause_sec)
+                    if silence_samples > 0:
+                        q.put(b"\x00\x00" * silence_samples)
 
         def _run():
             loop = asyncio.new_event_loop()

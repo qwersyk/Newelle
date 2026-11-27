@@ -86,6 +86,9 @@
 	      <key name="tts-voice" type="s">
             <default>"{}"</default>
         </key>
+        <key name="tts-quoted-only" type="b">
+            <default>false</default>
+        </key>
         <key name="voice-mode-chat" type="s">
             <choices>
                 <choice value="new"/>
@@ -93,6 +96,13 @@
                 <choice value="shared"/>
             </choices>
             <default>"new"</default>
+        </key>
+        <key name="voice-message-action" type="s">
+            <choices>
+                <choice value="queue"/>
+                <choice value="steer"/>
+            </choices>
+            <default>"queue"</default>
         </key>
         <key name="voice-mode-position" type="s">
             <default>"bottom-center"</default>
@@ -295,6 +305,19 @@
         </key>
         <key name="wakeword-voice-mode" type="b">
             <default>false</default>
+        </key>
+        <key name="wakeword-message-action" type="s">
+            <choices>
+                <choice value="queue"/>
+                <choice value="steer"/>
+            </choices>
+            <default>"steer"</default>
+        </key>
+        <key name="wakeword-stop-tts" type="b">
+            <default>false</default>
+        </key>
+        <key name="wakeword-stop-words" type="s">
+            <default>"stop, cancel, quiet"</default>
         </key>
         <key name="wakeword-mode" type="s">
             <default>"secondary-stt"</default>

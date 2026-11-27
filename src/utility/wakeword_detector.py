@@ -11,9 +11,13 @@ When secondary STT is enabled:
 2. Takes the first N seconds (default 2s) and uses secondary STT to transcribe
 3. Checks for wakeword in the secondary transcription
 4. If wakeword detected, uses the normal STT to transcribe the full audio
+
+When TTS interruption is enabled, a wakeword (or a stop word, which needs a
+transcription) heard while TTS is playing stops the playback.
 """
 
 import os
+import re
 import threading
 import time
 import uuid
@@ -34,11 +38,16 @@ from .vad import VoiceActivityDetector
 class WakewordDetector:
     """Continuous wakeword detector using Silero VAD and STT"""
 
+    # While TTS is playing the microphone may hear it, so a speech segment can
+    # last as long as the playback. Check the ongoing segment periodically
+    # instead of waiting for silence.
+    INTERRUPT_CHECK_INTERVAL = 1.0
+
     def __init__(self, stt_handler, wakeword, vad_aggressiveness=1,
                  pre_buffer_duration=0.5, silence_duration=0.5, energy_threshold=500, callback=None,
                  on_speech_started=None, on_transcribing=None, on_transcribing_done=None,
                  secondary_stt_handler=None, wakeword_handler=None, secondary_stt_check_duration=2.0, audio_callback=None,
-                 activation_callback=None):
+                 activation_callback=None, tts_interrupt_callback=None, is_tts_playing=None, stop_words=""):
         """Initialize wakeword detector
 
         Args:
@@ -56,6 +65,9 @@ class WakewordDetector:
             wakeword_handler: Optional specialized wakeword detection handler (openwakeword mode)
             secondary_stt_check_duration: Seconds of audio to check with secondary STT (default 2.0)
             activation_callback: Optional main-loop callback to activate voice mode without transcribing a command
+            tts_interrupt_callback: Optional main-loop callback that stops the TTS playback. Enables TTS interruption
+            is_tts_playing: Callable returning True while TTS is playing
+            stop_words: Comma-separated words that stop the TTS playback without the wakeword
         """
         if not DEPENDENCIES_AVAILABLE:
             raise ImportError("pysilero-vad, pyaudio, or numpy not available")
@@ -75,6 +87,9 @@ class WakewordDetector:
         self.activation_callback = activation_callback
         self.on_transcribing = on_transcribing
         self.on_transcribing_done = on_transcribing_done
+        self.tts_interrupt_callback = tts_interrupt_callback
+        self.is_tts_playing = is_tts_playing
+        self.stop_words = self._parse_wakewords(stop_words)
 
         # Audio settings
         self.sample_rate = 16000  # Silero VAD works at 16kHz
@@ -96,6 +111,9 @@ class WakewordDetector:
         self._capture_stopped = threading.Event()
         self._capture_stopped.set()
         self._state_lock = threading.Lock()
+        self._segment_interrupted = False
+        self._interrupt_checked_frames = 0
+        self._interrupt_check_thread = None
 
     def is_running(self):
         """Check if detector is running"""
@@ -149,6 +167,83 @@ class WakewordDetector:
     def set_secondary_stt_check_duration(self, duration):
         """Update secondary STT check duration at runtime"""
         self.secondary_stt_check_duration = duration
+
+    def set_stop_words(self, words):
+        """Update TTS stop words at runtime"""
+        self.stop_words = self._parse_wakewords(words)
+
+    @staticmethod
+    def _match_word(text, words):
+        """Return the first word of words found as a whole word in text, or None"""
+        for word in words:
+            if re.search(r"\b" + re.escape(word) + r"\b", text):
+                return word
+        return None
+
+    def _tts_interrupt_active(self):
+        """Return True if TTS interruption is enabled and TTS is playing"""
+        if self.tts_interrupt_callback is None or self.is_tts_playing is None:
+            return False
+        try:
+            return bool(self.is_tts_playing())
+        except Exception:
+            return False
+
+    def _interrupt_tts(self):
+        """Stop the TTS playback, at most once per speech segment"""
+        if self._segment_interrupted:
+            return
+        self._segment_interrupted = True
+        print("WakewordDetector: Interrupting TTS")
+        GLib.idle_add(self.tts_interrupt_callback)
+
+    def _detect_interrupt(self, temp_file):
+        """Return True if the audio contains a wakeword or a stop word"""
+        if self.wakeword_handler is not None:
+            result = self._transcribe_audio_wakeword(temp_file)
+            return bool(result and result.strip())
+        if self.secondary_stt_handler is None:
+            return False
+        text = (self._transcribe_audio_secondary(temp_file) or "").lower()
+        return (any(wakeword in text for wakeword in self.wakewords)
+                or self._match_word(text, self.stop_words) is not None)
+
+    def _maybe_start_interrupt_check(self, frames):
+        """Check the ongoing speech segment for an interruption in the background"""
+        if self._segment_interrupted or (self.wakeword_handler is None and self.secondary_stt_handler is None):
+            return
+        thread = self._interrupt_check_thread
+        if thread is not None and thread.is_alive():
+            return
+        frames_per_second = self.sample_rate / self.chunk_size
+        if len(frames) - self._interrupt_checked_frames < frames_per_second * self.INTERRUPT_CHECK_INTERVAL:
+            return
+        if not self._tts_interrupt_active():
+            return
+        self._interrupt_checked_frames = len(frames)
+        window = max(1, int(self.secondary_stt_check_duration * frames_per_second))
+        thread = threading.Thread(target=self._run_interrupt_check, args=(frames[-window:],), daemon=True)
+        self._interrupt_check_thread = thread
+        thread.start()
+
+    def _run_interrupt_check(self, frames):
+        temp_file = None
+        try:
+            cache_dir = os.path.join(GLib.get_user_cache_dir(), "newelle", "wakeword")
+            os.makedirs(cache_dir, exist_ok=True)
+            temp_file = os.path.join(cache_dir, f"interrupt_{uuid.uuid4().hex}.wav")
+            if not self._save_to_wav(frames, temp_file):
+                return
+            if self._tts_interrupt_active() and self._detect_interrupt(temp_file):
+                self._interrupt_tts()
+        except Exception as e:
+            print(f"WakewordDetector: Interrupt check error: {e}")
+        finally:
+            if temp_file and os.path.exists(temp_file):
+                try:
+                    os.remove(temp_file)
+                except Exception as e:
+                    print(f"WakewordDetector: Error removing temp file: {e}")
 
     def _calculate_rms_energy(self, frame):
         """Calculate RMS (root mean square) energy of audio frame
@@ -299,6 +394,13 @@ class WakewordDetector:
         if not frames or len(frames) == 0:
             return
 
+        # The background check shares the STT handlers with this method
+        check_thread = self._interrupt_check_thread
+        if check_thread is not None:
+            check_thread.join()
+            self._interrupt_check_thread = None
+        tts_playing = self._tts_interrupt_active()
+
         # Save to temp file in GLib cache directory
         temp_file_path = None
         temp_file_secondary = None
@@ -344,6 +446,8 @@ class WakewordDetector:
                         print(f"WakewordDetector: Wakeword handler detected: '{result_lower}'")
 
                 if wakeword_detected:
+                    if tts_playing:
+                        self._interrupt_tts()
                     if self.activation_callback:
                         GLib.idle_add(self.activation_callback)
                         return
@@ -360,7 +464,8 @@ class WakewordDetector:
                         else:
                             command = result_lower.strip()
                         
-                        if self.callback:
+                        # Saying only the wakeword to interrupt TTS is not a missing command
+                        if self.callback and (command or not self._segment_interrupted):
                             GLib.idle_add(self.callback, command)
                 else:
                     print(f"WakewordDetector: No wakeword detected by wakeword handler")
@@ -394,6 +499,8 @@ class WakewordDetector:
 
                     # Only transcribe full audio if wakeword was detected
                     if wakeword_detected:
+                        if tts_playing:
+                            self._interrupt_tts()
                         if self.activation_callback:
                             GLib.idle_add(self.activation_callback)
                             return
@@ -403,7 +510,10 @@ class WakewordDetector:
                         print(f"WakewordDetector: Wakeword found, transcribing full audio with primary STT")
                         result = self._transcribe_audio(temp_file_path)
                     else:
-                        print(f"WakewordDetector: No wakeword in secondary check, skipping full transcription")
+                        if tts_playing and self._match_word((secondary_result or "").lower(), self.stop_words):
+                            self._interrupt_tts()
+                        else:
+                            print(f"WakewordDetector: No wakeword in secondary check, skipping full transcription")
                         return
             else:
                 # Normal workflow: transcribe full audio
@@ -419,6 +529,8 @@ class WakewordDetector:
                         break
 
                 if matched_wakeword:
+                    if tts_playing:
+                        self._interrupt_tts()
                     if self.activation_callback:
                         GLib.idle_add(self.activation_callback)
                         return
@@ -431,8 +543,11 @@ class WakewordDetector:
                     print(f"WakewordDetector: Wakeword '{matched_wakeword}' detected! Command: '{command}'")
 
                     # Call callback on main thread
-                    if self.callback:
+                    # Saying only the wakeword to interrupt TTS is not a missing command
+                    if self.callback and (command or not self._segment_interrupted):
                         GLib.idle_add(self.callback, command)
+                elif tts_playing and self._match_word(result_lower, self.stop_words):
+                    self._interrupt_tts()
                 else:
                     print(f"WakewordDetector: Speech detected but no wakeword found. Transcription: '{result_lower}'")
 
@@ -532,6 +647,8 @@ class WakewordDetector:
                             # Speech started - capture pre-buffer
                             in_speech = True
                             speech_frames = list(pre_buffer)
+                            self._segment_interrupted = False
+                            self._interrupt_checked_frames = 0
                             print("WakewordDetector: Speech started")
                             # Notify UI that speech detection started
                             if self.on_speech_started:
@@ -540,6 +657,7 @@ class WakewordDetector:
                         if in_speech:
                             speech_frames.append(frame)
                             silence_frames = 0
+                            self._maybe_start_interrupt_check(speech_frames)
                     else:
                         # Reset consecutive speech counter on non-speech
                         if not in_speech:
